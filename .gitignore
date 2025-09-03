@@ -1,0 +1,45 @@
+# Elixir
+/_build
+/cover
+/deps
+/doc
+/.fetch
+erl_crash.dump
+*.ez
+priv/static/
+.elixir_ls/
+
+# Kotlin/Android
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.ap_
+*.aab
+
+# iOS
+DerivedData/
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+
+# General
+.env
+.env.local
+.vscode/
+*.log
+node_modules/
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
