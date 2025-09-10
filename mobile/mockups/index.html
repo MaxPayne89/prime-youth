@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Youth - Mobile Mockups</title>
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/screens.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation for mockup demonstration -->
+        <nav class="mockup-nav">
+            <h1>Prime Youth Mobile Mockups</h1>
+            <div class="nav-buttons">
+                <button onclick="showScreen('login')" class="nav-btn">Login</button>
+                <button onclick="showScreen('home')" class="nav-btn">Home</button>
+                <button onclick="showScreen('activities')" class="nav-btn">Activities</button>
+                <button onclick="showScreen('profile')" class="nav-btn">Profile</button>
+            </div>
+        </nav>
+
+        <!-- Login Screen -->
+        <div id="login" class="screen active">
+            <div class="login-container">
+                <div class="logo-container">
+                    <div class="prime-logo">
+                        <div class="logo-block yellow"></div>
+                        <div class="logo-block magenta"></div>
+                        <div class="logo-block cyan"></div>
+                    </div>
+                    <h1 class="app-title">PRIME YOUTH</h1>
+                    <p class="app-subtitle">Afterschool Activities & Camps</p>
+                </div>
+
+                <form class="login-form">
+                    <div class="input-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" placeholder="Enter your email">
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" placeholder="Enter your password">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Sign In</button>
+                    
+                    <div class="auth-links">
+                        <a href="#" class="link">Forgot Password?</a>
+                        <a href="#" class="link">Don't have an account? Sign up</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Home Screen -->
+        <div id="home" class="screen">
+            <header class="app-header">
+                <div class="header-content">
+                    <h2>Welcome back, Sarah</h2>
+                    <div class="notification-badge">
+                        <span class="badge-count">3</span>
+                    </div>
+                </div>
+            </header>
+
+            <main class="home-content">
+                <!-- Quick Actions -->
+                <section class="quick-actions">
+                    <h3>Quick Actions</h3>
+                    <div class="action-grid">
+                        <div class="action-card yellow">
+                            <div class="action-icon">📅</div>
+                            <span>Browse Activities</span>
+                        </div>
+                        <div class="action-card magenta">
+                            <div class="action-icon">🎯</div>
+                            <span>My Bookings</span>
+                        </div>
+                        <div class="action-card cyan">
+                            <div class="action-icon">👤</div>
+                            <span>Profile</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Upcoming Activities -->
+                <section class="upcoming-activities">
+                    <h3>Upcoming Activities</h3>
+                    <div class="activity-list">
+                        <div class="activity-card">
+                            <div class="activity-image chess"></div>
+                            <div class="activity-info">
+                                <h4>Chess Club</h4>
+                                <p class="activity-time">Today, 3:30 PM</p>
+                                <p class="activity-location">Room 201</p>
+                            </div>
+                            <div class="activity-status confirmed">Confirmed</div>
+                        </div>
+                        
+                        <div class="activity-card">
+                            <div class="activity-image music"></div>
+                            <div class="activity-info">
+                                <h4>Music Lessons</h4>
+                                <p class="activity-time">Tomorrow, 4:00 PM</p>
+                                <p class="activity-location">Music Room</p>
+                            </div>
+                            <div class="activity-status pending">Pending</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recommendations -->
+                <section class="recommendations">
+                    <h3>Recommended for You</h3>
+                    <div class="recommendation-scroll">
+                        <div class="recommendation-card">
+                            <div class="rec-image climbing"></div>
+                            <h4>Rock Climbing</h4>
+                            <p>Ages 8-12</p>
+                        </div>
+                        <div class="recommendation-card">
+                            <div class="rec-image art"></div>
+                            <h4>Art Workshop</h4>
+                            <p>Ages 6-10</p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <nav class="bottom-nav">
+                <div class="nav-item active">
+                    <div class="nav-icon">🏠</div>
+                    <span>Home</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">🎯</div>
+                    <span>Activities</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">📅</div>
+                    <span>Schedule</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">👤</div>
+                    <span>Profile</span>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Activities Screen -->
+        <div id="activities" class="screen">
+            <header class="app-header">
+                <h2>Activities</h2>
+                <div class="header-actions">
+                    <button class="btn-icon">🔍</button>
+                    <button class="btn-icon">⚙️</button>
+                </div>
+            </header>
+
+            <div class="filter-bar">
+                <div class="filter-chips">
+                    <div class="chip active">All</div>
+                    <div class="chip">Sports</div>
+                    <div class="chip">Arts</div>
+                    <div class="chip">STEM</div>
+                    <div class="chip">Music</div>
+                </div>
+            </div>
+
+            <main class="activities-content">
+                <div class="activity-grid">
+                    <div class="activity-card-large">
+                        <div class="activity-image-large chess"></div>
+                        <div class="activity-details">
+                            <div class="activity-header">
+                                <h3>Chess Club</h3>
+                                <div class="price">$25/session</div>
+                            </div>
+                            <p class="activity-description">Learn strategic thinking and problem-solving through chess.</p>
+                            <div class="activity-meta">
+                                <span class="age-group">Ages 8-16</span>
+                                <span class="duration">1.5 hours</span>
+                                <span class="availability">5 spots left</span>
+                            </div>
+                            <div class="activity-footer">
+                                <div class="instructor">
+                                    <div class="instructor-avatar">GM</div>
+                                    <span>Grandmaster Mike</span>
+                                </div>
+                                <button class="btn btn-secondary">Enroll</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="activity-card-large">
+                        <div class="activity-image-large music"></div>
+                        <div class="activity-details">
+                            <div class="activity-header">
+                                <h3>Piano Lessons</h3>
+                                <div class="price">$40/session</div>
+                            </div>
+                            <p class="activity-description">Individual piano instruction for all skill levels.</p>
+                            <div class="activity-meta">
+                                <span class="age-group">Ages 6+</span>
+                                <span class="duration">45 minutes</span>
+                                <span class="availability">3 spots left</span>
+                            </div>
+                            <div class="activity-footer">
+                                <div class="instructor">
+                                    <div class="instructor-avatar">MS</div>
+                                    <span>Music Sarah</span>
+                                </div>
+                                <button class="btn btn-secondary">Enroll</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="activity-card-large">
+                        <div class="activity-image-large climbing"></div>
+                        <div class="activity-details">
+                            <div class="activity-header">
+                                <h3>Rock Climbing</h3>
+                                <div class="price">$35/session</div>
+                            </div>
+                            <p class="activity-description">Build strength and confidence on our climbing wall.</p>
+                            <div class="activity-meta">
+                                <span class="age-group">Ages 8-14</span>
+                                <span class="duration">2 hours</span>
+                                <span class="availability">Full</span>
+                            </div>
+                            <div class="activity-footer">
+                                <div class="instructor">
+                                    <div class="instructor-avatar">RC</div>
+                                    <span>Rock Climber Tom</span>
+                                </div>
+                                <button class="btn btn-disabled">Waitlist</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <nav class="bottom-nav">
+                <div class="nav-item">
+                    <div class="nav-icon">🏠</div>
+                    <span>Home</span>
+                </div>
+                <div class="nav-item active">
+                    <div class="nav-icon">🎯</div>
+                    <span>Activities</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">📅</div>
+                    <span>Schedule</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">👤</div>
+                    <span>Profile</span>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Profile Screen -->
+        <div id="profile" class="screen">
+            <header class="app-header">
+                <h2>Profile</h2>
+                <button class="btn-icon">⚙️</button>
+            </header>
+
+            <main class="profile-content">
+                <div class="profile-header">
+                    <div class="profile-avatar">SP</div>
+                    <div class="profile-info">
+                        <h3>Sarah Parker</h3>
+                        <p>Parent Account</p>
+                        <p class="member-since">Member since March 2024</p>
+                    </div>
+                </div>
+
+                <div class="profile-stats">
+                    <div class="stat">
+                        <div class="stat-number">12</div>
+                        <div class="stat-label">Activities Enrolled</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">3</div>
+                        <div class="stat-label">Children</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">85%</div>
+                        <div class="stat-label">Attendance Rate</div>
+                    </div>
+                </div>
+
+                <div class="profile-sections">
+                    <section class="profile-section">
+                        <h4>My Children</h4>
+                        <div class="children-list">
+                            <div class="child-card">
+                                <div class="child-avatar">EM</div>
+                                <div class="child-info">
+                                    <h5>Emma Parker</h5>
+                                    <p>Age 10 • 4th Grade</p>
+                                </div>
+                            </div>
+                            <div class="child-card">
+                                <div class="child-avatar">LP</div>
+                                <div class="child-info">
+                                    <h5>Liam Parker</h5>
+                                    <p>Age 8 • 2nd Grade</p>
+                                </div>
+                            </div>
+                            <div class="child-card">
+                                <div class="child-avatar">ZP</div>
+                                <div class="child-info">
+                                    <h5>Zoe Parker</h5>
+                                    <p>Age 6 • Kindergarten</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="profile-section">
+                        <h4>Account Settings</h4>
+                        <div class="settings-list">
+                            <div class="setting-item">
+                                <span>Notifications</span>
+                                <div class="toggle-switch active"></div>
+                            </div>
+                            <div class="setting-item">
+                                <span>Email Updates</span>
+                                <div class="toggle-switch"></div>
+                            </div>
+                            <div class="setting-item">
+                                <span>Payment Method</span>
+                                <span class="setting-value">•••• 4242</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="profile-section">
+                        <h4>Support</h4>
+                        <div class="support-links">
+                            <a href="#" class="support-link">Help Center</a>
+                            <a href="#" class="support-link">Contact Support</a>
+                            <a href="#" class="support-link">Terms of Service</a>
+                            <a href="#" class="support-link">Privacy Policy</a>
+                        </div>
+                    </section>
+                </div>
+
+                <button class="btn btn-outline logout-btn">Sign Out</button>
+            </main>
+
+            <nav class="bottom-nav">
+                <div class="nav-item">
+                    <div class="nav-icon">🏠</div>
+                    <span>Home</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">🎯</div>
+                    <span>Activities</span>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">📅</div>
+                    <span>Schedule</span>
+                </div>
+                <div class="nav-item active">
+                    <div class="nav-icon">👤</div>
+                    <span>Profile</span>
+                </div>
+            </nav>
+        </div>
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show selected screen
+            document.getElementById(screenId).classList.add('active');
+            
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
