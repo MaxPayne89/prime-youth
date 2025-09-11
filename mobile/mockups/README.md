@@ -2,6 +2,72 @@
 
 A comprehensive, modern mobile UI system for the Prime Youth application, featuring advanced interactions, dark mode support, and accessibility-first design.
 
+## 🚀 Quick Start for Non-Developers
+
+**Want to see the app mockups right away?** Here's how to get started in 30 seconds:
+
+### 1. Start Here (Main Hub)
+- **Double-click**: `index.html` in this folder
+- This opens the main dashboard where you can access everything
+
+### 2. Or Jump to App Screens  
+- **Double-click**: `app-mockups.html` 
+- Shows the actual phone app screens (Login, Home, etc.)
+
+### 3. What to Expect
+- **Interactive mockups** - Everything is clickable and works like a real app
+- **Multiple screens** - Use the buttons at the top to switch between Login, Home, Programs, Profile, etc.
+- **Dark/Light mode** - Toggle the 🌙/☀️ button to see both themes
+- **Mobile-friendly** - Works great on phones, tablets, and computers
+
+### 4. Navigation Tips
+- **Top buttons** = Switch between app screens  
+- **Bottom tabs** = Navigate within each screen (like Home, Programs, Profile)
+- **All buttons work** = Feel free to click everything!
+- **Scroll down** = More content on each screen
+
+### 5. Files You Might Want to Check Out
+- `app-mockups.html` - **Main app screens** (start here!)
+- `components-demo.html` - Individual buttons and UI pieces
+- `design-system.html` - Interactive features and animations  
+- `design-tokens.html` - Colors and design foundations
+
+### 6. Sharing with Others
+To share these mockups:
+1. **Send the whole `mobile/mockups/` folder**
+2. **Tell them to open `index.html` first**  
+3. **Works in any modern browser** (Chrome, Firefox, Safari, Edge)
+
+### 7. Troubleshooting
+
+**Common Issues & Solutions:**
+
+**🚫 File won't open or shows code instead of mockup:**
+- Right-click the HTML file → "Open with" → choose your web browser
+- Try a different browser (Chrome, Firefox, Safari, Edge all work)
+
+**⚠️ Page looks broken or unstyled:**
+- Make sure JavaScript is enabled in your browser
+- Try refreshing the page (F5 or Ctrl+R / Cmd+R)
+- Check that all files in the folder are together (don't move individual files)
+
+**📱 Doesn't work on mobile:**
+- Use a modern mobile browser (Chrome, Safari, Firefox)
+- Try landscape mode for better viewing
+- Zoom out if content appears too large
+
+**🔄 Dark/Light mode toggle not working:**
+- Make sure JavaScript is enabled
+- Try clicking directly on the 🌙/☀️ symbol
+- Refresh the page if needed
+
+**💻 Sharing with others:**
+- Send the entire `mobile/mockups/` folder (not just one file)
+- Zip the folder if emailing
+- Recipients need to open `index.html` first
+
+---
+
 ## 🎨 Design System
 
 ### Brand Colors
