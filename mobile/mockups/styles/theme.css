@@ -1,0 +1,436 @@
+/* Prime Youth Mobile UI System - Theme & Colors */
+
+/* CSS Custom Properties for Theme System */
+:root {
+    /* Brand Colors - Prime Youth Palette */
+    --prime-yellow: #FFD700;
+    --prime-magenta: #FF1493;
+    --prime-cyan: #00CED1;
+    
+    /* Light Theme Colors */
+    --color-primary: var(--prime-yellow);
+    --color-secondary: var(--prime-magenta);
+    --color-accent: var(--prime-cyan);
+    
+    /* Neutral Colors - Light */
+    --color-bg-primary: #FFFFFF;
+    --color-bg-secondary: #F8F9FA;
+    --color-bg-tertiary: #E9ECEF;
+    --color-surface: #FFFFFF;
+    --color-surface-elevated: #FFFFFF;
+    
+    /* Text Colors - Light */
+    --color-text-primary: #212529;
+    --color-text-secondary: #6C757D;
+    --color-text-tertiary: #ADB5BD;
+    --color-text-inverse: #FFFFFF;
+    
+    /* Border & Divider Colors - Light */
+    --color-border-light: #E9ECEF;
+    --color-border-medium: #DEE2E6;
+    --color-border-strong: #ADB5BD;
+    
+    /* State Colors */
+    --color-success: #28A745;
+    --color-warning: #FFC107;
+    --color-error: #DC3545;
+    --color-info: var(--prime-cyan);
+    
+    /* Shadow Colors */
+    --shadow-light: rgba(0, 0, 0, 0.05);
+    --shadow-medium: rgba(0, 0, 0, 0.1);
+    --shadow-strong: rgba(0, 0, 0, 0.15);
+    
+    /* Component-specific colors */
+    --color-input-bg: #FFFFFF;
+    --color-input-border: #CED4DA;
+    --color-input-focus: var(--prime-cyan);
+    --color-button-shadow: rgba(255, 215, 0, 0.3);
+    
+    /* Spacing Scale - Increased for better breathing room */
+    --spacing-xs: 0.5rem;   /* 8px */
+    --spacing-sm: 0.75rem;  /* 12px */
+    --spacing-md: 1.25rem;  /* 20px */
+    --spacing-lg: 2rem;     /* 32px */
+    --spacing-xl: 2.5rem;   /* 40px */
+    --spacing-2xl: 3.5rem;  /* 56px */
+    
+    /* Border Radius */
+    --radius-sm: 0.25rem;   /* 4px */
+    --radius-md: 0.5rem;    /* 8px */
+    --radius-lg: 0.75rem;   /* 12px */
+    --radius-xl: 1rem;      /* 16px */
+    --radius-full: 9999px;
+    
+    /* Typography */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-size-xs: 0.75rem;   /* 12px */
+    --font-size-sm: 0.875rem;  /* 14px */
+    --font-size-base: 1rem;    /* 16px */
+    --font-size-lg: 1.125rem;  /* 18px */
+    --font-size-xl: 1.25rem;   /* 20px */
+    --font-size-2xl: 1.5rem;   /* 24px */
+    --font-size-3xl: 1.875rem; /* 30px */
+    
+    /* Line Heights */
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.625;
+    
+    /* Font Weights */
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 250ms ease;
+    --transition-slow: 350ms ease;
+    --transition-bounce: 250ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    
+    /* Z-index Scale */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+    --z-toast: 1080;
+}
+
+/* Dark Theme Override */
+[data-theme="dark"] {
+    /* Dark Theme Colors */
+    --color-primary: #FFD700;  /* Keep yellow bright for contrast */
+    --color-secondary: #FF69B4; /* Softer magenta for dark mode */
+    --color-accent: #20B2AA;    /* Softer cyan for dark mode */
+    
+    /* Background Colors - Dark */
+    --color-bg-primary: #121212;
+    --color-bg-secondary: #1E1E1E;
+    --color-bg-tertiary: #2D2D2D;
+    --color-surface: #1E1E1E;
+    --color-surface-elevated: #2D2D2D;
+    
+    /* Text Colors - Dark */
+    --color-text-primary: #FFFFFF;
+    --color-text-secondary: #B3B3B3;
+    --color-text-tertiary: #808080;
+    --color-text-inverse: #121212;
+    
+    /* Border & Divider Colors - Dark */
+    --color-border-light: #2D2D2D;
+    --color-border-medium: #404040;
+    --color-border-strong: #666666;
+    
+    /* State Colors - Dark Adapted */
+    --color-success: #4CAF50;
+    --color-warning: #FF9800;
+    --color-error: #F44336;
+    --color-info: #20B2AA;
+    
+    /* Shadow Colors - Dark */
+    --shadow-light: rgba(0, 0, 0, 0.2);
+    --shadow-medium: rgba(0, 0, 0, 0.3);
+    --shadow-strong: rgba(0, 0, 0, 0.4);
+    
+    /* Component-specific colors - Dark */
+    --color-input-bg: #2D2D2D;
+    --color-input-border: #404040;
+    --color-input-focus: #20B2AA;
+    --color-button-shadow: rgba(255, 215, 0, 0.2);
+}
+
+/* Base Styles */
+* {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    color: var(--color-text-primary);
+    background-color: var(--color-bg-primary);
+    transition: background-color var(--transition-normal), color var(--transition-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* App Container */
+.app-container {
+    max-width: 414px; /* iPhone width */
+    margin: 0 auto;
+    background-color: var(--color-surface);
+    min-height: 100vh;
+    position: relative;
+    box-shadow: 0 0 20px var(--shadow-medium);
+    transition: background-color var(--transition-normal);
+}
+
+/* Header */
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-lg) var(--spacing-md);
+    background-color: var(--color-surface-elevated);
+    border-bottom: 1px solid var(--color-border-light);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-sticky);
+    transition: background-color var(--transition-normal);
+}
+
+.app-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: 0;
+    background: linear-gradient(135deg, var(--prime-yellow) 0%, var(--prime-magenta) 50%, var(--prime-cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Theme Toggle */
+.theme-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.theme-toggle {
+    background: none;
+    border: 2px solid var(--color-border-medium);
+    border-radius: var(--radius-full);
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    font-size: var(--font-size-lg);
+}
+
+.theme-toggle:hover {
+    border-color: var(--color-accent);
+    transform: scale(1.05);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+[data-theme="dark"] .theme-toggle .theme-icon::before {
+    content: "☀️";
+}
+
+[data-theme="light"] .theme-toggle .theme-icon::before,
+.theme-toggle .theme-icon::before {
+    content: "🌙";
+}
+
+/* Navigation Tabs */
+.navigation {
+    background-color: var(--color-surface-elevated);
+    border-bottom: 1px solid var(--color-border-light);
+    padding: 0 var(--spacing-md);
+    position: sticky;
+    top: 73px; /* Height of header */
+    z-index: var(--z-sticky);
+    transition: background-color var(--transition-normal);
+}
+
+.nav-tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.nav-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.nav-tab {
+    background: none;
+    border: none;
+    padding: var(--spacing-md) var(--spacing-lg);
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+    position: relative;
+}
+
+.nav-tab:hover {
+    color: var(--color-text-primary);
+}
+
+.nav-tab.active {
+    color: var(--color-accent);
+    border-bottom-color: var(--color-accent);
+}
+
+.nav-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--prime-yellow) 0%, var(--prime-magenta) 50%, var(--prime-cyan) 100%);
+    border-radius: var(--radius-sm);
+}
+
+/* Main Content */
+.main-content {
+    padding: var(--spacing-lg) var(--spacing-md);
+    min-height: calc(100vh - 146px); /* Adjust for header and nav */
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn var(--transition-normal);
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Section Headers */
+.section-header {
+    margin-bottom: var(--spacing-2xl);
+    text-align: center;
+}
+
+.section-header h2 {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.section-header p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+    margin: 0;
+}
+
+/* Component Groups */
+.component-group {
+    margin-bottom: var(--spacing-2xl);
+}
+
+.component-group h3 {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0 0 var(--spacing-lg) 0;
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 2px solid var(--color-border-light);
+}
+
+/* Grids */
+.component-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.states-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+}
+
+@media (min-width: 360px) {
+    .states-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Accessibility - Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Touch-friendly sizing */
+@media (pointer: coarse) {
+    .nav-tab {
+        padding: var(--spacing-lg) var(--spacing-xl);
+    }
+    
+    .theme-toggle {
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --color-border-light: #000000;
+        --color-border-medium: #000000;
+        --shadow-light: rgba(0, 0, 0, 0.5);
+        --shadow-medium: rgba(0, 0, 0, 0.7);
+    }
+    
+    [data-theme="dark"] {
+        --color-border-light: #FFFFFF;
+        --color-border-medium: #FFFFFF;
+    }
+}

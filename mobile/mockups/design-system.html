@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Youth - Mobile Mockups</title>
+    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/states.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="app-title">Prime Youth UI System</h1>
+            <div class="theme-controls">
+                <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <nav class="navigation">
+            <div class="nav-tabs" role="tablist">
+                <button class="nav-tab active" data-tab="components" role="tab">Components</button>
+                <button class="nav-tab" data-tab="interactions" role="tab">Interactions</button>
+                <button class="nav-tab" data-tab="states" role="tab">States</button>
+                <button class="nav-tab" data-tab="animations" role="tab">Animations</button>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <!-- Components Tab -->
+            <section id="components" class="tab-content active" role="tabpanel">
+                <div class="section-header">
+                    <h2>Component Library</h2>
+                    <p>Core UI components with brand colors and interactions</p>
+                </div>
+
+                <!-- Buttons -->
+                <div class="component-group">
+                    <h3>Buttons</h3>
+                    <div class="component-grid">
+                        <button class="btn btn-primary">Primary Action</button>
+                        <button class="btn btn-secondary">Secondary</button>
+                        <button class="btn btn-outline">Outline</button>
+                        <button class="btn btn-ghost">Ghost</button>
+                        <button class="btn btn-primary" disabled>Disabled</button>
+                        <button class="btn btn-loading" data-loading>
+                            <span class="btn-text">Loading</span>
+                            <span class="loading-spinner"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cards -->
+                <div class="component-group">
+                    <h3>Cards</h3>
+                    <div class="component-grid">
+                        <div class="card activity-card">
+                            <div class="card-image">
+                                <div class="image-placeholder"></div>
+                            </div>
+                            <div class="card-content">
+                                <h4>Summer Art Camp</h4>
+                                <p class="card-meta">Ages 6-12 • July 15-26</p>
+                                <p class="card-description">Creative arts and crafts activities</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-primary">Enroll</button>
+                            </div>
+                        </div>
+
+                        <div class="card profile-card">
+                            <div class="profile-avatar">
+                                <div class="avatar-placeholder"></div>
+                            </div>
+                            <div class="card-content">
+                                <h4>Sarah Johnson</h4>
+                                <p class="card-meta">Art Instructor</p>
+                                <div class="profile-stats">
+                                    <span class="stat">4.9★</span>
+                                    <span class="stat">156 Reviews</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Elements -->
+                <div class="component-group">
+                    <h3>Form Elements</h3>
+                    <div class="form-example">
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <input type="email" id="email" class="form-input" placeholder="Enter your email">
+                            <span class="form-error" id="email-error">Please enter a valid email address</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <input type="password" id="password" class="form-input" placeholder="Create a password">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Activity Type</label>
+                            <div class="radio-group">
+                                <label class="radio-item">
+                                    <input type="radio" name="activity" value="camp">
+                                    <span class="radio-custom"></span>
+                                    Summer Camp
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="activity" value="class">
+                                    <span class="radio-custom"></span>
+                                    After School Class
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="checkbox-item">
+                                <input type="checkbox" checked>
+                                <span class="checkbox-custom"></span>
+                                Send me notifications about new activities
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Elements -->
+                <div class="component-group">
+                    <h3>Navigation</h3>
+                    <div class="bottom-nav-example">
+                        <nav class="bottom-nav">
+                            <a href="#" class="nav-item active">
+                                <span class="nav-icon">🏠</span>
+                                <span class="nav-label">Home</span>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <span class="nav-icon">🔍</span>
+                                <span class="nav-label">Browse</span>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <span class="nav-icon">📅</span>
+                                <span class="nav-label">Schedule</span>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <span class="nav-icon">👤</span>
+                                <span class="nav-label">Profile</span>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Interactions Tab -->
+            <section id="interactions" class="tab-content" role="tabpanel">
+                <div class="section-header">
+                    <h2>Interactive Elements</h2>
+                    <p>Touch interactions, gestures, and feedback</p>
+                </div>
+
+                <div class="component-group">
+                    <h3>Touch Feedback</h3>
+                    <div class="component-grid">
+                        <button class="btn btn-primary ripple-effect">Ripple Effect</button>
+                        <button class="btn btn-secondary scale-effect">Scale Effect</button>
+                        <div class="card touch-card">
+                            <p>Touch this card to see interaction feedback</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-group">
+                    <h3>Form Interactions</h3>
+                    <div class="form-example">
+                        <div class="form-group">
+                            <label class="form-label" for="interactive-email">Email</label>
+                            <input type="email" id="interactive-email" class="form-input interactive-input" placeholder="Enter email">
+                            <span class="form-success">✓ Valid email format</span>
+                            <span class="form-error">✗ Please enter a valid email</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="interactive-phone">Phone Number</label>
+                            <input type="tel" id="interactive-phone" class="form-input interactive-input" placeholder="(555) 123-4567">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-group">
+                    <h3>Modal Interactions</h3>
+                    <button class="btn btn-primary" id="openModal">Open Modal</button>
+                    
+                    <div id="modal" class="modal">
+                        <div class="modal-backdrop"></div>
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3>Activity Details</h3>
+                                <button class="modal-close" id="closeModal">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <p>This is an example modal with smooth animations and backdrop interactions.</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="btn btn-secondary" id="modalCancel">Cancel</button>
+                                <button class="btn btn-primary">Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-group">
+                    <h3>Pull to Refresh</h3>
+                    <div class="refresh-container" id="refreshContainer">
+                        <div class="refresh-indicator">
+                            <div class="refresh-spinner"></div>
+                            <span class="refresh-text">Pull to refresh</span>
+                        </div>
+                        <div class="refresh-content">
+                            <p>Pull down to see refresh animation</p>
+                            <div class="content-list">
+                                <div class="list-item">Activity 1</div>
+                                <div class="list-item">Activity 2</div>
+                                <div class="list-item">Activity 3</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- States Tab -->
+            <section id="states" class="tab-content" role="tabpanel">
+                <div class="section-header">
+                    <h2>UI States</h2>
+                    <p>Loading, error, and empty states</p>
+                </div>
+
+                <div class="component-group">
+                    <h3>Loading States</h3>
+                    <div class="states-grid">
+                        <div class="state-example">
+                            <h4>Skeleton Loading</h4>
+                            <div class="skeleton-card">
+                                <div class="skeleton-image"></div>
+                                <div class="skeleton-content">
+                                    <div class="skeleton-title"></div>
+                                    <div class="skeleton-text"></div>
+                                    <div class="skeleton-text short"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="state-example">
+                            <h4>Shimmer Effect</h4>
+                            <div class="shimmer-container">
+                                <div class="shimmer-item"></div>
+                                <div class="shimmer-item"></div>
+                                <div class="shimmer-item"></div>
+                            </div>
+                        </div>
+
+                        <div class="state-example">
+                            <h4>Spinner Variations</h4>
+                            <div class="spinner-examples">
+                                <div class="loading-spinner primary"></div>
+                                <div class="loading-spinner secondary"></div>
+                                <div class="loading-spinner dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-group">
+                    <h3>Error States</h3>
+                    <div class="states-grid">
+                        <div class="state-example">
+                            <div class="error-state network-error">
+                                <div class="error-icon">📡</div>
+                                <h4>Connection Failed</h4>
+                                <p>Please check your internet connection and try again.</p>
+                                <button class="btn btn-primary">Retry</button>
+                            </div>
+                        </div>
+
+                        <div class="state-example">
+                            <div class="error-state server-error">
+                                <div class="error-icon">⚠️</div>
+                                <h4>Something went wrong</h4>
+                                <p>We're having trouble loading this page. Please try again in a moment.</p>
+                                <button class="btn btn-outline">Go Back</button>
+                            </div>
+                        </div>
+
+                        <div class="state-example">
+                            <div class="error-state not-found">
+                                <div class="error-icon">🔍</div>
+                                <h4>Page Not Found</h4>
+                                <p>The page you're looking for doesn't exist or has been moved.</p>
+                                <button class="btn btn-primary">Go Home</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-group">
+                    <h3>Empty States</h3>
+                    <div class="states-grid">
+                        <div class="state-example">
+                            <div class="empty-state">
+                                <div class="empty-icon">📅</div>
+                                <h4>No Activities Scheduled</h4>
+                                <p>You don't have any upcoming activities. Browse available programs to get started.</p>
+                                <button class="btn btn-primary">Browse Activities</button>
+                            </div>
+                        </div>
+
+                        <div class="state-example">
+                            <div class="empty-state">
+                                <div class="empty-icon">🔍</div>
+                                <h4>No Search Results</h4>
+                                <p>We couldn't find any activities matching your search. Try different keywords.</p>
+                                <button class="btn btn-outline">Clear Filters</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Animations Tab -->
+            <section id="animations" class="tab-content" role="tabpanel">
+                <div class="section-header">
+                    <h2>Animations & Transitions</h2>
+                    <p>Smooth transitions and micro-interactions</p>
+                </div>
+
+                <div class="component-group">
+                    <h3>Screen Transitions</h3>
+                    <div class="transition-examples">
+                        <button class="btn btn-primary" data-transition="slide-left">Slide Left</button>
+                        <button class="btn btn-primary" data-transition="slide-up">Slide Up</button>
+                        <button class="btn btn-primary" data-transition="fade">Fade</button>
+                        <button class="btn btn-primary" data-transition="scale">Scale</button>
+                    </div>
+                    <div class="transition-demo" id="transitionDemo">
+                        <div class="demo-screen active">
+                            <h3>Screen 1</h3>
+                            <p>This is the current screen</p>
+                        </div>
+                        <div class="demo-screen">
+                            <h3>Screen 2</h3>
+                            <p>This is the next screen</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-group">
+                    <h3>Micro-interactions</h3>
+                    <div class="micro-interactions">
+                        <div class="interaction-item hover-lift">
+                            <span>Hover Lift Effect</span>
+                        </div>
+                        <div class="interaction-item bounce-in">
+                            <span>Bounce In Animation</span>
+                        </div>
+                        <div class="interaction-item slide-reveal">
+                            <span>Slide Reveal Text</span>
+                        </div>
+                        <div class="interaction-item pulse-glow">
+                            <span>Pulse Glow Effect</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-group">
+                    <h3>List Animations</h3>
+                    <div class="animated-list">
+                        <div class="list-item animate-in" style="--delay: 0">First Item</div>
+                        <div class="list-item animate-in" style="--delay: 1">Second Item</div>
+                        <div class="list-item animate-in" style="--delay: 2">Third Item</div>
+                        <div class="list-item animate-in" style="--delay: 3">Fourth Item</div>
+                        <div class="list-item animate-in" style="--delay: 4">Fifth Item</div>
+                    </div>
+                    <button class="btn btn-outline" id="replayAnimation">Replay Animation</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="scripts/theme.js"></script>
+    <script src="scripts/interactions.js"></script>
+    <script src="scripts/animations.js"></script>
+</body>
+</html>
