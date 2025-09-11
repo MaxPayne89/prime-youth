@@ -89,19 +89,23 @@
             flex: 1;
             display: flex;
             justify-content: center;
-            padding: var(--space-xl);
+            padding: var(--space-lg) var(--space-xl);
+            margin-top: 2rem;
+            min-height: calc(100vh - 180px);
         }
 
         .phone-frame {
-            width: 375px;
-            height: 812px;
+            width: clamp(300px, 85vw, 375px);
+            height: clamp(600px, 85vh, 812px);
+            max-height: calc(100vh - 200px);
             background: var(--color-gray-900);
-            border-radius: 40px;
-            padding: 8px;
+            border-radius: clamp(24px, 6vw, 40px);
+            padding: clamp(4px, 1vw, 8px);
             box-shadow: 
                 0 0 0 2px var(--color-gray-800),
-                0 20px 40px rgba(0, 0, 0, 0.3);
+                0 clamp(10px, 3vw, 20px) clamp(20px, 5vw, 40px) rgba(0, 0, 0, 0.3);
             position: relative;
+            aspect-ratio: 375 / 812;
         }
 
         .phone-screen {
@@ -116,13 +120,13 @@
         }
 
         .status-bar {
-            height: 44px;
+            height: clamp(32px, 8vw, 44px);
             background: var(--color-white);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 var(--space-lg);
-            font-size: var(--font-size-sm);
+            padding: 0 clamp(12px, 3vw, 20px);
+            font-size: clamp(11px, 2.5vw, 14px);
             font-weight: var(--font-weight-medium);
             color: var(--color-gray-800);
             border-bottom: 1px solid var(--color-gray-100);
@@ -142,7 +146,7 @@
         .app-header {
             background: var(--color-white);
             border-bottom: 1px solid var(--color-gray-200);
-            padding: var(--space-lg) var(--space-xl);
+            padding: clamp(12px, 3vw, 20px) clamp(16px, 4vw, 24px);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -150,8 +154,9 @@
 
         .app-header h1 {
             margin: 0;
-            font-size: var(--font-size-lg);
+            font-size: clamp(16px, 4vw, 20px);
             color: var(--color-gray-800);
+            font-weight: var(--font-weight-semibold);
         }
 
         .back-btn {
@@ -165,7 +170,7 @@
 
         .screen-body {
             flex: 1;
-            padding: var(--space-xl);
+            padding: clamp(16px, 4vw, 24px);
             background: var(--color-gray-50);
         }
 
@@ -181,11 +186,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: var(--space-md) var(--space-sm);
+            padding: clamp(8px, 2vw, 12px) clamp(4px, 1vw, 8px);
             text-decoration: none;
             color: var(--color-gray-500);
-            font-size: var(--font-size-xs);
-            transition: color 0.2s ease;
+            font-size: clamp(10px, 2.5vw, 12px);
+            transition: all 0.3s ease;
         }
 
         .nav-item.active {
@@ -193,8 +198,8 @@
         }
 
         .nav-icon {
-            font-size: var(--font-size-lg);
-            margin-bottom: var(--space-sm);
+            font-size: clamp(16px, 4vw, 20px);
+            margin-bottom: clamp(2px, 0.5vw, 4px);
         }
 
         .logo-container {
@@ -253,9 +258,9 @@
         }
 
         .activity-card-small:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.02);
             box-shadow: var(--shadow-lg);
-            border-width: 4px;
+            border-width: clamp(3px, 0.7vw, 4px);
         }
 
         /* Specific colored borders for each activity card */
@@ -297,28 +302,28 @@
 
         .activity-image {
             width: 100%;
-            height: 120px;
+            height: clamp(80px, 20vw, 120px);
             background: var(--color-gray-200);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: var(--font-size-lg);
+            font-size: clamp(16px, 4vw, 20px);
             color: var(--color-gray-500);
         }
 
         .activity-info {
-            padding: var(--space-lg);
+            padding: clamp(12px, 3vw, 20px);
         }
 
         .activity-title {
-            font-size: var(--font-size-sm);
+            font-size: clamp(12px, 3vw, 14px);
             font-weight: var(--font-weight-medium);
-            margin-bottom: var(--space-xs);
+            margin-bottom: clamp(2px, 0.5vw, 4px);
             color: var(--color-gray-800);
         }
 
         .activity-price {
-            font-size: var(--font-size-xs);
+            font-size: clamp(10px, 2.5vw, 12px);
             color: var(--color-cyan);
             font-weight: var(--font-weight-medium);
         }
@@ -333,19 +338,19 @@
         .quick-action {
             background: var(--color-white);
             border-radius: var(--radius-lg);
-            padding: var(--space-xl);
+            padding: clamp(16px, 4vw, 24px);
             text-align: center;
             box-shadow: var(--shadow-sm);
             text-decoration: none;
             color: var(--color-gray-800);
-            border: 3px solid var(--color-cyan);
-            transition: all 0.2s ease;
+            border: clamp(2px, 0.5vw, 3px) solid var(--color-cyan);
+            transition: all 0.3s ease;
         }
 
         .quick-action:hover {
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.02);
             box-shadow: var(--shadow-lg);
-            border-width: 4px;
+            border-width: clamp(3px, 0.7vw, 4px);
         }
 
         /* Specific colored borders for each quick action */
@@ -386,8 +391,8 @@
         }
 
         .action-icon {
-            font-size: 2rem;
-            margin-bottom: var(--space-sm);
+            font-size: clamp(1.5rem, 5vw, 2rem);
+            margin-bottom: clamp(4px, 1vw, 8px);
         }
 
         .home-indicator {
@@ -488,6 +493,49 @@
         .menu-arrow {
             margin-left: auto;
             color: var(--color-gray-400);
+        }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 480px) {
+            .mockup-content {
+                padding: var(--space-sm);
+                margin-top: 1rem;
+            }
+            
+            .phone-frame {
+                width: clamp(280px, 95vw, 320px);
+                height: clamp(500px, 80vh, 600px);
+            }
+            
+            .screen-navigation {
+                flex-direction: column;
+                gap: var(--space-sm);
+                max-height: 200px;
+                overflow-y: auto;
+            }
+            
+            .screen-nav-btn {
+                min-width: auto;
+                padding: var(--space-sm) var(--space-md);
+            }
+        }
+
+        @media (min-width: 481px) and (max-width: 1024px) {
+            .phone-frame {
+                width: clamp(320px, 60vw, 375px);
+                height: clamp(550px, 75vh, 700px);
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .mockup-content {
+                padding: var(--space-xl) var(--space-2xl);
+            }
+            
+            .phone-frame {
+                width: clamp(350px, 30vw, 400px);
+                height: clamp(650px, 70vh, 812px);
+            }
         }
 
         @media (prefers-color-scheme: dark) {
