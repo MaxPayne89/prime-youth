@@ -215,30 +215,13 @@
             gap: var(--space-sm);
         }
 
-        .logo-squares {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
 
-        .logo-row {
-            display: flex;
-            gap: 2px;
-        }
 
-        .logo-square {
-            width: 16px;
-            height: 16px;
-        }
-
-        .logo-yellow { background: var(--color-yellow); }
-        .logo-magenta { background: var(--color-magenta); }
-        .logo-cyan { background: var(--color-cyan); }
-
-        .logo-text {
-            font-size: var(--font-size-xl);
-            font-weight: var(--font-weight-bold);
-            color: var(--color-gray-800);
+        .login-logo-image {
+            height: clamp(100px, 15vw, 150px);
+            width: auto;
+            object-fit: contain;
+            transition: all 0.3s ease;
         }
 
         .activity-grid {
@@ -590,18 +573,7 @@
                     <div class="screen-content active" id="login-screen">
                         <div class="screen-body" style="display: flex; flex-direction: column; justify-content: center; padding: var(--space-xl);">
                             <div class="logo-container">
-                                <div class="prime-logo">
-                                    <div class="logo-squares">
-                                        <div class="logo-row">
-                                            <div class="logo-square logo-yellow"></div>
-                                            <div class="logo-square logo-magenta"></div>
-                                        </div>
-                                        <div class="logo-row">
-                                            <div class="logo-square logo-cyan"></div>
-                                        </div>
-                                    </div>
-                                    <div class="logo-text">PRIME YOUTH</div>
-                                </div>
+                                <img src="assets/images/logo-black-large.png" alt="Prime Youth Logo" class="login-logo-image" id="loginLogo">
                             </div>
                             
                             <form class="form">
@@ -1291,16 +1263,28 @@
             });
         });
 
-        // Theme toggle
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = document.querySelector('.theme-icon');
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        // Listen for theme changes from ThemeManager
+        window.addEventListener('themeChanged', (e) => {
+            const theme = e.detail.theme;
+            const loginLogo = document.getElementById('loginLogo');
             
-            document.documentElement.setAttribute('data-theme', newTheme);
-            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            if (loginLogo) {
+                loginLogo.src = theme === 'dark' 
+                    ? 'assets/images/logo-white-large.png' 
+                    : 'assets/images/logo-black-large.png';
+            }
+        });
+
+        // Set initial logo based on current theme once page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const loginLogo = document.getElementById('loginLogo');
+            
+            if (loginLogo) {
+                loginLogo.src = currentTheme === 'dark' 
+                    ? 'assets/images/logo-white-large.png' 
+                    : 'assets/images/logo-black-large.png';
+            }
         });
     </script>
 

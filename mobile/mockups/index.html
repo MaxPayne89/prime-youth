@@ -31,26 +31,13 @@
             margin-bottom: var(--space-lg);
         }
 
-        .logo-squares {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
 
-        .logo-row {
-            display: flex;
-            gap: 3px;
+        .hub-logo-image {
+            height: clamp(80px, 12vw, 120px);
+            width: auto;
+            object-fit: contain;
+            transition: all 0.3s ease;
         }
-
-        .logo-square {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-        }
-
-        .logo-yellow { background: var(--color-yellow); }
-        .logo-magenta { background: var(--color-magenta); }
-        .logo-cyan { background: var(--color-cyan); }
 
         .hub-title {
             font-size: 2.5rem;
@@ -287,16 +274,7 @@
             </div>
             
             <div class="hub-logo">
-                <div class="logo-squares">
-                    <div class="logo-row">
-                        <div class="logo-square logo-yellow"></div>
-                        <div class="logo-square logo-magenta"></div>
-                    </div>
-                    <div class="logo-row">
-                        <div class="logo-square logo-cyan"></div>
-                    </div>
-                </div>
-                <h1 class="hub-title">PRIME YOUTH</h1>
+                <img src="assets/images/logo-black-large.png" alt="Prime Youth Logo" class="hub-logo-image" id="hubLogo">
             </div>
             <p class="hub-subtitle">Complete Design System & App Mockups</p>
         </header>
@@ -473,6 +451,14 @@
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
         themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        
+        // Set initial logo based on saved theme
+        const hubLogo = document.getElementById('hubLogo');
+        if (hubLogo) {
+            hubLogo.src = savedTheme === 'dark' 
+                ? 'assets/images/logo-white-large.png' 
+                : 'assets/images/logo-black-large.png';
+        }
 
         themeToggle.addEventListener('click', () => {
             const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -480,6 +466,15 @@
             
             document.documentElement.setAttribute('data-theme', newTheme);
             themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Switch logo based on theme
+            const hubLogo = document.getElementById('hubLogo');
+            if (hubLogo) {
+                hubLogo.src = newTheme === 'dark' 
+                    ? 'assets/images/logo-white-large.png' 
+                    : 'assets/images/logo-black-large.png';
+            }
+            
             localStorage.setItem('theme', newTheme);
         });
 
