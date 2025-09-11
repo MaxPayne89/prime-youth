@@ -1,231 +1,379 @@
-# Prime Youth Mobile Mockups
+# Prime Youth Mobile UI System
 
-This directory contains HTML/CSS mockups for the Prime Youth mobile application, designed to serve as a reference implementation for the Kotlin Multiplatform Mobile development.
+A comprehensive, modern mobile UI system for the Prime Youth application, featuring advanced interactions, dark mode support, and accessibility-first design.
 
-## Overview
-
-These mockups implement a complete design system based on the Prime Youth brand identity, featuring:
-
-- **Brand Colors**: Yellow (#FFD700), Magenta (#FF1493), Cyan (#00CED1)
-- **Mobile-First Design**: Optimized for touch interfaces and small screens
-- **Native Feel**: Follows iOS and Android design patterns
-- **Component-Based**: Modular CSS that maps to KMP shared UI components
-- **Accessibility**: WCAG compliant with proper focus states and semantic HTML
-
-## Files Structure
-
-```
-mockups/
-├── index.html           # Main mockup file with all screens
-├── styles/
-│   ├── base.css        # Design system foundations & variables
-│   ├── components.css  # Reusable UI components
-│   └── screens.css     # Screen-specific layouts
-└── README.md           # This documentation
-```
-
-## Design System
+## 🎨 Design System
 
 ### Brand Colors
+- **Prime Yellow**: `#FFD700` - Primary brand color
+- **Prime Magenta**: `#FF1493` - Secondary accent
+- **Prime Cyan**: `#00CED1` - Tertiary accent
 
-The color palette is derived from the Prime Youth logo:
-
-```css
---color-yellow: #FFD700;    /* Primary accent - buttons, highlights */
---color-magenta: #FF1493;   /* Secondary accent - notifications, status */
---color-cyan: #00CED1;      /* Tertiary accent - links, active states */
-```
-
-### Typography
-
-- **Primary Font**: System fonts (-apple-system, BlinkMacSystemFont, Segoe UI)
-- **Font Scale**: 12px (xs) to 40px (4xl) with consistent line heights
-- **Font Weights**: Light (300) to Bold (700)
-
-### Spacing System
-
-Based on 4px increments for consistent rhythm:
+### Color Tokens
+The system uses CSS custom properties for consistent theming:
 
 ```css
---space-xs: 4px;     /* Tight spacing */
---space-sm: 8px;     /* Small spacing */
---space-md: 16px;    /* Default spacing */
---space-lg: 24px;    /* Large spacing */
---space-xl: 32px;    /* Extra large spacing */
---space-2xl: 48px;   /* Section spacing */
---space-3xl: 64px;   /* Page spacing */
+/* Light Theme */
+--color-primary: #FFD700
+--color-secondary: #FF1493  
+--color-accent: #00CED1
+
+/* Dark Theme */
+--color-primary: #FFD700
+--color-secondary: #FF69B4
+--color-accent: #20B2AA
 ```
 
-### Component Architecture
+## 🏗️ File Structure
 
-The CSS is organized into three layers:
+```
+mobile/mockups/
+├── index.html              # Main UI system showcase
+├── styles/
+│   ├── theme.css          # Theme system & CSS custom properties
+│   ├── components.css     # UI components & layouts
+│   ├── animations.css     # Micro-interactions & transitions
+│   └── states.css         # Loading, error & empty states
+├── scripts/
+│   ├── theme.js           # Theme management & accessibility
+│   ├── interactions.js    # Interactive components
+│   └── animations.js      # Advanced animation system
+└── README.md              # This documentation
+```
 
-1. **base.css** - Design tokens, reset, typography, utilities
-2. **components.css** - Reusable UI components (buttons, cards, forms)
-3. **screens.css** - Screen-specific layouts and compositions
+## 🌙 Dark Mode Implementation
 
-## Key Components
+### Features
+- **Seamless Switching**: Toggle between light and dark themes
+- **System Preference Detection**: Automatically follows OS preference
+- **Persistent Storage**: Remembers user preference
+- **Accessibility Compliant**: Maintains proper contrast ratios
+
+### Usage
+```javascript
+// Toggle theme programmatically
+window.themeManager.toggleTheme();
+
+// Apply specific theme
+window.themeManager.applyTheme('dark');
+
+// Listen for theme changes
+window.addEventListener('themeChanged', (e) => {
+    console.log('New theme:', e.detail.theme);
+});
+```
+
+## 🎭 Component Library
 
 ### Buttons
-
-- `.btn-primary` - Yellow primary actions
-- `.btn-secondary` - Cyan secondary actions  
-- `.btn-outline` - Ghost/outline style
-- `.btn-icon` - Icon-only buttons
+- **Primary**: Gradient background with brand colors
+- **Secondary**: Solid accent color
+- **Outline**: Transparent with colored border
+- **Ghost**: Minimal styling for secondary actions
+- **Loading State**: Animated spinner integration
 
 ### Cards
-
-- `.card` - Basic card container
-- `.activity-card` - Activity list items
-- `.activity-card-large` - Detailed activity cards
-
-### Navigation
-
-- `.bottom-nav` - Tab bar navigation
-- `.app-header` - Screen headers with actions
+- **Activity Card**: Image, content, and action areas
+- **Profile Card**: Centered layout with avatar
+- **Touch Feedback**: Hover and active states
+- **Elevation**: Dynamic shadow effects
 
 ### Forms
+- **Real-time Validation**: Instant feedback as user types
+- **Error States**: Clear error messaging
+- **Success States**: Positive confirmation
+- **Custom Controls**: Styled radio buttons and checkboxes
+- **Password Strength**: Visual strength indicator
+- **Phone Formatting**: Auto-formatting as user types
 
-- Touch-friendly 48px minimum height
-- Focus states with brand colors
-- Validation states built-in
+### Navigation
+- **Bottom Navigation**: Touch-friendly tab bar
+- **Active States**: Visual indicators for current page
+- **Smooth Transitions**: Animated tab switching
 
-## Screen Mockups
+## 🎪 Interactive Features
 
-### 1. Login Screen
-- Prime Youth logo and branding
-- Clean form layout
-- Authentication links
+### Touch Interactions
+- **Ripple Effects**: Material-inspired touch feedback
+- **Scale Effects**: Button press animations
+- **Haptic Feedback**: Native vibration on supported devices
+- **Touch-friendly**: Minimum 44px touch targets
 
-### 2. Home Screen  
-- Welcome message with user name
-- Quick actions grid (3 columns)
-- Upcoming activities list
-- Activity recommendations carousel
-- Bottom tab navigation
+### Form Interactions
+- **Live Validation**: Real-time field validation
+- **Debounced Input**: Performance-optimized validation
+- **Keyboard Navigation**: Full keyboard accessibility
+- **Auto-advancement**: Smart form field progression
 
-### 3. Activities Screen
-- Filter chips for categories
-- Activity cards with images
-- Instructor information
-- Pricing and availability
-- Enrollment buttons
+### Modal System
+- **Backdrop Blur**: Modern backdrop filter effects
+- **Focus Management**: Proper focus trapping
+- **Keyboard Support**: ESC key and tab navigation
+- **Smooth Animations**: Scale and fade transitions
 
-### 4. Profile Screen
-- User avatar and information
-- Activity statistics
-- Children management
-- Account settings
-- Support links
+### Pull-to-Refresh
+- **Touch Gestures**: Natural pull-down interaction
+- **Visual Feedback**: Progress indicators and state messages
+- **Customizable**: Configurable refresh logic
 
-## Mobile Responsiveness
+## 🎬 Animation System
 
-The design supports three main breakpoints:
+### Screen Transitions
+- **Slide Left/Right**: Horizontal page transitions
+- **Slide Up/Down**: Vertical page transitions  
+- **Fade**: Opacity-based transitions
+- **Scale**: Zoom-in/out effects
 
-- **Default**: 428px (iPhone 14 Pro Max)
-- **Medium**: 375px (iPhone SE)
-- **Small**: 320px (Older devices)
+### Micro-interactions
+- **Hover Lift**: Subtle elevation on hover
+- **Bounce In**: Attention-grabbing entrance
+- **Slide Reveal**: Text reveal animations
+- **Pulse Glow**: Rhythmic glow effects
 
-## Touch Targets
+### Loading Animations
+- **Skeleton Screens**: Content placeholder loading
+- **Shimmer Effects**: Animated loading states
+- **Spinner Variations**: Multiple loading indicators
+- **Progressive Loading**: Animated progress bars
 
-All interactive elements meet accessibility guidelines:
+### Performance
+- **GPU Acceleration**: Hardware-accelerated transforms
+- **Will-change**: Optimized for smooth animations
+- **Reduced Motion**: Respects accessibility preferences
+- **Intersection Observer**: Scroll-triggered animations
 
-- **Minimum size**: 44x44px (48px for primary actions)
-- **Spacing**: 8px minimum between touch targets
-- **Visual feedback**: Hover and active states
+## 📱 UI States
 
-## Implementation Notes for KMP
+### Loading States
+```html
+<!-- Skeleton Loading -->
+<div class="skeleton-card">
+    <div class="skeleton-image"></div>
+    <div class="skeleton-content">
+        <div class="skeleton-title"></div>
+        <div class="skeleton-text"></div>
+    </div>
+</div>
 
-### Shared Components
+<!-- Shimmer Effect -->
+<div class="shimmer-container">
+    <div class="shimmer-item"></div>
+    <div class="shimmer-item"></div>
+</div>
+```
 
-The CSS components map directly to KMP shared UI components:
+### Error States
+- **Network Errors**: Connection-related issues
+- **Server Errors**: Backend/API problems  
+- **Not Found**: Missing content/pages
+- **Validation Errors**: Form input problems
 
-```kotlin
-// Example mapping
-class PrimaryButton : CommonComponent {
-    // Implement .btn-primary styles
-}
+### Empty States
+- **No Content**: When lists/feeds are empty
+- **No Search Results**: Failed search queries
+- **First-time Use**: Onboarding scenarios
 
-class ActivityCard : CommonComponent {
-    // Implement .activity-card styles  
+## ♿ Accessibility Features
+
+### Standards Compliance
+- **WCAG 2.1 AA**: Meets accessibility guidelines
+- **Color Contrast**: 4.5:1 minimum ratio
+- **Focus Management**: Visible focus indicators
+- **Screen Reader**: Proper ARIA labels and roles
+
+### Keyboard Navigation
+- **Tab Order**: Logical focus progression
+- **Enter/Space**: Activates interactive elements
+- **Escape**: Closes modals and dropdowns
+- **Arrow Keys**: List and menu navigation
+
+### Reduced Motion
+- **Prefers-reduced-motion**: Respects user preferences
+- **Fallback Animations**: Simplified alternatives
+- **Optional Animations**: Can be disabled entirely
+
+### High Contrast
+- **Enhanced Borders**: Stronger visual boundaries
+- **Increased Shadows**: Better depth perception
+- **Color Alternatives**: Non-color-dependent information
+
+## 🚀 Performance Optimizations
+
+### CSS
+- **Custom Properties**: Efficient theme switching
+- **Modern Selectors**: Optimized specificity
+- **GPU Layers**: Hardware acceleration
+- **Critical Path**: Inline critical CSS
+
+### JavaScript
+- **Event Delegation**: Efficient event handling
+- **Debouncing**: Performance-optimized inputs
+- **Intersection Observer**: Scroll performance
+- **Will-change**: Animation optimization
+
+### Mobile-first
+- **Touch Targets**: 44px minimum size
+- **Gesture Support**: Swipe and pinch
+- **Viewport Units**: Responsive sizing
+- **Safe Areas**: iOS notch handling
+
+## 📐 Responsive Design
+
+### Breakpoints
+- **Small**: 360px and below
+- **Medium**: 361px - 414px (iPhone size)
+- **Large**: 415px and above
+
+### Flexible Layouts
+- **CSS Grid**: Modern layout system
+- **Flexbox**: Alignment and distribution
+- **Container Queries**: Component-based responsiveness
+- **Fluid Typography**: Scalable text sizes
+
+## 🔧 Implementation Guidelines
+
+### HTML Structure
+```html
+<!-- Follow semantic HTML -->
+<section class="component-group">
+    <h3>Section Title</h3>
+    <div class="component-grid">
+        <!-- Component items -->
+    </div>
+</section>
+```
+
+### CSS Classes
+```css
+/* Use BEM methodology */
+.card { } /* Block */
+.card--elevated { } /* Modifier */
+.card__content { } /* Element */
+
+/* Utility classes */
+.u-margin-top-lg { }
+.u-text-center { }
+```
+
+### JavaScript Integration
+```javascript
+// Use modern ES6+ features
+class ComponentManager {
+    constructor(element) {
+        this.element = element;
+        this.init();
+    }
+    
+    init() {
+        this.bindEvents();
+    }
+    
+    bindEvents() {
+        this.element.addEventListener('click', this.handleClick.bind(this));
+    }
 }
 ```
 
-### Color System
+## 🧪 Browser Support
 
-Define the brand colors as shared resources:
+### Modern Browsers
+- **Chrome**: 88+
+- **Firefox**: 85+
+- **Safari**: 14+
+- **Edge**: 88+
 
-```kotlin
-object PrimeYouthColors {
-    val Yellow = Color(0xFFFFD700)
-    val Magenta = Color(0xFFFF1493) 
-    val Cyan = Color(0xFF00CED1)
-    // ... neutral colors
-}
+### Mobile Browsers
+- **iOS Safari**: 14+
+- **Chrome Mobile**: 88+
+- **Samsung Internet**: 13+
+
+### Progressive Enhancement
+- **Core Functionality**: Works without JavaScript
+- **Enhanced Experience**: JavaScript adds interactions
+- **Graceful Degradation**: Fallbacks for older browsers
+
+## 📚 Usage Examples
+
+### Theme Integration
+```javascript
+// Initialize theme system
+const themeManager = new ThemeManager();
+
+// React to theme changes
+window.addEventListener('themeChanged', (e) => {
+    updateComponentStyles(e.detail.theme);
+});
 ```
 
-### Typography Scale
+### Animation System
+```javascript
+// Create custom animations
+animationManager.createCustomAnimation(element, [
+    { transform: 'scale(1)', opacity: 1 },
+    { transform: 'scale(1.1)', opacity: 0.8 },
+    { transform: 'scale(1)', opacity: 1 }
+], { duration: 300, easing: 'ease-out' });
 
-Create a shared typography system:
-
-```kotlin
-object PrimeYouthTypography {
-    val headingLarge = TextStyle(fontSize = 32.sp, fontWeight = FontWeight.SemiBold)
-    val headingMedium = TextStyle(fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
-    // ... additional styles
-}
+// Stagger multiple elements
+animationManager.staggerAnimation(
+    document.querySelectorAll('.card'),
+    'fadeInUp',
+    100 // 100ms delay between elements
+);
 ```
 
-### Layout System
+### Form Validation
+```javascript
+// Set up interactive validation
+const interactionManager = new InteractionManager();
 
-The spacing system translates to:
-
-```kotlin
-object PrimeYouthSpacing {
-    val xs = 4.dp
-    val sm = 8.dp  
-    val md = 16.dp
-    val lg = 24.dp
-    val xl = 32.dp
-}
+// Custom validation rules
+interactionManager.addValidationRule('phone', (value) => {
+    return /^\(\d{3}\) \d{3}-\d{4}$/.test(value);
+});
 ```
 
-## Usage
+## 🎯 Future Enhancements
 
-1. Open `index.html` in a web browser
-2. Use the navigation buttons to switch between screens
-3. Resize the browser to test responsive behavior
-4. Inspect elements to see the CSS structure
+### Planned Features
+- **Voice Interface**: Voice command integration
+- **Gesture Recognition**: Advanced touch gestures  
+- **AR Integration**: Augmented reality components
+- **Offline Support**: Service worker integration
+- **PWA Features**: Install prompts and notifications
 
-## Browser Testing
+### Performance Goals
+- **First Paint**: <1s on 3G
+- **Interactive**: <2s on 3G
+- **Bundle Size**: <100KB gzipped
+- **60fps**: Smooth animations
 
-Recommended testing:
+## 🤝 Contributing
 
-- **Chrome/Safari**: Primary testing browsers
-- **Firefox**: Secondary testing
-- **Mobile Safari**: iOS testing
-- **Chrome Mobile**: Android testing
+### Code Style
+- **Prettier**: Code formatting
+- **ESLint**: JavaScript linting
+- **Stylelint**: CSS linting
+- **BEM**: CSS naming convention
 
-## Future Enhancements
+### Testing
+- **Unit Tests**: Component functionality
+- **Integration Tests**: User workflows
+- **Visual Tests**: UI consistency
+- **Accessibility Tests**: ARIA compliance
 
-Planned additions:
+## 📝 License
 
-- Dark mode color scheme
-- Animation specifications
-- Component interaction states
-- Loading states and skeletons
-- Error state designs
+MIT License - see LICENSE file for details.
 
-## Contributing
+## 📞 Support
 
-When updating these mockups:
+For questions about this UI system:
+1. Check the documentation above
+2. Review component examples in `index.html`
+3. Test interactions in a modern browser
+4. Consult accessibility guidelines for compliance
 
-1. Maintain the existing color system
-2. Follow the spacing scale
-3. Test across all breakpoints
-4. Update this README with changes
-5. Consider KMP implementation impact
+---
 
-## Questions?
-
-For questions about the design system or implementation guidance, please refer to the project documentation or create an issue in the repository.
+*Built with ❤️ for Prime Youth - Making afterschool activities accessible and engaging for everyone.*

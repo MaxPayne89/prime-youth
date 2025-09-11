@@ -52,14 +52,14 @@
   --line-height-normal: 1.4;
   --line-height-relaxed: 1.6;
   
-  /* Spacing Scale */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
+  /* Spacing Scale - Increased for better mobile UX */
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 20px;
+  --space-lg: 32px;
+  --space-xl: 40px;
+  --space-2xl: 56px;
+  --space-3xl: 80px;
   
   /* Border Radius */
   --radius-sm: 4px;
