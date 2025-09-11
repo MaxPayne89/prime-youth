@@ -105,11 +105,11 @@ class ResponsivePreview {
             .responsive-controls {
                 position: fixed;
                 top: 20px;
-                left: 20px;
+                right: 20px;
                 background: var(--color-white);
                 border-radius: var(--radius-lg);
                 box-shadow: var(--shadow-lg);
-                border: 1px solid var(--color-gray-200);
+                border: 2px solid var(--color-gray-300);
                 z-index: 1000;
                 min-width: 280px;
                 transition: all 0.3s ease;
@@ -117,9 +117,9 @@ class ResponsivePreview {
 
             .controls-header {
                 padding: var(--space-md) var(--space-lg);
-                border-bottom: 1px solid var(--color-gray-200);
+                border-bottom: 2px solid var(--color-gray-300);
                 display: flex;
-                justify-content: between;
+                justify-content: space-between;
                 align-items: center;
                 background: linear-gradient(135deg, var(--color-magenta), var(--color-magenta-dark));
                 color: var(--color-white);
@@ -250,6 +250,11 @@ class ResponsivePreview {
             .phone-frame {
                 transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
                 transform-origin: center center;
+                border: 3px solid var(--color-gray-400) !important;
+                box-shadow: 
+                    0 0 0 2px var(--color-gray-800),
+                    0 20px 40px rgba(0, 0, 0, 0.3),
+                    0 0 0 6px var(--color-gray-300) !important;
             }
 
             .phone-frame.tablet-mode {
@@ -281,7 +286,7 @@ class ResponsivePreview {
                 .responsive-controls {
                     position: relative;
                     top: 0;
-                    left: 0;
+                    right: 0;
                     margin: var(--space-md);
                     width: calc(100% - var(--space-xl));
                     min-width: auto;

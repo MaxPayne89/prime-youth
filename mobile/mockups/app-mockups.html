@@ -4,11 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prime Youth - App Mockups</title>
+    <link rel="stylesheet" href="styles/base.css">
     <link rel="stylesheet" href="styles/theme.css">
     <link rel="stylesheet" href="styles/components.css">
     <link rel="stylesheet" href="styles/animations.css">
     <link rel="stylesheet" href="styles/states.css">
     <style>
+        /* Color Variants for Hover Effects */
+        :root {
+            --color-cyan-dark: #008B8B;
+            --color-cyan-light: #E0FFFF;
+            --color-magenta-dark: #C71585;
+            --color-magenta-light: #FFB6C1;
+            --color-yellow-dark: #DAA520;
+            --color-yellow-light: #FFFFE0;
+        }
+        
         /* App Mockup Specific Styles */
         .mockup-container {
             display: flex;
@@ -46,7 +57,7 @@
 
         .screen-nav-btn {
             padding: var(--space-md) var(--space-xl);
-            border: 1px solid var(--color-gray-300);
+            border: 2px solid var(--color-gray-300);
             background: var(--color-white);
             border-radius: var(--radius-lg);
             font-size: var(--font-size-base);
@@ -70,7 +81,8 @@
         .screen-nav-btn.active {
             background: var(--color-cyan);
             color: var(--color-white);
-            border-color: var(--color-cyan);
+            border-color: var(--color-cyan-dark);
+            border-width: 3px;
         }
 
         .mockup-content {
@@ -234,13 +246,53 @@
         .activity-card-small {
             background: var(--color-white);
             border-radius: var(--radius-lg);
+            border: 3px solid var(--color-cyan);
             overflow: hidden;
             box-shadow: var(--shadow-sm);
-            transition: transform 0.2s ease;
+            transition: all 0.2s ease;
         }
 
         .activity-card-small:hover {
             transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-width: 4px;
+        }
+
+        /* Specific colored borders for each activity card */
+        .activity-card-small:nth-child(1) {
+            border-color: var(--color-magenta);
+        }
+
+        .activity-card-small:nth-child(1):hover {
+            border-color: var(--color-magenta-dark);
+            background: var(--color-magenta-light);
+        }
+
+        .activity-card-small:nth-child(2) {
+            border-color: var(--color-yellow);
+        }
+
+        .activity-card-small:nth-child(2):hover {
+            border-color: var(--color-yellow-dark);
+            background: var(--color-yellow-light);
+        }
+
+        .activity-card-small:nth-child(3) {
+            border-color: var(--color-cyan);
+        }
+
+        .activity-card-small:nth-child(3):hover {
+            border-color: var(--color-cyan-dark);
+            background: var(--color-cyan-light);
+        }
+
+        .activity-card-small:nth-child(4) {
+            border-color: var(--color-magenta-dark);
+        }
+
+        .activity-card-small:nth-child(4):hover {
+            border-color: var(--color-magenta);
+            background: var(--color-magenta-light);
         }
 
         .activity-image {
@@ -286,11 +338,51 @@
             box-shadow: var(--shadow-sm);
             text-decoration: none;
             color: var(--color-gray-800);
-            transition: transform 0.2s ease;
+            border: 3px solid var(--color-cyan);
+            transition: all 0.2s ease;
         }
 
         .quick-action:hover {
             transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-width: 4px;
+        }
+
+        /* Specific colored borders for each quick action */
+        .quick-action:nth-child(1) {
+            border-color: var(--color-cyan);
+        }
+
+        .quick-action:nth-child(1):hover {
+            border-color: var(--color-cyan-dark);
+            background: var(--color-cyan-light);
+        }
+
+        .quick-action:nth-child(2) {
+            border-color: var(--color-magenta);
+        }
+
+        .quick-action:nth-child(2):hover {
+            border-color: var(--color-magenta-dark);
+            background: var(--color-magenta-light);
+        }
+
+        .quick-action:nth-child(3) {
+            border-color: var(--color-yellow);
+        }
+
+        .quick-action:nth-child(3):hover {
+            border-color: var(--color-yellow-dark);
+            background: var(--color-yellow-light);
+        }
+
+        .quick-action:nth-child(4) {
+            border-color: var(--color-cyan-dark);
+        }
+
+        .quick-action:nth-child(4):hover {
+            border-color: var(--color-cyan);
+            background: var(--color-cyan-light);
         }
 
         .action-icon {
@@ -515,28 +607,28 @@
                                     <div class="activity-image">🎨</div>
                                     <div class="activity-info">
                                         <div class="activity-title">Art World</div>
-                                        <div class="activity-price">$45/week</div>
+                                        <div class="activity-price">€45/week</div>
                                     </div>
                                 </div>
                                 <div class="activity-card-small">
                                     <div class="activity-image">♟️</div>
                                     <div class="activity-info">
                                         <div class="activity-title">Chess Club</div>
-                                        <div class="activity-price">$35/week</div>
+                                        <div class="activity-price">€35/week</div>
                                     </div>
                                 </div>
                                 <div class="activity-card-small">
                                     <div class="activity-image">🎵</div>
                                     <div class="activity-info">
                                         <div class="activity-title">Music Lessons</div>
-                                        <div class="activity-price">$60/week</div>
+                                        <div class="activity-price">€60/week</div>
                                     </div>
                                 </div>
                                 <div class="activity-card-small">
                                     <div class="activity-image">🧗</div>
                                     <div class="activity-info">
                                         <div class="activity-title">Rock Climbing</div>
-                                        <div class="activity-price">$50/week</div>
+                                        <div class="activity-price">€50/week</div>
                                     </div>
                                 </div>
                             </div>
@@ -589,7 +681,7 @@
                                             <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Creative Art World</h4>
                                             <p style="margin: 0 0 var(--space-sm) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 6-12 • Wednesdays 4-6 PM</p>
                                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                                <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">$45/week</span>
+                                                <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">€45/week</span>
                                                 <button class="btn btn-secondary btn-sm">View Details</button>
                                             </div>
                                         </div>
@@ -603,7 +695,7 @@
                                             <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Chess Masters</h4>
                                             <p style="margin: 0 0 var(--space-sm) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 8-16 • Fridays 3:30-5 PM</p>
                                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                                <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">$35/week</span>
+                                                <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">€35/week</span>
                                                 <button class="btn btn-secondary btn-sm">View Details</button>
                                             </div>
                                         </div>
@@ -617,7 +709,7 @@
                                             <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Music Exploration</h4>
                                             <p style="margin: 0 0 var(--space-sm) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 5-10 • Tuesdays 4-5:30 PM</p>
                                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                                <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">$60/week</span>
+                                                <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">€60/week</span>
                                                 <button class="btn btn-secondary btn-sm">View Details</button>
                                             </div>
                                         </div>
@@ -664,7 +756,7 @@
                                         <p style="margin: 0; color: var(--color-gray-600);">Ages 6-12 • Wednesdays 4-6 PM</p>
                                     </div>
                                     <div style="text-align: right;">
-                                        <div style="color: var(--color-cyan); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold);">$45</div>
+                                        <div style="color: var(--color-cyan); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold);">€45</div>
                                         <div style="color: var(--color-gray-500); font-size: var(--font-size-sm);">per week</div>
                                     </div>
                                 </div>
@@ -787,7 +879,7 @@
                                     </div>
                                     <div style="border-top: 1px solid var(--color-gray-200); padding-top: var(--space-md); display: flex; justify-content: space-between;">
                                         <span>Weekly fee:</span>
-                                        <span style="font-weight: var(--font-weight-medium);">$45.00</span>
+                                        <span style="font-weight: var(--font-weight-medium);">€45.00</span>
                                     </div>
                                 </div>
                             </div>
@@ -816,15 +908,15 @@
                                     <div class="card">
                                         <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);">
                                             <span>Weekly fee:</span>
-                                            <span>$45.00</span>
+                                            <span>€45.00</span>
                                         </div>
                                         <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);">
                                             <span>Registration fee:</span>
-                                            <span>$25.00</span>
+                                            <span>€25.00</span>
                                         </div>
                                         <div style="border-top: 1px solid var(--color-gray-200); padding-top: var(--space-sm); display: flex; justify-content: space-between; font-weight: var(--font-weight-bold);">
                                             <span>Total due today:</span>
-                                            <span style="color: var(--color-cyan);">$70.00</span>
+                                            <span style="color: var(--color-cyan);">€70.00</span>
                                         </div>
                                     </div>
                                 </div>
