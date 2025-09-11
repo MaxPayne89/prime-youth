@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Youth - App Mockups</title>
+    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/components.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    <link rel="stylesheet" href="styles/states.css">
+    <style>
+        /* App Mockup Specific Styles */
+        .mockup-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            background: var(--color-gray-50);
+        }
+
+        .mockup-header {
+            background: var(--color-white);
+            border-bottom: 1px solid var(--color-gray-200);
+            padding: var(--space-xl) var(--space-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .mockup-title {
+            margin: 0;
+            color: var(--color-gray-800);
+            font-size: var(--font-size-xl);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .screen-navigation {
+            display: flex;
+            gap: var(--space-lg);
+            margin-top: var(--space-lg);
+            overflow-x: auto;
+            padding-bottom: var(--space-sm);
+            padding-top: var(--space-sm);
+        }
+
+        .screen-nav-btn {
+            padding: var(--space-md) var(--space-xl);
+            border: 1px solid var(--color-gray-300);
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            font-size: var(--font-size-base);
+            font-weight: var(--font-weight-medium);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+            min-height: 44px;
+            min-width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screen-nav-btn:hover {
+            border-color: var(--color-cyan);
+            background: var(--color-cyan-light);
+        }
+
+        .screen-nav-btn.active {
+            background: var(--color-cyan);
+            color: var(--color-white);
+            border-color: var(--color-cyan);
+        }
+
+        .mockup-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: var(--space-xl);
+        }
+
+        .phone-frame {
+            width: 375px;
+            height: 812px;
+            background: var(--color-gray-900);
+            border-radius: 40px;
+            padding: 8px;
+            box-shadow: 
+                0 0 0 2px var(--color-gray-800),
+                0 20px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background: var(--color-white);
+            border-radius: 32px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .status-bar {
+            height: 44px;
+            background: var(--color-white);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 var(--space-lg);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            color: var(--color-gray-800);
+            border-bottom: 1px solid var(--color-gray-100);
+        }
+
+        .screen-content {
+            flex: 1;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .screen-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: var(--color-white);
+            border-bottom: 1px solid var(--color-gray-200);
+            padding: var(--space-lg) var(--space-xl);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .app-header h1 {
+            margin: 0;
+            font-size: var(--font-size-lg);
+            color: var(--color-gray-800);
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: var(--font-size-lg);
+            cursor: pointer;
+            color: var(--color-cyan);
+            padding: var(--space-sm);
+        }
+
+        .screen-body {
+            flex: 1;
+            padding: var(--space-xl);
+            background: var(--color-gray-50);
+        }
+
+        .bottom-nav {
+            display: flex;
+            background: var(--color-white);
+            border-top: 1px solid var(--color-gray-200);
+            padding: var(--space-md) 0;
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--space-md) var(--space-sm);
+            text-decoration: none;
+            color: var(--color-gray-500);
+            font-size: var(--font-size-xs);
+            transition: color 0.2s ease;
+        }
+
+        .nav-item.active {
+            color: var(--color-cyan);
+        }
+
+        .nav-icon {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--space-sm);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-xl);
+        }
+
+        .prime-logo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .logo-squares {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .logo-row {
+            display: flex;
+            gap: 2px;
+        }
+
+        .logo-square {
+            width: 16px;
+            height: 16px;
+        }
+
+        .logo-yellow { background: var(--color-yellow); }
+        .logo-magenta { background: var(--color-magenta); }
+        .logo-cyan { background: var(--color-cyan); }
+
+        .logo-text {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-gray-800);
+        }
+
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+            margin-top: var(--space-xl);
+        }
+
+        .activity-card-small {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease;
+        }
+
+        .activity-card-small:hover {
+            transform: translateY(-2px);
+        }
+
+        .activity-image {
+            width: 100%;
+            height: 120px;
+            background: var(--color-gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-lg);
+            color: var(--color-gray-500);
+        }
+
+        .activity-info {
+            padding: var(--space-lg);
+        }
+
+        .activity-title {
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            margin-bottom: var(--space-xs);
+            color: var(--color-gray-800);
+        }
+
+        .activity-price {
+            font-size: var(--font-size-xs);
+            color: var(--color-cyan);
+            font-weight: var(--font-weight-medium);
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .quick-action {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            text-decoration: none;
+            color: var(--color-gray-800);
+            transition: transform 0.2s ease;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-2px);
+        }
+
+        .action-icon {
+            font-size: 2rem;
+            margin-bottom: var(--space-sm);
+        }
+
+        .home-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 134px;
+            height: 5px;
+            background: var(--color-gray-800);
+            border-radius: 3px;
+        }
+
+        .search-bar {
+            margin-bottom: var(--space-lg);
+        }
+
+        .filters {
+            display: flex;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
+            overflow-x: auto;
+            padding-bottom: var(--space-xs);
+        }
+
+        .filter-chip {
+            padding: var(--space-sm) var(--space-md);
+            background: var(--color-white);
+            border: 1px solid var(--color-gray-300);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-sm);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-chip.active {
+            background: var(--color-cyan);
+            color: var(--color-white);
+            border-color: var(--color-cyan);
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--color-cyan), var(--color-cyan-dark));
+            color: var(--color-white);
+            padding: var(--space-xl);
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--color-white);
+            color: var(--color-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto var(--space-md);
+        }
+
+        .profile-name {
+            font-size: var(--font-size-lg);
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-xs);
+        }
+
+        .profile-email {
+            opacity: 0.9;
+            font-size: var(--font-size-sm);
+        }
+
+        .profile-menu {
+            background: var(--color-white);
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--color-gray-100);
+            text-decoration: none;
+            color: var(--color-gray-800);
+            transition: background-color 0.2s ease;
+        }
+
+        .menu-item:hover {
+            background: var(--color-gray-50);
+        }
+
+        .menu-icon {
+            font-size: var(--font-size-lg);
+            margin-right: var(--space-md);
+            color: var(--color-gray-500);
+        }
+
+        .menu-arrow {
+            margin-left: auto;
+            color: var(--color-gray-400);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .phone-screen {
+                background: var(--color-gray-900);
+            }
+            
+            .status-bar {
+                background: var(--color-gray-900);
+                color: var(--color-white);
+                border-bottom-color: var(--color-gray-700);
+            }
+            
+            .screen-body {
+                background: var(--color-gray-800);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mockup-container">
+        <header class="mockup-header">
+            <h1 class="mockup-title">
+                Prime Youth App Mockups
+                <div class="theme-controls">
+                    <button id="themeToggle" class="theme-toggle" aria-label="Toggle dark mode">
+                        <span class="theme-icon">🌙</span>
+                    </button>
+                </div>
+            </h1>
+            <nav class="screen-navigation">
+                <button class="screen-nav-btn active" data-screen="login">Login</button>
+                <button class="screen-nav-btn" data-screen="home">Home</button>
+                <button class="screen-nav-btn" data-screen="activities">Activities</button>
+                <button class="screen-nav-btn" data-screen="activity-detail">Activity Detail</button>
+                <button class="screen-nav-btn" data-screen="profile">Profile</button>
+                <button class="screen-nav-btn" data-screen="booking">Booking</button>
+            </nav>
+        </header>
+
+        <main class="mockup-content">
+            <div class="phone-frame">
+                <div class="phone-screen">
+                    <!-- Status Bar -->
+                    <div class="status-bar">
+                        <span>9:41</span>
+                        <span>📶 📶 📶 🔋</span>
+                    </div>
+
+                    <!-- Login Screen -->
+                    <div class="screen-content active" id="login-screen">
+                        <div class="screen-body" style="display: flex; flex-direction: column; justify-content: center; padding: var(--space-xl);">
+                            <div class="logo-container">
+                                <div class="prime-logo">
+                                    <div class="logo-squares">
+                                        <div class="logo-row">
+                                            <div class="logo-square logo-yellow"></div>
+                                            <div class="logo-square logo-magenta"></div>
+                                        </div>
+                                        <div class="logo-row">
+                                            <div class="logo-square logo-cyan"></div>
+                                        </div>
+                                    </div>
+                                    <div class="logo-text">PRIME YOUTH</div>
+                                </div>
+                            </div>
+                            
+                            <form class="form">
+                                <div class="form-group">
+                                    <label class="form-label">Email</label>
+                                    <input type="email" class="form-input" placeholder="your@email.com">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" class="form-input" placeholder="••••••••">
+                                </div>
+                                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: var(--space-lg);">Sign In</button>
+                            </form>
+                            
+                            <div style="text-align: center; margin-top: var(--space-lg);">
+                                <a href="#" style="color: var(--color-cyan); text-decoration: none; font-size: var(--font-size-sm);">
+                                    Don't have an account? Sign up
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Home Screen -->
+                    <div class="screen-content" id="home-screen">
+                        <div class="app-header">
+                            <h1>Welcome back!</h1>
+                            <button class="btn btn-icon">🔔</button>
+                        </div>
+                        <div class="screen-body">
+                            <div class="quick-actions">
+                                <a href="#" class="quick-action">
+                                    <div class="action-icon">🎯</div>
+                                    <div>Browse Activities</div>
+                                </a>
+                                <a href="#" class="quick-action">
+                                    <div class="action-icon">📅</div>
+                                    <div>My Schedule</div>
+                                </a>
+                                <a href="#" class="quick-action">
+                                    <div class="action-icon">👥</div>
+                                    <div>My Children</div>
+                                </a>
+                                <a href="#" class="quick-action">
+                                    <div class="action-icon">💳</div>
+                                    <div>Payments</div>
+                                </a>
+                            </div>
+                            
+                            <h3 style="margin-bottom: var(--space-md); color: var(--color-gray-800);">Recommended for You</h3>
+                            <div class="activity-grid">
+                                <div class="activity-card-small">
+                                    <div class="activity-image">🎨</div>
+                                    <div class="activity-info">
+                                        <div class="activity-title">Art World</div>
+                                        <div class="activity-price">$45/week</div>
+                                    </div>
+                                </div>
+                                <div class="activity-card-small">
+                                    <div class="activity-image">♟️</div>
+                                    <div class="activity-info">
+                                        <div class="activity-title">Chess Club</div>
+                                        <div class="activity-price">$35/week</div>
+                                    </div>
+                                </div>
+                                <div class="activity-card-small">
+                                    <div class="activity-image">🎵</div>
+                                    <div class="activity-info">
+                                        <div class="activity-title">Music Lessons</div>
+                                        <div class="activity-price">$60/week</div>
+                                    </div>
+                                </div>
+                                <div class="activity-card-small">
+                                    <div class="activity-image">🧗</div>
+                                    <div class="activity-info">
+                                        <div class="activity-title">Rock Climbing</div>
+                                        <div class="activity-price">$50/week</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <nav class="bottom-nav">
+                            <a href="#" class="nav-item active">
+                                <div class="nav-icon">🏠</div>
+                                <div>Home</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">🎯</div>
+                                <div>Activities</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">📅</div>
+                                <div>Schedule</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">👤</div>
+                                <div>Profile</div>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Activities Screen -->
+                    <div class="screen-content" id="activities-screen">
+                        <div class="app-header">
+                            <h1>Activities</h1>
+                            <button class="btn btn-icon">🔍</button>
+                        </div>
+                        <div class="screen-body">
+                            <div class="search-bar">
+                                <input type="text" class="form-input" placeholder="Search activities...">
+                            </div>
+                            
+                            <div class="filters">
+                                <div class="filter-chip active">All</div>
+                                <div class="filter-chip">Arts</div>
+                                <div class="filter-chip">Sports</div>
+                                <div class="filter-chip">Music</div>
+                                <div class="filter-chip">STEM</div>
+                                <div class="filter-chip">Language</div>
+                            </div>
+                            
+                            <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+                                <div class="card">
+                                    <div style="display: flex; gap: var(--space-md);">
+                                        <div style="width: 80px; height: 80px; background: var(--color-yellow-light); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 2rem;">🎨</div>
+                                        <div style="flex: 1;">
+                                            <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Creative Art World</h4>
+                                            <p style="margin: 0 0 var(--space-sm) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 6-12 • Wednesdays 4-6 PM</p>
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">$45/week</span>
+                                                <button class="btn btn-secondary btn-sm">View Details</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card">
+                                    <div style="display: flex; gap: var(--space-md);">
+                                        <div style="width: 80px; height: 80px; background: var(--color-cyan-light); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 2rem;">♟️</div>
+                                        <div style="flex: 1;">
+                                            <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Chess Masters</h4>
+                                            <p style="margin: 0 0 var(--space-sm) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 8-16 • Fridays 3:30-5 PM</p>
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">$35/week</span>
+                                                <button class="btn btn-secondary btn-sm">View Details</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="card">
+                                    <div style="display: flex; gap: var(--space-md);">
+                                        <div style="width: 80px; height: 80px; background: var(--color-magenta-light); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 2rem;">🎵</div>
+                                        <div style="flex: 1;">
+                                            <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Music Exploration</h4>
+                                            <p style="margin: 0 0 var(--space-sm) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 5-10 • Tuesdays 4-5:30 PM</p>
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">$60/week</span>
+                                                <button class="btn btn-secondary btn-sm">View Details</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <nav class="bottom-nav">
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">🏠</div>
+                                <div>Home</div>
+                            </a>
+                            <a href="#" class="nav-item active">
+                                <div class="nav-icon">🎯</div>
+                                <div>Activities</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">📅</div>
+                                <div>Schedule</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">👤</div>
+                                <div>Profile</div>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Activity Detail Screen -->
+                    <div class="screen-content" id="activity-detail-screen">
+                        <div class="app-header">
+                            <button class="back-btn">←</button>
+                            <h1>Creative Art World</h1>
+                            <button class="btn btn-icon">❤️</button>
+                        </div>
+                        <div class="screen-body" style="padding: 0;">
+                            <div style="height: 200px; background: linear-gradient(135deg, var(--color-yellow), var(--color-yellow-dark)); display: flex; align-items: center; justify-content: center; font-size: 4rem; color: var(--color-white);">
+                                🎨
+                            </div>
+                            
+                            <div style="padding: var(--space-lg);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--space-lg);">
+                                    <div>
+                                        <h2 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Creative Art World</h2>
+                                        <p style="margin: 0; color: var(--color-gray-600);">Ages 6-12 • Wednesdays 4-6 PM</p>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="color: var(--color-cyan); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold);">$45</div>
+                                        <div style="color: var(--color-gray-500); font-size: var(--font-size-sm);">per week</div>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: var(--space-lg);">
+                                    <h3 style="margin-bottom: var(--space-md); color: var(--color-gray-800);">About This Activity</h3>
+                                    <p style="color: var(--color-gray-600); line-height: 1.5;">
+                                        Unleash your child's creativity in our comprehensive art program. Students explore various mediums including painting, drawing, sculpture, and digital art while developing their artistic skills and imagination.
+                                    </p>
+                                </div>
+                                
+                                <div style="margin-bottom: var(--space-lg);">
+                                    <h3 style="margin-bottom: var(--space-md); color: var(--color-gray-800);">What's Included</h3>
+                                    <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+                                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                                            <span style="color: var(--color-green);">✓</span>
+                                            <span style="color: var(--color-gray-600);">All art supplies provided</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                                            <span style="color: var(--color-green);">✓</span>
+                                            <span style="color: var(--color-gray-600);">Professional art instruction</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                                            <span style="color: var(--color-green);">✓</span>
+                                            <span style="color: var(--color-gray-600);">Take-home artwork</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: var(--space-sm);">
+                                            <span style="color: var(--color-green);">✓</span>
+                                            <span style="color: var(--color-gray-600);">End-of-term showcase</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-primary" style="width: 100%;">Enroll Now</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Screen -->
+                    <div class="screen-content" id="profile-screen">
+                        <div class="profile-header">
+                            <div class="profile-avatar">👤</div>
+                            <div class="profile-name">Sarah Johnson</div>
+                            <div class="profile-email">sarah.johnson@email.com</div>
+                        </div>
+                        <div class="profile-menu">
+                            <a href="#" class="menu-item">
+                                <div class="menu-icon">👥</div>
+                                <div>My Children</div>
+                                <div class="menu-arrow">→</div>
+                            </a>
+                            <a href="#" class="menu-item">
+                                <div class="menu-icon">📅</div>
+                                <div>My Schedule</div>
+                                <div class="menu-arrow">→</div>
+                            </a>
+                            <a href="#" class="menu-item">
+                                <div class="menu-icon">💳</div>
+                                <div>Payment Methods</div>
+                                <div class="menu-arrow">→</div>
+                            </a>
+                            <a href="#" class="menu-item">
+                                <div class="menu-icon">🔔</div>
+                                <div>Notifications</div>
+                                <div class="menu-arrow">→</div>
+                            </a>
+                            <a href="#" class="menu-item">
+                                <div class="menu-icon">⚙️</div>
+                                <div>Settings</div>
+                                <div class="menu-arrow">→</div>
+                            </a>
+                            <a href="#" class="menu-item">
+                                <div class="menu-icon">❓</div>
+                                <div>Help & Support</div>
+                                <div class="menu-arrow">→</div>
+                            </a>
+                            <a href="#" class="menu-item" style="color: var(--color-red);">
+                                <div class="menu-icon">🚪</div>
+                                <div>Sign Out</div>
+                                <div class="menu-arrow">→</div>
+                            </a>
+                        </div>
+                        <nav class="bottom-nav">
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">🏠</div>
+                                <div>Home</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">🎯</div>
+                                <div>Activities</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">📅</div>
+                                <div>Schedule</div>
+                            </a>
+                            <a href="#" class="nav-item active">
+                                <div class="nav-icon">👤</div>
+                                <div>Profile</div>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Booking Screen -->
+                    <div class="screen-content" id="booking-screen">
+                        <div class="app-header">
+                            <button class="back-btn">←</button>
+                            <h1>Enrollment</h1>
+                            <div></div>
+                        </div>
+                        <div class="screen-body">
+                            <div style="margin-bottom: var(--space-lg);">
+                                <h3 style="color: var(--color-gray-800); margin-bottom: var(--space-md);">Activity Summary</h3>
+                                <div class="card">
+                                    <div style="display: flex; gap: var(--space-md); margin-bottom: var(--space-md);">
+                                        <div style="width: 60px; height: 60px; background: var(--color-yellow-light); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🎨</div>
+                                        <div>
+                                            <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Creative Art World</h4>
+                                            <p style="margin: 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Wednesdays 4-6 PM</p>
+                                        </div>
+                                    </div>
+                                    <div style="border-top: 1px solid var(--color-gray-200); padding-top: var(--space-md); display: flex; justify-content: space-between;">
+                                        <span>Weekly fee:</span>
+                                        <span style="font-weight: var(--font-weight-medium);">$45.00</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <form class="form">
+                                <div class="form-group">
+                                    <label class="form-label">Select Child</label>
+                                    <select class="form-input">
+                                        <option>Emma Johnson (Age 8)</option>
+                                        <option>Liam Johnson (Age 6)</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Start Date</label>
+                                    <input type="date" class="form-input" value="2024-01-15">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Special Requirements</label>
+                                    <textarea class="form-input" placeholder="Any allergies, medical conditions, or special instructions..." rows="3"></textarea>
+                                </div>
+
+                                <div style="margin: var(--space-lg) 0;">
+                                    <h3 style="color: var(--color-gray-800); margin-bottom: var(--space-md);">Payment Summary</h3>
+                                    <div class="card">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);">
+                                            <span>Weekly fee:</span>
+                                            <span>$45.00</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);">
+                                            <span>Registration fee:</span>
+                                            <span>$25.00</span>
+                                        </div>
+                                        <div style="border-top: 1px solid var(--color-gray-200); padding-top: var(--space-sm); display: flex; justify-content: space-between; font-weight: var(--font-weight-bold);">
+                                            <span>Total due today:</span>
+                                            <span style="color: var(--color-cyan);">$70.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">Complete Enrollment</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Home Indicator -->
+                    <div class="home-indicator"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Screen navigation
+        const screenNavBtns = document.querySelectorAll('.screen-nav-btn');
+        const screenContents = document.querySelectorAll('.screen-content');
+
+        screenNavBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetScreen = btn.dataset.screen;
+                
+                // Update nav buttons
+                screenNavBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update screen content
+                screenContents.forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById(targetScreen + '-screen').classList.add('active');
+            });
+        });
+
+        // Theme toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.querySelector('.theme-icon');
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+    </script>
+
+    <script src="scripts/theme.js"></script>
+    <script src="scripts/interactions.js"></script>
+    <script src="scripts/animations.js"></script>
+    <script src="scripts/component-inspector.js"></script>
+    <script src="scripts/responsive-preview.js"></script>
+</body>
+</html>
