@@ -569,9 +569,10 @@
             <nav class="screen-navigation">
                 <button class="screen-nav-btn active" data-screen="login">Login</button>
                 <button class="screen-nav-btn" data-screen="home">Home</button>
-                <button class="screen-nav-btn" data-screen="activities">Activities</button>
+                <button class="screen-nav-btn" data-screen="activities">Programs</button>
                 <button class="screen-nav-btn" data-screen="activity-detail">Activity Detail</button>
                 <button class="screen-nav-btn" data-screen="profile">Profile</button>
+                <button class="screen-nav-btn" data-screen="social-feed">Social Feed</button>
                 <button class="screen-nav-btn" data-screen="booking">Booking</button>
             </nav>
         </header>
@@ -625,31 +626,123 @@
 
                     <!-- Home Screen -->
                     <div class="screen-content" id="home-screen">
-                        <div class="app-header">
-                            <h1>Welcome back!</h1>
-                            <button class="btn btn-icon">🔔</button>
+                        <!-- Integrated Profile Header -->
+                        <div style="background: linear-gradient(135deg, var(--color-cyan), var(--color-cyan-dark)); color: var(--color-white); padding: clamp(12px, 3vw, 20px) clamp(16px, 4vw, 24px); display: flex; align-items: center; justify-content: space-between;">
+                            <div style="display: flex; align-items: center; gap: var(--space-md);">
+                                <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--color-white); color: var(--color-cyan); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👤</div>
+                                <div>
+                                    <div style="font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); margin-bottom: 2px;">Sarah Johnson</div>
+                                    <div style="opacity: 0.9; font-size: var(--font-size-sm);">2 children enrolled</div>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: clamp(8px, 2vw, 12px); flex-shrink: 0;">
+                                <button class="btn btn-icon" style="background: rgba(255,255,255,0.2); border: none; color: var(--color-white); width: clamp(36px, 10vw, 44px); height: clamp(36px, 10vw, 44px); display: flex; align-items: center; justify-content: center; border-radius: clamp(6px, 1.5vw, 8px);">🔔</button>
+                                <button class="btn btn-icon" style="background: rgba(255,255,255,0.2); border: none; color: var(--color-white); width: clamp(36px, 10vw, 44px); height: clamp(36px, 10vw, 44px); display: flex; align-items: center; justify-content: center; border-radius: clamp(6px, 1.5vw, 8px);">⚙️</button>
+                            </div>
                         </div>
+                        
                         <div class="screen-body">
-                            <div class="quick-actions">
-                                <a href="#" class="quick-action">
-                                    <div class="action-icon">🎯</div>
-                                    <div>Browse Activities</div>
-                                </a>
-                                <a href="#" class="quick-action">
-                                    <div class="action-icon">📅</div>
-                                    <div>My Schedule</div>
-                                </a>
-                                <a href="#" class="quick-action">
-                                    <div class="action-icon">👥</div>
-                                    <div>My Children</div>
-                                </a>
-                                <a href="#" class="quick-action">
-                                    <div class="action-icon">💳</div>
-                                    <div>Payments</div>
-                                </a>
+                            <!-- My Children Section -->
+                            <div style="margin-bottom: var(--space-xl);">
+                                <h3 style="margin-bottom: var(--space-md); color: var(--color-gray-800); display: flex; align-items: center; gap: var(--space-sm);">
+                                    👥 My Children
+                                </h3>
+                                <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+                                    <div class="card" style="border-left: 4px solid var(--color-cyan);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+                                            <div>
+                                                <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Emma Johnson (8)</div>
+                                                <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">Active in 2 programs</div>
+                                            </div>
+                                            <div style="text-align: right;">
+                                                <div style="color: var(--color-cyan); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);">8/10 Sessions</div>
+                                                <div style="width: 60px; height: 4px; background: var(--color-gray-200); border-radius: 2px; margin-top: 2px; overflow: hidden;">
+                                                    <div style="width: 80%; height: 100%; background: var(--color-cyan);"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; gap: var(--space-sm);">
+                                            <span style="background: var(--color-yellow); color: var(--color-white); padding: 2px 8px; border-radius: var(--radius-sm); font-size: 12px;">🎨 Art</span>
+                                            <span style="background: var(--color-cyan); color: var(--color-white); padding: 2px 8px; border-radius: var(--radius-sm); font-size: 12px;">♟️ Chess</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="card" style="border-left: 4px solid var(--color-magenta);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+                                            <div>
+                                                <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Liam Johnson (6)</div>
+                                                <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">Active in 1 program</div>
+                                            </div>
+                                            <div style="text-align: right;">
+                                                <div style="color: var(--color-magenta); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);">5/8 Sessions</div>
+                                                <div style="width: 60px; height: 4px; background: var(--color-gray-200); border-radius: 2px; margin-top: 2px; overflow: hidden;">
+                                                    <div style="width: 62.5%; height: 100%; background: var(--color-magenta);"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; gap: var(--space-sm);">
+                                            <span style="background: var(--color-magenta); color: var(--color-white); padding: 2px 8px; border-radius: var(--radius-sm); font-size: 12px;">🎵 Music</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Badge System -->
+                            <div style="margin-bottom: var(--space-xl);">
+                                <h3 style="margin-bottom: var(--space-md); color: var(--color-gray-800); display: flex; align-items: center; gap: var(--space-sm);">
+                                    🏆 Achievement Badges
+                                </h3>
+                                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-md);">
+                                    <div style="text-align: center;">
+                                        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--color-yellow); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-xs); box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);">
+                                            <span style="font-size: 1.5rem;">🎨</span>
+                                        </div>
+                                        <div style="font-size: 10px; color: var(--color-gray-600);">Art Master</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--color-cyan); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-xs); box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);">
+                                            <span style="font-size: 1.5rem;">♟️</span>
+                                        </div>
+                                        <div style="font-size: 10px; color: var(--color-gray-600);">Chess Pro</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--color-gray-300); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-xs);">
+                                            <span style="font-size: 1.5rem; opacity: 0.5;">🎵</span>
+                                        </div>
+                                        <div style="font-size: 10px; color: var(--color-gray-400);">Music Star</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--color-gray-300); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-xs);">
+                                            <span style="font-size: 1.5rem; opacity: 0.5;">⚽</span>
+                                        </div>
+                                        <div style="font-size: 10px; color: var(--color-gray-400);">Sports Hero</div>
+                                    </div>
+                                </div>
                             </div>
                             
-                            <h3 style="margin-bottom: var(--space-md); color: var(--color-gray-800);">Recommended for You</h3>
+                            <!-- Quick Actions -->
+                            <div style="margin-bottom: var(--space-xl);">
+                                <div class="quick-actions">
+                                    <a href="#" class="quick-action">
+                                        <div class="action-icon">🎯</div>
+                                        <div>Browse Programs</div>
+                                    </a>
+                                    <a href="#" class="quick-action">
+                                        <div class="action-icon">📅</div>
+                                        <div>My Schedule</div>
+                                    </a>
+                                    <a href="#" class="quick-action">
+                                        <div class="action-icon">💬</div>
+                                        <div>Social Feed</div>
+                                    </a>
+                                    <a href="#" class="quick-action">
+                                        <div class="action-icon">💳</div>
+                                        <div>Payments</div>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <h3 style="margin-bottom: var(--space-md); color: var(--color-gray-800);">Recommended Programs</h3>
                             <div class="activity-grid">
                                 <div class="activity-card-small">
                                     <div class="activity-image">🎨</div>
@@ -688,11 +781,15 @@
                             </a>
                             <a href="#" class="nav-item">
                                 <div class="nav-icon">🎯</div>
-                                <div>Activities</div>
+                                <div>Programs</div>
                             </a>
                             <a href="#" class="nav-item">
                                 <div class="nav-icon">📅</div>
                                 <div>Schedule</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">💬</div>
+                                <div>Social</div>
                             </a>
                             <a href="#" class="nav-item">
                                 <div class="nav-icon">👤</div>
@@ -701,15 +798,30 @@
                         </nav>
                     </div>
 
-                    <!-- Activities Screen -->
+                    <!-- Programs Screen -->
                     <div class="screen-content" id="activities-screen">
                         <div class="app-header">
-                            <h1>Activities</h1>
+                            <h1>Programs</h1>
                             <button class="btn btn-icon">🔍</button>
                         </div>
                         <div class="screen-body">
+                            <!-- School Filter Section -->
+                            <div style="margin-bottom: var(--space-lg);">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-md);">
+                                    <h4 style="margin: 0; color: var(--color-gray-700); font-size: var(--font-size-sm);">Viewing programs for:</h4>
+                                    <button class="btn btn-secondary btn-sm">Change School</button>
+                                </div>
+                                <div style="background: var(--color-cyan-light); border: 2px solid var(--color-cyan); border-radius: var(--radius-lg); padding: var(--space-md); display: flex; align-items: center; gap: var(--space-sm);">
+                                    <div style="width: 40px; height: 40px; background: var(--color-white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">🏫</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Greenwood Elementary</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">15 programs available</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="search-bar">
-                                <input type="text" class="form-input" placeholder="Search activities...">
+                                <input type="text" class="form-input" placeholder="Search programs...">
                             </div>
                             
                             <div class="filters">
@@ -772,11 +884,15 @@
                             </a>
                             <a href="#" class="nav-item active">
                                 <div class="nav-icon">🎯</div>
-                                <div>Activities</div>
+                                <div>Programs</div>
                             </a>
                             <a href="#" class="nav-item">
                                 <div class="nav-icon">📅</div>
                                 <div>Schedule</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">💬</div>
+                                <div>Social</div>
                             </a>
                             <a href="#" class="nav-item">
                                 <div class="nav-icon">👤</div>
@@ -894,13 +1010,186 @@
                             </a>
                             <a href="#" class="nav-item">
                                 <div class="nav-icon">🎯</div>
-                                <div>Activities</div>
+                                <div>Programs</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">📅</div>
+                                <div>Schedule</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">💬</div>
+                                <div>Social</div>
+                            </a>
+                            <a href="#" class="nav-item active">
+                                <div class="nav-icon">👤</div>
+                                <div>Profile</div>
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Social Feed Screen -->
+                    <div class="screen-content" id="social-feed-screen">
+                        <div class="app-header">
+                            <h1>Social Feed</h1>
+                            <button class="btn btn-icon">🔔</button>
+                        </div>
+                        <div class="screen-body" style="padding: 0; background: var(--color-gray-100);">
+                            <!-- Feed Posts -->
+                            <div style="display: flex; flex-direction: column; gap: var(--space-md); padding: var(--space-md);">
+                                <!-- Post 1 - Photo Post -->
+                                <div class="card" style="padding: 0; overflow: hidden;">
+                                    <div style="padding: var(--space-md);">
+                                        <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
+                                            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--color-cyan); color: var(--color-white); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">👩‍🏫</div>
+                                            <div>
+                                                <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Ms. Sarah - Art Instructor</div>
+                                                <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">2 hours ago</div>
+                                            </div>
+                                        </div>
+                                        <p style="margin: 0 0 var(--space-md) 0; color: var(--color-gray-700); line-height: 1.4;">
+                                            Amazing creativity from our Art World students today! 🎨 They're working on their masterpieces for the upcoming showcase. So proud of their progress!
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- Photo -->
+                                    <div style="height: 200px; background: linear-gradient(135deg, var(--color-yellow-light), var(--color-yellow)); display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--color-gray-600);">
+                                        🎨📸
+                                    </div>
+                                    
+                                    <!-- Post Actions -->
+                                    <div style="padding: var(--space-md); border-top: 1px solid var(--color-gray-100);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+                                            <div style="display: flex; gap: var(--space-lg);">
+                                                <button style="background: none; border: none; color: var(--color-cyan); display: flex; align-items: center; gap: var(--space-xs); cursor: pointer;">
+                                                    <span>❤️</span>
+                                                    <span style="font-size: var(--font-size-sm);">12</span>
+                                                </button>
+                                                <button style="background: none; border: none; color: var(--color-gray-500); display: flex; align-items: center; gap: var(--space-xs); cursor: pointer;">
+                                                    <span>💬</span>
+                                                    <span style="font-size: var(--font-size-sm);">5</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Comments Preview -->
+                                        <div style="background: var(--color-gray-50); border-radius: var(--radius-md); padding: var(--space-sm); margin-bottom: var(--space-sm);">
+                                            <div style="display: flex; gap: var(--space-sm); margin-bottom: var(--space-xs);">
+                                                <span style="font-weight: var(--font-weight-medium); color: var(--color-gray-800); font-size: var(--font-size-sm);">Parent Maria:</span>
+                                                <span style="color: var(--color-gray-600); font-size: var(--font-size-sm);">Emma loves this class!</span>
+                                            </div>
+                                            <div style="display: flex; gap: var(--space-sm);">
+                                                <span style="font-weight: var(--font-weight-medium); color: var(--color-gray-800); font-size: var(--font-size-sm);">Parent John:</span>
+                                                <span style="color: var(--color-gray-600); font-size: var(--font-size-sm);">Can't wait for the showcase! 🎭</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Add Comment -->
+                                        <div style="display: flex; gap: var(--space-sm);">
+                                            <input type="text" placeholder="Write a comment..." style="flex: 1; border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); padding: var(--space-sm); font-size: var(--font-size-sm);">
+                                            <button class="btn btn-primary btn-sm">Post</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Post 2 - Text Update -->
+                                <div class="card">
+                                    <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--color-magenta); color: var(--color-white); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">👨‍🏫</div>
+                                        <div>
+                                            <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Mr. David - Chess Coach</div>
+                                            <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">5 hours ago</div>
+                                        </div>
+                                    </div>
+                                    <p style="margin: 0 0 var(--space-md) 0; color: var(--color-gray-700); line-height: 1.4;">
+                                        Reminder: Chess tournament registration closes this Friday! 🏆 Great opportunity for our advanced students to showcase their skills. Prize ceremony will include medals and certificates! ♟️
+                                    </p>
+                                    
+                                    <!-- Post Actions -->
+                                    <div style="border-top: 1px solid var(--color-gray-100); padding-top: var(--space-md);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+                                            <div style="display: flex; gap: var(--space-lg);">
+                                                <button style="background: none; border: none; color: var(--color-cyan); display: flex; align-items: center; gap: var(--space-xs); cursor: pointer;">
+                                                    <span>❤️</span>
+                                                    <span style="font-size: var(--font-size-sm);">8</span>
+                                                </button>
+                                                <button style="background: none; border: none; color: var(--color-gray-500); display: flex; align-items: center; gap: var(--space-xs); cursor: pointer;">
+                                                    <span>💬</span>
+                                                    <span style="font-size: var(--font-size-sm);">3</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Add Comment -->
+                                        <div style="display: flex; gap: var(--space-sm);">
+                                            <input type="text" placeholder="Write a comment..." style="flex: 1; border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); padding: var(--space-sm); font-size: var(--font-size-sm);">
+                                            <button class="btn btn-primary btn-sm">Post</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Post 3 - Event Announcement -->
+                                <div class="card">
+                                    <div style="display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md);">
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--color-yellow); color: var(--color-white); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">📋</div>
+                                        <div>
+                                            <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Prime Youth Admin</div>
+                                            <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">1 day ago</div>
+                                        </div>
+                                    </div>
+                                    <p style="margin: 0 0 var(--space-md) 0; color: var(--color-gray-700); line-height: 1.4;">
+                                        🎉 Exciting News! We're hosting a Family Fun Day next Saturday! Join us for games, food trucks, and showcase performances from all our programs. Free entry for all Prime Youth families! 
+                                    </p>
+                                    
+                                    <!-- Event Details Card -->
+                                    <div style="background: var(--color-cyan-light); border: 2px solid var(--color-cyan); border-radius: var(--radius-lg); padding: var(--space-md); margin-bottom: var(--space-md);">
+                                        <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800); margin-bottom: var(--space-xs);">📅 Family Fun Day</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">Saturday, March 15th • 10 AM - 4 PM</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">Greenwood Elementary School</div>
+                                    </div>
+                                    
+                                    <!-- Post Actions -->
+                                    <div style="border-top: 1px solid var(--color-gray-100); padding-top: var(--space-md);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+                                            <div style="display: flex; gap: var(--space-lg);">
+                                                <button style="background: none; border: none; color: var(--color-cyan); display: flex; align-items: center; gap: var(--space-xs); cursor: pointer;">
+                                                    <span>❤️</span>
+                                                    <span style="font-size: var(--font-size-sm);">25</span>
+                                                </button>
+                                                <button style="background: none; border: none; color: var(--color-gray-500); display: flex; align-items: center; gap: var(--space-xs); cursor: pointer;">
+                                                    <span>💬</span>
+                                                    <span style="font-size: var(--font-size-sm);">12</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Add Comment -->
+                                        <div style="display: flex; gap: var(--space-sm);">
+                                            <input type="text" placeholder="Write a comment..." style="flex: 1; border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); padding: var(--space-sm); font-size: var(--font-size-sm);">
+                                            <button class="btn btn-primary btn-sm">Post</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <nav class="bottom-nav">
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">🏠</div>
+                                <div>Home</div>
+                            </a>
+                            <a href="#" class="nav-item">
+                                <div class="nav-icon">🎯</div>
+                                <div>Programs</div>
                             </a>
                             <a href="#" class="nav-item">
                                 <div class="nav-icon">📅</div>
                                 <div>Schedule</div>
                             </a>
                             <a href="#" class="nav-item active">
+                                <div class="nav-icon">💬</div>
+                                <div>Social</div>
+                            </a>
+                            <a href="#" class="nav-item">
                                 <div class="nav-icon">👤</div>
                                 <div>Profile</div>
                             </a>
