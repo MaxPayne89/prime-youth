@@ -116,8 +116,8 @@
     
     /* Text Colors - Dark */
     --color-text-primary: #FFFFFF;
-    --color-text-secondary: #B3B3B3;
-    --color-text-tertiary: #808080;
+    --color-text-secondary: #D0D0D0;
+    --color-text-tertiary: #C0C0C0;
     --color-text-inverse: #121212;
     
     /* Border & Divider Colors - Dark */
@@ -138,7 +138,7 @@
     
     /* Component-specific colors - Dark */
     --color-input-bg: #2D2D2D;
-    --color-input-border: #404040;
+    --color-input-border: #666666;
     --color-input-focus: #20B2AA;
     --color-button-shadow: rgba(255, 215, 0, 0.2);
 }
