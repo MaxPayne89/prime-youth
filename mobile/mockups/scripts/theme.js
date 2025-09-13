@@ -216,7 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.themeManager = new ThemeManager();
     
     // Monitor performance in development
-    if (process?.env?.NODE_ENV === 'development') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         window.addEventListener('themeChanged', ThemePerformance.measureTransition);
     }
 });

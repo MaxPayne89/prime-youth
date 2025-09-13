@@ -558,7 +558,7 @@
                 <button class="screen-nav-btn" data-screen="activities">Programs</button>
                 <button class="screen-nav-btn" data-screen="activity-detail">Activity Detail</button>
                 <button class="screen-nav-btn" data-screen="settings">Settings</button>
-                <button class="screen-nav-btn" data-screen="social-feed">Social Feed</button>
+                <button class="screen-nav-btn" data-screen="social-feed">Highlights</button>
                 <button class="screen-nav-btn" data-screen="booking">Booking</button>
             </nav>
         </header>
@@ -817,9 +817,9 @@
                                 <div class="nav-icon" aria-hidden="true">📅</div>
                                 <div>Schedule</div>
                             </a>
-                            <a href="#" class="nav-item" aria-label="Social feed">
+                            <a href="#" class="nav-item" aria-label="Highlights">
                                 <div class="nav-icon" aria-hidden="true">💬</div>
-                                <div>Social</div>
+                                <div>Highlights</div>
                             </a>
                         </nav>
                     </div>
@@ -932,7 +932,7 @@
                             </a>
                             <a href="#" class="nav-item">
                                 <div class="nav-icon">💬</div>
-                                <div>Social</div>
+                                <div>Highlights</div>
                             </a>
                         </nav>
                     </div>
@@ -1316,10 +1316,10 @@
                         </div>
                     </div>
 
-                    <!-- Social Feed Screen -->
+                    <!-- Highlights Screen -->
                     <div class="screen-content" id="social-feed-screen">
                         <div class="app-header">
-                            <h1>Social Feed</h1>
+                            <h1>Highlights</h1>
                             <button class="btn btn-icon">🔔</button>
                         </div>
                         <div class="screen-body" style="padding: 0; background: var(--color-gray-100);">
@@ -1476,7 +1476,7 @@
                             </a>
                             <a href="#" class="nav-item active">
                                 <div class="nav-icon">💬</div>
-                                <div>Social</div>
+                                <div>Highlights</div>
                             </a>
                         </nav>
                     </div>
@@ -1576,22 +1576,128 @@
             });
         });
 
-        // Settings button functionality (cog wheel in home screen)
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.icon-btn[aria-label="Open settings"]')) {
-                // Navigate to settings screen
-                screenNavBtns.forEach(b => b.classList.remove('active'));
-                const settingsBtn = document.querySelector('[data-screen="settings"]');
-                if (settingsBtn) {
-                    settingsBtn.classList.add('active');
-                }
+        // Clean Navigation Enhancement
+        // Simple navigation handlers that work with the existing system
 
-                // Update screen content
-                screenContents.forEach(screen => {
-                    screen.classList.remove('active');
-                });
-                document.getElementById('settings-screen').classList.add('active');
+        // Helper function to switch screens (same logic as top nav)
+        function switchToScreen(targetScreen) {
+            // Update top nav buttons
+            screenNavBtns.forEach(b => b.classList.remove('active'));
+            const targetBtn = document.querySelector(`[data-screen="${targetScreen}"]`);
+            if (targetBtn) {
+                targetBtn.classList.add('active');
             }
+
+            // Update screen content
+            screenContents.forEach(screen => {
+                screen.classList.remove('active');
+            });
+            const targetScreenElement = document.getElementById(targetScreen + '-screen');
+            if (targetScreenElement) {
+                targetScreenElement.classList.add('active');
+            }
+
+            // Clear navigation history for main screens
+            if (targetScreen === 'home' || targetScreen === 'activities') {
+                window.navigationHistory = [];
+            }
+        }
+
+        // Bottom navigation handlers
+        document.addEventListener('click', (e) => {
+            const navItem = e.target.closest('.nav-item');
+            if (!navItem) return;
+
+            e.preventDefault();
+
+            // Map nav items to screens based on icon
+            const navIcon = navItem.querySelector('.nav-icon');
+            if (!navIcon) return;
+
+            const iconText = navIcon.textContent.trim();
+            let targetScreen = '';
+
+            switch (iconText) {
+                case '🏠':
+                    targetScreen = 'home';
+                    break;
+                case '🎯':
+                    targetScreen = 'activities';
+                    break;
+                case '📅':
+                    targetScreen = 'activities'; // Schedule maps to activities
+                    break;
+                case '💬':
+                    targetScreen = 'social-feed';
+                    break;
+            }
+
+            if (targetScreen) {
+                switchToScreen(targetScreen);
+
+                // Update bottom nav active state
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                navItem.classList.add('active');
+            }
+        });
+
+        // Activity card navigation
+        document.addEventListener('click', (e) => {
+            // Look for clicks on activity cards (cards that contain schedule info)
+            const clickedCard = e.target.closest('.card');
+            if (!clickedCard) return;
+
+            // Check if this is an activity card by looking for schedule patterns
+            const cardText = clickedCard.textContent;
+            if (cardText.includes('Creative Art World') ||
+                cardText.match(/Ages \d+-\d+.*\d+.*PM/) ||
+                cardText.includes('Chess Masters') ||
+                cardText.includes('Music Exploration')) {
+
+                e.preventDefault();
+
+                // Add to navigation history
+                window.navigationHistory = window.navigationHistory || [];
+                const currentScreen = document.querySelector('.screen-content.active')?.id?.replace('-screen', '') || 'activities';
+                window.navigationHistory.push(currentScreen);
+
+                switchToScreen('activity-detail');
+            }
+        });
+
+        // Back button navigation
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.back-btn')) return;
+
+            e.preventDefault();
+
+            // Get navigation history
+            window.navigationHistory = window.navigationHistory || [];
+
+            if (window.navigationHistory.length > 0) {
+                // Go to previous screen
+                const previousScreen = window.navigationHistory.pop();
+                switchToScreen(previousScreen);
+            } else {
+                // Default fallback - go to home
+                switchToScreen('home');
+            }
+        });
+
+        // Settings navigation (keep existing functionality working)
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.icon-btn[aria-label="Open settings"]')) return;
+
+            e.preventDefault();
+
+            // Add to navigation history
+            window.navigationHistory = window.navigationHistory || [];
+            const currentScreen = document.querySelector('.screen-content.active')?.id?.replace('-screen', '') || 'home';
+            window.navigationHistory.push(currentScreen);
+
+            switchToScreen('settings');
         });
 
         // Listen for theme changes from ThemeManager
