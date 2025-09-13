@@ -704,7 +704,7 @@
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
                                             <div>
                                                 <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Emma Johnson (8)</div>
-                                                <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">Active in 2 programs</div>
+                                                <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">🏫 Greenwood Elementary</div>
                                             </div>
                                             <div style="text-align: right;">
                                                 <div style="color: var(--color-cyan); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);">8/10 Sessions</div>
@@ -723,7 +723,7 @@
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
                                             <div>
                                                 <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Liam Johnson (6)</div>
-                                                <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">Active in 1 program</div>
+                                                <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">🏫 Greenwood Elementary</div>
                                             </div>
                                             <div style="text-align: right;">
                                                 <div style="color: var(--color-magenta); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);">5/8 Sessions</div>
@@ -742,8 +742,42 @@
                                 <!-- Badge System -->
                                 <section aria-labelledby="badges-section" class="section section-divider">
                                     <h2 id="badges-section" class="section-header">
-                                        🏆 Achievement Badges
+                                        🏆 Achievements
                                     </h2>
+                                    
+                                    <!-- Family Progress Milestone System -->
+                                    <div style="margin-bottom: var(--space-lg);">
+                                        <div class="card" style="background: linear-gradient(135deg, var(--color-cyan-light), var(--color-cyan)); border: none; padding: var(--space-lg);">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                                                <div>
+                                                    <div style="font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); color: var(--color-white);">Family Progress</div>
+                                                    <div style="font-size: var(--font-size-sm); color: rgba(255, 255, 255, 0.9);">Combined sessions for all children</div>
+                                                </div>
+                                                <div style="text-align: right;">
+                                                    <div style="font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--color-white);">13</div>
+                                                    <div style="font-size: var(--font-size-sm); color: rgba(255, 255, 255, 0.9);">Total Sessions</div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Progress Bar -->
+                                            <div style="margin-bottom: var(--space-md);">
+                                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+                                                    <span style="font-size: var(--font-size-sm); color: rgba(255, 255, 255, 0.9);">Next Milestone:</span>
+                                                    <span style="font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--color-white);">12 sessions to go!</span>
+                                                </div>
+                                                <div style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.3); border-radius: 4px; overflow: hidden;">
+                                                    <div style="width: 52%; height: 100%; background: linear-gradient(90deg, var(--color-yellow), var(--color-yellow-dark));"></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Milestone Label -->
+                                            <div style="text-align: center; padding: var(--space-sm); background: rgba(255, 255, 255, 0.2); border-radius: var(--radius-md);">
+                                                <div style="font-size: var(--font-size-base); font-weight: var(--font-weight-medium); color: var(--color-white);">🎯 Next: "Momentum Building!"</div>
+                                                <div style="font-size: var(--font-size-sm); color: rgba(255, 255, 255, 0.8);">Achieve 25 total sessions</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="badges-grid">
                                         <div class="badge-item">
                                             <div class="badge-icon earned" style="background: var(--prime-yellow);">
@@ -772,32 +806,9 @@
                                     </div>
                                 </section>
                             
-                                <!-- Quick Actions -->
-                                <section aria-labelledby="actions-section" class="section">
-                                    <h2 id="actions-section" class="sr-only">Quick Actions</h2>
-                                    <div class="quick-actions">
-                                    <a href="#" class="quick-action quick-action-primary" aria-label="Browse all available programs">
-                                        <div class="action-icon">🎯</div>
-                                        <div>Browse Programs</div>
-                                    </a>
-                                    <a href="#" class="quick-action quick-action-secondary" aria-label="View your schedule">
-                                        <div class="action-icon">📅</div>
-                                        <div>My Schedule</div>
-                                    </a>
-                                    <a href="#" class="quick-action quick-action-secondary" aria-label="View social activity feed">
-                                        <div class="action-icon">💬</div>
-                                        <div>Social Feed</div>
-                                    </a>
-                                    <a href="#" class="quick-action quick-action-secondary" aria-label="Manage payments and billing">
-                                        <div class="action-icon">💳</div>
-                                        <div>Payments</div>
-                                    </a>
-                                </div>
-                                </section>
-                            
                                     <!-- Recommended Programs -->
                                 <section aria-labelledby="programs-section" class="section">
-                                    <h2 id="programs-section" class="section-header">Recommended Programs</h2>
+                                    <h2 id="programs-section" class="section-header">What's Next</h2>
                                     <div class="activity-grid" role="list" aria-label="Recommended programs">
                                         <a href="#" class="activity-card-small" role="listitem" tabindex="0" aria-label="Art World program, 45 euros per week">
                                             <div class="activity-image" aria-hidden="true">🎨</div>
