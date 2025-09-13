@@ -418,40 +418,6 @@
             border-color: var(--color-cyan);
         }
 
-        .profile-header {
-            background: linear-gradient(135deg, var(--color-cyan), var(--color-cyan-dark));
-            color: var(--color-white);
-            padding: var(--space-xl);
-            text-align: center;
-        }
-
-        .profile-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            background: var(--color-white);
-            color: var(--color-cyan);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin: 0 auto var(--space-md);
-        }
-
-        .profile-name {
-            font-size: var(--font-size-lg);
-            font-weight: var(--font-weight-bold);
-            margin-bottom: var(--space-xs);
-        }
-
-        .profile-email {
-            opacity: 0.9;
-            font-size: var(--font-size-sm);
-        }
-
-        .profile-menu {
-            background: var(--color-white);
-        }
 
         .menu-item {
             display: flex;
@@ -591,7 +557,7 @@
                 <button class="screen-nav-btn" data-screen="home">Home</button>
                 <button class="screen-nav-btn" data-screen="activities">Programs</button>
                 <button class="screen-nav-btn" data-screen="activity-detail">Activity Detail</button>
-                <button class="screen-nav-btn" data-screen="profile">Profile</button>
+                <button class="screen-nav-btn" data-screen="settings">Settings</button>
                 <button class="screen-nav-btn" data-screen="social-feed">Social Feed</button>
                 <button class="screen-nav-btn" data-screen="booking">Booking</button>
             </nav>
@@ -684,9 +650,6 @@
                                     </div>
                                 </div>
                                 <div class="header-actions">
-                                    <button class="icon-btn" aria-label="View notifications">
-                                        <span aria-hidden="true">🔔</span>
-                                    </button>
                                     <button class="icon-btn" aria-label="Open settings">
                                         <span aria-hidden="true">⚙️</span>
                                     </button>
@@ -858,10 +821,6 @@
                                 <div class="nav-icon" aria-hidden="true">💬</div>
                                 <div>Social</div>
                             </a>
-                            <a href="#" class="nav-item" aria-label="User profile">
-                                <div class="nav-icon" aria-hidden="true">👤</div>
-                                <div>Profile</div>
-                            </a>
                         </nav>
                     </div>
 
@@ -974,10 +933,6 @@
                             <a href="#" class="nav-item">
                                 <div class="nav-icon">💬</div>
                                 <div>Social</div>
-                            </a>
-                            <a href="#" class="nav-item">
-                                <div class="nav-icon">👤</div>
-                                <div>Profile</div>
                             </a>
                         </nav>
                     </div>
@@ -1111,72 +1066,254 @@
                         </div>
                     </div>
 
-                    <!-- Profile Screen -->
-                    <div class="screen-content" id="profile-screen">
-                        <div class="profile-header">
-                            <div class="profile-avatar">👤</div>
-                            <div class="profile-name">Sarah Johnson</div>
-                            <div class="profile-email">sarah.johnson@email.com</div>
+                    <!-- Settings Screen -->
+                    <div class="screen-content" id="settings-screen">
+                        <div class="app-header">
+                            <button class="back-btn">←</button>
+                            <h1>Settings</h1>
+                            <div></div>
                         </div>
-                        <div class="profile-menu">
-                            <a href="#" class="menu-item">
-                                <div class="menu-icon">👥</div>
-                                <div>My Children</div>
-                                <div class="menu-arrow">→</div>
-                            </a>
-                            <a href="#" class="menu-item">
-                                <div class="menu-icon">📅</div>
-                                <div>My Schedule</div>
-                                <div class="menu-arrow">→</div>
-                            </a>
-                            <a href="#" class="menu-item">
-                                <div class="menu-icon">💳</div>
-                                <div>Payment Methods</div>
-                                <div class="menu-arrow">→</div>
-                            </a>
-                            <a href="#" class="menu-item">
-                                <div class="menu-icon">🔔</div>
-                                <div>Notifications</div>
-                                <div class="menu-arrow">→</div>
-                            </a>
-                            <a href="#" class="menu-item">
-                                <div class="menu-icon">⚙️</div>
-                                <div>Settings</div>
-                                <div class="menu-arrow">→</div>
-                            </a>
-                            <a href="#" class="menu-item">
-                                <div class="menu-icon">❓</div>
-                                <div>Help & Support</div>
-                                <div class="menu-arrow">→</div>
-                            </a>
-                            <a href="#" class="menu-item" style="color: var(--color-red);">
-                                <div class="menu-icon">🚪</div>
-                                <div>Sign Out</div>
-                                <div class="menu-arrow">→</div>
-                            </a>
+                        <div class="screen-body" style="padding: 0;">
+                            <!-- Account & Profile Section -->
+                            <div style="background: var(--color-white); margin-bottom: var(--space-sm);">
+                                <div style="padding: var(--space-lg); border-bottom: 1px solid var(--color-gray-100);">
+                                    <h3 style="margin: 0; color: var(--color-gray-800); font-size: var(--font-size-base); font-weight: var(--font-weight-medium);">Account & Profile</h3>
+                                </div>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">👤</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Profile Information</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Name, email, profile photo</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">🔐</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Privacy & Security</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Account preferences, password</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                            </div>
+
+                            <!-- My Family Section -->
+                            <div style="background: var(--color-white); margin-bottom: var(--space-sm);">
+                                <div style="padding: var(--space-lg); border-bottom: 1px solid var(--color-gray-100);">
+                                    <h3 style="margin: 0; color: var(--color-gray-800); font-size: var(--font-size-base); font-weight: var(--font-weight-medium);">My Family</h3>
+                                </div>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">👥</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Children Profiles</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Emma (8), Liam (6) • 2 children</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">📅</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">My Schedule</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">View all family activities</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">🏆</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Family Progress</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Achievements and milestones</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                            </div>
+
+                            <!-- Contact Information Section -->
+                            <div style="background: var(--color-white); margin-bottom: var(--space-sm);">
+                                <div style="padding: var(--space-lg); border-bottom: 1px solid var(--color-gray-100);">
+                                    <h3 style="margin: 0; color: var(--color-gray-800); font-size: var(--font-size-base); font-weight: var(--font-weight-medium);">Contact Information</h3>
+                                </div>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">🏠</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Home Address</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Primary address and phone</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">👨‍👩‍👧‍👦</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Parent/Guardian Details</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Contact info for both parents</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">🚨</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Emergency Contacts</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Backup contacts for emergencies</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                            </div>
+
+                            <!-- Health & Safety Section -->
+                            <div style="background: var(--color-white); margin-bottom: var(--space-sm);">
+                                <div style="padding: var(--space-lg); border-bottom: 1px solid var(--color-gray-100);">
+                                    <h3 style="margin: 0; color: var(--color-gray-800); font-size: var(--font-size-base); font-weight: var(--font-weight-medium);">Health & Safety</h3>
+                                </div>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">🏥</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Medical Information</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Conditions, medications, special needs</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">🥜</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Allergies & Dietary</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Food allergies, dietary restrictions</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">🛡️</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Insurance Information</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Health insurance details</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                            </div>
+
+                            <!-- Permissions & Consents Section -->
+                            <div style="background: var(--color-white); margin-bottom: var(--space-sm);">
+                                <div style="padding: var(--space-lg); border-bottom: 1px solid var(--color-gray-100);">
+                                    <h3 style="margin: 0; color: var(--color-gray-800); font-size: var(--font-size-base); font-weight: var(--font-weight-medium);">Permissions & Consents</h3>
+                                </div>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">📸</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Photo & Video Release</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Marketing and social media permissions</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">✅</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Activity Permissions</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Swimming, field trips, group activities</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">💬</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">WhatsApp Community</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Updates, discounts, family credit</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                            </div>
+
+                            <!-- Payment & Billing Section -->
+                            <div style="background: var(--color-white); margin-bottom: var(--space-sm);">
+                                <div style="padding: var(--space-lg); border-bottom: 1px solid var(--color-gray-100);">
+                                    <h3 style="margin: 0; color: var(--color-gray-800); font-size: var(--font-size-base); font-weight: var(--font-weight-medium);">Payment & Billing</h3>
+                                </div>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">💳</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Payment Methods</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Cards, bank accounts, billing info</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">📄</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Transaction History</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Past payments and invoices</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">💰</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Family Credits & Discounts</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Available credits and promo codes</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                            </div>
+
+                            <!-- Notifications & Communication Section -->
+                            <div style="background: var(--color-white); margin-bottom: var(--space-sm);">
+                                <div style="padding: var(--space-lg); border-bottom: 1px solid var(--color-gray-100);">
+                                    <h3 style="margin: 0; color: var(--color-gray-800); font-size: var(--font-size-base); font-weight: var(--font-weight-medium);">Notifications & Communication</h3>
+                                </div>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">🔔</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Notification Preferences</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Push, email, SMS settings</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">📧</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Communication Settings</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">How you want to be contacted</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                            </div>
+
+                            <!-- Help & Support Section -->
+                            <div style="background: var(--color-white); margin-bottom: var(--space-lg);">
+                                <div style="padding: var(--space-lg); border-bottom: 1px solid var(--color-gray-100);">
+                                    <h3 style="margin: 0; color: var(--color-gray-800); font-size: var(--font-size-base); font-weight: var(--font-weight-medium);">Help & Support</h3>
+                                </div>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">❓</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">FAQ & Help Center</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Common questions and guides</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">💬</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Contact Support</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Get help from our team</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item">
+                                    <div class="menu-icon">📱</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">App Information</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Version, terms, privacy policy</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                                <a href="#" class="menu-item" style="color: var(--color-red);">
+                                    <div class="menu-icon" style="color: var(--color-red);">🚪</div>
+                                    <div>
+                                        <div style="font-weight: var(--font-weight-medium);">Sign Out</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-500);">Log out of your account</div>
+                                    </div>
+                                    <div class="menu-arrow">→</div>
+                                </a>
+                            </div>
                         </div>
-                        <nav class="bottom-nav">
-                            <a href="#" class="nav-item">
-                                <div class="nav-icon">🏠</div>
-                                <div>Home</div>
-                            </a>
-                            <a href="#" class="nav-item">
-                                <div class="nav-icon">🎯</div>
-                                <div>Programs</div>
-                            </a>
-                            <a href="#" class="nav-item">
-                                <div class="nav-icon">📅</div>
-                                <div>Schedule</div>
-                            </a>
-                            <a href="#" class="nav-item">
-                                <div class="nav-icon">💬</div>
-                                <div>Social</div>
-                            </a>
-                            <a href="#" class="nav-item active">
-                                <div class="nav-icon">👤</div>
-                                <div>Profile</div>
-                            </a>
-                        </nav>
                     </div>
 
                     <!-- Social Feed Screen -->
@@ -1341,10 +1478,6 @@
                                 <div class="nav-icon">💬</div>
                                 <div>Social</div>
                             </a>
-                            <a href="#" class="nav-item">
-                                <div class="nav-icon">👤</div>
-                                <div>Profile</div>
-                            </a>
                         </nav>
                     </div>
 
@@ -1430,17 +1563,35 @@
         screenNavBtns.forEach(btn => {
             btn.addEventListener('click', () => {
                 const targetScreen = btn.dataset.screen;
-                
+
                 // Update nav buttons
                 screenNavBtns.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-                
+
                 // Update screen content
                 screenContents.forEach(screen => {
                     screen.classList.remove('active');
                 });
                 document.getElementById(targetScreen + '-screen').classList.add('active');
             });
+        });
+
+        // Settings button functionality (cog wheel in home screen)
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.icon-btn[aria-label="Open settings"]')) {
+                // Navigate to settings screen
+                screenNavBtns.forEach(b => b.classList.remove('active'));
+                const settingsBtn = document.querySelector('[data-screen="settings"]');
+                if (settingsBtn) {
+                    settingsBtn.classList.add('active');
+                }
+
+                // Update screen content
+                screenContents.forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById('settings-screen').classList.add('active');
+            }
         });
 
         // Listen for theme changes from ThemeManager
