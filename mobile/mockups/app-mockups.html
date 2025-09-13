@@ -872,18 +872,21 @@
                             <button class="btn btn-icon">🔍</button>
                         </div>
                         <div class="screen-body">
-                            <!-- School Filter Section -->
+                            <!-- School Information Section -->
                             <div style="margin-bottom: var(--space-lg);">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-md);">
-                                    <h4 style="margin: 0; color: var(--color-gray-700); font-size: var(--font-size-sm);">Viewing programs for:</h4>
-                                    <button class="btn btn-secondary btn-sm">Change School</button>
-                                </div>
-                                <div style="background: var(--color-cyan-light); border: 2px solid var(--color-cyan); border-radius: var(--radius-lg); padding: var(--space-md); display: flex; align-items: center; gap: var(--space-sm);">
-                                    <div style="width: 40px; height: 40px; background: var(--color-white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">🏫</div>
-                                    <div>
-                                        <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Greenwood Elementary</div>
-                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-600);">15 programs available</div>
+                                <!-- Enhanced School Card as Main Focus -->
+                                <div style="background: linear-gradient(135deg, var(--color-cyan-light), var(--color-cyan)); border: 2px solid var(--color-cyan); border-radius: var(--radius-lg); padding: var(--space-lg); display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+                                    <div style="width: 60px; height: 60px; background: var(--color-white); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: var(--shadow-sm);">🏫</div>
+                                    <div style="flex: 1;">
+                                        <div style="font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); color: var(--color-gray-800); margin-bottom: var(--space-xs);">Greenwood Elementary</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-600); margin-bottom: var(--space-xs);">📍 123 School Street, Berlin</div>
+                                        <div style="font-size: var(--font-size-sm); color: var(--color-gray-700); font-weight: var(--font-weight-medium);">15 programs available</div>
                                     </div>
+                                </div>
+                                
+                                <!-- Compact School Selector -->
+                                <div style="text-align: center;">
+                                    <button style="background: none; border: none; color: var(--color-cyan); font-size: var(--font-size-sm); text-decoration: underline; cursor: pointer; padding: var(--space-xs);">Switch to different school</button>
                                 </div>
                             </div>
                             
@@ -893,6 +896,8 @@
                             
                             <div class="filters">
                                 <div class="filter-chip active">All</div>
+                                <div class="filter-chip">Camps</div>
+                                <div class="filter-chip">Workshops</div>
                                 <div class="filter-chip">Arts</div>
                                 <div class="filter-chip">Sports</div>
                                 <div class="filter-chip">Music</div>
@@ -906,7 +911,10 @@
                                         <div style="width: 80px; height: 80px; background: var(--color-yellow-light); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 2rem;">🎨</div>
                                         <div style="flex: 1;">
                                             <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Creative Art World</h4>
-                                            <p style="margin: 0 0 var(--space-sm) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 6-12 • Wednesdays 4-6 PM</p>
+                                            <p style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 6-12 • Wednesdays 4-6 PM</p>
+                                            <div style="margin: 0 0 var(--space-sm) 0; padding: var(--space-xs); background: var(--color-green-light); border-radius: var(--radius-sm);">
+                                                <span style="color: var(--color-green-dark); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);">✓ 8 spots available</span>
+                                            </div>
                                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                                 <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">€45/week</span>
                                                 <button class="btn btn-secondary btn-sm">View Details</button>
@@ -920,7 +928,10 @@
                                         <div style="width: 80px; height: 80px; background: var(--color-cyan-light); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 2rem;">♟️</div>
                                         <div style="flex: 1;">
                                             <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Chess Masters</h4>
-                                            <p style="margin: 0 0 var(--space-sm) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 8-16 • Fridays 3:30-5 PM</p>
+                                            <p style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 8-16 • Fridays 3:30-5 PM</p>
+                                            <div style="margin: 0 0 var(--space-sm) 0; padding: var(--space-xs); background: var(--color-red-light); border: 1px solid var(--color-red); border-radius: var(--radius-sm);">
+                                                <span style="color: var(--color-red-dark); font-size: var(--font-size-sm); font-weight: var(--font-weight-bold);">⚠️ Only 3 spots left!</span>
+                                            </div>
                                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                                 <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">€35/week</span>
                                                 <button class="btn btn-secondary btn-sm">View Details</button>
@@ -934,7 +945,10 @@
                                         <div style="width: 80px; height: 80px; background: var(--color-magenta-light); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 2rem;">🎵</div>
                                         <div style="flex: 1;">
                                             <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800);">Music Exploration</h4>
-                                            <p style="margin: 0 0 var(--space-sm) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 5-10 • Tuesdays 4-5:30 PM</p>
+                                            <p style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Ages 5-10 • Tuesdays 4-5:30 PM</p>
+                                            <div style="margin: 0 0 var(--space-sm) 0; padding: var(--space-xs); background: var(--color-blue-light); border-radius: var(--radius-sm);">
+                                                <span style="color: var(--color-blue-dark); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);">📊 12 spots available</span>
+                                            </div>
                                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                                 <span style="color: var(--color-cyan); font-weight: var(--font-weight-medium);">€60/week</span>
                                                 <button class="btn btn-secondary btn-sm">View Details</button>
