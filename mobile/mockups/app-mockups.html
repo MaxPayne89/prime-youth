@@ -539,6 +539,56 @@
                 border-color: var(--color-cyan);
             }
         }
+
+        /* Payment Method Toggle Styles */
+        .payment-hidden {
+            display: none !important;
+        }
+
+        .payment-visible {
+            display: block !important;
+        }
+
+        .payment-flex-hidden {
+            display: none !important;
+        }
+
+        .payment-flex-visible {
+            display: flex !important;
+        }
+
+        /* Payment Option Accessibility Styles */
+        .payment-option:hover {
+            border-color: var(--color-cyan) !important;
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.1) !important;
+        }
+
+        .payment-option:focus-within {
+            border-color: var(--color-cyan) !important;
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2) !important;
+            outline: none;
+        }
+
+        .payment-option input[type="radio"]:focus {
+            outline: 2px solid var(--color-cyan);
+            outline-offset: 2px;
+        }
+
+        .payment-option input[type="radio"]:checked + div {
+            color: var(--color-gray-800);
+        }
+
+        /* Fieldset and Legend styling */
+        fieldset {
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        fieldset legend.form-label {
+            margin-bottom: var(--space-sm);
+            padding: 0;
+        }
     </style>
 </head>
 <body>
@@ -1520,9 +1570,15 @@
                                             <p style="margin: 0; color: var(--color-gray-600); font-size: var(--font-size-sm);">Wednesdays 4-6 PM</p>
                                         </div>
                                     </div>
-                                    <div style="border-top: 1px solid var(--color-gray-200); padding-top: var(--space-md); display: flex; justify-content: space-between;">
-                                        <span>Weekly fee:</span>
-                                        <span style="font-weight: var(--font-weight-medium);">€45.00</span>
+                                    <div style="border-top: 1px solid var(--color-gray-200); padding-top: var(--space-md);">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-xs);">
+                                            <span style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Total Price:</span>
+                                            <span style="font-weight: var(--font-weight-bold); color: var(--color-cyan); font-size: var(--font-size-lg);" id="activity-summary-total">€85.80</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span style="color: var(--color-gray-600); font-size: var(--font-size-sm);">Duration:</span>
+                                            <span style="color: var(--color-gray-600); font-size: var(--font-size-sm);" id="activity-duration">Jan 15 - Mar 15, 2024</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1537,29 +1593,131 @@
                                 </div>
                                 
                                 <div class="form-group">
-                                    <label class="form-label">Start Date</label>
-                                    <input type="date" class="form-input" value="2024-01-15">
+                                    <label class="form-label" for="special-requirements">Special Requirements</label>
+                                    <textarea id="special-requirements"
+                                              class="form-input"
+                                              placeholder="Any allergies, medical conditions, or special instructions..."
+                                              rows="3"
+                                              maxlength="500"
+                                              aria-describedby="requirements-help requirements-count"></textarea>
+                                    <div id="requirements-help" style="font-size: var(--font-size-xs); color: var(--color-gray-500); margin-top: var(--space-xs);">
+                                        Optional: Include any important information we should know about your child.
+                                    </div>
+                                    <div id="requirements-count" style="font-size: var(--font-size-xs); color: var(--color-gray-500); text-align: right; margin-top: var(--space-xs);">
+                                        0/500 characters
+                                    </div>
+                                    <div id="requirements-error" class="validation-error" style="display: none; color: var(--color-red); font-size: var(--font-size-xs); margin-top: var(--space-xs);">
+                                        Please keep your message under 500 characters.
+                                    </div>
                                 </div>
-                                
-                                <div class="form-group">
-                                    <label class="form-label">Special Requirements</label>
-                                    <textarea class="form-input" placeholder="Any allergies, medical conditions, or special instructions..." rows="3"></textarea>
-                                </div>
+
+                                <fieldset class="form-group">
+                                    <legend class="form-label">Payment Method</legend>
+                                    <div role="radiogroup" aria-labelledby="payment-method-legend" style="display: flex; flex-direction: column; gap: var(--space-sm);">
+                                        <label class="payment-option" for="payment-card" style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer; padding: var(--space-md); border: 1px solid var(--color-gray-200); border-radius: var(--radius-md); background: var(--color-white); transition: all 0.2s ease;">
+                                            <input type="radio"
+                                                   id="payment-card"
+                                                   name="payment-method"
+                                                   value="card"
+                                                   checked
+                                                   style="margin: 0;"
+                                                   aria-describedby="payment-card-desc">
+                                            <div>
+                                                <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Credit Card</div>
+                                                <div id="payment-card-desc" style="font-size: var(--font-size-sm); color: var(--color-gray-600);">Pay securely with Visa, Mastercard, or other cards</div>
+                                            </div>
+                                        </label>
+                                        <label class="payment-option" for="payment-transfer" style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer; padding: var(--space-md); border: 1px solid var(--color-gray-200); border-radius: var(--radius-md); background: var(--color-white); transition: all 0.2s ease;">
+                                            <input type="radio"
+                                                   id="payment-transfer"
+                                                   name="payment-method"
+                                                   value="transfer"
+                                                   style="margin: 0;"
+                                                   aria-describedby="payment-transfer-desc">
+                                            <div>
+                                                <div style="font-weight: var(--font-weight-medium); color: var(--color-gray-800);">Cash / Bank Transfer</div>
+                                                <div id="payment-transfer-desc" style="font-size: var(--font-size-sm); color: var(--color-gray-600);">Avoid card fees - pay cash or direct transfer</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </fieldset>
 
                                 <div style="margin: var(--space-lg) 0;">
                                     <h3 style="color: var(--color-gray-800); margin-bottom: var(--space-md);">Payment Summary</h3>
                                     <div class="card">
                                         <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);">
-                                            <span>Weekly fee:</span>
-                                            <span>€45.00</span>
+                                            <span id="weekly-fee-label">Weekly fee (8 weeks):</span>
+                                            <span id="weekly-fee-amount">€45.00</span>
                                         </div>
                                         <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);">
                                             <span>Registration fee:</span>
-                                            <span>€25.00</span>
+                                            <span id="registration-fee-amount">€25.00</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--color-gray-100);">
+                                            <span>Subtotal:</span>
+                                            <span id="subtotal-amount">€70.00</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);">
+                                            <span id="vat-label">VAT (19%):</span>
+                                            <span id="vat-amount">€13.30</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-sm);" id="card-fee-row">
+                                            <span>Credit card fee:</span>
+                                            <span id="card-fee-amount">€2.50</span>
                                         </div>
                                         <div style="border-top: 1px solid var(--color-gray-200); padding-top: var(--space-sm); display: flex; justify-content: space-between; font-weight: var(--font-weight-bold);">
                                             <span>Total due today:</span>
-                                            <span style="color: var(--color-cyan);">€70.00</span>
+                                            <span style="color: var(--color-cyan);" id="total-amount">€85.80</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Bank Information (hidden by default) -->
+                                <div id="bank-info" class="payment-hidden" style="margin: var(--space-lg) 0;">
+                                    <h3 style="color: var(--color-gray-800); margin-bottom: var(--space-md);">Bank Transfer Details</h3>
+                                    <div class="card" style="background: var(--color-blue-50); border: 1px solid var(--color-blue-200);">
+                                        <div style="margin-bottom: var(--space-md);">
+                                            <p style="color: var(--color-gray-700); margin: 0 0 var(--space-md) 0; font-size: var(--font-size-sm);">
+                                                Please transfer <strong id="bank-transfer-amount">€83.30</strong> (no card fees) to the following account:
+                                            </p>
+                                        </div>
+                                        <div style="display: grid; gap: var(--space-sm); font-family: monospace; font-size: var(--font-size-sm);">
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <span style="color: var(--color-gray-600);">Account Name:</span>
+                                                <span style="font-weight: var(--font-weight-medium);">Prime Youth Activities Ltd</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <span style="color: var(--color-gray-600);">IBAN:</span>
+                                                <span style="font-weight: var(--font-weight-medium);">IE64 BOFI 9000 1234 5678 90</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <span style="color: var(--color-gray-600);">BIC:</span>
+                                                <span style="font-weight: var(--font-weight-medium);">BOFIIE2D</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <span style="color: var(--color-gray-600);">Reference:</span>
+                                                <span style="font-weight: var(--font-weight-medium);" id="payment-reference">CAW-EMMA-0124</span>
+                                            </div>
+                                        </div>
+                                        <div style="margin-top: var(--space-md); padding-top: var(--space-md); border-top: 1px solid var(--color-blue-200);">
+                                            <p style="color: var(--color-gray-600); margin: 0; font-size: var(--font-size-xs);">
+                                                💡 <strong>Important:</strong> Please include the reference code in your transfer to ensure proper allocation.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Invoice Information -->
+                                <div style="margin: var(--space-lg) 0; padding: var(--space-md); background: var(--color-gray-50); border-radius: var(--radius-md); border: 1px solid var(--color-gray-200);">
+                                    <div style="display: flex; align-items: start; gap: var(--space-sm);">
+                                        <div style="color: var(--color-cyan); font-size: 1.2rem;">📧</div>
+                                        <div>
+                                            <h4 style="margin: 0 0 var(--space-xs) 0; color: var(--color-gray-800); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium);">Invoice & Payment Confirmation</h4>
+                                            <p style="margin: 0; color: var(--color-gray-600); font-size: var(--font-size-xs); line-height: 1.4;">
+                                                • An invoice will be emailed to you after enrollment completion<br>
+                                                • Credit card payments are processed immediately<br>
+                                                • Cash/transfer payments will show as "Pending" until received
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -1890,6 +2048,210 @@
                 submitBtn.style.background = '';
             }, 2000);
         }
+
+        // Booking Configuration
+        const BookingConfig = {
+            activity: {
+                name: "Creative Art World",
+                weeklyFee: 45.00,
+                weeksCount: 8,
+                registrationFee: 25.00,
+                startDate: new Date('2024-01-15'),
+                endDate: new Date('2024-03-15')
+            },
+            pricing: {
+                vatRate: 0.19,
+                cardFee: 2.50,
+                currency: '€'
+            },
+            bank: {
+                accountName: "Prime Youth Activities Ltd",
+                iban: "IE64 BOFI 9000 1234 5678 90",
+                bic: "BOFIIE2D"
+            }
+        };
+
+        // Payment Handler Class
+        class PaymentHandler {
+            constructor(config) {
+                this.config = config;
+                this.elements = this.cacheElements();
+                this.generatePaymentReference();
+                this.calculatePricing();
+                this.updateDisplay();
+                this.bindEvents();
+            }
+
+            cacheElements() {
+                return {
+                    // Form elements
+                    cardRadio: document.getElementById('payment-card'),
+                    transferRadio: document.getElementById('payment-transfer'),
+
+                    // Display elements
+                    weeklyFeeLabel: document.getElementById('weekly-fee-label'),
+                    weeklyFeeAmount: document.getElementById('weekly-fee-amount'),
+                    registrationFeeAmount: document.getElementById('registration-fee-amount'),
+                    subtotalAmount: document.getElementById('subtotal-amount'),
+                    vatLabel: document.getElementById('vat-label'),
+                    vatAmount: document.getElementById('vat-amount'),
+                    cardFeeAmount: document.getElementById('card-fee-amount'),
+                    totalAmount: document.getElementById('total-amount'),
+                    activitySummaryTotal: document.getElementById('activity-summary-total'),
+                    activityDuration: document.getElementById('activity-duration'),
+
+                    // Visibility elements
+                    bankInfo: document.getElementById('bank-info'),
+                    cardFeeRow: document.getElementById('card-fee-row'),
+                    bankTransferAmount: document.getElementById('bank-transfer-amount'),
+                    paymentReference: document.getElementById('payment-reference'),
+
+                    // Validation elements
+                    specialRequirements: document.getElementById('special-requirements'),
+                    requirementsCount: document.getElementById('requirements-count'),
+                    requirementsError: document.getElementById('requirements-error')
+                };
+            }
+
+            generatePaymentReference() {
+                const activityCode = this.config.activity.name.split(' ').map(w => w[0]).join('');
+                const month = String(this.config.activity.startDate.getMonth() + 1).padStart(2, '0');
+                const year = String(this.config.activity.startDate.getFullYear()).slice(-2);
+                const random = Math.random().toString(36).substr(2, 4).toUpperCase();
+                this.paymentRef = `${activityCode}-${random}-${month}${year}`;
+            }
+
+            calculatePricing() {
+                this.subtotal = this.config.activity.weeklyFee + this.config.activity.registrationFee;
+                this.vat = Math.round(this.subtotal * this.config.pricing.vatRate * 100) / 100;
+                this.totalWithCard = this.subtotal + this.vat + this.config.pricing.cardFee;
+                this.totalWithoutCard = this.subtotal + this.vat;
+            }
+
+            formatCurrency(amount) {
+                return `${this.config.pricing.currency}${amount.toFixed(2)}`;
+            }
+
+            formatDateRange() {
+                const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                const start = this.config.activity.startDate.toLocaleDateString('en-US', options);
+                const end = this.config.activity.endDate.toLocaleDateString('en-US', options);
+                return `${start} - ${end}`;
+            }
+
+            updateDisplay() {
+                // Update static values
+                if (this.elements.weeklyFeeLabel) {
+                    this.elements.weeklyFeeLabel.textContent = `Weekly fee (${this.config.activity.weeksCount} weeks):`;
+                }
+                if (this.elements.weeklyFeeAmount) {
+                    this.elements.weeklyFeeAmount.textContent = this.formatCurrency(this.config.activity.weeklyFee);
+                }
+                if (this.elements.registrationFeeAmount) {
+                    this.elements.registrationFeeAmount.textContent = this.formatCurrency(this.config.activity.registrationFee);
+                }
+                if (this.elements.subtotalAmount) {
+                    this.elements.subtotalAmount.textContent = this.formatCurrency(this.subtotal);
+                }
+                if (this.elements.vatLabel) {
+                    this.elements.vatLabel.textContent = `VAT (${Math.round(this.config.pricing.vatRate * 100)}%):`;
+                }
+                if (this.elements.vatAmount) {
+                    this.elements.vatAmount.textContent = this.formatCurrency(this.vat);
+                }
+                if (this.elements.cardFeeAmount) {
+                    this.elements.cardFeeAmount.textContent = this.formatCurrency(this.config.pricing.cardFee);
+                }
+                if (this.elements.activityDuration) {
+                    this.elements.activityDuration.textContent = this.formatDateRange();
+                }
+                if (this.elements.paymentReference) {
+                    this.elements.paymentReference.textContent = this.paymentRef;
+                }
+
+                // Update payment method specific values
+                this.updatePaymentMethodDisplay();
+            }
+
+            updatePaymentMethodDisplay() {
+                const isTransferSelected = this.elements.transferRadio?.checked;
+                const total = isTransferSelected ? this.totalWithoutCard : this.totalWithCard;
+
+                // Update totals
+                if (this.elements.totalAmount) {
+                    this.elements.totalAmount.textContent = this.formatCurrency(total);
+                }
+                if (this.elements.activitySummaryTotal) {
+                    this.elements.activitySummaryTotal.textContent = this.formatCurrency(total);
+                }
+                if (this.elements.bankTransferAmount) {
+                    this.elements.bankTransferAmount.textContent = this.formatCurrency(this.totalWithoutCard);
+                }
+
+                // Toggle visibility using CSS classes
+                if (this.elements.bankInfo) {
+                    this.elements.bankInfo.classList.toggle('payment-hidden', !isTransferSelected);
+                }
+                if (this.elements.cardFeeRow) {
+                    this.elements.cardFeeRow.classList.toggle('payment-flex-hidden', isTransferSelected);
+                }
+            }
+
+            validateSpecialRequirements() {
+                const textarea = this.elements.specialRequirements;
+                const countElement = this.elements.requirementsCount;
+                const errorElement = this.elements.requirementsError;
+
+                if (!textarea || !countElement) return;
+
+                const currentLength = textarea.value.length;
+                const maxLength = 500;
+
+                // Update character count
+                countElement.textContent = `${currentLength}/${maxLength} characters`;
+
+                // Show/hide error message
+                if (currentLength > maxLength) {
+                    if (errorElement) {
+                        errorElement.style.display = 'block';
+                    }
+                    countElement.style.color = 'var(--color-red)';
+                    return false;
+                } else {
+                    if (errorElement) {
+                        errorElement.style.display = 'none';
+                    }
+                    countElement.style.color = currentLength > maxLength * 0.9 ? 'var(--color-orange)' : 'var(--color-gray-500)';
+                    return true;
+                }
+            }
+
+            bindEvents() {
+                // Payment method events
+                if (this.elements.cardRadio) {
+                    this.elements.cardRadio.addEventListener('change', () => this.updatePaymentMethodDisplay());
+                }
+                if (this.elements.transferRadio) {
+                    this.elements.transferRadio.addEventListener('change', () => this.updatePaymentMethodDisplay());
+                }
+
+                // Input validation events
+                if (this.elements.specialRequirements) {
+                    this.elements.specialRequirements.addEventListener('input', () => this.validateSpecialRequirements());
+                    this.elements.specialRequirements.addEventListener('paste', () => {
+                        setTimeout(() => this.validateSpecialRequirements(), 10);
+                    });
+
+                    // Initial validation
+                    this.validateSpecialRequirements();
+                }
+            }
+        }
+
+        // Initialize payment handler when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PaymentHandler(BookingConfig);
+        });
     </script>
 
     <script src="scripts/theme.js"></script>
