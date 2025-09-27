@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Youth - Modern Website Mockups</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'prime-yellow': '#FFD700',
+                        'prime-magenta': '#FF1493',
+                        'prime-cyan': '#00CED1',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.3s ease-in-out',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'bounce-gentle': 'bounceGentle 2s infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes bounceGentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #00CED1 0%, #FF1493 50%, #FFD700 100%);
+        }
+
+        .screen-transition {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+
+<body class="font-sans bg-gray-50 overflow-x-hidden" x-data="primeYouthApp()">
+    <!-- Mobile Container -->
+    <div class="max-w-md mx-auto bg-white min-h-screen shadow-xl relative overflow-hidden">
+
+        <!-- Screen Navigation Header (Dev Tool) -->
+        <div class="bg-gradient-to-r from-prime-cyan to-prime-magenta text-white p-4 sticky top-0 z-50">
+            <div class="flex justify-between items-center mb-2">
+                <h1 class="text-lg font-bold">Prime Youth</h1>
+                <div class="text-sm opacity-90">Website Mockups</div>
+            </div>
+
+            <!-- Screen Navigation Tabs -->
+            <div class="flex gap-2 overflow-x-auto pb-2">
+                <template x-for="screen in screens" :key="screen.id">
+                    <button
+                        @click="currentScreen = screen.id"
+                        :class="currentScreen === screen.id ? 'bg-white text-gray-900' : 'bg-white/20 text-white'"
+                        class="px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition-all"
+                        x-text="screen.name">
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        <!-- Screen Content Container -->
+        <div class="relative">
+
+            <!-- Login Screen -->
+            <div x-show="currentScreen === 'login'"
+                 x-transition:enter="screen-transition"
+                 x-transition:enter-start="opacity-0 translate-y-4"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="min-h-screen gradient-bg flex items-center justify-center p-6">
+
+                <div class="w-full max-w-sm">
+                    <!-- Logo Section -->
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4 animate-bounce-gentle">
+                            <div class="w-8 h-8 bg-gradient-to-br from-prime-yellow via-prime-magenta to-prime-cyan rounded-lg"></div>
+                        </div>
+                        <h1 class="text-3xl font-bold text-white mb-2">Prime Youth</h1>
+                        <p class="text-white/80">Afterschool Adventures Await</p>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div class="glass-effect rounded-2xl p-6 backdrop-blur-lg">
+                        <form class="space-y-6" @submit.prevent="navigateTo('home')">
+                            <!-- Email Field -->
+                            <div class="space-y-2">
+                                <label for="email" class="block text-sm font-medium text-white">Email</label>
+                                <div class="relative">
+                                    <input
+                                        type="email"
+                                        id="email"
+                                        placeholder="your@email.com"
+                                        class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all"
+                                    >
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Password Field -->
+                            <div class="space-y-2">
+                                <label for="password" class="block text-sm font-medium text-white">Password</label>
+                                <div class="relative">
+                                    <input
+                                        type="password"
+                                        id="password"
+                                        placeholder="••••••••"
+                                        class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all"
+                                    >
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                        <svg class="w-5 h-5 text-white/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Remember Me & Forgot Password -->
+                            <div class="flex items-center justify-between text-sm">
+                                <label class="flex items-center text-white">
+                                    <input type="checkbox" class="w-4 h-4 text-prime-cyan bg-white/10 border-white/20 rounded focus:ring-prime-cyan focus:ring-2">
+                                    <span class="ml-2">Remember me</span>
+                                </label>
+                                <a href="#" class="text-white hover:text-white/80 transition-colors">Forgot password?</a>
+                            </div>
+
+                            <!-- Login Button -->
+                            <button
+                                type="submit"
+                                class="w-full bg-white text-gray-900 py-3 px-4 rounded-xl font-semibold hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 transform hover:scale-105 transition-all duration-200 shadow-lg"
+                            >
+                                Sign In
+                            </button>
+
+                            <!-- Social Login -->
+                            <div class="relative">
+                                <div class="absolute inset-0 flex items-center">
+                                    <div class="w-full border-t border-white/20"></div>
+                                </div>
+                                <div class="relative flex justify-center text-sm">
+                                    <span class="px-2 bg-transparent text-white/80">Or continue with</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    class="flex justify-center items-center px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all"
+                                >
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                                    </svg>
+                                    <span class="ml-2 text-sm">Google</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="flex justify-center items-center px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white hover:bg-white/20 transition-all"
+                                >
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                    <span class="ml-2 text-sm">Facebook</span>
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Sign Up Link -->
+                        <div class="mt-6 text-center">
+                            <p class="text-white/80 text-sm">
+                                Don't have an account?
+                                <a href="#" class="text-white font-semibold hover:text-white/80 transition-colors">Sign up</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Home Screen -->
+            <div x-show="currentScreen === 'home'"
+                 x-transition:enter="screen-transition"
+                 x-transition:enter-start="opacity-0 translate-y-4"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="min-h-screen bg-gray-50">
+
+                <!-- Profile Header -->
+                <div class="bg-gradient-to-r from-prime-cyan to-prime-magenta text-white p-6 rounded-b-3xl">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <img :src="user.avatar" alt="Profile" class="w-12 h-12 rounded-full border-2 border-white/30">
+                            <div>
+                                <h2 class="text-xl font-bold" x-text="user.name">Sarah Johnson</h2>
+                                <p class="text-white/80 text-sm" x-text="`${user.children} children enrolled`">2 children enrolled</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5-5-5h5v-7a1 1 0 011-1h3a1 1 0 011 1v7z"></path>
+                                </svg>
+                            </button>
+                            <button class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Area -->
+                <div class="p-6 space-y-6">
+
+                    <!-- Children Section -->
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-prime-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                                </svg>
+                                My Children
+                            </h3>
+                            <button class="text-prime-cyan text-sm font-medium hover:text-prime-cyan/80">View All</button>
+                        </div>
+
+                        <div class="space-y-3">
+                            <template x-for="child in children" :key="child.id">
+                                <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <div class="flex items-center space-x-3 mb-2">
+                                                <div class="w-10 h-10 bg-gradient-to-br from-prime-yellow to-prime-magenta rounded-full flex items-center justify-center text-white font-semibold text-sm" x-text="child.name.charAt(0)"></div>
+                                                <div>
+                                                    <h4 class="font-semibold text-gray-900" x-text="`${child.name} (${child.age})`"></h4>
+                                                    <p class="text-sm text-gray-500" x-text="child.school"></p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Progress Bar -->
+                                            <div class="mb-3">
+                                                <div class="flex justify-between items-center text-xs text-gray-600 mb-1">
+                                                    <span>Session Progress</span>
+                                                    <span x-text="child.sessions"></span>
+                                                </div>
+                                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                                    <div class="bg-gradient-to-r from-prime-cyan to-prime-magenta h-2 rounded-full"
+                                                         :style="`width: ${parseInt(child.sessions.split('/')[0]) / parseInt(child.sessions.split('/')[1]) * 100}%`"></div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Activity Pills -->
+                                            <div class="flex flex-wrap gap-2">
+                                                <template x-for="activity in child.activities" :key="activity">
+                                                    <span class="px-2 py-1 bg-gradient-to-r from-prime-cyan/10 to-prime-magenta/10 text-prime-magenta text-xs rounded-full font-medium" x-text="activity"></span>
+                                                </template>
+                                            </div>
+                                        </div>
+
+                                        <button class="ml-4 p-2 text-gray-400 hover:text-prime-cyan transition-colors">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-prime-magenta" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Quick Actions
+                        </h3>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <button @click="navigateTo('programs')" class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all hover:scale-105">
+                                <div class="w-12 h-12 bg-gradient-to-br from-prime-cyan to-blue-500 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-900 text-sm">Browse Programs</h4>
+                                <p class="text-xs text-gray-500 mt-1">Find new activities</p>
+                            </button>
+
+                            <button class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all hover:scale-105">
+                                <div class="w-12 h-12 bg-gradient-to-br from-prime-magenta to-pink-500 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-900 text-sm">Schedule</h4>
+                                <p class="text-xs text-gray-500 mt-1">View calendar</p>
+                            </button>
+
+                            <button class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all hover:scale-105">
+                                <div class="w-12 h-12 bg-gradient-to-br from-prime-yellow to-orange-500 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-900 text-sm">Payments</h4>
+                                <p class="text-xs text-gray-500 mt-1">Manage billing</p>
+                            </button>
+
+                            <button class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all hover:scale-105">
+                                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-3 mx-auto">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                    </svg>
+                                </div>
+                                <h4 class="font-semibold text-gray-900 text-sm">Messages</h4>
+                                <p class="text-xs text-gray-500 mt-1">Contact support</p>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Achievements Section -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-prime-yellow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                            </svg>
+                            Recent Achievements
+                        </h3>
+
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-prime-yellow to-orange-500 rounded-full flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-semibold text-gray-900">First Chess Victory!</h4>
+                                    <p class="text-sm text-gray-500">Emma won her first chess match</p>
+                                    <p class="text-xs text-gray-400 mt-1">2 days ago</p>
+                                </div>
+                                <div class="text-prime-yellow">
+                                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Bottom Navigation -->
+                <div class="fixed bottom-0 left-1/2 transform -translate-x-1/2 max-w-md w-full bg-white border-t border-gray-200">
+                    <div class="flex justify-around py-3">
+                        <button @click="navigateTo('home')" :class="currentScreen === 'home' ? 'text-prime-cyan' : 'text-gray-400'" class="flex flex-col items-center space-y-1 px-4 py-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                            </svg>
+                            <span class="text-xs">Home</span>
+                        </button>
+                        <button @click="navigateTo('programs')" :class="currentScreen === 'programs' ? 'text-prime-cyan' : 'text-gray-400'" class="flex flex-col items-center space-y-1 px-4 py-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <span class="text-xs">Programs</span>
+                        </button>
+                        <button @click="navigateTo('activity-detail')" :class="currentScreen === 'activity-detail' ? 'text-prime-cyan' : 'text-gray-400'" class="flex flex-col items-center space-y-1 px-4 py-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            <span class="text-xs">Details</span>
+                        </button>
+                        <button class="flex flex-col items-center space-y-1 px-4 py-2 text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                            </svg>
+                            <span class="text-xs">Profile</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Programs Screen -->
+            <div x-show="currentScreen === 'programs'"
+                 x-transition:enter="screen-transition"
+                 x-transition:enter-start="opacity-0 translate-y-4"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="min-h-screen bg-gray-50 pb-20">
+
+                <!-- Header -->
+                <div class="bg-white p-6 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <h1 class="text-2xl font-bold text-gray-900">Programs</h1>
+                        <button class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Search Bar -->
+                    <div class="relative mb-4">
+                        <input
+                            type="text"
+                            placeholder="Search programs..."
+                            class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-prime-cyan/50 focus:border-prime-cyan transition-all"
+                        >
+                        <svg class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+
+                    <!-- Filter Pills -->
+                    <div class="flex gap-2 overflow-x-auto pb-2" x-data="{ activeFilter: 'all' }">
+                        <button @click="activeFilter = 'all'" :class="activeFilter === 'all' ? 'bg-prime-cyan text-white' : 'bg-gray-100 text-gray-700'" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all">
+                            All Programs
+                        </button>
+                        <button @click="activeFilter = 'available'" :class="activeFilter === 'available' ? 'bg-prime-cyan text-white' : 'bg-gray-100 text-gray-700'" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all">
+                            Available
+                        </button>
+                        <button @click="activeFilter = 'ages'" :class="activeFilter === 'ages' ? 'bg-prime-cyan text-white' : 'bg-gray-100 text-gray-700'" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all">
+                            By Age
+                        </button>
+                        <button @click="activeFilter = 'price'" :class="activeFilter === 'price' ? 'bg-prime-cyan text-white' : 'bg-gray-100 text-gray-700'" class="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all">
+                            By Price
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Programs List -->
+                <div class="p-6 space-y-4">
+                    <template x-for="program in programs" :key="program.id">
+                        <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                            <!-- Program Image -->
+                            <div class="relative h-48 overflow-hidden">
+                                <img :src="program.image" :alt="program.name" class="w-full h-full object-cover">
+                                <div class="absolute top-4 right-4">
+                                    <button class="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
+                                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="absolute bottom-4 left-4">
+                                    <span :class="program.spotsLeft <= 3 ? 'bg-orange-500' : 'bg-green-500'" class="px-3 py-1 text-white text-sm font-medium rounded-full">
+                                        <span x-text="program.spotsLeft"></span> spots left
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Program Details -->
+                            <div class="p-6">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex-1">
+                                        <h3 class="text-lg font-bold text-gray-900 mb-1" x-text="program.name"></h3>
+                                        <p class="text-sm text-gray-500 mb-2" x-text="`Ages ${program.ageRange} • ${program.schedule}`"></p>
+                                    </div>
+                                    <div class="text-right ml-4">
+                                        <p class="text-xl font-bold text-prime-magenta" x-text="program.price"></p>
+                                        <p class="text-xs text-gray-500">per week</p>
+                                    </div>
+                                </div>
+
+                                <!-- Program Features -->
+                                <div class="flex flex-wrap gap-2 mb-4">
+                                    <span class="px-2 py-1 bg-prime-cyan/10 text-prime-cyan text-xs rounded-full font-medium">Expert Instructor</span>
+                                    <span class="px-2 py-1 bg-prime-yellow/10 text-yellow-700 text-xs rounded-full font-medium">Small Groups</span>
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">All Materials Included</span>
+                                </div>
+
+                                <!-- Action Buttons -->
+                                <div class="flex gap-3">
+                                    <button @click="navigateTo('activity-detail')" class="flex-1 bg-gradient-to-r from-prime-cyan to-prime-magenta text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200">
+                                        View Details
+                                    </button>
+                                    <button class="px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <!-- Quick Enroll Section -->
+                    <div class="bg-gradient-to-r from-prime-cyan to-prime-magenta rounded-2xl p-6 text-white text-center">
+                        <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Need Help Choosing?</h3>
+                        <p class="text-white/90 mb-4">Our education consultants can help you find the perfect program for your child</p>
+                        <button class="bg-white text-prime-cyan px-6 py-3 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
+                            Get Personalized Recommendations
+                        </button>
+                    </div>
+
+                    <!-- Load More -->
+                    <div class="text-center pt-6">
+                        <button class="px-8 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors">
+                            Load More Programs
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Detail Screen -->
+            <div x-show="currentScreen === 'activity-detail'"
+                 x-transition:enter="screen-transition"
+                 x-transition:enter-start="opacity-0 translate-y-4"
+                 x-transition:enter-end="opacity-100 translate-y-0"
+                 class="min-h-screen bg-gray-50 pb-20">
+
+                <!-- Header with Back Button -->
+                <div class="relative">
+                    <!-- Hero Image -->
+                    <div class="h-64 bg-gradient-to-br from-yellow-400 via-orange-500 to-yellow-600 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                        <div class="absolute top-4 left-4 z-10">
+                            <button @click="navigateTo('programs')" class="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
+                                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="absolute top-4 right-4 z-10">
+                            <button class="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors">
+                                <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Art Palette Icon -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v1.5L15 4l2 7-7 2.5V15a2 2 0 01-2 2z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Program Info Overlay -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex-1">
+                                <h1 class="text-2xl font-bold text-gray-900 mb-2">Creative Art World</h1>
+                                <div class="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+                                    <span class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        Wednesdays 4-6 PM
+                                    </span>
+                                    <span class="flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        </svg>
+                                        Ages 6-12
+                                    </span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="bg-orange-100 text-orange-700 px-2 py-1 rounded-full text-xs font-medium">Only 2 spots left!</span>
+                                    <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">✓ No hidden fees</span>
+                                </div>
+                            </div>
+                            <div class="text-right ml-4">
+                                <p class="text-3xl font-bold text-prime-magenta">€180</p>
+                                <p class="text-sm text-gray-500">Total: Sept 1 - Oct 26</p>
+                                <p class="text-xs text-gray-400">€45/week • 4 weeks</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Area -->
+                <div class="mt-20 p-6 space-y-6">
+
+                    <!-- Program Description -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">About This Program</h3>
+                        <p class="text-gray-600 leading-relaxed mb-4">
+                            Unleash your child's creativity in our comprehensive art program! Students will explore various artistic mediums including painting, drawing, sculpting, and digital art. Our expert instructors guide each child to develop their unique artistic voice while building fundamental skills.
+                        </p>
+
+                        <!-- What's Included -->
+                        <div class="space-y-2">
+                            <h4 class="font-semibold text-gray-900">What's Included:</h4>
+                            <ul class="space-y-2 text-sm text-gray-600">
+                                <li class="flex items-center">
+                                    <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Professional art supplies and materials
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Small group instruction (max 8 students)
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Take-home art portfolio
+                                </li>
+                                <li class="flex items-center">
+                                    <svg class="w-4 h-4 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    End-of-session showcase exhibition
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Instructor Info -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Meet Your Instructor</h3>
+                        <div class="flex items-start space-x-4">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face" alt="Instructor" class="w-16 h-16 rounded-full">
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-gray-900">Ms. Elena Rodriguez</h4>
+                                <p class="text-sm text-gray-600 mb-2">Master of Fine Arts, 8+ years teaching experience</p>
+                                <p class="text-sm text-gray-600 leading-relaxed">
+                                    Elena specializes in fostering creativity while building technical skills. Her students have won numerous local art competitions and developed lifelong passions for the arts.
+                                </p>
+                                <div class="flex items-center mt-2">
+                                    <div class="flex text-yellow-400">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm text-gray-600 ml-2">4.9/5 from 47 reviews</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Parent Reviews -->
+                    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">What Parents Say</h3>
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-prime-cyan pl-4">
+                                <p class="text-gray-600 italic mb-2">"My daughter Emma has grown so much in confidence and creativity. She can't wait for art class each week!"</p>
+                                <div class="flex items-center">
+                                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b388?w=32&h=32&fit=crop&crop=face" alt="Parent" class="w-8 h-8 rounded-full mr-2">
+                                    <span class="text-sm font-medium text-gray-900">Sarah Johnson</span>
+                                    <div class="flex text-yellow-400 ml-2">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="border-l-4 border-prime-magenta pl-4">
+                                <p class="text-gray-600 italic mb-2">"Excellent program with caring instructors. The small class size makes all the difference."</p>
+                                <div class="flex items-center">
+                                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face" alt="Parent" class="w-8 h-8 rounded-full mr-2">
+                                    <span class="text-sm font-medium text-gray-900">Michael Chen</span>
+                                    <div class="flex text-yellow-400 ml-2">
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="mt-4 text-prime-cyan text-sm font-medium hover:text-prime-cyan/80">
+                            Read all 47 reviews →
+                        </button>
+                    </div>
+
+                    <!-- Enrollment Section -->
+                    <div class="bg-gradient-to-r from-prime-cyan to-prime-magenta rounded-2xl p-6 text-white">
+                        <h3 class="text-xl font-bold mb-2">Ready to Enroll?</h3>
+                        <p class="text-white/90 mb-4">Secure your spot now - only 2 remaining!</p>
+
+                        <div class="space-y-3">
+                            <button class="w-full bg-white text-prime-cyan py-3 px-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Enroll Now - €180
+                            </button>
+
+                            <div class="flex gap-3">
+                                <button class="flex-1 bg-white/20 border border-white/30 text-white py-2 px-4 rounded-xl font-medium hover:bg-white/30 transition-colors">
+                                    Save for Later
+                                </button>
+                                <button class="flex-1 bg-white/20 border border-white/30 text-white py-2 px-4 rounded-xl font-medium hover:bg-white/30 transition-colors">
+                                    Ask Questions
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-4 border-t border-white/20">
+                            <p class="text-white/80 text-sm">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Free cancellation up to 48 hours before start date
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Alpine.js Application Data -->
+    <script>
+        function primeYouthApp() {
+            return {
+                currentScreen: 'login',
+                screens: [
+                    { id: 'login', name: 'Login' },
+                    { id: 'home', name: 'Home' },
+                    { id: 'programs', name: 'Programs' },
+                    { id: 'activity-detail', name: 'Activity Detail' }
+                ],
+
+                // Navigation methods
+                navigateTo(screenId) {
+                    this.currentScreen = screenId;
+                },
+
+                // Mock data (to be expanded)
+                user: {
+                    name: 'Sarah Johnson',
+                    children: 2,
+                    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face'
+                },
+
+                children: [
+                    {
+                        id: 1,
+                        name: 'Emma Johnson',
+                        age: 8,
+                        school: 'Greenwood Elementary',
+                        sessions: '8/10',
+                        activities: ['Art', 'Chess']
+                    },
+                    {
+                        id: 2,
+                        name: 'Liam Johnson',
+                        age: 6,
+                        school: 'Greenwood Elementary',
+                        sessions: '5/8',
+                        activities: ['Music']
+                    }
+                ],
+
+                programs: [
+                    {
+                        id: 1,
+                        name: 'Chess Masters',
+                        ageRange: '8-16',
+                        schedule: 'Fridays 3:30-5 PM',
+                        price: '€45/week',
+                        spotsLeft: 3,
+                        image: 'https://images.unsplash.com/photo-1606092195730-5d7b9af1efc5?w=300&h=200&fit=crop'
+                    },
+                    {
+                        id: 2,
+                        name: 'Music Exploration',
+                        ageRange: '5-10',
+                        schedule: 'Tuesdays 4-5:30 PM',
+                        price: '€35/week',
+                        spotsLeft: 7,
+                        image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=200&fit=crop'
+                    },
+                    {
+                        id: 3,
+                        name: 'Creative Art World',
+                        ageRange: '6-12',
+                        schedule: 'Wednesdays 4-6 PM',
+                        price: '€45/week',
+                        spotsLeft: 2,
+                        image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=300&h=200&fit=crop'
+                    }
+                ]
+            }
+        }
+    </script>
+</body>
+</html>
