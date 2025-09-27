@@ -1,51 +1,58 @@
 # Prime Youth - Website Mockups
 
-Modern, mobile-first website mockups for Prime Youth afterschool activities platform.
+Modern, responsive website mockups for Prime Youth afterschool activities platform with mobile, tablet, and desktop optimizations.
 
 ## Overview
 
-This project contains responsive website mockups converted from the original app designs, featuring a sleek, modern interface built with Tailwind CSS and Alpine.js.
+This project contains responsive website mockups converted from the original app designs, featuring a sleek, modern interface built with Tailwind CSS and Alpine.js. Includes a view mode switcher to preview mobile, tablet, and desktop layouts from a single file.
 
 ## Features
 
-### Design System
+### Responsive Design System
 - **Colors**: Brand colors (Cyan #00CED1, Magenta #FF1493, Yellow #FFD700)
-- **Typography**: Inter font for modern, readable text
+- **Typography**: Inter font with responsive sizing
 - **Components**: Rounded corners, glass morphism effects, gradient backgrounds
-- **Mobile-first**: Optimized for 375px mobile screens
+- **Multi-device**: Mobile (375px), Tablet (768px), Desktop (1280px+) optimized
+- **View Switcher**: Toggle between device views from the same interface
 
 ### Screens Implemented
 
 #### 1. Login Screen
-- Glass morphism login form with gradient background
-- Email/password fields with floating labels
+**Mobile**: Centered form with gradient background and glass morphism
+**Desktop**: Split layout with branding showcase (left) and clean form (right)
+- Email/password fields with responsive styling
 - Social login options (Google, Facebook)
 - Animated logo with gentle bounce effect
-- "Sign In" submits to home screen
+- Feature highlights on desktop branding side
 
 #### 2. Home Screen
+**Mobile**: Single-column layout with bottom navigation
+**Desktop**: Grid layouts and enhanced spacing
 - Profile header with gradient background
-- Children cards with progress bars and activity pills
-- Quick action buttons with hover effects
+- Children cards in responsive grid (2 columns desktop, 1 mobile)
+- Quick actions grid (4 columns desktop, 2 mobile)
 - Recent achievements section
-- Bottom navigation for easy access
+- Responsive navigation (bottom mobile, integrated desktop)
 
 #### 3. Programs Screen
-- Search functionality with filter pills
+**Mobile**: Single-column program cards
+**Desktop**: 3-column grid layout with enhanced filters
+- Search functionality with responsive filter pills
 - Program cards with:
   - Hero images and availability indicators
   - Pricing and schedule information
   - Feature badges and action buttons
+- Responsive grid layout (3 columns desktop, 2 tablet, 1 mobile)
 - Call-to-action section for consultations
-- Load more functionality
 
 #### 4. Activity Detail Screen
+**Mobile**: Single-column scrolling layout
+**Desktop**: Two-column layout with sticky sidebar
 - Hero section with back navigation
 - Program information overlay
-- Comprehensive program details
-- Instructor profile with ratings
-- Parent testimonials
-- Enrollment section with pricing
+- Main content (left): descriptions, instructor info, testimonials
+- Sidebar (right): sticky enrollment card with pricing
+- Responsive typography and spacing
 
 ### Technical Stack
 
@@ -57,20 +64,25 @@ This project contains responsive website mockups converted from the original app
 
 ### Interactive Features
 
+- **View Mode Switcher**: Toggle between Mobile/Tablet/Desktop views
 - Screen navigation with smooth transitions
+- Responsive layouts that adapt to selected view mode
 - Hover effects on buttons and cards
 - Form validation ready
 - Filter functionality (UI implemented)
 - Progress bars with calculated percentages
 - Star ratings display
 - Mock data integration via Alpine.js
+- Sticky elements on desktop (sidebar, navigation)
 
 ## Getting Started
 
 ### Quick Start
 1. Open `index.html` in a modern web browser
-2. Use the navigation tabs at the top to switch between screens
-3. Test on mobile devices using browser dev tools
+2. Use the **view mode switcher** (top-right) to toggle between Mobile/Tablet/Desktop
+3. Use the navigation tabs to switch between screens (Login/Home/Programs/Activity Detail)
+4. Test responsive behavior by switching view modes
+5. All features work without any setup - just open and view!
 
 ### Development Setup
 If you want to use the build system:
@@ -119,14 +131,26 @@ website-mockups/
 - Safari 14+
 - Mobile browsers with modern CSS support
 
+## Recent Updates (Desktop Optimization)
+
+### ✅ Completed Features
+- **Multi-device View Switcher**: Toggle between Mobile (375px), Tablet (768px), and Desktop (1280px+)
+- **Responsive Login**: Split-screen desktop layout with branding showcase
+- **Grid-based Home**: 2-column children cards, 4-column quick actions on desktop
+- **3-column Programs**: Desktop grid with responsive filters and enhanced spacing
+- **Sidebar Detail Page**: Two-column layout with sticky enrollment sidebar
+- **Adaptive Navigation**: Bottom nav (mobile) transitions to integrated navigation (desktop)
+- **Enhanced Typography**: Responsive text sizes and spacing for optimal readability
+- **Improved UX**: Sticky elements, hover states, and smooth transitions
+
 ## Next Steps
 
 ### Planned Enhancements
-- Desktop responsive breakpoints
 - Advanced filtering functionality
 - Form submission handling
 - Real API integration
 - Performance optimizations
+- Additional breakpoint fine-tuning
 
 ### Phoenix LiveView Integration
 These mockups are designed to be easily converted to Phoenix LiveView components:
