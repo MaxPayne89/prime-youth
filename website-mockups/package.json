@@ -1,0 +1,17 @@
+{
+  "name": "prime-youth-website-mockups",
+  "version": "1.0.0",
+  "description": "Modern website mockups for Prime Youth using Tailwind CSS",
+  "scripts": {
+    "build-css": "tailwindcss -i ./src/input.css -o ./assets/css/style.css --watch",
+    "build": "tailwindcss -i ./src/input.css -o ./assets/css/style.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "@tailwindcss/forms": "^0.5.7",
+    "@tailwindcss/aspect-ratio": "^0.4.2"
+  },
+  "keywords": ["tailwindcss", "mockups", "prime-youth", "mobile-first"],
+  "author": "Prime Youth Team",
+  "license": "MIT"
+}
