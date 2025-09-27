@@ -4,25 +4,44 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Prime Youth Brand Colors
-        'prime-yellow': '#FFD700',
-        'prime-magenta': '#FF1493',
-        'prime-cyan': '#00CED1',
-        // Custom shades for brand colors
-        yellow: {
-          400: '#FFD700',
-          500: '#E6C200',
-          600: '#CCAD00',
-        },
-        pink: {
-          500: '#FF1493',
-          600: '#E6127D',
-          700: '#CC1067',
-        },
-        cyan: {
-          400: '#40E0D0',
-          500: '#00CED1',
-          600: '#00B4B7',
+        // Prime Youth Brand Colors with full shade palettes
+        'prime': {
+          yellow: {
+            50: '#FFFCEB',
+            100: '#FFF8D1',
+            200: '#FFF0A8',
+            300: '#FFE875',
+            400: '#FFD700', // Primary brand yellow
+            500: '#E6C200',
+            600: '#CCAD00',
+            700: '#B39700',
+            800: '#997800',
+            900: '#805C00',
+          },
+          magenta: {
+            50: '#FFF0F7',
+            100: '#FFE1F0',
+            200: '#FFC3E1',
+            300: '#FFA5D2',
+            400: '#FF1493', // Primary brand magenta
+            500: '#E6127D',
+            600: '#CC1067',
+            700: '#B30E51',
+            800: '#990C3B',
+            900: '#800A25',
+          },
+          cyan: {
+            50: '#F0FDFC',
+            100: '#E1FBF9',
+            200: '#C3F7F3',
+            300: '#A5F3ED',
+            400: '#00CED1', // Primary brand cyan
+            500: '#00B4B7',
+            600: '#009A9D',
+            700: '#008083',
+            800: '#006669',
+            900: '#004C4F',
+          }
         }
       },
       fontFamily: {
