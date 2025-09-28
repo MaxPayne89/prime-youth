@@ -5,7 +5,8 @@ defmodule PrimeYouth.MixProject do
     [
       app: :prime_youth,
       version: "0.1.0",
-      elixir: "~> 1.15",
+      elixir: "~> 1.18",
+      erlang: "~> 28.0",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -80,7 +81,7 @@ defmodule PrimeYouth.MixProject do
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      test: ["test.setup", "test.db.setup", "ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind prime_youth", "esbuild prime_youth"],
       "assets.deploy": [
@@ -88,6 +89,8 @@ defmodule PrimeYouth.MixProject do
         "esbuild prime_youth --minify",
         "phx.digest"
       ],
+      "test.clean": ["test.teardown --remove-volumes", "test.setup --force-recreate"],
+      "test.watch": ["test.setup", "test.watch.continuous"],
       precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
     ]
   end
