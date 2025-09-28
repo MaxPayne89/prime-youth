@@ -1,45 +1,37 @@
-# Elixir
-/_build
-/cover
-/deps
-/doc
+# The directory Mix will write compiled artifacts to.
+/_build/
+
+# If you run "mix test --cover", coverage assets end up here.
+/cover/
+
+# The directory Mix downloads your dependencies sources to.
+/deps/
+
+# Where 3rd-party dependencies like ExDoc output generated docs.
+/doc/
+
+# Ignore .fetch files in case you like to edit your project deps locally.
 /.fetch
+
+# If the VM crashes, it generates a dump, let's ignore it too.
 erl_crash.dump
+
+# Also ignore archive artifacts (built via "mix archive.build").
 *.ez
-priv/static/
-.elixir_ls/
 
-# Kotlin/Android
-*.iml
-.gradle
-/local.properties
-/.idea/
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-*.apk
-*.ap_
-*.aab
+# Temporary files, for example, from tests.
+/tmp/
 
-# iOS
-DerivedData/
-*.hmap
-*.ipa
-*.dSYM.zip
-*.dSYM
-*.xcworkspace/xcuserdata/
-*.xcodeproj/xcuserdata/
+# Ignore package tarball (built via "mix hex.build").
+prime_youth-*.tar
 
-# General
-.env
-.env.local
-.vscode/
-*.log
-node_modules/
+# Ignore assets that are produced by build tools.
+/priv/static/assets/
 
-# Database
-*.sqlite
-*.sqlite3
-*.db
+# Ignore digested assets cache.
+/priv/static/cache_manifest.json
+
+# In case you use Node.js/npm, you want to ignore these.
+npm-debug.log
+/assets/node_modules/
+
