@@ -35,3 +35,8 @@ prime_youth-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Docker
+.env
+.env.local
+.env.*.local
+
