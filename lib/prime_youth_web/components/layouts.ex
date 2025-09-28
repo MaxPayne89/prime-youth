@@ -11,7 +11,6 @@ defmodule PrimeYouthWeb.Layouts do
   # and other static content.
   embed_templates "layouts/*"
 
-
   @doc """
   Shows the flash group with standard titles and content.
 

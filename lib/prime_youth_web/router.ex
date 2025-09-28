@@ -19,6 +19,10 @@ defmodule PrimeYouthWeb.Router do
 
     live_session :default, layout: {PrimeYouthWeb.Layouts, :app} do
       live "/", HomeLive, :index
+      live "/programs", ProgramsLive, :index
+      live "/programs/:id", ProgramDetailLive, :show
+      live "/login", LoginLive, :index
+      live "/signup", SignupLive, :index
     end
   end
 
