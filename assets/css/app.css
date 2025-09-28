@@ -14,7 +14,7 @@
    curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui.js
    Make sure to look at the daisyUI changelog: https://daisyui.com/docs/changelog/ */
 @plugin "../vendor/daisyui" {
-  themes: false;
+  themes: ["light", "dark"];
 }
 
 /* daisyUI theme plugin. You can update this file by fetching the latest version with:
@@ -65,12 +65,12 @@
   --color-base-200: oklch(96% 0.001 286.375);
   --color-base-300: oklch(92% 0.004 286.32);
   --color-base-content: oklch(21% 0.006 285.885);
-  --color-primary: oklch(70% 0.213 47.604);
-  --color-primary-content: oklch(98% 0.016 73.684);
-  --color-secondary: oklch(55% 0.027 264.364);
-  --color-secondary-content: oklch(98% 0.002 247.839);
-  --color-accent: oklch(0% 0 0);
-  --color-accent-content: oklch(100% 0 0);
+  --color-primary: oklch(65% 0.25 320); /* Prime Youth Magenta #FF1493 */
+  --color-primary-content: oklch(98% 0.016 320);
+  --color-secondary: oklch(70% 0.15 185); /* Prime Youth Cyan #00CED1 */
+  --color-secondary-content: oklch(98% 0.002 185);
+  --color-accent: oklch(80% 0.20 85); /* Prime Youth Yellow #FFD700 */
+  --color-accent-content: oklch(20% 0.020 85);
   --color-neutral: oklch(44% 0.017 285.786);
   --color-neutral-content: oklch(98% 0 0);
   --color-info: oklch(62% 0.214 259.815);

@@ -17,7 +17,9 @@ defmodule PrimeYouthWeb.Router do
   scope "/", PrimeYouthWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live_session :default, layout: {PrimeYouthWeb.Layouts, :app} do
+      live "/", HomeLive, :index
+    end
   end
 
   # Other scopes may use custom stacks.
