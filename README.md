@@ -1,12 +1,12 @@
 # Prime Youth
 
-Mobile app for afterschool activities, camps, and class trips management - connecting parents, instructors, and administrators.
+Website for afterschool activities, camps, and class trips management - connecting parents, instructors, and administrators.
 
 ## 🚧 Current Project Status
 
-**✅ Design & Mockups**: Complete interactive mockup system ready for review  
-**🔄 Backend Development**: Phoenix/Elixir setup in progress  
-**🔄 Mobile Development**: Kotlin Multiplatform implementation planned  
+**✅ Design & Mockups**: Complete interactive mockup system ready for review
+**🔄 Backend Development**: Phoenix/Elixir setup in progress
+**🔄 Website Development**: Web application implementation planned
 **📋 Database**: PostgreSQL design phase
 
 **Latest Update**: Interactive app mockups with responsive design system, dark/light themes, and full user journey demonstrations.
@@ -15,13 +15,13 @@ Mobile app for afterschool activities, camps, and class trips management - conne
 
 ```
 prime-youth/
-├── backend/               # Phoenix API + LiveView admin dashboard  
-├── mobile/               # Kotlin Multiplatform Mobile app
-│   └── mockups/         # 📱 Interactive app mockups (START HERE!)
-├── docs/                 # Documentation
-├── scripts/              # Utility scripts  
-├── CHANGELOG.md         # Version history and updates
-└── .github/              # GitHub workflows and templates
+├── backend/               # Phoenix API + LiveView web application
+├── mobile/                # App design mockups and prototypes
+│   └── mockups/          # 📱 Interactive app mockups (START HERE!)
+├── docs/                  # Documentation
+├── scripts/               # Utility scripts
+├── CHANGELOG.md          # Version history and updates
+└── .github/               # GitHub workflows and templates
 ```
 
 ### 📁 Quick Navigation
@@ -32,14 +32,14 @@ prime-youth/
 
 ## Tech Stack
 
-**Backend:** Elixir + Phoenix + PostgreSQL  
-**Mobile:** Kotlin Multiplatform Mobile  
-**Admin:** Phoenix LiveView  
+**Backend:** Elixir + Phoenix + PostgreSQL
+**Frontend:** Phoenix LiveView + HTML/CSS/JavaScript
+**Database:** PostgreSQL
 **Infrastructure:** Fly.io/Railway + GitHub Actions
 
 ## 📱 How to View App Mockups
 
-**For non-developers:** Want to see how the Prime Youth app will look and work? Follow these simple steps:
+**For non-developers:** Want to see how the Prime Youth website will look and work? Follow these simple steps:
 
 ### Quick Start (Anyone Can Do This!)
 

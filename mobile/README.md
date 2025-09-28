@@ -1,10 +1,10 @@
-# Prime Youth Mobile App
+# Prime Youth App Mockups
 
-Kotlin Multiplatform Mobile (KMP) application for afterschool activities, camps, and class trips management.
+Design mockups and prototypes for the Prime Youth website - serving as the visual and UX reference for implementation.
 
-## 🎨 Visual Design Reference
+## 🎨 Interactive Design System
 
-**👀 See the App in Action**: Check out the complete interactive mockup system in [`mockups/`](mockups/)
+**👀 See the App Design**: Check out the complete interactive mockup system in [`mockups/`](mockups/)
 
 The mockup system shows:
 - Complete user journeys (login to enrollment)
@@ -13,84 +13,64 @@ The mockup system shows:
 - Dark/light theme implementations
 - Responsive design for different screen sizes
 
-## 🏗️ Architecture Overview
+## 📱 What's Included
 
-**Status**: 🔄 Planning phase - KMP implementation upcoming
+This directory contains design references that will guide the website implementation:
 
-### Planned Architecture
+### Current Contents
 ```
 mobile/
-├── shared/                   # Shared business logic
-│   ├── commonMain/          # Cross-platform code
-│   ├── androidMain/         # Android-specific implementations
-│   └── iosMain/            # iOS-specific implementations
-├── androidApp/              # Android UI layer
-├── iosApp/                  # iOS UI layer (SwiftUI)
-└── mockups/                # 📱 Design reference (current)
+└── mockups/                # 📱 Interactive design reference
+    ├── app-mockups.html   # Main app screen mockups
+    ├── components-demo.html # UI component library
+    ├── design-system.html  # Design tokens and system
+    ├── index.html         # Navigation hub
+    └── assets/            # Images, icons, and resources
 ```
 
-### Technology Stack
-- **KMP Framework**: Kotlin Multiplatform Mobile
-- **Shared Logic**: Kotlin common code
-- **Android UI**: Jetpack Compose  
-- **iOS UI**: SwiftUI (planned)
-- **Networking**: Ktor client
-- **Data Storage**: SQLDelight
-- **Dependency Injection**: Koin
-
-## 🎯 Feature Scope
-
-Based on the mockup system, the app will include:
-
-### Core Features
-- **User Authentication**: Login/signup with parental profiles
-- **Dashboard**: Child management with progress tracking  
+### Design Features Demonstrated
+- **User Authentication**: Login/signup flows
+- **Dashboard**: Parent and child management interfaces
 - **Program Discovery**: Browse and filter afterschool programs
-- **Enrollment System**: Registration and payment processing
-- **Schedule Management**: View upcoming activities and sessions
-- **Social Features**: Community feed and instructor updates
-- **Notifications**: Activity reminders and important updates
+- **Enrollment System**: Registration and payment flows
+- **Schedule Management**: Calendar and activity views
+- **Social Features**: Community feed designs
+- **Notifications**: Alert and reminder interfaces
 
-### User Personas
+### User Personas Covered
 - **Parents**: Manage children's activities and schedules
 - **Instructors**: Update programs and communicate with parents
 - **Administrators**: Oversee programs and user management
 
-## 🚀 Implementation Plan
+## 🎯 Implementation Guide
 
-### Phase 1: Foundation (Planned)
-- [ ] KMP project setup with basic structure
-- [ ] Shared data models and networking layer
-- [ ] Authentication flow implementation
-- [ ] Basic navigation structure
+These mockups serve as the reference for implementing the Prime Youth website using Phoenix LiveView. Key areas to reference:
 
-### Phase 2: Core Features (Planned)  
-- [ ] Dashboard with child management
-- [ ] Program browsing and filtering
-- [ ] Enrollment flow and payment integration
-- [ ] Push notification setup
+### UI Components
+- Form layouts and validation states
+- Navigation patterns and responsive behavior
+- Data presentation formats
+- Interactive elements and animations
 
-### Phase 3: Enhanced Features (Future)
-- [ ] Social feed implementation
-- [ ] Advanced scheduling features
-- [ ] Offline support and sync
-- [ ] iOS app completion
+### User Experience Flows
+- Authentication and onboarding
+- Program discovery and enrollment
+- Dashboard and scheduling interfaces
+- Communication and notification patterns
 
-## 📱 Development Setup
+## 🔗 How to Use These Mockups
 
-**Prerequisites** (when development begins):
-- Android Studio
-- Kotlin Multiplatform plugin
-- iOS development environment (Xcode for iOS target)
+1. **For Developers**: Use these as pixel-perfect references for LiveView templates
+2. **For Designers**: Reference the design system for consistency
+3. **For Product**: Validate user flows and feature completeness
+4. **For Testing**: Use scenarios and data shown in mockups
 
-**Current Status**: Setup instructions will be added when KMP development begins.
-
-## 🔗 Related Resources
+## 📖 Related Resources
 
 - **[Interactive Mockups](mockups/)** - Complete visual reference
-- **[Design System](mockups/README.md)** - UI components and guidelines  
+- **[Main Project README](../README.md)** - Overall project information
 - **[Project Changelog](../CHANGELOG.md)** - Track development progress
 
 ---
 
-**Note**: This directory currently focuses on design and mockup systems. KMP development will begin after design approval and backend API planning.
+**Note**: This directory contains design references only. The actual Prime Youth application will be implemented as a Phoenix LiveView website.
