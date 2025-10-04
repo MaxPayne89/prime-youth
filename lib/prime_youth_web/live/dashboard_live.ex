@@ -1,5 +1,6 @@
 defmodule PrimeYouthWeb.DashboardLive do
   use PrimeYouthWeb, :live_view
+  import PrimeYouthWeb.CompositeComponents
 
   @impl true
   def mount(_params, _session, socket) do
@@ -103,39 +104,15 @@ defmodule PrimeYouthWeb.DashboardLive do
             </button>
           </div>
           <div class="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 md:gap-4 md:space-y-0">
-            <div
+            <.child_card
               :for={child <- @children}
-              class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-            >
-              <div class="flex items-start justify-between mb-3">
-                <div class="flex-1">
-                  <h4 class="font-semibold text-gray-900">{child.name}</h4>
-                  <p class="text-sm text-gray-600">{child.age} years old • {child.school}</p>
-                </div>
-                <div class="text-right">
-                  <div class="text-sm font-medium text-gray-900">{child.sessions}</div>
-                  <div class="text-xs text-gray-500">Sessions</div>
-                </div>
-              </div>
-              <div class="mb-3">
-                <div class="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>Progress</span>
-                  <span>{child.progress}%</span>
-                </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                  <div class="bg-prime-cyan-400 h-2 rounded-full" style={"width: #{child.progress}%"}>
-                  </div>
-                </div>
-              </div>
-              <div class="flex flex-wrap gap-1">
-                <span
-                  :for={activity <- child.activities}
-                  class="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs"
-                >
-                  {activity}
-                </span>
-              </div>
-            </div>
+              name={child.name}
+              age={child.age}
+              school={child.school}
+              sessions={child.sessions}
+              progress={child.progress}
+              activities={child.activities}
+            />
           </div>
         </div>
         
@@ -143,82 +120,30 @@ defmodule PrimeYouthWeb.DashboardLive do
         <div>
           <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all hover:scale-[1.02] group">
-              <div class="w-10 h-10 bg-prime-cyan-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-prime-cyan-200 transition-colors">
-                <svg
-                  class="w-5 h-5 text-prime-cyan-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  >
-                  </path>
-                </svg>
-              </div>
-              <div class="text-sm font-medium text-gray-900">Book Activity</div>
-            </button>
-            <button class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all hover:scale-[1.02] group">
-              <div class="w-10 h-10 bg-prime-magenta-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-prime-magenta-200 transition-colors">
-                <svg
-                  class="w-5 h-5 text-prime-magenta-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  >
-                  </path>
-                </svg>
-              </div>
-              <div class="text-sm font-medium text-gray-900">View Schedule</div>
-            </button>
-            <button class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all hover:scale-[1.02] group">
-              <div class="w-10 h-10 bg-prime-yellow-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-prime-yellow-200 transition-colors">
-                <svg
-                  class="w-5 h-5 text-prime-yellow-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  >
-                  </path>
-                </svg>
-              </div>
-              <div class="text-sm font-medium text-gray-900">Messages</div>
-            </button>
-            <button class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-all hover:scale-[1.02] group">
-              <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-green-200 transition-colors">
-                <svg
-                  class="w-5 h-5 text-green-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                  >
-                  </path>
-                </svg>
-              </div>
-              <div class="text-sm font-medium text-gray-900">Payments</div>
-            </button>
+            <.quick_action_button
+              icon="hero-calendar"
+              label="Book Activity"
+              bg_color="bg-prime-cyan-100"
+              icon_color="text-prime-cyan-400"
+            />
+            <.quick_action_button
+              icon="hero-clock"
+              label="View Schedule"
+              bg_color="bg-prime-magenta-100"
+              icon_color="text-prime-magenta-400"
+            />
+            <.quick_action_button
+              icon="hero-chat-bubble-left-right"
+              label="Messages"
+              bg_color="bg-prime-yellow-100"
+              icon_color="text-prime-yellow-400"
+            />
+            <.quick_action_button
+              icon="hero-credit-card"
+              label="Payments"
+              bg_color="bg-green-100"
+              icon_color="text-green-500"
+            />
           </div>
         </div>
         
@@ -231,41 +156,14 @@ defmodule PrimeYouthWeb.DashboardLive do
             </button>
           </div>
           <div class="space-y-3">
-            <div
+            <.activity_card
               :for={activity <- @upcoming_activities}
-              class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-            >
-              <div class="flex items-start justify-between">
-                <div class="flex-1">
-                  <div class="flex items-center mb-2">
-                    <span class={"px-2 py-1 rounded-full text-xs font-medium #{activity.status_color}"}>
-                      {activity.status}
-                    </span>
-                    <span class="ml-2 text-sm text-gray-600">{activity.time}</span>
-                  </div>
-                  <h4 class="font-semibold text-gray-900 mb-1">{activity.name}</h4>
-                  <p class="text-sm text-gray-600">Instructor: {activity.instructor}</p>
-                </div>
-                <div class="text-right">
-                  <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                    <svg
-                      class="w-5 h-5 text-gray-500"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 5l7 7-7 7"
-                      >
-                      </path>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
+              status={activity.status}
+              status_color={activity.status_color}
+              time={activity.time}
+              name={activity.name}
+              instructor={activity.instructor}
+            />
           </div>
         </div>
       </div>
