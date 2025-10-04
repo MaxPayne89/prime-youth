@@ -1,5 +1,6 @@
 defmodule PrimeYouthWeb.ProgramsLive do
   use PrimeYouthWeb, :live_view
+  import PrimeYouthWeb.ProgramComponents
 
   @impl true
   def mount(_params, _session, socket) do
@@ -69,50 +70,22 @@ defmodule PrimeYouthWeb.ProgramsLive do
             </svg>
           </button>
         </div>
-        
+
     <!-- Search Bar -->
-        <div class="relative mb-4">
-          <input
-            type="text"
-            placeholder="Search programs..."
-            value={@search_query}
-            phx-change="search"
-            name="search"
-            class="w-full pl-10 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-prime-cyan-400/50 focus:border-prime-cyan-400 transition-all"
-          />
-          <svg
-            class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            >
-            </path>
-          </svg>
-        </div>
-        
+        <.search_bar
+          placeholder="Search programs..."
+          value={@search_query}
+          name="search"
+          phx-change="search"
+          class="mb-4"
+        />
+
     <!-- Filter Pills -->
-        <div class="flex gap-2 overflow-x-auto pb-2">
-          <button
-            :for={filter <- @filters}
-            phx-click="filter_select"
-            phx-value-filter={filter.id}
-            class={[
-              "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all",
-              if(@active_filter == filter.id,
-                do: "bg-prime-cyan-400 text-white",
-                else: "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              )
-            ]}
-          >
-            {filter.label}
-          </button>
-        </div>
+        <.filter_pills
+          filters={@filters}
+          active_filter={@active_filter}
+          phx-click="filter_select"
+        />
       </div>
       
     <!-- Programs List -->
