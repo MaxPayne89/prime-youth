@@ -1,56 +1,67 @@
-<div class="drawer">
+<div class="drawer bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400 min-h-screen">
   <input id="main-drawer" type="checkbox" class="drawer-toggle" />
   <div class="drawer-content flex flex-col">
     <!-- Navbar -->
-    <div class="navbar bg-base-100 border-b border-base-200">
+    <div class="navbar bg-white/20 backdrop-blur-lg border-b border-white/20">
       <div class="navbar-start">
         <div class="dropdown lg:hidden">
           <label for="main-drawer" class="btn btn-square btn-ghost">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-5 h-5 stroke-current">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              class="inline-block w-5 h-5 stroke-current"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              >
+              </path>
             </svg>
           </label>
         </div>
         <a href={~p"/"} class="btn btn-ghost normal-case text-xl">
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-              <span class="text-white font-bold text-sm">PY</span>
-            </div>
-            <span class="text-primary font-bold">Prime Youth</span>
+            <img src={~p"/images/logo-standard.png"} alt="Prime Youth Logo" class="w-8 h-8 object-contain" />
+            <span class="text-white font-bold">Prime Youth</span>
           </div>
         </a>
       </div>
 
       <div class="navbar-center hidden lg:flex">
         <ul class="menu menu-horizontal px-1">
-          <li><a href={~p"/"} class="btn btn-ghost">Home</a></li>
-          <li><a href="#programs" class="btn btn-ghost">Programs</a></li>
-          <li><a href="#about" class="btn btn-ghost">About</a></li>
-          <li><a href="#contact" class="btn btn-ghost">Contact</a></li>
+          <li><.link navigate={~p"/"} class="btn btn-ghost text-white">Home</.link></li>
+          <li><.link navigate={~p"/programs"} class="btn btn-ghost text-white">Programs</.link></li>
+          <li><a href="#about" class="btn btn-ghost text-white">About</a></li>
+          <li><a href="#contact" class="btn btn-ghost text-white">Contact</a></li>
         </ul>
       </div>
 
       <div class="navbar-end">
         <div class="flex items-center gap-2">
           <.theme_toggle />
-          <a href="#login" class="btn btn-ghost">Login</a>
-          <a href="#signup" class="btn btn-primary">Sign Up</a>
+          <.link navigate={~p"/login"} class="btn btn-ghost text-white">Login</.link>
+          <.link navigate={~p"/signup"} class="btn bg-white text-gray-900 hover:bg-gray-100">Sign Up</.link>
         </div>
       </div>
     </div>
-
-    <!-- Page content -->
+    
+<!-- Page content -->
     <main class="flex-1">
       <.flash_group flash={@flash} />
       {@inner_content}
     </main>
-
-    <!-- Footer -->
-    <footer class="footer footer-center p-10 bg-base-200 text-base-content">
+    
+<!-- Footer -->
+    <footer class="footer footer-center p-10 bg-white/20 backdrop-blur-lg text-white">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl">
         <div class="text-left">
-          <h3 class="font-bold text-lg text-primary mb-4">Prime Youth</h3>
-          <p class="text-sm">Empowering children through engaging afterschool activities, camps, and educational programs.</p>
+          <h3 class="font-bold text-lg text-white mb-4">Prime Youth</h3>
+          <p class="text-sm">
+            Empowering children through engaging afterschool activities, camps, and educational programs.
+          </p>
         </div>
 
         <div class="text-left">
@@ -77,13 +88,25 @@
           <h4 class="font-semibold mb-4">Connect</h4>
           <div class="flex gap-2 mb-4">
             <a href="#facebook" class="btn btn-circle btn-sm btn-ghost">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
               </svg>
             </a>
             <a href="#instagram" class="btn btn-circle btn-sm btn-ghost">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987 6.62 0 11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.611-3.197-1.559-.496-.629-.795-1.422-.795-2.278 0-2.073 1.684-3.757 3.757-3.757 2.073 0 3.757 1.684 3.757 3.757 0 2.073-1.684 3.757-3.757 3.757z"/>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987 6.62 0 11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.611-3.197-1.559-.496-.629-.795-1.422-.795-2.278 0-2.073 1.684-3.757 3.757-3.757 2.073 0 3.757 1.684 3.757 3.757 0 2.073-1.684 3.757-3.757 3.757z" />
               </svg>
             </a>
           </div>
@@ -99,26 +122,24 @@
       </div>
     </footer>
   </div>
-
-  <!-- Sidebar for mobile -->
+  
+<!-- Sidebar for mobile -->
   <div class="drawer-side">
     <label for="main-drawer" class="drawer-overlay"></label>
-    <aside class="w-64 min-h-full bg-base-200">
+    <aside class="w-64 min-h-full bg-white/20 backdrop-blur-lg">
       <div class="p-4">
         <div class="flex items-center gap-2 mb-8">
-          <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold text-sm">PY</span>
-          </div>
-          <span class="text-primary font-bold text-lg">Prime Youth</span>
+          <img src={~p"/images/logo-standard.png"} alt="Prime Youth Logo" class="w-8 h-8 object-contain" />
+          <span class="text-white font-bold text-lg">Prime Youth</span>
         </div>
 
-        <ul class="menu w-full">
-          <li><a href={~p"/"}>Home</a></li>
-          <li><a href="#programs">Programs</a></li>
+        <ul class="menu w-full text-white">
+          <li><.link navigate={~p"/"}>Home</.link></li>
+          <li><.link navigate={~p"/programs"}>Programs</.link></li>
           <li><a href="#about">About</a></li>
           <li><a href="#contact">Contact</a></li>
-          <li class="mt-4"><a href="#login" class="btn btn-ghost">Login</a></li>
-          <li class="mt-2"><a href="#signup" class="btn btn-primary">Sign Up</a></li>
+          <li class="mt-4"><.link navigate={~p"/login"} class="btn btn-ghost text-white">Login</.link></li>
+          <li class="mt-2"><.link navigate={~p"/signup"} class="btn bg-white text-gray-900 hover:bg-gray-100">Sign Up</.link></li>
         </ul>
       </div>
     </aside>

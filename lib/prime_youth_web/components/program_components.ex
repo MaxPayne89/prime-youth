@@ -81,58 +81,102 @@ defmodule PrimeYouthWeb.ProgramComponents do
             <img src={@image} alt={@title} class="w-full h-full object-cover" />
           </div>
           <div :if={!@image} class="text-base-content/40">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-16 w-16"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
             </svg>
           </div>
         </div>
-
-        <!-- Favorite Button -->
+        
+    <!-- Favorite Button -->
         <div :if={@on_favorite} class="absolute top-4 right-4">
           <button
             phx-click={@on_favorite}
             phx-value-program={@title}
             class="btn btn-circle btn-sm bg-white/80 border-none hover:bg-white"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
             </svg>
           </button>
         </div>
-
-        <!-- Spots Left Badge -->
+        
+    <!-- Spots Left Badge -->
         <div :if={@spots_left} class="absolute bottom-4 left-4">
           <UIComponents.status_badge variant={spots_variant(@spots_left)}>
             {@spots_left} spots left
           </UIComponents.status_badge>
         </div>
       </figure>
-
-      <!-- Card Body -->
+      
+    <!-- Card Body -->
       <div class="card-body">
         <h3 class="card-title text-primary">{@title}</h3>
         <p :if={@description} class="text-base-content/70 text-sm">
           {@description}
         </p>
-
-        <!-- Program Details -->
+        
+    <!-- Program Details -->
         <div class="space-y-2 my-4">
           <div :if={@age_range} class="flex items-center text-sm text-base-content/60">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
+              />
             </svg>
             Ages {@age_range}
           </div>
 
           <div :if={@schedule} class="flex items-center text-sm text-base-content/60">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             {@schedule}
           </div>
         </div>
-
-        <!-- Card Actions -->
+        
+    <!-- Card Actions -->
         <div class="card-actions justify-between items-center mt-4">
           <.price_display :if={@price} amount={@price} period={@period} />
 
@@ -193,9 +237,13 @@ defmodule PrimeYouthWeb.ProgramComponents do
   # Helper function to format price
   defp format_price(0), do: "Free"
   defp format_price(amount) when is_integer(amount), do: "$#{amount}"
-  defp format_price(amount) when is_float(amount), do: "$#{:erlang.float_to_binary(amount, decimals: 2)}"
+
+  defp format_price(amount) when is_float(amount),
+    do: "$#{:erlang.float_to_binary(amount, decimals: 2)}"
+
   defp format_price(amount) when is_binary(amount) do
     if String.starts_with?(amount, "$"), do: amount, else: "$#{amount}"
   end
+
   defp format_price(amount), do: "#{amount}"
 end

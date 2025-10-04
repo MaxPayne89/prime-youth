@@ -103,3 +103,39 @@
 [data-phx-session], [data-phx-teleported-src] { display: contents }
 
 /* This file is for your main application CSS */
+
+/* Prime Youth Brand Colors */
+@theme {
+  --color-prime-cyan-50: oklch(98% 0.02 200);
+  --color-prime-cyan-100: oklch(95% 0.04 200);
+  --color-prime-cyan-200: oklch(88% 0.08 200);
+  --color-prime-cyan-300: oklch(80% 0.12 200);
+  --color-prime-cyan-400: oklch(70% 0.15 185); /* #00CED1 */
+  --color-prime-cyan-500: oklch(60% 0.14 185);
+  --color-prime-cyan-600: oklch(50% 0.12 185);
+  --color-prime-cyan-700: oklch(40% 0.10 185);
+  --color-prime-cyan-800: oklch(30% 0.08 185);
+  --color-prime-cyan-900: oklch(20% 0.06 185);
+
+  --color-prime-magenta-50: oklch(98% 0.02 320);
+  --color-prime-magenta-100: oklch(95% 0.05 320);
+  --color-prime-magenta-200: oklch(88% 0.12 320);
+  --color-prime-magenta-300: oklch(80% 0.18 320);
+  --color-prime-magenta-400: oklch(65% 0.25 320); /* #FF1493 */
+  --color-prime-magenta-500: oklch(58% 0.23 320);
+  --color-prime-magenta-600: oklch(50% 0.20 320);
+  --color-prime-magenta-700: oklch(42% 0.17 320);
+  --color-prime-magenta-800: oklch(34% 0.14 320);
+  --color-prime-magenta-900: oklch(26% 0.11 320);
+
+  --color-prime-yellow-50: oklch(98% 0.02 85);
+  --color-prime-yellow-100: oklch(95% 0.05 85);
+  --color-prime-yellow-200: oklch(90% 0.12 85);
+  --color-prime-yellow-300: oklch(85% 0.16 85);
+  --color-prime-yellow-400: oklch(80% 0.20 85); /* #FFD700 */
+  --color-prime-yellow-500: oklch(75% 0.18 85);
+  --color-prime-yellow-600: oklch(68% 0.16 85);
+  --color-prime-yellow-700: oklch(60% 0.14 85);
+  --color-prime-yellow-800: oklch(52% 0.12 85);
+  --color-prime-yellow-900: oklch(44% 0.10 85);
+}

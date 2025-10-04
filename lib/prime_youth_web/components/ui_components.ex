@@ -73,9 +73,16 @@ defmodule PrimeYouthWeb.UIComponents do
         active_filter={@current_filter}
         class="mb-4" />
   """
-  attr :filters, :list, required: true, doc: "List of filter maps with :id, :label, and optionally :active"
+  attr :filters, :list,
+    required: true,
+    doc: "List of filter maps with :id, :label, and optionally :active"
+
   attr :active_filter, :string, default: nil, doc: "ID of the currently active filter"
-  attr :on_select, :string, default: "filter_select", doc: "Phoenix event name to send when filter is selected"
+
+  attr :on_select, :string,
+    default: "filter_select",
+    doc: "Phoenix event name to send when filter is selected"
+
   attr :class, :string, default: ""
 
   def filter_pills(assigns) do
@@ -128,11 +135,14 @@ defmodule PrimeYouthWeb.UIComponents do
 
   def status_badge(assigns) do
     ~H"""
-    <span class={[
-      "badge",
-      variant_class(@variant),
-      @class
-    ]} {@rest}>
+    <span
+      class={[
+        "badge",
+        variant_class(@variant),
+        @class
+      ]}
+      {@rest}
+    >
       {render_slot(@inner_block)}
     </span>
     """

@@ -47,10 +47,13 @@ defmodule PrimeYouthWeb.LayoutComponents do
         </span>
         {@title}
       </h2>
-      <p :if={@description} class={[
-        "text-lg text-base-content/70",
-        if(@centered, do: "max-w-2xl mx-auto", else: "max-w-3xl")
-      ]}>
+      <p
+        :if={@description}
+        class={[
+          "text-lg text-base-content/70",
+          if(@centered, do: "max-w-2xl mx-auto", else: "max-w-3xl")
+        ]}
+      >
         {@description}
       </p>
     </div>
