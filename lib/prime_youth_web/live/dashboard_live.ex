@@ -6,11 +6,22 @@ defmodule PrimeYouthWeb.DashboardLive do
     socket =
       socket
       |> assign(page_title: "Dashboard")
+      |> assign(current_user: sample_user())
       |> assign(user: sample_user())
       |> assign(children: sample_children())
       |> assign(upcoming_activities: sample_upcoming_activities())
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("toggle_auth", _params, socket) do
+    new_user = if socket.assigns.current_user, do: nil, else: sample_user()
+
+    {:noreply,
+     socket
+     |> assign(current_user: new_user)
+     |> assign(user: new_user || %{name: "Guest", avatar: ""})}
   end
 
   @impl true
@@ -43,7 +54,7 @@ defmodule PrimeYouthWeb.DashboardLive do
                 </path>
               </svg>
             </button>
-            <button class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
+            <.link navigate={~p"/settings"} class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
@@ -60,7 +71,7 @@ defmodule PrimeYouthWeb.DashboardLive do
                 >
                 </path>
               </svg>
-            </button>
+            </.link>
           </div>
         </div>
       </div>
@@ -266,6 +277,7 @@ defmodule PrimeYouthWeb.DashboardLive do
   defp sample_user do
     %{
       name: "Sarah Johnson",
+      email: "sarah.johnson@example.com",
       avatar:
         "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
     }

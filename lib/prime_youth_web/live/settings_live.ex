@@ -6,9 +6,16 @@ defmodule PrimeYouthWeb.SettingsLive do
     socket =
       socket
       |> assign(page_title: "Settings")
+      |> assign(current_user: sample_user())
       |> assign(user: sample_user())
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("toggle_auth", _params, socket) do
+    new_user = if socket.assigns.current_user, do: nil, else: sample_user()
+    {:noreply, assign(socket, current_user: new_user, user: new_user)}
   end
 
   @impl true
@@ -527,6 +534,10 @@ defmodule PrimeYouthWeb.SettingsLive do
   # Sample data
   defp sample_user do
     %{
+      name: "Sarah Johnson",
+      email: "sarah.johnson@example.com",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face",
       children_summary: "Emma (8), Liam (6) • 2 children"
     }
   end

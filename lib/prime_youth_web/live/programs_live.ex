@@ -6,12 +6,19 @@ defmodule PrimeYouthWeb.ProgramsLive do
     socket =
       socket
       |> assign(page_title: "Programs")
+      |> assign(current_user: nil)
       |> assign(search_query: "")
       |> assign(active_filter: "all")
       |> assign(programs: sample_programs())
       |> assign(filters: filter_options())
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("toggle_auth", _params, socket) do
+    new_user = if socket.assigns.current_user, do: nil, else: sample_user()
+    {:noreply, assign(socket, current_user: new_user)}
   end
 
   @impl true
@@ -250,6 +257,15 @@ defmodule PrimeYouthWeb.ProgramsLive do
   end
 
   # Helper functions
+  defp sample_user do
+    %{
+      name: "Sarah Johnson",
+      email: "sarah.johnson@example.com",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
+    }
+  end
+
   defp filter_options do
     [
       %{id: "all", label: "All Programs"},

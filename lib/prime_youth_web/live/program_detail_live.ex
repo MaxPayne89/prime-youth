@@ -8,11 +8,18 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
     socket =
       socket
       |> assign(page_title: program.title)
+      |> assign(current_user: nil)
       |> assign(program: program)
       |> assign(instructor: sample_instructor())
       |> assign(reviews: sample_reviews())
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("toggle_auth", _params, socket) do
+    new_user = if socket.assigns.current_user, do: nil, else: sample_user()
+    {:noreply, assign(socket, current_user: new_user)}
   end
 
   @impl true
@@ -305,6 +312,15 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
   end
 
   # Helper functions
+  defp sample_user do
+    %{
+      name: "Sarah Johnson",
+      email: "sarah.johnson@example.com",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
+    }
+  end
+
   defp get_program_by_id(id) do
     # For now, return the first sample program - in a real app this would query the database
     programs = sample_programs()
