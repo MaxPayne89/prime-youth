@@ -113,7 +113,9 @@ defmodule PrimeYouthWeb.ProgramsLive do
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div
             :for={program <- filtered_programs(@programs, @search_query, @active_filter)}
-            class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300 overflow-hidden"
+            phx-click="program_click"
+            phx-value-program={program.title}
+            class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 overflow-hidden cursor-pointer"
           >
             <!-- Program Image/Header -->
             <div class={["h-48 relative overflow-hidden", program.gradient_class]}>
@@ -123,6 +125,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
                   phx-click="toggle_favorite"
                   phx-value-program={program.title}
                   class="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+                  onclick="event.stopPropagation();"
                 >
                   <svg
                     class="w-5 h-5 text-gray-600 hover:text-red-500"
@@ -210,22 +213,13 @@ defmodule PrimeYouthWeb.ProgramsLive do
                   Ages {program.age_range}
                 </div>
               </div>
-              
-    <!-- Price and CTA -->
-              <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                <div>
-                  <div class="text-lg font-bold text-prime-cyan-400">
-                    {format_price(program.price)}
-                  </div>
-                  <div class="text-sm text-gray-500">{program.period}</div>
+
+    <!-- Price -->
+              <div class="pt-4 border-t border-gray-100">
+                <div class="text-lg font-bold text-prime-cyan-400">
+                  {format_price(program.price)}
                 </div>
-                <button
-                  phx-click="program_click"
-                  phx-value-program={program.title}
-                  class="px-4 py-2 bg-prime-cyan-400 text-white rounded-lg hover:bg-prime-cyan-500 transition-colors font-medium"
-                >
-                  Learn More
-                </button>
+                <div class="text-sm text-gray-500">{program.period}</div>
               </div>
             </div>
           </div>

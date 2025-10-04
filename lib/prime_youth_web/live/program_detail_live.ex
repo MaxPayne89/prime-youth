@@ -155,15 +155,43 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               </p>
               <p class="text-sm text-gray-500">Total: Sept 1 - Oct 26</p>
               <p class="text-xs text-gray-400">{format_price(@program.price)}/week • 4 weeks</p>
+              <p class="text-xs text-gray-600 mt-1">with {@instructor.name}</p>
             </div>
           </div>
         </div>
       </div>
-      
+
     <!-- Content Area -->
-      <div class="mt-20 p-6 lg:grid lg:grid-cols-3 lg:gap-8 lg:p-8">
-        <!-- Main Content (Desktop: 2 columns, Mobile: full width) -->
-        <div class="lg:col-span-2 space-y-6">
+      <div class="mt-20 p-6 max-w-4xl mx-auto">
+        <!-- Primary CTA -->
+        <div class="mb-6">
+          <button
+            phx-click="enroll_now"
+            class="w-full bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+          >
+            Book Now - {format_total_price(@program.price)}
+          </button>
+          <p class="text-center text-sm text-gray-600 mt-2">
+            <svg
+              class="w-4 h-4 inline mr-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              >
+              </path>
+            </svg>
+            Free cancellation up to 48 hours before start date
+          </p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="space-y-6">
           <!-- Program Description -->
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <h3 class="text-lg font-semibold text-gray-900 mb-3">About This Program</h3>
@@ -220,103 +248,55 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               </div>
             </div>
           </div>
-          
+
+
     <!-- Parent Reviews -->
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">What Parents Say</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">What Other Parents Say</h3>
             <div class="space-y-4">
               <div
-                :for={{review, index} <- Enum.with_index(@reviews)}
-                class={[
-                  "border-l-4 pl-4",
-                  if(rem(index, 2) == 0,
-                    do: "border-prime-cyan-400",
-                    else: "border-prime-magenta-400"
-                  )
-                ]}
+                :for={review <- @reviews}
+                class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
               >
-                <p class="text-gray-600 italic mb-2">"{review.comment}"</p>
-                <div class="flex items-center">
-                  <img src={review.parent_avatar} alt="Parent" class="w-8 h-8 rounded-full mr-2" />
-                  <span class="text-sm font-medium text-gray-900">{review.parent_name}</span>
-                  <div class="flex text-yellow-400 ml-2">
+                <div class="flex justify-between items-start mb-3">
+                  <div class="flex items-start gap-3">
+                    <img
+                      src={review.parent_avatar}
+                      alt={review.parent_name}
+                      class="w-10 h-10 rounded-full"
+                    />
+                    <div>
+                      <div class="font-medium text-gray-900 text-sm">{review.parent_name}</div>
+                      <div class="text-xs text-gray-500">
+                        Mother of {review.child_name} ({review.child_age}) • <span class="text-green-600">✓ Verified Parent</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex text-yellow-400">
                     <svg :for={_ <- 1..5} class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
                   </div>
                 </div>
+                <p class="text-gray-600 text-sm leading-relaxed italic">"{review.comment}"</p>
               </div>
             </div>
 
-            <button class="mt-4 text-prime-cyan-400 text-sm font-medium hover:text-prime-cyan-400/80">
-              Read all {@instructor.review_count} reviews →
-            </button>
+            <div class="text-center mt-4">
+              <button class="text-prime-cyan-400 text-sm font-medium hover:text-prime-cyan-400/80 underline">
+                View all {@instructor.review_count} reviews
+              </button>
+            </div>
           </div>
-        </div>
-        
-    <!-- Sidebar (Desktop: 1 column, Mobile: full width) -->
-        <div class="lg:col-span-1">
-          <!-- Enrollment Section -->
-          <div class="lg:sticky lg:top-8">
-            <div class="bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 rounded-2xl p-6 text-white">
-              <h3 class="text-xl font-bold mb-2">Ready to Enroll?</h3>
-              <p class="text-white/90 mb-4">
-                Secure your spot now - only {@program.spots_left} remaining!
-              </p>
 
-              <div class="space-y-3">
-                <button
-                  phx-click="enroll_now"
-                  class="w-full bg-white text-prime-cyan-400 py-3 px-4 rounded-xl font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center"
-                >
-                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    >
-                    </path>
-                  </svg>
-                  Enroll Now - {format_total_price(@program.price)}
-                </button>
-
-                <div class="flex gap-3">
-                  <button
-                    phx-click="save_for_later"
-                    class="flex-1 bg-white/20 border border-white/30 text-white py-2 px-4 rounded-xl font-medium hover:bg-white/30 transition-colors"
-                  >
-                    Save for Later
-                  </button>
-                  <button
-                    phx-click="ask_questions"
-                    class="flex-1 bg-white/20 border border-white/30 text-white py-2 px-4 rounded-xl font-medium hover:bg-white/30 transition-colors"
-                  >
-                    Ask Questions
-                  </button>
-                </div>
-              </div>
-
-              <div class="mt-4 pt-4 border-t border-white/20">
-                <p class="text-white/80 text-sm">
-                  <svg
-                    class="w-4 h-4 inline mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    >
-                    </path>
-                  </svg>
-                  Free cancellation up to 48 hours before start date
-                </p>
-              </div>
-            </div>
+    <!-- Bottom CTA -->
+          <div class="mt-8">
+            <button
+              phx-click="enroll_now"
+              class="w-full bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+            >
+              Enroll Now - {format_total_price(@program.price)}
+            </button>
           </div>
         </div>
       </div>
@@ -398,14 +378,30 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
           "My daughter Emma has grown so much in confidence and creativity. She can't wait for art class each week!",
         parent_name: "Sarah Johnson",
         parent_avatar:
-          "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=32&h=32&fit=crop&crop=face"
+          "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=32&h=32&fit=crop&crop=face",
+        child_name: "Emma",
+        child_age: 8,
+        verified: true
       },
       %{
         comment:
           "Excellent program with caring instructors. The small class size makes all the difference.",
         parent_name: "Michael Chen",
         parent_avatar:
-          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face"
+          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face",
+        child_name: "Sophie",
+        child_age: 7,
+        verified: true
+      },
+      %{
+        comment:
+          "As a working parent, I appreciate the reliable schedule and professional communication. Max has made friends and learned techniques I never could have taught him at home.",
+        parent_name: "Lisa Rodriguez",
+        parent_avatar:
+          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face",
+        child_name: "Max",
+        child_age: 9,
+        verified: true
       }
     ]
   end
