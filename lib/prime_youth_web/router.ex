@@ -30,6 +30,7 @@ defmodule PrimeYouthWeb.Router do
     # TODO: Add on_mount hook for authentication check
     live_session :authenticated, layout: {PrimeYouthWeb.Layouts, :app} do
       live "/dashboard", DashboardLive, :index
+      live "/settings", SettingsLive, :index
     end
   end
 
