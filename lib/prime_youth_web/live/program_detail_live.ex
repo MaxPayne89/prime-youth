@@ -35,8 +35,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
 
   @impl true
   def handle_event("enroll_now", _params, socket) do
-    # TODO: Navigate to enrollment page
-    {:noreply, socket}
+    {:noreply, push_navigate(socket, to: ~p"/programs/#{socket.assigns.program.id}/booking")}
   end
 
   @impl true
