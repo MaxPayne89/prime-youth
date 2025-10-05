@@ -58,17 +58,12 @@ defmodule PrimeYouthWeb.ProgramsLive do
       <div class="bg-white p-6 shadow-sm">
         <div class="flex items-center justify-between mb-4">
           <h1 class="text-2xl font-bold text-gray-900">Programs</h1>
-          <button class="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-              >
-              </path>
-            </svg>
-          </button>
+          <.icon_button
+            icon_path="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+            variant="light"
+            class="text-gray-600"
+            aria_label="More options"
+          />
         </div>
 
     <!-- Search Bar -->
@@ -91,139 +86,22 @@ defmodule PrimeYouthWeb.ProgramsLive do
     <!-- Programs List -->
       <div class="p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div
+          <.program_card
             :for={program <- filtered_programs(@programs, @search_query, @active_filter)}
+            program={program}
+            variant={:detailed}
             phx-click="program_click"
             phx-value-program={program.title}
-            class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 overflow-hidden cursor-pointer"
-          >
-            <!-- Program Image/Header -->
-            <div class={["h-48 relative overflow-hidden", program.gradient_class]}>
-              <div class="absolute inset-0 bg-black/10"></div>
-              <div class="absolute top-4 right-4 z-10">
-                <button
-                  phx-click="toggle_favorite"
-                  phx-value-program={program.title}
-                  class="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
-                  onclick="event.stopPropagation();"
-                >
-                  <svg
-                    class="w-5 h-5 text-gray-600 hover:text-red-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                    />
-                  </svg>
-                </button>
-              </div>
-              
-    <!-- Spots Left Badge -->
-              <div :if={program.spots_left <= 5} class="absolute bottom-4 left-4">
-                <span class={[
-                  "px-2 py-1 rounded-full text-xs font-medium",
-                  if(program.spots_left <= 2,
-                    do: "bg-red-100 text-red-700",
-                    else: "bg-orange-100 text-orange-700"
-                  )
-                ]}>
-                  {program.spots_left} spots left!
-                </span>
-              </div>
-              
-    <!-- Program Icon -->
-              <div class="absolute inset-0 flex items-center justify-center">
-                <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                  <svg
-                    class="w-8 h-8 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d={program.icon_path}
-                    >
-                    </path>
-                  </svg>
-                </div>
-              </div>
-            </div>
-            
-    <!-- Program Info -->
-            <div class="p-6">
-              <div class="flex items-start justify-between mb-3">
-                <div class="flex-1">
-                  <h3 class="font-bold text-gray-900 text-lg mb-2">{program.title}</h3>
-                  <p class="text-gray-600 text-sm mb-3 line-clamp-2">{program.description}</p>
-                </div>
-              </div>
-              
-    <!-- Program Details -->
-              <div class="space-y-2 mb-4">
-                <div class="flex items-center text-sm text-gray-600">
-                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    >
-                    </path>
-                  </svg>
-                  {program.schedule}
-                </div>
-                <div class="flex items-center text-sm text-gray-600">
-                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    >
-                    </path>
-                  </svg>
-                  Ages {program.age_range}
-                </div>
-              </div>
-
-    <!-- Price -->
-              <div class="pt-4 border-t border-gray-100">
-                <div class="text-lg font-bold text-prime-cyan-400">
-                  {format_price(program.price)}
-                </div>
-                <div class="text-sm text-gray-500">{program.period}</div>
-              </div>
-            </div>
-          </div>
+          />
         </div>
         
     <!-- Empty State -->
-        <div
+        <.empty_state
           :if={Enum.empty?(filtered_programs(@programs, @search_query, @active_filter))}
-          class="text-center py-12"
-        >
-          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              >
-              </path>
-            </svg>
-          </div>
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">No programs found</h3>
-          <p class="text-gray-600">Try adjusting your search or filter criteria.</p>
-        </div>
+          icon_path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          title="No programs found"
+          description="Try adjusting your search or filter criteria."
+        />
       </div>
     </div>
     """
@@ -375,10 +253,4 @@ defmodule PrimeYouthWeb.ProgramsLive do
     |> List.first()
     |> String.to_integer()
   end
-
-  defp format_price(0), do: "Free"
-  defp format_price(amount) when is_integer(amount), do: "$#{amount}"
-
-  defp format_price(amount) when is_float(amount),
-    do: "$#{:erlang.float_to_binary(amount, decimals: 2)}"
 end

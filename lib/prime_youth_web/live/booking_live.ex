@@ -1,5 +1,6 @@
 defmodule PrimeYouthWeb.BookingLive do
   use PrimeYouthWeb, :live_view
+  import PrimeYouthWeb.BookingComponents
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
@@ -77,20 +78,7 @@ defmodule PrimeYouthWeb.BookingLive do
       <div class="max-w-4xl mx-auto px-4 py-6">
         <!-- Header -->
         <div class="flex items-center gap-4 mb-6">
-          <button
-            phx-click="back_to_program"
-            class="p-2 bg-white/20 backdrop-blur-sm rounded-full hover:bg-white/30 transition-colors"
-          >
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              >
-              </path>
-            </svg>
-          </button>
+          <.back_button phx-click="back_to_program" />
           <h1 class="text-3xl font-bold text-white">Enrollment</h1>
         </div>
 
@@ -176,139 +164,77 @@ defmodule PrimeYouthWeb.BookingLive do
             <fieldset>
               <legend class="block text-sm font-semibold text-gray-800 mb-3">Payment Method</legend>
               <div class="space-y-3">
-                <label class={[
-                  "flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all",
-                  if(@payment_method == "card",
-                    do: "border-prime-cyan-400 bg-prime-cyan-50",
-                    else: "border-gray-200 hover:border-gray-300"
-                  )
-                ]}>
-                  <input
-                    type="radio"
-                    name="payment_method"
-                    value="card"
-                    checked={@payment_method == "card"}
-                    phx-click="select_payment_method"
-                    phx-value-method="card"
-                    class="mt-1"
-                  />
-                  <div>
-                    <div class="font-semibold text-gray-800">Credit Card</div>
-                    <div class="text-sm text-gray-600">
-                      Pay securely with Visa, Mastercard, or other cards
-                    </div>
-                  </div>
-                </label>
+                <.payment_option
+                  value="card"
+                  title="Credit Card"
+                  description="Pay securely with Visa, Mastercard, or other cards"
+                  selected={@payment_method == "card"}
+                  phx-click="select_payment_method"
+                  phx-value-method="card"
+                />
 
-                <label class={[
-                  "flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all",
-                  if(@payment_method == "transfer",
-                    do: "border-prime-cyan-400 bg-prime-cyan-50",
-                    else: "border-gray-200 hover:border-gray-300"
-                  )
-                ]}>
-                  <input
-                    type="radio"
-                    name="payment_method"
-                    value="transfer"
-                    checked={@payment_method == "transfer"}
-                    phx-click="select_payment_method"
-                    phx-value-method="transfer"
-                    class="mt-1"
-                  />
-                  <div>
-                    <div class="font-semibold text-gray-800">Cash / Bank Transfer</div>
-                    <div class="text-sm text-gray-600">
-                      Avoid card fees - pay cash or direct transfer
-                    </div>
-                  </div>
-                </label>
+                <.payment_option
+                  value="transfer"
+                  title="Cash / Bank Transfer"
+                  description="Avoid card fees - pay cash or direct transfer"
+                  selected={@payment_method == "transfer"}
+                  phx-click="select_payment_method"
+                  phx-value-method="transfer"
+                />
               </div>
             </fieldset>
           </div>
 
           <!-- Payment Summary -->
-          <div class="bg-white rounded-2xl p-6 shadow-lg">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Payment Summary</h3>
-            <div class="space-y-2">
-              <div class="flex justify-between text-gray-700">
-                <span>Weekly fee ({@weeks_count} weeks):</span>
-                <span>€<%= :erlang.float_to_binary(@weekly_fee, decimals: 2) %></span>
-              </div>
-              <div class="flex justify-between text-gray-700">
-                <span>Registration fee:</span>
-                <span>€<%= :erlang.float_to_binary(@registration_fee, decimals: 2) %></span>
-              </div>
-              <div class="flex justify-between text-gray-700 pb-2 border-b border-gray-200">
-                <span>Subtotal:</span>
-                <span>€<%= :erlang.float_to_binary(@subtotal, decimals: 2) %></span>
-              </div>
-              <div class="flex justify-between text-gray-700">
-                <span>VAT (19%):</span>
-                <span>€<%= :erlang.float_to_binary(@vat_amount, decimals: 2) %></span>
-              </div>
-              <%= if @payment_method == "card" do %>
-                <div class="flex justify-between text-gray-700">
-                  <span>Credit card fee:</span>
-                  <span>€<%= :erlang.float_to_binary(@card_fee_amount, decimals: 2) %></span>
-                </div>
-              <% end %>
-              <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-300">
-                <span>Total due today:</span>
-                <span class="text-prime-cyan-400">€<%= :erlang.float_to_binary(@total, decimals: 2) %></span>
-              </div>
-            </div>
-          </div>
+          <.booking_summary title="Payment Summary">
+            <:line_item label={"Weekly fee (#{@weeks_count} weeks):"} value={"€#{:erlang.float_to_binary(@weekly_fee, decimals: 2)}"} />
+            <:line_item label="Registration fee:" value={"€#{:erlang.float_to_binary(@registration_fee, decimals: 2)}"} />
+            <:subtotal label="Subtotal:" value={"€#{:erlang.float_to_binary(@subtotal, decimals: 2)}"} />
+            <:line_item label="VAT (19%):" value={"€#{:erlang.float_to_binary(@vat_amount, decimals: 2)}"} after_subtotal={true} />
+            <:line_item :if={@payment_method == "card"} label="Credit card fee:" value={"€#{:erlang.float_to_binary(@card_fee_amount, decimals: 2)}"} after_subtotal={true} />
+            <:total label="Total due today:" value={"€#{:erlang.float_to_binary(@total, decimals: 2)}"} />
+          </.booking_summary>
 
           <!-- Bank Transfer Details -->
-          <%= if @payment_method == "transfer" do %>
-            <div class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 shadow-lg">
-              <h3 class="text-lg font-semibold text-gray-800 mb-4">Bank Transfer Details</h3>
-              <p class="text-gray-700 mb-4">
-                Please transfer
-                <strong>€<%= :erlang.float_to_binary(@total, decimals: 2) %></strong>
-                (no card fees) to the following account:
-              </p>
-              <div class="space-y-2 font-mono text-sm">
-                <div class="flex justify-between">
-                  <span class="text-gray-600">Account Name:</span>
-                  <span class="font-semibold">Prime Youth Activities Ltd</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">IBAN:</span>
-                  <span class="font-semibold">IE64 BOFI 9000 1234 5678 90</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">BIC:</span>
-                  <span class="font-semibold">BOFIIE2D</span>
-                </div>
-                <div class="flex justify-between">
-                  <span class="text-gray-600">Reference:</span>
-                  <span class="font-semibold">CAW-EMMA-0124</span>
-                </div>
+          <.info_box :if={@payment_method == "transfer"} variant={:info} title="Bank Transfer Details">
+            <p class="mb-4">
+              Please transfer
+              <strong>€<%= :erlang.float_to_binary(@total, decimals: 2) %></strong>
+              (no card fees) to the following account:
+            </p>
+            <div class="space-y-2 font-mono text-sm">
+              <div class="flex justify-between">
+                <span class="text-gray-600">Account Name:</span>
+                <span class="font-semibold">Prime Youth Activities Ltd</span>
               </div>
-              <div class="mt-4 pt-4 border-t border-blue-300">
-                <p class="text-xs text-gray-600">
-                  💡 <strong>Important:</strong> Please include the reference code in your transfer to ensure proper allocation.
-                </p>
+              <div class="flex justify-between">
+                <span class="text-gray-600">IBAN:</span>
+                <span class="font-semibold">IE64 BOFI 9000 1234 5678 90</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">BIC:</span>
+                <span class="font-semibold">BOFIIE2D</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-600">Reference:</span>
+                <span class="font-semibold">CAW-EMMA-0124</span>
               </div>
             </div>
-          <% end %>
+            <:footer>
+              <p class="text-xs text-gray-600">
+                💡 <strong>Important:</strong> Please include the reference code in your transfer to ensure proper allocation.
+              </p>
+            </:footer>
+          </.info_box>
 
           <!-- Invoice Information -->
-          <div class="bg-gray-50 border border-gray-200 rounded-2xl p-6 shadow-lg">
-            <div class="flex items-start gap-3">
-              <div class="text-2xl">📧</div>
-              <div>
-                <h4 class="font-semibold text-gray-800 mb-2">Invoice & Payment Confirmation</h4>
-                <div class="text-sm text-gray-600 space-y-1">
-                  <p>• An invoice will be emailed to you after enrollment completion</p>
-                  <p>• Credit card payments are processed immediately</p>
-                  <p>• Cash/transfer payments will show as "Pending" until received</p>
-                </div>
-              </div>
+          <.info_box variant={:neutral} icon="📧" title="Invoice & Payment Confirmation">
+            <div class="text-sm space-y-1">
+              <p>• An invoice will be emailed to you after enrollment completion</p>
+              <p>• Credit card payments are processed immediately</p>
+              <p>• Cash/transfer payments will show as "Pending" until received</p>
             </div>
-          </div>
+          </.info_box>
 
           <!-- Submit Button -->
           <button

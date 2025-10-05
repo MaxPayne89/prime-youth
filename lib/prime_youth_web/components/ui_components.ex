@@ -479,4 +479,170 @@ defmodule PrimeYouthWeb.UIComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders an empty state with icon, title, description, and optional action.
+
+  Displays a centered empty state with gray icon circle, title, and description.
+  Commonly used when no results are found or when a list is empty.
+
+  ## Examples
+
+      <.empty_state
+        icon_path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        title="No programs found"
+        description="Try adjusting your search or filter criteria."
+      />
+
+      <.empty_state
+        icon_path="M12 4v16m8-8H4"
+        title="No items yet"
+        description="Get started by adding your first item."
+      >
+        <:action>
+          <button class="mt-4 px-4 py-2 bg-prime-cyan-400 text-white rounded-lg">
+            Add Item
+          </button>
+        </:action>
+      </.empty_state>
+  """
+  attr :icon_path, :string, required: true, doc: "SVG path data for the icon"
+  attr :title, :string, required: true
+  attr :description, :string, required: true
+  attr :class, :string, default: ""
+  slot :action, doc: "Optional action button or link"
+
+  def empty_state(assigns) do
+    ~H"""
+    <div class={["text-center py-12", @class]}>
+      <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d={@icon_path}
+          >
+          </path>
+        </svg>
+      </div>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">{@title}</h3>
+      <p class="text-gray-600">{@description}</p>
+      <div :if={@action != []}>
+        {render_slot(@action)}
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a circular icon button with hover effects.
+
+  Small, circular button with an icon, commonly used for actions like favorite,
+  menu, close, etc. Supports different background variants.
+
+  ## Examples
+
+      <.icon_button icon_path="M6 18L18 6M6 6l12 12" aria_label="Close" phx-click="close" />
+
+      <.icon_button
+        icon_path="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2..."
+        variant="light"
+        phx-click="open_menu"
+      />
+
+      <.icon_button
+        icon_path="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364..."
+        variant="glass"
+        class="text-red-500"
+        phx-click="toggle_favorite"
+      />
+  """
+  attr :icon_path, :string, required: true, doc: "SVG path data for the icon"
+  attr :variant, :string,
+    default: "light",
+    values: ~w(light glass solid),
+    doc: "Button background style"
+
+  attr :aria_label, :string, default: nil, doc: "Accessibility label"
+  attr :class, :string, default: ""
+  attr :rest, :global, include: ~w(phx-click phx-value-* disabled type)
+
+  def icon_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      aria-label={@aria_label}
+      class={[
+        "p-2 rounded-full transition-colors",
+        icon_button_variant(@variant),
+        @class
+      ]}
+      {@rest}
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d={@icon_path}
+        >
+        </path>
+      </svg>
+    </button>
+    """
+  end
+
+  defp icon_button_variant("light"), do: "bg-gray-100 hover:bg-gray-200"
+  defp icon_button_variant("glass"), do: "bg-white/80 backdrop-blur-sm hover:bg-white"
+  defp icon_button_variant("solid"), do: "bg-white hover:bg-gray-50 shadow-sm"
+
+  @doc """
+  Renders a page hero section with title, optional subtitle, and optional back button.
+
+  Full-width hero section commonly used at the top of pages. Supports gradient backgrounds
+  and can include a back button for navigation.
+
+  ## Examples
+
+      <.page_hero
+        title="Programs"
+        gradient_class="bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400"
+      />
+
+      <.page_hero
+        title="Enrollment"
+        subtitle="Complete your program enrollment"
+        show_back_button
+        phx-click="back_to_programs"
+      />
+  """
+  attr :title, :string, required: true
+  attr :subtitle, :string, default: nil
+  attr :gradient_class, :string, default: "bg-white"
+  attr :show_back_button, :boolean, default: false
+  attr :text_color, :string, default: "text-gray-900"
+  attr :class, :string, default: ""
+  attr :rest, :global, include: ~w(phx-click phx-value-*)
+
+  def page_hero(assigns) do
+    ~H"""
+    <div class={[gradient_class(@gradient_class), "p-6 shadow-sm", @class]}>
+      <div class="flex items-center gap-4 mb-4">
+        <.back_button :if={@show_back_button} {@rest} />
+        <div>
+          <h1 class={["text-2xl md:text-3xl font-bold", @text_color]}>{@title}</h1>
+          <p :if={@subtitle} class={["text-sm mt-1", subtitle_color(@text_color)]}>{@subtitle}</p>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp gradient_class("bg-white"), do: "bg-white"
+  defp gradient_class(class), do: class
+
+  defp subtitle_color("text-white"), do: "text-white/80"
+  defp subtitle_color("text-gray-900"), do: "text-gray-600"
+  defp subtitle_color(_), do: "text-gray-600"
 end

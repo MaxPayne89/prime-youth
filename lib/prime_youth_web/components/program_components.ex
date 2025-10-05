@@ -91,35 +91,25 @@ defmodule PrimeYouthWeb.ProgramComponents do
   end
 
   @doc """
-  Renders a program card with all details.
+  Renders a program card with gradient header, favorite button, and program details.
+
+  Supports two variants:
+  - `:detailed` - Full card with all program information (for programs page)
+  - `:compact` - Simplified card for homepage or listings
 
   ## Examples
 
       <.program_card
-        id="1"
-        title="Creative Art World"
-        description="Unleash your child's creativity"
-        gradient_class="bg-gradient-to-br from-yellow-400 via-orange-500 to-yellow-600"
-        icon_emoji="🎨"
-        price={45}
-        ages="6-12"
-        duration="8 weeks"
-        schedule="Wednesdays 4-6 PM"
-        spots_left={3}
-        category="Arts & Crafts"
+        program={@program}
+        variant={:detailed}
+        phx-click="program_click"
+        phx-value-program={@program.title}
       />
   """
-  attr :id, :string, required: true
-  attr :title, :string, required: true
-  attr :description, :string, required: true
-  attr :gradient_class, :string, required: true
-  attr :icon_emoji, :string, required: true
-  attr :price, :integer, required: true
-  attr :ages, :string, required: true
-  attr :duration, :string, required: true
-  attr :schedule, :string, required: true
-  attr :spots_left, :integer, required: true
-  attr :category, :string, required: true
+  attr :program, :map, required: true
+  attr :variant, :atom, default: :detailed, values: [:compact, :detailed]
+  attr :show_favorite, :boolean, default: true
+  attr :favorited, :boolean, default: false
   attr :class, :string, default: ""
   attr :rest, :global, include: ~w(phx-click phx-value-*)
 
@@ -127,68 +117,150 @@ defmodule PrimeYouthWeb.ProgramComponents do
     ~H"""
     <div
       class={[
-        "bg-white rounded-2xl shadow-md overflow-hidden",
-        "hover:shadow-xl transition-all duration-300 hover:scale-[1.02]",
-        "cursor-pointer",
+        "bg-white rounded-2xl shadow-sm border border-gray-100",
+        "hover:shadow-lg hover:scale-[1.02] transition-all duration-300",
+        "overflow-hidden cursor-pointer",
         @class
       ]}
       {@rest}
     >
-      <!-- Gradient Header with Icon -->
-      <div class={[
-        "relative h-32 flex items-center justify-center text-white overflow-hidden",
-        @gradient_class
-      ]}>
-        <div class="text-6xl">{@icon_emoji}</div>
-        <.status_pill
-          color="custom"
-          class={"absolute top-3 right-3 #{spots_badge_color(@spots_left)}"}
-        >
-          {spots_badge_text(@spots_left)}
-        </.status_pill>
+      <!-- Program Image/Header -->
+      <div class={["h-48 relative overflow-hidden", @program.gradient_class]}>
+        <div class="absolute inset-0 bg-black/10"></div>
+
+        <!-- Favorite Button -->
+        <div :if={@show_favorite} class="absolute top-4 right-4 z-10">
+          <button
+            phx-click="toggle_favorite"
+            phx-value-program={@program.title}
+            class="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+            onclick="event.stopPropagation();"
+          >
+            <svg
+              class={[
+                "w-5 h-5 transition-colors",
+                if(@favorited, do: "text-red-500 fill-red-500", else: "text-gray-600 hover:text-red-500")
+              ]}
+              fill={if @favorited, do: "currentColor", else: "none"}
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Spots Left Badge -->
+        <.spots_badge :if={@program.spots_left <= 5} spots_left={@program.spots_left} />
+
+        <!-- Program Icon -->
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+            <svg
+              class="w-8 h-8 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d={@program.icon_path}
+              />
+            </svg>
+          </div>
+        </div>
       </div>
 
-      <!-- Card Content -->
+      <!-- Program Info -->
       <div class="p-6">
-        <!-- Title and Description -->
-        <h3 class="text-xl font-bold text-gray-900 mb-2">{@title}</h3>
-        <p class="text-gray-600 text-sm mb-4 line-clamp-2">{@description}</p>
-
-        <!-- Details Grid -->
-        <div class="grid grid-cols-2 gap-3 mb-4 text-sm">
-          <div class="flex items-center gap-2 text-gray-700">
-            <.icon name="hero-user-group" class="w-4 h-4 text-gray-400" />
-            <span>{@ages} years</span>
-          </div>
-          <div class="flex items-center gap-2 text-gray-700">
-            <.icon name="hero-clock" class="w-4 h-4 text-gray-400" />
-            <span>{@duration}</span>
-          </div>
-          <div class="flex items-center gap-2 text-gray-700 col-span-2">
-            <.icon name="hero-calendar" class="w-4 h-4 text-gray-400" />
-            <span>{@schedule}</span>
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <h3 class="font-bold text-gray-900 text-lg mb-2">{@program.title}</h3>
+            <p class="text-gray-600 text-sm mb-3 line-clamp-2">{@program.description}</p>
           </div>
         </div>
 
-        <!-- Footer with Category and Price -->
-        <div class="flex items-center justify-between pt-4 border-t border-gray-200">
-          <.status_pill color="custom" class="bg-gray-100 text-gray-700">
-            {@category}
-          </.status_pill>
-          <.price_display price={@price} period="week" />
+        <!-- Program Details -->
+        <div class="space-y-2 mb-4">
+          <div class="flex items-center text-sm text-gray-600">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            {@program.schedule}
+          </div>
+          <div class="flex items-center text-sm text-gray-600">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+            Ages {@program.age_range}
+          </div>
+        </div>
+
+        <!-- Price -->
+        <div class="pt-4 border-t border-gray-100">
+          <div class="text-lg font-bold text-prime-cyan-400">
+            {format_price(@program.price)}
+          </div>
+          <div class="text-sm text-gray-500">{@program.period}</div>
         </div>
       </div>
     </div>
     """
   end
 
-  defp spots_badge_color(spots) when spots <= 2, do: "bg-red-100 text-red-700"
-  defp spots_badge_color(spots) when spots <= 5, do: "bg-orange-100 text-orange-700"
-  defp spots_badge_color(_), do: "bg-green-100 text-green-700"
+  @doc """
+  Renders a "spots left" badge.
 
-  defp spots_badge_text(0), do: "Full"
-  defp spots_badge_text(1), do: "1 spot left"
-  defp spots_badge_text(spots), do: "#{spots} spots left"
+  Shows warning colors based on remaining spots:
+  - Red when 2 or fewer spots
+  - Orange when 3-5 spots
+
+  ## Examples
+
+      <.spots_badge spots_left={3} />
+  """
+  attr :spots_left, :integer, required: true
+  attr :class, :string, default: ""
+
+  def spots_badge(assigns) do
+    ~H"""
+    <div class={["absolute bottom-4 left-4", @class]}>
+      <span class={[
+        "px-2 py-1 rounded-full text-xs font-medium",
+        if(@spots_left <= 2,
+          do: "bg-red-100 text-red-700",
+          else: "bg-orange-100 text-orange-700"
+        )
+      ]}>
+        {@spots_left} spots left!
+      </span>
+    </div>
+    """
+  end
+
+  # Helper function to format price
+  defp format_price(price) when is_integer(price) or is_float(price) do
+    "€#{:erlang.float_to_binary(price / 1, decimals: 2)}"
+  end
+
+  defp format_price(price) when is_binary(price), do: price
 
   @doc """
   Renders a formatted price with currency and period.

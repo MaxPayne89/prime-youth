@@ -1,5 +1,6 @@
 defmodule PrimeYouthWeb.ProgramDetailLive do
   use PrimeYouthWeb, :live_view
+  import PrimeYouthWeb.ReviewComponents
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
@@ -62,20 +63,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
           
     <!-- Back Button -->
           <div class="absolute top-4 left-4 z-10">
-            <button
-              phx-click="back_to_programs"
-              class="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
-            >
-              <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 19l-7-7 7-7"
-                >
-                </path>
-              </svg>
-            </button>
+            <.back_button phx-click="back_to_programs" />
           </div>
           
     <!-- Favorite Button -->
@@ -242,14 +230,12 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
                   {@instructor.bio}
                 </p>
                 <div class="flex items-center mt-2">
-                  <div class="flex text-yellow-400">
-                    <svg :for={_ <- 1..5} class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
-                  </div>
-                  <span class="text-sm text-gray-600 ml-2">
-                    {@instructor.rating}/5 from {@instructor.review_count} reviews
-                  </span>
+                  <.star_rating
+                    rating={@instructor.rating}
+                    size={:medium}
+                    show_count
+                    count={@instructor.review_count}
+                  />
                 </div>
               </div>
             </div>
@@ -260,32 +246,16 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">What Other Parents Say</h3>
             <div class="space-y-4">
-              <div
+              <.review_card
                 :for={review <- @reviews}
-                class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
-              >
-                <div class="flex justify-between items-start mb-3">
-                  <div class="flex items-start gap-3">
-                    <img
-                      src={review.parent_avatar}
-                      alt={review.parent_name}
-                      class="w-10 h-10 rounded-full"
-                    />
-                    <div>
-                      <div class="font-medium text-gray-900 text-sm">{review.parent_name}</div>
-                      <div class="text-xs text-gray-500">
-                        Mother of {review.child_name} ({review.child_age}) • <span class="text-green-600">✓ Verified Parent</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="flex text-yellow-400">
-                    <svg :for={_ <- 1..5} class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
-                  </div>
-                </div>
-                <p class="text-gray-600 text-sm leading-relaxed italic">"{review.comment}"</p>
-              </div>
+                parent_name={review.parent_name}
+                parent_avatar={review.parent_avatar}
+                child_name={review.child_name}
+                child_age={review.child_age}
+                rating={5.0}
+                comment={review.comment}
+                verified={true}
+              />
             </div>
 
             <div class="text-center mt-4">

@@ -86,6 +86,8 @@ defmodule PrimeYouthWeb do
       import Phoenix.HTML
       # Core UI components
       import PrimeYouthWeb.CoreComponents
+      import PrimeYouthWeb.UIComponents, except: [icon: 1]
+      import PrimeYouthWeb.CompositeComponents
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS
