@@ -360,4 +360,123 @@ defmodule PrimeYouthWeb.UIComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders a feature card with icon, title, and description.
+
+  ## Examples
+
+      <.feature_card
+        gradient_class="bg-gradient-to-br from-prime-cyan-400 to-blue-500"
+        icon_path="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944..."
+        title="Expert Instructors"
+        description="All instructors are background-checked..."
+      />
+  """
+  attr :gradient_class, :string, required: true
+  attr :icon_path, :string, required: true
+  attr :title, :string, required: true
+  attr :description, :string, required: true
+  attr :class, :string, default: ""
+
+  def feature_card(assigns) do
+    ~H"""
+    <div class={["text-center group hover:transform hover:scale-105 transition-all duration-200", @class]}>
+      <div class={[
+        "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6",
+        "group-hover:shadow-lg transition-shadow",
+        @gradient_class
+      ]}>
+        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}></path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-gray-900 mb-3">{@title}</h3>
+      <p class="text-gray-600">{@description}</p>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a simple program card for homepage.
+
+  ## Examples
+
+      <.program_card_simple
+        gradient_class="bg-gradient-to-br from-yellow-400 via-orange-500 to-yellow-600"
+        icon_path="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4..."
+        title="Creative Art World"
+        description="Unleash your child's creativity"
+        price={45}
+      />
+  """
+  attr :gradient_class, :string, required: true
+  attr :icon_path, :string, required: true
+  attr :title, :string, required: true
+  attr :description, :string, required: true
+  attr :price, :integer, required: true
+  attr :class, :string, default: ""
+  attr :rest, :global, include: ~w(phx-click phx-value-*)
+
+  def program_card_simple(assigns) do
+    ~H"""
+    <div
+      class={[
+        "bg-white rounded-2xl shadow-sm border border-gray-100",
+        "hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer",
+        @class
+      ]}
+      {@rest}
+    >
+      <div class={["h-48 relative", @gradient_class]}>
+        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="p-6">
+        <h3 class="text-xl font-bold text-gray-900 mb-2">{@title}</h3>
+        <p class="text-gray-600 text-sm mb-4 line-clamp-2">{@description}</p>
+        <div class="flex items-center justify-between">
+          <span class="text-2xl font-bold text-prime-magenta-400">€{@price}</span>
+          <span class="text-sm text-gray-500">per week</span>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a statistic display with large gradient number and label.
+
+  ## Examples
+
+      <.stat_display
+        value="10,000+"
+        label="Active Families"
+        gradient_class="bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400"
+      />
+  """
+  attr :value, :string, required: true
+  attr :label, :string, required: true
+  attr :gradient_class, :string, required: true
+  attr :class, :string, default: ""
+
+  def stat_display(assigns) do
+    ~H"""
+    <div class={["text-center", @class]}>
+      <div class={[
+        "text-4xl md:text-5xl font-bold bg-clip-text text-transparent mb-2",
+        @gradient_class
+      ]}>
+        {@value}
+      </div>
+      <div class="text-gray-600">{@label}</div>
+    </div>
+    """
+  end
 end

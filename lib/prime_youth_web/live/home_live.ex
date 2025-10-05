@@ -1,5 +1,6 @@
 defmodule PrimeYouthWeb.HomeLive do
   use PrimeYouthWeb, :live_view
+  import PrimeYouthWeb.UIComponents
 
   @impl true
   def mount(_params, _session, socket) do
@@ -85,77 +86,24 @@ defmodule PrimeYouthWeb.HomeLive do
           </div>
 
         <div class="grid md:grid-cols-3 gap-8 lg:gap-12">
-          <!-- Feature 1 -->
-          <div class="text-center group hover:transform hover:scale-105 transition-all duration-200">
-            <div class="w-16 h-16 bg-gradient-to-br from-prime-cyan-400 to-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:shadow-lg transition-shadow">
-              <svg
-                class="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                >
-                </path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">Expert Instructors & Small Class Sizes</h3>
-            <p class="text-gray-600">
-              All instructors are background-checked and classes are limited to ensure personalized attention
-            </p>
-          </div>
-
-          <!-- Feature 2 -->
-          <div class="text-center group hover:transform hover:scale-105 transition-all duration-200">
-            <div class="w-16 h-16 bg-gradient-to-br from-prime-magenta-400 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:shadow-lg transition-shadow">
-              <svg
-                class="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                >
-                </path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">Comprehensive Progress Tracking</h3>
-            <p class="text-gray-600">
-              Monitor your child's development with regular updates, achievements, and progress reports
-            </p>
-          </div>
-
-          <!-- Feature 3 -->
-          <div class="text-center group hover:transform hover:scale-105 transition-all duration-200">
-            <div class="w-16 h-16 bg-gradient-to-br from-prime-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:shadow-lg transition-shadow">
-              <svg
-                class="w-8 h-8 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                >
-                </path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-3">Flexible Scheduling & Pricing</h3>
-            <p class="text-gray-600">
-              Find programs that fit your family's schedule with transparent pricing and easy online booking
-            </p>
-          </div>
+          <.feature_card
+            gradient_class="bg-gradient-to-br from-prime-cyan-400 to-blue-500"
+            icon_path="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+            title="Expert Instructors & Small Class Sizes"
+            description="All instructors are background-checked and classes are limited to ensure personalized attention"
+          />
+          <.feature_card
+            gradient_class="bg-gradient-to-br from-prime-magenta-400 to-pink-500"
+            icon_path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            title="Comprehensive Progress Tracking"
+            description="Monitor your child's development with regular updates, achievements, and progress reports"
+          />
+          <.feature_card
+            gradient_class="bg-gradient-to-br from-prime-yellow-400 to-orange-500"
+            icon_path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            title="Flexible Scheduling & Pricing"
+            description="Find programs that fit your family's schedule with transparent pricing and easy online booking"
+          />
         </div>
         </div>
       </div>
@@ -173,42 +121,15 @@ defmodule PrimeYouthWeb.HomeLive do
           </div>
 
           <div class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8">
-            <div
+            <.program_card_simple
               :for={program <- @featured_programs}
-              class="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer"
+              gradient_class={program.gradient_class}
+              icon_path={program.icon_path}
+              title={program.title}
+              description={program.description}
+              price={program.price}
               phx-click="explore_programs"
-            >
-              <div class={["h-48 relative", program.gradient_class]}>
-                <div class="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors">
-                </div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                  <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                    <svg
-                      class="w-10 h-10 text-white"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d={program.icon_path}
-                      >
-                      </path>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <div class="p-6">
-                <h3 class="text-xl font-bold text-gray-900 mb-2">{program.title}</h3>
-                <p class="text-gray-600 text-sm mb-4 line-clamp-2">{program.description}</p>
-                <div class="flex items-center justify-between">
-                  <span class="text-2xl font-bold text-prime-magenta-400">€{program.price}</span>
-                  <span class="text-sm text-gray-500">per week</span>
-                </div>
-              </div>
-            </div>
+            />
           </div>
 
           <div class="text-center">
@@ -231,19 +152,22 @@ defmodule PrimeYouthWeb.HomeLive do
             </h2>
           </div>
 
-          <div class="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 bg-clip-text text-transparent mb-2">10,000+</div>
-              <div class="text-gray-600">Active Families</div>
-            </div>
-            <div>
-              <div class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-prime-magenta-400 to-prime-yellow-400 bg-clip-text text-transparent mb-2">500+</div>
-              <div class="text-gray-600">Programs Available</div>
-            </div>
-            <div>
-              <div class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-prime-yellow-400 to-prime-cyan-400 bg-clip-text text-transparent mb-2">4.9/5</div>
-              <div class="text-gray-600">Average Rating</div>
-            </div>
+          <div class="grid md:grid-cols-3 gap-8">
+            <.stat_display
+              value="10,000+"
+              label="Active Families"
+              gradient_class="bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400"
+            />
+            <.stat_display
+              value="500+"
+              label="Programs Available"
+              gradient_class="bg-gradient-to-r from-prime-magenta-400 to-prime-yellow-400"
+            />
+            <.stat_display
+              value="4.9/5"
+              label="Average Rating"
+              gradient_class="bg-gradient-to-r from-prime-yellow-400 to-prime-cyan-400"
+            />
           </div>
         </div>
       </div>

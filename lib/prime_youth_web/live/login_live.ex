@@ -7,12 +7,19 @@ defmodule PrimeYouthWeb.LoginLive do
     socket =
       socket
       |> assign(page_title: "Sign In")
+      |> assign(current_user: nil)
       |> assign(email: "")
       |> assign(password: "")
       |> assign(remember_me: false)
       |> assign(errors: [])
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("toggle_auth", _params, socket) do
+    new_user = if socket.assigns.current_user, do: nil, else: sample_user()
+    {:noreply, assign(socket, current_user: new_user)}
   end
 
   @impl true
@@ -360,5 +367,15 @@ defmodule PrimeYouthWeb.LoginLive do
       </div>
     </div>
     """
+  end
+
+  # Sample data
+  defp sample_user do
+    %{
+      name: "Sarah Johnson",
+      email: "sarah.johnson@example.com",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
+    }
   end
 end

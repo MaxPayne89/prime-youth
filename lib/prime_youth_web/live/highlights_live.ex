@@ -1,5 +1,6 @@
 defmodule PrimeYouthWeb.HighlightsLive do
   use PrimeYouthWeb, :live_view
+  import PrimeYouthWeb.CompositeComponents
 
   @impl true
   def mount(_params, _session, socket) do
@@ -57,9 +58,16 @@ defmodule PrimeYouthWeb.HighlightsLive do
     socket =
       socket
       |> assign(page_title: "Highlights")
+      |> assign(current_user: nil)
       |> assign(posts: posts)
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("toggle_auth", _params, socket) do
+    new_user = if socket.assigns.current_user, do: nil, else: sample_user()
+    {:noreply, assign(socket, current_user: new_user)}
   end
 
   @impl true
@@ -114,91 +122,54 @@ defmodule PrimeYouthWeb.HighlightsLive do
 
         <!-- Feed Posts -->
         <div class="space-y-4">
-          <%= for post <- @posts do %>
-            <div class="card bg-white shadow-lg">
-              <div class="card-body p-4">
-                <!-- Post Header -->
-                <div class="flex items-center gap-3 mb-4">
-                  <div class={"w-10 h-10 rounded-full #{post.avatar_bg} text-white flex items-center justify-center text-xl"}>
-                    <%= post.avatar_emoji %>
-                  </div>
-                  <div class="flex-1">
-                    <div class="font-semibold text-gray-800"><%= post.author %></div>
-                    <div class="text-sm text-gray-500"><%= post.timestamp %></div>
-                  </div>
-                </div>
-
-                <!-- Post Content -->
-                <p class="text-gray-700 mb-4 leading-relaxed">
-                  <%= post.content %>
-                </p>
-
-                <!-- Photo Post -->
-                <%= if post.type == :photo do %>
-                  <div class="h-48 bg-gradient-to-br from-prime-yellow-400/30 to-prime-yellow-400/50 rounded-lg flex items-center justify-center text-5xl mb-4">
-                    <%= post.photo_emoji %>
-                  </div>
-                <% end %>
-
-                <!-- Event Post -->
-                <%= if post.type == :event do %>
-                  <div class="bg-prime-cyan-400/10 border-2 border-prime-cyan-400 rounded-lg p-4 mb-4">
-                    <div class="font-semibold text-gray-800 mb-1"><%= post.event_details.title %></div>
-                    <div class="text-sm text-gray-600"><%= post.event_details.date %></div>
-                    <div class="text-sm text-gray-600"><%= post.event_details.location %></div>
-                  </div>
-                <% end %>
-
-                <!-- Post Actions -->
-                <div class="border-t border-gray-100 pt-4">
-                  <div class="flex gap-6 mb-3">
-                    <button
-                      phx-click="toggle_like"
-                      phx-value-post_id={post.id}
-                      class={"flex items-center gap-2 #{if post.user_liked, do: "text-red-500", else: "text-gray-500 hover:text-red-500"} transition-colors"}
-                    >
-                      <span class="text-xl"><%= if post.user_liked, do: "❤️", else: "🤍" %></span>
-                      <span class="text-sm font-medium"><%= post.likes %></span>
-                    </button>
-                    <button class="flex items-center gap-2 text-gray-500 hover:text-prime-cyan-400 transition-colors">
-                      <span class="text-xl">💬</span>
-                      <span class="text-sm font-medium"><%= post.comment_count %></span>
-                    </button>
-                  </div>
-
-                  <!-- Comments Preview -->
-                  <%= if length(post.comments) > 0 do %>
-                    <div class="bg-gray-50 rounded-lg p-3 mb-3 space-y-2">
-                      <%= for comment <- post.comments do %>
-                        <div class="flex gap-2">
-                          <span class="font-semibold text-gray-800 text-sm"><%= comment.author %>:</span>
-                          <span class="text-gray-600 text-sm"><%= comment.text %></span>
-                        </div>
-                      <% end %>
-                    </div>
-                  <% end %>
-
-                  <!-- Add Comment -->
-                  <form phx-submit="add_comment" class="flex gap-2">
-                    <input type="hidden" name="post_id" value={post.id} />
-                    <input
-                      type="text"
-                      name="comment"
-                      placeholder="Write a comment..."
-                      class="flex-1 input input-bordered input-sm bg-white border-gray-300 focus:border-prime-cyan-400 focus:ring-1 focus:ring-prime-cyan-400"
-                      autocomplete="off"
-                    />
-                    <button type="submit" class="btn btn-sm bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white border-0 hover:shadow-lg">
-                      Post
-                    </button>
-                  </form>
-                </div>
+          <.social_post
+            :for={post <- @posts}
+            post_id={post.id}
+            author={post.author}
+            avatar_bg={post.avatar_bg}
+            avatar_emoji={post.avatar_emoji}
+            timestamp={post.timestamp}
+            content={post.content}
+            likes={post.likes}
+            comment_count={post.comment_count}
+            user_liked={post.user_liked}
+          >
+            <:photo_content :if={post.type == :photo}>
+              <div class="h-48 bg-gradient-to-br from-prime-yellow-400/30 to-prime-yellow-400/50 rounded-lg flex items-center justify-center text-5xl">
+                <%= post.photo_emoji %>
               </div>
-            </div>
-          <% end %>
+            </:photo_content>
+            <:event_content :if={post.type == :event}>
+              <div class="bg-prime-cyan-400/10 border-2 border-prime-cyan-400 rounded-lg p-4">
+                <div class="font-semibold text-gray-800 mb-1"><%= post.event_details.title %></div>
+                <div class="text-sm text-gray-600"><%= post.event_details.date %></div>
+                <div class="text-sm text-gray-600"><%= post.event_details.location %></div>
+              </div>
+            </:event_content>
+            <:comments :if={length(post.comments) > 0}>
+              <div class="bg-gray-50 rounded-lg p-3 space-y-2">
+                <%= for comment <- post.comments do %>
+                  <div class="flex gap-2">
+                    <span class="font-semibold text-gray-800 text-sm"><%= comment.author %>:</span>
+                    <span class="text-gray-600 text-sm"><%= comment.text %></span>
+                  </div>
+                <% end %>
+              </div>
+            </:comments>
+          </.social_post>
         </div>
       </div>
     </div>
     """
+  end
+
+  # Sample data
+  defp sample_user do
+    %{
+      name: "Sarah Johnson",
+      email: "sarah.johnson@example.com",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
+    }
   end
 end

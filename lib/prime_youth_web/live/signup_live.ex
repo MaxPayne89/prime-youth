@@ -7,6 +7,7 @@ defmodule PrimeYouthWeb.SignupLive do
     socket =
       socket
       |> assign(page_title: "Sign Up")
+      |> assign(current_user: nil)
       |> assign(first_name: "")
       |> assign(last_name: "")
       |> assign(email: "")
@@ -16,6 +17,12 @@ defmodule PrimeYouthWeb.SignupLive do
       |> assign(errors: [])
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("toggle_auth", _params, socket) do
+    new_user = if socket.assigns.current_user, do: nil, else: sample_user()
+    {:noreply, assign(socket, current_user: new_user)}
   end
 
   @impl true
@@ -506,5 +513,15 @@ defmodule PrimeYouthWeb.SignupLive do
       end
 
     Enum.reverse(errors)
+  end
+
+  # Sample data
+  defp sample_user do
+    %{
+      name: "Sarah Johnson",
+      email: "sarah.johnson@example.com",
+      avatar:
+        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
+    }
   end
 end
