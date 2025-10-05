@@ -179,9 +179,11 @@ defmodule PrimeYouthWeb.UIComponents do
 
       <.section_divider text="Or continue with" />
       <.section_divider text="Or sign up with" class="my-6" />
+      <.section_divider text="Or continue with" bg_color="bg-transparent" text_color="text-white/80" line_color="border-white/20" />
   """
   attr :text, :string, required: true
   attr :class, :string, default: ""
+  attr :bg_color, :string, default: "bg-white", doc: "Tailwind background color class for text background"
   attr :text_color, :string, default: "text-gray-500", doc: "Tailwind text color class"
   attr :line_color, :string, default: "border-gray-200", doc: "Tailwind border color class"
 
@@ -192,7 +194,7 @@ defmodule PrimeYouthWeb.UIComponents do
         <div class={["w-full border-t", @line_color]}></div>
       </div>
       <div class="relative flex justify-center text-sm">
-        <span class={["px-2 bg-white", @text_color]}>{@text}</span>
+        <span class={["px-2", @bg_color, @text_color]}>{@text}</span>
       </div>
     </div>
     """
@@ -253,5 +255,109 @@ defmodule PrimeYouthWeb.UIComponents do
 
   defp button_variant_classes("dark") do
     "bg-white/10 border border-white/20 text-white hover:bg-white/20"
+  end
+
+  @doc """
+  Renders an email icon for input fields.
+
+  ## Examples
+
+      <.email_icon color="text-white/60" />
+      <.email_icon color="text-gray-400" />
+  """
+  attr :color, :string, default: "text-gray-400"
+  attr :class, :string, default: ""
+
+  def email_icon(assigns) do
+    ~H"""
+    <svg
+      class={["w-5 h-5", @color, @class]}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
+      >
+      </path>
+    </svg>
+    """
+  end
+
+  @doc """
+  Renders a password/eye icon for password input fields.
+
+  ## Examples
+
+      <.password_icon color="text-white/60" />
+      <.password_icon color="text-gray-400" />
+  """
+  attr :color, :string, default: "text-gray-400"
+  attr :class, :string, default: ""
+
+  def password_icon(assigns) do
+    ~H"""
+    <svg
+      class={["w-5 h-5", @color, @class]}
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+      >
+      </path>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+      >
+      </path>
+    </svg>
+    """
+  end
+
+  @doc """
+  Renders an error alert box with icon and error messages.
+
+  ## Examples
+
+      <.error_alert errors={["Invalid email", "Password too short"]} />
+      <.error_alert errors={@errors} />
+  """
+  attr :errors, :list, required: true
+  attr :class, :string, default: ""
+
+  def error_alert(assigns) do
+    ~H"""
+    <div :if={@errors != []} class={["mb-6 p-4 bg-red-50 border border-red-200 rounded-lg", @class]}>
+      <div class="flex">
+        <svg
+          class="w-5 h-5 text-red-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          >
+          </path>
+        </svg>
+        <div class="ml-3">
+          <p :for={error <- @errors} class="text-sm text-red-700">{error}</p>
+        </div>
+      </div>
+    </div>
+    """
   end
 end
