@@ -38,8 +38,8 @@ defmodule PrimeYouthWeb.SettingsLive do
           <p class="text-white/80 text-sm mt-1">Manage your account and preferences</p>
         </div>
       </div>
-
-      <!-- Content -->
+      
+    <!-- Content -->
       <div class="max-w-4xl mx-auto p-4 space-y-4">
         <!-- Account & Profile Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -67,8 +67,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
           </div>
         </div>
-
-        <!-- My Family Section -->
+        
+    <!-- My Family Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="p-4 border-b border-gray-100">
             <h3 class="font-semibold text-gray-900">My Family</h3>
@@ -103,8 +103,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
           </div>
         </div>
-
-        <!-- Contact Information Section -->
+        
+    <!-- Contact Information Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="p-4 border-b border-gray-100">
             <h3 class="font-semibold text-gray-900">Contact Information</h3>
@@ -139,8 +139,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
           </div>
         </div>
-
-        <!-- Health & Safety Section -->
+        
+    <!-- Health & Safety Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="p-4 border-b border-gray-100">
             <h3 class="font-semibold text-gray-900">Health & Safety</h3>
@@ -175,8 +175,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
           </div>
         </div>
-
-        <!-- Permissions & Consents Section -->
+        
+    <!-- Permissions & Consents Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="p-4 border-b border-gray-100">
             <h3 class="font-semibold text-gray-900">Permissions & Consents</h3>
@@ -211,8 +211,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
           </div>
         </div>
-
-        <!-- Payment & Billing Section -->
+        
+    <!-- Payment & Billing Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="p-4 border-b border-gray-100">
             <h3 class="font-semibold text-gray-900">Payment & Billing</h3>
@@ -247,8 +247,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
           </div>
         </div>
-
-        <!-- Notifications & Communication Section -->
+        
+    <!-- Notifications & Communication Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="p-4 border-b border-gray-100">
             <h3 class="font-semibold text-gray-900">Notifications & Communication</h3>
@@ -274,8 +274,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
           </div>
         </div>
-
-        <!-- Help & Support Section -->
+        
+    <!-- Help & Support Section -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="p-4 border-b border-gray-100">
             <h3 class="font-semibold text-gray-900">Help & Support</h3>

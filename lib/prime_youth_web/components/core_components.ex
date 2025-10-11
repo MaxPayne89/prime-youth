@@ -42,8 +42,16 @@ defmodule PrimeYouthWeb.CoreComponents do
         @kind == :info && "bg-blue-50 border border-blue-200",
         @kind == :error && "bg-red-50 border border-red-200"
       ]}>
-        <.icon :if={@kind == :info} name="hero-information-circle" class="w-5 h-5 text-blue-500 flex-shrink-0" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle" class="w-5 h-5 text-red-500 flex-shrink-0" />
+        <.icon
+          :if={@kind == :info}
+          name="hero-information-circle"
+          class="w-5 h-5 text-blue-500 flex-shrink-0"
+        />
+        <.icon
+          :if={@kind == :error}
+          name="hero-exclamation-circle"
+          class="w-5 h-5 text-red-500 flex-shrink-0"
+        />
         <div class="flex-1">
           <p :if={@title} class="font-semibold text-gray-900 mb-1">{@title}</p>
           <p class="text-sm text-gray-700">{msg}</p>

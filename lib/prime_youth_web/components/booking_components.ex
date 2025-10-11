@@ -53,10 +53,13 @@ defmodule PrimeYouthWeb.BookingComponents do
           </div>
         </div>
       </div>
-      <div :if={@footer != []} class={[
-        "mt-4 pt-4",
-        info_box_footer_border(@variant)
-      ]}>
+      <div
+        :if={@footer != []}
+        class={[
+          "mt-4 pt-4",
+          info_box_footer_border(@variant)
+        ]}
+      >
         {render_slot(@footer)}
       </div>
     </div>
@@ -129,8 +132,8 @@ defmodule PrimeYouthWeb.BookingComponents do
           <span>{item[:label]}</span>
           <span>{item[:value]}</span>
         </div>
-
-        <!-- Subtotal with border -->
+        
+    <!-- Subtotal with border -->
         <div
           :for={subtotal <- @subtotal}
           class="flex justify-between text-gray-700 pb-2 border-b border-gray-200"
@@ -138,8 +141,8 @@ defmodule PrimeYouthWeb.BookingComponents do
           <span>{subtotal[:label]}</span>
           <span>{subtotal[:value]}</span>
         </div>
-
-        <!-- Line items after subtotal (like taxes, fees) -->
+        
+    <!-- Line items after subtotal (like taxes, fees) -->
         <div
           :for={item <- @line_item}
           :if={Map.get(item, :after_subtotal, false)}
@@ -148,8 +151,8 @@ defmodule PrimeYouthWeb.BookingComponents do
           <span>{item[:label]}</span>
           <span>{item[:value]}</span>
         </div>
-
-        <!-- Total with emphasis -->
+        
+    <!-- Total with emphasis -->
         <div
           :for={total <- @total}
           class="flex justify-between text-lg font-bold pt-2 border-t border-gray-300"

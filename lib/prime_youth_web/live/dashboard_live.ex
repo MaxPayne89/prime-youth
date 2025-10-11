@@ -55,7 +55,10 @@ defmodule PrimeYouthWeb.DashboardLive do
                 </path>
               </svg>
             </button>
-            <.link navigate={~p"/settings"} class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
+            <.link
+              navigate={~p"/settings"}
+              class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+            >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"

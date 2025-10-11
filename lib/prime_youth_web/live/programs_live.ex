@@ -65,7 +65,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
             aria_label="More options"
           />
         </div>
-
+        
     <!-- Search Bar -->
         <.search_bar
           placeholder="Search programs..."
@@ -74,7 +74,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
           phx-change="search"
           class="mb-4"
         />
-
+        
     <!-- Filter Pills -->
         <.filter_pills
           filters={@filters}

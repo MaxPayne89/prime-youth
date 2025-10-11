@@ -154,7 +154,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
           </div>
         </div>
       </div>
-
+      
     <!-- Content Area -->
       <div class="mt-20 p-6 max-w-4xl mx-auto">
         <!-- Primary CTA -->
@@ -183,8 +183,8 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
             Free cancellation up to 48 hours before start date
           </p>
         </div>
-
-        <!-- Main Content -->
+        
+    <!-- Main Content -->
         <div class="space-y-6">
           <!-- Program Description -->
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
@@ -240,8 +240,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               </div>
             </div>
           </div>
-
-
+          
     <!-- Parent Reviews -->
           <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">What Other Parents Say</h3>
@@ -264,7 +263,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               </button>
             </div>
           </div>
-
+          
     <!-- Bottom CTA -->
           <div class="mt-8">
             <button

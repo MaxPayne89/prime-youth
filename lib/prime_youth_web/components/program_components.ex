@@ -127,8 +127,8 @@ defmodule PrimeYouthWeb.ProgramComponents do
       <!-- Program Image/Header -->
       <div class={["h-48 relative overflow-hidden", @program.gradient_class]}>
         <div class="absolute inset-0 bg-black/10"></div>
-
-        <!-- Favorite Button -->
+        
+    <!-- Favorite Button -->
         <div :if={@show_favorite} class="absolute top-4 right-4 z-10">
           <button
             phx-click="toggle_favorite"
@@ -139,7 +139,10 @@ defmodule PrimeYouthWeb.ProgramComponents do
             <svg
               class={[
                 "w-5 h-5 transition-colors",
-                if(@favorited, do: "text-red-500 fill-red-500", else: "text-gray-600 hover:text-red-500")
+                if(@favorited,
+                  do: "text-red-500 fill-red-500",
+                  else: "text-gray-600 hover:text-red-500"
+                )
               ]}
               fill={if @favorited, do: "currentColor", else: "none"}
               stroke="currentColor"
@@ -154,11 +157,11 @@ defmodule PrimeYouthWeb.ProgramComponents do
             </svg>
           </button>
         </div>
-
-        <!-- Spots Left Badge -->
+        
+    <!-- Spots Left Badge -->
         <.spots_badge :if={@program.spots_left <= 5} spots_left={@program.spots_left} />
-
-        <!-- Program Icon -->
+        
+    <!-- Program Icon -->
         <div class="absolute inset-0 flex items-center justify-center">
           <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
             <svg
@@ -177,8 +180,8 @@ defmodule PrimeYouthWeb.ProgramComponents do
           </div>
         </div>
       </div>
-
-      <!-- Program Info -->
+      
+    <!-- Program Info -->
       <div class="p-6">
         <div class="flex items-start justify-between mb-3">
           <div class="flex-1">
@@ -186,8 +189,8 @@ defmodule PrimeYouthWeb.ProgramComponents do
             <p class="text-gray-600 text-sm mb-3 line-clamp-2">{@program.description}</p>
           </div>
         </div>
-
-        <!-- Program Details -->
+        
+    <!-- Program Details -->
         <div class="space-y-2 mb-4">
           <div class="flex items-center text-sm text-gray-600">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -212,8 +215,8 @@ defmodule PrimeYouthWeb.ProgramComponents do
             Ages {@program.age_range}
           </div>
         </div>
-
-        <!-- Price -->
+        
+    <!-- Price -->
         <div class="pt-4 border-t border-gray-100">
           <div class="text-lg font-bold text-prime-cyan-400">
             {format_price(@program.price)}
@@ -273,7 +276,12 @@ defmodule PrimeYouthWeb.ProgramComponents do
   """
   attr :price, :integer, required: true
   attr :currency, :string, default: "€", doc: "Currency symbol"
-  attr :period, :string, default: "week", values: ~w(week session month hour), doc: "Billing period"
+
+  attr :period, :string,
+    default: "week",
+    values: ~w(week session month hour),
+    doc: "Billing period"
+
   attr :class, :string, default: ""
 
   def price_display(assigns) do

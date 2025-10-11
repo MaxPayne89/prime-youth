@@ -11,7 +11,8 @@ defmodule PrimeYouthWeb.HighlightsLive do
         avatar_bg: "bg-prime-cyan-400",
         avatar_emoji: "👩‍🏫",
         timestamp: "2 hours ago",
-        content: "Amazing creativity from our Art World students today! 🎨 They're working on their masterpieces for the upcoming showcase. So proud of their progress!",
+        content:
+          "Amazing creativity from our Art World students today! 🎨 They're working on their masterpieces for the upcoming showcase. So proud of their progress!",
         type: :photo,
         photo_emoji: "🎨📸",
         likes: 12,
@@ -28,7 +29,8 @@ defmodule PrimeYouthWeb.HighlightsLive do
         avatar_bg: "bg-prime-magenta-400",
         avatar_emoji: "👨‍🏫",
         timestamp: "5 hours ago",
-        content: "Reminder: Chess tournament registration closes this Friday! 🏆 Great opportunity for our advanced students to showcase their skills. Prize ceremony will include medals and certificates! ♟️",
+        content:
+          "Reminder: Chess tournament registration closes this Friday! 🏆 Great opportunity for our advanced students to showcase their skills. Prize ceremony will include medals and certificates! ♟️",
         type: :text,
         likes: 8,
         comment_count: 3,
@@ -41,7 +43,8 @@ defmodule PrimeYouthWeb.HighlightsLive do
         avatar_bg: "bg-prime-yellow-400",
         avatar_emoji: "📋",
         timestamp: "1 day ago",
-        content: "🎉 Exciting News! We're hosting a Family Fun Day next Saturday! Join us for games, food trucks, and showcase performances from all our programs. Free entry for all Prime Youth families!",
+        content:
+          "🎉 Exciting News! We're hosting a Family Fun Day next Saturday! Join us for games, food trucks, and showcase performances from all our programs. Free entry for all Prime Youth families!",
         type: :event,
         event_details: %{
           title: "📅 Family Fun Day",
@@ -72,17 +75,18 @@ defmodule PrimeYouthWeb.HighlightsLive do
 
   @impl true
   def handle_event("toggle_like", %{"post_id" => post_id}, socket) do
-    posts = Enum.map(socket.assigns.posts, fn post ->
-      if post.id == post_id do
-        if post.user_liked do
-          %{post | user_liked: false, likes: post.likes - 1}
+    posts =
+      Enum.map(socket.assigns.posts, fn post ->
+        if post.id == post_id do
+          if post.user_liked do
+            %{post | user_liked: false, likes: post.likes - 1}
+          else
+            %{post | user_liked: true, likes: post.likes + 1}
+          end
         else
-          %{post | user_liked: true, likes: post.likes + 1}
+          post
         end
-      else
-        post
-      end
-    end)
+      end)
 
     {:noreply, assign(socket, posts: posts)}
   end
@@ -92,14 +96,20 @@ defmodule PrimeYouthWeb.HighlightsLive do
     if String.trim(comment_text) == "" do
       {:noreply, socket}
     else
-      posts = Enum.map(socket.assigns.posts, fn post ->
-        if post.id == post_id do
-          new_comment = %{author: "You", text: comment_text}
-          %{post | comments: post.comments ++ [new_comment], comment_count: post.comment_count + 1}
-        else
-          post
-        end
-      end)
+      posts =
+        Enum.map(socket.assigns.posts, fn post ->
+          if post.id == post_id do
+            new_comment = %{author: "You", text: comment_text}
+
+            %{
+              post
+              | comments: post.comments ++ [new_comment],
+                comment_count: post.comment_count + 1
+            }
+          else
+            post
+          end
+        end)
 
       {:noreply, assign(socket, posts: posts)}
     end
@@ -114,13 +124,24 @@ defmodule PrimeYouthWeb.HighlightsLive do
         <div class="flex items-center justify-between mb-6">
           <h1 class="text-3xl font-bold text-gray-800">Highlights</h1>
           <button class="btn btn-circle btn-ghost">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+              />
             </svg>
           </button>
         </div>
-
-        <!-- Feed Posts -->
+        
+    <!-- Feed Posts -->
         <div class="space-y-4">
           <.social_post
             :for={post <- @posts}
@@ -136,22 +157,22 @@ defmodule PrimeYouthWeb.HighlightsLive do
           >
             <:photo_content :if={post.type == :photo}>
               <div class="h-48 bg-gradient-to-br from-prime-yellow-400/30 to-prime-yellow-400/50 rounded-lg flex items-center justify-center text-5xl">
-                <%= post.photo_emoji %>
+                {post.photo_emoji}
               </div>
             </:photo_content>
             <:event_content :if={post.type == :event}>
               <div class="bg-prime-cyan-400/10 border-2 border-prime-cyan-400 rounded-lg p-4">
-                <div class="font-semibold text-gray-800 mb-1"><%= post.event_details.title %></div>
-                <div class="text-sm text-gray-600"><%= post.event_details.date %></div>
-                <div class="text-sm text-gray-600"><%= post.event_details.location %></div>
+                <div class="font-semibold text-gray-800 mb-1">{post.event_details.title}</div>
+                <div class="text-sm text-gray-600">{post.event_details.date}</div>
+                <div class="text-sm text-gray-600">{post.event_details.location}</div>
               </div>
             </:event_content>
             <:comments :if={length(post.comments) > 0}>
               <div class="bg-gray-50 rounded-lg p-3 space-y-2">
                 <%= for comment <- post.comments do %>
                   <div class="flex gap-2">
-                    <span class="font-semibold text-gray-800 text-sm"><%= comment.author %>:</span>
-                    <span class="text-gray-600 text-sm"><%= comment.text %></span>
+                    <span class="font-semibold text-gray-800 text-sm">{comment.author}:</span>
+                    <span class="text-gray-600 text-sm">{comment.text}</span>
                   </div>
                 <% end %>
               </div>

@@ -81,8 +81,8 @@ defmodule PrimeYouthWeb.BookingLive do
           <.back_button phx-click="back_to_program" />
           <h1 class="text-3xl font-bold text-white">Enrollment</h1>
         </div>
-
-        <!-- Activity Summary -->
+        
+    <!-- Activity Summary -->
         <div class="mb-6">
           <h3 class="text-white font-semibold mb-3">Activity Summary</h3>
           <div class="bg-white rounded-2xl p-6 shadow-lg">
@@ -102,7 +102,7 @@ defmodule PrimeYouthWeb.BookingLive do
               <div class="flex justify-between items-center mb-2">
                 <span class="font-semibold text-gray-800">Total Price:</span>
                 <span class="text-2xl font-bold text-prime-cyan-400">
-                  €<%= :erlang.float_to_binary(@total, decimals: 2) %>
+                  €{:erlang.float_to_binary(@total, decimals: 2)}
                 </span>
               </div>
               <div class="flex justify-between text-sm">
@@ -117,8 +117,8 @@ defmodule PrimeYouthWeb.BookingLive do
             </a>
           </div>
         </div>
-
-        <!-- Enrollment Form -->
+        
+    <!-- Enrollment Form -->
         <form phx-submit="complete_enrollment" class="space-y-6">
           <!-- Select Child -->
           <div class="bg-white rounded-2xl p-6 shadow-lg">
@@ -137,8 +137,8 @@ defmodule PrimeYouthWeb.BookingLive do
               </a>
             </div>
           </div>
-
-          <!-- Special Requirements -->
+          
+    <!-- Special Requirements -->
           <div class="bg-white rounded-2xl p-6 shadow-lg">
             <label for="special-requirements" class="block text-sm font-semibold text-gray-800 mb-3">
               Special Requirements
@@ -158,8 +158,8 @@ defmodule PrimeYouthWeb.BookingLive do
               <p class="text-xs text-gray-500">0/500</p>
             </div>
           </div>
-
-          <!-- Payment Method -->
+          
+    <!-- Payment Method -->
           <div class="bg-white rounded-2xl p-6 shadow-lg">
             <fieldset>
               <legend class="block text-sm font-semibold text-gray-800 mb-3">Payment Method</legend>
@@ -184,22 +184,42 @@ defmodule PrimeYouthWeb.BookingLive do
               </div>
             </fieldset>
           </div>
-
-          <!-- Payment Summary -->
+          
+    <!-- Payment Summary -->
           <.booking_summary title="Payment Summary">
-            <:line_item label={"Weekly fee (#{@weeks_count} weeks):"} value={"€#{:erlang.float_to_binary(@weekly_fee, decimals: 2)}"} />
-            <:line_item label="Registration fee:" value={"€#{:erlang.float_to_binary(@registration_fee, decimals: 2)}"} />
-            <:subtotal label="Subtotal:" value={"€#{:erlang.float_to_binary(@subtotal, decimals: 2)}"} />
-            <:line_item label="VAT (19%):" value={"€#{:erlang.float_to_binary(@vat_amount, decimals: 2)}"} after_subtotal={true} />
-            <:line_item :if={@payment_method == "card"} label="Credit card fee:" value={"€#{:erlang.float_to_binary(@card_fee_amount, decimals: 2)}"} after_subtotal={true} />
-            <:total label="Total due today:" value={"€#{:erlang.float_to_binary(@total, decimals: 2)}"} />
+            <:line_item
+              label={"Weekly fee (#{@weeks_count} weeks):"}
+              value={"€#{:erlang.float_to_binary(@weekly_fee, decimals: 2)}"}
+            />
+            <:line_item
+              label="Registration fee:"
+              value={"€#{:erlang.float_to_binary(@registration_fee, decimals: 2)}"}
+            />
+            <:subtotal
+              label="Subtotal:"
+              value={"€#{:erlang.float_to_binary(@subtotal, decimals: 2)}"}
+            />
+            <:line_item
+              label="VAT (19%):"
+              value={"€#{:erlang.float_to_binary(@vat_amount, decimals: 2)}"}
+              after_subtotal={true}
+            />
+            <:line_item
+              :if={@payment_method == "card"}
+              label="Credit card fee:"
+              value={"€#{:erlang.float_to_binary(@card_fee_amount, decimals: 2)}"}
+              after_subtotal={true}
+            />
+            <:total
+              label="Total due today:"
+              value={"€#{:erlang.float_to_binary(@total, decimals: 2)}"}
+            />
           </.booking_summary>
-
-          <!-- Bank Transfer Details -->
+          
+    <!-- Bank Transfer Details -->
           <.info_box :if={@payment_method == "transfer"} variant={:info} title="Bank Transfer Details">
             <p class="mb-4">
-              Please transfer
-              <strong>€<%= :erlang.float_to_binary(@total, decimals: 2) %></strong>
+              Please transfer <strong>€{:erlang.float_to_binary(@total, decimals: 2)}</strong>
               (no card fees) to the following account:
             </p>
             <div class="space-y-2 font-mono text-sm">
@@ -222,12 +242,13 @@ defmodule PrimeYouthWeb.BookingLive do
             </div>
             <:footer>
               <p class="text-xs text-gray-600">
-                💡 <strong>Important:</strong> Please include the reference code in your transfer to ensure proper allocation.
+                💡 <strong>Important:</strong>
+                Please include the reference code in your transfer to ensure proper allocation.
               </p>
             </:footer>
           </.info_box>
-
-          <!-- Invoice Information -->
+          
+    <!-- Invoice Information -->
           <.info_box variant={:neutral} icon="📧" title="Invoice & Payment Confirmation">
             <div class="text-sm space-y-1">
               <p>• An invoice will be emailed to you after enrollment completion</p>
@@ -235,8 +256,8 @@ defmodule PrimeYouthWeb.BookingLive do
               <p>• Cash/transfer payments will show as "Pending" until received</p>
             </div>
           </.info_box>
-
-          <!-- Submit Button -->
+          
+    <!-- Submit Button -->
           <button
             type="submit"
             class="w-full py-4 bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white font-semibold text-lg rounded-xl hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"

@@ -228,7 +228,10 @@ defmodule PrimeYouthWeb.CompositeComponents do
     ~H"""
     <label class={[
       "flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all",
-      if(@selected, do: "border-prime-cyan-400 bg-prime-cyan-50", else: "border-gray-200 hover:border-gray-300"),
+      if(@selected,
+        do: "border-prime-cyan-400 bg-prime-cyan-50",
+        else: "border-gray-200 hover:border-gray-300"
+      ),
       @class
     ]}>
       <input
@@ -307,17 +310,17 @@ defmodule PrimeYouthWeb.CompositeComponents do
             <div class="text-sm text-gray-500">{@timestamp}</div>
           </div>
         </div>
-
-        <!-- Post Content -->
+        
+    <!-- Post Content -->
         <p class="text-gray-700 mb-4 leading-relaxed">
           {@content}
         </p>
-
-        <!-- Photo/Event Content -->
+        
+    <!-- Photo/Event Content -->
         {render_slot(@photo_content)}
         {render_slot(@event_content)}
-
-        <!-- Post Actions -->
+        
+    <!-- Post Actions -->
         <div class="border-t border-gray-100 pt-4">
           <div class="flex gap-6 mb-3">
             <button
@@ -336,11 +339,11 @@ defmodule PrimeYouthWeb.CompositeComponents do
               <span class="text-sm font-medium">{@comment_count}</span>
             </button>
           </div>
-
-          <!-- Comments Preview -->
+          
+    <!-- Comments Preview -->
           {render_slot(@comments)}
-
-          <!-- Add Comment Form -->
+          
+    <!-- Add Comment Form -->
           <form phx-submit="add_comment" class="flex gap-2 mt-3">
             <input type="hidden" name="post_id" value={@post_id} />
             <input
@@ -350,7 +353,10 @@ defmodule PrimeYouthWeb.CompositeComponents do
               class="flex-1 input input-bordered input-sm bg-white border-gray-300 focus:border-prime-cyan-400 focus:ring-1 focus:ring-prime-cyan-400"
               autocomplete="off"
             />
-            <button type="submit" class="btn btn-sm bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white border-0 hover:shadow-lg">
+            <button
+              type="submit"
+              class="btn btn-sm bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white border-0 hover:shadow-lg"
+            >
               Post
             </button>
           </form>

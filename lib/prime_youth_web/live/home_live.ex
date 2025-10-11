@@ -39,7 +39,11 @@ defmodule PrimeYouthWeb.HomeLive do
           <div class="text-center">
             <!-- Logo -->
             <div class="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full shadow-lg mb-8 animate-bounce-gentle">
-              <img src={~p"/images/logo-standard.png"} alt="Prime Youth Logo" class="w-16 h-16 object-contain" />
+              <img
+                src={~p"/images/logo-standard.png"}
+                alt="Prime Youth Logo"
+                class="w-16 h-16 object-contain"
+              />
             </div>
             <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 animate-fade-in">
               Prime Youth
@@ -63,8 +67,8 @@ defmodule PrimeYouthWeb.HomeLive do
             </div>
           </div>
         </div>
-
-        <!-- Decorative Wave -->
+        
+    <!-- Decorative Wave -->
         <div class="absolute bottom-0 left-0 right-0">
           <svg class="w-full h-16 fill-white" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z">
@@ -72,8 +76,8 @@ defmodule PrimeYouthWeb.HomeLive do
           </svg>
         </div>
       </div>
-
-      <!-- Features Section -->
+      
+    <!-- Features Section -->
       <div class="bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div class="text-center mb-16">
@@ -85,30 +89,30 @@ defmodule PrimeYouthWeb.HomeLive do
             </p>
           </div>
 
-        <div class="grid md:grid-cols-3 gap-8 lg:gap-12">
-          <.feature_card
-            gradient_class="bg-gradient-to-br from-prime-cyan-400 to-blue-500"
-            icon_path="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-            title="Expert Instructors & Small Class Sizes"
-            description="All instructors are background-checked and classes are limited to ensure personalized attention"
-          />
-          <.feature_card
-            gradient_class="bg-gradient-to-br from-prime-magenta-400 to-pink-500"
-            icon_path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-            title="Comprehensive Progress Tracking"
-            description="Monitor your child's development with regular updates, achievements, and progress reports"
-          />
-          <.feature_card
-            gradient_class="bg-gradient-to-br from-prime-yellow-400 to-orange-500"
-            icon_path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-            title="Flexible Scheduling & Pricing"
-            description="Find programs that fit your family's schedule with transparent pricing and easy online booking"
-          />
-        </div>
+          <div class="grid md:grid-cols-3 gap-8 lg:gap-12">
+            <.feature_card
+              gradient_class="bg-gradient-to-br from-prime-cyan-400 to-blue-500"
+              icon_path="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              title="Expert Instructors & Small Class Sizes"
+              description="All instructors are background-checked and classes are limited to ensure personalized attention"
+            />
+            <.feature_card
+              gradient_class="bg-gradient-to-br from-prime-magenta-400 to-pink-500"
+              icon_path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              title="Comprehensive Progress Tracking"
+              description="Monitor your child's development with regular updates, achievements, and progress reports"
+            />
+            <.feature_card
+              gradient_class="bg-gradient-to-br from-prime-yellow-400 to-orange-500"
+              icon_path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              title="Flexible Scheduling & Pricing"
+              description="Find programs that fit your family's schedule with transparent pricing and easy online booking"
+            />
+          </div>
         </div>
       </div>
-
-      <!-- Featured Programs Section -->
+      
+    <!-- Featured Programs Section -->
       <div class="bg-gray-50 py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="text-center mb-12">
@@ -142,8 +146,8 @@ defmodule PrimeYouthWeb.HomeLive do
           </div>
         </div>
       </div>
-
-      <!-- Social Proof / Trust Section -->
+      
+    <!-- Social Proof / Trust Section -->
       <div class="bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div class="text-center mb-12">
@@ -171,8 +175,8 @@ defmodule PrimeYouthWeb.HomeLive do
           </div>
         </div>
       </div>
-
-      <!-- CTA Section -->
+      
+    <!-- CTA Section -->
       <div class="bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 py-16 lg:py-20">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
@@ -208,8 +212,7 @@ defmodule PrimeYouthWeb.HomeLive do
       %{
         id: 1,
         title: "Creative Art World",
-        description:
-          "Unleash your child's creativity through painting, drawing, and sculpture",
+        description: "Unleash your child's creativity through painting, drawing, and sculpture",
         gradient_class: "bg-gradient-to-br from-yellow-400 via-orange-500 to-yellow-600",
         icon_path:
           "M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v1.5L15 4l2 7-7 2.5V15a2 2 0 01-2 2z",

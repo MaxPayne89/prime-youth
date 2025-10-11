@@ -44,9 +44,17 @@ defmodule PrimeYouthWeb.UIComponents do
         <.icon name="hero-user" class="w-5 h-5 text-white" />
       </.gradient_icon>
   """
-  attr :gradient_class, :string, required: true, doc: "Tailwind gradient or solid background class"
+  attr :gradient_class, :string,
+    required: true,
+    doc: "Tailwind gradient or solid background class"
+
   attr :size, :string, default: "md", values: ~w(sm md lg xl), doc: "Size of the icon container"
-  attr :shape, :string, default: "circle", values: ~w(circle rounded), doc: "Shape of the container"
+
+  attr :shape, :string,
+    default: "circle",
+    values: ~w(circle rounded),
+    doc: "Shape of the container"
+
   attr :class, :string, default: "", doc: "Additional CSS classes"
   slot :inner_block, required: true, doc: "Icon content (emoji or heroicon)"
 
@@ -117,7 +125,11 @@ defmodule PrimeYouthWeb.UIComponents do
   """
   attr :label, :string, default: "Progress"
   attr :percentage, :integer, required: true, doc: "Progress percentage (0-100)"
-  attr :color_class, :string, default: "bg-prime-cyan-400", doc: "Tailwind background color class for the progress bar"
+
+  attr :color_class, :string,
+    default: "bg-prime-cyan-400",
+    doc: "Tailwind background color class for the progress bar"
+
   attr :class, :string, default: ""
 
   def progress_bar(assigns) do
@@ -128,7 +140,10 @@ defmodule PrimeYouthWeb.UIComponents do
         <span>{@percentage}%</span>
       </div>
       <div class="w-full bg-gray-200 rounded-full h-2">
-        <div class={[@color_class, "h-2 rounded-full transition-all duration-300"]} style={"width: #{@percentage}%"}>
+        <div
+          class={[@color_class, "h-2 rounded-full transition-all duration-300"]}
+          style={"width: #{@percentage}%"}
+        >
         </div>
       </div>
     </div>
@@ -149,11 +164,12 @@ defmodule PrimeYouthWeb.UIComponents do
 
   def back_button(assigns) do
     # Support both on_click and phx-click for backwards compatibility
-    assigns = if assigns.on_click && !assigns.rest[:"phx-click"] do
-      Map.put(assigns, :rest, Map.put(assigns.rest, :"phx-click", assigns.on_click))
-    else
-      assigns
-    end
+    assigns =
+      if assigns.on_click && !assigns.rest[:"phx-click"] do
+        Map.put(assigns, :rest, Map.put(assigns.rest, :"phx-click", assigns.on_click))
+      else
+        assigns
+      end
 
     ~H"""
     <button
@@ -183,7 +199,11 @@ defmodule PrimeYouthWeb.UIComponents do
   """
   attr :text, :string, required: true
   attr :class, :string, default: ""
-  attr :bg_color, :string, default: "bg-white", doc: "Tailwind background color class for text background"
+
+  attr :bg_color, :string,
+    default: "bg-white",
+    doc: "Tailwind background color class for text background"
+
   attr :text_color, :string, default: "text-gray-500", doc: "Tailwind text color class"
   attr :line_color, :string, default: "border-gray-200", doc: "Tailwind border color class"
 
@@ -216,11 +236,12 @@ defmodule PrimeYouthWeb.UIComponents do
 
   def social_button(assigns) do
     # Support both on_click and phx-click
-    assigns = if assigns.on_click && !assigns.rest[:"phx-click"] do
-      Map.put(assigns, :rest, Map.put(assigns.rest, :"phx-click", assigns.on_click))
-    else
-      assigns
-    end
+    assigns =
+      if assigns.on_click && !assigns.rest[:"phx-click"] do
+        Map.put(assigns, :rest, Map.put(assigns.rest, :"phx-click", assigns.on_click))
+      else
+        assigns
+      end
 
     ~H"""
     <button
@@ -381,7 +402,10 @@ defmodule PrimeYouthWeb.UIComponents do
 
   def feature_card(assigns) do
     ~H"""
-    <div class={["text-center group hover:transform hover:scale-105 transition-all duration-200", @class]}>
+    <div class={[
+      "text-center group hover:transform hover:scale-105 transition-all duration-200",
+      @class
+    ]}>
       <div class={[
         "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6",
         "group-hover:shadow-lg transition-shadow",
@@ -433,7 +457,8 @@ defmodule PrimeYouthWeb.UIComponents do
         <div class="absolute inset-0 flex items-center justify-center">
           <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
             <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}>
+              </path>
             </svg>
           </div>
         </div>
@@ -559,6 +584,7 @@ defmodule PrimeYouthWeb.UIComponents do
       />
   """
   attr :icon_path, :string, required: true, doc: "SVG path data for the icon"
+
   attr :variant, :string,
     default: "light",
     values: ~w(light glass solid),
