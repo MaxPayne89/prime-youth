@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ '**' ]
+
+env:
+  MIX_ENV: test
+  ELIXIR_VERSION: '1.18.4'
+  OTP_VERSION: '28.0.2'
+
+jobs:
+  test:
+    name: Test & Format Check
+    runs-on: ubuntu-latest
+
+    steps:
+      # actions/checkout@v4.3.0
+      - name: Checkout code
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955
+
+      # Start services using docker-compose
+      # hoverkraft-tech/compose-action@v2.4.0
+      - name: Start PostgreSQL with docker-compose
+        uses: hoverkraft-tech/compose-action@b716db5b717cb9b81e391fe638e5aceaa2299e43
+        with:
+          compose-file: "./docker-compose.yml"
+          down-flags: "--volumes"
+
+      # Wait for PostgreSQL to be ready
+      - name: Wait for PostgreSQL
+        run: |
+          timeout 30 bash -c 'until docker exec prime_youth_postgres pg_isready -U postgres; do sleep 1; done'
+        timeout-minutes: 1
+
+      # erlef/setup-beam@v1.20.4
+      - name: Set up Elixir
+        uses: erlef/setup-beam@e6d7c94229049569db56a7ad5a540c051a010af9
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+          version-type: strict
+
+      # actions/cache@v4.3.0
+      - name: Restore dependencies cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Check code formatting
+        run: mix format --check-formatted
+
+      - name: Compile with warnings as errors
+        run: mix compile --warnings-as-errors
+
+      - name: Create database
+        run: mix ecto.create
+
+      - name: Run migrations
+        run: mix ecto.migrate
+
+      - name: Run tests
+        run: mix test
