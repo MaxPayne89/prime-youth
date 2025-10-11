@@ -1,5 +1,6 @@
 defmodule PrimeYouthWeb.SignupLive do
   use PrimeYouthWeb, :live_view
+
   import PrimeYouthWeb.UIComponents
 
   @impl true
@@ -21,7 +22,7 @@ defmodule PrimeYouthWeb.SignupLive do
 
   @impl true
   def handle_event("toggle_auth", _params, socket) do
-    new_user = if socket.assigns.current_user, do: nil, else: sample_user()
+    new_user = if !socket.assigns.current_user, do: sample_user()
     {:noreply, assign(socket, current_user: new_user)}
   end
 
@@ -499,17 +500,17 @@ defmodule PrimeYouthWeb.SignupLive do
       end
 
     errors =
-      if password != password_confirmation do
-        ["Passwords do not match" | errors]
-      else
+      if password == password_confirmation do
         errors
+      else
+        ["Passwords do not match" | errors]
       end
 
     errors =
-      if not agree_terms do
-        ["You must agree to the Terms of Service and Privacy Policy" | errors]
-      else
+      if agree_terms do
         errors
+      else
+        ["You must agree to the Terms of Service and Privacy Policy" | errors]
       end
 
     Enum.reverse(errors)

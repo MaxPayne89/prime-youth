@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Test.Setup do
+  @shortdoc "Sets up Docker containers for testing"
+
   @moduledoc """
   Sets up Docker containers for testing.
 
@@ -12,8 +14,6 @@ defmodule Mix.Tasks.Test.Setup do
 
   """
   use Mix.Task
-
-  @shortdoc "Sets up Docker containers for testing"
 
   @container_name "prime_youth_postgres"
   @service_name "postgres"

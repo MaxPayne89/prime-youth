@@ -1,5 +1,6 @@
 defmodule PrimeYouthWeb.BookingLive do
   use PrimeYouthWeb, :live_view
+
   import PrimeYouthWeb.BookingComponents
 
   @impl true
@@ -27,7 +28,7 @@ defmodule PrimeYouthWeb.BookingLive do
 
   @impl true
   def handle_event("toggle_auth", _params, socket) do
-    new_user = if socket.assigns.current_user, do: nil, else: sample_user()
+    new_user = if !socket.assigns.current_user, do: sample_user()
     {:noreply, assign(socket, current_user: new_user)}
   end
 

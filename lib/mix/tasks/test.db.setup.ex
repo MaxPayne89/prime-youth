@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Test.Db.Setup do
+  @shortdoc "Creates the test database in PostgreSQL container"
+
   @moduledoc """
   Sets up the test database in the PostgreSQL container.
 
@@ -7,15 +9,14 @@ defmodule Mix.Tasks.Test.Db.Setup do
   """
   use Mix.Task
 
-  @shortdoc "Creates the test database in PostgreSQL container"
-
   @impl Mix.Task
   def run(_args) do
     Mix.shell().info("Setting up test database...")
 
-    with :ok <- ensure_test_db_exists() do
-      Mix.shell().info([:green, "✓ Test database ready!"])
-    else
+    case ensure_test_db_exists() do
+      :ok ->
+        Mix.shell().info([:green, "✓ Test database ready!"])
+
       {:error, reason} ->
         Mix.shell().error([:red, "✗ Failed to setup test database: #{reason}"])
         System.halt(1)

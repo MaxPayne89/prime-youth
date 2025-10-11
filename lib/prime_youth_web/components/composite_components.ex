@@ -6,6 +6,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
   atomic components from UIComponents to create cohesive interface elements.
   """
   use Phoenix.Component
+
   import PrimeYouthWeb.UIComponents
 
   @doc """

@@ -23,10 +23,11 @@ defmodule PrimeYouthWeb do
     quote do
       use Phoenix.Router, helpers: false
 
-      # Import common connection and controller functions to use in pipelines
-      import Plug.Conn
       import Phoenix.Controller
       import Phoenix.LiveView.Router
+
+      # Import common connection and controller functions to use in pipelines
+      import Plug.Conn
     end
   end
 
@@ -39,7 +40,6 @@ defmodule PrimeYouthWeb do
   def controller do
     quote do
       use Phoenix.Controller, formats: [:html, :json]
-
       use Gettext, backend: PrimeYouthWeb.Gettext
 
       import Plug.Conn
@@ -84,10 +84,10 @@ defmodule PrimeYouthWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
+      import PrimeYouthWeb.CompositeComponents
       # Core UI components
       import PrimeYouthWeb.CoreComponents
       import PrimeYouthWeb.UIComponents, except: [icon: 1]
-      import PrimeYouthWeb.CompositeComponents
 
       # Common modules used in templates
       alias Phoenix.LiveView.JS

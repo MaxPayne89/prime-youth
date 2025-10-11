@@ -1,4 +1,6 @@
 defmodule Mix.Tasks.Test.Teardown do
+  @shortdoc "Tears down test Docker containers"
+
   @moduledoc """
   Tears down Docker containers after testing.
 
@@ -13,17 +15,16 @@ defmodule Mix.Tasks.Test.Teardown do
   """
   use Mix.Task
 
-  @shortdoc "Tears down test Docker containers"
-
   @impl Mix.Task
   def run(args) do
     {opts, [], []} = OptionParser.parse(args, strict: [remove_volumes: :boolean])
 
     Mix.shell().info([:yellow, "Tearing down test environment..."])
 
-    with :ok <- stop_containers(opts) do
-      Mix.shell().info([:green, "✓ Test environment cleaned up!"])
-    else
+    case stop_containers(opts) do
+      :ok ->
+        Mix.shell().info([:green, "✓ Test environment cleaned up!"])
+
       {:error, reason} ->
         Mix.shell().error([:red, "✗ Failed to clean up test environment: #{reason}"])
         System.halt(1)

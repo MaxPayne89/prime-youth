@@ -6,6 +6,7 @@ defmodule PrimeYouthWeb.ProgramComponents do
   activities, and the program catalog.
   """
   use Phoenix.Component
+
   import PrimeYouthWeb.UIComponents
 
   @doc """

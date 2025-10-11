@@ -18,12 +18,12 @@ defmodule PrimeYouth.DataCase do
 
   using do
     quote do
-      alias PrimeYouth.Repo
-
       import Ecto
       import Ecto.Changeset
       import Ecto.Query
       import PrimeYouth.DataCase
+
+      alias PrimeYouth.Repo
     end
   end
 
