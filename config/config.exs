@@ -45,9 +45,29 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
   pubsub_server: PrimeYouth.PubSub,
   live_view: [signing_salt: "JU2osypv"]
 
+config :prime_youth, :scopes,
+  user: [
+    default: true,
+    module: PrimeYouth.Auth.Infrastructure.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: PrimeYouth.AuthFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
+
 config :prime_youth,
   ecto_repos: [PrimeYouth.Repo],
-  generators: [timestamp_type: :utc_datetime]
+  generators: [timestamp_type: :utc_datetime],
+  # Auth ports configuration - dependency injection (3 driven ports)
+  base_url: "http://localhost:4000"
+
+config :prime_youth,
+  repository: PrimeYouth.Auth.Adapters.Driven.EctoRepository,
+  password_hasher: PrimeYouth.Auth.Adapters.Driven.BcryptPasswordHasher,
+  notifier: PrimeYouth.Auth.Adapters.Driven.EmailNotifier
 
 # Configure tailwind (the version is required)
 config :tailwind,
