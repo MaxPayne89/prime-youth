@@ -27,7 +27,7 @@ defmodule PrimeYouthWeb.HomeLive do
 
   @impl true
   def handle_event("get_started", _params, socket) do
-    {:noreply, push_navigate(socket, to: ~p"/signup")}
+    {:noreply, push_navigate(socket, to: ~p"/users/register")}
   end
 
   @impl true

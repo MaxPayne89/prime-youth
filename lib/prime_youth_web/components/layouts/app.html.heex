@@ -143,8 +143,11 @@
             </div>
           <% else %>
             <!-- Unauthenticated -->
-            <.link navigate={~p"/login"} class="btn btn-ghost text-white">Login</.link>
-            <.link navigate={~p"/signup"} class="btn bg-white text-gray-900 hover:bg-gray-100">
+            <.link navigate={~p"/users/log-in"} class="btn btn-ghost text-white">Login</.link>
+            <.link
+              navigate={~p"/users/register"}
+              class="btn bg-white text-gray-900 hover:bg-gray-100"
+            >
               Sign Up
             </.link>
           <% end %>
@@ -273,10 +276,13 @@
             </li>
           <% else %>
             <li class="mt-4">
-              <.link navigate={~p"/login"} class="btn btn-ghost text-white">Login</.link>
+              <.link navigate={~p"/users/log-in"} class="btn btn-ghost text-white">Login</.link>
             </li>
             <li class="mt-2">
-              <.link navigate={~p"/signup"} class="btn bg-white text-gray-900 hover:bg-gray-100">
+              <.link
+                navigate={~p"/users/register"}
+                class="btn bg-white text-gray-900 hover:bg-gray-100"
+              >
                 Sign Up
               </.link>
             </li>
