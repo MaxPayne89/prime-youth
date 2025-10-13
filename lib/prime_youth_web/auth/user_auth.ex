@@ -56,7 +56,7 @@ defmodule PrimeYouthWeb.UserAuth do
     end
 
     conn
-    |> renew_session(nil)
+    |> renew_session(nil, %{})
     |> delete_resp_cookie(@remember_me_cookie)
     |> redirect(to: ~p"/")
   end
@@ -124,14 +124,24 @@ defmodule PrimeYouthWeb.UserAuth do
     remember_me = get_session(conn, :user_remember_me)
 
     conn
-    |> renew_session(user)
+    |> renew_session(user, params)
     |> put_token_in_session(token)
     |> maybe_write_remember_me_cookie(token, params, remember_me)
   end
 
+  # Force session renewal for security-sensitive operations like password changes.
+  # This ensures a completely fresh session even if the user is already logged in.
+  defp renew_session(conn, _user, %{"force_session_renewal" => true}) do
+    delete_csrf_token()
+
+    conn
+    |> configure_session(renew: true)
+    |> clear_session()
+  end
+
   # Do not renew session if the user is already logged in
   # to prevent CSRF errors or data being lost in tabs that are still open
-  defp renew_session(conn, user) when conn.assigns.current_scope.user.id == user.id do
+  defp renew_session(conn, user, _params) when conn.assigns.current_scope.user.id == user.id do
     conn
   end
 
@@ -141,7 +151,7 @@ defmodule PrimeYouthWeb.UserAuth do
   # you must explicitly fetch the session data before clearing
   # and then immediately set it after clearing, for example:
   #
-  #     defp renew_session(conn, _user) do
+  #     defp renew_session(conn, _user, _params) do
   #       delete_csrf_token()
   #       preferred_locale = get_session(conn, :preferred_locale)
   #
@@ -151,7 +161,7 @@ defmodule PrimeYouthWeb.UserAuth do
   #       |> put_session(:preferred_locale, preferred_locale)
   #     end
   #
-  defp renew_session(conn, _user) do
+  defp renew_session(conn, _user, _params) do
     delete_csrf_token()
 
     conn
@@ -159,9 +169,15 @@ defmodule PrimeYouthWeb.UserAuth do
     |> clear_session()
   end
 
+  # Handle nested params from controller (e.g., %{"user" => %{"remember_me" => "true"}})
+  defp maybe_write_remember_me_cookie(conn, token, %{"user" => %{"remember_me" => "true"}}, _),
+    do: write_remember_me_cookie(conn, token)
+
+  # Handle top-level params from direct calls (e.g., %{"remember_me" => "true"})
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}, _),
     do: write_remember_me_cookie(conn, token)
 
+  # Handle remember_me from previous session
   defp maybe_write_remember_me_cookie(conn, token, _params, true),
     do: write_remember_me_cookie(conn, token)
 

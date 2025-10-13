@@ -96,12 +96,12 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
 
   describe "update password form" do
     setup %{conn: conn} do
-      user = user_fixture()
+      user = user_fixture() |> set_password()
       %{conn: log_in_user(conn, user), user: user}
     end
 
     test "updates the user password", %{conn: conn, user: user} do
-      new_password = valid_user_password()
+      new_password = "new valid password"
 
       {:ok, lv, _html} = live(conn, ~p"/users/settings")
 
@@ -109,6 +109,7 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
         form(lv, "#password_form", %{
           "user" => %{
             "email" => user.email,
+            "current_password" => valid_user_password(),
             "password" => new_password,
             "password_confirmation" => new_password
           }

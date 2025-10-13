@@ -13,14 +13,14 @@ defmodule PrimeYouthWeb.UserSessionController do
   end
 
   # magic link login
-  defp create(conn, %{"user" => %{"token" => token} = user_params}, info) do
+  defp create(conn, %{"user" => %{"token" => token}} = params, info) do
     case LoginWithMagicLink.execute(token) do
       {:ok, {user, tokens_to_disconnect}} ->
         UserAuth.disconnect_sessions(tokens_to_disconnect)
 
         conn
         |> put_flash(:info, info)
-        |> UserAuth.log_in_user(user, user_params)
+        |> UserAuth.log_in_user(user, params)
 
       _ ->
         conn
@@ -30,14 +30,14 @@ defmodule PrimeYouthWeb.UserSessionController do
   end
 
   # email + password login
-  defp create(conn, %{"user" => user_params}, info) do
+  defp create(conn, %{"user" => user_params} = params, info) do
     %{"email" => email, "password" => password} = user_params
 
     case AuthenticateUser.execute(%{email: email, password: password}) do
       {:ok, user} ->
         conn
         |> put_flash(:info, info)
-        |> UserAuth.log_in_user(user, user_params)
+        |> UserAuth.log_in_user(user, params)
 
       _ ->
         # In order to prevent user enumeration attacks, don't disclose whether the email is registered.
@@ -59,7 +59,7 @@ defmodule PrimeYouthWeb.UserSessionController do
       {:ok, _updated_user} ->
         conn
         |> put_session(:user_return_to, ~p"/users/settings")
-        |> create(params, "Password updated successfully!")
+        |> create(Map.put(params, "force_session_renewal", true), "Password updated successfully!")
 
       {:error, _reason} ->
         conn
