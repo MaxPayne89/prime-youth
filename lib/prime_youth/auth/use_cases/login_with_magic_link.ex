@@ -23,15 +23,25 @@ defmodule PrimeYouth.Auth.UseCases.LoginWithMagicLink do
   end
 
   defp handle_confirmation(user, repo) do
+    now = DateTime.utc_now(:second)
+
     if User.confirmed?(user) do
-      # Already confirmed, just delete the magic link token
-      :ok = repo.delete_email_tokens_for_user(user, :magic_link)
-      {:ok, {user, []}}
+      # Already confirmed, just delete the magic link token and mark as authenticated
+      authenticated_user = User.authenticate(user, now)
+
+      with {:ok, saved_user} <- repo.update(authenticated_user),
+           :ok <- repo.delete_email_tokens_for_user(saved_user, :magic_link) do
+        {:ok, {saved_user, []}}
+      end
     else
-      # Confirm user and expire all session tokens
-      confirmed_user = User.confirm(user, DateTime.utc_now(:second))
+      # Confirm user, mark as authenticated, delete magic link token, and expire all session tokens
+      confirmed_user =
+        user
+        |> User.confirm(now)
+        |> User.authenticate(now)
 
       with {:ok, saved_user} <- repo.update(confirmed_user),
+           :ok <- repo.delete_email_tokens_for_user(saved_user, :magic_link),
            :ok <- repo.delete_all_session_tokens_for_user(saved_user) do
         {:ok, {saved_user, []}}
       end

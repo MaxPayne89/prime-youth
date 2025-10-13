@@ -152,6 +152,21 @@ defmodule PrimeYouth.Auth.Infrastructure.User do
   end
 
   @doc """
+  A user changeset for passwordless registration.
+
+  Validates email, first_name, and last_name without requiring a password.
+  Used for test fixtures and passwordless authentication flows.
+  """
+  def passwordless_registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:email, :first_name, :last_name])
+    |> validate_required([:first_name, :last_name])
+    |> validate_length(:first_name, min: 1, max: 100)
+    |> validate_length(:last_name, min: 1, max: 100)
+    |> validate_email(opts)
+  end
+
+  @doc """
   A user changeset for creating users with an already-hashed password.
 
   Used by the repository adapter when saving domain users that have been

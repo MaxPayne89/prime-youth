@@ -4,6 +4,7 @@ defmodule PrimeYouthWeb.UserAuth do
   import Phoenix.Controller
   import Plug.Conn
 
+  alias PrimeYouth.Auth.Adapters.Driven.EctoRepository
   alias PrimeYouth.Auth.Infrastructure.Scope
   alias PrimeYouth.Auth.Queries
   alias PrimeYouth.Auth.UseCases.{CreateSession, InvalidateSession}
@@ -108,7 +109,18 @@ defmodule PrimeYouthWeb.UserAuth do
   # function will clear the session to avoid fixation attacks. See the
   # renew_session function to customize this behaviour.
   defp create_or_extend_session(conn, user, params) do
-    {:ok, token} = CreateSession.execute(user)
+    # Convert schema user to domain user if needed
+    domain_user =
+      case user do
+        %PrimeYouth.Auth.Domain.User{} = u ->
+          u
+
+        %PrimeYouth.Auth.Infrastructure.User{} = schema_user ->
+          {:ok, u} = EctoRepository.find_by_id(schema_user.id)
+          u
+      end
+
+    {:ok, token} = CreateSession.execute(domain_user)
     remember_me = get_session(conn, :user_remember_me)
 
     conn

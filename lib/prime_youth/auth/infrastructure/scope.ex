@@ -16,6 +16,7 @@ defmodule PrimeYouth.Auth.Infrastructure.Scope do
   growing application requirements.
   """
 
+  alias PrimeYouth.Auth.Domain.User, as: DomainUser
   alias PrimeYouth.Auth.Infrastructure.User
 
   defstruct user: nil
@@ -23,8 +24,25 @@ defmodule PrimeYouth.Auth.Infrastructure.Scope do
   @doc """
   Creates a scope for the given user.
 
+  Accepts both domain users and schema users, converting domain users to schema users.
   Returns nil if no user is given.
   """
+  def for_user(%DomainUser{} = domain_user) do
+    # Convert domain user to schema user for scope, preserving virtual fields
+    schema_user = %User{
+      id: domain_user.id,
+      email: domain_user.email,
+      first_name: domain_user.first_name,
+      last_name: domain_user.last_name,
+      hashed_password: domain_user.hashed_password,
+      confirmed_at: domain_user.confirmed_at,
+      authenticated_at: domain_user.authenticated_at,
+      inserted_at: domain_user.inserted_at,
+      updated_at: domain_user.updated_at
+    }
+    %__MODULE__{user: schema_user}
+  end
+
   def for_user(%User{} = user) do
     %__MODULE__{user: user}
   end

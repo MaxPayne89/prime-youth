@@ -10,7 +10,13 @@ defmodule PrimeYouth.Auth.UseCases.AuthenticateUser do
     with {:ok, user} <- repo.find_by_email(credentials.email),
          true <- hasher.verify(credentials.password, user.hashed_password),
          true <- User.confirmed?(user) do
-      {:ok, user}
+      # Mark user as authenticated and update in repository
+      authenticated_user = User.authenticate(user, DateTime.utc_now(:second))
+
+      case repo.update(authenticated_user) do
+        {:ok, updated_user} -> {:ok, updated_user}
+        error -> error
+      end
     else
       {:error, :not_found} -> {:error, :invalid_credentials}
       false -> {:error, :invalid_credentials}

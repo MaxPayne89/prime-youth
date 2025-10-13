@@ -48,11 +48,25 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
 
   @impl true
   def update(%DomainUser{} = domain_user) do
-    schema = to_schema(domain_user)
-    changeset = Ecto.Changeset.change(schema)
+    # Fetch existing schema from database (needed for proper Ecto changeset tracking)
+    schema = Repo.get!(UserSchema, domain_user.id)
+
+    # Create changeset with all domain user fields
+    # Note: authenticated_at is virtual and won't be persisted to DB
+    changeset = Ecto.Changeset.change(schema, %{
+      email: domain_user.email,
+      first_name: domain_user.first_name,
+      last_name: domain_user.last_name,
+      hashed_password: domain_user.hashed_password,
+      confirmed_at: domain_user.confirmed_at,
+      authenticated_at: domain_user.authenticated_at
+    })
 
     case Repo.update(changeset) do
-      {:ok, updated_schema} -> {:ok, to_domain(updated_schema)}
+      {:ok, updated_schema} ->
+        # Preserve authenticated_at from input since it's virtual (not in DB)
+        domain = to_domain(updated_schema)
+        {:ok, %{domain | authenticated_at: domain_user.authenticated_at}}
       error -> error
     end
   end
@@ -66,6 +80,11 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
       {:ok, updated_schema} -> {:ok, to_domain(updated_schema)}
       error -> error
     end
+  end
+
+  def update_email(%UserSchema{} = schema_user, new_email) do
+    # Convert schema user to domain user and delegate
+    update_email(to_domain(schema_user), new_email)
   end
 
   @impl true
@@ -99,16 +118,17 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
 
   @impl true
   def find_by_session_token(token) do
-    query =
-      from u in UserSchema,
-        join: t in UserToken,
-        on: t.user_id == u.id,
-        where: t.token == ^token and t.context == "session",
-        select: {u, t.inserted_at}
+    {:ok, query} = UserToken.verify_session_token_query(token)
 
     case Repo.one(query) do
-      {user, token_inserted_at} -> {:ok, {to_domain(user), token_inserted_at}}
-      nil -> {:error, :not_found}
+      {user_schema, token_schema} ->
+        # Convert to domain and merge authenticated_at from token
+        domain_user = to_domain(user_schema)
+        domain_user_with_auth = %{domain_user | authenticated_at: token_schema.authenticated_at}
+        {:ok, {domain_user_with_auth, token_schema.inserted_at}}
+
+      nil ->
+        {:error, :not_found}
     end
   end
 
@@ -160,6 +180,18 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
             end
           end
 
+        :confirmation ->
+          with {:ok, query} <- UserToken.verify_confirmation_token_query(token) do
+            case Repo.one(query) do
+              nil ->
+                {:error, :invalid_token}
+
+              token_record ->
+                user = Repo.get!(UserSchema, token_record.user_id)
+                {:ok, to_domain(user)}
+            end
+          end
+
         _ ->
           with {:ok, query} <- UserToken.verify_change_email_token_query(token, context_string) do
             case Repo.one(query) do
@@ -168,7 +200,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
 
               token_record ->
                 user = Repo.get!(UserSchema, token_record.user_id)
-                {:ok, to_domain(user)}
+                # For email change tokens, return user with the new email from token
+                domain_user = to_domain(user)
+                {:ok, %{domain_user | email: token_record.sent_to}}
             end
           end
       end
