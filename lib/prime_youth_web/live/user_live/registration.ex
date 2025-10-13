@@ -125,7 +125,7 @@ defmodule PrimeYouthWeb.UserLive.Registration do
                     navigate={~p"/users/log-in"}
                     class="text-white font-medium hover:text-white/80 transition-colors ml-1"
                   >
-                    Sign in
+                    Log in
                   </.link>
                 </p>
               </div>
@@ -300,7 +300,7 @@ defmodule PrimeYouthWeb.UserLive.Registration do
                     navigate={~p"/users/log-in"}
                     class="text-prime-cyan-400 font-medium hover:text-prime-cyan-400/80 transition-colors ml-1"
                   >
-                    Sign in
+                    Log in
                   </.link>
                 </p>
               </div>

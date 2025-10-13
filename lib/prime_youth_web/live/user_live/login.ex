@@ -6,6 +6,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
   @impl true
   def render(assigns) do
     ~H"""
+    <Layouts.flash_group flash={@flash} />
     <div class="min-h-screen">
       <!-- Mobile Layout -->
       <div class="md:hidden min-h-screen bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400 flex items-center justify-center p-6">
@@ -20,9 +21,18 @@ defmodule PrimeYouthWeb.UserLive.Login do
             <h1 class="text-3xl font-bold text-white mb-2">Prime Youth</h1>
             <p class="text-white/80">Afterschool Adventures Await</p>
           </div>
-          
+
     <!-- Login Form -->
-          <div class="bg-white/25 backdrop-blur-lg border border-white/[0.18] rounded-2xl p-6">
+          <div id="mobile-login-container" class="bg-white/25 backdrop-blur-lg border border-white/[0.18] rounded-2xl p-6">
+            <%= if Map.has_key?(assigns, :current_scope) && !is_nil(@current_scope) do %>
+              <!-- Reauthentication Notice -->
+              <div class="mb-6 p-4 bg-white/20 border border-white/30 rounded-xl">
+                <p class="text-white text-sm font-medium">
+                  You need to reauthenticate to continue.
+                </p>
+              </div>
+            <% end %>
+
             <%= if @show_magic_link do %>
               <!-- Magic Link Form -->
               <.form
@@ -60,9 +70,10 @@ defmodule PrimeYouthWeb.UserLive.Login do
                 <button
                   type="button"
                   phx-click="toggle_form"
+                  data-test-id="mobile-toggle-password"
                   class="w-full text-white/80 text-sm underline hover:text-white transition-colors"
                 >
-                  Or sign in with password
+                  Or use password
                 </button>
               </.form>
             <% else %>
@@ -142,17 +153,20 @@ defmodule PrimeYouthWeb.UserLive.Login do
             <% end %>
             
     <!-- Sign Up Link -->
-            <div class="text-center mt-6">
-              <p class="text-white/80 text-sm">
-                Don't have an account?
-                <.link
-                  navigate={~p"/users/register"}
-                  class="text-white font-medium hover:text-white/80 transition-colors ml-1"
-                >
-                  Sign up
-                </.link>
-              </p>
-            </div>
+            <%= if !Map.has_key?(assigns, :current_scope) || is_nil(@current_scope) do %>
+              <div class="text-center mt-6">
+                <p class="text-white/80 text-sm">
+                  Don't have an account?
+                  <.link
+                    navigate={~p"/users/register"}
+                    class="text-white font-medium hover:text-white/80 transition-colors ml-1"
+                    data-test-id="mobile-signup-link"
+                  >
+                    Sign up
+                  </.link>
+                </p>
+              </div>
+            <% end %>
           </div>
         </div>
       </div>
@@ -214,11 +228,20 @@ defmodule PrimeYouthWeb.UserLive.Login do
         
     <!-- Right Side - Login Form -->
         <div class="bg-white flex items-center justify-center p-8 lg:p-12">
-          <div class="w-full max-w-md">
+          <div id="desktop-login-container" class="w-full max-w-md">
             <div class="text-center mb-8">
               <h2 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
               <p class="text-gray-600">Sign in to manage your children's activities</p>
             </div>
+
+            <%= if Map.has_key?(assigns, :current_scope) && !is_nil(@current_scope) do %>
+              <!-- Reauthentication Notice -->
+              <div class="mb-6 p-4 bg-prime-cyan-50 border border-prime-cyan-200 rounded-xl">
+                <p class="text-gray-900 text-sm font-medium">
+                  You need to reauthenticate to continue.
+                </p>
+              </div>
+            <% end %>
 
             <%= if @show_magic_link do %>
               <!-- Magic Link Form -->
@@ -257,6 +280,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
                 <button
                   type="button"
                   phx-click="toggle_form"
+                  data-test-id="desktop-toggle-password"
                   class="w-full text-prime-cyan-400 text-sm underline hover:text-prime-cyan-400/80 transition-colors"
                 >
                   Or sign in with password
@@ -276,7 +300,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
                 <!-- Email Field -->
                 <div class="space-y-2">
                   <label for="desktop-email" class="block text-sm font-medium text-gray-700">
-                    Email
+                    Email address
                   </label>
                   <div class="relative">
                     <input
@@ -295,7 +319,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
     <!-- Password Field -->
                 <div class="space-y-2">
                   <label for="desktop-password" class="block text-sm font-medium text-gray-700">
-                    Password
+                    Your password
                   </label>
                   <div class="relative">
                     <input
@@ -319,7 +343,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
                       value="true"
                       class="w-4 h-4 text-prime-cyan-400 bg-gray-100 border-gray-300 rounded focus:ring-prime-cyan-400 focus:ring-2"
                     />
-                    <span class="ml-2">Remember me</span>
+                    <span class="ml-2">Keep me logged in</span>
                   </label>
                   <button
                     type="button"
@@ -335,23 +359,26 @@ defmodule PrimeYouthWeb.UserLive.Login do
                   type="submit"
                   class="w-full bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white py-3 px-4 rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
                 >
-                  Sign In
+                  Continue
                 </button>
               </.form>
             <% end %>
             
     <!-- Sign Up Link -->
-            <div class="text-center mt-6">
-              <p class="text-gray-600 text-sm">
-                Don't have an account?
-                <.link
-                  navigate={~p"/users/register"}
-                  class="text-prime-cyan-400 font-medium hover:text-prime-cyan-400/80 transition-colors ml-1"
-                >
-                  Sign up
-                </.link>
-              </p>
-            </div>
+            <%= if !Map.has_key?(assigns, :current_scope) || is_nil(@current_scope) do %>
+              <div class="text-center mt-6">
+                <p class="text-gray-600 text-sm">
+                  Don't have an account?
+                  <.link
+                    navigate={~p"/users/register"}
+                    class="text-prime-cyan-400 font-medium hover:text-prime-cyan-400/80 transition-colors ml-1"
+                    data-test-id="desktop-signup-link"
+                  >
+                    Register
+                  </.link>
+                </p>
+              </div>
+            <% end %>
           </div>
         </div>
       </div>
@@ -361,10 +388,17 @@ defmodule PrimeYouthWeb.UserLive.Login do
 
   @impl true
   def mount(_params, _session, socket) do
-    email = Phoenix.Flash.get(socket.assigns.flash, :email)
+    email =
+      Phoenix.Flash.get(socket.assigns.flash, :email) ||
+        if Map.has_key?(socket.assigns, :current_scope) && socket.assigns.current_scope do
+          socket.assigns.current_scope.user.email
+        else
+          nil
+        end
+
     form = to_form(%{"email" => email}, as: "user")
 
-    {:ok, assign(socket, form: form, trigger_submit: false, show_magic_link: false)}
+    {:ok, assign(socket, form: form, trigger_submit: false, show_magic_link: true)}
   end
 
   @impl true

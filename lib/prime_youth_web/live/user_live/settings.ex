@@ -51,7 +51,7 @@ defmodule PrimeYouthWeb.UserLive.Settings do
               />
               <%= if f[:email].errors != [] do %>
                 <p class="text-red-200 text-sm mt-1">
-                  {Enum.map_join(f[:email].errors, ", ", fn {msg, _} -> msg end)}
+                  {Enum.map_join(f[:email].errors, ", ", &PrimeYouthWeb.CoreComponents.translate_error/1)}
                 </p>
               <% end %>
             </div>
@@ -104,7 +104,7 @@ defmodule PrimeYouthWeb.UserLive.Settings do
               />
               <%= if f[:current_password].errors != [] do %>
                 <p class="text-red-200 text-sm mt-1">
-                  {Enum.map_join(f[:current_password].errors, ", ", fn {msg, _} -> msg end)}
+                  {Enum.map_join(f[:current_password].errors, ", ", &PrimeYouthWeb.CoreComponents.translate_error/1)}
                 </p>
               <% end %>
             </div>
@@ -124,7 +124,7 @@ defmodule PrimeYouthWeb.UserLive.Settings do
               />
               <%= if f[:password].errors != [] do %>
                 <p class="text-red-200 text-sm mt-1">
-                  {Enum.map_join(f[:password].errors, ", ", fn {msg, _} -> msg end)}
+                  {Enum.map_join(f[:password].errors, ", ", &PrimeYouthWeb.CoreComponents.translate_error/1)}
                 </p>
               <% end %>
             </div>
@@ -144,7 +144,7 @@ defmodule PrimeYouthWeb.UserLive.Settings do
               />
               <%= if f[:password_confirmation].errors != [] do %>
                 <p class="text-red-200 text-sm mt-1">
-                  {Enum.map_join(f[:password_confirmation].errors, ", ", fn {msg, _} -> msg end)}
+                  {Enum.map_join(f[:password_confirmation].errors, ", ", &PrimeYouthWeb.CoreComponents.translate_error/1)}
                 </p>
               <% end %>
             </div>
@@ -183,7 +183,9 @@ defmodule PrimeYouthWeb.UserLive.Settings do
         {:ok, verified_user} ->
           if verified_user.id == user.id do
             case repo.update_email(user, verified_user.email) do
-              {:ok, _updated_user} ->
+              {:ok, updated_user} ->
+                # Delete the email change token after successful update
+                repo.delete_email_tokens_for_user(updated_user, :change_email)
                 put_flash(socket, :info, "Email changed successfully.")
 
               {:error, _} ->
@@ -202,7 +204,7 @@ defmodule PrimeYouthWeb.UserLive.Settings do
 
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
-    email_changeset = User.email_changeset(%User{}, %{email: user.email})
+    email_changeset = User.email_changeset(%User{email: user.email}, %{})
     password_changeset = User.password_changeset(%User{}, %{})
 
     socket =
@@ -218,9 +220,10 @@ defmodule PrimeYouthWeb.UserLive.Settings do
   @impl true
   def handle_event("validate_email", params, socket) do
     %{"user" => user_params} = params
+    user = socket.assigns.current_scope.user
 
     email_form =
-      %User{}
+      %User{email: user.email}
       |> User.email_changeset(user_params)
       |> Map.put(:action, :validate)
       |> to_form()
@@ -233,33 +236,42 @@ defmodule PrimeYouthWeb.UserLive.Settings do
     user = socket.assigns.current_scope.user
     true = Queries.sudo_mode?(user, -10)
 
-    # Use the RequestEmailChange use case to handle the entire flow
-    case RequestEmailChange.execute(%{user_id: user.id, new_email: new_email}) do
-      {:ok, %{new_email: validated_email}} ->
-        info = "A link to confirm your email change has been sent to #{validated_email}."
-        {:noreply, put_flash(socket, :info, info)}
+    # Validate the changeset first to catch "did not change" error
+    changeset =
+      %User{email: user.email}
+      |> User.email_changeset(%{email: new_email})
+      |> Map.put(:action, :validate)
 
-      {:error, :invalid_email} ->
-        changeset =
-          %User{}
-          |> User.email_changeset(%{email: new_email})
-          |> Ecto.Changeset.add_error(:email, "is invalid")
-          |> Map.put(:action, :validate)
+    case Ecto.Changeset.apply_action(changeset, :validate) do
+      {:ok, _} ->
+        # Changeset is valid, proceed with RequestEmailChange use case
+        case RequestEmailChange.execute(%{user_id: user.id, new_email: new_email}) do
+          {:ok, %{new_email: validated_email}} ->
+            info = "A link to confirm your email change has been sent to #{validated_email}."
+            {:noreply, put_flash(socket, :info, info)}
 
-        {:noreply, assign(socket, :email_form, to_form(changeset))}
+          {:error, :invalid_email} ->
+            changeset =
+              changeset
+              |> Ecto.Changeset.add_error(:email, "is invalid")
 
-      {:error, :email_taken} ->
-        changeset =
-          %User{}
-          |> User.email_changeset(%{email: new_email})
-          |> Ecto.Changeset.add_error(:email, "has already been taken")
-          |> Map.put(:action, :validate)
+            {:noreply, assign(socket, :email_form, to_form(changeset))}
 
-        {:noreply, assign(socket, :email_form, to_form(changeset))}
+          {:error, :email_taken} ->
+            changeset =
+              changeset
+              |> Ecto.Changeset.add_error(:email, "has already been taken")
 
-      {:error, _} ->
-        {:noreply,
-         put_flash(socket, :error, "Failed to send confirmation email. Please try again.")}
+            {:noreply, assign(socket, :email_form, to_form(changeset))}
+
+          {:error, _} ->
+            {:noreply,
+             put_flash(socket, :error, "Failed to send confirmation email. Please try again.")}
+        end
+
+      {:error, invalid_changeset} ->
+        # Changeset validation failed (e.g., "did not change")
+        {:noreply, assign(socket, :email_form, to_form(invalid_changeset))}
     end
   end
 

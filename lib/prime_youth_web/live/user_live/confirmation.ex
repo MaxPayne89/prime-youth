@@ -6,6 +6,7 @@ defmodule PrimeYouthWeb.UserLive.Confirmation do
   @impl true
   def render(assigns) do
     ~H"""
+    <Layouts.flash_group flash={@flash} />
     <div class="min-h-screen bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400 flex items-center justify-center p-6">
       <div class="w-full max-w-md">
         <!-- Logo Section -->
@@ -139,8 +140,8 @@ defmodule PrimeYouthWeb.UserLive.Confirmation do
       {:error, _} ->
         {:ok,
          socket
-         |> put_flash(:error, "Magic link is invalid or it has expired.")
-         |> push_navigate(to: ~p"/users/log-in")}
+         |> put_flash(:error, "The link is invalid or it has expired.")
+         |> redirect(to: ~p"/users/log-in")}
     end
   end
 
