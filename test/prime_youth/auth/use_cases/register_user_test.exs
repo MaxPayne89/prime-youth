@@ -1,8 +1,8 @@
 defmodule PrimeYouth.Auth.UseCases.RegisterUserTest do
   use PrimeYouth.DataCase, async: true
 
-  alias PrimeYouth.Auth.UseCases.RegisterUser
   alias PrimeYouth.Auth.Adapters.Driven.{EctoRepository, BcryptPasswordHasher, EmailNotifier}
+  alias PrimeYouth.Auth.UseCases.RegisterUser
 
   @valid_params %{
     email: "test@example.com",

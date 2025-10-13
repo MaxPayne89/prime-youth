@@ -21,9 +21,12 @@ defmodule PrimeYouthWeb.UserLive.Login do
             <h1 class="text-3xl font-bold text-white mb-2">Prime Youth</h1>
             <p class="text-white/80">Afterschool Adventures Await</p>
           </div>
-
+          
     <!-- Login Form -->
-          <div id="mobile-login-container" class="bg-white/25 backdrop-blur-lg border border-white/[0.18] rounded-2xl p-6">
+          <div
+            id="mobile-login-container"
+            class="bg-white/25 backdrop-blur-lg border border-white/[0.18] rounded-2xl p-6"
+          >
             <%= if Map.has_key?(assigns, :current_scope) && !is_nil(@current_scope) do %>
               <!-- Reauthentication Notice -->
               <div class="mb-6 p-4 bg-white/20 border border-white/30 rounded-xl">
@@ -392,8 +395,6 @@ defmodule PrimeYouthWeb.UserLive.Login do
       Phoenix.Flash.get(socket.assigns.flash, :email) ||
         if Map.has_key?(socket.assigns, :current_scope) && socket.assigns.current_scope do
           socket.assigns.current_scope.user.email
-        else
-          nil
         end
 
     form = to_form(%{"email" => email}, as: "user")

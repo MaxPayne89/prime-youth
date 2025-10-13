@@ -12,6 +12,7 @@ defmodule PrimeYouthWeb.FeatureCase do
   using do
     quote do
       use PrimeYouthWeb.ConnCase
+
       import PhoenixTest
 
       # Import helpers for feature testing

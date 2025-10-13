@@ -4,10 +4,10 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
   import Phoenix.LiveViewTest
   import PrimeYouth.AuthFixtures
 
+  alias PrimeYouth.Auth.Adapters.Driven.{EctoRepository, BcryptPasswordHasher}
   alias PrimeYouth.Auth.Infrastructure.UserNotifier
   alias PrimeYouth.Auth.Queries
   alias PrimeYouth.Auth.UseCases.AuthenticateUser
-  alias PrimeYouth.Auth.Adapters.Driven.{EctoRepository, BcryptPasswordHasher}
 
   describe "Settings page" do
     test "renders settings page", %{conn: conn} do
@@ -30,9 +30,11 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
 
     test "redirects if user is not in sudo mode", %{conn: conn} do
       user = user_fixture()
-      conn = log_in_user(conn, user,
-        token_authenticated_at: DateTime.add(DateTime.utc_now(:second), -11, :minute)
-      )
+
+      conn =
+        log_in_user(conn, user,
+          token_authenticated_at: DateTime.add(DateTime.utc_now(:second), -11, :minute)
+        )
 
       assert {:error, redirect} = live(conn, ~p"/users/settings")
       assert {:redirect, %{to: path, flash: flash}} = redirect

@@ -40,6 +40,7 @@ defmodule PrimeYouth.Auth.Infrastructure.Scope do
       inserted_at: domain_user.inserted_at,
       updated_at: domain_user.updated_at
     }
+
     %__MODULE__{user: schema_user}
   end
 

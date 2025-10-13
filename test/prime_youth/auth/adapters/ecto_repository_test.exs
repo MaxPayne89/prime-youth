@@ -101,7 +101,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepositoryTest do
       user = insert(:user)
       {:ok, domain_user} = EctoRepository.find_by_id(user.id)
 
-      assert {:ok, updated_user} = EctoRepository.update_email(domain_user, "newemail@example.com")
+      assert {:ok, updated_user} =
+               EctoRepository.update_email(domain_user, "newemail@example.com")
+
       assert updated_user.email == "newemail@example.com"
     end
   end
@@ -112,7 +114,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepositoryTest do
       {:ok, domain_user} = EctoRepository.find_by_id(user.id)
       new_hashed_password = "new_hashed_password"
 
-      assert {:ok, updated_user} = EctoRepository.update_password(domain_user, new_hashed_password)
+      assert {:ok, updated_user} =
+               EctoRepository.update_password(domain_user, new_hashed_password)
+
       assert updated_user.hashed_password == new_hashed_password
     end
   end

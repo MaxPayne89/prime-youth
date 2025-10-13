@@ -11,8 +11,8 @@ defmodule PrimeYouth.UseCaseCase do
 
   using do
     quote do
-      import PrimeYouth.UseCaseCase
       import Mox
+      import PrimeYouth.UseCaseCase
 
       # Make the code testable without requiring real adapters
       setup :verify_on_exit!

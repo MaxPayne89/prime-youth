@@ -1,9 +1,9 @@
 defmodule PrimeYouthWeb.UserLive.LoginTest do
   use PrimeYouthWeb.ConnCase, async: true
 
+  import Ecto.Query
   import Phoenix.LiveViewTest
   import PrimeYouth.AuthFixtures
-  import Ecto.Query
 
   describe "login page" do
     test "renders login page", %{conn: conn} do
@@ -40,7 +40,8 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
       |> render_submit()
 
       # Verify no token was created for non-existent user
-      assert PrimeYouth.Repo.get_by(PrimeYouth.Auth.Infrastructure.UserToken, context: "login") == nil
+      assert PrimeYouth.Repo.get_by(PrimeYouth.Auth.Infrastructure.UserToken, context: "login") ==
+               nil
     end
   end
 
@@ -72,7 +73,9 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
       lv |> element("#login_form_magic_mobile button[phx-click='toggle_form']") |> render_click()
 
       form =
-        form(lv, "#login_form_password_mobile", user: %{email: "test@email.com", password: "123456"})
+        form(lv, "#login_form_password_mobile",
+          user: %{email: "test@email.com", password: "123456"}
+        )
 
       render_submit(form, %{user: %{remember_me: true}})
 

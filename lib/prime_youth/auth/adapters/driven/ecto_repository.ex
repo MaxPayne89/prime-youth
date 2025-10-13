@@ -53,21 +53,24 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
 
     # Create changeset with all domain user fields
     # Note: authenticated_at is virtual and won't be persisted to DB
-    changeset = Ecto.Changeset.change(schema, %{
-      email: domain_user.email,
-      first_name: domain_user.first_name,
-      last_name: domain_user.last_name,
-      hashed_password: domain_user.hashed_password,
-      confirmed_at: domain_user.confirmed_at,
-      authenticated_at: domain_user.authenticated_at
-    })
+    changeset =
+      Ecto.Changeset.change(schema, %{
+        email: domain_user.email,
+        first_name: domain_user.first_name,
+        last_name: domain_user.last_name,
+        hashed_password: domain_user.hashed_password,
+        confirmed_at: domain_user.confirmed_at,
+        authenticated_at: domain_user.authenticated_at
+      })
 
     case Repo.update(changeset) do
       {:ok, updated_schema} ->
         # Preserve authenticated_at from input since it's virtual (not in DB)
         domain = to_domain(updated_schema)
         {:ok, %{domain | authenticated_at: domain_user.authenticated_at}}
-      error -> error
+
+      error ->
+        error
     end
   end
 

@@ -51,7 +51,11 @@ defmodule PrimeYouthWeb.UserLive.Settings do
               />
               <%= if f[:email].errors != [] do %>
                 <p class="text-red-200 text-sm mt-1">
-                  {Enum.map_join(f[:email].errors, ", ", &PrimeYouthWeb.CoreComponents.translate_error/1)}
+                  {Enum.map_join(
+                    f[:email].errors,
+                    ", ",
+                    &PrimeYouthWeb.CoreComponents.translate_error/1
+                  )}
                 </p>
               <% end %>
             </div>
@@ -104,7 +108,11 @@ defmodule PrimeYouthWeb.UserLive.Settings do
               />
               <%= if f[:current_password].errors != [] do %>
                 <p class="text-red-200 text-sm mt-1">
-                  {Enum.map_join(f[:current_password].errors, ", ", &PrimeYouthWeb.CoreComponents.translate_error/1)}
+                  {Enum.map_join(
+                    f[:current_password].errors,
+                    ", ",
+                    &PrimeYouthWeb.CoreComponents.translate_error/1
+                  )}
                 </p>
               <% end %>
             </div>
@@ -124,7 +132,11 @@ defmodule PrimeYouthWeb.UserLive.Settings do
               />
               <%= if f[:password].errors != [] do %>
                 <p class="text-red-200 text-sm mt-1">
-                  {Enum.map_join(f[:password].errors, ", ", &PrimeYouthWeb.CoreComponents.translate_error/1)}
+                  {Enum.map_join(
+                    f[:password].errors,
+                    ", ",
+                    &PrimeYouthWeb.CoreComponents.translate_error/1
+                  )}
                 </p>
               <% end %>
             </div>
@@ -144,7 +156,11 @@ defmodule PrimeYouthWeb.UserLive.Settings do
               />
               <%= if f[:password_confirmation].errors != [] do %>
                 <p class="text-red-200 text-sm mt-1">
-                  {Enum.map_join(f[:password_confirmation].errors, ", ", &PrimeYouthWeb.CoreComponents.translate_error/1)}
+                  {Enum.map_join(
+                    f[:password_confirmation].errors,
+                    ", ",
+                    &PrimeYouthWeb.CoreComponents.translate_error/1
+                  )}
                 </p>
               <% end %>
             </div>

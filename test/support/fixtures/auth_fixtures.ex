@@ -6,9 +6,9 @@ defmodule PrimeYouth.AuthFixtures do
 
   import Ecto.Query
 
-  alias PrimeYouth.Auth.UseCases.{RegisterUser, LoginWithMagicLink}
   alias PrimeYouth.Auth.Adapters.Driven.{EctoRepository, BcryptPasswordHasher, EmailNotifier}
   alias PrimeYouth.Auth.Infrastructure.{Scope, User, UserToken}
+  alias PrimeYouth.Auth.UseCases.{RegisterUser, LoginWithMagicLink}
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"
@@ -41,7 +41,8 @@ defmodule PrimeYouth.AuthFixtures do
     {:ok, token} = EctoRepository.generate_email_token(domain_user, :magic_link)
 
     # Login with magic link to confirm the user
-    {:ok, {confirmed_domain_user, _expired_tokens}} = LoginWithMagicLink.execute(token, EctoRepository)
+    {:ok, {confirmed_domain_user, _expired_tokens}} =
+      LoginWithMagicLink.execute(token, EctoRepository)
 
     # Convert back to schema for compatibility
     PrimeYouth.Repo.get!(User, confirmed_domain_user.id)
