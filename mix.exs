@@ -12,7 +12,16 @@ defmodule PrimeYouth.MixProject do
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: [Phoenix.CodeReloader],
+      # Test coverage configuration
+      test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.json": :test
+      ]
     ]
   end
 
@@ -51,7 +60,7 @@ defmodule PrimeYouth.MixProject do
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
-      {:phoenix_test, "~> 0.8.1", only: :test, runtime: false},
+      {:phoenix_test, "~> 0.8.2", only: :test, runtime: false},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
@@ -72,7 +81,12 @@ defmodule PrimeYouth.MixProject do
       {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"},
       {:tidewave, "~> 0.5", only: :dev},
-      {:quokka, "~> 2.11", only: [:dev, :test], runtime: false}
+      {:quokka, "~> 2.11", only: [:dev, :test], runtime: false},
+      # Testing infrastructure
+      {:excoveralls, "~> 0.18", only: :test},
+      {:ex_machina, "~> 2.8", only: :test},
+      {:stream_data, "~> 1.1", only: :test},
+      {:faker, "~> 0.18", only: :test}
     ]
   end
 
@@ -87,7 +101,13 @@ defmodule PrimeYouth.MixProject do
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["test.setup", "test.db.setup", "ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      test: [
+        "test.setup",
+        "test.db.setup",
+        "ecto.create --quiet",
+        "ecto.migrate --quiet",
+        "test"
+      ],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind prime_youth", "esbuild prime_youth"],
       "assets.deploy": [
