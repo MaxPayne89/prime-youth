@@ -50,6 +50,14 @@ defmodule PrimeYouth.Auth.Domain.User do
   end
 
   @doc """
+  Marks the user as authenticated by setting the authenticated_at timestamp.
+  This should be called whenever a user successfully authenticates (login, magic link, etc.)
+  """
+  def authenticate(%__MODULE__{} = user, authenticated_at) do
+    %{user | authenticated_at: authenticated_at}
+  end
+
+  @doc """
   Updates the user's email address with validation.
   """
   def update_email(%__MODULE__{} = user, new_email) do
