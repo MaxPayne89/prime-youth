@@ -59,7 +59,10 @@ defmodule PrimeYouthWeb.UserSessionController do
       {:ok, _updated_user} ->
         conn
         |> put_session(:user_return_to, ~p"/users/settings")
-        |> create(Map.put(params, "force_session_renewal", true), "Password updated successfully!")
+        |> create(
+          Map.put(params, "force_session_renewal", true),
+          "Password updated successfully!"
+        )
 
       {:error, _reason} ->
         conn
