@@ -17,11 +17,14 @@ defmodule PrimeYouthWeb.ConnCase do
 
   use ExUnit.CaseTemplate
 
+  alias PrimeYouth.Auth.Adapters.Driven.EctoRepository
+
   using do
     quote do
       use PrimeYouthWeb, :verified_routes
 
       import Phoenix.ConnTest
+      import Phoenix.LiveViewTest
       import Plug.Conn
       import PrimeYouthWeb.ConnCase
       # The default endpoint for testing
@@ -34,5 +37,88 @@ defmodule PrimeYouthWeb.ConnCase do
   setup tags do
     PrimeYouth.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
+  end
+
+  @doc """
+  Setup helper that registers and logs in users.
+
+      setup :register_and_log_in_user
+
+  It stores an updated connection and a registered user in the
+  test context.
+  """
+  def register_and_log_in_user(%{conn: conn} = context) do
+    user = PrimeYouth.AuthFixtures.user_fixture()
+    scope = PrimeYouth.Auth.Infrastructure.Scope.for_user(user)
+
+    opts =
+      context
+      |> Map.take([:token_authenticated_at])
+      |> Enum.to_list()
+
+    %{conn: log_in_user(conn, user, opts), user: user, scope: scope}
+  end
+
+  @doc """
+  Logs the given `user` into the `conn`.
+
+  It returns an updated `conn`.
+  """
+  def log_in_user(conn, user, opts \\ []) do
+    {:ok, domain_user} = EctoRepository.find_by_id(user.id)
+    {:ok, token} = EctoRepository.generate_session_token(domain_user)
+
+    maybe_set_token_authenticated_at(token, opts[:token_authenticated_at])
+
+    conn
+    |> Phoenix.ConnTest.init_test_session(%{})
+    |> Plug.Conn.put_session(:user_token, token)
+  end
+
+  defp maybe_set_token_authenticated_at(_token, nil), do: nil
+
+  defp maybe_set_token_authenticated_at(token, authenticated_at) do
+    PrimeYouth.AuthFixtures.override_token_authenticated_at(token, authenticated_at)
+  end
+
+  @doc """
+  Asserts that a LiveView has a flash message of the given kind.
+
+  ## Examples
+
+      assert_flash(lv, :info, "Success")
+      assert_flash(lv, :error, ~r/Invalid/)
+  """
+  def assert_flash(lv, kind, expected) do
+    flash = :sys.get_state(lv.pid).socket.assigns.flash
+
+    actual = Phoenix.Flash.get(flash, kind)
+
+    cond do
+      is_nil(actual) ->
+        flunk("Expected flash #{inspect(kind)} to be set, but it was nil. Flash: #{inspect(flash)}")
+
+      is_binary(expected) and actual == expected ->
+        true
+
+      is_struct(expected, Regex) and actual =~ expected ->
+        true
+
+      is_binary(expected) ->
+        flunk("""
+        Expected flash #{inspect(kind)} to equal:
+          #{inspect(expected)}
+        but got:
+          #{inspect(actual)}
+        """)
+
+      true ->
+        flunk("""
+        Expected flash #{inspect(kind)} to match:
+          #{inspect(expected)}
+        but got:
+          #{inspect(actual)}
+        """)
+    end
   end
 end
