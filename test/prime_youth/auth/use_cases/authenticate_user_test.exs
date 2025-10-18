@@ -3,8 +3,8 @@ defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUserTest do
 
   import PrimeYouth.Factory
 
-  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
   alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
   alias PrimeYouth.Auth.Application.UseCases.AuthenticateUser
 
   describe "execute/3" do

@@ -312,10 +312,12 @@ defmodule PrimeYouthWeb.UserLive.Settings do
 
     case Ecto.Changeset.apply_action(changeset, :validate) do
       {:ok, _} ->
-        {:noreply, assign(socket, trigger_submit: true, password_form: to_form(changeset, as: "user"))}
+        {:noreply,
+         assign(socket, trigger_submit: true, password_form: to_form(changeset, as: "user"))}
 
       {:error, changeset} ->
-        {:noreply, assign(socket, password_form: to_form(changeset, as: "user", action: :validate))}
+        {:noreply,
+         assign(socket, password_form: to_form(changeset, as: "user", action: :validate))}
     end
   end
 end

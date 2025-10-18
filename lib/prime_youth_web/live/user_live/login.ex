@@ -154,7 +154,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
                 </button>
               </.form>
             <% end %>
-
+            
     <!-- Sign Up Link -->
             <%= if is_nil(@current_scope.user) do %>
               <div class="text-center mt-6">
@@ -366,7 +366,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
                 </button>
               </.form>
             <% end %>
-
+            
     <!-- Sign Up Link -->
             <%= if is_nil(@current_scope.user) do %>
               <div class="text-center mt-6">
@@ -394,8 +394,8 @@ defmodule PrimeYouthWeb.UserLive.Login do
     email =
       Phoenix.Flash.get(socket.assigns.flash, :email) ||
         if Map.has_key?(socket.assigns, :current_scope) &&
-           socket.assigns.current_scope &&
-           socket.assigns.current_scope.user do
+             socket.assigns.current_scope &&
+             socket.assigns.current_scope.user do
           socket.assigns.current_scope.user.email
         end
 

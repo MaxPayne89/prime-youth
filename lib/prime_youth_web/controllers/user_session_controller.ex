@@ -1,7 +1,12 @@
 defmodule PrimeYouthWeb.UserSessionController do
   use PrimeYouthWeb, :controller
 
-  alias PrimeYouth.Auth.Application.UseCases.{AuthenticateUser, LoginWithMagicLink, UpdatePassword}
+  alias PrimeYouth.Auth.Application.UseCases.{
+    AuthenticateUser,
+    LoginWithMagicLink,
+    UpdatePassword
+  }
+
   alias PrimeYouthWeb.UserAuth
 
   def create(conn, %{"_action" => "confirmed"} = params) do

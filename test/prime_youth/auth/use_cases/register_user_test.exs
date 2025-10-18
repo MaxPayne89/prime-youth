@@ -1,9 +1,9 @@
 defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
   use PrimeYouth.DataCase, async: true
 
-  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
-  alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
   alias PrimeYouth.Auth.Adapters.Driven.Notifications.EmailNotifier
+  alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
   alias PrimeYouth.Auth.Application.UseCases.RegisterUser
 
   @valid_params %{
