@@ -5,9 +5,9 @@ defmodule PrimeYouthWeb.UserAuth do
   import Plug.Conn
 
   alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
+  alias PrimeYouth.Auth.Application.UseCases.{CreateSession, InvalidateSession}
   alias PrimeYouth.Auth.Infrastructure.Scope
   alias PrimeYouth.Auth.Queries
-  alias PrimeYouth.Auth.Application.UseCases.{CreateSession, InvalidateSession}
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.

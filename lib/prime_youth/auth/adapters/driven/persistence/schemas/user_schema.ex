@@ -124,7 +124,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema do
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
   def valid_password?(
-        %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema{hashed_password: hashed_password},
+        %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema{
+          hashed_password: hashed_password
+        },
         password
       )
       when is_binary(hashed_password) and byte_size(password) > 0 do

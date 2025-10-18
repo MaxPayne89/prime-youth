@@ -102,7 +102,8 @@ defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
 
       # Verify token was created
       token =
-        PrimeYouth.Repo.get_by(PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchemaToken,
+        PrimeYouth.Repo.get_by(
+          PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchemaToken,
           user_id: user.id,
           context: "confirm"
         )

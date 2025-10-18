@@ -9,9 +9,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
 
   import Ecto.Query
 
-  alias PrimeYouth.Auth.Domain.Models.User
   alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema
   alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, as: UserToken
+  alias PrimeYouth.Auth.Domain.Models.User
   alias PrimeYouth.Repo
 
   # ============================================================================
@@ -112,7 +112,12 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
   @impl true
   def generate_session_token(%User{} = domain_user) do
     schema_user = to_schema(domain_user)
-    {token, user_token} = PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema.build_session_token(schema_user)
+
+    {token, user_token} =
+      PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema.build_session_token(
+        schema_user
+      )
+
     Repo.insert!(user_token)
     {:ok, token}
   rescue
@@ -137,7 +142,12 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
 
   @impl true
   def delete_session_token(token) do
-    Repo.delete_all(from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, where: t.token == ^token and t.context == "session"))
+    Repo.delete_all(
+      from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema,
+        where: t.token == ^token and t.context == "session"
+      )
+    )
+
     :ok
   rescue
     e -> {:error, e}
@@ -146,7 +156,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
   @impl true
   def delete_all_session_tokens_for_user(%User{} = domain_user) do
     Repo.delete_all(
-      from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, where: t.user_id == ^domain_user.id and t.context == "session")
+      from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema,
+        where: t.user_id == ^domain_user.id and t.context == "session"
+      )
     )
 
     :ok
@@ -162,7 +174,13 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
   def generate_email_token(%User{} = domain_user, context) do
     schema_user = to_schema(domain_user)
     context_string = email_context_to_string(context)
-    {encoded_token, user_token} = PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema.build_email_token(schema_user, context_string)
+
+    {encoded_token, user_token} =
+      PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema.build_email_token(
+        schema_user,
+        context_string
+      )
+
     Repo.insert!(user_token)
     {:ok, encoded_token}
   rescue
@@ -222,7 +240,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
     context_string = email_context_to_string(context)
 
     Repo.delete_all(
-      from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, where: t.user_id == ^domain_user.id and t.context == ^context_string)
+      from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema,
+        where: t.user_id == ^domain_user.id and t.context == ^context_string
+      )
     )
 
     :ok
@@ -237,7 +257,13 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
   @impl true
   def generate_password_reset_token(%User{} = domain_user) do
     schema_user = to_schema(domain_user)
-    {encoded_token, user_token} = PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema.build_email_token(schema_user, "reset_password")
+
+    {encoded_token, user_token} =
+      PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema.build_email_token(
+        schema_user,
+        "reset_password"
+      )
+
     Repo.insert!(user_token)
     {:ok, encoded_token}
   rescue
@@ -265,7 +291,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
   @impl true
   def delete_password_reset_tokens_for_user(%User{} = domain_user) do
     Repo.delete_all(
-      from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, where: t.user_id == ^domain_user.id and t.context == "reset_password")
+      from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema,
+        where: t.user_id == ^domain_user.id and t.context == "reset_password"
+      )
     )
 
     :ok

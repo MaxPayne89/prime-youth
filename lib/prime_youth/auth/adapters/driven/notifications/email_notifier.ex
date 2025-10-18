@@ -6,8 +6,8 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Notifications.EmailNotifier do
 
   @behaviour PrimeYouth.Auth.Domain.Ports.ForSendingNotifications
 
-  alias PrimeYouth.Auth.Domain.Models.User
   alias PrimeYouth.Auth.Adapters.Driven.Notifications.UserNotifier
+  alias PrimeYouth.Auth.Domain.Models.User
 
   @impl true
   def send_confirmation_email(%User{} = user, token) do

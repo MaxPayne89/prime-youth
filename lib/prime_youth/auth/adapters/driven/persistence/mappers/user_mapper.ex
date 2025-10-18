@@ -4,8 +4,8 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Mappers.UserMapper do
   Handles bidirectional conversion for data persistence.
   """
 
-  alias PrimeYouth.Auth.Domain.Models.User
   alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema
+  alias PrimeYouth.Auth.Domain.Models.User
 
   @doc """
   Converts domain User to Ecto schema for database operations.

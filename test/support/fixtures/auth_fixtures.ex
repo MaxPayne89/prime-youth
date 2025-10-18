@@ -6,14 +6,14 @@ defmodule PrimeYouth.AuthFixtures do
 
   import Ecto.Query
 
-  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
-  alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
   alias PrimeYouth.Auth.Adapters.Driven.Notifications.EmailNotifier
-  alias PrimeYouth.Auth.Infrastructure.Scope
+  alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
   alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema, as: User
   alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, as: UserToken
-  alias PrimeYouth.Auth.Application.UseCases.RegisterUser
   alias PrimeYouth.Auth.Application.UseCases.LoginWithMagicLink
+  alias PrimeYouth.Auth.Application.UseCases.RegisterUser
+  alias PrimeYouth.Auth.Infrastructure.Scope
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"

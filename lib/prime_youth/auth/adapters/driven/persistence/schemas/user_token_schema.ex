@@ -47,7 +47,14 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema do
   def build_session_token(user) do
     token = :crypto.strong_rand_bytes(@rand_size)
     dt = user.authenticated_at || DateTime.utc_now(:second)
-    {token, %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema{token: token, context: "session", user_id: user.id, authenticated_at: dt}}
+
+    {token,
+     %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema{
+       token: token,
+       context: "session",
+       user_id: user.id,
+       authenticated_at: dt
+     }}
   end
 
   @doc """

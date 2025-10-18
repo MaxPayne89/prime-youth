@@ -46,8 +46,11 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Notifications.UserNotifier do
   """
   def deliver_login_instructions(user, url) do
     case user do
-      %PrimeYouth.Auth.Domain.Models.User{confirmed_at: nil} -> deliver_confirmation_instructions(user, url)
-      _ -> deliver_magic_link_instructions(user, url)
+      %PrimeYouth.Auth.Domain.Models.User{confirmed_at: nil} ->
+        deliver_confirmation_instructions(user, url)
+
+      _ ->
+        deliver_magic_link_instructions(user, url)
     end
   end
 
