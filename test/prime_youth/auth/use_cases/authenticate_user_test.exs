@@ -3,7 +3,8 @@ defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUserTest do
 
   import PrimeYouth.Factory
 
-  alias PrimeYouth.Auth.Adapters.Driven.{EctoRepository, BcryptPasswordHasher}
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
+  alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
   alias PrimeYouth.Auth.Application.UseCases.AuthenticateUser
 
   describe "execute/3" do
@@ -19,7 +20,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUserTest do
       assert {:ok, authenticated_user} =
                AuthenticateUser.execute(
                  credentials,
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher
                )
 
@@ -33,7 +34,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUserTest do
       assert {:error, :invalid_credentials} =
                AuthenticateUser.execute(
                  credentials,
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher
                )
     end
@@ -44,7 +45,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUserTest do
       assert {:error, :invalid_credentials} =
                AuthenticateUser.execute(
                  credentials,
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher
                )
     end
@@ -57,7 +58,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUserTest do
       assert {:error, :invalid_credentials} =
                AuthenticateUser.execute(
                  credentials,
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher
                )
     end
@@ -68,7 +69,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUserTest do
       assert {:ok, authenticated_user} =
                AuthenticateUser.execute(
                  credentials,
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher
                )
 

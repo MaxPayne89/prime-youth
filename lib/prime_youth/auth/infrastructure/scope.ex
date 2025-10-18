@@ -18,7 +18,7 @@ defmodule PrimeYouth.Auth.Infrastructure.Scope do
   def for_user(nil), do: %__MODULE__{user: nil}
   def for_user(%UserSchema{} = user), do: %__MODULE__{user: user}
 
-  def for_user(%PrimeYouth.Auth.Domain.Models.User{} = user) do
+  def for_user(%PrimeYouth.Auth.Domain.Models.User{} = _user) do
     # When we get a domain user, return nil scope since scope should contain schema user
     %__MODULE__{user: nil}
   end

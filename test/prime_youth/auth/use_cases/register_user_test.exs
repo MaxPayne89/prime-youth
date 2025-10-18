@@ -1,7 +1,9 @@
 defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
   use PrimeYouth.DataCase, async: true
 
-  alias PrimeYouth.Auth.Adapters.Driven.{EctoRepository, BcryptPasswordHasher, EmailNotifier}
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
+  alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
+  alias PrimeYouth.Auth.Adapters.Driven.Notifications.EmailNotifier
   alias PrimeYouth.Auth.Application.UseCases.RegisterUser
 
   @valid_params %{
@@ -16,7 +18,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
       assert {:ok, user} =
                RegisterUser.execute(
                  @valid_params,
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher,
                  EmailNotifier
                )
@@ -41,7 +43,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
       assert {:ok, user} =
                RegisterUser.execute(
                  @valid_params,
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher,
                  EmailNotifier
                )
@@ -55,7 +57,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
       assert {:ok, _user} =
                RegisterUser.execute(
                  @valid_params,
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher,
                  EmailNotifier
                )
@@ -64,7 +66,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
       assert {:error, :email_taken} =
                RegisterUser.execute(
                  @valid_params,
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher,
                  EmailNotifier
                )
@@ -95,7 +97,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
       assert {:ok, user} =
                RegisterUser.execute(
                  @valid_params,
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher,
                  EmailNotifier
                )
@@ -103,7 +105,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
       # Verify token was created
       token =
         PrimeYouth.Repo.get_by(
-          PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchemaToken,
+          PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema,
           user_id: user.id,
           context: "confirm"
         )

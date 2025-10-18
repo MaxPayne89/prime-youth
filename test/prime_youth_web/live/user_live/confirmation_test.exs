@@ -4,6 +4,7 @@ defmodule PrimeYouthWeb.UserLive.ConfirmationTest do
   import Phoenix.LiveViewTest
   import PrimeYouth.AuthFixtures
 
+  alias PrimeYouth.Auth.Adapters.Driven.Notifications.UserNotifier
   alias PrimeYouth.Auth.Queries
 
   setup do

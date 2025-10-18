@@ -4,7 +4,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
   import PrimeYouth.AuthFixtures
 
   alias Phoenix.LiveView
-  alias PrimeYouth.Auth.Adapters.Driven.EctoRepository
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
   alias PrimeYouth.Auth.Infrastructure.Scope
   alias PrimeYouth.Auth.Queries
   alias PrimeYouthWeb.UserAuth
@@ -110,8 +110,8 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
   describe "logout_user/1" do
     test "erases session and cookies", %{conn: conn, user: user} do
-      {:ok, domain_user} = EctoRepository.find_by_id(user.id)
-      {:ok, user_token} = EctoRepository.generate_session_token(domain_user)
+      {:ok, domain_user} = UserRepository.find_by_id(user.id)
+      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
 
       conn =
         conn
@@ -148,8 +148,8 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
   describe "fetch_current_scope_for_user/2" do
     test "authenticates user from session", %{conn: conn, user: user} do
-      {:ok, domain_user} = EctoRepository.find_by_id(user.id)
-      {:ok, user_token} = EctoRepository.generate_session_token(domain_user)
+      {:ok, domain_user} = UserRepository.find_by_id(user.id)
+      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
 
       # Get the user with authenticated_at from the session token
       {:ok, {user_with_auth, _inserted_at}} = Queries.get_user_by_session_token(user_token)
@@ -187,11 +187,11 @@ defmodule PrimeYouthWeb.UserAuthTest do
     end
 
     test "does not authenticate if data is missing", %{conn: conn, user: user} do
-      {:ok, domain_user} = EctoRepository.find_by_id(user.id)
-      {:ok, _user_token} = EctoRepository.generate_session_token(domain_user)
+      {:ok, domain_user} = UserRepository.find_by_id(user.id)
+      {:ok, _user_token} = UserRepository.generate_session_token(domain_user)
       conn = UserAuth.fetch_current_scope_for_user(conn, [])
       refute get_session(conn, :user_token)
-      refute conn.assigns.current_scope
+      assert conn.assigns.current_scope == %Scope{user: nil}
     end
 
     test "reissues a new token after a few days and refreshes cookie", %{conn: conn, user: user} do
@@ -227,8 +227,8 @@ defmodule PrimeYouthWeb.UserAuthTest do
     end
 
     test "assigns current_scope based on a valid user_token", %{conn: conn, user: user} do
-      {:ok, domain_user} = EctoRepository.find_by_id(user.id)
-      {:ok, user_token} = EctoRepository.generate_session_token(domain_user)
+      {:ok, domain_user} = UserRepository.find_by_id(user.id)
+      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       {:cont, updated_socket} =
@@ -244,7 +244,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       {:cont, updated_socket} =
         UserAuth.on_mount(:mount_current_scope, %{}, session, %LiveView.Socket{})
 
-      assert updated_socket.assigns.current_scope == nil
+      assert updated_socket.assigns.current_scope == %Scope{user: nil}
     end
 
     test "assigns nil to current_scope assign if there isn't a user_token", %{conn: conn} do
@@ -253,14 +253,14 @@ defmodule PrimeYouthWeb.UserAuthTest do
       {:cont, updated_socket} =
         UserAuth.on_mount(:mount_current_scope, %{}, session, %LiveView.Socket{})
 
-      assert updated_socket.assigns.current_scope == nil
+      assert updated_socket.assigns.current_scope == %Scope{user: nil}
     end
   end
 
   describe "on_mount :require_authenticated" do
     test "authenticates current_scope based on a valid user_token", %{conn: conn, user: user} do
-      {:ok, domain_user} = EctoRepository.find_by_id(user.id)
-      {:ok, user_token} = EctoRepository.generate_session_token(domain_user)
+      {:ok, domain_user} = UserRepository.find_by_id(user.id)
+      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       {:cont, updated_socket} =
@@ -279,7 +279,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       }
 
       {:halt, updated_socket} = UserAuth.on_mount(:require_authenticated, %{}, session, socket)
-      assert updated_socket.assigns.current_scope == nil
+      assert updated_socket.assigns.current_scope == %Scope{user: nil}
     end
 
     test "redirects to login page if there isn't a user_token", %{conn: conn} do
@@ -291,14 +291,14 @@ defmodule PrimeYouthWeb.UserAuthTest do
       }
 
       {:halt, updated_socket} = UserAuth.on_mount(:require_authenticated, %{}, session, socket)
-      assert updated_socket.assigns.current_scope == nil
+      assert updated_socket.assigns.current_scope == %Scope{user: nil}
     end
   end
 
   describe "on_mount :require_sudo_mode" do
     test "allows users that have authenticated in the last 10 minutes", %{conn: conn, user: user} do
-      {:ok, domain_user} = EctoRepository.find_by_id(user.id)
-      {:ok, user_token} = EctoRepository.generate_session_token(domain_user)
+      {:ok, domain_user} = UserRepository.find_by_id(user.id)
+      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{
@@ -311,8 +311,8 @@ defmodule PrimeYouthWeb.UserAuthTest do
     end
 
     test "redirects when authentication is too old", %{conn: conn, user: user} do
-      {:ok, domain_user} = EctoRepository.find_by_id(user.id)
-      {:ok, user_token} = EctoRepository.generate_session_token(domain_user)
+      {:ok, domain_user} = UserRepository.find_by_id(user.id)
+      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
 
       # Offset the token's authenticated_at to 11 minutes ago
       offset_user_token(user_token, -11, :minute)
