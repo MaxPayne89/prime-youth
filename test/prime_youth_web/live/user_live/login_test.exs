@@ -94,11 +94,11 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
 
       {:ok, _login_live, login_html} =
         lv
-        |> element(".text-white[href='/users/register']", "Sign up")
+        |> element("[data-test-id='mobile-signup-link']", "Sign up")
         |> render_click()
         |> follow_redirect(conn, ~p"/users/register")
 
-      assert login_html =~ "Register"
+      assert login_html =~ "Create Account"
     end
   end
 

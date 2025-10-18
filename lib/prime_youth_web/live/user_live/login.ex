@@ -1,7 +1,7 @@
 defmodule PrimeYouthWeb.UserLive.Login do
   use PrimeYouthWeb, :live_view
 
-  alias PrimeYouth.Auth.UseCases.SendMagicLink
+  alias PrimeYouth.Auth.Application.UseCases.SendMagicLink
 
   @impl true
   def render(assigns) do
@@ -27,7 +27,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
             id="mobile-login-container"
             class="bg-white/25 backdrop-blur-lg border border-white/[0.18] rounded-2xl p-6"
           >
-            <%= if Map.has_key?(assigns, :current_scope) && !is_nil(@current_scope) do %>
+            <%= if !is_nil(@current_scope.user) do %>
               <!-- Reauthentication Notice -->
               <div class="mb-6 p-4 bg-white/20 border border-white/30 rounded-xl">
                 <p class="text-white text-sm font-medium">
@@ -154,9 +154,9 @@ defmodule PrimeYouthWeb.UserLive.Login do
                 </button>
               </.form>
             <% end %>
-            
+
     <!-- Sign Up Link -->
-            <%= if !Map.has_key?(assigns, :current_scope) || is_nil(@current_scope) do %>
+            <%= if is_nil(@current_scope.user) do %>
               <div class="text-center mt-6">
                 <p class="text-white/80 text-sm">
                   Don't have an account?
@@ -237,7 +237,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
               <p class="text-gray-600">Sign in to manage your children's activities</p>
             </div>
 
-            <%= if Map.has_key?(assigns, :current_scope) && !is_nil(@current_scope) do %>
+            <%= if !is_nil(@current_scope.user) do %>
               <!-- Reauthentication Notice -->
               <div class="mb-6 p-4 bg-prime-cyan-50 border border-prime-cyan-200 rounded-xl">
                 <p class="text-gray-900 text-sm font-medium">
@@ -366,9 +366,9 @@ defmodule PrimeYouthWeb.UserLive.Login do
                 </button>
               </.form>
             <% end %>
-            
+
     <!-- Sign Up Link -->
-            <%= if !Map.has_key?(assigns, :current_scope) || is_nil(@current_scope) do %>
+            <%= if is_nil(@current_scope.user) do %>
               <div class="text-center mt-6">
                 <p class="text-gray-600 text-sm">
                   Don't have an account?
@@ -377,7 +377,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
                     class="text-prime-cyan-400 font-medium hover:text-prime-cyan-400/80 transition-colors ml-1"
                     data-test-id="desktop-signup-link"
                   >
-                    Register
+                    Sign up
                   </.link>
                 </p>
               </div>
@@ -393,7 +393,9 @@ defmodule PrimeYouthWeb.UserLive.Login do
   def mount(_params, _session, socket) do
     email =
       Phoenix.Flash.get(socket.assigns.flash, :email) ||
-        if Map.has_key?(socket.assigns, :current_scope) && socket.assigns.current_scope do
+        if Map.has_key?(socket.assigns, :current_scope) &&
+           socket.assigns.current_scope &&
+           socket.assigns.current_scope.user do
           socket.assigns.current_scope.user.email
         end
 

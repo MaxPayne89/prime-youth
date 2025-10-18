@@ -5,6 +5,8 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
   import PrimeYouth.AuthFixtures
 
   alias PrimeYouth.Auth.Adapters.Driven.Notifications.UserNotifier
+  alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
   alias PrimeYouth.Auth.Application.UseCases.AuthenticateUser
   alias PrimeYouth.Auth.Queries
 
@@ -12,7 +14,7 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
     test "renders settings page", %{conn: conn} do
       {:ok, _lv, html} =
         conn
-        |> log_in_user(user_fixture())
+        |> log_in_user(user_fixture(), token_authenticated_at: DateTime.utc_now(:second))
         |> live(~p"/users/settings")
 
       assert html =~ "Change Email"
@@ -45,7 +47,7 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
   describe "update email form" do
     setup %{conn: conn} do
       user = user_fixture()
-      %{conn: log_in_user(conn, user), user: user}
+      %{conn: log_in_user(conn, user, token_authenticated_at: DateTime.utc_now(:second)), user: user}
     end
 
     test "updates the user email", %{conn: conn, user: user} do
@@ -96,7 +98,7 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
   describe "update password form" do
     setup %{conn: conn} do
       user = user_fixture() |> set_password()
-      %{conn: log_in_user(conn, user), user: user}
+      %{conn: log_in_user(conn, user, token_authenticated_at: DateTime.utc_now(:second)), user: user}
     end
 
     test "updates the user password", %{conn: conn, user: user} do
@@ -128,7 +130,7 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
       assert {:ok, _authenticated_user} =
                AuthenticateUser.execute(
                  %{email: user.email, password: new_password},
-                 EctoRepository,
+                 UserRepository,
                  BcryptPasswordHasher
                )
     end
@@ -180,7 +182,7 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
           UserNotifier.deliver_update_email_instructions(%{user | email: email}, url)
         end)
 
-      %{conn: log_in_user(conn, user), token: token, email: email, user: user}
+      %{conn: log_in_user(conn, user, token_authenticated_at: DateTime.utc_now(:second)), token: token, email: email, user: user}
     end
 
     test "updates the user email once", %{conn: conn, user: user, token: token, email: email} do

@@ -85,6 +85,8 @@ defmodule PrimeYouthWeb.UserAuth do
 
       if token = conn.cookies[@remember_me_cookie] do
         {token, conn |> put_token_in_session(token) |> put_session(:user_remember_me, true)}
+      else
+        nil
       end
     end
   end
@@ -260,7 +262,8 @@ defmodule PrimeYouthWeb.UserAuth do
   def on_mount(:require_sudo_mode, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
-    if Queries.sudo_mode?(socket.assigns.current_scope.user, -10) do
+    if socket.assigns.current_scope && socket.assigns.current_scope.user &&
+         Queries.sudo_mode?(socket.assigns.current_scope.user, -10) do
       {:cont, socket}
     else
       socket =

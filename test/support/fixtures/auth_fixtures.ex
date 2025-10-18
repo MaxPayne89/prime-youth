@@ -94,12 +94,20 @@ defmodule PrimeYouth.AuthFixtures do
   end
 
   def override_token_authenticated_at(token, authenticated_at) when is_binary(token) do
-    PrimeYouth.Repo.update_all(
-      from(t in UserToken,
-        where: t.token == ^token
-      ),
-      set: [authenticated_at: authenticated_at]
-    )
+    # Session tokens are stored unhashed in the database
+    {count, _} =
+      PrimeYouth.Repo.update_all(
+        from(t in UserToken,
+          where: t.token == ^token and t.context == "session"
+        ),
+        set: [authenticated_at: authenticated_at]
+      )
+
+    if count == 0 do
+      raise "Failed to update token authenticated_at - token not found in database"
+    end
+
+    :ok
   end
 
   def generate_user_magic_link_token(user) do

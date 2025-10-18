@@ -34,7 +34,7 @@ defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
       params = %{@valid_params | email: "Test@EXAMPLE.COM"}
 
       assert {:ok, user} =
-               RegisterUser.execute(params, EctoRepository, BcryptPasswordHasher, EmailNotifier)
+               RegisterUser.execute(params, UserRepository, BcryptPasswordHasher, EmailNotifier)
 
       assert user.email == "test@example.com"
     end
@@ -76,21 +76,21 @@ defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
       params = %{@valid_params | email: "not-an-email"}
 
       assert {:error, :invalid_email_format} =
-               RegisterUser.execute(params, EctoRepository, BcryptPasswordHasher, EmailNotifier)
+               RegisterUser.execute(params, UserRepository, BcryptPasswordHasher, EmailNotifier)
     end
 
     test "returns error when first_name is missing" do
       params = Map.delete(@valid_params, :first_name)
 
       assert {:error, :first_name_required} =
-               RegisterUser.execute(params, EctoRepository, BcryptPasswordHasher, EmailNotifier)
+               RegisterUser.execute(params, UserRepository, BcryptPasswordHasher, EmailNotifier)
     end
 
     test "returns error when last_name is missing" do
       params = Map.delete(@valid_params, :last_name)
 
       assert {:error, :last_name_required} =
-               RegisterUser.execute(params, EctoRepository, BcryptPasswordHasher, EmailNotifier)
+               RegisterUser.execute(params, UserRepository, BcryptPasswordHasher, EmailNotifier)
     end
 
     test "generates confirmation token" do

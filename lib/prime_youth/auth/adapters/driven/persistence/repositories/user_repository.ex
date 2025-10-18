@@ -130,10 +130,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
 
     case Repo.one(query) do
       {user_schema, token_schema} ->
-        # Convert to domain and merge authenticated_at from token
-        domain_user = to_domain(user_schema)
-        domain_user_with_auth = %{domain_user | authenticated_at: token_schema.authenticated_at}
-        {:ok, {domain_user_with_auth, token_schema.inserted_at}}
+        # Merge authenticated_at from token into schema user (virtual field)
+        user_schema_with_auth = %{user_schema | authenticated_at: token_schema.authenticated_at}
+        {:ok, {user_schema_with_auth, token_schema.inserted_at}}
 
       nil ->
         {:error, :not_found}

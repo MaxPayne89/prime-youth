@@ -275,7 +275,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
       socket = %LiveView.Socket{
         endpoint: PrimeYouthWeb.Endpoint,
-        assigns: %{__changed__: %{}, flash: %{}}
+        assigns: %{__changed__: %{flash: %{}}, flash: %{}}
       }
 
       {:halt, updated_socket} = UserAuth.on_mount(:require_authenticated, %{}, session, socket)
@@ -287,7 +287,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
       socket = %LiveView.Socket{
         endpoint: PrimeYouthWeb.Endpoint,
-        assigns: %{__changed__: %{}, flash: %{}}
+        assigns: %{__changed__: %{flash: %{}}, flash: %{}}
       }
 
       {:halt, updated_socket} = UserAuth.on_mount(:require_authenticated, %{}, session, socket)
@@ -303,7 +303,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
       socket = %LiveView.Socket{
         endpoint: PrimeYouthWeb.Endpoint,
-        assigns: %{__changed__: %{}, flash: %{}}
+        assigns: %{__changed__: %{flash: %{}}, flash: %{}}
       }
 
       assert {:cont, _updated_socket} =
@@ -321,7 +321,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
       socket = %LiveView.Socket{
         endpoint: PrimeYouthWeb.Endpoint,
-        assigns: %{__changed__: %{}, flash: %{}}
+        assigns: %{__changed__: %{flash: %{}}, flash: %{}}
       }
 
       assert {:halt, _updated_socket} =
