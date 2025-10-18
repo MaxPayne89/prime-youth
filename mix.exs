@@ -101,13 +101,7 @@ defmodule PrimeYouth.MixProject do
       setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: [
-        "test.setup",
-        "test.db.setup",
-        "ecto.create --quiet",
-        "ecto.migrate --quiet",
-        "test"
-      ],
+      test: test_alias(),
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind prime_youth", "esbuild prime_youth"],
       "assets.deploy": [
@@ -119,5 +113,16 @@ defmodule PrimeYouth.MixProject do
       "test.watch": ["test.setup", "test.watch.continuous"],
       precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
     ]
+  end
+
+  # Test alias conditional on environment
+  # In CI, Docker is already managed by GitHub Actions, so we skip test.setup
+  # In local development, we use test.setup to manage Docker containers
+  defp test_alias do
+    if System.get_env("CI") do
+      ["ecto.create --quiet", "ecto.migrate --quiet", "test"]
+    else
+      ["test.setup", "test.db.setup", "ecto.create --quiet", "ecto.migrate --quiet", "test"]
+    end
   end
 end
