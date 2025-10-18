@@ -17,7 +17,7 @@ defmodule PrimeYouthWeb.ConnCase do
 
   use ExUnit.CaseTemplate
 
-  alias PrimeYouth.Auth.Adapters.Driven.EctoRepository
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
 
   using do
     quote do
@@ -65,8 +65,8 @@ defmodule PrimeYouthWeb.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_user(conn, user, opts \\ []) do
-    {:ok, domain_user} = EctoRepository.find_by_id(user.id)
-    {:ok, token} = EctoRepository.generate_session_token(domain_user)
+    {:ok, domain_user} = UserRepository.find_by_id(user.id)
+    {:ok, token} = UserRepository.generate_session_token(domain_user)
 
     maybe_set_token_authenticated_at(token, opts[:token_authenticated_at])
 

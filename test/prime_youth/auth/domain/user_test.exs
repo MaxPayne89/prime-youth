@@ -1,8 +1,8 @@
-defmodule PrimeYouth.Auth.Domain.UserTest do
+defmodule PrimeYouth.Auth.Domain.Models.UserTest do
   use ExUnit.Case, async: true
   use ExUnitProperties
 
-  alias PrimeYouth.Auth.Domain.User
+  alias PrimeYouth.Auth.Domain.Models.User
 
   describe "new/1" do
     test "creates a valid user with all required fields" do

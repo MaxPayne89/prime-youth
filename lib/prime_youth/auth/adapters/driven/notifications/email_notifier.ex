@@ -1,13 +1,13 @@
-defmodule PrimeYouth.Auth.Adapters.Driven.EmailNotifier do
+defmodule PrimeYouth.Auth.Adapters.Driven.Notifications.EmailNotifier do
   @moduledoc """
   Adapter implementing Notifier port using the Accounts.UserNotifier.
   Handles sending various email notifications to users.
   """
 
-  @behaviour PrimeYouth.Auth.Ports.Notifier
+  @behaviour PrimeYouth.Auth.Domain.Ports.ForSendingNotifications
 
-  alias PrimeYouth.Auth.Domain.User
-  alias PrimeYouth.Auth.Infrastructure.UserNotifier
+  alias PrimeYouth.Auth.Domain.Models.User
+  alias PrimeYouth.Auth.Adapters.Driven.Notifications.UserNotifier
 
   @impl true
   def send_confirmation_email(%User{} = user, token) do

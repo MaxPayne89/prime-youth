@@ -1,11 +1,11 @@
-defmodule PrimeYouth.Auth.Ports.Repository do
+defmodule PrimeYouth.Auth.Domain.Ports.ForStoringUsers do
   @moduledoc """
   Secondary port: the application needs this for all persistence operations.
   This consolidates user data, session tokens, email tokens, and password reset tokens.
   Infrastructure provides the actual implementation (typically Ecto-based).
   """
 
-  alias PrimeYouth.Auth.Domain.User
+  alias PrimeYouth.Auth.Domain.Models.User
 
   @type user_id :: integer()
   @type token :: binary()

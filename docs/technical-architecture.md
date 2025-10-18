@@ -5,6 +5,9 @@
 
 This document provides the technical implementation details for Prime Youth, including bounded contexts, ports & adapters architecture, and Elixir/Phoenix code examples. This builds upon the business domain stories defined in [domain-stories.md](./domain-stories.md).
 
+### 📚 Architecture Documentation
+For comprehensive DDD and Ports & Adapters patterns, code templates, and migration strategies, see [DDD_ARCHITECTURE.md](./DDD_ARCHITECTURE.md). That document serves as the reference guide for implementing new bounded contexts and code organization patterns.
+
 ## Bounded Contexts
 
 ### 1. **Program Catalog Context**

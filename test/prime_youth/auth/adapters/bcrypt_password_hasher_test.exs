@@ -1,7 +1,7 @@
-defmodule PrimeYouth.Auth.Adapters.Driven.BcryptPasswordHasherTest do
+defmodule PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasherTest do
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Auth.Adapters.Driven.BcryptPasswordHasher
+  alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
 
   describe "hash/1" do
     test "hashes a password" do

@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Auth.Adapters.Driven.BcryptPasswordHasher do
+defmodule PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher do
   @moduledoc """
   Adapter implementing PasswordHasher port using Bcrypt.
   Wraps the Bcrypt library for password hashing and verification.
   """
 
-  @behaviour PrimeYouth.Auth.Ports.PasswordHasher
+  @behaviour PrimeYouth.Auth.Domain.Ports.ForHashingPasswords
 
   @impl true
   def hash(password) when is_binary(password) do

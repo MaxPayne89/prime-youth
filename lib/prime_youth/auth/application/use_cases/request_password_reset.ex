@@ -1,6 +1,6 @@
-defmodule PrimeYouth.Auth.UseCases.SendMagicLink do
+defmodule PrimeYouth.Auth.Application.UseCases.RequestPasswordReset do
   @moduledoc """
-  Use case for sending magic link email for passwordless login.
+  Use case for initiating password reset flow by sending reset email.
   Depends on Repository and Notifier ports.
   """
 
@@ -8,8 +8,8 @@ defmodule PrimeYouth.Auth.UseCases.SendMagicLink do
     # Always return :ok to prevent user enumeration
     case repo.find_by_email(email) do
       {:ok, user} ->
-        with {:ok, token} <- repo.generate_email_token(user, :magic_link),
-             :ok <- notifier.send_magic_link_email(user, token) do
+        with {:ok, token} <- repo.generate_password_reset_token(user),
+             :ok <- notifier.send_password_reset_email(user, token) do
           :ok
         else
           _ -> :ok

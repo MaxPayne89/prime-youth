@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Auth.UseCases.AuthenticateUserTest do
+defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUserTest do
   use PrimeYouth.DataCase, async: true
 
   import PrimeYouth.Factory
 
   alias PrimeYouth.Auth.Adapters.Driven.{EctoRepository, BcryptPasswordHasher}
-  alias PrimeYouth.Auth.UseCases.AuthenticateUser
+  alias PrimeYouth.Auth.Application.UseCases.AuthenticateUser
 
   describe "execute/3" do
     setup do

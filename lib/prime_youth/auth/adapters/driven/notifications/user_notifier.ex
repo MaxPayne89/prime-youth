@@ -1,7 +1,7 @@
-defmodule PrimeYouth.Auth.Infrastructure.UserNotifier do
+defmodule PrimeYouth.Auth.Adapters.Driven.Notifications.UserNotifier do
   import Swoosh.Email
 
-  alias PrimeYouth.Auth.Infrastructure.{User, UserToken}
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema
   alias PrimeYouth.Mailer
   alias PrimeYouth.Repo
 
@@ -46,7 +46,7 @@ defmodule PrimeYouth.Auth.Infrastructure.UserNotifier do
   """
   def deliver_login_instructions(user, url) do
     case user do
-      %User{confirmed_at: nil} -> deliver_confirmation_instructions(user, url)
+      %PrimeYouth.Auth.Domain.Models.User{confirmed_at: nil} -> deliver_confirmation_instructions(user, url)
       _ -> deliver_magic_link_instructions(user, url)
     end
   end
@@ -128,7 +128,7 @@ defmodule PrimeYouth.Auth.Infrastructure.UserNotifier do
       # Test mode: generate token, insert it, and call url function with JUST the token
       # The url function will wrap the token with [TOKEN] markers for extraction
       # The email body will construct the full path around the wrapped token
-      {encoded_token, user_token} = UserToken.build_email_token(user, context)
+      {encoded_token, user_token} = UserTokenSchema.build_email_token(user, context)
       Repo.insert!(user_token)
       url.(encoded_token)
     else

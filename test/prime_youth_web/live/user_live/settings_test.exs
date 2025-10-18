@@ -4,10 +4,8 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
   import Phoenix.LiveViewTest
   import PrimeYouth.AuthFixtures
 
-  alias PrimeYouth.Auth.Adapters.Driven.{EctoRepository, BcryptPasswordHasher}
-  alias PrimeYouth.Auth.Infrastructure.UserNotifier
+  alias PrimeYouth.Auth.Application.UseCases.AuthenticateUser
   alias PrimeYouth.Auth.Queries
-  alias PrimeYouth.Auth.UseCases.AuthenticateUser
 
   describe "Settings page" do
     test "renders settings page", %{conn: conn} do

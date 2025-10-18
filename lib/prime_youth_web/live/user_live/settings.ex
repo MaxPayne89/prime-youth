@@ -1,9 +1,9 @@
 defmodule PrimeYouthWeb.UserLive.Settings do
   use PrimeYouthWeb, :live_view
 
-  alias PrimeYouth.Auth.Infrastructure.User
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema, as: User
   alias PrimeYouth.Auth.Queries
-  alias PrimeYouth.Auth.UseCases.RequestEmailChange
+  alias PrimeYouth.Auth.Application.UseCases.RequestEmailChange
 
   on_mount {PrimeYouthWeb.UserAuth, :require_sudo_mode}
 

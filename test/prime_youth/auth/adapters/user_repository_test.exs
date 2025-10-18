@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepositoryTest do
+defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositoryTest do
   use PrimeYouth.DataCase, async: true
 
   import PrimeYouth.Factory
 
-  alias PrimeYouth.Auth.Adapters.Driven.EctoRepository
-  alias PrimeYouth.Auth.Domain.User
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
+  alias PrimeYouth.Auth.Domain.Models.User
 
   describe "save/1" do
     test "saves a new user to the database" do

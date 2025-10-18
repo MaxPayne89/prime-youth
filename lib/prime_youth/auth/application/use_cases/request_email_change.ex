@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Auth.UseCases.RequestEmailChange do
+defmodule PrimeYouth.Auth.Application.UseCases.RequestEmailChange do
   @moduledoc """
   Use case for requesting an email change with token-based confirmation.
 
@@ -13,7 +13,7 @@ defmodule PrimeYouth.Auth.UseCases.RequestEmailChange do
   Depends on Repository and Notifier ports.
   """
 
-  alias PrimeYouth.Auth.Domain.User
+  alias PrimeYouth.Auth.Domain.Models.User
 
   @type params :: %{
           user_id: integer(),

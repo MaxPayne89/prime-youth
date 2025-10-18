@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Auth.UseCases.UpdatePassword do
+defmodule PrimeYouth.Auth.Application.UseCases.UpdatePassword do
   @moduledoc """
   Use case for changing user password.
   Depends on Repository, PasswordHasher, and Notifier ports.

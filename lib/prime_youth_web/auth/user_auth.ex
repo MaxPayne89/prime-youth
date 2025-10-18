@@ -4,10 +4,10 @@ defmodule PrimeYouthWeb.UserAuth do
   import Phoenix.Controller
   import Plug.Conn
 
-  alias PrimeYouth.Auth.Adapters.Driven.EctoRepository
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
   alias PrimeYouth.Auth.Infrastructure.Scope
   alias PrimeYouth.Auth.Queries
-  alias PrimeYouth.Auth.UseCases.{CreateSession, InvalidateSession}
+  alias PrimeYouth.Auth.Application.UseCases.{CreateSession, InvalidateSession}
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.
@@ -112,11 +112,11 @@ defmodule PrimeYouthWeb.UserAuth do
     # Convert schema user to domain user if needed
     domain_user =
       case user do
-        %PrimeYouth.Auth.Domain.User{} = u ->
+        %PrimeYouth.Auth.Domain.Models.User{} = u ->
           u
 
-        %PrimeYouth.Auth.Infrastructure.User{} = schema_user ->
-          {:ok, u} = EctoRepository.find_by_id(schema_user.id)
+        %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema{} = schema_user ->
+          {:ok, u} = UserRepository.find_by_id(schema_user.id)
           u
       end
 

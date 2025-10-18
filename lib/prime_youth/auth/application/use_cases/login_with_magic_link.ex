@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Auth.UseCases.LoginWithMagicLink do
+defmodule PrimeYouth.Auth.Application.UseCases.LoginWithMagicLink do
   @moduledoc """
   Use case for authentication via magic link token.
   Depends on Repository port.
   """
 
-  alias PrimeYouth.Auth.Domain.User
+  alias PrimeYouth.Auth.Domain.Models.User
 
   def execute(token, repo \\ default_repo()) do
     with {:ok, user} <- repo.verify_email_token(token, :magic_link),

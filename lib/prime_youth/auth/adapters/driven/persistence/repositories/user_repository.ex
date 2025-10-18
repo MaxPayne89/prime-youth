@@ -1,17 +1,17 @@
-defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
+defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository do
   @moduledoc """
   Adapter implementing Repository port using Ecto.
   Consolidates all persistence operations: users, session tokens, email tokens, password reset tokens.
   Translates between domain User entities and Ecto schemas.
   """
 
-  @behaviour PrimeYouth.Auth.Ports.Repository
+  @behaviour PrimeYouth.Auth.Domain.Ports.ForStoringUsers
 
   import Ecto.Query
 
-  alias PrimeYouth.Auth.Domain.User, as: DomainUser
-  alias PrimeYouth.Auth.Infrastructure.User, as: UserSchema
-  alias PrimeYouth.Auth.Infrastructure.UserToken
+  alias PrimeYouth.Auth.Domain.Models.User
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, as: UserToken
   alias PrimeYouth.Repo
 
   # ============================================================================
@@ -35,7 +35,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
   end
 
   @impl true
-  def save(%DomainUser{} = domain_user) do
+  def save(%User{} = domain_user) do
     attrs = to_schema_attrs(domain_user)
 
     changeset = UserSchema.create_changeset(%UserSchema{}, attrs)
@@ -47,7 +47,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
   end
 
   @impl true
-  def update(%DomainUser{} = domain_user) do
+  def update(%User{} = domain_user) do
     # Fetch existing schema from database (needed for proper Ecto changeset tracking)
     schema = Repo.get!(UserSchema, domain_user.id)
 
@@ -75,7 +75,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
   end
 
   @impl true
-  def update_email(%DomainUser{} = domain_user, new_email) do
+  def update_email(%User{} = domain_user, new_email) do
     schema = Repo.get!(UserSchema, domain_user.id)
     changeset = UserSchema.email_changeset(schema, %{email: new_email})
 
@@ -91,7 +91,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
   end
 
   @impl true
-  def update_password(%DomainUser{} = domain_user, new_hashed_password) do
+  def update_password(%User{} = domain_user, new_hashed_password) do
     schema = Repo.get!(UserSchema, domain_user.id)
 
     changeset =
@@ -110,9 +110,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
   # ============================================================================
 
   @impl true
-  def generate_session_token(%DomainUser{} = domain_user) do
+  def generate_session_token(%User{} = domain_user) do
     schema_user = to_schema(domain_user)
-    {token, user_token} = UserToken.build_session_token(schema_user)
+    {token, user_token} = PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema.build_session_token(schema_user)
     Repo.insert!(user_token)
     {:ok, token}
   rescue
@@ -137,16 +137,16 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
 
   @impl true
   def delete_session_token(token) do
-    Repo.delete_all(from(t in UserToken, where: t.token == ^token and t.context == "session"))
+    Repo.delete_all(from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, where: t.token == ^token and t.context == "session"))
     :ok
   rescue
     e -> {:error, e}
   end
 
   @impl true
-  def delete_all_session_tokens_for_user(%DomainUser{} = domain_user) do
+  def delete_all_session_tokens_for_user(%User{} = domain_user) do
     Repo.delete_all(
-      from(t in UserToken, where: t.user_id == ^domain_user.id and t.context == "session")
+      from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, where: t.user_id == ^domain_user.id and t.context == "session")
     )
 
     :ok
@@ -159,10 +159,10 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
   # ============================================================================
 
   @impl true
-  def generate_email_token(%DomainUser{} = domain_user, context) do
+  def generate_email_token(%User{} = domain_user, context) do
     schema_user = to_schema(domain_user)
     context_string = email_context_to_string(context)
-    {encoded_token, user_token} = UserToken.build_email_token(schema_user, context_string)
+    {encoded_token, user_token} = PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema.build_email_token(schema_user, context_string)
     Repo.insert!(user_token)
     {:ok, encoded_token}
   rescue
@@ -218,11 +218,11 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
   end
 
   @impl true
-  def delete_email_tokens_for_user(%DomainUser{} = domain_user, context) do
+  def delete_email_tokens_for_user(%User{} = domain_user, context) do
     context_string = email_context_to_string(context)
 
     Repo.delete_all(
-      from(t in UserToken, where: t.user_id == ^domain_user.id and t.context == ^context_string)
+      from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, where: t.user_id == ^domain_user.id and t.context == ^context_string)
     )
 
     :ok
@@ -235,9 +235,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
   # ============================================================================
 
   @impl true
-  def generate_password_reset_token(%DomainUser{} = domain_user) do
+  def generate_password_reset_token(%User{} = domain_user) do
     schema_user = to_schema(domain_user)
-    {encoded_token, user_token} = UserToken.build_email_token(schema_user, "reset_password")
+    {encoded_token, user_token} = PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema.build_email_token(schema_user, "reset_password")
     Repo.insert!(user_token)
     {:ok, encoded_token}
   rescue
@@ -263,9 +263,9 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
   end
 
   @impl true
-  def delete_password_reset_tokens_for_user(%DomainUser{} = domain_user) do
+  def delete_password_reset_tokens_for_user(%User{} = domain_user) do
     Repo.delete_all(
-      from(t in UserToken, where: t.user_id == ^domain_user.id and t.context == "reset_password")
+      from(t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, where: t.user_id == ^domain_user.id and t.context == "reset_password")
     )
 
     :ok
@@ -278,7 +278,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
   # ============================================================================
 
   defp to_domain(%UserSchema{} = schema) do
-    %DomainUser{
+    %User{
       id: schema.id,
       email: schema.email,
       first_name: schema.first_name,
@@ -291,7 +291,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
     }
   end
 
-  defp to_schema(%DomainUser{} = domain_user) do
+  defp to_schema(%User{} = domain_user) do
     %UserSchema{
       id: domain_user.id,
       email: domain_user.email,
@@ -305,7 +305,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.EctoRepository do
     }
   end
 
-  defp to_schema_attrs(%DomainUser{} = domain), do: Map.from_struct(domain)
+  defp to_schema_attrs(%User{} = domain), do: Map.from_struct(domain)
 
   defp email_context_to_string(:confirmation), do: "confirm"
   defp email_context_to_string(:magic_link), do: "login"

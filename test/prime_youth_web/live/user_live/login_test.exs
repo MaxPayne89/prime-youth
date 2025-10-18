@@ -26,7 +26,7 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
 
       # Verify token was created
       assert PrimeYouth.Repo.exists?(
-               from t in PrimeYouth.Auth.Infrastructure.UserToken,
+               from t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchemaToken,
                  where: t.user_id == ^user.id and t.context == "login"
              )
     end
@@ -40,7 +40,7 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
       |> render_submit()
 
       # Verify no token was created for non-existent user
-      assert PrimeYouth.Repo.get_by(PrimeYouth.Auth.Infrastructure.UserToken, context: "login") ==
+      assert PrimeYouth.Repo.get_by(PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchemaToken, context: "login") ==
                nil
     end
   end

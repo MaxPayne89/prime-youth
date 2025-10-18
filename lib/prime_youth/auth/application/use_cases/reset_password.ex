@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Auth.UseCases.ResetPassword do
+defmodule PrimeYouth.Auth.Application.UseCases.ResetPassword do
   @moduledoc """
   Use case for completing password reset with token and new password.
   Depends on Repository and PasswordHasher ports.

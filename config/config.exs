@@ -65,9 +65,9 @@ config :prime_youth,
   base_url: "http://localhost:4000"
 
 config :prime_youth,
-  repository: PrimeYouth.Auth.Adapters.Driven.EctoRepository,
-  password_hasher: PrimeYouth.Auth.Adapters.Driven.BcryptPasswordHasher,
-  notifier: PrimeYouth.Auth.Adapters.Driven.EmailNotifier
+  repository: PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository,
+  password_hasher: PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher,
+  notifier: PrimeYouth.Auth.Adapters.Driven.Notifications.EmailNotifier
 
 # Configure tailwind (the version is required)
 config :tailwind,

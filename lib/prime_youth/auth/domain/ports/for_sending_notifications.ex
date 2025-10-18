@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Auth.Ports.Notifier do
+defmodule PrimeYouth.Auth.Domain.Ports.ForSendingNotifications do
   @moduledoc """
   Secondary port: the application needs this to send notifications to users.
   Infrastructure provides the actual implementation (typically email-based).
   """
 
-  alias PrimeYouth.Auth.Domain.User
+  alias PrimeYouth.Auth.Domain.Models.User
 
   @type token :: String.t()
 

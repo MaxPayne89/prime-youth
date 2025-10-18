@@ -6,9 +6,14 @@ defmodule PrimeYouth.AuthFixtures do
 
   import Ecto.Query
 
-  alias PrimeYouth.Auth.Adapters.Driven.{EctoRepository, BcryptPasswordHasher, EmailNotifier}
-  alias PrimeYouth.Auth.Infrastructure.{Scope, User, UserToken}
-  alias PrimeYouth.Auth.UseCases.{RegisterUser, LoginWithMagicLink}
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
+  alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
+  alias PrimeYouth.Auth.Adapters.Driven.Notifications.EmailNotifier
+  alias PrimeYouth.Auth.Infrastructure.Scope
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema, as: User
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema, as: UserToken
+  alias PrimeYouth.Auth.Application.UseCases.RegisterUser
+  alias PrimeYouth.Auth.Application.UseCases.LoginWithMagicLink
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"
@@ -37,12 +42,12 @@ defmodule PrimeYouth.AuthFixtures do
     user = unconfirmed_user_fixture(attrs)
 
     # Generate magic link token directly for testing (no email sending needed)
-    {:ok, domain_user} = EctoRepository.find_by_id(user.id)
-    {:ok, token} = EctoRepository.generate_email_token(domain_user, :magic_link)
+    {:ok, domain_user} = UserRepository.find_by_id(user.id)
+    {:ok, token} = UserRepository.generate_email_token(domain_user, :magic_link)
 
     # Login with magic link to confirm the user
     {:ok, {confirmed_domain_user, _expired_tokens}} =
-      LoginWithMagicLink.execute(token, EctoRepository)
+      LoginWithMagicLink.execute(token, UserRepository)
 
     # Convert back to schema for compatibility
     PrimeYouth.Repo.get!(User, confirmed_domain_user.id)
@@ -74,9 +79,9 @@ defmodule PrimeYouth.AuthFixtures do
   end
 
   def set_password(user) do
-    {:ok, domain_user} = EctoRepository.find_by_id(user.id)
+    {:ok, domain_user} = UserRepository.find_by_id(user.id)
     {:ok, hashed_password} = BcryptPasswordHasher.hash(valid_user_password())
-    {:ok, updated_domain_user} = EctoRepository.update_password(domain_user, hashed_password)
+    {:ok, updated_domain_user} = UserRepository.update_password(domain_user, hashed_password)
 
     # Convert back to schema for compatibility
     PrimeYouth.Repo.get!(User, updated_domain_user.id)

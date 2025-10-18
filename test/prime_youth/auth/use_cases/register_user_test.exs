@@ -1,8 +1,8 @@
-defmodule PrimeYouth.Auth.UseCases.RegisterUserTest do
+defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
   use PrimeYouth.DataCase, async: true
 
   alias PrimeYouth.Auth.Adapters.Driven.{EctoRepository, BcryptPasswordHasher, EmailNotifier}
-  alias PrimeYouth.Auth.UseCases.RegisterUser
+  alias PrimeYouth.Auth.Application.UseCases.RegisterUser
 
   @valid_params %{
     email: "test@example.com",
@@ -102,7 +102,7 @@ defmodule PrimeYouth.Auth.UseCases.RegisterUserTest do
 
       # Verify token was created
       token =
-        PrimeYouth.Repo.get_by(PrimeYouth.Auth.Infrastructure.UserToken,
+        PrimeYouth.Repo.get_by(PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchemaToken,
           user_id: user.id,
           context: "confirm"
         )

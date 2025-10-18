@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Auth.Ports.PasswordHasher do
+defmodule PrimeYouth.Auth.Domain.Ports.ForHashingPasswords do
   @moduledoc """
   Secondary port: the application needs this for password hashing and verification.
   Infrastructure provides the actual implementation (typically bcrypt-based).

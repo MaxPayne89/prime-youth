@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Auth.UseCases.UpdateEmail do
+defmodule PrimeYouth.Auth.Application.UseCases.UpdateEmail do
   @moduledoc """
   Use case for changing user email address.
   Depends on Repository, PasswordHasher, and Notifier ports.
   """
 
-  alias PrimeYouth.Auth.Domain.User
+  alias PrimeYouth.Auth.Domain.Models.User
 
   def execute(
         params,

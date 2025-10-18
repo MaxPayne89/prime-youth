@@ -6,7 +6,7 @@ defmodule PrimeYouth.Factory do
 
   use ExMachina.Ecto, repo: PrimeYouth.Repo
 
-  alias PrimeYouth.Auth.Infrastructure.User
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema, as: User
 
   # Auth factories
   def user_factory do

@@ -4,8 +4,7 @@ defmodule PrimeYouth.Auth.Queries do
   Provides clean API for web layer to query user data without direct repository access.
   """
 
-  alias PrimeYouth.Auth.Domain.User, as: DomainUser
-  alias PrimeYouth.Auth.Infrastructure.User, as: SchemaUser
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema, as: User
 
   @doc """
   Gets a user by ID.
@@ -59,12 +58,8 @@ defmodule PrimeYouth.Auth.Queries do
   """
   def sudo_mode?(user, minutes \\ -20)
 
-  # Accept both domain and schema users
-  def sudo_mode?(%DomainUser{authenticated_at: ts}, minutes) when is_struct(ts, DateTime) do
-    DateTime.after?(ts, DateTime.utc_now() |> DateTime.add(minutes, :minute))
-  end
-
-  def sudo_mode?(%SchemaUser{authenticated_at: ts}, minutes) when is_struct(ts, DateTime) do
+  # Accept schema users
+  def sudo_mode?(%User{authenticated_at: ts}, minutes) when is_struct(ts, DateTime) do
     DateTime.after?(ts, DateTime.utc_now() |> DateTime.add(minutes, :minute))
   end
 

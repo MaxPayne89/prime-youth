@@ -1,8 +1,8 @@
 defmodule PrimeYouthWeb.UserLive.Registration do
   use PrimeYouthWeb, :live_view
 
-  alias PrimeYouth.Auth.Infrastructure.User
-  alias PrimeYouth.Auth.UseCases.RegisterUser
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema, as: User
+  alias PrimeYouth.Auth.Application.UseCases.RegisterUser
 
   @impl true
   def render(assigns) do

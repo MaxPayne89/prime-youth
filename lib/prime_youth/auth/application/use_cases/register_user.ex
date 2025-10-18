@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Auth.UseCases.RegisterUser do
+defmodule PrimeYouth.Auth.Application.UseCases.RegisterUser do
   @moduledoc """
   Use case for user registration.
   Depends on Repository, PasswordHasher, and Notifier ports.
   """
 
-  alias PrimeYouth.Auth.Domain.User
+  alias PrimeYouth.Auth.Domain.Models.User
 
   def execute(
         params,

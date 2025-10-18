@@ -1,9 +1,9 @@
-defmodule PrimeYouth.Auth.Infrastructure.UserToken do
+defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema do
   use Ecto.Schema
 
   import Ecto.Query
 
-  alias PrimeYouth.Auth.Infrastructure.UserToken
+  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -20,7 +20,7 @@ defmodule PrimeYouth.Auth.Infrastructure.UserToken do
     field :context, :string
     field :sent_to, :string
     field :authenticated_at, :utc_datetime
-    belongs_to :user, PrimeYouth.Auth.Infrastructure.User
+    belongs_to :user, PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema
 
     timestamps(type: :utc_datetime, updated_at: false)
   end
@@ -47,7 +47,7 @@ defmodule PrimeYouth.Auth.Infrastructure.UserToken do
   def build_session_token(user) do
     token = :crypto.strong_rand_bytes(@rand_size)
     dt = user.authenticated_at || DateTime.utc_now(:second)
-    {token, %UserToken{token: token, context: "session", user_id: user.id, authenticated_at: dt}}
+    {token, %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema{token: token, context: "session", user_id: user.id, authenticated_at: dt}}
   end
 
   @doc """
@@ -90,7 +90,7 @@ defmodule PrimeYouth.Auth.Infrastructure.UserToken do
     hashed_token = :crypto.hash(@hash_algorithm, token)
 
     {Base.url_encode64(token, padding: false),
-     %UserToken{
+     %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema{
        token: hashed_token,
        context: context,
        sent_to: sent_to,
@@ -180,6 +180,6 @@ defmodule PrimeYouth.Auth.Infrastructure.UserToken do
   end
 
   defp by_token_and_context_query(token, context) do
-    from UserToken, where: [token: ^token, context: ^context]
+    from UserTokenSchema, where: [token: ^token, context: ^context]
   end
 end

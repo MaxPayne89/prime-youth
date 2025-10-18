@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Auth.UseCases.AuthenticateUser do
+defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUser do
   @moduledoc """
   Use case for email and password authentication.
   Depends on Repository and PasswordHasher ports.
   """
 
-  alias PrimeYouth.Auth.Domain.User
+  alias PrimeYouth.Auth.Domain.Models.User
 
   def execute(credentials, repo \\ default_repo(), hasher \\ default_hasher()) do
     with {:ok, user} <- repo.find_by_email(credentials.email),

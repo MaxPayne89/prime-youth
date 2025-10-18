@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Auth.Domain.User do
+defmodule PrimeYouth.Auth.Domain.Models.User do
   @moduledoc """
   Domain entity representing a user in the authentication context.
   Contains pure domain logic and business rules for user management.

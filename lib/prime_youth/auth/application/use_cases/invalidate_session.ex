@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Auth.UseCases.InvalidateSession do
+defmodule PrimeYouth.Auth.Application.UseCases.InvalidateSession do
   @moduledoc """
   Use case for session token invalidation (logout).
   Depends on Repository port.

@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Auth.UseCases.ConfirmEmail do
+defmodule PrimeYouth.Auth.Application.UseCases.ConfirmEmail do
   @moduledoc """
   Use case for email confirmation via token.
   Depends on Repository port.
   """
 
-  alias PrimeYouth.Auth.Domain.User
+  alias PrimeYouth.Auth.Domain.Models.User
 
   def execute(token, repo \\ default_repo()) do
     with {:ok, user} <- repo.verify_email_token(token, :confirmation),
