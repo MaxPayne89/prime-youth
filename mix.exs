@@ -50,6 +50,7 @@ defmodule PrimeYouth.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:usage_rules, "~> 0.1", only: [:dev]},
       {:bcrypt_elixir, "~> 3.0"},
       {:live_debugger, "~> 0.4", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev, :test]},
@@ -82,6 +83,9 @@ defmodule PrimeYouth.MixProject do
       {:bandit, "~> 1.5"},
       {:tidewave, "~> 0.5", only: :dev},
       {:quokka, "~> 2.11", only: [:dev, :test], runtime: false},
+      {:oban, "~> 2.20"},
+      {:oban_web, "~> 2.11.4"},
+      {:funx, "~> 0.1.6"},
       # Testing infrastructure
       {:excoveralls, "~> 0.18", only: :test},
       {:ex_machina, "~> 2.8", only: :test},
