@@ -549,4 +549,14 @@ _A code generation and project patching framework_
 
 [igniter usage rules](deps/igniter/usage-rules.md)
 <!-- igniter-end -->
+
+<!-- funx-start -->
+## funx usage
+
+*Functional programming utilities for Elixir*
+
+**IMPORTANT**: Whenever using the funx library on this project, **always** check `deps/funx/lib/usage-rules.md` for guidance on how to properly use it first!
+
+[funx usage rules](deps/funx/lib/usage-rules.md)
+<!-- funx-end -->
 <!-- usage-rules-end -->

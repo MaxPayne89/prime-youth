@@ -1,16 +1,18 @@
 defmodule PrimeYouth.Auth.Application.UseCases.LoginWithMagicLink do
   @moduledoc """
-  Use case for authentication via magic link token.
+  Use case for authentication via magic link token using monadic composition.
   Depends on Repository port.
   """
 
+  import Funx.Monad
+
+  alias Funx.Monad.Either
   alias PrimeYouth.Auth.Domain.Models.User
 
   def execute(token, repo \\ default_repo()) do
     with {:ok, user} <- repo.verify_email_token(token, :magic_link),
          :ok <- check_unconfirmed_with_password(user) do
-      result = handle_confirmation(user, repo)
-      result
+      handle_confirmation(user, repo)
     end
   end
 
@@ -27,24 +29,41 @@ defmodule PrimeYouth.Auth.Application.UseCases.LoginWithMagicLink do
 
     if User.confirmed?(user) do
       # Already confirmed, just delete the magic link token and mark as authenticated
-      authenticated_user = User.authenticate(user, now)
-
-      with {:ok, saved_user} <- repo.update(authenticated_user),
-           :ok <- repo.delete_email_tokens_for_user(saved_user, :magic_link) do
-        {:ok, {saved_user, []}}
-      end
+      User.authenticate(user, now)
+      |> bind(fn authenticated_user -> save_user_either(authenticated_user, repo) end)
+      |> bind(fn saved_user -> delete_magic_link_token_either(saved_user, repo) end)
+      |> map(fn saved_user -> {saved_user, []} end)
+      |> Either.to_result()
     else
       # Confirm user, mark as authenticated, delete magic link token, and expire all session tokens
-      confirmed_user =
-        user
-        |> User.confirm(now)
-        |> User.authenticate(now)
+      User.confirm(user, now)
+      |> bind(fn confirmed_user -> User.authenticate(confirmed_user, now) end)
+      |> bind(fn authenticated_user -> save_user_either(authenticated_user, repo) end)
+      |> bind(fn saved_user -> delete_magic_link_token_either(saved_user, repo) end)
+      |> bind(fn saved_user -> delete_all_session_tokens_either(saved_user, repo) end)
+      |> map(fn saved_user -> {saved_user, []} end)
+      |> Either.to_result()
+    end
+  end
 
-      with {:ok, saved_user} <- repo.update(confirmed_user),
-           :ok <- repo.delete_email_tokens_for_user(saved_user, :magic_link),
-           :ok <- repo.delete_all_session_tokens_for_user(saved_user) do
-        {:ok, {saved_user, []}}
-      end
+  defp save_user_either(user, repo) do
+    case repo.update(user) do
+      {:ok, saved_user} -> Either.right(saved_user)
+      {:error, reason} -> Either.left(reason)
+    end
+  end
+
+  defp delete_magic_link_token_either(user, repo) do
+    case repo.delete_email_tokens_for_user(user, :magic_link) do
+      :ok -> Either.right(user)
+      {:error, reason} -> Either.left(reason)
+    end
+  end
+
+  defp delete_all_session_tokens_either(user, repo) do
+    case repo.delete_all_session_tokens_for_user(user) do
+      :ok -> Either.right(user)
+      {:error, reason} -> Either.left(reason)
     end
   end
 

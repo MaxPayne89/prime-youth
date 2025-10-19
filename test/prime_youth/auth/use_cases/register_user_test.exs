@@ -1,6 +1,7 @@
 defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
   use PrimeYouth.DataCase, async: true
 
+  alias Funx.Errors.ValidationError
   alias PrimeYouth.Auth.Adapters.Driven.Notifications.EmailNotifier
   alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
   alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
@@ -75,22 +76,29 @@ defmodule PrimeYouth.Auth.Application.UseCases.RegisterUserTest do
     test "returns error when email is invalid" do
       params = %{@valid_params | email: "not-an-email"}
 
-      assert {:error, :invalid_email_format} =
+      # Invalid email returns validation error
+      assert {:error, %ValidationError{errors: errors}} =
                RegisterUser.execute(params, UserRepository, BcryptPasswordHasher, EmailNotifier)
+
+      assert Enum.any?(errors, &String.contains?(&1, "invalid format"))
     end
 
     test "returns error when first_name is missing" do
       params = Map.delete(@valid_params, :first_name)
 
-      assert {:error, :first_name_required} =
+      assert {:error, %ValidationError{errors: errors}} =
                RegisterUser.execute(params, UserRepository, BcryptPasswordHasher, EmailNotifier)
+
+      assert "First name is required" in errors
     end
 
     test "returns error when last_name is missing" do
       params = Map.delete(@valid_params, :last_name)
 
-      assert {:error, :last_name_required} =
+      assert {:error, %ValidationError{errors: errors}} =
                RegisterUser.execute(params, UserRepository, BcryptPasswordHasher, EmailNotifier)
+
+      assert "Last name is required" in errors
     end
 
     test "generates confirmation token" do

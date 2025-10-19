@@ -1,6 +1,6 @@
 defmodule PrimeYouth.Auth.Application.UseCases.RequestEmailChange do
   @moduledoc """
-  Use case for requesting an email change with token-based confirmation.
+  Use case for requesting an email change with token-based confirmation using monadic composition.
 
   This initiates the email change process by:
   1. Validating the new email address
@@ -13,6 +13,9 @@ defmodule PrimeYouth.Auth.Application.UseCases.RequestEmailChange do
   Depends on Repository and Notifier ports.
   """
 
+  import Funx.Monad
+
+  alias Funx.Monad.Either
   alias PrimeYouth.Auth.Domain.Models.User
 
   @type params :: %{
@@ -21,33 +24,61 @@ defmodule PrimeYouth.Auth.Application.UseCases.RequestEmailChange do
         }
 
   def execute(params, repo \\ default_repo(), notifier \\ default_notifier()) do
-    with {:ok, user} <- repo.find_by_id(params.user_id),
-         {:ok, validated_email} <- User.validate_email(params.new_email),
-         :ok <- check_email_available(validated_email, repo, user.id),
-         {:ok, token} <- repo.generate_email_token(user, :change_email),
-         :ok <- notifier.send_email_change_confirmation(user, validated_email, token) do
-      {:ok, %{token: token, new_email: validated_email}}
-    else
-      {:error, :not_found} -> {:error, :user_not_found}
-      {:error, :email_taken} = error -> error
-      {:error, :email_required} -> {:error, :invalid_email}
-      {:error, :email_too_long} -> {:error, :invalid_email}
-      {:error, :invalid_email_format} -> {:error, :invalid_email}
-      {:error, _} = error -> error
+    # Validate new email by creating temporary user
+    temp_user_result = User.make(params.new_email, first_name: "temp", last_name: "temp")
+
+    temp_user_result
+    |> map(fn temp_user -> User.email(temp_user) end)
+    |> bind(fn validated_email ->
+      find_and_validate_user(params.user_id, validated_email, repo)
+    end)
+    |> bind(fn {user, validated_email} ->
+      check_email_available_either(user, validated_email, repo)
+    end)
+    |> bind(fn {user, validated_email} -> generate_token_either(user, validated_email, repo) end)
+    |> bind(fn {user, validated_email, token} ->
+      send_confirmation_either(user, validated_email, token, notifier)
+    end)
+    |> Either.to_result()
+  end
+
+  # Find user by ID and combine with validated email
+  defp find_and_validate_user(user_id, validated_email, repo) do
+    case repo.find_by_id(user_id) do
+      {:ok, user} -> Either.right({user, validated_email})
+      {:error, :not_found} -> Either.left(:user_not_found)
+      {:error, reason} -> Either.left(reason)
     end
   end
 
-  defp check_email_available(email, repo, current_user_id) do
-    case repo.find_by_email(email) do
+  # Check if email is available (or belongs to current user)
+  defp check_email_available_either(user, validated_email, repo) do
+    case repo.find_by_email(validated_email) do
       {:error, :not_found} ->
-        :ok
+        Either.right({user, validated_email})
 
       {:ok, existing_user} ->
-        if existing_user.id == current_user_id do
-          :ok
+        if User.id(existing_user) == User.id(user) do
+          Either.right({user, validated_email})
         else
-          {:error, :email_taken}
+          Either.left(:email_taken)
         end
+    end
+  end
+
+  # Generate email change token
+  defp generate_token_either(user, validated_email, repo) do
+    case repo.generate_email_token(user, :change_email) do
+      {:ok, token} -> Either.right({user, validated_email, token})
+      {:error, reason} -> Either.left(reason)
+    end
+  end
+
+  # Send confirmation email
+  defp send_confirmation_either(user, validated_email, token, notifier) do
+    case notifier.send_email_change_confirmation(user, validated_email, token) do
+      :ok -> Either.right(%{token: token, new_email: validated_email})
+      {:error, reason} -> Either.left(reason)
     end
   end
 

@@ -3,18 +3,14 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
 
   import PrimeYouth.Factory
 
+  alias Funx.Monad.Either
   alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
   alias PrimeYouth.Auth.Domain.Models.User
 
   describe "save/1" do
     test "saves a new user to the database" do
-      {:ok, domain_user} =
-        User.new(%{
-          email: "test@example.com",
-          first_name: "John",
-          last_name: "Doe"
-        })
-
+      user_result = User.make("test@example.com", first_name: "John", last_name: "Doe")
+      {:ok, domain_user} = Either.to_result(user_result)
       domain_user = %{domain_user | hashed_password: "hashed_password"}
 
       assert {:ok, saved_user} = UserRepository.save(domain_user)
@@ -27,13 +23,8 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
     test "returns error when email is already taken" do
       insert(:user, email: "test@example.com")
 
-      {:ok, domain_user} =
-        User.new(%{
-          email: "test@example.com",
-          first_name: "Jane",
-          last_name: "Doe"
-        })
-
+      user_result = User.make("test@example.com", first_name: "Jane", last_name: "Doe")
+      {:ok, domain_user} = Either.to_result(user_result)
       domain_user = %{domain_user | hashed_password: "hashed_password"}
 
       assert {:error, _changeset} = UserRepository.save(domain_user)
@@ -79,13 +70,8 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepositor
     test "updates an existing user" do
       user = insert(:user)
 
-      {:ok, domain_user} =
-        User.new(%{
-          email: "updated@example.com",
-          first_name: "Updated",
-          last_name: "Name"
-        })
-
+      user_result = User.make("updated@example.com", first_name: "Updated", last_name: "Name")
+      {:ok, domain_user} = Either.to_result(user_result)
       domain_user = %{domain_user | id: user.id}
 
       assert {:ok, updated_user} = UserRepository.update(domain_user)

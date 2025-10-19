@@ -1,9 +1,12 @@
 defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUser do
   @moduledoc """
-  Use case for email and password authentication.
+  Use case for email and password authentication using monadic composition.
   Depends on Repository and PasswordHasher ports.
   """
 
+  import Funx.Monad
+
+  alias Funx.Monad.Either
   alias PrimeYouth.Auth.Domain.Models.User
 
   def execute(credentials, repo \\ default_repo(), hasher \\ default_hasher()) do
@@ -11,15 +14,19 @@ defmodule PrimeYouth.Auth.Application.UseCases.AuthenticateUser do
          true <- hasher.verify(credentials.password, user.hashed_password),
          true <- User.confirmed?(user) do
       # Mark user as authenticated and update in repository
-      authenticated_user = User.authenticate(user, DateTime.utc_now(:second))
-
-      case repo.update(authenticated_user) do
-        {:ok, updated_user} -> {:ok, updated_user}
-        error -> error
-      end
+      User.authenticate(user, DateTime.utc_now(:second))
+      |> bind(fn authenticated_user -> save_user_either(authenticated_user, repo) end)
+      |> Either.to_result()
     else
       {:error, :not_found} -> {:error, :invalid_credentials}
       false -> {:error, :invalid_credentials}
+    end
+  end
+
+  defp save_user_either(user, repo) do
+    case repo.update(user) do
+      {:ok, saved_user} -> Either.right(saved_user)
+      {:error, reason} -> Either.left(reason)
     end
   end
 
