@@ -40,8 +40,8 @@
           <li>
             <.link navigate={~p"/programs"} class="btn btn-ghost text-white">Programs</.link>
           </li>
-          <li><a href="#about" class="btn btn-ghost text-white">About</a></li>
-          <li><a href="#contact" class="btn btn-ghost text-white">Contact</a></li>
+          <li><.link navigate={~p"/about"} class="btn btn-ghost text-white">About</.link></li>
+          <li><.link navigate={~p"/contact"} class="btn btn-ghost text-white">Contact</.link></li>
         </ul>
       </div>
 
@@ -262,8 +262,8 @@
         <ul class="menu w-full text-white">
           <li><.link navigate={~p"/"}>Home</.link></li>
           <li><.link navigate={~p"/programs"}>Programs</.link></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#contact">Contact</a></li>
+          <li><.link navigate={~p"/about"}>About</.link></li>
+          <li><.link navigate={~p"/contact"}>Contact</.link></li>
 
           <%= if assigns[:current_user] do %>
             <li class="mt-4"><.link navigate={~p"/dashboard"}>Dashboard</.link></li>
