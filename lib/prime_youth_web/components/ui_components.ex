@@ -7,6 +7,9 @@ defmodule PrimeYouthWeb.UIComponents do
   """
   use Phoenix.Component
 
+  # Will be used when updating gradient references to use centralized Theme module
+  # alias PrimeYouthWeb.Theme
+
   @doc """
   Renders a [Heroicon](https://heroicons.com).
 
@@ -671,4 +674,77 @@ defmodule PrimeYouthWeb.UIComponents do
   defp subtitle_color("text-white"), do: "text-white/80"
   defp subtitle_color("text-gray-900"), do: "text-gray-600"
   defp subtitle_color(_), do: "text-gray-600"
+
+  @doc """
+  Renders a generic card container with flexible content slots.
+
+  This is a foundational component for creating consistent card layouts throughout
+  the application. Use slots for maximum flexibility in card content composition.
+
+  ## Examples
+
+      # Simple card with body only
+      <.card>
+        <:body>
+          <p>Card content here</p>
+        </:body>
+      </.card>
+
+      # Card with header, body, and footer
+      <.card variant={:elevated}>
+        <:header>
+          <h3>Card Title</h3>
+        </:header>
+        <:body>
+          <p>Main content here</p>
+        </:body>
+        <:footer>
+          <button>Action</button>
+        </:footer>
+      </.card>
+
+      # Clickable card with custom padding
+      <.card padding="p-4" phx-click="select_item" phx-value-id={@item.id}>
+        <:body>
+          <p>Clickable content</p>
+        </:body>
+      </.card>
+  """
+  attr :variant, :atom, default: :default, values: [:default, :elevated, :outlined]
+  attr :padding, :string, default: "p-6"
+  attr :class, :string, default: ""
+  slot :header
+  slot :body, required: true
+  slot :footer
+  attr :rest, :global, include: ~w(phx-click phx-value-*)
+
+  def card(assigns) do
+    ~H"""
+    <div
+      class={[
+        "bg-white rounded-2xl",
+        card_variant_classes(@variant),
+        @padding,
+        @class
+      ]}
+      {@rest}
+    >
+      <div :if={@header != []} class="border-b border-gray-100 pb-4 mb-4">
+        {render_slot(@header)}
+      </div>
+
+      <div>
+        {render_slot(@body)}
+      </div>
+
+      <div :if={@footer != []} class="border-t border-gray-100 pt-4 mt-4">
+        {render_slot(@footer)}
+      </div>
+    </div>
+    """
+  end
+
+  defp card_variant_classes(:default), do: "shadow-sm border border-gray-100"
+  defp card_variant_classes(:elevated), do: "shadow-lg"
+  defp card_variant_classes(:outlined), do: "border-2 border-gray-200"
 end

@@ -6,6 +6,8 @@ defmodule PrimeYouthWeb.ReviewComponents do
   """
   use Phoenix.Component
 
+  import PrimeYouthWeb.UIComponents
+
   @doc """
   Renders a star rating display.
 
@@ -68,22 +70,24 @@ defmodule PrimeYouthWeb.ReviewComponents do
 
   def review_card(assigns) do
     ~H"""
-    <div class={["bg-white border border-gray-200 rounded-xl p-4 shadow-sm", @class]}>
-      <div class="flex justify-between items-start mb-3">
-        <div class="flex items-start gap-3">
-          <img src={@parent_avatar} alt={@parent_name} class="w-10 h-10 rounded-full" />
-          <div>
-            <div class="font-medium text-gray-900 text-sm">{@parent_name}</div>
-            <div class="text-xs text-gray-500">
-              Mother of {@child_name} ({@child_age})
-              <span :if={@verified} class="text-green-600">"  Verified Parent</span>
+    <.card padding="p-4" class={@class}>
+      <:body>
+        <div class="flex justify-between items-start mb-3">
+          <div class="flex items-start gap-3">
+            <img src={@parent_avatar} alt={@parent_name} class="w-10 h-10 rounded-full" />
+            <div>
+              <div class="font-medium text-gray-900 text-sm">{@parent_name}</div>
+              <div class="text-xs text-gray-500">
+                Mother of {@child_name} ({@child_age})
+                <span :if={@verified} class="text-green-600">"  Verified Parent</span>
+              </div>
             </div>
           </div>
+          <.star_rating rating={@rating} size={:small} />
         </div>
-        <.star_rating rating={@rating} size={:small} />
-      </div>
-      <p class="text-gray-600 text-sm leading-relaxed italic">"{@comment}"</p>
-    </div>
+        <p class="text-gray-600 text-sm leading-relaxed italic">"{@comment}"</p>
+      </:body>
+    </.card>
     """
   end
 

@@ -80,31 +80,30 @@ defmodule PrimeYouthWeb.CompositeComponents do
 
   def child_card(assigns) do
     ~H"""
-    <div
-      class={[
-        "bg-white rounded-2xl p-4 shadow-sm border border-gray-100",
-        "hover:shadow-md transition-shadow",
-        @class
-      ]}
-      {@rest}
-    >
-      <div class="flex items-start justify-between mb-3">
-        <div class="flex-1">
-          <h4 class="font-semibold text-gray-900">{@name}</h4>
-          <p class="text-sm text-gray-600">{@age} years old • {@school}</p>
+    <.card padding="p-4" class={"hover:shadow-md transition-shadow #{@class}"} {@rest}>
+      <:body>
+        <div class="flex items-start justify-between mb-3">
+          <div class="flex-1">
+            <h4 class="font-semibold text-gray-900">{@name}</h4>
+            <p class="text-sm text-gray-600">{@age} years old • {@school}</p>
+          </div>
+          <div class="text-right">
+            <div class="text-sm font-medium text-gray-900">{@sessions}</div>
+            <div class="text-xs text-gray-500">Sessions</div>
+          </div>
         </div>
-        <div class="text-right">
-          <div class="text-sm font-medium text-gray-900">{@sessions}</div>
-          <div class="text-xs text-gray-500">Sessions</div>
+        <.progress_bar label="Progress" percentage={@progress} class="mb-3" />
+        <div class="flex flex-wrap gap-1">
+          <.status_pill
+            :for={activity <- @activities}
+            color="custom"
+            class="bg-gray-100 text-gray-700"
+          >
+            {activity}
+          </.status_pill>
         </div>
-      </div>
-      <.progress_bar label="Progress" percentage={@progress} class="mb-3" />
-      <div class="flex flex-wrap gap-1">
-        <.status_pill :for={activity <- @activities} color="custom" class="bg-gray-100 text-gray-700">
-          {activity}
-        </.status_pill>
-      </div>
-    </div>
+      </:body>
+    </.card>
     """
   end
 
@@ -176,30 +175,25 @@ defmodule PrimeYouthWeb.CompositeComponents do
 
   def activity_card(assigns) do
     ~H"""
-    <div
-      class={[
-        "bg-white rounded-2xl p-4 shadow-sm border border-gray-100",
-        "hover:shadow-md transition-shadow",
-        @class
-      ]}
-      {@rest}
-    >
-      <div class="flex items-start justify-between">
-        <div class="flex-1">
-          <div class="flex items-center mb-2">
-            <.status_pill color="custom" class={@status_color}>
-              {@status}
-            </.status_pill>
-            <span class="ml-2 text-sm text-gray-600">{@time}</span>
+    <.card padding="p-4" class={"hover:shadow-md transition-shadow #{@class}"} {@rest}>
+      <:body>
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <div class="flex items-center mb-2">
+              <.status_pill color="custom" class={@status_color}>
+                {@status}
+              </.status_pill>
+              <span class="ml-2 text-sm text-gray-600">{@time}</span>
+            </div>
+            <h4 class="font-semibold text-gray-900 mb-1">{@name}</h4>
+            <p class="text-sm text-gray-600">Instructor: {@instructor}</p>
           </div>
-          <h4 class="font-semibold text-gray-900 mb-1">{@name}</h4>
-          <p class="text-sm text-gray-600">Instructor: {@instructor}</p>
+          <.gradient_icon gradient_class="bg-gray-100" size="sm" shape="circle" class="flex-shrink-0">
+            <.icon name="hero-chevron-right" class="w-5 h-5 text-gray-500" />
+          </.gradient_icon>
         </div>
-        <.gradient_icon gradient_class="bg-gray-100" size="sm" shape="circle" class="flex-shrink-0">
-          <.icon name="hero-chevron-right" class="w-5 h-5 text-gray-500" />
-        </.gradient_icon>
-      </div>
-    </div>
+      </:body>
+    </.card>
     """
   end
 

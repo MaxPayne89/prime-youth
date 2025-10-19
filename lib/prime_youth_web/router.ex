@@ -26,6 +26,8 @@ defmodule PrimeYouthWeb.Router do
       live "/programs", ProgramsLive, :index
       live "/programs/:id", ProgramDetailLive, :show
       live "/programs/:id/booking", BookingLive, :new
+      live "/about", AboutLive, :index
+      live "/contact", ContactLive, :index
     end
 
     # Authenticated routes (require login)
