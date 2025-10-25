@@ -90,7 +90,7 @@ Regional differences (Berlin vs. other cities)
 Integration with verification system
 
 
-Idea #3: Dynamic Pricing Recommendations for Providers
+Idea #3: **Dynamic Pricing Recommendations for Providers**
 Description: Suggest competitive pricing based on market data
 Potential Features:
 
@@ -109,7 +109,7 @@ Risk of price standardization/collusion concerns
 Value as business tool for providers
 
 
-Idea #4: Category-Specific Landing Pages
+Idea #4: **Category-Specific Landing Pages**
 Description: Create dedicated SEO-optimized pages for each activity category
 Potential Features:
 
@@ -128,7 +128,7 @@ Template design for scalability
 Provider featured placement criteria
 
 
-Idea #5: Advanced Scheduling Tools for Providers
+Idea #5: **Advanced Scheduling Tools for Providers**
 Description: Enhanced calendar and availability management
 Potential Features:
 
@@ -148,7 +148,7 @@ Integration challenges with external calendars
 Differentiation from existing booking tools
 
 
-Idea #6: Provider Professional Development Resources
+Idea #6: **Provider Professional Development Resources**
 Description: Learning hub for activity providers to improve their business
 Potential Features:
 
@@ -168,7 +168,7 @@ Revenue opportunity (premium training content?)
 Community moderation requirements
 
 
-Idea #7: Referral & Rewards Program
+Idea #7: **Referral & Rewards Program**
 Description: Incentivize users to bring new families and providers to platform
 Note: This concept is now integrated into the Prime Points system (Idea #1)
 Potential Features:
@@ -188,7 +188,7 @@ Impact on CAC (Customer Acquisition Cost)
 Terms and conditions complexity
 
 
-Idea #8: AI-Powered Activity Recommendations
+Idea #8: **AI-Powered Activity Recommendations**
 Description: Personalized activity suggestions based on child's interests and history
 Potential Features:
 
@@ -209,27 +209,9 @@ Development complexity and cost
 Differentiation value vs. simple filtering
 
 
-Idea #9: Progress Tracking & Portfolios
-Description: Document child's learning journey across activities
-Potential Features:
-
-Providers can upload photos, videos, progress notes
-Skill development tracking
-Achievement badges
-Parent dashboard showing all activities
-Exportable portfolio/report card
-Share capabilities (with privacy controls)
-Prime Points awarded for portfolio milestones
-
-Discussion Points:
-
-Data storage costs (media files)
-Privacy and consent requirements (photographing children)
-Provider adoption challenges (time investment)
-Competitive advantage vs. complexity
 
 
-Idea #10: Group Booking & Playdates
+Idea #9: **Group Booking & Playdates**
 Description: Enable parents to organize group activities with friends
 Potential Features:
 
@@ -249,23 +231,4 @@ Privacy concerns (parent-to-parent connections)
 Provider capacity management
 
 
-Idea #11: Mobile App Push Notifications (Year 3)
-Description: Real-time notifications for mobile app users
-Potential Features:
 
-Booking confirmations
-Upcoming activity reminders
-New message alerts
-Check-in/attendance notifications
-Special offers from favorite providers
-Cancellation alerts
-Review requests
-Prime Points milestone notifications
-Points expiration reminders
-
-Discussion Points:
-
-Notification frequency balance (engagement vs. annoyance)
-Opt-in/opt-out granularity
-iOS vs. Android implementation differences
-Timing relative to web platform features
