@@ -26,15 +26,14 @@ defmodule PrimeYouthWeb.AboutLive do
     ~H"""
     <div class="min-h-screen bg-gray-50 pb-20 md:pb-6">
       <%!-- Hero Section --%>
-      <.page_hero
-        title="About Prime Youth"
-        subtitle="Empowering young minds through quality after-school programs"
+      <.hero_section
+        variant="page"
         gradient_class="bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400"
-        text_color="text-white"
-        show_back_button={true}
-        phx-click="navigate"
-        phx-value-to="/programs"
-      />
+        show_back_button
+      >
+        <:title>About Prime Youth</:title>
+        <:subtitle>Empowering young minds through quality after-school programs</:subtitle>
+      </.hero_section>
 
       <div class="max-w-4xl mx-auto p-6 space-y-8">
         <%!-- Mission Section --%>

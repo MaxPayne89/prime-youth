@@ -7,6 +7,11 @@ defmodule PrimeYouthWeb.UIComponents do
   """
   use Phoenix.Component
 
+  use Phoenix.VerifiedRoutes,
+    endpoint: PrimeYouthWeb.Endpoint,
+    router: PrimeYouthWeb.Router,
+    statics: PrimeYouthWeb.static_paths()
+
   # Will be used when updating gradient references to use centralized Theme module
   # alias PrimeYouthWeb.Theme
 
@@ -629,6 +634,8 @@ defmodule PrimeYouthWeb.UIComponents do
   @doc """
   Renders a page hero section with title, optional subtitle, and optional back button.
 
+  **DEPRECATED**: Use `.hero_section` component instead with `variant="page"` for consistent hero patterns.
+
   Full-width hero section commonly used at the top of pages. Supports gradient backgrounds
   and can include a back button for navigation.
 
@@ -674,6 +681,154 @@ defmodule PrimeYouthWeb.UIComponents do
   defp subtitle_color("text-white"), do: "text-white/80"
   defp subtitle_color("text-gray-900"), do: "text-gray-600"
   defp subtitle_color(_), do: "text-gray-600"
+
+  @doc """
+  Renders a unified hero section with multiple variant styles.
+
+  This component unifies all hero section patterns in the application, from large landing page
+  heroes to compact page headers. It supports three variants:
+
+  - `variant="landing"` - Full marketing hero with logo, CTAs, and wave decoration
+  - `variant="page"` - Compact page header with optional back button
+  - `variant="minimal"` - Ultra-simple header with just title
+
+  ## Examples
+
+      # Landing page hero (home page style)
+      <.hero_section variant="landing" show_logo>
+        <:title>Prime Youth</:title>
+        <:subtitle>Afterschool Adventures Await</:subtitle>
+        <:actions>
+          <button phx-click="get_started" class="px-8 py-4 bg-white text-gray-900 rounded-xl font-semibold">
+            Get Started Free
+          </button>
+          <button phx-click="explore_programs" class="px-8 py-4 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-xl">
+            Explore Programs
+          </button>
+        </:actions>
+      </.hero_section>
+
+      # Page header (about/contact page style)
+      <.hero_section
+        variant="page"
+        gradient_class="bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400"
+        show_back_button
+        phx-click="back_to_home"
+      >
+        <:title>About Us</:title>
+        <:subtitle>Learn more about Prime Youth</:subtitle>
+      </.hero_section>
+
+      # Minimal header
+      <.hero_section variant="minimal">
+        <:title>Settings</:title>
+      </.hero_section>
+  """
+  attr :variant, :string,
+    default: "page",
+    values: ~w(landing page minimal),
+    doc: "Hero style variant"
+
+  attr :gradient_class, :string,
+    default: "bg-gradient-to-br from-prime-cyan-400 to-prime-magenta-400",
+    doc: "Background gradient or solid color class"
+
+  attr :show_logo, :boolean, default: false, doc: "Show animated logo (landing variant only)"
+  attr :show_wave, :boolean, default: true, doc: "Show decorative wave (landing variant only)"
+
+  attr :show_back_button, :boolean,
+    default: false,
+    doc: "Show back button (page variant only)"
+
+  attr :class, :string, default: ""
+  attr :rest, :global, include: ~w(phx-click phx-value-*)
+
+  slot :title, required: true, doc: "Hero title text"
+  slot :subtitle, doc: "Optional subtitle text"
+  slot :actions, doc: "Action buttons (landing variant only)"
+
+  def hero_section(assigns) do
+    ~H"""
+    <div class={[
+      "relative",
+      variant_wrapper_classes(@variant),
+      @variant == "landing" && "overflow-hidden",
+      @variant == "landing" && @gradient_class,
+      @variant != "landing" && @gradient_class,
+      @class
+    ]}>
+      <%= if @variant == "landing" do %>
+        <%!-- Landing page hero --%>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 lg:py-32">
+          <div class="text-center">
+            <div
+              :if={@show_logo}
+              class="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full shadow-lg mb-8 animate-bounce-gentle"
+            >
+              <img
+                src={~p"/images/logo-standard.png"}
+                alt="Prime Youth Logo"
+                class="w-16 h-16 object-contain"
+              />
+            </div>
+
+            <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 animate-fade-in">
+              {render_slot(@title)}
+            </h1>
+
+            <p :if={@subtitle != []} class="text-2xl md:text-3xl text-white/90 mb-8 max-w-3xl mx-auto">
+              {render_slot(@subtitle)}
+            </p>
+
+            <div :if={@actions != []} class="flex flex-col sm:flex-row gap-4 justify-center">
+              {render_slot(@actions)}
+            </div>
+          </div>
+        </div>
+        <%!-- Decorative Wave --%>
+        <div :if={@show_wave} class="absolute bottom-0 left-0 right-0">
+          <svg class="w-full h-16 fill-white" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z">
+            </path>
+          </svg>
+        </div>
+      <% end %>
+
+      <%= if @variant == "page" do %>
+        <%!-- Page header --%>
+        <div class="p-6">
+          <div class="flex items-center gap-4 mb-4">
+            <.back_button :if={@show_back_button} {@rest} />
+            <div>
+              <h1 class="text-2xl md:text-3xl font-bold text-white">
+                {render_slot(@title)}
+              </h1>
+              <p :if={@subtitle != []} class="text-sm mt-1 text-white/80">
+                {render_slot(@subtitle)}
+              </p>
+            </div>
+          </div>
+        </div>
+      <% end %>
+
+      <%= if @variant == "minimal" do %>
+        <%!-- Minimal header --%>
+        <div class="p-6">
+          <h1 class="text-2xl font-bold text-gray-900">
+            {render_slot(@title)}
+          </h1>
+          <p :if={@subtitle != []} class="text-sm mt-1 text-gray-600">
+            {render_slot(@subtitle)}
+          </p>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
+  defp variant_wrapper_classes("landing"), do: ""
+  defp variant_wrapper_classes("page"), do: "shadow-sm"
+  defp variant_wrapper_classes("minimal"), do: "bg-white"
 
   @doc """
   Renders a generic card container with flexible content slots.

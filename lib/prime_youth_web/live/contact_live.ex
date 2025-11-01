@@ -45,15 +45,14 @@ defmodule PrimeYouthWeb.ContactLive do
     ~H"""
     <div class="min-h-screen bg-gray-50 pb-20 md:pb-6">
       <%!-- Hero Section --%>
-      <.page_hero
-        title="Contact Us"
-        subtitle="We're here to help with any questions you may have"
+      <.hero_section
+        variant="page"
         gradient_class="bg-gradient-to-br from-prime-cyan-400 to-prime-magenta-400"
-        text_color="text-white"
-        show_back_button={true}
-        phx-click="navigate"
-        phx-value-to="/programs"
-      />
+        show_back_button
+      >
+        <:title>Contact Us</:title>
+        <:subtitle>We're here to help with any questions you may have</:subtitle>
+      </.hero_section>
 
       <div class="max-w-6xl mx-auto p-6">
         <div class="grid md:grid-cols-2 gap-8">
