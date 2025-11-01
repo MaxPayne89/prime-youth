@@ -1,8 +1,8 @@
 defmodule PrimeYouth.Accounts.UserNotifier do
   import Swoosh.Email
 
-  alias PrimeYouth.Mailer
   alias PrimeYouth.Accounts.User
+  alias PrimeYouth.Mailer
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do

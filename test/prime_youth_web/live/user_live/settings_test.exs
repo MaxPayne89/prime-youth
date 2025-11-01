@@ -1,9 +1,10 @@
 defmodule PrimeYouthWeb.UserLive.SettingsTest do
   use PrimeYouthWeb.ConnCase, async: true
 
-  alias PrimeYouth.Accounts
   import Phoenix.LiveViewTest
   import PrimeYouth.AccountsFixtures
+
+  alias PrimeYouth.Accounts
 
   describe "Settings page" do
     test "renders settings page", %{conn: conn} do

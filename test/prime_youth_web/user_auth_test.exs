@@ -1,12 +1,12 @@
 defmodule PrimeYouthWeb.UserAuthTest do
   use PrimeYouthWeb.ConnCase, async: true
 
+  import PrimeYouth.AccountsFixtures
+
   alias Phoenix.LiveView
   alias PrimeYouth.Accounts
   alias PrimeYouth.Accounts.Scope
   alias PrimeYouthWeb.UserAuth
-
-  import PrimeYouth.AccountsFixtures
 
   @remember_me_cookie "_prime_youth_web_user_remember_me"
   @remember_me_cookie_max_age 60 * 60 * 24 * 14
@@ -301,7 +301,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       user = %{user | authenticated_at: eleven_minutes_ago}
       user_token = Accounts.generate_user_session_token(user)
       {user, token_inserted_at} = Accounts.get_user_by_session_token(user_token)
-      assert DateTime.compare(token_inserted_at, user.authenticated_at) == :gt
+      assert DateTime.after?(token_inserted_at, user.authenticated_at)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{

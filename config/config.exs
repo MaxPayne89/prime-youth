@@ -7,19 +7,6 @@
 # General application configuration
 import Config
 
-config :prime_youth, :scopes,
-  user: [
-    default: true,
-    module: PrimeYouth.Accounts.Scope,
-    assign_key: :current_scope,
-    access_path: [:user, :id],
-    schema_key: :user_id,
-    schema_type: :id,
-    schema_table: :users,
-    test_data_fixture: PrimeYouth.AccountsFixtures,
-    test_setup_helper: :register_and_log_in_user
-  ]
-
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",
@@ -57,6 +44,19 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
   ],
   pubsub_server: PrimeYouth.PubSub,
   live_view: [signing_salt: "JU2osypv"]
+
+config :prime_youth, :scopes,
+  user: [
+    default: true,
+    module: PrimeYouth.Accounts.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users,
+    test_data_fixture: PrimeYouth.AccountsFixtures,
+    test_setup_helper: :register_and_log_in_user
+  ]
 
 config :prime_youth,
   ecto_repos: [PrimeYouth.Repo],

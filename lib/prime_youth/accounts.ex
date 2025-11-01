@@ -4,9 +4,9 @@ defmodule PrimeYouth.Accounts do
   """
 
   import Ecto.Query, warn: false
-  alias PrimeYouth.Repo
 
   alias PrimeYouth.Accounts.{User, UserToken, UserNotifier}
+  alias PrimeYouth.Repo
 
   ## Database getters
 

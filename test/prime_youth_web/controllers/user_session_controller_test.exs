@@ -2,6 +2,7 @@ defmodule PrimeYouthWeb.UserSessionControllerTest do
   use PrimeYouthWeb.ConnCase, async: true
 
   import PrimeYouth.AccountsFixtures
+
   alias PrimeYouth.Accounts
 
   setup do

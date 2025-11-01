@@ -1,6 +1,8 @@
 defmodule PrimeYouth.Accounts.UserToken do
   use Ecto.Schema
+
   import Ecto.Query
+
   alias PrimeYouth.Accounts.UserToken
 
   @hash_algorithm :sha256

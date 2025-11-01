@@ -1,9 +1,9 @@
 defmodule PrimeYouth.AccountsTest do
   use PrimeYouth.DataCase
 
-  alias PrimeYouth.Accounts
-
   import PrimeYouth.AccountsFixtures
+
+  alias PrimeYouth.Accounts
   alias PrimeYouth.Accounts.{User, UserToken}
 
   describe "get_user_by_email/1" do
@@ -278,7 +278,7 @@ defmodule PrimeYouth.AccountsTest do
       token = Accounts.generate_user_session_token(user)
       assert user_token = Repo.get_by(UserToken, token: token)
       assert user_token.authenticated_at == user.authenticated_at
-      assert DateTime.compare(user_token.inserted_at, user.authenticated_at) == :gt
+      assert DateTime.after?(user_token.inserted_at, user.authenticated_at)
     end
   end
 

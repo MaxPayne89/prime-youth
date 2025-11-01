@@ -1,9 +1,9 @@
 defmodule PrimeYouthWeb.UserLive.Settings do
   use PrimeYouthWeb, :live_view
 
-  on_mount {PrimeYouthWeb.UserAuth, :require_sudo_mode}
-
   alias PrimeYouth.Accounts
+
+  on_mount {PrimeYouthWeb.UserAuth, :require_sudo_mode}
 
   @impl true
   def render(assigns) do
