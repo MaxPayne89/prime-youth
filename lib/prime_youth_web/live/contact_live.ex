@@ -28,10 +28,9 @@ defmodule PrimeYouthWeb.ContactLive do
   end
 
   @impl true
-  def handle_event("submit", %{"contact" => contact_params}, socket) do
+  def handle_event("submit", %{"contact" => _contact_params}, socket) do
     # TODO: Implement actual contact form submission
     # For now, just show success message
-    IO.inspect(contact_params, label: "Contact Form Submission")
 
     {:noreply,
      socket

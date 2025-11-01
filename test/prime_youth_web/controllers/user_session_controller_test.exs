@@ -1,9 +1,9 @@
 defmodule PrimeYouthWeb.UserSessionControllerTest do
   use PrimeYouthWeb.ConnCase, async: true
 
-  import PrimeYouth.AuthFixtures
+  import PrimeYouth.AccountsFixtures
 
-  alias PrimeYouth.Auth.Queries
+  alias PrimeYouth.Accounts
 
   setup do
     %{unconfirmed_user: unconfirmed_user_fixture(), user: user_fixture()}
@@ -107,8 +107,7 @@ defmodule PrimeYouthWeb.UserSessionControllerTest do
       assert redirected_to(conn) == ~p"/"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "User confirmed successfully."
 
-      {:ok, confirmed_user} = Queries.get_user_by_id(user.id)
-      assert confirmed_user.confirmed_at
+      assert Accounts.get_user!(user.id).confirmed_at
 
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")

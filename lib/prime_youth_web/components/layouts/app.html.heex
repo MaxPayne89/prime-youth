@@ -158,7 +158,11 @@
 <!-- Page content -->
     <main class="flex-1 relative z-0">
       <.flash_group flash={@flash} />
-      {@inner_content}
+      <%= if assigns[:inner_content] do %>
+        {@inner_content}
+      <% else %>
+        {render_slot(@inner_block)}
+      <% end %>
     </main>
     
 <!-- Footer -->

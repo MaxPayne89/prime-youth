@@ -2,19 +2,15 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
   use PrimeYouthWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
-  import PrimeYouth.AuthFixtures
+  import PrimeYouth.AccountsFixtures
 
-  alias PrimeYouth.Auth.Adapters.Driven.Notifications.UserNotifier
-  alias PrimeYouth.Auth.Adapters.Driven.PasswordHashing.BcryptPasswordHasher
-  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
-  alias PrimeYouth.Auth.Application.UseCases.AuthenticateUser
-  alias PrimeYouth.Auth.Queries
+  alias PrimeYouth.Accounts
 
   describe "Settings page" do
     test "renders settings page", %{conn: conn} do
       {:ok, _lv, html} =
         conn
-        |> log_in_user(user_fixture(), token_authenticated_at: DateTime.utc_now(:second))
+        |> log_in_user(user_fixture())
         |> live(~p"/users/settings")
 
       assert html =~ "Change Email"
@@ -30,28 +26,22 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
     end
 
     test "redirects if user is not in sudo mode", %{conn: conn} do
-      user = user_fixture()
-
-      conn =
-        log_in_user(conn, user,
+      {:ok, conn} =
+        conn
+        |> log_in_user(user_fixture(),
           token_authenticated_at: DateTime.add(DateTime.utc_now(:second), -11, :minute)
         )
+        |> live(~p"/users/settings")
+        |> follow_redirect(conn, ~p"/users/log-in")
 
-      assert {:error, redirect} = live(conn, ~p"/users/settings")
-      assert {:redirect, %{to: path, flash: flash}} = redirect
-      assert path == ~p"/users/log-in"
-      assert %{"error" => "You must re-authenticate to access this page."} = flash
+      assert conn.resp_body =~ "You must re-authenticate to access this page."
     end
   end
 
   describe "update email form" do
     setup %{conn: conn} do
       user = user_fixture()
-
-      %{
-        conn: log_in_user(conn, user, token_authenticated_at: DateTime.utc_now(:second)),
-        user: user
-      }
+      %{conn: log_in_user(conn, user), user: user}
     end
 
     test "updates the user email", %{conn: conn, user: user} do
@@ -59,14 +49,15 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
 
       {:ok, lv, _html} = live(conn, ~p"/users/settings")
 
-      lv
-      |> form("#email_form", %{
-        "user" => %{"email" => new_email}
-      })
-      |> render_submit()
+      result =
+        lv
+        |> form("#email_form", %{
+          "user" => %{"email" => new_email}
+        })
+        |> render_submit()
 
-      assert_flash(lv, :info, ~r/A link to confirm your email/)
-      assert {:ok, _user} = Queries.get_user_by_email(user.email)
+      assert result =~ "A link to confirm your email"
+      assert Accounts.get_user_by_email(user.email)
     end
 
     test "renders errors with invalid data (phx-change)", %{conn: conn} do
@@ -101,16 +92,12 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
 
   describe "update password form" do
     setup %{conn: conn} do
-      user = user_fixture() |> set_password()
-
-      %{
-        conn: log_in_user(conn, user, token_authenticated_at: DateTime.utc_now(:second)),
-        user: user
-      }
+      user = user_fixture()
+      %{conn: log_in_user(conn, user), user: user}
     end
 
     test "updates the user password", %{conn: conn, user: user} do
-      new_password = "new valid password"
+      new_password = valid_user_password()
 
       {:ok, lv, _html} = live(conn, ~p"/users/settings")
 
@@ -118,7 +105,6 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
         form(lv, "#password_form", %{
           "user" => %{
             "email" => user.email,
-            "current_password" => valid_user_password(),
             "password" => new_password,
             "password_confirmation" => new_password
           }
@@ -135,12 +121,7 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
       assert Phoenix.Flash.get(new_password_conn.assigns.flash, :info) =~
                "Password updated successfully"
 
-      assert {:ok, _authenticated_user} =
-               AuthenticateUser.execute(
-                 %{email: user.email, password: new_password},
-                 UserRepository,
-                 BcryptPasswordHasher
-               )
+      assert Accounts.get_user_by_email_and_password(user.email, new_password)
     end
 
     test "renders errors with invalid data (phx-change)", %{conn: conn} do
@@ -187,15 +168,10 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
 
       token =
         extract_user_token(fn url ->
-          UserNotifier.deliver_update_email_instructions(%{user | email: email}, url)
+          Accounts.deliver_user_update_email_instructions(%{user | email: email}, user.email, url)
         end)
 
-      %{
-        conn: log_in_user(conn, user, token_authenticated_at: DateTime.utc_now(:second)),
-        token: token,
-        email: email,
-        user: user
-      }
+      %{conn: log_in_user(conn, user), token: token, email: email, user: user}
     end
 
     test "updates the user email once", %{conn: conn, user: user, token: token, email: email} do
@@ -205,8 +181,8 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
       assert path == ~p"/users/settings"
       assert %{"info" => message} = flash
       assert message == "Email changed successfully."
-      assert {:error, :not_found} = Queries.get_user_by_email(user.email)
-      assert {:ok, _user} = Queries.get_user_by_email(email)
+      refute Accounts.get_user_by_email(user.email)
+      assert Accounts.get_user_by_email(email)
 
       # use confirm token again
       {:error, redirect} = live(conn, ~p"/users/settings/confirm-email/#{token}")
@@ -222,7 +198,7 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
       assert path == ~p"/users/settings"
       assert %{"error" => message} = flash
       assert message == "Email change link is invalid or it has expired."
-      assert {:ok, _user} = Queries.get_user_by_email(user.email)
+      assert Accounts.get_user_by_email(user.email)
     end
 
     test "redirects if user is not logged in", %{token: token} do

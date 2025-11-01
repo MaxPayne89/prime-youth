@@ -16,7 +16,7 @@ defmodule PrimeYouthWeb.FeatureCase do
       import PhoenixTest
 
       # Import helpers for feature testing
-      import PrimeYouth.AuthFixtures
+      import PrimeYouth.AccountsFixtures
     end
   end
 

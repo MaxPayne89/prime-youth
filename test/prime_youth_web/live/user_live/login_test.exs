@@ -1,16 +1,16 @@
 defmodule PrimeYouthWeb.UserLive.LoginTest do
   use PrimeYouthWeb.ConnCase, async: true
 
-  import Ecto.Query
   import Phoenix.LiveViewTest
-  import PrimeYouth.AuthFixtures
+  import PrimeYouth.AccountsFixtures
 
   describe "login page" do
     test "renders login page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
-      assert html =~ "Log in"
-      assert html =~ "Sign up"
+      assert html =~ "Welcome Back"
+      assert html =~ "Register"
+      assert html =~ "Send Magic Link"
     end
   end
 
@@ -20,31 +20,26 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
 
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
-      # Form starts with magic link, no need to toggle
-      form(lv, "#login_form_magic_mobile", user: %{email: user.email})
-      |> render_submit()
+      {:ok, _lv, html} =
+        form(lv, "#login_form_magic_mobile", user: %{email: user.email})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/users/log-in")
 
-      # Verify token was created
-      assert PrimeYouth.Repo.exists?(
-               from t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema,
-                 where: t.user_id == ^user.id and t.context == "login"
-             )
+      assert html =~ "If your email is in our system"
+
+      assert PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.UserToken, user_id: user.id).context ==
+               "login"
     end
 
     test "does not disclose if user is registered", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
-      # Form starts with magic link, no need to toggle
-      # Submit form with non-existent email - should not error
-      form(lv, "#login_form_magic_mobile", user: %{email: "idonotexist@example.com"})
-      |> render_submit()
+      {:ok, _lv, html} =
+        form(lv, "#login_form_magic_mobile", user: %{email: "idonotexist@example.com"})
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/users/log-in")
 
-      # Verify no token was created for non-existent user
-      assert PrimeYouth.Repo.get_by(
-               PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema,
-               context: "login"
-             ) ==
-               nil
+      assert html =~ "If your email is in our system"
     end
   end
 
@@ -55,10 +50,10 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
       # Toggle to password form
-      lv |> element("#login_form_magic_mobile button[phx-click='toggle_form']") |> render_click()
+      lv |> element("button", "Or use password") |> render_click()
 
       form =
-        form(lv, "#login_form_password_mobile",
+        form(lv, "#login_form_password",
           user: %{email: user.email, password: valid_user_password(), remember_me: true}
         )
 
@@ -73,12 +68,10 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
       # Toggle to password form
-      lv |> element("#login_form_magic_mobile button[phx-click='toggle_form']") |> render_click()
+      lv |> element("button", "Or use password") |> render_click()
 
       form =
-        form(lv, "#login_form_password_mobile",
-          user: %{email: "test@email.com", password: "123456"}
-        )
+        form(lv, "#login_form_password", user: %{email: "test@email.com", password: "123456"})
 
       render_submit(form, %{user: %{remember_me: true}})
 
@@ -89,16 +82,16 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
   end
 
   describe "login navigation" do
-    test "redirects to registration page when the Sign up link is clicked", %{conn: conn} do
+    test "redirects to registration page when the Register button is clicked", %{conn: conn} do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
       {:ok, _login_live, login_html} =
         lv
-        |> element("[data-test-id='mobile-signup-link']", "Sign up")
+        |> element("main a", "Register")
         |> render_click()
         |> follow_redirect(conn, ~p"/users/register")
 
-      assert login_html =~ "Create Account"
+      assert login_html =~ "Register"
     end
   end
 
@@ -108,12 +101,15 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
       %{user: user, conn: log_in_user(conn, user)}
     end
 
-    test "shows login page with email filled in", %{conn: conn, user: _user} do
+    test "shows login page with email filled in", %{conn: conn, user: user} do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
-      # User is already logged in (reauthentication mode), page shows magic link form by default
-      assert html =~ "Prime Youth"
+      assert html =~ "You need to reauthenticate"
+      refute html =~ "Register"
       assert html =~ "Send Magic Link"
+
+      assert html =~
+               ~s(<input type="email" name="user[email]" id="login_form_magic_mobile_email" value="#{user.email}")
     end
   end
 end

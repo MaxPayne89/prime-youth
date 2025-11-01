@@ -1,12 +1,18 @@
-defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema do
+defmodule PrimeYouth.Accounts.User do
+  @moduledoc """
+  User schema and changesets for authentication.
+
+  Defines the user data structure with email-based authentication,
+  password hashing with Bcrypt, and email confirmation tracking.
+  Provides changesets for registration, email changes, and password management.
+  """
+
   use Ecto.Schema
 
   import Ecto.Changeset
 
   schema "users" do
     field :email, :string
-    field :first_name, :string
-    field :last_name, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
@@ -123,12 +129,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema do
   If there is no user or the user doesn't have a password, we call
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
-  def valid_password?(
-        %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema{
-          hashed_password: hashed_password
-        },
-        password
-      )
+  def valid_password?(%PrimeYouth.Accounts.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
     Bcrypt.verify_pass(password, hashed_password)
   end
@@ -136,50 +137,5 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema do
   def valid_password?(_, _) do
     Bcrypt.no_user_verify()
     false
-  end
-
-  @doc """
-  A user changeset for registration with names.
-
-  Validates email, first_name, last_name, and password.
-  """
-  def registration_changeset(user, attrs, opts \\ []) do
-    user
-    |> cast(attrs, [:email, :first_name, :last_name, :password])
-    |> validate_required([:first_name, :last_name])
-    |> validate_length(:first_name, min: 1, max: 100)
-    |> validate_length(:last_name, min: 1, max: 100)
-    |> validate_email(opts)
-    |> validate_password(opts)
-  end
-
-  @doc """
-  A user changeset for passwordless registration.
-
-  Validates email, first_name, and last_name without requiring a password.
-  Used for test fixtures and passwordless authentication flows.
-  """
-  def passwordless_registration_changeset(user, attrs, opts \\ []) do
-    user
-    |> cast(attrs, [:email, :first_name, :last_name])
-    |> validate_required([:first_name, :last_name])
-    |> validate_length(:first_name, min: 1, max: 100)
-    |> validate_length(:last_name, min: 1, max: 100)
-    |> validate_email(opts)
-  end
-
-  @doc """
-  A user changeset for creating users with an already-hashed password.
-
-  Used by the repository adapter when saving domain users that have been
-  processed through the domain layer (password already hashed).
-  """
-  def create_changeset(user, attrs, opts \\ []) do
-    user
-    |> cast(attrs, [:email, :first_name, :last_name, :hashed_password])
-    |> validate_required([:first_name, :last_name, :hashed_password])
-    |> validate_length(:first_name, min: 1, max: 100)
-    |> validate_length(:last_name, min: 1, max: 100)
-    |> validate_email(opts)
   end
 end

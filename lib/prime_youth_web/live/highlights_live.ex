@@ -76,43 +76,19 @@ defmodule PrimeYouthWeb.HighlightsLive do
 
   @impl true
   def handle_event("toggle_like", %{"post_id" => post_id}, socket) do
-    posts =
-      Enum.map(socket.assigns.posts, fn post ->
-        if post.id == post_id do
-          if post.user_liked do
-            %{post | user_liked: false, likes: post.likes - 1}
-          else
-            %{post | user_liked: true, likes: post.likes + 1}
-          end
-        else
-          post
-        end
-      end)
-
+    posts = Enum.map(socket.assigns.posts, &toggle_post_like(&1, post_id))
     {:noreply, assign(socket, posts: posts)}
   end
 
   @impl true
   def handle_event("add_comment", %{"post_id" => post_id, "comment" => comment_text}, socket) do
-    if String.trim(comment_text) == "" do
-      {:noreply, socket}
-    else
-      posts =
-        Enum.map(socket.assigns.posts, fn post ->
-          if post.id == post_id do
-            new_comment = %{author: "You", text: comment_text}
+    case String.trim(comment_text) do
+      "" ->
+        {:noreply, socket}
 
-            %{
-              post
-              | comments: post.comments ++ [new_comment],
-                comment_count: post.comment_count + 1
-            }
-          else
-            post
-          end
-        end)
-
-      {:noreply, assign(socket, posts: posts)}
+      trimmed_comment ->
+        posts = Enum.map(socket.assigns.posts, &add_comment_to_post(&1, post_id, trimmed_comment))
+        {:noreply, assign(socket, posts: posts)}
     end
   end
 
@@ -194,4 +170,23 @@ defmodule PrimeYouthWeb.HighlightsLive do
         "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
     }
   end
+
+  # Helper to toggle like on a post
+  defp toggle_post_like(post, post_id) when post.id == post_id do
+    if post.user_liked do
+      %{post | user_liked: false, likes: post.likes - 1}
+    else
+      %{post | user_liked: true, likes: post.likes + 1}
+    end
+  end
+
+  defp toggle_post_like(post, _post_id), do: post
+
+  # Helper to add comment to a post
+  defp add_comment_to_post(post, post_id, comment_text) when post.id == post_id do
+    new_comment = %{author: "You", text: comment_text}
+    %{post | comments: post.comments ++ [new_comment], comment_count: post.comment_count + 1}
+  end
+
+  defp add_comment_to_post(post, _post_id, _comment_text), do: post
 end

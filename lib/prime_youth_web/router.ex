@@ -62,6 +62,9 @@ defmodule PrimeYouthWeb.Router do
   end
 
   ## Authentication routes
+  ## Will be added by mix phx.gen.auth
+
+  ## Authentication routes
 
   scope "/", PrimeYouthWeb do
     pipe_through [:browser, :require_authenticated_user]

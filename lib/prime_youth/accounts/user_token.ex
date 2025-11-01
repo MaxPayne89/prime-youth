@@ -1,9 +1,17 @@
-defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema do
+defmodule PrimeYouth.Accounts.UserToken do
+  @moduledoc """
+  Schema and functions for managing user authentication tokens.
+
+  Handles session tokens, magic link tokens, and email change tokens.
+  Tokens are stored in the database with appropriate expiration times
+  and contexts for security and session management.
+  """
+
   use Ecto.Schema
 
   import Ecto.Query
 
-  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema
+  alias PrimeYouth.Accounts.UserToken
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -11,7 +19,6 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema do
   # It is very important to keep the magic link token expiry short,
   # since someone with access to the email may take over the account.
   @magic_link_validity_in_minutes 15
-  @confirmation_validity_in_days 7
   @change_email_validity_in_days 7
   @session_validity_in_days 14
 
@@ -20,7 +27,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema do
     field :context, :string
     field :sent_to, :string
     field :authenticated_at, :utc_datetime
-    belongs_to :user, PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema
+    belongs_to :user, PrimeYouth.Accounts.User
 
     timestamps(type: :utc_datetime, updated_at: false)
   end
@@ -47,14 +54,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema do
   def build_session_token(user) do
     token = :crypto.strong_rand_bytes(@rand_size)
     dt = user.authenticated_at || DateTime.utc_now(:second)
-
-    {token,
-     %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema{
-       token: token,
-       context: "session",
-       user_id: user.id,
-       authenticated_at: dt
-     }}
+    {token, %UserToken{token: token, context: "session", user_id: user.id, authenticated_at: dt}}
   end
 
   @doc """
@@ -70,7 +70,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema do
       from token in by_token_and_context_query(token, "session"),
         join: user in assoc(token, :user),
         where: token.inserted_at > ago(@session_validity_in_days, "day"),
-        select: {user, token}
+        select: {%{user | authenticated_at: token.authenticated_at}, token.inserted_at}
 
     {:ok, query}
   end
@@ -97,7 +97,7 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema do
     hashed_token = :crypto.hash(@hash_algorithm, token)
 
     {Base.url_encode64(token, padding: false),
-     %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema{
+     %UserToken{
        token: hashed_token,
        context: context,
        sent_to: sent_to,
@@ -138,32 +138,6 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema do
 
   The query returns the user_token found by the token, if any.
 
-  This is used to validate email confirmation requests.
-  The given token is valid if it matches its hashed counterpart in the
-  database and if it has not expired (after @confirmation_validity_in_days).
-  The context is always "confirm".
-  """
-  def verify_confirmation_token_query(token) do
-    case Base.url_decode64(token, padding: false) do
-      {:ok, decoded_token} ->
-        hashed_token = :crypto.hash(@hash_algorithm, decoded_token)
-
-        query =
-          from token in by_token_and_context_query(hashed_token, "confirm"),
-            where: token.inserted_at > ago(@confirmation_validity_in_days, "day")
-
-        {:ok, query}
-
-      :error ->
-        :error
-    end
-  end
-
-  @doc """
-  Checks if the token is valid and returns its underlying lookup query.
-
-  The query returns the user_token found by the token, if any.
-
   This is used to validate requests to change the user
   email.
   The given token is valid if it matches its hashed counterpart in the
@@ -187,6 +161,6 @@ defmodule PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema do
   end
 
   defp by_token_and_context_query(token, context) do
-    from UserTokenSchema, where: [token: ^token, context: ^context]
+    from UserToken, where: [token: ^token, context: ^context]
   end
 end
