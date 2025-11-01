@@ -1,6 +1,8 @@
 defmodule PrimeYouthWeb.AboutLive do
   use PrimeYouthWeb, :live_view
 
+  import PrimeYouthWeb.Live.SampleFixtures, except: [core_values: 0, key_features: 0, stats: 0]
+
   alias PrimeYouthWeb.UIComponents
 
   @impl true
@@ -125,16 +127,7 @@ defmodule PrimeYouthWeb.AboutLive do
     """
   end
 
-  # Helper functions
-  defp sample_user do
-    %{
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
-    }
-  end
-
+  # Helper functions (keeping core_values since it may have local variations)
   defp core_values do
     [
       %{

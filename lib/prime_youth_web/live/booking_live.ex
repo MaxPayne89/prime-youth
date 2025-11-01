@@ -2,6 +2,7 @@ defmodule PrimeYouthWeb.BookingLive do
   use PrimeYouthWeb, :live_view
 
   import PrimeYouthWeb.BookingComponents
+  import PrimeYouthWeb.Live.SampleFixtures, except: [get_program_by_id: 1]
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
@@ -12,7 +13,7 @@ defmodule PrimeYouthWeb.BookingLive do
       |> assign(page_title: "Enrollment - #{program.title}")
       |> assign(current_user: sample_user())
       |> assign(program: program)
-      |> assign(children: sample_children())
+      |> assign(children: sample_children(:simple))
       |> assign(selected_child_id: "emma")
       |> assign(special_requirements: "")
       |> assign(payment_method: "card")
@@ -271,23 +272,7 @@ defmodule PrimeYouthWeb.BookingLive do
     """
   end
 
-  # Sample data
-  defp sample_user do
-    %{
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
-    }
-  end
-
-  defp sample_children do
-    [
-      %{id: "emma", name: "Emma Johnson", age: 8},
-      %{id: "liam", name: "Liam Johnson", age: 6}
-    ]
-  end
-
+  # Helper functions (keeping program-specific logic)
   defp get_program_by_id("1") do
     %{
       id: "1",

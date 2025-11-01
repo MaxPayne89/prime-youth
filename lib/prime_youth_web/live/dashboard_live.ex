@@ -2,6 +2,7 @@ defmodule PrimeYouthWeb.DashboardLive do
   use PrimeYouthWeb, :live_view
 
   import PrimeYouthWeb.CompositeComponents
+  import PrimeYouthWeb.Live.SampleFixtures
 
   @impl true
   def mount(_params, _session, socket) do
@@ -10,7 +11,7 @@ defmodule PrimeYouthWeb.DashboardLive do
       |> assign(page_title: "Dashboard")
       |> assign(current_user: sample_user())
       |> assign(user: sample_user())
-      |> assign(children: sample_children())
+      |> assign(children: sample_children(:extended))
       |> assign(upcoming_activities: sample_upcoming_activities())
 
     {:ok, socket}
@@ -173,67 +174,5 @@ defmodule PrimeYouthWeb.DashboardLive do
       </div>
     </div>
     """
-  end
-
-  # Sample data functions
-  defp sample_user do
-    %{
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
-    }
-  end
-
-  defp sample_children do
-    [
-      %{
-        id: 1,
-        name: "Emma Johnson",
-        age: 8,
-        school: "Greenwood Elementary",
-        sessions: "8/10",
-        progress: 80,
-        activities: ["Art", "Chess", "Swimming"]
-      },
-      %{
-        id: 2,
-        name: "Liam Johnson",
-        age: 6,
-        school: "Sunny Hills Kindergarten",
-        sessions: "6/8",
-        progress: 75,
-        activities: ["Soccer", "Music"]
-      }
-    ]
-  end
-
-  defp sample_upcoming_activities do
-    [
-      %{
-        id: 1,
-        name: "Creative Art World",
-        instructor: "Ms. Rodriguez",
-        time: "Today, 4:00 PM",
-        status: "Today",
-        status_color: "bg-red-100 text-red-700"
-      },
-      %{
-        id: 2,
-        name: "Chess Masters",
-        instructor: "Mr. Chen",
-        time: "Tomorrow, 3:30 PM",
-        status: "Tomorrow",
-        status_color: "bg-orange-100 text-orange-700"
-      },
-      %{
-        id: 3,
-        name: "Swimming Lessons",
-        instructor: "Coach Davis",
-        time: "Friday, 2:00 PM",
-        status: "This Week",
-        status_color: "bg-blue-100 text-blue-700"
-      }
-    ]
   end
 end

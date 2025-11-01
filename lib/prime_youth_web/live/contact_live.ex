@@ -1,6 +1,8 @@
 defmodule PrimeYouthWeb.ContactLive do
   use PrimeYouthWeb, :live_view
 
+  import PrimeYouthWeb.Live.SampleFixtures, except: [contact_methods: 0, office_hours: 0]
+
   alias PrimeYouthWeb.UIComponents
 
   @impl true
@@ -221,16 +223,7 @@ defmodule PrimeYouthWeb.ContactLive do
     """
   end
 
-  # Helper functions
-  defp sample_user do
-    %{
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
-    }
-  end
-
+  # Helper functions (keeping local implementations that differ from fixtures)
   defp contact_methods do
     [
       %{

@@ -2,6 +2,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
   use PrimeYouthWeb, :live_view
 
   import PrimeYouthWeb.CompositeComponents
+  import PrimeYouthWeb.Live.SampleFixtures
 
   @impl true
   def mount(_params, _session, socket) do
@@ -159,16 +160,6 @@ defmodule PrimeYouthWeb.HighlightsLive do
       </div>
     </div>
     """
-  end
-
-  # Sample data
-  defp sample_user do
-    %{
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
-    }
   end
 
   # Helper to toggle like on a post

@@ -2,6 +2,7 @@ defmodule PrimeYouthWeb.SettingsLive do
   use PrimeYouthWeb, :live_view
 
   import PrimeYouthWeb.CompositeComponents
+  import PrimeYouthWeb.Live.SampleFixtures
 
   @impl true
   def mount(_params, _session, socket) do
@@ -324,16 +325,5 @@ defmodule PrimeYouthWeb.SettingsLive do
       </div>
     </div>
     """
-  end
-
-  # Sample data
-  defp sample_user do
-    %{
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face",
-      children_summary: "Emma (8), Liam (6) • 2 children"
-    }
   end
 end
