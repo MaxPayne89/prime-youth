@@ -8,9 +8,9 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
     test "renders login page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
-      assert html =~ "Log in"
+      assert html =~ "Welcome Back"
       assert html =~ "Register"
-      assert html =~ "Log in with email"
+      assert html =~ "Send Magic Link"
     end
   end
 
@@ -21,7 +21,7 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
       {:ok, _lv, html} =
-        form(lv, "#login_form_magic", user: %{email: user.email})
+        form(lv, "#login_form_magic_mobile", user: %{email: user.email})
         |> render_submit()
         |> follow_redirect(conn, ~p"/users/log-in")
 
@@ -35,7 +35,7 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
       {:ok, _lv, html} =
-        form(lv, "#login_form_magic", user: %{email: "idonotexist@example.com"})
+        form(lv, "#login_form_magic_mobile", user: %{email: "idonotexist@example.com"})
         |> render_submit()
         |> follow_redirect(conn, ~p"/users/log-in")
 
@@ -48,6 +48,9 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
       user = user_fixture() |> set_password()
 
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
+
+      # Toggle to password form
+      lv |> element("button", "Or use password") |> render_click()
 
       form =
         form(lv, "#login_form_password",
@@ -63,6 +66,9 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
       conn: conn
     } do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
+
+      # Toggle to password form
+      lv |> element("button", "Or use password") |> render_click()
 
       form =
         form(lv, "#login_form_password", user: %{email: "test@email.com", password: "123456"})
@@ -81,7 +87,7 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
 
       {:ok, _login_live, login_html} =
         lv
-        |> element("main a", "Sign up")
+        |> element("main a", "Register")
         |> render_click()
         |> follow_redirect(conn, ~p"/users/register")
 
@@ -100,10 +106,10 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
 
       assert html =~ "You need to reauthenticate"
       refute html =~ "Register"
-      assert html =~ "Log in with email"
+      assert html =~ "Send Magic Link"
 
       assert html =~
-               ~s(<input type="email" name="user[email]" id="login_form_magic_email" value="#{user.email}")
+               ~s(<input type="email" name="user[email]" id="login_form_magic_mobile_email" value="#{user.email}")
     end
   end
 end

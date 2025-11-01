@@ -24,7 +24,7 @@ defmodule PrimeYouthWeb.Features.LoginFeatureTest do
 
       # Verify token was created
       assert PrimeYouth.Repo.exists?(
-               from t in PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserTokenSchema,
+               from t in PrimeYouth.Accounts.UserToken,
                  where: t.user_id == ^user.id and t.context == "login"
              )
     end
@@ -36,7 +36,7 @@ defmodule PrimeYouthWeb.Features.LoginFeatureTest do
       |> visit("/users/log-in")
       |> assert_has("button", text: "Send Magic Link")
       |> click_button("Or use password")
-      |> assert_has("button", text: "Sign In")
+      |> assert_has("button", text: "Log in and stay logged in")
       |> assert_has("input[type='password']")
     end
 
