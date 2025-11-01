@@ -154,13 +154,17 @@
         </div>
       </div>
     </div>
-    
+
 <!-- Page content -->
     <main class="flex-1 relative z-0">
       <.flash_group flash={@flash} />
-      {@inner_content}
+      <%= if assigns[:inner_content] do %>
+        {@inner_content}
+      <% else %>
+        <%= render_slot(@inner_block) %>
+      <% end %>
     </main>
-    
+
 <!-- Footer -->
     <footer class="footer footer-center p-10 bg-white/20 backdrop-blur-lg text-white">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl">

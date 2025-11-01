@@ -1,13 +1,11 @@
 defmodule PrimeYouthWeb.UserAuth do
   use PrimeYouthWeb, :verified_routes
 
-  import Phoenix.Controller
   import Plug.Conn
+  import Phoenix.Controller
 
-  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
-  alias PrimeYouth.Auth.Application.UseCases.{CreateSession, InvalidateSession}
-  alias PrimeYouth.Auth.Infrastructure.Scope
-  alias PrimeYouth.Auth.Queries
+  alias PrimeYouth.Accounts
+  alias PrimeYouth.Accounts.Scope
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.
@@ -49,14 +47,14 @@ defmodule PrimeYouthWeb.UserAuth do
   """
   def log_out_user(conn) do
     user_token = get_session(conn, :user_token)
-    user_token && InvalidateSession.execute(user_token)
+    user_token && Accounts.delete_user_session_token(user_token)
 
     if live_socket_id = get_session(conn, :live_socket_id) do
       PrimeYouthWeb.Endpoint.broadcast(live_socket_id, "disconnect", %{})
     end
 
     conn
-    |> renew_session(nil, %{})
+    |> renew_session(nil)
     |> delete_resp_cookie(@remember_me_cookie)
     |> redirect(to: ~p"/")
   end
@@ -68,12 +66,12 @@ defmodule PrimeYouthWeb.UserAuth do
   """
   def fetch_current_scope_for_user(conn, _opts) do
     with {token, conn} <- ensure_user_token(conn),
-         {:ok, {user, token_inserted_at}} <- Queries.get_user_by_session_token(token) do
+         {user, token_inserted_at} <- Accounts.get_user_by_session_token(token) do
       conn
       |> assign(:current_scope, Scope.for_user(user))
       |> maybe_reissue_user_session_token(user, token_inserted_at)
     else
-      _ -> assign(conn, :current_scope, Scope.for_user(nil))
+      nil -> assign(conn, :current_scope, Scope.for_user(nil))
     end
   end
 
@@ -85,6 +83,8 @@ defmodule PrimeYouthWeb.UserAuth do
 
       if token = conn.cookies[@remember_me_cookie] do
         {token, conn |> put_token_in_session(token) |> put_session(:user_remember_me, true)}
+      else
+        nil
       end
     end
   end
@@ -109,39 +109,18 @@ defmodule PrimeYouthWeb.UserAuth do
   # function will clear the session to avoid fixation attacks. See the
   # renew_session function to customize this behaviour.
   defp create_or_extend_session(conn, user, params) do
-    # Convert schema user to domain user if needed
-    domain_user =
-      case user do
-        %PrimeYouth.Auth.Domain.Models.User{} = u ->
-          u
-
-        %PrimeYouth.Auth.Adapters.Driven.Persistence.Schemas.UserSchema{} = schema_user ->
-          {:ok, u} = UserRepository.find_by_id(schema_user.id)
-          u
-      end
-
-    {:ok, token} = CreateSession.execute(domain_user)
+    token = Accounts.generate_user_session_token(user)
     remember_me = get_session(conn, :user_remember_me)
 
     conn
-    |> renew_session(user, params)
+    |> renew_session(user)
     |> put_token_in_session(token)
     |> maybe_write_remember_me_cookie(token, params, remember_me)
   end
 
-  # Force session renewal for security-sensitive operations like password changes.
-  # This ensures a completely fresh session even if the user is already logged in.
-  defp renew_session(conn, _user, %{"force_session_renewal" => true}) do
-    delete_csrf_token()
-
-    conn
-    |> configure_session(renew: true)
-    |> clear_session()
-  end
-
   # Do not renew session if the user is already logged in
   # to prevent CSRF errors or data being lost in tabs that are still open
-  defp renew_session(conn, user, _params) when conn.assigns.current_scope.user.id == user.id do
+  defp renew_session(conn, user) when conn.assigns.current_scope.user.id == user.id do
     conn
   end
 
@@ -151,7 +130,7 @@ defmodule PrimeYouthWeb.UserAuth do
   # you must explicitly fetch the session data before clearing
   # and then immediately set it after clearing, for example:
   #
-  #     defp renew_session(conn, _user, _params) do
+  #     defp renew_session(conn, _user) do
   #       delete_csrf_token()
   #       preferred_locale = get_session(conn, :preferred_locale)
   #
@@ -161,7 +140,7 @@ defmodule PrimeYouthWeb.UserAuth do
   #       |> put_session(:preferred_locale, preferred_locale)
   #     end
   #
-  defp renew_session(conn, _user, _params) do
+  defp renew_session(conn, _user) do
     delete_csrf_token()
 
     conn
@@ -169,15 +148,9 @@ defmodule PrimeYouthWeb.UserAuth do
     |> clear_session()
   end
 
-  # Handle nested params from controller (e.g., %{"user" => %{"remember_me" => "true"}})
-  defp maybe_write_remember_me_cookie(conn, token, %{"user" => %{"remember_me" => "true"}}, _),
-    do: write_remember_me_cookie(conn, token)
-
-  # Handle top-level params from direct calls (e.g., %{"remember_me" => "true"})
   defp maybe_write_remember_me_cookie(conn, token, %{"remember_me" => "true"}, _),
     do: write_remember_me_cookie(conn, token)
 
-  # Handle remember_me from previous session
   defp maybe_write_remember_me_cookie(conn, token, _params, true),
     do: write_remember_me_cookie(conn, token)
 
@@ -260,8 +233,7 @@ defmodule PrimeYouthWeb.UserAuth do
   def on_mount(:require_sudo_mode, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
-    if socket.assigns.current_scope && socket.assigns.current_scope.user &&
-         Queries.sudo_mode?(socket.assigns.current_scope.user, -10) do
+    if Accounts.sudo_mode?(socket.assigns.current_scope.user, -10) do
       {:cont, socket}
     else
       socket =
@@ -275,13 +247,10 @@ defmodule PrimeYouthWeb.UserAuth do
 
   defp mount_current_scope(socket, session) do
     Phoenix.Component.assign_new(socket, :current_scope, fn ->
-      user =
+      {user, _} =
         if user_token = session["user_token"] do
-          case Queries.get_user_by_session_token(user_token) do
-            {:ok, {user, _}} -> user
-            _ -> nil
-          end
-        end
+          Accounts.get_user_by_session_token(user_token)
+        end || {nil, nil}
 
       Scope.for_user(user)
     end)
@@ -289,8 +258,7 @@ defmodule PrimeYouthWeb.UserAuth do
 
   @doc "Returns the path to redirect to after log in."
   # the user was already logged in, redirect to settings
-  def signed_in_path(%Plug.Conn{assigns: %{current_scope: %Scope{user: user}}})
-      when not is_nil(user) do
+  def signed_in_path(%Plug.Conn{assigns: %{current_scope: %Scope{user: %Accounts.User{}}}}) do
     ~p"/users/settings"
   end
 

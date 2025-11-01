@@ -1,13 +1,12 @@
 defmodule PrimeYouthWeb.UserAuthTest do
   use PrimeYouthWeb.ConnCase, async: true
 
-  import PrimeYouth.AuthFixtures
-
   alias Phoenix.LiveView
-  alias PrimeYouth.Auth.Adapters.Driven.Persistence.Repositories.UserRepository
-  alias PrimeYouth.Auth.Infrastructure.Scope
-  alias PrimeYouth.Auth.Queries
+  alias PrimeYouth.Accounts
+  alias PrimeYouth.Accounts.Scope
   alias PrimeYouthWeb.UserAuth
+
+  import PrimeYouth.AccountsFixtures
 
   @remember_me_cookie "_prime_youth_web_user_remember_me"
   @remember_me_cookie_max_age 60 * 60 * 24 * 14
@@ -18,8 +17,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       |> Map.replace!(:secret_key_base, PrimeYouthWeb.Endpoint.config(:secret_key_base))
       |> init_test_session(%{})
 
-    # user_fixture() now sets authenticated_at via LoginWithMagicLink
-    %{user: user_fixture(), conn: conn}
+    %{user: %{user_fixture() | authenticated_at: DateTime.utc_now(:second)}, conn: conn}
   end
 
   describe "log_in_user/3" do
@@ -28,7 +26,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       assert token = get_session(conn, :user_token)
       assert get_session(conn, :live_socket_id) == "users_sessions:#{Base.url_encode64(token)}"
       assert redirected_to(conn) == ~p"/"
-      assert {:ok, {_user, _inserted_at}} = Queries.get_user_by_session_token(token)
+      assert Accounts.get_user_by_session_token(token)
     end
 
     test "clears everything previously stored in the session", %{conn: conn, user: user} do
@@ -110,8 +108,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
   describe "logout_user/1" do
     test "erases session and cookies", %{conn: conn, user: user} do
-      {:ok, domain_user} = UserRepository.find_by_id(user.id)
-      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
+      user_token = Accounts.generate_user_session_token(user)
 
       conn =
         conn
@@ -124,7 +121,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       refute conn.cookies[@remember_me_cookie]
       assert %{max_age: 0} = conn.resp_cookies[@remember_me_cookie]
       assert redirected_to(conn) == ~p"/"
-      assert {:error, :not_found} = Queries.get_user_by_session_token(user_token)
+      refute Accounts.get_user_by_session_token(user_token)
     end
 
     test "broadcasts to the given live_socket_id", %{conn: conn} do
@@ -148,17 +145,13 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
   describe "fetch_current_scope_for_user/2" do
     test "authenticates user from session", %{conn: conn, user: user} do
-      {:ok, domain_user} = UserRepository.find_by_id(user.id)
-      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
-
-      # Get the user with authenticated_at from the session token
-      {:ok, {user_with_auth, _inserted_at}} = Queries.get_user_by_session_token(user_token)
+      user_token = Accounts.generate_user_session_token(user)
 
       conn =
         conn |> put_session(:user_token, user_token) |> UserAuth.fetch_current_scope_for_user([])
 
       assert conn.assigns.current_scope.user.id == user.id
-      assert conn.assigns.current_scope.user.authenticated_at == user_with_auth.authenticated_at
+      assert conn.assigns.current_scope.user.authenticated_at == user.authenticated_at
       assert get_session(conn, :user_token) == user_token
     end
 
@@ -169,16 +162,13 @@ defmodule PrimeYouthWeb.UserAuthTest do
       user_token = logged_in_conn.cookies[@remember_me_cookie]
       %{value: signed_token} = logged_in_conn.resp_cookies[@remember_me_cookie]
 
-      # Get the user with authenticated_at from the session token
-      {:ok, {user_with_auth, _inserted_at}} = Queries.get_user_by_session_token(user_token)
-
       conn =
         conn
         |> put_req_cookie(@remember_me_cookie, signed_token)
         |> UserAuth.fetch_current_scope_for_user([])
 
       assert conn.assigns.current_scope.user.id == user.id
-      assert conn.assigns.current_scope.user.authenticated_at == user_with_auth.authenticated_at
+      assert conn.assigns.current_scope.user.authenticated_at == user.authenticated_at
       assert get_session(conn, :user_token) == user_token
       assert get_session(conn, :user_remember_me)
 
@@ -187,11 +177,10 @@ defmodule PrimeYouthWeb.UserAuthTest do
     end
 
     test "does not authenticate if data is missing", %{conn: conn, user: user} do
-      {:ok, domain_user} = UserRepository.find_by_id(user.id)
-      {:ok, _user_token} = UserRepository.generate_session_token(domain_user)
+      _ = Accounts.generate_user_session_token(user)
       conn = UserAuth.fetch_current_scope_for_user(conn, [])
       refute get_session(conn, :user_token)
-      assert conn.assigns.current_scope == %Scope{user: nil}
+      refute conn.assigns.current_scope
     end
 
     test "reissues a new token after a few days and refreshes cookie", %{conn: conn, user: user} do
@@ -202,7 +191,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       %{value: signed_token} = logged_in_conn.resp_cookies[@remember_me_cookie]
 
       offset_user_token(token, -10, :day)
-      {:ok, {user, _}} = Queries.get_user_by_session_token(token)
+      {user, _} = Accounts.get_user_by_session_token(token)
 
       conn =
         conn
@@ -227,8 +216,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
     end
 
     test "assigns current_scope based on a valid user_token", %{conn: conn, user: user} do
-      {:ok, domain_user} = UserRepository.find_by_id(user.id)
-      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
+      user_token = Accounts.generate_user_session_token(user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       {:cont, updated_socket} =
@@ -244,7 +232,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       {:cont, updated_socket} =
         UserAuth.on_mount(:mount_current_scope, %{}, session, %LiveView.Socket{})
 
-      assert updated_socket.assigns.current_scope == %Scope{user: nil}
+      assert updated_socket.assigns.current_scope == nil
     end
 
     test "assigns nil to current_scope assign if there isn't a user_token", %{conn: conn} do
@@ -253,14 +241,13 @@ defmodule PrimeYouthWeb.UserAuthTest do
       {:cont, updated_socket} =
         UserAuth.on_mount(:mount_current_scope, %{}, session, %LiveView.Socket{})
 
-      assert updated_socket.assigns.current_scope == %Scope{user: nil}
+      assert updated_socket.assigns.current_scope == nil
     end
   end
 
   describe "on_mount :require_authenticated" do
     test "authenticates current_scope based on a valid user_token", %{conn: conn, user: user} do
-      {:ok, domain_user} = UserRepository.find_by_id(user.id)
-      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
+      user_token = Accounts.generate_user_session_token(user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       {:cont, updated_socket} =
@@ -275,11 +262,11 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
       socket = %LiveView.Socket{
         endpoint: PrimeYouthWeb.Endpoint,
-        assigns: %{__changed__: %{flash: %{}}, flash: %{}}
+        assigns: %{__changed__: %{}, flash: %{}}
       }
 
       {:halt, updated_socket} = UserAuth.on_mount(:require_authenticated, %{}, session, socket)
-      assert updated_socket.assigns.current_scope == %Scope{user: nil}
+      assert updated_socket.assigns.current_scope == nil
     end
 
     test "redirects to login page if there isn't a user_token", %{conn: conn} do
@@ -287,23 +274,22 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
       socket = %LiveView.Socket{
         endpoint: PrimeYouthWeb.Endpoint,
-        assigns: %{__changed__: %{flash: %{}}, flash: %{}}
+        assigns: %{__changed__: %{}, flash: %{}}
       }
 
       {:halt, updated_socket} = UserAuth.on_mount(:require_authenticated, %{}, session, socket)
-      assert updated_socket.assigns.current_scope == %Scope{user: nil}
+      assert updated_socket.assigns.current_scope == nil
     end
   end
 
   describe "on_mount :require_sudo_mode" do
     test "allows users that have authenticated in the last 10 minutes", %{conn: conn, user: user} do
-      {:ok, domain_user} = UserRepository.find_by_id(user.id)
-      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
+      user_token = Accounts.generate_user_session_token(user)
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{
         endpoint: PrimeYouthWeb.Endpoint,
-        assigns: %{__changed__: %{flash: %{}}, flash: %{}}
+        assigns: %{__changed__: %{}, flash: %{}}
       }
 
       assert {:cont, _updated_socket} =
@@ -311,17 +297,16 @@ defmodule PrimeYouthWeb.UserAuthTest do
     end
 
     test "redirects when authentication is too old", %{conn: conn, user: user} do
-      {:ok, domain_user} = UserRepository.find_by_id(user.id)
-      {:ok, user_token} = UserRepository.generate_session_token(domain_user)
-
-      # Offset the token's authenticated_at to 11 minutes ago
-      offset_user_token(user_token, -11, :minute)
-
+      eleven_minutes_ago = DateTime.utc_now(:second) |> DateTime.add(-11, :minute)
+      user = %{user | authenticated_at: eleven_minutes_ago}
+      user_token = Accounts.generate_user_session_token(user)
+      {user, token_inserted_at} = Accounts.get_user_by_session_token(user_token)
+      assert DateTime.compare(token_inserted_at, user.authenticated_at) == :gt
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{
         endpoint: PrimeYouthWeb.Endpoint,
-        assigns: %{__changed__: %{flash: %{}}, flash: %{}}
+        assigns: %{__changed__: %{}, flash: %{}}
       }
 
       assert {:halt, _updated_socket} =
