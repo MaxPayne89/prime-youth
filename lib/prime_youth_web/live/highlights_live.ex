@@ -83,7 +83,9 @@ defmodule PrimeYouthWeb.HighlightsLive do
   @impl true
   def handle_event("add_comment", %{"post_id" => post_id, "comment" => comment_text}, socket) do
     case String.trim(comment_text) do
-      "" -> {:noreply, socket}
+      "" ->
+        {:noreply, socket}
+
       trimmed_comment ->
         posts = Enum.map(socket.assigns.posts, &add_comment_to_post(&1, post_id, trimmed_comment))
         {:noreply, assign(socket, posts: posts)}
