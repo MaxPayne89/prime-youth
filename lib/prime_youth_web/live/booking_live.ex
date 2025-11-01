@@ -79,10 +79,16 @@ defmodule PrimeYouthWeb.BookingLive do
     <div class="min-h-screen bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400">
       <div class="max-w-4xl mx-auto px-4 py-6">
         <!-- Header -->
-        <div class="flex items-center gap-4 mb-6">
-          <.back_button phx-click="back_to_program" />
-          <h1 class="text-3xl font-bold text-white">Enrollment</h1>
-        </div>
+        <.page_header
+          variant={:gradient}
+          show_back_button
+          phx-click="back_to_program"
+          class="!p-0 !bg-transparent !shadow-none mb-6"
+        >
+          <:title>
+            <h1 class="text-3xl font-bold text-white">Enrollment</h1>
+          </:title>
+        </.page_header>
         
     <!-- Activity Summary -->
         <div class="mb-6">

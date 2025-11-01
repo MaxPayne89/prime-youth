@@ -34,12 +34,10 @@ defmodule PrimeYouthWeb.SettingsLive do
     ~H"""
     <div class="min-h-screen bg-gray-50">
       <!-- Header -->
-      <div class="bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white p-6">
-        <div class="max-w-4xl mx-auto">
-          <h1 class="text-2xl font-bold">Settings</h1>
-          <p class="text-white/80 text-sm mt-1">Manage your account and preferences</p>
-        </div>
-      </div>
+      <.page_header variant={:gradient} container_class="max-w-4xl mx-auto">
+        <:title>Settings</:title>
+        <:subtitle>Manage your account and preferences</:subtitle>
+      </.page_header>
       
     <!-- Content -->
       <div class="max-w-4xl mx-auto p-4 space-y-4">

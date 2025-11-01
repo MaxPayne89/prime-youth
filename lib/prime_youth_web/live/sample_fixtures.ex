@@ -27,7 +27,8 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
       name: "Sarah Johnson",
       email: "sarah.johnson@example.com",
       avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
+        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face",
+      children_summary: "Emma (8), Liam (6)"
     }
   end
 

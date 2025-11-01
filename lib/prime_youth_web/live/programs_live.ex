@@ -57,18 +57,20 @@ defmodule PrimeYouthWeb.ProgramsLive do
     ~H"""
     <div class="min-h-screen bg-gray-50 pb-20 md:pb-6">
       <!-- Header -->
-      <div class="bg-white p-6 shadow-sm">
-        <div class="flex items-center justify-between mb-4">
-          <h1 class="text-2xl font-bold text-gray-900">Programs</h1>
+      <.page_header>
+        <:title>Programs</:title>
+        <:actions>
           <.icon_button
             icon_path="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
             variant="light"
             class="text-gray-600"
             aria_label="More options"
           />
-        </div>
-        
-    <!-- Search Bar -->
+        </:actions>
+      </.page_header>
+
+      <div class="p-6">
+        <!-- Search Bar -->
         <.search_bar
           placeholder="Search programs..."
           value={@search_query}
@@ -83,10 +85,8 @@ defmodule PrimeYouthWeb.ProgramsLive do
           active_filter={@active_filter}
           phx-click="filter_select"
         />
-      </div>
-      
+        
     <!-- Programs List -->
-      <div class="p-6">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <.program_card
             :for={program <- filtered_programs(@programs, @search_query, @active_filter)}

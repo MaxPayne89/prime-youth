@@ -99,25 +99,29 @@ defmodule PrimeYouthWeb.HighlightsLive do
     <div class="min-h-screen bg-gradient-to-br from-prime-cyan-400/10 via-prime-magenta-400/10 to-prime-yellow-400/10">
       <div class="max-w-2xl mx-auto px-4 py-6">
         <!-- Header -->
-        <div class="flex items-center justify-between mb-6">
-          <h1 class="text-3xl font-bold text-gray-800">Highlights</h1>
-          <button class="btn btn-circle btn-ghost">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
-            </svg>
-          </button>
-        </div>
+        <.page_header class="!p-0 !bg-transparent !shadow-none mb-6">
+          <:title>
+            <h1 class="text-3xl font-bold text-gray-800">Highlights</h1>
+          </:title>
+          <:actions>
+            <button class="btn btn-circle btn-ghost">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+            </button>
+          </:actions>
+        </.page_header>
         
     <!-- Feed Posts -->
         <div class="space-y-4">

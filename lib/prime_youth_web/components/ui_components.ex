@@ -831,6 +831,133 @@ defmodule PrimeYouthWeb.UIComponents do
   defp variant_wrapper_classes("minimal"), do: "bg-white"
 
   @doc """
+  Renders a unified page header with support for multiple layouts and styles.
+
+  This component consolidates various header patterns used across LiveViews,
+  providing consistent spacing, typography, and responsive behavior.
+
+  ## Variants
+  - `:white` - White background with dark text (default)
+  - `:gradient` - Gradient background with white text
+
+  ## Examples
+
+      # Simple white header with title
+      <.page_header>
+        <:title>Programs</:title>
+      </.page_header>
+
+      # Gradient header with title and subtitle
+      <.page_header variant={:gradient}>
+        <:title>Settings</:title>
+        <:subtitle>Manage your account and preferences</:subtitle>
+      </.page_header>
+
+      # Header with profile section (Dashboard)
+      <.page_header variant={:gradient} rounded>
+        <:profile>
+          <img src={@user.avatar} class="w-12 h-12 rounded-full" />
+          <div>
+            <h2 class="text-xl font-bold">{@user.name}</h2>
+            <p class="text-white/80 text-sm">{length(@children)} children enrolled</p>
+          </div>
+        </:profile>
+        <:actions>
+          <button>Settings</button>
+        </:actions>
+      </.page_header>
+
+      # Header with back button
+      <.page_header variant={:gradient} show_back_button>
+        <:title>Enrollment</:title>
+      </.page_header>
+
+      # Header with action buttons
+      <.page_header>
+        <:title>Programs</:title>
+        <:actions>
+          <button class="p-2">More options</button>
+        </:actions>
+      </.page_header>
+  """
+  attr :variant, :atom, default: :white, values: [:white, :gradient]
+
+  attr :gradient_class, :string,
+    default: "bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400"
+
+  attr :rounded, :boolean, default: false, doc: "Apply rounded-b-3xl style for Dashboard"
+  attr :show_back_button, :boolean, default: false
+
+  attr :container_class, :string,
+    default: nil,
+    doc: "Custom container class (e.g., max-w-4xl mx-auto)"
+
+  attr :class, :string, default: nil
+  attr :rest, :global
+
+  slot :title, doc: "Main header title (required unless using :profile slot)"
+  slot :subtitle
+  slot :profile, doc: "Profile section with avatar and user info (alternative to :title)"
+  slot :actions, doc: "Action buttons (settings, notifications, more options)"
+
+  def page_header(assigns) do
+    ~H"""
+    <div class={[
+      "p-6",
+      @variant == :gradient && [@gradient_class, "text-white"],
+      @variant == :white && "bg-white shadow-sm",
+      @rounded && "rounded-b-3xl",
+      @class
+    ]}>
+      <div class={[@container_class]}>
+        <%= if @profile != [] and @title == [] do %>
+          <%!-- Profile layout (Dashboard) --%>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              {render_slot(@profile)}
+            </div>
+
+            <div :if={@actions != []} class="flex space-x-2">
+              {render_slot(@actions)}
+            </div>
+          </div>
+        <% else %>
+          <%!-- Standard title layout --%>
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-4">
+              <.back_button :if={@show_back_button} {@rest} />
+              <div>
+                <h1 class={[
+                  "text-2xl font-bold",
+                  @variant == :white && "text-gray-900",
+                  @variant == :gradient && "text-white"
+                ]}>
+                  {render_slot(@title)}
+                </h1>
+                <p
+                  :if={@subtitle != []}
+                  class={[
+                    "text-sm mt-1",
+                    @variant == :white && "text-gray-600",
+                    @variant == :gradient && "text-white/80"
+                  ]}
+                >
+                  {render_slot(@subtitle)}
+                </p>
+              </div>
+            </div>
+
+            <div :if={@actions != []} class="flex space-x-2">
+              {render_slot(@actions)}
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a generic card container with flexible content slots.
 
   This is a foundational component for creating consistent card layouts throughout
