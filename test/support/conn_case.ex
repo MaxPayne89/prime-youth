@@ -17,6 +17,8 @@ defmodule PrimeYouthWeb.ConnCase do
 
   use ExUnit.CaseTemplate
 
+  alias PrimeYouth.Accounts.Scope
+
   using do
     quote do
       use PrimeYouthWeb, :verified_routes
@@ -90,7 +92,7 @@ defmodule PrimeYouthWeb.ConnCase do
   """
   def register_and_log_in_user(%{conn: conn} = context) do
     user = PrimeYouth.AccountsFixtures.user_fixture()
-    scope = PrimeYouth.Accounts.Scope.for_user(user)
+    scope = Scope.for_user(user)
 
     opts =
       context

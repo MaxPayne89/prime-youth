@@ -1,4 +1,12 @@
 defmodule PrimeYouth.Accounts.UserToken do
+  @moduledoc """
+  Schema and functions for managing user authentication tokens.
+
+  Handles session tokens, magic link tokens, and email change tokens.
+  Tokens are stored in the database with appropriate expiration times
+  and contexts for security and session management.
+  """
+
   use Ecto.Schema
 
   import Ecto.Query

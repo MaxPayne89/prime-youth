@@ -1,4 +1,11 @@
 defmodule PrimeYouth.Accounts.UserNotifier do
+  @moduledoc """
+  Handles email notifications for user account operations.
+
+  Delivers emails for account confirmation, magic link authentication,
+  password resets, and email change confirmations using Swoosh.
+  """
+
   import Swoosh.Email
 
   alias PrimeYouth.Accounts.User

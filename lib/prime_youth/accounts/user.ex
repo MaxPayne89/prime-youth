@@ -1,4 +1,12 @@
 defmodule PrimeYouth.Accounts.User do
+  @moduledoc """
+  User schema and changesets for authentication.
+
+  Defines the user data structure with email-based authentication,
+  password hashing with Bcrypt, and email confirmation tracking.
+  Provides changesets for registration, email changes, and password management.
+  """
+
   use Ecto.Schema
 
   import Ecto.Changeset

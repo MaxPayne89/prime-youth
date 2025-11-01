@@ -1,4 +1,12 @@
 defmodule PrimeYouthWeb.UserAuth do
+  @moduledoc """
+  Provides authentication plugs and helpers for user sessions.
+
+  This module handles user authentication, session management, and
+  route protection through Phoenix plugs. It manages session tokens,
+  remember-me cookies, and provides hooks for LiveView authentication.
+  """
+
   use PrimeYouthWeb, :verified_routes
 
   import Phoenix.Controller
