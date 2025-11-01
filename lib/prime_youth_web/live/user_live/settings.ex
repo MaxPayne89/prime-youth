@@ -24,7 +24,7 @@ defmodule PrimeYouthWeb.UserLive.Settings do
           autocomplete="username"
           required
         />
-        <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
+        <.button phx-disable-with="Changing...">Change Email</.button>
       </.form>
 
       <div class="divider" />
@@ -58,7 +58,7 @@ defmodule PrimeYouthWeb.UserLive.Settings do
           label="Confirm new password"
           autocomplete="new-password"
         />
-        <.button variant="primary" phx-disable-with="Saving...">
+        <.button phx-disable-with="Saving...">
           Save Password
         </.button>
       </.form>
