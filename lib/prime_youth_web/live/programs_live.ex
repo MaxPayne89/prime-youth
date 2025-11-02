@@ -8,14 +8,14 @@ defmodule PrimeYouthWeb.ProgramsLive do
     use PrimeYouthWeb.DevAuthToggle
   end
 
+  @valid_filters ["all", "available", "ages", "price"]
+
   @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
       |> assign(page_title: "Programs")
       |> assign(current_user: nil)
-      |> assign(search_query: "")
-      |> assign(active_filter: "all")
       |> assign(programs: sample_programs())
       |> assign(filters: filter_options())
 
@@ -23,13 +23,25 @@ defmodule PrimeYouthWeb.ProgramsLive do
   end
 
   @impl true
+  def handle_params(params, _uri, socket) do
+    socket =
+      socket
+      |> assign(search_query: sanitize_search_query(params["q"]))
+      |> assign(active_filter: validate_filter(params["filter"]))
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("search", %{"search" => query}, socket) do
-    {:noreply, assign(socket, search_query: query)}
+    params = build_query_params(socket.assigns, q: query)
+    {:noreply, push_patch(socket, to: ~p"/programs?#{params}")}
   end
 
   @impl true
   def handle_event("filter_select", %{"filter" => filter_id}, socket) do
-    {:noreply, assign(socket, active_filter: filter_id)}
+    params = build_query_params(socket.assigns, filter: filter_id)
+    {:noreply, push_patch(socket, to: ~p"/programs?#{params}")}
   end
 
   @impl true
@@ -51,6 +63,34 @@ defmodule PrimeYouthWeb.ProgramsLive do
       program ->
         {:noreply, push_navigate(socket, to: ~p"/programs/#{program.id}")}
     end
+  end
+
+  # Private helpers - URL and parameter handling
+  defp build_query_params(assigns, updates) do
+    # Convert keyword list updates to string-keyed map
+    updates_map =
+      updates
+      |> Map.new(fn {k, v} -> {to_string(k), v} end)
+
+    %{
+      "q" => assigns.search_query,
+      "filter" => assigns.active_filter
+    }
+    |> Map.merge(updates_map)
+    |> Enum.reject(fn {_k, v} -> v == "" || v == "all" end)
+    |> Map.new()
+  end
+
+  defp validate_filter(nil), do: "all"
+  defp validate_filter(filter) when filter in @valid_filters, do: filter
+  defp validate_filter(_invalid), do: "all"
+
+  defp sanitize_search_query(nil), do: ""
+
+  defp sanitize_search_query(query) do
+    query
+    |> String.trim()
+    |> String.slice(0, 100)
   end
 
   # Private helpers - Business logic
