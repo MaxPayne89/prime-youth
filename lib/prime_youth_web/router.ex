@@ -23,8 +23,8 @@ defmodule PrimeYouthWeb.Router do
     # Public routes (no authentication required)
     live_session :public, layout: {PrimeYouthWeb.Layouts, :app} do
       live "/", HomeLive, :index
-      live "/programs", ProgramsLive, :index
-      live "/programs/:id", ProgramDetailLive, :show
+      live "/programs", ProgramLive.Index, :index
+      live "/programs/:id", ProgramLive.Show, :show
       live "/about", AboutLive, :index
       live "/contact", ContactLive, :index
     end
