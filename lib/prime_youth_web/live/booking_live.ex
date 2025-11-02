@@ -4,6 +4,10 @@ defmodule PrimeYouthWeb.BookingLive do
   import PrimeYouthWeb.BookingComponents
   import PrimeYouthWeb.Live.SampleFixtures
 
+  if Mix.env() == :dev do
+    use PrimeYouthWeb.DevAuthToggle
+  end
+
   # Pricing constants
   @default_weekly_fee 45.00
   @default_weeks_count 8
@@ -62,12 +66,6 @@ defmodule PrimeYouthWeb.BookingLive do
          )
          |> redirect(to: ~p"/programs/#{program_for_redirect.id}")}
     end
-  end
-
-  @impl true
-  def handle_event("toggle_auth", _params, socket) do
-    new_user = if !socket.assigns.current_user, do: sample_user()
-    {:noreply, assign(socket, current_user: new_user)}
   end
 
   @impl true

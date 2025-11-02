@@ -4,6 +4,10 @@ defmodule PrimeYouthWeb.DashboardLive do
   import PrimeYouthWeb.CompositeComponents
   import PrimeYouthWeb.Live.SampleFixtures
 
+  if Mix.env() == :dev do
+    use PrimeYouthWeb.DevAuthToggle
+  end
+
   @impl true
   def mount(_params, _session, socket) do
     socket =
@@ -15,16 +19,6 @@ defmodule PrimeYouthWeb.DashboardLive do
       |> assign(upcoming_activities: sample_upcoming_activities())
 
     {:ok, socket}
-  end
-
-  @impl true
-  def handle_event("toggle_auth", _params, socket) do
-    new_user = if !socket.assigns.current_user, do: sample_user()
-
-    {:noreply,
-     socket
-     |> assign(current_user: new_user)
-     |> assign(user: new_user || %{name: "Guest", avatar: ""})}
   end
 
   @impl true
