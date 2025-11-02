@@ -13,6 +13,9 @@ defmodule PrimeYouth.Accounts.UserToken do
 
   alias PrimeYouth.Accounts.UserToken
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
+
   @hash_algorithm :sha256
   @rand_size 32
 
@@ -27,7 +30,7 @@ defmodule PrimeYouth.Accounts.UserToken do
     field :context, :string
     field :sent_to, :string
     field :authenticated_at, :utc_datetime
-    belongs_to :user, PrimeYouth.Accounts.User
+    belongs_to :user, PrimeYouth.Accounts.User, type: :binary_id
 
     timestamps(type: :utc_datetime, updated_at: false)
   end
