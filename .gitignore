@@ -43,3 +43,6 @@ npm-debug.log
 # IDE
 .idea/
 .mcp.json
+
+# specify
+.specify/
