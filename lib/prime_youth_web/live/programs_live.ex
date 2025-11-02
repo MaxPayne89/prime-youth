@@ -39,7 +39,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
       |> assign(search_query: search_query)
       |> assign(active_filter: active_filter)
       |> stream(:programs, filtered, reset: true)
-      |> assign(:programs_empty?, length(filtered) == 0)
+      |> assign(:programs_empty?, Enum.empty?(filtered))
 
     {:noreply, socket}
   end
@@ -183,7 +183,11 @@ defmodule PrimeYouthWeb.ProgramsLive do
         />
         
     <!-- Programs List -->
-        <div id="programs" phx-update="stream" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
+          id="programs"
+          phx-update="stream"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        >
           <.program_card
             :for={{dom_id, program} <- @streams.programs}
             id={dom_id}
@@ -193,7 +197,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
             phx-value-program={program.title}
           />
         </div>
-
+        
     <!-- Empty State -->
         <.empty_state
           :if={@programs_empty?}

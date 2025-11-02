@@ -5,6 +5,8 @@ defmodule PrimeYouthWeb.HighlightsLive do
 
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
+
+    import PrimeYouthWeb.Live.SampleFixtures
   end
 
   @impl true
@@ -68,7 +70,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
       |> assign(page_title: "Highlights")
       |> assign(current_user: nil)
       |> stream(:posts, posts)
-      |> assign(:posts_empty?, length(posts) == 0)
+      |> assign(:posts_empty?, Enum.empty?(posts))
 
     {:ok, socket}
   end

@@ -5,6 +5,8 @@ defmodule PrimeYouthWeb.AboutLive do
 
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
+
+    import PrimeYouthWeb.Live.SampleFixtures, except: [core_values: 0, key_features: 0, stats: 0]
   end
 
   @impl true

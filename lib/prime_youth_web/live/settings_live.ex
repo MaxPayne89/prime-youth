@@ -13,7 +13,6 @@ defmodule PrimeYouthWeb.SettingsLive do
     socket =
       socket
       |> assign(page_title: "Settings")
-      |> assign(current_user: sample_user())
       |> assign(user: sample_user())
 
     {:ok, socket}

@@ -16,11 +16,10 @@ defmodule PrimeYouthWeb.DashboardLive do
     socket =
       socket
       |> assign(page_title: "Dashboard")
-      |> assign(current_user: sample_user())
       |> assign(user: sample_user())
       |> stream(:children, children)
       |> stream(:upcoming_activities, activities)
-      |> assign(:activities_empty?, length(activities) == 0)
+      |> assign(:activities_empty?, Enum.empty?(activities))
 
     {:ok, socket}
   end
