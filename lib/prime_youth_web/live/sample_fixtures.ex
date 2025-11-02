@@ -235,11 +235,28 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
 
   @doc """
   Finds a program by its ID.
-  Returns the program if found, or the first program as a fallback.
+  Returns the program if found, or nil if not found.
+
+  ## Parameters
+    - id: Integer ID of the program to find
+
+  ## Returns
+    - Program map if found
+    - nil if not found
+
+  ## Examples
+      iex> get_program_by_id(1)
+      %{id: 1, title: "Creative Art World", ...}
+
+      iex> get_program_by_id(999)
+      nil
+
+  Note: This function expects an integer ID. Callers should validate and parse
+  the ID before calling this function.
   """
-  def get_program_by_id(id) do
+  def get_program_by_id(id) when is_integer(id) do
     programs = sample_programs(:detailed)
-    Enum.find(programs, fn p -> p.id == String.to_integer(id) end) || List.first(programs)
+    Enum.find(programs, fn p -> p.id == id end)
   end
 
   @doc """

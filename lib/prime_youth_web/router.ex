@@ -25,17 +25,18 @@ defmodule PrimeYouthWeb.Router do
       live "/", HomeLive, :index
       live "/programs", ProgramsLive, :index
       live "/programs/:id", ProgramDetailLive, :show
-      live "/programs/:id/booking", BookingLive, :new
       live "/about", AboutLive, :index
       live "/contact", ContactLive, :index
     end
 
     # Authenticated routes (require login)
-    # TODO: Add on_mount hook for authentication check
-    live_session :authenticated, layout: {PrimeYouthWeb.Layouts, :app} do
+    live_session :authenticated,
+      layout: {PrimeYouthWeb.Layouts, :app},
+      on_mount: [{PrimeYouthWeb.UserAuth, :require_authenticated}] do
       live "/dashboard", DashboardLive, :index
       live "/highlights", HighlightsLive, :index
       live "/settings", SettingsLive, :index
+      live "/programs/:id/booking", BookingLive, :new
     end
   end
 

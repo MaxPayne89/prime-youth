@@ -6,17 +6,34 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
-    program = get_program_by_id(program_id)
+    # Validate program_id format and fetch program
+    with {:ok, id_int} <- parse_program_id(program_id),
+         {:ok, program} <- fetch_program(id_int) do
+      socket =
+        socket
+        |> assign(page_title: program.title)
+        |> assign(current_user: nil)
+        |> assign(program: program)
+        |> assign(instructor: sample_instructor())
+        |> assign(reviews: sample_reviews())
 
-    socket =
-      socket
-      |> assign(page_title: program.title)
-      |> assign(current_user: nil)
-      |> assign(program: program)
-      |> assign(instructor: sample_instructor())
-      |> assign(reviews: sample_reviews())
+      {:ok, socket}
+    else
+      {:error, :invalid_id} ->
+        {:ok,
+         socket
+         |> put_flash(:error, "Invalid program ID")
+         |> redirect(to: ~p"/programs")}
 
-    {:ok, socket}
+      {:error, :not_found} ->
+        {:ok,
+         socket
+         |> put_flash(
+           :error,
+           "Program not found. It may have been removed or is no longer available."
+         )
+         |> redirect(to: ~p"/programs")}
+    end
   end
 
   @impl true
@@ -284,4 +301,19 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
   # Helper functions
   defp format_price(amount), do: "€#{amount}"
   defp format_total_price(weekly_amount), do: "€#{weekly_amount * 4}"
+
+  # Validation helpers
+  defp parse_program_id(id_string) do
+    case Integer.parse(id_string) do
+      {id, ""} when id > 0 -> {:ok, id}
+      _ -> {:error, :invalid_id}
+    end
+  end
+
+  defp fetch_program(id) do
+    case get_program_by_id(id) do
+      nil -> {:error, :not_found}
+      program -> {:ok, program}
+    end
+  end
 end

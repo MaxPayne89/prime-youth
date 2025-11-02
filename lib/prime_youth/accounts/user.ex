@@ -13,12 +13,47 @@ defmodule PrimeYouth.Accounts.User do
 
   schema "users" do
     field :email, :string
+    field :name, :string
+    field :avatar, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
 
     timestamps(type: :utc_datetime)
+  end
+
+  @doc """
+  A user changeset for registration.
+
+  Validates name and email fields, sets a default avatar.
+
+  ## Options
+
+    * `:validate_unique` - Set to false if you don't want to validate the
+      uniqueness of the email. Defaults to `true`.
+  """
+  def registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:name, :email, :avatar])
+    |> validate_required([:name, :email])
+    |> validate_length(:name, min: 2, max: 100)
+    |> put_default_avatar()
+    |> validate_email(opts)
+  end
+
+  defp put_default_avatar(changeset) do
+    case get_field(changeset, :avatar) do
+      nil ->
+        put_change(
+          changeset,
+          :avatar,
+          "https://ui-avatars.com/api/?name=#{URI.encode_www_form(get_field(changeset, :name) || "User")}&background=4F46E5&color=fff"
+        )
+
+      _ ->
+        changeset
+    end
   end
 
   @doc """

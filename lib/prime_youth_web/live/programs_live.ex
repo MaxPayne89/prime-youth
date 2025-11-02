@@ -43,12 +43,15 @@ defmodule PrimeYouthWeb.ProgramsLive do
   @impl true
   def handle_event("program_click", %{"program" => program_title}, socket) do
     # Find program by title and navigate to detail page
-    program = Enum.find(socket.assigns.programs, fn p -> p.title == program_title end)
+    case Enum.find(socket.assigns.programs, fn p -> p.title == program_title end) do
+      nil ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Program not found. Please try refreshing the page.")
+         |> push_patch(to: ~p"/programs")}
 
-    if program do
-      {:noreply, push_navigate(socket, to: ~p"/programs/#{program.id}")}
-    else
-      {:noreply, socket}
+      program ->
+        {:noreply, push_navigate(socket, to: ~p"/programs/#{program.id}")}
     end
   end
 

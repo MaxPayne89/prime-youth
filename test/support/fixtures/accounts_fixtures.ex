@@ -11,11 +11,21 @@ defmodule PrimeYouth.AccountsFixtures do
 
   def unique_user_email, do: "user#{System.unique_integer()}@example.com"
   def valid_user_password, do: "hello world!"
+  def unique_user_name, do: "Test User #{System.unique_integer()}"
 
   def valid_user_attributes(attrs \\ %{}) do
-    Enum.into(attrs, %{
-      email: unique_user_email()
-    })
+    attrs_map = Map.new(attrs)
+    name = Map.get(attrs_map, :name, unique_user_name())
+
+    Map.merge(
+      %{
+        email: unique_user_email(),
+        name: name,
+        avatar:
+          "https://ui-avatars.com/api/?name=#{URI.encode_www_form(name)}&background=4F46E5&color=fff"
+      },
+      attrs_map
+    )
   end
 
   def unconfirmed_user_fixture(attrs \\ %{}) do
