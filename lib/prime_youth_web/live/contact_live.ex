@@ -1,21 +1,24 @@
 defmodule PrimeYouthWeb.ContactLive do
   use PrimeYouthWeb, :live_view
 
+  alias PrimeYouthWeb.Forms.ContactForm
   alias PrimeYouthWeb.UIComponents
 
   if Mix.env() == :dev do
-    use PrimeYouthWeb.DevAuthToggle
-
     import PrimeYouthWeb.Live.SampleFixtures, except: [contact_methods: 0, office_hours: 0]
+
+    use PrimeYouthWeb.DevAuthToggle
   end
 
   @impl true
   def mount(_params, _session, socket) do
+    changeset = ContactForm.changeset(%ContactForm{}, %{})
+
     socket =
       socket
       |> assign(page_title: "Contact Us")
       |> assign(current_user: nil)
-      |> assign(form: to_form(%{}, as: :contact))
+      |> assign(form: to_form(changeset, as: :contact))
       |> assign(submission_status: nil)
 
     {:ok, socket}
@@ -23,19 +26,29 @@ defmodule PrimeYouthWeb.ContactLive do
 
   @impl true
   def handle_event("validate", %{"contact" => contact_params}, socket) do
-    form = to_form(contact_params, as: :contact)
-    {:noreply, assign(socket, form: form)}
+    changeset =
+      %ContactForm{}
+      |> ContactForm.changeset(contact_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, form: to_form(changeset, as: :contact))}
   end
 
   @impl true
-  def handle_event("submit", %{"contact" => _contact_params}, socket) do
-    # TODO: Implement actual contact form submission
-    # For now, just show success message
+  def handle_event("submit", %{"contact" => contact_params}, socket) do
+    changeset = ContactForm.changeset(%ContactForm{}, contact_params)
 
-    {:noreply,
-     socket
-     |> assign(submission_status: :success)
-     |> assign(form: to_form(%{}, as: :contact))}
+    case Ecto.Changeset.apply_action(changeset, :insert) do
+      {:ok, _contact} ->
+        # TODO: Implement actual contact form submission (send email, save to DB, etc.)
+        {:noreply,
+         socket
+         |> assign(submission_status: :success)
+         |> assign(form: to_form(ContactForm.changeset(%ContactForm{}, %{}), as: :contact))}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset, as: :contact))}
+    end
   end
 
   # Private helpers - Sample data (local variations from fixtures)
@@ -103,66 +116,33 @@ defmodule PrimeYouthWeb.ContactLive do
                   phx-submit="submit"
                   class="space-y-4"
                 >
-                  <div>
-                    <label for="contact_name" class="block text-sm font-medium text-gray-700 mb-1">
-                      Name
-                    </label>
-                    <input
-                      type="text"
-                      id="contact_name"
-                      name="contact[name]"
-                      value={@form[:name].value}
-                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent"
-                      required
-                    />
-                  </div>
+                  <.input field={@form[:name]} type="text" label="Name" required />
 
-                  <div>
-                    <label for="contact_email" class="block text-sm font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      id="contact_email"
-                      name="contact[email]"
-                      value={@form[:email].value}
-                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent"
-                      required
-                    />
-                  </div>
+                  <.input field={@form[:email]} type="email" label="Email" required />
 
-                  <div>
-                    <label for="contact_subject" class="block text-sm font-medium text-gray-700 mb-1">
-                      Subject
-                    </label>
-                    <select
-                      id="contact_subject"
-                      name="contact[subject]"
-                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent"
-                      required
-                    >
-                      <option value="">Select a topic...</option>
-                      <option value="general">General Inquiry</option>
-                      <option value="program">Program Question</option>
-                      <option value="booking">Booking Support</option>
-                      <option value="instructor">Instructor Application</option>
-                      <option value="technical">Technical Issue</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
+                  <.input
+                    field={@form[:subject]}
+                    type="select"
+                    label="Subject"
+                    prompt="Select a topic..."
+                    options={[
+                      {"General Inquiry", "general"},
+                      {"Program Question", "program"},
+                      {"Booking Support", "booking"},
+                      {"Instructor Application", "instructor"},
+                      {"Technical Issue", "technical"},
+                      {"Other", "other"}
+                    ]}
+                    required
+                  />
 
-                  <div>
-                    <label for="contact_message" class="block text-sm font-medium text-gray-700 mb-1">
-                      Message
-                    </label>
-                    <textarea
-                      id="contact_message"
-                      name="contact[message]"
-                      rows="5"
-                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent"
-                      required
-                    >{@form[:message].value}</textarea>
-                  </div>
+                  <.input
+                    field={@form[:message]}
+                    type="textarea"
+                    label="Message"
+                    rows="5"
+                    required
+                  />
 
                   <div
                     :if={@submission_status == :success}
