@@ -7,6 +7,7 @@ defmodule PrimeYouthWeb.Forms.ContactForm do
   """
 
   use Ecto.Schema
+
   import Ecto.Changeset
 
   @required_fields [:name, :email, :subject, :message]
