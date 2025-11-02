@@ -17,6 +17,7 @@ defmodule PrimeYouthWeb.DashboardLive do
       socket
       |> assign(page_title: "Dashboard")
       |> assign(user: sample_user())
+      |> assign(children_count: length(children))
       |> stream(:children, children)
       |> stream(:upcoming_activities, activities)
       |> assign(:activities_empty?, Enum.empty?(activities))
@@ -38,7 +39,7 @@ defmodule PrimeYouthWeb.DashboardLive do
           />
           <div>
             <h2 class="text-xl font-bold">{@user.name}</h2>
-            <p class="text-white/80 text-sm">{length(@children)} children enrolled</p>
+            <p class="text-white/80 text-sm">{@children_count} children enrolled</p>
           </div>
         </:profile>
         <:actions>
