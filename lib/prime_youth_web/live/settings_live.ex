@@ -2,22 +2,20 @@ defmodule PrimeYouthWeb.SettingsLive do
   use PrimeYouthWeb, :live_view
 
   import PrimeYouthWeb.CompositeComponents
+  import PrimeYouthWeb.Live.SampleFixtures
+
+  if Mix.env() == :dev do
+    use PrimeYouthWeb.DevAuthToggle
+  end
 
   @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
       |> assign(page_title: "Settings")
-      |> assign(current_user: sample_user())
       |> assign(user: sample_user())
 
     {:ok, socket}
-  end
-
-  @impl true
-  def handle_event("toggle_auth", _params, socket) do
-    new_user = if !socket.assigns.current_user, do: sample_user()
-    {:noreply, assign(socket, current_user: new_user, user: new_user)}
   end
 
   @impl true
@@ -33,12 +31,10 @@ defmodule PrimeYouthWeb.SettingsLive do
     ~H"""
     <div class="min-h-screen bg-gray-50">
       <!-- Header -->
-      <div class="bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white p-6">
-        <div class="max-w-4xl mx-auto">
-          <h1 class="text-2xl font-bold">Settings</h1>
-          <p class="text-white/80 text-sm mt-1">Manage your account and preferences</p>
-        </div>
-      </div>
+      <.page_header variant={:gradient} container_class="max-w-4xl mx-auto">
+        <:title>Settings</:title>
+        <:subtitle>Manage your account and preferences</:subtitle>
+      </.page_header>
       
     <!-- Content -->
       <div class="max-w-4xl mx-auto p-4 space-y-4">
@@ -324,16 +320,5 @@ defmodule PrimeYouthWeb.SettingsLive do
       </div>
     </div>
     """
-  end
-
-  # Sample data
-  defp sample_user do
-    %{
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face",
-      children_summary: "Emma (8), Liam (6) • 2 children"
-    }
   end
 end

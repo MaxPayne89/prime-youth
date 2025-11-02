@@ -2,28 +2,27 @@ defmodule PrimeYouthWeb.DashboardLive do
   use PrimeYouthWeb, :live_view
 
   import PrimeYouthWeb.CompositeComponents
+  import PrimeYouthWeb.Live.SampleFixtures
 
-  @impl true
-  def mount(_params, _session, socket) do
-    socket =
-      socket
-      |> assign(page_title: "Dashboard")
-      |> assign(current_user: sample_user())
-      |> assign(user: sample_user())
-      |> assign(children: sample_children())
-      |> assign(upcoming_activities: sample_upcoming_activities())
-
-    {:ok, socket}
+  if Mix.env() == :dev do
+    use PrimeYouthWeb.DevAuthToggle
   end
 
   @impl true
-  def handle_event("toggle_auth", _params, socket) do
-    new_user = if !socket.assigns.current_user, do: sample_user()
+  def mount(_params, _session, socket) do
+    activities = sample_upcoming_activities()
+    children = sample_children(:extended)
 
-    {:noreply,
-     socket
-     |> assign(current_user: new_user)
-     |> assign(user: new_user || %{name: "Guest", avatar: ""})}
+    socket =
+      socket
+      |> assign(page_title: "Dashboard")
+      |> assign(user: sample_user())
+      |> assign(children_count: length(children))
+      |> stream(:children, children)
+      |> stream(:upcoming_activities, activities)
+      |> assign(:activities_empty?, Enum.empty?(activities))
+
+    {:ok, socket}
   end
 
   @impl true
@@ -31,55 +30,53 @@ defmodule PrimeYouthWeb.DashboardLive do
     ~H"""
     <div class="min-h-screen bg-gray-50">
       <!-- Profile Header -->
-      <div class="bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white p-6 rounded-b-3xl">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-4">
-            <img
-              src={@user.avatar}
-              alt="Profile"
-              class="w-12 h-12 rounded-full border-2 border-white/30"
-            />
-            <div>
-              <h2 class="text-xl font-bold">{@user.name}</h2>
-              <p class="text-white/80 text-sm">{length(@children)} children enrolled</p>
-            </div>
+      <.page_header variant={:gradient} rounded>
+        <:profile>
+          <img
+            src={@user.avatar}
+            alt="Profile"
+            class="w-12 h-12 rounded-full border-2 border-white/30"
+          />
+          <div>
+            <h2 class="text-xl font-bold">{@user.name}</h2>
+            <p class="text-white/80 text-sm">{@children_count} children enrolled</p>
           </div>
-          <div class="flex space-x-2">
-            <button class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 17h5l-5 5-5-5h5v-7a1 1 0 011-1h3a1 1 0 011 1v7z"
-                >
-                </path>
-              </svg>
-            </button>
-            <.link
-              navigate={~p"/settings"}
-              class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                >
-                </path>
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                >
-                </path>
-              </svg>
-            </.link>
-          </div>
-        </div>
-      </div>
+        </:profile>
+        <:actions>
+          <button class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 17h5l-5 5-5-5h5v-7a1 1 0 011-1h3a1 1 0 011 1v7z"
+              >
+              </path>
+            </svg>
+          </button>
+          <.link
+            navigate={~p"/settings"}
+            class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              >
+              </path>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              >
+              </path>
+            </svg>
+          </.link>
+        </:actions>
+      </.page_header>
       
     <!-- Content Area -->
       <div class="p-6 space-y-6">
@@ -107,9 +104,14 @@ defmodule PrimeYouthWeb.DashboardLive do
               View All
             </button>
           </div>
-          <div class="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 md:gap-4 md:space-y-0">
+          <div
+            id="children"
+            phx-update="stream"
+            class="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 md:gap-4 md:space-y-0"
+          >
             <.child_card
-              :for={child <- @children}
+              :for={{dom_id, child} <- @streams.children}
+              id={dom_id}
               name={child.name}
               age={child.age}
               school={child.school}
@@ -159,9 +161,10 @@ defmodule PrimeYouthWeb.DashboardLive do
               View All
             </button>
           </div>
-          <div class="space-y-3">
+          <div id="upcoming-activities" phx-update="stream" class="space-y-3">
             <.activity_card
-              :for={activity <- @upcoming_activities}
+              :for={{dom_id, activity} <- @streams.upcoming_activities}
+              id={dom_id}
               status={activity.status}
               status_color={activity.status_color}
               time={activity.time}
@@ -169,71 +172,15 @@ defmodule PrimeYouthWeb.DashboardLive do
               instructor={activity.instructor}
             />
           </div>
+          <.empty_state
+            :if={@activities_empty?}
+            icon_path="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+            title="No upcoming activities"
+            description="Check back later for scheduled programs, or browse available programs to book a new activity."
+          />
         </div>
       </div>
     </div>
     """
-  end
-
-  # Sample data functions
-  defp sample_user do
-    %{
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
-    }
-  end
-
-  defp sample_children do
-    [
-      %{
-        id: 1,
-        name: "Emma Johnson",
-        age: 8,
-        school: "Greenwood Elementary",
-        sessions: "8/10",
-        progress: 80,
-        activities: ["Art", "Chess", "Swimming"]
-      },
-      %{
-        id: 2,
-        name: "Liam Johnson",
-        age: 6,
-        school: "Sunny Hills Kindergarten",
-        sessions: "6/8",
-        progress: 75,
-        activities: ["Soccer", "Music"]
-      }
-    ]
-  end
-
-  defp sample_upcoming_activities do
-    [
-      %{
-        id: 1,
-        name: "Creative Art World",
-        instructor: "Ms. Rodriguez",
-        time: "Today, 4:00 PM",
-        status: "Today",
-        status_color: "bg-red-100 text-red-700"
-      },
-      %{
-        id: 2,
-        name: "Chess Masters",
-        instructor: "Mr. Chen",
-        time: "Tomorrow, 3:30 PM",
-        status: "Tomorrow",
-        status_color: "bg-orange-100 text-orange-700"
-      },
-      %{
-        id: 3,
-        name: "Swimming Lessons",
-        instructor: "Coach Davis",
-        time: "Friday, 2:00 PM",
-        status: "This Week",
-        status_color: "bg-blue-100 text-blue-700"
-      }
-    ]
   end
 end

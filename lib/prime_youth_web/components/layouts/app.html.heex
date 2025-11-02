@@ -126,7 +126,11 @@
                 </li>
                 <div class="divider my-0"></div>
                 <li>
-                  <a phx-click="toggle_auth" class="text-red-600 hover:bg-red-50">
+                  <.link
+                    href={~p"/users/log-out"}
+                    method="delete"
+                    class="text-red-600 hover:bg-red-50"
+                  >
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
@@ -137,7 +141,7 @@
                       </path>
                     </svg>
                     Sign Out
-                  </a>
+                  </.link>
                 </li>
               </ul>
             </div>
@@ -274,9 +278,13 @@
             <li><.link navigate={~p"/highlights"}>Highlights</.link></li>
             <li><.link navigate={~p"/settings"}>Settings</.link></li>
             <li class="mt-4">
-              <a phx-click="toggle_auth" class="text-red-300 hover:text-red-100">
+              <.link
+                href={~p"/users/log-out"}
+                method="delete"
+                class="text-red-300 hover:text-red-100"
+              >
                 Sign Out
-              </a>
+              </.link>
             </li>
           <% else %>
             <li class="mt-4">

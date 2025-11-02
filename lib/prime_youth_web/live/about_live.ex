@@ -3,6 +3,12 @@ defmodule PrimeYouthWeb.AboutLive do
 
   alias PrimeYouthWeb.UIComponents
 
+  if Mix.env() == :dev do
+    use PrimeYouthWeb.DevAuthToggle
+
+    import PrimeYouthWeb.Live.SampleFixtures, except: [core_values: 0, key_features: 0, stats: 0]
+  end
+
   @impl true
   def mount(_params, _session, socket) do
     socket =
@@ -13,10 +19,74 @@ defmodule PrimeYouthWeb.AboutLive do
     {:ok, socket}
   end
 
-  @impl true
-  def handle_event("toggle_auth", _params, socket) do
-    new_user = if !socket.assigns.current_user, do: sample_user()
-    {:noreply, assign(socket, current_user: new_user)}
+  # Private helpers - Sample data (local variations from fixtures)
+  defp core_values do
+    [
+      %{
+        icon: "hero-star",
+        gradient: "bg-gradient-to-br from-prime-yellow-400 to-orange-500",
+        title: "Quality First",
+        description:
+          "We partner with qualified instructors who are passionate about youth development"
+      },
+      %{
+        icon: "hero-users",
+        gradient: "bg-gradient-to-br from-prime-cyan-400 to-blue-500",
+        title: "Accessibility",
+        description:
+          "Making enriching programs accessible to families through transparent pricing and easy booking"
+      },
+      %{
+        icon: "hero-shield-check",
+        gradient: "bg-gradient-to-br from-green-400 to-emerald-600",
+        title: "Safety",
+        description: "Verified instructors, secure facilities, and comprehensive safety protocols"
+      },
+      %{
+        icon: "hero-heart",
+        gradient: "bg-gradient-to-br from-prime-magenta-400 to-pink-500",
+        title: "Community",
+        description: "Building a supportive community of parents, instructors, and young learners"
+      }
+    ]
+  end
+
+  defp key_features do
+    [
+      %{
+        icon: "hero-magnifying-glass",
+        gradient: "bg-prime-cyan-100",
+        title: "Easy Discovery",
+        description: "Browse and filter programs by age, interest, location, and schedule"
+      },
+      %{
+        icon: "hero-calendar",
+        gradient: "bg-prime-magenta-100",
+        title: "Simple Booking",
+        description: "Book activities in minutes with clear pricing and flexible scheduling"
+      },
+      %{
+        icon: "hero-credit-card",
+        gradient: "bg-prime-yellow-100",
+        title: "Secure Payments",
+        description: "Safe, encrypted payment processing with multiple payment options"
+      },
+      %{
+        icon: "hero-chart-bar",
+        gradient: "bg-green-100",
+        title: "Progress Tracking",
+        description: "Monitor your child's participation and achievements in real-time"
+      }
+    ]
+  end
+
+  defp stats do
+    [
+      %{value: "500+", label: "Programs"},
+      %{value: "1,200+", label: "Students"},
+      %{value: "150+", label: "Instructors"},
+      %{value: "98%", label: "Satisfaction"}
+    ]
   end
 
   @impl true
@@ -24,15 +94,14 @@ defmodule PrimeYouthWeb.AboutLive do
     ~H"""
     <div class="min-h-screen bg-gray-50 pb-20 md:pb-6">
       <%!-- Hero Section --%>
-      <.page_hero
-        title="About Prime Youth"
-        subtitle="Empowering young minds through quality after-school programs"
+      <.hero_section
+        variant="page"
         gradient_class="bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400"
-        text_color="text-white"
-        show_back_button={true}
-        phx-click="navigate"
-        phx-value-to="/programs"
-      />
+        show_back_button
+      >
+        <:title>About Prime Youth</:title>
+        <:subtitle>Empowering young minds through quality after-school programs</:subtitle>
+      </.hero_section>
 
       <div class="max-w-4xl mx-auto p-6 space-y-8">
         <%!-- Mission Section --%>
@@ -123,84 +192,5 @@ defmodule PrimeYouthWeb.AboutLive do
       </div>
     </div>
     """
-  end
-
-  # Helper functions
-  defp sample_user do
-    %{
-      name: "Sarah Johnson",
-      email: "sarah.johnson@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face"
-    }
-  end
-
-  defp core_values do
-    [
-      %{
-        icon: "hero-star",
-        gradient: "bg-gradient-to-br from-prime-yellow-400 to-orange-500",
-        title: "Quality First",
-        description:
-          "We partner with qualified instructors who are passionate about youth development"
-      },
-      %{
-        icon: "hero-users",
-        gradient: "bg-gradient-to-br from-prime-cyan-400 to-blue-500",
-        title: "Accessibility",
-        description:
-          "Making enriching programs accessible to families through transparent pricing and easy booking"
-      },
-      %{
-        icon: "hero-shield-check",
-        gradient: "bg-gradient-to-br from-green-400 to-emerald-600",
-        title: "Safety",
-        description: "Verified instructors, secure facilities, and comprehensive safety protocols"
-      },
-      %{
-        icon: "hero-heart",
-        gradient: "bg-gradient-to-br from-prime-magenta-400 to-pink-500",
-        title: "Community",
-        description: "Building a supportive community of parents, instructors, and young learners"
-      }
-    ]
-  end
-
-  defp key_features do
-    [
-      %{
-        icon: "hero-magnifying-glass",
-        gradient: "bg-prime-cyan-100",
-        title: "Easy Discovery",
-        description: "Browse and filter programs by age, interest, location, and schedule"
-      },
-      %{
-        icon: "hero-calendar",
-        gradient: "bg-prime-magenta-100",
-        title: "Simple Booking",
-        description: "Book activities in minutes with clear pricing and flexible scheduling"
-      },
-      %{
-        icon: "hero-credit-card",
-        gradient: "bg-prime-yellow-100",
-        title: "Secure Payments",
-        description: "Safe, encrypted payment processing with multiple payment options"
-      },
-      %{
-        icon: "hero-chart-bar",
-        gradient: "bg-green-100",
-        title: "Progress Tracking",
-        description: "Monitor your child's participation and achievements in real-time"
-      }
-    ]
-  end
-
-  defp stats do
-    [
-      %{value: "500+", label: "Programs"},
-      %{value: "1,200+", label: "Students"},
-      %{value: "150+", label: "Instructors"},
-      %{value: "98%", label: "Satisfaction"}
-    ]
   end
 end
