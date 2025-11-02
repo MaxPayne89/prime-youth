@@ -119,6 +119,24 @@ defmodule PrimeYouthWeb.BookingLive do
     end
   end
 
+  # Private helpers - Data fetching
+  defp fetch_program(id) do
+    case get_program_by_id(id) do
+      nil -> {:error, :not_found}
+      program -> {:ok, program}
+    end
+  end
+
+  # Unsafe fetch for redirect purposes only - when we know we need a program ID for redirect
+  # but don't want to fail the entire mount
+  defp fetch_program_unsafe(program_id) do
+    case Integer.parse(program_id) do
+      {id, ""} -> get_program_by_id(id) || %{id: program_id}
+      _ -> %{id: program_id}
+    end
+  end
+
+  # Private helpers - Business logic
   defp calculate_totals(socket) do
     weekly_fee = socket.assigns.weekly_fee
     registration_fee = socket.assigns.registration_fee
@@ -136,6 +154,32 @@ defmodule PrimeYouthWeb.BookingLive do
     |> assign(vat_amount: vat_amount)
     |> assign(card_fee_amount: card_fee_amount)
     |> assign(total: total)
+  end
+
+  # Private helpers - Validation
+  defp parse_program_id(id_string) do
+    case Integer.parse(id_string) do
+      {id, ""} when id > 0 -> {:ok, id}
+      _ -> {:error, :invalid_id}
+    end
+  end
+
+  defp validate_program_availability(%{spots_left: spots_left}) when spots_left > 0, do: :ok
+  defp validate_program_availability(_program), do: {:error, :no_spots}
+
+  defp validate_enrollment_data(_socket, params) do
+    if is_nil(params["child_id"]) or params["child_id"] == "" do
+      {:error, :child_not_selected}
+    else
+      :ok
+    end
+  end
+
+  defp validate_payment_method(socket) do
+    case socket.assigns.payment_method do
+      method when method in ["card", "transfer"] -> :ok
+      _ -> {:error, :invalid_payment}
+    end
   end
 
   @impl true
@@ -342,47 +386,5 @@ defmodule PrimeYouthWeb.BookingLive do
       </div>
     </div>
     """
-  end
-
-  # Validation helpers
-  defp parse_program_id(id_string) do
-    case Integer.parse(id_string) do
-      {id, ""} when id > 0 -> {:ok, id}
-      _ -> {:error, :invalid_id}
-    end
-  end
-
-  defp fetch_program(id) do
-    case get_program_by_id(id) do
-      nil -> {:error, :not_found}
-      program -> {:ok, program}
-    end
-  end
-
-  defp validate_program_availability(%{spots_left: spots_left}) when spots_left > 0, do: :ok
-  defp validate_program_availability(_program), do: {:error, :no_spots}
-
-  # Unsafe fetch for redirect purposes only - when we know we need a program ID for redirect
-  # but don't want to fail the entire mount
-  defp fetch_program_unsafe(program_id) do
-    case Integer.parse(program_id) do
-      {id, ""} -> get_program_by_id(id) || %{id: program_id}
-      _ -> %{id: program_id}
-    end
-  end
-
-  defp validate_enrollment_data(_socket, params) do
-    if is_nil(params["child_id"]) or params["child_id"] == "" do
-      {:error, :child_not_selected}
-    else
-      :ok
-    end
-  end
-
-  defp validate_payment_method(socket) do
-    case socket.assigns.payment_method do
-      method when method in ["card", "transfer"] -> :ok
-      _ -> {:error, :invalid_payment}
-    end
   end
 end

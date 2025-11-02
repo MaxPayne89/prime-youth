@@ -21,6 +21,76 @@ defmodule PrimeYouthWeb.AboutLive do
     {:noreply, assign(socket, current_user: new_user)}
   end
 
+  # Private helpers - Sample data (local variations from fixtures)
+  defp core_values do
+    [
+      %{
+        icon: "hero-star",
+        gradient: "bg-gradient-to-br from-prime-yellow-400 to-orange-500",
+        title: "Quality First",
+        description:
+          "We partner with qualified instructors who are passionate about youth development"
+      },
+      %{
+        icon: "hero-users",
+        gradient: "bg-gradient-to-br from-prime-cyan-400 to-blue-500",
+        title: "Accessibility",
+        description:
+          "Making enriching programs accessible to families through transparent pricing and easy booking"
+      },
+      %{
+        icon: "hero-shield-check",
+        gradient: "bg-gradient-to-br from-green-400 to-emerald-600",
+        title: "Safety",
+        description: "Verified instructors, secure facilities, and comprehensive safety protocols"
+      },
+      %{
+        icon: "hero-heart",
+        gradient: "bg-gradient-to-br from-prime-magenta-400 to-pink-500",
+        title: "Community",
+        description: "Building a supportive community of parents, instructors, and young learners"
+      }
+    ]
+  end
+
+  defp key_features do
+    [
+      %{
+        icon: "hero-magnifying-glass",
+        gradient: "bg-prime-cyan-100",
+        title: "Easy Discovery",
+        description: "Browse and filter programs by age, interest, location, and schedule"
+      },
+      %{
+        icon: "hero-calendar",
+        gradient: "bg-prime-magenta-100",
+        title: "Simple Booking",
+        description: "Book activities in minutes with clear pricing and flexible scheduling"
+      },
+      %{
+        icon: "hero-credit-card",
+        gradient: "bg-prime-yellow-100",
+        title: "Secure Payments",
+        description: "Safe, encrypted payment processing with multiple payment options"
+      },
+      %{
+        icon: "hero-chart-bar",
+        gradient: "bg-green-100",
+        title: "Progress Tracking",
+        description: "Monitor your child's participation and achievements in real-time"
+      }
+    ]
+  end
+
+  defp stats do
+    [
+      %{value: "500+", label: "Programs"},
+      %{value: "1,200+", label: "Students"},
+      %{value: "150+", label: "Instructors"},
+      %{value: "98%", label: "Satisfaction"}
+    ]
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -124,75 +194,5 @@ defmodule PrimeYouthWeb.AboutLive do
       </div>
     </div>
     """
-  end
-
-  # Helper functions (keeping core_values since it may have local variations)
-  defp core_values do
-    [
-      %{
-        icon: "hero-star",
-        gradient: "bg-gradient-to-br from-prime-yellow-400 to-orange-500",
-        title: "Quality First",
-        description:
-          "We partner with qualified instructors who are passionate about youth development"
-      },
-      %{
-        icon: "hero-users",
-        gradient: "bg-gradient-to-br from-prime-cyan-400 to-blue-500",
-        title: "Accessibility",
-        description:
-          "Making enriching programs accessible to families through transparent pricing and easy booking"
-      },
-      %{
-        icon: "hero-shield-check",
-        gradient: "bg-gradient-to-br from-green-400 to-emerald-600",
-        title: "Safety",
-        description: "Verified instructors, secure facilities, and comprehensive safety protocols"
-      },
-      %{
-        icon: "hero-heart",
-        gradient: "bg-gradient-to-br from-prime-magenta-400 to-pink-500",
-        title: "Community",
-        description: "Building a supportive community of parents, instructors, and young learners"
-      }
-    ]
-  end
-
-  defp key_features do
-    [
-      %{
-        icon: "hero-magnifying-glass",
-        gradient: "bg-prime-cyan-100",
-        title: "Easy Discovery",
-        description: "Browse and filter programs by age, interest, location, and schedule"
-      },
-      %{
-        icon: "hero-calendar",
-        gradient: "bg-prime-magenta-100",
-        title: "Simple Booking",
-        description: "Book activities in minutes with clear pricing and flexible scheduling"
-      },
-      %{
-        icon: "hero-credit-card",
-        gradient: "bg-prime-yellow-100",
-        title: "Secure Payments",
-        description: "Safe, encrypted payment processing with multiple payment options"
-      },
-      %{
-        icon: "hero-chart-bar",
-        gradient: "bg-green-100",
-        title: "Progress Tracking",
-        description: "Monitor your child's participation and achievements in real-time"
-      }
-    ]
-  end
-
-  defp stats do
-    [
-      %{value: "500+", label: "Programs"},
-      %{value: "1,200+", label: "Students"},
-      %{value: "150+", label: "Instructors"},
-      %{value: "98%", label: "Satisfaction"}
-    ]
   end
 end

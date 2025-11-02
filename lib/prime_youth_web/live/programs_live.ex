@@ -55,6 +55,47 @@ defmodule PrimeYouthWeb.ProgramsLive do
     end
   end
 
+  # Private helpers - Business logic
+  defp filtered_programs(programs, search_query, filter) do
+    programs
+    |> filter_by_search(search_query)
+    |> filter_by_category(filter)
+  end
+
+  defp filter_by_search(programs, ""), do: programs
+
+  defp filter_by_search(programs, query) do
+    query_lower = String.downcase(query)
+
+    Enum.filter(programs, fn program ->
+      String.contains?(String.downcase(program.title), query_lower) ||
+        String.contains?(String.downcase(program.description), query_lower)
+    end)
+  end
+
+  defp filter_by_category(programs, "all"), do: programs
+
+  defp filter_by_category(programs, "available") do
+    Enum.filter(programs, &(&1.spots_left > 0))
+  end
+
+  defp filter_by_category(programs, "ages") do
+    # Sort by age range (youngest first)
+    Enum.sort_by(programs, &extract_min_age(&1.age_range))
+  end
+
+  defp filter_by_category(programs, "price") do
+    # Sort by price (lowest first)
+    Enum.sort_by(programs, & &1.price)
+  end
+
+  defp extract_min_age(age_range) do
+    age_range
+    |> String.split("-")
+    |> List.first()
+    |> String.to_integer()
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -110,46 +151,5 @@ defmodule PrimeYouthWeb.ProgramsLive do
       </div>
     </div>
     """
-  end
-
-  # Helper functions
-  defp filtered_programs(programs, search_query, filter) do
-    programs
-    |> filter_by_search(search_query)
-    |> filter_by_category(filter)
-  end
-
-  defp filter_by_search(programs, ""), do: programs
-
-  defp filter_by_search(programs, query) do
-    query_lower = String.downcase(query)
-
-    Enum.filter(programs, fn program ->
-      String.contains?(String.downcase(program.title), query_lower) ||
-        String.contains?(String.downcase(program.description), query_lower)
-    end)
-  end
-
-  defp filter_by_category(programs, "all"), do: programs
-
-  defp filter_by_category(programs, "available") do
-    Enum.filter(programs, &(&1.spots_left > 0))
-  end
-
-  defp filter_by_category(programs, "ages") do
-    # Sort by age range (youngest first)
-    Enum.sort_by(programs, &extract_min_age(&1.age_range))
-  end
-
-  defp filter_by_category(programs, "price") do
-    # Sort by price (lowest first)
-    Enum.sort_by(programs, & &1.price)
-  end
-
-  defp extract_min_age(age_range) do
-    age_range
-    |> String.split("-")
-    |> List.first()
-    |> String.to_integer()
   end
 end

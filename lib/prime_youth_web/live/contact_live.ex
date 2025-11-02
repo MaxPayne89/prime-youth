@@ -40,6 +40,41 @@ defmodule PrimeYouthWeb.ContactLive do
      |> assign(form: to_form(%{}, as: :contact))}
   end
 
+  # Private helpers - Sample data (local variations from fixtures)
+  defp contact_methods do
+    [
+      %{
+        icon: "hero-envelope",
+        gradient: "bg-gradient-to-br from-prime-cyan-400 to-blue-500",
+        title: "Email",
+        value: "support@primeyouth.com",
+        note: "We respond within 24 hours"
+      },
+      %{
+        icon: "hero-phone",
+        gradient: "bg-gradient-to-br from-prime-magenta-400 to-pink-500",
+        title: "Phone",
+        value: "+1 (555) 123-4567",
+        note: "Mon-Fri, 9am-5pm EST"
+      },
+      %{
+        icon: "hero-map-pin",
+        gradient: "bg-gradient-to-br from-prime-yellow-400 to-orange-500",
+        title: "Address",
+        value: "123 Youth Avenue, Suite 100",
+        note: "New York, NY 10001"
+      }
+    ]
+  end
+
+  defp office_hours do
+    [
+      %{days: "Monday - Friday", hours: "9:00 AM - 6:00 PM"},
+      %{days: "Saturday", hours: "10:00 AM - 4:00 PM"},
+      %{days: "Sunday", hours: "Closed"}
+    ]
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -220,40 +255,5 @@ defmodule PrimeYouthWeb.ContactLive do
       </div>
     </div>
     """
-  end
-
-  # Helper functions (keeping local implementations that differ from fixtures)
-  defp contact_methods do
-    [
-      %{
-        icon: "hero-envelope",
-        gradient: "bg-gradient-to-br from-prime-cyan-400 to-blue-500",
-        title: "Email",
-        value: "support@primeyouth.com",
-        note: "We respond within 24 hours"
-      },
-      %{
-        icon: "hero-phone",
-        gradient: "bg-gradient-to-br from-prime-magenta-400 to-pink-500",
-        title: "Phone",
-        value: "+1 (555) 123-4567",
-        note: "Mon-Fri, 9am-5pm EST"
-      },
-      %{
-        icon: "hero-map-pin",
-        gradient: "bg-gradient-to-br from-prime-yellow-400 to-orange-500",
-        title: "Address",
-        value: "123 Youth Avenue, Suite 100",
-        note: "New York, NY 10001"
-      }
-    ]
-  end
-
-  defp office_hours do
-    [
-      %{days: "Monday - Friday", hours: "9:00 AM - 6:00 PM"},
-      %{days: "Saturday", hours: "10:00 AM - 4:00 PM"},
-      %{days: "Sunday", hours: "Closed"}
-    ]
   end
 end

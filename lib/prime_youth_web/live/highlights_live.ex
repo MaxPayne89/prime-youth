@@ -93,6 +93,24 @@ defmodule PrimeYouthWeb.HighlightsLive do
     end
   end
 
+  # Private helpers - Business logic
+  defp toggle_post_like(post, post_id) when post.id == post_id do
+    if post.user_liked do
+      %{post | user_liked: false, likes: post.likes - 1}
+    else
+      %{post | user_liked: true, likes: post.likes + 1}
+    end
+  end
+
+  defp toggle_post_like(post, _post_id), do: post
+
+  defp add_comment_to_post(post, post_id, comment_text) when post.id == post_id do
+    new_comment = %{author: "You", text: comment_text}
+    %{post | comments: post.comments ++ [new_comment], comment_count: post.comment_count + 1}
+  end
+
+  defp add_comment_to_post(post, _post_id, _comment_text), do: post
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -171,23 +189,4 @@ defmodule PrimeYouthWeb.HighlightsLive do
     </div>
     """
   end
-
-  # Helper to toggle like on a post
-  defp toggle_post_like(post, post_id) when post.id == post_id do
-    if post.user_liked do
-      %{post | user_liked: false, likes: post.likes - 1}
-    else
-      %{post | user_liked: true, likes: post.likes + 1}
-    end
-  end
-
-  defp toggle_post_like(post, _post_id), do: post
-
-  # Helper to add comment to a post
-  defp add_comment_to_post(post, post_id, comment_text) when post.id == post_id do
-    new_comment = %{author: "You", text: comment_text}
-    %{post | comments: post.comments ++ [new_comment], comment_count: post.comment_count + 1}
-  end
-
-  defp add_comment_to_post(post, _post_id, _comment_text), do: post
 end

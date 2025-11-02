@@ -70,6 +70,26 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
     {:noreply, socket}
   end
 
+  # Private helpers - Presentation
+  defp format_price(amount), do: "€#{amount}"
+  defp format_total_price(weekly_amount), do: "€#{weekly_amount * 4}"
+
+  # Private helpers - Validation
+  defp parse_program_id(id_string) do
+    case Integer.parse(id_string) do
+      {id, ""} when id > 0 -> {:ok, id}
+      _ -> {:error, :invalid_id}
+    end
+  end
+
+  # Private helpers - Data fetching
+  defp fetch_program(id) do
+    case get_program_by_id(id) do
+      nil -> {:error, :not_found}
+      program -> {:ok, program}
+    end
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -296,24 +316,5 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
       </div>
     </div>
     """
-  end
-
-  # Helper functions
-  defp format_price(amount), do: "€#{amount}"
-  defp format_total_price(weekly_amount), do: "€#{weekly_amount * 4}"
-
-  # Validation helpers
-  defp parse_program_id(id_string) do
-    case Integer.parse(id_string) do
-      {id, ""} when id > 0 -> {:ok, id}
-      _ -> {:error, :invalid_id}
-    end
-  end
-
-  defp fetch_program(id) do
-    case get_program_by_id(id) do
-      nil -> {:error, :not_found}
-      program -> {:ok, program}
-    end
   end
 end
