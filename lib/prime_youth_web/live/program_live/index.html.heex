@@ -1,0 +1,153 @@
+<div class="min-h-screen bg-gray-50">
+  <%!-- Search and Filter Header --%>
+  <div class="bg-white border-b border-gray-200 sticky top-0 z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <%!-- Search Bar --%>
+      <form phx-submit="search" class="mb-4">
+        <div class="relative">
+          <input
+            type="text"
+            name="query"
+            value={@search_query}
+            placeholder="Search programs..."
+            class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+          <%= if @search_query != "" do %>
+            <button
+              type="button"
+              phx-click="clear_search"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          <% end %>
+        </div>
+      </form>
+
+      <%!-- Filter Pills --%>
+      <div class="flex items-center gap-2 overflow-x-auto pb-2">
+        <button
+          phx-click="clear_filters"
+          class="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 rounded-full hover:bg-gray-200 whitespace-nowrap"
+        >
+          All Programs
+        </button>
+        <%= if @filters[:category] do %>
+          <span class="px-3 py-1 text-sm font-medium text-indigo-700 bg-indigo-100 rounded-full whitespace-nowrap">
+            {@filters[:category]}
+          </span>
+        <% end %>
+        <%= if @filters[:age_min] || @filters[:age_max] do %>
+          <span class="px-3 py-1 text-sm font-medium text-indigo-700 bg-indigo-100 rounded-full whitespace-nowrap">
+            Ages {@filters[:age_min] || "0"}-{@filters[:age_max] || "18"}
+          </span>
+        <% end %>
+        <%= if @filters[:city] do %>
+          <span class="px-3 py-1 text-sm font-medium text-indigo-700 bg-indigo-100 rounded-full whitespace-nowrap">
+            {@filters[:city]}
+          </span>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <%!-- Programs Grid --%>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <%= if @loading do %>
+      <div class="flex justify-center items-center h-64">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    <% else %>
+      <%= if @programs == [] do %>
+        <div class="text-center py-12">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">No programs found</h3>
+          <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filters</p>
+          <%= if @filters != %{} || @search_query != "" do %>
+            <button
+              phx-click="clear_filters"
+              class="mt-4 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+            >
+              Clear filters
+            </button>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <%= for program <- @programs do %>
+            <.link navigate={~p"/programs/#{program.id}"} class="group">
+              <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
+                <%!-- Program Image --%>
+                <div class="aspect-video bg-gray-200 relative">
+                  <%= if program.featured do %>
+                    <span class="absolute top-2 right-2 px-2 py-1 text-xs font-semibold text-white bg-indigo-600 rounded-full">
+                      Featured
+                    </span>
+                  <% end %>
+                  <%= if program.is_prime_youth do %>
+                    <span class="absolute top-2 left-2 px-2 py-1 text-xs font-semibold text-white bg-green-600 rounded-full">
+                      Prime Youth
+                    </span>
+                  <% end %>
+                </div>
+
+                <%!-- Program Details --%>
+                <div class="p-4">
+                  <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 line-clamp-2">
+                    {program.title}
+                  </h3>
+                  
+                  <p class="mt-2 text-sm text-gray-600 line-clamp-2">
+                    {program.description}
+                  </p>
+
+                  <div class="mt-4 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-medium text-gray-500 uppercase">
+                        {program.category}
+                      </span>
+                      <span class="text-xs text-gray-400">
+                        Ages {program.age_min}-{program.age_max}
+                      </span>
+                    </div>
+
+                    <div class="text-right">
+                      <%= if program.price_amount && Decimal.compare(program.price_amount, 0) == :gt do %>
+                        <p class="text-lg font-bold text-gray-900">
+                          ${Decimal.to_string(program.price_amount)}
+                        </p>
+                        <%= if program.has_discount && program.discount_amount && Decimal.compare(program.discount_amount, 0) == :gt do %>
+                          <p class="text-xs text-green-600">
+                            ${Decimal.to_string(program.discount_amount)} off
+                          </p>
+                        <% end %>
+                      <% else %>
+                        <p class="text-lg font-bold text-green-600">
+                          Free
+                        </p>
+                      <% end %>
+                    </div>
+                  </div>
+
+                  <%= if program.locations && length(program.locations) > 0 do %>
+                    <div class="mt-2 flex items-center text-xs text-gray-500">
+                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {List.first(program.locations).city}, {List.first(program.locations).state}
+                    </div>
+                  <% end %>
+                </div>
+              </div>
+            </.link>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+</div>
