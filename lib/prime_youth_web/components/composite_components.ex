@@ -276,6 +276,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
         </:comments>
       </.social_post>
   """
+  attr :id, :string, required: true, doc: "DOM ID for the post element (required for streams)"
   attr :post_id, :string, required: true
   attr :author, :string, required: true
   attr :avatar_bg, :string, required: true
@@ -293,7 +294,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
 
   def social_post(assigns) do
     ~H"""
-    <div class={["card bg-white shadow-lg", @class]}>
+    <div id={@id} class={["card bg-white shadow-lg", @class]}>
       <div class="card-body p-4">
         <!-- Post Header -->
         <div class="flex items-center gap-3 mb-4">

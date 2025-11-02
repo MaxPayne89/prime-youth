@@ -12,11 +12,14 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    programs = sample_programs()
+
     socket =
       socket
       |> assign(page_title: "Programs")
       |> assign(current_user: nil)
-      |> assign(programs: sample_programs())
+      |> stream(:programs, programs)
+      |> assign(programs_count: length(programs))
       |> assign(filters: filter_options())
 
     {:ok, socket}
@@ -24,10 +27,19 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
   @impl true
   def handle_params(params, _uri, socket) do
+    search_query = sanitize_search_query(params["q"])
+    active_filter = validate_filter(params["filter"])
+
+    # Re-fetch and filter programs based on params
+    programs = sample_programs()
+    filtered = filtered_programs(programs, search_query, active_filter)
+
     socket =
       socket
-      |> assign(search_query: sanitize_search_query(params["q"]))
-      |> assign(active_filter: validate_filter(params["filter"]))
+      |> assign(search_query: search_query)
+      |> assign(active_filter: active_filter)
+      |> stream(:programs, filtered, reset: true)
+      |> assign(:programs_empty?, length(filtered) == 0)
 
     {:noreply, socket}
   end
@@ -53,7 +65,9 @@ defmodule PrimeYouthWeb.ProgramsLive do
   @impl true
   def handle_event("program_click", %{"program" => program_title}, socket) do
     # Find program by title and navigate to detail page
-    case Enum.find(socket.assigns.programs, fn p -> p.title == program_title end) do
+    programs = sample_programs()
+
+    case Enum.find(programs, fn p -> p.title == program_title end) do
       nil ->
         {:noreply,
          socket
@@ -169,19 +183,20 @@ defmodule PrimeYouthWeb.ProgramsLive do
         />
         
     <!-- Programs List -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="programs" phx-update="stream" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <.program_card
-            :for={program <- filtered_programs(@programs, @search_query, @active_filter)}
+            :for={{dom_id, program} <- @streams.programs}
+            id={dom_id}
             program={program}
             variant={:detailed}
             phx-click="program_click"
             phx-value-program={program.title}
           />
         </div>
-        
+
     <!-- Empty State -->
         <.empty_state
-          :if={Enum.empty?(filtered_programs(@programs, @search_query, @active_filter))}
+          :if={@programs_empty?}
           icon_path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           title="No programs found"
           description="Try adjusting your search or filter criteria."

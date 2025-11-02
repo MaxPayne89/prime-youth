@@ -10,13 +10,17 @@ defmodule PrimeYouthWeb.DashboardLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    activities = sample_upcoming_activities()
+    children = sample_children(:extended)
+
     socket =
       socket
       |> assign(page_title: "Dashboard")
       |> assign(current_user: sample_user())
       |> assign(user: sample_user())
-      |> assign(children: sample_children(:extended))
-      |> assign(upcoming_activities: sample_upcoming_activities())
+      |> stream(:children, children)
+      |> stream(:upcoming_activities, activities)
+      |> assign(:activities_empty?, length(activities) == 0)
 
     {:ok, socket}
   end
@@ -100,9 +104,14 @@ defmodule PrimeYouthWeb.DashboardLive do
               View All
             </button>
           </div>
-          <div class="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 md:gap-4 md:space-y-0">
+          <div
+            id="children"
+            phx-update="stream"
+            class="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 md:gap-4 md:space-y-0"
+          >
             <.child_card
-              :for={child <- @children}
+              :for={{dom_id, child} <- @streams.children}
+              id={dom_id}
               name={child.name}
               age={child.age}
               school={child.school}
@@ -152,22 +161,23 @@ defmodule PrimeYouthWeb.DashboardLive do
               View All
             </button>
           </div>
-          <div class="space-y-3">
+          <div id="upcoming-activities" phx-update="stream" class="space-y-3">
             <.activity_card
-              :for={activity <- @upcoming_activities}
+              :for={{dom_id, activity} <- @streams.upcoming_activities}
+              id={dom_id}
               status={activity.status}
               status_color={activity.status_color}
               time={activity.time}
               name={activity.name}
               instructor={activity.instructor}
             />
-            <.empty_state
-              :if={Enum.empty?(@upcoming_activities)}
-              icon_path="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-              title="No upcoming activities"
-              description="Check back later for scheduled programs, or browse available programs to book a new activity."
-            />
           </div>
+          <.empty_state
+            :if={@activities_empty?}
+            icon_path="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+            title="No upcoming activities"
+            description="Check back later for scheduled programs, or browse available programs to book a new activity."
+          />
         </div>
       </div>
     </div>
