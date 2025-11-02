@@ -4,6 +4,9 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
   import PrimeYouthWeb.Live.SampleFixtures
   import PrimeYouthWeb.ReviewComponents
 
+  # Pricing constants
+  @default_weeks_count 4
+
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
     # Validate program_id format and fetch program
@@ -72,7 +75,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
 
   # Private helpers - Presentation
   defp format_price(amount), do: "€#{amount}"
-  defp format_total_price(weekly_amount), do: "€#{weekly_amount * 4}"
+  defp format_total_price(weekly_amount), do: "€#{weekly_amount * @default_weeks_count}"
 
   # Private helpers - Validation
   defp parse_program_id(id_string) do

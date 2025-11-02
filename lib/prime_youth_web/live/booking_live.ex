@@ -4,6 +4,13 @@ defmodule PrimeYouthWeb.BookingLive do
   import PrimeYouthWeb.BookingComponents
   import PrimeYouthWeb.Live.SampleFixtures
 
+  # Pricing constants
+  @default_weekly_fee 45.00
+  @default_weeks_count 8
+  @default_registration_fee 25.00
+  @default_vat_rate 0.19
+  @default_card_processing_fee 2.50
+
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
     # Get current user from scope (requires authentication)
@@ -22,11 +29,11 @@ defmodule PrimeYouthWeb.BookingLive do
         |> assign(selected_child_id: "emma")
         |> assign(special_requirements: "")
         |> assign(payment_method: "card")
-        |> assign(weekly_fee: 45.00)
-        |> assign(weeks_count: 8)
-        |> assign(registration_fee: 25.00)
-        |> assign(vat_rate: 0.19)
-        |> assign(card_fee: 2.50)
+        |> assign(weekly_fee: @default_weekly_fee)
+        |> assign(weeks_count: @default_weeks_count)
+        |> assign(registration_fee: @default_registration_fee)
+        |> assign(vat_rate: @default_vat_rate)
+        |> assign(card_fee: @default_card_processing_fee)
         |> calculate_totals()
 
       {:ok, socket}
