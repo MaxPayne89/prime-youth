@@ -1,0 +1,715 @@
+<div class="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-3xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">
+        {if @action == :new, do: "Create New Program", else: "Edit Program"}
+      </h1>
+      <p class="mt-2 text-sm text-gray-600">
+        <%= if @action == :new do %>
+          Fill in the details below to create a new program. Your program will be saved as a draft and can be submitted for approval when ready.
+        <% else %>
+          Update your program details below. Changes will be saved as a draft.
+        <% end %>
+      </p>
+    </div>
+    
+<!-- Form -->
+    <div class="bg-white shadow-sm rounded-lg overflow-hidden">
+      <.form
+        for={@form}
+        id="program-form"
+        phx-change="validate"
+        phx-submit="save"
+        class="space-y-6 p-6"
+      >
+        <!-- Basic Information Section -->
+        <div class="space-y-6">
+          <h2 class="text-lg font-semibold text-gray-900 border-b pb-2">
+            Basic Information
+          </h2>
+          
+<!-- Program Title -->
+          <div>
+            <.label for="program-title">
+              Program Title <span class="text-red-500">*</span>
+            </.label>
+            <.input
+              field={@form[:title]}
+              type="text"
+              id="program-title"
+              placeholder="e.g., Summer Soccer Camp"
+              required
+              class="mt-1"
+            />
+            <p class="mt-1 text-sm text-gray-500">
+              Choose a clear, descriptive title (3-200 characters)
+            </p>
+          </div>
+          
+<!-- Description -->
+          <div>
+            <.label for="program-description">
+              Description <span class="text-red-500">*</span>
+            </.label>
+            <.input
+              field={@form[:description]}
+              type="textarea"
+              id="program-description"
+              placeholder="Describe your program, what participants will learn, activities included, etc."
+              rows="6"
+              required
+              class="mt-1"
+            />
+            <p class="mt-1 text-sm text-gray-500">
+              Provide a detailed description (10-5000 characters)
+            </p>
+          </div>
+          
+<!-- Category -->
+          <div>
+            <.label for="program-category">
+              Category <span class="text-red-500">*</span>
+            </.label>
+            <.input
+              field={@form[:category]}
+              type="select"
+              id="program-category"
+              options={Enum.map(@categories, fn cat -> {String.capitalize(cat), cat} end)}
+              prompt="Select a category"
+              required
+              class="mt-1"
+            />
+            <p class="mt-1 text-sm text-gray-500">
+              Choose the primary category that best describes your program
+            </p>
+          </div>
+        </div>
+        
+<!-- Age Range Section -->
+        <div class="space-y-6 pt-6 border-t">
+          <h2 class="text-lg font-semibold text-gray-900">
+            Age Range
+          </h2>
+
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <!-- Minimum Age -->
+            <div>
+              <.label for="program-age-min">
+                Minimum Age <span class="text-red-500">*</span>
+              </.label>
+              <.input
+                field={@form[:age_min]}
+                type="number"
+                id="program-age-min"
+                min="3"
+                max="18"
+                required
+                class="mt-1"
+              />
+              <p class="mt-1 text-sm text-gray-500">
+                Ages 3-18
+              </p>
+            </div>
+            
+<!-- Maximum Age -->
+            <div>
+              <.label for="program-age-max">
+                Maximum Age <span class="text-red-500">*</span>
+              </.label>
+              <.input
+                field={@form[:age_max]}
+                type="number"
+                id="program-age-max"
+                min="3"
+                max="18"
+                required
+                class="mt-1"
+              />
+              <p class="mt-1 text-sm text-gray-500">
+                Ages 3-18
+              </p>
+            </div>
+          </div>
+        </div>
+        
+<!-- Capacity Section -->
+        <div class="space-y-6 pt-6 border-t">
+          <h2 class="text-lg font-semibold text-gray-900">
+            Capacity
+          </h2>
+
+          <div>
+            <.label for="program-capacity">
+              Maximum Participants <span class="text-red-500">*</span>
+            </.label>
+            <.input
+              field={@form[:capacity]}
+              type="number"
+              id="program-capacity"
+              min="1"
+              required
+              class="mt-1"
+            />
+            <p class="mt-1 text-sm text-gray-500">
+              How many participants can you accommodate?
+            </p>
+          </div>
+        </div>
+        
+<!-- Schedules Section -->
+        <div class="space-y-6 pt-6 border-t">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900">
+              Schedules
+            </h2>
+            <button
+              type="button"
+              phx-click="add_schedule"
+              class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg
+                class="-ml-0.5 mr-1.5 h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Add Schedule
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <%= if Enum.empty?(@schedules) do %>
+              <div class="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <svg
+                  class="mx-auto h-12 w-12 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <p class="mt-2 text-sm text-gray-500">
+                  No schedules added yet. Click "Add Schedule" to define when your program runs.
+                </p>
+              </div>
+            <% else %>
+              <%= for {schedule, index} <- Enum.with_index(@schedules) do %>
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div class="flex items-start justify-between mb-4">
+                    <h3 class="text-sm font-medium text-gray-900">
+                      Schedule #{index + 1}
+                    </h3>
+                    <button
+                      type="button"
+                      phx-click="remove_schedule"
+                      phx-value-index={index}
+                      class="text-red-600 hover:text-red-700 text-sm font-medium"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <!-- Start Date -->
+                    <div>
+                      <.label for={"schedule-start-date-#{index}"}>
+                        Start Date <span class="text-red-500">*</span>
+                      </.label>
+                      <input
+                        type="date"
+                        name={"schedules[#{index}][start_date]"}
+                        id={"schedule-start-date-#{index}"}
+                        value={schedule["start_date"] || ""}
+                        phx-debounce="300"
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                    
+<!-- End Date -->
+                    <div>
+                      <.label for={"schedule-end-date-#{index}"}>
+                        End Date <span class="text-red-500">*</span>
+                      </.label>
+                      <input
+                        type="date"
+                        name={"schedules[#{index}][end_date]"}
+                        id={"schedule-end-date-#{index}"}
+                        value={schedule["end_date"] || ""}
+                        phx-debounce="300"
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                    
+<!-- Start Time -->
+                    <div>
+                      <.label for={"schedule-start-time-#{index}"}>
+                        Start Time <span class="text-red-500">*</span>
+                      </.label>
+                      <input
+                        type="time"
+                        name={"schedules[#{index}][start_time]"}
+                        id={"schedule-start-time-#{index}"}
+                        value={schedule["start_time"] || ""}
+                        phx-debounce="300"
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                    
+<!-- End Time -->
+                    <div>
+                      <.label for={"schedule-end-time-#{index}"}>
+                        End Time <span class="text-red-500">*</span>
+                      </.label>
+                      <input
+                        type="time"
+                        name={"schedules[#{index}][end_time]"}
+                        id={"schedule-end-time-#{index}"}
+                        value={schedule["end_time"] || ""}
+                        phx-debounce="300"
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      />
+                    </div>
+                    
+<!-- Recurrence Pattern -->
+                    <div>
+                      <.label for={"schedule-recurrence-#{index}"}>
+                        Recurrence <span class="text-red-500">*</span>
+                      </.label>
+                      <select
+                        name={"schedules[#{index}][recurrence_pattern]"}
+                        id={"schedule-recurrence-#{index}"}
+                        phx-debounce="300"
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      >
+                        <option value="">Select recurrence</option>
+                        <option value="once" selected={schedule["recurrence_pattern"] == "once"}>
+                          One-time
+                        </option>
+                        <option value="daily" selected={schedule["recurrence_pattern"] == "daily"}>
+                          Daily
+                        </option>
+                        <option
+                          value="weekly"
+                          selected={schedule["recurrence_pattern"] == "weekly"}
+                        >
+                          Weekly
+                        </option>
+                        <option
+                          value="seasonal"
+                          selected={schedule["recurrence_pattern"] == "seasonal"}
+                        >
+                          Seasonal
+                        </option>
+                      </select>
+                    </div>
+                    
+<!-- Days of Week (for weekly/daily) -->
+                    <div class="sm:col-span-2">
+                      <.label>Days of Week</.label>
+                      <div class="mt-2 flex flex-wrap gap-2">
+                        <%= for day <- ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] do %>
+                          <label class="inline-flex items-center">
+                            <input
+                              type="checkbox"
+                              name={"schedules[#{index}][days_of_week][]"}
+                              value={day}
+                              checked={day in (schedule["days_of_week"] || [])}
+                              class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            />
+                            <span class="ml-2 text-sm text-gray-700">
+                              {String.capitalize(day)}
+                            </span>
+                          </label>
+                        <% end %>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+        
+<!-- Locations Section -->
+        <div class="space-y-6 pt-6 border-t">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900">
+              Locations
+            </h2>
+            <button
+              type="button"
+              phx-click="add_location"
+              class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <svg
+                class="-ml-0.5 mr-1.5 h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+              Add Location
+            </button>
+          </div>
+
+          <div class="space-y-4">
+            <%= if Enum.empty?(@locations) do %>
+              <div class="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                <svg
+                  class="mx-auto h-12 w-12 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                <p class="mt-2 text-sm text-gray-500">
+                  No locations added yet. Click "Add Location" to specify where your program takes place.
+                </p>
+              </div>
+            <% else %>
+              <%= for {location, index} <- Enum.with_index(@locations) do %>
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div class="flex items-start justify-between mb-4">
+                    <h3 class="text-sm font-medium text-gray-900">
+                      Location #{index + 1}
+                    </h3>
+                    <button
+                      type="button"
+                      phx-click="remove_location"
+                      phx-value-index={index}
+                      class="text-red-600 hover:text-red-700 text-sm font-medium"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div class="space-y-4">
+                    <!-- Virtual Location Toggle -->
+                    <div>
+                      <label class="inline-flex items-center">
+                        <input
+                          type="checkbox"
+                          name={"locations[#{index}][is_virtual]"}
+                          phx-click="toggle_virtual_location"
+                          phx-value-index={index}
+                          checked={location["is_virtual"] || false}
+                          class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                        <span class="ml-2 text-sm text-gray-700">
+                          This is a virtual/online location
+                        </span>
+                      </label>
+                    </div>
+                    
+<!-- Location Name -->
+                    <div>
+                      <.label for={"location-name-#{index}"}>
+                        Location Name <span class="text-red-500">*</span>
+                      </.label>
+                      <input
+                        type="text"
+                        name={"locations[#{index}][name]"}
+                        id={"location-name-#{index}"}
+                        value={location["name"] || ""}
+                        placeholder="e.g., Main Community Center, Online via Zoom"
+                        phx-debounce="300"
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      />
+                    </div>
+
+                    <%= if location["is_virtual"] do %>
+                      <!-- Virtual Link -->
+                      <div>
+                        <.label for={"location-virtual-link-#{index}"}>
+                          Meeting Link <span class="text-red-500">*</span>
+                        </.label>
+                        <input
+                          type="url"
+                          name={"locations[#{index}][virtual_link]"}
+                          id={"location-virtual-link-#{index}"}
+                          value={location["virtual_link"] || ""}
+                          placeholder="https://zoom.us/j/..."
+                          phx-debounce="300"
+                          required
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        />
+                      </div>
+                    <% else %>
+                      <!-- Physical Address Fields -->
+                      <div class="grid grid-cols-1 gap-4">
+                        <div>
+                          <.label for={"location-address-line1-#{index}"}>
+                            Street Address
+                          </.label>
+                          <input
+                            type="text"
+                            name={"locations[#{index}][address_line1]"}
+                            id={"location-address-line1-#{index}"}
+                            value={location["address_line1"] || ""}
+                            placeholder="123 Main St"
+                            phx-debounce="300"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <.label for={"location-address-line2-#{index}"}>
+                            Apt, Suite, etc. (optional)
+                          </.label>
+                          <input
+                            type="text"
+                            name={"locations[#{index}][address_line2]"}
+                            id={"location-address-line2-#{index}"}
+                            value={location["address_line2"] || ""}
+                            placeholder="Suite 100"
+                            phx-debounce="300"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                          />
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                          <div>
+                            <.label for={"location-city-#{index}"}>
+                              City
+                            </.label>
+                            <input
+                              type="text"
+                              name={"locations[#{index}][city]"}
+                              id={"location-city-#{index}"}
+                              value={location["city"] || ""}
+                              phx-debounce="300"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <.label for={"location-state-#{index}"}>
+                              State/Province
+                            </.label>
+                            <input
+                              type="text"
+                              name={"locations[#{index}][state]"}
+                              id={"location-state-#{index}"}
+                              value={location["state"] || ""}
+                              phx-debounce="300"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                          <div>
+                            <.label for={"location-postal-code-#{index}"}>
+                              Postal Code
+                            </.label>
+                            <input
+                              type="text"
+                              name={"locations[#{index}][postal_code]"}
+                              id={"location-postal-code-#{index}"}
+                              value={location["postal_code"] || ""}
+                              phx-debounce="300"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <.label for={"location-country-#{index}"}>
+                              Country
+                            </.label>
+                            <input
+                              type="text"
+                              name={"locations[#{index}][country]"}
+                              id={"location-country-#{index}"}
+                              value={location["country"] || "USA"}
+                              phx-debounce="300"
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    <% end %>
+                    
+<!-- Accessibility Notes -->
+                    <div>
+                      <.label for={"location-accessibility-#{index}"}>
+                        Accessibility Notes (optional)
+                      </.label>
+                      <textarea
+                        name={"locations[#{index}][accessibility_notes]"}
+                        id={"location-accessibility-#{index}"}
+                        rows="2"
+                        placeholder="e.g., Wheelchair accessible, elevator available"
+                        phx-debounce="300"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      >{location["accessibility_notes"] || ""}</textarea>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+        
+<!-- Pricing Section -->
+        <div class="space-y-6 pt-6 border-t">
+          <h2 class="text-lg font-semibold text-gray-900">
+            Pricing
+          </h2>
+
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <!-- Price Amount -->
+            <div>
+              <.label for="program-price-amount">
+                Price <span class="text-red-500">*</span>
+              </.label>
+              <div class="mt-1 relative rounded-md shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="text-gray-500 sm:text-sm">$</span>
+                </div>
+                <.input
+                  field={@form[:price_amount]}
+                  type="number"
+                  id="program-price-amount"
+                  min="0"
+                  step="0.01"
+                  required
+                  class="pl-7"
+                />
+              </div>
+              <p class="mt-1 text-sm text-gray-500">
+                Enter 0 for free programs
+              </p>
+            </div>
+            
+<!-- Price Unit -->
+            <div>
+              <.label for="program-price-unit">
+                Price Per <span class="text-red-500">*</span>
+              </.label>
+              <.input
+                field={@form[:price_unit]}
+                type="select"
+                id="program-price-unit"
+                options={Enum.map(@price_units, fn unit -> {String.capitalize(unit), unit} end)}
+                required
+                class="mt-1"
+              />
+              <p class="mt-1 text-sm text-gray-500">
+                What does the price cover?
+              </p>
+            </div>
+          </div>
+          
+<!-- Discount (Optional) -->
+          <div>
+            <.label for="program-has-discount">
+              Discount Available
+            </.label>
+            <div class="mt-2">
+              <.input
+                field={@form[:has_discount]}
+                type="checkbox"
+                id="program-has-discount"
+              />
+              <label for="program-has-discount" class="ml-2 text-sm text-gray-700">
+                This program offers discounts (early bird, sibling, etc.)
+              </label>
+            </div>
+          </div>
+        </div>
+        
+<!-- Form Actions -->
+        <div class="pt-6 border-t flex items-center justify-between">
+          <.link
+            navigate={~p"/provider/dashboard"}
+            class="text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            Cancel
+          </.link>
+
+          <div class="flex gap-3">
+            <.button
+              type="submit"
+              phx-disable-with="Saving..."
+              class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              {if @action == :new, do: "Create Program", else: "Save Changes"}
+            </.button>
+          </div>
+        </div>
+      </.form>
+    </div>
+    
+<!-- Help Text -->
+    <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg
+            class="h-5 w-5 text-blue-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-blue-800">
+            Next Steps
+          </h3>
+          <div class="mt-2 text-sm text-blue-700">
+            <p>
+              After saving your program as a draft, you can:
+            </p>
+            <ul class="list-disc list-inside mt-1 space-y-1">
+              <li>Add schedules and locations from your dashboard</li>
+              <li>Preview how your program will appear to parents</li>
+              <li>Submit for approval when ready to publish</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
