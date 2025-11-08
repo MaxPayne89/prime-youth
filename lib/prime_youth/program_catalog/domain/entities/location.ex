@@ -130,8 +130,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.Location do
     ]
 
     parts
-    |> Enum.reject(&is_nil/1)
-    |> Enum.reject(&(String.trim(&1) == ""))
+    |> Enum.reject(fn part -> is_nil(part) or String.trim(part) == "" end)
     |> Enum.join(", ")
   end
 
@@ -206,21 +205,24 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.Location do
     ]
 
     Enum.reduce_while(validations, {:ok, attrs}, fn {field, max_length}, acc ->
-      case Map.get(attrs, field) do
-        nil ->
-          {:cont, acc}
-
-        value when is_binary(value) ->
-          if String.length(value) <= max_length do
-            {:cont, acc}
-          else
-            {:halt, {:error, {:field_too_long, field, max_length}}}
-          end
-
-        _ ->
-          {:cont, acc}
-      end
+      validate_field_length(attrs, field, max_length, acc)
     end)
+  end
+
+  defp validate_field_length(attrs, field, max_length, acc) do
+    case Map.get(attrs, field) do
+      nil -> {:cont, acc}
+      value when is_binary(value) -> check_string_length(value, field, max_length, acc)
+      _ -> {:cont, acc}
+    end
+  end
+
+  defp check_string_length(value, field, max_length, acc) do
+    if String.length(value) <= max_length do
+      {:cont, acc}
+    else
+      {:halt, {:error, {:field_too_long, field, max_length}}}
+    end
   end
 
   defp validate_virtual_link(%{virtual_link: link} = attrs) when is_binary(link) do
