@@ -129,32 +129,38 @@ defmodule PrimeYouthWeb.ProgramLive.Index do
   end
 
   defp parse_filter("category", value) when value != "", do: {:category, value}
+
   defp parse_filter("age_min", value) when value != "" do
     case Integer.parse(value) do
       {int, _} -> {:age_min, int}
       :error -> nil
     end
   end
+
   defp parse_filter("age_max", value) when value != "" do
     case Integer.parse(value) do
       {int, _} -> {:age_max, int}
       :error -> nil
     end
   end
+
   defp parse_filter("city", value) when value != "", do: {:city, value}
   defp parse_filter("state", value) when value != "", do: {:state, value}
+
   defp parse_filter("price_min", value) when value != "" do
     case Integer.parse(value) do
       {int, _} -> {:price_min, int}
       :error -> nil
     end
   end
+
   defp parse_filter("price_max", value) when value != "" do
     case Integer.parse(value) do
       {int, _} -> {:price_max, int}
       :error -> nil
     end
   end
+
   defp parse_filter("featured", "true"), do: {:featured, true}
   defp parse_filter("is_prime_youth", "true"), do: {:is_prime_youth, true}
   defp parse_filter(_key, _value), do: nil

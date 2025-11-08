@@ -45,7 +45,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramTest do
       assert "should be at least 3 character(s)" in errors_on(changeset).title
 
       # Too long
-      changeset = Program.changeset(%Program{}, Map.put(attrs, :title, String.duplicate("a", 201)))
+      changeset =
+        Program.changeset(%Program{}, Map.put(attrs, :title, String.duplicate("a", 201)))
+
       refute changeset.valid?
       assert "should be at most 200 character(s)" in errors_on(changeset).title
     end
@@ -59,7 +61,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramTest do
       assert "should be at least 10 character(s)" in errors_on(changeset).description
 
       # Too long
-      changeset = Program.changeset(%Program{}, Map.put(attrs, :description, String.duplicate("a", 5001)))
+      changeset =
+        Program.changeset(%Program{}, Map.put(attrs, :description, String.duplicate("a", 5001)))
+
       refute changeset.valid?
       assert "should be at most 5000 character(s)" in errors_on(changeset).description
     end
@@ -68,8 +72,17 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramTest do
       attrs = valid_attrs()
 
       valid_categories = [
-        "sports", "arts", "stem", "language", "academic",
-        "outdoor", "cultural", "leadership", "creative_writing", "cooking", "other"
+        "sports",
+        "arts",
+        "stem",
+        "language",
+        "academic",
+        "outdoor",
+        "cultural",
+        "leadership",
+        "creative_writing",
+        "cooking",
+        "other"
       ]
 
       for category <- valid_categories do
@@ -110,7 +123,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramTest do
       refute changeset.valid?
 
       # Cannot exceed capacity
-      changeset = Program.changeset(%Program{}, Map.merge(attrs, %{capacity: 10, current_enrollment: 15}))
+      changeset =
+        Program.changeset(%Program{}, Map.merge(attrs, %{capacity: 10, current_enrollment: 15}))
+
       refute changeset.valid?
     end
 
@@ -118,7 +133,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramTest do
       attrs = valid_attrs()
 
       # price_amount must be >= 0
-      changeset = Program.changeset(%Program{}, Map.put(attrs, :price_amount, Decimal.new("-10.00")))
+      changeset =
+        Program.changeset(%Program{}, Map.put(attrs, :price_amount, Decimal.new("-10.00")))
+
       refute changeset.valid?
 
       # price_unit must be valid
@@ -134,15 +151,25 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramTest do
       attrs = valid_attrs()
 
       # If has_discount is true, discount_amount must be present
-      changeset = Program.changeset(%Program{}, Map.merge(attrs, %{has_discount: true, discount_amount: nil}))
+      changeset =
+        Program.changeset(
+          %Program{},
+          Map.merge(attrs, %{has_discount: true, discount_amount: nil})
+        )
+
       refute changeset.valid?
 
       # discount_amount must be < price_amount
-      changeset = Program.changeset(%Program{}, Map.merge(attrs, %{
-        has_discount: true,
-        price_amount: Decimal.new("100.00"),
-        discount_amount: Decimal.new("150.00")
-      }))
+      changeset =
+        Program.changeset(
+          %Program{},
+          Map.merge(attrs, %{
+            has_discount: true,
+            price_amount: Decimal.new("100.00"),
+            discount_amount: Decimal.new("150.00")
+          })
+        )
+
       refute changeset.valid?
     end
 

@@ -44,7 +44,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.LocationTest do
       refute changeset.valid?
 
       # Too long
-      changeset = Location.changeset(%Location{}, Map.put(attrs, :name, String.duplicate("a", 201)))
+      changeset =
+        Location.changeset(%Location{}, Map.put(attrs, :name, String.duplicate("a", 201)))
+
       refute changeset.valid?
     end
 
@@ -103,7 +105,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.LocationTest do
       changeset = Location.changeset(%Location{}, Map.put(attrs, :virtual_link, "not-a-url"))
       refute changeset.valid?
 
-      changeset = Location.changeset(%Location{}, Map.put(attrs, :virtual_link, "ftp://invalid.com"))
+      changeset =
+        Location.changeset(%Location{}, Map.put(attrs, :virtual_link, "ftp://invalid.com"))
+
       refute changeset.valid?
     end
 

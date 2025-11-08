@@ -48,21 +48,25 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramScheduleTest do
     end
 
     test "end_date must be >= start_date" do
-      attrs = valid_attrs() |> Map.merge(%{
-        start_date: ~D[2025-06-15],
-        end_date: ~D[2025-06-10]
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          start_date: ~D[2025-06-15],
+          end_date: ~D[2025-06-10]
+        })
 
       assert {:error, changeset} = ProgramSchedule.new(attrs)
       assert "must be on or after start date" in errors_on(changeset).end_date
     end
 
     test "end_date can equal start_date (single day program)" do
-      attrs = valid_attrs() |> Map.merge(%{
-        start_date: ~D[2025-06-15],
-        end_date: ~D[2025-06-15],
-        recurrence_pattern: "once"
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          start_date: ~D[2025-06-15],
+          end_date: ~D[2025-06-15],
+          recurrence_pattern: "once"
+        })
 
       assert {:ok, schedule} = ProgramSchedule.new(attrs)
       assert schedule.start_date == schedule.end_date
@@ -83,20 +87,24 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramScheduleTest do
     end
 
     test "end_time must be > start_time" do
-      attrs = valid_attrs() |> Map.merge(%{
-        start_time: ~T[14:00:00],
-        end_time: ~T[12:00:00]
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          start_time: ~T[14:00:00],
+          end_time: ~T[12:00:00]
+        })
 
       assert {:error, changeset} = ProgramSchedule.new(attrs)
       assert "must be after start time" in errors_on(changeset).end_time
     end
 
     test "end_time cannot equal start_time" do
-      attrs = valid_attrs() |> Map.merge(%{
-        start_time: ~T[12:00:00],
-        end_time: ~T[12:00:00]
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          start_time: ~T[12:00:00],
+          end_time: ~T[12:00:00]
+        })
 
       assert {:error, changeset} = ProgramSchedule.new(attrs)
       assert "must be after start time" in errors_on(changeset).end_time
@@ -113,11 +121,15 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramScheduleTest do
       attrs = valid_attrs()
 
       # Invalid day name
-      assert {:error, changeset} = ProgramSchedule.new(Map.put(attrs, :days_of_week, ["invalid_day"]))
+      assert {:error, changeset} =
+               ProgramSchedule.new(Map.put(attrs, :days_of_week, ["invalid_day"]))
+
       assert "contains invalid day names" in errors_on(changeset).days_of_week
 
       # Mix of valid and invalid
-      assert {:error, changeset} = ProgramSchedule.new(Map.put(attrs, :days_of_week, ["monday", "fake_day"]))
+      assert {:error, changeset} =
+               ProgramSchedule.new(Map.put(attrs, :days_of_week, ["monday", "fake_day"]))
+
       assert "contains invalid day names" in errors_on(changeset).days_of_week
     end
 
@@ -140,7 +152,9 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramScheduleTest do
     test "recurrence_pattern must be valid value" do
       attrs = valid_attrs()
 
-      assert {:error, changeset} = ProgramSchedule.new(Map.put(attrs, :recurrence_pattern, "invalid"))
+      assert {:error, changeset} =
+               ProgramSchedule.new(Map.put(attrs, :recurrence_pattern, "invalid"))
+
       assert "is invalid" in errors_on(changeset).recurrence_pattern
     end
 
@@ -154,20 +168,24 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramScheduleTest do
     end
 
     test "session_count required for recurring patterns" do
-      attrs = valid_attrs() |> Map.merge(%{
-        recurrence_pattern: "weekly",
-        session_count: nil
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          recurrence_pattern: "weekly",
+          session_count: nil
+        })
 
       assert {:error, changeset} = ProgramSchedule.new(attrs)
       assert "is required for recurring programs" in errors_on(changeset).session_count
     end
 
     test "session_count optional for one-time programs" do
-      attrs = valid_attrs() |> Map.merge(%{
-        recurrence_pattern: "once",
-        session_count: nil
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          recurrence_pattern: "once",
+          session_count: nil
+        })
 
       assert {:ok, schedule} = ProgramSchedule.new(attrs)
       assert is_nil(schedule.session_count)
@@ -196,11 +214,13 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramScheduleTest do
 
   describe "business rules" do
     test "weekly recurring schedule" do
-      attrs = valid_attrs() |> Map.merge(%{
-        recurrence_pattern: "weekly",
-        days_of_week: ["monday", "wednesday", "friday"],
-        session_count: 36
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          recurrence_pattern: "weekly",
+          days_of_week: ["monday", "wednesday", "friday"],
+          session_count: 36
+        })
 
       assert {:ok, schedule} = ProgramSchedule.new(attrs)
       assert schedule.recurrence_pattern == "weekly"
@@ -209,34 +229,40 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramScheduleTest do
     end
 
     test "daily recurring schedule" do
-      attrs = valid_attrs() |> Map.merge(%{
-        recurrence_pattern: "daily",
-        days_of_week: ["monday", "tuesday", "wednesday", "thursday", "friday"],
-        session_count: 60
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          recurrence_pattern: "daily",
+          days_of_week: ["monday", "tuesday", "wednesday", "thursday", "friday"],
+          session_count: 60
+        })
 
       assert {:ok, schedule} = ProgramSchedule.new(attrs)
       assert schedule.recurrence_pattern == "daily"
     end
 
     test "seasonal program with flexible scheduling" do
-      attrs = valid_attrs() |> Map.merge(%{
-        recurrence_pattern: "seasonal",
-        session_count: 12
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          recurrence_pattern: "seasonal",
+          session_count: 12
+        })
 
       assert {:ok, schedule} = ProgramSchedule.new(attrs)
       assert schedule.recurrence_pattern == "seasonal"
     end
 
     test "one-time event" do
-      attrs = valid_attrs() |> Map.merge(%{
-        start_date: ~D[2025-07-04],
-        end_date: ~D[2025-07-04],
-        recurrence_pattern: "once",
-        session_count: nil,
-        days_of_week: ["saturday"]
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          start_date: ~D[2025-07-04],
+          end_date: ~D[2025-07-04],
+          recurrence_pattern: "once",
+          session_count: nil,
+          days_of_week: ["saturday"]
+        })
 
       assert {:ok, schedule} = ProgramSchedule.new(attrs)
       assert schedule.recurrence_pattern == "once"

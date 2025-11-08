@@ -60,7 +60,8 @@ defmodule PrimeYouth.ProgramCatalog.Domain.ValueObjects.PricingTest do
     end
 
     test "rejects zero amount" do
-      assert {:error, "Amount must be greater than zero"} = Pricing.new(0, "USD", "per_session", nil)
+      assert {:error, "Amount must be greater than zero"} =
+               Pricing.new(0, "USD", "per_session", nil)
     end
 
     test "rejects nil amount" do
@@ -68,7 +69,8 @@ defmodule PrimeYouth.ProgramCatalog.Domain.ValueObjects.PricingTest do
     end
 
     test "rejects invalid amount format" do
-      assert {:error, "Amount must be a valid number"} = Pricing.new("invalid", "USD", "per_session", nil)
+      assert {:error, "Amount must be a valid number"} =
+               Pricing.new("invalid", "USD", "per_session", nil)
     end
 
     test "rejects nil currency" do
@@ -80,7 +82,8 @@ defmodule PrimeYouth.ProgramCatalog.Domain.ValueObjects.PricingTest do
     end
 
     test "rejects invalid currency" do
-      assert {:error, "Invalid currency: INVALID"} = Pricing.new(100, "INVALID", "per_session", nil)
+      assert {:error, "Invalid currency: INVALID"} =
+               Pricing.new(100, "INVALID", "per_session", nil)
     end
 
     test "rejects nil unit" do
@@ -96,15 +99,18 @@ defmodule PrimeYouth.ProgramCatalog.Domain.ValueObjects.PricingTest do
     end
 
     test "rejects discount equal to price" do
-      assert {:error, "Discount cannot be equal to or greater than price"} = Pricing.new(100, "USD", "per_session", 100)
+      assert {:error, "Discount cannot be equal to or greater than price"} =
+               Pricing.new(100, "USD", "per_session", 100)
     end
 
     test "rejects discount greater than price" do
-      assert {:error, "Discount cannot be equal to or greater than price"} = Pricing.new(100, "USD", "per_session", 150)
+      assert {:error, "Discount cannot be equal to or greater than price"} =
+               Pricing.new(100, "USD", "per_session", 150)
     end
 
     test "rejects negative discount" do
-      assert {:error, "Discount must be non-negative"} = Pricing.new(100, "USD", "per_session", -10)
+      assert {:error, "Discount must be non-negative"} =
+               Pricing.new(100, "USD", "per_session", -10)
     end
 
     test "normalizes currency to uppercase" do

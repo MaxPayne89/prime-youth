@@ -31,20 +31,24 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramScheduleTest do
     end
 
     test "end_date must be >= start_date" do
-      attrs = valid_attrs() |> Map.merge(%{
-        start_date: ~D[2025-06-15],
-        end_date: ~D[2025-06-10]
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          start_date: ~D[2025-06-15],
+          end_date: ~D[2025-06-10]
+        })
 
       changeset = ProgramSchedule.changeset(%ProgramSchedule{}, attrs)
       refute changeset.valid?
     end
 
     test "end_time must be > start_time" do
-      attrs = valid_attrs() |> Map.merge(%{
-        start_time: ~T[14:00:00],
-        end_time: ~T[12:00:00]
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          start_time: ~T[14:00:00],
+          end_time: ~T[12:00:00]
+        })
 
       changeset = ProgramSchedule.changeset(%ProgramSchedule{}, attrs)
       refute changeset.valid?
@@ -54,11 +58,21 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramScheduleTest do
       attrs = valid_attrs()
 
       # Invalid day name
-      changeset = ProgramSchedule.changeset(%ProgramSchedule{}, Map.put(attrs, :days_of_week, ["invalid_day"]))
+      changeset =
+        ProgramSchedule.changeset(
+          %ProgramSchedule{},
+          Map.put(attrs, :days_of_week, ["invalid_day"])
+        )
+
       refute changeset.valid?
 
       # Mix of valid and invalid
-      changeset = ProgramSchedule.changeset(%ProgramSchedule{}, Map.put(attrs, :days_of_week, ["monday", "fake_day"]))
+      changeset =
+        ProgramSchedule.changeset(
+          %ProgramSchedule{},
+          Map.put(attrs, :days_of_week, ["monday", "fake_day"])
+        )
+
       refute changeset.valid?
     end
 
@@ -66,14 +80,21 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramScheduleTest do
       attrs = valid_attrs()
       valid_days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
-      changeset = ProgramSchedule.changeset(%ProgramSchedule{}, Map.put(attrs, :days_of_week, valid_days))
+      changeset =
+        ProgramSchedule.changeset(%ProgramSchedule{}, Map.put(attrs, :days_of_week, valid_days))
+
       assert changeset.valid?
     end
 
     test "recurrence_pattern must be valid value" do
       attrs = valid_attrs()
 
-      changeset = ProgramSchedule.changeset(%ProgramSchedule{}, Map.put(attrs, :recurrence_pattern, "invalid"))
+      changeset =
+        ProgramSchedule.changeset(
+          %ProgramSchedule{},
+          Map.put(attrs, :recurrence_pattern, "invalid")
+        )
+
       refute changeset.valid?
     end
 
@@ -81,26 +102,35 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramScheduleTest do
       attrs = valid_attrs()
 
       for pattern <- ["once", "daily", "weekly", "seasonal"] do
-        changeset = ProgramSchedule.changeset(%ProgramSchedule{}, Map.put(attrs, :recurrence_pattern, pattern))
+        changeset =
+          ProgramSchedule.changeset(
+            %ProgramSchedule{},
+            Map.put(attrs, :recurrence_pattern, pattern)
+          )
+
         assert changeset.valid?
       end
     end
 
     test "session_count required for recurring patterns" do
-      attrs = valid_attrs() |> Map.merge(%{
-        recurrence_pattern: "weekly",
-        session_count: nil
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          recurrence_pattern: "weekly",
+          session_count: nil
+        })
 
       changeset = ProgramSchedule.changeset(%ProgramSchedule{}, attrs)
       refute changeset.valid?
     end
 
     test "session_count optional for one-time programs" do
-      attrs = valid_attrs() |> Map.merge(%{
-        recurrence_pattern: "once",
-        session_count: nil
-      })
+      attrs =
+        valid_attrs()
+        |> Map.merge(%{
+          recurrence_pattern: "once",
+          session_count: nil
+        })
 
       changeset = ProgramSchedule.changeset(%ProgramSchedule{}, attrs)
       assert changeset.valid?
@@ -112,7 +142,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramScheduleTest do
       changeset = ProgramSchedule.changeset(%ProgramSchedule{}, Map.put(attrs, :session_count, 0))
       refute changeset.valid?
 
-      changeset = ProgramSchedule.changeset(%ProgramSchedule{}, Map.put(attrs, :session_count, -5))
+      changeset =
+        ProgramSchedule.changeset(%ProgramSchedule{}, Map.put(attrs, :session_count, -5))
+
       refute changeset.valid?
     end
   end

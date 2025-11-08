@@ -18,6 +18,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramSchedule do
   """
 
   use Ecto.Schema
+
   import Ecto.Changeset
 
   alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program
@@ -40,7 +41,15 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramSchedule do
     timestamps(type: :utc_datetime)
   end
 
-  @valid_days_of_week ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+  @valid_days_of_week [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday"
+  ]
   @valid_recurrence_patterns ["once", "daily", "weekly", "seasonal"]
 
   @doc """
@@ -122,7 +131,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramSchedule do
     start_date = get_field(changeset, :start_date)
     end_date = get_field(changeset, :end_date)
 
-    if start_date && end_date && Date.compare(end_date, start_date) == :lt do
+    if start_date && end_date && Date.before?(end_date, start_date) do
       add_error(changeset, :end_date, "must be on or after start_date")
     else
       changeset

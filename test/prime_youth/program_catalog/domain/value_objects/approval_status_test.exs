@@ -101,7 +101,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.ValueObjects.ApprovalStatusTest do
 
     test "returns non-empty list" do
       statuses = ApprovalStatus.all()
-      assert length(statuses) > 0
+      refute Enum.empty?(statuses)
     end
 
     test "all returned statuses can be created" do

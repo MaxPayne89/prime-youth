@@ -16,6 +16,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Location do
   """
 
   use Ecto.Schema
+
   import Ecto.Changeset
 
   alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program

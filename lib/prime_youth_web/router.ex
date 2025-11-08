@@ -38,6 +38,15 @@ defmodule PrimeYouthWeb.Router do
       live "/settings", SettingsLive, :index
       live "/programs/:id/booking", BookingLive, :new
     end
+
+    # Provider routes (require login)
+    live_session :provider,
+      layout: {PrimeYouthWeb.Layouts, :app},
+      on_mount: [{PrimeYouthWeb.UserAuth, :require_authenticated}] do
+      live "/provider/dashboard", ProviderLive.Dashboard, :index
+      live "/provider/programs/new", ProgramLive.Form, :new
+      live "/provider/programs/:id/edit", ProgramLive.Form, :edit
+    end
   end
 
   # Other scopes may use custom stacks.

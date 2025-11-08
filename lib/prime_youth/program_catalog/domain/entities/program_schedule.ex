@@ -29,7 +29,15 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramSchedule do
           updated_at: DateTime.t() | nil
         }
 
-  @enforce_keys [:program_id, :start_date, :end_date, :days_of_week, :start_time, :end_time, :recurrence_pattern]
+  @enforce_keys [
+    :program_id,
+    :start_date,
+    :end_date,
+    :days_of_week,
+    :start_time,
+    :end_time,
+    :recurrence_pattern
+  ]
 
   defstruct [
     :id,
@@ -46,7 +54,15 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramSchedule do
     :updated_at
   ]
 
-  @valid_days_of_week ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+  @valid_days_of_week [
+    "monday",
+    "tuesday",
+    "wednesday",
+    "thursday",
+    "friday",
+    "saturday",
+    "sunday"
+  ]
   @valid_recurrence_patterns ["once", "daily", "weekly", "seasonal"]
 
   @doc """
@@ -136,8 +152,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramSchedule do
   def format_schedule(%__MODULE__{} = schedule) do
     days =
       schedule.days_of_week
-      |> Enum.map(&String.capitalize/1)
-      |> Enum.join(", ")
+      |> Enum.map_join(", ", &String.capitalize/1)
 
     times = "#{Time.to_string(schedule.start_time)} - #{Time.to_string(schedule.end_time)}"
 
@@ -183,7 +198,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramSchedule do
       not match?(%Date{}, end_date) ->
         {:error, :invalid_end_date}
 
-      Date.compare(end_date, start_date) == :lt ->
+      Date.before?(end_date, start_date) ->
         {:error, :end_date_before_start_date}
 
       true ->

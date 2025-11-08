@@ -1,20 +1,40 @@
 defmodule PrimeYouth.ProgramCatalog.UseCases.BrowseProgramsTest do
   use PrimeYouth.DataCase, async: true
 
-  alias PrimeYouth.ProgramCatalog.UseCases.BrowsePrograms
   alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.{Program, Provider}
+  alias PrimeYouth.ProgramCatalog.UseCases.BrowsePrograms
 
   describe "execute/1" do
     setup do
       provider = insert_provider()
-      program1 = insert_program(provider, %{title: "Soccer Camp", category: "sports", age_min: 8, age_max: 12})
-      program2 = insert_program(provider, %{title: "Art Workshop", category: "arts", age_min: 10, age_max: 14})
-      program3 = insert_program(provider, %{title: "STEM Lab", category: "stem", age_min: 9, age_max: 13})
+
+      program1 =
+        insert_program(provider, %{
+          title: "Soccer Camp",
+          category: "sports",
+          age_min: 8,
+          age_max: 12
+        })
+
+      program2 =
+        insert_program(provider, %{
+          title: "Art Workshop",
+          category: "arts",
+          age_min: 10,
+          age_max: 14
+        })
+
+      program3 =
+        insert_program(provider, %{title: "STEM Lab", category: "stem", age_min: 9, age_max: 13})
 
       {:ok, provider: provider, program1: program1, program2: program2, program3: program3}
     end
 
-    test "returns all approved programs with no filters", %{program1: p1, program2: p2, program3: p3} do
+    test "returns all approved programs with no filters", %{
+      program1: p1,
+      program2: p2,
+      program3: p3
+    } do
       {:ok, programs} = BrowsePrograms.execute(%{})
 
       assert length(programs) == 3
@@ -36,16 +56,19 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowseProgramsTest do
 
       assert length(programs) >= 2
       program_ids = Enum.map(programs, & &1.id)
-      assert p1.id in program_ids  # 8-12 covers age 9
-      assert p3.id in program_ids  # 9-13 covers age 9
+      # 8-12 covers age 9
+      assert p1.id in program_ids
+      # 9-13 covers age 9
+      assert p3.id in program_ids
     end
 
     test "filters programs by multiple criteria", %{program1: p1} do
-      {:ok, programs} = BrowsePrograms.execute(%{
-        category: "sports",
-        age_min: 10,
-        age_max: 10
-      })
+      {:ok, programs} =
+        BrowsePrograms.execute(%{
+          category: "sports",
+          age_min: 10,
+          age_max: 10
+        })
 
       assert length(programs) == 1
       assert hd(programs).id == p1.id
@@ -83,10 +106,12 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowseProgramsTest do
 
     test "excludes archived programs" do
       provider = insert_provider()
-      _archived = insert_program(provider, %{
-        title: "Archived Program",
-        archived_at: ~U[2025-01-01 12:00:00Z]
-      })
+
+      _archived =
+        insert_program(provider, %{
+          title: "Archived Program",
+          archived_at: ~U[2025-01-01 12:00:00Z]
+        })
 
       {:ok, programs} = BrowsePrograms.execute(%{})
 
@@ -102,7 +127,7 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowseProgramsTest do
     test "returns programs with preloaded provider" do
       {:ok, programs} = BrowsePrograms.execute(%{})
 
-      assert length(programs) > 0
+      refute Enum.empty?(programs)
       first_program = hd(programs)
       assert first_program.provider != nil
       assert first_program.provider.name != nil

@@ -30,7 +30,11 @@ defmodule PrimeYouth.Repo.Migrations.CreateProgramCatalogTables do
       add(:id, :binary_id, primary_key: true)
       add(:title, :string, null: false, size: 200)
       add(:description, :text, null: false)
-      add(:provider_id, references(:providers, on_delete: :restrict, type: :binary_id), null: false)
+
+      add(:provider_id, references(:providers, on_delete: :restrict, type: :binary_id),
+        null: false
+      )
+
       add(:category, :string, null: false, size: 50)
       add(:secondary_categories, {:array, :string})
       add(:age_min, :integer, null: false)
@@ -76,7 +80,11 @@ defmodule PrimeYouth.Repo.Migrations.CreateProgramCatalogTables do
     # Table: program_schedules
     create table(:program_schedules, primary_key: false) do
       add(:id, :binary_id, primary_key: true)
-      add(:program_id, references(:programs, on_delete: :delete_all, type: :binary_id), null: false)
+
+      add(:program_id, references(:programs, on_delete: :delete_all, type: :binary_id),
+        null: false
+      )
+
       add(:start_date, :date, null: false)
       add(:end_date, :date, null: false)
       add(:days_of_week, {:array, :string})
@@ -95,7 +103,11 @@ defmodule PrimeYouth.Repo.Migrations.CreateProgramCatalogTables do
     # Table: locations
     create table(:locations, primary_key: false) do
       add(:id, :binary_id, primary_key: true)
-      add(:program_id, references(:programs, on_delete: :delete_all, type: :binary_id), null: false)
+
+      add(:program_id, references(:programs, on_delete: :delete_all, type: :binary_id),
+        null: false
+      )
+
       add(:name, :string, null: false, size: 200)
       add(:address_line1, :string, size: 200)
       add(:address_line2, :string, size: 200)

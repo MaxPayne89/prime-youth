@@ -148,7 +148,8 @@ defmodule PrimeYouth.ProgramCatalog.Domain.ValueObjects.AgeRange do
   defp validate_integer(value, _field_name) when is_integer(value), do: :ok
   defp validate_integer(_value, field_name), do: {:error, "#{field_name} must be an integer"}
 
-  defp validate_range(age, _field_name) when age >= @min_allowed_age and age <= @max_allowed_age do
+  defp validate_range(age, _field_name)
+       when age >= @min_allowed_age and age <= @max_allowed_age do
     :ok
   end
 
@@ -157,5 +158,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.ValueObjects.AgeRange do
   end
 
   defp validate_min_max(min_age, max_age) when min_age <= max_age, do: :ok
-  defp validate_min_max(_min_age, _max_age), do: {:error, "Min age cannot be greater than max age"}
+
+  defp validate_min_max(_min_age, _max_age),
+    do: {:error, "Min age cannot be greater than max age"}
 end

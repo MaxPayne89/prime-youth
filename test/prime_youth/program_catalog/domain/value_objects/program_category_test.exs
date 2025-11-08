@@ -135,7 +135,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.ValueObjects.ProgramCategoryTest do
 
     test "returns non-empty list" do
       categories = ProgramCategory.all()
-      assert length(categories) > 0
+      refute Enum.empty?(categories)
     end
 
     test "all returned categories can be created" do

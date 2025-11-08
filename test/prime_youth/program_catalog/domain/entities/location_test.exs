@@ -120,7 +120,9 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.LocationTest do
       assert {:error, changeset} = Location.new(Map.put(attrs, :virtual_link, "not-a-url"))
       assert "must be a valid URL" in errors_on(changeset).virtual_link
 
-      assert {:error, changeset} = Location.new(Map.put(attrs, :virtual_link, "ftp://invalid.com"))
+      assert {:error, changeset} =
+               Location.new(Map.put(attrs, :virtual_link, "ftp://invalid.com"))
+
       assert "must be a valid URL" in errors_on(changeset).virtual_link
     end
 
@@ -146,6 +148,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.LocationTest do
       program_id = Ecto.UUID.generate()
 
       attrs1 = physical_location_attrs() |> Map.put(:program_id, program_id)
+
       attrs2 =
         physical_location_attrs()
         |> Map.put(:program_id, program_id)
