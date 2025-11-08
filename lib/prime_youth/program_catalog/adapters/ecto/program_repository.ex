@@ -27,9 +27,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepository do
 
   import Ecto.Query, warn: false
 
-  alias PrimeYouth.Repo
   alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program
   alias PrimeYouth.ProgramCatalog.Domain.Entities, as: DomainEntities
+  alias PrimeYouth.Repo
 
   require Logger
 
@@ -149,10 +149,8 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepository do
         {:error, :not_found}
 
       %Program{status: "pending_approval"} = program ->
-        Logger.info("Approving program",
-          program_id: program_id,
-          admin_id: admin_id,
-          provider_id: program.provider_id
+        Logger.info(
+          "Approving program: id=#{program_id}, admin=#{admin_id}, provider=#{program.provider_id}"
         )
 
         program
@@ -184,11 +182,8 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepository do
         {:error, :not_found}
 
       %Program{status: "pending_approval"} = program ->
-        Logger.info("Rejecting program",
-          program_id: program_id,
-          admin_id: admin_id,
-          provider_id: program.provider_id,
-          reason: reason
+        Logger.info(
+          "Rejecting program: id=#{program_id}, admin=#{admin_id}, provider=#{program.provider_id}, reason=#{reason}"
         )
 
         program

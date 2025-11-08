@@ -63,19 +63,15 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowsePrograms do
       [%Program{}, ...]
   """
   def execute(filters \\ %{}) do
-    Logger.info("Listing programs with filters",
-      filters: filters,
-      filter_keys: Map.keys(filters)
-    )
+    Logger.info("Listing programs with filters: #{inspect(Map.keys(filters))}")
 
     repo = get_repository()
 
     # Repository automatically filters for approved, non-archived programs
     programs = repo.list(filters)
 
-    Logger.info("Programs retrieved successfully",
-      count: length(programs),
-      filters_applied: Map.keys(filters)
+    Logger.info(
+      "Programs retrieved successfully: count=#{length(programs)}, filters=#{inspect(Map.keys(filters))}"
     )
 
     programs
@@ -101,20 +97,15 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowsePrograms do
       [%Program{}, ...]
   """
   def search(query, filters \\ %{}) when is_binary(query) do
-    Logger.info("Searching programs",
-      query: query,
-      query_length: String.length(query),
-      filters: filters,
-      filter_keys: Map.keys(filters)
+    Logger.info(
+      "Searching programs: query=#{query}, length=#{String.length(query)}, filters=#{inspect(Map.keys(filters))}"
     )
 
     repo = get_repository()
     programs = repo.search(query, filters)
 
-    Logger.info("Search completed successfully",
-      query: query,
-      results_count: length(programs),
-      filters_applied: Map.keys(filters)
+    Logger.info(
+      "Search completed successfully: query=#{query}, results=#{length(programs)}, filters=#{inspect(Map.keys(filters))}"
     )
 
     programs
@@ -134,21 +125,19 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowsePrograms do
       {:error, :not_found}
   """
   def get_program(program_id) when is_binary(program_id) do
-    Logger.info("Fetching program by ID", program_id: program_id)
+    Logger.info("Fetching program by ID: #{program_id}")
 
     repo = get_repository()
     result = repo.get(program_id)
 
     case result do
       {:ok, program} ->
-        Logger.info("Program retrieved successfully",
-          program_id: program_id,
-          program_title: program.title,
-          program_category: program.category
+        Logger.info(
+          "Program retrieved successfully: id=#{program_id}, title=#{program.title}, category=#{program.category}"
         )
 
       {:error, :not_found} ->
-        Logger.warning("Program not found", program_id: program_id)
+        Logger.warning("Program not found: #{program_id}")
     end
 
     result
@@ -165,14 +154,13 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowsePrograms do
       [%Program{}, ...]
   """
   def list_by_provider(provider_id) when is_binary(provider_id) do
-    Logger.info("Listing programs for provider", provider_id: provider_id)
+    Logger.info("Listing programs for provider: #{provider_id}")
 
     repo = get_repository()
     programs = repo.list_by_provider(provider_id)
 
-    Logger.info("Provider programs retrieved successfully",
-      provider_id: provider_id,
-      programs_count: length(programs)
+    Logger.info(
+      "Provider programs retrieved successfully: provider=#{provider_id}, count=#{length(programs)}"
     )
 
     programs
