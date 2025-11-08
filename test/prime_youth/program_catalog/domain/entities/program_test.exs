@@ -2,7 +2,13 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramTest do
   use ExUnit.Case, async: true
 
   alias PrimeYouth.ProgramCatalog.Domain.Entities.Program
-  alias PrimeYouth.ProgramCatalog.Domain.ValueObjects.{ProgramCategory, AgeRange, Pricing, ApprovalStatus}
+
+  alias PrimeYouth.ProgramCatalog.Domain.ValueObjects.{
+    AgeRange,
+    ApprovalStatus,
+    Pricing,
+    ProgramCategory
+  }
 
   describe "new/1" do
     test "creates program with valid attributes" do
@@ -120,7 +126,10 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramTest do
 
       # 4 categories should fail
       secondary_too_many = secondary ++ [ProgramCategory.new("outdoor")]
-      assert {:error, changeset} = Program.new(Map.put(attrs, :secondary_categories, secondary_too_many))
+
+      assert {:error, changeset} =
+               Program.new(Map.put(attrs, :secondary_categories, secondary_too_many))
+
       assert "should have at most 3 item(s)" in errors_on(changeset).secondary_categories
     end
 
@@ -156,7 +165,8 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramTest do
     end
 
     test "prime youth programs can be approved directly" do
-      attrs = valid_attrs() |> Map.merge(%{is_prime_youth: true, status: ApprovalStatus.approved()})
+      attrs =
+        valid_attrs() |> Map.merge(%{is_prime_youth: true, status: ApprovalStatus.approved()})
 
       assert {:ok, program} = Program.new(attrs)
       assert program.is_prime_youth

@@ -2,14 +2,41 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
   use PrimeYouth.DataCase, async: true
 
   alias PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepository
-  alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.{Program, Provider, ProgramSchedule, Location}
+
+  alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.{
+    Location,
+    Program,
+    ProgramSchedule,
+    Provider
+  }
 
   describe "list/1" do
     setup do
       provider = insert_provider()
-      program1 = insert_program(provider, %{title: "Soccer Camp", category: "sports", age_min: 8, age_max: 12})
-      program2 = insert_program(provider, %{title: "Art Workshop", category: "arts", age_min: 10, age_max: 14})
-      program3 = insert_program(provider, %{title: "Math Tutoring", category: "academic", age_min: 6, age_max: 10})
+
+      program1 =
+        insert_program(provider, %{
+          title: "Soccer Camp",
+          category: "sports",
+          age_min: 8,
+          age_max: 12
+        })
+
+      program2 =
+        insert_program(provider, %{
+          title: "Art Workshop",
+          category: "arts",
+          age_min: 10,
+          age_max: 14
+        })
+
+      program3 =
+        insert_program(provider, %{
+          title: "Math Tutoring",
+          category: "academic",
+          age_min: 6,
+          age_max: 10
+        })
 
       {:ok, provider: provider, program1: program1, program2: program2, program3: program3}
     end
@@ -38,8 +65,10 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
 
       assert length(programs) == 2
       program_ids = Enum.map(programs, & &1.id)
-      assert p1.id in program_ids  # 8-12 covers age 9
-      assert p3.id in program_ids  # 6-10 covers age 9
+      # 8-12 covers age 9
+      assert p1.id in program_ids
+      # 6-10 covers age 9
+      assert p3.id in program_ids
     end
 
     test "filters by location city" do
@@ -55,8 +84,12 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
 
     test "filters by price range" do
       provider = insert_provider()
-      cheap_program = insert_program(provider, %{title: "Cheap", price_amount: Decimal.new("50.00")})
-      expensive_program = insert_program(provider, %{title: "Expensive", price_amount: Decimal.new("500.00")})
+
+      cheap_program =
+        insert_program(provider, %{title: "Cheap", price_amount: Decimal.new("50.00")})
+
+      expensive_program =
+        insert_program(provider, %{title: "Expensive", price_amount: Decimal.new("500.00")})
 
       programs = ProgramRepository.list(%{price_min: 40, price_max: 100})
 
@@ -66,8 +99,12 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
 
     test "filters by is_prime_youth" do
       provider = insert_provider()
-      prime_program = insert_program(provider, %{title: "Prime Youth Program", is_prime_youth: true})
-      _external_program = insert_program(provider, %{title: "External Program", is_prime_youth: false})
+
+      prime_program =
+        insert_program(provider, %{title: "Prime Youth Program", is_prime_youth: true})
+
+      _external_program =
+        insert_program(provider, %{title: "External Program", is_prime_youth: false})
 
       programs = ProgramRepository.list(%{is_prime_youth: true})
 
@@ -87,11 +124,12 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
     end
 
     test "combines multiple filters", %{program1: p1} do
-      programs = ProgramRepository.list(%{
-        category: "sports",
-        age_min: 8,
-        age_max: 12
-      })
+      programs =
+        ProgramRepository.list(%{
+          category: "sports",
+          age_min: 8,
+          age_max: 12
+        })
 
       assert length(programs) == 1
       assert hd(programs).id == p1.id

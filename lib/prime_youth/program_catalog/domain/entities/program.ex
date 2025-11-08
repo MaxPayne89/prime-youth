@@ -23,10 +23,10 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.Program do
   """
 
   alias PrimeYouth.ProgramCatalog.Domain.ValueObjects.{
-    ProgramCategory,
     AgeRange,
+    ApprovalStatus,
     Pricing,
-    ApprovalStatus
+    ProgramCategory
   }
 
   @type t :: %__MODULE__{

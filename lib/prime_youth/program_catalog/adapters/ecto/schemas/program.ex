@@ -19,11 +19,12 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program do
   """
 
   use Ecto.Schema
+
   import Ecto.Changeset
 
   alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.{
-    ProgramSchedule,
     Location,
+    ProgramSchedule,
     Provider
   }
 
@@ -191,7 +192,8 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program do
       has_discount && is_nil(discount_amount) ->
         add_error(changeset, :discount_amount, "is required when has_discount is true")
 
-      has_discount && discount_amount && price_amount && Decimal.compare(discount_amount, price_amount) != :lt ->
+      has_discount && discount_amount && price_amount &&
+          Decimal.compare(discount_amount, price_amount) != :lt ->
         add_error(changeset, :discount_amount, "must be less than price_amount")
 
       true ->
