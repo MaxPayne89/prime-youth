@@ -28,10 +28,12 @@ defmodule PrimeYouthWeb.DevAuthToggle do
 
   defmacro __using__(_opts) do
     quote do
+      alias PrimeYouthWeb.Live.SampleFixtures
+
       @impl true
       def handle_event("toggle_auth", _params, socket) do
         new_user =
-          if !socket.assigns.current_user, do: PrimeYouthWeb.Live.SampleFixtures.sample_user()
+          if !socket.assigns.current_user, do: SampleFixtures.sample_user()
 
         {:noreply, assign(socket, current_user: new_user)}
       end
