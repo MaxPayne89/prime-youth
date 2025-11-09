@@ -39,14 +39,26 @@ defmodule PrimeYouthWeb.Router do
       live "/programs/:id/booking", BookingLive, :new
     end
 
-    # Provider routes (require login)
+    # Provider routes (require login AND provider account)
     live_session :provider,
       layout: {PrimeYouthWeb.Layouts, :app},
-      on_mount: [{PrimeYouthWeb.UserAuth, :require_authenticated}] do
+      on_mount: [
+        {PrimeYouthWeb.UserAuth, :require_authenticated},
+        {PrimeYouthWeb.ProviderAuth, :require_provider}
+      ] do
       live "/provider/dashboard", ProviderLive.Dashboard, :index
       live "/provider/programs/new", ProgramLive.Form, :new
+      live "/provider/programs/:id", ProgramLive.Show, :show
       live "/provider/programs/:id/edit", ProgramLive.Form, :edit
     end
+
+    # Provider setup route (requires authentication but NOT provider account)
+    # TODO: Uncomment when ProviderLive.Setup module is created
+    # live_session :provider_setup,
+    #   layout: {PrimeYouthWeb.Layouts, :app},
+    #   on_mount: [{PrimeYouthWeb.UserAuth, :require_authenticated}] do
+    #   live "/provider/setup", ProviderLive.Setup, :new
+    # end
   end
 
   # Other scopes may use custom stacks.

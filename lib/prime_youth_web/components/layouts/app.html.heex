@@ -49,12 +49,21 @@
         <div class="flex items-center gap-2">
           <.theme_toggle />
 
-          <%= if assigns[:current_user] do %>
+          <%= if assigns[:current_scope] do %>
             <!-- Authenticated User Dropdown -->
             <div class="dropdown dropdown-end">
               <label tabindex="0" class="btn btn-ghost btn-circle avatar">
                 <div class="w-10 rounded-full ring ring-white ring-offset-2">
-                  <img src={@current_user.avatar} alt={@current_user.name} />
+                  <%= if @current_scope.user.avatar do %>
+                    <img
+                      src={@current_scope.user.avatar}
+                      alt={@current_scope.user.name || @current_scope.user.email}
+                    />
+                  <% else %>
+                    <div class="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600">
+                      {String.first(@current_scope.user.email) |> String.upcase()}
+                    </div>
+                  <% end %>
                 </div>
               </label>
               <ul
@@ -63,14 +72,24 @@
               >
                 <li class="menu-title px-4 py-2">
                   <div class="flex items-center gap-3">
-                    <img
-                      src={@current_user.avatar}
-                      alt={@current_user.name}
-                      class="w-10 h-10 rounded-full"
-                    />
+                    <%= if @current_scope.user.avatar do %>
+                      <img
+                        src={@current_scope.user.avatar}
+                        alt={@current_scope.user.name || @current_scope.user.email}
+                        class="w-10 h-10 rounded-full"
+                      />
+                    <% else %>
+                      <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 font-semibold">
+                        {String.first(@current_scope.user.email) |> String.upcase()}
+                      </div>
+                    <% end %>
                     <div>
-                      <div class="font-semibold text-gray-900">{@current_user.name}</div>
-                      <div class="text-xs text-gray-500">{@current_user.email}</div>
+                      <%= if @current_scope.user.name do %>
+                        <div class="font-semibold text-gray-900">{@current_scope.user.name}</div>
+                        <div class="text-xs text-gray-500">{@current_scope.user.email}</div>
+                      <% else %>
+                        <div class="font-semibold text-gray-900">{@current_scope.user.email}</div>
+                      <% end %>
                     </div>
                   </div>
                 </li>
@@ -244,7 +263,7 @@
         class="fixed bottom-4 right-4 z-50 btn btn-sm bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white shadow-lg hover:shadow-xl border-0"
         title="Toggle Authentication State (Dev Only)"
       >
-        <%= if assigns[:current_user] do %>
+        <%= if assigns[:current_scope] do %>
           🔐 Authenticated
         <% else %>
           🔓 Guest
@@ -273,7 +292,7 @@
           <li><.link navigate={~p"/about"}>About</.link></li>
           <li><.link navigate={~p"/contact"}>Contact</.link></li>
 
-          <%= if assigns[:current_user] do %>
+          <%= if assigns[:current_scope] do %>
             <li class="mt-4"><.link navigate={~p"/dashboard"}>Dashboard</.link></li>
             <li><.link navigate={~p"/highlights"}>Highlights</.link></li>
             <li><.link navigate={~p"/settings"}>Settings</.link></li>

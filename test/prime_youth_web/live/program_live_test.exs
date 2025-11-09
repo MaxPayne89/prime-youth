@@ -2,17 +2,19 @@ defmodule PrimeYouthWeb.ProgramLiveTest do
   use PrimeYouthWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+  import PrimeYouth.ProgramCatalogFixtures
 
   alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.{
     Location,
     Program,
-    ProgramSchedule,
-    Provider
+    ProgramSchedule
   }
+
+  alias PrimeYouth.Repo
 
   describe "ProgramLive.Index" do
     setup do
-      provider = insert_provider()
+      provider = provider_fixture()
 
       program1 =
         insert_program(provider, %{
@@ -45,7 +47,7 @@ defmodule PrimeYouthWeb.ProgramLiveTest do
       assert has_element?(view, "#program-#{p2.id}")
     end
 
-    test "filters programs by category", %{conn: conn, program1: p1} do
+    test "filters programs by category", %{conn: conn, program1: _p1} do
       {:ok, view, _html} = live(conn, ~p"/programs")
 
       # Apply sports filter
@@ -90,7 +92,7 @@ defmodule PrimeYouthWeb.ProgramLiveTest do
     end
 
     test "displays program cards with key information", %{conn: conn, program1: p1} do
-      {:ok, view, html} = live(conn, ~p"/programs")
+      {:ok, _view, html} = live(conn, ~p"/programs")
 
       assert html =~ "Soccer Camp"
       assert html =~ p1.description
@@ -110,7 +112,7 @@ defmodule PrimeYouthWeb.ProgramLiveTest do
     end
 
     test "excludes draft programs from listing", %{conn: conn} do
-      provider = insert_provider()
+      provider = provider_fixture()
       _draft = insert_program(provider, %{title: "Draft Program", status: "draft"})
 
       {:ok, _view, html} = live(conn, ~p"/programs")
@@ -119,7 +121,7 @@ defmodule PrimeYouthWeb.ProgramLiveTest do
     end
 
     test "excludes archived programs from listing", %{conn: conn} do
-      provider = insert_provider()
+      provider = provider_fixture()
 
       _archived =
         insert_program(provider, %{
@@ -152,7 +154,7 @@ defmodule PrimeYouthWeb.ProgramLiveTest do
 
   describe "ProgramLive.Show" do
     setup do
-      provider = insert_provider()
+      provider = provider_fixture()
 
       program =
         insert_program(provider, %{
@@ -244,7 +246,7 @@ defmodule PrimeYouthWeb.ProgramLiveTest do
     end
 
     test "displays virtual location if program is online", %{conn: conn} do
-      provider = insert_provider()
+      provider = provider_fixture()
       program = insert_program(provider, %{title: "Online Math"})
 
       insert_location(program, %{
@@ -271,21 +273,7 @@ defmodule PrimeYouthWeb.ProgramLiveTest do
 
   # Helper functions
 
-  defp insert_provider(attrs \\ %{}) do
-    default_attrs = %{
-      name: "Test Provider",
-      email: "provider@test.com",
-      is_verified: true,
-      is_prime_youth: false,
-      user_id: Ecto.UUID.generate()
-    }
-
-    %Provider{}
-    |> Provider.changeset(Map.merge(default_attrs, attrs))
-    |> Repo.insert!()
-  end
-
-  defp insert_program(provider, attrs \\ %{}) do
+  defp insert_program(provider, attrs) do
     default_attrs = %{
       title: "Test Program",
       description: "A test program description that is long enough to pass validation.",
@@ -345,9 +333,9 @@ defmodule PrimeYouthWeb.ProgramLiveTest do
 
   describe "ProgramLive.Form" do
     setup %{conn: conn} do
-      # Create a user and provider
-      user = PrimeYouth.AccountsFixtures.user_fixture()
-      provider = insert_provider(%{user_id: user.id})
+      # Create a user and provider using fixture (automatically creates user)
+      provider = provider_fixture()
+      user = Repo.get!(PrimeYouth.Accounts.User, provider.user_id)
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -510,7 +498,7 @@ defmodule PrimeYouthWeb.ProgramLiveTest do
     end
 
     test "prevents editing programs from other providers", %{conn: conn} do
-      other_provider = insert_provider(%{name: "Other Provider", email: "other@test.com"})
+      other_provider = provider_fixture()
       program = insert_program(other_provider, %{title: "Other Program"})
 
       assert_error_sent 403, fn ->

@@ -56,10 +56,10 @@ defmodule PrimeYouthWeb.UserLive.Confirmation do
               phx-disable-with="Logging in..."
               class="btn btn-primary w-full"
             >
-              Keep me logged in on this device
+              Log in and stay logged in
             </.button>
             <.button phx-disable-with="Logging in..." class="btn btn-primary btn-soft w-full mt-2">
-              Log me in only this time
+              Log in only this time
             </.button>
           <% end %>
         </.form>

@@ -9,7 +9,8 @@ defmodule PrimeYouthWeb.UserLive.Login do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="mx-auto max-w-sm space-y-4">
         <div class="text-center">
-          <h2 class="text-3xl font-bold text-zinc-900">Welcome Back</h2>
+          <h1 class="text-4xl font-bold text-zinc-900">Log in</h1>
+          <h2 class="mt-2 text-2xl font-semibold text-zinc-700">Welcome Back</h2>
           <p class="mt-2 text-sm text-zinc-600">
             <%= if @current_scope do %>
               You need to reauthenticate to perform sensitive actions on your account.
