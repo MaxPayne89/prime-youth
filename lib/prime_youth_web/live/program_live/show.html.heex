@@ -76,6 +76,11 @@
               <p class="text-3xl font-bold text-gray-900">
                 ${Decimal.to_string(@program.price_amount)}
               </p>
+              <%= if @program.price_unit do %>
+                <p class="text-sm text-gray-500">
+                  per {@program.price_unit}
+                </p>
+              <% end %>
               <%= if @program.has_discount && @program.discount_amount do %>
                 <p class="text-sm text-green-600">
                   ${Decimal.to_string(@program.discount_amount)} off
