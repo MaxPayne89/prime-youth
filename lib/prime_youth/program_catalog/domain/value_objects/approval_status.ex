@@ -98,6 +98,121 @@ defmodule PrimeYouth.ProgramCatalog.Domain.ValueObjects.ApprovalStatus do
   end
 
   @doc """
+  Creates a draft status.
+
+  Convenience constructor for creating a draft status without error handling.
+  Equivalent to calling `new("draft")` and unwrapping the result.
+
+  ## Returns
+    - `%ApprovalStatus{value: "draft"}`
+
+  ## Examples
+
+      iex> ApprovalStatus.draft()
+      %ApprovalStatus{value: "draft"}
+
+      iex> ApprovalStatus.draft?/1(ApprovalStatus.draft())
+      true
+  """
+  @spec draft() :: t()
+  def draft do
+    {:ok, status} = new("draft")
+    status
+  end
+
+  @doc """
+  Creates an approved status.
+
+  Convenience constructor for creating an approved status without error handling.
+  Equivalent to calling `new("approved")` and unwrapping the result.
+
+  ## Returns
+    - `%ApprovalStatus{value: "approved"}`
+
+  ## Examples
+
+      iex> ApprovalStatus.approved()
+      %ApprovalStatus{value: "approved"}
+
+      iex> ApprovalStatus.approved?/1(ApprovalStatus.approved())
+      true
+  """
+  @spec approved() :: t()
+  def approved do
+    {:ok, status} = new("approved")
+    status
+  end
+
+  @doc """
+  Creates a pending_approval status.
+
+  Convenience constructor for creating a pending_approval status without error handling.
+  Equivalent to calling `new("pending_approval")` and unwrapping the result.
+
+  ## Returns
+    - `%ApprovalStatus{value: "pending_approval"}`
+
+  ## Examples
+
+      iex> ApprovalStatus.pending_approval()
+      %ApprovalStatus{value: "pending_approval"}
+
+      iex> ApprovalStatus.pending?/1(ApprovalStatus.pending_approval())
+      true
+  """
+  @spec pending_approval() :: t()
+  def pending_approval do
+    {:ok, status} = new("pending_approval")
+    status
+  end
+
+  @doc """
+  Creates a rejected status.
+
+  Convenience constructor for creating a rejected status without error handling.
+  Equivalent to calling `new("rejected")` and unwrapping the result.
+
+  ## Returns
+    - `%ApprovalStatus{value: "rejected"}`
+
+  ## Examples
+
+      iex> ApprovalStatus.rejected()
+      %ApprovalStatus{value: "rejected"}
+
+      iex> ApprovalStatus.rejected?/1(ApprovalStatus.rejected())
+      true
+  """
+  @spec rejected() :: t()
+  def rejected do
+    {:ok, status} = new("rejected")
+    status
+  end
+
+  @doc """
+  Creates an archived status.
+
+  Convenience constructor for creating an archived status without error handling.
+  Equivalent to calling `new("archived")` and unwrapping the result.
+
+  ## Returns
+    - `%ApprovalStatus{value: "archived"}`
+
+  ## Examples
+
+      iex> ApprovalStatus.archived()
+      %ApprovalStatus{value: "archived"}
+
+      iex> ApprovalStatus.archived?/1(ApprovalStatus.archived())
+      true
+  """
+  @spec archived() :: t()
+  def archived do
+    {:ok, status} = new("archived")
+    status
+  end
+
+  @doc """
   Returns the formatted display name for a status.
 
   ## Parameters
