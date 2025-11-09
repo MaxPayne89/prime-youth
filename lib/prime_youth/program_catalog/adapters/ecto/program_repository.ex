@@ -242,12 +242,14 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepository do
     |> distinct([p], p.id)
   end
 
-  defp apply_filter(query, :price_min, price_min) do
-    where(query, [p], p.price_amount >= ^price_min)
+  defp apply_filter(query, :price_min, price_min) when is_number(price_min) do
+    price_decimal = Decimal.new(to_string(price_min))
+    where(query, [p], p.price_amount >= ^price_decimal)
   end
 
-  defp apply_filter(query, :price_max, price_max) do
-    where(query, [p], p.price_amount <= ^price_max)
+  defp apply_filter(query, :price_max, price_max) when is_number(price_max) do
+    price_decimal = Decimal.new(to_string(price_max))
+    where(query, [p], p.price_amount <= ^price_decimal)
   end
 
   defp apply_filter(query, :is_prime_youth, is_prime_youth) when is_boolean(is_prime_youth) do
@@ -290,7 +292,6 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepository do
     query
     |> preload([:schedules, :locations, :provider])
     |> where([p], is_nil(p.archived_at))
-    |> where([p], p.status == "approved")
   end
 
   defp preload_associations(nil), do: nil

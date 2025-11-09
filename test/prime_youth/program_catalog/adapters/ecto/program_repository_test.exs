@@ -1,18 +1,19 @@
 defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
   use PrimeYouth.DataCase, async: true
 
+  import PrimeYouth.ProgramCatalogFixtures
+
   alias PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepository
 
   alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.{
     Location,
     Program,
-    ProgramSchedule,
-    Provider
+    ProgramSchedule
   }
 
   describe "list/1" do
     setup do
-      provider = insert_provider()
+      provider = provider_fixture()
 
       program1 =
         insert_program(provider, %{
@@ -72,7 +73,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
     end
 
     test "filters by location city" do
-      provider = insert_provider()
+      provider = provider_fixture()
       program = insert_program(provider, %{title: "SF Program"})
       insert_location(program, %{city: "San Francisco"})
 
@@ -82,23 +83,28 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
       assert hd(programs).id == program.id
     end
 
-    test "filters by price range" do
-      provider = insert_provider()
+    test "filters by price range", %{program1: p1, program2: p2, program3: p3} do
+      provider = provider_fixture()
 
       cheap_program =
         insert_program(provider, %{title: "Cheap", price_amount: Decimal.new("50.00")})
 
-      expensive_program =
+      _expensive_program =
         insert_program(provider, %{title: "Expensive", price_amount: Decimal.new("500.00")})
 
       programs = ProgramRepository.list(%{price_min: 40, price_max: 100})
 
-      assert length(programs) == 1
-      assert hd(programs).id == cheap_program.id
+      # Should return: 3 from setup (all $100) + cheap program ($50) = 4 total
+      assert length(programs) == 4
+      program_ids = Enum.map(programs, & &1.id)
+      assert cheap_program.id in program_ids
+      assert p1.id in program_ids
+      assert p2.id in program_ids
+      assert p3.id in program_ids
     end
 
     test "filters by is_prime_youth" do
-      provider = insert_provider()
+      provider = provider_fixture()
 
       prime_program =
         insert_program(provider, %{title: "Prime Youth Program", is_prime_youth: true})
@@ -112,15 +118,20 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
       assert hd(programs).id == prime_program.id
     end
 
-    test "filters by status" do
-      provider = insert_provider()
+    test "filters by status", %{program1: p1, program2: p2, program3: p3} do
+      provider = provider_fixture()
       approved = insert_program(provider, %{title: "Approved", status: "approved"})
       _draft = insert_program(provider, %{title: "Draft", status: "draft"})
 
       programs = ProgramRepository.list(%{status: "approved"})
 
-      assert length(programs) == 1
-      assert hd(programs).id == approved.id
+      # Should return: 3 from setup (all approved) + 1 explicit approved = 4 total
+      assert length(programs) == 4
+      program_ids = Enum.map(programs, & &1.id)
+      assert approved.id in program_ids
+      assert p1.id in program_ids
+      assert p2.id in program_ids
+      assert p3.id in program_ids
     end
 
     test "combines multiple filters", %{program1: p1} do
@@ -143,7 +154,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
 
   describe "get/1" do
     test "returns program with preloaded associations" do
-      provider = insert_provider()
+      provider = provider_fixture()
       program = insert_program(provider, %{title: "Test Program"})
       schedule = insert_schedule(program)
       location = insert_location(program)
@@ -164,21 +175,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.ProgramRepositoryTest do
 
   # Helper functions
 
-  defp insert_provider(attrs \\ %{}) do
-    default_attrs = %{
-      name: "Test Provider",
-      email: "provider@test.com",
-      is_verified: true,
-      is_prime_youth: false,
-      user_id: Ecto.UUID.generate()
-    }
-
-    %Provider{}
-    |> Provider.changeset(Map.merge(default_attrs, attrs))
-    |> Repo.insert!()
-  end
-
-  defp insert_program(provider, attrs \\ %{}) do
+  defp insert_program(provider, attrs) do
     default_attrs = %{
       title: "Test Program",
       description: "A test program description that is long enough to pass validation.",
