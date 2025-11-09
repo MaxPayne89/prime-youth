@@ -31,6 +31,77 @@
         </div>
       </form>
 
+      <%!-- Filter Form --%>
+      <form id="filter-form" phx-change="filter" class="mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label for="category" class="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            <select
+              id="category"
+              name="filter[category]"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="">All Categories</option>
+              <option value="sports" selected={@filters[:category] == "sports"}>Sports</option>
+              <option value="arts" selected={@filters[:category] == "arts"}>Arts</option>
+              <option value="academic" selected={@filters[:category] == "academic"}>
+                Academic
+              </option>
+              <option value="stem" selected={@filters[:category] == "stem"}>STEM</option>
+              <option value="enrichment" selected={@filters[:category] == "enrichment"}>
+                Enrichment
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label for="age_min" class="block text-sm font-medium text-gray-700 mb-1">
+              Min Age
+            </label>
+            <input
+              type="number"
+              id="age_min"
+              name="filter[age_min]"
+              value={@filters[:age_min]}
+              min="0"
+              max="18"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label for="age_max" class="block text-sm font-medium text-gray-700 mb-1">
+              Max Age
+            </label>
+            <input
+              type="number"
+              id="age_max"
+              name="filter[age_max]"
+              value={@filters[:age_max]}
+              min="0"
+              max="18"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <div>
+            <label for="city" class="block text-sm font-medium text-gray-700 mb-1">
+              City
+            </label>
+            <input
+              type="text"
+              id="city"
+              name="filter[city]"
+              value={@filters[:city]}
+              placeholder="Enter city..."
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+        </div>
+      </form>
+
       <%!-- Filter Pills --%>
       <div class="flex items-center gap-2 overflow-x-auto pb-2">
         <button
@@ -95,7 +166,10 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <%= for program <- @programs do %>
             <.link navigate={~p"/programs/#{program.id}"} class="group">
-              <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden">
+              <div
+                id={"program-#{program.id}"}
+                class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 overflow-hidden"
+              >
                 <%!-- Program Image --%>
                 <div class="aspect-video bg-gray-200 relative">
                   <%= if program.featured do %>

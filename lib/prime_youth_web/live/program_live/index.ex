@@ -11,7 +11,7 @@ defmodule PrimeYouthWeb.ProgramLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    programs = BrowsePrograms.execute()
+    {:ok, programs} = BrowsePrograms.execute()
 
     socket =
       socket
@@ -36,11 +36,11 @@ defmodule PrimeYouthWeb.ProgramLive.Index do
       |> assign(:loading, true)
       |> assign(:search_query, query)
 
-    programs =
+    {:ok, programs} =
       if query == "" do
         BrowsePrograms.execute(socket.assigns.filters)
       else
-        BrowsePrograms.search(query, socket.assigns.filters)
+        {:ok, BrowsePrograms.search(query, socket.assigns.filters)}
       end
 
     socket =
@@ -53,7 +53,7 @@ defmodule PrimeYouthWeb.ProgramLive.Index do
 
   @impl true
   def handle_event("clear_search", _params, socket) do
-    programs = BrowsePrograms.execute(socket.assigns.filters)
+    {:ok, programs} = BrowsePrograms.execute(socket.assigns.filters)
 
     socket =
       socket
@@ -67,11 +67,11 @@ defmodule PrimeYouthWeb.ProgramLive.Index do
   def handle_event("filter", params, socket) do
     filters = build_filters(params)
 
-    programs =
+    {:ok, programs} =
       if socket.assigns.search_query == "" do
         BrowsePrograms.execute(filters)
       else
-        BrowsePrograms.search(socket.assigns.search_query, filters)
+        {:ok, BrowsePrograms.search(socket.assigns.search_query, filters)}
       end
 
     socket =
@@ -84,16 +84,35 @@ defmodule PrimeYouthWeb.ProgramLive.Index do
 
   @impl true
   def handle_event("clear_filters", _params, socket) do
-    programs =
+    {:ok, programs} =
       if socket.assigns.search_query == "" do
         BrowsePrograms.execute()
       else
-        BrowsePrograms.search(socket.assigns.search_query)
+        {:ok, BrowsePrograms.search(socket.assigns.search_query)}
       end
 
     socket =
       socket
       |> assign(:filters, %{})
+      |> assign(:programs, programs)
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("filter_select", %{"filter" => filter_type}, socket) do
+    filters = Map.put(socket.assigns.filters, :filter_type, filter_type)
+
+    {:ok, programs} =
+      if socket.assigns.search_query == "" do
+        BrowsePrograms.execute(filters)
+      else
+        {:ok, BrowsePrograms.search(socket.assigns.search_query, filters)}
+      end
+
+    socket =
+      socket
+      |> assign(:filters, filters)
       |> assign(:programs, programs)
 
     {:noreply, socket}
@@ -105,11 +124,11 @@ defmodule PrimeYouthWeb.ProgramLive.Index do
     filters = build_filters(params)
     search_query = Map.get(params, "q", "")
 
-    programs =
+    {:ok, programs} =
       if search_query == "" do
         BrowsePrograms.execute(filters)
       else
-        BrowsePrograms.search(search_query, filters)
+        {:ok, BrowsePrograms.search(search_query, filters)}
       end
 
     socket

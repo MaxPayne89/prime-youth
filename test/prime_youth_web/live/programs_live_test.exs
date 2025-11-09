@@ -13,26 +13,27 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
       assert render(view) =~ "Chess Masters"
     end
 
-    test "program_click with valid program navigates to detail page", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/programs")
-
-      # Trigger program_click event (assuming Creative Art World exists in sample data)
-      render_click(view, "program_click", %{"program" => "Creative Art World"})
-
-      # Should navigate to program detail page
-      assert_redirect(view, ~p"/programs/1")
-    end
-
-    test "program_click with invalid program shows error", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/programs")
-
-      # Trigger program_click event with non-existent program
-      render_click(view, "program_click", %{"program" => "Nonexistent Program"})
-
-      # Should stay on programs page with error flash
-      assert_patch(view, ~p"/programs")
-      assert render(view) =~ "Program not found"
-    end
+    # Note: program_click event handler removed - navigation handled by template links
+    # test "program_click with valid program navigates to detail page", %{conn: conn} do
+    #   {:ok, view, _html} = live(conn, ~p"/programs")
+    #
+    #   # Trigger program_click event (assuming Creative Art World exists in sample data)
+    #   render_click(view, "program_click", %{"program" => "Creative Art World"})
+    #
+    #   # Should navigate to program detail page
+    #   assert_redirect(view, ~p"/programs/1")
+    # end
+    #
+    # test "program_click with invalid program shows error", %{conn: conn} do
+    #   {:ok, view, _html} = live(conn, ~p"/programs")
+    #
+    #   # Trigger program_click event with non-existent program
+    #   render_click(view, "program_click", %{"program" => "Nonexistent Program"})
+    #
+    #   # Should stay on programs page with error flash
+    #   assert_patch(view, ~p"/programs")
+    #   assert render(view) =~ "Program not found"
+    # end
 
     test "restores search and filter state from URL parameters", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/programs?q=soccer&filter=available")
@@ -47,7 +48,7 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
       {:ok, view, _html} = live(conn, ~p"/programs")
 
       # Perform search - search_bar component has phx-change="search"
-      render_change(view, "search", %{"search" => "art"})
+      render_change(view, "search", %{"query" => "art"})
 
       # URL should update with search query
       assert_patched?(view, ~p"/programs?q=art")
@@ -68,7 +69,7 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
       {:ok, view, _html} = live(conn, ~p"/programs")
 
       # Apply search first
-      render_change(view, "search", %{"search" => "chess"})
+      render_change(view, "search", %{"query" => "chess"})
 
       assert_patched?(view, ~p"/programs?q=chess")
 
@@ -85,7 +86,7 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
       {:ok, view, _html} = live(conn, ~p"/programs?q=soccer")
 
       # Clear search
-      render_change(view, "search", %{"search" => ""})
+      render_change(view, "search", %{"query" => ""})
 
       # URL should not have q parameter
       assert_patched?(view, ~p"/programs")
@@ -133,7 +134,7 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
       {:ok, view, _html} = live(conn, ~p"/programs?filter=available")
 
       # Update search
-      render_change(view, "search", %{"search" => "soccer"})
+      render_change(view, "search", %{"query" => "soccer"})
 
       # Both parameters should be maintained in the rendered HTML
       html = render(view)
