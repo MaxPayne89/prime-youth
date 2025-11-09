@@ -58,7 +58,7 @@ defmodule PrimeYouthWeb.ProviderLive.Dashboard do
       socket =
         socket
         |> put_flash(:error, "Please complete your provider profile first.")
-        |> redirect(to: ~p"/provider/setup")
+        |> redirect(to: ~p"/dashboard")
 
       {:ok, socket}
     end
@@ -258,7 +258,10 @@ defmodule PrimeYouthWeb.ProviderLive.Dashboard do
     <% else %>
       <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <%= for program <- @programs do %>
-          <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+          <div
+            id={"program-#{program.id}"}
+            class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+          >
             <%!-- Program Image Placeholder --%>
             <div class="aspect-video bg-gray-200 relative">
               <span class={[
@@ -308,16 +311,26 @@ defmodule PrimeYouthWeb.ProviderLive.Dashboard do
                 </div>
               </div>
 
+              <%!-- Rejection Reason (only for rejected programs) --%>
+              <%= if @status == "rejected" && program.rejection_reason do %>
+                <div class="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p class="text-sm font-medium text-red-800">Rejection Reason:</p>
+                  <p class="mt-1 text-sm text-red-700">{program.rejection_reason}</p>
+                </div>
+              <% end %>
+
               <%!-- Action Buttons --%>
               <div class="mt-4 flex flex-col sm:flex-row gap-2">
                 <%= if @status == "draft" do %>
                   <.link
+                    id={"edit-program-#{program.id}"}
                     navigate={~p"/provider/programs/#{program.id}/edit"}
                     class="flex-1 inline-flex items-center justify-center px-3 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     Edit
                   </.link>
                   <button
+                    id={"submit-program-#{program.id}"}
                     phx-click="submit_for_approval"
                     phx-value-id={program.id}
                     class="flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"

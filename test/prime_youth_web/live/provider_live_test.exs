@@ -2,16 +2,17 @@ defmodule PrimeYouthWeb.ProviderLiveTest do
   use PrimeYouthWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
+  import PrimeYouth.ProgramCatalogFixtures
 
   alias PrimeYouth.AccountsFixtures
-  alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.{Program, Provider}
+  alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program
   alias PrimeYouth.Repo
 
   describe "ProviderLive.Dashboard" do
     setup %{conn: conn} do
-      # Create a user and provider
-      user = AccountsFixtures.user_fixture()
-      provider = insert_provider(%{user_id: user.id})
+      # Create a user and provider using the fixture (automatically creates user)
+      provider = provider_fixture()
+      user = Repo.get!(PrimeYouth.Accounts.User, provider.user_id)
 
       # Log in the user
       conn = log_in_user(conn, user)
@@ -142,8 +143,8 @@ defmodule PrimeYouthWeb.ProviderLiveTest do
     end
 
     test "only shows programs belonging to current provider", %{conn: conn} do
-      # Create another provider with programs
-      other_provider = insert_provider(%{name: "Other Provider", email: "other@test.com"})
+      # Create another provider with programs using the fixture
+      other_provider = provider_fixture()
       insert_program(other_provider, %{title: "Other Provider Program"})
 
       {:ok, _view, html} = live(conn, ~p"/provider/dashboard")
@@ -210,10 +211,11 @@ defmodule PrimeYouthWeb.ProviderLiveTest do
       non_provider_user = AccountsFixtures.user_fixture()
       conn = log_in_user(build_conn(), non_provider_user)
 
-      # Should show error or redirect
-      assert_error_sent 403, fn ->
-        live(conn, ~p"/provider/dashboard")
-      end
+      # Should redirect with error message
+      {:error, {:redirect, %{to: path, flash: flash}}} = live(conn, ~p"/provider/dashboard")
+
+      assert path == "/provider/setup"
+      assert flash["error"] == "Please complete your provider profile first."
     end
 
     test "displays provider name and email", %{conn: conn, provider: provider} do
@@ -241,21 +243,7 @@ defmodule PrimeYouthWeb.ProviderLiveTest do
 
   # Helper functions
 
-  defp insert_provider(attrs \\ %{}) do
-    default_attrs = %{
-      name: "Test Provider",
-      email: "provider@test.com",
-      is_verified: true,
-      is_prime_youth: false,
-      user_id: Ecto.UUID.generate()
-    }
-
-    %Provider{}
-    |> Provider.changeset(Map.merge(default_attrs, attrs))
-    |> Repo.insert!()
-  end
-
-  defp insert_program(provider, attrs \\ %{}) do
+  defp insert_program(provider, attrs) do
     default_attrs = %{
       title: "Test Program",
       description: "A test program description that is long enough to pass validation.",

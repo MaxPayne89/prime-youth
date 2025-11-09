@@ -4,13 +4,14 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">My Programs</h1>
+          <h1 class="text-2xl font-bold text-gray-900">Provider Dashboard</h1>
           <p class="mt-1 text-sm text-gray-500">
             Manage your program listings and track their approval status
           </p>
         </div>
         <.link
           navigate={~p"/provider/programs/new"}
+          id="new-program-button"
           class="inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           <svg class="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,8 +31,9 @@
   <%!-- Tabs Navigation --%>
   <div class="bg-white border-b border-gray-200">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <nav class="flex -mb-px space-x-8 overflow-x-auto" aria-label="Tabs">
+      <nav class="flex -mb-px space-x-8 overflow-x-auto" id="program-tabs" aria-label="Tabs">
         <button
+          id="tab-draft"
           phx-click="change_tab"
           phx-value-tab="draft"
           class={[
@@ -55,6 +57,7 @@
         </button>
 
         <button
+          id="tab-pending"
           phx-click="change_tab"
           phx-value-tab="pending"
           class={[
@@ -78,6 +81,7 @@
         </button>
 
         <button
+          id="tab-approved"
           phx-click="change_tab"
           phx-value-tab="approved"
           class={[
@@ -101,6 +105,7 @@
         </button>
 
         <button
+          id="tab-rejected"
           phx-click="change_tab"
           phx-value-tab="rejected"
           class={[
