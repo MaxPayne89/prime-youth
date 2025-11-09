@@ -35,7 +35,7 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowsePrograms do
   @doc """
   Execute the browse programs use case with optional filters.
 
-  Returns a list of programs matching the provided filters.
+  Returns `{:ok, programs}` with a list of programs matching the provided filters.
   Only returns programs that are visible in the marketplace (approved, not archived).
 
   ## Filters
@@ -54,13 +54,13 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowsePrograms do
   ## Examples
 
       iex> BrowsePrograms.execute()
-      [%Program{}, ...]
+      {:ok, [%Program{}, ...]}
 
       iex> BrowsePrograms.execute(%{category: "sports", age_min: 10, age_max: 12})
-      [%Program{}, ...]
+      {:ok, [%Program{}, ...]}
 
       iex> BrowsePrograms.execute(%{city: "San Francisco", price_max: 500})
-      [%Program{}, ...]
+      {:ok, [%Program{}, ...]}
   """
   def execute(filters \\ %{}) do
     Logger.info("Listing programs with filters: #{inspect(Map.keys(filters))}")
@@ -74,7 +74,7 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowsePrograms do
       "Programs retrieved successfully: count=#{length(programs)}, filters=#{inspect(Map.keys(filters))}"
     )
 
-    programs
+    {:ok, programs}
   end
 
   @doc """

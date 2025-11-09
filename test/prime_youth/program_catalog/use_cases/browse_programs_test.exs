@@ -1,12 +1,14 @@
 defmodule PrimeYouth.ProgramCatalog.UseCases.BrowseProgramsTest do
   use PrimeYouth.DataCase, async: true
 
-  alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.{Program, Provider}
+  import PrimeYouth.ProgramCatalogFixtures
+
+  alias PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program
   alias PrimeYouth.ProgramCatalog.UseCases.BrowsePrograms
 
   describe "execute/1" do
     setup do
-      provider = insert_provider()
+      provider = provider_fixture()
 
       program1 =
         insert_program(provider, %{
@@ -75,7 +77,7 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowseProgramsTest do
     end
 
     test "excludes draft programs" do
-      provider = insert_provider()
+      provider = provider_fixture()
       _draft = insert_program(provider, %{title: "Draft Program", status: "draft"})
 
       {:ok, programs} = BrowsePrograms.execute(%{})
@@ -85,7 +87,7 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowseProgramsTest do
     end
 
     test "excludes pending approval programs" do
-      provider = insert_provider()
+      provider = provider_fixture()
       _pending = insert_program(provider, %{title: "Pending Program", status: "pending_approval"})
 
       {:ok, programs} = BrowsePrograms.execute(%{})
@@ -95,7 +97,7 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowseProgramsTest do
     end
 
     test "includes only approved programs by default" do
-      provider = insert_provider()
+      provider = provider_fixture()
       approved = insert_program(provider, %{title: "Approved Program", status: "approved"})
 
       {:ok, programs} = BrowsePrograms.execute(%{})
@@ -105,7 +107,7 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowseProgramsTest do
     end
 
     test "excludes archived programs" do
-      provider = insert_provider()
+      provider = provider_fixture()
 
       _archived =
         insert_program(provider, %{
@@ -136,21 +138,7 @@ defmodule PrimeYouth.ProgramCatalog.UseCases.BrowseProgramsTest do
 
   # Helper functions
 
-  defp insert_provider(attrs \\ %{}) do
-    default_attrs = %{
-      name: "Test Provider",
-      email: "provider@test.com",
-      is_verified: true,
-      is_prime_youth: false,
-      user_id: Ecto.UUID.generate()
-    }
-
-    %Provider{}
-    |> Provider.changeset(Map.merge(default_attrs, attrs))
-    |> Repo.insert!()
-  end
-
-  defp insert_program(provider, attrs \\ %{}) do
+  defp insert_program(provider, attrs) do
     default_attrs = %{
       title: "Test Program",
       description: "A test program description that is long enough to pass validation.",
