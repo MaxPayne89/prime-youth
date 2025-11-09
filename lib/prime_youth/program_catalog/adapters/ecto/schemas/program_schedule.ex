@@ -116,13 +116,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramSchedule do
   end
 
   defp validate_required_program_id(changeset) do
-    # Only validate program_id as required if it's being passed in attrs
-    # When using cast_assoc, program_id is set automatically and won't be in attrs
-    if Map.has_key?(changeset.params, "program_id") do
-      validate_required(changeset, [:program_id])
-    else
-      changeset
-    end
+    # Always validate program_id as required
+    # When using cast_assoc from Program, the program_id should be included in nested params
+    validate_required(changeset, [:program_id])
   end
 
   # Private validation helpers

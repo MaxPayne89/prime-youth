@@ -8,8 +8,14 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program do
   ## Associations
 
   - `belongs_to :provider` - Program provider (from ProgramCatalog context)
-  - `has_many :schedules` - Program schedules (ProgramSchedule)
-  - `has_many :locations` - Program locations (Location)
+  - `has_many :schedules` - Program schedules (ProgramSchedule) - optional at creation
+  - `has_many :locations` - Program locations (Location) - optional at creation
+
+  **Note on Schedules and Locations:**
+  While schedules and locations are optional at the schema/persistence level to support
+  draft workflows, they should be validated as required at the use case or UI level
+  before a program is submitted for approval or made public. Draft programs can exist
+  with partial information, but approved programs must have complete schedule and location data.
 
   ## Embedded Schemas
 
@@ -70,6 +76,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program do
 
   ## Optional Fields
 
+  - schedules, locations (optional at creation to support draft workflows)
   - secondary_categories, current_enrollment
   - has_discount, discount_amount
   - status (defaults based on is_prime_youth)
@@ -88,6 +95,11 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program do
   - discount_amount: < price_amount (if has_discount)
   - category: must be valid ProgramCategory
   - status: must be valid ApprovalStatus
+
+  ## Association Validation
+
+  Schedules and locations are optional at the schema level to support draft programs.
+  Use case or UI validation should enforce their presence before approval/publication.
   """
   def changeset(program, attrs) do
     program
@@ -138,8 +150,8 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.Program do
     |> validate_discount()
     |> set_default_status()
     |> foreign_key_constraint(:provider_id)
-    |> cast_assoc(:schedules, required: true)
-    |> cast_assoc(:locations, required: true)
+    |> cast_assoc(:schedules)
+    |> cast_assoc(:locations)
   end
 
   # Private validation helpers

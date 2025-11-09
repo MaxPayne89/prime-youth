@@ -36,7 +36,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramTest do
 
     test "requires title" do
       attrs = %{
-        description: "Test description",
+        description: "Test description that is long enough for validation.",
         provider_id: Ecto.UUID.generate(),
         category: ProgramCategory.new("sports"),
         age_range: AgeRange.new(8, 12),
@@ -44,72 +44,66 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramTest do
         pricing: Pricing.new(250.00, "USD", "program", false)
       }
 
-      assert {:error, changeset} = Program.new(attrs)
-      assert "can't be blank" in errors_on(changeset).title
+      assert {:error, {:missing_required_fields, fields}} = Program.new(attrs)
+      assert :title in fields
     end
 
     test "title must be between 3 and 200 characters" do
       attrs = valid_attrs()
 
       # Too short
-      assert {:error, changeset} = Program.new(Map.put(attrs, :title, "ab"))
-      assert "should be at least 3 character(s)" in errors_on(changeset).title
+      assert {:error, :title_too_short} = Program.new(Map.put(attrs, :title, "ab"))
 
       # Too long
       long_title = String.duplicate("a", 201)
-      assert {:error, changeset} = Program.new(Map.put(attrs, :title, long_title))
-      assert "should be at most 200 character(s)" in errors_on(changeset).title
+      assert {:error, :title_too_long} = Program.new(Map.put(attrs, :title, long_title))
     end
 
     test "description must be between 10 and 5000 characters" do
       attrs = valid_attrs()
 
       # Too short
-      assert {:error, changeset} = Program.new(Map.put(attrs, :description, "short"))
-      assert "should be at least 10 character(s)" in errors_on(changeset).description
+      assert {:error, :description_too_short} = Program.new(Map.put(attrs, :description, "short"))
 
       # Too long
       long_desc = String.duplicate("a", 5001)
-      assert {:error, changeset} = Program.new(Map.put(attrs, :description, long_desc))
-      assert "should be at most 5000 character(s)" in errors_on(changeset).description
+
+      assert {:error, :description_too_long} =
+               Program.new(Map.put(attrs, :description, long_desc))
     end
 
     test "capacity must be greater than 0" do
       attrs = valid_attrs()
 
-      assert {:error, changeset} = Program.new(Map.put(attrs, :capacity, 0))
-      assert "must be greater than 0" in errors_on(changeset).capacity
-
-      assert {:error, changeset} = Program.new(Map.put(attrs, :capacity, -1))
-      assert "must be greater than 0" in errors_on(changeset).capacity
+      assert {:error, :invalid_capacity} = Program.new(Map.put(attrs, :capacity, 0))
+      assert {:error, :invalid_capacity} = Program.new(Map.put(attrs, :capacity, -1))
     end
 
     test "current_enrollment must be non-negative" do
       attrs = valid_attrs()
 
-      assert {:error, changeset} = Program.new(Map.put(attrs, :current_enrollment, -1))
-      assert "must be greater than or equal to 0" in errors_on(changeset).current_enrollment
+      assert {:error, :negative_enrollment} =
+               Program.new(Map.put(attrs, :current_enrollment, -1))
     end
 
     test "current_enrollment cannot exceed capacity" do
       attrs = valid_attrs() |> Map.merge(%{capacity: 10, current_enrollment: 15})
 
-      assert {:error, changeset} = Program.new(attrs)
-      assert "must not exceed capacity" in errors_on(changeset).current_enrollment
+      assert {:error, :enrollment_exceeds_capacity} = Program.new(attrs)
     end
 
     test "requires valid provider_id" do
       attrs = valid_attrs() |> Map.delete(:provider_id)
 
-      assert {:error, changeset} = Program.new(attrs)
-      assert "can't be blank" in errors_on(changeset).provider_id
+      assert {:error, {:missing_required_fields, fields}} = Program.new(attrs)
+      assert :provider_id in fields
     end
 
     test "requires category" do
       attrs = valid_attrs() |> Map.delete(:category)
 
-      assert {:error, changeset} = Program.new(attrs)
-      assert "can't be blank" in errors_on(changeset).category
+      assert {:error, {:missing_required_fields, fields}} = Program.new(attrs)
+      assert :category in fields
     end
 
     test "secondary_categories limited to 3" do
@@ -127,10 +121,8 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramTest do
       # 4 categories should fail
       secondary_too_many = secondary ++ [ProgramCategory.new("outdoor")]
 
-      assert {:error, changeset} =
+      assert {:error, :too_many_secondary_categories} =
                Program.new(Map.put(attrs, :secondary_categories, secondary_too_many))
-
-      assert "should have at most 3 item(s)" in errors_on(changeset).secondary_categories
     end
 
     test "defaults is_prime_youth to false" do
@@ -157,7 +149,8 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramTest do
 
   describe "business rules" do
     test "external provider programs require approval" do
-      attrs = valid_attrs() |> Map.merge(%{is_prime_youth: false, status: ApprovalStatus.draft()})
+      attrs =
+        valid_attrs() |> Map.merge(%{is_prime_youth: false, status: ApprovalStatus.draft()})
 
       assert {:ok, program} = Program.new(attrs)
       refute program.is_prime_youth
@@ -207,13 +200,5 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Entities.ProgramTest do
       featured: false,
       archived_at: nil
     }
-  end
-
-  defp errors_on(changeset) do
-    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-      Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-      end)
-    end)
   end
 end

@@ -76,6 +76,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramTest do
         "arts",
         "stem",
         "language",
+        "music",
         "academic",
         "outdoor",
         "cultural",
@@ -230,13 +231,5 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Ecto.Schemas.ProgramTest do
       is_prime_youth: false,
       featured: false
     }
-  end
-
-  defp errors_on(changeset) do
-    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
-      Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-      end)
-    end)
   end
 end
