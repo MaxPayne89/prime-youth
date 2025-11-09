@@ -36,7 +36,7 @@ defmodule PrimeYouthWeb.ProgramLive.Form do
         socket =
           socket
           |> put_flash(:error, "Please complete your provider profile first.")
-          |> redirect(to: ~p"/provider/setup")
+          |> redirect(to: ~p"/dashboard")
 
         {:ok, socket}
 
@@ -261,10 +261,10 @@ defmodule PrimeYouthWeb.ProgramLive.Form do
       provider_id: provider.id,
       category: program_params["category"],
       age_range: %{
-        min_age: String.to_integer(program_params["age_min"] || "0"),
-        max_age: String.to_integer(program_params["age_max"] || "0")
+        min_age: parse_integer(program_params["age_min"] || "0", 0),
+        max_age: parse_integer(program_params["age_max"] || "0", 0)
       },
-      capacity: String.to_integer(program_params["capacity"] || "0"),
+      capacity: parse_integer(program_params["capacity"] || "0", 0),
       pricing: %{
         amount: parse_decimal(program_params["price_amount"]),
         currency: program_params["price_currency"] || "USD",
@@ -338,10 +338,10 @@ defmodule PrimeYouthWeb.ProgramLive.Form do
       description: program_params["description"],
       category: program_params["category"],
       age_range: %{
-        min_age: String.to_integer(program_params["age_min"] || "0"),
-        max_age: String.to_integer(program_params["age_max"] || "0")
+        min_age: parse_integer(program_params["age_min"] || "0", 0),
+        max_age: parse_integer(program_params["age_max"] || "0", 0)
       },
-      capacity: String.to_integer(program_params["capacity"] || "0"),
+      capacity: parse_integer(program_params["capacity"] || "0", 0),
       pricing: %{
         amount: parse_decimal(program_params["price_amount"]),
         currency: program_params["price_currency"] || "USD",
@@ -386,6 +386,16 @@ defmodule PrimeYouthWeb.ProgramLive.Form do
 
   defp parse_decimal(%Decimal{} = value), do: value
   defp parse_decimal(_), do: Decimal.new("0")
+
+  defp parse_integer(value, default) when is_binary(value) do
+    case Integer.parse(value) do
+      {integer, _} -> integer
+      :error -> default
+    end
+  end
+
+  defp parse_integer(value, _default) when is_integer(value), do: value
+  defp parse_integer(_, default), do: default
 
   # Schedule and location helper functions
 
