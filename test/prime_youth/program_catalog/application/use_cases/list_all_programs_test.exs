@@ -37,9 +37,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
     original_config = Application.get_env(:prime_youth, :program_catalog)
 
     # Configure use case to use mock repository
-    Application.put_env(:prime_youth, :program_catalog,
-      repository: __MODULE__.MockRepository
-    )
+    Application.put_env(:prime_youth, :program_catalog, repository: __MODULE__.MockRepository)
 
     on_exit(fn ->
       # Restore original config
@@ -129,11 +127,11 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
 
     # T048: Propagates error without logging (domain purity)
     test "propagates error without logging (domain purity)" do
+      import ExUnit.CaptureLog
       # Arrange: Set mock to return database error
       Process.put(:mock_repository_response, {:error, :database_error})
 
       # Capture any logs that might be emitted
-      import ExUnit.CaptureLog
 
       # Act: Execute use case and capture logs
       log_output =

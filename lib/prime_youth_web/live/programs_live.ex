@@ -100,8 +100,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
   defp default_gradient_class, do: "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"
 
   defp default_icon_path,
-    do:
-      "M12 14l9-5-9-5-9 5 9 5zm0 7l-9-5 9-5 9 5-9 5zM3 12l9-5 9 5-9 5-9-5z"
+    do: "M12 14l9-5-9-5-9 5 9 5zm0 7l-9-5 9-5 9 5-9 5zM3 12l9-5 9 5-9 5-9-5z"
 
   @impl true
   def handle_event("search", %{"search" => query}, socket) do

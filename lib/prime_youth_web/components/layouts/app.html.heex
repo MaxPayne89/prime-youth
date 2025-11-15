@@ -49,12 +49,12 @@
         <div class="flex items-center gap-2">
           <.theme_toggle />
 
-          <%= if assigns[:current_user] do %>
+          <%= if assigns[:current_scope] && @current_scope.user do %>
             <!-- Authenticated User Dropdown -->
             <div class="dropdown dropdown-end">
               <label tabindex="0" class="btn btn-ghost btn-circle avatar">
                 <div class="w-10 rounded-full ring ring-white ring-offset-2">
-                  <img src={@current_user.avatar} alt={@current_user.name} />
+                  <img src={@current_scope.user.avatar} alt={@current_scope.user.name} />
                 </div>
               </label>
               <ul
@@ -64,13 +64,13 @@
                 <li class="menu-title px-4 py-2">
                   <div class="flex items-center gap-3">
                     <img
-                      src={@current_user.avatar}
-                      alt={@current_user.name}
+                      src={@current_scope.user.avatar}
+                      alt={@current_scope.user.name}
                       class="w-10 h-10 rounded-full"
                     />
                     <div>
-                      <div class="font-semibold text-gray-900">{@current_user.name}</div>
-                      <div class="text-xs text-gray-500">{@current_user.email}</div>
+                      <div class="font-semibold text-gray-900">{@current_scope.user.name}</div>
+                      <div class="text-xs text-gray-500">{@current_scope.user.email}</div>
                     </div>
                   </div>
                 </li>
@@ -104,7 +104,7 @@
                   </.link>
                 </li>
                 <li>
-                  <.link navigate={~p"/settings"} class="text-gray-700 hover:bg-gray-50">
+                  <.link navigate={~p"/users/settings"} class="text-gray-700 hover:bg-gray-50">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
@@ -244,7 +244,7 @@
         class="fixed bottom-4 right-4 z-50 btn btn-sm bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white shadow-lg hover:shadow-xl border-0"
         title="Toggle Authentication State (Dev Only)"
       >
-        <%= if assigns[:current_user] do %>
+        <%= if assigns[:current_scope] && @current_scope.user do %>
           🔐 Authenticated
         <% else %>
           🔓 Guest
@@ -273,10 +273,10 @@
           <li><.link navigate={~p"/about"}>About</.link></li>
           <li><.link navigate={~p"/contact"}>Contact</.link></li>
 
-          <%= if assigns[:current_user] do %>
+          <%= if assigns[:current_scope] && @current_scope.user do %>
             <li class="mt-4"><.link navigate={~p"/dashboard"}>Dashboard</.link></li>
             <li><.link navigate={~p"/highlights"}>Highlights</.link></li>
-            <li><.link navigate={~p"/settings"}>Settings</.link></li>
+            <li><.link navigate={~p"/users/settings"}>Settings</.link></li>
             <li class="mt-4">
               <.link
                 href={~p"/users/log-out"}

@@ -77,7 +77,7 @@ defmodule PrimeYouthWeb.UserLive.RegistrationTest do
         |> render_click()
         |> follow_redirect(conn, ~p"/users/log-in")
 
-      assert login_html =~ "Log in"
+      assert login_html =~ "Welcome Back"
     end
   end
 end

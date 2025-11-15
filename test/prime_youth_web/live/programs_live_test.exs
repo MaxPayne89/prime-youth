@@ -3,42 +3,45 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias PrimeYouth.Repo
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias PrimeYouth.Repo
 
   describe "ProgramsLive - Integration with Database (User Story 1)" do
     # T052: Write LiveView test - displays all programs from database
     test "displays all programs from database", %{conn: conn} do
       # Given: Database has 3 programs
-      program1 = insert_program(%{
-        title: "Art Adventures",
-        description: "Explore creativity through painting and sculpture",
-        schedule: "Mon-Fri, 3:00-5:00 PM",
-        age_range: "6-8 years",
-        price: Decimal.new("120.00"),
-        pricing_period: "per month",
-        spots_available: 12
-      })
+      program1 =
+        insert_program(%{
+          title: "Art Adventures",
+          description: "Explore creativity through painting and sculpture",
+          schedule: "Mon-Fri, 3:00-5:00 PM",
+          age_range: "6-8 years",
+          price: Decimal.new("120.00"),
+          pricing_period: "per month",
+          spots_available: 12
+        })
 
-      program2 = insert_program(%{
-        title: "Soccer Stars",
-        description: "Learn soccer fundamentals and teamwork",
-        schedule: "Tue, Thu, 4:00-5:30 PM",
-        age_range: "8-12 years",
-        price: Decimal.new("85.00"),
-        pricing_period: "per month",
-        spots_available: 20
-      })
+      program2 =
+        insert_program(%{
+          title: "Soccer Stars",
+          description: "Learn soccer fundamentals and teamwork",
+          schedule: "Tue, Thu, 4:00-5:30 PM",
+          age_range: "8-12 years",
+          price: Decimal.new("85.00"),
+          pricing_period: "per month",
+          spots_available: 20
+        })
 
-      program3 = insert_program(%{
-        title: "Chess Club",
-        description: "Develop strategic thinking through chess",
-        schedule: "Wed, 3:30-5:00 PM",
-        age_range: "7-14 years",
-        price: Decimal.new("60.00"),
-        pricing_period: "per month",
-        spots_available: 15
-      })
+      program3 =
+        insert_program(%{
+          title: "Chess Club",
+          description: "Develop strategic thinking through chess",
+          schedule: "Wed, 3:30-5:00 PM",
+          age_range: "7-14 years",
+          price: Decimal.new("60.00"),
+          pricing_period: "per month",
+          spots_available: 15
+        })
 
       # When: User navigates to /programs
       {:ok, view, html} = live(conn, ~p"/programs")
@@ -96,25 +99,27 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
     # T055: Write LiveView test - displays "Free" for €0 programs
     test "displays 'Free' for €0 programs", %{conn: conn} do
       # Given: Database has a free program (price = €0)
-      free_program = insert_program(%{
-        title: "Community Library Hour",
-        description: "Free reading and learning time at the library",
-        schedule: "Sat, 10:00-11:00 AM",
-        age_range: "5-10 years",
-        price: Decimal.new("0"),
-        pricing_period: "free",
-        spots_available: 30
-      })
+      free_program =
+        insert_program(%{
+          title: "Community Library Hour",
+          description: "Free reading and learning time at the library",
+          schedule: "Sat, 10:00-11:00 AM",
+          age_range: "5-10 years",
+          price: Decimal.new("0"),
+          pricing_period: "free",
+          spots_available: 30
+        })
 
-      paid_program = insert_program(%{
-        title: "Piano Lessons",
-        description: "Learn to play piano with expert instruction",
-        schedule: "Mon, Wed, 4:00-5:00 PM",
-        age_range: "6-16 years",
-        price: Decimal.new("150.00"),
-        pricing_period: "per month",
-        spots_available: 8
-      })
+      paid_program =
+        insert_program(%{
+          title: "Piano Lessons",
+          description: "Learn to play piano with expert instruction",
+          schedule: "Mon, Wed, 4:00-5:00 PM",
+          age_range: "6-16 years",
+          price: Decimal.new("150.00"),
+          pricing_period: "per month",
+          spots_available: 8
+        })
 
       # When: User navigates to /programs
       {:ok, _view, html} = live(conn, ~p"/programs")
@@ -132,17 +137,18 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
     test "programs load within 2 seconds performance requirement", %{conn: conn} do
       # Given: Database has 100+ programs to test performance requirement (FR-012)
       # Insert 100 programs to simulate real-world load
-      _programs = for i <- 1..100 do
-        insert_program(%{
-          title: "Program #{i}",
-          description: "Description for program #{i}",
-          schedule: "Mon-Fri, 3:00-5:00 PM",
-          age_range: "6-12 years",
-          price: Decimal.new("#{i}.00"),
-          pricing_period: "per month",
-          spots_available: 10
-        })
-      end
+      _programs =
+        for i <- 1..100 do
+          insert_program(%{
+            title: "Program #{i}",
+            description: "Description for program #{i}",
+            schedule: "Mon-Fri, 3:00-5:00 PM",
+            age_range: "6-12 years",
+            price: Decimal.new("#{i}.00"),
+            pricing_period: "per month",
+            spots_available: 10
+          })
+        end
 
       # When: User navigates to /programs and we measure the load time
       start_time = System.monotonic_time(:millisecond)
@@ -153,7 +159,7 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
 
       # Then: Page loads within 2000ms (2 seconds as per FR-012)
       assert load_time_ms < 2000,
-        "Page load time #{load_time_ms}ms exceeds 2000ms performance requirement"
+             "Page load time #{load_time_ms}ms exceeds 2000ms performance requirement"
 
       # And: All programs are displayed
       assert html =~ "Program 1"

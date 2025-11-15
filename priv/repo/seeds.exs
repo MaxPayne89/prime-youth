@@ -10,8 +10,8 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-alias PrimeYouth.Repo
 alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+alias PrimeYouth.Repo
 
 require Logger
 
