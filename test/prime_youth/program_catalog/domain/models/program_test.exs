@@ -1,0 +1,413 @@
+defmodule PrimeYouth.ProgramCatalog.Domain.Models.ProgramTest do
+  use ExUnit.Case, async: true
+
+  alias PrimeYouth.ProgramCatalog.Domain.Models.Program
+
+  # T017: Write domain model test: valid program creation
+  describe "valid?/1 with valid program" do
+    test "returns true for a program with all required fields" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        title: "Summer Soccer Camp",
+        description: "Fun soccer activities for kids",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("150.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      assert Program.valid?(program)
+    end
+
+    test "returns true for a program with optional fields present" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440001",
+        title: "Art Workshop",
+        description: "Creative art activities",
+        schedule: "Saturdays 10am-2pm",
+        age_range: "8-12 years",
+        price: Decimal.new("75.50"),
+        pricing_period: "per session",
+        spots_available: 15,
+        gradient_class: "gradient-blue",
+        icon_path: "/images/art-icon.svg",
+        inserted_at: DateTime.utc_now(),
+        updated_at: DateTime.utc_now()
+      }
+
+      assert Program.valid?(program)
+    end
+
+    test "returns true for a free program (price = 0)" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440002",
+        title: "Community Sports Day",
+        description: "Free sports activities for all",
+        schedule: "Sunday 2pm-5pm",
+        age_range: "5-15 years",
+        price: Decimal.new("0"),
+        pricing_period: "free event",
+        spots_available: 50
+      }
+
+      assert Program.valid?(program)
+    end
+
+    test "returns true for a sold-out program (spots_available = 0)" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440003",
+        title: "Popular Dance Class",
+        description: "High-demand dance instruction",
+        schedule: "Tuesdays 4pm-5pm",
+        age_range: "7-9 years",
+        price: Decimal.new("120.00"),
+        pricing_period: "per month",
+        spots_available: 0
+      }
+
+      assert Program.valid?(program)
+    end
+  end
+
+  # T018: Write domain model test: title validation (empty, max 100 chars)
+  describe "valid?/1 with invalid title" do
+    test "returns false when title is empty string" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440004",
+        title: "",
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      refute Program.valid?(program)
+    end
+
+    test "returns false when title is only whitespace" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440005",
+        title: "   ",
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      refute Program.valid?(program)
+    end
+
+    test "returns false when title exceeds 100 characters" do
+      long_title = String.duplicate("a", 101)
+
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440006",
+        title: long_title,
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      refute Program.valid?(program)
+    end
+
+    test "returns true when title is exactly 100 characters" do
+      exact_title = String.duplicate("a", 100)
+
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440007",
+        title: exact_title,
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      assert Program.valid?(program)
+    end
+  end
+
+  # T019: Write domain model test: description validation (empty, max 500 chars)
+  describe "valid?/1 with invalid description" do
+    test "returns false when description is empty string" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440008",
+        title: "Valid Title",
+        description: "",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      refute Program.valid?(program)
+    end
+
+    test "returns false when description is only whitespace" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440009",
+        title: "Valid Title",
+        description: "   ",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      refute Program.valid?(program)
+    end
+
+    test "returns false when description exceeds 500 characters" do
+      long_description = String.duplicate("a", 501)
+
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440010",
+        title: "Valid Title",
+        description: long_description,
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      refute Program.valid?(program)
+    end
+
+    test "returns true when description is exactly 500 characters" do
+      exact_description = String.duplicate("a", 500)
+
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440011",
+        title: "Valid Title",
+        description: exact_description,
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      assert Program.valid?(program)
+    end
+  end
+
+  # T020: Write domain model test: price validation (≥ 0, allows $0)
+  describe "valid?/1 with invalid price" do
+    test "returns false when price is negative" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440012",
+        title: "Valid Title",
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("-10.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      refute Program.valid?(program)
+    end
+
+    test "returns true when price is exactly 0" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440013",
+        title: "Valid Title",
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("0"),
+        pricing_period: "free",
+        spots_available: 20
+      }
+
+      assert Program.valid?(program)
+    end
+
+    test "returns true when price is a small positive value" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440014",
+        title: "Valid Title",
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("0.01"),
+        pricing_period: "per session",
+        spots_available: 20
+      }
+
+      assert Program.valid?(program)
+    end
+  end
+
+  # T021: Write domain model test: spots_available validation (≥ 0)
+  describe "valid?/1 with invalid spots_available" do
+    test "returns false when spots_available is negative" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440015",
+        title: "Valid Title",
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: -1
+      }
+
+      refute Program.valid?(program)
+    end
+
+    test "returns true when spots_available is exactly 0" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440016",
+        title: "Valid Title",
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 0
+      }
+
+      assert Program.valid?(program)
+    end
+
+    test "returns true when spots_available is positive" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440017",
+        title: "Valid Title",
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 100
+      }
+
+      assert Program.valid?(program)
+    end
+  end
+
+  # T022: Write domain model test: sold_out?/1 helper
+  describe "sold_out?/1" do
+    test "returns true when spots_available is 0" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440018",
+        title: "Sold Out Program",
+        description: "This program is sold out",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 0
+      }
+
+      assert Program.sold_out?(program)
+    end
+
+    test "returns false when spots_available is greater than 0" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440019",
+        title: "Available Program",
+        description: "This program has spots",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 1
+      }
+
+      refute Program.sold_out?(program)
+    end
+
+    test "returns false when spots_available is large" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440020",
+        title: "Popular Program",
+        description: "Many spots available",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 100
+      }
+
+      refute Program.sold_out?(program)
+    end
+  end
+
+  # T023: Write domain model test: free?/1 helper
+  describe "free?/1" do
+    test "returns true when price is 0" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440021",
+        title: "Free Program",
+        description: "This program is free",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("0"),
+        pricing_period: "free",
+        spots_available: 50
+      }
+
+      assert Program.free?(program)
+    end
+
+    test "returns true when price is 0.00" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440022",
+        title: "Free Event",
+        description: "Free community event",
+        schedule: "Saturday 10am-2pm",
+        age_range: "5-15 years",
+        price: Decimal.new("0.00"),
+        pricing_period: "free",
+        spots_available: 100
+      }
+
+      assert Program.free?(program)
+    end
+
+    test "returns false when price is greater than 0" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440023",
+        title: "Paid Program",
+        description: "This program has a fee",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("0.01"),
+        pricing_period: "per session",
+        spots_available: 20
+      }
+
+      refute Program.free?(program)
+    end
+
+    test "returns false when price is a typical positive value" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440024",
+        title: "Premium Program",
+        description: "Premium activities",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("150.00"),
+        pricing_period: "per week",
+        spots_available: 15
+      }
+
+      refute Program.free?(program)
+    end
+  end
+end
