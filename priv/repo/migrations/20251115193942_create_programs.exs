@@ -22,6 +22,9 @@ defmodule PrimeYouth.Repo.Migrations.CreatePrograms do
 
     # Check constraints for business rules
     create constraint(:programs, :price_must_be_non_negative, check: "price >= 0")
-    create constraint(:programs, :spots_available_must_be_non_negative, check: "spots_available >= 0")
+
+    create constraint(:programs, :spots_available_must_be_non_negative,
+             check: "spots_available >= 0"
+           )
   end
 end
