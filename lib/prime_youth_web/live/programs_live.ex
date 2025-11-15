@@ -1,7 +1,6 @@
 defmodule PrimeYouthWeb.ProgramsLive do
   use PrimeYouthWeb, :live_view
 
-  import PrimeYouthWeb.Live.SampleFixtures
   import PrimeYouthWeb.ProgramComponents
 
   alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
@@ -11,6 +10,16 @@ defmodule PrimeYouthWeb.ProgramsLive do
   end
 
   @valid_filters ["all", "available", "ages", "price"]
+
+  # Private helpers - Static data
+  defp filter_options do
+    [
+      %{id: "all", label: "All Programs"},
+      %{id: "available", label: "Available"},
+      %{id: "ages", label: "By Age"},
+      %{id: "price", label: "By Price"}
+    ]
+  end
 
   @impl true
   def mount(_params, _session, socket) do
