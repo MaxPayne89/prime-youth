@@ -4,6 +4,8 @@ defmodule PrimeYouthWeb.ProgramsLive do
   import PrimeYouthWeb.Live.SampleFixtures
   import PrimeYouthWeb.ProgramComponents
 
+  alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
+
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
   end
@@ -12,17 +14,35 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    programs = sample_programs()
+    # Load programs from database using the use case
+    case ListAllPrograms.execute() do
+      {:ok, domain_programs} ->
+        programs = Enum.map(domain_programs, &program_to_map/1)
 
-    socket =
-      socket
-      |> assign(page_title: "Programs")
-      |> assign(current_user: nil)
-      |> stream(:programs, programs)
-      |> assign(programs_count: length(programs))
-      |> assign(filters: filter_options())
+        socket =
+          socket
+          |> assign(page_title: "Programs")
+          |> assign(current_user: nil)
+          |> stream(:programs, programs)
+          |> assign(programs_count: length(programs))
+          |> assign(filters: filter_options())
+          |> assign(database_error: false)
 
-    {:ok, socket}
+        {:ok, socket}
+
+      {:error, :database_error} ->
+        socket =
+          socket
+          |> assign(page_title: "Programs")
+          |> assign(current_user: nil)
+          |> stream(:programs, [])
+          |> assign(programs_count: 0)
+          |> assign(filters: filter_options())
+          |> assign(database_error: true)
+          |> put_flash(:error, "Unable to load programs. Please try again later.")
+
+        {:ok, socket}
+    end
   end
 
   @impl true
@@ -31,18 +51,57 @@ defmodule PrimeYouthWeb.ProgramsLive do
     active_filter = validate_filter(params["filter"])
 
     # Re-fetch and filter programs based on params
-    programs = sample_programs()
-    filtered = filtered_programs(programs, search_query, active_filter)
+    case ListAllPrograms.execute() do
+      {:ok, domain_programs} ->
+        programs = Enum.map(domain_programs, &program_to_map/1)
+        filtered = filtered_programs(programs, search_query, active_filter)
 
-    socket =
-      socket
-      |> assign(search_query: search_query)
-      |> assign(active_filter: active_filter)
-      |> stream(:programs, filtered, reset: true)
-      |> assign(:programs_empty?, Enum.empty?(filtered))
+        socket =
+          socket
+          |> assign(search_query: search_query)
+          |> assign(active_filter: active_filter)
+          |> stream(:programs, filtered, reset: true)
+          |> assign(:programs_empty?, Enum.empty?(filtered))
+          |> assign(database_error: false)
 
-    {:noreply, socket}
+        {:noreply, socket}
+
+      {:error, :database_error} ->
+        socket =
+          socket
+          |> assign(search_query: search_query)
+          |> assign(active_filter: active_filter)
+          |> stream(:programs, [], reset: true)
+          |> assign(:programs_empty?, true)
+          |> assign(database_error: true)
+          |> put_flash(:error, "Unable to load programs. Please try again later.")
+
+        {:noreply, socket}
+    end
   end
+
+  # Private helper - Domain to UI conversion
+  defp program_to_map(%PrimeYouth.ProgramCatalog.Domain.Models.Program{} = program) do
+    %{
+      id: program.id,
+      title: program.title,
+      description: program.description,
+      schedule: program.schedule,
+      age_range: program.age_range,
+      price: Decimal.to_float(program.price),
+      period: program.pricing_period,
+      spots_left: program.spots_available,
+      # Default UI properties (these will come from the database in the future)
+      gradient_class: program.gradient_class || default_gradient_class(),
+      icon_path: program.icon_path || default_icon_path()
+    }
+  end
+
+  defp default_gradient_class, do: "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500"
+
+  defp default_icon_path,
+    do:
+      "M12 14l9-5-9-5-9 5 9 5zm0 7l-9-5 9-5 9 5-9 5zM3 12l9-5 9 5-9 5-9-5z"
 
   @impl true
   def handle_event("search", %{"search" => query}, socket) do
@@ -64,18 +123,27 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
   @impl true
   def handle_event("program_click", %{"program" => program_title}, socket) do
-    # Find program by title and navigate to detail page
-    programs = sample_programs()
+    # Find program by title from database and navigate to detail page
+    case ListAllPrograms.execute() do
+      {:ok, domain_programs} ->
+        programs = Enum.map(domain_programs, &program_to_map/1)
 
-    case Enum.find(programs, fn p -> p.title == program_title end) do
-      nil ->
+        case Enum.find(programs, fn p -> p.title == program_title end) do
+          nil ->
+            {:noreply,
+             socket
+             |> put_flash(:error, "Program not found. Please try refreshing the page.")
+             |> push_patch(to: ~p"/programs")}
+
+          program ->
+            {:noreply, push_navigate(socket, to: ~p"/programs/#{program.id}")}
+        end
+
+      {:error, :database_error} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Program not found. Please try refreshing the page.")
+         |> put_flash(:error, "Unable to load program details. Please try again later.")
          |> push_patch(to: ~p"/programs")}
-
-      program ->
-        {:noreply, push_navigate(socket, to: ~p"/programs/#{program.id}")}
     end
   end
 
