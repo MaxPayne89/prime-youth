@@ -62,6 +62,10 @@ config :prime_youth,
   ecto_repos: [PrimeYouth.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+# Configure Program Catalog bounded context
+config :prime_youth, :program_catalog,
+  repository: PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+
 # Configure tailwind (the version is required)
 config :tailwind,
   version: "4.1.7",

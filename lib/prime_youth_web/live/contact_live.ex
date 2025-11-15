@@ -6,8 +6,6 @@ defmodule PrimeYouthWeb.ContactLive do
 
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
-
-    import PrimeYouthWeb.Live.SampleFixtures, except: [contact_methods: 0, office_hours: 0]
   end
 
   @impl true
