@@ -48,6 +48,49 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Models.Program do
         }
 
   @doc """
+  Creates a new Program with validation.
+
+  Business Rules:
+  - Title must be present, non-empty, and <= 100 characters
+  - Description must be present, non-empty, and <= 500 characters
+  - Price must be >= 0 (free programs allowed)
+  - Spots available must be >= 0 (sold out = 0)
+  - Schedule must be present and non-empty
+  - Age range must be present and non-empty
+  - Pricing period must be present and non-empty
+
+  Returns:
+  - `{:ok, program}` if all validations pass
+  - `{:error, [reasons]}` with list of validation errors
+
+  ## Examples
+
+      iex> Program.new(%{
+      ...>   id: "1",
+      ...>   title: "Art Adventures",
+      ...>   description: "Creative art program",
+      ...>   schedule: "Mon-Fri 3-5pm",
+      ...>   age_range: "6-10 years",
+      ...>   price: Decimal.new("50.00"),
+      ...>   pricing_period: "week",
+      ...>   spots_available: 10
+      ...> })
+      {:ok, %Program{...}}
+
+      iex> Program.new(%{id: "1", title: "", ...})
+      {:error, ["Title cannot be empty", ...]}
+  """
+  @spec new(map()) :: {:ok, t()} | {:error, [String.t()]}
+  def new(attrs) do
+    program = struct!(__MODULE__, attrs)
+
+    case validate(program) do
+      [] -> {:ok, program}
+      errors -> {:error, errors}
+    end
+  end
+
+  @doc """
   Validates that a program struct has valid business rules.
 
   Business Rules:
@@ -58,31 +101,94 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Models.Program do
   """
   @spec valid?(t()) :: boolean()
   def valid?(%__MODULE__{} = program) do
-    title_valid?(program.title) and
-      description_valid?(program.description) and
-      price_valid?(program.price) and
-      spots_valid?(program.spots_available)
+    validate(program) == []
   end
 
-  defp title_valid?(title) when is_binary(title) do
+  # Private validation function that collects all errors
+  defp validate(%__MODULE__{} = program) do
+    []
+    |> validate_title(program.title)
+    |> validate_description(program.description)
+    |> validate_schedule(program.schedule)
+    |> validate_age_range(program.age_range)
+    |> validate_pricing_period(program.pricing_period)
+    |> validate_price(program.price)
+    |> validate_spots(program.spots_available)
+  end
+
+  defp validate_title(errors, title) when is_binary(title) do
     trimmed = String.trim(title)
-    trimmed != "" and String.length(trimmed) <= 100
+
+    cond do
+      trimmed == "" -> ["Title cannot be empty" | errors]
+      String.length(trimmed) > 100 -> ["Title must be 100 characters or less" | errors]
+      true -> errors
+    end
   end
 
-  defp title_valid?(_), do: false
+  defp validate_title(errors, _), do: ["Title must be a string" | errors]
 
-  defp description_valid?(description) when is_binary(description) do
+  defp validate_description(errors, description) when is_binary(description) do
     trimmed = String.trim(description)
-    trimmed != "" and String.length(trimmed) <= 500
+
+    cond do
+      trimmed == "" -> ["Description cannot be empty" | errors]
+      String.length(trimmed) > 500 -> ["Description must be 500 characters or less" | errors]
+      true -> errors
+    end
   end
 
-  defp description_valid?(_), do: false
+  defp validate_description(errors, _), do: ["Description must be a string" | errors]
 
-  defp price_valid?(%Decimal{} = price), do: Decimal.compare(price, Decimal.new(0)) != :lt
-  defp price_valid?(_), do: false
+  defp validate_schedule(errors, schedule) when is_binary(schedule) do
+    if String.trim(schedule) == "" do
+      ["Schedule cannot be empty" | errors]
+    else
+      errors
+    end
+  end
 
-  defp spots_valid?(spots) when is_integer(spots) and spots >= 0, do: true
-  defp spots_valid?(_), do: false
+  defp validate_schedule(errors, _), do: ["Schedule must be a string" | errors]
+
+  defp validate_age_range(errors, age_range) when is_binary(age_range) do
+    if String.trim(age_range) == "" do
+      ["Age range cannot be empty" | errors]
+    else
+      errors
+    end
+  end
+
+  defp validate_age_range(errors, _), do: ["Age range must be a string" | errors]
+
+  defp validate_pricing_period(errors, pricing_period) when is_binary(pricing_period) do
+    if String.trim(pricing_period) == "" do
+      ["Pricing period cannot be empty" | errors]
+    else
+      errors
+    end
+  end
+
+  defp validate_pricing_period(errors, _), do: ["Pricing period must be a string" | errors]
+
+  defp validate_price(errors, %Decimal{} = price) do
+    if Decimal.compare(price, Decimal.new(0)) == :lt do
+      ["Price cannot be negative" | errors]
+    else
+      errors
+    end
+  end
+
+  defp validate_price(errors, _), do: ["Price must be a Decimal" | errors]
+
+  defp validate_spots(errors, spots) when is_integer(spots) do
+    if spots < 0 do
+      ["Spots available cannot be negative" | errors]
+    else
+      errors
+    end
+  end
+
+  defp validate_spots(errors, _), do: ["Spots available must be an integer" | errors]
 
   @doc """
   Checks if the program is sold out (no spots available).
