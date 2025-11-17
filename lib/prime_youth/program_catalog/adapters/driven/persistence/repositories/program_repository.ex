@@ -17,6 +17,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
   alias PrimeYouth.Repo
+  alias PrimeYouthWeb.ErrorIds
 
   require Logger
 
@@ -30,7 +31,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
 
   Returns:
   - {:ok, [Program.t()]} on success (empty list if no programs exist)
-  - {:error, :database_unavailable} if database query fails
+  - {:error, :database_connection_error} - Connection/network failure
+  - {:error, :database_query_error} - SQL error or constraint violation
+  - {:error, :database_unavailable} - Unexpected error
 
   ## Examples
 
@@ -41,10 +44,15 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       {:ok, []}  # No programs in database
 
       iex> ProgramRepository.list_all_programs()
-      {:error, :database_unavailable}  # Database connection failed
+      {:error, :database_connection_error}  # Database connection failed
+
+      iex> ProgramRepository.list_all_programs()
+      {:error, :database_query_error}  # SQL syntax error
 
   """
-  @spec list_all_programs() :: {:ok, [Program.t()]} | {:error, :database_unavailable}
+  @spec list_all_programs() ::
+          {:ok, [Program.t()]}
+          | {:error, :database_connection_error | :database_query_error | :database_unavailable}
   def list_all_programs do
     Logger.info("[ProgramRepository] Starting list_all_programs query")
 
@@ -60,9 +68,32 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
 
       {:ok, programs}
     rescue
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[ProgramRepository] Database connection failed",
+          error_id: ErrorIds.program_list_connection_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error, Ecto.Query.CastError] ->
+        Logger.error(
+          "[ProgramRepository] Database query error",
+          error_id: ErrorIds.program_list_query_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
       error ->
         Logger.error(
-          "[ProgramRepository] Failed to retrieve programs: #{inspect(error)}"
+          "[ProgramRepository] Unexpected database error",
+          error_id: ErrorIds.program_list_generic_error(),
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
         )
 
         {:error, :database_unavailable}

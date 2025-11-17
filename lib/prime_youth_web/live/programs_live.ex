@@ -4,6 +4,9 @@ defmodule PrimeYouthWeb.ProgramsLive do
   import PrimeYouthWeb.ProgramComponents
 
   alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
+  alias PrimeYouthWeb.ErrorIds
+
+  require Logger
 
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
@@ -39,7 +42,14 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
         {:ok, socket}
 
-      {:error, :database_error} ->
+      {:error, :database_connection_error} ->
+        Logger.error(
+          "[ProgramsLive.mount] Database connection error",
+          error_id: ErrorIds.program_list_connection_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
         socket =
           socket
           |> assign(page_title: "Programs")
@@ -48,7 +58,47 @@ defmodule PrimeYouthWeb.ProgramsLive do
           |> assign(programs_count: 0)
           |> assign(filters: filter_options())
           |> assign(database_error: true)
-          |> put_flash(:error, "Unable to load programs. Please try again later.")
+          |> put_flash(:error, "Connection lost. Please try again.")
+
+        {:ok, socket}
+
+      {:error, :database_query_error} ->
+        Logger.error(
+          "[ProgramsLive.mount] Database query error",
+          error_id: ErrorIds.program_list_query_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
+        socket =
+          socket
+          |> assign(page_title: "Programs")
+          |> assign(current_user: nil)
+          |> stream(:programs, [])
+          |> assign(programs_count: 0)
+          |> assign(filters: filter_options())
+          |> assign(database_error: true)
+          |> put_flash(:error, "System error. Please contact support.")
+
+        {:ok, socket}
+
+      {:error, :database_unavailable} ->
+        Logger.error(
+          "[ProgramsLive.mount] Database unavailable",
+          error_id: ErrorIds.program_list_generic_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
+        socket =
+          socket
+          |> assign(page_title: "Programs")
+          |> assign(current_user: nil)
+          |> stream(:programs, [])
+          |> assign(programs_count: 0)
+          |> assign(filters: filter_options())
+          |> assign(database_error: true)
+          |> put_flash(:error, "Service temporarily unavailable.")
 
         {:ok, socket}
     end
@@ -75,7 +125,14 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
         {:noreply, socket}
 
-      {:error, :database_error} ->
+      {:error, :database_connection_error} ->
+        Logger.error(
+          "[ProgramsLive.handle_params] Database connection error",
+          error_id: ErrorIds.program_list_connection_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
         socket =
           socket
           |> assign(search_query: search_query)
@@ -83,7 +140,45 @@ defmodule PrimeYouthWeb.ProgramsLive do
           |> stream(:programs, [], reset: true)
           |> assign(:programs_empty?, true)
           |> assign(database_error: true)
-          |> put_flash(:error, "Unable to load programs. Please try again later.")
+          |> put_flash(:error, "Connection lost. Please try again.")
+
+        {:noreply, socket}
+
+      {:error, :database_query_error} ->
+        Logger.error(
+          "[ProgramsLive.handle_params] Database query error",
+          error_id: ErrorIds.program_list_query_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
+        socket =
+          socket
+          |> assign(search_query: search_query)
+          |> assign(active_filter: active_filter)
+          |> stream(:programs, [], reset: true)
+          |> assign(:programs_empty?, true)
+          |> assign(:database_error, true)
+          |> put_flash(:error, "System error. Please contact support.")
+
+        {:noreply, socket}
+
+      {:error, :database_unavailable} ->
+        Logger.error(
+          "[ProgramsLive.handle_params] Database unavailable",
+          error_id: ErrorIds.program_list_generic_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
+        socket =
+          socket
+          |> assign(search_query: search_query)
+          |> assign(active_filter: active_filter)
+          |> stream(:programs, [], reset: true)
+          |> assign(:programs_empty?, true)
+          |> assign(:database_error, true)
+          |> put_flash(:error, "Service temporarily unavailable.")
 
         {:noreply, socket}
     end
@@ -97,7 +192,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
       description: program.description,
       schedule: program.schedule,
       age_range: program.age_range,
-      price: Decimal.to_float(program.price),
+      price: safe_decimal_to_float(program.price),
       period: program.pricing_period,
       spots_left: program.spots_available,
       # Default UI properties (these will come from the database in the future)
@@ -110,6 +205,13 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
   defp default_icon_path,
     do: "M12 14l9-5-9-5-9 5 9 5zm0 7l-9-5 9-5 9 5-9 5zM3 12l9-5 9 5-9 5-9-5z"
+
+  # Safe conversion helper to prevent crashes on invalid Decimal values
+  defp safe_decimal_to_float(price) do
+    Decimal.to_float(price)
+  rescue
+    _ -> 0.0
+  end
 
   @impl true
   def handle_event("search", %{"search" => query}, socket) do
@@ -147,10 +249,43 @@ defmodule PrimeYouthWeb.ProgramsLive do
             {:noreply, push_navigate(socket, to: ~p"/programs/#{program.id}")}
         end
 
-      {:error, :database_error} ->
+      {:error, :database_connection_error} ->
+        Logger.error(
+          "[ProgramsLive.program_click] Database connection error",
+          error_id: ErrorIds.program_list_connection_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
         {:noreply,
          socket
-         |> put_flash(:error, "Unable to load program details. Please try again later.")
+         |> put_flash(:error, "Connection lost. Please try again.")
+         |> push_patch(to: ~p"/programs")}
+
+      {:error, :database_query_error} ->
+        Logger.error(
+          "[ProgramsLive.program_click] Database query error",
+          error_id: ErrorIds.program_list_query_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
+        {:noreply,
+         socket
+         |> put_flash(:error, "System error. Please contact support.")
+         |> push_patch(to: ~p"/programs")}
+
+      {:error, :database_unavailable} ->
+        Logger.error(
+          "[ProgramsLive.program_click] Database unavailable",
+          error_id: ErrorIds.program_list_generic_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
+        {:noreply,
+         socket
+         |> put_flash(:error, "Service temporarily unavailable.")
          |> push_patch(to: ~p"/programs")}
     end
   end
@@ -217,11 +352,25 @@ defmodule PrimeYouthWeb.ProgramsLive do
     Enum.sort_by(programs, & &1.price)
   end
 
+  # Safe age extraction with fallback for unparseable formats
+  # Returns 999 for unparseable age ranges to sort them to the end
   defp extract_min_age(age_range) do
-    age_range
-    |> String.split("-")
-    |> List.first()
-    |> String.to_integer()
+    with [first | _] <- String.split(age_range, "-"),
+         trimmed <- String.trim(first),
+         {age, _} <- Integer.parse(trimmed) do
+      age
+    else
+      _ -> 999
+    end
+  end
+
+  # Extract user ID from socket for logging context
+  # Returns nil if user is not authenticated
+  defp get_user_id(socket) do
+    case socket.assigns[:current_scope] do
+      %{user: %{id: id}} -> id
+      _ -> nil
+    end
   end
 
   @impl true

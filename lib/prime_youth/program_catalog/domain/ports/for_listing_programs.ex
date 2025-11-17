@@ -11,6 +11,18 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms do
 
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
 
+  @typedoc """
+  Specific error types for program listing operations.
+
+  - `:database_connection_error` - Network/connection issues (potentially retryable)
+  - `:database_query_error` - SQL syntax, constraints, schema issues (non-retryable)
+  - `:database_unavailable` - Generic/unexpected errors (fallback)
+  """
+  @type list_error ::
+          :database_connection_error
+          | :database_query_error
+          | :database_unavailable
+
   @doc """
   Lists all valid programs from the repository.
 
@@ -19,12 +31,15 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms do
 
   Returns:
   - `{:ok, [Program.t()]}` - List of valid programs (may be empty)
-  - `{:error, :database_error}` - Database connection or query failure
+  - `{:error, :database_connection_error}` - Connection/network failure
+  - `{:error, :database_query_error}` - SQL error or constraint violation
+  - `{:error, :database_unavailable}` - Unexpected error
 
   ## Examples
 
       {:ok, programs} = list_all_programs()
-      {:error, :database_error} = list_all_programs()
+      {:error, :database_connection_error} = list_all_programs()
+      {:error, :database_query_error} = list_all_programs()
   """
-  @callback list_all_programs() :: {:ok, [Program.t()]} | {:error, :database_error}
+  @callback list_all_programs() :: {:ok, [Program.t()]} | {:error, list_error()}
 end

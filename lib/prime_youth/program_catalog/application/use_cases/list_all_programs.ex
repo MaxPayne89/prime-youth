@@ -23,10 +23,13 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms do
   ## Usage
 
       {:ok, programs} = ListAllPrograms.execute()
-      {:error, :database_error} = ListAllPrograms.execute()
+      {:error, :database_connection_error} = ListAllPrograms.execute()
+      {:error, :database_query_error} = ListAllPrograms.execute()
+      {:error, :database_unavailable} = ListAllPrograms.execute()
   """
 
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
+  alias PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms
 
   @doc """
   Executes the use case to list all available programs.
@@ -37,7 +40,9 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms do
 
   Returns:
   - `{:ok, [Program.t()]}` - List of valid programs (may be empty)
-  - `{:error, :database_error}` - Database connection or query failure
+  - `{:error, :database_connection_error}` - Connection/network failure
+  - `{:error, :database_query_error}` - SQL error or constraint violation
+  - `{:error, :database_unavailable}` - Unexpected error
 
   ## Examples
 
@@ -50,10 +55,12 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms do
       # Empty database
       {:ok, []} = ListAllPrograms.execute()
 
-      # Database error
-      {:error, :database_error} = ListAllPrograms.execute()
+      # Database errors
+      {:error, :database_connection_error} = ListAllPrograms.execute()
+      {:error, :database_query_error} = ListAllPrograms.execute()
+      {:error, :database_unavailable} = ListAllPrograms.execute()
   """
-  @spec execute() :: {:ok, [Program.t()]} | {:error, :database_error}
+  @spec execute() :: {:ok, [Program.t()]} | {:error, ForListingPrograms.list_error()}
   def execute do
     repository_module().list_all_programs()
   end
