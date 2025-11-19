@@ -26,8 +26,8 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
 
   use PrimeYouth.DataCase, async: true
 
-  alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
   alias PrimeYouth.Repo
 
@@ -90,8 +90,8 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
       # Verify all programs are valid domain models
       assert Enum.all?(programs, fn program ->
                # Check struct type
+               # Check required fields are present and valid
                match?(%Program{}, program) &&
-                 # Check required fields are present and valid
                  is_binary(program.id) &&
                  is_binary(program.title) && program.title != "" &&
                  is_binary(program.description) && program.description != "" &&

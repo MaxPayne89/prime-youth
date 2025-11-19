@@ -74,6 +74,8 @@ defmodule PrimeYouthWeb.ProgramComponents do
       <div class="flex gap-2 min-w-max">
         <button
           :for={filter <- @filters}
+          data-filter-id={filter.id}
+          data-active={if filter.id == @active_filter, do: "true", else: "false"}
           phx-click={@rest[:"phx-click"]}
           phx-value-filter={filter.id}
           class={[

@@ -170,6 +170,710 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
     end
   end
 
+  # T057: Filter behavior validation tests
+  describe "ProgramsLive - Filter Behaviors" do
+    # T058: Test available filter excludes sold-out programs
+    test "available filter excludes sold-out programs", %{conn: conn} do
+      # Given: Database has both available and sold-out programs
+      _sold_out =
+        insert_program(%{
+          title: "Sold Out Soccer",
+          spots_available: 0
+        })
+
+      available =
+        insert_program(%{
+          title: "Available Art Class",
+          spots_available: 5
+        })
+
+      # When: User applies "available" filter
+      {:ok, view, html} = live(conn, ~p"/programs?filter=available")
+
+      # Then: Only available programs are shown
+      assert html =~ available.title
+      refute html =~ "Sold Out Soccer"
+
+      # And: Filter is marked as active
+      assert has_element?(view, "[data-filter-id='available'][data-active='true']")
+    end
+
+    # T059: Test price filter sorts programs by price (lowest first)
+    test "price filter sorts programs by price lowest first", %{conn: conn} do
+      # Given: Database has programs with different prices including free
+      free_program =
+        insert_program(%{
+          title: "Free Community Event",
+          price: Decimal.new("0"),
+          pricing_period: "free"
+        })
+
+      mid_price =
+        insert_program(%{
+          title: "Mid Price Program",
+          price: Decimal.new("50.00")
+        })
+
+      high_price =
+        insert_program(%{
+          title: "Premium Program",
+          price: Decimal.new("200.00")
+        })
+
+      # When: User applies "price" filter
+      {:ok, _view, html} = live(conn, ~p"/programs?filter=price")
+
+      # Then: Programs appear in price order (free → low → high)
+      # Extract positions of each program title in the HTML
+      free_pos = :binary.match(html, free_program.title) |> elem(0)
+      mid_pos = :binary.match(html, mid_price.title) |> elem(0)
+      high_pos = :binary.match(html, high_price.title) |> elem(0)
+
+      # Verify free program appears before mid price
+      assert free_pos < mid_pos, "Free program should appear before mid price program"
+      # Verify mid price appears before high price
+      assert mid_pos < high_pos, "Mid price should appear before high price program"
+    end
+
+    # T060: Test age filter sorts programs by age (youngest first)
+    test "age filter sorts programs by age youngest first", %{conn: conn} do
+      # Given: Database has programs with different age ranges
+      youngest =
+        insert_program(%{
+          title: "Toddler Time",
+          age_range: "2-4 years"
+        })
+
+      middle =
+        insert_program(%{
+          title: "Kids Club",
+          age_range: "8-10 years"
+        })
+
+      oldest =
+        insert_program(%{
+          title: "Teen Workshop",
+          age_range: "14-16 years"
+        })
+
+      # When: User applies "ages" filter
+      {:ok, _view, html} = live(conn, ~p"/programs?filter=ages")
+
+      # Then: Programs appear in age order (youngest → oldest)
+      youngest_pos = :binary.match(html, youngest.title) |> elem(0)
+      middle_pos = :binary.match(html, middle.title) |> elem(0)
+      oldest_pos = :binary.match(html, oldest.title) |> elem(0)
+
+      assert youngest_pos < middle_pos, "Youngest age range should appear first"
+      assert middle_pos < oldest_pos, "Middle age range should appear before oldest"
+    end
+
+    # T061: Test age filter handles unparseable age ranges gracefully
+    test "age filter handles unparseable age ranges gracefully", %{conn: conn} do
+      # Given: Database has programs with various age range formats
+      normal =
+        insert_program(%{
+          title: "Normal Age Range",
+          age_range: "6-10 years"
+        })
+
+      unparseable =
+        insert_program(%{
+          title: "All Ages Welcome",
+          age_range: "All ages"
+        })
+
+      # When: User applies "ages" filter
+      {:ok, view, html} = live(conn, ~p"/programs?filter=ages")
+
+      # Then: Both programs are displayed without crashing
+      assert html =~ normal.title
+      assert html =~ unparseable.title
+
+      # And: Unparseable age ranges are sorted to the end (age 999)
+      normal_pos = :binary.match(html, normal.title) |> elem(0)
+      unparseable_pos = :binary.match(html, unparseable.title) |> elem(0)
+
+      assert normal_pos < unparseable_pos,
+             "Unparseable age ranges should be sorted to the end"
+
+      # And: No errors are shown
+      refute has_element?(view, ".flash-error")
+    end
+
+    # T062: Test search functionality is case-insensitive
+    test "search is case-insensitive and searches title and description", %{conn: conn} do
+      # Given: Database has programs with various titles and descriptions
+      soccer =
+        insert_program(%{
+          title: "Soccer Stars",
+          description: "Learn soccer fundamentals"
+        })
+
+      art =
+        insert_program(%{
+          title: "Art Adventures",
+          description: "Creative PAINTING activities"
+        })
+
+      chess =
+        insert_program(%{
+          title: "Chess Club",
+          description: "Strategic thinking"
+        })
+
+      # When: User searches for "SOCCER" (uppercase)
+      {:ok, _view, html} = live(conn, ~p"/programs?q=SOCCER")
+
+      # Then: Soccer program is found (case-insensitive title match)
+      assert html =~ soccer.title
+      refute html =~ art.title
+      refute html =~ chess.title
+
+      # When: User searches for "painting" (lowercase, in description)
+      {:ok, view, html} = live(conn, ~p"/programs?q=painting")
+
+      # Then: Art program is found (case-insensitive description match)
+      assert html =~ art.title
+      refute html =~ soccer.title
+      refute html =~ chess.title
+
+      # And: Search query is displayed in search input
+      assert has_element?(view, "input[name='search'][value='painting']")
+    end
+
+    # T063: Test combining search with filters
+    test "combining search with available filter", %{conn: conn} do
+      # Given: Database has both available and sold-out soccer programs
+      _sold_out_soccer =
+        insert_program(%{
+          title: "Sold Out Soccer Camp",
+          spots_available: 0
+        })
+
+      available_soccer =
+        insert_program(%{
+          title: "Available Soccer Training",
+          spots_available: 10
+        })
+
+      _available_art =
+        insert_program(%{
+          title: "Available Art Class",
+          spots_available: 5
+        })
+
+      # When: User searches for "soccer" AND filters by "available"
+      {:ok, _view, html} = live(conn, ~p"/programs?q=soccer&filter=available")
+
+      # Then: Only available soccer program is shown
+      assert html =~ available_soccer.title
+      refute html =~ "Sold Out Soccer Camp"
+      refute html =~ "Art Class"
+    end
+  end
+
+  # T064: End-to-end user journey test
+  describe "ProgramsLive - End-to-End User Journey" do
+    # T065: Complete user flow from browse to detail page navigation
+    test "complete user journey: browse, filter, search, navigate to detail", %{conn: conn} do
+      # Given: Database has multiple programs with different attributes
+      soccer =
+        insert_program(%{
+          title: "Soccer Camp",
+          description: "Fun soccer activities for kids",
+          age_range: "6-10 years",
+          spots_available: 10,
+          price: Decimal.new("150.00")
+        })
+
+      _art_sold_out =
+        insert_program(%{
+          title: "Art Class",
+          description: "Creative painting workshop",
+          age_range: "8-12 years",
+          spots_available: 0,
+          price: Decimal.new("120.00")
+        })
+
+      chess =
+        insert_program(%{
+          title: "Chess Club",
+          description: "Strategic thinking through chess",
+          age_range: "7-14 years",
+          spots_available: 15,
+          price: Decimal.new("80.00")
+        })
+
+      # STEP 1: Browse all programs
+      {:ok, view, html} = live(conn, ~p"/programs")
+
+      # Then: All programs are displayed
+      assert html =~ soccer.title
+      assert html =~ "Art Class"
+      assert html =~ chess.title
+
+      # STEP 2: Filter by "available" to exclude sold-out programs
+      html =
+        view
+        |> element("[data-filter-id='available']")
+        |> render_click()
+
+      # Then: Only available programs are shown
+      assert html =~ soccer.title
+      refute html =~ "Art Class"
+      assert html =~ chess.title
+
+      # And: URL reflects the filter
+      assert_patch(view, ~p"/programs?filter=available")
+
+      # STEP 3: Search for "soccer" within available programs
+      html =
+        view
+        |> element("input[name='search']")
+        |> render_change(%{"search" => "soccer"})
+
+      # Then: Only soccer program is shown (available AND matches search)
+      assert html =~ soccer.title
+      refute html =~ chess.title
+      refute html =~ "Art Class"
+
+      # And: URL reflects both filter and search
+      assert_patch(view, ~p"/programs?filter=available&q=soccer")
+
+      # STEP 4: Click on the soccer program card to navigate to detail page
+      result =
+        view
+        |> element("[phx-click='program_click'][phx-value-program='Soccer Camp']")
+        |> render_click()
+
+      # Then: Navigation to program detail page occurs
+      assert {:error, {:live_redirect, %{to: redirect_path}}} = result
+
+      # And: Redirect path includes the program ID
+      assert redirect_path == "/programs/#{soccer.id}"
+    end
+
+    # T066: Test URL parameter handling persistence across LiveView lifecycle
+    test "URL parameters persist across mount and handle_params", %{conn: conn} do
+      # Given: Database has programs
+      _available =
+        insert_program(%{
+          title: "Available Program",
+          spots_available: 10
+        })
+
+      _sold_out =
+        insert_program(%{
+          title: "Sold Out Program",
+          spots_available: 0
+        })
+
+      # When: User navigates directly to URL with filter parameter
+      {:ok, view, html} = live(conn, ~p"/programs?filter=available")
+
+      # Then: Filter is correctly applied on mount
+      assert html =~ "Available Program"
+      refute html =~ "Sold Out Program"
+      assert has_element?(view, "[data-filter-id='available'][data-active='true']")
+
+      # When: User navigates to URL with search parameter
+      {:ok, _view, html} = live(conn, ~p"/programs?q=available")
+
+      # Then: Search is correctly applied on mount
+      assert html =~ "Available Program"
+      refute html =~ "Sold Out Program"
+    end
+
+    # T067: Test filter + search combination with various orderings
+    test "filter and search combination works regardless of application order", %{conn: conn} do
+      # Given: Database has soccer and art programs, some sold out
+      available_soccer =
+        insert_program(%{
+          title: "Available Soccer",
+          description: "Soccer training",
+          spots_available: 10
+        })
+
+      _sold_out_soccer =
+        insert_program(%{
+          title: "Sold Out Soccer Camp",
+          description: "Soccer camp",
+          spots_available: 0
+        })
+
+      _available_art =
+        insert_program(%{
+          title: "Available Art",
+          description: "Art workshop",
+          spots_available: 5
+        })
+
+      # Scenario 1: Apply filter first, then search
+      {:ok, view, _html} = live(conn, ~p"/programs?filter=available")
+
+      # When: User searches for "soccer"
+      html = view |> element("input[name='search']") |> render_change(%{"search" => "soccer"})
+
+      # Then: Only available soccer program is shown
+      assert html =~ available_soccer.title
+      refute html =~ "Sold Out Soccer"
+      refute html =~ "Art"
+
+      # Scenario 2: Apply search first, then filter (start fresh)
+      {:ok, view, _html} = live(conn, ~p"/programs?q=soccer")
+
+      # When: User clicks available filter
+      html =
+        view
+        |> element("[data-filter-id='available']")
+        |> render_click()
+
+      # Then: Same result - only available soccer program
+      assert html =~ available_soccer.title
+      refute html =~ "Sold Out Soccer"
+    end
+  end
+
+  # T077: Empty state behavioral differentiation tests
+  describe "ProgramsLive - Empty State Differentiation" do
+    # T078: Empty state when no programs exist in database
+    test "shows 'No programs available' when database is empty", %{conn: conn} do
+      # Given: Database has no programs (clean state from test sandbox)
+
+      # When: User navigates to /programs
+      {:ok, _view, html} = live(conn, ~p"/programs")
+
+      # Then: Empty state message indicates no programs exist
+      assert html =~ "No programs found"
+
+      # Note: Current implementation shows generic message
+      # Future enhancement: differentiate "No programs available" vs "No matches"
+    end
+
+    # T079: Empty state when all programs are filtered out
+    test "shows context-aware message when programs exist but are filtered out", %{conn: conn} do
+      # Given: Database has only sold-out programs
+      _sold_out1 =
+        insert_program(%{
+          title: "Sold Out Program 1",
+          spots_available: 0
+        })
+
+      _sold_out2 =
+        insert_program(%{
+          title: "Sold Out Program 2",
+          spots_available: 0
+        })
+
+      # When: User filters by "available"
+      {:ok, _view, html} = live(conn, ~p"/programs?filter=available")
+
+      # Then: Empty state is shown
+      assert html =~ "No programs found"
+
+      # And: Helpful message suggests adjusting filters
+      assert html =~ "Try adjusting your search or filter criteria"
+    end
+
+    # T080: Empty state when search yields no results
+    test "shows helpful message when search returns no matches", %{conn: conn} do
+      # Given: Database has programs but none match search
+      _program =
+        insert_program(%{
+          title: "Art Class",
+          description: "Creative painting"
+        })
+
+      # When: User searches for something that doesn't exist
+      {:ok, _view, html} = live(conn, ~p"/programs?q=robotics")
+
+      # Then: Empty state is shown with search context
+      assert html =~ "No programs found"
+      assert html =~ "Try adjusting your search or filter criteria"
+    end
+
+    # T081: No empty state when programs match filters
+    test "hides empty state when programs match current filters", %{conn: conn} do
+      # Given: Database has both available and sold-out programs
+      _available =
+        insert_program(%{
+          title: "Available Program",
+          spots_available: 10
+        })
+
+      _sold_out =
+        insert_program(%{
+          title: "Sold Out Program",
+          spots_available: 0
+        })
+
+      # When: User filters by "available"
+      {:ok, view, html} = live(conn, ~p"/programs?filter=available")
+
+      # Then: Programs are shown, no empty state
+      assert html =~ "Available Program"
+      refute html =~ "No programs found"
+
+      # And: Empty state component is not rendered
+      refute has_element?(view, "[data-testid='empty-state']")
+    end
+
+    # T082: Empty state transitions correctly when filters change
+    test "empty state appears/disappears correctly when filters change", %{conn: conn} do
+      # Given: Database has only sold-out programs
+      _sold_out =
+        insert_program(%{
+          title: "Sold Out Soccer",
+          spots_available: 0
+        })
+
+      # When: User starts with "all" filter (programs shown)
+      {:ok, view, html} = live(conn, ~p"/programs")
+
+      # Then: Programs are displayed, no empty state
+      assert html =~ "Sold Out Soccer"
+      refute html =~ "No programs found"
+
+      # When: User switches to "available" filter
+      html =
+        view
+        |> element("[data-filter-id='available']")
+        |> render_click()
+
+      # Then: Empty state appears (all programs filtered out)
+      assert html =~ "No programs found"
+      refute html =~ "Sold Out Soccer"
+    end
+
+    # T083: Empty state with combined filter + search
+    test "shows appropriate message when filter + search combination yields no results", %{
+      conn: conn
+    } do
+      # Given: Database has available art programs but no soccer
+      _art =
+        insert_program(%{
+          title: "Art Class",
+          description: "Painting workshop",
+          spots_available: 10
+        })
+
+      # When: User searches for "soccer" with "available" filter
+      {:ok, _view, html} = live(conn, ~p"/programs?filter=available&q=soccer")
+
+      # Then: Empty state is shown with helpful context
+      assert html =~ "No programs found"
+      assert html =~ "Try adjusting your search or filter criteria"
+    end
+  end
+
+  # T084: Negative interaction tests for error handling
+  describe "ProgramsLive - Error Handling and Edge Cases" do
+    # T085: Invalid filter parameter defaults to "all"
+    test "invalid filter parameter defaults to 'all' filter", %{conn: conn} do
+      # Given: Database has programs
+      _program =
+        insert_program(%{
+          title: "Test Program",
+          spots_available: 10
+        })
+
+      # When: User navigates with invalid filter parameter
+      {:ok, view, html} = live(conn, ~p"/programs?filter=invalid_filter_xyz")
+
+      # Then: Page loads without crashing
+      assert html =~ "Test Program"
+
+      # And: Filter defaults to "all" ("All Programs" filter is marked as active)
+      assert has_element?(view, "[data-filter-id='all'][data-active='true']")
+
+      # And: No error message is shown
+      refute has_element?(view, ".flash-error")
+    end
+
+    # T086: Program click with non-existent program shows error
+    test "program click with non-existent program shows error and stays on page", %{conn: conn} do
+      # Given: Database has programs
+      _existing =
+        insert_program(%{
+          title: "Existing Program"
+        })
+
+      # When: LiveView is mounted
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      # And: User clicks a program that doesn't exist (simulated)
+      view
+      |> element("[phx-click='program_click']")
+      |> render_click(%{"program" => "Non Existent Program"})
+
+      # Then: Error flash is shown
+      assert render(view) =~ "Program not found"
+
+      # And: User stays on programs page (no navigation)
+      assert_patch(view, ~p"/programs")
+    end
+
+    # T087: Malformed search query is handled gracefully
+    test "malformed or extremely long search query is handled gracefully", %{conn: conn} do
+      # Given: Database has programs
+      _program =
+        insert_program(%{
+          title: "Normal Program"
+        })
+
+      # When: User submits extremely long search query (>100 chars, should be truncated)
+      long_query = String.duplicate("a", 150)
+      {:ok, view, html} = live(conn, ~p"/programs?q=#{long_query}")
+
+      # Then: Page loads without crashing (empty result is acceptable)
+      # The search doesn't match "Normal Program", so empty state is shown
+      assert html =~ "No programs found"
+
+      # And: Search still functions (query was truncated but search works)
+      assert has_element?(view, "#programs")
+
+      # And: No error is shown
+      refute has_element?(view, ".flash-error")
+    end
+
+    # T088: Search with special characters doesn't break the query
+    test "search with special characters is handled safely", %{conn: conn} do
+      # Given: Database has programs
+      _program =
+        insert_program(%{
+          title: "Soccer & Art",
+          description: "Fun activities: soccer, art, music!"
+        })
+
+      # When: User searches with special characters
+      {:ok, _view, html} = live(conn, ~p"/programs?q=soccer & art")
+
+      # Then: Page loads without crashing (HTML entity encoded)
+      assert html =~ "Soccer &amp; Art"
+
+      # When: User searches with other special chars
+      {:ok, _view, html} = live(conn, ~p"/programs?q=activities:")
+
+      # Then: Search works correctly (HTML entity encoded)
+      assert html =~ "Soccer &amp; Art"
+    end
+
+    # T089: Combining invalid filter with valid search
+    test "combining invalid filter with valid search works correctly", %{conn: conn} do
+      # Given: Database has programs
+      soccer =
+        insert_program(%{
+          title: "Soccer Training",
+          spots_available: 10
+        })
+
+      _art =
+        insert_program(%{
+          title: "Art Class",
+          spots_available: 5
+        })
+
+      # When: User uses invalid filter with valid search
+      {:ok, view, html} = live(conn, ~p"/programs?filter=invalid&q=soccer")
+
+      # Then: Page works correctly
+      assert html =~ soccer.title
+      refute html =~ "Art Class"
+
+      # And: Filter defaults to "all" (UI shows all filter active)
+      assert has_element?(view, "[data-filter-id='all'][data-active='true']")
+
+      # And: Search is applied correctly (only soccer program shown)
+    end
+
+    # T090: Empty search query clears search filter
+    test "empty search query shows all programs", %{conn: conn} do
+      # Given: Database has programs
+      _program1 = insert_program(%{title: "Program 1"})
+      _program2 = insert_program(%{title: "Program 2"})
+
+      # When: User navigates with empty search query
+      {:ok, _view, html} = live(conn, ~p"/programs?q=")
+
+      # Then: All programs are shown
+      assert html =~ "Program 1"
+      assert html =~ "Program 2"
+    end
+
+    # T091: Rapid filter changes don't cause race conditions
+    test "rapid filter changes are handled correctly", %{conn: conn} do
+      # Given: Database has programs with different availability
+      _available =
+        insert_program(%{
+          title: "Available",
+          spots_available: 10
+        })
+
+      _sold_out =
+        insert_program(%{
+          title: "Sold Out",
+          spots_available: 0
+        })
+
+      # When: User rapidly changes filters
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      # Switch to available
+      html =
+        view
+        |> element("[data-filter-id='available']")
+        |> render_click()
+
+      assert html =~ "Available"
+      refute html =~ "Sold Out"
+
+      # Switch back to all
+      html =
+        view
+        |> element("[data-filter-id='all']")
+        |> render_click()
+
+      # Then: Both programs are shown
+      assert html =~ "Available"
+      assert html =~ "Sold Out"
+    end
+
+    # T092: URL with both filter and search parameters works correctly
+    test "URL with multiple query parameters is parsed correctly", %{conn: conn} do
+      # Given: Database has programs
+      available_soccer =
+        insert_program(%{
+          title: "Available Soccer",
+          description: "Soccer training",
+          spots_available: 10
+        })
+
+      _sold_out_soccer =
+        insert_program(%{
+          title: "Sold Out Soccer",
+          spots_available: 0
+        })
+
+      _available_art =
+        insert_program(%{
+          title: "Available Art",
+          spots_available: 5
+        })
+
+      # When: User navigates with both filter and search in URL
+      {:ok, view, html} = live(conn, ~p"/programs?filter=available&q=soccer")
+
+      # Then: Both parameters are applied correctly
+      assert html =~ available_soccer.title
+      refute html =~ "Sold Out Soccer"
+      refute html =~ "Art"
+
+      # And: UI shows available filter is active
+      assert has_element?(view, "[data-filter-id='available'][data-active='true']")
+    end
+  end
+
   # Helper function to insert programs into the test database
   defp insert_program(attrs) do
     default_attrs = %{

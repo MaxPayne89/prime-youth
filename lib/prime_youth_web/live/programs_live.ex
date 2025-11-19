@@ -26,82 +26,20 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    # Load programs from database using the use case
-    case ListAllPrograms.execute() do
-      {:ok, domain_programs} ->
-        programs = Enum.map(domain_programs, &program_to_map/1)
+    # Initialize socket state - actual program loading happens in handle_params
+    socket =
+      socket
+      |> assign(page_title: "Programs")
+      |> assign(current_user: nil)
+      |> assign(search_query: "")
+      |> assign(active_filter: "all")
+      |> stream(:programs, [])
+      |> assign(programs_count: 0)
+      |> assign(programs_empty?: true)
+      |> assign(filters: filter_options())
+      |> assign(database_error: false)
 
-        socket =
-          socket
-          |> assign(page_title: "Programs")
-          |> assign(current_user: nil)
-          |> stream(:programs, programs)
-          |> assign(programs_count: length(programs))
-          |> assign(filters: filter_options())
-          |> assign(database_error: false)
-
-        {:ok, socket}
-
-      {:error, :database_connection_error} ->
-        Logger.error(
-          "[ProgramsLive.mount] Database connection error",
-          error_id: ErrorIds.program_list_connection_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        socket =
-          socket
-          |> assign(page_title: "Programs")
-          |> assign(current_user: nil)
-          |> stream(:programs, [])
-          |> assign(programs_count: 0)
-          |> assign(filters: filter_options())
-          |> assign(database_error: true)
-          |> put_flash(:error, "Connection lost. Please try again.")
-
-        {:ok, socket}
-
-      {:error, :database_query_error} ->
-        Logger.error(
-          "[ProgramsLive.mount] Database query error",
-          error_id: ErrorIds.program_list_query_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        socket =
-          socket
-          |> assign(page_title: "Programs")
-          |> assign(current_user: nil)
-          |> stream(:programs, [])
-          |> assign(programs_count: 0)
-          |> assign(filters: filter_options())
-          |> assign(database_error: true)
-          |> put_flash(:error, "System error. Please contact support.")
-
-        {:ok, socket}
-
-      {:error, :database_unavailable} ->
-        Logger.error(
-          "[ProgramsLive.mount] Database unavailable",
-          error_id: ErrorIds.program_list_generic_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        socket =
-          socket
-          |> assign(page_title: "Programs")
-          |> assign(current_user: nil)
-          |> stream(:programs, [])
-          |> assign(programs_count: 0)
-          |> assign(filters: filter_options())
-          |> assign(database_error: true)
-          |> put_flash(:error, "Service temporarily unavailable.")
-
-        {:ok, socket}
-    end
+    {:ok, socket}
   end
 
   @impl true
@@ -356,7 +294,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
   # Returns 999 for unparseable age ranges to sort them to the end
   defp extract_min_age(age_range) do
     with [first | _] <- String.split(age_range, "-"),
-         trimmed <- String.trim(first),
+         trimmed = String.trim(first),
          {age, _} <- Integer.parse(trimmed) do
       age
     else

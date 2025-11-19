@@ -543,11 +543,12 @@ defmodule PrimeYouthWeb.UIComponents do
   attr :title, :string, required: true
   attr :description, :string, required: true
   attr :class, :string, default: ""
+  attr :data_testid, :string, default: "empty-state", doc: "Test ID for testing"
   slot :action, doc: "Optional action button or link"
 
   def empty_state(assigns) do
     ~H"""
-    <div class={["text-center py-12", @class]}>
+    <div data-testid={@data_testid} class={["text-center py-12", @class]}>
       <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path

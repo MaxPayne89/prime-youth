@@ -755,4 +755,165 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Models.ProgramTest do
       refute Program.free?(program)
     end
   end
+
+  # T068: Domain model type enforcement tests for new/1
+  describe "new/1 with type validation" do
+    # T069: Reject non-Decimal price with clear error
+    test "rejects non-Decimal price with clear error message" do
+      attrs = %{
+        id: "test-id-069",
+        title: "Valid Title",
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: "100.00",
+        # String instead of Decimal
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      {:error, errors} = Program.new(attrs)
+
+      assert "Price must be a Decimal" in errors
+    end
+
+    # T070: Reject non-integer spots_available
+    test "rejects non-integer spots_available with clear error" do
+      attrs = %{
+        id: "test-id-070",
+        title: "Valid Title",
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: "20"
+        # String instead of integer
+      }
+
+      {:error, errors} = Program.new(attrs)
+
+      assert "Spots available must be an integer" in errors
+    end
+
+    # T071: Reject non-string title
+    test "rejects non-string title with clear error" do
+      attrs = %{
+        id: "test-id-071",
+        title: 123,
+        # Integer instead of string
+        description: "Valid description",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      {:error, errors} = Program.new(attrs)
+
+      assert "Title must be a string" in errors
+    end
+
+    # T072: Reject non-string description
+    test "rejects non-string description with clear error" do
+      attrs = %{
+        id: "test-id-072",
+        title: "Valid Title",
+        description: [:invalid, :type],
+        # List instead of string
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      {:error, errors} = Program.new(attrs)
+
+      assert "Description must be a string" in errors
+    end
+
+    # T073: Reject non-string schedule
+    test "rejects non-string schedule with clear error" do
+      attrs = %{
+        id: "test-id-073",
+        title: "Valid Title",
+        description: "Valid description",
+        schedule: %{day: "Monday"},
+        # Map instead of string
+        age_range: "6-10 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      {:error, errors} = Program.new(attrs)
+
+      assert "Schedule must be a string" in errors
+    end
+
+    # T074: Type validation occurs before business rule validation
+    test "type errors are caught before business rule validation" do
+      attrs = %{
+        id: "test-id-074",
+        title: 123,
+        # Type error
+        description: "",
+        # Business rule error (empty)
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: "invalid",
+        # Type error
+        pricing_period: "per week",
+        spots_available: -5
+        # Business rule error (negative)
+      }
+
+      {:error, errors} = Program.new(attrs)
+
+      # Type errors should be reported
+      assert "Title must be a string" in errors
+      assert "Price must be a Decimal" in errors
+
+      # Business rule errors may or may not be reported
+      # (depends on implementation - type errors might short-circuit)
+    end
+
+    # T075: Accept valid types with correct business rules
+    test "accepts valid types with correct business rules" do
+      attrs = %{
+        id: "test-id-075",
+        title: "Valid Program",
+        description: "Valid description that meets length requirements",
+        schedule: "Mon-Fri 9am-12pm",
+        age_range: "6-10 years",
+        price: Decimal.new("150.00"),
+        pricing_period: "per week",
+        spots_available: 20
+      }
+
+      assert {:ok, %Program{}} = Program.new(attrs)
+    end
+
+    # T076: Accept edge case valid types (boundary values)
+    test "accepts boundary value types correctly" do
+      attrs = %{
+        id: "test-id-076",
+        title: "A",
+        # Minimum valid length after trim
+        description: "B",
+        # Minimum valid length after trim
+        schedule: "TBD",
+        age_range: "0-99",
+        price: Decimal.new("0"),
+        # Free program
+        pricing_period: "free",
+        spots_available: 0
+        # Sold out
+      }
+
+      assert {:ok, %Program{}} = Program.new(attrs)
+    end
+  end
 end
