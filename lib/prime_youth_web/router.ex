@@ -21,7 +21,9 @@ defmodule PrimeYouthWeb.Router do
     pipe_through :browser
 
     # Public routes (no authentication required)
-    live_session :public, layout: {PrimeYouthWeb.Layouts, :app} do
+    live_session :public,
+      layout: {PrimeYouthWeb.Layouts, :app},
+      on_mount: [{PrimeYouthWeb.UserAuth, :mount_current_scope}] do
       live "/", HomeLive, :index
       live "/programs", ProgramsLive, :index
       live "/programs/:id", ProgramDetailLive, :show

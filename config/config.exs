@@ -32,9 +32,9 @@ config :phoenix, :json_library, Jason
 #
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
+# Configures the endpoint
 config :prime_youth, PrimeYouth.Mailer, adapter: Swoosh.Adapters.Local
 
-# Configures the endpoint
 config :prime_youth, PrimeYouthWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
@@ -44,6 +44,10 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
   ],
   pubsub_server: PrimeYouth.PubSub,
   live_view: [signing_salt: "JU2osypv"]
+
+# Configure Program Catalog bounded context
+config :prime_youth, :program_catalog,
+  repository: PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
 
 config :prime_youth, :scopes,
   user: [

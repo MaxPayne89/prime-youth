@@ -89,7 +89,8 @@ defmodule PrimeYouth.MixProject do
       {:excoveralls, "~> 0.18", only: :test},
       {:ex_machina, "~> 2.8", only: :test},
       {:stream_data, "~> 1.1", only: :test},
-      {:faker, "~> 0.18", only: :test}
+      {:faker, "~> 0.18", only: :test},
+      {:mimic, "~> 2.0", only: :test}
     ]
   end
 

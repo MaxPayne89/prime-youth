@@ -116,7 +116,7 @@ Before running `mix setup`, verify these requirements are met:
 
 - [ ] PostgreSQL is installed and running (`brew services list` on Mac, `services.msc` on Windows, `systemctl status postgresql` on Linux)
 - [ ] You can connect to PostgreSQL: `psql -U postgres -h localhost -d postgres` (password: `postgres`)
-- [ ] Elixir is installed: `elixir --version` (should show version 1.18 or higher)
+- [ ] Elixir is installed: `elixir --version` (should show version 1.19 or higher)
 - [ ] Git is installed: `git --version`
 - [ ] Port 4000 is available (not used by another application)
 - [ ] Port 5432 is available for PostgreSQL
@@ -469,7 +469,7 @@ If you're stuck and nothing is working:
 
 2. **Verify installations:**
    ```bash
-   elixir --version  # Should show 1.18.x or higher
+   elixir --version  # Should show 1.19.x or higher
    psql --version    # Should show PostgreSQL
    ```
 
