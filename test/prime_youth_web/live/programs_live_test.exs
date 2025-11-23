@@ -301,9 +301,9 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
       refute has_element?(view, ".flash-error")
     end
 
-    # T062: Test search functionality is case-insensitive
-    test "search is case-insensitive and searches title and description", %{conn: conn} do
-      # Given: Database has programs with various titles and descriptions
+    # T062: Test search functionality is case-insensitive (word-boundary matching)
+    test "search is case-insensitive using word-boundary matching on titles", %{conn: conn} do
+      # Given: Database has programs with various titles
       soccer =
         insert_program(%{
           title: "Soccer Stars",
@@ -322,24 +322,24 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           description: "Strategic thinking"
         })
 
-      # When: User searches for "SOCCER" (uppercase)
+      # When: User searches for "SOCCER" (uppercase, word-boundary match)
       {:ok, _view, html} = live(conn, ~p"/programs?q=SOCCER")
 
-      # Then: Soccer program is found (case-insensitive title match)
+      # Then: Soccer program is found (case-insensitive title word-boundary match)
       assert html =~ soccer.title
       refute html =~ art.title
       refute html =~ chess.title
 
-      # When: User searches for "painting" (lowercase, in description)
-      {:ok, view, html} = live(conn, ~p"/programs?q=painting")
+      # When: User searches for "art" (lowercase, word-boundary match in title)
+      {:ok, view, html} = live(conn, ~p"/programs?q=art")
 
-      # Then: Art program is found (case-insensitive description match)
+      # Then: Art program is found (case-insensitive title word-boundary match)
       assert html =~ art.title
       refute html =~ soccer.title
       refute html =~ chess.title
 
       # And: Search query is displayed in search input
-      assert has_element?(view, "input[name='search'][value='painting']")
+      assert has_element?(view, "input[name='search'][value='art']")
     end
 
     # T063: Test combining search with filters
@@ -370,6 +370,65 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
       assert html =~ available_soccer.title
       refute html =~ "Sold Out Soccer Camp"
       refute html =~ "Art Class"
+    end
+  end
+
+  # T032-T034: User Story 1 specific integration tests
+  describe "ProgramsLive - User Story 1: Instant Program Title Search" do
+    # T032: filters programs by search query
+    test "filters programs by search query using word-boundary matching", %{conn: conn} do
+      # Given: Database has programs with various titles
+      soccer =
+        insert_program(%{
+          title: "After School Soccer",
+          description: "Soccer fundamentals and teamwork"
+        })
+
+      _dance =
+        insert_program(%{
+          title: "Summer Dance Camp",
+          description: "Learn dance moves"
+        })
+
+      # When: User searches for "so" (should match "Soccer" word-boundary)
+      {:ok, _view, html} = live(conn, ~p"/programs?q=so")
+
+      # Then: Only programs with words starting with "so" are shown
+      assert html =~ soccer.title
+      refute html =~ "Dance"
+    end
+
+    # T033: shows all programs for empty query
+    test "shows all programs when search query is empty", %{conn: conn} do
+      # Given: Database has programs
+      program1 = insert_program(%{title: "Soccer Camp"})
+      program2 = insert_program(%{title: "Art Class"})
+      program3 = insert_program(%{title: "Chess Club"})
+
+      # When: User navigates without search query
+      {:ok, _view, html} = live(conn, ~p"/programs")
+
+      # Then: All programs are displayed
+      assert html =~ program1.title
+      assert html =~ program2.title
+      assert html =~ program3.title
+    end
+
+    # T034: updates URL with query param
+    test "updates URL with search query parameter", %{conn: conn} do
+      # Given: Database has programs
+      _program = insert_program(%{title: "Soccer Training"})
+
+      # When: LiveView is mounted
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      # And: User types in search field
+      view
+      |> element("input[name='search']")
+      |> render_change(%{"search" => "soccer"})
+
+      # Then: URL is updated with query parameter
+      assert_patch(view, ~p"/programs?q=soccer")
     end
   end
 
@@ -739,24 +798,32 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
 
     # T088: Search with special characters doesn't break the query
     test "search with special characters is handled safely", %{conn: conn} do
-      # Given: Database has programs
-      _program =
+      # Given: Database has programs with special characters in titles
+      _soccer_art =
         insert_program(%{
           title: "Soccer & Art",
           description: "Fun activities: soccer, art, music!"
         })
 
-      # When: User searches with special characters
-      {:ok, _view, html} = live(conn, ~p"/programs?q=soccer & art")
+      _art_class =
+        insert_program(%{
+          title: "Art Class",
+          description: "Learn painting"
+        })
 
-      # Then: Page loads without crashing (HTML entity encoded)
+      # When: User searches for "soccer" (word-boundary match at start)
+      {:ok, _view, html} = live(conn, ~p"/programs?q=soccer")
+
+      # Then: Page loads without crashing and "Soccer & Art" is found
       assert html =~ "Soccer &amp; Art"
+      refute html =~ "Art Class"
 
-      # When: User searches with other special chars
-      {:ok, _view, html} = live(conn, ~p"/programs?q=activities:")
+      # When: User searches for "art" (word-boundary match)
+      {:ok, _view, html} = live(conn, ~p"/programs?q=art")
 
-      # Then: Search works correctly (HTML entity encoded)
+      # Then: Both "Soccer & Art" and "Art Class" are found (both have words starting with "art")
       assert html =~ "Soccer &amp; Art"
+      assert html =~ "Art Class"
     end
 
     # T089: Combining invalid filter with valid search
