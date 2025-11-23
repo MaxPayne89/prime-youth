@@ -40,19 +40,23 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterPrograms do
     end
   end
 
-  # Checks if any word in the title starts with the query.
-  # Both title and query are normalized before matching.
   @spec matches_word_boundary?(String.t(), String.t()) :: boolean()
-  defp matches_word_boundary?(title, query) do
-    normalized_title = normalize(title)
+  defp matches_word_boundary?(title, normalized_query) do
+    title
+    |> title_words()
+    |> Enum.any?(&String.starts_with?(&1, normalized_query))
+  end
 
-    normalized_title
+  @spec title_words(String.t()) :: [String.t()]
+  defp title_words(title) do
+    title
+    |> normalize()
     |> String.split(~r/\s+/, trim: true)
-    |> Enum.any?(&String.starts_with?(&1, query))
   end
 
   # Normalizes text by removing special characters and converting to lowercase.
   # Special characters removed: !, ., ,, ?, ;, :, @, #, $, %, &, *, (, ), [, ], {, }, ", ', `
+  # Unicode word characters (\w with /u flag) are preserved, including accented letters.
   @spec normalize(String.t()) :: String.t()
   defp normalize(text) do
     text

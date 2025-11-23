@@ -12,6 +12,22 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
 
   alias PrimeYouth.ProgramCatalog.Application.UseCases.FilterPrograms
 
+  # Test helper: Assert that result contains exactly one program with the expected title
+  defp assert_single_match(result, expected_title) do
+    assert length(result) == 1
+    assert Enum.at(result, 0).title == expected_title
+  end
+
+  # Test helper: Assert that programs list includes all expected titles
+  defp assert_titles_include(programs, expected_titles) do
+    actual_titles = Enum.map(programs, & &1.title)
+
+    for title <- expected_titles do
+      assert title in actual_titles,
+             "Expected title '#{title}' not found in results: #{inspect(actual_titles)}"
+    end
+  end
+
   describe "execute/2 - basic filtering" do
     test "returns all programs for empty query" do
       programs = sample_programs()
@@ -27,8 +43,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
 
       result = FilterPrograms.execute(programs, "after")
 
-      assert length(result) == 1
-      assert Enum.at(result, 0).title == "After School Soccer"
+      assert_single_match(result, "After School Soccer")
     end
 
     test "matches word in middle of title" do
@@ -36,8 +51,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
 
       result = FilterPrograms.execute(programs, "school")
 
-      assert length(result) == 1
-      assert Enum.at(result, 0).title == "After School Soccer"
+      assert_single_match(result, "After School Soccer")
     end
 
     test "is case-insensitive" do
@@ -47,12 +61,9 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
       result_upper = FilterPrograms.execute(programs, "SOCCER")
       result_mixed = FilterPrograms.execute(programs, "SoCcEr")
 
-      assert length(result_lower) == 1
-      assert length(result_upper) == 1
-      assert length(result_mixed) == 1
       assert result_lower == result_upper
       assert result_upper == result_mixed
-      assert Enum.at(result_lower, 0).title == "After School Soccer"
+      assert_single_match(result_lower, "After School Soccer")
     end
 
     test "returns empty list for no matches" do
@@ -121,8 +132,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
 
       result = FilterPrograms.execute(programs, "so")
 
-      assert length(result) == 1
-      assert Enum.at(result, 0).title == "After School Soccer"
+      assert_single_match(result, "After School Soccer")
     end
 
     test "typing 'yoga' then 'yoga flow' further refines results" do
@@ -133,18 +143,12 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
       ]
 
       result_yoga = FilterPrograms.execute(programs, "yoga")
-
       assert length(result_yoga) == 2
-      titles_yoga = Enum.map(result_yoga, & &1.title)
-      assert "Kids Yoga Flow" in titles_yoga
-      assert "Adult Yoga Class" in titles_yoga
+      assert_titles_include(result_yoga, ["Kids Yoga Flow", "Adult Yoga Class"])
 
       result_flow = FilterPrograms.execute(programs, "flow")
-
       assert length(result_flow) == 2
-      titles_flow = Enum.map(result_flow, & &1.title)
-      assert "Kids Yoga Flow" in titles_flow
-      assert "Meditation Flow" in titles_flow
+      assert_titles_include(result_flow, ["Kids Yoga Flow", "Meditation Flow"])
     end
 
     test "deleting characters expands results" do
@@ -155,19 +159,13 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
       ]
 
       result_soccer = FilterPrograms.execute(programs, "soccer")
-
-      assert length(result_soccer) == 1
-      assert Enum.at(result_soccer, 0).title == "Soccer Stars"
+      assert_single_match(result_soccer, "Soccer Stars")
 
       result_soc = FilterPrograms.execute(programs, "soc")
-
       assert length(result_soc) == 2
-      titles = Enum.map(result_soc, & &1.title)
-      assert "Soccer Stars" in titles
-      assert "Social Club" in titles
+      assert_titles_include(result_soc, ["Soccer Stars", "Social Club"])
 
       result_so = FilterPrograms.execute(programs, "so")
-
       assert length(result_so) == 2
     end
 
@@ -193,8 +191,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
 
       result = FilterPrograms.execute(programs, "soc")
 
-      assert length(result) == 1
-      assert Enum.at(result, 0).title == "Soccer"
+      assert_single_match(result, "Soccer")
     end
 
     test "handles very long program titles" do
@@ -282,6 +279,160 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
       result = FilterPrograms.execute(programs, "dance")
 
       assert length(result) == 1
+    end
+  end
+
+  describe "execute/2 - international characters" do
+    test "handles accented characters in program titles" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440120",
+          title: "École de Danse"
+        ),
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440121",
+          title: "Niños Yoga"
+        ),
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440122",
+          title: "Café Cultural"
+        )
+      ]
+
+      result_ecole = FilterPrograms.execute(programs, "école")
+      assert_single_match(result_ecole, "École de Danse")
+
+      result_ninos = FilterPrograms.execute(programs, "niños")
+      assert_single_match(result_ninos, "Niños Yoga")
+
+      result_cafe = FilterPrograms.execute(programs, "café")
+      assert_single_match(result_cafe, "Café Cultural")
+    end
+
+    test "is case-insensitive with accented characters" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440130",
+          title: "École de Français"
+        )
+      ]
+
+      result_lower = FilterPrograms.execute(programs, "école")
+      result_upper = FilterPrograms.execute(programs, "ÉCOLE")
+      result_mixed = FilterPrograms.execute(programs, "ÉcOlE")
+
+      assert result_lower == result_upper
+      assert result_upper == result_mixed
+      assert_single_match(result_lower, "École de Français")
+    end
+
+    test "handles German special characters" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440140",
+          title: "Fußball für Kinder"
+        ),
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440141",
+          title: "Äpfel und Birnen"
+        )
+      ]
+
+      result_fussball = FilterPrograms.execute(programs, "fußball")
+      assert_single_match(result_fussball, "Fußball für Kinder")
+
+      result_apfel = FilterPrograms.execute(programs, "äpfel")
+      assert_single_match(result_apfel, "Äpfel und Birnen")
+    end
+
+    test "handles Portuguese special characters" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440150",
+          title: "São Paulo Soccer"
+        ),
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440151",
+          title: "Ação Cultural"
+        )
+      ]
+
+      result_sao = FilterPrograms.execute(programs, "são")
+      assert_single_match(result_sao, "São Paulo Soccer")
+
+      result_acao = FilterPrograms.execute(programs, "ação")
+      assert_single_match(result_acao, "Ação Cultural")
+    end
+
+    test "handles Cyrillic characters" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440160",
+          title: "Москва Basketball"
+        ),
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440161",
+          title: "Київ Dance"
+        )
+      ]
+
+      result_moskva = FilterPrograms.execute(programs, "москва")
+      assert_single_match(result_moskva, "Москва Basketball")
+
+      result_kyiv = FilterPrograms.execute(programs, "київ")
+      assert_single_match(result_kyiv, "Київ Dance")
+    end
+
+    test "handles Greek characters" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440170",
+          title: "Αθήνα Yoga"
+        ),
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440171",
+          title: "Ελληνικά Lessons"
+        )
+      ]
+
+      result_athina = FilterPrograms.execute(programs, "αθήνα")
+      assert_single_match(result_athina, "Αθήνα Yoga")
+
+      result_ellinika = FilterPrograms.execute(programs, "ελληνικά")
+      assert_single_match(result_ellinika, "Ελληνικά Lessons")
+    end
+
+    test "handles mixed Unicode characters in single title" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440180",
+          title: "Café São Москва École"
+        )
+      ]
+
+      result_cafe = FilterPrograms.execute(programs, "café")
+      result_sao = FilterPrograms.execute(programs, "são")
+      result_moskva = FilterPrograms.execute(programs, "москва")
+      result_ecole = FilterPrograms.execute(programs, "école")
+
+      assert length(result_cafe) == 1
+      assert length(result_sao) == 1
+      assert length(result_moskva) == 1
+      assert length(result_ecole) == 1
+    end
+
+    test "handles accented characters with special character normalization" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440190",
+          title: "Café! & École"
+        )
+      ]
+
+      # Special characters should be removed, accented characters preserved
+      result = FilterPrograms.execute(programs, "café")
+
+      assert_single_match(result, "Café! & École")
     end
   end
 end
