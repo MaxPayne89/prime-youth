@@ -17,6 +17,7 @@ defmodule PrimeYouthWeb.FeatureCase do
 
       # Import helpers for feature testing
       import PrimeYouth.AccountsFixtures
+      import PrimeYouth.Factory
     end
   end
 
