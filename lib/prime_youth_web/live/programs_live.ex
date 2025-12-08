@@ -3,6 +3,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
   import PrimeYouthWeb.ProgramComponents
 
+  alias PrimeYouth.ProgramCatalog.Application.UseCases.FilterPrograms
   alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
   alias PrimeYouthWeb.ErrorIds
 
@@ -50,8 +51,33 @@ defmodule PrimeYouthWeb.ProgramsLive do
     # Re-fetch and filter programs based on params
     case ListAllPrograms.execute() do
       {:ok, domain_programs} ->
-        programs = Enum.map(domain_programs, &program_to_map/1)
-        filtered = filtered_programs(programs, search_query, active_filter)
+        start_time = System.monotonic_time(:millisecond)
+        # Apply search filter to domain programs BEFORE converting to maps
+        filtered_domain = FilterPrograms.execute(domain_programs, search_query)
+        # Convert to maps for UI
+        programs = Enum.map(filtered_domain, &program_to_map/1)
+        # Apply category filter
+        filtered = filter_by_category(programs, active_filter)
+        duration_ms = System.monotonic_time(:millisecond) - start_time
+
+        Logger.info(
+          "[ProgramsLive.handle_params] Filter operation completed",
+          search_query: search_query,
+          result_count: length(filtered),
+          duration_ms: duration_ms,
+          current_user_id: get_user_id(socket)
+        )
+
+        if duration_ms > 150 do
+          Logger.warning(
+            "[ProgramsLive.handle_params] Filter operation exceeded performance target",
+            search_query: search_query,
+            result_count: length(filtered),
+            duration_ms: duration_ms,
+            target_ms: 150,
+            current_user_id: get_user_id(socket)
+          )
+        end
 
         socket =
           socket
@@ -257,23 +283,6 @@ defmodule PrimeYouthWeb.ProgramsLive do
   end
 
   # Private helpers - Business logic
-  defp filtered_programs(programs, search_query, filter) do
-    programs
-    |> filter_by_search(search_query)
-    |> filter_by_category(filter)
-  end
-
-  defp filter_by_search(programs, ""), do: programs
-
-  defp filter_by_search(programs, query) do
-    query_lower = String.downcase(query)
-
-    Enum.filter(programs, fn program ->
-      String.contains?(String.downcase(program.title), query_lower) ||
-        String.contains?(String.downcase(program.description), query_lower)
-    end)
-  end
-
   defp filter_by_category(programs, "all"), do: programs
 
   defp filter_by_category(programs, "available") do
@@ -331,10 +340,13 @@ defmodule PrimeYouthWeb.ProgramsLive do
       <div class="p-6">
         <!-- Search Bar -->
         <.search_bar
+          id="search-programs"
           placeholder="Search programs..."
           value={@search_query}
           name="search"
           phx-change="search"
+          phx-hook="Debounce"
+          data-debounce="150"
           class="mb-4"
         />
         
