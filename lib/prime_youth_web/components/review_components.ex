@@ -8,6 +8,8 @@ defmodule PrimeYouthWeb.ReviewComponents do
 
   import PrimeYouthWeb.UIComponents
 
+  alias PrimeYouthWeb.Theme
+
   @doc """
   Renders a star rating display.
 
@@ -33,7 +35,7 @@ defmodule PrimeYouthWeb.ReviewComponents do
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
         </svg>
       </div>
-      <span :if={@show_count} class="text-sm text-gray-600 ml-1">
+      <span :if={@show_count} class={["text-sm ml-1", Theme.text_color(:secondary)]}>
         ({@count} {if @count == 1, do: "review", else: "reviews"})
       </span>
     </div>
@@ -74,10 +76,10 @@ defmodule PrimeYouthWeb.ReviewComponents do
       <:body>
         <div class="flex justify-between items-start mb-3">
           <div class="flex items-start gap-3">
-            <img src={@parent_avatar} alt={@parent_name} class="w-10 h-10 rounded-full" />
+            <img src={@parent_avatar} alt={@parent_name} class={["w-10 h-10", Theme.rounded(:full)]} />
             <div>
-              <div class="font-medium text-gray-900 text-sm">{@parent_name}</div>
-              <div class="text-xs text-gray-500">
+              <div class={["font-medium text-sm", Theme.text_color(:heading)]}>{@parent_name}</div>
+              <div class={["text-xs", Theme.text_color(:muted)]}>
                 Mother of {@child_name} ({@child_age})
                 <span :if={@verified} class="text-green-600">"  Verified Parent</span>
               </div>
@@ -85,7 +87,7 @@ defmodule PrimeYouthWeb.ReviewComponents do
           </div>
           <.star_rating rating={@rating} size={:small} />
         </div>
-        <p class="text-gray-600 text-sm leading-relaxed italic">"{@comment}"</p>
+        <p class={["text-sm leading-relaxed italic", Theme.text_color(:secondary)]}>"{@comment}"</p>
       </:body>
     </.card>
     """
@@ -109,8 +111,10 @@ defmodule PrimeYouthWeb.ReviewComponents do
     ~H"""
     <div class={["flex items-center gap-2", @class]}>
       <.star_rating rating={@rating} size={:medium} />
-      <span class="text-sm font-medium text-gray-900">{format_rating(@rating)}</span>
-      <span class="text-sm text-gray-500">({@total_reviews})</span>
+      <span class={["text-sm font-medium", Theme.text_color(:heading)]}>
+        {format_rating(@rating)}
+      </span>
+      <span class={["text-sm", Theme.text_color(:muted)]}>({@total_reviews})</span>
     </div>
     """
   end

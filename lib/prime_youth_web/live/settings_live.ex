@@ -4,6 +4,8 @@ defmodule PrimeYouthWeb.SettingsLive do
   import PrimeYouthWeb.CompositeComponents
   import PrimeYouthWeb.Live.SampleFixtures
 
+  alias PrimeYouthWeb.Theme
+
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
   end
@@ -29,7 +31,7 @@ defmodule PrimeYouthWeb.SettingsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-gray-50">
+    <div class={["min-h-screen", Theme.bg(:muted)]}>
       <!-- Header -->
       <.page_header variant={:gradient} container_class="max-w-4xl mx-auto">
         <:title>Settings</:title>
@@ -39,15 +41,20 @@ defmodule PrimeYouthWeb.SettingsLive do
     <!-- Content -->
       <div class="max-w-4xl mx-auto p-4 space-y-4">
         <!-- Account & Profile Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="p-4 border-b border-gray-100">
-            <h3 class="font-semibold text-gray-900">Account & Profile</h3>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
+          <div class={["p-4 border-b", Theme.border_color(:light)]}>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Account & Profile</h3>
           </div>
           <div>
             <.settings_menu_item
               icon="hero-user"
-              icon_bg="bg-prime-cyan-100"
-              icon_color="text-prime-cyan-400"
+              icon_bg={Theme.bg(:primary_light)}
+              icon_color={Theme.text_color(:primary)}
               title="Profile Information"
               description="Name, email, profile photo"
               phx-click="navigate_to"
@@ -55,8 +62,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
             <.settings_menu_item
               icon="hero-lock-closed"
-              icon_bg="bg-prime-magenta-100"
-              icon_color="text-prime-magenta-400"
+              icon_bg={Theme.bg(:secondary_light)}
+              icon_color={Theme.text_color(:secondary)}
               title="Privacy & Security"
               description="Account preferences, password"
               phx-click="navigate_to"
@@ -66,15 +73,20 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- My Family Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="p-4 border-b border-gray-100">
-            <h3 class="font-semibold text-gray-900">My Family</h3>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
+          <div class={["p-4 border-b", Theme.border_color(:light)]}>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>My Family</h3>
           </div>
           <div>
             <.settings_menu_item
               icon="hero-user-group"
-              icon_bg="bg-prime-cyan-100"
-              icon_color="text-prime-cyan-400"
+              icon_bg={Theme.bg(:primary_light)}
+              icon_color={Theme.text_color(:primary)}
               title="Children Profiles"
               description={@user.children_summary}
               phx-click="navigate_to"
@@ -82,8 +94,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
             <.settings_menu_item
               icon="hero-calendar"
-              icon_bg="bg-prime-magenta-100"
-              icon_color="text-prime-magenta-400"
+              icon_bg={Theme.bg(:secondary_light)}
+              icon_color={Theme.text_color(:secondary)}
               title="My Schedule"
               description="View all family activities"
               phx-click="navigate_to"
@@ -91,8 +103,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
             <.settings_menu_item
               icon="hero-badge-check"
-              icon_bg="bg-prime-yellow-100"
-              icon_color="text-prime-yellow-400"
+              icon_bg={Theme.bg(:accent_light)}
+              icon_color={Theme.text_color(:accent)}
               title="Family Progress"
               description="Achievements and milestones"
               phx-click="navigate_to"
@@ -102,9 +114,14 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Contact Information Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="p-4 border-b border-gray-100">
-            <h3 class="font-semibold text-gray-900">Contact Information</h3>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
+          <div class={["p-4 border-b", Theme.border_color(:light)]}>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Contact Information</h3>
           </div>
           <div>
             <.settings_menu_item
@@ -138,9 +155,14 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Health & Safety Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="p-4 border-b border-gray-100">
-            <h3 class="font-semibold text-gray-900">Health & Safety</h3>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
+          <div class={["p-4 border-b", Theme.border_color(:light)]}>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Health & Safety</h3>
           </div>
           <div>
             <.settings_menu_item
@@ -174,9 +196,14 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Permissions & Consents Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="p-4 border-b border-gray-100">
-            <h3 class="font-semibold text-gray-900">Permissions & Consents</h3>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
+          <div class={["p-4 border-b", Theme.border_color(:light)]}>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Permissions & Consents</h3>
           </div>
           <div>
             <.settings_menu_item
@@ -199,8 +226,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
             <.settings_menu_item
               icon="hero-chat-bubble-left-right"
-              icon_bg="bg-prime-cyan-100"
-              icon_color="text-prime-cyan-400"
+              icon_bg={Theme.bg(:primary_light)}
+              icon_color={Theme.text_color(:primary)}
               title="WhatsApp Community"
               description="Updates, discounts, family credit"
               phx-click="navigate_to"
@@ -210,9 +237,14 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Payment & Billing Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="p-4 border-b border-gray-100">
-            <h3 class="font-semibold text-gray-900">Payment & Billing</h3>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
+          <div class={["p-4 border-b", Theme.border_color(:light)]}>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Payment & Billing</h3>
           </div>
           <div>
             <.settings_menu_item
@@ -226,8 +258,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
             <.settings_menu_item
               icon="hero-document-text"
-              icon_bg="bg-prime-magenta-100"
-              icon_color="text-prime-magenta-400"
+              icon_bg={Theme.bg(:secondary_light)}
+              icon_color={Theme.text_color(:secondary)}
               title="Transaction History"
               description="Past payments and invoices"
               phx-click="navigate_to"
@@ -235,8 +267,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
             <.settings_menu_item
               icon="hero-currency-dollar"
-              icon_bg="bg-prime-yellow-100"
-              icon_color="text-prime-yellow-400"
+              icon_bg={Theme.bg(:accent_light)}
+              icon_color={Theme.text_color(:accent)}
               title="Family Credits & Discounts"
               description="Available credits and promo codes"
               phx-click="navigate_to"
@@ -246,15 +278,22 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Notifications & Communication Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="p-4 border-b border-gray-100">
-            <h3 class="font-semibold text-gray-900">Notifications & Communication</h3>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
+          <div class={["p-4 border-b", Theme.border_color(:light)]}>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>
+              Notifications & Communication
+            </h3>
           </div>
           <div>
             <.settings_menu_item
               icon="hero-bell"
-              icon_bg="bg-prime-cyan-100"
-              icon_color="text-prime-cyan-400"
+              icon_bg={Theme.bg(:primary_light)}
+              icon_color={Theme.text_color(:primary)}
               title="Notification Preferences"
               description="Push, email, SMS settings"
               phx-click="navigate_to"
@@ -262,8 +301,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
             <.settings_menu_item
               icon="hero-envelope"
-              icon_bg="bg-prime-magenta-100"
-              icon_color="text-prime-magenta-400"
+              icon_bg={Theme.bg(:secondary_light)}
+              icon_color={Theme.text_color(:secondary)}
               title="Communication Settings"
               description="How you want to be contacted"
               phx-click="navigate_to"
@@ -273,9 +312,14 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Help & Support Section -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div class="p-4 border-b border-gray-100">
-            <h3 class="font-semibold text-gray-900">Help & Support</h3>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
+          <div class={["p-4 border-b", Theme.border_color(:light)]}>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Help & Support</h3>
           </div>
           <div>
             <.settings_menu_item
@@ -289,8 +333,8 @@ defmodule PrimeYouthWeb.SettingsLive do
             />
             <.settings_menu_item
               icon="hero-lifebuoy"
-              icon_bg="bg-prime-cyan-100"
-              icon_color="text-prime-cyan-400"
+              icon_bg={Theme.bg(:primary_light)}
+              icon_color={Theme.text_color(:primary)}
               title="Contact Support"
               description="Get help from our team"
               phx-click="navigate_to"

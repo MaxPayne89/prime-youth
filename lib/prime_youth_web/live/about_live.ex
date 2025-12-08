@@ -1,7 +1,7 @@
 defmodule PrimeYouthWeb.AboutLive do
   use PrimeYouthWeb, :live_view
 
-  alias PrimeYouthWeb.UIComponents
+  alias PrimeYouthWeb.{Theme, UIComponents}
 
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
@@ -22,27 +22,27 @@ defmodule PrimeYouthWeb.AboutLive do
     [
       %{
         icon: "hero-star",
-        gradient: "bg-gradient-to-br from-prime-yellow-400 to-orange-500",
+        gradient: Theme.gradient(:warm_yellow),
         title: "Quality First",
         description:
           "We partner with qualified instructors who are passionate about youth development"
       },
       %{
         icon: "hero-users",
-        gradient: "bg-gradient-to-br from-prime-cyan-400 to-blue-500",
+        gradient: Theme.gradient(:cool),
         title: "Accessibility",
         description:
           "Making enriching programs accessible to families through transparent pricing and easy booking"
       },
       %{
         icon: "hero-shield-check",
-        gradient: "bg-gradient-to-br from-green-400 to-emerald-600",
+        gradient: Theme.gradient(:safety),
         title: "Safety",
         description: "Verified instructors, secure facilities, and comprehensive safety protocols"
       },
       %{
         icon: "hero-heart",
-        gradient: "bg-gradient-to-br from-prime-magenta-400 to-pink-500",
+        gradient: Theme.gradient(:cool_magenta),
         title: "Community",
         description: "Building a supportive community of parents, instructors, and young learners"
       }
@@ -53,19 +53,19 @@ defmodule PrimeYouthWeb.AboutLive do
     [
       %{
         icon: "hero-magnifying-glass",
-        gradient: "bg-prime-cyan-100",
+        gradient: Theme.bg(:primary_light),
         title: "Easy Discovery",
         description: "Browse and filter programs by age, interest, location, and schedule"
       },
       %{
         icon: "hero-calendar",
-        gradient: "bg-prime-magenta-100",
+        gradient: Theme.bg(:secondary_light),
         title: "Simple Booking",
         description: "Book activities in minutes with clear pricing and flexible scheduling"
       },
       %{
         icon: "hero-credit-card",
-        gradient: "bg-prime-yellow-100",
+        gradient: Theme.bg(:accent_light),
         title: "Secure Payments",
         description: "Safe, encrypted payment processing with multiple payment options"
       },
@@ -90,11 +90,11 @@ defmodule PrimeYouthWeb.AboutLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-gray-50 pb-20 md:pb-6">
+    <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
       <%!-- Hero Section --%>
       <.hero_section
         variant="page"
-        gradient_class="bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400"
+        gradient_class={Theme.gradient(:hero)}
         show_back_button
       >
         <:title>About Prime Youth</:title>
@@ -105,13 +105,15 @@ defmodule PrimeYouthWeb.AboutLive do
         <%!-- Mission Section --%>
         <.card>
           <:header>
-            <h2 class="text-2xl font-bold text-gray-900">Our Mission</h2>
+            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+              Our Mission
+            </h2>
           </:header>
           <:body>
-            <p class="text-gray-600 leading-relaxed">
+            <p class={[Theme.text_color(:secondary), "leading-relaxed"]}>
               At Prime Youth, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology.
             </p>
-            <p class="text-gray-600 leading-relaxed mt-4">
+            <p class={[Theme.text_color(:secondary), "leading-relaxed mt-4"]}>
               Our platform makes it easy for parents to discover, book, and manage activities while providing instructors with the tools they need to run successful programs.
             </p>
           </:body>
@@ -120,7 +122,7 @@ defmodule PrimeYouthWeb.AboutLive do
         <%!-- Core Values --%>
         <.card>
           <:header>
-            <h2 class="text-2xl font-bold text-gray-900">Our Values</h2>
+            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>Our Values</h2>
           </:header>
           <:body>
             <div class="space-y-4">
@@ -131,8 +133,8 @@ defmodule PrimeYouthWeb.AboutLive do
                   </UIComponents.gradient_icon>
                 </div>
                 <div class="flex-1">
-                  <h3 class="font-semibold text-gray-900 mb-1">{value.title}</h3>
-                  <p class="text-sm text-gray-600">{value.description}</p>
+                  <h3 class={["font-semibold mb-1", Theme.text_color(:heading)]}>{value.title}</h3>
+                  <p class={["text-sm", Theme.text_color(:secondary)]}>{value.description}</p>
                 </div>
               </div>
             </div>
@@ -142,19 +144,22 @@ defmodule PrimeYouthWeb.AboutLive do
         <%!-- Key Features --%>
         <.card>
           <:header>
-            <h2 class="text-2xl font-bold text-gray-900">Why Choose Prime Youth?</h2>
+            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+              Why Choose Prime Youth?
+            </h2>
           </:header>
           <:body>
             <div class="grid md:grid-cols-2 gap-4">
               <div :for={feature <- key_features()} class="p-4 text-center">
                 <div class={[
-                  "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center",
+                  "w-16 h-16 mx-auto mb-4 flex items-center justify-center",
+                  Theme.rounded(:full),
                   feature.gradient
                 ]}>
                   <.icon name={feature.icon} class="w-8 h-8 text-white" />
                 </div>
-                <h3 class="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                <p class="text-sm text-gray-600">{feature.description}</p>
+                <h3 class={["font-semibold mb-2", Theme.text_color(:heading)]}>{feature.title}</h3>
+                <p class={["text-sm", Theme.text_color(:secondary)]}>{feature.description}</p>
               </div>
             </div>
           </:body>
@@ -166,7 +171,7 @@ defmodule PrimeYouthWeb.AboutLive do
             :for={stat <- stats()}
             value={stat.value}
             label={stat.label}
-            gradient_class="bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400"
+            gradient_class={Theme.gradient(:primary)}
           />
         </div>
 
@@ -174,13 +179,21 @@ defmodule PrimeYouthWeb.AboutLive do
         <.card padding="p-8">
           <:body>
             <div class="text-center">
-              <h2 class="text-2xl font-bold text-gray-900 mb-3">Ready to Get Started?</h2>
-              <p class="text-gray-600 mb-6">
+              <h2 class={[Theme.typography(:section_title), "mb-3", Theme.text_color(:heading)]}>
+                Ready to Get Started?
+              </h2>
+              <p class={["mb-6", Theme.text_color(:secondary)]}>
                 Explore our programs and find the perfect activities for your child.
               </p>
               <.link
                 navigate={~p"/programs"}
-                class="inline-block bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg transform hover:scale-[1.02] transition-all"
+                class={[
+                  "inline-block",
+                  Theme.gradient(:primary),
+                  "text-white px-8 py-3 font-semibold hover:shadow-lg transform hover:scale-[1.02]",
+                  Theme.transition(:normal),
+                  Theme.rounded(:lg)
+                ]}
               >
                 Browse Programs
               </.link>

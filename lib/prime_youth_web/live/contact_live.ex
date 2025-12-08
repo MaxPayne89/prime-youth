@@ -2,7 +2,7 @@ defmodule PrimeYouthWeb.ContactLive do
   use PrimeYouthWeb, :live_view
 
   alias PrimeYouthWeb.Forms.ContactForm
-  alias PrimeYouthWeb.UIComponents
+  alias PrimeYouthWeb.{Theme, UIComponents}
 
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
@@ -54,21 +54,21 @@ defmodule PrimeYouthWeb.ContactLive do
     [
       %{
         icon: "hero-envelope",
-        gradient: "bg-gradient-to-br from-prime-cyan-400 to-blue-500",
+        gradient: Theme.gradient(:cool),
         title: "Email",
         value: "support@primeyouth.com",
         note: "We respond within 24 hours"
       },
       %{
         icon: "hero-phone",
-        gradient: "bg-gradient-to-br from-prime-magenta-400 to-pink-500",
+        gradient: Theme.gradient(:cool_magenta),
         title: "Phone",
         value: "+1 (555) 123-4567",
         note: "Mon-Fri, 9am-5pm EST"
       },
       %{
         icon: "hero-map-pin",
-        gradient: "bg-gradient-to-br from-prime-yellow-400 to-orange-500",
+        gradient: Theme.gradient(:warm_yellow),
         title: "Address",
         value: "123 Youth Avenue, Suite 100",
         note: "New York, NY 10001"
@@ -91,7 +91,7 @@ defmodule PrimeYouthWeb.ContactLive do
       <%!-- Hero Section --%>
       <.hero_section
         variant="page"
-        gradient_class="bg-gradient-to-br from-prime-cyan-400 to-prime-magenta-400"
+        gradient_class={Theme.gradient(:primary)}
         show_back_button
       >
         <:title>Contact Us</:title>
@@ -104,7 +104,7 @@ defmodule PrimeYouthWeb.ContactLive do
           <div>
             <.card>
               <:header>
-                <h2 class="text-2xl font-bold text-gray-900">Send us a Message</h2>
+                <h2 class={[Theme.typography(:section_title), "text-gray-900"]}>Send us a Message</h2>
               </:header>
               <:body>
                 <.form
@@ -144,7 +144,7 @@ defmodule PrimeYouthWeb.ContactLive do
 
                   <div
                     :if={@submission_status == :success}
-                    class="p-4 bg-green-50 border border-green-200 rounded-lg"
+                    class={["p-4 bg-green-50 border border-green-200", Theme.rounded(:md)]}
                   >
                     <div class="flex items-center gap-2 text-green-800">
                       <.icon name="hero-check-circle" class="w-5 h-5" />
@@ -157,7 +157,13 @@ defmodule PrimeYouthWeb.ContactLive do
 
                   <button
                     type="submit"
-                    class="w-full bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg transform hover:scale-[1.02] transition-all"
+                    class={[
+                      "w-full",
+                      Theme.gradient(:primary),
+                      "text-white py-3 px-6 font-semibold hover:shadow-lg transform hover:scale-[1.02]",
+                      Theme.transition(:normal),
+                      Theme.rounded(:lg)
+                    ]}
                   >
                     Send Message
                   </button>
@@ -214,13 +220,13 @@ defmodule PrimeYouthWeb.ContactLive do
                 <div class="text-center">
                   <.icon
                     name="hero-question-mark-circle"
-                    class="w-12 h-12 text-prime-cyan-400 mx-auto mb-3"
+                    class={"w-12 h-12 mx-auto mb-3 #{Theme.text_color(:primary)}"}
                   />
                   <h3 class="font-semibold text-gray-900 mb-2">Looking for Quick Answers?</h3>
                   <p class="text-sm text-gray-600 mb-4">
                     Check out our FAQ section for answers to common questions.
                   </p>
-                  <button class="text-prime-cyan-400 font-medium text-sm hover:underline">
+                  <button class={[Theme.text_color(:primary), "font-medium text-sm hover:underline"]}>
                     Visit FAQ →
                   </button>
                 </div>

@@ -143,10 +143,11 @@ defmodule PrimeYouthWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify gradient classes are present (indicating styled icons)
-      assert html =~ "bg-gradient-to-br from-prime-yellow-400"
-      assert html =~ "bg-gradient-to-br from-prime-cyan-400"
-      assert html =~ "bg-gradient-to-br from-green-400"
-      assert html =~ "bg-gradient-to-br from-prime-magenta-400"
+      # These now use Theme.gradient/1 functions
+      assert html =~ "bg-gradient-to-br from-prime-yellow-400 to-orange-500"
+      assert html =~ "bg-gradient-to-br from-prime-cyan-400 to-blue-500"
+      assert html =~ "bg-gradient-to-br from-green-400 to-emerald-500"
+      assert html =~ "bg-gradient-to-br from-prime-magenta-400 to-pink-500"
     end
 
     test "key features display with gradient backgrounds", %{conn: conn} do

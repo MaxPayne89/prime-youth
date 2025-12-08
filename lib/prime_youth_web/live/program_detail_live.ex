@@ -4,6 +4,8 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
   import PrimeYouthWeb.Live.SampleFixtures
   import PrimeYouthWeb.ReviewComponents
 
+  alias PrimeYouthWeb.Theme
+
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
   end
@@ -94,7 +96,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-gray-50 pb-20 md:pb-6">
+    <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
       <!-- Header with Back Button -->
       <div class="relative">
         <!-- Hero Image -->
@@ -110,7 +112,11 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
           <div class="absolute top-4 right-4 z-10">
             <button
               phx-click="toggle_favorite"
-              class="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+              class={[
+                "p-2 bg-white/80 backdrop-blur-sm hover:bg-white",
+                Theme.transition(:normal),
+                Theme.rounded(:full)
+              ]}
             >
               <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -120,7 +126,10 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
           
     <!-- Program Icon -->
           <div class="absolute inset-0 flex items-center justify-center">
-            <div class="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+            <div class={[
+              "w-24 h-24 bg-white/20 backdrop-blur-sm flex items-center justify-center",
+              Theme.rounded(:full)
+            ]}>
               <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
@@ -135,11 +144,13 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
         </div>
         
     <!-- Program Info Overlay -->
-        <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6">
+        <div class={["absolute bottom-0 left-0 right-0 rounded-t-3xl p-6", Theme.bg(:surface)]}>
           <div class="flex items-start justify-between mb-4">
             <div class="flex-1">
-              <h1 class="text-2xl font-bold text-gray-900 mb-2">{@program.title}</h1>
-              <div class="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+              <h1 class={[Theme.typography(:section_title), "mb-2", Theme.text_color(:heading)]}>
+                {@program.title}
+              </h1>
+              <div class={["flex items-center space-x-4 text-sm mb-2", Theme.text_color(:secondary)]}>
                 <span class="flex items-center">
                   <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -169,7 +180,8 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
                 <span
                   :if={@program.spots_left <= 5}
                   class={[
-                    "px-2 py-1 rounded-full text-xs font-medium",
+                    "px-2 py-1 text-xs font-medium",
+                    Theme.rounded(:full),
                     if(@program.spots_left <= 2,
                       do: "bg-orange-100 text-orange-700",
                       else: "bg-yellow-100 text-yellow-700"
@@ -178,18 +190,23 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
                 >
                   Only {@program.spots_left} spots left!
                 </span>
-                <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">
+                <span class={[
+                  "bg-green-100 text-green-700 px-2 py-1 text-xs font-medium",
+                  Theme.rounded(:full)
+                ]}>
                   ✓ No hidden fees
                 </span>
               </div>
             </div>
             <div class="text-right ml-4">
-              <p class="text-3xl font-bold text-prime-magenta-400">
+              <p class={[Theme.typography(:page_title), Theme.text_color(:secondary)]}>
                 {format_total_price(@program.price)}
               </p>
-              <p class="text-sm text-gray-500">Total: Sept 1 - Oct 26</p>
-              <p class="text-xs text-gray-400">{format_price(@program.price)}/week • 4 weeks</p>
-              <p class="text-xs text-gray-600 mt-1">with {@instructor.name}</p>
+              <p class={["text-sm", Theme.text_color(:muted)]}>Total: Sept 1 - Oct 26</p>
+              <p class={["text-xs", Theme.text_color(:subtle)]}>
+                {format_price(@program.price)}/week • 4 weeks
+              </p>
+              <p class={["text-xs mt-1", Theme.text_color(:secondary)]}>with {@instructor.name}</p>
             </div>
           </div>
         </div>
@@ -201,11 +218,18 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
         <div class="mb-6">
           <button
             phx-click="enroll_now"
-            class="w-full bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+            class={[
+              "w-full text-white py-4 px-6",
+              Theme.typography(:card_title),
+              Theme.rounded(:lg),
+              "hover:shadow-lg transform hover:scale-[1.02]",
+              Theme.transition(:normal),
+              Theme.gradient(:primary)
+            ]}
           >
             Book Now - {format_total_price(@program.price)}
           </button>
-          <p class="text-center text-sm text-gray-600 mt-2">
+          <p class={["text-center text-sm mt-2", Theme.text_color(:secondary)]}>
             <svg
               class="w-4 h-4 inline mr-1"
               fill="none"
@@ -227,16 +251,25 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
     <!-- Main Content -->
         <div class="space-y-6">
           <!-- Program Description -->
-          <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-900 mb-3">About This Program</h3>
-            <p class="text-gray-600 leading-relaxed mb-4">
+          <div class={[
+            Theme.bg(:surface),
+            Theme.rounded(:xl),
+            "p-6 shadow-sm border",
+            Theme.border_color(:light)
+          ]}>
+            <h3 class={[Theme.typography(:card_title), "mb-3", Theme.text_color(:heading)]}>
+              About This Program
+            </h3>
+            <p class={["leading-relaxed mb-4", Theme.text_color(:secondary)]}>
               {@program.long_description}
             </p>
             
     <!-- What's Included -->
             <div class="space-y-2">
-              <h4 class="font-semibold text-gray-900">What's Included:</h4>
-              <ul class="space-y-2 text-sm text-gray-600">
+              <h4 class={[Theme.typography(:card_title), Theme.text_color(:heading)]}>
+                What's Included:
+              </h4>
+              <ul class={["space-y-2 text-sm", Theme.text_color(:secondary)]}>
                 <li :for={item <- @program.included_items} class="flex items-center">
                   <svg
                     class="w-4 h-4 text-green-500 mr-2 flex-shrink-0"
@@ -259,14 +292,29 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
           </div>
           
     <!-- Instructor Info -->
-          <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Meet Your Instructor</h3>
+          <div class={[
+            Theme.bg(:surface),
+            Theme.rounded(:xl),
+            "p-6 shadow-sm border",
+            Theme.border_color(:light)
+          ]}>
+            <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:heading)]}>
+              Meet Your Instructor
+            </h3>
             <div class="flex items-start space-x-4">
-              <img src={@instructor.avatar} alt="Instructor" class="w-16 h-16 rounded-full" />
+              <img
+                src={@instructor.avatar}
+                alt="Instructor"
+                class={["w-16 h-16", Theme.rounded(:full)]}
+              />
               <div class="flex-1">
-                <h4 class="font-semibold text-gray-900">{@instructor.name}</h4>
-                <p class="text-sm text-gray-600 mb-2">{@instructor.credentials}</p>
-                <p class="text-sm text-gray-600 leading-relaxed">
+                <h4 class={[Theme.typography(:card_title), Theme.text_color(:heading)]}>
+                  {@instructor.name}
+                </h4>
+                <p class={["text-sm mb-2", Theme.text_color(:secondary)]}>
+                  {@instructor.credentials}
+                </p>
+                <p class={["text-sm leading-relaxed", Theme.text_color(:secondary)]}>
                   {@instructor.bio}
                 </p>
                 <div class="flex items-center mt-2">
@@ -282,8 +330,15 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
           </div>
           
     <!-- Parent Reviews -->
-          <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">What Other Parents Say</h3>
+          <div class={[
+            Theme.bg(:surface),
+            Theme.rounded(:xl),
+            "p-6 shadow-sm border",
+            Theme.border_color(:light)
+          ]}>
+            <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:heading)]}>
+              What Other Parents Say
+            </h3>
             <div class="space-y-4">
               <.review_card
                 :for={review <- @reviews}
@@ -298,7 +353,10 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
             </div>
 
             <div class="text-center mt-4">
-              <button class="text-prime-cyan-400 text-sm font-medium hover:text-prime-cyan-400/80 underline">
+              <button class={[
+                Theme.text_color(:primary),
+                "text-sm font-medium hover:opacity-80 underline"
+              ]}>
                 View all {@instructor.review_count} reviews
               </button>
             </div>
@@ -308,7 +366,14 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
           <div class="mt-8">
             <button
               phx-click="enroll_now"
-              class="w-full bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+              class={[
+                "w-full text-white py-4 px-6",
+                Theme.typography(:card_title),
+                Theme.rounded(:lg),
+                "hover:shadow-lg transform hover:scale-[1.02]",
+                Theme.transition(:normal),
+                Theme.gradient(:primary)
+              ]}
             >
               Enroll Now - {format_total_price(@program.price)}
             </button>

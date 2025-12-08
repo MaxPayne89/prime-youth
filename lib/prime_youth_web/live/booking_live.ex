@@ -4,6 +4,8 @@ defmodule PrimeYouthWeb.BookingLive do
   import PrimeYouthWeb.BookingComponents
   import PrimeYouthWeb.Live.SampleFixtures
 
+  alias PrimeYouthWeb.Theme
+
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
   end
@@ -190,7 +192,7 @@ defmodule PrimeYouthWeb.BookingLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400">
+    <div class={["min-h-screen", Theme.gradient(:hero)]}>
       <div class="max-w-4xl mx-auto px-4 py-6">
         <!-- Header -->
         <.page_header
@@ -200,36 +202,39 @@ defmodule PrimeYouthWeb.BookingLive do
           class="!p-0 !bg-transparent !shadow-none mb-6"
         >
           <:title>
-            <h1 class="text-3xl font-bold text-white">Enrollment</h1>
+            <h1 class={[Theme.typography(:page_title), "text-white"]}>Enrollment</h1>
           </:title>
         </.page_header>
         
     <!-- Activity Summary -->
         <div class="mb-6">
           <h3 class="text-white font-semibold mb-3">Activity Summary</h3>
-          <div class="bg-white rounded-2xl p-6 shadow-lg">
+          <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
             <div class="flex gap-4 mb-4">
               <div class={[
-                "w-16 h-16 rounded-xl flex items-center justify-center text-3xl",
+                "w-16 h-16 flex items-center justify-center text-3xl",
+                Theme.rounded(:lg),
                 @program.gradient_class
               ]}>
                 🎨
               </div>
               <div>
-                <h4 class="text-lg font-bold text-gray-900 mb-1">{@program.title}</h4>
-                <p class="text-sm text-gray-600">Wednesdays 4-6 PM</p>
+                <h4 class={[Theme.typography(:card_title), "mb-1", Theme.text_color(:heading)]}>
+                  {@program.title}
+                </h4>
+                <p class={["text-sm", Theme.text_color(:secondary)]}>Wednesdays 4-6 PM</p>
               </div>
             </div>
-            <div class="border-t border-gray-200 pt-4">
+            <div class={["border-t pt-4", Theme.border_color(:medium)]}>
               <div class="flex justify-between items-center mb-2">
-                <span class="font-semibold text-gray-800">Total Price:</span>
-                <span class="text-2xl font-bold text-prime-cyan-400">
+                <span class={["font-semibold", Theme.text_color(:body)]}>Total Price:</span>
+                <span class={[Theme.typography(:section_title), Theme.text_color(:primary)]}>
                   €{:erlang.float_to_binary(@total, decimals: 2)}
                 </span>
               </div>
               <div class="flex justify-between text-sm">
-                <span class="text-gray-600">Duration:</span>
-                <span class="text-gray-600">Jan 15 - Mar 15, 2024</span>
+                <span class={Theme.text_color(:secondary)}>Duration:</span>
+                <span class={Theme.text_color(:secondary)}>Jan 15 - Mar 15, 2024</span>
               </div>
             </div>
           </div>
@@ -243,11 +248,16 @@ defmodule PrimeYouthWeb.BookingLive do
     <!-- Enrollment Form -->
         <form phx-submit="complete_enrollment" class="space-y-6">
           <!-- Select Child -->
-          <div class="bg-white rounded-2xl p-6 shadow-lg">
-            <label class="block text-sm font-semibold text-gray-800 mb-3">Select Child</label>
+          <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
+            <label class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>
+              Select Child
+            </label>
             <select
               name="child_id"
-              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent"
+              class={[
+                "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent",
+                Theme.rounded(:lg)
+              ]}
             >
               <option value="">Select a child</option>
               <option :for={child <- @children} value={child.id}>
@@ -255,15 +265,25 @@ defmodule PrimeYouthWeb.BookingLive do
               </option>
             </select>
             <div class="mt-2">
-              <a href="#" class="text-xs text-gray-500 hover:text-gray-700 underline">
+              <a
+                href="#"
+                class={[
+                  "text-xs underline",
+                  Theme.text_color(:muted),
+                  "hover:#{Theme.text_color(:body)}"
+                ]}
+              >
                 Add another child
               </a>
             </div>
           </div>
           
     <!-- Special Requirements -->
-          <div class="bg-white rounded-2xl p-6 shadow-lg">
-            <label for="special-requirements" class="block text-sm font-semibold text-gray-800 mb-3">
+          <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
+            <label
+              for="special-requirements"
+              class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}
+            >
               Special Requirements
             </label>
             <textarea
@@ -272,20 +292,25 @@ defmodule PrimeYouthWeb.BookingLive do
               rows="3"
               maxlength="500"
               placeholder="Any allergies, medical conditions, or special instructions..."
-              class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent resize-none"
+              class={[
+                "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent resize-none",
+                Theme.rounded(:lg)
+              ]}
             ></textarea>
             <div class="flex justify-between mt-2">
-              <p class="text-xs text-gray-500">
+              <p class={["text-xs", Theme.text_color(:muted)]}>
                 Optional: Include any important information we should know about your child.
               </p>
-              <p class="text-xs text-gray-500">0/500</p>
+              <p class={["text-xs", Theme.text_color(:muted)]}>0/500</p>
             </div>
           </div>
           
     <!-- Payment Method -->
-          <div class="bg-white rounded-2xl p-6 shadow-lg">
+          <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
             <fieldset>
-              <legend class="block text-sm font-semibold text-gray-800 mb-3">Payment Method</legend>
+              <legend class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>
+                Payment Method
+              </legend>
               <div class="space-y-3">
                 <.payment_option
                   value="card"
@@ -347,24 +372,24 @@ defmodule PrimeYouthWeb.BookingLive do
             </p>
             <div class="space-y-2 font-mono text-sm">
               <div class="flex justify-between">
-                <span class="text-gray-600">Account Name:</span>
+                <span class={Theme.text_color(:secondary)}>Account Name:</span>
                 <span class="font-semibold">Prime Youth Activities Ltd</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-gray-600">IBAN:</span>
+                <span class={Theme.text_color(:secondary)}>IBAN:</span>
                 <span class="font-semibold">IE64 BOFI 9000 1234 5678 90</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-gray-600">BIC:</span>
+                <span class={Theme.text_color(:secondary)}>BIC:</span>
                 <span class="font-semibold">BOFIIE2D</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-gray-600">Reference:</span>
+                <span class={Theme.text_color(:secondary)}>Reference:</span>
                 <span class="font-semibold">CAW-EMMA-0124</span>
               </div>
             </div>
             <:footer>
-              <p class="text-xs text-gray-600">
+              <p class={["text-xs", Theme.text_color(:secondary)]}>
                 💡 <strong>Important:</strong>
                 Please include the reference code in your transfer to ensure proper allocation.
               </p>
@@ -383,7 +408,14 @@ defmodule PrimeYouthWeb.BookingLive do
     <!-- Submit Button -->
           <button
             type="submit"
-            class="w-full py-4 bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white font-semibold text-lg rounded-xl hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200"
+            class={[
+              "w-full py-4 text-white",
+              Theme.typography(:card_title),
+              Theme.rounded(:lg),
+              "hover:shadow-lg transform hover:scale-[1.02]",
+              Theme.transition(:normal),
+              Theme.gradient(:primary)
+            ]}
           >
             Complete Enrollment
           </button>
