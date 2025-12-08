@@ -268,6 +268,24 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
       assert Enum.at(result, 0).title == "Art & Crafts"
     end
 
+    test "matches with special chars: 'art!' matches 'Art! & Crafts'" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440101",
+          title: "Art! & Crafts"
+        ),
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440102",
+          title: "Dance Class"
+        )
+      ]
+
+      result = FilterPrograms.execute(programs, "art!")
+
+      assert length(result) == 1
+      assert Enum.at(result, 0).title == "Art! & Crafts"
+    end
+
     test "handles titles with multiple consecutive spaces" do
       programs = [
         build(:program,
@@ -433,6 +451,60 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
       result = FilterPrograms.execute(programs, "café")
 
       assert_single_match(result, "Café! & École")
+    end
+  end
+
+  describe "execute/2 - User Story 2: flexible matching behavior" do
+    test "matches 'soc' in 'After School Soccer'" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440200",
+          title: "After School Soccer"
+        )
+      ]
+
+      result = FilterPrograms.execute(programs, "soc")
+
+      assert_single_match(result, "After School Soccer")
+    end
+
+    test "matches 'dance' in 'Summer Dance Camp'" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440201",
+          title: "Summer Dance Camp"
+        )
+      ]
+
+      result = FilterPrograms.execute(programs, "dance")
+
+      assert_single_match(result, "Summer Dance Camp")
+    end
+
+    test "matches 'flow' in 'Kids Yoga Flow'" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440202",
+          title: "Kids Yoga Flow"
+        )
+      ]
+
+      result = FilterPrograms.execute(programs, "flow")
+
+      assert_single_match(result, "Kids Yoga Flow")
+    end
+
+    test "does NOT match 'ball' in 'Basketball Training' (substring)" do
+      programs = [
+        build(:program,
+          id: "550e8400-e29b-41d4-a716-446655440203",
+          title: "Basketball Training"
+        )
+      ]
+
+      result = FilterPrograms.execute(programs, "ball")
+
+      assert result == []
     end
   end
 end
