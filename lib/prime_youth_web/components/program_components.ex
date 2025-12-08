@@ -9,6 +9,8 @@ defmodule PrimeYouthWeb.ProgramComponents do
 
   import PrimeYouthWeb.UIComponents
 
+  alias PrimeYouthWeb.Theme
+
   @doc """
   Renders a search input with icon and Prime Youth styling.
 
@@ -34,7 +36,7 @@ defmodule PrimeYouthWeb.ProgramComponents do
         name={@name}
         placeholder={@placeholder}
         value={@value}
-        class="w-full px-4 py-3 pl-11 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent transition-all"
+        class={["w-full px-4 py-3 pl-11 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent", Theme.transition(:normal), Theme.rounded(:lg)]}
         {@rest}
       />
       <.icon
@@ -79,9 +81,11 @@ defmodule PrimeYouthWeb.ProgramComponents do
           phx-click={@rest[:"phx-click"]}
           phx-value-filter={filter.id}
           class={[
-            "px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap",
+            "px-4 py-2 text-sm font-medium whitespace-nowrap",
+            Theme.transition(:normal),
+            Theme.rounded(:full),
             if(filter.id == @active_filter,
-              do: "bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white shadow-md",
+              do: [Theme.gradient(:primary), "text-white shadow-md"],
               else: "bg-white text-gray-700 border border-gray-300 hover:border-gray-400"
             )
           ]}
@@ -120,8 +124,10 @@ defmodule PrimeYouthWeb.ProgramComponents do
     ~H"""
     <div
       class={[
-        "bg-white rounded-2xl shadow-sm border border-gray-100",
-        "hover:shadow-lg hover:scale-[1.02] transition-all duration-300",
+        "bg-white shadow-sm border border-gray-100",
+        Theme.rounded(:xl),
+        "hover:shadow-lg hover:scale-[1.02]",
+        Theme.transition(:slow),
         "overflow-hidden cursor-pointer",
         @class
       ]}
@@ -136,12 +142,13 @@ defmodule PrimeYouthWeb.ProgramComponents do
           <button
             phx-click="toggle_favorite"
             phx-value-program={@program.title}
-            class="p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-white transition-colors"
+            class={["p-2 bg-white/80 backdrop-blur-sm hover:bg-white", Theme.transition(:normal), Theme.rounded(:full)]}
             onclick="event.stopPropagation();"
           >
             <svg
               class={[
-                "w-5 h-5 transition-colors",
+                "w-5 h-5",
+                Theme.transition(:normal),
                 if(@favorited,
                   do: "text-red-500 fill-red-500",
                   else: "text-gray-600 hover:text-red-500"
@@ -166,7 +173,7 @@ defmodule PrimeYouthWeb.ProgramComponents do
         
     <!-- Program Icon -->
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+          <div class={["w-16 h-16 bg-white/20 backdrop-blur-sm flex items-center justify-center", Theme.rounded(:full)]}>
             <svg
               class="w-8 h-8 text-white"
               fill="none"
@@ -188,7 +195,7 @@ defmodule PrimeYouthWeb.ProgramComponents do
       <div class="p-6">
         <div class="flex items-start justify-between mb-3">
           <div class="flex-1">
-            <h3 class="font-bold text-gray-900 text-lg mb-2">{@program.title}</h3>
+            <h3 class={[Theme.typography(:card_title), "text-gray-900 mb-2"]}>{@program.title}</h3>
             <p class="text-gray-600 text-sm mb-3 line-clamp-2">{@program.description}</p>
           </div>
         </div>
@@ -218,10 +225,10 @@ defmodule PrimeYouthWeb.ProgramComponents do
             Ages {@program.age_range}
           </div>
         </div>
-        
+
     <!-- Price -->
         <div class="pt-4 border-t border-gray-100">
-          <div class="text-lg font-bold text-prime-cyan-400">
+          <div class={[Theme.typography(:card_title), Theme.text_color(:primary)]}>
             {format_price(@program.price)}
           </div>
           <div class="text-sm text-gray-500">{@program.period}</div>
@@ -249,7 +256,8 @@ defmodule PrimeYouthWeb.ProgramComponents do
     ~H"""
     <div class={["absolute bottom-4 left-4", @class]}>
       <span class={[
-        "px-2 py-1 rounded-full text-xs font-medium",
+        "px-2 py-1 text-xs font-medium",
+        Theme.rounded(:full),
         if(@spots_left <= 2,
           do: "bg-red-100 text-red-700",
           else: "bg-orange-100 text-orange-700"
@@ -290,7 +298,7 @@ defmodule PrimeYouthWeb.ProgramComponents do
   def price_display(assigns) do
     ~H"""
     <div class={["text-right", @class]}>
-      <div class="text-2xl font-bold text-prime-cyan-400">
+      <div class={[Theme.typography(:section_title), Theme.text_color(:primary)]}>
         {@currency}{@price}
       </div>
       <div class="text-xs text-gray-500">

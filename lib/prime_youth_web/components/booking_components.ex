@@ -7,6 +7,8 @@ defmodule PrimeYouthWeb.BookingComponents do
   """
   use Phoenix.Component
 
+  alias PrimeYouthWeb.Theme
+
   @doc """
   Renders an informational box with color variants.
 
@@ -40,14 +42,15 @@ defmodule PrimeYouthWeb.BookingComponents do
   def info_box(assigns) do
     ~H"""
     <div class={[
-      "rounded-2xl p-6 shadow-lg",
+      "p-6 shadow-lg",
+      Theme.rounded(:xl),
       info_box_styles(@variant),
       @class
     ]}>
       <div class="flex items-start gap-3">
         <div :if={@icon} class="text-2xl">{@icon}</div>
         <div class="flex-1">
-          <h3 :if={@title} class="text-lg font-semibold text-gray-800 mb-4">{@title}</h3>
+          <h3 :if={@title} class={[Theme.typography(:card_title), "text-gray-800 mb-4"]}>{@title}</h3>
           <div class="text-gray-700">
             {render_slot(@inner_block)}
           </div>
@@ -120,8 +123,8 @@ defmodule PrimeYouthWeb.BookingComponents do
 
   def booking_summary(assigns) do
     ~H"""
-    <div class={["bg-white rounded-2xl p-6 shadow-lg", @class]}>
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">{@title}</h3>
+    <div class={["bg-white p-6 shadow-lg", Theme.rounded(:xl), @class]}>
+      <h3 class={[Theme.typography(:card_title), "text-gray-800 mb-4"]}>{@title}</h3>
       <div class="space-y-2">
         <!-- Regular line items before subtotal -->
         <div
@@ -151,14 +154,14 @@ defmodule PrimeYouthWeb.BookingComponents do
           <span>{item[:label]}</span>
           <span>{item[:value]}</span>
         </div>
-        
+
     <!-- Total with emphasis -->
         <div
           :for={total <- @total}
-          class="flex justify-between text-lg font-bold pt-2 border-t border-gray-300"
+          class={["flex justify-between pt-2 border-t border-gray-300", Theme.typography(:card_title)]}
         >
           <span>{total[:label]}</span>
-          <span class="text-prime-cyan-400">{total[:value]}</span>
+          <span class={Theme.text_color(:primary)}>{total[:value]}</span>
         </div>
       </div>
     </div>

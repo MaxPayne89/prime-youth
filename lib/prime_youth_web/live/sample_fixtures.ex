@@ -17,6 +17,8 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
       end
   """
 
+  alias PrimeYouthWeb.Theme
+
   # User Fixtures
 
   @doc """
@@ -105,7 +107,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
         title: "Creative Art World",
         description:
           "Unleash your child's creativity through painting, drawing, sculpture, and mixed media projects. Each session explores different artistic techniques and mediums.",
-        gradient_class: "bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600",
+        gradient_class: Theme.gradient(:warm_intense),
         icon_path:
           "M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v1.5L15 4l2 7-7 2.5V15a2 2 0 01-2 2z",
         schedule: "Wednesdays 4-6 PM",
@@ -119,7 +121,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
         title: "Chess Masters",
         description:
           "Learn strategic thinking and problem-solving through the ancient game of chess. Perfect for developing critical thinking skills and patience.",
-        gradient_class: "bg-gradient-to-br from-gray-700 via-gray-800 to-black",
+        gradient_class: Theme.gradient(:chess),
         icon_path:
           "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
         schedule: "Mon, Wed 4-5 PM",
@@ -133,7 +135,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
         title: "Science Explorers",
         description:
           "Hands-on science experiments and discovery. Making learning fun through interactive activities and real-world applications.",
-        gradient_class: "bg-gradient-to-br from-green-400 via-blue-500 to-purple-600",
+        gradient_class: Theme.gradient(:science),
         icon_path:
           "M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z",
         schedule: "Fri 4-5:30 PM",
@@ -147,7 +149,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
         title: "Soccer Skills",
         description:
           "Develop fundamental soccer skills including dribbling, passing, shooting, and teamwork. All skill levels welcome in a fun, supportive environment.",
-        gradient_class: "bg-gradient-to-br from-green-500 via-emerald-600 to-teal-700",
+        gradient_class: Theme.gradient(:sports),
         icon_path:
           "M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z",
         schedule: "Saturdays 10-11:30 AM",
@@ -161,7 +163,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
         title: "Music & Movement",
         description:
           "Introduction to music through singing, dancing, and simple instruments. Builds rhythm, coordination, and musical appreciation.",
-        gradient_class: "bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600",
+        gradient_class: Theme.gradient(:music),
         icon_path:
           "M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z M21 16c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z",
         schedule: "Tuesdays 3:30-4:30 PM",
@@ -175,7 +177,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
         title: "Coding for Kids",
         description:
           "Introduction to programming concepts through fun, visual coding languages and games. Build logic skills and creativity.",
-        gradient_class: "bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700",
+        gradient_class: Theme.gradient(:coding),
         icon_path: "M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4",
         schedule: "Thursdays 5-6 PM",
         age_range: "8-12",
@@ -195,7 +197,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
           "Unleash your child's creativity through painting, drawing, sculpture, and mixed media projects.",
         long_description:
           "Unleash your child's creativity in our comprehensive art program! Students will explore various artistic mediums including painting, drawing, sculpting, and digital art. Our expert instructors guide each child to develop their unique artistic voice while building fundamental skills.",
-        gradient_class: "bg-gradient-to-br from-yellow-400 via-orange-500 to-yellow-600",
+        gradient_class: Theme.gradient(:art),
         icon_path:
           "M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v1.5L15 4l2 7-7 2.5V15a2 2 0 01-2 2z",
         schedule: "Wednesdays 4-6 PM",
@@ -216,7 +218,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
           "Learn strategic thinking and problem-solving through the ancient game of chess.",
         long_description:
           "Develop strategic thinking and problem-solving skills through the timeless game of chess. Perfect for developing critical thinking skills, patience, and logical reasoning in a fun, supportive environment.",
-        gradient_class: "bg-gradient-to-br from-gray-700 via-gray-800 to-black",
+        gradient_class: Theme.gradient(:chess),
         icon_path:
           "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
         schedule: "Mon, Wed 4-5 PM",

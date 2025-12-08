@@ -9,6 +9,8 @@ defmodule PrimeYouthWeb.CompositeComponents do
 
   import PrimeYouthWeb.UIComponents
 
+  alias PrimeYouthWeb.Theme
+
   @doc """
   Renders a settings menu item with icon, title, description, and chevron.
 
@@ -16,8 +18,8 @@ defmodule PrimeYouthWeb.CompositeComponents do
 
       <.settings_menu_item
         icon="hero-user"
-        icon_bg="bg-prime-cyan-100"
-        icon_color="text-prime-cyan-400"
+        icon_bg={Theme.bg(:primary_light)}
+        icon_color={Theme.text_color(:primary)}
         title="Profile Information"
         description="Name, email, profile photo"
         phx-click="navigate_to"
@@ -37,7 +39,8 @@ defmodule PrimeYouthWeb.CompositeComponents do
     <button
       type="button"
       class={[
-        "w-full flex items-center gap-4 p-4 hover:bg-gray-50 transition-colors",
+        "w-full flex items-center gap-4 p-4 hover:bg-gray-50",
+        Theme.transition(:normal),
         "border-b border-gray-100 last:border-b-0",
         @class
       ]}
@@ -80,11 +83,11 @@ defmodule PrimeYouthWeb.CompositeComponents do
 
   def child_card(assigns) do
     ~H"""
-    <.card padding="p-4" class={"hover:shadow-md transition-shadow #{@class}"} {@rest}>
+    <.card padding="p-4" class={"hover:shadow-md #{Theme.transition(:normal)} #{@class}"} {@rest}>
       <:body>
         <div class="flex items-start justify-between mb-3">
           <div class="flex-1">
-            <h4 class="font-semibold text-gray-900">{@name}</h4>
+            <h4 class={[Theme.typography(:card_title), "text-gray-900"]}>{@name}</h4>
             <p class="text-sm text-gray-600">{@age} years old • {@school}</p>
           </div>
           <div class="text-right">
@@ -115,8 +118,8 @@ defmodule PrimeYouthWeb.CompositeComponents do
       <.quick_action_button
         icon="hero-calendar"
         label="Book Activity"
-        bg_color="bg-prime-cyan-100"
-        icon_color="text-prime-cyan-400"
+        bg_color={Theme.bg(:primary_light)}
+        icon_color={Theme.text_color(:primary)}
         phx-click="book_activity"
       />
   """
@@ -132,8 +135,10 @@ defmodule PrimeYouthWeb.CompositeComponents do
     <button
       type="button"
       class={[
-        "bg-white rounded-2xl p-4 shadow-sm border border-gray-100",
-        "hover:shadow-md transition-all hover:scale-[1.02]",
+        "bg-white p-4 shadow-sm border border-gray-100",
+        Theme.rounded(:xl),
+        "hover:shadow-md hover:scale-[1.02]",
+        Theme.transition(:normal),
         "group",
         @class
       ]}
@@ -143,7 +148,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
         gradient_class={@bg_color}
         size="sm"
         shape="circle"
-        class={"mb-3 group-hover:#{String.replace(@bg_color, "100", "200")} transition-colors"}
+        class={"mb-3 group-hover:#{String.replace(@bg_color, "100", "200")} #{Theme.transition(:normal)}"}
       >
         <.icon name={@icon} class={"w-5 h-5 #{@icon_color}"} />
       </.gradient_icon>
@@ -175,7 +180,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
 
   def activity_card(assigns) do
     ~H"""
-    <.card padding="p-4" class={"hover:shadow-md transition-shadow #{@class}"} {@rest}>
+    <.card padding="p-4" class={"hover:shadow-md #{Theme.transition(:normal)} #{@class}"} {@rest}>
       <:body>
         <div class="flex items-start justify-between">
           <div class="flex-1">
@@ -185,7 +190,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
               </.status_pill>
               <span class="ml-2 text-sm text-gray-600">{@time}</span>
             </div>
-            <h4 class="font-semibold text-gray-900 mb-1">{@name}</h4>
+            <h4 class={[Theme.typography(:card_title), "text-gray-900 mb-1"]}>{@name}</h4>
             <p class="text-sm text-gray-600">Instructor: {@instructor}</p>
           </div>
           <.gradient_icon gradient_class="bg-gray-100" size="sm" shape="circle" class="flex-shrink-0">
@@ -222,9 +227,11 @@ defmodule PrimeYouthWeb.CompositeComponents do
   def payment_option(assigns) do
     ~H"""
     <label class={[
-      "flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all",
+      "flex items-start gap-3 p-4 border-2 cursor-pointer",
+      Theme.transition(:normal),
+      Theme.rounded(:lg),
       if(@selected,
-        do: "border-prime-cyan-400 bg-prime-cyan-50",
+        do: [Theme.border_color(:primary), Theme.bg(:primary_light)],
         else: "border-gray-200 hover:border-gray-300"
       ),
       @class
@@ -238,7 +245,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
         {@rest}
       />
       <div>
-        <div class="font-semibold text-gray-800">{@title}</div>
+        <div class={[Theme.typography(:card_title), "text-gray-800"]}>{@title}</div>
         <div class="text-sm text-gray-600">{@description}</div>
       </div>
     </label>
@@ -252,7 +259,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
 
       <.social_post
         author="Ms. Sarah - Art Instructor"
-        avatar_bg="bg-prime-cyan-400"
+        avatar_bg={Theme.bg(:primary)}
         avatar_emoji="👩‍🏫"
         timestamp="2 hours ago"
         content="Amazing creativity from our students today!"
@@ -262,12 +269,12 @@ defmodule PrimeYouthWeb.CompositeComponents do
         post_id="post_1"
       >
         <:photo_content>
-          <div class="h-48 bg-gradient-to-br from-yellow-400/30 to-yellow-400/50 rounded-lg flex items-center justify-center text-5xl">
+          <div class={["h-48 bg-gradient-to-br from-yellow-400/30 to-yellow-400/50 flex items-center justify-center text-5xl", Theme.rounded(:md)]}>
             🎨📸
           </div>
         </:photo_content>
         <:comments>
-          <div class="bg-gray-50 rounded-lg p-3 space-y-2">
+          <div class={["bg-gray-50 p-3 space-y-2", Theme.rounded(:md)]}>
             <div class="flex gap-2">
               <span class="font-semibold text-gray-800 text-sm">Parent Maria:</span>
               <span class="text-gray-600 text-sm">Emma loves this class!</span>
@@ -302,7 +309,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
             {@avatar_emoji}
           </.gradient_icon>
           <div class="flex-1">
-            <div class="font-semibold text-gray-800">{@author}</div>
+            <div class={[Theme.typography(:card_title), "text-gray-800"]}>{@author}</div>
             <div class="text-sm text-gray-500">{@timestamp}</div>
           </div>
         </div>
@@ -323,14 +330,15 @@ defmodule PrimeYouthWeb.CompositeComponents do
               phx-click="toggle_like"
               phx-value-post_id={@post_id}
               class={[
-                "flex items-center gap-2 transition-colors",
+                "flex items-center gap-2",
+                Theme.transition(:normal),
                 if(@user_liked, do: "text-red-500", else: "text-gray-500 hover:text-red-500")
               ]}
             >
               <span class="text-xl">{if @user_liked, do: "❤️", else: "🤍"}</span>
               <span class="text-sm font-medium">{@likes}</span>
             </button>
-            <button class="flex items-center gap-2 text-gray-500 hover:text-prime-cyan-400 transition-colors">
+            <button class={["flex items-center gap-2 text-gray-500 hover:text-prime-cyan-400", Theme.transition(:normal)]}>
               <span class="text-xl">💬</span>
               <span class="text-sm font-medium">{@comment_count}</span>
             </button>
@@ -351,7 +359,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
             />
             <button
               type="submit"
-              class="btn btn-sm bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white border-0 hover:shadow-lg"
+              class={["btn btn-sm text-white border-0 hover:shadow-lg", Theme.gradient(:primary)]}
             >
               Post
             </button>

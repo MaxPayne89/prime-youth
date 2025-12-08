@@ -3,6 +3,8 @@ defmodule PrimeYouthWeb.HighlightsLive do
 
   import PrimeYouthWeb.CompositeComponents
 
+  alias PrimeYouthWeb.Theme
+
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
   end
@@ -13,7 +15,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
       %{
         id: "post_1",
         author: "Ms. Sarah - Art Instructor",
-        avatar_bg: "bg-prime-cyan-400",
+        avatar_bg: Theme.bg(:primary),
         avatar_emoji: "👩‍🏫",
         timestamp: "2 hours ago",
         content:
@@ -31,7 +33,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
       %{
         id: "post_2",
         author: "Mr. David - Chess Coach",
-        avatar_bg: "bg-prime-magenta-400",
+        avatar_bg: Theme.bg(:secondary),
         avatar_emoji: "👨‍🏫",
         timestamp: "5 hours ago",
         content:
@@ -45,7 +47,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
       %{
         id: "post_3",
         author: "Prime Youth Admin",
-        avatar_bg: "bg-prime-yellow-400",
+        avatar_bg: Theme.bg(:accent),
         avatar_emoji: "📋",
         timestamp: "1 day ago",
         content:
@@ -101,7 +103,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
       %{
         id: "post_1",
         author: "Ms. Sarah - Art Instructor",
-        avatar_bg: "bg-prime-cyan-400",
+        avatar_bg: Theme.bg(:primary),
         avatar_emoji: "👩‍🏫",
         timestamp: "2 hours ago",
         content:
@@ -119,7 +121,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
       %{
         id: "post_2",
         author: "Mr. David - Chess Coach",
-        avatar_bg: "bg-prime-magenta-400",
+        avatar_bg: Theme.bg(:secondary),
         avatar_emoji: "👨‍🏫",
         timestamp: "5 hours ago",
         content:
@@ -133,7 +135,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
       %{
         id: "post_3",
         author: "Prime Youth Admin",
-        avatar_bg: "bg-prime-yellow-400",
+        avatar_bg: Theme.bg(:accent),
         avatar_emoji: "📋",
         timestamp: "1 day ago",
         content:
@@ -178,7 +180,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
         <!-- Header -->
         <.page_header class="!p-0 !bg-transparent !shadow-none mb-6">
           <:title>
-            <h1 class="text-3xl font-bold text-gray-800">Highlights</h1>
+            <h1 class={[Theme.typography(:page_title), "text-gray-800"]}>Highlights</h1>
           </:title>
           <:actions>
             <button class="btn btn-circle btn-ghost">
@@ -216,19 +218,19 @@ defmodule PrimeYouthWeb.HighlightsLive do
             user_liked={post.user_liked}
           >
             <:photo_content :if={post.type == :photo}>
-              <div class="h-48 bg-gradient-to-br from-prime-yellow-400/30 to-prime-yellow-400/50 rounded-lg flex items-center justify-center text-5xl">
+              <div class={["h-48 bg-gradient-to-br from-prime-yellow-400/30 to-prime-yellow-400/50 flex items-center justify-center text-5xl", Theme.rounded(:md)]}>
                 {post.photo_emoji}
               </div>
             </:photo_content>
             <:event_content :if={post.type == :event}>
-              <div class="bg-prime-cyan-400/10 border-2 border-prime-cyan-400 rounded-lg p-4">
+              <div class={["bg-prime-cyan-400/10 border-2 border-prime-cyan-400 p-4", Theme.rounded(:md)]}>
                 <div class="font-semibold text-gray-800 mb-1">{post.event_details.title}</div>
                 <div class="text-sm text-gray-600">{post.event_details.date}</div>
                 <div class="text-sm text-gray-600">{post.event_details.location}</div>
               </div>
             </:event_content>
             <:comments :if={length(post.comments) > 0}>
-              <div class="bg-gray-50 rounded-lg p-3 space-y-2">
+              <div class={["bg-gray-50 p-3 space-y-2", Theme.rounded(:md)]}>
                 <%= for comment <- post.comments do %>
                   <div class="flex gap-2">
                     <span class="font-semibold text-gray-800 text-sm">{comment.author}:</span>

@@ -4,6 +4,8 @@ defmodule PrimeYouthWeb.DashboardLive do
   import PrimeYouthWeb.CompositeComponents
   import PrimeYouthWeb.Live.SampleFixtures
 
+  alias PrimeYouthWeb.Theme
+
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
   end
@@ -28,22 +30,22 @@ defmodule PrimeYouthWeb.DashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-gray-50">
+    <div class={["min-h-screen", Theme.bg(:muted)]}>
       <!-- Profile Header -->
       <.page_header variant={:gradient} rounded>
         <:profile>
           <img
             src={@user.avatar}
             alt="Profile"
-            class="w-12 h-12 rounded-full border-2 border-white/30"
+            class={["w-12 h-12 border-2 border-white/30", Theme.rounded(:full)]}
           />
           <div>
-            <h2 class="text-xl font-bold">{@user.name}</h2>
+            <h2 class={Theme.typography(:card_title)}>{@user.name}</h2>
             <p class="text-white/80 text-sm">{@children_count} children enrolled</p>
           </div>
         </:profile>
         <:actions>
-          <button class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
+          <button class={["p-2 bg-white/20 hover:bg-white/30", Theme.transition(:normal), Theme.rounded(:full)]}>
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -56,7 +58,7 @@ defmodule PrimeYouthWeb.DashboardLive do
           </button>
           <.link
             navigate={~p"/settings"}
-            class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors"
+            class={["p-2 bg-white/20 hover:bg-white/30", Theme.transition(:normal), Theme.rounded(:full)]}
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -83,9 +85,10 @@ defmodule PrimeYouthWeb.DashboardLive do
         <!-- My Children Section -->
         <div>
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+            <h3 class={[Theme.typography(:card_title), "flex items-center", Theme.text_color(:body)]}>
+
               <svg
-                class="w-5 h-5 mr-2 text-prime-cyan-400"
+                class={["w-5 h-5 mr-2", Theme.text_color(:primary)]}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -100,7 +103,7 @@ defmodule PrimeYouthWeb.DashboardLive do
               </svg>
               My Children
             </h3>
-            <button class="text-prime-cyan-400 text-sm font-medium hover:text-prime-cyan-400/80">
+            <button class={[Theme.text_color(:primary), "text-sm font-medium hover:opacity-80"]}>
               View All
             </button>
           </div>
@@ -124,25 +127,25 @@ defmodule PrimeYouthWeb.DashboardLive do
         
     <!-- Quick Actions -->
         <div>
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
+          <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:body)]}>Quick Actions</h3>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <.quick_action_button
               icon="hero-calendar"
               label="Book Activity"
-              bg_color="bg-prime-cyan-100"
-              icon_color="text-prime-cyan-400"
+              bg_color={Theme.bg(:primary_light)}
+              icon_color={Theme.text_color(:primary)}
             />
             <.quick_action_button
               icon="hero-clock"
               label="View Schedule"
-              bg_color="bg-prime-magenta-100"
-              icon_color="text-prime-magenta-400"
+              bg_color={Theme.bg(:secondary_light)}
+              icon_color={Theme.text_color(:secondary)}
             />
             <.quick_action_button
               icon="hero-chat-bubble-left-right"
               label="Messages"
-              bg_color="bg-prime-yellow-100"
-              icon_color="text-prime-yellow-400"
+              bg_color={Theme.bg(:accent_light)}
+              icon_color={Theme.text_color(:accent)}
             />
             <.quick_action_button
               icon="hero-credit-card"
@@ -156,8 +159,8 @@ defmodule PrimeYouthWeb.DashboardLive do
     <!-- Upcoming Activities -->
         <div>
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">Upcoming Activities</h3>
-            <button class="text-prime-cyan-400 text-sm font-medium hover:text-prime-cyan-400/80">
+            <h3 class={[Theme.typography(:card_title), Theme.text_color(:body)]}>Upcoming Activities</h3>
+            <button class={[Theme.text_color(:primary), "text-sm font-medium hover:opacity-80"]}>
               View All
             </button>
           </div>

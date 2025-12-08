@@ -12,8 +12,7 @@ defmodule PrimeYouthWeb.UIComponents do
     router: PrimeYouthWeb.Router,
     statics: PrimeYouthWeb.static_paths()
 
-  # Will be used when updating gradient references to use centralized Theme module
-  # alias PrimeYouthWeb.Theme
+  alias PrimeYouthWeb.Theme
 
   @doc """
   Renders a [Heroicon](https://heroicons.com).
@@ -44,11 +43,11 @@ defmodule PrimeYouthWeb.UIComponents do
 
   ## Examples
 
-      <.gradient_icon gradient_class="bg-gradient-to-br from-prime-cyan-400 to-blue-500" size="lg">
+      <.gradient_icon gradient_class={Theme.gradient(:cool)} size="lg">
         🎨
       </.gradient_icon>
 
-      <.gradient_icon gradient_class="bg-prime-magenta-400" size="md" shape="rounded">
+      <.gradient_icon gradient_class={Theme.bg(:secondary)} size="md" shape="rounded">
         <.icon name="hero-user" class="w-5 h-5 text-white" />
       </.gradient_icon>
   """
@@ -85,8 +84,8 @@ defmodule PrimeYouthWeb.UIComponents do
   defp size_classes("lg"), do: "w-16 h-16 text-3xl"
   defp size_classes("xl"), do: "w-20 h-20 text-4xl lg:w-24 lg:h-24 lg:text-5xl"
 
-  defp shape_classes("circle"), do: "rounded-full"
-  defp shape_classes("rounded"), do: "rounded-xl"
+  defp shape_classes("circle"), do: Theme.rounded(:full)
+  defp shape_classes("rounded"), do: Theme.rounded(:lg)
 
   @doc """
   Renders a status pill/badge.
@@ -108,7 +107,8 @@ defmodule PrimeYouthWeb.UIComponents do
   def status_pill(assigns) do
     ~H"""
     <span class={[
-      "px-2 py-1 rounded-full text-xs font-medium",
+      "px-2 py-1 text-xs font-medium",
+      Theme.rounded(:full),
       color_classes(@color),
       @class
     ]}>
@@ -128,14 +128,14 @@ defmodule PrimeYouthWeb.UIComponents do
 
   ## Examples
 
-      <.progress_bar label="Progress" percentage={80} color_class="bg-prime-cyan-400" />
+      <.progress_bar label="Progress" percentage={80} color_class={Theme.bg(:primary)} />
       <.progress_bar label="Completion" percentage={65} color_class="bg-green-500" />
   """
   attr :label, :string, default: "Progress"
   attr :percentage, :integer, required: true, doc: "Progress percentage (0-100)"
 
   attr :color_class, :string,
-    default: "bg-prime-cyan-400",
+    default: Theme.bg(:primary),
     doc: "Tailwind background color class for the progress bar"
 
   attr :class, :string, default: ""
@@ -143,13 +143,13 @@ defmodule PrimeYouthWeb.UIComponents do
   def progress_bar(assigns) do
     ~H"""
     <div class={@class}>
-      <div class="flex justify-between text-xs text-gray-600 mb-1">
+      <div class={["flex justify-between text-xs mb-1", Theme.text_color(:secondary)]}>
         <span>{@label}</span>
         <span>{@percentage}%</span>
       </div>
-      <div class="w-full bg-gray-200 rounded-full h-2">
+      <div class={["w-full h-2", Theme.rounded(:full), Theme.bg(:medium)]}>
         <div
-          class={[@color_class, "h-2 rounded-full transition-all duration-300"]}
+          class={[@color_class, "h-2", Theme.transition(:slow), Theme.rounded(:full)]}
           style={"width: #{@percentage}%"}
         >
         </div>
@@ -183,8 +183,10 @@ defmodule PrimeYouthWeb.UIComponents do
     <button
       type="button"
       class={[
-        "p-2 bg-white/20 backdrop-blur-sm rounded-full",
-        "hover:bg-white/30 transition-colors",
+        "p-2 bg-white/20 backdrop-blur-sm",
+        Theme.rounded(:full),
+        "hover:bg-white/30",
+        Theme.transition(:normal),
         @class
       ]}
       {@rest}
@@ -209,11 +211,11 @@ defmodule PrimeYouthWeb.UIComponents do
   attr :class, :string, default: ""
 
   attr :bg_color, :string,
-    default: "bg-white",
+    default: Theme.bg(:surface),
     doc: "Tailwind background color class for text background"
 
-  attr :text_color, :string, default: "text-gray-500", doc: "Tailwind text color class"
-  attr :line_color, :string, default: "border-gray-200", doc: "Tailwind border color class"
+  attr :text_color, :string, default: Theme.text_color(:muted), doc: "Tailwind text color class"
+  attr :line_color, :string, default: Theme.border_color(:light), doc: "Tailwind border color class"
 
   def section_divider(assigns) do
     ~H"""
@@ -255,7 +257,9 @@ defmodule PrimeYouthWeb.UIComponents do
     <button
       type="button"
       class={[
-        "flex justify-center items-center px-4 py-3 rounded-xl transition-all",
+        "flex justify-center items-center px-4 py-3",
+        Theme.transition(:normal),
+        Theme.rounded(:lg),
         button_variant_classes(@variant),
         @class
       ]}
@@ -279,7 +283,13 @@ defmodule PrimeYouthWeb.UIComponents do
   end
 
   defp button_variant_classes("light") do
-    "border border-gray-300 text-gray-700 hover:bg-gray-50"
+    [
+      "border",
+      Theme.border_color(:medium),
+      Theme.text_color(:body),
+      "hover:#{Theme.bg(:muted)}"
+    ]
+    |> Enum.join(" ")
   end
 
   defp button_variant_classes("dark") do
@@ -292,9 +302,9 @@ defmodule PrimeYouthWeb.UIComponents do
   ## Examples
 
       <.email_icon color="text-white/60" />
-      <.email_icon color="text-gray-400" />
+      <.email_icon color={Theme.text_color(:subtle)} />
   """
-  attr :color, :string, default: "text-gray-400"
+  attr :color, :string, default: Theme.text_color(:subtle)
   attr :class, :string, default: ""
 
   def email_icon(assigns) do
@@ -322,9 +332,9 @@ defmodule PrimeYouthWeb.UIComponents do
   ## Examples
 
       <.password_icon color="text-white/60" />
-      <.password_icon color="text-gray-400" />
+      <.password_icon color={Theme.text_color(:subtle)} />
   """
-  attr :color, :string, default: "text-gray-400"
+  attr :color, :string, default: Theme.text_color(:subtle)
   attr :class, :string, default: ""
 
   def password_icon(assigns) do
@@ -366,7 +376,7 @@ defmodule PrimeYouthWeb.UIComponents do
 
   def error_alert(assigns) do
     ~H"""
-    <div :if={@errors != []} class={["mb-6 p-4 bg-red-50 border border-red-200 rounded-lg", @class]}>
+    <div :if={@errors != []} class={["mb-6 p-4 bg-red-50 border border-red-200", Theme.rounded(:md), @class]}>
       <div class="flex">
         <svg
           class="w-5 h-5 text-red-400"
@@ -396,7 +406,7 @@ defmodule PrimeYouthWeb.UIComponents do
   ## Examples
 
       <.feature_card
-        gradient_class="bg-gradient-to-br from-prime-cyan-400 to-blue-500"
+        gradient_class={Theme.gradient(:cool)}
         icon_path="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944..."
         title="Expert Instructors"
         description="All instructors are background-checked..."
@@ -411,20 +421,23 @@ defmodule PrimeYouthWeb.UIComponents do
   def feature_card(assigns) do
     ~H"""
     <div class={[
-      "text-center group hover:transform hover:scale-105 transition-all duration-200",
+      "text-center group hover:transform hover:scale-105",
+      Theme.transition(:normal),
       @class
     ]}>
       <div class={[
-        "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6",
-        "group-hover:shadow-lg transition-shadow",
+        "w-16 h-16 flex items-center justify-center mx-auto mb-6",
+        Theme.rounded(:xl),
+        "group-hover:shadow-lg",
+        Theme.transition(:normal),
         @gradient_class
       ]}>
         <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}></path>
         </svg>
       </div>
-      <h3 class="text-xl font-semibold text-gray-900 mb-3">{@title}</h3>
-      <p class="text-gray-600">{@description}</p>
+      <h3 class={[Theme.typography(:card_title), "mb-3", Theme.text_color(:heading)]}>{@title}</h3>
+      <p class={Theme.text_color(:secondary)}>{@description}</p>
     </div>
     """
   end
@@ -435,7 +448,7 @@ defmodule PrimeYouthWeb.UIComponents do
   ## Examples
 
       <.program_card_simple
-        gradient_class="bg-gradient-to-br from-yellow-400 via-orange-500 to-yellow-600"
+        gradient_class={Theme.gradient(:art)}
         icon_path="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4..."
         title="Creative Art World"
         description="Unleash your child's creativity"
@@ -454,16 +467,20 @@ defmodule PrimeYouthWeb.UIComponents do
     ~H"""
     <div
       class={[
-        "bg-white rounded-2xl shadow-sm border border-gray-100",
-        "hover:shadow-lg transition-all duration-300 overflow-hidden group cursor-pointer",
+        Theme.bg(:surface),
+        Theme.rounded(:xl),
+        "shadow-sm border",
+        Theme.border_color(:light),
+        "hover:shadow-lg overflow-hidden group cursor-pointer",
+        Theme.transition(:slow),
         @class
       ]}
       {@rest}
     >
       <div class={["h-48 relative", @gradient_class]}>
-        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors"></div>
+        <div class={["absolute inset-0 bg-black/10 group-hover:bg-black/5", Theme.transition(:normal)]}></div>
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
+          <div class={["w-20 h-20 bg-white/20 backdrop-blur-sm flex items-center justify-center", Theme.rounded(:full)]}>
             <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}>
               </path>
@@ -472,11 +489,11 @@ defmodule PrimeYouthWeb.UIComponents do
         </div>
       </div>
       <div class="p-6">
-        <h3 class="text-xl font-bold text-gray-900 mb-2">{@title}</h3>
-        <p class="text-gray-600 text-sm mb-4 line-clamp-2">{@description}</p>
+        <h3 class={[Theme.typography(:card_title), "mb-2", Theme.text_color(:heading)]}>{@title}</h3>
+        <p class={["text-sm mb-4 line-clamp-2", Theme.text_color(:secondary)]}>{@description}</p>
         <div class="flex items-center justify-between">
-          <span class="text-2xl font-bold text-prime-magenta-400">€{@price}</span>
-          <span class="text-sm text-gray-500">per week</span>
+          <span class={[Theme.typography(:section_title), Theme.text_color(:secondary)]}>€{@price}</span>
+          <span class={["text-sm", Theme.text_color(:muted)]}>per week</span>
         </div>
       </div>
     </div>
@@ -491,7 +508,7 @@ defmodule PrimeYouthWeb.UIComponents do
       <.stat_display
         value="10,000+"
         label="Active Families"
-        gradient_class="bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400"
+        gradient_class={Theme.gradient(:primary)}
       />
   """
   attr :value, :string, required: true
@@ -503,12 +520,13 @@ defmodule PrimeYouthWeb.UIComponents do
     ~H"""
     <div class={["text-center", @class]}>
       <div class={[
-        "text-4xl md:text-5xl font-bold bg-clip-text text-transparent mb-2",
+        Theme.typography(:hero),
+        "bg-clip-text text-transparent mb-2",
         @gradient_class
       ]}>
         {@value}
       </div>
-      <div class="text-gray-600">{@label}</div>
+      <div class={Theme.text_color(:secondary)}>{@label}</div>
     </div>
     """
   end
@@ -533,7 +551,7 @@ defmodule PrimeYouthWeb.UIComponents do
         description="Get started by adding your first item."
       >
         <:action>
-          <button class="mt-4 px-4 py-2 bg-prime-cyan-400 text-white rounded-lg">
+          <button class={["mt-4 px-4 py-2 bg-prime-cyan-400 text-white", Theme.rounded(:md)]}>
             Add Item
           </button>
         </:action>
@@ -549,8 +567,8 @@ defmodule PrimeYouthWeb.UIComponents do
   def empty_state(assigns) do
     ~H"""
     <div data-testid={@data_testid} class={["text-center py-12", @class]}>
-      <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class={["w-16 h-16 flex items-center justify-center mx-auto mb-4", Theme.rounded(:full), Theme.bg(:light)]}>
+        <svg class={["w-8 h-8", Theme.text_color(:subtle)]} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -560,8 +578,8 @@ defmodule PrimeYouthWeb.UIComponents do
           </path>
         </svg>
       </div>
-      <h3 class="text-lg font-semibold text-gray-900 mb-2">{@title}</h3>
-      <p class="text-gray-600">{@description}</p>
+      <h3 class={[Theme.typography(:card_title), "mb-2", Theme.text_color(:heading)]}>{@title}</h3>
+      <p class={Theme.text_color(:secondary)}>{@description}</p>
       <div :if={@action != []}>
         {render_slot(@action)}
       </div>
@@ -609,7 +627,9 @@ defmodule PrimeYouthWeb.UIComponents do
       type="button"
       aria-label={@aria_label}
       class={[
-        "p-2 rounded-full transition-colors",
+        "p-2",
+        Theme.transition(:normal),
+        Theme.rounded(:full),
         icon_button_variant(@variant),
         @class
       ]}
@@ -628,9 +648,9 @@ defmodule PrimeYouthWeb.UIComponents do
     """
   end
 
-  defp icon_button_variant("light"), do: "bg-gray-100 hover:bg-gray-200"
-  defp icon_button_variant("glass"), do: "bg-white/80 backdrop-blur-sm hover:bg-white"
-  defp icon_button_variant("solid"), do: "bg-white hover:bg-gray-50 shadow-sm"
+  defp icon_button_variant("light"), do: "#{Theme.bg(:light)} hover:#{Theme.bg(:medium)}"
+  defp icon_button_variant("glass"), do: "#{Theme.bg(:surface)}/80 backdrop-blur-sm hover:#{Theme.bg(:surface)}"
+  defp icon_button_variant("solid"), do: "#{Theme.bg(:surface)} hover:#{Theme.bg(:muted)} shadow-sm"
 
   @doc """
   Renders a page hero section with title, optional subtitle, and optional back button.
@@ -644,7 +664,7 @@ defmodule PrimeYouthWeb.UIComponents do
 
       <.page_hero
         title="Programs"
-        gradient_class="bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400"
+        gradient_class={Theme.gradient(:hero)}
       />
 
       <.page_hero
@@ -656,9 +676,9 @@ defmodule PrimeYouthWeb.UIComponents do
   """
   attr :title, :string, required: true
   attr :subtitle, :string, default: nil
-  attr :gradient_class, :string, default: "bg-white"
+  attr :gradient_class, :string, default: Theme.bg(:surface)
   attr :show_back_button, :boolean, default: false
-  attr :text_color, :string, default: "text-gray-900"
+  attr :text_color, :string, default: Theme.text_color(:heading)
   attr :class, :string, default: ""
   attr :rest, :global, include: ~w(phx-click phx-value-*)
 
@@ -668,7 +688,7 @@ defmodule PrimeYouthWeb.UIComponents do
       <div class="flex items-center gap-4 mb-4">
         <.back_button :if={@show_back_button} {@rest} />
         <div>
-          <h1 class={["text-2xl md:text-3xl font-bold", @text_color]}>{@title}</h1>
+          <h1 class={[Theme.typography(:section_title), @text_color]}>{@title}</h1>
           <p :if={@subtitle} class={["text-sm mt-1", subtitle_color(@text_color)]}>{@subtitle}</p>
         </div>
       </div>
@@ -676,12 +696,12 @@ defmodule PrimeYouthWeb.UIComponents do
     """
   end
 
-  defp gradient_class("bg-white"), do: "bg-white"
+  defp gradient_class("bg-white"), do: Theme.bg(:surface)
   defp gradient_class(class), do: class
 
   defp subtitle_color("text-white"), do: "text-white/80"
-  defp subtitle_color("text-gray-900"), do: "text-gray-600"
-  defp subtitle_color(_), do: "text-gray-600"
+  defp subtitle_color("text-gray-900"), do: Theme.text_color(:secondary)
+  defp subtitle_color(_), do: Theme.text_color(:secondary)
 
   @doc """
   Renders a unified hero section with multiple variant styles.
@@ -700,10 +720,10 @@ defmodule PrimeYouthWeb.UIComponents do
         <:title>Prime Youth</:title>
         <:subtitle>Afterschool Adventures Await</:subtitle>
         <:actions>
-          <button phx-click="get_started" class="px-8 py-4 bg-white text-gray-900 rounded-xl font-semibold">
+          <button phx-click="get_started" class={["px-8 py-4 font-semibold", Theme.rounded(:lg), Theme.bg(:surface), Theme.text_color(:heading)]}>
             Get Started Free
           </button>
-          <button phx-click="explore_programs" class="px-8 py-4 bg-white/20 backdrop-blur-sm border-2 border-white text-white rounded-xl">
+          <button phx-click="explore_programs" class={["px-8 py-4 bg-white/20 backdrop-blur-sm border-2 border-white text-white", Theme.rounded(:lg)]}>
             Explore Programs
           </button>
         </:actions>
@@ -712,7 +732,7 @@ defmodule PrimeYouthWeb.UIComponents do
       # Page header (about/contact page style)
       <.hero_section
         variant="page"
-        gradient_class="bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400"
+        gradient_class={Theme.gradient(:hero)}
         show_back_button
         phx-click="back_to_home"
       >
@@ -731,7 +751,7 @@ defmodule PrimeYouthWeb.UIComponents do
     doc: "Hero style variant"
 
   attr :gradient_class, :string,
-    default: "bg-gradient-to-br from-prime-cyan-400 to-prime-magenta-400",
+    default: Theme.gradient(:primary),
     doc: "Background gradient or solid color class"
 
   attr :show_logo, :boolean, default: false, doc: "Show animated logo (landing variant only)"
@@ -764,7 +784,7 @@ defmodule PrimeYouthWeb.UIComponents do
           <div class="text-center">
             <div
               :if={@show_logo}
-              class="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full shadow-lg mb-8 animate-bounce-gentle"
+              class={["inline-flex items-center justify-center w-24 h-24 bg-white shadow-lg mb-8 animate-bounce-gentle", Theme.rounded(:full)]}
             >
               <img
                 src={~p"/images/logo-standard.png"}
@@ -773,11 +793,11 @@ defmodule PrimeYouthWeb.UIComponents do
               />
             </div>
 
-            <h1 class="text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-4 animate-fade-in">
+            <h1 class={[Theme.typography(:hero), "text-white mb-4 animate-fade-in"]}>
               {render_slot(@title)}
             </h1>
 
-            <p :if={@subtitle != []} class="text-2xl md:text-3xl text-white/90 mb-8 max-w-3xl mx-auto">
+            <p :if={@subtitle != []} class={[Theme.typography(:section_title), "text-white/90 mb-8 max-w-3xl mx-auto"]}>
               {render_slot(@subtitle)}
             </p>
 
@@ -801,7 +821,7 @@ defmodule PrimeYouthWeb.UIComponents do
           <div class="flex items-center gap-4 mb-4">
             <.back_button :if={@show_back_button} {@rest} />
             <div>
-              <h1 class="text-2xl md:text-3xl font-bold text-white">
+              <h1 class={[Theme.typography(:section_title), "text-white"]}>
                 {render_slot(@title)}
               </h1>
               <p :if={@subtitle != []} class="text-sm mt-1 text-white/80">
@@ -815,10 +835,10 @@ defmodule PrimeYouthWeb.UIComponents do
       <%= if @variant == "minimal" do %>
         <%!-- Minimal header --%>
         <div class="p-6">
-          <h1 class="text-2xl font-bold text-gray-900">
+          <h1 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
             {render_slot(@title)}
           </h1>
-          <p :if={@subtitle != []} class="text-sm mt-1 text-gray-600">
+          <p :if={@subtitle != []} class={["text-sm mt-1", Theme.text_color(:secondary)]}>
             {render_slot(@subtitle)}
           </p>
         </div>
@@ -829,7 +849,7 @@ defmodule PrimeYouthWeb.UIComponents do
 
   defp variant_wrapper_classes("landing"), do: ""
   defp variant_wrapper_classes("page"), do: "shadow-sm"
-  defp variant_wrapper_classes("minimal"), do: "bg-white"
+  defp variant_wrapper_classes("minimal"), do: Theme.bg(:surface)
 
   @doc """
   Renders a unified page header with support for multiple layouts and styles.
@@ -857,10 +877,10 @@ defmodule PrimeYouthWeb.UIComponents do
       # Header with profile section (Dashboard)
       <.page_header variant={:gradient} rounded>
         <:profile>
-          <img src={@user.avatar} class="w-12 h-12 rounded-full" />
+          <img src={@user.avatar} class={["w-12 h-12", Theme.rounded(:full)]} />
           <div>
-            <h2 class="text-xl font-bold">{@user.name}</h2>
-            <p class="text-white/80 text-sm">{length(@children)} children enrolled</p>
+            <h2 class={Theme.typography(:card_title)}>{@user.name}</h2>
+            <p class={[Theme.typography(:body_small), "text-white/80"]}>{length(@children)} children enrolled</p>
           </div>
         </:profile>
         <:actions>
@@ -883,8 +903,7 @@ defmodule PrimeYouthWeb.UIComponents do
   """
   attr :variant, :atom, default: :white, values: [:white, :gradient]
 
-  attr :gradient_class, :string,
-    default: "bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400"
+  attr :gradient_class, :string, default: Theme.gradient(:primary)
 
   attr :rounded, :boolean, default: false, doc: "Apply rounded-b-3xl style for Dashboard"
   attr :show_back_button, :boolean, default: false
@@ -906,7 +925,7 @@ defmodule PrimeYouthWeb.UIComponents do
     <div class={[
       "p-6",
       @variant == :gradient && [@gradient_class, "text-white"],
-      @variant == :white && "bg-white shadow-sm",
+      @variant == :white && "#{Theme.bg(:surface)} shadow-sm",
       @rounded && "rounded-b-3xl",
       @class
     ]}>
@@ -929,8 +948,8 @@ defmodule PrimeYouthWeb.UIComponents do
               <.back_button :if={@show_back_button} {@rest} />
               <div>
                 <h1 class={[
-                  "text-2xl font-bold",
-                  @variant == :white && "text-gray-900",
+                  Theme.typography(:section_title),
+                  @variant == :white && Theme.text_color(:heading),
                   @variant == :gradient && "text-white"
                 ]}>
                   {render_slot(@title)}
@@ -939,7 +958,7 @@ defmodule PrimeYouthWeb.UIComponents do
                   :if={@subtitle != []}
                   class={[
                     "text-sm mt-1",
-                    @variant == :white && "text-gray-600",
+                    @variant == :white && Theme.text_color(:secondary),
                     @variant == :gradient && "text-white/80"
                   ]}
                 >
@@ -1005,14 +1024,15 @@ defmodule PrimeYouthWeb.UIComponents do
     ~H"""
     <div
       class={[
-        "bg-white rounded-2xl",
+        Theme.bg(:surface),
+        Theme.rounded(:xl),
         card_variant_classes(@variant),
         @padding,
         @class
       ]}
       {@rest}
     >
-      <div :if={@header != []} class="border-b border-gray-100 pb-4 mb-4">
+      <div :if={@header != []} class={["border-b pb-4 mb-4", Theme.border_color(:light)]}>
         {render_slot(@header)}
       </div>
 
@@ -1020,14 +1040,14 @@ defmodule PrimeYouthWeb.UIComponents do
         {render_slot(@body)}
       </div>
 
-      <div :if={@footer != []} class="border-t border-gray-100 pt-4 mt-4">
+      <div :if={@footer != []} class={["border-t pt-4 mt-4", Theme.border_color(:light)]}>
         {render_slot(@footer)}
       </div>
     </div>
     """
   end
 
-  defp card_variant_classes(:default), do: "shadow-sm border border-gray-100"
+  defp card_variant_classes(:default), do: "shadow-sm border #{Theme.border_color(:light)}"
   defp card_variant_classes(:elevated), do: "shadow-lg"
-  defp card_variant_classes(:outlined), do: "border-2 border-gray-200"
+  defp card_variant_classes(:outlined), do: "border-2 #{Theme.border_color(:medium)}"
 end
