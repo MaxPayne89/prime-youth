@@ -60,7 +60,12 @@ defmodule PrimeYouthWeb.HomeLive do
           </button>
           <button
             phx-click="explore_programs"
-            class={["px-8 py-4 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white/30", Theme.typography(:card_title), Theme.transition(:normal), Theme.rounded(:lg)]}
+            class={[
+              "px-8 py-4 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white/30",
+              Theme.typography(:card_title),
+              Theme.transition(:normal),
+              Theme.rounded(:lg)
+            ]}
           >
             Explore Programs
           </button>

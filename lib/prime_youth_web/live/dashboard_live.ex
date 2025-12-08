@@ -45,7 +45,11 @@ defmodule PrimeYouthWeb.DashboardLive do
           </div>
         </:profile>
         <:actions>
-          <button class={["p-2 bg-white/20 hover:bg-white/30", Theme.transition(:normal), Theme.rounded(:full)]}>
+          <button class={[
+            "p-2 bg-white/20 hover:bg-white/30",
+            Theme.transition(:normal),
+            Theme.rounded(:full)
+          ]}>
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -58,7 +62,11 @@ defmodule PrimeYouthWeb.DashboardLive do
           </button>
           <.link
             navigate={~p"/settings"}
-            class={["p-2 bg-white/20 hover:bg-white/30", Theme.transition(:normal), Theme.rounded(:full)]}
+            class={[
+              "p-2 bg-white/20 hover:bg-white/30",
+              Theme.transition(:normal),
+              Theme.rounded(:full)
+            ]}
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -86,7 +94,6 @@ defmodule PrimeYouthWeb.DashboardLive do
         <div>
           <div class="flex items-center justify-between mb-4">
             <h3 class={[Theme.typography(:card_title), "flex items-center", Theme.text_color(:body)]}>
-
               <svg
                 class={["w-5 h-5 mr-2", Theme.text_color(:primary)]}
                 fill="none"
@@ -127,7 +134,9 @@ defmodule PrimeYouthWeb.DashboardLive do
         
     <!-- Quick Actions -->
         <div>
-          <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:body)]}>Quick Actions</h3>
+          <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:body)]}>
+            Quick Actions
+          </h3>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <.quick_action_button
               icon="hero-calendar"
@@ -159,7 +168,9 @@ defmodule PrimeYouthWeb.DashboardLive do
     <!-- Upcoming Activities -->
         <div>
           <div class="flex items-center justify-between mb-4">
-            <h3 class={[Theme.typography(:card_title), Theme.text_color(:body)]}>Upcoming Activities</h3>
+            <h3 class={[Theme.typography(:card_title), Theme.text_color(:body)]}>
+              Upcoming Activities
+            </h3>
             <button class={[Theme.text_color(:primary), "text-sm font-medium hover:opacity-80"]}>
               View All
             </button>

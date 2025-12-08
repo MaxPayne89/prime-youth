@@ -218,12 +218,18 @@ defmodule PrimeYouthWeb.HighlightsLive do
             user_liked={post.user_liked}
           >
             <:photo_content :if={post.type == :photo}>
-              <div class={["h-48 bg-gradient-to-br from-prime-yellow-400/30 to-prime-yellow-400/50 flex items-center justify-center text-5xl", Theme.rounded(:md)]}>
+              <div class={[
+                "h-48 bg-gradient-to-br from-prime-yellow-400/30 to-prime-yellow-400/50 flex items-center justify-center text-5xl",
+                Theme.rounded(:md)
+              ]}>
                 {post.photo_emoji}
               </div>
             </:photo_content>
             <:event_content :if={post.type == :event}>
-              <div class={["bg-prime-cyan-400/10 border-2 border-prime-cyan-400 p-4", Theme.rounded(:md)]}>
+              <div class={[
+                "bg-prime-cyan-400/10 border-2 border-prime-cyan-400 p-4",
+                Theme.rounded(:md)
+              ]}>
                 <div class="font-semibold text-gray-800 mb-1">{post.event_details.title}</div>
                 <div class="text-sm text-gray-600">{post.event_details.date}</div>
                 <div class="text-sm text-gray-600">{post.event_details.location}</div>

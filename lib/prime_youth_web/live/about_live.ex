@@ -105,7 +105,9 @@ defmodule PrimeYouthWeb.AboutLive do
         <%!-- Mission Section --%>
         <.card>
           <:header>
-            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>Our Mission</h2>
+            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+              Our Mission
+            </h2>
           </:header>
           <:body>
             <p class={[Theme.text_color(:secondary), "leading-relaxed"]}>
@@ -131,7 +133,7 @@ defmodule PrimeYouthWeb.AboutLive do
                   </UIComponents.gradient_icon>
                 </div>
                 <div class="flex-1">
-                  <h3 class={["font-semibold mb-1", Theme.text_color(:heading)]}>{ value.title}</h3>
+                  <h3 class={["font-semibold mb-1", Theme.text_color(:heading)]}>{value.title}</h3>
                   <p class={["text-sm", Theme.text_color(:secondary)]}>{value.description}</p>
                 </div>
               </div>
@@ -142,7 +144,9 @@ defmodule PrimeYouthWeb.AboutLive do
         <%!-- Key Features --%>
         <.card>
           <:header>
-            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>Why Choose Prime Youth?</h2>
+            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+              Why Choose Prime Youth?
+            </h2>
           </:header>
           <:body>
             <div class="grid md:grid-cols-2 gap-4">
@@ -175,7 +179,9 @@ defmodule PrimeYouthWeb.AboutLive do
         <.card padding="p-8">
           <:body>
             <div class="text-center">
-              <h2 class={[Theme.typography(:section_title), "mb-3", Theme.text_color(:heading)]}>Ready to Get Started?</h2>
+              <h2 class={[Theme.typography(:section_title), "mb-3", Theme.text_color(:heading)]}>
+                Ready to Get Started?
+              </h2>
               <p class={["mb-6", Theme.text_color(:secondary)]}>
                 Explore our programs and find the perfect activities for your child.
               </p>

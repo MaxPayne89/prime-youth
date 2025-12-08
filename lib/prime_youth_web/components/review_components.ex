@@ -80,7 +80,6 @@ defmodule PrimeYouthWeb.ReviewComponents do
             <div>
               <div class={["font-medium text-sm", Theme.text_color(:heading)]}>{@parent_name}</div>
               <div class={["text-xs", Theme.text_color(:muted)]}>
-
                 Mother of {@child_name} ({@child_age})
                 <span :if={@verified} class="text-green-600">"  Verified Parent</span>
               </div>
@@ -112,7 +111,9 @@ defmodule PrimeYouthWeb.ReviewComponents do
     ~H"""
     <div class={["flex items-center gap-2", @class]}>
       <.star_rating rating={@rating} size={:medium} />
-      <span class={["text-sm font-medium", Theme.text_color(:heading)]}>{format_rating(@rating)}</span>
+      <span class={["text-sm font-medium", Theme.text_color(:heading)]}>
+        {format_rating(@rating)}
+      </span>
       <span class={["text-sm", Theme.text_color(:muted)]}>({@total_reviews})</span>
     </div>
     """

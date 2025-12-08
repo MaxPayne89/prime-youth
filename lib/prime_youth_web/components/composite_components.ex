@@ -338,7 +338,10 @@ defmodule PrimeYouthWeb.CompositeComponents do
               <span class="text-xl">{if @user_liked, do: "❤️", else: "🤍"}</span>
               <span class="text-sm font-medium">{@likes}</span>
             </button>
-            <button class={["flex items-center gap-2 text-gray-500 hover:text-prime-cyan-400", Theme.transition(:normal)]}>
+            <button class={[
+              "flex items-center gap-2 text-gray-500 hover:text-prime-cyan-400",
+              Theme.transition(:normal)
+            ]}>
               <span class="text-xl">💬</span>
               <span class="text-sm font-medium">{@comment_count}</span>
             </button>

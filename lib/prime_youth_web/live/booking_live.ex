@@ -219,7 +219,9 @@ defmodule PrimeYouthWeb.BookingLive do
                 🎨
               </div>
               <div>
-                <h4 class={[Theme.typography(:card_title), "mb-1", Theme.text_color(:heading)]}>{@program.title}</h4>
+                <h4 class={[Theme.typography(:card_title), "mb-1", Theme.text_color(:heading)]}>
+                  {@program.title}
+                </h4>
                 <p class={["text-sm", Theme.text_color(:secondary)]}>Wednesdays 4-6 PM</p>
               </div>
             </div>
@@ -247,10 +249,15 @@ defmodule PrimeYouthWeb.BookingLive do
         <form phx-submit="complete_enrollment" class="space-y-6">
           <!-- Select Child -->
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
-            <label class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>Select Child</label>
+            <label class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>
+              Select Child
+            </label>
             <select
               name="child_id"
-              class={["w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent", Theme.rounded(:lg)]}
+              class={[
+                "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent",
+                Theme.rounded(:lg)
+              ]}
             >
               <option value="">Select a child</option>
               <option :for={child <- @children} value={child.id}>
@@ -258,7 +265,14 @@ defmodule PrimeYouthWeb.BookingLive do
               </option>
             </select>
             <div class="mt-2">
-              <a href="#" class={["text-xs underline", Theme.text_color(:muted), "hover:#{Theme.text_color(:body)}"]}>
+              <a
+                href="#"
+                class={[
+                  "text-xs underline",
+                  Theme.text_color(:muted),
+                  "hover:#{Theme.text_color(:body)}"
+                ]}
+              >
                 Add another child
               </a>
             </div>
@@ -266,7 +280,10 @@ defmodule PrimeYouthWeb.BookingLive do
           
     <!-- Special Requirements -->
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
-            <label for="special-requirements" class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>
+            <label
+              for="special-requirements"
+              class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}
+            >
               Special Requirements
             </label>
             <textarea
@@ -275,7 +292,10 @@ defmodule PrimeYouthWeb.BookingLive do
               rows="3"
               maxlength="500"
               placeholder="Any allergies, medical conditions, or special instructions..."
-              class={["w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent resize-none", Theme.rounded(:lg)]}
+              class={[
+                "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent resize-none",
+                Theme.rounded(:lg)
+              ]}
             ></textarea>
             <div class="flex justify-between mt-2">
               <p class={["text-xs", Theme.text_color(:muted)]}>
@@ -288,7 +308,9 @@ defmodule PrimeYouthWeb.BookingLive do
     <!-- Payment Method -->
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
             <fieldset>
-              <legend class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>Payment Method</legend>
+              <legend class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>
+                Payment Method
+              </legend>
               <div class="space-y-3">
                 <.payment_option
                   value="card"

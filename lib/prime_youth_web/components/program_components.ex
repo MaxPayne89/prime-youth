@@ -36,7 +36,11 @@ defmodule PrimeYouthWeb.ProgramComponents do
         name={@name}
         placeholder={@placeholder}
         value={@value}
-        class={["w-full px-4 py-3 pl-11 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent", Theme.transition(:normal), Theme.rounded(:lg)]}
+        class={[
+          "w-full px-4 py-3 pl-11 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent",
+          Theme.transition(:normal),
+          Theme.rounded(:lg)
+        ]}
         {@rest}
       />
       <.icon
@@ -142,7 +146,11 @@ defmodule PrimeYouthWeb.ProgramComponents do
           <button
             phx-click="toggle_favorite"
             phx-value-program={@program.title}
-            class={["p-2 bg-white/80 backdrop-blur-sm hover:bg-white", Theme.transition(:normal), Theme.rounded(:full)]}
+            class={[
+              "p-2 bg-white/80 backdrop-blur-sm hover:bg-white",
+              Theme.transition(:normal),
+              Theme.rounded(:full)
+            ]}
             onclick="event.stopPropagation();"
           >
             <svg
@@ -173,7 +181,10 @@ defmodule PrimeYouthWeb.ProgramComponents do
         
     <!-- Program Icon -->
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class={["w-16 h-16 bg-white/20 backdrop-blur-sm flex items-center justify-center", Theme.rounded(:full)]}>
+          <div class={[
+            "w-16 h-16 bg-white/20 backdrop-blur-sm flex items-center justify-center",
+            Theme.rounded(:full)
+          ]}>
             <svg
               class="w-8 h-8 text-white"
               fill="none"
@@ -225,7 +236,7 @@ defmodule PrimeYouthWeb.ProgramComponents do
             Ages {@program.age_range}
           </div>
         </div>
-
+        
     <!-- Price -->
         <div class="pt-4 border-t border-gray-100">
           <div class={[Theme.typography(:card_title), Theme.text_color(:primary)]}>

@@ -215,7 +215,10 @@ defmodule PrimeYouthWeb.UIComponents do
     doc: "Tailwind background color class for text background"
 
   attr :text_color, :string, default: Theme.text_color(:muted), doc: "Tailwind text color class"
-  attr :line_color, :string, default: Theme.border_color(:light), doc: "Tailwind border color class"
+
+  attr :line_color, :string,
+    default: Theme.border_color(:light),
+    doc: "Tailwind border color class"
 
   def section_divider(assigns) do
     ~H"""
@@ -376,7 +379,10 @@ defmodule PrimeYouthWeb.UIComponents do
 
   def error_alert(assigns) do
     ~H"""
-    <div :if={@errors != []} class={["mb-6 p-4 bg-red-50 border border-red-200", Theme.rounded(:md), @class]}>
+    <div
+      :if={@errors != []}
+      class={["mb-6 p-4 bg-red-50 border border-red-200", Theme.rounded(:md), @class]}
+    >
       <div class="flex">
         <svg
           class="w-5 h-5 text-red-400"
@@ -478,9 +484,13 @@ defmodule PrimeYouthWeb.UIComponents do
       {@rest}
     >
       <div class={["h-48 relative", @gradient_class]}>
-        <div class={["absolute inset-0 bg-black/10 group-hover:bg-black/5", Theme.transition(:normal)]}></div>
+        <div class={["absolute inset-0 bg-black/10 group-hover:bg-black/5", Theme.transition(:normal)]}>
+        </div>
         <div class="absolute inset-0 flex items-center justify-center">
-          <div class={["w-20 h-20 bg-white/20 backdrop-blur-sm flex items-center justify-center", Theme.rounded(:full)]}>
+          <div class={[
+            "w-20 h-20 bg-white/20 backdrop-blur-sm flex items-center justify-center",
+            Theme.rounded(:full)
+          ]}>
             <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}>
               </path>
@@ -492,7 +502,9 @@ defmodule PrimeYouthWeb.UIComponents do
         <h3 class={[Theme.typography(:card_title), "mb-2", Theme.text_color(:heading)]}>{@title}</h3>
         <p class={["text-sm mb-4 line-clamp-2", Theme.text_color(:secondary)]}>{@description}</p>
         <div class="flex items-center justify-between">
-          <span class={[Theme.typography(:section_title), Theme.text_color(:secondary)]}>€{@price}</span>
+          <span class={[Theme.typography(:section_title), Theme.text_color(:secondary)]}>
+            €{@price}
+          </span>
           <span class={["text-sm", Theme.text_color(:muted)]}>per week</span>
         </div>
       </div>
@@ -567,8 +579,17 @@ defmodule PrimeYouthWeb.UIComponents do
   def empty_state(assigns) do
     ~H"""
     <div data-testid={@data_testid} class={["text-center py-12", @class]}>
-      <div class={["w-16 h-16 flex items-center justify-center mx-auto mb-4", Theme.rounded(:full), Theme.bg(:light)]}>
-        <svg class={["w-8 h-8", Theme.text_color(:subtle)]} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class={[
+        "w-16 h-16 flex items-center justify-center mx-auto mb-4",
+        Theme.rounded(:full),
+        Theme.bg(:light)
+      ]}>
+        <svg
+          class={["w-8 h-8", Theme.text_color(:subtle)]}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -649,8 +670,12 @@ defmodule PrimeYouthWeb.UIComponents do
   end
 
   defp icon_button_variant("light"), do: "#{Theme.bg(:light)} hover:#{Theme.bg(:medium)}"
-  defp icon_button_variant("glass"), do: "#{Theme.bg(:surface)}/80 backdrop-blur-sm hover:#{Theme.bg(:surface)}"
-  defp icon_button_variant("solid"), do: "#{Theme.bg(:surface)} hover:#{Theme.bg(:muted)} shadow-sm"
+
+  defp icon_button_variant("glass"),
+    do: "#{Theme.bg(:surface)}/80 backdrop-blur-sm hover:#{Theme.bg(:surface)}"
+
+  defp icon_button_variant("solid"),
+    do: "#{Theme.bg(:surface)} hover:#{Theme.bg(:muted)} shadow-sm"
 
   @doc """
   Renders a page hero section with title, optional subtitle, and optional back button.
@@ -784,7 +809,10 @@ defmodule PrimeYouthWeb.UIComponents do
           <div class="text-center">
             <div
               :if={@show_logo}
-              class={["inline-flex items-center justify-center w-24 h-24 bg-white shadow-lg mb-8 animate-bounce-gentle", Theme.rounded(:full)]}
+              class={[
+                "inline-flex items-center justify-center w-24 h-24 bg-white shadow-lg mb-8 animate-bounce-gentle",
+                Theme.rounded(:full)
+              ]}
             >
               <img
                 src={~p"/images/logo-standard.png"}
@@ -797,7 +825,10 @@ defmodule PrimeYouthWeb.UIComponents do
               {render_slot(@title)}
             </h1>
 
-            <p :if={@subtitle != []} class={[Theme.typography(:section_title), "text-white/90 mb-8 max-w-3xl mx-auto"]}>
+            <p
+              :if={@subtitle != []}
+              class={[Theme.typography(:section_title), "text-white/90 mb-8 max-w-3xl mx-auto"]}
+            >
               {render_slot(@subtitle)}
             </p>
 

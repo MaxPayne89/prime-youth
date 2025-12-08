@@ -41,7 +41,12 @@ defmodule PrimeYouthWeb.SettingsLive do
     <!-- Content -->
       <div class="max-w-4xl mx-auto p-4 space-y-4">
         <!-- Account & Profile Section -->
-        <div class={[Theme.bg(:surface), "shadow-sm border overflow-hidden", Theme.rounded(:xl), Theme.border_color(:light)]}>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
             <h3 class={["font-semibold", Theme.text_color(:heading)]}>Account & Profile</h3>
           </div>
@@ -68,7 +73,12 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- My Family Section -->
-        <div class={[Theme.bg(:surface), "shadow-sm border overflow-hidden", Theme.rounded(:xl), Theme.border_color(:light)]}>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
             <h3 class={["font-semibold", Theme.text_color(:heading)]}>My Family</h3>
           </div>
@@ -104,7 +114,12 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Contact Information Section -->
-        <div class={[Theme.bg(:surface), "shadow-sm border overflow-hidden", Theme.rounded(:xl), Theme.border_color(:light)]}>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
             <h3 class={["font-semibold", Theme.text_color(:heading)]}>Contact Information</h3>
           </div>
@@ -140,7 +155,12 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Health & Safety Section -->
-        <div class={[Theme.bg(:surface), "shadow-sm border overflow-hidden", Theme.rounded(:xl), Theme.border_color(:light)]}>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
             <h3 class={["font-semibold", Theme.text_color(:heading)]}>Health & Safety</h3>
           </div>
@@ -176,7 +196,12 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Permissions & Consents Section -->
-        <div class={[Theme.bg(:surface), "shadow-sm border overflow-hidden", Theme.rounded(:xl), Theme.border_color(:light)]}>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
             <h3 class={["font-semibold", Theme.text_color(:heading)]}>Permissions & Consents</h3>
           </div>
@@ -212,7 +237,12 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Payment & Billing Section -->
-        <div class={[Theme.bg(:surface), "shadow-sm border overflow-hidden", Theme.rounded(:xl), Theme.border_color(:light)]}>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
             <h3 class={["font-semibold", Theme.text_color(:heading)]}>Payment & Billing</h3>
           </div>
@@ -248,9 +278,16 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Notifications & Communication Section -->
-        <div class={[Theme.bg(:surface), "shadow-sm border overflow-hidden", Theme.rounded(:xl), Theme.border_color(:light)]}>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
-            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Notifications & Communication</h3>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>
+              Notifications & Communication
+            </h3>
           </div>
           <div>
             <.settings_menu_item
@@ -275,7 +312,12 @@ defmodule PrimeYouthWeb.SettingsLive do
         </div>
         
     <!-- Help & Support Section -->
-        <div class={[Theme.bg(:surface), "shadow-sm border overflow-hidden", Theme.rounded(:xl), Theme.border_color(:light)]}>
+        <div class={[
+          Theme.bg(:surface),
+          "shadow-sm border overflow-hidden",
+          Theme.rounded(:xl),
+          Theme.border_color(:light)
+        ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
             <h3 class={["font-semibold", Theme.text_color(:heading)]}>Help & Support</h3>
           </div>

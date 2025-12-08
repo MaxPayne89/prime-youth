@@ -154,7 +154,7 @@ defmodule PrimeYouthWeb.BookingComponents do
           <span>{item[:label]}</span>
           <span>{item[:value]}</span>
         </div>
-
+        
     <!-- Total with emphasis -->
         <div
           :for={total <- @total}
