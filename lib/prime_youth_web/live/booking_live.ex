@@ -2,9 +2,10 @@ defmodule PrimeYouthWeb.BookingLive do
   use PrimeYouthWeb, :live_view
 
   import PrimeYouthWeb.BookingComponents
-  import PrimeYouthWeb.Live.SampleFixtures
 
   alias PrimeYouth.Enrollment.Application.UseCases.CalculateEnrollmentFees
+  alias PrimeYouth.Family.Application.UseCases.GetChildren
+  alias PrimeYouth.ProgramCatalog.Application.UseCases.GetProgramById
   alias PrimeYouthWeb.Theme
 
   if Mix.env() == :dev do
@@ -23,16 +24,17 @@ defmodule PrimeYouthWeb.BookingLive do
     # Get current user from scope (requires authentication)
     current_user = socket.assigns.current_scope.user
 
-    # Validate program_id format, fetch program, and check availability
-    with {:ok, id_int} <- parse_program_id(program_id),
-         {:ok, program} <- fetch_program(id_int),
+    # Fetch program and check availability using UUID string directly
+    with {:ok, program} <- fetch_program(program_id),
          :ok <- validate_program_availability(program) do
+      {:ok, children} = GetChildren.execute(:simple)
+
       socket =
         socket
         |> assign(page_title: "Enrollment - #{program.title}")
         |> assign(current_user: current_user)
         |> assign(program: program)
-        |> assign(children: sample_children(:simple))
+        |> assign(children: children)
         |> assign(selected_child_id: "emma")
         |> assign(special_requirements: "")
         |> assign(payment_method: "card")
@@ -45,12 +47,6 @@ defmodule PrimeYouthWeb.BookingLive do
 
       {:ok, socket}
     else
-      {:error, :invalid_id} ->
-        {:ok,
-         socket
-         |> put_flash(:error, "Invalid program ID")
-         |> redirect(to: ~p"/programs")}
-
       {:error, :not_found} ->
         {:ok,
          socket
@@ -68,6 +64,12 @@ defmodule PrimeYouthWeb.BookingLive do
            "Sorry, this program is currently full. Check back later for availability."
          )
          |> redirect(to: ~p"/programs/#{program_for_redirect.id}")}
+
+      {:error, _error} ->
+        {:ok,
+         socket
+         |> put_flash(:error, "Unable to load program. Please try again later.")
+         |> redirect(to: ~p"/programs")}
     end
   end
 
@@ -129,18 +131,15 @@ defmodule PrimeYouthWeb.BookingLive do
 
   # Private helpers - Data fetching
   defp fetch_program(id) do
-    case get_program_by_id(id) do
-      nil -> {:error, :not_found}
-      program -> {:ok, program}
-    end
+    GetProgramById.execute(id)
   end
 
   # Unsafe fetch for redirect purposes only - when we know we need a program ID for redirect
   # but don't want to fail the entire mount
   defp fetch_program_unsafe(program_id) do
-    case Integer.parse(program_id) do
-      {id, ""} -> get_program_by_id(id) || %{id: program_id}
-      _ -> %{id: program_id}
+    case GetProgramById.execute(program_id) do
+      {:ok, program} -> program
+      {:error, _} -> %{id: program_id}
     end
   end
 
@@ -163,14 +162,9 @@ defmodule PrimeYouthWeb.BookingLive do
   end
 
   # Private helpers - Validation
-  defp parse_program_id(id_string) do
-    case Integer.parse(id_string) do
-      {id, ""} when id > 0 -> {:ok, id}
-      _ -> {:error, :invalid_id}
-    end
-  end
+  defp validate_program_availability(%{spots_available: spots_available})
+       when spots_available > 0, do: :ok
 
-  defp validate_program_availability(%{spots_left: spots_left}) when spots_left > 0, do: :ok
   defp validate_program_availability(_program), do: {:error, :no_spots}
 
   defp validate_enrollment_data(_socket, params) do

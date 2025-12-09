@@ -45,6 +45,15 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
   pubsub_server: PrimeYouth.PubSub,
   live_view: [signing_salt: "JU2osypv"]
 
+# Configure Activities bounded context
+config :prime_youth, :activities,
+  repository:
+    PrimeYouth.Activities.Adapters.Driven.Persistence.Repositories.InMemoryActivityRepository
+
+# Configure Family bounded context
+config :prime_youth, :family,
+  repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFamilyRepository
+
 # Configure Highlights bounded context
 config :prime_youth, :highlights,
   repository:

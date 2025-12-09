@@ -4,6 +4,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
   import PrimeYouthWeb.Live.SampleFixtures
   import PrimeYouthWeb.ReviewComponents
 
+  alias PrimeYouth.ProgramCatalog.Application.UseCases.GetProgramById
   alias PrimeYouthWeb.Theme
 
   if Mix.env() == :dev do
@@ -15,24 +16,27 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
-    # Validate program_id format and fetch program
-    with {:ok, id_int} <- parse_program_id(program_id),
-         {:ok, program} <- fetch_program(id_int) do
-      socket =
-        socket
-        |> assign(page_title: program.title)
-        |> assign(current_user: nil)
-        |> assign(program: program)
-        |> assign(instructor: sample_instructor())
-        |> assign(reviews: sample_reviews())
+    # Fetch program using UUID string directly
+    case fetch_program(program_id) do
+      {:ok, program} ->
+        # Add temporary included_items field (fixture data until proper implementation)
+        program_with_items =
+          Map.put(program, :included_items, [
+            "Weekly art supplies and materials",
+            "Take-home projects every week",
+            "Portfolio folder to track progress",
+            "Final exhibition showcase"
+          ])
 
-      {:ok, socket}
-    else
-      {:error, :invalid_id} ->
-        {:ok,
-         socket
-         |> put_flash(:error, "Invalid program ID")
-         |> redirect(to: ~p"/programs")}
+        socket =
+          socket
+          |> assign(page_title: program.title)
+          |> assign(current_user: nil)
+          |> assign(program: program_with_items)
+          |> assign(instructor: sample_instructor())
+          |> assign(reviews: sample_reviews())
+
+        {:ok, socket}
 
       {:error, :not_found} ->
         {:ok,
@@ -41,6 +45,12 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
            :error,
            "Program not found. It may have been removed or is no longer available."
          )
+         |> redirect(to: ~p"/programs")}
+
+      {:error, _error} ->
+        {:ok,
+         socket
+         |> put_flash(:error, "Unable to load program. Please try again later.")
          |> redirect(to: ~p"/programs")}
     end
   end
@@ -75,22 +85,15 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
 
   # Private helpers - Presentation
   defp format_price(amount), do: "€#{amount}"
-  defp format_total_price(weekly_amount), do: "€#{weekly_amount * @default_weeks_count}"
 
-  # Private helpers - Validation
-  defp parse_program_id(id_string) do
-    case Integer.parse(id_string) do
-      {id, ""} when id > 0 -> {:ok, id}
-      _ -> {:error, :invalid_id}
-    end
+  defp format_total_price(weekly_amount) do
+    total = Decimal.mult(weekly_amount, @default_weeks_count)
+    "€#{total}"
   end
 
   # Private helpers - Data fetching
   defp fetch_program(id) do
-    case get_program_by_id(id) do
-      nil -> {:error, :not_found}
-      program -> {:ok, program}
-    end
+    GetProgramById.execute(id)
   end
 
   @impl true
@@ -178,17 +181,17 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               </div>
               <div class="flex items-center space-x-2">
                 <span
-                  :if={@program.spots_left <= 5}
+                  :if={@program.spots_available <= 5}
                   class={[
                     "px-2 py-1 text-xs font-medium",
                     Theme.rounded(:full),
-                    if(@program.spots_left <= 2,
+                    if(@program.spots_available <= 2,
                       do: "bg-orange-100 text-orange-700",
                       else: "bg-yellow-100 text-yellow-700"
                     )
                   ]}
                 >
-                  Only {@program.spots_left} spots left!
+                  Only {@program.spots_available} spots left!
                 </span>
                 <span class={[
                   "bg-green-100 text-green-700 px-2 py-1 text-xs font-medium",
@@ -261,7 +264,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               About This Program
             </h3>
             <p class={["leading-relaxed mb-4", Theme.text_color(:secondary)]}>
-              {@program.long_description}
+              {@program.description}
             </p>
             
     <!-- What's Included -->

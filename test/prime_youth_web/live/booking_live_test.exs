@@ -2,10 +2,12 @@ defmodule PrimeYouthWeb.BookingLiveTest do
   use PrimeYouthWeb.ConnCase
 
   import Phoenix.LiveViewTest
+  import PrimeYouth.Factory
 
   describe "BookingLive authentication" do
     test "redirects to login when not authenticated", %{conn: conn} do
-      assert {:error, {:redirect, %{to: path}}} = live(conn, ~p"/programs/1/booking")
+      program = insert(:program_schema)
+      assert {:error, {:redirect, %{to: path}}} = live(conn, ~p"/programs/#{program.id}/booking")
 
       # Should redirect to login page
       assert path == ~p"/users/log-in"
@@ -13,8 +15,9 @@ defmodule PrimeYouthWeb.BookingLiveTest do
 
     test "renders booking page when authenticated with valid program", %{conn: conn} do
       %{conn: conn} = register_and_log_in_user(%{conn: conn})
+      program = insert(:program_schema, title: "Creative Art World")
 
-      {:ok, view, _html} = live(conn, ~p"/programs/1/booking")
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}/booking")
 
       assert has_element?(view, "h1", "Enrollment")
       assert render(view) =~ "Creative Art World"
@@ -29,12 +32,15 @@ defmodule PrimeYouthWeb.BookingLiveTest do
                live(conn, ~p"/programs/invalid/booking")
 
       assert path == ~p"/programs"
-      assert flash["error"] == "Invalid program ID"
+      assert flash["error"] == "Unable to load program. Please try again later."
     end
 
     test "redirects with error flash for non-existent program ID", %{conn: conn} do
+      # Use a valid UUID format that doesn't exist in database
+      non_existent_uuid = "550e8400-e29b-41d4-a716-446655449999"
+
       assert {:error, {:redirect, %{to: path, flash: flash}}} =
-               live(conn, ~p"/programs/999/booking")
+               live(conn, ~p"/programs/#{non_existent_uuid}/booking")
 
       assert path == ~p"/programs"
       assert flash["error"] == "Program not found"
@@ -56,7 +62,8 @@ defmodule PrimeYouthWeb.BookingLiveTest do
     setup :register_and_log_in_user
 
     test "complete_enrollment with missing child_id shows error", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/programs/1/booking")
+      program = insert(:program_schema)
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}/booking")
 
       html =
         view
@@ -70,7 +77,8 @@ defmodule PrimeYouthWeb.BookingLiveTest do
     end
 
     test "complete_enrollment with valid data shows success message", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/programs/1/booking")
+      program = insert(:program_schema)
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}/booking")
 
       view
       |> form("form[phx-submit='complete_enrollment']", %{
@@ -83,17 +91,19 @@ defmodule PrimeYouthWeb.BookingLiveTest do
     end
 
     test "back_to_program button navigates to program detail", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/programs/1/booking")
+      program = insert(:program_schema)
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}/booking")
 
       view
       |> element("[phx-click='back_to_program']")
       |> render_click()
 
-      assert_redirect(view, ~p"/programs/1")
+      assert_redirect(view, ~p"/programs/#{program.id}")
     end
 
     test "select_payment_method updates payment method and recalculates totals", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/programs/1/booking")
+      program = insert(:program_schema)
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}/booking")
 
       # Initially card payment is selected
       html = render(view)

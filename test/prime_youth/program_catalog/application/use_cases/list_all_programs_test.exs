@@ -30,6 +30,11 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         response -> response
       end
     end
+
+    def get_by_id(_id) do
+      # This mock is not used in these tests, but required by the behavior
+      {:error, :not_implemented}
+    end
   end
 
   setup do

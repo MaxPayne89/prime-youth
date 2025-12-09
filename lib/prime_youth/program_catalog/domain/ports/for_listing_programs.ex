@@ -42,4 +42,24 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms do
       {:error, :database_query_error} = list_all_programs()
   """
   @callback list_all_programs() :: {:ok, [Program.t()]} | {:error, list_error()}
+
+  @doc """
+  Retrieves a single program by its unique ID (UUID).
+
+  Returns the program with all required fields populated if found.
+
+  Returns:
+  - `{:ok, Program.t()}` - Program found with matching ID
+  - `{:error, :not_found}` - No program exists with the given ID
+  - `{:error, :database_connection_error}` - Connection/network failure
+  - `{:error, :database_query_error}` - SQL error or constraint violation
+  - `{:error, :database_unavailable}` - Unexpected error
+
+  ## Examples
+
+      {:ok, program} = get_by_id("550e8400-e29b-41d4-a716-446655440001")
+      {:error, :not_found} = get_by_id("550e8400-e29b-41d4-a716-446655440099")
+      {:error, :database_connection_error} = get_by_id("invalid-uuid")
+  """
+  @callback get_by_id(String.t()) :: {:ok, Program.t()} | {:error, :not_found | list_error()}
 end

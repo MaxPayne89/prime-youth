@@ -99,4 +99,90 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
         {:error, :database_unavailable}
     end
   end
+
+  @impl true
+  @doc """
+  Retrieves a single program by its unique ID (UUID) from the database.
+
+  Data integrity is enforced at the database level through NOT NULL constraints
+  on all required fields.
+
+  Returns:
+  - {:ok, Program.t()} when program is found
+  - {:error, :not_found} when no program exists with the given ID
+  - {:error, :database_connection_error} - Connection/network failure
+  - {:error, :database_query_error} - SQL error or constraint violation
+  - {:error, :database_unavailable} - Unexpected error
+
+  ## Examples
+
+      iex> ProgramRepository.get_by_id("550e8400-e29b-41d4-a716-446655440001")
+      {:ok, %Program{id: "550e8400-e29b-41d4-a716-446655440001", title: "Art Adventures", ...}}
+
+      iex> ProgramRepository.get_by_id("550e8400-e29b-41d4-a716-446655440099")
+      {:error, :not_found}
+
+      iex> ProgramRepository.get_by_id("invalid-uuid")
+      {:error, :database_query_error}  # Invalid UUID format
+
+  """
+  @spec get_by_id(String.t()) ::
+          {:ok, Program.t()}
+          | {:error,
+             :not_found
+             | :database_connection_error
+             | :database_query_error
+             | :database_unavailable}
+  def get_by_id(id) when is_binary(id) do
+    Logger.info("[ProgramRepository] Starting get_by_id query for program ID: #{id}")
+
+    query = from p in ProgramSchema, where: p.id == ^id
+
+    try do
+      case Repo.one(query) do
+        nil ->
+          Logger.info("[ProgramRepository] Program not found with ID: #{id}")
+          {:error, :not_found}
+
+        schema ->
+          program = ProgramMapper.to_domain(schema)
+
+          Logger.info(
+            "[ProgramRepository] Successfully retrieved program '#{program.title}' (ID: #{id}) from database"
+          )
+
+          {:ok, program}
+      end
+    rescue
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[ProgramRepository] Database connection failed while fetching program ID: #{id}",
+          error_id: ErrorIds.program_get_connection_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error, Ecto.Query.CastError] ->
+        Logger.error(
+          "[ProgramRepository] Database query error while fetching program ID: #{id}",
+          error_id: ErrorIds.program_get_query_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
+      error ->
+        Logger.error(
+          "[ProgramRepository] Unexpected database error while fetching program ID: #{id}",
+          error_id: ErrorIds.program_get_generic_error(),
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
+        )
+
+        {:error, :database_unavailable}
+    end
+  end
 end
