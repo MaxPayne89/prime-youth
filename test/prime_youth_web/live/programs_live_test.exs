@@ -9,7 +9,6 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
   describe "ProgramsLive - Integration with Database (User Story 1)" do
     # T052: Write LiveView test - displays all programs from database
     test "displays all programs from database", %{conn: conn} do
-      # Given: Database has 3 programs
       program1 =
         insert_program(%{
           title: "Art Adventures",
@@ -43,10 +42,8 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           spots_available: 15
         })
 
-      # When: User navigates to /programs
       {:ok, view, html} = live(conn, ~p"/programs")
 
-      # Then: All 3 programs are displayed
       assert html =~ program1.title
       assert html =~ program1.description
       assert html =~ program1.schedule
@@ -59,38 +56,27 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
       assert html =~ program3.title
       assert html =~ program3.description
 
-      # And: Programs are displayed in program cards
       assert has_element?(view, "[id^='programs-']")
     end
 
     # T053: Write LiveView test - shows empty state when no programs exist
     test "shows empty state when no programs exist", %{conn: conn} do
-      # Given: Database has no programs (clean slate from test sandbox)
-
-      # When: User navigates to /programs
       {:ok, view, html} = live(conn, ~p"/programs")
 
-      # Then: Empty state message is shown
       assert html =~ "No programs found"
 
-      # And: No program cards are rendered
       refute has_element?(view, "[id^='programs-']")
     end
 
     # T054: Write LiveView test - displays error message on database failure
     test "displays error message on database failure", %{conn: _conn} do
-      # Given: Database connection will fail (we'll simulate this by making the use case return an error)
       # Note: This test verifies error handling in the LiveView layer
       # We need to stub the use case to return an error
 
       # For now, we'll test that the LiveView can handle errors gracefully
       # When the actual implementation is done, we can use Mox to stub the repository
 
-      # When: User navigates to /programs (with mocked database failure)
       # This test will be fully implemented when T057-T061 add error handling to ProgramsLive
-
-      # Then: Error message should be displayed
-      # And: Error should be logged
 
       # Placeholder: Mark as pending until error handling is implemented in LiveView
       # The implementation in T057-T061 will add proper error handling
@@ -98,7 +84,6 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
 
     # T055: Write LiveView test - displays "Free" for €0 programs
     test "displays 'Free' for €0 programs", %{conn: conn} do
-      # Given: Database has a free program (price = €0)
       free_program =
         insert_program(%{
           title: "Community Library Hour",
@@ -121,22 +106,17 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           spots_available: 8
         })
 
-      # When: User navigates to /programs
       {:ok, _view, html} = live(conn, ~p"/programs")
 
-      # Then: Free program displays "Free" instead of €0
       assert html =~ free_program.title
       assert html =~ "Free"
 
-      # And: Paid program displays actual price
       assert html =~ paid_program.title
       assert html =~ "€150.00"
     end
 
     # T056: Write LiveView test - programs load within 2 seconds (performance requirement)
     test "programs load within 2 seconds performance requirement", %{conn: conn} do
-      # Given: Database has 100+ programs to test performance requirement (FR-012)
-      # Insert 100 programs to simulate real-world load
       _programs =
         for i <- 1..100 do
           insert_program(%{
@@ -150,22 +130,18 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           })
         end
 
-      # When: User navigates to /programs and we measure the load time
       start_time = System.monotonic_time(:millisecond)
       {:ok, view, html} = live(conn, ~p"/programs")
       end_time = System.monotonic_time(:millisecond)
 
       load_time_ms = end_time - start_time
 
-      # Then: Page loads within 2000ms (2 seconds as per FR-012)
       assert load_time_ms < 2000,
              "Page load time #{load_time_ms}ms exceeds 2000ms performance requirement"
 
-      # And: All programs are displayed
       assert html =~ "Program 1"
       assert html =~ "Program 100"
 
-      # Verify we have program cards rendered
       assert has_element?(view, "[id^='programs-']")
     end
   end
@@ -174,7 +150,6 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
   describe "ProgramsLive - Filter Behaviors" do
     # T058: Test available filter excludes sold-out programs
     test "available filter excludes sold-out programs", %{conn: conn} do
-      # Given: Database has both available and sold-out programs
       _sold_out =
         insert_program(%{
           title: "Sold Out Soccer",
@@ -187,20 +162,16 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           spots_available: 5
         })
 
-      # When: User applies "available" filter
       {:ok, view, html} = live(conn, ~p"/programs?filter=available")
 
-      # Then: Only available programs are shown
       assert html =~ available.title
       refute html =~ "Sold Out Soccer"
 
-      # And: Filter is marked as active
       assert has_element?(view, "[data-filter-id='available'][data-active='true']")
     end
 
     # T059: Test price filter sorts programs by price (lowest first)
     test "price filter sorts programs by price lowest first", %{conn: conn} do
-      # Given: Database has programs with different prices including free
       free_program =
         insert_program(%{
           title: "Free Community Event",
@@ -220,24 +191,18 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           price: Decimal.new("200.00")
         })
 
-      # When: User applies "price" filter
       {:ok, _view, html} = live(conn, ~p"/programs?filter=price")
 
-      # Then: Programs appear in price order (free → low → high)
-      # Extract positions of each program title in the HTML
       free_pos = :binary.match(html, free_program.title) |> elem(0)
       mid_pos = :binary.match(html, mid_price.title) |> elem(0)
       high_pos = :binary.match(html, high_price.title) |> elem(0)
 
-      # Verify free program appears before mid price
       assert free_pos < mid_pos, "Free program should appear before mid price program"
-      # Verify mid price appears before high price
       assert mid_pos < high_pos, "Mid price should appear before high price program"
     end
 
     # T060: Test age filter sorts programs by age (youngest first)
     test "age filter sorts programs by age youngest first", %{conn: conn} do
-      # Given: Database has programs with different age ranges
       youngest =
         insert_program(%{
           title: "Toddler Time",
@@ -256,10 +221,8 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           age_range: "14-16 years"
         })
 
-      # When: User applies "ages" filter
       {:ok, _view, html} = live(conn, ~p"/programs?filter=ages")
 
-      # Then: Programs appear in age order (youngest → oldest)
       youngest_pos = :binary.match(html, youngest.title) |> elem(0)
       middle_pos = :binary.match(html, middle.title) |> elem(0)
       oldest_pos = :binary.match(html, oldest.title) |> elem(0)
@@ -270,7 +233,6 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
 
     # T061: Test age filter handles unparseable age ranges gracefully
     test "age filter handles unparseable age ranges gracefully", %{conn: conn} do
-      # Given: Database has programs with various age range formats
       normal =
         insert_program(%{
           title: "Normal Age Range",
@@ -283,27 +245,22 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           age_range: "All ages"
         })
 
-      # When: User applies "ages" filter
       {:ok, view, html} = live(conn, ~p"/programs?filter=ages")
 
-      # Then: Both programs are displayed without crashing
       assert html =~ normal.title
       assert html =~ unparseable.title
 
-      # And: Unparseable age ranges are sorted to the end (age 999)
       normal_pos = :binary.match(html, normal.title) |> elem(0)
       unparseable_pos = :binary.match(html, unparseable.title) |> elem(0)
 
       assert normal_pos < unparseable_pos,
              "Unparseable age ranges should be sorted to the end"
 
-      # And: No errors are shown
       refute has_element?(view, ".flash-error")
     end
 
     # T062: Test search functionality is case-insensitive (word-boundary matching)
     test "search is case-insensitive using word-boundary matching on titles", %{conn: conn} do
-      # Given: Database has programs with various titles
       soccer =
         insert_program(%{
           title: "Soccer Stars",
@@ -322,29 +279,23 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           description: "Strategic thinking"
         })
 
-      # When: User searches for "SOCCER" (uppercase, word-boundary match)
       {:ok, _view, html} = live(conn, ~p"/programs?q=SOCCER")
 
-      # Then: Soccer program is found (case-insensitive title word-boundary match)
       assert html =~ soccer.title
       refute html =~ art.title
       refute html =~ chess.title
 
-      # When: User searches for "art" (lowercase, word-boundary match in title)
       {:ok, view, html} = live(conn, ~p"/programs?q=art")
 
-      # Then: Art program is found (case-insensitive title word-boundary match)
       assert html =~ art.title
       refute html =~ soccer.title
       refute html =~ chess.title
 
-      # And: Search query is displayed in search input
       assert has_element?(view, "input[name='search'][value='art']")
     end
 
     # T063: Test combining search with filters
     test "combining search with available filter", %{conn: conn} do
-      # Given: Database has both available and sold-out soccer programs
       _sold_out_soccer =
         insert_program(%{
           title: "Sold Out Soccer Camp",
@@ -363,10 +314,8 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           spots_available: 5
         })
 
-      # When: User searches for "soccer" AND filters by "available"
       {:ok, _view, html} = live(conn, ~p"/programs?q=soccer&filter=available")
 
-      # Then: Only available soccer program is shown
       assert html =~ available_soccer.title
       refute html =~ "Sold Out Soccer Camp"
       refute html =~ "Art Class"
@@ -377,7 +326,6 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
   describe "ProgramsLive - User Story 1: Instant Program Title Search" do
     # T032: filters programs by search query
     test "filters programs by search query using word-boundary matching", %{conn: conn} do
-      # Given: Database has programs with various titles
       soccer =
         insert_program(%{
           title: "After School Soccer",
@@ -390,25 +338,20 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           description: "Learn dance moves"
         })
 
-      # When: User searches for "so" (should match "Soccer" word-boundary)
       {:ok, _view, html} = live(conn, ~p"/programs?q=so")
 
-      # Then: Only programs with words starting with "so" are shown
       assert html =~ soccer.title
       refute html =~ "Dance"
     end
 
     # T033: shows all programs for empty query
     test "shows all programs when search query is empty", %{conn: conn} do
-      # Given: Database has programs
       program1 = insert_program(%{title: "Soccer Camp"})
       program2 = insert_program(%{title: "Art Class"})
       program3 = insert_program(%{title: "Chess Club"})
 
-      # When: User navigates without search query
       {:ok, _view, html} = live(conn, ~p"/programs")
 
-      # Then: All programs are displayed
       assert html =~ program1.title
       assert html =~ program2.title
       assert html =~ program3.title
@@ -416,18 +359,14 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
 
     # T034: updates URL with query param
     test "updates URL with search query parameter", %{conn: conn} do
-      # Given: Database has programs
       _program = insert_program(%{title: "Soccer Training"})
 
-      # When: LiveView is mounted
       {:ok, view, _html} = live(conn, ~p"/programs")
 
-      # And: User types in search field
       view
       |> element("input[name='search']")
       |> render_change(%{"search" => "soccer"})
 
-      # Then: URL is updated with query parameter
       assert_patch(view, ~p"/programs?q=soccer")
     end
   end
@@ -436,7 +375,6 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
   describe "ProgramsLive - End-to-End User Journey" do
     # T065: Complete user flow from browse to detail page navigation
     test "complete user journey: browse, filter, search, navigate to detail", %{conn: conn} do
-      # Given: Database has multiple programs with different attributes
       soccer =
         insert_program(%{
           title: "Soccer Camp",
@@ -464,52 +402,41 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
           price: Decimal.new("80.00")
         })
 
-      # STEP 1: Browse all programs
       {:ok, view, html} = live(conn, ~p"/programs")
 
-      # Then: All programs are displayed
       assert html =~ soccer.title
       assert html =~ "Art Class"
       assert html =~ chess.title
 
-      # STEP 2: Filter by "available" to exclude sold-out programs
       html =
         view
         |> element("[data-filter-id='available']")
         |> render_click()
 
-      # Then: Only available programs are shown
       assert html =~ soccer.title
       refute html =~ "Art Class"
       assert html =~ chess.title
 
-      # And: URL reflects the filter
       assert_patch(view, ~p"/programs?filter=available")
 
-      # STEP 3: Search for "soccer" within available programs
       html =
         view
         |> element("input[name='search']")
         |> render_change(%{"search" => "soccer"})
 
-      # Then: Only soccer program is shown (available AND matches search)
       assert html =~ soccer.title
       refute html =~ chess.title
       refute html =~ "Art Class"
 
-      # And: URL reflects both filter and search
       assert_patch(view, ~p"/programs?filter=available&q=soccer")
 
-      # STEP 4: Click on the soccer program card to navigate to detail page
       result =
         view
         |> element("[phx-click='program_click'][phx-value-program='Soccer Camp']")
         |> render_click()
 
-      # Then: Navigation to program detail page occurs
       assert {:error, {:live_redirect, %{to: redirect_path}}} = result
 
-      # And: Redirect path includes the program ID
       assert redirect_path == "/programs/#{soccer.id}"
     end
 
