@@ -115,7 +115,6 @@ defmodule PrimeYouth.Support.Application.UseCases.SubmitContactForm do
     end
   end
 
-  # Private helper to build a ContactRequest domain entity from validated form data
   defp build_contact_request(validated_form) do
     %ContactRequest{
       id: generate_id(),
@@ -127,12 +126,10 @@ defmodule PrimeYouth.Support.Application.UseCases.SubmitContactForm do
     }
   end
 
-  # Private helper to generate a unique ID for contact requests
   defp generate_id do
     "contact_" <> (:crypto.strong_rand_bytes(8) |> Base.url_encode64(padding: false))
   end
 
-  # Private helper to get the configured repository module
   defp repository_module do
     Application.get_env(:prime_youth, :support)[:repository]
   end
