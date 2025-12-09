@@ -67,6 +67,10 @@ config :prime_youth, :scopes,
     test_setup_helper: :register_and_log_in_user
   ]
 
+# Configure Support bounded context
+config :prime_youth, :support,
+  repository: PrimeYouth.Support.Adapters.Driven.Persistence.Repositories.ContactRequestRepository
+
 config :prime_youth,
   ecto_repos: [PrimeYouth.Repo],
   generators: [timestamp_type: :utc_datetime]
