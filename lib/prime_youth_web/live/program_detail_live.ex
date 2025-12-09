@@ -11,12 +11,10 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
     use PrimeYouthWeb.DevAuthToggle
   end
 
-  # Pricing constants
   @default_weeks_count 4
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
-    # Fetch program using UUID string directly
     case fetch_program(program_id) do
       {:ok, program} ->
         # Add temporary included_items field (fixture data until proper implementation)
@@ -83,7 +81,6 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
     {:noreply, socket}
   end
 
-  # Private helpers - Presentation
   defp format_price(amount), do: "€#{amount}"
 
   defp format_total_price(weekly_amount) do
@@ -91,7 +88,6 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
     "€#{total}"
   end
 
-  # Private helpers - Data fetching
   defp fetch_program(id) do
     GetProgramById.execute(id)
   end
@@ -100,18 +96,14 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
   def render(assigns) do
     ~H"""
     <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
-      <!-- Header with Back Button -->
       <div class="relative">
-        <!-- Hero Image -->
         <div class={["h-64 relative overflow-hidden", @program.gradient_class]}>
           <div class="absolute inset-0 bg-black/20"></div>
-          
-    <!-- Back Button -->
+
           <div class="absolute top-4 left-4 z-10">
             <.back_button phx-click="back_to_programs" />
           </div>
-          
-    <!-- Favorite Button -->
+
           <div class="absolute top-4 right-4 z-10">
             <button
               phx-click="toggle_favorite"
@@ -126,8 +118,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               </svg>
             </button>
           </div>
-          
-    <!-- Program Icon -->
+
           <div class="absolute inset-0 flex items-center justify-center">
             <div class={[
               "w-24 h-24 bg-white/20 backdrop-blur-sm flex items-center justify-center",
@@ -145,8 +136,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
             </div>
           </div>
         </div>
-        
-    <!-- Program Info Overlay -->
+
         <div class={["absolute bottom-0 left-0 right-0 rounded-t-3xl p-6", Theme.bg(:surface)]}>
           <div class="flex items-start justify-between mb-4">
             <div class="flex-1">
@@ -214,10 +204,8 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
           </div>
         </div>
       </div>
-      
-    <!-- Content Area -->
+
       <div class="mt-20 p-6 max-w-4xl mx-auto">
-        <!-- Primary CTA -->
         <div class="mb-6">
           <button
             phx-click="enroll_now"
@@ -250,10 +238,8 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
             Free cancellation up to 48 hours before start date
           </p>
         </div>
-        
-    <!-- Main Content -->
+
         <div class="space-y-6">
-          <!-- Program Description -->
           <div class={[
             Theme.bg(:surface),
             Theme.rounded(:xl),
@@ -266,8 +252,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
             <p class={["leading-relaxed mb-4", Theme.text_color(:secondary)]}>
               {@program.description}
             </p>
-            
-    <!-- What's Included -->
+
             <div class="space-y-2">
               <h4 class={[Theme.typography(:card_title), Theme.text_color(:heading)]}>
                 What's Included:
@@ -293,8 +278,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               </ul>
             </div>
           </div>
-          
-    <!-- Instructor Info -->
+
           <div class={[
             Theme.bg(:surface),
             Theme.rounded(:xl),
@@ -331,8 +315,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               </div>
             </div>
           </div>
-          
-    <!-- Parent Reviews -->
+
           <div class={[
             Theme.bg(:surface),
             Theme.rounded(:xl),
@@ -364,8 +347,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               </button>
             </div>
           </div>
-          
-    <!-- Bottom CTA -->
+
           <div class="mt-8">
             <button
               phx-click="enroll_now"

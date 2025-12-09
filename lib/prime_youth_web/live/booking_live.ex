@@ -12,7 +12,6 @@ defmodule PrimeYouthWeb.BookingLive do
     use PrimeYouthWeb.DevAuthToggle
   end
 
-  # Pricing constants
   @default_weekly_fee 45.00
   @default_weeks_count 8
   @default_registration_fee 25.00
@@ -21,10 +20,8 @@ defmodule PrimeYouthWeb.BookingLive do
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
-    # Get current user from scope (requires authentication)
     current_user = socket.assigns.current_scope.user
 
-    # Fetch program and check availability using UUID string directly
     with {:ok, program} <- fetch_program(program_id),
          :ok <- validate_program_availability(program) do
       {:ok, children} = GetChildren.execute(:simple)
@@ -54,7 +51,6 @@ defmodule PrimeYouthWeb.BookingLive do
          |> redirect(to: ~p"/programs")}
 
       {:error, :no_spots} ->
-        # Get program for redirect (safe to use fallback here since we only need ID for redirect)
         program_for_redirect = fetch_program_unsafe(program_id)
 
         {:ok,
@@ -90,7 +86,6 @@ defmodule PrimeYouthWeb.BookingLive do
 
   @impl true
   def handle_event("complete_enrollment", params, socket) do
-    # Validate enrollment data before processing
     with :ok <- validate_enrollment_data(socket, params),
          :ok <- validate_payment_method(socket),
          :ok <- validate_program_availability(socket.assigns.program) do
@@ -129,13 +124,10 @@ defmodule PrimeYouthWeb.BookingLive do
     end
   end
 
-  # Private helpers - Data fetching
   defp fetch_program(id) do
     GetProgramById.execute(id)
   end
 
-  # Unsafe fetch for redirect purposes only - when we know we need a program ID for redirect
-  # but don't want to fail the entire mount
   defp fetch_program_unsafe(program_id) do
     case GetProgramById.execute(program_id) do
       {:ok, program} -> program
@@ -143,7 +135,6 @@ defmodule PrimeYouthWeb.BookingLive do
     end
   end
 
-  # Private helpers - Business logic
   defp apply_fee_calculation(socket) do
     {:ok, fees} =
       CalculateEnrollmentFees.execute(%{
@@ -161,7 +152,6 @@ defmodule PrimeYouthWeb.BookingLive do
     |> assign(total: fees.total)
   end
 
-  # Private helpers - Validation
   defp validate_program_availability(%{spots_available: spots_available})
        when spots_available > 0, do: :ok
 
@@ -187,7 +177,6 @@ defmodule PrimeYouthWeb.BookingLive do
     ~H"""
     <div class={["min-h-screen", Theme.gradient(:hero)]}>
       <div class="max-w-4xl mx-auto px-4 py-6">
-        <!-- Header -->
         <.page_header
           variant={:gradient}
           show_back_button
@@ -198,8 +187,7 @@ defmodule PrimeYouthWeb.BookingLive do
             <h1 class={[Theme.typography(:page_title), "text-white"]}>Enrollment</h1>
           </:title>
         </.page_header>
-        
-    <!-- Activity Summary -->
+
         <div class="mb-6">
           <h3 class="text-white font-semibold mb-3">Activity Summary</h3>
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
@@ -237,10 +225,8 @@ defmodule PrimeYouthWeb.BookingLive do
             </a>
           </div>
         </div>
-        
-    <!-- Enrollment Form -->
+
         <form phx-submit="complete_enrollment" class="space-y-6">
-          <!-- Select Child -->
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
             <label class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>
               Select Child
@@ -270,8 +256,7 @@ defmodule PrimeYouthWeb.BookingLive do
               </a>
             </div>
           </div>
-          
-    <!-- Special Requirements -->
+
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
             <label
               for="special-requirements"
@@ -297,8 +282,7 @@ defmodule PrimeYouthWeb.BookingLive do
               <p class={["text-xs", Theme.text_color(:muted)]}>0/500</p>
             </div>
           </div>
-          
-    <!-- Payment Method -->
+
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
             <fieldset>
               <legend class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>
@@ -325,8 +309,7 @@ defmodule PrimeYouthWeb.BookingLive do
               </div>
             </fieldset>
           </div>
-          
-    <!-- Payment Summary -->
+
           <.booking_summary title="Payment Summary">
             <:line_item
               label={"Weekly fee (#{@weeks_count} weeks):"}
@@ -356,8 +339,7 @@ defmodule PrimeYouthWeb.BookingLive do
               value={"€#{:erlang.float_to_binary(@total, decimals: 2)}"}
             />
           </.booking_summary>
-          
-    <!-- Bank Transfer Details -->
+
           <.info_box :if={@payment_method == "transfer"} variant={:info} title="Bank Transfer Details">
             <p class="mb-4">
               Please transfer <strong>€{:erlang.float_to_binary(@total, decimals: 2)}</strong>
@@ -388,8 +370,7 @@ defmodule PrimeYouthWeb.BookingLive do
               </p>
             </:footer>
           </.info_box>
-          
-    <!-- Invoice Information -->
+
           <.info_box variant={:neutral} icon="📧" title="Invoice & Payment Confirmation">
             <div class="text-sm space-y-1">
               <p>• An invoice will be emailed to you after enrollment completion</p>
@@ -397,8 +378,7 @@ defmodule PrimeYouthWeb.BookingLive do
               <p>• Cash/transfer payments will show as "Pending" until received</p>
             </div>
           </.info_box>
-          
-    <!-- Submit Button -->
+
           <button
             type="submit"
             class={[

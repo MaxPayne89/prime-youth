@@ -59,7 +59,6 @@ defmodule PrimeYouthWeb.ContactLive do
     end
   end
 
-  # Private helpers - Sample data (local variations from fixtures)
   defp contact_methods do
     [
       %{
@@ -98,7 +97,6 @@ defmodule PrimeYouthWeb.ContactLive do
   def render(assigns) do
     ~H"""
     <div class="min-h-screen bg-gray-50 pb-20 md:pb-6">
-      <%!-- Hero Section --%>
       <.hero_section
         variant="page"
         gradient_class={Theme.gradient(:primary)}
@@ -110,7 +108,6 @@ defmodule PrimeYouthWeb.ContactLive do
 
       <div class="max-w-6xl mx-auto p-6">
         <div class="grid md:grid-cols-2 gap-8">
-          <%!-- Contact Form --%>
           <div>
             <.card>
               <:header>
@@ -182,9 +179,7 @@ defmodule PrimeYouthWeb.ContactLive do
             </.card>
           </div>
 
-          <%!-- Contact Information --%>
           <div class="space-y-6">
-            <%!-- Contact Methods --%>
             <.card>
               <:header>
                 <h2 class="text-xl font-bold text-gray-900">Get in Touch</h2>
@@ -209,7 +204,6 @@ defmodule PrimeYouthWeb.ContactLive do
               </:body>
             </.card>
 
-            <%!-- Office Hours --%>
             <.card>
               <:header>
                 <h2 class="text-xl font-bold text-gray-900">Office Hours</h2>
@@ -224,7 +218,6 @@ defmodule PrimeYouthWeb.ContactLive do
               </:body>
             </.card>
 
-            <%!-- FAQ Link --%>
             <.card>
               <:body>
                 <div class="text-center">
