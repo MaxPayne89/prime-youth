@@ -1,9 +1,9 @@
 defmodule PrimeYouthWeb.HomeLive do
   use PrimeYouthWeb, :live_view
 
-  import PrimeYouthWeb.Live.SampleFixtures
   import PrimeYouthWeb.UIComponents
 
+  alias PrimeYouth.ProgramCatalog.Application.UseCases.ListFeaturedPrograms
   alias PrimeYouthWeb.Theme
 
   if Mix.env() == :dev do
@@ -12,11 +12,13 @@ defmodule PrimeYouthWeb.HomeLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    {:ok, featured} = ListFeaturedPrograms.execute()
+
     socket =
       socket
       |> assign(page_title: "Prime Youth - Afterschool Adventures Await")
       |> assign(current_user: nil)
-      |> assign(featured_programs: featured_programs())
+      |> assign(featured_programs: featured)
 
     {:ok, socket}
   end

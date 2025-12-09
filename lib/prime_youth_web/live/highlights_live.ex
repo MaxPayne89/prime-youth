@@ -3,6 +3,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
 
   import PrimeYouthWeb.CompositeComponents
 
+  alias PrimeYouth.Highlights.Application.UseCases.{ListPosts, ToggleLike, AddComment}
   alias PrimeYouthWeb.Theme
 
   if Mix.env() == :dev do
@@ -11,59 +12,7 @@ defmodule PrimeYouthWeb.HighlightsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    posts = [
-      %{
-        id: "post_1",
-        author: "Ms. Sarah - Art Instructor",
-        avatar_bg: Theme.bg(:primary),
-        avatar_emoji: "👩‍🏫",
-        timestamp: "2 hours ago",
-        content:
-          "Amazing creativity from our Art World students today! 🎨 They're working on their masterpieces for the upcoming showcase. So proud of their progress!",
-        type: :photo,
-        photo_emoji: "🎨📸",
-        likes: 12,
-        comment_count: 5,
-        user_liked: false,
-        comments: [
-          %{author: "Parent Maria", text: "Emma loves this class!"},
-          %{author: "Parent John", text: "Can't wait for the showcase! 🎭"}
-        ]
-      },
-      %{
-        id: "post_2",
-        author: "Mr. David - Chess Coach",
-        avatar_bg: Theme.bg(:secondary),
-        avatar_emoji: "👨‍🏫",
-        timestamp: "5 hours ago",
-        content:
-          "Reminder: Chess tournament registration closes this Friday! 🏆 Great opportunity for our advanced students to showcase their skills. Prize ceremony will include medals and certificates! ♟️",
-        type: :text,
-        likes: 8,
-        comment_count: 3,
-        user_liked: false,
-        comments: []
-      },
-      %{
-        id: "post_3",
-        author: "Prime Youth Admin",
-        avatar_bg: Theme.bg(:accent),
-        avatar_emoji: "📋",
-        timestamp: "1 day ago",
-        content:
-          "🎉 Exciting News! We're hosting a Family Fun Day next Saturday! Join us for games, food trucks, and showcase performances from all our programs. Free entry for all Prime Youth families!",
-        type: :event,
-        event_details: %{
-          title: "📅 Family Fun Day",
-          date: "Saturday, March 15th • 10 AM - 4 PM",
-          location: "Greenwood Elementary School"
-        },
-        likes: 25,
-        comment_count: 12,
-        user_liked: false,
-        comments: []
-      }
-    ]
+    {:ok, posts} = ListPosts.execute()
 
     socket =
       socket
@@ -77,11 +26,10 @@ defmodule PrimeYouthWeb.HighlightsLive do
 
   @impl true
   def handle_event("toggle_like", %{"post_id" => post_id}, socket) do
-    # Find and update the post in the stream
-    posts = get_all_posts()
-    updated_posts = Enum.map(posts, &toggle_post_like(&1, post_id))
+    {:ok, _updated_post} = ToggleLike.execute(post_id)
+    {:ok, posts} = ListPosts.execute()
 
-    {:noreply, stream(socket, :posts, updated_posts, reset: true)}
+    {:noreply, stream(socket, :posts, posts, reset: true)}
   end
 
   @impl true
@@ -91,86 +39,11 @@ defmodule PrimeYouthWeb.HighlightsLive do
         {:noreply, socket}
 
       trimmed_comment ->
-        posts = get_all_posts()
-        updated_posts = Enum.map(posts, &add_comment_to_post(&1, post_id, trimmed_comment))
-        {:noreply, stream(socket, :posts, updated_posts, reset: true)}
+        {:ok, _updated_post} = AddComment.execute(post_id, trimmed_comment, "You")
+        {:ok, posts} = ListPosts.execute()
+        {:noreply, stream(socket, :posts, posts, reset: true)}
     end
   end
-
-  # Private helpers - Data fetching
-  defp get_all_posts do
-    [
-      %{
-        id: "post_1",
-        author: "Ms. Sarah - Art Instructor",
-        avatar_bg: Theme.bg(:primary),
-        avatar_emoji: "👩‍🏫",
-        timestamp: "2 hours ago",
-        content:
-          "Amazing creativity from our Art World students today! 🎨 They're working on their masterpieces for the upcoming showcase. So proud of their progress!",
-        type: :photo,
-        photo_emoji: "🎨📸",
-        likes: 12,
-        comment_count: 5,
-        user_liked: false,
-        comments: [
-          %{author: "Parent Maria", text: "Emma loves this class!"},
-          %{author: "Parent John", text: "Can't wait for the showcase! 🎭"}
-        ]
-      },
-      %{
-        id: "post_2",
-        author: "Mr. David - Chess Coach",
-        avatar_bg: Theme.bg(:secondary),
-        avatar_emoji: "👨‍🏫",
-        timestamp: "5 hours ago",
-        content:
-          "Reminder: Chess tournament registration closes this Friday! 🏆 Great opportunity for our advanced students to showcase their skills. Prize ceremony will include medals and certificates! ♟️",
-        type: :text,
-        likes: 8,
-        comment_count: 3,
-        user_liked: false,
-        comments: []
-      },
-      %{
-        id: "post_3",
-        author: "Prime Youth Admin",
-        avatar_bg: Theme.bg(:accent),
-        avatar_emoji: "📋",
-        timestamp: "1 day ago",
-        content:
-          "🎉 Exciting News! We're hosting a Family Fun Day next Saturday! Join us for games, food trucks, and showcase performances from all our programs. Free entry for all Prime Youth families!",
-        type: :event,
-        event_details: %{
-          title: "📅 Family Fun Day",
-          date: "Saturday, March 15th • 10 AM - 4 PM",
-          location: "Greenwood Elementary School"
-        },
-        likes: 25,
-        comment_count: 12,
-        user_liked: false,
-        comments: []
-      }
-    ]
-  end
-
-  # Private helpers - Business logic
-  defp toggle_post_like(post, post_id) when post.id == post_id do
-    if post.user_liked do
-      %{post | user_liked: false, likes: post.likes - 1}
-    else
-      %{post | user_liked: true, likes: post.likes + 1}
-    end
-  end
-
-  defp toggle_post_like(post, _post_id), do: post
-
-  defp add_comment_to_post(post, post_id, comment_text) when post.id == post_id do
-    new_comment = %{author: "You", text: comment_text}
-    %{post | comments: post.comments ++ [new_comment], comment_count: post.comment_count + 1}
-  end
-
-  defp add_comment_to_post(post, _post_id, _comment_text), do: post
 
   @impl true
   def render(assigns) do

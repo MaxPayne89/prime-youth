@@ -66,4 +66,22 @@ defmodule PrimeYouthWeb.ErrorIds do
   Error parsing age range format when filtering programs.
   """
   def program_age_filter_error, do: "program.catalog.filter.age_parse_error"
+
+  @doc """
+  Database connection error when retrieving a program by ID.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def program_get_connection_error, do: "program.catalog.get.connection_error"
+
+  @doc """
+  Database query error when retrieving a program by ID.
+  Indicates SQL syntax error, constraint violation, or schema mismatch.
+  """
+  def program_get_query_error, do: "program.catalog.get.query_error"
+
+  @doc """
+  Generic/unexpected error when retrieving a program by ID.
+  Fallback for errors that don't fit other categories.
+  """
+  def program_get_generic_error, do: "program.catalog.get.generic_error"
 end

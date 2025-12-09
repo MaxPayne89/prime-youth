@@ -1,8 +1,11 @@
 defmodule PrimeYouthWeb.ContactLive do
   use PrimeYouthWeb, :live_view
 
+  alias PrimeYouth.Support.Application.UseCases.SubmitContactForm
   alias PrimeYouthWeb.Forms.ContactForm
   alias PrimeYouthWeb.{Theme, UIComponents}
+
+  require Logger
 
   if Mix.env() == :dev do
     use PrimeYouthWeb.DevAuthToggle
@@ -34,18 +37,25 @@ defmodule PrimeYouthWeb.ContactLive do
 
   @impl true
   def handle_event("submit", %{"contact" => contact_params}, socket) do
-    changeset = ContactForm.changeset(%ContactForm{}, contact_params)
-
-    case Ecto.Changeset.apply_action(changeset, :insert) do
-      {:ok, _contact} ->
-        # TODO: Implement actual contact form submission (send email, save to DB, etc.)
+    case SubmitContactForm.execute(contact_params) do
+      {:ok, _contact_request} ->
         {:noreply,
          socket
          |> assign(submission_status: :success)
          |> assign(form: to_form(ContactForm.changeset(%ContactForm{}, %{}), as: :contact))}
 
-      {:error, changeset} ->
+      {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, form: to_form(changeset, as: :contact))}
+
+      {:error, reason} ->
+        Logger.error("Contact form submission failed: #{inspect(reason)}")
+
+        {:noreply,
+         socket
+         |> put_flash(:error, "Failed to submit contact form. Please try again.")
+         |> assign(
+           form: to_form(ContactForm.changeset(%ContactForm{}, contact_params), as: :contact)
+         )}
     end
   end
 

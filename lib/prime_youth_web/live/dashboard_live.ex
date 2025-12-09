@@ -2,8 +2,9 @@ defmodule PrimeYouthWeb.DashboardLive do
   use PrimeYouthWeb, :live_view
 
   import PrimeYouthWeb.CompositeComponents
-  import PrimeYouthWeb.Live.SampleFixtures
 
+  alias PrimeYouth.Activities.Application.UseCases.ListUpcomingActivities
+  alias PrimeYouth.Family.Application.UseCases.{GetChildren, GetCurrentUser}
   alias PrimeYouthWeb.Theme
 
   if Mix.env() == :dev do
@@ -12,13 +13,14 @@ defmodule PrimeYouthWeb.DashboardLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    activities = sample_upcoming_activities()
-    children = sample_children(:extended)
+    {:ok, user} = GetCurrentUser.execute()
+    {:ok, children} = GetChildren.execute(:extended)
+    {:ok, activities} = ListUpcomingActivities.execute()
 
     socket =
       socket
       |> assign(page_title: "Dashboard")
-      |> assign(user: sample_user())
+      |> assign(user: user)
       |> assign(children_count: length(children))
       |> stream(:children, children)
       |> stream(:upcoming_activities, activities)

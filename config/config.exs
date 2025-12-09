@@ -45,6 +45,20 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
   pubsub_server: PrimeYouth.PubSub,
   live_view: [signing_salt: "JU2osypv"]
 
+# Configure Activities bounded context
+config :prime_youth, :activities,
+  repository:
+    PrimeYouth.Activities.Adapters.Driven.Persistence.Repositories.InMemoryActivityRepository
+
+# Configure Family bounded context
+config :prime_youth, :family,
+  repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFamilyRepository
+
+# Configure Highlights bounded context
+config :prime_youth, :highlights,
+  repository:
+    PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
+
 # Configure Program Catalog bounded context
 config :prime_youth, :program_catalog,
   repository: PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
@@ -61,6 +75,10 @@ config :prime_youth, :scopes,
     test_data_fixture: PrimeYouth.AccountsFixtures,
     test_setup_helper: :register_and_log_in_user
   ]
+
+# Configure Support bounded context
+config :prime_youth, :support,
+  repository: PrimeYouth.Support.Adapters.Driven.Persistence.Repositories.ContactRequestRepository
 
 config :prime_youth,
   ecto_repos: [PrimeYouth.Repo],
