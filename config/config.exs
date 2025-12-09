@@ -45,6 +45,11 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
   pubsub_server: PrimeYouth.PubSub,
   live_view: [signing_salt: "JU2osypv"]
 
+# Configure Highlights bounded context
+config :prime_youth, :highlights,
+  repository:
+    PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
+
 # Configure Program Catalog bounded context
 config :prime_youth, :program_catalog,
   repository: PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository

@@ -12,6 +12,8 @@ defmodule PrimeYouth.Application do
       PrimeYouth.Repo,
       {DNSCluster, query: Application.get_env(:prime_youth, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: PrimeYouth.PubSub},
+      # Start Highlights in-memory repository
+      PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository,
       # Start a worker by calling: PrimeYouth.Worker.start_link(arg)
       # {PrimeYouth.Worker, arg},
       # Start to serve requests, typically the last entry

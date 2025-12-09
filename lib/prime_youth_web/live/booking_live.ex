@@ -4,6 +4,7 @@ defmodule PrimeYouthWeb.BookingLive do
   import PrimeYouthWeb.BookingComponents
   import PrimeYouthWeb.Live.SampleFixtures
 
+  alias PrimeYouth.Enrollment.Application.UseCases.CalculateEnrollmentFees
   alias PrimeYouthWeb.Theme
 
   if Mix.env() == :dev do
@@ -40,7 +41,7 @@ defmodule PrimeYouthWeb.BookingLive do
         |> assign(registration_fee: @default_registration_fee)
         |> assign(vat_rate: @default_vat_rate)
         |> assign(card_fee: @default_card_processing_fee)
-        |> calculate_totals()
+        |> apply_fee_calculation()
 
       {:ok, socket}
     else
@@ -80,7 +81,7 @@ defmodule PrimeYouthWeb.BookingLive do
     socket =
       socket
       |> assign(payment_method: method)
-      |> calculate_totals()
+      |> apply_fee_calculation()
 
     {:noreply, socket}
   end
@@ -144,23 +145,21 @@ defmodule PrimeYouthWeb.BookingLive do
   end
 
   # Private helpers - Business logic
-  defp calculate_totals(socket) do
-    weekly_fee = socket.assigns.weekly_fee
-    registration_fee = socket.assigns.registration_fee
-    vat_rate = socket.assigns.vat_rate
-    card_fee = socket.assigns.card_fee
-    payment_method = socket.assigns.payment_method
-
-    subtotal = weekly_fee + registration_fee
-    vat_amount = subtotal * vat_rate
-    card_fee_amount = if payment_method == "card", do: card_fee, else: 0.0
-    total = subtotal + vat_amount + card_fee_amount
+  defp apply_fee_calculation(socket) do
+    {:ok, fees} =
+      CalculateEnrollmentFees.execute(%{
+        weekly_fee: socket.assigns.weekly_fee,
+        registration_fee: socket.assigns.registration_fee,
+        vat_rate: socket.assigns.vat_rate,
+        card_fee: socket.assigns.card_fee,
+        payment_method: socket.assigns.payment_method
+      })
 
     socket
-    |> assign(subtotal: subtotal)
-    |> assign(vat_amount: vat_amount)
-    |> assign(card_fee_amount: card_fee_amount)
-    |> assign(total: total)
+    |> assign(subtotal: fees.subtotal)
+    |> assign(vat_amount: fees.vat_amount)
+    |> assign(card_fee_amount: fees.card_fee_amount)
+    |> assign(total: fees.total)
   end
 
   # Private helpers - Validation
