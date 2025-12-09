@@ -104,7 +104,6 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Models.Program do
     validate(program) == []
   end
 
-  # Private validation function that collects all errors
   defp validate(%__MODULE__{} = program) do
     []
     |> validate_title(program.title)

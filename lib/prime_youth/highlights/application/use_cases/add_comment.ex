@@ -75,7 +75,6 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddComment do
     end
   end
 
-  # Private helper to add a comment to a post
   defp add_comment_to_post(post, comment_text, author) do
     new_comment = %Comment{author: author, text: comment_text}
 
@@ -86,7 +85,6 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddComment do
     }
   end
 
-  # Private helper to get the configured repository module
   defp repository_module do
     Application.get_env(:prime_youth, :highlights)[:repository]
   end
