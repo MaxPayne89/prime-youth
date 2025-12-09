@@ -62,7 +62,6 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
   describe "execute/0" do
     # T045: Returns {:ok, programs} when repository succeeds
     test "returns {:ok, programs} when repository succeeds with valid programs" do
-      # Arrange: Create sample programs
       program1 = %Program{
         id: "550e8400-e29b-41d4-a716-446655440001",
         title: "Soccer Stars",
@@ -93,13 +92,10 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         updated_at: ~U[2025-01-02 10:00:00Z]
       }
 
-      # Set mock to return programs
       Process.put(:mock_repository_response, {:ok, [program1, program2]})
 
-      # Act: Execute use case
       result = ListAllPrograms.execute()
 
-      # Assert: Verify successful response
       assert {:ok, programs} = result
       assert length(programs) == 2
       assert Enum.at(programs, 0) == program1
@@ -108,50 +104,39 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
 
     # T046: Returns {:ok, []} when no programs exist
     test "returns {:ok, []} when no programs exist in repository" do
-      # Arrange: Set mock to return empty list
       Process.put(:mock_repository_response, {:ok, []})
 
-      # Act: Execute use case
       result = ListAllPrograms.execute()
 
-      # Assert: Verify empty list response
       assert {:ok, []} = result
     end
 
     # T047: Returns {:error, :database_error} when repository fails
     test "returns {:error, :database_error} when repository fails" do
-      # Arrange: Set mock to return database error
       Process.put(:mock_repository_response, {:error, :database_error})
 
-      # Act: Execute use case
       result = ListAllPrograms.execute()
 
-      # Assert: Verify error is propagated
       assert {:error, :database_error} = result
     end
 
     # T048: Propagates error without logging (domain purity)
     test "propagates error without logging (domain purity)" do
       import ExUnit.CaptureLog
-      # Arrange: Set mock to return database error
+
       Process.put(:mock_repository_response, {:error, :database_error})
 
-      # Capture any logs that might be emitted
-
-      # Act: Execute use case and capture logs
       log_output =
         capture_log(fn ->
           result = ListAllPrograms.execute()
           assert {:error, :database_error} = result
         end)
 
-      # Assert: Verify no logs were emitted (domain purity)
       # The use case should not log errors - that's the adapter's responsibility
       assert log_output == ""
     end
 
     test "handles repository returning multiple valid programs in correct order" do
-      # Arrange: Create programs in non-alphabetical order
       program1 = %Program{
         id: "550e8400-e29b-41d4-a716-446655440003",
         title: "Zebra Zone",
@@ -182,22 +167,17 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         updated_at: ~U[2025-01-04 11:00:00Z]
       }
 
-      # Repository should return them in alphabetical order (Art Club, Zebra Zone)
       Process.put(:mock_repository_response, {:ok, [program2, program1]})
 
-      # Act: Execute use case
       result = ListAllPrograms.execute()
 
-      # Assert: Verify programs are returned in the order from repository
       assert {:ok, programs} = result
       assert length(programs) == 2
-      # Use case should preserve repository ordering
       assert Enum.at(programs, 0).title == "Art Club"
       assert Enum.at(programs, 1).title == "Zebra Zone"
     end
 
     test "handles programs with edge case values (free program, sold out)" do
-      # Arrange: Create programs with edge case values
       free_program = %Program{
         id: "550e8400-e29b-41d4-a716-446655440005",
         title: "Community Service",
@@ -230,10 +210,8 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
 
       Process.put(:mock_repository_response, {:ok, [free_program, sold_out_program]})
 
-      # Act: Execute use case
       result = ListAllPrograms.execute()
 
-      # Assert: Verify both programs are returned correctly
       assert {:ok, programs} = result
       assert length(programs) == 2
 

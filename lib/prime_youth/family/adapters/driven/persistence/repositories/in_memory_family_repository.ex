@@ -112,14 +112,9 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFam
     Agent.update(__MODULE__, fn _state -> load_initial_data() end)
   end
 
-  # Private Functions
-
   defp load_initial_data do
-    # Load user from fixtures
     fixture_user = SampleFixtures.sample_user()
 
-    # Note: SampleFixtures.sample_user() doesn't have an id field,
-    # so we use a hardcoded ID of 1 for the single user
     user = %User{
       id: 1,
       name: fixture_user.name,
@@ -128,7 +123,6 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFam
       children_summary: fixture_user.children_summary
     }
 
-    # Load simple children from fixtures
     fixture_children_simple = SampleFixtures.sample_children(:simple)
 
     children_simple =
@@ -144,7 +138,6 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFam
         }
       end)
 
-    # Load extended children from fixtures
     fixture_children_extended = SampleFixtures.sample_children(:extended)
 
     children_extended =

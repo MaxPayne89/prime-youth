@@ -61,7 +61,6 @@ defmodule PrimeYouth.Highlights.Application.UseCases.ListPosts do
     repository_module().list_all()
   end
 
-  # Private helper to get the configured repository module
   defp repository_module do
     Application.get_env(:prime_youth, :highlights)[:repository]
   end

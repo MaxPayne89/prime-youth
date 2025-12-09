@@ -59,7 +59,6 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
   describe "execute/0 - Integration Tests" do
     # T049: Returns valid domain models from real repository
     test "returns valid domain models from real repository" do
-      # Arrange: Insert actual programs via the database
       insert_program(%{
         title: "Soccer Camp",
         description: "Fun soccer for kids",
@@ -80,17 +79,12 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         spots_available: 15
       })
 
-      # Act: Execute use case (no mocks - real repository)
       {:ok, programs} = ListAllPrograms.execute()
 
-      # Assert: Verify domain model contracts
       assert length(programs) == 2
       assert Enum.all?(programs, &match?(%Program{}, &1))
 
-      # Verify all programs are valid domain models
       assert Enum.all?(programs, fn program ->
-               # Check struct type
-               # Check required fields are present and valid
                match?(%Program{}, program) &&
                  is_binary(program.id) &&
                  is_binary(program.title) && program.title != "" &&
@@ -102,7 +96,6 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
                  is_integer(program.spots_available) && program.spots_available >= 0
              end)
 
-      # Verify specific program data was correctly mapped
       soccer_camp = Enum.find(programs, &(&1.title == "Soccer Camp"))
       assert soccer_camp.description == "Fun soccer for kids"
       assert soccer_camp.schedule == "Mon-Fri 9AM-12PM"
@@ -118,20 +111,16 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
 
     # T050: Returns empty list when database is empty
     test "returns empty list when database is empty" do
-      # Arrange: Ensure database is empty
       Repo.delete_all(ProgramSchema)
 
-      # Act: Execute use case
       {:ok, programs} = ListAllPrograms.execute()
 
-      # Assert: Verify empty list is returned (not nil, not error)
       assert programs == []
       assert is_list(programs)
     end
 
     # T051: Returns programs in alphabetical order by title
     test "returns programs in alphabetical order by title" do
-      # Arrange: Insert programs in non-alphabetical order
       insert_program(%{
         title: "Zebra Camp",
         description: "Wildlife education",
@@ -162,24 +151,20 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         spots_available: 10
       })
 
-      # Act: Execute use case
       {:ok, programs} = ListAllPrograms.execute()
 
-      # Assert: Verify programs are ordered alphabetically by title
       titles = Enum.map(programs, & &1.title)
       assert titles == ["Art Class", "Music Lessons", "Zebra Camp"]
     end
 
     # T052: Configuration injection resolves repository correctly
     test "configuration injection resolves repository correctly" do
-      # Arrange: Verify config is set to the real repository
       config = Application.get_env(:prime_youth, :program_catalog)
       repository_module = config[:repository]
 
       assert repository_module ==
                PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
 
-      # Insert a program to verify repository is actually being used
       insert_program(%{
         title: "Test Program",
         description: "Description",
@@ -190,17 +175,14 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         spots_available: 10
       })
 
-      # Act: Execute use case (should use configured repository)
       {:ok, programs} = ListAllPrograms.execute()
 
-      # Assert: Verify program was retrieved via configured repository
       assert length(programs) == 1
       assert List.first(programs).title == "Test Program"
     end
 
     # T053: Handles edge cases (free programs, sold-out programs)
     test "handles edge cases: free programs and sold-out programs" do
-      # Arrange: Create programs with edge case values
       insert_program(%{
         title: "Free Community Service",
         description: "Give back to the community",
@@ -221,30 +203,25 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         spots_available: 0
       })
 
-      # Act: Execute use case
       {:ok, programs} = ListAllPrograms.execute()
 
-      # Assert: Verify both programs are returned correctly
       assert length(programs) == 2
 
       free_program = Enum.find(programs, &(&1.title == "Free Community Service"))
       assert Decimal.equal?(free_program.price, Decimal.new("0.00"))
       assert free_program.spots_available == 20
-      # Verify free? helper method works (domain model behavior)
       assert Program.free?(free_program)
       refute Program.sold_out?(free_program)
 
       sold_out_program = Enum.find(programs, &(&1.title == "Sold Out Camp"))
       assert Decimal.equal?(sold_out_program.price, Decimal.new("500.00"))
       assert sold_out_program.spots_available == 0
-      # Verify sold_out? helper method works (domain model behavior)
       assert Program.sold_out?(sold_out_program)
       refute Program.free?(sold_out_program)
     end
 
     # T054: All returned programs satisfy domain model contracts
     test "all returned programs satisfy domain model contracts" do
-      # Arrange: Insert various programs with different valid configurations
       insert_program(%{
         title: "Program A",
         description: "Description A",
@@ -253,7 +230,6 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         price: Decimal.new("100.00"),
         pricing_period: "per week",
         spots_available: 10,
-        # Optional fields
         gradient_class: "custom-gradient",
         icon_path: "/custom/icon.svg"
       })
@@ -266,17 +242,13 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         price: Decimal.new("0.00"),
         pricing_period: "free",
         spots_available: 0
-        # Optional fields are nil
       })
 
-      # Act: Execute use case
       {:ok, programs} = ListAllPrograms.execute()
 
-      # Assert: Verify ALL programs satisfy domain contracts
       assert length(programs) == 2
 
       Enum.each(programs, fn program ->
-        # Required fields must be non-nil and non-empty for strings
         assert is_binary(program.id) && program.id != ""
         assert is_binary(program.title) && program.title != ""
         assert is_binary(program.description) && program.description != ""
@@ -286,18 +258,15 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         assert is_binary(program.pricing_period) && program.pricing_period != ""
         assert is_integer(program.spots_available) && program.spots_available >= 0
 
-        # Optional fields can be nil
         if program.gradient_class, do: assert(is_binary(program.gradient_class))
         if program.icon_path, do: assert(is_binary(program.icon_path))
 
-        # Timestamps should be set
         assert match?(%DateTime{}, program.inserted_at)
         assert match?(%DateTime{}, program.updated_at)
       end)
     end
 
     test "handles multiple programs with varying optional fields" do
-      # Arrange: Create programs with different combinations of optional fields
       insert_program(%{
         title: "Program 1",
         description: "With all fields",
@@ -318,13 +287,10 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         price: Decimal.new("100.00"),
         pricing_period: "per week",
         spots_available: 10
-        # gradient_class and icon_path are nil
       })
 
-      # Act: Execute use case
       {:ok, programs} = ListAllPrograms.execute()
 
-      # Assert: Verify both programs are returned with correct optional field handling
       assert length(programs) == 2
 
       program1 = Enum.find(programs, &(&1.title == "Program 1"))
@@ -337,13 +303,9 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
     end
   end
 
-  # Helper function to insert a complete valid program via ProgramSchema
-  # This simulates actual database persistence and tests the full integration path
   defp insert_program(attrs) do
     default_attrs = %{
       id: Ecto.UUID.generate()
-      # gradient_class and icon_path intentionally left as nil by default
-      # to test optional field handling
     }
 
     attrs = Map.merge(default_attrs, attrs)

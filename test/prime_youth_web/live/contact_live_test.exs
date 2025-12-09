@@ -14,7 +14,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
     test "displays contact information", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/contact")
 
-      # Verify contact methods are displayed
       assert html =~ "support@primeyouth.com"
       assert html =~ "+1 (555) 123-4567"
       assert html =~ "123 Youth Avenue, Suite 100"
@@ -34,7 +33,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
     test "validates required fields", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      # Submit empty form
       render_change(view, "validate", %{
         "contact" => %{
           "name" => "",
@@ -44,7 +42,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
         }
       })
 
-      # Verify validation errors appear
       html = render(view)
       assert html =~ "can&#39;t be blank" or html =~ "can't be blank"
     end
@@ -52,7 +49,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
     test "validates name length constraints", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      # Test name too short (< 2 characters)
       render_change(view, "validate", %{
         "contact" => %{
           "name" => "A",
@@ -65,7 +61,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
       html = render(view)
       assert html =~ "should be at least 2 character"
 
-      # Test name too long (> 100 characters)
       long_name = String.duplicate("A", 101)
 
       render_change(view, "validate", %{
@@ -84,7 +79,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
     test "validates email format", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      # Test invalid email (no @ symbol)
       render_change(view, "validate", %{
         "contact" => %{
           "name" => "John Doe",
@@ -101,7 +95,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
     test "validates message length constraints", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      # Test message too short (< 10 characters)
       render_change(view, "validate", %{
         "contact" => %{
           "name" => "John Doe",
@@ -114,7 +107,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
       html = render(view)
       assert html =~ "should be at least 10 character"
 
-      # Test message too long (> 1000 characters)
       long_message = String.duplicate("A", 1001)
 
       render_change(view, "validate", %{
@@ -133,7 +125,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
     test "validates subject is from allowed options", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      # Test invalid subject
       render_change(view, "validate", %{
         "contact" => %{
           "name" => "John Doe",
@@ -150,7 +141,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
     test "accepts valid form submission", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      # Submit valid form
       render_submit(view, "submit", %{
         "contact" => %{
           "name" => "John Doe",
@@ -170,7 +160,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
     test "resets form after successful submission", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      # Submit valid form
       render_submit(view, "submit", %{
         "contact" => %{
           "name" => "John Doe",
@@ -180,7 +169,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
         }
       })
 
-      # Form should be reset (empty values)
       html = render(view)
       refute html =~ "value=\"John Doe\""
       refute html =~ "value=\"john@example.com\""
@@ -189,7 +177,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
     test "displays validation errors on submit with invalid data", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      # Submit invalid form
       render_submit(view, "submit", %{
         "contact" => %{
           "name" => "A",
@@ -199,7 +186,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
         }
       })
 
-      # Should show validation errors
       html = render(view)
       assert html =~ "should be at least 2 character" or html =~ "should be at least 10 character"
       refute html =~ "Message sent successfully!"
@@ -228,7 +214,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
     test "real-time validation updates as user types", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      # Start with invalid email
       render_change(view, "validate", %{
         "contact" => %{
           "name" => "John Doe",
@@ -241,7 +226,6 @@ defmodule PrimeYouthWeb.ContactLiveTest do
       html = render(view)
       assert html =~ "must be a valid email address"
 
-      # Fix email
       render_change(view, "validate", %{
         "contact" => %{
           "name" => "John Doe",

@@ -84,10 +84,7 @@ defmodule PrimeYouth.Activities.Adapters.Driven.Persistence.Repositories.InMemor
     Agent.update(__MODULE__, fn _state -> load_initial_data() end)
   end
 
-  # Private Functions
-
   defp load_initial_data do
-    # Load activities from fixtures
     fixture_activities = SampleFixtures.sample_upcoming_activities()
 
     activities =

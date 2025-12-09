@@ -64,7 +64,6 @@ defmodule PrimeYouth.Family.Application.UseCases.GetChildren do
     repository_module().list_children(variant)
   end
 
-  # Private helper to get the configured repository module
   defp repository_module do
     Application.get_env(:prime_youth, :family)[:repository]
   end

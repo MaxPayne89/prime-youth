@@ -72,7 +72,6 @@ defmodule PrimeYouth.Highlights.Application.UseCases.ToggleLike do
     end
   end
 
-  # Private helper to toggle the like status of a post
   defp toggle_like_status(%Post{user_liked: true} = post) do
     %{post | user_liked: false, likes: post.likes - 1}
   end
@@ -81,7 +80,6 @@ defmodule PrimeYouth.Highlights.Application.UseCases.ToggleLike do
     %{post | user_liked: true, likes: post.likes + 1}
   end
 
-  # Private helper to get the configured repository module
   defp repository_module do
     Application.get_env(:prime_youth, :highlights)[:repository]
   end

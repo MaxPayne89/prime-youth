@@ -54,7 +54,6 @@ defmodule PrimeYouth.Activities.Application.UseCases.ListUpcomingActivities do
     repository_module().list_upcoming()
   end
 
-  # Private helper to get the configured repository module
   defp repository_module do
     Application.get_env(:prime_youth, :activities)[:repository]
   end

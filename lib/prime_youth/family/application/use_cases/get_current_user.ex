@@ -55,7 +55,6 @@ defmodule PrimeYouth.Family.Application.UseCases.GetCurrentUser do
     repository_module().get_current_user()
   end
 
-  # Private helper to get the configured repository module
   defp repository_module do
     Application.get_env(:prime_youth, :family)[:repository]
   end
