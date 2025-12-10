@@ -17,9 +17,10 @@ config :phoenix_test, :endpoint, PrimeYouthWeb.Endpoint
 
 # Configure your database
 #
-# The MIX_TEST_PARTITION environment variable can be used
 
 # In test we don't send emails
+# The MIX_TEST_PARTITION environment variable can be used
+
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :prime_youth, PrimeYouth.Mailer, adapter: Swoosh.Adapters.Test
@@ -39,10 +40,10 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
   secret_key_base: "gY/oKuAYeC5ExhHrtu1JBwrpQdoGwtPOo3X9GdS7CFOnLe0eqRQ9w4cyV1MqvoYc",
   server: false
 
-# Disable swoosh api client as it is only required for production adapters
-config :swoosh, :api_client, false
-
 # Use test event publisher for testing
 config :prime_youth, :event_publisher,
   module: PrimeYouth.Shared.Adapters.Driven.Events.TestEventPublisher,
   pubsub: PrimeYouth.PubSub
+
+# Disable swoosh api client as it is only required for production adapters
+config :swoosh, :api_client, false
