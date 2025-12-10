@@ -7,10 +7,6 @@ defmodule PrimeYouthWeb.ContactLive do
 
   require Logger
 
-  if Mix.env() == :dev do
-    use PrimeYouthWeb.DevAuthToggle
-  end
-
   @impl true
   def mount(_params, _session, socket) do
     changeset = ContactForm.changeset(%ContactForm{}, %{})

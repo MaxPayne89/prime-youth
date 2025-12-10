@@ -6,10 +6,6 @@ defmodule PrimeYouthWeb.HomeLive do
   alias PrimeYouth.ProgramCatalog.Application.UseCases.ListFeaturedPrograms
   alias PrimeYouthWeb.Theme
 
-  if Mix.env() == :dev do
-    use PrimeYouthWeb.DevAuthToggle
-  end
-
   @impl true
   def mount(_params, _session, socket) do
     {:ok, featured} = ListFeaturedPrograms.execute()
@@ -17,7 +13,6 @@ defmodule PrimeYouthWeb.HomeLive do
     socket =
       socket
       |> assign(page_title: "Prime Youth - Afterschool Adventures Await")
-      |> assign(current_user: nil)
       |> assign(featured_programs: featured)
 
     {:ok, socket}

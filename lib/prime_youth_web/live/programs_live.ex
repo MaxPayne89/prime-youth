@@ -10,10 +10,6 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
   require Logger
 
-  if Mix.env() == :dev do
-    use PrimeYouthWeb.DevAuthToggle
-  end
-
   @valid_filters ["all", "available", "ages", "price"]
 
   # Private helpers - Static data

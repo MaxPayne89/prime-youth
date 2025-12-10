@@ -10,10 +10,41 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
+alias PrimeYouth.Accounts.User
 alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
 alias PrimeYouth.Repo
 
 require Logger
+
+# Test Users
+Logger.info("Seeding test users...")
+
+# Clear existing users to ensure idempotent seeding
+Repo.delete_all(User)
+Logger.info("Cleared existing users")
+
+test_users = [
+  %{
+    name: "Max Pergl",
+    email: "maxpergl@gmail.com",
+    hashed_password: Bcrypt.hash_pwd_salt("password"),
+    confirmed_at: DateTime.utc_now(:second)
+  },
+  %{
+    name: "Prime Youth Admin",
+    email: "app@primeyouth.de",
+    hashed_password: Bcrypt.hash_pwd_salt("password"),
+    confirmed_at: DateTime.utc_now(:second)
+  }
+]
+
+Enum.each(test_users, fn user_attrs ->
+  %User{}
+  |> Ecto.Changeset.change(user_attrs)
+  |> Repo.insert!()
+end)
+
+Logger.info("Seeded #{length(test_users)} test users successfully")
 
 # Program Catalog Seeds
 # Reference: specs/001-program-catalog/data-model.md (Sample Data section)
