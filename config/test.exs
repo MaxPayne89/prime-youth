@@ -41,3 +41,8 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
+
+# Use test event publisher for testing
+config :prime_youth, :event_publisher,
+  module: PrimeYouth.Shared.Adapters.Driven.Events.TestEventPublisher,
+  pubsub: PrimeYouth.PubSub

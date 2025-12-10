@@ -80,6 +80,11 @@ config :prime_youth, :scopes,
 config :prime_youth, :support,
   repository: PrimeYouth.Support.Adapters.Driven.Persistence.Repositories.ContactRequestRepository
 
+# Configure Event Publisher
+config :prime_youth, :event_publisher,
+  module: PrimeYouth.Shared.Adapters.Driven.Events.PubSubEventPublisher,
+  pubsub: PrimeYouth.PubSub
+
 config :prime_youth,
   ecto_repos: [PrimeYouth.Repo],
   generators: [timestamp_type: :utc_datetime]
