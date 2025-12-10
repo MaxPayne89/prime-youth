@@ -259,27 +259,29 @@ defmodule PrimeYouthWeb.CoreComponents do
       <textarea
         id={@id}
         name={@name}
-        class={[
-          # Base styles - increased spacing and text
-          "mt-2 block w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6",
-          "min-h-[6rem]",
-          # Solid background for contrast
-          "bg-white/90 backdrop-blur-sm",
-          # Thicker, darker borders for visibility
-          "border-2",
-          # Default state - visible dark border
-          "phx-no-feedback:border-zinc-400 phx-no-feedback:focus:border-cyan-500",
-          # Valid state - darker border with cyan accent on focus
-          @errors == [] && "border-zinc-400 focus:border-cyan-500",
-          # Error state - red border
-          @errors != [] && "border-rose-500 focus:border-rose-600",
-          # Add subtle shadow for depth
-          "shadow-sm focus:shadow-md",
-          # Smooth transitions
-          "transition-all duration-200",
-          # Enhanced focus ring
-          "focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0"
-        ]}
+        class={
+          [
+            # Base styles - increased spacing and text
+            "mt-2 block w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6",
+            "min-h-[6rem]",
+            # Solid background for contrast
+            "bg-white/90 backdrop-blur-sm",
+            # Thicker, darker borders for visibility
+            "border-2",
+            # Default state - visible dark border
+            "phx-no-feedback:border-zinc-400 phx-no-feedback:focus:border-cyan-500",
+            # Valid state - darker border with cyan accent on focus
+            @errors == [] && "border-zinc-400 focus:border-cyan-500",
+            # Error state - red border
+            @errors != [] && "border-rose-500 focus:border-rose-600",
+            # Add subtle shadow for depth
+            "shadow-sm focus:shadow-md",
+            # Smooth transitions
+            "transition-all duration-200",
+            # Enhanced focus ring
+            "focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0"
+          ]
+        }
         {@rest}
       >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
       <.error :for={msg <- @errors}>{msg}</.error>
@@ -296,26 +298,28 @@ defmodule PrimeYouthWeb.CoreComponents do
         name={@name}
         id={@id}
         value={Phoenix.HTML.Form.normalize_value(@type, @value)}
-        class={[
-          # Base styles - increased spacing and text
-          "mt-2 block w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6",
-          # Solid background for contrast
-          "bg-white/90 backdrop-blur-sm",
-          # Thicker, darker borders for visibility
-          "border-2",
-          # Default state - visible dark border
-          "phx-no-feedback:border-zinc-400 phx-no-feedback:focus:border-cyan-500",
-          # Valid state - darker border with cyan accent on focus
-          @errors == [] && "border-zinc-400 focus:border-cyan-500",
-          # Error state - red border
-          @errors != [] && "border-rose-500 focus:border-rose-600",
-          # Add subtle shadow for depth
-          "shadow-sm focus:shadow-md",
-          # Smooth transitions
-          "transition-all duration-200",
-          # Enhanced focus ring
-          "focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0"
-        ]}
+        class={
+          [
+            # Base styles - increased spacing and text
+            "mt-2 block w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6",
+            # Solid background for contrast
+            "bg-white/90 backdrop-blur-sm",
+            # Thicker, darker borders for visibility
+            "border-2",
+            # Default state - visible dark border
+            "phx-no-feedback:border-zinc-400 phx-no-feedback:focus:border-cyan-500",
+            # Valid state - darker border with cyan accent on focus
+            @errors == [] && "border-zinc-400 focus:border-cyan-500",
+            # Error state - red border
+            @errors != [] && "border-rose-500 focus:border-rose-600",
+            # Add subtle shadow for depth
+            "shadow-sm focus:shadow-md",
+            # Smooth transitions
+            "transition-all duration-200",
+            # Enhanced focus ring
+            "focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0"
+          ]
+        }
         {@rest}
       />
       <.error :for={msg <- @errors}>{msg}</.error>
