@@ -7,10 +7,6 @@ defmodule PrimeYouthWeb.DashboardLive do
   alias PrimeYouth.Family.Application.UseCases.{GetChildren, GetCurrentUser}
   alias PrimeYouthWeb.Theme
 
-  if Mix.env() == :dev do
-    use PrimeYouthWeb.DevAuthToggle
-  end
-
   @impl true
   def mount(_params, _session, socket) do
     {:ok, user} = GetCurrentUser.execute()

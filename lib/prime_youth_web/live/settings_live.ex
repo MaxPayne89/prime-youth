@@ -6,10 +6,6 @@ defmodule PrimeYouthWeb.SettingsLive do
 
   alias PrimeYouthWeb.Theme
 
-  if Mix.env() == :dev do
-    use PrimeYouthWeb.DevAuthToggle
-  end
-
   @impl true
   def mount(_params, _session, socket) do
     socket =

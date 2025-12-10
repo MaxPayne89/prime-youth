@@ -7,10 +7,6 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
   alias PrimeYouth.ProgramCatalog.Application.UseCases.GetProgramById
   alias PrimeYouthWeb.Theme
 
-  if Mix.env() == :dev do
-    use PrimeYouthWeb.DevAuthToggle
-  end
-
   @default_weeks_count 4
 
   @impl true
@@ -29,7 +25,6 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
         socket =
           socket
           |> assign(page_title: program.title)
-          |> assign(current_user: nil)
           |> assign(program: program_with_items)
           |> assign(instructor: sample_instructor())
           |> assign(reviews: sample_reviews())

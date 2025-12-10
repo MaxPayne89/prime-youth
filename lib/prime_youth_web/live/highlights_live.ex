@@ -6,10 +6,6 @@ defmodule PrimeYouthWeb.HighlightsLive do
   alias PrimeYouth.Highlights.Application.UseCases.{ListPosts, ToggleLike, AddComment}
   alias PrimeYouthWeb.Theme
 
-  if Mix.env() == :dev do
-    use PrimeYouthWeb.DevAuthToggle
-  end
-
   @impl true
   def mount(_params, _session, socket) do
     {:ok, posts} = ListPosts.execute()
@@ -17,7 +13,6 @@ defmodule PrimeYouthWeb.HighlightsLive do
     socket =
       socket
       |> assign(page_title: "Highlights")
-      |> assign(current_user: nil)
       |> stream(:posts, posts)
       |> assign(:posts_empty?, Enum.empty?(posts))
 

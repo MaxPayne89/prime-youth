@@ -3,16 +3,11 @@ defmodule PrimeYouthWeb.AboutLive do
 
   alias PrimeYouthWeb.{Theme, UIComponents}
 
-  if Mix.env() == :dev do
-    use PrimeYouthWeb.DevAuthToggle
-  end
-
   @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
       |> assign(page_title: "About Us")
-      |> assign(current_user: nil)
 
     {:ok, socket}
   end

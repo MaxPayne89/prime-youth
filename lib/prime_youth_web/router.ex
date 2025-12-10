@@ -20,7 +20,7 @@ defmodule PrimeYouthWeb.Router do
   scope "/", PrimeYouthWeb do
     pipe_through :browser
 
-    # Public routes (no authentication required)
+    # Public routes - optional authentication
     live_session :public,
       layout: {PrimeYouthWeb.Layouts, :app},
       on_mount: [{PrimeYouthWeb.UserAuth, :mount_current_scope}] do
@@ -31,13 +31,13 @@ defmodule PrimeYouthWeb.Router do
       live "/contact", ContactLive, :index
     end
 
-    # Authenticated routes (require login)
+    # Protected routes - authentication required
     live_session :authenticated,
       layout: {PrimeYouthWeb.Layouts, :app},
       on_mount: [{PrimeYouthWeb.UserAuth, :require_authenticated}] do
       live "/dashboard", DashboardLive, :index
-      live "/highlights", HighlightsLive, :index
       live "/settings", SettingsLive, :index
+      live "/highlights", HighlightsLive, :index
       live "/programs/:id/booking", BookingLive, :new
     end
   end

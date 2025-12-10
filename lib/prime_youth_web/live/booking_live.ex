@@ -8,10 +8,6 @@ defmodule PrimeYouthWeb.BookingLive do
   alias PrimeYouth.ProgramCatalog.Application.UseCases.GetProgramById
   alias PrimeYouthWeb.Theme
 
-  if Mix.env() == :dev do
-    use PrimeYouthWeb.DevAuthToggle
-  end
-
   @default_weekly_fee 45.00
   @default_weeks_count 8
   @default_registration_fee 25.00
