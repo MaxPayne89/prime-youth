@@ -50,7 +50,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
               required
               phx-mounted={JS.focus()}
             />
-            <.button class="btn btn-primary w-full">
+            <.button class="btn btn-primary w-full mt-6">
               Send Magic Link
             </.button>
           </.form>
@@ -88,7 +88,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
               label="Password"
               autocomplete="current-password"
             />
-            <.button class="btn btn-primary w-full" name={@form[:remember_me].name} value="true">
+            <.button class="btn btn-primary w-full mt-6" name={@form[:remember_me].name} value="true">
               Log in and stay logged in <span aria-hidden="true">→</span>
             </.button>
             <.button class="btn btn-primary btn-soft w-full mt-2">
