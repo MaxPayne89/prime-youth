@@ -78,7 +78,6 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
       iex> DomainEvent.critical?(event)
       true
   """
-  @spec user_registered(User, map(), keyword()) :: DomainEvent.t()
   def user_registered(%User{} = user, payload \\ %{}, opts \\ []) do
     validate_user_for_registration!(user)
 
@@ -129,7 +128,6 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
       iex> event.event_type
       :user_confirmed
   """
-  @spec user_confirmed(User, map(), keyword()) :: DomainEvent.t()
   def user_confirmed(%User{} = user, payload \\ %{}, opts \\ []) do
     validate_user_for_confirmation!(user)
 
@@ -180,7 +178,6 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
       iex> event.payload.previous_email
       "old@example.com"
   """
-  @spec user_email_changed(User, map(), keyword()) :: DomainEvent.t()
   def user_email_changed(user, payload, opts \\ [])
 
   def user_email_changed(%User{} = user, %{previous_email: previous_email} = payload, opts)

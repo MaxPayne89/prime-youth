@@ -59,7 +59,6 @@ defmodule PrimeYouth.Accounts.EventPublisher do
   - `:ok` on successful publish
   - `{:error, reason}` on failure
   """
-  @spec publish_user_registered(User, keyword()) :: :ok | {:error, term()}
   def publish_user_registered(%User{} = user, opts \\ []) do
     {payload_opts, meta_opts} = extract_payload_opts(opts, [:registration_source])
 
@@ -91,7 +90,6 @@ defmodule PrimeYouth.Accounts.EventPublisher do
   - `:ok` on successful publish
   - `{:error, reason}` on failure
   """
-  @spec publish_user_confirmed(User, keyword()) :: :ok | {:error, term()}
   def publish_user_confirmed(%User{} = user, opts \\ []) do
     {payload_opts, meta_opts} = extract_payload_opts(opts, [:confirmation_method])
 
@@ -122,7 +120,6 @@ defmodule PrimeYouth.Accounts.EventPublisher do
   - `:ok` on successful publish
   - `{:error, reason}` on failure
   """
-  @spec publish_user_email_changed(User, keyword()) :: :ok | {:error, term()}
   def publish_user_email_changed(%User{} = user, opts) do
     {payload_opts, meta_opts} = extract_payload_opts(opts, [:previous_email])
 

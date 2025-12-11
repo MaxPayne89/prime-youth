@@ -64,7 +64,6 @@ defmodule PrimeYouth.Activities.Adapters.Driven.Persistence.Repositories.InMemor
       {:ok, activities} = list_upcoming()
       length(activities) > 0  # => true
   """
-  @spec list_upcoming() :: {:ok, [Activity.t()]}
   def list_upcoming do
     activities = Agent.get(__MODULE__, fn state -> state.activities end)
     {:ok, activities}
