@@ -394,4 +394,36 @@ defmodule PrimeYouth.AccountsTest do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
+
+  describe "export_user_data/1" do
+    test "exports user data in GDPR-compliant format" do
+      user = user_fixture()
+      data = Accounts.export_user_data(user)
+
+      assert %{exported_at: _, user: user_data} = data
+      assert user_data.email == user.email
+      assert user_data.name == user.name
+      assert user_data.id == user.id
+      assert user_data.avatar == user.avatar
+      refute Map.has_key?(user_data, :hashed_password)
+      refute Map.has_key?(user_data, :password)
+    end
+
+    test "includes timestamps in ISO8601 format" do
+      user = user_fixture()
+      data = Accounts.export_user_data(user)
+
+      assert is_binary(data.exported_at)
+      assert {:ok, _, _} = DateTime.from_iso8601(data.exported_at)
+      assert is_binary(data.user.created_at)
+      assert {:ok, _, _} = DateTime.from_iso8601(data.user.created_at)
+    end
+
+    test "handles nil confirmed_at" do
+      user = unconfirmed_user_fixture()
+      data = Accounts.export_user_data(user)
+
+      assert is_nil(data.user.confirmed_at)
+    end
+  end
 end

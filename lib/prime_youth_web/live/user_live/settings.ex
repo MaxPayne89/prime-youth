@@ -62,6 +62,22 @@ defmodule PrimeYouthWeb.UserLive.Settings do
           Save Password
         </.button>
       </.form>
+
+      <div class="divider" />
+
+      <div class="text-center">
+        <.header>
+          Your Data
+          <:subtitle>Download a copy of all your personal data</:subtitle>
+        </.header>
+
+        <.link
+          href={~p"/users/export-data"}
+          class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          <.icon name="hero-arrow-down-tray" class="w-5 h-5" /> Download My Data
+        </.link>
+      </div>
     </Layouts.app>
     """
   end

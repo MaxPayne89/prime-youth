@@ -79,6 +79,7 @@ defmodule PrimeYouthWeb.Router do
     end
 
     post "/users/update-password", UserSessionController, :update_password
+    get "/users/export-data", UserDataExportController, :export
   end
 
   scope "/", PrimeYouthWeb do
