@@ -5,7 +5,7 @@ defmodule PrimeYouth.Accounts do
 
   import Ecto.Query, warn: false
 
-  alias PrimeYouth.Accounts.{User, UserNotifier, UserToken}
+  alias PrimeYouth.Accounts.{EventPublisher, User, UserNotifier, UserToken}
   alias PrimeYouth.Repo
 
   ## Database getters
@@ -75,9 +75,16 @@ defmodule PrimeYouth.Accounts do
 
   """
   def register_user(attrs) do
-    %User{}
-    |> User.registration_changeset(attrs)
-    |> Repo.insert()
+    case %User{}
+         |> User.registration_changeset(attrs)
+         |> Repo.insert() do
+      {:ok, user} ->
+        EventPublisher.publish_user_registered(user, registration_source: :web)
+        {:ok, user}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   @doc """
@@ -131,14 +138,18 @@ defmodule PrimeYouth.Accounts do
   """
   def update_user_email(user, token) do
     context = "change:#{user.email}"
+    previous_email = user.email
 
     Repo.transact(fn ->
       with {:ok, query} <- UserToken.verify_change_email_token_query(token, context),
            %UserToken{sent_to: email} <- Repo.one(query),
-           {:ok, user} <- Repo.update(User.email_changeset(user, %{email: email})),
+           {:ok, updated_user} <- Repo.update(User.email_changeset(user, %{email: email})),
            {_count, _result} <-
-             Repo.delete_all(from(UserToken, where: [user_id: ^user.id, context: ^context])) do
-        {:ok, user}
+             Repo.delete_all(
+               from(UserToken, where: [user_id: ^updated_user.id, context: ^context])
+             ) do
+        EventPublisher.publish_user_email_changed(updated_user, previous_email: previous_email)
+        {:ok, updated_user}
       else
         _ -> {:error, :transaction_aborted}
       end
@@ -246,9 +257,19 @@ defmodule PrimeYouth.Accounts do
         """
 
       {%User{confirmed_at: nil} = user, _token} ->
-        user
-        |> User.confirm_changeset()
-        |> update_user_and_delete_all_tokens()
+        case user
+             |> User.confirm_changeset()
+             |> update_user_and_delete_all_tokens() do
+          {:ok, {confirmed_user, tokens}} ->
+            EventPublisher.publish_user_confirmed(confirmed_user,
+              confirmation_method: :magic_link
+            )
+
+            {:ok, {confirmed_user, tokens}}
+
+          error ->
+            error
+        end
 
       {user, token} ->
         Repo.delete!(token)

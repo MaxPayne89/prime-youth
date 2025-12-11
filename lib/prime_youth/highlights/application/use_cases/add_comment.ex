@@ -30,6 +30,7 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddComment do
 
   alias PrimeYouth.Highlights.Domain.Models.{Post, Comment}
   alias PrimeYouth.Highlights.Domain.Ports.ForManagingPosts
+  alias PrimeYouth.Highlights.EventPublisher
 
   @doc """
   Executes the use case to add a comment to a post.
@@ -69,9 +70,11 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddComment do
           {:ok, Post.t()}
           | {:error, :not_found | ForManagingPosts.get_error() | ForManagingPosts.update_error()}
   def execute(post_id, comment_text, author) do
-    with {:ok, post} <- repository_module().get_by_id(post_id) do
-      post_with_comment = add_comment_to_post(post, comment_text, author)
-      repository_module().update(post_with_comment)
+    with {:ok, post} <- repository_module().get_by_id(post_id),
+         post_with_comment = add_comment_to_post(post, comment_text, author),
+         {:ok, updated_post} <- repository_module().update(post_with_comment) do
+      EventPublisher.publish_comment_added(updated_post, author, comment_text)
+      {:ok, updated_post}
     end
   end
 

@@ -1,11 +1,14 @@
 defmodule PrimeYouth.Highlights.Application.UseCases.AddCommentTest do
   use ExUnit.Case, async: false
 
+  import PrimeYouth.EventTestHelper
+
   alias PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
   alias PrimeYouth.Highlights.Application.UseCases.AddComment
   alias PrimeYouth.Highlights.Domain.Models.{Post, Comment}
 
   setup do
+    setup_test_events()
     # Repository is already started by the application supervisor
     # Reset to initial state for test isolation
     InMemoryPostRepository.reset()
@@ -22,6 +25,15 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddCommentTest do
 
       assert %Post{} = updated_post
       assert length(updated_post.comments) == original_comment_count + 1
+
+      # Verify event published
+      assert_event_published(:comment_added)
+
+      assert_event_published(:comment_added, %{
+        post_id: "post_1",
+        author: "Test User",
+        comment_text: "This is a test comment"
+      })
     end
 
     test "comment has correct author and text" do
@@ -84,6 +96,17 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddCommentTest do
       assert "First comment" in comment_texts
       assert "Second comment" in comment_texts
       assert "Third comment" in comment_texts
+
+      # Verify all three events were published
+      assert_event_count(3)
+      events = get_published_events()
+      assert Enum.all?(events, &(&1.event_type == :comment_added))
+
+      # Verify each event has correct data
+      comment_texts_from_events = Enum.map(events, & &1.payload.comment_text)
+      assert "First comment" in comment_texts_from_events
+      assert "Second comment" in comment_texts_from_events
+      assert "Third comment" in comment_texts_from_events
     end
 
     test "preserves order of comments" do
@@ -103,10 +126,10 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddCommentTest do
   end
 
   describe "execute/3 - different comment content" do
-    test "handles empty comment text" do
-      {:ok, updated_post} = AddComment.execute("post_1", "", "User")
-      comment = List.last(updated_post.comments)
-      assert comment.text == ""
+    test "rejects empty comment text (validation in event factory)" do
+      assert_raise FunctionClauseError, fn ->
+        AddComment.execute("post_1", "", "User")
+      end
     end
 
     test "handles long comment text" do
@@ -132,10 +155,10 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddCommentTest do
   end
 
   describe "execute/3 - different authors" do
-    test "handles empty author name" do
-      {:ok, updated_post} = AddComment.execute("post_1", "Comment", "")
-      comment = List.last(updated_post.comments)
-      assert comment.author == ""
+    test "rejects empty author name (validation in event factory)" do
+      assert_raise FunctionClauseError, fn ->
+        AddComment.execute("post_1", "Comment", "")
+      end
     end
 
     test "handles special characters in author name" do
@@ -150,14 +173,21 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddCommentTest do
     test "returns error for non-existent post" do
       assert {:error, :not_found} =
                AddComment.execute("non_existent", "Comment", "User")
+
+      # No events should be published on error
+      assert_no_events_published()
     end
 
     test "returns error for nil post id" do
       assert {:error, :not_found} = AddComment.execute(nil, "Comment", "User")
+      # No events should be published on error
+      assert_no_events_published()
     end
 
     test "returns error for empty string post id" do
       assert {:error, :not_found} = AddComment.execute("", "Comment", "User")
+      # No events should be published on error
+      assert_no_events_published()
     end
   end
 
@@ -218,6 +248,99 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddCommentTest do
       # Final check - verify all comments were added
       {:ok, final_post} = InMemoryPostRepository.get_by_id(post_id)
       assert final_post.comment_count == length(final_post.comments)
+    end
+  end
+
+  describe "execute/3 - event publishing" do
+    test "publishes comment_added event with correct payload" do
+      {:ok, _updated_post} =
+        AddComment.execute("post_1", "This is a test comment", "Test User")
+
+      # Verify event was published
+      event = assert_event_published(:comment_added)
+      assert event.payload.post_id == "post_1"
+      assert event.payload.author == "Test User"
+      assert event.payload.comment_text == "This is a test comment"
+      assert event.aggregate_id == "post_1"
+      assert event.aggregate_type == :post
+    end
+
+    test "publishes events for different authors" do
+      AddComment.execute("post_1", "Comment 1", "Alice")
+      AddComment.execute("post_1", "Comment 2", "Bob")
+      AddComment.execute("post_1", "Comment 3", "Charlie")
+
+      assert_event_count(3)
+      events = get_published_events()
+
+      # Verify each event has correct author
+      authors = Enum.map(events, & &1.payload.author)
+      assert "Alice" in authors
+      assert "Bob" in authors
+      assert "Charlie" in authors
+    end
+
+    test "publishes events with different comment texts" do
+      AddComment.execute("post_1", "First comment text", "User")
+      AddComment.execute("post_1", "Second comment text", "User")
+
+      assert_event_count(2)
+      events = get_published_events()
+
+      # Verify each event has correct text
+      texts = Enum.map(events, & &1.payload.comment_text)
+      assert "First comment text" in texts
+      assert "Second comment text" in texts
+    end
+
+    test "does not publish events when post not found" do
+      assert {:error, :not_found} =
+               AddComment.execute("non_existent", "Comment", "User")
+
+      assert_no_events_published()
+    end
+
+    test "publishes distinct events for multiple comments" do
+      AddComment.execute("post_1", "Comment A", "User1")
+      AddComment.execute("post_2", "Comment B", "User2")
+      AddComment.execute("post_3", "Comment C", "User3")
+
+      # Verify all events published with correct data
+      assert_event_count(3)
+
+      events = get_published_events()
+      assert Enum.all?(events, &(&1.event_type == :comment_added))
+
+      # Verify each event has correct post_id and comment text
+      assert Enum.any?(events, fn e ->
+               e.payload.post_id == "post_1" and e.payload.comment_text == "Comment A"
+             end)
+
+      assert Enum.any?(events, fn e ->
+               e.payload.post_id == "post_2" and e.payload.comment_text == "Comment B"
+             end)
+
+      assert Enum.any?(events, fn e ->
+               e.payload.post_id == "post_3" and e.payload.comment_text == "Comment C"
+             end)
+    end
+
+    test "publishes exactly one event per comment added" do
+      AddComment.execute("post_1", "Comment", "User")
+      assert_event_count(1)
+
+      clear_events()
+
+      AddComment.execute("post_1", "Another comment", "User")
+      assert_event_count(1)
+    end
+
+    test "publishes events with correct aggregate information" do
+      {:ok, _post} = AddComment.execute("post_2", "Test comment", "Test Author")
+
+      event = assert_event_published(:comment_added)
+      assert event.aggregate_type == :post
+      assert event.aggregate_id == "post_2"
     end
   end
 end

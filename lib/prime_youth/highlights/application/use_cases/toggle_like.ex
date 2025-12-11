@@ -28,6 +28,7 @@ defmodule PrimeYouth.Highlights.Application.UseCases.ToggleLike do
 
   alias PrimeYouth.Highlights.Domain.Models.Post
   alias PrimeYouth.Highlights.Domain.Ports.ForManagingPosts
+  alias PrimeYouth.Highlights.EventPublisher
 
   @doc """
   Executes the use case to toggle a like on a post.
@@ -66,10 +67,20 @@ defmodule PrimeYouth.Highlights.Application.UseCases.ToggleLike do
           {:ok, Post.t()}
           | {:error, :not_found | ForManagingPosts.get_error() | ForManagingPosts.update_error()}
   def execute(post_id) do
-    with {:ok, post} <- repository_module().get_by_id(post_id) do
-      toggled_post = toggle_like_status(post)
-      repository_module().update(toggled_post)
+    with {:ok, post} <- repository_module().get_by_id(post_id),
+         toggled_post = toggle_like_status(post),
+         {:ok, updated_post} <- repository_module().update(toggled_post) do
+      publish_like_event(updated_post)
+      {:ok, updated_post}
     end
+  end
+
+  defp publish_like_event(%Post{user_liked: true} = post) do
+    EventPublisher.publish_post_liked(post)
+  end
+
+  defp publish_like_event(%Post{user_liked: false} = post) do
+    EventPublisher.publish_post_unliked(post)
   end
 
   defp toggle_like_status(%Post{user_liked: true} = post) do

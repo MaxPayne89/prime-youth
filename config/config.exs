@@ -50,6 +50,11 @@ config :prime_youth, :activities,
   repository:
     PrimeYouth.Activities.Adapters.Driven.Persistence.Repositories.InMemoryActivityRepository
 
+# Configure Event Publisher
+config :prime_youth, :event_publisher,
+  module: PrimeYouth.Shared.Adapters.Driven.Events.PubSubEventPublisher,
+  pubsub: PrimeYouth.PubSub
+
 # Configure Family bounded context
 config :prime_youth, :family,
   repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFamilyRepository
