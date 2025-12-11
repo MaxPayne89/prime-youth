@@ -11,6 +11,17 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
   - `:user_confirmed` - Emitted when a user confirms their email
   - `:user_email_changed` - Emitted when a user changes their email address
 
+  ## Validation
+
+  Event factories perform fail-fast validation on all inputs:
+
+  - **Aggregate validation**: Required fields must be present and non-empty
+  - **Parameter validation**: String parameters must be non-empty
+  - **Payload validation**: Required payload fields must be present
+  - **Type validation**: All inputs must match expected types
+
+  Validation failures raise `ArgumentError` with descriptive messages.
+
   ## Usage
 
       alias PrimeYouth.Accounts.Domain.Events.UserEvents
@@ -20,6 +31,11 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
 
       # Create with additional metadata
       event = UserEvents.user_confirmed(user, %{}, correlation_id: "abc-123")
+
+      # Invalid - raises ArgumentError
+      user = %User{id: nil, email: "test@example.com", name: "Test"}
+      UserEvents.user_registered(user)
+      #=> ** (ArgumentError) User.id cannot be nil for user_registered event
   """
 
   alias PrimeYouth.Accounts.User
@@ -47,6 +63,12 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
 
   Additional payload fields can be passed to include registration context.
 
+  ## Raises
+
+  - `ArgumentError` if `user.id` is nil
+  - `ArgumentError` if `user.email` is nil or empty
+  - `ArgumentError` if `user.name` is nil or empty
+
   ## Examples
 
       iex> user = %User{id: 1, email: "test@example.com", name: "Test User"}
@@ -58,6 +80,8 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
   """
   @spec user_registered(User, map(), keyword()) :: DomainEvent.t()
   def user_registered(%User{} = user, payload \\ %{}, opts \\ []) do
+    validate_user_for_registration!(user)
+
     base_payload = %{
       email: user.email,
       name: user.name
@@ -92,6 +116,12 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
   - `email` - User's confirmed email address
   - `confirmed_at` - Timestamp of confirmation
 
+  ## Raises
+
+  - `ArgumentError` if `user.id` is nil
+  - `ArgumentError` if `user.email` is nil or empty
+  - `ArgumentError` if `user.confirmed_at` is nil
+
   ## Examples
 
       iex> user = %User{id: 1, email: "test@example.com", confirmed_at: ~U[2024-01-01 12:00:00Z]}
@@ -101,6 +131,8 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
   """
   @spec user_confirmed(User, map(), keyword()) :: DomainEvent.t()
   def user_confirmed(%User{} = user, payload \\ %{}, opts \\ []) do
+    validate_user_for_confirmation!(user)
+
     base_payload = %{
       email: user.email,
       confirmed_at: user.confirmed_at
@@ -132,6 +164,13 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
   - `new_email` - User's new email address
   - `previous_email` - User's previous email (required in payload param)
 
+  ## Raises
+
+  - `ArgumentError` if `payload` is missing `:previous_email` key
+  - `ArgumentError` if `:previous_email` is not a non-empty string
+  - `ArgumentError` if `user.id` is nil
+  - `ArgumentError` if `user.email` is nil or empty
+
   ## Examples
 
       iex> user = %User{id: 1, email: "new@example.com"}
@@ -142,7 +181,12 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
       "old@example.com"
   """
   @spec user_email_changed(User, map(), keyword()) :: DomainEvent.t()
-  def user_email_changed(%User{} = user, payload, opts \\ []) do
+  def user_email_changed(user, payload, opts \\ [])
+
+  def user_email_changed(%User{} = user, %{previous_email: previous_email} = payload, opts)
+      when is_binary(previous_email) and byte_size(previous_email) > 0 do
+    validate_user_for_email_change!(user)
+
     base_payload = %{
       new_email: user.email
     }
@@ -155,4 +199,49 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
       opts
     )
   end
+
+  def user_email_changed(%User{}, payload, _opts) do
+    raise ArgumentError,
+          "user_email_changed/3 requires :previous_email in payload, got keys: #{inspect(Map.keys(payload))}"
+  end
+
+  # Private validation functions
+
+  defp validate_user_for_registration!(%User{id: nil}) do
+    raise ArgumentError, "User.id cannot be nil for user_registered event"
+  end
+
+  defp validate_user_for_registration!(%User{email: email}) when is_nil(email) or email == "" do
+    raise ArgumentError, "User.email cannot be nil or empty for user_registered event"
+  end
+
+  defp validate_user_for_registration!(%User{name: name}) when is_nil(name) or name == "" do
+    raise ArgumentError, "User.name cannot be nil or empty for user_registered event"
+  end
+
+  defp validate_user_for_registration!(%User{} = user), do: user
+
+  defp validate_user_for_confirmation!(%User{id: nil}) do
+    raise ArgumentError, "User.id cannot be nil for user_confirmed event"
+  end
+
+  defp validate_user_for_confirmation!(%User{email: email}) when is_nil(email) or email == "" do
+    raise ArgumentError, "User.email cannot be nil or empty for user_confirmed event"
+  end
+
+  defp validate_user_for_confirmation!(%User{confirmed_at: nil}) do
+    raise ArgumentError, "User.confirmed_at cannot be nil for user_confirmed event"
+  end
+
+  defp validate_user_for_confirmation!(%User{} = user), do: user
+
+  defp validate_user_for_email_change!(%User{id: nil}) do
+    raise ArgumentError, "User.id cannot be nil for user_email_changed event"
+  end
+
+  defp validate_user_for_email_change!(%User{email: email}) when is_nil(email) or email == "" do
+    raise ArgumentError, "User.email cannot be nil or empty for user_email_changed event"
+  end
+
+  defp validate_user_for_email_change!(%User{} = user), do: user
 end

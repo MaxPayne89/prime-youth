@@ -126,10 +126,10 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddCommentTest do
   end
 
   describe "execute/3 - different comment content" do
-    test "handles empty comment text" do
-      {:ok, updated_post} = AddComment.execute("post_1", "", "User")
-      comment = List.last(updated_post.comments)
-      assert comment.text == ""
+    test "rejects empty comment text (validation in event factory)" do
+      assert_raise FunctionClauseError, fn ->
+        AddComment.execute("post_1", "", "User")
+      end
     end
 
     test "handles long comment text" do
@@ -155,10 +155,10 @@ defmodule PrimeYouth.Highlights.Application.UseCases.AddCommentTest do
   end
 
   describe "execute/3 - different authors" do
-    test "handles empty author name" do
-      {:ok, updated_post} = AddComment.execute("post_1", "Comment", "")
-      comment = List.last(updated_post.comments)
-      assert comment.author == ""
+    test "rejects empty author name (validation in event factory)" do
+      assert_raise FunctionClauseError, fn ->
+        AddComment.execute("post_1", "Comment", "")
+      end
     end
 
     test "handles special characters in author name" do

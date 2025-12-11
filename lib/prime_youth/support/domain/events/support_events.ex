@@ -9,6 +9,15 @@ defmodule PrimeYouth.Support.Domain.Events.SupportEvents do
 
   - `:contact_request_submitted` - Emitted when a contact form is submitted
 
+  ## Validation
+
+  Event factories perform fail-fast validation on all inputs:
+
+  - **Aggregate validation**: ContactRequest fields must be present and non-empty
+  - **Type validation**: All inputs must match expected types
+
+  Validation failures raise `ArgumentError` with descriptive messages.
+
   ## Usage
 
       alias PrimeYouth.Support.Domain.Events.SupportEvents
@@ -18,6 +27,11 @@ defmodule PrimeYouth.Support.Domain.Events.SupportEvents do
 
       # Create with additional metadata
       event = SupportEvents.contact_request_submitted(contact_request, %{}, correlation_id: "abc-123")
+
+      # Invalid - raises ArgumentError
+      contact_request = %ContactRequest{id: nil, name: "John", email: "john@example.com", subject: "general"}
+      SupportEvents.contact_request_submitted(contact_request)
+      #=> ** (ArgumentError) ContactRequest.id cannot be nil or empty
   """
 
   alias PrimeYouth.Shared.Domain.Events.DomainEvent
@@ -41,6 +55,13 @@ defmodule PrimeYouth.Support.Domain.Events.SupportEvents do
   - `email` - Submitter's email address
   - `subject` - Contact request subject/category
 
+  ## Raises
+
+  - `ArgumentError` if `contact_request.id` is nil or empty
+  - `ArgumentError` if `contact_request.name` is nil or empty
+  - `ArgumentError` if `contact_request.email` is nil or empty
+  - `ArgumentError` if `contact_request.subject` is nil or empty
+
   ## Examples
 
       iex> contact_request = %ContactRequest{id: "contact_abc123", name: "John", email: "john@example.com", subject: "general", ...}
@@ -52,6 +73,8 @@ defmodule PrimeYouth.Support.Domain.Events.SupportEvents do
   """
   @spec contact_request_submitted(ContactRequest.t(), map(), keyword()) :: DomainEvent.t()
   def contact_request_submitted(%ContactRequest{} = contact_request, payload \\ %{}, opts \\ []) do
+    validate_contact_request!(contact_request)
+
     base_payload = %{
       name: contact_request.name,
       email: contact_request.email,
@@ -66,4 +89,26 @@ defmodule PrimeYouth.Support.Domain.Events.SupportEvents do
       opts
     )
   end
+
+  # Private validation functions
+
+  defp validate_contact_request!(%ContactRequest{id: id}) when is_nil(id) or id == "" do
+    raise ArgumentError, "ContactRequest.id cannot be nil or empty"
+  end
+
+  defp validate_contact_request!(%ContactRequest{name: name}) when is_nil(name) or name == "" do
+    raise ArgumentError, "ContactRequest.name cannot be nil or empty"
+  end
+
+  defp validate_contact_request!(%ContactRequest{email: email})
+       when is_nil(email) or email == "" do
+    raise ArgumentError, "ContactRequest.email cannot be nil or empty"
+  end
+
+  defp validate_contact_request!(%ContactRequest{subject: subject})
+       when is_nil(subject) or subject == "" do
+    raise ArgumentError, "ContactRequest.subject cannot be nil or empty"
+  end
+
+  defp validate_contact_request!(%ContactRequest{} = contact_request), do: contact_request
 end

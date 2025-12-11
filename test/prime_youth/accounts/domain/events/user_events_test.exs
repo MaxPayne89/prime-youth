@@ -1,0 +1,214 @@
+defmodule PrimeYouth.Accounts.Domain.Events.UserEventsTest do
+  use ExUnit.Case, async: true
+
+  alias PrimeYouth.Accounts.Domain.Events.UserEvents
+  alias PrimeYouth.Accounts.User
+
+  describe "user_registered/3 validation" do
+    test "raises when user.id is nil" do
+      user = %User{id: nil, email: "test@example.com", name: "Test User"}
+
+      assert_raise ArgumentError,
+                   "User.id cannot be nil for user_registered event",
+                   fn -> UserEvents.user_registered(user) end
+    end
+
+    test "raises when user.email is nil" do
+      user = %User{id: 1, email: nil, name: "Test User"}
+
+      assert_raise ArgumentError,
+                   "User.email cannot be nil or empty for user_registered event",
+                   fn -> UserEvents.user_registered(user) end
+    end
+
+    test "raises when user.email is empty string" do
+      user = %User{id: 1, email: "", name: "Test User"}
+
+      assert_raise ArgumentError,
+                   "User.email cannot be nil or empty for user_registered event",
+                   fn -> UserEvents.user_registered(user) end
+    end
+
+    test "raises when user.name is nil" do
+      user = %User{id: 1, email: "test@example.com", name: nil}
+
+      assert_raise ArgumentError,
+                   "User.name cannot be nil or empty for user_registered event",
+                   fn -> UserEvents.user_registered(user) end
+    end
+
+    test "raises when user.name is empty string" do
+      user = %User{id: 1, email: "test@example.com", name: ""}
+
+      assert_raise ArgumentError,
+                   "User.name cannot be nil or empty for user_registered event",
+                   fn -> UserEvents.user_registered(user) end
+    end
+
+    test "succeeds with valid user" do
+      user = %User{id: 1, email: "test@example.com", name: "Test User"}
+
+      event = UserEvents.user_registered(user)
+
+      assert event.event_type == :user_registered
+      assert event.aggregate_id == 1
+      assert event.aggregate_type == :user
+      assert event.payload.email == "test@example.com"
+      assert event.payload.name == "Test User"
+    end
+
+    test "succeeds with valid user and custom payload" do
+      user = %User{id: 1, email: "test@example.com", name: "Test User"}
+
+      event = UserEvents.user_registered(user, %{source: :web})
+
+      assert event.payload.source == :web
+    end
+
+    test "sets criticality to critical by default" do
+      user = %User{id: 1, email: "test@example.com", name: "Test User"}
+
+      event = UserEvents.user_registered(user)
+
+      assert event.metadata.criticality == :critical
+    end
+  end
+
+  describe "user_confirmed/3 validation" do
+    test "raises when user.id is nil" do
+      user = %User{id: nil, email: "test@example.com", confirmed_at: ~U[2024-01-01 12:00:00Z]}
+
+      assert_raise ArgumentError,
+                   "User.id cannot be nil for user_confirmed event",
+                   fn -> UserEvents.user_confirmed(user) end
+    end
+
+    test "raises when user.email is nil" do
+      user = %User{id: 1, email: nil, confirmed_at: ~U[2024-01-01 12:00:00Z]}
+
+      assert_raise ArgumentError,
+                   "User.email cannot be nil or empty for user_confirmed event",
+                   fn -> UserEvents.user_confirmed(user) end
+    end
+
+    test "raises when user.email is empty string" do
+      user = %User{id: 1, email: "", confirmed_at: ~U[2024-01-01 12:00:00Z]}
+
+      assert_raise ArgumentError,
+                   "User.email cannot be nil or empty for user_confirmed event",
+                   fn -> UserEvents.user_confirmed(user) end
+    end
+
+    test "raises when user.confirmed_at is nil" do
+      user = %User{id: 1, email: "test@example.com", confirmed_at: nil}
+
+      assert_raise ArgumentError,
+                   "User.confirmed_at cannot be nil for user_confirmed event",
+                   fn -> UserEvents.user_confirmed(user) end
+    end
+
+    test "succeeds with valid user" do
+      confirmed_at = ~U[2024-01-01 12:00:00Z]
+      user = %User{id: 1, email: "test@example.com", confirmed_at: confirmed_at}
+
+      event = UserEvents.user_confirmed(user)
+
+      assert event.event_type == :user_confirmed
+      assert event.aggregate_id == 1
+      assert event.aggregate_type == :user
+      assert event.payload.email == "test@example.com"
+      assert event.payload.confirmed_at == confirmed_at
+    end
+
+    test "succeeds with valid user and custom payload" do
+      confirmed_at = ~U[2024-01-01 12:00:00Z]
+      user = %User{id: 1, email: "test@example.com", confirmed_at: confirmed_at}
+
+      event = UserEvents.user_confirmed(user, %{confirmation_token: "abc123"})
+
+      assert event.payload.confirmation_token == "abc123"
+    end
+  end
+
+  describe "user_email_changed/3 validation" do
+    test "raises when previous_email is missing from payload" do
+      user = %User{id: 1, email: "new@example.com"}
+
+      assert_raise ArgumentError,
+                   ~r/requires :previous_email in payload/,
+                   fn -> UserEvents.user_email_changed(user, %{}) end
+    end
+
+    test "raises when previous_email is nil" do
+      user = %User{id: 1, email: "new@example.com"}
+
+      assert_raise ArgumentError,
+                   ~r/requires :previous_email in payload/,
+                   fn -> UserEvents.user_email_changed(user, %{previous_email: nil}) end
+    end
+
+    test "raises when previous_email is empty string via guard clause" do
+      user = %User{id: 1, email: "new@example.com"}
+
+      assert_raise ArgumentError,
+                   ~r/requires :previous_email in payload/,
+                   fn ->
+                     UserEvents.user_email_changed(user, %{previous_email: ""})
+                   end
+    end
+
+    test "raises when user.id is nil" do
+      user = %User{id: nil, email: "new@example.com"}
+
+      assert_raise ArgumentError,
+                   "User.id cannot be nil for user_email_changed event",
+                   fn ->
+                     UserEvents.user_email_changed(user, %{previous_email: "old@example.com"})
+                   end
+    end
+
+    test "raises when user.email is nil" do
+      user = %User{id: 1, email: nil}
+
+      assert_raise ArgumentError,
+                   "User.email cannot be nil or empty for user_email_changed event",
+                   fn ->
+                     UserEvents.user_email_changed(user, %{previous_email: "old@example.com"})
+                   end
+    end
+
+    test "raises when user.email is empty string" do
+      user = %User{id: 1, email: ""}
+
+      assert_raise ArgumentError,
+                   "User.email cannot be nil or empty for user_email_changed event",
+                   fn ->
+                     UserEvents.user_email_changed(user, %{previous_email: "old@example.com"})
+                   end
+    end
+
+    test "succeeds with valid user and previous_email" do
+      user = %User{id: 1, email: "new@example.com"}
+
+      event = UserEvents.user_email_changed(user, %{previous_email: "old@example.com"})
+
+      assert event.event_type == :user_email_changed
+      assert event.aggregate_id == 1
+      assert event.aggregate_type == :user
+      assert event.payload.new_email == "new@example.com"
+      assert event.payload.previous_email == "old@example.com"
+    end
+
+    test "succeeds with valid user and additional payload fields" do
+      user = %User{id: 1, email: "new@example.com"}
+
+      event =
+        UserEvents.user_email_changed(user, %{
+          previous_email: "old@example.com",
+          change_reason: "user_requested"
+        })
+
+      assert event.payload.change_reason == "user_requested"
+    end
+  end
+end
