@@ -1,0 +1,69 @@
+defmodule PrimeYouth.Support.Domain.Events.SupportEvents do
+  @moduledoc """
+  Factory module for creating Support domain events.
+
+  Provides convenience functions to create standardized DomainEvent structs
+  for support-related events in the Support context.
+
+  ## Events
+
+  - `:contact_request_submitted` - Emitted when a contact form is submitted
+
+  ## Usage
+
+      alias PrimeYouth.Support.Domain.Events.SupportEvents
+
+      # Create a contact_request_submitted event
+      event = SupportEvents.contact_request_submitted(contact_request)
+
+      # Create with additional metadata
+      event = SupportEvents.contact_request_submitted(contact_request, %{}, correlation_id: "abc-123")
+  """
+
+  alias PrimeYouth.Shared.Domain.Events.DomainEvent
+  alias PrimeYouth.Support.Domain.Models.ContactRequest
+
+  @aggregate_type :contact_request
+
+  @doc """
+  Creates a `contact_request_submitted` event.
+
+  ## Parameters
+
+  - `contact_request` - The ContactRequest struct that was submitted
+  - `payload` - Additional event-specific data
+  - `opts` - Metadata options (correlation_id, causation_id, user_id)
+
+  ## Payload Fields
+
+  Standard payload includes:
+  - `name` - Submitter's name
+  - `email` - Submitter's email address
+  - `subject` - Contact request subject/category
+
+  ## Examples
+
+      iex> contact_request = %ContactRequest{id: "contact_abc123", name: "John", email: "john@example.com", subject: "general", ...}
+      iex> event = SupportEvents.contact_request_submitted(contact_request)
+      iex> event.event_type
+      :contact_request_submitted
+      iex> event.payload.name
+      "John"
+  """
+  @spec contact_request_submitted(ContactRequest.t(), map(), keyword()) :: DomainEvent.t()
+  def contact_request_submitted(%ContactRequest{} = contact_request, payload \\ %{}, opts \\ []) do
+    base_payload = %{
+      name: contact_request.name,
+      email: contact_request.email,
+      subject: contact_request.subject
+    }
+
+    DomainEvent.new(
+      :contact_request_submitted,
+      contact_request.id,
+      @aggregate_type,
+      Map.merge(base_payload, payload),
+      opts
+    )
+  end
+end

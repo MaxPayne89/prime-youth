@@ -50,6 +50,7 @@ defmodule PrimeYouth.Support.Application.UseCases.SubmitContactForm do
   """
 
   alias PrimeYouth.Support.Domain.Models.ContactRequest
+  alias PrimeYouth.Support.EventPublisher
   alias PrimeYouthWeb.Forms.ContactForm
 
   @doc """
@@ -108,7 +109,11 @@ defmodule PrimeYouth.Support.Application.UseCases.SubmitContactForm do
     case Ecto.Changeset.apply_action(changeset, :insert) do
       {:ok, validated_form} ->
         contact_request = build_contact_request(validated_form)
-        repository_module().submit(contact_request)
+
+        with {:ok, submitted_request} <- repository_module().submit(contact_request) do
+          EventPublisher.publish_contact_request_submitted(submitted_request)
+          {:ok, submitted_request}
+        end
 
       {:error, changeset} ->
         {:error, changeset}
