@@ -23,6 +23,21 @@ defmodule PrimeYouth.Accounts.User do
     timestamps(type: :utc_datetime)
   end
 
+  # GDPR: Prevent personal data from leaking in logs/exceptions
+  defimpl Inspect, for: __MODULE__ do
+    @sensitive_fields [:email, :name, :password, :hashed_password]
+
+    def inspect(user, _opts) do
+      pruned =
+        user
+        |> Map.from_struct()
+        |> Map.drop(@sensitive_fields)
+        |> Map.delete(:__meta__)
+
+      "#PrimeYouth.Accounts.User<#{inspect(pruned)}>"
+    end
+  end
+
   @doc """
   A user changeset for registration.
 
