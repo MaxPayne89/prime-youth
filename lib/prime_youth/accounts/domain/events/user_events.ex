@@ -10,6 +10,7 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
   - `:user_registered` - Emitted when a new user completes registration (critical)
   - `:user_confirmed` - Emitted when a user confirms their email
   - `:user_email_changed` - Emitted when a user changes their email address
+  - `:user_anonymized` - Emitted when a user's account is anonymized for GDPR deletion (critical)
 
   ## Validation
 
@@ -241,4 +242,71 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
   end
 
   defp validate_user_for_email_change!(%User{} = user), do: user
+
+  @doc """
+  Creates a `user_anonymized` event.
+
+  This event is marked as `:critical` by default since account anonymization
+  is a key GDPR compliance event that must not be lost.
+
+  ## Parameters
+
+  - `user` - The User struct AFTER anonymization (with anonymized email)
+  - `payload` - Must include `previous_email` for audit trail
+  - `opts` - Metadata options (correlation_id, causation_id, user_id)
+
+  ## Payload Fields
+
+  Standard payload includes:
+  - `anonymized_email` - User's new anonymized email (deleted_<id>@anonymized.local)
+  - `previous_email` - User's previous email (required in payload param for audit)
+  - `anonymized_at` - Timestamp of anonymization
+
+  ## Raises
+
+  - `ArgumentError` if `payload` is missing `:previous_email` key
+  - `ArgumentError` if `:previous_email` is not a non-empty string
+  - `ArgumentError` if `user.id` is nil
+
+  ## Examples
+
+      iex> user = %User{id: 1, email: "deleted_1@anonymized.local"}
+      iex> event = UserEvents.user_anonymized(user, %{previous_email: "old@example.com"})
+      iex> event.event_type
+      :user_anonymized
+      iex> DomainEvent.critical?(event)
+      true
+  """
+  def user_anonymized(user, payload, opts \\ [])
+
+  def user_anonymized(%User{} = user, %{previous_email: previous_email} = payload, opts)
+      when is_binary(previous_email) and byte_size(previous_email) > 0 do
+    validate_user_for_anonymization!(user)
+
+    base_payload = %{
+      anonymized_email: user.email,
+      anonymized_at: DateTime.utc_now()
+    }
+
+    opts = Keyword.put_new(opts, :criticality, :critical)
+
+    DomainEvent.new(
+      :user_anonymized,
+      user.id,
+      @aggregate_type,
+      Map.merge(base_payload, payload),
+      opts
+    )
+  end
+
+  def user_anonymized(%User{}, payload, _opts) do
+    raise ArgumentError,
+          "user_anonymized/3 requires :previous_email in payload, got keys: #{inspect(Map.keys(payload))}"
+  end
+
+  defp validate_user_for_anonymization!(%User{id: nil}) do
+    raise ArgumentError, "User.id cannot be nil for user_anonymized event"
+  end
+
+  defp validate_user_for_anonymization!(%User{} = user), do: user
 end

@@ -107,6 +107,45 @@ defmodule PrimeYouth.Accounts.EventPublisherTest do
     end
   end
 
+  describe "publish_user_anonymized/2" do
+    test "publishes user_anonymized event with anonymized data" do
+      user = build_user(id: 4, email: "deleted_4@anonymized.local")
+
+      assert :ok =
+               EventPublisher.publish_user_anonymized(user,
+                 previous_email: "original@example.com"
+               )
+
+      event = assert_event_published(:user_anonymized)
+      assert event.aggregate_id == 4
+      assert event.aggregate_type == :user
+      assert event.payload.anonymized_email == "deleted_4@anonymized.local"
+      assert event.payload.previous_email == "original@example.com"
+      assert event.payload.anonymized_at
+    end
+
+    test "marks event as critical by default" do
+      user = build_user(email: "deleted_1@anonymized.local")
+
+      EventPublisher.publish_user_anonymized(user, previous_email: "old@example.com")
+
+      event = assert_event_published(:user_anonymized)
+      assert DomainEvent.critical?(event)
+    end
+
+    test "includes correlation_id in metadata when provided" do
+      user = build_user(email: "deleted_1@anonymized.local")
+
+      EventPublisher.publish_user_anonymized(user,
+        previous_email: "old@example.com",
+        correlation_id: "gdpr-123"
+      )
+
+      event = assert_event_published(:user_anonymized)
+      assert DomainEvent.correlation_id(event) == "gdpr-123"
+    end
+  end
+
   describe "event isolation" do
     test "events are isolated per test process" do
       user = build_user()

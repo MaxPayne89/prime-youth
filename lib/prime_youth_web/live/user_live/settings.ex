@@ -78,6 +78,31 @@ defmodule PrimeYouthWeb.UserLive.Settings do
           <.icon name="hero-arrow-down-tray" class="w-5 h-5" /> Download My Data
         </.link>
       </div>
+
+      <div class="divider" />
+
+      <div class="text-center">
+        <.header>
+          Delete Account
+          <:subtitle>Permanently delete your account and all associated data</:subtitle>
+        </.header>
+
+        <.form for={@delete_form} id="delete_account_form" phx-submit="delete_account">
+          <p class="text-sm text-gray-600 mb-4">
+            This action cannot be undone. Your account data will be anonymized and you will be logged out.
+          </p>
+          <.input
+            field={@delete_form[:password]}
+            type="password"
+            label="Enter your password to confirm"
+            autocomplete="current-password"
+            required
+          />
+          <.button type="submit" class="bg-red-600 hover:bg-red-700" phx-disable-with="Deleting...">
+            Delete My Account
+          </.button>
+        </.form>
+      </div>
     </Layouts.app>
     """
   end
@@ -106,6 +131,7 @@ defmodule PrimeYouthWeb.UserLive.Settings do
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
+      |> assign(:delete_form, to_form(%{"password" => ""}, as: :delete))
       |> assign(:trigger_submit, false)
 
     {:ok, socket}
@@ -168,6 +194,34 @@ defmodule PrimeYouthWeb.UserLive.Settings do
 
       changeset ->
         {:noreply, assign(socket, password_form: to_form(changeset, action: :insert))}
+    end
+  end
+
+  def handle_event("delete_account", %{"delete" => %{"password" => password}}, socket) do
+    user = socket.assigns.current_scope.user
+    true = Accounts.sudo_mode?(user)
+
+    case Accounts.get_user_by_email_and_password(user.email, password) do
+      %{} = _verified_user ->
+        case Accounts.anonymize_user(user) do
+          {:ok, _anonymized_user} ->
+            {:noreply,
+             socket
+             |> put_flash(:info, "Your account has been deleted.")
+             |> redirect(to: ~p"/")}
+
+          {:error, _reason} ->
+            {:noreply,
+             socket
+             |> put_flash(:error, "Failed to delete account. Please try again.")
+             |> assign(:delete_form, to_form(%{"password" => ""}, as: :delete))}
+        end
+
+      nil ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Invalid password.")
+         |> assign(:delete_form, to_form(%{"password" => ""}, as: :delete))}
     end
   end
 end

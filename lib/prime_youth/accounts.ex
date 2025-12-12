@@ -350,4 +350,42 @@ defmodule PrimeYouth.Accounts do
       }
     }
   end
+
+  ## GDPR Account Anonymization
+
+  @doc """
+  Anonymizes a user account for GDPR deletion requests.
+
+  This function:
+  1. Stores the previous email for audit trail
+  2. Invalidates all session tokens (logs out from all devices)
+  3. Replaces PII with anonymized values
+  4. Publishes `user_anonymized` domain event
+
+  ## Examples
+
+      iex> anonymize_user(user)
+      {:ok, %User{email: "deleted_123@anonymized.local"}}
+
+      iex> anonymize_user(nil)
+      {:error, :user_not_found}
+
+  """
+  def anonymize_user(%User{} = user) do
+    previous_email = user.email
+
+    Repo.transact(fn ->
+      with {:ok, anonymized_user} <- Repo.update(User.anonymize_changeset(user)),
+           {_count, _result} <-
+             Repo.delete_all(from(t in UserToken, where: t.user_id == ^user.id)) do
+        EventPublisher.publish_user_anonymized(anonymized_user, previous_email: previous_email)
+        {:ok, anonymized_user}
+      else
+        {:error, changeset} -> {:error, changeset}
+        _ -> {:error, :transaction_aborted}
+      end
+    end)
+  end
+
+  def anonymize_user(nil), do: {:error, :user_not_found}
 end

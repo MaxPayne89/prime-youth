@@ -40,14 +40,15 @@ defmodule PrimeYouth.Shared.Adapters.Driven.Events.EventTopics do
   ## Examples
 
       iex> EventTopics.topics_for_aggregate(:user)
-      ["user:user_registered", "user:user_confirmed", "user:user_email_changed"]
+      ["user:user_registered", "user:user_confirmed", "user:user_email_changed", "user:user_anonymized"]
   """
   @spec topics_for_aggregate(atom()) :: [String.t()]
   def topics_for_aggregate(:user) do
     [
       "user:user_registered",
       "user:user_confirmed",
-      "user:user_email_changed"
+      "user:user_email_changed",
+      "user:user_anonymized"
     ]
   end
 

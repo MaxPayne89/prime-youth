@@ -167,6 +167,26 @@ defmodule PrimeYouth.Accounts.User do
   end
 
   @doc """
+  Anonymizes the user account for GDPR deletion requests.
+
+  Replaces PII fields with anonymized values:
+  - Email: `deleted_<user_id>@anonymized.local`
+  - Name: `"Deleted User"` (placeholder)
+  - Avatar: `nil` (cleared)
+
+  Timestamps and other non-PII data are preserved for data integrity.
+  """
+  def anonymize_changeset(%__MODULE__{id: id} = user) do
+    anonymized_email = "deleted_#{id}@anonymized.local"
+
+    change(user,
+      email: anonymized_email,
+      name: "Deleted User",
+      avatar: nil
+    )
+  end
+
+  @doc """
   Verifies the password.
 
   If there is no user or the user doesn't have a password, we call
