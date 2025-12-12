@@ -66,7 +66,7 @@ defmodule PrimeYouthWeb.AboutLive do
       },
       %{
         icon: "hero-chart-bar",
-        gradient: "bg-teal-50",
+        gradient: Theme.bg(:primary_light),
         title: "Progress Tracking",
         description: "Monitor your child's participation and achievements in real-time"
       }

@@ -41,7 +41,8 @@ defmodule PrimeYouthWeb.Theme do
   @gradients %{
     # Primary brand gradients
     primary: "bg-gradient-to-r from-teal-500 to-teal-600",
-    hero: "bg-gradient-to-br from-teal-400 via-teal-500 to-teal-600"
+    hero: "bg-gradient-to-br from-teal-400 via-teal-500 to-teal-600",
+    safety: "bg-gradient-to-r from-green-500 to-emerald-600"
   }
 
   @doc """
@@ -51,6 +52,7 @@ defmodule PrimeYouthWeb.Theme do
 
   - `:primary` - Teal horizontal gradient (teal-500 to teal-600)
   - `:hero` - Teal diagonal gradient (teal-400 via teal-500 to teal-600)
+  - `:safety` - Green horizontal gradient (green-500 to emerald-600)
 
   ## Examples
 
@@ -59,6 +61,9 @@ defmodule PrimeYouthWeb.Theme do
 
       iex> Theme.gradient(:hero)
       "bg-gradient-to-br from-teal-400 via-teal-500 to-teal-600"
+
+      iex> Theme.gradient(:safety)
+      "bg-gradient-to-r from-green-500 to-emerald-600"
   """
   def gradient(name) when is_atom(name) do
     Map.get(@gradients, name, @gradients.primary)

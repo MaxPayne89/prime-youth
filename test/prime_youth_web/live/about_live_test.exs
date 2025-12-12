@@ -142,22 +142,24 @@ defmodule PrimeYouthWeb.AboutLiveTest do
     test "core values display with gradient icons", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify gradient classes are present (indicating styled icons)
-      # These now use Theme.gradient/1 functions
-      assert html =~ "bg-gradient-to-br from-prime-yellow-400 to-orange-500"
-      assert html =~ "bg-gradient-to-br from-prime-cyan-400 to-blue-500"
-      assert html =~ "bg-gradient-to-br from-green-400 to-emerald-500"
-      assert html =~ "bg-gradient-to-br from-prime-magenta-400 to-pink-500"
+      # Verify gradient classes are present (Theme module gradients)
+      # Primary gradient appears 3 times (Quality First, Accessibility, Community)
+      assert html =~ "bg-gradient-to-r from-teal-500 to-teal-600"
+
+      # Safety gradient appears once (Safety value)
+      assert html =~ "bg-gradient-to-r from-green-500 to-emerald-600"
     end
 
     test "key features display with gradient backgrounds", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify gradient classes are present for features
-      assert html =~ "bg-prime-cyan-100"
-      assert html =~ "bg-prime-magenta-100"
+      # Verify background classes match Theme.bg() outputs
+      # primary_light
+      assert html =~ "bg-teal-50"
+      # secondary_light
+      assert html =~ "bg-pink-50"
+      # accent_light
       assert html =~ "bg-prime-yellow-100"
-      assert html =~ "bg-green-100"
     end
 
     test "all sections use card component styling", %{conn: conn} do
