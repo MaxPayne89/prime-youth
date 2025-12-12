@@ -394,4 +394,90 @@ defmodule PrimeYouth.AccountsTest do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
+
+  describe "anonymize_user/1" do
+    import PrimeYouth.EventTestHelper
+
+    setup do
+      setup_test_events()
+      %{user: user_fixture()}
+    end
+
+    test "anonymizes user email with deleted pattern", %{user: user} do
+      {:ok, anonymized_user} = Accounts.anonymize_user(user)
+
+      assert anonymized_user.email == "deleted_#{user.id}@anonymized.local"
+    end
+
+    test "replaces PII fields with anonymized values", %{user: user} do
+      {:ok, anonymized_user} = Accounts.anonymize_user(user)
+
+      assert anonymized_user.name == "Deleted User"
+      assert is_nil(anonymized_user.avatar)
+    end
+
+    test "deletes all user tokens", %{user: user} do
+      _token = Accounts.generate_user_session_token(user)
+      assert Repo.get_by(UserToken, user_id: user.id)
+
+      {:ok, _anonymized_user} = Accounts.anonymize_user(user)
+
+      refute Repo.get_by(UserToken, user_id: user.id)
+    end
+
+    test "publishes user_anonymized event", %{user: user} do
+      original_email = user.email
+
+      {:ok, _anonymized_user} = Accounts.anonymize_user(user)
+
+      event = assert_event_published(:user_anonymized)
+      assert event.aggregate_id == user.id
+      assert event.payload.previous_email == original_email
+      assert event.payload.anonymized_email == "deleted_#{user.id}@anonymized.local"
+    end
+
+    test "persists changes to database", %{user: user} do
+      {:ok, _anonymized_user} = Accounts.anonymize_user(user)
+
+      reloaded_user = Repo.get!(User, user.id)
+      assert reloaded_user.email == "deleted_#{user.id}@anonymized.local"
+      assert reloaded_user.name == "Deleted User"
+    end
+
+    test "returns error for nil user" do
+      assert {:error, :user_not_found} = Accounts.anonymize_user(nil)
+    end
+  end
+
+  describe "export_user_data/1" do
+    test "exports user data in GDPR-compliant format" do
+      user = user_fixture()
+      data = Accounts.export_user_data(user)
+
+      assert %{exported_at: _, user: user_data} = data
+      assert user_data.email == user.email
+      assert user_data.name == user.name
+      assert user_data.id == user.id
+      assert user_data.avatar == user.avatar
+      refute Map.has_key?(user_data, :hashed_password)
+      refute Map.has_key?(user_data, :password)
+    end
+
+    test "includes timestamps in ISO8601 format" do
+      user = user_fixture()
+      data = Accounts.export_user_data(user)
+
+      assert is_binary(data.exported_at)
+      assert {:ok, _, _} = DateTime.from_iso8601(data.exported_at)
+      assert is_binary(data.user.created_at)
+      assert {:ok, _, _} = DateTime.from_iso8601(data.user.created_at)
+    end
+
+    test "handles nil confirmed_at" do
+      user = unconfirmed_user_fixture()
+      data = Accounts.export_user_data(user)
+
+      assert is_nil(data.user.confirmed_at)
+    end
+  end
 end

@@ -328,4 +328,64 @@ defmodule PrimeYouth.Accounts do
       end
     end)
   end
+
+  ## GDPR Data Export
+
+  @doc """
+  Exports all personal data for the given user in GDPR-compliant format.
+
+  Returns a map containing all user data that can be serialized to JSON.
+  """
+  def export_user_data(%User{} = user) do
+    %{
+      exported_at: DateTime.utc_now() |> DateTime.to_iso8601(),
+      user: %{
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+        confirmed_at: user.confirmed_at && DateTime.to_iso8601(user.confirmed_at),
+        created_at: user.inserted_at && DateTime.to_iso8601(user.inserted_at),
+        updated_at: user.updated_at && DateTime.to_iso8601(user.updated_at)
+      }
+    }
+  end
+
+  ## GDPR Account Anonymization
+
+  @doc """
+  Anonymizes a user account for GDPR deletion requests.
+
+  This function:
+  1. Stores the previous email for audit trail
+  2. Invalidates all session tokens (logs out from all devices)
+  3. Replaces PII with anonymized values
+  4. Publishes `user_anonymized` domain event
+
+  ## Examples
+
+      iex> anonymize_user(user)
+      {:ok, %User{email: "deleted_123@anonymized.local"}}
+
+      iex> anonymize_user(nil)
+      {:error, :user_not_found}
+
+  """
+  def anonymize_user(%User{} = user) do
+    previous_email = user.email
+
+    Repo.transact(fn ->
+      with {:ok, anonymized_user} <- Repo.update(User.anonymize_changeset(user)),
+           {_count, _result} <-
+             Repo.delete_all(from(t in UserToken, where: t.user_id == ^user.id)) do
+        EventPublisher.publish_user_anonymized(anonymized_user, previous_email: previous_email)
+        {:ok, anonymized_user}
+      else
+        {:error, changeset} -> {:error, changeset}
+        _ -> {:error, :transaction_aborted}
+      end
+    end)
+  end
+
+  def anonymize_user(nil), do: {:error, :user_not_found}
 end

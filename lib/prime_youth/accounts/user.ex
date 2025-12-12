@@ -23,6 +23,21 @@ defmodule PrimeYouth.Accounts.User do
     timestamps(type: :utc_datetime)
   end
 
+  # GDPR: Prevent personal data from leaking in logs/exceptions
+  defimpl Inspect, for: __MODULE__ do
+    @sensitive_fields [:email, :name, :password, :hashed_password]
+
+    def inspect(user, _opts) do
+      pruned =
+        user
+        |> Map.from_struct()
+        |> Map.drop(@sensitive_fields)
+        |> Map.delete(:__meta__)
+
+      "#PrimeYouth.Accounts.User<#{inspect(pruned)}>"
+    end
+  end
+
   @doc """
   A user changeset for registration.
 
@@ -149,6 +164,26 @@ defmodule PrimeYouth.Accounts.User do
   def confirm_changeset(user) do
     now = DateTime.utc_now(:second)
     change(user, confirmed_at: now)
+  end
+
+  @doc """
+  Anonymizes the user account for GDPR deletion requests.
+
+  Replaces PII fields with anonymized values:
+  - Email: `deleted_<user_id>@anonymized.local`
+  - Name: `"Deleted User"` (placeholder)
+  - Avatar: `nil` (cleared)
+
+  Timestamps and other non-PII data are preserved for data integrity.
+  """
+  def anonymize_changeset(%__MODULE__{id: id} = user) do
+    anonymized_email = "deleted_#{id}@anonymized.local"
+
+    change(user,
+      email: anonymized_email,
+      name: "Deleted User",
+      avatar: nil
+    )
   end
 
   @doc """

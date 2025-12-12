@@ -32,6 +32,9 @@ defmodule PrimeYouth.Accounts.EventPublisher do
 
       # After email change
       EventPublisher.publish_user_email_changed(user, previous_email: "old@example.com")
+
+      # After account anonymization (GDPR deletion)
+      EventPublisher.publish_user_anonymized(anonymized_user, previous_email: "old@example.com")
   """
 
   alias PrimeYouth.Accounts.Domain.Events.UserEvents
@@ -127,6 +130,38 @@ defmodule PrimeYouth.Accounts.EventPublisher do
 
     user
     |> UserEvents.user_email_changed(payload, meta_opts)
+    |> publisher_module().publish()
+  end
+
+  @doc """
+  Publishes a `user_anonymized` event.
+
+  This is a critical event for GDPR compliance that should not be lost.
+
+  ## Parameters
+
+  - `user` - The User struct AFTER anonymization
+  - `opts` - Options passed to event creation
+    - `:previous_email` - **Required.** The user's previous email address
+    - `:correlation_id` - ID to correlate related events
+    - Any other metadata options
+
+  ## Examples
+
+      EventPublisher.publish_user_anonymized(anonymized_user, previous_email: "old@example.com")
+
+  ## Returns
+
+  - `:ok` on successful publish
+  - `{:error, reason}` on failure
+  """
+  def publish_user_anonymized(%User{} = user, opts) do
+    {payload_opts, meta_opts} = extract_payload_opts(opts, [:previous_email])
+
+    payload = Map.new(payload_opts)
+
+    user
+    |> UserEvents.user_anonymized(payload, meta_opts)
     |> publisher_module().publish()
   end
 

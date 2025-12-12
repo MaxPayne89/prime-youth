@@ -161,6 +161,54 @@ defmodule PrimeYouthWeb.UserLive.SettingsTest do
     end
   end
 
+  describe "delete account form" do
+    setup %{conn: conn} do
+      user = user_fixture() |> set_password()
+      %{conn: log_in_user(conn, user), user: user}
+    end
+
+    test "renders delete account section", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/users/settings")
+
+      assert html =~ "Delete Account"
+      assert html =~ "Delete My Account"
+      assert html =~ "Enter your password to confirm"
+    end
+
+    test "deletes account with valid password", %{conn: conn, user: user} do
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      result =
+        lv
+        |> form("#delete_account_form", %{
+          "delete" => %{"password" => valid_user_password()}
+        })
+        |> render_submit()
+
+      assert {:error, {:redirect, %{to: "/"}}} = result
+
+      refute Accounts.get_user_by_email(user.email)
+
+      anonymized_user = Accounts.get_user!(user.id)
+      assert anonymized_user.email == "deleted_#{user.id}@anonymized.local"
+      assert anonymized_user.name == "Deleted User"
+    end
+
+    test "shows error with invalid password", %{conn: conn, user: user} do
+      {:ok, lv, _html} = live(conn, ~p"/users/settings")
+
+      result =
+        lv
+        |> form("#delete_account_form", %{
+          "delete" => %{"password" => "wrongpassword"}
+        })
+        |> render_submit()
+
+      assert result =~ "Invalid password"
+      assert Accounts.get_user_by_email(user.email)
+    end
+  end
+
   describe "confirm email" do
     setup %{conn: conn} do
       user = user_fixture()

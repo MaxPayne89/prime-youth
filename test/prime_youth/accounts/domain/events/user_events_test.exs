@@ -211,4 +211,73 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEventsTest do
       assert event.payload.change_reason == "user_requested"
     end
   end
+
+  describe "user_anonymized/3 validation" do
+    test "raises when previous_email is missing from payload" do
+      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+
+      assert_raise ArgumentError,
+                   ~r/requires :previous_email in payload/,
+                   fn -> UserEvents.user_anonymized(user, %{}) end
+    end
+
+    test "raises when previous_email is nil" do
+      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+
+      assert_raise ArgumentError,
+                   ~r/requires :previous_email in payload/,
+                   fn -> UserEvents.user_anonymized(user, %{previous_email: nil}) end
+    end
+
+    test "raises when previous_email is empty string via guard clause" do
+      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+
+      assert_raise ArgumentError,
+                   ~r/requires :previous_email in payload/,
+                   fn -> UserEvents.user_anonymized(user, %{previous_email: ""}) end
+    end
+
+    test "raises when user.id is nil" do
+      user = %User{id: nil, email: "deleted_nil@anonymized.local"}
+
+      assert_raise ArgumentError,
+                   "User.id cannot be nil for user_anonymized event",
+                   fn ->
+                     UserEvents.user_anonymized(user, %{previous_email: "old@example.com"})
+                   end
+    end
+
+    test "succeeds with valid user and previous_email" do
+      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+
+      event = UserEvents.user_anonymized(user, %{previous_email: "old@example.com"})
+
+      assert event.event_type == :user_anonymized
+      assert event.aggregate_id == 1
+      assert event.aggregate_type == :user
+      assert event.payload.anonymized_email == "deleted_1@anonymized.local"
+      assert event.payload.previous_email == "old@example.com"
+      assert event.payload.anonymized_at
+    end
+
+    test "sets criticality to critical by default" do
+      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+
+      event = UserEvents.user_anonymized(user, %{previous_email: "old@example.com"})
+
+      assert event.metadata.criticality == :critical
+    end
+
+    test "succeeds with valid user and additional payload fields" do
+      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+
+      event =
+        UserEvents.user_anonymized(user, %{
+          previous_email: "old@example.com",
+          deletion_reason: "user_requested"
+        })
+
+      assert event.payload.deletion_reason == "user_requested"
+    end
+  end
 end

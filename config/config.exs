@@ -22,6 +22,14 @@ config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+# GDPR: Filter sensitive parameters from logs
+config :phoenix, :filter_parameters, [
+  "password",
+  "password_confirmation",
+  "email",
+  "name"
+]
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
