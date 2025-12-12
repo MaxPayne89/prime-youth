@@ -157,8 +157,8 @@ defmodule PrimeYouthWeb.DashboardLive do
             <.quick_action_button
               icon="hero-credit-card"
               label="Payments"
-              bg_color="bg-green-100"
-              icon_color="text-green-500"
+              bg_color={Theme.bg(:primary_light)}
+              icon_color={Theme.text_color(:primary)}
             />
           </div>
         </div>
