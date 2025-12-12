@@ -65,10 +65,10 @@
   --color-base-200: oklch(96% 0.001 286.375);
   --color-base-300: oklch(92% 0.004 286.32);
   --color-base-content: oklch(21% 0.006 285.885);
-  --color-primary: oklch(65% 0.25 320); /* Prime Youth Magenta #FF1493 */
-  --color-primary-content: oklch(98% 0.016 320);
-  --color-secondary: oklch(70% 0.15 185); /* Prime Youth Cyan #00CED1 */
-  --color-secondary-content: oklch(98% 0.002 185);
+  --color-primary: oklch(48% 0.12 175); /* Teal #0D9488 */
+  --color-primary-content: oklch(98% 0.016 175);
+  --color-secondary: oklch(65% 0.25 335); /* Pink #EC4899 */
+  --color-secondary-content: oklch(98% 0.016 335);
   --color-accent: oklch(80% 0.20 85); /* Prime Youth Yellow #FFD700 */
   --color-accent-content: oklch(20% 0.020 85);
   --color-neutral: oklch(44% 0.017 285.786);
@@ -106,27 +106,27 @@
 
 /* Prime Youth Brand Colors */
 @theme {
-  --color-prime-cyan-50: oklch(98% 0.02 200);
-  --color-prime-cyan-100: oklch(95% 0.04 200);
-  --color-prime-cyan-200: oklch(88% 0.08 200);
-  --color-prime-cyan-300: oklch(80% 0.12 200);
-  --color-prime-cyan-400: oklch(70% 0.15 185); /* #00CED1 */
-  --color-prime-cyan-500: oklch(60% 0.14 185);
-  --color-prime-cyan-600: oklch(50% 0.12 185);
-  --color-prime-cyan-700: oklch(40% 0.10 185);
-  --color-prime-cyan-800: oklch(30% 0.08 185);
-  --color-prime-cyan-900: oklch(20% 0.06 185);
+  --color-prime-cyan-50: oklch(98% 0.02 175);
+  --color-prime-cyan-100: oklch(95% 0.04 175);
+  --color-prime-cyan-200: oklch(88% 0.08 175);
+  --color-prime-cyan-300: oklch(78% 0.10 175);
+  --color-prime-cyan-400: oklch(68% 0.12 175); /* Teal-400 */
+  --color-prime-cyan-500: oklch(58% 0.11 175);
+  --color-prime-cyan-600: oklch(48% 0.10 175); /* Teal-600 #0D9488 */
+  --color-prime-cyan-700: oklch(38% 0.09 175);
+  --color-prime-cyan-800: oklch(28% 0.08 175);
+  --color-prime-cyan-900: oklch(18% 0.07 175);
 
-  --color-prime-magenta-50: oklch(98% 0.02 320);
-  --color-prime-magenta-100: oklch(95% 0.05 320);
-  --color-prime-magenta-200: oklch(88% 0.12 320);
-  --color-prime-magenta-300: oklch(80% 0.18 320);
-  --color-prime-magenta-400: oklch(65% 0.25 320); /* #FF1493 */
-  --color-prime-magenta-500: oklch(58% 0.23 320);
-  --color-prime-magenta-600: oklch(50% 0.20 320);
-  --color-prime-magenta-700: oklch(42% 0.17 320);
-  --color-prime-magenta-800: oklch(34% 0.14 320);
-  --color-prime-magenta-900: oklch(26% 0.11 320);
+  --color-prime-magenta-50: oklch(98% 0.02 335);
+  --color-prime-magenta-100: oklch(95% 0.05 335);
+  --color-prime-magenta-200: oklch(88% 0.12 335);
+  --color-prime-magenta-300: oklch(78% 0.18 335);
+  --color-prime-magenta-400: oklch(65% 0.25 335); /* Pink-500 #EC4899 */
+  --color-prime-magenta-500: oklch(58% 0.23 335);
+  --color-prime-magenta-600: oklch(50% 0.20 335);
+  --color-prime-magenta-700: oklch(42% 0.17 335);
+  --color-prime-magenta-800: oklch(34% 0.14 335);
+  --color-prime-magenta-900: oklch(26% 0.11 335);
 
   --color-prime-yellow-50: oklch(98% 0.02 85);
   --color-prime-yellow-100: oklch(95% 0.05 85);

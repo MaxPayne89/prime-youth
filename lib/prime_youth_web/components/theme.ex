@@ -7,7 +7,7 @@ defmodule PrimeYouthWeb.Theme do
 
   ## Design Tokens
 
-  - **Colors**: Primary (cyan), Secondary (magenta), Accent (yellow)
+  - **Colors**: Primary (teal), Secondary (pink), Accent (yellow)
   - **Gradients**: 15+ pre-defined gradients for various use cases
   - **Icon Styles**: Paired background + text colors for icons
   - **Status**: Color combinations for availability states
@@ -40,40 +40,8 @@ defmodule PrimeYouthWeb.Theme do
 
   @gradients %{
     # Primary brand gradients
-    primary: "bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400",
-    hero: "bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400",
-    magenta_yellow: "bg-gradient-to-r from-prime-magenta-400 to-prime-yellow-400",
-    yellow_cyan: "bg-gradient-to-r from-prime-yellow-400 to-prime-cyan-400",
-
-    # Warm gradients (yellows, oranges, reds)
-    warm: "bg-gradient-to-br from-yellow-400 via-orange-500 to-yellow-600",
-    warm_intense: "bg-gradient-to-br from-orange-400 via-pink-500 to-purple-600",
-    warm_yellow: "bg-gradient-to-br from-prime-yellow-400 to-orange-500",
-
-    # Cool gradients (blues, cyans, purples)
-    cool: "bg-gradient-to-br from-prime-cyan-400 to-blue-500",
-    cool_magenta: "bg-gradient-to-br from-prime-magenta-400 to-pink-500",
-    cool_purple: "bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600",
-
-    # Nature gradients (greens)
-    nature: "bg-gradient-to-br from-green-400 via-blue-500 to-purple-600",
-    success: "bg-gradient-to-br from-green-500 via-emerald-600 to-teal-700",
-    safety: "bg-gradient-to-br from-green-400 to-emerald-500",
-
-    # Neutral/Dark gradients
-    dark: "bg-gradient-to-br from-gray-700 via-gray-800 to-black",
-    tech: "bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700",
-
-    # Default program gradient
-    program_default: "bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500",
-
-    # Specialty gradients for specific program types
-    art: "bg-gradient-to-br from-yellow-400 via-orange-500 to-yellow-600",
-    chess: "bg-gradient-to-br from-gray-700 via-gray-800 to-black",
-    science: "bg-gradient-to-br from-green-400 via-blue-500 to-purple-600",
-    sports: "bg-gradient-to-br from-green-500 via-emerald-600 to-teal-700",
-    music: "bg-gradient-to-br from-pink-400 via-purple-500 to-indigo-600",
-    coding: "bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-700"
+    primary: "bg-gradient-to-r from-teal-500 to-teal-600",
+    hero: "bg-gradient-to-br from-teal-400 via-teal-500 to-teal-600"
   }
 
   @doc """
@@ -81,20 +49,16 @@ defmodule PrimeYouthWeb.Theme do
 
   ## Available Gradients
 
-  - `:primary` - Cyan to magenta horizontal
-  - `:hero` - Full brand colors diagonal
-  - `:warm` - Yellow to orange
-  - `:cool` - Cyan to blue
-  - `:success` - Green tones
-  - `:art`, `:chess`, `:science`, `:sports`, `:music`, `:coding` - Program-specific
+  - `:primary` - Teal horizontal gradient (teal-500 to teal-600)
+  - `:hero` - Teal diagonal gradient (teal-400 via teal-500 to teal-600)
 
   ## Examples
 
       iex> Theme.gradient(:primary)
-      "bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400"
+      "bg-gradient-to-r from-teal-500 to-teal-600"
 
       iex> Theme.gradient(:hero)
-      "bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400"
+      "bg-gradient-to-br from-teal-400 via-teal-500 to-teal-600"
   """
   def gradient(name) when is_atom(name) do
     Map.get(@gradients, name, @gradients.primary)
@@ -111,8 +75,8 @@ defmodule PrimeYouthWeb.Theme do
   # ============================================
 
   @colors %{
-    primary: "prime-cyan",
-    secondary: "prime-magenta",
+    primary: "teal",
+    secondary: "pink",
     accent: "prime-yellow"
   }
 
@@ -127,6 +91,85 @@ defmodule PrimeYouthWeb.Theme do
   def color(:primary), do: @colors.primary
   def color(:secondary), do: @colors.secondary
   def color(:accent), do: @colors.accent
+
+  # ============================================
+  # BRAND COLORS
+  # ============================================
+
+  @brand_colors %{
+    # Primary brand color (teal)
+    primary: "teal-600",
+    primary_hover: "teal-700",
+    primary_light: "teal-50",
+
+    # Accent color (pink)
+    accent: "pink-500",
+    accent_hover: "pink-600",
+
+    # Surface colors
+    surface: "white",
+    surface_light: "slate-50",
+
+    # Text colors
+    text_primary: "slate-900",
+    text_secondary: "slate-700",
+    text_muted: "slate-500",
+
+    # Border colors
+    border_light: "slate-200",
+    border_medium: "slate-300",
+
+    # Footer
+    footer_bg: "slate-900",
+    footer_text: "slate-300"
+  }
+
+  @doc """
+  Returns the brand color value for the given key.
+
+  This map provides centralized brand color management for easy rebranding.
+  All color values are Tailwind color names that can be used directly in classes.
+
+  ## Available Colors
+
+  ### Primary Colors
+  - `:primary` - Main brand color (teal-600)
+  - `:primary_hover` - Hover state (teal-700)
+  - `:primary_light` - Light background (teal-50)
+
+  ### Accent Colors
+  - `:accent` - Accent highlights (pink-500)
+  - `:accent_hover` - Accent hover (pink-600)
+
+  ### Surface Colors
+  - `:surface` - Default background (white)
+  - `:surface_light` - Light surface (slate-50)
+
+  ### Text Colors
+  - `:text_primary` - Primary text (slate-900)
+  - `:text_secondary` - Secondary text (slate-700)
+  - `:text_muted` - Muted text (slate-500)
+
+  ### Border Colors
+  - `:border_light` - Subtle borders (slate-200)
+  - `:border_medium` - Medium borders (slate-300)
+
+  ### Footer Colors
+  - `:footer_bg` - Footer background (slate-900)
+  - `:footer_text` - Footer text (slate-300)
+
+  ## Examples
+
+      iex> Theme.brand_color(:primary)
+      "teal-600"
+
+      iex> Theme.brand_color(:accent)
+      "pink-500"
+
+      iex> Theme.brand_color(:text_primary)
+      "slate-900"
+  """
+  def brand_color(key), do: Map.get(@brand_colors, key)
 
   # ============================================
   # BACKGROUND CLASSES
@@ -151,12 +194,12 @@ defmodule PrimeYouthWeb.Theme do
       iex> Theme.bg(:primary_light)
       "bg-prime-cyan-100"
   """
-  def bg(:primary), do: "bg-prime-cyan-400"
-  def bg(:primary_light), do: "bg-prime-cyan-100"
-  def bg(:primary_dark), do: "bg-prime-cyan-600"
-  def bg(:secondary), do: "bg-prime-magenta-400"
-  def bg(:secondary_light), do: "bg-prime-magenta-100"
-  def bg(:secondary_dark), do: "bg-prime-magenta-600"
+  def bg(:primary), do: "bg-teal-600"
+  def bg(:primary_light), do: "bg-teal-50"
+  def bg(:primary_dark), do: "bg-teal-700"
+  def bg(:secondary), do: "bg-pink-500"
+  def bg(:secondary_light), do: "bg-pink-50"
+  def bg(:secondary_dark), do: "bg-pink-700"
   def bg(:accent), do: "bg-prime-yellow-400"
   def bg(:accent_light), do: "bg-prime-yellow-100"
   def bg(:surface), do: "bg-white"
@@ -189,10 +232,10 @@ defmodule PrimeYouthWeb.Theme do
       iex> Theme.text_color(:heading)
       "text-gray-900"
   """
-  def text_color(:primary), do: "text-prime-cyan-400"
-  def text_color(:primary_dark), do: "text-prime-cyan-600"
+  def text_color(:primary), do: "text-teal-600"
+  def text_color(:primary_dark), do: "text-teal-700"
   def text_color(:secondary), do: "text-gray-600"
-  def text_color(:secondary_dark), do: "text-prime-magenta-600"
+  def text_color(:secondary_dark), do: "text-pink-600"
   def text_color(:accent), do: "text-prime-yellow-400"
   def text_color(:accent_dark), do: "text-prime-yellow-600"
   def text_color(:heading), do: "text-gray-900"
@@ -216,9 +259,9 @@ defmodule PrimeYouthWeb.Theme do
       iex> Theme.border_color(:light)
       "border-gray-200"
   """
-  def border_color(:primary), do: "border-prime-cyan-400"
-  def border_color(:primary_light), do: "border-prime-cyan-200"
-  def border_color(:secondary), do: "border-prime-magenta-400"
+  def border_color(:primary), do: "border-teal-500"
+  def border_color(:primary_light), do: "border-teal-200"
+  def border_color(:secondary), do: "border-pink-500"
   def border_color(:accent), do: "border-prime-yellow-400"
   def border_color(:light), do: "border-gray-200"
   def border_color(:medium), do: "border-gray-300"
@@ -242,8 +285,8 @@ defmodule PrimeYouthWeb.Theme do
       # bg = "bg-prime-cyan-100"
       # text = "text-prime-cyan-400"
   """
-  def icon_styles(:primary), do: {"bg-prime-cyan-100", "text-prime-cyan-400"}
-  def icon_styles(:secondary), do: {"bg-prime-magenta-100", "text-prime-magenta-400"}
+  def icon_styles(:primary), do: {"bg-teal-50", "text-teal-600"}
+  def icon_styles(:secondary), do: {"bg-pink-50", "text-pink-500"}
   def icon_styles(:accent), do: {"bg-prime-yellow-100", "text-prime-yellow-600"}
   def icon_styles(:success), do: {"bg-green-100", "text-green-600"}
   def icon_styles(:warning), do: {"bg-yellow-100", "text-yellow-600"}
@@ -464,8 +507,8 @@ defmodule PrimeYouthWeb.Theme do
       iex> Theme.button_variant(:primary)
       "bg-prime-cyan-400 text-white hover:bg-prime-cyan-500"
   """
-  def button_variant(:primary), do: "bg-prime-cyan-400 text-white hover:bg-prime-cyan-500"
-  def button_variant(:secondary), do: "bg-prime-magenta-400 text-white hover:bg-prime-magenta-500"
+  def button_variant(:primary), do: "bg-teal-600 text-white hover:bg-teal-700"
+  def button_variant(:secondary), do: "bg-pink-500 text-white hover:bg-pink-600"
   def button_variant(:outline), do: "border-2 border-gray-200 text-gray-700 hover:bg-gray-50"
   def button_variant(:ghost), do: "text-gray-600 hover:bg-gray-100"
 
