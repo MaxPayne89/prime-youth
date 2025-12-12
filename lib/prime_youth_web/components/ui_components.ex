@@ -161,40 +161,71 @@ defmodule PrimeYouthWeb.UIComponents do
   @doc """
   Renders a circular back button with glassmorphism effect.
 
+  Automatically uses browser back navigation when no custom click handler is provided.
+
   ## Examples
 
-      <.back_button on_click="back_to_programs" />
-      <.back_button phx-click="go_back" class="ml-4" />
+      <.back_button />  # Uses browser back navigation
+      <.back_button on_click="back_to_programs" />  # Custom event handler
+      <.back_button phx-click="go_back" class="ml-4" />  # Custom event handler
+      <.back_button size={:lg} color="text-blue-600" />  # Large button with custom color
   """
+  attr :size, :atom, default: :md, values: [:sm, :md, :lg], doc: "Button and icon size"
+  attr :color, :string, default: "text-white", doc: "Icon color class"
+
+  attr :use_browser_back, :boolean,
+    default: true,
+    doc: "Use browser back navigation when no phx-click provided"
+
   attr :on_click, :string, default: nil, doc: "Phoenix event name (deprecated, use phx-click)"
   attr :class, :string, default: ""
   attr :rest, :global, include: ~w(phx-click phx-value-* disabled)
 
   def back_button(assigns) do
-    # Support both on_click and phx-click for backwards compatibility
+    # Size mappings
+    assigns = assign(assigns, :size_classes, back_button_size_classes(assigns.size))
+
+    # Determine click behavior
     assigns =
-      if assigns.on_click && !assigns.rest[:"phx-click"] do
-        Map.put(assigns, :rest, Map.put(assigns.rest, :"phx-click", assigns.on_click))
-      else
+      if assigns.use_browser_back && !assigns.rest[:"phx-click"] && !assigns.on_click do
+        # Use browser back navigation via plain JavaScript onclick
         assigns
+        |> assign(:use_browser_back_nav, true)
+      else
+        # Support backwards compatibility with on_click
+        assigns =
+          if assigns.on_click && !assigns.rest[:"phx-click"] do
+            Map.put(assigns, :rest, Map.put(assigns.rest, :"phx-click", assigns.on_click))
+          else
+            assigns
+          end
+
+        assigns
+        |> assign(:use_browser_back_nav, false)
       end
 
     ~H"""
     <button
       type="button"
       class={[
-        "p-2 bg-white/20 backdrop-blur-sm",
+        @size_classes.padding,
+        "bg-white/20 backdrop-blur-sm",
         Theme.rounded(:full),
         "hover:bg-white/30",
         Theme.transition(:normal),
         @class
       ]}
+      onclick={if @use_browser_back_nav, do: "window.history.back(); return false;", else: nil}
       {@rest}
     >
-      <.icon name="hero-arrow-left" class="w-6 h-6 text-white" />
+      <.icon name="hero-arrow-left" class={"#{@size_classes.icon} #{@color}"} />
     </button>
     """
   end
+
+  defp back_button_size_classes(:sm), do: %{icon: "w-4 h-4", padding: "p-1"}
+  defp back_button_size_classes(:md), do: %{icon: "w-6 h-6", padding: "p-2"}
+  defp back_button_size_classes(:lg), do: %{icon: "w-8 h-8", padding: "p-3"}
 
   @doc """
   Renders a section divider with centered text.
@@ -786,6 +817,14 @@ defmodule PrimeYouthWeb.UIComponents do
     default: false,
     doc: "Show back button (page variant only)"
 
+  attr :back_button_size, :atom,
+    default: :md,
+    doc: "Back button size (:sm, :md, :lg)"
+
+  attr :back_button_color, :string,
+    default: "text-white",
+    doc: "Back button icon color"
+
   attr :class, :string, default: ""
   attr :rest, :global, include: ~w(phx-click phx-value-*)
 
@@ -850,7 +889,12 @@ defmodule PrimeYouthWeb.UIComponents do
         <%!-- Page header --%>
         <div class="p-6">
           <div class="flex items-center gap-4 mb-4">
-            <.back_button :if={@show_back_button} {@rest} />
+            <.back_button
+              :if={@show_back_button}
+              size={@back_button_size}
+              color={@back_button_color}
+              {@rest}
+            />
             <div>
               <h1 class={[Theme.typography(:section_title), "text-white"]}>
                 {render_slot(@title)}
