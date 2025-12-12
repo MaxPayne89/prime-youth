@@ -37,7 +37,7 @@ defmodule PrimeYouthWeb.ProgramComponents do
         placeholder={@placeholder}
         value={@value}
         class={[
-          "w-full px-4 py-3 pl-11 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent",
+          "w-full px-4 py-3 pl-11 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent",
           Theme.transition(:normal),
           Theme.rounded(:lg)
         ]}
@@ -89,7 +89,7 @@ defmodule PrimeYouthWeb.ProgramComponents do
             Theme.transition(:normal),
             Theme.rounded(:full),
             if(filter.id == @active_filter,
-              do: [Theme.gradient(:primary), "text-white shadow-md"],
+              do: "bg-teal-600 text-white shadow-md",
               else: "bg-white text-gray-700 border border-gray-300 hover:border-gray-400"
             )
           ]}
@@ -147,7 +147,7 @@ defmodule PrimeYouthWeb.ProgramComponents do
             phx-click="toggle_favorite"
             phx-value-program={@program.title}
             class={[
-              "p-2 bg-white/80 backdrop-blur-sm hover:bg-white",
+              "p-2 bg-white shadow-sm hover:bg-gray-50",
               Theme.transition(:normal),
               Theme.rounded(:full)
             ]}

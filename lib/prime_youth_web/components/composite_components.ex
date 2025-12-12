@@ -7,6 +7,11 @@ defmodule PrimeYouthWeb.CompositeComponents do
   """
   use Phoenix.Component
 
+  use Phoenix.VerifiedRoutes,
+    endpoint: PrimeYouthWeb.Endpoint,
+    router: PrimeYouthWeb.Router,
+    statics: PrimeYouthWeb.static_paths()
+
   import PrimeYouthWeb.UIComponents
 
   alias PrimeYouthWeb.Theme
@@ -339,7 +344,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
               <span class="text-sm font-medium">{@likes}</span>
             </button>
             <button class={[
-              "flex items-center gap-2 text-gray-500 hover:text-prime-cyan-400",
+              "flex items-center gap-2 text-gray-500 hover:text-teal-600",
               Theme.transition(:normal)
             ]}>
               <span class="text-xl">💬</span>
@@ -357,7 +362,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
               type="text"
               name="comment"
               placeholder="Write a comment..."
-              class="flex-1 input input-bordered input-sm bg-white border-gray-300 focus:border-prime-cyan-400 focus:ring-1 focus:ring-prime-cyan-400"
+              class="flex-1 input input-bordered input-sm bg-white border-gray-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
               autocomplete="off"
             />
             <button
@@ -370,6 +375,89 @@ defmodule PrimeYouthWeb.CompositeComponents do
         </div>
       </div>
     </div>
+    """
+  end
+
+  @doc """
+  Renders the application footer with links and social media icons.
+
+  ## Examples
+
+      <.app_footer />
+  """
+  def app_footer(assigns) do
+    ~H"""
+    <footer class="footer footer-center p-10 bg-slate-900 text-slate-300">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl">
+        <div class="text-left">
+          <h3 class="font-bold text-lg text-white mb-4">Prime Youth</h3>
+          <p class="text-sm">
+            Empowering children through engaging afterschool activities, camps, and educational programs.
+          </p>
+        </div>
+
+        <div class="text-left">
+          <h4 class="font-semibold mb-4">Quick Links</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#programs" class="link link-hover">Programs</a></li>
+            <li><a href="#about" class="link link-hover">About Us</a></li>
+            <li><a href="#contact" class="link link-hover">Contact</a></li>
+            <li><a href="#faq" class="link link-hover">FAQ</a></li>
+          </ul>
+        </div>
+
+        <div class="text-left">
+          <h4 class="font-semibold mb-4">Programs</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#afterschool" class="link link-hover">Afterschool</a></li>
+            <li><a href="#camps" class="link link-hover">Summer Camps</a></li>
+            <li><a href="#trips" class="link link-hover">Class Trips</a></li>
+            <li><a href="#enrichment" class="link link-hover">Enrichment</a></li>
+          </ul>
+        </div>
+
+        <div class="text-left">
+          <h4 class="font-semibold mb-4">Connect</h4>
+          <div class="flex gap-2 mb-4">
+            <a href="#facebook" class="btn btn-circle btn-sm btn-ghost">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+              </svg>
+            </a>
+            <a href="#instagram" class="btn btn-circle btn-sm btn-ghost">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987 6.62 0 11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.611-3.197-1.559-.496-.629-.795-1.422-.795-2.278 0-2.073 1.684-3.757 3.757-3.757 2.073 0 3.757 1.684 3.757 3.757 0 2.073-1.684 3.757-3.757 3.757z" />
+              </svg>
+            </a>
+          </div>
+          <div class="text-sm">
+            <p>Email: info@primeyouth.com</p>
+            <p>Phone: (555) 123-4567</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-base-300 pt-6 mt-6 w-full">
+        <p class="text-sm">&copy; 2024 Prime Youth. All rights reserved.</p>
+        <div class="flex gap-4 justify-center mt-2 text-xs">
+          <.link navigate={~p"/privacy"} class="link link-hover">Privacy Policy</.link>
+          <span class="text-gray-400">•</span>
+          <.link navigate={~p"/terms"} class="link link-hover">Terms of Service</.link>
+        </div>
+      </div>
+    </footer>
     """
   end
 end
