@@ -209,9 +209,9 @@ defmodule PrimeYouthWeb.UIComponents do
       type="button"
       class={[
         @size_classes.padding,
-        "bg-white/20 backdrop-blur-sm",
+        "bg-white shadow-sm",
         Theme.rounded(:full),
-        "hover:bg-white/30",
+        "hover:bg-gray-50",
         Theme.transition(:normal),
         @class
       ]}

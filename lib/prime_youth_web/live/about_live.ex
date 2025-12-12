@@ -17,14 +17,14 @@ defmodule PrimeYouthWeb.AboutLive do
     [
       %{
         icon: "hero-star",
-        gradient: Theme.gradient(:warm_yellow),
+        gradient: Theme.gradient(:primary),
         title: "Quality First",
         description:
           "We partner with qualified instructors who are passionate about youth development"
       },
       %{
         icon: "hero-users",
-        gradient: Theme.gradient(:cool),
+        gradient: Theme.gradient(:primary),
         title: "Accessibility",
         description:
           "Making enriching programs accessible to families through transparent pricing and easy booking"
@@ -37,7 +37,7 @@ defmodule PrimeYouthWeb.AboutLive do
       },
       %{
         icon: "hero-heart",
-        gradient: Theme.gradient(:cool_magenta),
+        gradient: Theme.gradient(:primary),
         title: "Community",
         description: "Building a supportive community of parents, instructors, and young learners"
       }
@@ -66,7 +66,7 @@ defmodule PrimeYouthWeb.AboutLive do
       },
       %{
         icon: "hero-chart-bar",
-        gradient: "bg-green-100",
+        gradient: Theme.bg(:primary_light),
         title: "Progress Tracking",
         description: "Monitor your child's participation and achievements in real-time"
       }

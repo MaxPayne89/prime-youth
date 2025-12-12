@@ -59,21 +59,21 @@ defmodule PrimeYouthWeb.ContactLive do
     [
       %{
         icon: "hero-envelope",
-        gradient: Theme.gradient(:cool),
+        gradient: Theme.gradient(:primary),
         title: "Email",
         value: "support@primeyouth.com",
         note: "We respond within 24 hours"
       },
       %{
         icon: "hero-phone",
-        gradient: Theme.gradient(:cool_magenta),
+        gradient: Theme.gradient(:primary),
         title: "Phone",
         value: "+1 (555) 123-4567",
         note: "Mon-Fri, 9am-5pm EST"
       },
       %{
         icon: "hero-map-pin",
-        gradient: Theme.gradient(:warm_yellow),
+        gradient: Theme.gradient(:primary),
         title: "Address",
         value: "123 Youth Avenue, Suite 100",
         note: "New York, NY 10001"
@@ -147,9 +147,9 @@ defmodule PrimeYouthWeb.ContactLive do
 
                   <div
                     :if={@submission_status == :success}
-                    class={["p-4 bg-green-50 border border-green-200", Theme.rounded(:md)]}
+                    class={["p-4 bg-teal-50 border border-teal-200", Theme.rounded(:md)]}
                   >
-                    <div class="flex items-center gap-2 text-green-800">
+                    <div class="flex items-center gap-2 text-teal-800">
                       <.icon name="hero-check-circle" class="w-5 h-5" />
                       <span class="font-medium">Message sent successfully!</span>
                     </div>

@@ -230,7 +230,7 @@ defmodule PrimeYouthWeb.BookingLive do
             <select
               name="child_id"
               class={[
-                "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent",
+                "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent",
                 Theme.rounded(:lg)
               ]}
             >
@@ -267,7 +267,7 @@ defmodule PrimeYouthWeb.BookingLive do
               maxlength="500"
               placeholder="Any allergies, medical conditions, or special instructions..."
               class={[
-                "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-prime-cyan-400 focus:border-transparent resize-none",
+                "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none",
                 Theme.rounded(:lg)
               ]}
             ></textarea>

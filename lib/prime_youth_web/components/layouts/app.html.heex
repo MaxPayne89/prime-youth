@@ -1,8 +1,8 @@
-<div class="drawer bg-gradient-to-br from-prime-cyan-400 via-prime-magenta-400 to-prime-yellow-400 min-h-screen">
+<div class="drawer bg-white min-h-screen">
   <input id="main-drawer" type="checkbox" class="drawer-toggle" />
   <div class="drawer-content flex flex-col">
     <!-- Navbar -->
-    <div class="navbar bg-white/20 backdrop-blur-lg border-b border-white/20 relative z-10">
+    <div class="navbar bg-white shadow-sm border-b border-slate-200 relative z-10">
       <div class="navbar-start">
         <div class="dropdown lg:hidden">
           <label for="main-drawer" class="btn btn-square btn-ghost">
@@ -29,19 +29,39 @@
               alt="Prime Youth Logo"
               class="w-8 h-8 object-contain"
             />
-            <span class="text-white font-bold">Prime Youth</span>
+            <span class="text-slate-900 font-bold">Prime Youth</span>
           </div>
         </a>
       </div>
 
       <div class="navbar-center hidden lg:flex">
         <ul class="menu menu-horizontal px-1">
-          <li><.link navigate={~p"/"} class="btn btn-ghost text-white">Home</.link></li>
           <li>
-            <.link navigate={~p"/programs"} class="btn btn-ghost text-white">Programs</.link>
+            <.link navigate={~p"/"} class="btn btn-ghost text-slate-700 hover:text-teal-600">
+              Home
+            </.link>
           </li>
-          <li><.link navigate={~p"/about"} class="btn btn-ghost text-white">About</.link></li>
-          <li><.link navigate={~p"/contact"} class="btn btn-ghost text-white">Contact</.link></li>
+          <li>
+            <.link
+              navigate={~p"/programs"}
+              class="btn btn-ghost text-slate-700 hover:text-teal-600"
+            >
+              Programs
+            </.link>
+          </li>
+          <li>
+            <.link navigate={~p"/about"} class="btn btn-ghost text-slate-700 hover:text-teal-600">
+              About
+            </.link>
+          </li>
+          <li>
+            <.link
+              navigate={~p"/contact"}
+              class="btn btn-ghost text-slate-700 hover:text-teal-600"
+            >
+              Contact
+            </.link>
+          </li>
         </ul>
       </div>
 
@@ -53,7 +73,7 @@
             <!-- Authenticated User Dropdown -->
             <div class="dropdown dropdown-end">
               <label tabindex="0" class="btn btn-ghost btn-circle avatar">
-                <div class="w-10 rounded-full ring ring-white ring-offset-2">
+                <div class="w-10 rounded-full ring ring-teal-500 ring-offset-2">
                   <img src={@current_scope.user.avatar} alt={@current_scope.user.name} />
                 </div>
               </label>
@@ -147,10 +167,10 @@
             </div>
           <% else %>
             <!-- Unauthenticated -->
-            <.link navigate={~p"/users/log-in"} class="btn btn-ghost text-white">Login</.link>
+            <.link navigate={~p"/users/log-in"} class="btn btn-ghost text-slate-700">Login</.link>
             <.link
               navigate={~p"/users/register"}
-              class="btn bg-white text-gray-900 hover:bg-gray-100"
+              class="btn bg-teal-600 text-white hover:bg-teal-700"
             >
               Sign Up
             </.link>
@@ -170,77 +190,7 @@
     </main>
     
 <!-- Footer -->
-    <footer class="footer footer-center p-10 bg-white/20 backdrop-blur-lg text-white">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl">
-        <div class="text-left">
-          <h3 class="font-bold text-lg text-white mb-4">Prime Youth</h3>
-          <p class="text-sm">
-            Empowering children through engaging afterschool activities, camps, and educational programs.
-          </p>
-        </div>
-
-        <div class="text-left">
-          <h4 class="font-semibold mb-4">Quick Links</h4>
-          <ul class="space-y-2 text-sm">
-            <li><a href="#programs" class="link link-hover">Programs</a></li>
-            <li><a href="#about" class="link link-hover">About Us</a></li>
-            <li><a href="#contact" class="link link-hover">Contact</a></li>
-            <li><a href="#faq" class="link link-hover">FAQ</a></li>
-          </ul>
-        </div>
-
-        <div class="text-left">
-          <h4 class="font-semibold mb-4">Programs</h4>
-          <ul class="space-y-2 text-sm">
-            <li><a href="#afterschool" class="link link-hover">Afterschool</a></li>
-            <li><a href="#camps" class="link link-hover">Summer Camps</a></li>
-            <li><a href="#trips" class="link link-hover">Class Trips</a></li>
-            <li><a href="#enrichment" class="link link-hover">Enrichment</a></li>
-          </ul>
-        </div>
-
-        <div class="text-left">
-          <h4 class="font-semibold mb-4">Connect</h4>
-          <div class="flex gap-2 mb-4">
-            <a href="#facebook" class="btn btn-circle btn-sm btn-ghost">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-            </a>
-            <a href="#instagram" class="btn btn-circle btn-sm btn-ghost">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987 6.62 0 11.987-5.367 11.987-11.987C24.014 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.611-3.197-1.559-.496-.629-.795-1.422-.795-2.278 0-2.073 1.684-3.757 3.757-3.757 2.073 0 3.757 1.684 3.757 3.757 0 2.073-1.684 3.757-3.757 3.757z" />
-              </svg>
-            </a>
-          </div>
-          <div class="text-sm">
-            <p>Email: info@primeyouth.com</p>
-            <p>Phone: (555) 123-4567</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="border-t border-base-300 pt-6 mt-6 w-full">
-        <p class="text-sm">&copy; 2024 Prime Youth. All rights reserved.</p>
-        <div class="flex gap-4 justify-center mt-2 text-xs">
-          <.link navigate={~p"/privacy"} class="link link-hover">Privacy Policy</.link>
-          <span class="text-gray-400">•</span>
-          <.link navigate={~p"/terms"} class="link link-hover">Terms of Service</.link>
-        </div>
-      </div>
-    </footer>
+    <PrimeYouthWeb.CompositeComponents.app_footer />
     
 <!-- Dev Auth Toggle Button (only in development) -->
     <%= if Application.get_env(:prime_youth, :dev_routes) do %>
@@ -261,7 +211,7 @@
 <!-- Sidebar for mobile -->
   <div class="drawer-side">
     <label for="main-drawer" class="drawer-overlay"></label>
-    <aside class="w-64 min-h-full bg-white/20 backdrop-blur-lg">
+    <aside class="w-64 min-h-full bg-white shadow-lg">
       <div class="p-4">
         <div class="flex items-center gap-2 mb-8">
           <img
@@ -269,10 +219,10 @@
             alt="Prime Youth Logo"
             class="w-8 h-8 object-contain"
           />
-          <span class="text-white font-bold text-lg">Prime Youth</span>
+          <span class="text-slate-900 font-bold text-lg">Prime Youth</span>
         </div>
 
-        <ul class="menu w-full text-white">
+        <ul class="menu w-full text-slate-900">
           <li><.link navigate={~p"/"}>Home</.link></li>
           <li><.link navigate={~p"/programs"}>Programs</.link></li>
           <li><.link navigate={~p"/about"}>About</.link></li>
@@ -286,19 +236,21 @@
               <.link
                 href={~p"/users/log-out"}
                 method="delete"
-                class="text-red-300 hover:text-red-100"
+                class="text-red-600 hover:text-red-700"
               >
                 Sign Out
               </.link>
             </li>
           <% else %>
             <li class="mt-4">
-              <.link navigate={~p"/users/log-in"} class="btn btn-ghost text-white">Login</.link>
+              <.link navigate={~p"/users/log-in"} class="btn btn-ghost text-slate-700">
+                Login
+              </.link>
             </li>
             <li class="mt-2">
               <.link
                 navigate={~p"/users/register"}
-                class="btn bg-white text-gray-900 hover:bg-gray-100"
+                class="btn bg-teal-600 text-white hover:bg-teal-700"
               >
                 Sign Up
               </.link>
