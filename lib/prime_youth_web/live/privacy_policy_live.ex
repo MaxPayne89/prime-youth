@@ -22,7 +22,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         gradient: Theme.gradient(:cool),
         title: "Introduction",
         content: """
-        <p class="mb-4">Welcome to Prime Youth's Privacy Policy. At Prime Youth, we connect families with enriching afterschool programs, camps, and educational activities. We understand that when you entrust us with your family's information, you expect us to handle it responsibly and transparently.</p>
+        <p class="mb-4">Welcome to Prime Youth Connect's Privacy Policy. At Prime Youth Connect, we connect families with enriching afterschool programs, camps, and educational activities. We understand that when you entrust us with your family's information, you expect us to handle it responsibly and transparently.</p>
         <p class="mb-4">This Privacy Policy explains what information we collect, how we use it, and your rights regarding your personal data. We are committed to protecting your privacy and complying with data protection laws, including GDPR.</p>
         <p class="font-semibold text-gray-900">Last Updated: #{last_updated()}</p>
         """
@@ -147,7 +147,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         gradient: Theme.gradient(:cool_magenta),
         title: "Children's Privacy",
         content: """
-        <p class="mb-4">Prime Youth is designed to help parents manage their children's activities. We take special care with children's information:</p>
+        <p class="mb-4">Prime Youth Connect is designed to help parents manage their children's activities. We take special care with children's information:</p>
         <ul class="list-disc pl-6 space-y-2 mb-4">
           <li><strong>Parental Consent:</strong> Parents or legal guardians must create accounts and provide consent for their children's participation</li>
           <li><strong>COPPA Compliance:</strong> We comply with the Children's Online Privacy Protection Act (COPPA) for children under 13</li>
@@ -165,7 +165,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         gradient: Theme.gradient(:warm_yellow),
         title: "Cookies & Tracking",
         content: """
-        <p class="mb-4">Prime Youth uses minimal tracking to provide essential functionality:</p>
+        <p class="mb-4">Prime Youth Connect uses minimal tracking to provide essential functionality:</p>
         <h4 class="font-semibold text-gray-900 mb-2">Essential Cookies:</h4>
         <p class="mb-4">We use session cookies that are necessary for authentication and platform functionality. These cookies do not track you across other websites and are automatically deleted when you close your browser or log out.</p>
         <h4 class="font-semibold text-gray-900 mb-2">No Third-Party Tracking:</h4>
@@ -201,7 +201,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         <ul class="list-disc pl-6 space-y-2 mb-4">
           <li>We will update the "Last Updated" date at the top of this policy</li>
           <li>For material changes, we will send an email notification to all active users</li>
-          <li>Continued use of Prime Youth after changes constitute acceptance of the updated policy</li>
+          <li>Continued use of Prime Youth Connect after changes constitute acceptance of the updated policy</li>
         </ul>
         <p>We encourage you to review this policy periodically to stay informed about how we protect your information.</p>
         """

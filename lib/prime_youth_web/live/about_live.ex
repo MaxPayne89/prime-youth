@@ -92,7 +92,7 @@ defmodule PrimeYouthWeb.AboutLive do
         gradient_class={Theme.gradient(:hero)}
         show_back_button
       >
-        <:title>About Prime Youth</:title>
+        <:title>About Prime Youth Connect</:title>
         <:subtitle>Empowering young minds through quality after-school programs</:subtitle>
       </.hero_section>
 
@@ -106,7 +106,7 @@ defmodule PrimeYouthWeb.AboutLive do
           </:header>
           <:body>
             <p class={[Theme.text_color(:secondary), "leading-relaxed"]}>
-              At Prime Youth, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology.
+              At Prime Youth Connect, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology.
             </p>
             <p class={[Theme.text_color(:secondary), "leading-relaxed mt-4"]}>
               Our platform makes it easy for parents to discover, book, and manage activities while providing instructors with the tools they need to run successful programs.
@@ -140,7 +140,7 @@ defmodule PrimeYouthWeb.AboutLive do
         <.card>
           <:header>
             <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              Why Choose Prime Youth?
+              Why Choose Prime Youth Connect?
             </h2>
           </:header>
           <:body>

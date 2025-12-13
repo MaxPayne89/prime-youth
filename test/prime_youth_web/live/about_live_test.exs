@@ -7,14 +7,14 @@ defmodule PrimeYouthWeb.AboutLiveTest do
     test "renders about page successfully", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/about")
 
-      assert has_element?(view, "h1", "About Prime Youth")
+      assert has_element?(view, "h1", "About Prime Youth Connect")
     end
 
     test "displays hero section with page variant", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify hero section content
-      assert html =~ "About Prime Youth"
+      assert html =~ "About Prime Youth Connect"
       assert html =~ "Empowering young minds through quality after-school programs"
     end
 
@@ -52,7 +52,7 @@ defmodule PrimeYouthWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify key features heading
-      assert html =~ "Why Choose Prime Youth?"
+      assert html =~ "Why Choose Prime Youth Connect?"
 
       # Verify all four key features are present
       assert html =~ "Easy Discovery"
@@ -105,7 +105,7 @@ defmodule PrimeYouthWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify page title is set
-      assert html =~ "About Prime Youth"
+      assert html =~ "About Prime Youth Connect"
     end
 
     test "responsive grid layout for key features", %{conn: conn} do
@@ -128,7 +128,7 @@ defmodule PrimeYouthWeb.AboutLiveTest do
 
       # The hero_section component with show_back_button should render a back button
       # This is a navigation aid for the page variant
-      assert html =~ "About Prime Youth"
+      assert html =~ "About Prime Youth Connect"
     end
 
     test "mission section contains complete description", %{conn: conn} do
@@ -168,7 +168,7 @@ defmodule PrimeYouthWeb.AboutLiveTest do
       # Verify multiple sections use card component (indicated by structured content)
       assert html =~ "Our Mission"
       assert html =~ "Our Values"
-      assert html =~ "Why Choose Prime Youth?"
+      assert html =~ "Why Choose Prime Youth Connect?"
       assert html =~ "Ready to Get Started?"
     end
   end

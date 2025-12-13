@@ -390,9 +390,9 @@ defmodule PrimeYouthWeb.CompositeComponents do
     <footer class="footer footer-center p-10 bg-slate-900 text-slate-300">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl">
         <div class="text-left">
-          <h3 class="font-bold text-lg text-white mb-4">Prime Youth</h3>
+          <h3 class="font-bold text-lg text-white mb-4">Prime Youth Connect</h3>
           <p class="text-sm">
-            Empowering children through engaging afterschool activities, camps, and educational programs.
+            Building the future of youth education by connecting communities.
           </p>
         </div>
 
@@ -450,7 +450,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
       </div>
 
       <div class="border-t border-base-300 pt-6 mt-6 w-full">
-        <p class="text-sm">&copy; 2024 Prime Youth. All rights reserved.</p>
+        <p class="text-sm">&copy; 2025 Prime Youth Connect. All rights reserved.</p>
         <div class="flex gap-4 justify-center mt-2 text-xs">
           <.link navigate={~p"/privacy"} class="link link-hover">Privacy Policy</.link>
           <span class="text-gray-400">•</span>
