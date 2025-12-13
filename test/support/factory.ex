@@ -29,6 +29,8 @@ defmodule PrimeYouth.Factory do
 
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
+  alias PrimeYouth.Parenting.Adapters.Driven.Persistence.Schemas.ParentSchema
+  alias PrimeYouth.Parenting.Domain.Models.Parent
 
   @doc """
   Factory for creating Program domain entities (pure Elixir structs).
@@ -193,5 +195,61 @@ defmodule PrimeYouth.Factory do
       build(:basketball_program),
       build(:art_program)
     ]
+  end
+
+  # =============================================================================
+  # Parenting Context Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating Parent domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      parent = build(:parent)
+      parent = build(:parent, display_name: "Jane Doe", phone: "+1555123456")
+  """
+  def parent_factory do
+    %Parent{
+      id:
+        sequence(
+          :parent_id,
+          &"550e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      identity_id:
+        sequence(
+          :parent_identity_id,
+          &"660e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      display_name: sequence(:parent_display_name, &"Test Parent #{&1}"),
+      phone: "+1234567890",
+      location: "New York, NY",
+      notification_preferences: %{email: true, sms: false},
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating ParentSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+
+  ## Examples
+
+      schema = build(:parent_schema)
+      schema = insert(:parent_schema, display_name: "John Parent")
+  """
+  def parent_schema_factory do
+    %ParentSchema{
+      id: Ecto.UUID.generate(),
+      identity_id: Ecto.UUID.generate(),
+      display_name: sequence(:parent_schema_display_name, &"Test Parent #{&1}"),
+      phone: "+1234567890",
+      location: "New York, NY",
+      notification_preferences: %{email: true, sms: false}
+    }
   end
 end
