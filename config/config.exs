@@ -76,6 +76,10 @@ config :prime_youth, :highlights,
 config :prime_youth, :program_catalog,
   repository: PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
 
+# Configure Parenting bounded context
+config :prime_youth, :parenting,
+  repository: PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRepository
+
 config :prime_youth, :scopes,
   user: [
     default: true,

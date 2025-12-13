@@ -7,6 +7,7 @@ defmodule PrimeYouthWeb.ErrorIds do
   ## Error ID Ranges by Bounded Context
 
   - `program.*` - Program Catalog context errors
+  - `parenting.*` - Parenting context errors
   - `auth.*` - Authentication context errors (future)
   - `enrollment.*` - Enrollment context errors (future)
   - `family.*` - Family Management context errors (future)
@@ -84,4 +85,60 @@ defmodule PrimeYouthWeb.ErrorIds do
   Fallback for errors that don't fit other categories.
   """
   def program_get_generic_error, do: "program.catalog.get.generic_error"
+
+  # Parenting Context Errors
+
+  @doc """
+  Database connection error when creating a parent profile.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def parent_create_connection_error, do: "parenting.profile.create.connection_error"
+
+  @doc """
+  Database query error when creating a parent profile.
+  Indicates SQL syntax error, constraint violation, or schema mismatch.
+  """
+  def parent_create_query_error, do: "parenting.profile.create.query_error"
+
+  @doc """
+  Generic/unexpected error when creating a parent profile.
+  Fallback for errors that don't fit other categories.
+  """
+  def parent_create_generic_error, do: "parenting.profile.create.generic_error"
+
+  @doc """
+  Database connection error when retrieving a parent profile by identity ID.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def parent_get_connection_error, do: "parenting.profile.get.connection_error"
+
+  @doc """
+  Database query error when retrieving a parent profile by identity ID.
+  Indicates SQL syntax error, constraint violation, or schema mismatch.
+  """
+  def parent_get_query_error, do: "parenting.profile.get.query_error"
+
+  @doc """
+  Generic/unexpected error when retrieving a parent profile by identity ID.
+  Fallback for errors that don't fit other categories.
+  """
+  def parent_get_generic_error, do: "parenting.profile.get.generic_error"
+
+  @doc """
+  Database connection error when checking if parent profile exists.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def parent_exists_connection_error, do: "parenting.profile.exists.connection_error"
+
+  @doc """
+  Database query error when checking if parent profile exists.
+  Indicates SQL syntax error or schema mismatch.
+  """
+  def parent_exists_query_error, do: "parenting.profile.exists.query_error"
+
+  @doc """
+  Generic/unexpected error when checking if parent profile exists.
+  Fallback for errors that don't fit other categories.
+  """
+  def parent_exists_generic_error, do: "parenting.profile.exists.generic_error"
 end
