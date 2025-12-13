@@ -344,7 +344,7 @@ defmodule PrimeYouthWeb.BookingLive do
             <div class="space-y-2 font-mono text-sm">
               <div class="flex justify-between">
                 <span class={Theme.text_color(:secondary)}>Account Name:</span>
-                <span class="font-semibold">Prime Youth Activities Ltd</span>
+                <span class="font-semibold">Prime Youth Connect</span>
               </div>
               <div class="flex justify-between">
                 <span class={Theme.text_color(:secondary)}>IBAN:</span>

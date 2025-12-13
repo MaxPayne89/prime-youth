@@ -12,7 +12,9 @@ defmodule PrimeYouthWeb.HomeLive do
 
     socket =
       socket
-      |> assign(page_title: "Prime Youth - Afterschool Adventures Await")
+      |> assign(
+        page_title: "Prime Youth Connect - Connecting Families with Trusted Youth Educators"
+      )
       |> assign(featured_programs: featured)
 
     {:ok, socket}
@@ -38,8 +40,8 @@ defmodule PrimeYouthWeb.HomeLive do
         gradient_class={Theme.gradient(:hero)}
         show_logo
       >
-        <:title>Prime Youth</:title>
-        <:subtitle>Afterschool Adventures Await</:subtitle>
+        <:title>Prime Youth Connect</:title>
+        <:subtitle>Connecting Families with Trusted Youth Educators</:subtitle>
         <:actions>
           <button
             phx-click="get_started"
@@ -74,10 +76,10 @@ defmodule PrimeYouthWeb.HomeLive do
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div class="text-center mb-16">
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
-              Why Families Choose Prime Youth
+              Why Prime Youth Connect?
             </h2>
             <p class={["text-xl", Theme.text_color(:secondary)]}>
-              Expert instructors, comprehensive tracking, and flexible scheduling for your family
+              Safety, quality, and convenience for modern families.
             </p>
           </div>
 
@@ -85,20 +87,20 @@ defmodule PrimeYouthWeb.HomeLive do
             <.feature_card
               gradient_class={Theme.gradient(:cool)}
               icon_path="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-              title="Expert Instructors & Small Class Sizes"
-              description="All instructors are background-checked and classes are limited to ensure personalized attention"
+              title="Safety First"
+              description="Every provider is rigorously vetted. We prioritize child safety above all else, giving parents peace of mind."
             />
             <.feature_card
               gradient_class={Theme.gradient(:primary)}
               icon_path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              title="Comprehensive Progress Tracking"
-              description="Monitor your child's development with regular updates, achievements, and progress reports"
+              title="Easy Scheduling"
+              description="Book camps, tutors, and workshops instantly. Our integrated planner helps you manage your child's busy life."
             />
             <.feature_card
               gradient_class={Theme.gradient(:primary)}
               icon_path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              title="Flexible Scheduling & Pricing"
-              description="Find programs that fit your family's schedule with transparent pricing and easy online booking"
+              title="Community Focused"
+              description="Built for the Berlin international community. Connect with local families and trusted educators nearby."
             />
           </div>
         </div>
@@ -109,10 +111,10 @@ defmodule PrimeYouthWeb.HomeLive do
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="text-center mb-12">
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
-              Popular Programs
+              Featured Programs
             </h2>
             <p class={["text-xl", Theme.text_color(:secondary)]}>
-              Discover what families are enrolling in this season
+              Explore top-rated activities for your children
             </p>
           </div>
 

@@ -7,16 +7,16 @@ defmodule PrimeYouthWeb.HomeLiveTest do
     test "renders home page successfully", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "h1", "Prime Youth")
-      assert render(view) =~ "Afterschool Adventures Await"
+      assert has_element?(view, "h1", "Prime Youth Connect")
+      assert render(view) =~ "Connecting Families with Trusted Youth Educators"
     end
 
     test "displays hero section with landing variant", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/")
 
       # Verify hero section content
-      assert html =~ "Prime Youth"
-      assert html =~ "Afterschool Adventures Await"
+      assert html =~ "Prime Youth Connect"
+      assert html =~ "Connecting Families with Trusted Youth Educators"
       assert html =~ "Get Started Free"
       assert html =~ "Explore Programs"
     end
@@ -25,20 +25,20 @@ defmodule PrimeYouthWeb.HomeLiveTest do
       {:ok, _view, html} = live(conn, ~p"/")
 
       # Verify features section heading
-      assert html =~ "Why Families Choose Prime Youth"
+      assert html =~ "Why Prime Youth Connect?"
 
       # Verify all three feature cards are present
-      assert html =~ "Expert Instructors"
-      assert html =~ "Comprehensive Progress Tracking"
-      assert html =~ "Flexible Scheduling"
+      assert html =~ "Safety First"
+      assert html =~ "Easy Scheduling"
+      assert html =~ "Community Focused"
     end
 
     test "displays featured programs section", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/")
 
       # Verify featured programs section heading
-      assert html =~ "Popular Programs"
-      assert html =~ "Discover what families are enrolling in this season"
+      assert html =~ "Featured Programs"
+      assert html =~ "Explore top-rated activities for your children"
 
       # Verify "View All Programs" button exists
       assert html =~ "View All Programs"
@@ -112,7 +112,7 @@ defmodule PrimeYouthWeb.HomeLiveTest do
 
       # Verify page title is set (though it may not be directly visible in HTML)
       # This is more about ensuring the mount function sets it properly
-      assert html =~ "Prime Youth"
+      assert html =~ "Prime Youth Connect"
     end
 
     test "featured programs are displayed from sample data", %{conn: conn} do
@@ -121,7 +121,7 @@ defmodule PrimeYouthWeb.HomeLiveTest do
       # Verify that sample programs are rendered
       # The featured_programs() fixture should provide sample data
       # We check for program card elements
-      assert html =~ "Popular Programs"
+      assert html =~ "Featured Programs"
 
       # Verify program cards are clickable and trigger explore_programs
       assert html =~ "phx-click=\"explore_programs\""
