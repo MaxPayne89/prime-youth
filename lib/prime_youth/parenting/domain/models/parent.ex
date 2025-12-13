@@ -161,8 +161,7 @@ defmodule PrimeYouth.Parenting.Domain.Models.Parent do
   def has_notification_preferences?(%__MODULE__{notification_preferences: nil}), do: false
 
   def has_notification_preferences?(%__MODULE__{notification_preferences: prefs})
-      when is_map(prefs) and map_size(prefs) > 0,
-      do: true
+      when is_map(prefs) and map_size(prefs) > 0, do: true
 
   def has_notification_preferences?(_), do: false
 end

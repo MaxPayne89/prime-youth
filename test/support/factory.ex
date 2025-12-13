@@ -27,10 +27,10 @@ defmodule PrimeYouth.Factory do
 
   use ExMachina.Ecto, repo: PrimeYouth.Repo
 
-  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
-  alias PrimeYouth.ProgramCatalog.Domain.Models.Program
   alias PrimeYouth.Parenting.Adapters.Driven.Persistence.Schemas.ParentSchema
   alias PrimeYouth.Parenting.Domain.Models.Parent
+  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias PrimeYouth.ProgramCatalog.Domain.Models.Program
 
   @doc """
   Factory for creating Program domain entities (pure Elixir structs).

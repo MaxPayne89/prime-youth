@@ -52,12 +52,21 @@ defmodule PrimeYouth.Accounts.User do
   def registration_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:name, :email, :avatar, :intended_roles])
+    |> put_default_role()
     |> validate_required([:name, :email, :intended_roles])
     |> validate_length(:name, min: 2, max: 100)
     |> validate_subset(:intended_roles, ["parent", "provider"])
     |> validate_at_least_one_role()
     |> put_default_avatar()
     |> validate_email(opts)
+  end
+
+  defp put_default_role(changeset) do
+    case get_field(changeset, :intended_roles) do
+      nil -> put_change(changeset, :intended_roles, ["parent"])
+      [] -> put_change(changeset, :intended_roles, ["parent"])
+      _ -> changeset
+    end
   end
 
   defp put_default_avatar(changeset) do

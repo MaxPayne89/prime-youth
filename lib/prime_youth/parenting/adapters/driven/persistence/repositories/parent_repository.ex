@@ -238,7 +238,9 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRe
           {:ok, boolean()}
           | {:error, :database_connection_error | :database_query_error | :database_unavailable}
   def has_profile?(identity_id) when is_binary(identity_id) do
-    Logger.info("[ParentRepository] Checking if parent profile exists for identity_id: #{identity_id}")
+    Logger.info(
+      "[ParentRepository] Checking if parent profile exists for identity_id: #{identity_id}"
+    )
 
     query =
       from p in ParentSchema,

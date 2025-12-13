@@ -24,7 +24,9 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
   - T054: All returned programs satisfy domain model contracts
   """
 
-  use PrimeYouth.DataCase, async: true
+  # async: false is REQUIRED because this test modifies global Application config
+  # which is not process-safe and can interfere with parallel tests
+  use PrimeYouth.DataCase, async: false
 
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms

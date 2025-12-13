@@ -133,7 +133,9 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         end)
 
       # The use case should not log errors - that's the adapter's responsibility
-      assert log_output == ""
+      # Filter only for ProgramCatalog-related logs to avoid interference from parallel tests
+      refute log_output =~ "[ListAllPrograms]"
+      refute log_output =~ "[ProgramCatalog]"
     end
 
     test "handles repository returning multiple valid programs in correct order" do
