@@ -6,6 +6,8 @@ defmodule PrimeYouthWeb.UserAuthTest do
   alias Phoenix.LiveView
   alias PrimeYouth.Accounts
   alias PrimeYouth.Accounts.Scope
+  alias PrimeYouth.Parenting
+  alias PrimeYouth.Providing
   alias PrimeYouthWeb.UserAuth
 
   @remember_me_cookie "_prime_youth_web_user_remember_me"
@@ -311,6 +313,118 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
       assert {:halt, _updated_socket} =
                UserAuth.on_mount(:require_sudo_mode, %{}, session, socket)
+    end
+  end
+
+  describe "on_mount :require_parent" do
+    test "continues when user has parent profile", %{conn: conn} do
+      user = user_fixture()
+
+      {:ok, _parent} =
+        Parenting.create_parent_profile(%{
+          identity_id: user.id,
+          display_name: user.name
+        })
+
+      user_token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, user_token) |> get_session()
+
+      socket = %LiveView.Socket{
+        endpoint: PrimeYouthWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:cont, updated_socket} = UserAuth.on_mount(:require_parent, %{}, session, socket)
+
+      assert updated_socket.assigns.current_scope.user.id == user.id
+      assert updated_socket.assigns.current_scope.parent != nil
+      assert Scope.parent?(updated_socket.assigns.current_scope)
+    end
+
+    test "halts and redirects when user has no parent profile", %{conn: conn} do
+      user = user_fixture()
+      user_token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, user_token) |> get_session()
+
+      socket = %LiveView.Socket{
+        endpoint: PrimeYouthWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:halt, updated_socket} = UserAuth.on_mount(:require_parent, %{}, session, socket)
+
+      assert updated_socket.assigns.flash["error"] ==
+               "You must have a parent profile to access this page."
+    end
+
+    test "halts and redirects when user is not authenticated", %{conn: conn} do
+      session = get_session(conn)
+
+      socket = %LiveView.Socket{
+        endpoint: PrimeYouthWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:halt, updated_socket} = UserAuth.on_mount(:require_parent, %{}, session, socket)
+
+      assert updated_socket.assigns.flash["error"] ==
+               "You must be authenticated to access this page."
+    end
+  end
+
+  describe "on_mount :require_provider" do
+    test "continues when user has provider profile", %{conn: conn} do
+      user = user_fixture()
+
+      {:ok, _provider} =
+        Providing.create_provider_profile(%{
+          identity_id: user.id,
+          business_name: "Test Business"
+        })
+
+      user_token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, user_token) |> get_session()
+
+      socket = %LiveView.Socket{
+        endpoint: PrimeYouthWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:cont, updated_socket} = UserAuth.on_mount(:require_provider, %{}, session, socket)
+
+      assert updated_socket.assigns.current_scope.user.id == user.id
+      assert updated_socket.assigns.current_scope.provider != nil
+      assert Scope.provider?(updated_socket.assigns.current_scope)
+    end
+
+    test "halts and redirects when user has no provider profile", %{conn: conn} do
+      user = user_fixture()
+      user_token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, user_token) |> get_session()
+
+      socket = %LiveView.Socket{
+        endpoint: PrimeYouthWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:halt, updated_socket} = UserAuth.on_mount(:require_provider, %{}, session, socket)
+
+      assert updated_socket.assigns.flash["error"] ==
+               "You must have a provider profile to access this page."
+    end
+
+    test "halts and redirects when user is not authenticated", %{conn: conn} do
+      session = get_session(conn)
+
+      socket = %LiveView.Socket{
+        endpoint: PrimeYouthWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:halt, updated_socket} = UserAuth.on_mount(:require_provider, %{}, session, socket)
+
+      assert updated_socket.assigns.flash["error"] ==
+               "You must be authenticated to access this page."
     end
   end
 

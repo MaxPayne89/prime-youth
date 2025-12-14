@@ -17,8 +17,13 @@ defmodule PrimeYouth.Accounts.Scope do
   """
 
   alias PrimeYouth.Accounts.User
+  alias PrimeYouth.Parenting
+  alias PrimeYouth.Providing
 
-  defstruct user: nil
+  defstruct user: nil,
+            roles: [],
+            parent: nil,
+            provider: nil
 
   @doc """
   Creates a scope for the given user.
@@ -30,4 +35,71 @@ defmodule PrimeYouth.Accounts.Scope do
   end
 
   def for_user(nil), do: nil
+
+  @doc """
+  Resolves roles for the scope by checking profile existence in both contexts.
+
+  Updates the scope with:
+  - roles: list of active roles (["parent", "provider"])
+  - parent: parent profile if exists
+  - provider: provider profile if exists
+
+  Returns the updated scope.
+  """
+  def resolve_roles(%__MODULE__{user: nil} = scope), do: scope
+
+  def resolve_roles(%__MODULE__{user: user} = scope) do
+    parent = extract_profile(Parenting.get_parent_by_identity(user.id))
+    provider = extract_profile(Providing.get_provider_by_identity(user.id))
+
+    roles =
+      []
+      |> maybe_add_role(parent, "parent")
+      |> maybe_add_role(provider, "provider")
+
+    %{scope | roles: roles, parent: parent, provider: provider}
+  end
+
+  @doc """
+  Checks if the scope has a specific role.
+
+  ## Examples
+
+      iex> has_role?(scope, "parent")
+      true
+
+      iex> has_role?(scope, "provider")
+      false
+  """
+  def has_role?(%__MODULE__{roles: roles}, role) when is_binary(role) do
+    role in roles
+  end
+
+  @doc """
+  Returns true if the scope has a parent profile.
+
+  ## Examples
+
+      iex> parent?(scope)
+      true
+  """
+  def parent?(%__MODULE__{parent: parent}), do: parent != nil
+
+  @doc """
+  Returns true if the scope has a provider profile.
+
+  ## Examples
+
+      iex> provider?(scope)
+      true
+  """
+  def provider?(%__MODULE__{provider: provider}), do: provider != nil
+
+  # Private helpers
+
+  defp extract_profile({:ok, profile}), do: profile
+  defp extract_profile({:error, _}), do: nil
+
+  defp maybe_add_role(roles, nil, _role), do: roles
+  defp maybe_add_role(roles, _profile, role), do: roles ++ [role]
 end
