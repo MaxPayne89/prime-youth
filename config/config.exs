@@ -80,6 +80,10 @@ config :prime_youth, :parenting,
 config :prime_youth, :program_catalog,
   repository: PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
 
+# Configure Providing bounded context
+config :prime_youth, :providing,
+  repository: PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.ProviderRepository
+
 config :prime_youth, :scopes,
   user: [
     default: true,

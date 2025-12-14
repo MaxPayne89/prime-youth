@@ -8,6 +8,7 @@ defmodule PrimeYouthWeb.ErrorIds do
 
   - `program.*` - Program Catalog context errors
   - `parenting.*` - Parenting context errors
+  - `providing.*` - Providing context errors
   - `auth.*` - Authentication context errors (future)
   - `enrollment.*` - Enrollment context errors (future)
   - `family.*` - Family Management context errors (future)
@@ -141,4 +142,60 @@ defmodule PrimeYouthWeb.ErrorIds do
   Fallback for errors that don't fit other categories.
   """
   def parent_exists_generic_error, do: "parenting.profile.exists.generic_error"
+
+  # Providing Context Errors
+
+  @doc """
+  Database connection error when creating a provider profile.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def provider_create_connection_error, do: "providing.profile.create.connection_error"
+
+  @doc """
+  Database query error when creating a provider profile.
+  Indicates SQL syntax error, constraint violation, or schema mismatch.
+  """
+  def provider_create_query_error, do: "providing.profile.create.query_error"
+
+  @doc """
+  Generic/unexpected error when creating a provider profile.
+  Fallback for errors that don't fit other categories.
+  """
+  def provider_create_generic_error, do: "providing.profile.create.generic_error"
+
+  @doc """
+  Database connection error when retrieving a provider profile by identity ID.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def provider_get_connection_error, do: "providing.profile.get.connection_error"
+
+  @doc """
+  Database query error when retrieving a provider profile by identity ID.
+  Indicates SQL syntax error, constraint violation, or schema mismatch.
+  """
+  def provider_get_query_error, do: "providing.profile.get.query_error"
+
+  @doc """
+  Generic/unexpected error when retrieving a provider profile by identity ID.
+  Fallback for errors that don't fit other categories.
+  """
+  def provider_get_generic_error, do: "providing.profile.get.generic_error"
+
+  @doc """
+  Database connection error when checking if provider profile exists.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def provider_exists_connection_error, do: "providing.profile.exists.connection_error"
+
+  @doc """
+  Database query error when checking if provider profile exists.
+  Indicates SQL syntax error or schema mismatch.
+  """
+  def provider_exists_query_error, do: "providing.profile.exists.query_error"
+
+  @doc """
+  Generic/unexpected error when checking if provider profile exists.
+  Fallback for errors that don't fit other categories.
+  """
+  def provider_exists_generic_error, do: "providing.profile.exists.generic_error"
 end
