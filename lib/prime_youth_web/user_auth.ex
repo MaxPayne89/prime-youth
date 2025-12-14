@@ -251,6 +251,68 @@ defmodule PrimeYouthWeb.UserAuth do
     end
   end
 
+  def on_mount(:require_parent, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+
+    if socket.assigns.current_scope && socket.assigns.current_scope.user do
+      # Resolve roles to populate parent/provider fields
+      scope = Scope.resolve_roles(socket.assigns.current_scope)
+      socket = Phoenix.Component.assign(socket, :current_scope, scope)
+
+      if Scope.parent?(scope) do
+        {:cont, socket}
+      else
+        socket =
+          socket
+          |> Phoenix.LiveView.put_flash(
+            :error,
+            "You must have a parent profile to access this page."
+          )
+          |> Phoenix.LiveView.redirect(to: ~p"/")
+
+        {:halt, socket}
+      end
+    else
+      socket =
+        socket
+        |> Phoenix.LiveView.put_flash(:error, "You must be authenticated to access this page.")
+        |> Phoenix.LiveView.redirect(to: ~p"/")
+
+      {:halt, socket}
+    end
+  end
+
+  def on_mount(:require_provider, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+
+    if socket.assigns.current_scope && socket.assigns.current_scope.user do
+      # Resolve roles to populate parent/provider fields
+      scope = Scope.resolve_roles(socket.assigns.current_scope)
+      socket = Phoenix.Component.assign(socket, :current_scope, scope)
+
+      if Scope.provider?(scope) do
+        {:cont, socket}
+      else
+        socket =
+          socket
+          |> Phoenix.LiveView.put_flash(
+            :error,
+            "You must have a provider profile to access this page."
+          )
+          |> Phoenix.LiveView.redirect(to: ~p"/")
+
+        {:halt, socket}
+      end
+    else
+      socket =
+        socket
+        |> Phoenix.LiveView.put_flash(:error, "You must be authenticated to access this page.")
+        |> Phoenix.LiveView.redirect(to: ~p"/")
+
+      {:halt, socket}
+    end
+  end
+
   defp mount_current_scope(socket, session) do
     Phoenix.Component.assign_new(socket, :current_scope, fn ->
       {user, _} =

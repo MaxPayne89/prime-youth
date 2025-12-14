@@ -61,6 +61,7 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
   Standard payload includes:
   - `email` - User's email address
   - `name` - User's display name
+  - `intended_roles` - List of role identifiers selected during registration (["parent"], ["provider"], or both)
 
   Additional payload fields can be passed to include registration context.
 
@@ -69,6 +70,7 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
   - `ArgumentError` if `user.id` is nil
   - `ArgumentError` if `user.email` is nil or empty
   - `ArgumentError` if `user.name` is nil or empty
+  - `ArgumentError` if `user.intended_roles` is not a list
 
   ## Examples
 
@@ -84,7 +86,8 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
 
     base_payload = %{
       email: user.email,
-      name: user.name
+      name: user.name,
+      intended_roles: user.intended_roles || []
     }
 
     opts = Keyword.put_new(opts, :criticality, :critical)
@@ -215,6 +218,12 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
 
   defp validate_user_for_registration!(%User{name: name}) when is_nil(name) or name == "" do
     raise ArgumentError, "User.name cannot be nil or empty for user_registered event"
+  end
+
+  defp validate_user_for_registration!(%User{intended_roles: roles})
+       when not is_list(roles) and not is_nil(roles) do
+    raise ArgumentError,
+          "User.intended_roles must be a list for user_registered event, got: #{inspect(roles)}"
   end
 
   defp validate_user_for_registration!(%User{} = user), do: user

@@ -80,4 +80,88 @@ defmodule PrimeYouthWeb.UserLive.RegistrationTest do
       assert login_html =~ "Welcome Back"
     end
   end
+
+  describe "role selection" do
+    test "renders role selection checkboxes with descriptions", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/users/register")
+
+      assert html =~ "I want to..."
+      assert html =~ "Enroll children in programs"
+      assert html =~ "Offer programs and services"
+      assert html =~ ~s(value="parent")
+      assert html =~ ~s(value="provider")
+    end
+
+    test "parent role is pre-selected by default", %{conn: conn} do
+      {:ok, _lv, html} = live(conn, ~p"/users/register")
+
+      # Parent checkbox should be checked by default
+      assert html =~ ~r/value="parent"[^>]*checked/
+    end
+
+    test "creates account with both roles selected", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
+
+      email = unique_user_email()
+      name = unique_user_name()
+
+      {:ok, _lv, html} =
+        lv
+        |> form("#registration_form",
+          user: %{email: email, name: name, intended_roles: ["parent", "provider"]}
+        )
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/users/log-in")
+
+      assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
+
+      # Verify user was created with both roles
+      user = PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.User, email: email)
+      assert "parent" in user.intended_roles
+      assert "provider" in user.intended_roles
+    end
+
+    test "creates account with only provider role", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
+
+      email = unique_user_email()
+      name = unique_user_name()
+
+      {:ok, _lv, html} =
+        lv
+        |> form("#registration_form",
+          user: %{email: email, name: name, intended_roles: ["provider"]}
+        )
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/users/log-in")
+
+      assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
+
+      # Verify user was created with provider role only
+      user = PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.User, email: email)
+      assert user.intended_roles == ["provider"]
+    end
+
+    test "defaults to parent role when none selected", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/users/register")
+
+      email = unique_user_email()
+      name = unique_user_name()
+
+      # Submit form without specifying roles - should default to parent
+      {:ok, _lv, html} =
+        lv
+        |> form("#registration_form",
+          user: %{email: email, name: name}
+        )
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/users/log-in")
+
+      assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
+
+      # Verify user was created with default parent role
+      user = PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.User, email: email)
+      assert user.intended_roles == ["parent"]
+    end
+  end
 end

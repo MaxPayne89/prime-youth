@@ -72,9 +72,17 @@ config :prime_youth, :highlights,
   repository:
     PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
 
+# Configure Parenting bounded context
+config :prime_youth, :parenting,
+  repository: PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRepository
+
 # Configure Program Catalog bounded context
 config :prime_youth, :program_catalog,
   repository: PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+
+# Configure Providing bounded context
+config :prime_youth, :providing,
+  repository: PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.ProviderRepository
 
 config :prime_youth, :scopes,
   user: [

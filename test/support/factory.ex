@@ -27,8 +27,12 @@ defmodule PrimeYouth.Factory do
 
   use ExMachina.Ecto, repo: PrimeYouth.Repo
 
+  alias PrimeYouth.Parenting.Adapters.Driven.Persistence.Schemas.ParentSchema
+  alias PrimeYouth.Parenting.Domain.Models.Parent
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
+  alias PrimeYouth.Providing.Adapters.Driven.Persistence.Schemas.ProviderSchema
+  alias PrimeYouth.Providing.Domain.Models.Provider
 
   @doc """
   Factory for creating Program domain entities (pure Elixir structs).
@@ -193,5 +197,139 @@ defmodule PrimeYouth.Factory do
       build(:basketball_program),
       build(:art_program)
     ]
+  end
+
+  # =============================================================================
+  # Parenting Context Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating Parent domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      parent = build(:parent)
+      parent = build(:parent, display_name: "Jane Doe", phone: "+1555123456")
+  """
+  def parent_factory do
+    %Parent{
+      id:
+        sequence(
+          :parent_id,
+          &"550e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      identity_id:
+        sequence(
+          :parent_identity_id,
+          &"660e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      display_name: sequence(:parent_display_name, &"Test Parent #{&1}"),
+      phone: "+1234567890",
+      location: "New York, NY",
+      notification_preferences: %{email: true, sms: false},
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating ParentSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+
+  ## Examples
+
+      schema = build(:parent_schema)
+      schema = insert(:parent_schema, display_name: "John Parent")
+  """
+  def parent_schema_factory do
+    %ParentSchema{
+      id: Ecto.UUID.generate(),
+      identity_id: Ecto.UUID.generate(),
+      display_name: sequence(:parent_schema_display_name, &"Test Parent #{&1}"),
+      phone: "+1234567890",
+      location: "New York, NY",
+      notification_preferences: %{email: true, sms: false}
+    }
+  end
+
+  # =============================================================================
+  # Providing Context Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating Provider domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      provider = build(:provider)
+      provider = build(:provider, business_name: "Youth Sports", verified: true)
+  """
+  def provider_factory do
+    %Provider{
+      id:
+        sequence(
+          :provider_id,
+          &"770e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      identity_id:
+        sequence(
+          :provider_identity_id,
+          &"880e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      business_name: sequence(:provider_business_name, &"Test Provider #{&1}"),
+      description: "A great provider of youth activities and programs",
+      phone: "+1234567890",
+      website: "https://example.com",
+      address: "123 Main St, City, State",
+      logo_url: "https://example.com/logo.png",
+      verified: false,
+      verified_at: nil,
+      categories: ["sports", "outdoor"],
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating ProviderSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+
+  ## Examples
+
+      schema = build(:provider_schema)
+      schema = insert(:provider_schema, business_name: "Youth Arts Center")
+  """
+  def provider_schema_factory do
+    %ProviderSchema{
+      id: Ecto.UUID.generate(),
+      identity_id: Ecto.UUID.generate(),
+      business_name: sequence(:provider_schema_business_name, &"Test Provider #{&1}"),
+      description: "A great provider of youth activities and programs",
+      phone: "+1234567890",
+      website: "https://example.com",
+      address: "123 Main St, City, State",
+      logo_url: "https://example.com/logo.png",
+      verified: false,
+      verified_at: nil,
+      categories: ["sports", "outdoor"]
+    }
+  end
+
+  @doc """
+  Verified provider variant - commonly used for testing verified provider flows.
+  """
+  def verified_provider_factory do
+    build(:provider, %{
+      business_name: "Verified Sports Academy",
+      verified: true,
+      verified_at: ~U[2025-01-15 10:00:00Z],
+      categories: ["sports", "certified", "outdoor"]
+    })
   end
 end

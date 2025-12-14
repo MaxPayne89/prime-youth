@@ -10,9 +10,24 @@ defmodule PrimeYouth.Application do
       PrimeYouth.Repo,
       {DNSCluster, query: Application.get_env(:prime_youth, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: PrimeYouth.PubSub},
-      {PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriber,
-       handler: PrimeYouth.Family.Adapters.Driven.Events.UserEventHandler,
-       topics: ["user:user_registered", "user:user_confirmed"]},
+      Supervisor.child_spec(
+        {PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: PrimeYouth.Family.Adapters.Driven.Events.UserEventHandler,
+         topics: ["user:user_registered", "user:user_confirmed"]},
+        id: :family_event_subscriber
+      ),
+      Supervisor.child_spec(
+        {PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: PrimeYouth.Parenting.Adapters.Driven.Events.IdentityEventHandler,
+         topics: ["user:user_registered"]},
+        id: :parenting_event_subscriber
+      ),
+      Supervisor.child_spec(
+        {PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: PrimeYouth.Providing.Adapters.Driven.Events.IdentityEventHandler,
+         topics: ["user:user_registered"]},
+        id: :providing_event_subscriber
+      ),
       PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository,
       PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFamilyRepository,
       PrimeYouth.Activities.Adapters.Driven.Persistence.Repositories.InMemoryActivityRepository,

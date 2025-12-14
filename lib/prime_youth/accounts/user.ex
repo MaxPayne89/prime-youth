@@ -11,6 +11,9 @@ defmodule PrimeYouth.Accounts.User do
 
   import Ecto.Changeset
 
+  @primary_key {:id, :binary_id, autogenerate: true}
+  @foreign_key_type :binary_id
+
   schema "users" do
     field :email, :string
     field :name, :string
@@ -19,6 +22,7 @@ defmodule PrimeYouth.Accounts.User do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
+    field :intended_roles, {:array, :string}, default: []
 
     timestamps(type: :utc_datetime)
   end
@@ -41,7 +45,7 @@ defmodule PrimeYouth.Accounts.User do
   @doc """
   A user changeset for registration.
 
-  Validates name and email fields, sets a default avatar.
+  Validates name, email, and intended_roles fields, sets a default avatar.
 
   ## Options
 
@@ -50,11 +54,22 @@ defmodule PrimeYouth.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:name, :email, :avatar])
-    |> validate_required([:name, :email])
+    |> cast(attrs, [:name, :email, :avatar, :intended_roles])
+    |> put_default_role()
+    |> validate_required([:name, :email, :intended_roles])
     |> validate_length(:name, min: 2, max: 100)
+    |> validate_subset(:intended_roles, ["parent", "provider"])
+    |> validate_at_least_one_role()
     |> put_default_avatar()
     |> validate_email(opts)
+  end
+
+  defp put_default_role(changeset) do
+    case get_field(changeset, :intended_roles) do
+      nil -> put_change(changeset, :intended_roles, ["parent"])
+      [] -> put_change(changeset, :intended_roles, ["parent"])
+      _ -> changeset
+    end
   end
 
   defp put_default_avatar(changeset) do
@@ -110,6 +125,16 @@ defmodule PrimeYouth.Accounts.User do
   defp validate_email_changed(changeset) do
     if get_field(changeset, :email) && get_change(changeset, :email) == nil do
       add_error(changeset, :email, "did not change")
+    else
+      changeset
+    end
+  end
+
+  defp validate_at_least_one_role(changeset) do
+    roles = get_field(changeset, :intended_roles) || []
+
+    if Enum.empty?(roles) do
+      add_error(changeset, :intended_roles, "must select at least one role")
     else
       changeset
     end

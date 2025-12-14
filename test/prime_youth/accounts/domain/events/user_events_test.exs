@@ -72,6 +72,56 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEventsTest do
 
       assert event.metadata.criticality == :critical
     end
+
+    test "includes intended_roles in payload when present" do
+      user = %User{
+        id: 1,
+        email: "test@example.com",
+        name: "Test User",
+        intended_roles: ["parent"]
+      }
+
+      event = UserEvents.user_registered(user)
+
+      assert event.payload.intended_roles == ["parent"]
+    end
+
+    test "includes empty list for intended_roles when nil" do
+      user = %User{id: 1, email: "test@example.com", name: "Test User", intended_roles: nil}
+
+      event = UserEvents.user_registered(user)
+
+      assert event.payload.intended_roles == []
+    end
+
+    test "includes empty intended_roles when empty list" do
+      user = %User{id: 1, email: "test@example.com", name: "Test User", intended_roles: []}
+
+      event = UserEvents.user_registered(user)
+
+      assert event.payload.intended_roles == []
+    end
+
+    test "includes multiple roles in intended_roles" do
+      user = %User{
+        id: 1,
+        email: "test@example.com",
+        name: "Test User",
+        intended_roles: ["parent", "provider"]
+      }
+
+      event = UserEvents.user_registered(user)
+
+      assert event.payload.intended_roles == ["parent", "provider"]
+    end
+
+    test "raises when intended_roles is not a list" do
+      user = %User{id: 1, email: "test@example.com", name: "Test User", intended_roles: "parent"}
+
+      assert_raise ArgumentError,
+                   ~r/User.intended_roles must be a list/,
+                   fn -> UserEvents.user_registered(user) end
+    end
   end
 
   describe "user_confirmed/3 validation" do
