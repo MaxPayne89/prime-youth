@@ -40,6 +40,46 @@ defmodule PrimeYouthWeb.UserLive.Registration do
             required
           />
 
+          <fieldset class="mt-6">
+            <legend class="text-sm font-semibold leading-6 text-zinc-800">I want to...</legend>
+            <p class="mt-1 text-sm text-zinc-500">Select one or both options</p>
+            <div class="mt-3 space-y-3">
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="user[intended_roles][]"
+                  value="parent"
+                  checked={"parent" in (@form[:intended_roles].value || [])}
+                  class="mt-1 rounded border-2 border-zinc-400 text-cyan-600 focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0 shadow-sm transition-all duration-200"
+                />
+                <div>
+                  <span class="font-medium text-zinc-900">Enroll children in programs</span>
+                  <p class="text-sm text-zinc-500">
+                    Find and book activities, camps, and classes for your children
+                  </p>
+                </div>
+              </label>
+              <label class="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="user[intended_roles][]"
+                  value="provider"
+                  checked={"provider" in (@form[:intended_roles].value || [])}
+                  class="mt-1 rounded border-2 border-zinc-400 text-cyan-600 focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0 shadow-sm transition-all duration-200"
+                />
+                <div>
+                  <span class="font-medium text-zinc-900">Offer programs and services</span>
+                  <p class="text-sm text-zinc-500">
+                    Create and manage programs, activities, and services for families
+                  </p>
+                </div>
+              </label>
+            </div>
+            <.error :for={msg <- Enum.map(@form[:intended_roles].errors, &translate_error/1)}>
+              {msg}
+            </.error>
+          </fieldset>
+
           <.button phx-disable-with="Creating account..." class="btn btn-primary w-full mt-6">
             Create an account
           </.button>
