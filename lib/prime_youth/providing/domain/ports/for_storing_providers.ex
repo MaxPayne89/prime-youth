@@ -19,6 +19,7 @@ defmodule PrimeYouth.Providing.Domain.Ports.ForStoringProviders do
   - `:database_unavailable` - Generic/unexpected errors (fallback)
   - `:duplicate_identity` - Provider profile already exists for this identity_id
   - `:invalid_identity` - Identity ID does not exist in Accounts context
+  - `{:validation_error, [String.t()]}` - Domain validation errors (list of error messages)
   """
   @type storage_error ::
           :database_connection_error
@@ -26,6 +27,7 @@ defmodule PrimeYouth.Providing.Domain.Ports.ForStoringProviders do
           | :database_unavailable
           | :duplicate_identity
           | :invalid_identity
+          | {:validation_error, [String.t()]}
 
   @doc """
   Creates a new provider profile in the repository.

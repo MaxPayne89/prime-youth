@@ -264,7 +264,10 @@ defmodule PrimeYouthWeb.UserAuth do
       else
         socket =
           socket
-          |> Phoenix.LiveView.put_flash(:error, "You must have a parent profile to access this page.")
+          |> Phoenix.LiveView.put_flash(
+            :error,
+            "You must have a parent profile to access this page."
+          )
           |> Phoenix.LiveView.redirect(to: ~p"/")
 
         {:halt, socket}
@@ -292,7 +295,10 @@ defmodule PrimeYouthWeb.UserAuth do
       else
         socket =
           socket
-          |> Phoenix.LiveView.put_flash(:error, "You must have a provider profile to access this page.")
+          |> Phoenix.LiveView.put_flash(
+            :error,
+            "You must have a provider profile to access this page."
+          )
           |> Phoenix.LiveView.redirect(to: ~p"/")
 
         {:halt, socket}

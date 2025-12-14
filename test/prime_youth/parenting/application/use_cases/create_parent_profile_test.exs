@@ -65,6 +65,110 @@ defmodule PrimeYouth.Parenting.Application.UseCases.CreateParentProfileTest do
   end
 
   # =============================================================================
+  # execute/1 - Domain Validation
+  # =============================================================================
+
+  describe "execute/1 domain validation" do
+    test "returns validation_error when identity_id is empty string" do
+      attrs = %{identity_id: ""}
+
+      assert {:error, {:validation_error, errors}} = CreateParentProfile.execute(attrs)
+      assert "Identity ID cannot be empty" in errors
+    end
+
+    test "returns validation_error when identity_id is whitespace only" do
+      attrs = %{identity_id: "   "}
+
+      assert {:error, {:validation_error, errors}} = CreateParentProfile.execute(attrs)
+      assert "Identity ID cannot be empty" in errors
+    end
+
+    test "returns validation_error when display_name is empty string" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        display_name: ""
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateParentProfile.execute(attrs)
+      assert "Display name cannot be empty if provided" in errors
+    end
+
+    test "returns validation_error when display_name exceeds 100 characters" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        display_name: String.duplicate("a", 101)
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateParentProfile.execute(attrs)
+      assert "Display name must be 100 characters or less" in errors
+    end
+
+    test "returns validation_error when phone is empty string" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        phone: ""
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateParentProfile.execute(attrs)
+      assert "Phone cannot be empty if provided" in errors
+    end
+
+    test "returns validation_error when phone exceeds 20 characters" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        phone: String.duplicate("1", 21)
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateParentProfile.execute(attrs)
+      assert "Phone must be 20 characters or less" in errors
+    end
+
+    test "returns validation_error when location is empty string" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        location: ""
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateParentProfile.execute(attrs)
+      assert "Location cannot be empty if provided" in errors
+    end
+
+    test "returns validation_error when location exceeds 200 characters" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        location: String.duplicate("a", 201)
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateParentProfile.execute(attrs)
+      assert "Location must be 200 characters or less" in errors
+    end
+
+    test "returns validation_error when notification_preferences is not a map" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        notification_preferences: "not a map"
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateParentProfile.execute(attrs)
+      assert "Notification preferences must be a map" in errors
+    end
+
+    test "returns multiple validation errors for multiple invalid fields" do
+      attrs = %{
+        identity_id: "",
+        display_name: "",
+        phone: String.duplicate("1", 21)
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateParentProfile.execute(attrs)
+      assert "Identity ID cannot be empty" in errors
+      assert "Display name cannot be empty if provided" in errors
+      assert "Phone must be 20 characters or less" in errors
+      assert length(errors) == 3
+    end
+  end
+
+  # =============================================================================
   # execute/1 - Error Cases
   # =============================================================================
 

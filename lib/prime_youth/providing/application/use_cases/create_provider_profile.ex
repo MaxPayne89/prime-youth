@@ -35,8 +35,11 @@ defmodule PrimeYouth.Providing.Application.UseCases.CreateProviderProfile do
   Creates a new provider profile associated with the given identity_id.
   Both identity_id and business_name are required. All other fields are optional.
 
+  Domain validation runs before persistence for fail-fast behavior.
+
   Returns:
   - `{:ok, Provider.t()}` - Provider profile created successfully
+  - `{:error, {:validation_error, [String.t()]}}` - Domain validation failed
   - `{:error, :duplicate_identity}` - Provider profile already exists for this identity_id
   - `{:error, :invalid_identity}` - Identity ID does not exist
   - `{:error, :database_connection_error}` - Connection/network failure
@@ -64,6 +67,13 @@ defmodule PrimeYouth.Providing.Application.UseCases.CreateProviderProfile do
         categories: ["sports", "outdoor"]
       })
 
+      # Domain validation error
+      {:error, {:validation_error, ["Business name cannot be empty"]}} =
+        CreateProviderProfile.execute(%{
+          identity_id: "550e8400-e29b-41d4-a716-446655440001",
+          business_name: ""
+        })
+
       # Duplicate identity error
       {:error, :duplicate_identity} = CreateProviderProfile.execute(%{
         identity_id: "existing-id",
@@ -72,7 +82,19 @@ defmodule PrimeYouth.Providing.Application.UseCases.CreateProviderProfile do
   """
   @spec execute(map()) :: {:ok, Provider.t()} | {:error, ForStoringProviders.storage_error()}
   def execute(attrs) when is_map(attrs) do
-    repository_module().create_provider_profile(attrs)
+    # Auto-generate UUID if not provided for domain validation
+    attrs_with_id = Map.put_new(attrs, :id, Ecto.UUID.generate())
+
+    with {:ok, _validated_provider} <- Provider.new(attrs_with_id),
+         {:ok, persisted_provider} <- repository_module().create_provider_profile(attrs_with_id) do
+      {:ok, persisted_provider}
+    else
+      {:error, validation_errors} when is_list(validation_errors) ->
+        {:error, {:validation_error, validation_errors}}
+
+      {:error, _storage_error} = error ->
+        error
+    end
   end
 
   # Private helper to get the configured repository module

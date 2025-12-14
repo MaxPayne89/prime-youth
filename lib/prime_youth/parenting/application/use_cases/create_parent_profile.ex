@@ -35,8 +35,11 @@ defmodule PrimeYouth.Parenting.Application.UseCases.CreateParentProfile do
   Creates a new parent profile associated with the given identity_id.
   All fields except identity_id are optional and can be provided in the attrs map.
 
+  Domain validation runs before persistence for fail-fast behavior.
+
   Returns:
   - `{:ok, Parent.t()}` - Parent profile created successfully
+  - `{:error, {:validation_error, [String.t()]}}` - Domain validation failed
   - `{:error, :duplicate_identity}` - Parent profile already exists for this identity_id
   - `{:error, :invalid_identity}` - Identity ID does not exist
   - `{:error, :database_connection_error}` - Connection/network failure
@@ -59,6 +62,10 @@ defmodule PrimeYouth.Parenting.Application.UseCases.CreateParentProfile do
         notification_preferences: %{email: true, sms: false}
       })
 
+      # Domain validation error
+      {:error, {:validation_error, ["Identity ID cannot be empty"]}} =
+        CreateParentProfile.execute(%{identity_id: ""})
+
       # Duplicate identity error
       {:error, :duplicate_identity} = CreateParentProfile.execute(%{
         identity_id: "existing-id"
@@ -66,7 +73,19 @@ defmodule PrimeYouth.Parenting.Application.UseCases.CreateParentProfile do
   """
   @spec execute(map()) :: {:ok, Parent.t()} | {:error, ForStoringParents.storage_error()}
   def execute(attrs) when is_map(attrs) do
-    repository_module().create_parent_profile(attrs)
+    # Auto-generate UUID if not provided for domain validation
+    attrs_with_id = Map.put_new(attrs, :id, Ecto.UUID.generate())
+
+    with {:ok, _validated_parent} <- Parent.new(attrs_with_id),
+         {:ok, persisted_parent} <- repository_module().create_parent_profile(attrs_with_id) do
+      {:ok, persisted_parent}
+    else
+      {:error, validation_errors} when is_list(validation_errors) ->
+        {:error, {:validation_error, validation_errors}}
+
+      {:error, _storage_error} = error ->
+        error
+    end
   end
 
   # Private helper to get the configured repository module

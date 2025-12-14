@@ -20,6 +20,7 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRe
   alias PrimeYouth.Parenting.Adapters.Driven.Persistence.Schemas.ParentSchema
   alias PrimeYouth.Parenting.Domain.Models.Parent
   alias PrimeYouth.Repo
+  alias PrimeYouth.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
   alias PrimeYouthWeb.ErrorIds
 
   require Logger
@@ -73,7 +74,7 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRe
           {:ok, parent}
 
         {:error, %Ecto.Changeset{errors: errors} = changeset} ->
-          if duplicate_identity_error?(errors) do
+          if EctoErrorHelpers.unique_constraint_violation?(errors, :identity_id) do
             Logger.warning(
               "[ParentRepository] Duplicate parent profile for identity_id: #{attrs[:identity_id]}"
             )
@@ -290,12 +291,5 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRe
 
         {:error, :database_unavailable}
     end
-  end
-
-  # Private helper to detect duplicate identity constraint violation
-  defp duplicate_identity_error?(errors) do
-    Enum.any?(errors, fn {field, {_message, opts}} ->
-      field == :identity_id and Keyword.get(opts, :constraint) == :unique
-    end)
   end
 end

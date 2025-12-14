@@ -20,6 +20,7 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Events.IdentityEventHandler do
   @behaviour PrimeYouth.Shared.Domain.Ports.ForHandlingEvents
 
   alias PrimeYouth.Parenting
+  alias PrimeYouth.Shared.Adapters.Driven.Events.RetryHelpers
 
   require Logger
 
@@ -42,37 +43,20 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Events.IdentityEventHandler do
   # Private functions
 
   defp create_parent_profile_with_retry(user_id) do
-    case Parenting.create_parent_profile(%{identity_id: user_id}) do
-      {:ok, _parent} ->
-        Logger.info("Successfully created parent profile for user #{user_id}")
-        :ok
+    operation = fn ->
+      Parenting.create_parent_profile(%{identity_id: user_id})
+    end
 
-      {:error, :duplicate_identity} ->
-        Logger.debug("Parent profile already exists for user #{user_id}")
-        :ok
+    context = %{
+      operation_name: "create parent profile",
+      aggregate_id: user_id,
+      backoff_ms: 100
+    }
 
-      {:error, reason} = error ->
-        Logger.warning(
-          "First attempt to create parent profile failed: #{inspect(reason)}, retrying..."
-        )
-
-        # Retry once
-        case Parenting.create_parent_profile(%{identity_id: user_id}) do
-          {:ok, _parent} ->
-            Logger.info("Successfully created parent profile for user #{user_id} on retry")
-            :ok
-
-          {:error, :duplicate_identity} ->
-            Logger.debug("Parent profile already exists for user #{user_id}")
-            :ok
-
-          {:error, retry_reason} ->
-            Logger.error(
-              "Failed to create parent profile for user #{user_id} after retry: #{inspect(retry_reason)}"
-            )
-
-            error
-        end
+    case RetryHelpers.retry_with_backoff(operation, context) do
+      :ok -> :ok
+      {:ok, _parent} -> :ok
+      {:error, _reason} = error -> error
     end
   end
 end

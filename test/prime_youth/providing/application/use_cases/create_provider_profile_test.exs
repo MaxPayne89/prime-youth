@@ -117,6 +117,222 @@ defmodule PrimeYouth.Providing.Application.UseCases.CreateProviderProfileTest do
   end
 
   # =============================================================================
+  # execute/1 - Domain Validation
+  # =============================================================================
+
+  describe "execute/1 domain validation" do
+    test "returns validation_error when identity_id is empty string" do
+      attrs = %{
+        identity_id: "",
+        business_name: "Test Business"
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Identity ID cannot be empty" in errors
+    end
+
+    test "returns validation_error when identity_id is whitespace only" do
+      attrs = %{
+        identity_id: "   ",
+        business_name: "Test Business"
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Identity ID cannot be empty" in errors
+    end
+
+    test "returns validation_error when business_name is empty string" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: ""
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Business name cannot be empty" in errors
+    end
+
+    test "returns validation_error when business_name exceeds 200 characters" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: String.duplicate("a", 201)
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Business name must be 200 characters or less" in errors
+    end
+
+    test "returns validation_error when description is empty string" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        description: ""
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Description cannot be empty if provided" in errors
+    end
+
+    test "returns validation_error when description exceeds 1000 characters" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        description: String.duplicate("a", 1001)
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Description must be 1000 characters or less" in errors
+    end
+
+    test "returns validation_error when phone is empty string" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        phone: ""
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Phone cannot be empty if provided" in errors
+    end
+
+    test "returns validation_error when phone exceeds 20 characters" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        phone: String.duplicate("1", 21)
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Phone must be 20 characters or less" in errors
+    end
+
+    test "returns validation_error when website does not start with https://" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        website: "http://example.com"
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Website must start with https://" in errors
+    end
+
+    test "returns validation_error when website is empty string" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        website: ""
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Website cannot be empty if provided" in errors
+    end
+
+    test "returns validation_error when website exceeds 500 characters" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        website: "https://" <> String.duplicate("a", 494)
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Website must be 500 characters or less" in errors
+    end
+
+    test "returns validation_error when address is empty string" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        address: ""
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Address cannot be empty if provided" in errors
+    end
+
+    test "returns validation_error when address exceeds 500 characters" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        address: String.duplicate("a", 501)
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Address must be 500 characters or less" in errors
+    end
+
+    test "returns validation_error when logo_url is empty string" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        logo_url: ""
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Logo URL cannot be empty if provided" in errors
+    end
+
+    test "returns validation_error when logo_url exceeds 500 characters" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        logo_url: String.duplicate("a", 501)
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Logo URL must be 500 characters or less" in errors
+    end
+
+    test "returns validation_error when verified is not a boolean" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        verified: "yes"
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Verified must be a boolean" in errors
+    end
+
+    test "returns validation_error when categories is not a list" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        categories: "sports"
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Categories must be a list" in errors
+    end
+
+    test "returns validation_error when categories contains non-string values" do
+      attrs = %{
+        identity_id: Ecto.UUID.generate(),
+        business_name: "Test Business",
+        categories: ["sports", 123, "outdoor"]
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Categories must be a list of strings" in errors
+    end
+
+    test "returns multiple validation errors for multiple invalid fields" do
+      attrs = %{
+        identity_id: "",
+        business_name: "",
+        phone: String.duplicate("1", 21),
+        website: "http://example.com"
+      }
+
+      assert {:error, {:validation_error, errors}} = CreateProviderProfile.execute(attrs)
+      assert "Identity ID cannot be empty" in errors
+      assert "Business name cannot be empty" in errors
+      assert "Phone must be 20 characters or less" in errors
+      assert "Website must start with https://" in errors
+      assert length(errors) == 4
+    end
+  end
+
+  # =============================================================================
   # execute/1 - Error Cases
   # =============================================================================
 

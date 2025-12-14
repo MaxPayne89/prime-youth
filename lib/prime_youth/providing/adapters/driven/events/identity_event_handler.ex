@@ -26,6 +26,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Events.IdentityEventHandler do
   @behaviour PrimeYouth.Shared.Domain.Ports.ForHandlingEvents
 
   alias PrimeYouth.Providing
+  alias PrimeYouth.Shared.Adapters.Driven.Events.RetryHelpers
 
   require Logger
 
@@ -55,43 +56,20 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Events.IdentityEventHandler do
       business_name: business_name
     }
 
-    case Providing.create_provider_profile(attrs) do
-      {:ok, _provider} ->
-        Logger.info(
-          "Successfully created provider profile for user #{user_id} with business_name: #{business_name}"
-        )
+    operation = fn ->
+      Providing.create_provider_profile(attrs)
+    end
 
-        :ok
+    context = %{
+      operation_name: "create provider profile",
+      aggregate_id: user_id,
+      backoff_ms: 100
+    }
 
-      {:error, :duplicate_identity} ->
-        Logger.debug("Provider profile already exists for user #{user_id}")
-        :ok
-
-      {:error, reason} = error ->
-        Logger.warning(
-          "First attempt to create provider profile failed: #{inspect(reason)}, retrying..."
-        )
-
-        # Retry once
-        case Providing.create_provider_profile(attrs) do
-          {:ok, _provider} ->
-            Logger.info(
-              "Successfully created provider profile for user #{user_id} on retry with business_name: #{business_name}"
-            )
-
-            :ok
-
-          {:error, :duplicate_identity} ->
-            Logger.debug("Provider profile already exists for user #{user_id}")
-            :ok
-
-          {:error, retry_reason} ->
-            Logger.error(
-              "Failed to create provider profile for user #{user_id} after retry: #{inspect(retry_reason)}"
-            )
-
-            error
-        end
+    case RetryHelpers.retry_with_backoff(operation, context) do
+      :ok -> :ok
+      {:ok, _provider} -> :ok
+      {:error, _reason} = error -> error
     end
   end
 end

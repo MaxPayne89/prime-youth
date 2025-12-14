@@ -20,6 +20,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.Provider
   alias PrimeYouth.Providing.Adapters.Driven.Persistence.Schemas.ProviderSchema
   alias PrimeYouth.Providing.Domain.Models.Provider
   alias PrimeYouth.Repo
+  alias PrimeYouth.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
   alias PrimeYouthWeb.ErrorIds
 
   require Logger
@@ -74,7 +75,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.Provider
           {:ok, provider}
 
         {:error, %Ecto.Changeset{errors: errors} = changeset} ->
-          if duplicate_identity_error?(errors) do
+          if EctoErrorHelpers.unique_constraint_violation?(errors, :identity_id) do
             Logger.warning(
               "[ProviderRepository] Duplicate provider profile for identity_id: #{attrs[:identity_id]}"
             )
@@ -291,12 +292,5 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.Provider
 
         {:error, :database_unavailable}
     end
-  end
-
-  # Private helper to detect duplicate identity constraint violation
-  defp duplicate_identity_error?(errors) do
-    Enum.any?(errors, fn {field, {_message, opts}} ->
-      field == :identity_id and Keyword.get(opts, :constraint) == :unique
-    end)
   end
 end
