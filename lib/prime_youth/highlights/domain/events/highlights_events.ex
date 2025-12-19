@@ -83,7 +83,8 @@ defmodule PrimeYouth.Highlights.Domain.Events.HighlightsEvents do
     base_payload = %{
       post_id: post.id,
       author: author,
-      comment_text: comment_text
+      comment_text: comment_text,
+      post: post
     }
 
     DomainEvent.new(
@@ -132,7 +133,8 @@ defmodule PrimeYouth.Highlights.Domain.Events.HighlightsEvents do
 
     base_payload = %{
       post_id: post.id,
-      likes_count: post.likes
+      likes_count: post.likes,
+      post: post
     }
 
     DomainEvent.new(
@@ -181,7 +183,8 @@ defmodule PrimeYouth.Highlights.Domain.Events.HighlightsEvents do
 
     base_payload = %{
       post_id: post.id,
-      likes_count: post.likes
+      likes_count: post.likes,
+      post: post
     }
 
     DomainEvent.new(
