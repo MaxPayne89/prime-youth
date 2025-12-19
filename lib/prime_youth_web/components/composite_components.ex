@@ -306,7 +306,12 @@ defmodule PrimeYouthWeb.CompositeComponents do
 
   def social_post(assigns) do
     ~H"""
-    <div id={@id} class={["card bg-white shadow-lg", @class]}>
+    <article
+      id={@id}
+      data-testid="social-post"
+      data-post-id={@post_id}
+      class={["card bg-white shadow-lg", @class]}
+    >
       <div class="card-body p-4">
         <!-- Post Header -->
         <div class="flex items-center gap-3 mb-4">
@@ -314,13 +319,15 @@ defmodule PrimeYouthWeb.CompositeComponents do
             {@avatar_emoji}
           </.gradient_icon>
           <div class="flex-1">
-            <div class={[Theme.typography(:card_title), "text-gray-800"]}>{@author}</div>
+            <div data-testid="post-author" class={[Theme.typography(:card_title), "text-gray-800"]}>
+              {@author}
+            </div>
             <div class="text-sm text-gray-500">{@timestamp}</div>
           </div>
         </div>
         
     <!-- Post Content -->
-        <p class="text-gray-700 mb-4 leading-relaxed">
+        <p data-testid="post-content" class="text-gray-700 mb-4 leading-relaxed">
           {@content}
         </p>
         
@@ -332,6 +339,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
         <div class="border-t border-gray-100 pt-4">
           <div class="flex gap-6 mb-3">
             <button
+              data-testid="like-button"
               phx-click="toggle_like"
               phx-value-post_id={@post_id}
               class={[
@@ -341,14 +349,14 @@ defmodule PrimeYouthWeb.CompositeComponents do
               ]}
             >
               <span class="text-xl">{if @user_liked, do: "❤️", else: "🤍"}</span>
-              <span class="text-sm font-medium">{@likes}</span>
+              <span data-testid="like-count" class="text-sm font-medium">{@likes}</span>
             </button>
             <button class={[
               "flex items-center gap-2 text-gray-500 hover:text-teal-600",
               Theme.transition(:normal)
             ]}>
               <span class="text-xl">💬</span>
-              <span class="text-sm font-medium">{@comment_count}</span>
+              <span data-testid="comment-count" class="text-sm font-medium">{@comment_count}</span>
             </button>
           </div>
           
@@ -374,7 +382,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
           </form>
         </div>
       </div>
-    </div>
+    </article>
     """
   end
 

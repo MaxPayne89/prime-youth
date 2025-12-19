@@ -15,7 +15,8 @@ defmodule PrimeYouthWeb.HomeLive do
       |> assign(
         page_title: "Prime Youth Connect - Connecting Families with Trusted Youth Educators"
       )
-      |> assign(featured_programs: featured)
+      |> stream(:featured_programs, featured)
+      |> assign(:featured_empty?, Enum.empty?(featured))
 
     {:ok, socket}
   end
@@ -118,9 +119,14 @@ defmodule PrimeYouthWeb.HomeLive do
             </p>
           </div>
 
-          <div class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8">
+          <div
+            id="featured-programs"
+            phx-update="stream"
+            class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8"
+          >
             <.program_card_simple
-              :for={program <- @featured_programs}
+              :for={{dom_id, program} <- @streams.featured_programs}
+              id={dom_id}
               gradient_class={program.gradient_class}
               icon_path={program.icon_path}
               title={program.title}
