@@ -5,6 +5,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
   alias PrimeYouth.Repo
+  alias PrimeYouth.Shared.Domain.Types.Pagination.PageResult
 
   describe "list_all_programs/0" do
     test "returns all valid programs" do
@@ -209,6 +210,255 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
     end
   end
 
+  describe "list_programs_paginated/2" do
+    setup do
+      # Create 25 programs with staggered inserted_at timestamps
+      # Newer programs have later timestamps (descending order)
+      base_time = ~U[2024-01-01 00:00:00Z]
+
+      programs =
+        for i <- 1..25 do
+          insert_program_with_timestamp(%{
+            title: "Program #{String.pad_leading(Integer.to_string(i), 2, "0")}",
+            description: "Description #{i}",
+            schedule: "Mon-Fri 9AM-12PM",
+            age_range: "6-12",
+            price: Decimal.new("#{100 + i}.00"),
+            pricing_period: "per week",
+            spots_available: 10
+          }, DateTime.add(base_time, i * 3600, :second))
+        end
+
+      %{programs: programs}
+    end
+
+    test "returns first page with limit 10 and no cursor" do
+      {:ok, page} = ProgramRepository.list_programs_paginated(10, nil)
+
+      assert %PageResult{} = page
+      assert length(page.items) == 10
+      assert page.has_more == true
+      assert page.next_cursor != nil
+      assert page.metadata.returned_count == 10
+
+      # Verify newest programs first (Program 25, 24, 23, ...)
+      titles = Enum.map(page.items, & &1.title)
+      assert List.first(titles) == "Program 25"
+      assert List.last(titles) == "Program 16"
+    end
+
+    test "returns subsequent pages with cursor" do
+      # Get first page
+      {:ok, page1} = ProgramRepository.list_programs_paginated(10, nil)
+      assert page1.has_more == true
+      assert page1.next_cursor != nil
+
+      # Get second page with cursor
+      {:ok, page2} = ProgramRepository.list_programs_paginated(10, page1.next_cursor)
+      assert length(page2.items) == 10
+      assert page2.has_more == true
+      assert page2.next_cursor != nil
+
+      # Verify items are different and in correct order
+      page1_titles = Enum.map(page1.items, & &1.title)
+      page2_titles = Enum.map(page2.items, & &1.title)
+
+      assert List.first(page2_titles) == "Program 15"
+      assert List.last(page2_titles) == "Program 06"
+
+      # Ensure no overlap
+      refute Enum.any?(page1_titles, &(&1 in page2_titles))
+    end
+
+    test "sets has_more to true when more results exist" do
+      {:ok, page} = ProgramRepository.list_programs_paginated(10, nil)
+
+      assert page.has_more == true
+      assert page.next_cursor != nil
+    end
+
+    test "sets has_more to false on last page" do
+      # Get first page (10 items)
+      {:ok, page1} = ProgramRepository.list_programs_paginated(10, nil)
+
+      # Get second page (10 items)
+      {:ok, page2} = ProgramRepository.list_programs_paginated(10, page1.next_cursor)
+
+      # Get third page (5 items remaining)
+      {:ok, page3} = ProgramRepository.list_programs_paginated(10, page2.next_cursor)
+
+      assert length(page3.items) == 5
+      assert page3.has_more == false
+      assert page3.next_cursor == nil
+    end
+
+    test "returns empty results when no programs exist" do
+      # Clean database
+      Repo.delete_all(ProgramSchema)
+
+      {:ok, page} = ProgramRepository.list_programs_paginated(20, nil)
+
+      assert page.items == []
+      assert page.has_more == false
+      assert page.next_cursor == nil
+      assert page.metadata.returned_count == 0
+    end
+
+    test "returns empty results when cursor is beyond last item" do
+      # Get all pages until the end
+      {:ok, page1} = ProgramRepository.list_programs_paginated(10, nil)
+      {:ok, page2} = ProgramRepository.list_programs_paginated(10, page1.next_cursor)
+      {:ok, page3} = ProgramRepository.list_programs_paginated(10, page2.next_cursor)
+
+      # page3 should be the last page with 5 items and no next cursor
+      assert length(page3.items) == 5
+      assert page3.next_cursor == nil
+
+      # Manually create a cursor that would be beyond the last item
+      # This simulates requesting a page after all data has been retrieved
+      last_program = List.last(page3.items)
+      fake_cursor = create_cursor_after(last_program)
+
+      {:ok, page4} = ProgramRepository.list_programs_paginated(10, fake_cursor)
+
+      assert page4.items == []
+      assert page4.has_more == false
+      assert page4.next_cursor == nil
+    end
+
+    test "handles invalid cursor gracefully" do
+      invalid_cursor = "invalid_base64_cursor"
+
+      assert {:error, :invalid_cursor} = ProgramRepository.list_programs_paginated(20, invalid_cursor)
+    end
+
+    test "handles malformed cursor data" do
+      # Valid base64 but invalid JSON
+      malformed_cursor = Base.url_encode64("not json", padding: false)
+
+      assert {:error, :invalid_cursor} = ProgramRepository.list_programs_paginated(20, malformed_cursor)
+    end
+
+    test "handles cursor with invalid timestamp" do
+      # Valid JSON but invalid timestamp
+      invalid_data = Jason.encode!(%{"ts" => "not_a_number", "id" => Ecto.UUID.generate()})
+      invalid_cursor = Base.url_encode64(invalid_data, padding: false)
+
+      assert {:error, :invalid_cursor} = ProgramRepository.list_programs_paginated(20, invalid_cursor)
+    end
+
+    test "handles cursor with invalid UUID" do
+      # Valid JSON but invalid UUID
+      invalid_data = Jason.encode!(%{"ts" => 1234567890123456, "id" => "not-a-uuid"})
+      invalid_cursor = Base.url_encode64(invalid_data, padding: false)
+
+      assert {:error, :invalid_cursor} = ProgramRepository.list_programs_paginated(20, invalid_cursor)
+    end
+
+    test "handles limit boundary conditions" do
+      # Limit below minimum (0) - should be constrained to 1
+      {:ok, page} = ProgramRepository.list_programs_paginated(0, nil)
+      assert length(page.items) == 1
+
+      # Limit at minimum (1)
+      {:ok, page} = ProgramRepository.list_programs_paginated(1, nil)
+      assert length(page.items) == 1
+
+      # Limit at maximum (100) - should return all 25
+      {:ok, page} = ProgramRepository.list_programs_paginated(100, nil)
+      assert length(page.items) == 25
+      assert page.has_more == false
+
+      # Limit above maximum (101) - should be constrained to 100
+      {:ok, page} = ProgramRepository.list_programs_paginated(101, nil)
+      assert length(page.items) == 25
+      assert page.has_more == false
+    end
+
+    test "orders by inserted_at DESC, id DESC" do
+      {:ok, page} = ProgramRepository.list_programs_paginated(25, nil)
+
+      # Verify newest first (Program 25 was inserted last with latest timestamp)
+      titles = Enum.map(page.items, & &1.title)
+      assert List.first(titles) == "Program 25"
+      assert List.last(titles) == "Program 01"
+    end
+
+    test "cursor roundtrip encoding and decoding" do
+      {:ok, page1} = ProgramRepository.list_programs_paginated(10, nil)
+      cursor = page1.next_cursor
+
+      # Use the cursor to get next page
+      {:ok, page2} = ProgramRepository.list_programs_paginated(10, cursor)
+
+      # Verify we got different items
+      page1_titles = Enum.map(page1.items, & &1.title)
+      page2_titles = Enum.map(page2.items, & &1.title)
+
+      refute Enum.any?(page1_titles, &(&1 in page2_titles))
+    end
+
+    test "handles exactly page_size results correctly" do
+      # Clean database and insert exactly 10 programs
+      Repo.delete_all(ProgramSchema)
+
+      base_time = ~U[2024-01-01 00:00:00Z]
+
+      for i <- 1..10 do
+        insert_program_with_timestamp(%{
+          title: "Program #{i}",
+          description: "Description",
+          schedule: "Mon-Fri",
+          age_range: "6-12",
+          price: Decimal.new("100.00"),
+          pricing_period: "per week",
+          spots_available: 10
+        }, DateTime.add(base_time, i * 3600, :second))
+      end
+
+      # Request exactly 10 items (all of them)
+      {:ok, page} = ProgramRepository.list_programs_paginated(10, nil)
+
+      assert length(page.items) == 10
+      assert page.has_more == false
+      assert page.next_cursor == nil
+    end
+
+    test "handles exactly page_size + 1 results correctly" do
+      # Clean database and insert exactly 11 programs
+      Repo.delete_all(ProgramSchema)
+
+      base_time = ~U[2024-01-01 00:00:00Z]
+
+      for i <- 1..11 do
+        insert_program_with_timestamp(%{
+          title: "Program #{i}",
+          description: "Description",
+          schedule: "Mon-Fri",
+          age_range: "6-12",
+          price: Decimal.new("100.00"),
+          pricing_period: "per week",
+          spots_available: 10
+        }, DateTime.add(base_time, i * 3600, :second))
+      end
+
+      # Request 10 items (leaving 1 remaining)
+      {:ok, page} = ProgramRepository.list_programs_paginated(10, nil)
+
+      assert length(page.items) == 10
+      assert page.has_more == true
+      assert page.next_cursor != nil
+    end
+
+    test "all returned items are valid Program domain models" do
+      {:ok, page} = ProgramRepository.list_programs_paginated(20, nil)
+
+      assert Enum.all?(page.items, &match?(%Program{}, &1))
+      assert Enum.all?(page.items, &(&1.title != nil))
+      assert Enum.all?(page.items, &(&1.description != nil))
+    end
+  end
+
   # Helper function to insert a complete valid program
   defp insert_program(attrs) do
     default_attrs = %{
@@ -222,5 +472,36 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
     %ProgramSchema{}
     |> ProgramSchema.changeset(attrs)
     |> Repo.insert!()
+  end
+
+  # Helper function to insert program with specific timestamp
+  defp insert_program_with_timestamp(attrs, inserted_at) do
+    default_attrs = %{
+      id: Ecto.UUID.generate(),
+      gradient_class: "from-blue-500 to-purple-600",
+      icon_path: "/images/default.svg"
+    }
+
+    attrs = Map.merge(default_attrs, attrs)
+
+    %ProgramSchema{}
+    |> ProgramSchema.changeset(attrs)
+    |> Ecto.Changeset.put_change(:inserted_at, inserted_at)
+    |> Repo.insert!()
+  end
+
+  # Helper to create a cursor pointing after a given program
+  defp create_cursor_after(program) do
+    # Create a timestamp 1 second before the program's inserted_at
+    cursor_ts = DateTime.add(program.inserted_at, -1, :second)
+
+    cursor_data = %{
+      "ts" => DateTime.to_unix(cursor_ts, :microsecond),
+      "id" => program.id
+    }
+
+    cursor_data
+    |> Jason.encode!()
+    |> Base.url_encode64(padding: false)
   end
 end

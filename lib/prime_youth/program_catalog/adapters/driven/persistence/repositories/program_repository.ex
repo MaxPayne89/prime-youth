@@ -14,9 +14,11 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
   import Ecto.Query
 
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapper
+  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Queries.ProgramQueries
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
   alias PrimeYouth.Repo
+  alias PrimeYouth.Shared.Domain.Types.Pagination.PageResult
   alias PrimeYouthWeb.ErrorIds
 
   require Logger
@@ -184,5 +186,202 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
 
         {:error, :database_unavailable}
     end
+  end
+
+  @impl true
+  @doc """
+  Lists programs with cursor-based pagination.
+
+  Uses seek pagination (cursor-based) for efficient pagination of large result sets.
+  Programs are ordered by creation time (newest first) using (inserted_at DESC, id DESC).
+
+  Parameters:
+  - `limit` - Number of items per page (1-100, silently constrained if out of range)
+  - `cursor` - Base64-encoded cursor for pagination, nil for first page
+
+  Returns:
+  - {:ok, PageResult.t()} - Page of programs with pagination metadata
+  - {:error, :invalid_cursor} - Cursor decoding/validation failure
+  - {:error, :database_connection_error} - Connection/network failure
+  - {:error, :database_query_error} - SQL error or constraint violation
+  - {:error, :database_unavailable} - Unexpected error
+
+  ## Examples
+
+      # First page
+      iex> ProgramRepository.list_programs_paginated(20, nil)
+      {:ok, %PageResult{items: [...], next_cursor: "...", has_more: true}}
+
+      # Subsequent page
+      iex> ProgramRepository.list_programs_paginated(20, cursor)
+      {:ok, %PageResult{items: [...], next_cursor: nil, has_more: false}}
+  """
+  @spec list_programs_paginated(pos_integer(), String.t() | nil) ::
+          {:ok, PageResult.t()}
+          | {:error,
+             :invalid_cursor
+             | :database_connection_error
+             | :database_query_error
+             | :database_unavailable}
+  def list_programs_paginated(limit, cursor) do
+    Logger.info(
+      "[ProgramRepository] Starting list_programs_paginated query",
+      limit: limit,
+      has_cursor: !is_nil(cursor)
+    )
+
+    with {:ok, validated_limit} <- validate_limit(limit),
+         {:ok, cursor_data} <- decode_cursor(cursor),
+         {:ok, schemas} <- fetch_page(validated_limit, cursor_data) do
+      {items, has_more} =
+        if length(schemas) > validated_limit do
+          {Enum.take(schemas, validated_limit), true}
+        else
+          {schemas, false}
+        end
+
+      next_cursor =
+        if has_more do
+          items |> List.last() |> encode_cursor()
+        else
+          nil
+        end
+
+      domain_programs = Enum.map(items, &ProgramMapper.to_domain/1)
+      page_result = PageResult.new(domain_programs, next_cursor, has_more)
+
+      Logger.info(
+        "[ProgramRepository] Successfully retrieved paginated programs",
+        returned_count: length(domain_programs),
+        has_more: has_more
+      )
+
+      {:ok, page_result}
+    else
+      {:error, :invalid_cursor} = error ->
+        Logger.warning(
+          "[ProgramRepository] Invalid pagination cursor",
+          error_id: ErrorIds.program_pagination_invalid_cursor(),
+          cursor: cursor
+        )
+
+        error
+
+      {:error, reason} ->
+        Logger.error(
+          "[ProgramRepository] Failed to list programs (paginated)",
+          error_id: ErrorIds.program_pagination_error(),
+          reason: reason
+        )
+
+        {:error, :database_unavailable}
+    end
+  end
+
+  # Private helper functions
+
+  defp validate_limit(limit) when is_integer(limit) and limit >= 1 and limit <= 100 do
+    {:ok, limit}
+  end
+
+  defp validate_limit(limit) when is_integer(limit) and limit < 1 do
+    {:ok, 1}
+  end
+
+  defp validate_limit(limit) when is_integer(limit) and limit > 100 do
+    {:ok, 100}
+  end
+
+  defp validate_limit(_), do: {:ok, 20}
+
+  defp decode_cursor(nil), do: {:ok, nil}
+
+  defp decode_cursor(cursor) when is_binary(cursor) do
+    with {:ok, decoded} <- Base.url_decode64(cursor, padding: false),
+         {:ok, data} <- Jason.decode(decoded),
+         {:ok, datetime} <- parse_cursor_timestamp(data["ts"]),
+         {:ok, uuid} <- parse_cursor_uuid(data["id"]) do
+      {:ok, {datetime, uuid}}
+    else
+      _ -> {:error, :invalid_cursor}
+    end
+  end
+
+  defp parse_cursor_timestamp(ts) when is_integer(ts) do
+    case DateTime.from_unix(ts, :microsecond) do
+      {:ok, datetime} -> {:ok, datetime}
+      {:error, _} -> {:error, :invalid_timestamp}
+    end
+  end
+
+  defp parse_cursor_timestamp(_), do: {:error, :invalid_timestamp}
+
+  defp parse_cursor_uuid(uuid) when is_binary(uuid) do
+    case Ecto.UUID.cast(uuid) do
+      {:ok, uuid} -> {:ok, uuid}
+      :error -> {:error, :invalid_uuid}
+    end
+  end
+
+  defp parse_cursor_uuid(_), do: {:error, :invalid_uuid}
+
+  defp encode_cursor(program_schema) do
+    cursor_data = %{
+      "ts" => DateTime.to_unix(program_schema.inserted_at, :microsecond),
+      "id" => program_schema.id
+    }
+
+    cursor_data
+    |> Jason.encode!()
+    |> Base.url_encode64(padding: false)
+  end
+
+  defp fetch_page(limit, cursor_data) do
+    query =
+      ProgramQueries.base_query()
+      |> apply_cursor_filter(cursor_data)
+      |> ProgramQueries.order_by_creation(:desc)
+      |> ProgramQueries.limit_results(limit + 1)
+
+    try do
+      schemas = Repo.all(query)
+      {:ok, schemas}
+    rescue
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[ProgramRepository] Database connection failed during pagination",
+          error_id: ErrorIds.program_pagination_connection_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error, Ecto.Query.CastError] ->
+        Logger.error(
+          "[ProgramRepository] Database query error during pagination",
+          error_id: ErrorIds.program_pagination_query_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
+      error ->
+        Logger.error(
+          "[ProgramRepository] Unexpected database error during pagination",
+          error_id: ErrorIds.program_pagination_generic_error(),
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
+        )
+
+        {:error, :database_unavailable}
+    end
+  end
+
+  defp apply_cursor_filter(query, nil), do: query
+
+  defp apply_cursor_filter(query, {cursor_ts, cursor_id}) do
+    ProgramQueries.paginate_after_cursor(query, {cursor_ts, cursor_id}, :desc)
   end
 end

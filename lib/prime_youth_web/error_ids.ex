@@ -87,6 +87,36 @@ defmodule PrimeYouthWeb.ErrorIds do
   """
   def program_get_generic_error, do: "program.catalog.get.generic_error"
 
+  @doc """
+  Invalid cursor format when paginating programs.
+  Indicates cursor decoding/validation failure.
+  """
+  def program_pagination_invalid_cursor, do: "program.catalog.paginate.invalid_cursor"
+
+  @doc """
+  Database connection error when paginating programs.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def program_pagination_connection_error, do: "program.catalog.paginate.connection_error"
+
+  @doc """
+  Database query error when paginating programs.
+  Indicates SQL syntax error, constraint violation, or schema mismatch.
+  """
+  def program_pagination_query_error, do: "program.catalog.paginate.query_error"
+
+  @doc """
+  Generic/unexpected error when paginating programs.
+  Fallback for errors that don't fit other categories.
+  """
+  def program_pagination_generic_error, do: "program.catalog.paginate.generic_error"
+
+  @doc """
+  Generic error during pagination operation.
+  Used when specific error type cannot be determined.
+  """
+  def program_pagination_error, do: "program.catalog.paginate.error"
+
   # Parenting Context Errors
 
   @doc """
