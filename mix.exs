@@ -50,6 +50,7 @@ defmodule PrimeYouth.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:error_tracker, "~> 0.7"},
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:bcrypt_elixir, "~> 3.0"},
       {:live_debugger, "~> 0.4", only: [:dev]},
