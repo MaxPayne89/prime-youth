@@ -732,7 +732,6 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       final_schema = Repo.get(ProgramSchema, program_schema.id)
       assert final_schema.lock_version == 2
     end
-
   end
 
   # Helper function to insert a complete valid program

@@ -318,7 +318,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
 
     try do
       # Verify program exists before attempting update
-      unless Repo.get(ProgramSchema, program.id) do
+      if !Repo.get(ProgramSchema, program.id) do
         Logger.info(
           "[ProgramRepository] Program not found during update",
           program_id: program.id

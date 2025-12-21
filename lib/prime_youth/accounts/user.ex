@@ -11,6 +11,8 @@ defmodule PrimeYouth.Accounts.User do
 
   import Ecto.Changeset
 
+  alias PrimeYouth.Accounts.Types.{UserRole, UserRoles}
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
@@ -22,7 +24,7 @@ defmodule PrimeYouth.Accounts.User do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
-    field :intended_roles, {:array, :string}, default: []
+    field :intended_roles, UserRoles, default: []
 
     timestamps(type: :utc_datetime)
   end
@@ -58,7 +60,7 @@ defmodule PrimeYouth.Accounts.User do
     |> put_default_role()
     |> validate_required([:name, :email, :intended_roles])
     |> validate_length(:name, min: 2, max: 100)
-    |> validate_subset(:intended_roles, ["parent", "provider"])
+    |> validate_subset(:intended_roles, UserRole.valid_roles())
     |> validate_at_least_one_role()
     |> put_default_avatar()
     |> validate_email(opts)
@@ -66,8 +68,8 @@ defmodule PrimeYouth.Accounts.User do
 
   defp put_default_role(changeset) do
     case get_field(changeset, :intended_roles) do
-      nil -> put_change(changeset, :intended_roles, ["parent"])
-      [] -> put_change(changeset, :intended_roles, ["parent"])
+      nil -> put_change(changeset, :intended_roles, [:parent])
+      [] -> put_change(changeset, :intended_roles, [:parent])
       _ -> changeset
     end
   end

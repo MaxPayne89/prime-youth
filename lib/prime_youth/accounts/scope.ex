@@ -54,8 +54,8 @@ defmodule PrimeYouth.Accounts.Scope do
 
     roles =
       []
-      |> maybe_add_role(parent, "parent")
-      |> maybe_add_role(provider, "provider")
+      |> maybe_add_role(parent, :parent)
+      |> maybe_add_role(provider, :provider)
 
     %{scope | roles: roles, parent: parent, provider: provider}
   end
@@ -65,13 +65,13 @@ defmodule PrimeYouth.Accounts.Scope do
 
   ## Examples
 
-      iex> has_role?(scope, "parent")
+      iex> has_role?(scope, :parent)
       true
 
-      iex> has_role?(scope, "provider")
+      iex> has_role?(scope, :provider)
       false
   """
-  def has_role?(%__MODULE__{roles: roles}, role) when is_binary(role) do
+  def has_role?(%__MODULE__{roles: roles}, role) when is_atom(role) do
     role in roles
   end
 

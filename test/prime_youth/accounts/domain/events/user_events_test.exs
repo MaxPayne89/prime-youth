@@ -78,7 +78,7 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEventsTest do
         id: 1,
         email: "test@example.com",
         name: "Test User",
-        intended_roles: ["parent"]
+        intended_roles: [:parent]
       }
 
       event = UserEvents.user_registered(user)
@@ -107,7 +107,7 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEventsTest do
         id: 1,
         email: "test@example.com",
         name: "Test User",
-        intended_roles: ["parent", "provider"]
+        intended_roles: [:parent, :provider]
       }
 
       event = UserEvents.user_registered(user)

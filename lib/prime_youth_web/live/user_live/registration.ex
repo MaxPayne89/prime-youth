@@ -49,7 +49,7 @@ defmodule PrimeYouthWeb.UserLive.Registration do
                   type="checkbox"
                   name="user[intended_roles][]"
                   value="parent"
-                  checked={"parent" in (@form[:intended_roles].value || [])}
+                  checked={:parent in (@form[:intended_roles].value || [])}
                   class="mt-1 rounded border-2 border-zinc-400 text-cyan-600 focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0 shadow-sm transition-all duration-200"
                 />
                 <div>
@@ -64,7 +64,7 @@ defmodule PrimeYouthWeb.UserLive.Registration do
                   type="checkbox"
                   name="user[intended_roles][]"
                   value="provider"
-                  checked={"provider" in (@form[:intended_roles].value || [])}
+                  checked={:provider in (@form[:intended_roles].value || [])}
                   class="mt-1 rounded border-2 border-zinc-400 text-cyan-600 focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0 shadow-sm transition-all duration-200"
                 />
                 <div>
