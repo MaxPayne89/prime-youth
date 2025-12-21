@@ -218,15 +218,18 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
 
       programs =
         for i <- 1..25 do
-          insert_program_with_timestamp(%{
-            title: "Program #{String.pad_leading(Integer.to_string(i), 2, "0")}",
-            description: "Description #{i}",
-            schedule: "Mon-Fri 9AM-12PM",
-            age_range: "6-12",
-            price: Decimal.new("#{100 + i}.00"),
-            pricing_period: "per week",
-            spots_available: 10
-          }, DateTime.add(base_time, i * 3600, :second))
+          insert_program_with_timestamp(
+            %{
+              title: "Program #{String.pad_leading(Integer.to_string(i), 2, "0")}",
+              description: "Description #{i}",
+              schedule: "Mon-Fri 9AM-12PM",
+              age_range: "6-12",
+              price: Decimal.new("#{100 + i}.00"),
+              pricing_period: "per week",
+              spots_available: 10
+            },
+            DateTime.add(base_time, i * 3600, :second)
+          )
         end
 
       %{programs: programs}
@@ -329,14 +332,16 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
     test "handles invalid cursor gracefully" do
       invalid_cursor = "invalid_base64_cursor"
 
-      assert {:error, :invalid_cursor} = ProgramRepository.list_programs_paginated(20, invalid_cursor)
+      assert {:error, :invalid_cursor} =
+               ProgramRepository.list_programs_paginated(20, invalid_cursor)
     end
 
     test "handles malformed cursor data" do
       # Valid base64 but invalid JSON
       malformed_cursor = Base.url_encode64("not json", padding: false)
 
-      assert {:error, :invalid_cursor} = ProgramRepository.list_programs_paginated(20, malformed_cursor)
+      assert {:error, :invalid_cursor} =
+               ProgramRepository.list_programs_paginated(20, malformed_cursor)
     end
 
     test "handles cursor with invalid timestamp" do
@@ -344,15 +349,17 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       invalid_data = Jason.encode!(%{"ts" => "not_a_number", "id" => Ecto.UUID.generate()})
       invalid_cursor = Base.url_encode64(invalid_data, padding: false)
 
-      assert {:error, :invalid_cursor} = ProgramRepository.list_programs_paginated(20, invalid_cursor)
+      assert {:error, :invalid_cursor} =
+               ProgramRepository.list_programs_paginated(20, invalid_cursor)
     end
 
     test "handles cursor with invalid UUID" do
       # Valid JSON but invalid UUID
-      invalid_data = Jason.encode!(%{"ts" => 1234567890123456, "id" => "not-a-uuid"})
+      invalid_data = Jason.encode!(%{"ts" => 1_234_567_890_123_456, "id" => "not-a-uuid"})
       invalid_cursor = Base.url_encode64(invalid_data, padding: false)
 
-      assert {:error, :invalid_cursor} = ProgramRepository.list_programs_paginated(20, invalid_cursor)
+      assert {:error, :invalid_cursor} =
+               ProgramRepository.list_programs_paginated(20, invalid_cursor)
     end
 
     test "handles limit boundary conditions" do
@@ -405,15 +412,18 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       base_time = ~U[2024-01-01 00:00:00Z]
 
       for i <- 1..10 do
-        insert_program_with_timestamp(%{
-          title: "Program #{i}",
-          description: "Description",
-          schedule: "Mon-Fri",
-          age_range: "6-12",
-          price: Decimal.new("100.00"),
-          pricing_period: "per week",
-          spots_available: 10
-        }, DateTime.add(base_time, i * 3600, :second))
+        insert_program_with_timestamp(
+          %{
+            title: "Program #{i}",
+            description: "Description",
+            schedule: "Mon-Fri",
+            age_range: "6-12",
+            price: Decimal.new("100.00"),
+            pricing_period: "per week",
+            spots_available: 10
+          },
+          DateTime.add(base_time, i * 3600, :second)
+        )
       end
 
       # Request exactly 10 items (all of them)
@@ -431,15 +441,18 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       base_time = ~U[2024-01-01 00:00:00Z]
 
       for i <- 1..11 do
-        insert_program_with_timestamp(%{
-          title: "Program #{i}",
-          description: "Description",
-          schedule: "Mon-Fri",
-          age_range: "6-12",
-          price: Decimal.new("100.00"),
-          pricing_period: "per week",
-          spots_available: 10
-        }, DateTime.add(base_time, i * 3600, :second))
+        insert_program_with_timestamp(
+          %{
+            title: "Program #{i}",
+            description: "Description",
+            schedule: "Mon-Fri",
+            age_range: "6-12",
+            price: Decimal.new("100.00"),
+            pricing_period: "per week",
+            spots_available: 10
+          },
+          DateTime.add(base_time, i * 3600, :second)
+        )
       end
 
       # Request 10 items (leaving 1 remaining)

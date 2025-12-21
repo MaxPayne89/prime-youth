@@ -605,11 +605,12 @@ defmodule PrimeYouthWeb.UIComponents do
   attr :description, :string, required: true
   attr :class, :string, default: ""
   attr :data_testid, :string, default: "empty-state", doc: "Test ID for testing"
+  attr :rest, :global, doc: "Additional HTML attributes"
   slot :action, doc: "Optional action button or link"
 
   def empty_state(assigns) do
     ~H"""
-    <div data-testid={@data_testid} class={["text-center py-12", @class]}>
+    <div data-testid={@data_testid} class={["text-center py-12", @class]} {@rest}>
       <div class={[
         "w-16 h-16 flex items-center justify-center mx-auto mb-4",
         Theme.rounded(:full),

@@ -15,24 +15,31 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Queries.ProgramQ
 
   describe "order_by_creation/2" do
     test "orders by inserted_at DESC and id DESC when direction is :desc" do
-      query = ProgramQueries.base_query()
-              |> ProgramQueries.order_by_creation(:desc)
+      query =
+        ProgramQueries.base_query()
+        |> ProgramQueries.order_by_creation(:desc)
 
-      assert [desc: {{:., [], [{:&, [], [0]}, :inserted_at]}, [], []},
-              desc: {{:., [], [{:&, [], [0]}, :id]}, [], []}] = query.order_bys |> hd() |> Map.get(:expr)
+      assert [
+               desc: {{:., [], [{:&, [], [0]}, :inserted_at]}, [], []},
+               desc: {{:., [], [{:&, [], [0]}, :id]}, [], []}
+             ] = query.order_bys |> hd() |> Map.get(:expr)
     end
 
     test "orders by inserted_at ASC and id ASC when direction is :asc" do
-      query = ProgramQueries.base_query()
-              |> ProgramQueries.order_by_creation(:asc)
+      query =
+        ProgramQueries.base_query()
+        |> ProgramQueries.order_by_creation(:asc)
 
-      assert [asc: {{:., [], [{:&, [], [0]}, :inserted_at]}, [], []},
-              asc: {{:., [], [{:&, [], [0]}, :id]}, [], []}] = query.order_bys |> hd() |> Map.get(:expr)
+      assert [
+               asc: {{:., [], [{:&, [], [0]}, :inserted_at]}, [], []},
+               asc: {{:., [], [{:&, [], [0]}, :id]}, [], []}
+             ] = query.order_bys |> hd() |> Map.get(:expr)
     end
 
     test "defaults to :desc when no direction provided" do
-      query = ProgramQueries.base_query()
-              |> ProgramQueries.order_by_creation()
+      query =
+        ProgramQueries.base_query()
+        |> ProgramQueries.order_by_creation()
 
       assert [desc: _, desc: _] = query.order_bys |> hd() |> Map.get(:expr)
     end
@@ -47,24 +54,30 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Queries.ProgramQ
     end
 
     test "adds WHERE clause for DESC pagination", %{cursor_ts: cursor_ts, cursor_id: cursor_id} do
-      query = ProgramQueries.base_query()
-              |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id}, :desc)
+      query =
+        ProgramQueries.base_query()
+        |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id}, :desc)
 
       assert %Ecto.Query{} = query
       assert length(query.wheres) == 1
     end
 
     test "adds WHERE clause for ASC pagination", %{cursor_ts: cursor_ts, cursor_id: cursor_id} do
-      query = ProgramQueries.base_query()
-              |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id}, :asc)
+      query =
+        ProgramQueries.base_query()
+        |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id}, :asc)
 
       assert %Ecto.Query{} = query
       assert length(query.wheres) == 1
     end
 
-    test "defaults to :desc when no direction provided", %{cursor_ts: cursor_ts, cursor_id: cursor_id} do
-      query = ProgramQueries.base_query()
-              |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id})
+    test "defaults to :desc when no direction provided", %{
+      cursor_ts: cursor_ts,
+      cursor_id: cursor_id
+    } do
+      query =
+        ProgramQueries.base_query()
+        |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id})
 
       assert %Ecto.Query{} = query
       assert length(query.wheres) == 1
@@ -73,21 +86,24 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Queries.ProgramQ
 
   describe "limit_results/2" do
     test "adds LIMIT clause with specified limit" do
-      query = ProgramQueries.base_query()
-              |> ProgramQueries.limit_results(10)
+      query =
+        ProgramQueries.base_query()
+        |> ProgramQueries.limit_results(10)
 
       assert %Ecto.Query{} = query
       assert query.limit != nil
     end
 
     test "works with different limit values" do
-      query = ProgramQueries.base_query()
-              |> ProgramQueries.limit_results(1)
+      query =
+        ProgramQueries.base_query()
+        |> ProgramQueries.limit_results(1)
 
       assert query.limit != nil
 
-      query = ProgramQueries.base_query()
-              |> ProgramQueries.limit_results(100)
+      query =
+        ProgramQueries.base_query()
+        |> ProgramQueries.limit_results(100)
 
       assert query.limit != nil
     end
@@ -98,10 +114,11 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Queries.ProgramQ
       cursor_ts = ~U[2024-01-15 12:00:00Z]
       cursor_id = Ecto.UUID.generate()
 
-      query = ProgramQueries.base_query()
-              |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id}, :desc)
-              |> ProgramQueries.order_by_creation(:desc)
-              |> ProgramQueries.limit_results(20)
+      query =
+        ProgramQueries.base_query()
+        |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id}, :desc)
+        |> ProgramQueries.order_by_creation(:desc)
+        |> ProgramQueries.limit_results(20)
 
       assert %Ecto.Query{} = query
       assert length(query.wheres) == 1
@@ -114,15 +131,17 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Queries.ProgramQ
       cursor_id = Ecto.UUID.generate()
 
       # Different composition order
-      query1 = ProgramQueries.base_query()
-               |> ProgramQueries.order_by_creation(:desc)
-               |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id}, :desc)
-               |> ProgramQueries.limit_results(20)
+      query1 =
+        ProgramQueries.base_query()
+        |> ProgramQueries.order_by_creation(:desc)
+        |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id}, :desc)
+        |> ProgramQueries.limit_results(20)
 
-      query2 = ProgramQueries.base_query()
-               |> ProgramQueries.limit_results(20)
-               |> ProgramQueries.order_by_creation(:desc)
-               |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id}, :desc)
+      query2 =
+        ProgramQueries.base_query()
+        |> ProgramQueries.limit_results(20)
+        |> ProgramQueries.order_by_creation(:desc)
+        |> ProgramQueries.paginate_after_cursor({cursor_ts, cursor_id}, :desc)
 
       # Both should have same number of clauses
       assert length(query1.wheres) == length(query2.wheres)

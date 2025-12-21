@@ -7,6 +7,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Queries.ProgramQ
   """
 
   import Ecto.Query
+
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
 
   def base_query do

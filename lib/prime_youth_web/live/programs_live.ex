@@ -4,7 +4,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
   import PrimeYouthWeb.ProgramComponents
 
   alias PrimeYouth.ProgramCatalog.Application.UseCases.FilterPrograms
-  alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
+  alias PrimeYouth.ProgramCatalog.Application.UseCases.ListProgramsPaginated
   alias PrimeYouthWeb.ErrorIds
   alias PrimeYouthWeb.Theme
 
@@ -36,6 +36,10 @@ defmodule PrimeYouthWeb.ProgramsLive do
       |> assign(programs_empty?: true)
       |> assign(filters: filter_options())
       |> assign(database_error: false)
+      |> assign(page_size: 20)
+      |> assign(next_cursor: nil)
+      |> assign(has_more: false)
+      |> assign(loading_more: false)
 
     {:ok, socket}
   end
@@ -45,12 +49,12 @@ defmodule PrimeYouthWeb.ProgramsLive do
     search_query = sanitize_search_query(params["q"])
     active_filter = validate_filter(params["filter"])
 
-    # Re-fetch and filter programs based on params
-    case ListAllPrograms.execute() do
-      {:ok, domain_programs} ->
+    # Load first page of programs using pagination (always resets to page 1)
+    case ListProgramsPaginated.execute(socket.assigns.page_size, nil) do
+      {:ok, page_result} ->
         start_time = System.monotonic_time(:millisecond)
         # Apply search filter to domain programs BEFORE converting to maps
-        filtered_domain = FilterPrograms.execute(domain_programs, search_query)
+        filtered_domain = FilterPrograms.execute(page_result.items, search_query)
         # Convert to maps for UI
         programs = Enum.map(filtered_domain, &program_to_map/1)
         # Apply category filter
@@ -61,6 +65,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
           "[ProgramsLive.handle_params] Filter operation completed",
           search_query: search_query,
           result_count: length(filtered),
+          page_has_more: page_result.has_more,
           duration_ms: duration_ms,
           current_user_id: get_user_id(socket)
         )
@@ -80,6 +85,8 @@ defmodule PrimeYouthWeb.ProgramsLive do
           socket
           |> assign(search_query: search_query)
           |> assign(active_filter: active_filter)
+          |> assign(next_cursor: page_result.next_cursor)
+          |> assign(has_more: page_result.has_more)
           |> stream(:programs, filtered, reset: true)
           |> assign(:programs_empty?, Enum.empty?(filtered))
           |> assign(database_error: false)
@@ -187,68 +194,114 @@ defmodule PrimeYouthWeb.ProgramsLive do
   end
 
   @impl true
+  def handle_event("load_more", _params, socket) do
+    # Set loading state
+    socket = assign(socket, loading_more: true)
+
+    # Load next page using current cursor
+    case ListProgramsPaginated.execute(socket.assigns.page_size, socket.assigns.next_cursor) do
+      {:ok, page_result} ->
+        # Apply same filters as current page
+        filtered_domain =
+          FilterPrograms.execute(page_result.items, socket.assigns.search_query)
+
+        programs = Enum.map(filtered_domain, &program_to_map/1)
+        filtered = filter_by_category(programs, socket.assigns.active_filter)
+
+        Logger.info(
+          "[ProgramsLive.load_more] Successfully loaded next page",
+          returned_count: length(filtered),
+          has_more: page_result.has_more,
+          current_user_id: get_user_id(socket)
+        )
+
+        socket =
+          socket
+          |> assign(next_cursor: page_result.next_cursor)
+          |> assign(has_more: page_result.has_more)
+          |> assign(loading_more: false)
+          |> stream(:programs, filtered)
+
+        {:noreply, socket}
+
+      {:error, :database_connection_error} ->
+        Logger.error(
+          "[ProgramsLive.load_more] Database connection error",
+          error_id: ErrorIds.program_list_connection_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
+        socket =
+          socket
+          |> assign(loading_more: false)
+          |> put_flash(:error, "Connection lost. Please try again.")
+
+        {:noreply, socket}
+
+      {:error, :database_query_error} ->
+        Logger.error(
+          "[ProgramsLive.load_more] Database query error",
+          error_id: ErrorIds.program_list_query_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
+        socket =
+          socket
+          |> assign(loading_more: false)
+          |> put_flash(:error, "System error. Please contact support.")
+
+        {:noreply, socket}
+
+      {:error, :database_unavailable} ->
+        Logger.error(
+          "[ProgramsLive.load_more] Database unavailable",
+          error_id: ErrorIds.program_list_generic_error(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
+        socket =
+          socket
+          |> assign(loading_more: false)
+          |> put_flash(:error, "Service temporarily unavailable.")
+
+        {:noreply, socket}
+
+      {:error, :invalid_cursor} ->
+        Logger.error(
+          "[ProgramsLive.load_more] Invalid cursor",
+          error_id: ErrorIds.program_pagination_invalid_cursor(),
+          current_user_id: get_user_id(socket),
+          live_view: __MODULE__
+        )
+
+        socket =
+          socket
+          |> assign(loading_more: false)
+          |> put_flash(:error, "Invalid pagination state. Please refresh the page.")
+
+        {:noreply, socket}
+    end
+  end
+
+  @impl true
   def handle_event("toggle_favorite", %{"program" => _program_title}, socket) do
     # TODO: Implement favorite toggle functionality
     {:noreply, socket}
   end
 
   @impl true
-  def handle_event("program_click", %{"program" => program_title}, socket) do
-    # Find program by title from database and navigate to detail page
-    case ListAllPrograms.execute() do
-      {:ok, domain_programs} ->
-        programs = Enum.map(domain_programs, &program_to_map/1)
+  def handle_event("program_click", %{"program-id" => program_id}, socket) do
+    # Navigate directly using program ID (no database call needed)
+    Logger.info(
+      "[ProgramsLive.program_click] Navigating to program detail",
+      program_id: program_id,
+      current_user_id: get_user_id(socket)
+    )
 
-        case Enum.find(programs, fn p -> p.title == program_title end) do
-          nil ->
-            {:noreply,
-             socket
-             |> put_flash(:error, "Program not found. Please try refreshing the page.")
-             |> push_patch(to: ~p"/programs")}
-
-          program ->
-            {:noreply, push_navigate(socket, to: ~p"/programs/#{program.id}")}
-        end
-
-      {:error, :database_connection_error} ->
-        Logger.error(
-          "[ProgramsLive.program_click] Database connection error",
-          error_id: ErrorIds.program_list_connection_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        {:noreply,
-         socket
-         |> put_flash(:error, "Connection lost. Please try again.")
-         |> push_patch(to: ~p"/programs")}
-
-      {:error, :database_query_error} ->
-        Logger.error(
-          "[ProgramsLive.program_click] Database query error",
-          error_id: ErrorIds.program_list_query_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        {:noreply,
-         socket
-         |> put_flash(:error, "System error. Please contact support.")
-         |> push_patch(to: ~p"/programs")}
-
-      {:error, :database_unavailable} ->
-        Logger.error(
-          "[ProgramsLive.program_click] Database unavailable",
-          error_id: ErrorIds.program_list_generic_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        {:noreply,
-         socket
-         |> put_flash(:error, "Service temporarily unavailable.")
-         |> push_patch(to: ~p"/programs")}
-    end
+    {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
   end
 
   # Private helpers - URL and parameter handling
@@ -363,16 +416,53 @@ defmodule PrimeYouthWeb.ProgramsLive do
           <.program_card
             :for={{dom_id, program} <- @streams.programs}
             id={dom_id}
+            data-program-id={program.id}
             program={program}
             variant={:detailed}
             phx-click="program_click"
-            phx-value-program={program.title}
+            phx-value-program-id={program.id}
+            phx-value-program-title={program.title}
           />
+        </div>
+        
+    <!-- Load More Button -->
+        <div :if={@has_more and not @programs_empty?} class="flex justify-center mt-8 mb-6">
+          <button
+            type="button"
+            phx-click="load_more"
+            disabled={@loading_more}
+            class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+          >
+            <%= if @loading_more do %>
+              <span class="flex items-center gap-2">
+                <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                    fill="none"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Loading...
+              </span>
+            <% else %>
+              Load More Programs
+            <% end %>
+          </button>
         </div>
         
     <!-- Empty State -->
         <.empty_state
           :if={@programs_empty?}
+          data-testid="empty-state"
           icon_path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           title="No programs found"
           description="Try adjusting your search or filter criteria."

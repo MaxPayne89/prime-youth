@@ -243,8 +243,6 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       next_cursor =
         if has_more do
           items |> List.last() |> encode_cursor()
-        else
-          nil
         end
 
       domain_programs = Enum.map(items, &ProgramMapper.to_domain/1)
