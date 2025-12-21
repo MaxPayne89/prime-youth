@@ -117,6 +117,42 @@ defmodule PrimeYouthWeb.ErrorIds do
   """
   def program_pagination_error, do: "program.catalog.paginate.error"
 
+  @doc """
+  Program update failed due to concurrent modification (optimistic lock conflict).
+  Indicates the record was modified by another process since it was loaded.
+  """
+  def program_update_stale_entry_error, do: "program.catalog.update.stale_entry_error"
+
+  @doc """
+  Program update failed due to constraint violation.
+  Indicates data validation failure at the database level.
+  """
+  def program_update_constraint_violation, do: "program.catalog.update.constraint_violation"
+
+  @doc """
+  Database connection error when updating a program.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def program_update_connection_error, do: "program.catalog.update.connection_error"
+
+  @doc """
+  Database query error when updating a program.
+  Indicates SQL syntax error, constraint violation, or schema mismatch.
+  """
+  def program_update_query_error, do: "program.catalog.update.query_error"
+
+  @doc """
+  Generic/unexpected error when updating a program.
+  Fallback for errors that don't fit other categories.
+  """
+  def program_update_generic_error, do: "program.catalog.update.generic_error"
+
+  @doc """
+  Program not found when attempting to update.
+  The program ID does not exist in the database.
+  """
+  def program_update_not_found, do: "program.catalog.update.not_found"
+
   # Parenting Context Errors
 
   @doc """

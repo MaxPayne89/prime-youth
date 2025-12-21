@@ -1,6 +1,7 @@
 defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepositoryTest do
   use PrimeYouth.DataCase, async: true
 
+  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapper
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
@@ -470,6 +471,268 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       assert Enum.all?(page.items, &(&1.title != nil))
       assert Enum.all?(page.items, &(&1.description != nil))
     end
+  end
+
+  describe "update/1 with optimistic locking" do
+    test "successfully updates program and increments lock_version" do
+      # Create a program
+      program_schema =
+        insert_program(%{
+          title: "Original Title",
+          description: "Original description",
+          schedule: "Mon-Fri 9AM-12PM",
+          age_range: "6-12",
+          price: Decimal.new("150.00"),
+          pricing_period: "per week",
+          spots_available: 20
+        })
+
+      assert program_schema.lock_version == 1
+
+      # Convert to domain and update
+      domain_program = ProgramMapper.to_domain(program_schema)
+      updated_program = %{domain_program | title: "Updated Title", spots_available: 15}
+
+      # Execute update
+      assert {:ok, result} = ProgramRepository.update(updated_program)
+
+      # Verify changes persisted
+      assert result.title == "Updated Title"
+      assert result.spots_available == 15
+
+      # Verify lock_version incremented
+      updated_schema = Repo.get(ProgramSchema, program_schema.id)
+      assert updated_schema.lock_version == 2
+      assert updated_schema.title == "Updated Title"
+      assert updated_schema.spots_available == 15
+    end
+
+    test "detects concurrent modification with stale_data error" do
+      # Create a program
+      program_schema =
+        insert_program(%{
+          title: "Original Title",
+          description: "Description",
+          schedule: "Mon-Fri 9AM-12PM",
+          age_range: "6-12",
+          price: Decimal.new("150.00"),
+          pricing_period: "per week",
+          spots_available: 20
+        })
+
+      # Simulate two processes fetching the same program
+      domain_v1_a = ProgramMapper.to_domain(program_schema)
+      domain_v1_b = ProgramMapper.to_domain(program_schema)
+
+      # First update succeeds (lock_version 1 → 2)
+      updated_a = %{domain_v1_a | title: "Update A"}
+      assert {:ok, _result} = ProgramRepository.update(updated_a)
+
+      # Second update fails with stale data (still has lock_version 1)
+      updated_b = %{domain_v1_b | title: "Update B"}
+      assert {:error, :stale_data} = ProgramRepository.update(updated_b)
+
+      # Verify first update persisted, second did not
+      final_schema = Repo.get(ProgramSchema, program_schema.id)
+      assert final_schema.title == "Update A"
+      assert final_schema.lock_version == 2
+    end
+
+    test "handles multiple sequential updates with version increments" do
+      # Create a program
+      program_schema =
+        insert_program(%{
+          title: "Version 1",
+          description: "Description",
+          schedule: "Mon-Fri 9AM-12PM",
+          age_range: "6-12",
+          price: Decimal.new("150.00"),
+          pricing_period: "per week",
+          spots_available: 20
+        })
+
+      assert program_schema.lock_version == 1
+
+      # First update
+      domain_v1 = ProgramMapper.to_domain(program_schema)
+      updated_v1 = %{domain_v1 | title: "Version 2"}
+      assert {:ok, result_v2} = ProgramRepository.update(updated_v1)
+
+      # Second update (using fresh domain from first update result)
+      updated_v2 = %{result_v2 | title: "Version 3"}
+      assert {:ok, result_v3} = ProgramRepository.update(updated_v2)
+
+      # Third update (using fresh domain from second update result)
+      updated_v3 = %{result_v3 | title: "Version 4"}
+      assert {:ok, _result_v4} = ProgramRepository.update(updated_v3)
+
+      # Verify final state
+      final_schema = Repo.get(ProgramSchema, program_schema.id)
+      assert final_schema.title == "Version 4"
+      assert final_schema.lock_version == 4
+    end
+
+    test "returns not_found error for non-existent program" do
+      # Create a program structure with non-existent ID
+      non_existent_program = %Program{
+        id: Ecto.UUID.generate(),
+        title: "Non-existent",
+        description: "Description",
+        schedule: "Mon-Fri",
+        age_range: "6-12",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 10,
+        gradient_class: "from-blue-500",
+        icon_path: "/images/icon.svg",
+        inserted_at: DateTime.utc_now(),
+        updated_at: DateTime.utc_now()
+      }
+
+      assert {:error, :not_found} = ProgramRepository.update(non_existent_program)
+    end
+
+    test "returns database_query_error for constraint violation" do
+      # Create a program
+      program_schema =
+        insert_program(%{
+          title: "Valid Program",
+          description: "Description",
+          schedule: "Mon-Fri 9AM-12PM",
+          age_range: "6-12",
+          price: Decimal.new("150.00"),
+          pricing_period: "per week",
+          spots_available: 20
+        })
+
+      # Attempt update with invalid data (negative price violates constraint)
+      domain_program = ProgramMapper.to_domain(program_schema)
+      invalid_program = %{domain_program | price: Decimal.new("-100.00")}
+
+      # Update should fail with changeset validation error
+      # (validate_number ensures price >= 0)
+      assert {:error, :database_query_error} = ProgramRepository.update(invalid_program)
+
+      # Verify original data unchanged
+      unchanged_schema = Repo.get(ProgramSchema, program_schema.id)
+      assert unchanged_schema.price == Decimal.new("150.00")
+      assert unchanged_schema.lock_version == 1
+    end
+
+    test "returns database_query_error for empty required field" do
+      # Create a program
+      program_schema =
+        insert_program(%{
+          title: "Valid Program",
+          description: "Description",
+          schedule: "Mon-Fri 9AM-12PM",
+          age_range: "6-12",
+          price: Decimal.new("150.00"),
+          pricing_period: "per week",
+          spots_available: 20
+        })
+
+      # Attempt update with empty title (required field)
+      domain_program = ProgramMapper.to_domain(program_schema)
+      invalid_program = %{domain_program | title: ""}
+
+      # Update should fail with changeset validation error
+      assert {:error, :database_query_error} = ProgramRepository.update(invalid_program)
+
+      # Verify original data unchanged
+      unchanged_schema = Repo.get(ProgramSchema, program_schema.id)
+      assert unchanged_schema.title == "Valid Program"
+      assert unchanged_schema.lock_version == 1
+    end
+
+    test "updates all modifiable fields correctly" do
+      # Create a program
+      program_schema =
+        insert_program(%{
+          title: "Original",
+          description: "Original description",
+          schedule: "Mon-Fri 9AM-12PM",
+          age_range: "6-12",
+          price: Decimal.new("150.00"),
+          pricing_period: "per week",
+          spots_available: 20,
+          gradient_class: "from-blue-500",
+          icon_path: "/images/original.svg"
+        })
+
+      # Update all modifiable fields
+      domain_program = ProgramMapper.to_domain(program_schema)
+
+      updated_program = %{
+        domain_program
+        | title: "New Title",
+          description: "New description",
+          schedule: "Tue-Thu 10AM-2PM",
+          age_range: "8-14",
+          price: Decimal.new("200.00"),
+          pricing_period: "per month",
+          spots_available: 15,
+          gradient_class: "from-purple-500",
+          icon_path: "/images/new.svg"
+      }
+
+      assert {:ok, result} = ProgramRepository.update(updated_program)
+
+      # Verify all fields updated
+      assert result.title == "New Title"
+      assert result.description == "New description"
+      assert result.schedule == "Tue-Thu 10AM-2PM"
+      assert result.age_range == "8-14"
+      assert result.price == Decimal.new("200.00")
+      assert result.pricing_period == "per month"
+      assert result.spots_available == 15
+      assert result.gradient_class == "from-purple-500"
+      assert result.icon_path == "/images/new.svg"
+
+      # Verify in database
+      updated_schema = Repo.get(ProgramSchema, program_schema.id)
+      assert updated_schema.title == "New Title"
+      assert updated_schema.lock_version == 2
+    end
+
+    test "concurrent updates by multiple processes fail correctly" do
+      # Create a program
+      program_schema =
+        insert_program(%{
+          title: "Concurrent Test",
+          description: "Description",
+          schedule: "Mon-Fri 9AM-12PM",
+          age_range: "6-12",
+          price: Decimal.new("150.00"),
+          pricing_period: "per week",
+          spots_available: 20
+        })
+
+      # Simulate 5 concurrent processes attempting to update
+      domain_programs =
+        for i <- 1..5 do
+          domain = ProgramMapper.to_domain(program_schema)
+          %{domain | spots_available: 20 - i}
+        end
+
+      # Execute all updates concurrently
+      results =
+        domain_programs
+        |> Enum.map(&Task.async(fn -> ProgramRepository.update(&1) end))
+        |> Enum.map(&Task.await/1)
+
+      # Exactly one should succeed, others should fail with :stale_data
+      successful_updates = Enum.count(results, &match?({:ok, _}, &1))
+      stale_data_errors = Enum.count(results, &match?({:error, :stale_data}, &1))
+
+      assert successful_updates == 1
+      assert stale_data_errors == 4
+
+      # Verify lock_version incremented only once
+      final_schema = Repo.get(ProgramSchema, program_schema.id)
+      assert final_schema.lock_version == 2
+    end
+
   end
 
   # Helper function to insert a complete valid program

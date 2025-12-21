@@ -10,6 +10,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
   """
 
   @behaviour PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms
+  @behaviour PrimeYouth.ProgramCatalog.Domain.Ports.ForUpdatingPrograms
 
   import Ecto.Query
 
@@ -273,6 +274,154 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
         )
 
         {:error, :database_unavailable}
+    end
+  end
+
+  @impl true
+  @doc """
+  Updates an existing program with optimistic locking.
+
+  Uses the program's ID to fetch the current record from the database,
+  applies the updates via an update changeset with optimistic locking,
+  and returns the updated domain entity.
+
+  The lock_version field is automatically incremented on successful update.
+  If the program was modified by another process since it was loaded,
+  the update fails with Ecto.StaleEntryError and returns {:error, :stale_data}.
+
+  Parameters:
+  - `program` - Domain Program entity with updated fields
+
+  Returns:
+  - {:ok, Program.t()} - Successfully updated program
+  - {:error, :stale_data} - Optimistic lock conflict
+  - {:error, :not_found} - Program ID does not exist
+  - {:error, :constraint_violation} - Database constraint violation
+  - {:error, :database_connection_error} - Connection/network failure
+  - {:error, :database_query_error} - SQL error or schema mismatch
+  - {:error, :database_unavailable} - Unexpected error
+
+  ## Examples
+
+      program = %Program{id: "uuid", title: "Updated Title", ...}
+      {:ok, updated} = ProgramRepository.update(program)
+
+      {:error, :stale_data} = ProgramRepository.update(stale_program)
+      {:error, :not_found} = ProgramRepository.update(non_existent_program)
+  """
+  def update(%Program{} = program) do
+    Logger.info(
+      "[ProgramRepository] Starting update operation for program",
+      program_id: program.id,
+      title: program.title
+    )
+
+    try do
+      # Verify program exists before attempting update
+      unless Repo.get(ProgramSchema, program.id) do
+        Logger.info(
+          "[ProgramRepository] Program not found during update",
+          program_id: program.id
+        )
+
+        throw({:error, :not_found})
+      end
+
+      # Fetch the current schema from database to get all current values
+      # This preserves fields that aren't being updated
+      current_schema = Repo.get!(ProgramSchema, program.id)
+
+      # Build a schema with the original lock_version from the domain model
+      # This is what the client saw when they loaded the program
+      schema_with_client_version = %{current_schema | lock_version: program.lock_version || 1}
+
+      # Convert domain Program to update attributes
+      attrs = ProgramMapper.to_schema(program)
+
+      # Build update changeset with optimistic locking
+      # Ecto will check if current_schema.lock_version matches what's in the DB
+      changeset = ProgramSchema.update_changeset(schema_with_client_version, attrs)
+
+      # Execute update
+      case Repo.update(changeset) do
+        {:ok, updated_schema} ->
+          updated_program = ProgramMapper.to_domain(updated_schema)
+
+          Logger.info(
+            "[ProgramRepository] Successfully updated program",
+            program_id: program.id,
+            title: updated_program.title,
+            lock_version: updated_schema.lock_version
+          )
+
+          {:ok, updated_program}
+
+        {:error, changeset} ->
+          Logger.warning(
+            "[ProgramRepository] Program update failed due to changeset errors",
+            error_id: ErrorIds.program_update_query_error(),
+            program_id: program.id,
+            errors: changeset.errors
+          )
+
+          {:error, :database_query_error}
+      end
+    rescue
+      error in [Ecto.StaleEntryError] ->
+        Logger.warning(
+          "[ProgramRepository] Optimistic lock conflict during program update",
+          error_id: ErrorIds.program_update_stale_entry_error(),
+          program_id: program.id,
+          error_type: error.__struct__
+        )
+
+        {:error, :stale_data}
+
+      error in [Ecto.ConstraintError] ->
+        Logger.error(
+          "[ProgramRepository] Constraint violation during program update",
+          error_id: ErrorIds.program_update_constraint_violation(),
+          program_id: program.id,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :constraint_violation}
+
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[ProgramRepository] Database connection failed during program update",
+          error_id: ErrorIds.program_update_connection_error(),
+          program_id: program.id,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error] ->
+        Logger.error(
+          "[ProgramRepository] Database query error during program update",
+          error_id: ErrorIds.program_update_query_error(),
+          program_id: program.id,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
+      error ->
+        Logger.error(
+          "[ProgramRepository] Unexpected database error during program update",
+          error_id: ErrorIds.program_update_generic_error(),
+          program_id: program.id,
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
+        )
+
+        {:error, :database_unavailable}
+    catch
+      {:error, reason} -> {:error, reason}
     end
   end
 
