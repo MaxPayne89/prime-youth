@@ -10,6 +10,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms do
   """
 
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
+  alias PrimeYouth.Shared.Domain.Types.Pagination.PageResult
 
   @typedoc """
   Specific error types for program listing operations.
@@ -17,11 +18,13 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms do
   - `:database_connection_error` - Network/connection issues (potentially retryable)
   - `:database_query_error` - SQL syntax, constraints, schema issues (non-retryable)
   - `:database_unavailable` - Generic/unexpected errors (fallback)
+  - `:invalid_cursor` - Cursor decoding/validation failure (non-retryable)
   """
   @type list_error ::
           :database_connection_error
           | :database_query_error
           | :database_unavailable
+          | :invalid_cursor
 
   @doc """
   Lists all valid programs from the repository.
@@ -62,4 +65,39 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms do
       {:error, :database_connection_error} = get_by_id("invalid-uuid")
   """
   @callback get_by_id(String.t()) :: {:ok, Program.t()} | {:error, :not_found | list_error()}
+
+  @doc """
+  Lists programs with cursor-based pagination.
+
+  Uses seek pagination with a cursor-based approach for efficient pagination
+  of large result sets. The cursor encodes the position in the result set
+  and should be treated as an opaque string.
+
+  Programs are returned in descending order by creation time (newest first),
+  with deterministic ordering using (inserted_at DESC, id DESC).
+
+  Parameters:
+  - `limit` - Number of items per page (1-100, silently constrained if out of range)
+  - `cursor` - Base64-encoded cursor for pagination, nil for first page
+
+  Returns:
+  - `{:ok, PageResult.t()}` - Page of programs with pagination metadata
+  - `{:error, :invalid_cursor}` - Cursor decoding/validation failure
+  - `{:error, :database_connection_error}` - Connection/network failure
+  - `{:error, :database_query_error}` - SQL error or constraint violation
+  - `{:error, :database_unavailable}` - Unexpected error
+
+  ## Examples
+
+      # First page
+      {:ok, page} = list_programs_paginated(20, nil)
+      page.items          # List of programs
+      page.next_cursor    # Cursor for next page (nil if last page)
+      page.has_more       # Boolean indicating more pages available
+
+      # Subsequent page
+      {:ok, page2} = list_programs_paginated(20, page.next_cursor)
+  """
+  @callback list_programs_paginated(limit :: pos_integer(), cursor :: String.t() | nil) ::
+              {:ok, PageResult.t()} | {:error, list_error()}
 end

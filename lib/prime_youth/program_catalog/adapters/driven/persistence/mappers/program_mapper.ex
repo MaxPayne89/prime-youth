@@ -5,9 +5,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramM
   This adapter provides bidirectional conversion:
   - to_domain/1: ProgramSchema → Program (for reading from database)
   - to_domain_list/1: [ProgramSchema] → [Program] (convenience for collections)
-
-  The mapper is unidirectional (read-only) in P1 scope since we only list programs,
-  not create or update them.
+  - to_schema/1: Program → map (for update operations)
   """
 
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
@@ -53,6 +51,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramM
       spots_available: schema.spots_available,
       gradient_class: schema.gradient_class,
       icon_path: schema.icon_path,
+      lock_version: schema.lock_version,
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -77,5 +76,44 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramM
   @spec to_domain_list([ProgramSchema.t()]) :: [Program.t()]
   def to_domain_list(schemas) when is_list(schemas) do
     Enum.map(schemas, &to_domain/1)
+  end
+
+  @doc """
+  Converts a domain Program entity to a map of attributes for update operations.
+
+  Returns a map containing only the updatable fields. Excludes id, timestamps,
+  and lock_version as these are managed by Ecto.
+
+  ## Examples
+
+      iex> program = %Program{
+      ...>   id: "550e8400-e29b-41d4-a716-446655440000",
+      ...>   title: "Updated Art Adventures",
+      ...>   description: "New description",
+      ...>   schedule: "Mon & Wed, 3:30-5:00 PM",
+      ...>   age_range: "6-8 years",
+      ...>   price: Decimal.new("150.00"),
+      ...>   pricing_period: "per month",
+      ...>   spots_available: 10,
+      ...>   gradient_class: "from-purple-500 to-pink-500",
+      ...>   icon_path: "/images/icons/art.svg"
+      ...> }
+      iex> attrs = ProgramMapper.to_schema(program)
+      iex> attrs.title
+      "Updated Art Adventures"
+
+  """
+  def to_schema(%Program{} = program) do
+    %{
+      title: program.title,
+      description: program.description,
+      schedule: program.schedule,
+      age_range: program.age_range,
+      price: program.price,
+      pricing_period: program.pricing_period,
+      spots_available: program.spots_available,
+      gradient_class: program.gradient_class,
+      icon_path: program.icon_path
+    }
   end
 end

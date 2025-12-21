@@ -108,7 +108,7 @@ defmodule PrimeYouthWeb.UserLive.RegistrationTest do
       {:ok, _lv, html} =
         lv
         |> form("#registration_form",
-          user: %{email: email, name: name, intended_roles: ["parent", "provider"]}
+          user: %{email: email, name: name, intended_roles: [:parent, :provider]}
         )
         |> render_submit()
         |> follow_redirect(conn, ~p"/users/log-in")
@@ -117,8 +117,8 @@ defmodule PrimeYouthWeb.UserLive.RegistrationTest do
 
       # Verify user was created with both roles
       user = PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.User, email: email)
-      assert "parent" in user.intended_roles
-      assert "provider" in user.intended_roles
+      assert :parent in user.intended_roles
+      assert :provider in user.intended_roles
     end
 
     test "creates account with only provider role", %{conn: conn} do
@@ -130,7 +130,7 @@ defmodule PrimeYouthWeb.UserLive.RegistrationTest do
       {:ok, _lv, html} =
         lv
         |> form("#registration_form",
-          user: %{email: email, name: name, intended_roles: ["provider"]}
+          user: %{email: email, name: name, intended_roles: [:provider]}
         )
         |> render_submit()
         |> follow_redirect(conn, ~p"/users/log-in")
@@ -139,7 +139,7 @@ defmodule PrimeYouthWeb.UserLive.RegistrationTest do
 
       # Verify user was created with provider role only
       user = PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.User, email: email)
-      assert user.intended_roles == ["provider"]
+      assert user.intended_roles == [:provider]
     end
 
     test "defaults to parent role when none selected", %{conn: conn} do
@@ -161,7 +161,7 @@ defmodule PrimeYouthWeb.UserLive.RegistrationTest do
 
       # Verify user was created with default parent role
       user = PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.User, email: email)
-      assert user.intended_roles == ["parent"]
+      assert user.intended_roles == [:parent]
     end
   end
 end

@@ -87,7 +87,7 @@ defmodule PrimeYouth.Accounts.Domain.Events.UserEvents do
     base_payload = %{
       email: user.email,
       name: user.name,
-      intended_roles: user.intended_roles || []
+      intended_roles: Enum.map(user.intended_roles || [], &Atom.to_string/1)
     }
 
     opts = Keyword.put_new(opts, :criticality, :critical)

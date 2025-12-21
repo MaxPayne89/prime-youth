@@ -28,6 +28,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Models.Program do
     :spots_available,
     :gradient_class,
     :icon_path,
+    :lock_version,
     :inserted_at,
     :updated_at
   ]
@@ -43,6 +44,7 @@ defmodule PrimeYouth.ProgramCatalog.Domain.Models.Program do
           spots_available: non_neg_integer(),
           gradient_class: String.t() | nil,
           icon_path: String.t() | nil,
+          lock_version: non_neg_integer() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }

@@ -11,6 +11,7 @@ defmodule PrimeYouth.Repo.Migrations.CreatePrograms do
       add :price, :decimal, null: false, precision: 10, scale: 2
       add :pricing_period, :string, null: false, size: 100
       add :spots_available, :integer, null: false, default: 0
+      add :lock_version, :integer, null: false, default: 1
       add :gradient_class, :string, size: 255
       add :icon_path, :text
 
