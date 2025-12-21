@@ -97,4 +97,14 @@ defmodule PrimeYouthWeb.Router do
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
   end
+
+  if Application.compile_env(:prime_youth, :dev_routes) do
+    use ErrorTracker.Web, :router
+
+    scope "/dev" do
+      pipe_through :browser
+
+      error_tracker_dashboard "/errors"
+    end
+  end
 end

@@ -7,6 +7,8 @@
 # General application configuration
 import Config
 
+config :error_tracker, repo: PrimeYouth.Repo, otp_app: :prime_youth, enabled: true
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",
