@@ -1,5 +1,5 @@
 defmodule PrimeYouth.AccountsTest do
-  use PrimeYouth.DataCase
+  use PrimeYouth.DataCase, async: true
 
   import PrimeYouth.AccountsFixtures
 
