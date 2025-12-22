@@ -41,6 +41,9 @@ defmodule PrimeYouth.Repo.Migrations.CreateAttendanceRecords do
       # user_id of person who submitted
       add :submitted_by, :binary_id
 
+      # Optimistic locking for concurrent updates
+      add :lock_version, :integer, default: 1, null: false
+
       timestamps(type: :utc_datetime)
     end
 
