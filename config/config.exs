@@ -60,6 +60,13 @@ config :prime_youth, :activities,
   repository:
     PrimeYouth.Activities.Adapters.Driven.Persistence.Repositories.InMemoryActivityRepository
 
+# Configure Attendance bounded context
+config :prime_youth, :attendance,
+  session_repository:
+    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.SessionRepository,
+  attendance_repository:
+    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.AttendanceRepository
+
 # Configure Event Publisher
 config :prime_youth, :event_publisher,
   module: PrimeYouth.Shared.Adapters.Driven.Events.PubSubEventPublisher,

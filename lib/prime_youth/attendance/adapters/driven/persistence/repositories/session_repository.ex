@@ -50,7 +50,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[SessionRepository] Database connection failed during create",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_create_connection_error(),
           error_type: error.__struct__,
           error_message: Exception.message(error)
         )
@@ -60,7 +60,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [Postgrex.Error, Ecto.Query.CastError] ->
         Logger.error(
           "[SessionRepository] Database query error during create",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_create_query_error(),
           error_type: error.__struct__,
           error_message: Exception.message(error)
         )
@@ -70,7 +70,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error ->
         Logger.error(
           "[SessionRepository] Unexpected database error during create",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_create_generic_error(),
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
         )
@@ -108,7 +108,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[SessionRepository] Database connection failed during get_by_id",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_get_connection_error(),
           session_id: session_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -119,7 +119,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [Postgrex.Error, Ecto.Query.CastError] ->
         Logger.error(
           "[SessionRepository] Database query error during get_by_id",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_get_query_error(),
           session_id: session_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -130,7 +130,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error ->
         Logger.error(
           "[SessionRepository] Unexpected database error during get_by_id",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_get_generic_error(),
           session_id: session_id,
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
@@ -164,7 +164,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[SessionRepository] Database connection failed during list_by_program",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_list_connection_error(),
           program_id: program_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -175,7 +175,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [Postgrex.Error, Ecto.Query.CastError] ->
         Logger.error(
           "[SessionRepository] Database query error during list_by_program",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_list_query_error(),
           program_id: program_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -186,7 +186,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error ->
         Logger.error(
           "[SessionRepository] Unexpected database error during list_by_program",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_list_generic_error(),
           program_id: program_id,
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
@@ -220,7 +220,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[SessionRepository] Database connection failed during list_today_sessions",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_list_connection_error(),
           date: date,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -231,7 +231,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [Postgrex.Error, Ecto.Query.CastError] ->
         Logger.error(
           "[SessionRepository] Database query error during list_today_sessions",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_list_query_error(),
           date: date,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -242,7 +242,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error ->
         Logger.error(
           "[SessionRepository] Unexpected database error during list_today_sessions",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_list_generic_error(),
           date: date,
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
@@ -289,7 +289,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [Ecto.ConstraintError] ->
         Logger.error(
           "[SessionRepository] Constraint violation during update",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_update_constraint_violation(),
           session_id: session.id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -300,7 +300,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[SessionRepository] Database connection failed during update",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_update_connection_error(),
           session_id: session.id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -311,7 +311,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error in [Postgrex.Error] ->
         Logger.error(
           "[SessionRepository] Database query error during update",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_update_query_error(),
           session_id: session.id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -322,7 +322,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       error ->
         Logger.error(
           "[SessionRepository] Unexpected database error during update",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_update_generic_error(),
           session_id: session.id,
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
@@ -339,7 +339,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       {:unique, "program_sessions_program_id_session_date_start_time_index"} ->
         Logger.warning(
           "[SessionRepository] Duplicate session during #{operation}",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_duplicate_error(),
           errors: changeset.errors
         )
 
@@ -348,7 +348,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       {:constraint, _name} ->
         Logger.error(
           "[SessionRepository] Database constraint error during #{operation}",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_update_constraint_violation(),
           errors: changeset.errors
         )
 
@@ -357,7 +357,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       nil ->
         Logger.warning(
           "[SessionRepository] Changeset validation failed during #{operation}",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.session_validation_error(),
           errors: changeset.errors
         )
 
@@ -370,7 +370,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       {_field, {_msg, [constraint: :unique, constraint_name: name]}} ->
         {:unique, name}
 
-      {_field, {_msg, [constraint: type, constraint_name: name]}} ->
+      {_field, {_msg, [constraint: _type, constraint_name: name]}} ->
         {:constraint, name}
 
       _ ->
