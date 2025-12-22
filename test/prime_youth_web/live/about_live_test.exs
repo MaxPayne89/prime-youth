@@ -1,5 +1,5 @@
 defmodule PrimeYouthWeb.AboutLiveTest do
-  use PrimeYouthWeb.ConnCase
+  use PrimeYouthWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
 
