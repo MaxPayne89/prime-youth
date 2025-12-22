@@ -21,6 +21,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramS
     field :price, :decimal
     field :pricing_period, :string
     field :spots_available, :integer, default: 0
+    field :lock_version, :integer, default: 1
     field :gradient_class, :string
     field :icon_path, :string
 
@@ -36,6 +37,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramS
           price: Decimal.t() | nil,
           pricing_period: String.t() | nil,
           spots_available: integer() | nil,
+          lock_version: integer() | nil,
           gradient_class: String.t() | nil,
           icon_path: String.t() | nil,
           inserted_at: DateTime.t() | nil,
@@ -88,5 +90,46 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramS
     |> validate_length(:pricing_period, min: 1, max: 100)
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_number(:spots_available, greater_than_or_equal_to: 0)
+  end
+
+  @doc """
+  Creates an update changeset with optimistic locking.
+
+  Applies the same validations as changeset/2 but adds optimistic locking
+  to prevent concurrent update conflicts.
+
+  Returns a changeset that will fail with Ecto.StaleEntryError if the
+  record has been modified by another process since it was loaded.
+  """
+  def update_changeset(program_schema, attrs) do
+    program_schema
+    |> cast(attrs, [
+      :title,
+      :description,
+      :schedule,
+      :age_range,
+      :price,
+      :pricing_period,
+      :spots_available,
+      :gradient_class,
+      :icon_path
+    ])
+    |> validate_required([
+      :title,
+      :description,
+      :schedule,
+      :age_range,
+      :price,
+      :pricing_period,
+      :spots_available
+    ])
+    |> validate_length(:title, min: 1, max: 100)
+    |> validate_length(:description, min: 1, max: 500)
+    |> validate_length(:schedule, min: 1, max: 255)
+    |> validate_length(:age_range, min: 1, max: 100)
+    |> validate_length(:pricing_period, min: 1, max: 100)
+    |> validate_number(:price, greater_than_or_equal_to: 0)
+    |> validate_number(:spots_available, greater_than_or_equal_to: 0)
+    |> optimistic_lock(:lock_version)
   end
 end

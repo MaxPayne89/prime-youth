@@ -23,7 +23,7 @@ defmodule PrimeYouth.AccountsFixtures do
         name: name,
         avatar:
           "https://ui-avatars.com/api/?name=#{URI.encode_www_form(name)}&background=4F46E5&color=fff",
-        intended_roles: ["parent"]
+        intended_roles: [:parent]
       },
       attrs_map
     )

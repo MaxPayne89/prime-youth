@@ -55,7 +55,7 @@ defmodule PrimeYouth.Accounts.ScopeTest do
       scope = Scope.for_user(user)
       resolved = Scope.resolve_roles(scope)
 
-      assert resolved.roles == ["parent"]
+      assert resolved.roles == [:parent]
       assert resolved.parent.id == parent.id
       assert resolved.parent.identity_id == user.id
       assert resolved.provider == nil
@@ -73,7 +73,7 @@ defmodule PrimeYouth.Accounts.ScopeTest do
       scope = Scope.for_user(user)
       resolved = Scope.resolve_roles(scope)
 
-      assert resolved.roles == ["provider"]
+      assert resolved.roles == [:provider]
       assert resolved.parent == nil
       assert resolved.provider.id == provider.id
       assert resolved.provider.identity_id == user.id
@@ -97,7 +97,7 @@ defmodule PrimeYouth.Accounts.ScopeTest do
       scope = Scope.for_user(user)
       resolved = Scope.resolve_roles(scope)
 
-      assert resolved.roles == ["parent", "provider"]
+      assert resolved.roles == [:parent, :provider]
       assert resolved.parent.id == parent.id
       assert resolved.provider.id == provider.id
     end
@@ -105,24 +105,24 @@ defmodule PrimeYouth.Accounts.ScopeTest do
 
   describe "has_role?/2" do
     test "returns true when role exists" do
-      scope = %Scope{roles: ["parent", "provider"]}
+      scope = %Scope{roles: [:parent, :provider]}
 
-      assert Scope.has_role?(scope, "parent")
-      assert Scope.has_role?(scope, "provider")
+      assert Scope.has_role?(scope, :parent)
+      assert Scope.has_role?(scope, :provider)
     end
 
     test "returns false when role doesn't exist" do
-      scope = %Scope{roles: ["parent"]}
+      scope = %Scope{roles: [:parent]}
 
-      refute Scope.has_role?(scope, "provider")
-      refute Scope.has_role?(scope, "admin")
+      refute Scope.has_role?(scope, :provider)
+      refute Scope.has_role?(scope, :admin)
     end
 
     test "handles empty roles list" do
       scope = %Scope{roles: []}
 
-      refute Scope.has_role?(scope, "parent")
-      refute Scope.has_role?(scope, "provider")
+      refute Scope.has_role?(scope, :parent)
+      refute Scope.has_role?(scope, :provider)
     end
   end
 
