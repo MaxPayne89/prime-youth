@@ -1300,17 +1300,4 @@ defmodule PrimeYouthWeb.ProgramsLiveTest do
   defp refute_program_visible(view, program) do
     refute has_element?(view, "[data-program-id='#{program.id}']")
   end
-
-  # Helper: Assert programs appear in specific order
-  # Note: This tests the stream order, not HTML position
-  defp assert_programs_in_order(view, program_ids) when is_list(program_ids) do
-    # Verify all programs are present
-    Enum.each(program_ids, fn id ->
-      assert has_element?(view, "[data-program-id='#{id}']")
-    end)
-
-    # Note: Stream order testing would require inspecting socket.assigns.streams
-    # For now, we verify presence and trust the sorting logic in filter_by_category/2
-    # LiveView tests focus on integration, not re-testing sorting algorithms
-  end
 end

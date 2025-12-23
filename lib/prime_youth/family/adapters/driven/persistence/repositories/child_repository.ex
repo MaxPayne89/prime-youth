@@ -31,7 +31,6 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildReposi
 
   alias PrimeYouth.Family.Adapters.Driven.Persistence.Mappers.ChildMapper
   alias PrimeYouth.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
-  alias PrimeYouth.Family.Domain.Models.Child
   alias PrimeYouth.Repo
   alias PrimeYouthWeb.ErrorIds
 
@@ -77,7 +76,15 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildReposi
 
         {:error, :database_connection_error}
 
-      error in [Postgrex.Error, Ecto.Query.CastError] ->
+      _error in [Ecto.Query.CastError] ->
+        Logger.info(
+          "[ChildRepository] Invalid UUID format during get_by_id",
+          child_id: child_id
+        )
+
+        {:error, :not_found}
+
+      error in [Postgrex.Error] ->
         Logger.error(
           "[ChildRepository] Database query error during get_by_id",
           error_id: ErrorIds.child_get_query_error(),
@@ -110,8 +117,7 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildReposi
       last_name: attrs[:last_name]
     )
 
-    attrs_map = ChildMapper.to_schema(Child.new(attrs))
-    changeset = ChildSchema.changeset(%ChildSchema{}, attrs_map)
+    changeset = ChildSchema.changeset(%ChildSchema{}, attrs)
 
     try do
       case Repo.insert(changeset) do

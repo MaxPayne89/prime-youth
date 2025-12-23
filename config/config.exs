@@ -75,8 +75,7 @@ config :prime_youth, :event_publisher,
 # Configure Family bounded context
 config :prime_youth, :family,
   repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFamilyRepository,
-  child_repository:
-    PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
+  child_repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
 
 # Configure Highlights bounded context
 config :prime_youth, :highlights,

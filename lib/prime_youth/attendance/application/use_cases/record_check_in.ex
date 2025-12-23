@@ -23,6 +23,9 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
   alias PrimeYouth.Attendance.Domain.Events.AttendanceEvents
   alias PrimeYouth.Attendance.Domain.Models.AttendanceRecord
   alias PrimeYouth.Attendance.EventPublisher
+  alias PrimeYouth.Family.Domain.Models.Child
+
+  require Logger
 
   @doc """
   Records a child check-in to a session.
@@ -112,8 +115,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
 
   # Publish child_checked_in event
   defp publish_check_in_event(record, check_in_at, provider_id, notes) do
-    # Stub child_name until Family Management context is implemented
-    child_name = ""
+    child_name = resolve_child_name(record.child_id)
 
     event =
       AttendanceEvents.child_checked_in(
@@ -130,5 +132,27 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
   # Dependency injection: fetch repository from application config
   defp attendance_repository do
     Application.get_env(:prime_youth, :attendance)[:attendance_repository]
+  end
+
+  # Resolve child name from Family context with graceful fallback
+  defp resolve_child_name(child_id) do
+    case child_repository().get_by_id(child_id) do
+      {:ok, child} ->
+        Child.full_name(child)
+
+      {:error, reason} ->
+        Logger.warning(
+          "[RecordCheckIn] Failed to resolve child name, using fallback",
+          child_id: child_id,
+          reason: reason
+        )
+
+        "Unknown Child"
+    end
+  end
+
+  # Dependency injection: fetch child repository from application config
+  defp child_repository do
+    Application.get_env(:prime_youth, :family)[:child_repository]
   end
 end

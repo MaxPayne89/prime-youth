@@ -27,6 +27,8 @@ defmodule PrimeYouth.Factory do
 
   use ExMachina.Ecto, repo: PrimeYouth.Repo
 
+  alias PrimeYouth.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
+  alias PrimeYouth.Family.Domain.Models.Child
   alias PrimeYouth.Parenting.Adapters.Driven.Persistence.Schemas.ParentSchema
   alias PrimeYouth.Parenting.Domain.Models.Parent
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
@@ -331,5 +333,64 @@ defmodule PrimeYouth.Factory do
       verified_at: ~U[2025-01-15 10:00:00Z],
       categories: ["sports", "certified", "outdoor"]
     })
+  end
+
+  # =============================================================================
+  # Family Context Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating Child domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      child = build(:child)
+      child = build(:child, first_name: "Alice", last_name: "Smith")
+  """
+  def child_factory do
+    %Child{
+      id:
+        sequence(
+          :child_id,
+          &"550e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      parent_id:
+        sequence(
+          :child_parent_id,
+          &"660e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      first_name: sequence(:child_first_name, &"Child#{&1}"),
+      last_name: "Smith",
+      date_of_birth: ~D[2018-06-15],
+      notes: nil,
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating ChildSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a parent when inserted to avoid foreign key violations.
+
+  ## Examples
+
+      schema = build(:child_schema)
+      schema = insert(:child_schema, first_name: "Bob")
+  """
+  def child_schema_factory do
+    parent_schema = insert(:parent_schema)
+
+    %ChildSchema{
+      id: Ecto.UUID.generate(),
+      parent_id: parent_schema.id,
+      first_name: sequence(:child_schema_first_name, &"Child#{&1}"),
+      last_name: "Smith",
+      date_of_birth: ~D[2018-06-15],
+      notes: nil
+    }
   end
 end

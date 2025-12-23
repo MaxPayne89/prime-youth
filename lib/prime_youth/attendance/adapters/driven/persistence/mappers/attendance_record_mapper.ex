@@ -33,26 +33,27 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.AttendanceRe
   end
 
   @doc """
-  Converts domain entity to update attributes.
+  Converts domain entity to schema attributes for insert/update.
 
   Excludes id, timestamps, and lock_version (managed by Ecto).
+  UUIDs are passed as strings - Ecto's :binary_id handles the conversion.
   """
   def to_schema(%AttendanceRecord{} = record) do
     %{
-      session_id: parse_uuid(record.session_id),
-      child_id: parse_uuid(record.child_id),
-      parent_id: parse_uuid_or_nil(record.parent_id),
-      provider_id: parse_uuid_or_nil(record.provider_id),
+      session_id: record.session_id,
+      child_id: record.child_id,
+      parent_id: record.parent_id,
+      provider_id: record.provider_id,
       status: Atom.to_string(record.status),
       check_in_at: record.check_in_at,
       check_in_notes: record.check_in_notes,
-      check_in_by: parse_uuid_or_nil(record.check_in_by),
+      check_in_by: record.check_in_by,
       check_out_at: record.check_out_at,
       check_out_notes: record.check_out_notes,
-      check_out_by: parse_uuid_or_nil(record.check_out_by),
+      check_out_by: record.check_out_by,
       submitted: record.submitted,
       submitted_at: record.submitted_at,
-      submitted_by: parse_uuid_or_nil(record.submitted_by)
+      submitted_by: record.submitted_by
     }
   end
 
@@ -64,16 +65,4 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.AttendanceRe
       :error -> to_string(binary_uuid)
     end
   end
-
-  defp parse_uuid_or_nil(nil), do: nil
-  defp parse_uuid_or_nil(uuid_string), do: parse_uuid(uuid_string)
-
-  defp parse_uuid(uuid_string) when is_binary(uuid_string) do
-    case Ecto.UUID.dump(uuid_string) do
-      {:ok, binary} -> binary
-      :error -> uuid_string
-    end
-  end
-
-  defp parse_uuid(other), do: other
 end

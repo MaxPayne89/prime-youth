@@ -78,6 +78,6 @@ defmodule PrimeYouth.Family.Domain.Models.Child do
       %Child{id: "123", parent_id: "456", first_name: "Alice", last_name: "Smith", date_of_birth: ~D[2018-01-01]}
   """
   def new(attrs) do
-    struct(__MODULE__, attrs)
+    struct!(__MODULE__, attrs)
   end
 end

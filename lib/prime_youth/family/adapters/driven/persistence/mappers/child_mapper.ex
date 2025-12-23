@@ -35,8 +35,8 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Mappers.ChildMapper do
   """
   def to_domain(%ChildSchema{} = schema) do
     %Child{
-      id: to_string(schema.id),
-      parent_id: to_string(schema.parent_id),
+      id: Ecto.UUID.cast!(schema.id),
+      parent_id: Ecto.UUID.cast!(schema.parent_id),
       first_name: schema.first_name,
       last_name: schema.last_name,
       date_of_birth: schema.date_of_birth,

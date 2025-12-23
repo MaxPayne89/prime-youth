@@ -72,6 +72,9 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
         {:error, :database_query_error}
 
       error ->
+        IO.inspect(error, label: "DEBUG: Unexpected error during create")
+        IO.inspect(Exception.format(:error, error, __STACKTRACE__), label: "DEBUG: Stacktrace")
+
         Logger.error(
           "[AttendanceRepository] Unexpected database error during create",
           error_id: ErrorIds.attendance_create_generic_error(),
