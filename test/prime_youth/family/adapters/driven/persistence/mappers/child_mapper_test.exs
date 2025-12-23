@@ -1,0 +1,211 @@
+defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Mappers.ChildMapperTest do
+  @moduledoc """
+  Tests for the ChildMapper bidirectional conversion.
+
+  Verifies mapping between Child domain entities and ChildSchema structs,
+  including UUID format conversions and field preservation.
+  """
+
+  use PrimeYouth.DataCase, async: true
+
+  import PrimeYouth.Factory
+
+  alias PrimeYouth.Family.Adapters.Driven.Persistence.Mappers.ChildMapper
+  alias PrimeYouth.Family.Domain.Models.Child
+
+  # =============================================================================
+  # to_domain/1
+  # =============================================================================
+
+  describe "to_domain/1" do
+    test "converts all ChildSchema fields to Child domain entity" do
+      schema =
+        build(:child_schema,
+          id: Ecto.UUID.dump!("550e8400-e29b-41d4-a716-446655440000"),
+          parent_id: Ecto.UUID.dump!("660e8400-e29b-41d4-a716-446655440000"),
+          first_name: "Alice",
+          last_name: "Smith",
+          date_of_birth: ~D[2018-06-15],
+          notes: "Loves soccer",
+          inserted_at: ~U[2025-01-01 12:00:00Z],
+          updated_at: ~U[2025-01-01 13:00:00Z]
+        )
+
+      child = ChildMapper.to_domain(schema)
+
+      assert %Child{} = child
+      assert child.id == "550e8400-e29b-41d4-a716-446655440000"
+      assert child.parent_id == "660e8400-e29b-41d4-a716-446655440000"
+      assert child.first_name == "Alice"
+      assert child.last_name == "Smith"
+      assert child.date_of_birth == ~D[2018-06-15]
+      assert child.notes == "Loves soccer"
+      assert child.inserted_at == ~U[2025-01-01 12:00:00Z]
+      assert child.updated_at == ~U[2025-01-01 13:00:00Z]
+    end
+
+    test "converts binary UUIDs to string UUIDs (id, parent_id)" do
+      schema =
+        build(:child_schema,
+          id: Ecto.UUID.dump!("550e8400-e29b-41d4-a716-446655440000"),
+          parent_id: Ecto.UUID.dump!("660e8400-e29b-41d4-a716-446655440000")
+        )
+
+      child = ChildMapper.to_domain(schema)
+
+      assert is_binary(child.id)
+      assert child.id == "550e8400-e29b-41d4-a716-446655440000"
+      assert is_binary(child.parent_id)
+      assert child.parent_id == "660e8400-e29b-41d4-a716-446655440000"
+    end
+
+    test "preserves nil values for optional fields (notes)" do
+      schema =
+        build(:child_schema,
+          notes: nil
+        )
+
+      child = ChildMapper.to_domain(schema)
+
+      assert %Child{} = child
+      assert is_nil(child.notes)
+    end
+
+    test "preserves Date struct for date_of_birth" do
+      date = ~D[2015-03-20]
+      schema = build(:child_schema, date_of_birth: date)
+
+      child = ChildMapper.to_domain(schema)
+
+      assert %Child{} = child
+      assert match?(%Date{}, child.date_of_birth)
+      assert child.date_of_birth == date
+    end
+
+    test "preserves DateTime structs for inserted_at/updated_at" do
+      inserted_at = ~U[2025-01-01 12:00:00Z]
+      updated_at = ~U[2025-01-02 14:30:00Z]
+
+      schema =
+        build(:child_schema,
+          inserted_at: inserted_at,
+          updated_at: updated_at
+        )
+
+      child = ChildMapper.to_domain(schema)
+
+      assert %Child{} = child
+      assert match?(%DateTime{}, child.inserted_at)
+      assert match?(%DateTime{}, child.updated_at)
+      assert child.inserted_at == inserted_at
+      assert child.updated_at == updated_at
+    end
+  end
+
+  # =============================================================================
+  # to_schema/1
+  # =============================================================================
+
+  describe "to_schema/1" do
+    test "converts Child domain entity to schema attributes map" do
+      child =
+        build(:child,
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          parent_id: "660e8400-e29b-41d4-a716-446655440000",
+          first_name: "Alice",
+          last_name: "Smith",
+          date_of_birth: ~D[2018-06-15],
+          notes: "Loves soccer"
+        )
+
+      attrs = ChildMapper.to_schema(child)
+
+      assert is_map(attrs)
+      assert Map.has_key?(attrs, :parent_id)
+      assert Map.has_key?(attrs, :first_name)
+      assert Map.has_key?(attrs, :last_name)
+      assert Map.has_key?(attrs, :date_of_birth)
+      assert Map.has_key?(attrs, :notes)
+      assert attrs.first_name == "Alice"
+      assert attrs.last_name == "Smith"
+      assert attrs.date_of_birth == ~D[2018-06-15]
+      assert attrs.notes == "Loves soccer"
+    end
+
+    test "converts string UUIDs to binary UUIDs (parent_id only, id excluded)" do
+      child =
+        build(:child,
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          parent_id: "660e8400-e29b-41d4-a716-446655440000"
+        )
+
+      attrs = ChildMapper.to_schema(child)
+
+      assert is_binary(attrs.parent_id)
+      refute is_binary(attrs.parent_id) and String.contains?(attrs.parent_id, "-")
+    end
+
+    test "does not include id field in output (autogenerated on insert)" do
+      child = build(:child, id: "550e8400-e29b-41d4-a716-446655440000")
+
+      attrs = ChildMapper.to_schema(child)
+
+      refute Map.has_key?(attrs, :id)
+      assert Map.has_key?(attrs, :parent_id)
+    end
+
+    test "does not include timestamp fields (Ecto manages)" do
+      child =
+        build(:child,
+          inserted_at: ~U[2025-01-01 12:00:00Z],
+          updated_at: ~U[2025-01-01 13:00:00Z]
+        )
+
+      attrs = ChildMapper.to_schema(child)
+
+      refute Map.has_key?(attrs, :inserted_at)
+      refute Map.has_key?(attrs, :updated_at)
+    end
+  end
+
+  # =============================================================================
+  # to_domain_list/1
+  # =============================================================================
+
+  describe "to_domain_list/1" do
+    test "returns empty list when given empty list" do
+      assert ChildMapper.to_domain_list([]) == []
+    end
+
+    test "converts list of ChildSchema to list of Child entities" do
+      schemas =
+        build_list(3, :child_schema,
+          first_name: "Alice",
+          last_name: "Smith",
+          date_of_birth: ~D[2018-06-15]
+        )
+
+      children = ChildMapper.to_domain_list(schemas)
+
+      assert length(children) == 3
+      assert Enum.all?(children, &match?(%Child{}, &1))
+      assert Enum.all?(children, &(&1.first_name == "Alice"))
+      assert Enum.all?(children, &(&1.last_name == "Smith"))
+      assert Enum.all?(children, &(&1.date_of_birth == ~D[2018-06-15]))
+    end
+
+    test "preserves list order during conversion" do
+      schema1 = build(:child_schema, first_name: "Alice")
+      schema2 = build(:child_schema, first_name: "Bob")
+      schema3 = build(:child_schema, first_name: "Charlie")
+      schemas = [schema1, schema2, schema3]
+
+      children = ChildMapper.to_domain_list(schemas)
+
+      assert length(children) == 3
+      assert Enum.at(children, 0).first_name == "Alice"
+      assert Enum.at(children, 1).first_name == "Bob"
+      assert Enum.at(children, 2).first_name == "Charlie"
+    end
+  end
+end

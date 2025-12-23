@@ -54,7 +54,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[AttendanceRepository] Database connection failed during create",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_create_connection_error(),
           error_type: error.__struct__,
           error_message: Exception.message(error)
         )
@@ -64,7 +64,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [Postgrex.Error, Ecto.Query.CastError] ->
         Logger.error(
           "[AttendanceRepository] Database query error during create",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_create_query_error(),
           error_type: error.__struct__,
           error_message: Exception.message(error)
         )
@@ -72,9 +72,12 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
         {:error, :database_query_error}
 
       error ->
+        IO.inspect(error, label: "DEBUG: Unexpected error during create")
+        IO.inspect(Exception.format(:error, error, __STACKTRACE__), label: "DEBUG: Stacktrace")
+
         Logger.error(
           "[AttendanceRepository] Unexpected database error during create",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_create_generic_error(),
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
         )
@@ -125,7 +128,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[AttendanceRepository] Database connection failed during get_by_session_and_child",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_get_connection_error(),
           session_id: session_id,
           child_id: child_id,
           error_type: error.__struct__,
@@ -137,7 +140,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [Postgrex.Error, Ecto.Query.CastError] ->
         Logger.error(
           "[AttendanceRepository] Database query error during get_by_session_and_child",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_get_query_error(),
           session_id: session_id,
           child_id: child_id,
           error_type: error.__struct__,
@@ -149,7 +152,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error ->
         Logger.error(
           "[AttendanceRepository] Unexpected database error during get_by_session_and_child",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_get_generic_error(),
           session_id: session_id,
           child_id: child_id,
           error_type: error.__struct__,
@@ -202,7 +205,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [Ecto.StaleEntryError] ->
         Logger.warning(
           "[AttendanceRepository] Optimistic lock conflict during update",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_update_stale_error(),
           record_id: record.id,
           error_type: error.__struct__
         )
@@ -212,7 +215,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [Ecto.ConstraintError] ->
         Logger.error(
           "[AttendanceRepository] Constraint violation during update",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_update_constraint_violation(),
           record_id: record.id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -223,7 +226,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[AttendanceRepository] Database connection failed during update",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_update_connection_error(),
           record_id: record.id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -234,7 +237,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [Postgrex.Error] ->
         Logger.error(
           "[AttendanceRepository] Database query error during update",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_update_query_error(),
           record_id: record.id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -245,7 +248,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error ->
         Logger.error(
           "[AttendanceRepository] Unexpected database error during update",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_update_generic_error(),
           record_id: record.id,
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
@@ -259,7 +262,9 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
 
   @impl true
   def list_by_session(session_id) when is_binary(session_id) do
-    Logger.info("[AttendanceRepository] Listing attendance records by session", session_id: session_id)
+    Logger.info("[AttendanceRepository] Listing attendance records by session",
+      session_id: session_id
+    )
 
     query =
       from a in AttendanceRecordSchema,
@@ -281,7 +286,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[AttendanceRepository] Database connection failed during list_by_session",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_list_connection_error(),
           session_id: session_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -292,7 +297,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [Postgrex.Error, Ecto.Query.CastError] ->
         Logger.error(
           "[AttendanceRepository] Database query error during list_by_session",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_list_query_error(),
           session_id: session_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -303,7 +308,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error ->
         Logger.error(
           "[AttendanceRepository] Unexpected database error during list_by_session",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_list_generic_error(),
           session_id: session_id,
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
@@ -339,7 +344,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[AttendanceRepository] Database connection failed during list_by_child",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_list_connection_error(),
           child_id: child_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -350,7 +355,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [Postgrex.Error, Ecto.Query.CastError] ->
         Logger.error(
           "[AttendanceRepository] Database query error during list_by_child",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_list_query_error(),
           child_id: child_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -361,7 +366,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error ->
         Logger.error(
           "[AttendanceRepository] Unexpected database error during list_by_child",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_list_generic_error(),
           child_id: child_id,
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
@@ -373,7 +378,9 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
 
   @impl true
   def list_by_parent(parent_id) when is_binary(parent_id) do
-    Logger.info("[AttendanceRepository] Listing attendance records by parent", parent_id: parent_id)
+    Logger.info("[AttendanceRepository] Listing attendance records by parent",
+      parent_id: parent_id
+    )
 
     query =
       from a in AttendanceRecordSchema,
@@ -397,7 +404,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[AttendanceRepository] Database connection failed during list_by_parent",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_list_connection_error(),
           parent_id: parent_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -408,7 +415,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [Postgrex.Error, Ecto.Query.CastError] ->
         Logger.error(
           "[AttendanceRepository] Database query error during list_by_parent",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_list_query_error(),
           parent_id: parent_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -419,7 +426,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error ->
         Logger.error(
           "[AttendanceRepository] Unexpected database error during list_by_parent",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_list_generic_error(),
           parent_id: parent_id,
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
@@ -431,7 +438,8 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
 
   @impl true
   def submit_batch(session_id, attendance_records, submitted_by_user_id)
-      when is_binary(session_id) and is_list(attendance_records) and is_binary(submitted_by_user_id) do
+      when is_binary(session_id) and is_list(attendance_records) and
+             is_binary(submitted_by_user_id) do
     Logger.info(
       "[AttendanceRepository] Submitting batch of attendance records",
       session_id: session_id,
@@ -483,7 +491,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
         {:error, _failed_operation, failed_value, _changes_so_far} ->
           Logger.error(
             "[AttendanceRepository] Batch submission failed",
-            error_id: ErrorIds.generate(),
+            error_id: ErrorIds.attendance_batch_error(),
             session_id: session_id,
             failure_reason: inspect(failed_value)
           )
@@ -503,7 +511,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [Ecto.StaleEntryError] ->
         Logger.warning(
           "[AttendanceRepository] Optimistic lock conflict during batch submission",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_batch_stale_error(),
           session_id: session_id,
           error_type: error.__struct__
         )
@@ -513,7 +521,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [DBConnection.ConnectionError] ->
         Logger.error(
           "[AttendanceRepository] Database connection failed during batch submission",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_batch_connection_error(),
           session_id: session_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -524,7 +532,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error in [Postgrex.Error] ->
         Logger.error(
           "[AttendanceRepository] Database query error during batch submission",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_batch_query_error(),
           session_id: session_id,
           error_type: error.__struct__,
           error_message: Exception.message(error)
@@ -535,7 +543,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       error ->
         Logger.error(
           "[AttendanceRepository] Unexpected database error during batch submission",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_batch_generic_error(),
           session_id: session_id,
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
@@ -550,7 +558,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       {:unique, "attendance_records_session_id_child_id_index"} ->
         Logger.warning(
           "[AttendanceRepository] Duplicate attendance record during #{operation}",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_duplicate_error(),
           errors: changeset.errors
         )
 
@@ -559,7 +567,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       {:constraint, _name} ->
         Logger.error(
           "[AttendanceRepository] Database constraint error during #{operation}",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_update_constraint_violation(),
           errors: changeset.errors
         )
 
@@ -568,7 +576,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       nil ->
         Logger.warning(
           "[AttendanceRepository] Changeset validation failed during #{operation}",
-          error_id: ErrorIds.generate(),
+          error_id: ErrorIds.attendance_validation_error(),
           errors: changeset.errors
         )
 
