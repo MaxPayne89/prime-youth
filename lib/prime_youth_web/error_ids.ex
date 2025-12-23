@@ -476,4 +476,60 @@ defmodule PrimeYouthWeb.ErrorIds do
   Attendance validation error - changeset validation failed.
   """
   def attendance_validation_error, do: "attendance.record.validation.error"
+
+  # Family Management Context Errors - Child
+
+  @doc """
+  Database connection error when retrieving a child by ID.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def child_get_connection_error, do: "family.child.get.connection_error"
+
+  @doc """
+  Database query error when retrieving a child by ID.
+  Indicates SQL syntax error, constraint violation, or schema mismatch.
+  """
+  def child_get_query_error, do: "family.child.get.query_error"
+
+  @doc """
+  Generic/unexpected error when retrieving a child by ID.
+  Fallback for errors that don't fit other categories.
+  """
+  def child_get_generic_error, do: "family.child.get.generic_error"
+
+  @doc """
+  Database connection error when creating a child.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def child_create_connection_error, do: "family.child.create.connection_error"
+
+  @doc """
+  Database query error when creating a child.
+  Indicates SQL syntax error, constraint violation, or schema mismatch.
+  """
+  def child_create_query_error, do: "family.child.create.query_error"
+
+  @doc """
+  Generic/unexpected error when creating a child.
+  Fallback for errors that don't fit other categories.
+  """
+  def child_create_generic_error, do: "family.child.create.generic_error"
+
+  @doc """
+  Database connection error when listing children by parent.
+  Indicates transient network/connection issue that may resolve on retry.
+  """
+  def child_list_connection_error, do: "family.child.list.connection_error"
+
+  @doc """
+  Database query error when listing children by parent.
+  Indicates SQL syntax error, constraint violation, or schema mismatch.
+  """
+  def child_list_query_error, do: "family.child.list.query_error"
+
+  @doc """
+  Generic/unexpected error when listing children by parent.
+  Fallback for errors that don't fit other categories.
+  """
+  def child_list_generic_error, do: "family.child.list.generic_error"
 end
