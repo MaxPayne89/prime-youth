@@ -259,7 +259,9 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
 
   @impl true
   def list_by_session(session_id) when is_binary(session_id) do
-    Logger.info("[AttendanceRepository] Listing attendance records by session", session_id: session_id)
+    Logger.info("[AttendanceRepository] Listing attendance records by session",
+      session_id: session_id
+    )
 
     query =
       from a in AttendanceRecordSchema,
@@ -373,7 +375,9 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
 
   @impl true
   def list_by_parent(parent_id) when is_binary(parent_id) do
-    Logger.info("[AttendanceRepository] Listing attendance records by parent", parent_id: parent_id)
+    Logger.info("[AttendanceRepository] Listing attendance records by parent",
+      parent_id: parent_id
+    )
 
     query =
       from a in AttendanceRecordSchema,
@@ -431,7 +435,8 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
 
   @impl true
   def submit_batch(session_id, attendance_records, submitted_by_user_id)
-      when is_binary(session_id) and is_list(attendance_records) and is_binary(submitted_by_user_id) do
+      when is_binary(session_id) and is_list(attendance_records) and
+             is_binary(submitted_by_user_id) do
     Logger.info(
       "[AttendanceRepository] Submitting batch of attendance records",
       session_id: session_id,

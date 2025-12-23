@@ -4,8 +4,7 @@ defmodule PrimeYouth.Repo.Migrations.CreateChildren do
   def change do
     create table(:children, primary_key: false) do
       add :id, :binary_id, primary_key: true
-      add :parent_id, references(:parents, type: :binary_id, on_delete: :restrict),
-        null: false
+      add :parent_id, references(:parents, type: :binary_id, on_delete: :restrict), null: false
       add :first_name, :string, size: 100, null: false
       add :last_name, :string, size: 100, null: false
       add :date_of_birth, :date, null: false

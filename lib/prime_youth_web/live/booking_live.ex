@@ -6,6 +6,7 @@ defmodule PrimeYouthWeb.BookingLive do
   alias PrimeYouth.Enrollment.Application.UseCases.CalculateEnrollmentFees
   alias PrimeYouth.Family.Application.UseCases.GetChildren
   alias PrimeYouth.ProgramCatalog.Application.UseCases.GetProgramById
+  alias PrimeYouthWeb.Presenters.ChildPresenter
   alias PrimeYouthWeb.Theme
 
   @default_weekly_fee 45.00
@@ -21,13 +22,14 @@ defmodule PrimeYouthWeb.BookingLive do
     with {:ok, program} <- fetch_program(program_id),
          :ok <- validate_program_availability(program) do
       {:ok, children} = GetChildren.execute(:simple)
+      children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
 
       socket =
         socket
         |> assign(page_title: "Enrollment - #{program.title}")
         |> assign(current_user: current_user)
         |> assign(program: program)
-        |> assign(children: children)
+        |> assign(children: children_for_view)
         |> assign(selected_child_id: "emma")
         |> assign(special_requirements: "")
         |> assign(payment_method: "card")
