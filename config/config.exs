@@ -65,7 +65,9 @@ config :prime_youth, :attendance,
   session_repository:
     PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.SessionRepository,
   attendance_repository:
-    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.AttendanceRepository
+    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.AttendanceRepository,
+  child_name_resolver:
+    PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolver
 
 # Configure Event Publisher
 config :prime_youth, :event_publisher,

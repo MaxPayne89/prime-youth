@@ -10,6 +10,17 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.Provider
   Data integrity is enforced at the database level through:
   - NOT NULL constraint on identity_id and business_name
   - UNIQUE constraint on identity_id (prevents duplicate profiles)
+
+  ## Error Handling
+
+  Translates Ecto/database errors to domain error atoms:
+  - `Ecto.Changeset` (unique constraint on identity_id) → `:duplicate_identity`
+  - `DBConnection.ConnectionError` → `:database_connection_error`
+  - `Postgrex.Error` → `:database_query_error`
+  - `Ecto.Query.CastError` → `:database_query_error`
+  - Other errors → `:database_unavailable`
+
+  All errors logged with unique ErrorIds for production monitoring.
   """
 
   @behaviour PrimeYouth.Providing.Domain.Ports.ForStoringProviders

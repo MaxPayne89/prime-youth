@@ -21,6 +21,10 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
       |> assign(:session_id, session_id)
       |> assign(:provider_id, provider_id)
       |> assign(:session, nil)
+      # Uses regular assign (not stream) because:
+      # - Small, bounded collection (records for single session)
+      # - Need to filter/search records (Enum.find, Enum.filter)
+      # - Full replacement on updates (no incremental changes)
       |> assign(:attendance_records, [])
       |> assign(:child_names, %{})
       |> assign(:form, nil)

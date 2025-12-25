@@ -18,6 +18,10 @@ defmodule PrimeYouthWeb.Parent.AttendanceHistoryLive do
       |> assign(:page_title, "Attendance History")
       |> assign(:parent_id, parent_id)
       |> assign(:child_names, %{})
+      # Uses stream for memory efficiency because:
+      # - Potentially large, unbounded collection (all parent's history)
+      # - Incremental updates (new check-ins prepended via PubSub)
+      # - No need to enumerate in memory (LiveView handles rendering)
       |> stream(:attendance_records, [])
 
     if connected?(socket) do

@@ -8,7 +8,20 @@ defmodule PrimeYouth.Attendance.Domain.Events.AttendanceEvents do
   - `:attendance_submitted` - Batch submission for payroll
   - `:session_started` / `:session_completed` - Session lifecycle events
 
-  All factories perform fail-fast validation and raise `ArgumentError` on invalid inputs.
+  ## Validation Strategy: Fail-Fast
+
+  Event factories use guards and multiple function clauses to validate inputs
+  and raise ArgumentError on invalid data. This fail-fast approach is intentional:
+
+  1. **Events created from valid domain state** - If domain models are valid,
+     event creation should never fail
+  2. **Programming errors fail loudly** - Invalid inputs indicate bugs, not
+     runtime conditions
+  3. **Consistency with domain layer** - Domain functions return error tuples
+     for business rule violations, but events are infrastructure concerns
+
+  If you need error tuples instead of raises, validate inputs before calling
+  event factories.
   """
 
   alias PrimeYouth.Attendance.Domain.Models.{AttendanceRecord, ProgramSession}

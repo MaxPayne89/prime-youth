@@ -45,5 +45,25 @@ config :prime_youth, :event_publisher,
   module: PrimeYouth.Shared.Adapters.Driven.Events.TestEventPublisher,
   pubsub: PrimeYouth.PubSub
 
+# Repository configurations for test environment
+config :prime_youth, :parenting,
+  parent_repository:
+    PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRepository
+
+config :prime_youth, :providing,
+  provider_repository:
+    PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.ProviderRepository
+
+config :prime_youth, :family,
+  child_repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
+
+config :prime_youth, :attendance,
+  session_repository:
+    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.SessionRepository,
+  attendance_repository:
+    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.AttendanceRepository,
+  child_name_resolver:
+    PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolver
+
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false

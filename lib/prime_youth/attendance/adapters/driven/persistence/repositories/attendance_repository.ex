@@ -6,6 +6,17 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
   - Optimistic locking for concurrent update protection
   - Atomic batch operations using Ecto.Multi
   - Comprehensive error handling
+
+  ## Error Handling
+
+  Translates Ecto/database errors to domain error atoms:
+  - `Ecto.StaleEntryError` → `:stale_data` (optimistic locking conflict)
+  - `DBConnection.ConnectionError` → `:database_connection_error`
+  - `Postgrex.Error` → `:database_query_error`
+  - `Ecto.ConstraintError` → `:constraint_violation` or specific constraint errors
+  - Other errors → `:database_unavailable`
+
+  All errors logged with unique ErrorIds for production monitoring.
   """
 
   @behaviour PrimeYouth.Attendance.Domain.Ports.ForManagingAttendance

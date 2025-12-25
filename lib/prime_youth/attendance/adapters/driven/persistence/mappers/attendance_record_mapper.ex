@@ -1,6 +1,22 @@
 defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.AttendanceRecordMapper do
   @moduledoc """
   Bidirectional mapping between AttendanceRecord domain entities and AttendanceRecordSchema.
+
+  This adapter provides bidirectional conversion:
+  - to_domain/1: AttendanceRecordSchema → AttendanceRecord (for reading from database)
+  - to_schema/1: AttendanceRecord → AttendanceRecordSchema attributes (for creating/updating)
+  - to_domain_list/1: [AttendanceRecordSchema] → [AttendanceRecord] (convenience for collections)
+
+  ## Design Note: to_schema Excludes Database-Managed Fields
+
+  The `to_schema/1` function intentionally excludes:
+  - `id` - Managed by Ecto on insert
+  - `lock_version` - Managed by optimistic locking (see AttendanceRepository.update/1)
+  - `inserted_at`, `updated_at` - Managed by Ecto timestamps
+
+  This follows standard Ecto patterns where the database/framework manages
+  these fields automatically. Repositories handle id/lock_version explicitly
+  when needed (e.g., optimistic locking in updates).
   """
 
   alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.AttendanceRecordSchema

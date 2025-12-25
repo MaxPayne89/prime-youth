@@ -4,6 +4,16 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
 
   Implements ForManagingSessions port with domain entity mapping
   and comprehensive error handling.
+
+  ## Error Handling
+
+  Translates Ecto/database errors to domain error atoms:
+  - `DBConnection.ConnectionError` → `:database_connection_error`
+  - `Postgrex.Error` → `:database_query_error`
+  - `Ecto.ConstraintError` → `:constraint_violation`
+  - Other errors → `:database_unavailable`
+
+  All errors logged with unique ErrorIds for production monitoring.
   """
 
   @behaviour PrimeYouth.Attendance.Domain.Ports.ForManagingSessions

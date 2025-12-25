@@ -230,10 +230,10 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Mappers.ProviderMappe
   end
 
   # =============================================================================
-  # from_domain/1
+  # to_schema/1
   # =============================================================================
 
-  describe "from_domain/1" do
+  describe "to_schema/1" do
     test "maps all fields from domain entity to attrs map" do
       verified_at = ~U[2025-01-10 08:00:00Z]
 
@@ -253,7 +253,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Mappers.ProviderMappe
         updated_at: ~U[2025-01-01 12:00:00Z]
       }
 
-      attrs = ProviderMapper.from_domain(provider)
+      attrs = ProviderMapper.to_schema(provider)
 
       assert is_map(attrs)
       assert attrs.id == "550e8400-e29b-41d4-a716-446655440000"
@@ -286,7 +286,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Mappers.ProviderMappe
         updated_at: nil
       }
 
-      attrs = ProviderMapper.from_domain(provider)
+      attrs = ProviderMapper.to_schema(provider)
 
       refute Map.has_key?(attrs, :id)
       assert attrs.identity_id == "660e8400-e29b-41d4-a716-446655440001"
@@ -309,7 +309,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Mappers.ProviderMappe
         updated_at: nil
       }
 
-      attrs = ProviderMapper.from_domain(provider)
+      attrs = ProviderMapper.to_schema(provider)
 
       assert Map.has_key?(attrs, :id)
       assert attrs.id == "550e8400-e29b-41d4-a716-446655440000"
@@ -332,7 +332,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Mappers.ProviderMappe
         updated_at: nil
       }
 
-      attrs = ProviderMapper.from_domain(provider)
+      attrs = ProviderMapper.to_schema(provider)
 
       assert is_nil(attrs.description)
       assert is_nil(attrs.phone)
@@ -359,7 +359,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Mappers.ProviderMappe
         updated_at: ~U[2025-01-01 12:00:00Z]
       }
 
-      attrs = ProviderMapper.from_domain(provider)
+      attrs = ProviderMapper.to_schema(provider)
 
       refute Map.has_key?(attrs, :inserted_at)
       refute Map.has_key?(attrs, :updated_at)
@@ -382,7 +382,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Mappers.ProviderMappe
         updated_at: nil
       }
 
-      attrs = ProviderMapper.from_domain(provider)
+      attrs = ProviderMapper.to_schema(provider)
 
       assert attrs.categories == []
     end
@@ -404,7 +404,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Mappers.ProviderMappe
         updated_at: nil
       }
 
-      attrs = ProviderMapper.from_domain(provider)
+      attrs = ProviderMapper.to_schema(provider)
 
       assert attrs.categories == ["sports", "education"]
     end

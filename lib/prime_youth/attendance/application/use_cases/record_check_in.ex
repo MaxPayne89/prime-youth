@@ -23,7 +23,6 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
   alias PrimeYouth.Attendance.Domain.Events.AttendanceEvents
   alias PrimeYouth.Attendance.Domain.Models.AttendanceRecord
   alias PrimeYouth.Attendance.EventPublisher
-  alias PrimeYouth.Family.Domain.Models.Child
 
   require Logger
 
@@ -134,11 +133,11 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
     Application.get_env(:prime_youth, :attendance)[:attendance_repository]
   end
 
-  # Resolve child name from Family context with graceful fallback
+  # Resolve child name via port adapter with graceful fallback
   defp resolve_child_name(child_id) do
-    case child_repository().get_by_id(child_id) do
-      {:ok, child} ->
-        Child.full_name(child)
+    case child_name_resolver().resolve_child_name(child_id) do
+      {:ok, child_name} ->
+        child_name
 
       {:error, reason} ->
         Logger.warning(
@@ -151,8 +150,8 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
     end
   end
 
-  # Dependency injection: fetch child repository from application config
-  defp child_repository do
-    Application.get_env(:prime_youth, :family)[:child_repository]
+  # Dependency injection: fetch child name resolver from application config
+  defp child_name_resolver do
+    Application.get_env(:prime_youth, :attendance)[:child_name_resolver]
   end
 end
