@@ -66,8 +66,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
         PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.SessionRepository,
       attendance_repository:
         PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.AttendanceRepository,
-      child_name_resolver:
-        PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolver
+      child_name_resolver: PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolver
     )
 
     Application.put_env(:prime_youth, :family,
