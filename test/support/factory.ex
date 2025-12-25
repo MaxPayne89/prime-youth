@@ -27,6 +27,10 @@ defmodule PrimeYouth.Factory do
 
   use ExMachina.Ecto, repo: PrimeYouth.Repo
 
+  alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.AttendanceRecordSchema
+  alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
+  alias PrimeYouth.Attendance.Domain.Models.AttendanceRecord
+  alias PrimeYouth.Attendance.Domain.Models.ProgramSession
   alias PrimeYouth.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias PrimeYouth.Family.Domain.Models.Child
   alias PrimeYouth.Parenting.Adapters.Driven.Persistence.Schemas.ParentSchema
@@ -392,5 +396,182 @@ defmodule PrimeYouth.Factory do
       date_of_birth: ~D[2018-06-15],
       notes: nil
     }
+  end
+
+  # =============================================================================
+  # Attendance Context Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating ProgramSession domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      session = build(:program_session)
+      session = build(:program_session, status: :in_progress, max_capacity: 25)
+  """
+  def program_session_factory do
+    %ProgramSession{
+      id:
+        sequence(
+          :program_session_id,
+          &"880e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      program_id:
+        sequence(
+          :program_session_program_id,
+          &"550e8400-e29b-41d4-a716-44665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      session_date: Date.utc_today(),
+      start_time: ~T[09:00:00],
+      end_time: ~T[12:00:00],
+      max_capacity: 20,
+      status: :scheduled,
+      notes: nil,
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating ProgramSessionSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a program when inserted to avoid foreign key violations.
+
+  ## Examples
+
+      schema = build(:program_session_schema)
+      schema = insert(:program_session_schema, status: "in_progress")
+  """
+  def program_session_schema_factory do
+    program_schema = insert(:program_schema)
+
+    %ProgramSessionSchema{
+      id: Ecto.UUID.generate(),
+      program_id: program_schema.id,
+      session_date: Date.utc_today(),
+      start_time: ~T[09:00:00],
+      end_time: ~T[12:00:00],
+      max_capacity: 20,
+      status: "scheduled",
+      notes: nil
+    }
+  end
+
+  @doc """
+  Factory for creating AttendanceRecord domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      record = build(:attendance_record)
+      record = build(:attendance_record, status: :checked_in)
+  """
+  def attendance_record_factory do
+    %AttendanceRecord{
+      id:
+        sequence(
+          :attendance_record_id,
+          &"990e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      session_id:
+        sequence(
+          :attendance_record_session_id,
+          &"880e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      child_id:
+        sequence(
+          :attendance_record_child_id,
+          &"550e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      parent_id: nil,
+      provider_id: nil,
+      status: :expected,
+      check_in_at: nil,
+      check_in_notes: nil,
+      check_in_by: nil,
+      check_out_at: nil,
+      check_out_notes: nil,
+      check_out_by: nil,
+      submitted: false,
+      submitted_at: nil,
+      submitted_by: nil,
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating AttendanceRecordSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a program session and child when inserted to avoid foreign key violations.
+
+  ## Examples
+
+      schema = build(:attendance_record_schema)
+      schema = insert(:attendance_record_schema, status: "checked_in")
+  """
+  def attendance_record_schema_factory do
+    session_schema = insert(:program_session_schema)
+    child_schema = insert(:child_schema)
+
+    %AttendanceRecordSchema{
+      id: Ecto.UUID.generate(),
+      session_id: session_schema.id,
+      child_id: child_schema.id,
+      parent_id: child_schema.parent_id,
+      provider_id: nil,
+      status: "expected",
+      check_in_at: nil,
+      check_in_notes: nil,
+      check_in_by: nil,
+      check_out_at: nil,
+      check_out_notes: nil,
+      check_out_by: nil,
+      submitted: false,
+      submitted_at: nil,
+      submitted_by: nil
+    }
+  end
+
+  @doc """
+  Checked-in attendance record variant for testing check-out flows.
+  """
+  def checked_in_attendance_record_factory do
+    now = DateTime.utc_now()
+    provider_id = Ecto.UUID.generate()
+
+    build(:attendance_record, %{
+      status: :checked_in,
+      check_in_at: now,
+      check_in_notes: "Arrived on time",
+      check_in_by: provider_id,
+      provider_id: provider_id
+    })
+  end
+
+  @doc """
+  Completed attendance record variant (checked out) for testing submission flows.
+  """
+  def checked_out_attendance_record_factory do
+    check_in_at = DateTime.add(DateTime.utc_now(), -3600, :second)
+    check_out_at = DateTime.utc_now()
+    provider_id = Ecto.UUID.generate()
+
+    build(:attendance_record, %{
+      status: :checked_out,
+      check_in_at: check_in_at,
+      check_in_notes: "Arrived on time",
+      check_in_by: provider_id,
+      check_out_at: check_out_at,
+      check_out_notes: "Picked up by parent",
+      check_out_by: provider_id,
+      provider_id: provider_id
+    })
   end
 end

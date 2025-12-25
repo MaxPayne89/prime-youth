@@ -29,10 +29,11 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.ProgramSessi
   Converts domain entity to update attributes.
 
   Excludes id and timestamps (managed by Ecto).
+  UUIDs are passed as strings - Ecto's :binary_id handles the conversion.
   """
   def to_schema(%ProgramSession{} = session) do
     %{
-      program_id: parse_uuid(session.program_id),
+      program_id: session.program_id,
       session_date: session.session_date,
       start_time: session.start_time,
       end_time: session.end_time,
@@ -41,13 +42,4 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.ProgramSessi
       notes: session.notes
     }
   end
-
-  defp parse_uuid(uuid_string) when is_binary(uuid_string) do
-    case Ecto.UUID.dump(uuid_string) do
-      {:ok, binary} -> binary
-      :error -> uuid_string
-    end
-  end
-
-  defp parse_uuid(other), do: other
 end

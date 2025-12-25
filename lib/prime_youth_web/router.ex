@@ -42,6 +42,31 @@ defmodule PrimeYouthWeb.Router do
       live "/highlights", HighlightsLive, :index
       live "/programs/:id/booking", BookingLive, :new
     end
+
+    # Provider routes - provider role required
+    live_session :require_provider,
+      layout: {PrimeYouthWeb.Layouts, :app},
+      on_mount: [
+        {PrimeYouthWeb.UserAuth, :require_authenticated},
+        {PrimeYouthWeb.UserAuth, :require_provider}
+      ] do
+      scope "/provider", Provider do
+        live "/sessions", SessionsLive, :index
+        live "/attendance/:session_id", AttendanceLive, :show
+      end
+    end
+
+    # Parent routes - parent role required
+    live_session :require_parent,
+      layout: {PrimeYouthWeb.Layouts, :app},
+      on_mount: [
+        {PrimeYouthWeb.UserAuth, :require_authenticated},
+        {PrimeYouthWeb.UserAuth, :require_parent}
+      ] do
+      scope "/parent", Parent do
+        live "/attendance", AttendanceHistoryLive, :index
+      end
+    end
   end
 
   # Other scopes may use custom stacks.

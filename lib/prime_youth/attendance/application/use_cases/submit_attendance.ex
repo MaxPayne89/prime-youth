@@ -53,11 +53,10 @@ defmodule PrimeYouth.Attendance.Application.UseCases.SubmitAttendance do
     submitted_at = DateTime.utc_now()
 
     with :ok <- validate_non_empty(record_ids),
+         {:ok, records} <- attendance_repository().get_many_by_ids(record_ids),
+         :ok <- validate_all_found(record_ids, records),
          {:ok, submitted_records} <-
-           attendance_repository().submit_batch(session_id, record_ids, %{
-             submitted_at: submitted_at,
-             submitted_by: submitted_by
-           }) do
+           attendance_repository().submit_batch(session_id, records, submitted_by) do
       publish_submission_event(session_id, submitted_records, submitted_by, submitted_at)
       {:ok, submitted_records}
     end
@@ -67,16 +66,23 @@ defmodule PrimeYouth.Attendance.Application.UseCases.SubmitAttendance do
   defp validate_non_empty([]), do: {:error, :empty_record_ids}
   defp validate_non_empty(_record_ids), do: :ok
 
+  # Validate all requested records were found
+  defp validate_all_found(record_ids, records) do
+    if length(records) == length(record_ids) do
+      :ok
+    else
+      {:error, :not_found}
+    end
+  end
+
   # Publish attendance_submitted event for the batch
   defp publish_submission_event(session_id, records, submitted_by, submitted_at) do
     record_ids = Enum.map(records, & &1.id)
-    record_count = length(records)
 
     event =
       AttendanceEvents.attendance_submitted(
         session_id,
         record_ids,
-        record_count,
         submitted_by,
         submitted_at
       )

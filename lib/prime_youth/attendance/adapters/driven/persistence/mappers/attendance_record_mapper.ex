@@ -24,7 +24,8 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.AttendanceRe
       submitted_at: schema.submitted_at,
       submitted_by: to_string_or_nil(schema.submitted_by),
       inserted_at: schema.inserted_at,
-      updated_at: schema.updated_at
+      updated_at: schema.updated_at,
+      lock_version: schema.lock_version
     }
   end
 

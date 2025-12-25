@@ -102,9 +102,9 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
     AttendanceRecord.new(attrs)
   end
 
-  # Persist record - create if new (no check_in_at originally), update if existing
-  defp persist_record(%AttendanceRecord{check_in_at: nil}, checked_in_record) do
-    # Record was newly created, use create/1
+  # Persist record - create if new (no inserted_at = never persisted), update if existing
+  defp persist_record(%AttendanceRecord{inserted_at: nil}, checked_in_record) do
+    # Record was newly created in-memory, use create/1
     attendance_repository().create(checked_in_record)
   end
 

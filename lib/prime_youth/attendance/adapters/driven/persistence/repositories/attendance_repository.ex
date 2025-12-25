@@ -164,12 +164,125 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
   end
 
   @impl true
+  def get_by_id(record_id) when is_binary(record_id) do
+    Logger.info("[AttendanceRepository] Fetching attendance record by ID", record_id: record_id)
+
+    query = from a in AttendanceRecordSchema, where: a.id == ^record_id
+
+    try do
+      case Repo.one(query) do
+        nil ->
+          Logger.info("[AttendanceRepository] Attendance record not found", record_id: record_id)
+          {:error, :not_found}
+
+        schema ->
+          record = AttendanceRecordMapper.to_domain(schema)
+
+          Logger.info(
+            "[AttendanceRepository] Successfully retrieved attendance record",
+            record_id: record.id,
+            session_id: record.session_id,
+            child_id: record.child_id
+          )
+
+          {:ok, record}
+      end
+    rescue
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[AttendanceRepository] Database connection failed during get_by_id",
+          error_id: ErrorIds.attendance_get_connection_error(),
+          record_id: record_id,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error, Ecto.Query.CastError] ->
+        Logger.error(
+          "[AttendanceRepository] Database query error during get_by_id",
+          error_id: ErrorIds.attendance_get_query_error(),
+          record_id: record_id,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
+      error ->
+        Logger.error(
+          "[AttendanceRepository] Unexpected database error during get_by_id",
+          error_id: ErrorIds.attendance_get_generic_error(),
+          record_id: record_id,
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
+        )
+
+        {:error, :database_unavailable}
+    end
+  end
+
+  @impl true
+  def get_many_by_ids(record_ids) when is_list(record_ids) do
+    Logger.info("[AttendanceRepository] Fetching attendance records by IDs",
+      count: length(record_ids)
+    )
+
+    query = from a in AttendanceRecordSchema, where: a.id in ^record_ids
+
+    try do
+      schemas = Repo.all(query)
+      records = AttendanceRecordMapper.to_domain_list(schemas)
+
+      Logger.info(
+        "[AttendanceRepository] Successfully retrieved attendance records by IDs",
+        requested: length(record_ids),
+        found: length(records)
+      )
+
+      {:ok, records}
+    rescue
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[AttendanceRepository] Database connection failed during get_many_by_ids",
+          error_id: ErrorIds.attendance_get_connection_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error, Ecto.Query.CastError] ->
+        Logger.error(
+          "[AttendanceRepository] Database query error during get_many_by_ids",
+          error_id: ErrorIds.attendance_get_query_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
+      error ->
+        Logger.error(
+          "[AttendanceRepository] Unexpected database error during get_many_by_ids",
+          error_id: ErrorIds.attendance_get_generic_error(),
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
+        )
+
+        {:error, :database_unavailable}
+    end
+  end
+
+  @impl true
   def update(%AttendanceRecord{} = record) do
     Logger.info(
       "[AttendanceRepository] Updating attendance record",
       record_id: record.id,
       session_id: record.session_id,
-      child_id: record.child_id
+      child_id: record.child_id,
+      lock_version: record.lock_version
     )
 
     try do
@@ -182,9 +295,14 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
         throw({:error, :not_found})
       end
 
-      current_schema = Repo.get!(AttendanceRecordSchema, record.id)
+      # Construct schema with id and lock_version from domain record for optimistic locking
+      schema_with_lock = %AttendanceRecordSchema{
+        id: record.id,
+        lock_version: record.lock_version
+      }
+
       attrs = AttendanceRecordMapper.to_schema(record)
-      changeset = AttendanceRecordSchema.update_changeset(current_schema, attrs)
+      changeset = AttendanceRecordSchema.update_changeset(schema_with_lock, attrs)
 
       case Repo.update(changeset) do
         {:ok, updated_schema} ->
@@ -460,7 +578,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
               attrs = %{
                 submitted: true,
                 submitted_at: DateTime.utc_now(),
-                submitted_by: parse_uuid(submitted_by_user_id)
+                submitted_by: submitted_by_user_id
               }
 
               changeset = AttendanceRecordSchema.update_changeset(schema, attrs)
@@ -596,13 +714,4 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
         nil
     end)
   end
-
-  defp parse_uuid(uuid_string) when is_binary(uuid_string) do
-    case Ecto.UUID.dump(uuid_string) do
-      {:ok, binary} -> binary
-      :error -> uuid_string
-    end
-  end
-
-  defp parse_uuid(other), do: other
 end

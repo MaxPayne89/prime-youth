@@ -11,6 +11,12 @@ defmodule PrimeYouth.Attendance.Domain.Ports.ForManagingAttendance do
   @doc "Creates record. Unique constraint: one record per session/child combination."
   @callback create(struct()) :: {:ok, struct()} | {:error, atom()}
 
+  @doc "Retrieves record by ID."
+  @callback get_by_id(binary()) :: {:ok, struct()} | {:error, atom()}
+
+  @doc "Retrieves multiple records by their IDs."
+  @callback get_many_by_ids([binary()]) :: {:ok, [struct()]} | {:error, atom()}
+
   @doc "Retrieves record by session_id and child_id."
   @callback get_by_session_and_child(binary(), binary()) :: {:ok, struct()} | {:error, atom()}
 

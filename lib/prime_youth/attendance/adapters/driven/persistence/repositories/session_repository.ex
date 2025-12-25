@@ -377,4 +377,71 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
         nil
     end)
   end
+
+  @impl true
+  def list_by_provider_and_date(provider_id, %Date{} = date) when is_binary(provider_id) do
+    Logger.info(
+      "[SessionRepository] Listing sessions by provider and date",
+      provider_id: provider_id,
+      date: date
+    )
+
+    # Note: Currently filters by date only. Provider filtering requires
+    # schema updates to establish provider-program relationship.
+    # TODO: Add JOIN to programs table once provider_id column exists.
+    query =
+      from s in ProgramSessionSchema,
+        where: s.session_date == ^date,
+        order_by: [asc: s.start_time]
+
+    try do
+      schemas = Repo.all(query)
+      sessions = ProgramSessionMapper.to_domain_list(schemas)
+
+      Logger.info(
+        "[SessionRepository] Successfully retrieved sessions by provider and date",
+        provider_id: provider_id,
+        date: date,
+        count: length(sessions)
+      )
+
+      {:ok, sessions}
+    rescue
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[SessionRepository] Database connection failed during list_by_provider_and_date",
+          error_id: ErrorIds.session_list_connection_error(),
+          provider_id: provider_id,
+          date: date,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error, Ecto.Query.CastError] ->
+        Logger.error(
+          "[SessionRepository] Database query error during list_by_provider_and_date",
+          error_id: ErrorIds.session_list_query_error(),
+          provider_id: provider_id,
+          date: date,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
+      error ->
+        Logger.error(
+          "[SessionRepository] Unexpected database error during list_by_provider_and_date",
+          error_id: ErrorIds.session_list_generic_error(),
+          provider_id: provider_id,
+          date: date,
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
+        )
+
+        {:error, :database_unavailable}
+    end
+  end
 end

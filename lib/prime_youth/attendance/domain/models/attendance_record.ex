@@ -30,7 +30,8 @@ defmodule PrimeYouth.Attendance.Domain.Models.AttendanceRecord do
     :submitted_by,
     :inserted_at,
     :updated_at,
-    submitted: false
+    submitted: false,
+    lock_version: 1
   ]
 
   @doc """

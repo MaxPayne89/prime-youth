@@ -22,4 +22,12 @@ defmodule PrimeYouth.Attendance.Domain.Ports.ForManagingSessions do
 
   @doc "Updates existing session atomically."
   @callback update(struct()) :: {:ok, struct()} | {:error, atom()}
+
+  @doc """
+  Lists sessions for a provider on a specific date, ordered by start_time.
+
+  Note: Requires provider-program relationship in schema for full filtering.
+  Currently filters by date only until schema is updated.
+  """
+  @callback list_by_provider_and_date(binary(), Date.t()) :: {:ok, [struct()]} | {:error, atom()}
 end
