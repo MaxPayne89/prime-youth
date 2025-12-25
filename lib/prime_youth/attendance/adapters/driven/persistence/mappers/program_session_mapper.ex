@@ -6,6 +6,8 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.ProgramSessi
   alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias PrimeYouth.Attendance.Domain.Models.ProgramSession
 
+  @valid_statuses ~w(scheduled in_progress completed cancelled)a
+
   def to_domain(%ProgramSessionSchema{} = schema) do
     %ProgramSession{
       id: to_string(schema.id),
@@ -14,12 +16,19 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.ProgramSessi
       start_time: schema.start_time,
       end_time: schema.end_time,
       max_capacity: schema.max_capacity,
-      status: String.to_existing_atom(schema.status),
+      status: parse_status(schema.status),
       notes: schema.notes,
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
   end
+
+  defp parse_status(status) when is_binary(status) do
+    atom = String.to_atom(status)
+    if atom in @valid_statuses, do: atom, else: :scheduled
+  end
+
+  defp parse_status(status) when is_atom(status), do: status
 
   def to_domain_list(schemas) when is_list(schemas) do
     Enum.map(schemas, &to_domain/1)

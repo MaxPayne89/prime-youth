@@ -52,7 +52,7 @@ defmodule PrimeYouthWeb.AttendanceComponents do
       <div class="flex items-start justify-between gap-4 mb-4">
         <div class="flex-1">
           <h3 class="text-lg font-semibold text-gray-900">
-            {@session.program_name || "Session"}
+            {Map.get(@session, :program_name, "Session")}
           </h3>
           <p class="text-sm text-gray-600 mt-1">
             {format_session_datetime(@session)}
@@ -65,14 +65,14 @@ defmodule PrimeYouthWeb.AttendanceComponents do
       <div class="space-y-2 mb-4">
         <div class="flex items-center gap-2 text-sm text-gray-700">
           <.icon name="hero-map-pin" class="w-4 h-4 text-gray-400" />
-          <span>{@session.location || "Location TBD"}</span>
+          <span>{Map.get(@session, :location, "Location TBD")}</span>
         </div>
 
-        <%= if @role == :provider && @session.capacity do %>
+        <%= if @role == :provider && Map.get(@session, :capacity) do %>
           <div class="flex items-center gap-2 text-sm text-gray-700">
             <.icon name="hero-user-group" class="w-4 h-4 text-gray-400" />
             <span>
-              {@session.checked_in_count || 0} / {@session.capacity} checked in
+              {Map.get(@session, :checked_in_count, 0)} / {Map.get(@session, :capacity)} checked in
             </span>
           </div>
         <% end %>
@@ -193,9 +193,9 @@ defmodule PrimeYouthWeb.AttendanceComponents do
                   <div class="font-medium text-gray-900">
                     {Map.get(@child_names, record.child_id, "Unknown Child")}
                   </div>
-                  <%= if record.status == :checked_in && record.checked_in_at do %>
+                  <%= if record.status == :checked_in && record.check_in_at do %>
                     <div class="text-xs text-gray-500 mt-1">
-                      Checked in at {format_time(record.checked_in_at)}
+                      Checked in at {format_time(record.check_in_at)}
                     </div>
                   <% end %>
                 </div>
@@ -306,24 +306,24 @@ defmodule PrimeYouthWeb.AttendanceComponents do
 
               <%!-- Check-in/out times --%>
               <div class="space-y-1 text-sm text-gray-600">
-                <%= if record.checked_in_at do %>
+                <%= if record.check_in_at do %>
                   <div class="flex items-center gap-2">
                     <.icon name="hero-arrow-right-circle" class="w-4 h-4 text-green-600" />
-                    <span>In: {format_time(record.checked_in_at)}</span>
+                    <span>In: {format_time(record.check_in_at)}</span>
                   </div>
                 <% end %>
-                <%= if record.checked_out_at do %>
+                <%= if record.check_out_at do %>
                   <div class="flex items-center gap-2">
                     <.icon name="hero-arrow-left-circle" class="w-4 h-4 text-blue-600" />
-                    <span>Out: {format_time(record.checked_out_at)}</span>
+                    <span>Out: {format_time(record.check_out_at)}</span>
                   </div>
                 <% end %>
               </div>
 
               <%!-- Notes --%>
-              <%= if record.notes do %>
+              <%= if Map.get(record, :notes) || Map.get(record, :check_in_notes) do %>
                 <div class="mt-2 text-sm text-gray-600 italic">
-                  "{record.notes}"
+                  "{Map.get(record, :notes) || Map.get(record, :check_in_notes)}"
                 </div>
               <% end %>
             </div>
@@ -355,8 +355,8 @@ defmodule PrimeYouthWeb.AttendanceComponents do
   # Private helper functions
 
   defp format_session_datetime(session) do
-    date = session.date || Date.utc_today()
-    start_time = session.start_time || ~T[00:00:00]
+    date = Map.get(session, :session_date) || Map.get(session, :date) || Date.utc_today()
+    start_time = Map.get(session, :start_time) || ~T[00:00:00]
 
     "#{Calendar.strftime(date, "%B %d, %Y")} at #{Calendar.strftime(start_time, "%I:%M %p")}"
   end
@@ -398,12 +398,16 @@ defmodule PrimeYouthWeb.AttendanceComponents do
 
   defp status_color_classes(:absent), do: "bg-orange-100 text-orange-700 border border-orange-300"
 
+  defp status_color_classes(:expected),
+    do: "bg-yellow-100 text-yellow-700 border border-yellow-300"
+
   defp status_icon(:scheduled), do: "hero-clock"
   defp status_icon(:in_progress), do: "hero-play-circle"
   defp status_icon(:completed), do: "hero-check-circle"
   defp status_icon(:checked_in), do: "hero-check-circle"
   defp status_icon(:checked_out), do: "hero-arrow-left-circle"
   defp status_icon(:absent), do: "hero-x-circle"
+  defp status_icon(:expected), do: "hero-clock"
 
   defp status_label(:scheduled), do: "Scheduled"
   defp status_label(:in_progress), do: "In Progress"
@@ -411,4 +415,5 @@ defmodule PrimeYouthWeb.AttendanceComponents do
   defp status_label(:checked_in), do: "Checked In"
   defp status_label(:checked_out), do: "Checked Out"
   defp status_label(:absent), do: "Absent"
+  defp status_label(:expected), do: "Expected"
 end

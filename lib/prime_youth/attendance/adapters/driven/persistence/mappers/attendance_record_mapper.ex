@@ -6,6 +6,8 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.AttendanceRe
   alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.AttendanceRecordSchema
   alias PrimeYouth.Attendance.Domain.Models.AttendanceRecord
 
+  @valid_statuses ~w(expected checked_in checked_out absent excused)a
+
   def to_domain(%AttendanceRecordSchema{} = schema) do
     %AttendanceRecord{
       id: to_string(schema.id),
@@ -13,7 +15,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.AttendanceRe
       child_id: to_string(schema.child_id),
       parent_id: to_string_or_nil(schema.parent_id),
       provider_id: to_string_or_nil(schema.provider_id),
-      status: String.to_existing_atom(schema.status),
+      status: parse_status(schema.status),
       check_in_at: schema.check_in_at,
       check_in_notes: schema.check_in_notes,
       check_in_by: to_string_or_nil(schema.check_in_by),
@@ -66,4 +68,11 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.AttendanceRe
       :error -> to_string(binary_uuid)
     end
   end
+
+  defp parse_status(status) when is_binary(status) do
+    atom = String.to_atom(status)
+    if atom in @valid_statuses, do: atom, else: :expected
+  end
+
+  defp parse_status(status) when is_atom(status), do: status
 end
