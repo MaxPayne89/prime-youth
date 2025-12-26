@@ -164,35 +164,57 @@ defmodule PrimeYouthWeb.Provider.AttendanceLiveTest do
       %{session: session, record: record, child: child}
     end
 
-    test "check_out event transitions record to checked_out status", %{
+    test "checkout flow expands form and completes checkout with notes", %{
       conn: conn,
       session: session,
       record: record
     } do
       {:ok, view, _html} = live(conn, ~p"/provider/attendance/#{session.id}")
 
-      # Trigger check-out event
+      # Step 1: Expand checkout form
       view
-      |> element("[phx-click='check_out'][phx-value-id='#{record.id}']")
+      |> element("[phx-click='expand_checkout_form'][phx-value-id='#{record.id}']")
       |> render_click()
 
-      # Verify database was updated
+      # Verify form appears
+      html = render(view)
+      assert html =~ "Check-out notes"
+      assert html =~ "Confirm Check Out"
+
+      # Step 2: Submit checkout with notes
+      view
+      |> form("#checkout-form-#{record.id}", %{
+        "checkout" => %{"notes" => "Picked up by parent"}
+      })
+      |> render_submit()
+
+      # Verify database was updated with notes
       updated_record = Repo.get!(AttendanceRecordSchema, record.id)
       assert updated_record.status == "checked_out"
       assert updated_record.check_out_at != nil
+      assert updated_record.check_out_notes == "Picked up by parent"
     end
 
-    test "shows success flash after check-out", %{
+    test "shows success flash after completing checkout", %{
       conn: conn,
       session: session,
       record: record
     } do
       {:ok, view, _html} = live(conn, ~p"/provider/attendance/#{session.id}")
 
+      # Expand checkout form
       view
-      |> element("[phx-click='check_out'][phx-value-id='#{record.id}']")
+      |> element("[phx-click='expand_checkout_form'][phx-value-id='#{record.id}']")
       |> render_click()
 
+      # Submit checkout
+      view
+      |> form("#checkout-form-#{record.id}", %{
+        "checkout" => %{"notes" => ""}
+      })
+      |> render_submit()
+
+      # Verify success flash
       html = render(view)
       assert html =~ "checked out" or html =~ "success"
     end
