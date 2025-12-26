@@ -67,12 +67,12 @@
               >
                 Check Out
               </button>
-            <%!-- Checked Out: Show status text --%>
+              <%!-- Checked Out: Show status text --%>
             <% record.status == :checked_out -> %>
               <span class="px-3 py-1.5 text-sm text-gray-500">
                 Checked Out
               </span>
-            <%!-- Expected: Show Check In button --%>
+              <%!-- Expected: Show Check In button --%>
             <% true -> %>
               <button
                 phx-click="check_in"

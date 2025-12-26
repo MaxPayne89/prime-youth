@@ -1,10 +1,10 @@
 defmodule PrimeYouthWeb.Provider.AttendanceLive do
   use PrimeYouthWeb, :live_view
 
-  alias PrimeYouth.Attendance.Application.UseCases.BulkCheckIn
   alias PrimeYouth.Attendance.Application.UseCases.GetSessionWithRoster
   alias PrimeYouth.Attendance.Application.UseCases.RecordCheckIn
   alias PrimeYouth.Attendance.Application.UseCases.RecordCheckOut
+  alias PrimeYouth.Attendance.Application.UseCases.SubmitAttendance
   alias PrimeYouthWeb.Theme
 
   require Logger
@@ -47,7 +47,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
       |> Enum.filter(fn record -> to_string(record.id) in checked_ids end)
       |> Enum.map(& &1.id)
 
-    case BulkCheckIn.execute(
+    case SubmitAttendance.execute(
            socket.assigns.session_id,
            record_ids,
            socket.assigns.provider_id
@@ -55,20 +55,20 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
       {:ok, _result} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Children checked in successfully")
+         |> put_flash(:info, "Attendance records submitted successfully")
          |> load_session_data()}
 
       {:error, :empty_record_ids} ->
-        {:noreply, put_flash(socket, :error, "Please select at least one child to check in")}
+        {:noreply, put_flash(socket, :error, "Please select at least one record to submit")}
 
       {:error, reason} ->
         Logger.error(
-          "[AttendanceLive.submit_attendance] Failed to bulk check in",
+          "[AttendanceLive.submit_attendance] Failed to submit attendance",
           session_id: socket.assigns.session_id,
           reason: inspect(reason)
         )
 
-        {:noreply, put_flash(socket, :error, "Failed to check in children: #{inspect(reason)}")}
+        {:noreply, put_flash(socket, :error, "Failed to submit attendance: #{inspect(reason)}")}
     end
   end
 
@@ -128,7 +128,11 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
   end
 
   @impl true
-  def handle_event("update_checkout_notes", %{"id" => record_id, "checkout" => %{"notes" => notes}}, socket) do
+  def handle_event(
+        "update_checkout_notes",
+        %{"id" => record_id, "checkout" => %{"notes" => notes}},
+        socket
+      ) do
     current_forms = socket.assigns.checkout_forms
     updated_form = to_form(%{"notes" => notes}, as: "checkout")
 
@@ -141,7 +145,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
   def handle_event("confirm_checkout", %{"id" => record_id, "checkout" => params}, socket) do
     record = find_attendance_record(socket, record_id)
     notes = Map.get(params, "notes", "") |> String.trim()
-    notes = if notes == "", do: nil, else: notes
+    notes = if notes != "", do: notes
 
     case record do
       nil ->

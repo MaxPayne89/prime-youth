@@ -143,7 +143,8 @@ defmodule PrimeYouthWeb.AttendanceComponents do
 
   attr :attendance_records, :list,
     required: true,
-    doc: "List of enriched attendance record maps with child_first_name and child_last_name fields"
+    doc:
+      "List of enriched attendance record maps with child_first_name and child_last_name fields"
 
   attr :session, :map, required: true, doc: "Session map"
   attr :on_submit, :string, required: true, doc: "Phoenix event for form submission"
@@ -264,7 +265,8 @@ defmodule PrimeYouthWeb.AttendanceComponents do
   """
   attr :attendance_records, :list,
     required: true,
-    doc: "List of enriched attendance record maps with child_first_name and child_last_name fields"
+    doc:
+      "List of enriched attendance record maps with child_first_name and child_last_name fields"
 
   attr :session, :map, required: true, doc: "Session map"
   attr :editable, :boolean, default: false, doc: "Whether to show action buttons"
@@ -336,12 +338,14 @@ defmodule PrimeYouthWeb.AttendanceComponents do
                 <div class="mt-2 space-y-1">
                   <%= if Map.get(record, :check_in_notes) do %>
                     <div class="text-sm text-gray-600 italic">
-                      <span class="font-medium text-gray-700">Check-in:</span> "{record.check_in_notes}"
+                      <span class="font-medium text-gray-700">Check-in:</span>
+                      "{record.check_in_notes}"
                     </div>
                   <% end %>
                   <%= if Map.get(record, :check_out_notes) do %>
                     <div class="text-sm text-gray-600 italic">
-                      <span class="font-medium text-gray-700">Check-out:</span> "{record.check_out_notes}"
+                      <span class="font-medium text-gray-700">Check-out:</span>
+                      "{record.check_out_notes}"
                     </div>
                   <% end %>
                 </div>
