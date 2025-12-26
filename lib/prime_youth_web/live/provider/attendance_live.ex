@@ -1,12 +1,10 @@
 defmodule PrimeYouthWeb.Provider.AttendanceLive do
   use PrimeYouthWeb, :live_view
 
+  alias PrimeYouth.Attendance.Application.UseCases.BulkCheckIn
   alias PrimeYouth.Attendance.Application.UseCases.GetSessionWithRoster
   alias PrimeYouth.Attendance.Application.UseCases.RecordCheckIn
   alias PrimeYouth.Attendance.Application.UseCases.RecordCheckOut
-  alias PrimeYouth.Attendance.Application.UseCases.SubmitAttendance
-  alias PrimeYouth.Family.Application.UseCases.GetChildren
-  alias PrimeYouth.Family.Domain.Models.Child
   alias PrimeYouthWeb.Theme
 
   require Logger
@@ -26,14 +24,15 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
       # - Need to filter/search records (Enum.find, Enum.filter)
       # - Full replacement on updates (no incremental changes)
       |> assign(:attendance_records, [])
-      |> assign(:child_names, %{})
       |> assign(:form, nil)
+      |> assign(:checkout_form_expanded, nil)
+      |> assign(:checkout_forms, %{})
 
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(
-        PrimeYouth.PubSub,
-        "attendance:session:#{session_id}"
-      )
+      # Subscribe to attendance record events for real-time UI updates
+      Phoenix.PubSub.subscribe(PrimeYouth.PubSub, "attendance_record:child_checked_in")
+      Phoenix.PubSub.subscribe(PrimeYouth.PubSub, "attendance_record:child_checked_out")
+      Phoenix.PubSub.subscribe(PrimeYouth.PubSub, "attendance_record:attendance_marked_absent")
     end
 
     {:ok, load_session_data(socket)}
@@ -48,7 +47,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
       |> Enum.filter(fn record -> to_string(record.id) in checked_ids end)
       |> Enum.map(& &1.id)
 
-    case SubmitAttendance.execute(
+    case BulkCheckIn.execute(
            socket.assigns.session_id,
            record_ids,
            socket.assigns.provider_id
@@ -56,20 +55,20 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
       {:ok, _result} ->
         {:noreply,
          socket
-         |> put_flash(:info, "Attendance submitted successfully")
+         |> put_flash(:info, "Children checked in successfully")
          |> load_session_data()}
 
       {:error, :empty_record_ids} ->
-        {:noreply, put_flash(socket, :error, "Please select at least one record to submit")}
+        {:noreply, put_flash(socket, :error, "Please select at least one child to check in")}
 
       {:error, reason} ->
         Logger.error(
-          "[AttendanceLive.submit_attendance] Failed to submit attendance",
+          "[AttendanceLive.submit_attendance] Failed to bulk check in",
           session_id: socket.assigns.session_id,
           reason: inspect(reason)
         )
 
-        {:noreply, put_flash(socket, :error, "Failed to submit attendance: #{inspect(reason)}")}
+        {:noreply, put_flash(socket, :error, "Failed to check in children: #{inspect(reason)}")}
     end
   end
 
@@ -88,7 +87,10 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
                socket.assigns.provider_id
              ) do
           {:ok, _record} ->
-            {:noreply, put_flash(socket, :info, "Child checked in successfully")}
+            {:noreply,
+             socket
+             |> put_flash(:info, "Child checked in successfully")
+             |> load_session_data()}
 
           {:error, reason} ->
             Logger.error(
@@ -104,8 +106,42 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
   end
 
   @impl true
-  def handle_event("check_out", %{"id" => record_id}, socket) do
+  def handle_event("expand_checkout_form", %{"id" => record_id}, socket) do
+    form = to_form(%{"notes" => ""}, as: "checkout")
+
+    socket =
+      socket
+      |> assign(:checkout_form_expanded, record_id)
+      |> assign(:checkout_forms, Map.put(socket.assigns.checkout_forms, record_id, form))
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("cancel_checkout", %{"id" => record_id}, socket) do
+    socket =
+      socket
+      |> assign(:checkout_form_expanded, nil)
+      |> assign(:checkout_forms, Map.delete(socket.assigns.checkout_forms, record_id))
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("update_checkout_notes", %{"id" => record_id, "checkout" => %{"notes" => notes}}, socket) do
+    current_forms = socket.assigns.checkout_forms
+    updated_form = to_form(%{"notes" => notes}, as: "checkout")
+
+    socket = assign(socket, :checkout_forms, Map.put(current_forms, record_id, updated_form))
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("confirm_checkout", %{"id" => record_id, "checkout" => params}, socket) do
     record = find_attendance_record(socket, record_id)
+    notes = Map.get(params, "notes", "") |> String.trim()
+    notes = if notes == "", do: nil, else: notes
 
     case record do
       nil ->
@@ -115,14 +151,20 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
         case RecordCheckOut.execute(
                socket.assigns.session_id,
                record.child_id,
-               socket.assigns.provider_id
+               socket.assigns.provider_id,
+               notes
              ) do
           {:ok, _record} ->
-            {:noreply, put_flash(socket, :info, "Child checked out successfully")}
+            {:noreply,
+             socket
+             |> put_flash(:info, "Child checked out successfully")
+             |> assign(:checkout_form_expanded, nil)
+             |> assign(:checkout_forms, Map.delete(socket.assigns.checkout_forms, record_id))
+             |> load_session_data()}
 
           {:error, reason} ->
             Logger.error(
-              "[AttendanceLive.check_out] Failed to check out",
+              "[AttendanceLive.confirm_checkout] Failed to check out",
               record_id: record_id,
               child_id: record.child_id,
               reason: inspect(reason)
@@ -136,10 +178,11 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
   # PubSub event handlers
   @impl true
   def handle_info(
-        %PrimeYouth.Shared.Domain.Events.DomainEvent{
-          event_type: :child_checked_in,
-          aggregate_id: record_id
-        },
+        {:domain_event,
+         %PrimeYouth.Shared.Domain.Events.DomainEvent{
+           event_type: :child_checked_in,
+           aggregate_id: record_id
+         }},
         socket
       ) do
     socket = update_attendance_record(socket, record_id)
@@ -148,10 +191,11 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
 
   @impl true
   def handle_info(
-        %PrimeYouth.Shared.Domain.Events.DomainEvent{
-          event_type: :child_checked_out,
-          aggregate_id: record_id
-        },
+        {:domain_event,
+         %PrimeYouth.Shared.Domain.Events.DomainEvent{
+           event_type: :child_checked_out,
+           aggregate_id: record_id
+         }},
         socket
       ) do
     socket = update_attendance_record(socket, record_id)
@@ -160,10 +204,11 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
 
   @impl true
   def handle_info(
-        %PrimeYouth.Shared.Domain.Events.DomainEvent{
-          event_type: :attendance_marked_absent,
-          aggregate_id: record_id
-        },
+        {:domain_event,
+         %PrimeYouth.Shared.Domain.Events.DomainEvent{
+           event_type: :attendance_marked_absent,
+           aggregate_id: record_id
+         }},
         socket
       ) do
     socket = update_attendance_record(socket, record_id)
@@ -175,17 +220,14 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
   defp load_session_data(socket) do
     session_id = socket.assigns.session_id
 
-    with {:ok, session} <- GetSessionWithRoster.execute(session_id),
-         {:ok, children} <- GetChildren.execute(:simple) do
-      child_names = Map.new(children, fn child -> {child.id, Child.full_name(child)} end)
+    case GetSessionWithRoster.execute_enriched(session_id) do
+      {:ok, session} ->
+        socket
+        |> assign(:session, session)
+        |> assign(:attendance_records, session.attendance_records || [])
+        |> assign(:form, to_form(%{}, as: :attendance))
+        |> assign(:session_error, nil)
 
-      socket
-      |> assign(:session, session)
-      |> assign(:attendance_records, session.attendance_records || [])
-      |> assign(:child_names, child_names)
-      |> assign(:form, to_form(%{}, as: :attendance))
-      |> assign(:session_error, nil)
-    else
       {:error, :not_found} ->
         Logger.warning(
           "[AttendanceLive.load_session_data] Session not found",
@@ -209,7 +251,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
   end
 
   defp update_attendance_record(socket, record_id) do
-    case GetSessionWithRoster.execute(socket.assigns.session_id) do
+    case GetSessionWithRoster.execute_enriched(socket.assigns.session_id) do
       {:ok, session} ->
         socket
         |> assign(:session, session)

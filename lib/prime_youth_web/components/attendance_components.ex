@@ -136,14 +136,16 @@ defmodule PrimeYouthWeb.AttendanceComponents do
         form={@form}
         attendance_records={@attendance_records}
         session={@session}
-        child_names={@child_names}
         on_submit="submit_attendance"
       />
   """
   attr :form, Phoenix.HTML.Form, required: true, doc: "Form struct from to_form/2"
-  attr :attendance_records, :list, required: true, doc: "List of attendance record maps"
+
+  attr :attendance_records, :list,
+    required: true,
+    doc: "List of enriched attendance record maps with child_first_name and child_last_name fields"
+
   attr :session, :map, required: true, doc: "Session map"
-  attr :child_names, :map, required: true, doc: "Map of child_id => full_name"
   attr :on_submit, :string, required: true, doc: "Phoenix event for form submission"
   attr :class, :string, default: "", doc: "Additional CSS classes"
 
@@ -191,7 +193,7 @@ defmodule PrimeYouthWeb.AttendanceComponents do
                 />
                 <div class="flex-1">
                   <div class="font-medium text-gray-900">
-                    {Map.get(@child_names, record.child_id, "Unknown Child")}
+                    {record.child_first_name} {record.child_last_name}
                   </div>
                   <%= if record.status == :checked_in && record.check_in_at do %>
                     <div class="text-xs text-gray-500 mt-1">
@@ -245,7 +247,6 @@ defmodule PrimeYouthWeb.AttendanceComponents do
       <.roster_list
         attendance_records={@attendance_records}
         session={@session}
-        child_names={@child_names}
         editable={true}
       >
         <:actions :let={record}>
@@ -261,11 +262,21 @@ defmodule PrimeYouthWeb.AttendanceComponents do
         </:actions>
       </.roster_list>
   """
-  attr :attendance_records, :list, required: true, doc: "List of attendance record maps"
+  attr :attendance_records, :list,
+    required: true,
+    doc: "List of enriched attendance record maps with child_first_name and child_last_name fields"
+
   attr :session, :map, required: true, doc: "Session map"
-  attr :child_names, :map, required: true, doc: "Map of child_id => full_name"
   attr :editable, :boolean, default: false, doc: "Whether to show action buttons"
   attr :class, :string, default: "", doc: "Additional CSS classes"
+
+  attr :checkout_form_expanded, :string,
+    default: nil,
+    doc: "Record ID with checkout form expanded"
+
+  attr :checkout_forms, :map,
+    default: %{},
+    doc: "Map of record_id => form structs"
 
   slot :actions, doc: "Action buttons per record" do
     attr :record, :map
@@ -301,7 +312,7 @@ defmodule PrimeYouthWeb.AttendanceComponents do
             <%!-- Child info --%>
             <div class="flex-1">
               <div class="font-medium text-gray-900 mb-1">
-                {Map.get(@child_names, record.child_id, "Unknown Child")}
+                {record.child_first_name} {record.child_last_name}
               </div>
 
               <%!-- Check-in/out times --%>
@@ -320,10 +331,19 @@ defmodule PrimeYouthWeb.AttendanceComponents do
                 <% end %>
               </div>
 
-              <%!-- Notes --%>
-              <%= if Map.get(record, :notes) || Map.get(record, :check_in_notes) do %>
-                <div class="mt-2 text-sm text-gray-600 italic">
-                  "{Map.get(record, :notes) || Map.get(record, :check_in_notes)}"
+              <%!-- Notes (check-in and check-out) --%>
+              <%= if Map.get(record, :check_in_notes) || Map.get(record, :check_out_notes) do %>
+                <div class="mt-2 space-y-1">
+                  <%= if Map.get(record, :check_in_notes) do %>
+                    <div class="text-sm text-gray-600 italic">
+                      <span class="font-medium text-gray-700">Check-in:</span> "{record.check_in_notes}"
+                    </div>
+                  <% end %>
+                  <%= if Map.get(record, :check_out_notes) do %>
+                    <div class="text-sm text-gray-600 italic">
+                      <span class="font-medium text-gray-700">Check-out:</span> "{record.check_out_notes}"
+                    </div>
+                  <% end %>
                 </div>
               <% end %>
             </div>
@@ -338,6 +358,58 @@ defmodule PrimeYouthWeb.AttendanceComponents do
               <% end %>
             </div>
           </div>
+
+          <%!-- Checkout form (inline, below child info) --%>
+          <%= if @checkout_form_expanded == to_string(record.id) do %>
+            <div class="mt-4 border-t border-gray-200 pt-4">
+              <.form
+                for={Map.get(@checkout_forms, to_string(record.id))}
+                id={"checkout-form-#{record.id}"}
+                phx-change="update_checkout_notes"
+                phx-submit="confirm_checkout"
+                phx-value-id={record.id}
+              >
+                <div class="space-y-3">
+                  <%!-- Notes textarea --%>
+                  <.input
+                    field={Map.get(@checkout_forms, to_string(record.id))[:notes]}
+                    type="textarea"
+                    label="Check-out notes (optional)"
+                    placeholder="E.g., picked up by parent, gave medication reminder..."
+                    rows="2"
+                  />
+
+                  <%!-- Action buttons --%>
+                  <div class="flex gap-2 flex-wrap">
+                    <button
+                      type="submit"
+                      class={[
+                        "flex-1 px-4 py-2 bg-blue-600 text-white font-medium hover:bg-blue-700",
+                        "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                        Theme.rounded(:md),
+                        Theme.transition(:normal)
+                      ]}
+                    >
+                      Confirm Check Out
+                    </button>
+                    <button
+                      type="button"
+                      phx-click="cancel_checkout"
+                      phx-value-id={record.id}
+                      class={[
+                        "px-4 py-2 bg-white text-gray-700 font-medium border border-gray-300",
+                        "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                        Theme.rounded(:md),
+                        Theme.transition(:normal)
+                      ]}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </.form>
+            </div>
+          <% end %>
         </div>
 
         <%!-- Empty state --%>

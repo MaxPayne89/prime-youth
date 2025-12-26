@@ -35,7 +35,6 @@
         form={@form}
         attendance_records={@attendance_records}
         session={@session}
-        child_names={@child_names}
         on_submit="submit_attendance"
       />
     </div>
@@ -48,33 +47,39 @@
       <.roster_list
         attendance_records={@attendance_records}
         session={@session}
-        child_names={@child_names}
         editable={true}
+        checkout_form_expanded={@checkout_form_expanded}
+        checkout_forms={@checkout_forms}
       >
         <:actions :let={record}>
           <%= cond do %>
-            <% record.status == :checked_in -> %>
+            <%!-- Checked In: Show "Check Out" button (hide when form expanded) --%>
+            <% record.status == :checked_in && @checkout_form_expanded != to_string(record.id) -> %>
               <button
-                phx-click="check_out"
+                phx-click="expand_checkout_form"
                 phx-value-id={record.id}
                 class={[
-                  "px-3 py-1.5 text-sm bg-blue-600 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                  "px-3 py-1.5 text-sm bg-blue-600 text-white font-medium hover:bg-blue-700",
+                  "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
                   Theme.rounded(:md),
                   Theme.transition(:normal)
                 ]}
               >
                 Check Out
               </button>
+            <%!-- Checked Out: Show status text --%>
             <% record.status == :checked_out -> %>
               <span class="px-3 py-1.5 text-sm text-gray-500">
                 Checked Out
               </span>
+            <%!-- Expected: Show Check In button --%>
             <% true -> %>
               <button
                 phx-click="check_in"
                 phx-value-id={record.id}
                 class={[
-                  "px-3 py-1.5 text-sm bg-teal-600 text-white font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
+                  "px-3 py-1.5 text-sm bg-teal-600 text-white font-medium hover:bg-teal-700",
+                  "focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
                   Theme.rounded(:md),
                   Theme.transition(:normal)
                 ]}

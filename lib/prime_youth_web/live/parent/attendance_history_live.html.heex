@@ -32,7 +32,7 @@
         <div class="flex items-start justify-between gap-4 mb-4">
           <div class="flex-1">
             <h3 class="text-lg font-semibold text-gray-900">
-              {Map.get(@child_names, record.child_id, "Unknown Child")}
+              {record.child_first_name} {record.child_last_name}
             </h3>
             <p class="text-sm text-gray-600 mt-1">
               {record.program_name || "Program"}
@@ -58,45 +58,30 @@
               </span>
             </div>
           <% end %>
-
-          <%= if record.location do %>
-            <div class="flex items-center gap-2 text-sm text-gray-700">
-              <.icon name="hero-map-pin" class="w-4 h-4 text-gray-400" />
-              <span>{record.location}</span>
-            </div>
-          <% end %>
         </div>
 
         <%!-- Check-in/out times --%>
         <div class="border-t border-gray-200 pt-4 space-y-2">
-          <%= if record.checked_in_at do %>
+          <%= if record.check_in_at do %>
             <div class="flex items-center gap-2 text-sm">
               <.icon name="hero-arrow-right-circle" class="w-5 h-5 text-green-600" />
               <span class="text-gray-700">
                 Checked in:
-                <span class="font-medium">{format_datetime(record.checked_in_at)}</span>
+                <span class="font-medium">{format_datetime(record.check_in_at)}</span>
               </span>
             </div>
           <% end %>
 
-          <%= if record.checked_out_at do %>
+          <%= if record.check_out_at do %>
             <div class="flex items-center gap-2 text-sm">
               <.icon name="hero-arrow-left-circle" class="w-5 h-5 text-blue-600" />
               <span class="text-gray-700">
                 Checked out:
-                <span class="font-medium">{format_datetime(record.checked_out_at)}</span>
+                <span class="font-medium">{format_datetime(record.check_out_at)}</span>
               </span>
             </div>
           <% end %>
         </div>
-
-        <%!-- Notes --%>
-        <%= if record.notes do %>
-          <div class="mt-4 p-3 bg-gray-50 rounded-lg">
-            <div class="text-xs font-medium text-gray-500 mb-1">Notes</div>
-            <p class="text-sm text-gray-700">{record.notes}</p>
-          </div>
-        <% end %>
       </div>
     </div>
 

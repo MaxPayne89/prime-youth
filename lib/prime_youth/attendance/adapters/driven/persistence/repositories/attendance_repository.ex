@@ -447,6 +447,102 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
     end
   end
 
+  @doc """
+  Retrieves attendance records for a session with enriched child name data.
+
+  Similar to list_by_session/1 but includes child first_name and last_name fields
+  by joining with the children table. Used by provider attendance view to display
+  child names without separate queries.
+
+  This is an implementation-specific method, not part of the ForManagingAttendance port.
+  """
+  def list_by_session_enriched(session_id) when is_binary(session_id) do
+    Logger.info("[AttendanceRepository] Listing enriched attendance records by session",
+      session_id: session_id
+    )
+
+    query =
+      from a in AttendanceRecordSchema,
+        join: c in "children",
+        on: a.child_id == c.id,
+        where: a.session_id == ^session_id,
+        order_by: [asc: a.child_id],
+        select: %{
+          id: a.id,
+          session_id: a.session_id,
+          child_id: a.child_id,
+          parent_id: a.parent_id,
+          provider_id: a.provider_id,
+          status: a.status,
+          check_in_at: a.check_in_at,
+          check_in_notes: a.check_in_notes,
+          check_in_by: a.check_in_by,
+          check_out_at: a.check_out_at,
+          check_out_notes: a.check_out_notes,
+          check_out_by: a.check_out_by,
+          submitted: a.submitted,
+          submitted_at: a.submitted_at,
+          submitted_by: a.submitted_by,
+          inserted_at: a.inserted_at,
+          updated_at: a.updated_at,
+          lock_version: a.lock_version,
+          # Child fields for provider view
+          child_first_name: c.first_name,
+          child_last_name: c.last_name
+        }
+
+    try do
+      enriched_records =
+        query
+        |> Repo.all()
+        |> Enum.map(fn record ->
+          # Convert status from string to atom for component compatibility
+          %{record | status: String.to_existing_atom(record.status)}
+        end)
+
+      Logger.info(
+        "[AttendanceRepository] Successfully retrieved enriched attendance records by session",
+        session_id: session_id,
+        count: length(enriched_records)
+      )
+
+      {:ok, enriched_records}
+    rescue
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[AttendanceRepository] Database connection failed during list_by_session_enriched",
+          error_id: ErrorIds.attendance_list_connection_error(),
+          session_id: session_id,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error, Ecto.Query.CastError] ->
+        Logger.error(
+          "[AttendanceRepository] Database query error during list_by_session_enriched",
+          error_id: ErrorIds.attendance_list_query_error(),
+          session_id: session_id,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
+      error ->
+        Logger.error(
+          "[AttendanceRepository] Unexpected database error during list_by_session_enriched",
+          error_id: ErrorIds.attendance_list_generic_error(),
+          session_id: session_id,
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
+        )
+
+        {:error, :database_unavailable}
+    end
+  end
+
   @impl true
   def list_by_child(child_id) when is_binary(child_id) do
     Logger.info("[AttendanceRepository] Listing attendance records by child", child_id: child_id)
@@ -515,20 +611,57 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
       from a in AttendanceRecordSchema,
         join: s in ProgramSessionSchema,
         on: a.session_id == s.id,
+        join: p in PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema,
+        on: s.program_id == p.id,
+        join: c in "children",
+        on: a.child_id == c.id,
         where: a.parent_id == ^parent_id,
-        order_by: [desc: s.session_date, desc: s.start_time]
+        order_by: [desc: s.session_date, desc: s.start_time],
+        select: %{
+          id: a.id,
+          session_id: a.session_id,
+          child_id: a.child_id,
+          parent_id: a.parent_id,
+          provider_id: a.provider_id,
+          status: a.status,
+          check_in_at: a.check_in_at,
+          check_in_notes: a.check_in_notes,
+          check_in_by: a.check_in_by,
+          check_out_at: a.check_out_at,
+          check_out_notes: a.check_out_notes,
+          check_out_by: a.check_out_by,
+          submitted: a.submitted,
+          submitted_at: a.submitted_at,
+          submitted_by: a.submitted_by,
+          inserted_at: a.inserted_at,
+          updated_at: a.updated_at,
+          lock_version: a.lock_version,
+          # Session fields for parent view
+          session_date: s.session_date,
+          session_start_time: s.start_time,
+          # Program fields for parent view
+          program_name: p.title,
+          # Child fields for parent view
+          child_first_name: c.first_name,
+          child_last_name: c.last_name
+        }
 
     try do
-      schemas = Repo.all(query)
-      records = AttendanceRecordMapper.to_domain_list(schemas)
+      enriched_records =
+        query
+        |> Repo.all()
+        |> Enum.map(fn record ->
+          # Convert status from string to atom for component compatibility
+          %{record | status: String.to_existing_atom(record.status)}
+        end)
 
       Logger.info(
-        "[AttendanceRepository] Successfully retrieved attendance records by parent",
+        "[AttendanceRepository] Successfully retrieved enriched attendance records by parent",
         parent_id: parent_id,
-        count: length(records)
+        count: length(enriched_records)
       )
 
-      {:ok, records}
+      {:ok, enriched_records}
     rescue
       error in [DBConnection.ConnectionError] ->
         Logger.error(
