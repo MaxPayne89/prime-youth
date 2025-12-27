@@ -82,7 +82,7 @@ defmodule PrimeYouthWeb.BookingLiveTest do
 
       view
       |> form("form[phx-submit='complete_enrollment']", %{
-        "child_id" => "1",
+        "child_id" => "child-1",
         "special_requirements" => "No allergies"
       })
       |> render_submit()

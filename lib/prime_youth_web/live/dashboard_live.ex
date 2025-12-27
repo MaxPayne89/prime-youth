@@ -5,6 +5,7 @@ defmodule PrimeYouthWeb.DashboardLive do
 
   alias PrimeYouth.Activities.Application.UseCases.ListUpcomingActivities
   alias PrimeYouth.Family.Application.UseCases.{GetChildren, GetCurrentUser}
+  alias PrimeYouthWeb.Presenters.ChildPresenter
   alias PrimeYouthWeb.Theme
 
   @impl true
@@ -13,12 +14,14 @@ defmodule PrimeYouthWeb.DashboardLive do
     {:ok, children} = GetChildren.execute(:extended)
     {:ok, activities} = ListUpcomingActivities.execute()
 
+    children_for_view = Enum.map(children, &ChildPresenter.to_extended_view/1)
+
     socket =
       socket
       |> assign(page_title: "Dashboard")
       |> assign(user: user)
-      |> assign(children_count: length(children))
-      |> stream(:children, children)
+      |> assign(children_count: length(children_for_view))
+      |> stream(:children, children_for_view)
       |> stream(:upcoming_activities, activities)
       |> assign(:activities_empty?, Enum.empty?(activities))
 

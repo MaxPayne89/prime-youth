@@ -84,6 +84,7 @@ defmodule PrimeYouthWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
+      import PrimeYouthWeb.AttendanceComponents
       import PrimeYouthWeb.CompositeComponents
       # Core UI components
       import PrimeYouthWeb.CoreComponents

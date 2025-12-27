@@ -123,34 +123,21 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFam
       children_summary: fixture_user.children_summary
     }
 
+    parent_id = "parent-user-1"
+    base_timestamp = DateTime.utc_now()
+
     fixture_children_simple = SampleFixtures.sample_children(:simple)
 
     children_simple =
       Enum.map(fixture_children_simple, fn child ->
-        %Child{
-          id: child.id,
-          name: child.name,
-          age: child.age,
-          school: nil,
-          sessions: nil,
-          progress: nil,
-          activities: nil
-        }
+        transform_fixture_to_child(child, parent_id, base_timestamp)
       end)
 
     fixture_children_extended = SampleFixtures.sample_children(:extended)
 
     children_extended =
       Enum.map(fixture_children_extended, fn child ->
-        %Child{
-          id: child.id,
-          name: child.name,
-          age: child.age,
-          school: child.school,
-          sessions: child.sessions,
-          progress: child.progress,
-          activities: child.activities
-        }
+        transform_fixture_to_child(child, parent_id, base_timestamp)
       end)
 
     %{
@@ -158,5 +145,36 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFam
       children_simple: children_simple,
       children_extended: children_extended
     }
+  end
+
+  defp transform_fixture_to_child(fixture_child, parent_id, base_timestamp) do
+    [first_name, last_name] = split_full_name(fixture_child.name)
+
+    %Child{
+      id: generate_child_uuid(fixture_child.id),
+      parent_id: parent_id,
+      first_name: first_name,
+      last_name: last_name,
+      date_of_birth: calculate_birthdate(fixture_child.age),
+      notes: nil,
+      inserted_at: base_timestamp,
+      updated_at: base_timestamp
+    }
+  end
+
+  defp split_full_name(full_name) do
+    case String.split(full_name, " ", parts: 2) do
+      [first, last] -> [first, last]
+      [single] -> [single, ""]
+    end
+  end
+
+  defp calculate_birthdate(age) do
+    current_year = Date.utc_today().year
+    Date.new!(current_year - age, 1, 1)
+  end
+
+  defp generate_child_uuid(fixture_id) do
+    "child-#{fixture_id}"
   end
 end

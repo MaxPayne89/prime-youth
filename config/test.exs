@@ -18,11 +18,11 @@ config :phoenix_test, :endpoint, PrimeYouthWeb.Endpoint
 # Configure your database
 #
 
+# to provide built-in test partitioning in CI environment.
+# Run `mix help test` for more information.
 # In test we don't send emails
 # The MIX_TEST_PARTITION environment variable can be used
 
-# to provide built-in test partitioning in CI environment.
-# Run `mix help test` for more information.
 config :prime_youth, PrimeYouth.Mailer, adapter: Swoosh.Adapters.Test
 
 config :prime_youth, PrimeYouth.Repo,
@@ -40,10 +40,29 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
   secret_key_base: "gY/oKuAYeC5ExhHrtu1JBwrpQdoGwtPOo3X9GdS7CFOnLe0eqRQ9w4cyV1MqvoYc",
   server: false
 
+config :prime_youth, :attendance,
+  session_repository:
+    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.SessionRepository,
+  attendance_repository:
+    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.AttendanceRepository,
+  child_name_resolver: PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolver
+
 # Use test event publisher for testing
 config :prime_youth, :event_publisher,
   module: PrimeYouth.Shared.Adapters.Driven.Events.TestEventPublisher,
   pubsub: PrimeYouth.PubSub
+
+config :prime_youth, :family,
+  child_repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
+
+# Repository configurations for test environment
+config :prime_youth, :parenting,
+  parent_repository:
+    PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRepository
+
+config :prime_youth, :providing,
+  provider_repository:
+    PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.ProviderRepository
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false

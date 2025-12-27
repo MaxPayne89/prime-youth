@@ -4,10 +4,20 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Mappers.ParentMapper 
 
   This adapter provides bidirectional conversion:
   - to_domain/1: ParentSchema → Parent (for reading from database)
-  - from_domain/1: Parent → ParentSchema attributes (for creating/updating in database)
+  - to_schema/1: Parent → ParentSchema attributes (for creating/updating in database)
   - to_domain_list/1: [ParentSchema] → [Parent] (convenience for collections)
 
   The mapper is bidirectional to support both reading and writing parent profiles.
+
+  ## Design Note: to_schema Excludes Database-Managed Fields
+
+  The `to_schema/1` function intentionally excludes:
+  - `id` - Managed by Ecto on insert (conditionally included via maybe_add_id/2)
+  - `inserted_at`, `updated_at` - Managed by Ecto timestamps
+
+  This follows standard Ecto patterns where the database/framework manages
+  these fields automatically. The repository handles id explicitly when needed
+  (e.g., for updates or when domain entity already has an id).
   """
 
   alias PrimeYouth.Parenting.Adapters.Driven.Persistence.Schemas.ParentSchema
@@ -66,13 +76,13 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Mappers.ParentMapper 
       ...>   location: "New York, NY",
       ...>   notification_preferences: %{email: true}
       ...> }
-      iex> attrs = ParentMapper.from_domain(parent)
+      iex> attrs = ParentMapper.to_schema(parent)
       iex> attrs.identity_id
       "550e8400-e29b-41d4-a716-446655440001"
 
   """
-  @spec from_domain(Parent.t()) :: map()
-  def from_domain(%Parent{} = parent) do
+  @spec to_schema(Parent.t()) :: map()
+  def to_schema(%Parent{} = parent) do
     %{
       identity_id: parent.identity_id,
       display_name: parent.display_name,

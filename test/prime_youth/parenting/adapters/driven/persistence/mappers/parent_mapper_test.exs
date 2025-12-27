@@ -131,7 +131,7 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Mappers.ParentMapperT
   # from_domain/1
   # =============================================================================
 
-  describe "from_domain/1" do
+  describe "to_schema/1" do
     test "maps all fields from domain entity to attrs map" do
       parent = %Parent{
         id: "550e8400-e29b-41d4-a716-446655440000",
@@ -144,7 +144,7 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Mappers.ParentMapperT
         updated_at: ~U[2025-01-01 12:00:00Z]
       }
 
-      attrs = ParentMapper.from_domain(parent)
+      attrs = ParentMapper.to_schema(parent)
 
       assert is_map(attrs)
       assert attrs.id == "550e8400-e29b-41d4-a716-446655440000"
@@ -167,7 +167,7 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Mappers.ParentMapperT
         updated_at: nil
       }
 
-      attrs = ParentMapper.from_domain(parent)
+      attrs = ParentMapper.to_schema(parent)
 
       refute Map.has_key?(attrs, :id)
       assert attrs.identity_id == "660e8400-e29b-41d4-a716-446655440001"
@@ -185,7 +185,7 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Mappers.ParentMapperT
         updated_at: nil
       }
 
-      attrs = ParentMapper.from_domain(parent)
+      attrs = ParentMapper.to_schema(parent)
 
       assert Map.has_key?(attrs, :id)
       assert attrs.id == "550e8400-e29b-41d4-a716-446655440000"
@@ -203,7 +203,7 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Mappers.ParentMapperT
         updated_at: nil
       }
 
-      attrs = ParentMapper.from_domain(parent)
+      attrs = ParentMapper.to_schema(parent)
 
       assert is_nil(attrs.display_name)
       assert is_nil(attrs.phone)
@@ -223,7 +223,7 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Mappers.ParentMapperT
         updated_at: ~U[2025-01-01 12:00:00Z]
       }
 
-      attrs = ParentMapper.from_domain(parent)
+      attrs = ParentMapper.to_schema(parent)
 
       refute Map.has_key?(attrs, :inserted_at)
       refute Map.has_key?(attrs, :updated_at)

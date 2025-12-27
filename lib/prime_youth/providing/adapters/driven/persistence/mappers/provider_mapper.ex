@@ -4,10 +4,20 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Mappers.ProviderMappe
 
   This adapter provides bidirectional conversion:
   - to_domain/1: ProviderSchema → Provider (for reading from database)
-  - from_domain/1: Provider → ProviderSchema attributes (for creating/updating in database)
+  - to_schema/1: Provider → ProviderSchema attributes (for creating/updating in database)
   - to_domain_list/1: [ProviderSchema] → [Provider] (convenience for collections)
 
   The mapper is bidirectional to support both reading and writing provider profiles.
+
+  ## Design Note: to_schema Excludes Database-Managed Fields
+
+  The `to_schema/1` function intentionally excludes:
+  - `id` - Managed by Ecto on insert (conditionally included via maybe_add_id/2)
+  - `inserted_at`, `updated_at` - Managed by Ecto timestamps
+
+  This follows standard Ecto patterns where the database/framework manages
+  these fields automatically. The repository handles id explicitly when needed
+  (e.g., for updates or when domain entity already has an id).
   """
 
   alias PrimeYouth.Providing.Adapters.Driven.Persistence.Schemas.ProviderSchema
@@ -81,13 +91,13 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Mappers.ProviderMappe
       ...>   verified_at: ~U[2025-01-15 10:00:00Z],
       ...>   categories: ["sports"]
       ...> }
-      iex> attrs = ProviderMapper.from_domain(provider)
+      iex> attrs = ProviderMapper.to_schema(provider)
       iex> attrs.identity_id
       "550e8400-e29b-41d4-a716-446655440001"
 
   """
-  @spec from_domain(Provider.t()) :: map()
-  def from_domain(%Provider{} = provider) do
+  @spec to_schema(Provider.t()) :: map()
+  def to_schema(%Provider{} = provider) do
     %{
       identity_id: provider.identity_id,
       business_name: provider.business_name,
