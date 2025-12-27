@@ -38,9 +38,6 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.AttendanceRe
       check_out_at: schema.check_out_at,
       check_out_notes: schema.check_out_notes,
       check_out_by: to_string_or_nil(schema.check_out_by),
-      submitted: schema.submitted,
-      submitted_at: schema.submitted_at,
-      submitted_by: to_string_or_nil(schema.submitted_by),
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at,
       lock_version: schema.lock_version
@@ -69,10 +66,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.AttendanceRe
       check_in_by: record.check_in_by,
       check_out_at: record.check_out_at,
       check_out_notes: record.check_out_notes,
-      check_out_by: record.check_out_by,
-      submitted: record.submitted,
-      submitted_at: record.submitted_at,
-      submitted_by: record.submitted_by
+      check_out_by: record.check_out_by
     }
   end
 

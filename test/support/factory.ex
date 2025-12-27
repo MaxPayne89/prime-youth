@@ -497,9 +497,6 @@ defmodule PrimeYouth.Factory do
       check_out_at: nil,
       check_out_notes: nil,
       check_out_by: nil,
-      submitted: false,
-      submitted_at: nil,
-      submitted_by: nil,
       inserted_at: ~U[2025-01-01 12:00:00Z],
       updated_at: ~U[2025-01-01 12:00:00Z]
     }
@@ -532,10 +529,7 @@ defmodule PrimeYouth.Factory do
       check_in_by: nil,
       check_out_at: nil,
       check_out_notes: nil,
-      check_out_by: nil,
-      submitted: false,
-      submitted_at: nil,
-      submitted_by: nil
+      check_out_by: nil
     }
   end
 

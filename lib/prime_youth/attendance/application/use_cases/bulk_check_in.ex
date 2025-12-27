@@ -9,7 +9,6 @@ defmodule PrimeYouth.Attendance.Application.UseCases.BulkCheckIn do
 
   ## Business Rules
   - All records must be in `:expected` status
-  - Cannot modify submitted records (immutable)
   - Check-in timestamp auto-generated for all records
   - Batch operation is atomic (all succeed or all fail)
 

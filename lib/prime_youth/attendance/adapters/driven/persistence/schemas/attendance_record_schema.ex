@@ -26,9 +26,6 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.AttendanceRe
     field :check_out_at, :utc_datetime
     field :check_out_notes, :string
     field :check_out_by, :binary_id
-    field :submitted, :boolean, default: false
-    field :submitted_at, :utc_datetime
-    field :submitted_by, :binary_id
     field :lock_version, :integer, default: 1
 
     timestamps()
@@ -47,10 +44,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.AttendanceRe
       :check_in_by,
       :check_out_at,
       :check_out_notes,
-      :check_out_by,
-      :submitted,
-      :submitted_at,
-      :submitted_by
+      :check_out_by
     ])
     |> validate_required([
       :session_id,
@@ -87,10 +81,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.AttendanceRe
       :check_in_by,
       :check_out_at,
       :check_out_notes,
-      :check_out_by,
-      :submitted,
-      :submitted_at,
-      :submitted_by
+      :check_out_by
     ])
     |> validate_required([
       :session_id,

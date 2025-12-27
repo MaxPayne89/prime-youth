@@ -2,7 +2,7 @@ defmodule PrimeYouth.Attendance.Domain.Models.AttendanceRecordTest do
   @moduledoc """
   Tests for AttendanceRecord domain entity.
 
-  Covers validation, status transitions, check-in/out flows, and submission logic.
+  Covers validation, status transitions, and check-in/out flows.
   """
 
   use PrimeYouth.DataCase, async: true
@@ -25,7 +25,6 @@ defmodule PrimeYouth.Attendance.Domain.Models.AttendanceRecordTest do
       assert record.session_id == attrs.session_id
       assert record.child_id == attrs.child_id
       assert record.status == :expected
-      assert record.submitted == false
     end
 
     test "creates record with optional fields" do
@@ -73,34 +72,6 @@ defmodule PrimeYouth.Attendance.Domain.Models.AttendanceRecordTest do
 
       assert {:error, errors} = AttendanceRecord.new(attrs)
       assert "Check-out time cannot be before check-in time" in errors
-    end
-
-    test "returns error for submitted record without submitted_at" do
-      attrs = %{
-        id: Ecto.UUID.generate(),
-        session_id: Ecto.UUID.generate(),
-        child_id: Ecto.UUID.generate(),
-        status: :checked_out,
-        submitted: true,
-        submitted_by: Ecto.UUID.generate()
-      }
-
-      assert {:error, errors} = AttendanceRecord.new(attrs)
-      assert "Submitted records must have submitted_at" in errors
-    end
-
-    test "returns error for submitted record without submitted_by" do
-      attrs = %{
-        id: Ecto.UUID.generate(),
-        session_id: Ecto.UUID.generate(),
-        child_id: Ecto.UUID.generate(),
-        status: :checked_out,
-        submitted: true,
-        submitted_at: DateTime.utc_now()
-      }
-
-      assert {:error, errors} = AttendanceRecord.new(attrs)
-      assert "Submitted records must have submitted_by" in errors
     end
   end
 
@@ -167,24 +138,6 @@ defmodule PrimeYouth.Attendance.Domain.Models.AttendanceRecordTest do
                AttendanceRecord.check_in(record, check_in_at, nil, provider_id)
 
       assert message =~ "Cannot check in with status: checked_out"
-    end
-
-    test "returns error when checking in submitted record" do
-      record =
-        build(:attendance_record,
-          status: :expected,
-          submitted: true,
-          submitted_at: DateTime.utc_now(),
-          submitted_by: Ecto.UUID.generate()
-        )
-
-      check_in_at = DateTime.utc_now()
-      provider_id = Ecto.UUID.generate()
-
-      assert {:error, message} =
-               AttendanceRecord.check_in(record, check_in_at, nil, provider_id)
-
-      assert message =~ "Cannot check in a submitted record"
     end
   end
 
@@ -270,28 +223,6 @@ defmodule PrimeYouth.Attendance.Domain.Models.AttendanceRecordTest do
 
       assert message =~ "Cannot check out with status: checked_out"
     end
-
-    test "returns error when checking out submitted record" do
-      check_in_at = DateTime.add(DateTime.utc_now(), -3600, :second)
-
-      record =
-        build(:attendance_record,
-          status: :checked_in,
-          check_in_at: check_in_at,
-          check_in_by: Ecto.UUID.generate(),
-          submitted: true,
-          submitted_at: DateTime.utc_now(),
-          submitted_by: Ecto.UUID.generate()
-        )
-
-      check_out_at = DateTime.utc_now()
-      provider_id = Ecto.UUID.generate()
-
-      assert {:error, message} =
-               AttendanceRecord.check_out(record, check_out_at, nil, provider_id)
-
-      assert message =~ "Cannot check out a submitted record"
-    end
   end
 
   describe "mark_absent/1" do
@@ -318,19 +249,6 @@ defmodule PrimeYouth.Attendance.Domain.Models.AttendanceRecordTest do
       assert {:error, message} = AttendanceRecord.mark_absent(record)
       assert message =~ "Cannot mark as absent with status: checked_out"
     end
-
-    test "returns error when marking submitted record as absent" do
-      record =
-        build(:attendance_record,
-          status: :expected,
-          submitted: true,
-          submitted_at: DateTime.utc_now(),
-          submitted_by: Ecto.UUID.generate()
-        )
-
-      assert {:error, message} = AttendanceRecord.mark_absent(record)
-      assert message =~ "Cannot mark a submitted record as absent"
-    end
   end
 
   describe "mark_excused/1" do
@@ -356,98 +274,6 @@ defmodule PrimeYouth.Attendance.Domain.Models.AttendanceRecordTest do
 
       assert {:error, message} = AttendanceRecord.mark_excused(record)
       assert message =~ "Cannot mark as excused with status: checked_out"
-    end
-
-    test "returns error when marking submitted record as excused" do
-      record =
-        build(:attendance_record,
-          status: :expected,
-          submitted: true,
-          submitted_at: DateTime.utc_now(),
-          submitted_by: Ecto.UUID.generate()
-        )
-
-      assert {:error, message} = AttendanceRecord.mark_excused(record)
-      assert message =~ "Cannot mark a submitted record as excused"
-    end
-  end
-
-  describe "submit/3" do
-    test "submits :checked_out record" do
-      record = build(:checked_out_attendance_record)
-      submitted_at = DateTime.utc_now()
-      submitted_by = Ecto.UUID.generate()
-
-      assert {:ok, submitted} = AttendanceRecord.submit(record, submitted_at, submitted_by)
-      assert submitted.submitted == true
-      assert submitted.submitted_at == submitted_at
-      assert submitted.submitted_by == submitted_by
-    end
-
-    test "submits :absent record" do
-      record = build(:attendance_record, status: :absent)
-      submitted_at = DateTime.utc_now()
-      submitted_by = Ecto.UUID.generate()
-
-      assert {:ok, submitted} = AttendanceRecord.submit(record, submitted_at, submitted_by)
-      assert submitted.submitted == true
-    end
-
-    test "submits :excused record" do
-      record = build(:attendance_record, status: :excused)
-      submitted_at = DateTime.utc_now()
-      submitted_by = Ecto.UUID.generate()
-
-      assert {:ok, submitted} = AttendanceRecord.submit(record, submitted_at, submitted_by)
-      assert submitted.submitted == true
-    end
-
-    test "returns error when submitting :expected record" do
-      record = build(:attendance_record, status: :expected)
-      submitted_at = DateTime.utc_now()
-      submitted_by = Ecto.UUID.generate()
-
-      assert {:error, message} = AttendanceRecord.submit(record, submitted_at, submitted_by)
-      assert message =~ "Cannot submit record with status: expected"
-    end
-
-    test "returns error when submitting :checked_in record" do
-      record = build(:checked_in_attendance_record)
-      submitted_at = DateTime.utc_now()
-      submitted_by = Ecto.UUID.generate()
-
-      assert {:error, message} = AttendanceRecord.submit(record, submitted_at, submitted_by)
-      assert message =~ "Cannot submit record with status: checked_in"
-    end
-  end
-
-  describe "unsubmit/1" do
-    test "clears submission flags from record" do
-      record =
-        build(:checked_out_attendance_record,
-          submitted: true,
-          submitted_at: DateTime.utc_now(),
-          submitted_by: Ecto.UUID.generate()
-        )
-
-      assert {:ok, unsubmitted} = AttendanceRecord.unsubmit(record)
-      assert unsubmitted.submitted == false
-      assert unsubmitted.submitted_at == nil
-      assert unsubmitted.submitted_by == nil
-    end
-
-    test "preserves check-in/out data when unsubmitting" do
-      record =
-        build(:checked_out_attendance_record,
-          submitted: true,
-          submitted_at: DateTime.utc_now(),
-          submitted_by: Ecto.UUID.generate()
-        )
-
-      assert {:ok, unsubmitted} = AttendanceRecord.unsubmit(record)
-      assert unsubmitted.check_in_at == record.check_in_at
-      assert unsubmitted.check_out_at == record.check_out_at
-      assert unsubmitted.status == :checked_out
     end
   end
 
@@ -486,20 +312,8 @@ defmodule PrimeYouth.Attendance.Domain.Models.AttendanceRecordTest do
     end
   end
 
-  describe "submitted?/1" do
-    test "returns true for submitted record" do
-      record = build(:attendance_record, submitted: true)
-      assert AttendanceRecord.submitted?(record)
-    end
-
-    test "returns false for non-submitted record" do
-      record = build(:attendance_record, submitted: false)
-      refute AttendanceRecord.submitted?(record)
-    end
-  end
-
   describe "can_check_out?/1" do
-    test "returns true for :checked_in non-submitted record" do
+    test "returns true for :checked_in record" do
       record = build(:checked_in_attendance_record)
       assert AttendanceRecord.can_check_out?(record)
     end
@@ -507,55 +321,6 @@ defmodule PrimeYouth.Attendance.Domain.Models.AttendanceRecordTest do
     test "returns false for :expected record" do
       record = build(:attendance_record, status: :expected)
       refute AttendanceRecord.can_check_out?(record)
-    end
-
-    test "returns false for submitted record" do
-      record =
-        build(:checked_in_attendance_record,
-          submitted: true,
-          submitted_at: DateTime.utc_now(),
-          submitted_by: Ecto.UUID.generate()
-        )
-
-      refute AttendanceRecord.can_check_out?(record)
-    end
-  end
-
-  describe "can_submit?/1" do
-    test "returns true for :checked_out non-submitted record" do
-      record = build(:checked_out_attendance_record)
-      assert AttendanceRecord.can_submit?(record)
-    end
-
-    test "returns true for :absent non-submitted record" do
-      record = build(:attendance_record, status: :absent)
-      assert AttendanceRecord.can_submit?(record)
-    end
-
-    test "returns true for :excused non-submitted record" do
-      record = build(:attendance_record, status: :excused)
-      assert AttendanceRecord.can_submit?(record)
-    end
-
-    test "returns false for :expected record" do
-      record = build(:attendance_record, status: :expected)
-      refute AttendanceRecord.can_submit?(record)
-    end
-
-    test "returns false for :checked_in record" do
-      record = build(:checked_in_attendance_record)
-      refute AttendanceRecord.can_submit?(record)
-    end
-
-    test "returns false for already submitted record" do
-      record =
-        build(:checked_out_attendance_record,
-          submitted: true,
-          submitted_at: DateTime.utc_now(),
-          submitted_by: Ecto.UUID.generate()
-        )
-
-      refute AttendanceRecord.can_submit?(record)
     end
   end
 

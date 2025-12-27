@@ -35,12 +35,6 @@ defmodule PrimeYouth.Repo.Migrations.CreateAttendanceRecords do
       # user_id of person who checked out
       add :check_out_by, :binary_id
 
-      # Payroll/submission tracking
-      add :submitted, :boolean, default: false, null: false
-      add :submitted_at, :utc_datetime
-      # user_id of person who submitted
-      add :submitted_by, :binary_id
-
       # Optimistic locking for concurrent updates
       add :lock_version, :integer, default: 1, null: false
 
@@ -53,7 +47,6 @@ defmodule PrimeYouth.Repo.Migrations.CreateAttendanceRecords do
     create index(:attendance_records, [:parent_id])
     create index(:attendance_records, [:provider_id])
     create index(:attendance_records, [:status])
-    create index(:attendance_records, [:submitted])
 
     # Unique constraint: one attendance record per child per session
     create unique_index(:attendance_records, [:session_id, :child_id])

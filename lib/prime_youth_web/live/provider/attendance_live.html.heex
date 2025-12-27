@@ -29,20 +29,10 @@
       <.attendance_card session={@session} role={:provider} />
     </div>
 
-    <%!-- Check-in form --%>
-    <div class="mb-6">
-      <.check_in_form
-        form={@form}
-        attendance_records={@attendance_records}
-        session={@session}
-        on_submit="submit_attendance"
-      />
-    </div>
-
     <%!-- Roster list with individual actions --%>
-    <div class="mt-8">
+    <div class="mt-6">
       <h2 class="text-xl font-semibold text-gray-900 mb-4">
-        Individual Check-In/Out
+        Attendance Management
       </h2>
       <.roster_list
         attendance_records={@attendance_records}

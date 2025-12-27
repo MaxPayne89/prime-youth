@@ -111,28 +111,6 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckOutTest do
       assert message =~ "Cannot check out"
     end
 
-    test "returns error when record is submitted" do
-      session = insert(:program_session_schema, status: "in_progress")
-      child = insert(:child_schema)
-      provider_id = Ecto.UUID.generate()
-      check_in_time = DateTime.add(DateTime.utc_now(), -3600, :second)
-
-      _submitted =
-        insert(:attendance_record_schema,
-          session_id: session.id,
-          child_id: child.id,
-          status: "checked_in",
-          check_in_at: check_in_time,
-          submitted: true,
-          submitted_at: DateTime.utc_now()
-        )
-
-      assert {:error, message} =
-               RecordCheckOut.execute(session.id, child.id, provider_id)
-
-      assert message =~ "submitted"
-    end
-
     test "persists check-out to database" do
       session = insert(:program_session_schema, status: "in_progress")
       child = insert(:child_schema)

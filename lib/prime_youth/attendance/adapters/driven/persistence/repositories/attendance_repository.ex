@@ -4,7 +4,6 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
 
   Implements ForManagingAttendance port with:
   - Optimistic locking for concurrent update protection
-  - Atomic batch operations using Ecto.Multi
   - Comprehensive error handling
 
   ## Error Handling
@@ -23,7 +22,6 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
 
   import Ecto.Query
 
-  alias Ecto.Multi
   alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.AttendanceRecordMapper
   alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.AttendanceRecordSchema
   alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
@@ -480,9 +478,6 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
           check_out_at: a.check_out_at,
           check_out_notes: a.check_out_notes,
           check_out_by: a.check_out_by,
-          submitted: a.submitted,
-          submitted_at: a.submitted_at,
-          submitted_by: a.submitted_by,
           inserted_at: a.inserted_at,
           updated_at: a.updated_at,
           lock_version: a.lock_version,
@@ -630,9 +625,6 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
           check_out_at: a.check_out_at,
           check_out_notes: a.check_out_notes,
           check_out_by: a.check_out_by,
-          submitted: a.submitted,
-          submitted_at: a.submitted_at,
-          submitted_by: a.submitted_by,
           inserted_at: a.inserted_at,
           updated_at: a.updated_at,
           lock_version: a.lock_version,
@@ -690,123 +682,6 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
           "[AttendanceRepository] Unexpected database error during list_by_parent",
           error_id: ErrorIds.attendance_list_generic_error(),
           parent_id: parent_id,
-          error_type: error.__struct__,
-          stacktrace: Exception.format(:error, error, __STACKTRACE__)
-        )
-
-        {:error, :database_unavailable}
-    end
-  end
-
-  @impl true
-  def submit_batch(session_id, attendance_records, submitted_by_user_id)
-      when is_binary(session_id) and is_list(attendance_records) and
-             is_binary(submitted_by_user_id) do
-    Logger.info(
-      "[AttendanceRepository] Submitting batch of attendance records",
-      session_id: session_id,
-      record_count: length(attendance_records),
-      submitted_by: submitted_by_user_id
-    )
-
-    multi =
-      attendance_records
-      |> Enum.with_index()
-      |> Enum.reduce(Multi.new(), fn {record, index}, multi ->
-        Multi.run(multi, {:update, index}, fn repo, _changes ->
-          case repo.get(AttendanceRecordSchema, record.id) do
-            nil ->
-              {:error, :not_found}
-
-            schema ->
-              attrs = %{
-                submitted: true,
-                submitted_at: DateTime.utc_now(),
-                submitted_by: submitted_by_user_id
-              }
-
-              changeset = AttendanceRecordSchema.update_changeset(schema, attrs)
-
-              repo.update(changeset)
-          end
-        end)
-      end)
-
-    try do
-      case Repo.transaction(multi) do
-        {:ok, results} ->
-          updated_schemas =
-            results
-            |> Map.values()
-            |> Enum.filter(&is_struct(&1, AttendanceRecordSchema))
-
-          updated_records = AttendanceRecordMapper.to_domain_list(updated_schemas)
-
-          Logger.info(
-            "[AttendanceRepository] Successfully submitted batch of attendance records",
-            session_id: session_id,
-            submitted_count: length(updated_records)
-          )
-
-          {:ok, updated_records}
-
-        {:error, _failed_operation, failed_value, _changes_so_far} ->
-          Logger.error(
-            "[AttendanceRepository] Batch submission failed",
-            error_id: ErrorIds.attendance_batch_error(),
-            session_id: session_id,
-            failure_reason: inspect(failed_value)
-          )
-
-          case failed_value do
-            %Ecto.Changeset{} ->
-              {:error, :database_query_error}
-
-            :not_found ->
-              {:error, :not_found}
-
-            _ ->
-              {:error, :database_unavailable}
-          end
-      end
-    rescue
-      error in [Ecto.StaleEntryError] ->
-        Logger.warning(
-          "[AttendanceRepository] Optimistic lock conflict during batch submission",
-          error_id: ErrorIds.attendance_batch_stale_error(),
-          session_id: session_id,
-          error_type: error.__struct__
-        )
-
-        {:error, :stale_data}
-
-      error in [DBConnection.ConnectionError] ->
-        Logger.error(
-          "[AttendanceRepository] Database connection failed during batch submission",
-          error_id: ErrorIds.attendance_batch_connection_error(),
-          session_id: session_id,
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :database_connection_error}
-
-      error in [Postgrex.Error] ->
-        Logger.error(
-          "[AttendanceRepository] Database query error during batch submission",
-          error_id: ErrorIds.attendance_batch_query_error(),
-          session_id: session_id,
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :database_query_error}
-
-      error ->
-        Logger.error(
-          "[AttendanceRepository] Unexpected database error during batch submission",
-          error_id: ErrorIds.attendance_batch_generic_error(),
-          session_id: session_id,
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
         )

@@ -84,26 +84,6 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInTest do
       assert message =~ "Cannot check in"
     end
 
-    test "returns error when checking in submitted record" do
-      session = insert(:program_session_schema, status: "in_progress")
-      child = insert(:child_schema)
-      provider_id = Ecto.UUID.generate()
-
-      _submitted =
-        insert(:attendance_record_schema,
-          session_id: session.id,
-          child_id: child.id,
-          status: "expected",
-          submitted: true,
-          submitted_at: DateTime.utc_now()
-        )
-
-      assert {:error, message} =
-               RecordCheckIn.execute(session.id, child.id, provider_id)
-
-      assert message =~ "submitted"
-    end
-
     test "persists check-in to database" do
       session = insert(:program_session_schema, status: "in_progress")
       child = insert(:child_schema)

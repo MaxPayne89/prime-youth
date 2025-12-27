@@ -4,7 +4,6 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
   alias PrimeYouth.Attendance.Application.UseCases.GetSessionWithRoster
   alias PrimeYouth.Attendance.Application.UseCases.RecordCheckIn
   alias PrimeYouth.Attendance.Application.UseCases.RecordCheckOut
-  alias PrimeYouth.Attendance.Application.UseCases.SubmitAttendance
   alias PrimeYouthWeb.Theme
 
   require Logger
@@ -24,7 +23,6 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
       # - Need to filter/search records (Enum.find, Enum.filter)
       # - Full replacement on updates (no incremental changes)
       |> assign(:attendance_records, [])
-      |> assign(:form, nil)
       |> assign(:checkout_form_expanded, nil)
       |> assign(:checkout_forms, %{})
 
@@ -36,40 +34,6 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
     end
 
     {:ok, load_session_data(socket)}
-  end
-
-  @impl true
-  def handle_event("submit_attendance", params, socket) do
-    checked_ids = Map.get(params, "attendance", %{}) |> Map.get("checked_in", [])
-
-    record_ids =
-      socket.assigns.attendance_records
-      |> Enum.filter(fn record -> to_string(record.id) in checked_ids end)
-      |> Enum.map(& &1.id)
-
-    case SubmitAttendance.execute(
-           socket.assigns.session_id,
-           record_ids,
-           socket.assigns.provider_id
-         ) do
-      {:ok, _result} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, "Attendance records submitted successfully")
-         |> load_session_data()}
-
-      {:error, :empty_record_ids} ->
-        {:noreply, put_flash(socket, :error, "Please select at least one record to submit")}
-
-      {:error, reason} ->
-        Logger.error(
-          "[AttendanceLive.submit_attendance] Failed to submit attendance",
-          session_id: socket.assigns.session_id,
-          reason: inspect(reason)
-        )
-
-        {:noreply, put_flash(socket, :error, "Failed to submit attendance: #{inspect(reason)}")}
-    end
   end
 
   @impl true
@@ -229,7 +193,6 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
         socket
         |> assign(:session, session)
         |> assign(:attendance_records, session.attendance_records || [])
-        |> assign(:form, to_form(%{}, as: :attendance))
         |> assign(:session_error, nil)
 
       {:error, :not_found} ->

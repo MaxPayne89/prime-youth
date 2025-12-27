@@ -9,7 +9,6 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckOut do
 
   ## Business Rules
   - Can only check out records with status `:checked_in`
-  - Cannot modify submitted records (immutable)
   - Check-out timestamp must be >= check-in timestamp
   - Check-out timestamp auto-generated
 
@@ -41,7 +40,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckOut do
   - `{:ok, record}` - Successfully checked out
   - `{:error, reason}` - Check-out failed
     - `:not_found` - No attendance record exists for this session/child
-    - Domain validation errors (not checked in, submitted record, invalid check-out time)
+    - Domain validation errors (not checked in, invalid check-out time)
     - `:stale_data` - Concurrent modification detected
     - Database errors
 

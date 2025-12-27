@@ -5,7 +5,6 @@ defmodule PrimeYouth.Attendance.Domain.Events.AttendanceEvents do
   ## Events
 
   - `:child_checked_in` / `:child_checked_out` - Check-in/out events (marked `:critical` for billing)
-  - `:attendance_submitted` - Batch submission for payroll
   - `:session_started` / `:session_completed` - Session lifecycle events
 
   ## Validation Strategy: Fail-Fast
@@ -30,9 +29,6 @@ defmodule PrimeYouth.Attendance.Domain.Events.AttendanceEvents do
   # Guard helpers for validation
   defguardp is_non_empty_string(value)
             when is_binary(value) and byte_size(value) > 0
-
-  defguardp is_non_empty_list(value)
-            when is_list(value) and value != []
 
   @doc """
   Creates a `child_checked_in` event (marked `:critical` for billing).
@@ -138,50 +134,6 @@ defmodule PrimeYouth.Attendance.Domain.Events.AttendanceEvents do
   def child_checked_out(%AttendanceRecord{}, _, _, check_out_by, _, _)
       when not is_binary(check_out_by) or byte_size(check_out_by) == 0 do
     raise ArgumentError, "check_out_by must be a non-empty string for child_checked_out event"
-  end
-
-  @doc """
-  Creates an `attendance_submitted` event for batch payroll submission.
-
-  Payload includes record_count and list of submitted record_ids.
-  """
-  def attendance_submitted(session_id, record_ids, submitted_by, submitted_at, opts \\ [])
-
-  def attendance_submitted(session_id, record_ids, submitted_by, submitted_at, opts)
-      when is_non_empty_string(session_id) and is_non_empty_list(record_ids) and
-             is_non_empty_string(submitted_by) do
-    validate_datetime!(submitted_at, "submitted_at")
-
-    payload = %{
-      session_id: session_id,
-      record_count: length(record_ids),
-      record_ids: record_ids,
-      submitted_by: submitted_by,
-      submitted_at: submitted_at
-    }
-
-    DomainEvent.new(
-      :attendance_submitted,
-      session_id,
-      :program_session,
-      payload,
-      opts
-    )
-  end
-
-  def attendance_submitted(session_id, _, _, _, _)
-      when not is_binary(session_id) or byte_size(session_id) == 0 do
-    raise ArgumentError, "session_id must be a non-empty string for attendance_submitted event"
-  end
-
-  def attendance_submitted(_, record_ids, _, _, _)
-      when not is_list(record_ids) or record_ids == [] do
-    raise ArgumentError, "record_ids must be a non-empty list for attendance_submitted event"
-  end
-
-  def attendance_submitted(_, _, submitted_by, _, _)
-      when not is_binary(submitted_by) or byte_size(submitted_by) == 0 do
-    raise ArgumentError, "submitted_by must be a non-empty string for attendance_submitted event"
   end
 
   @doc "Creates a `session_started` event for session lifecycle tracking."

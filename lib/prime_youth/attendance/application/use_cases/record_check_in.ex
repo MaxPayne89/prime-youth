@@ -9,7 +9,6 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
 
   ## Business Rules
   - Can only check in records with status `:expected`
-  - Cannot modify submitted records (immutable)
   - Check-in timestamp auto-generated
 
   ## Concurrency Safety
@@ -38,7 +37,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
   ## Returns
   - `{:ok, record}` - Successfully checked in
   - `{:error, reason}` - Check-in failed
-    - Domain validation errors (already checked in, submitted record, invalid status)
+    - Domain validation errors (already checked in, invalid status)
     - `:stale_data` - Concurrent modification detected
     - Database errors
 
@@ -92,10 +91,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
       check_in_by: nil,
       check_out_at: nil,
       check_out_notes: nil,
-      check_out_by: nil,
-      submitted: false,
-      submitted_at: nil,
-      submitted_by: nil
+      check_out_by: nil
     }
 
     AttendanceRecord.new(attrs)

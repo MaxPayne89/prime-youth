@@ -31,11 +31,4 @@ defmodule PrimeYouth.Attendance.Domain.Ports.ForManagingAttendance do
 
   @doc "Lists records for parent, ordered by session_date desc."
   @callback list_by_parent(binary()) :: {:ok, [struct()]} | {:error, atom()}
-
-  @doc """
-  Submits batch of records for payroll (atomic operation).
-
-  All records must belong to session, have submittable status, and not be already submitted.
-  """
-  @callback submit_batch(binary(), [struct()], binary()) :: {:ok, [struct()]} | {:error, atom()}
 end
