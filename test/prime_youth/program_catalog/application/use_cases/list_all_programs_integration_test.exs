@@ -28,6 +28,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
   # which is not process-safe and can interfere with parallel tests
   use PrimeYouth.DataCase, async: false
 
+  alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
@@ -35,6 +36,11 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
 
   # Ensure we're using the real repository for integration tests
   setup do
+    # Clean database first (async: false tests share state)
+    # Delete sessions first due to FK constraint with on_delete: :restrict
+    Repo.delete_all(ProgramSessionSchema)
+    Repo.delete_all(ProgramSchema)
+
     # Store original config
     original_config = Application.get_env(:prime_youth, :program_catalog)
 
@@ -113,6 +119,8 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
 
     # T050: Returns empty list when database is empty
     test "returns empty list when database is empty" do
+      # Setup already cleans the database, but being explicit here
+      Repo.delete_all(ProgramSessionSchema)
       Repo.delete_all(ProgramSchema)
 
       {:ok, programs} = ListAllPrograms.execute()

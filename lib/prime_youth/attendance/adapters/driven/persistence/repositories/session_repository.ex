@@ -267,7 +267,8 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
     Logger.info(
       "[SessionRepository] Updating session",
       session_id: session.id,
-      program_id: session.program_id
+      program_id: session.program_id,
+      lock_version: session.lock_version
     )
 
     try do
@@ -277,8 +278,12 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       end
 
       current_schema = Repo.get!(ProgramSessionSchema, session.id)
+
+      # Build schema with client's lock_version for optimistic lock check
+      schema_with_client_version = %{current_schema | lock_version: session.lock_version || 1}
+
       attrs = ProgramSessionMapper.to_schema(session)
-      changeset = ProgramSessionSchema.changeset(current_schema, attrs)
+      changeset = ProgramSessionSchema.update_changeset(schema_with_client_version, attrs)
 
       case Repo.update(changeset) do
         {:ok, updated_schema} ->
@@ -296,6 +301,16 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
           handle_changeset_error(changeset, "update")
       end
     rescue
+      error in [Ecto.StaleEntryError] ->
+        Logger.warning(
+          "[SessionRepository] Optimistic lock conflict during update",
+          error_id: ErrorIds.session_update_stale_error(),
+          session_id: session.id,
+          error_type: error.__struct__
+        )
+
+        {:error, :stale_data}
+
       error in [Ecto.ConstraintError] ->
         Logger.error(
           "[SessionRepository] Constraint violation during update",
@@ -447,6 +462,56 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
           error_id: ErrorIds.session_list_generic_error(),
           provider_id: provider_id,
           date: date,
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
+        )
+
+        {:error, :database_unavailable}
+    end
+  end
+
+  @impl true
+  def get_many_by_ids(session_ids) when is_list(session_ids) do
+    Logger.info("[SessionRepository] Fetching sessions by IDs", count: length(session_ids))
+
+    query = from s in ProgramSessionSchema, where: s.id in ^session_ids
+
+    try do
+      schemas = Repo.all(query)
+      sessions = ProgramSessionMapper.to_domain_list(schemas)
+
+      Logger.info(
+        "[SessionRepository] Successfully retrieved sessions by IDs",
+        requested: length(session_ids),
+        found: length(sessions)
+      )
+
+      {:ok, sessions}
+    rescue
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[SessionRepository] Database connection failed during get_many_by_ids",
+          error_id: ErrorIds.session_get_connection_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error, Ecto.Query.CastError] ->
+        Logger.error(
+          "[SessionRepository] Database query error during get_many_by_ids",
+          error_id: ErrorIds.session_get_query_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
+      error ->
+        Logger.error(
+          "[SessionRepository] Unexpected database error during get_many_by_ids",
+          error_id: ErrorIds.session_get_generic_error(),
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
         )

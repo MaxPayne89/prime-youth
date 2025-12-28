@@ -3,30 +3,28 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
   Records a child check-in for a session with timestamp and notes.
 
   ## Architecture
-  - Application Layer: Orchestrates domain logic and persistence
-  - Domain Layer: AttendanceRecord.check_in/4 enforces business rules
-  - Adapter Layer: AttendanceRepository handles persistence with optimistic locking
+  - Application Layer: Orchestrates atomic persistence and event publishing
+  - Adapter Layer: AttendanceRepository.check_in_atomic handles atomic upsert
 
-  ## Business Rules
-  - Can only check in records with status `:expected`
-  - Check-in timestamp auto-generated
-
-  ## Concurrency Safety
-  - Uses optimistic locking (lock_version) to handle concurrent modifications
-  - Returns `:stale_data` error if record was modified by another process
+  ## Behavior
+  - Uses atomic upsert pattern for race-condition-free check-in
+  - Idempotent: returns success with existing record if already checked in
+  - Check-in timestamp auto-generated at call time
 
   ## Events
   - Publishes `:child_checked_in` event (marked `:critical` for billing impact)
   """
 
   alias PrimeYouth.Attendance.Domain.Events.AttendanceEvents
-  alias PrimeYouth.Attendance.Domain.Models.AttendanceRecord
   alias PrimeYouth.Attendance.EventPublisher
 
   require Logger
 
   @doc """
   Records a child check-in to a session.
+
+  Uses atomic upsert to prevent race conditions. If the child is already
+  checked in, returns success with the existing record (idempotent).
 
   ## Parameters
   - `session_id` - Binary UUID of the session
@@ -35,11 +33,8 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
   - `check_in_notes` - Optional notes about the check-in (defaults to nil)
 
   ## Returns
-  - `{:ok, record}` - Successfully checked in
-  - `{:error, reason}` - Check-in failed
-    - Domain validation errors (already checked in, invalid status)
-    - `:stale_data` - Concurrent modification detected
-    - Database errors
+  - `{:ok, record}` - Successfully checked in (or already checked in)
+  - `{:error, reason}` - Check-in failed (database errors)
 
   ## Examples
 
@@ -52,60 +47,19 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckIn do
   def execute(session_id, child_id, provider_id, check_in_notes \\ nil) do
     check_in_at = DateTime.utc_now()
 
-    with {:ok, record} <- fetch_or_create_record(session_id, child_id),
-         {:ok, checked_in_record} <-
-           AttendanceRecord.check_in(record, check_in_at, check_in_notes, provider_id),
-         {:ok, persisted_record} <- persist_record(record, checked_in_record) do
-      publish_check_in_event(persisted_record, check_in_at, provider_id, check_in_notes)
-      {:ok, persisted_record}
-    end
-  end
-
-  # Fetch existing record or create new one with :expected status
-  defp fetch_or_create_record(session_id, child_id) do
-    case attendance_repository().get_by_session_and_child(session_id, child_id) do
+    case attendance_repository().check_in_atomic(
+           session_id,
+           child_id,
+           provider_id,
+           check_in_notes
+         ) do
       {:ok, record} ->
+        publish_check_in_event(record, check_in_at, provider_id, check_in_notes)
         {:ok, record}
-
-      {:error, :not_found} ->
-        create_expected_record(session_id, child_id)
 
       {:error, reason} ->
         {:error, reason}
     end
-  end
-
-  # Create new attendance record with :expected status (in-memory only)
-  defp create_expected_record(session_id, child_id) do
-    record_id = Ecto.UUID.generate()
-
-    attrs = %{
-      id: record_id,
-      session_id: session_id,
-      child_id: child_id,
-      parent_id: nil,
-      provider_id: nil,
-      status: :expected,
-      check_in_at: nil,
-      check_in_notes: nil,
-      check_in_by: nil,
-      check_out_at: nil,
-      check_out_notes: nil,
-      check_out_by: nil
-    }
-
-    AttendanceRecord.new(attrs)
-  end
-
-  # Persist record - create if new (no inserted_at = never persisted), update if existing
-  defp persist_record(%AttendanceRecord{inserted_at: nil}, checked_in_record) do
-    # Record was newly created in-memory, use create/1
-    attendance_repository().create(checked_in_record)
-  end
-
-  defp persist_record(_original_record, checked_in_record) do
-    # Record already existed, use update/1 (with optimistic locking)
-    attendance_repository().update(checked_in_record)
   end
 
   # Publish child_checked_in event

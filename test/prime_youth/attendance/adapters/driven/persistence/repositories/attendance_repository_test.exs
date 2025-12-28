@@ -266,6 +266,126 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
     end
   end
 
+  describe "check_in_atomic/4" do
+    test "creates new record when none exists" do
+      session = insert(:program_session_schema)
+      child = insert(:child_schema)
+      provider = insert(:provider_schema)
+
+      assert {:ok, record} =
+               AttendanceRepository.check_in_atomic(
+                 session.id,
+                 child.id,
+                 provider.id,
+                 "First check-in"
+               )
+
+      assert %AttendanceRecord{} = record
+      assert record.session_id == session.id
+      assert record.child_id == child.id
+      assert record.status == :checked_in
+      assert record.check_in_notes == "First check-in"
+      assert record.check_in_by == provider.id
+      assert record.check_in_at != nil
+    end
+
+    test "updates existing record (idempotent upsert)" do
+      session = insert(:program_session_schema)
+      child = insert(:child_schema)
+      provider = insert(:provider_schema)
+      original_time = DateTime.add(DateTime.utc_now(), -300, :second)
+
+      _existing =
+        insert(:attendance_record_schema,
+          session_id: session.id,
+          child_id: child.id,
+          status: "expected",
+          check_in_at: original_time
+        )
+
+      assert {:ok, record} =
+               AttendanceRepository.check_in_atomic(
+                 session.id,
+                 child.id,
+                 provider.id,
+                 "Updated via atomic"
+               )
+
+      assert record.status == :checked_in
+      assert record.check_in_notes == "Updated via atomic"
+      # Timestamp was updated (not the original)
+      assert DateTime.compare(record.check_in_at, original_time) != :eq
+    end
+
+    test "is idempotent for already checked-in records" do
+      session = insert(:program_session_schema)
+      child = insert(:child_schema)
+      provider = insert(:provider_schema)
+
+      _checked_in =
+        insert(:attendance_record_schema,
+          session_id: session.id,
+          child_id: child.id,
+          status: "checked_in",
+          check_in_at: DateTime.utc_now()
+        )
+
+      # Second check-in succeeds (idempotent)
+      assert {:ok, record} =
+               AttendanceRepository.check_in_atomic(
+                 session.id,
+                 child.id,
+                 provider.id,
+                 "Retry notes"
+               )
+
+      assert record.status == :checked_in
+      assert record.check_in_notes == "Retry notes"
+    end
+
+    test "handles nil notes" do
+      session = insert(:program_session_schema)
+      child = insert(:child_schema)
+      provider = insert(:provider_schema)
+
+      assert {:ok, record} =
+               AttendanceRepository.check_in_atomic(session.id, child.id, provider.id, nil)
+
+      assert record.check_in_notes == nil
+    end
+
+    test "handles concurrent check-in attempts without race condition" do
+      session = insert(:program_session_schema)
+      child = insert(:child_schema)
+      provider1 = insert(:provider_schema)
+      provider2 = insert(:provider_schema)
+
+      # Simulate concurrent check-ins - both should succeed
+      task1 =
+        Task.async(fn ->
+          AttendanceRepository.check_in_atomic(session.id, child.id, provider1.id, "Task 1")
+        end)
+
+      task2 =
+        Task.async(fn ->
+          AttendanceRepository.check_in_atomic(session.id, child.id, provider2.id, "Task 2")
+        end)
+
+      result1 = Task.await(task1)
+      result2 = Task.await(task2)
+
+      # Both should succeed (no duplicate key error)
+      assert {:ok, _} = result1
+      assert {:ok, _} = result2
+
+      # Only one record should exist in database
+      schema = Repo.get_by(AttendanceRecordSchema, session_id: session.id, child_id: child.id)
+      assert schema != nil
+      # Last writer wins (either provider1 or provider2 notes)
+      assert schema.check_in_notes in ["Task 1", "Task 2"]
+    end
+  end
+
   describe "list_by_parent/1" do
     test "returns all records for parent ordered by session date descending" do
       parent = insert(:parent_schema)

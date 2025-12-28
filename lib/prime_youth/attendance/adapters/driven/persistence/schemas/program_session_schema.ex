@@ -9,6 +9,8 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessi
 
   import Ecto.Changeset
 
+  alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.AttendanceRecordSchema
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @timestamps_opts [type: :utc_datetime]
@@ -21,6 +23,9 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessi
     field :max_capacity, :integer
     field :status, :string
     field :notes, :string
+    field :lock_version, :integer, default: 1
+
+    has_many :attendance_records, AttendanceRecordSchema, foreign_key: :session_id
 
     timestamps()
   end
@@ -58,5 +63,47 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessi
       name: :end_time_after_start_time,
       message: "must be after start time"
     )
+  end
+
+  @doc """
+  Update changeset with optimistic locking.
+
+  Returns a changeset that will fail with Ecto.StaleEntryError if the
+  record has been modified by another process since it was loaded.
+  """
+  def update_changeset(program_session_schema, attrs) do
+    program_session_schema
+    |> cast(attrs, [
+      :program_id,
+      :session_date,
+      :start_time,
+      :end_time,
+      :max_capacity,
+      :status,
+      :notes
+    ])
+    |> validate_required([
+      :program_id,
+      :session_date,
+      :start_time,
+      :end_time,
+      :max_capacity,
+      :status
+    ])
+    |> validate_number(:max_capacity, greater_than_or_equal_to: 0)
+    |> validate_inclusion(:status, ["scheduled", "in_progress", "completed", "cancelled"])
+    |> unique_constraint([:program_id, :session_date, :start_time],
+      name: :program_sessions_program_id_session_date_start_time_index,
+      message: "session already exists at this date and time"
+    )
+    |> check_constraint(:max_capacity,
+      name: :max_capacity_must_be_non_negative,
+      message: "must be >= 0"
+    )
+    |> check_constraint(:end_time,
+      name: :end_time_after_start_time,
+      message: "must be after start time"
+    )
+    |> optimistic_lock(:lock_version)
   end
 end

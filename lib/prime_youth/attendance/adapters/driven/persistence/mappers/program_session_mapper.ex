@@ -32,6 +32,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.ProgramSessi
       max_capacity: schema.max_capacity,
       status: parse_status(schema.status),
       notes: schema.notes,
+      lock_version: schema.lock_version,
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -51,8 +52,9 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Mappers.ProgramSessi
   @doc """
   Converts domain entity to update attributes.
 
-  Excludes id and timestamps (managed by Ecto).
+  Excludes id, lock_version, and timestamps (managed by Ecto).
   UUIDs are passed as strings - Ecto's :binary_id handles the conversion.
+  lock_version is excluded as it's managed by Ecto's optimistic_lock.
   """
   def to_schema(%ProgramSession{} = session) do
     %{

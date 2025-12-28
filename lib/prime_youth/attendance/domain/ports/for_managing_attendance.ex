@@ -31,4 +31,16 @@ defmodule PrimeYouth.Attendance.Domain.Ports.ForManagingAttendance do
 
   @doc "Lists records for parent, ordered by session_date desc."
   @callback list_by_parent(binary()) :: {:ok, [struct()]} | {:error, atom()}
+
+  @doc "Lists records for multiple sessions (batch fetch). Ordered by session_id, then child_id."
+  @callback list_by_session_ids([binary()]) :: {:ok, [struct()]} | {:error, atom()}
+
+  @doc """
+  Atomic check-in: creates or updates record in single database operation.
+
+  Idempotent - returns success with updated record if already checked in.
+  Uses upsert pattern on (session_id, child_id) unique constraint.
+  """
+  @callback check_in_atomic(binary(), binary(), binary(), String.t() | nil) ::
+              {:ok, struct()} | {:error, atom()}
 end

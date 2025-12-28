@@ -10,12 +10,14 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.AttendanceRe
 
   import Ecto.Changeset
 
+  alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @timestamps_opts [type: :utc_datetime]
 
   schema "attendance_records" do
-    field :session_id, :binary_id
+    belongs_to :session, ProgramSessionSchema, type: :binary_id
     field :child_id, :binary_id
     field :parent_id, :binary_id
     field :provider_id, :binary_id

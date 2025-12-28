@@ -15,6 +15,7 @@ defmodule PrimeYouth.Repo.Migrations.CreateProgramSessions do
       add :max_capacity, :integer, null: false
       add :status, :string, null: false, size: 50
       add :notes, :text
+      add :lock_version, :integer, default: 1, null: false
 
       timestamps(type: :utc_datetime)
     end

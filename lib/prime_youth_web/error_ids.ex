@@ -347,6 +347,12 @@ defmodule PrimeYouthWeb.ErrorIds do
   def session_update_generic_error, do: "attendance.session.update.generic_error"
 
   @doc """
+  Optimistic lock conflict when updating a session.
+  Record was modified by another process since it was loaded.
+  """
+  def session_update_stale_error, do: "attendance.session.update.stale"
+
+  @doc """
   Duplicate session error - session already exists for the same program/date/time.
   """
   def session_duplicate_error, do: "attendance.session.create.duplicate"

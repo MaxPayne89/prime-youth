@@ -29,6 +29,7 @@ defmodule PrimeYouth.Attendance.Domain.Models.ProgramSession do
     :max_capacity,
     :status,
     :notes,
+    :lock_version,
     :inserted_at,
     :updated_at
   ]
