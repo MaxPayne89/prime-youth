@@ -16,7 +16,10 @@ defmodule PrimeYouthWeb.ProgramDetailLiveTest do
       assert {:error, {:redirect, %{to: path, flash: flash}}} = live(conn, ~p"/programs/invalid")
 
       assert path == ~p"/programs"
-      assert flash["error"] == "Unable to load program. Please try again later."
+
+      # Invalid UUIDs return :not_found, which shows the "not found" message
+      assert flash["error"] ==
+               "Program not found. It may have been removed or is no longer available."
     end
 
     test "redirects with error flash for non-existent program ID", %{conn: conn} do
@@ -36,14 +39,20 @@ defmodule PrimeYouthWeb.ProgramDetailLiveTest do
       assert {:error, {:redirect, %{to: path, flash: flash}}} = live(conn, ~p"/programs/0")
 
       assert path == ~p"/programs"
-      assert flash["error"] == "Unable to load program. Please try again later."
+
+      # Invalid UUIDs return :not_found, which shows the "not found" message
+      assert flash["error"] ==
+               "Program not found. It may have been removed or is no longer available."
     end
 
     test "redirects with error flash for negative program ID", %{conn: conn} do
       assert {:error, {:redirect, %{to: path, flash: flash}}} = live(conn, ~p"/programs/-1")
 
       assert path == ~p"/programs"
-      assert flash["error"] == "Unable to load program. Please try again later."
+
+      # Invalid UUIDs return :not_found, which shows the "not found" message
+      assert flash["error"] ==
+               "Program not found. It may have been removed or is no longer available."
     end
 
     test "enroll_now button navigates to booking page", %{conn: conn} do

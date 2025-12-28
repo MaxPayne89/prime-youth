@@ -45,7 +45,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
           spots_available: 12
         })
 
-      {:ok, programs} = ProgramRepository.list_all_programs()
+      programs = ProgramRepository.list_all_programs()
 
       assert length(programs) == 3
       assert Enum.all?(programs, &match?(%Program{}, &1))
@@ -88,14 +88,14 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
         spots_available: 10
       })
 
-      {:ok, programs} = ProgramRepository.list_all_programs()
+      programs = ProgramRepository.list_all_programs()
 
       titles = Enum.map(programs, & &1.title)
       assert titles == ["Art Class", "Music Lessons", "Zebra Camp"]
     end
 
     test "returns empty list when database is empty" do
-      {:ok, programs} = ProgramRepository.list_all_programs()
+      programs = ProgramRepository.list_all_programs()
 
       assert programs == []
     end
@@ -123,7 +123,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
           spots_available: 15
         })
 
-      {:ok, programs} = ProgramRepository.list_all_programs()
+      programs = ProgramRepository.list_all_programs()
 
       assert length(programs) == 2
 
@@ -159,7 +159,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
           spots_available: 20
         })
 
-      {:ok, programs} = ProgramRepository.list_all_programs()
+      programs = ProgramRepository.list_all_programs()
 
       assert length(programs) == 2
 
@@ -204,7 +204,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
         spots_available: 10
       })
 
-      {:ok, programs} = ProgramRepository.list_all_programs()
+      programs = ProgramRepository.list_all_programs()
 
       assert length(programs) == 1
       # The successful query indicates the repository is working.
@@ -596,7 +596,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       assert {:error, :not_found} = ProgramRepository.update(non_existent_program)
     end
 
-    test "returns database_query_error for constraint violation" do
+    test "returns changeset error for constraint violation" do
       # Create a program
       program_schema =
         insert_program(%{
@@ -615,7 +615,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
 
       # Update should fail with changeset validation error
       # (validate_number ensures price >= 0)
-      assert {:error, :database_query_error} = ProgramRepository.update(invalid_program)
+      assert {:error, %Ecto.Changeset{valid?: false}} = ProgramRepository.update(invalid_program)
 
       # Verify original data unchanged
       unchanged_schema = Repo.get(ProgramSchema, program_schema.id)
@@ -623,7 +623,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       assert unchanged_schema.lock_version == 1
     end
 
-    test "returns database_query_error for empty required field" do
+    test "returns changeset error for empty required field" do
       # Create a program
       program_schema =
         insert_program(%{
@@ -641,7 +641,7 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       invalid_program = %{domain_program | title: ""}
 
       # Update should fail with changeset validation error
-      assert {:error, :database_query_error} = ProgramRepository.update(invalid_program)
+      assert {:error, %Ecto.Changeset{valid?: false}} = ProgramRepository.update(invalid_program)
 
       # Verify original data unchanged
       unchanged_schema = Repo.get(ProgramSchema, program_schema.id)

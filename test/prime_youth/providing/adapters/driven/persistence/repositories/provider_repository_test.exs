@@ -230,7 +230,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.Provider
   # =============================================================================
 
   describe "has_profile?/1" do
-    test "returns {:ok, true} when provider profile exists" do
+    test "returns true when provider profile exists" do
       identity_id = Ecto.UUID.generate()
 
       {:ok, _provider} =
@@ -239,13 +239,13 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.Provider
           business_name: "Test Business"
         })
 
-      assert {:ok, true} = ProviderRepository.has_profile?(identity_id)
+      assert ProviderRepository.has_profile?(identity_id) == true
     end
 
-    test "returns {:ok, false} when provider profile does not exist" do
+    test "returns false when provider profile does not exist" do
       non_existent_id = Ecto.UUID.generate()
 
-      assert {:ok, false} = ProviderRepository.has_profile?(non_existent_id)
+      assert ProviderRepository.has_profile?(non_existent_id) == false
     end
 
     test "returns correct result after creating multiple profiles" do
@@ -258,8 +258,8 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.Provider
           business_name: "Existing Provider"
         })
 
-      assert {:ok, true} = ProviderRepository.has_profile?(existing_identity)
-      assert {:ok, false} = ProviderRepository.has_profile?(non_existing_identity)
+      assert ProviderRepository.has_profile?(existing_identity) == true
+      assert ProviderRepository.has_profile?(non_existing_identity) == false
     end
 
     test "returns true for provider with minimal fields" do
@@ -271,7 +271,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.Provider
           business_name: "Minimal"
         })
 
-      assert {:ok, true} = ProviderRepository.has_profile?(identity_id)
+      assert ProviderRepository.has_profile?(identity_id) == true
     end
 
     test "returns true for provider with all fields populated" do
@@ -291,7 +291,7 @@ defmodule PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.Provider
           categories: ["sports", "outdoor"]
         })
 
-      assert {:ok, true} = ProviderRepository.has_profile?(identity_id)
+      assert ProviderRepository.has_profile?(identity_id) == true
     end
   end
 end

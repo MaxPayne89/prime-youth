@@ -190,7 +190,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
         start_time: ~T[09:00:00]
       )
 
-      assert {:ok, sessions} = SessionRepository.list_by_program(program.id)
+      sessions = SessionRepository.list_by_program(program.id)
       assert length(sessions) == 4
 
       dates = Enum.map(sessions, & &1.session_date)
@@ -205,8 +205,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
     test "returns empty list when program has no sessions" do
       program = insert(:program_schema)
 
-      assert {:ok, sessions} = SessionRepository.list_by_program(program.id)
-      assert sessions == []
+      assert [] = SessionRepository.list_by_program(program.id)
     end
 
     test "does not return sessions from other programs" do
@@ -216,7 +215,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       insert(:program_session_schema, program_id: program1.id)
       insert(:program_session_schema, program_id: program2.id)
 
-      assert {:ok, sessions} = SessionRepository.list_by_program(program1.id)
+      sessions = SessionRepository.list_by_program(program1.id)
       assert length(sessions) == 1
       assert Enum.all?(sessions, &(&1.program_id == program1.id))
     end
@@ -241,7 +240,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
 
       insert(:program_session_schema, program_id: program.id, session_date: ~D[2025-02-16])
 
-      assert {:ok, sessions} = SessionRepository.list_today_sessions(target_date)
+      sessions = SessionRepository.list_today_sessions(target_date)
       assert length(sessions) == 2
       assert Enum.all?(sessions, &(&1.session_date == target_date))
     end
@@ -263,7 +262,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
         start_time: ~T[09:00:00]
       )
 
-      assert {:ok, sessions} = SessionRepository.list_today_sessions(target_date)
+      sessions = SessionRepository.list_today_sessions(target_date)
       times = Enum.map(sessions, & &1.start_time)
       assert times == [~T[09:00:00], ~T[14:00:00]]
     end
@@ -271,8 +270,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
     test "returns empty list when no sessions for date" do
       target_date = ~D[2025-02-15]
 
-      assert {:ok, sessions} = SessionRepository.list_today_sessions(target_date)
-      assert sessions == []
+      assert [] = SessionRepository.list_today_sessions(target_date)
     end
   end
 
@@ -285,8 +283,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       insert(:program_session_schema, program_id: program.id, session_date: target_date)
       insert(:program_session_schema, program_id: program.id, session_date: ~D[2025-02-16])
 
-      assert {:ok, sessions} =
-               SessionRepository.list_by_provider_and_date(provider_id, target_date)
+      sessions = SessionRepository.list_by_provider_and_date(provider_id, target_date)
 
       assert length(sessions) == 1
       assert Enum.all?(sessions, &(&1.session_date == target_date))
@@ -310,8 +307,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
         start_time: ~T[10:00:00]
       )
 
-      assert {:ok, sessions} =
-               SessionRepository.list_by_provider_and_date(provider_id, target_date)
+      sessions = SessionRepository.list_by_provider_and_date(provider_id, target_date)
 
       times = Enum.map(sessions, & &1.start_time)
       assert times == [~T[10:00:00], ~T[16:00:00]]
@@ -321,10 +317,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Session
       provider_id = Ecto.UUID.generate()
       target_date = ~D[2025-02-15]
 
-      assert {:ok, sessions} =
-               SessionRepository.list_by_provider_and_date(provider_id, target_date)
-
-      assert sessions == []
+      assert [] = SessionRepository.list_by_provider_and_date(provider_id, target_date)
     end
   end
 end

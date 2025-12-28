@@ -139,17 +139,17 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRe
   # =============================================================================
 
   describe "has_profile?/1" do
-    test "returns {:ok, true} when parent profile exists" do
+    test "returns true when parent profile exists" do
       identity_id = Ecto.UUID.generate()
       {:ok, _parent} = ParentRepository.create_parent_profile(%{identity_id: identity_id})
 
-      assert {:ok, true} = ParentRepository.has_profile?(identity_id)
+      assert ParentRepository.has_profile?(identity_id) == true
     end
 
-    test "returns {:ok, false} when parent profile does not exist" do
+    test "returns false when parent profile does not exist" do
       non_existent_id = Ecto.UUID.generate()
 
-      assert {:ok, false} = ParentRepository.has_profile?(non_existent_id)
+      assert ParentRepository.has_profile?(non_existent_id) == false
     end
 
     test "returns correct result after creating multiple profiles" do
@@ -158,8 +158,8 @@ defmodule PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRe
 
       {:ok, _} = ParentRepository.create_parent_profile(%{identity_id: existing_identity})
 
-      assert {:ok, true} = ParentRepository.has_profile?(existing_identity)
-      assert {:ok, false} = ParentRepository.has_profile?(non_existing_identity)
+      assert ParentRepository.has_profile?(existing_identity) == true
+      assert ParentRepository.has_profile?(non_existing_identity) == false
     end
   end
 end

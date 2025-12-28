@@ -7,10 +7,8 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
   use case behavior.
 
   Test Coverage:
-  - T045: Returns {:ok, programs} when repository succeeds
-  - T046: Returns {:ok, []} when no programs exist
-  - T047: Returns {:error, :database_error} when repository fails
-  - T048: Propagates error without logging (domain purity)
+  - T045: Returns list of programs when repository succeeds
+  - T046: Returns empty list when no programs exist
   """
 
   use ExUnit.Case, async: true
@@ -26,7 +24,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
     def list_all_programs do
       # This will be overridden by setting process dictionary in tests
       case Process.get(:mock_repository_response) do
-        nil -> {:ok, []}
+        nil -> []
         response -> response
       end
     end
@@ -65,8 +63,8 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
   end
 
   describe "execute/0" do
-    # T045: Returns {:ok, programs} when repository succeeds
-    test "returns {:ok, programs} when repository succeeds with valid programs" do
+    # T045: Returns list of programs when repository succeeds
+    test "returns list of programs when repository succeeds with valid programs" do
       program1 = %Program{
         id: "550e8400-e29b-41d4-a716-446655440001",
         title: "Soccer Stars",
@@ -97,50 +95,22 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         updated_at: ~U[2025-01-02 10:00:00Z]
       }
 
-      Process.put(:mock_repository_response, {:ok, [program1, program2]})
+      Process.put(:mock_repository_response, [program1, program2])
 
-      result = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
-      assert {:ok, programs} = result
       assert length(programs) == 2
       assert Enum.at(programs, 0) == program1
       assert Enum.at(programs, 1) == program2
     end
 
-    # T046: Returns {:ok, []} when no programs exist
-    test "returns {:ok, []} when no programs exist in repository" do
-      Process.put(:mock_repository_response, {:ok, []})
+    # T046: Returns empty list when no programs exist
+    test "returns empty list when no programs exist in repository" do
+      Process.put(:mock_repository_response, [])
 
-      result = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
-      assert {:ok, []} = result
-    end
-
-    # T047: Returns {:error, :database_error} when repository fails
-    test "returns {:error, :database_error} when repository fails" do
-      Process.put(:mock_repository_response, {:error, :database_error})
-
-      result = ListAllPrograms.execute()
-
-      assert {:error, :database_error} = result
-    end
-
-    # T048: Propagates error without logging (domain purity)
-    test "propagates error without logging (domain purity)" do
-      import ExUnit.CaptureLog
-
-      Process.put(:mock_repository_response, {:error, :database_error})
-
-      log_output =
-        capture_log(fn ->
-          result = ListAllPrograms.execute()
-          assert {:error, :database_error} = result
-        end)
-
-      # The use case should not log errors - that's the adapter's responsibility
-      # Filter only for ProgramCatalog-related logs to avoid interference from parallel tests
-      refute log_output =~ "[ListAllPrograms]"
-      refute log_output =~ "[ProgramCatalog]"
+      assert programs == []
     end
 
     test "handles repository returning multiple valid programs in correct order" do
@@ -174,11 +144,10 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         updated_at: ~U[2025-01-04 11:00:00Z]
       }
 
-      Process.put(:mock_repository_response, {:ok, [program2, program1]})
+      Process.put(:mock_repository_response, [program2, program1])
 
-      result = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
-      assert {:ok, programs} = result
       assert length(programs) == 2
       assert Enum.at(programs, 0).title == "Art Club"
       assert Enum.at(programs, 1).title == "Zebra Zone"
@@ -215,11 +184,10 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         updated_at: ~U[2025-01-06 14:00:00Z]
       }
 
-      Process.put(:mock_repository_response, {:ok, [free_program, sold_out_program]})
+      Process.put(:mock_repository_response, [free_program, sold_out_program])
 
-      result = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
-      assert {:ok, programs} = result
       assert length(programs) == 2
 
       free = Enum.find(programs, &(&1.title == "Community Service"))

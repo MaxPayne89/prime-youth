@@ -5,70 +5,38 @@ defmodule PrimeYouth.Family.Domain.Ports.ForStoringChildren do
   Defines the contract for storing and retrieving children without exposing
   infrastructure details. Implementations will be provided by repository adapters.
 
-  ## Error Types
+  ## Expected Return Values
 
-  - `:database_connection_error` - Cannot connect to database
-  - `:database_query_error` - Query execution failed (constraint violations, invalid data)
-  - `:database_unavailable` - Database temporarily unavailable
-  - `:not_found` - Child ID doesn't exist (domain error, not infrastructure)
+  - `get_by_id/1` - Returns `{:ok, Child.t()}` or `{:error, :not_found}`
+  - `create/1` - Returns `{:ok, Child.t()}` or `{:error, changeset}`
+  - `list_by_parent/1` - Returns list of children directly
 
-  ## Callbacks
-
-  - `get_by_id/1` - Retrieve a child by their unique identifier
-  - `create/1` - Create a new child record
-  - `list_by_parent/1` - List all children for a given parent
+  Infrastructure errors (connection, query) are not caught - they crash and
+  are handled by the supervision tree.
   """
-
-  alias PrimeYouth.Family.Domain.Models.Child
-
-  @type child_id :: String.t()
-  @type parent_id :: String.t()
-
-  @type database_error ::
-          :database_connection_error
-          | :database_query_error
-          | :database_unavailable
-
-  @type persistence_error :: database_error | :not_found
 
   @doc """
   Retrieves a child by their unique identifier.
 
-  Primary method for attendance lookups to resolve child names.
-
-  ## Returns
-
+  Returns:
   - `{:ok, Child.t()}` - Child found successfully
   - `{:error, :not_found}` - Child ID doesn't exist
-  - `{:error, database_error}` - Database operation failed
   """
-  @callback get_by_id(child_id) ::
-              {:ok, Child.t()} | {:error, persistence_error}
+  @callback get_by_id(binary()) :: {:ok, term()} | {:error, :not_found}
 
   @doc """
   Creates a new child record.
 
-  Accepts a map of validated attributes (from use case layer) and returns
-  the created child as a domain entity.
-
-  ## Returns
-
+  Returns:
   - `{:ok, Child.t()}` - Child created successfully
-  - `{:error, database_error}` - Database operation failed
+  - `{:error, changeset}` - Validation failed
   """
-  @callback create(map()) ::
-              {:ok, Child.t()} | {:error, database_error}
+  @callback create(map()) :: {:ok, term()} | {:error, term()}
 
   @doc """
   Lists all children for a given parent.
 
-  Used for family dashboard and parent-specific child management.
-
-  ## Returns
-
-  - `{:ok, [Child.t()]}` - List of children (may be empty)
-  - `{:error, database_error}` - Database operation failed
+  Returns list of children (may be empty).
   """
-  @callback list_by_parent(parent_id) ::
-              {:ok, [Child.t()]} | {:error, database_error}
+  @callback list_by_parent(binary()) :: [term()]
 end

@@ -1,12 +1,14 @@
 defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository do
   @moduledoc """
-  Repository implementation for listing programs from the database.
+  Repository implementation for listing and updating programs.
 
-  Implements the ForListingPrograms port with:
+  Implements the ForListingPrograms and ForUpdatingPrograms ports with:
   - Domain entity mapping via ProgramMapper
-  - Comprehensive logging for database operations
+  - Idiomatic "let it crash" error handling
 
   Data integrity is enforced at the database level through NOT NULL constraints.
+  Infrastructure errors (connection, query) are not caught - they crash and
+  are handled by the supervision tree.
   """
 
   @behaviour PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms
@@ -29,163 +31,56 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
   Lists all programs from the database.
 
   Programs are ordered by title in ascending order for consistent display.
-  Data integrity is enforced at the database level through NOT NULL constraints
-  on all required fields (title, description, schedule, age_range, price, pricing_period).
-
-  Returns:
-  - {:ok, [Program.t()]} on success (empty list if no programs exist)
-  - {:error, :database_connection_error} - Connection/network failure
-  - {:error, :database_query_error} - SQL error or constraint violation
-  - {:error, :database_unavailable} - Unexpected error
-
-  ## Examples
-
-      iex> ProgramRepository.list_all_programs()
-      {:ok, [%Program{title: "Art Adventures", ...}, %Program{title: "Soccer Camp", ...}]}
-
-      iex> ProgramRepository.list_all_programs()
-      {:ok, []}  # No programs in database
-
-      iex> ProgramRepository.list_all_programs()
-      {:error, :database_connection_error}  # Database connection failed
-
-      iex> ProgramRepository.list_all_programs()
-      {:error, :database_query_error}  # SQL syntax error
-
+  Returns list of programs directly (may be empty).
   """
-  @spec list_all_programs() ::
-          {:ok, [Program.t()]}
-          | {:error, :database_connection_error | :database_query_error | :database_unavailable}
   def list_all_programs do
     Logger.info("[ProgramRepository] Starting list_all_programs query")
 
-    query = from p in ProgramSchema, order_by: [asc: p.title]
+    programs =
+      ProgramSchema
+      |> order_by([p], asc: p.title)
+      |> Repo.all()
+      |> ProgramMapper.to_domain_list()
 
-    try do
-      schemas = Repo.all(query)
-      programs = ProgramMapper.to_domain_list(schemas)
+    Logger.info(
+      "[ProgramRepository] Successfully retrieved #{length(programs)} programs from database"
+    )
 
-      Logger.info(
-        "[ProgramRepository] Successfully retrieved #{length(programs)} programs from database"
-      )
-
-      {:ok, programs}
-    rescue
-      error in [DBConnection.ConnectionError] ->
-        Logger.error(
-          "[ProgramRepository] Database connection failed",
-          error_id: ErrorIds.program_list_connection_error(),
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :database_connection_error}
-
-      error in [Postgrex.Error, Ecto.Query.CastError] ->
-        Logger.error(
-          "[ProgramRepository] Database query error",
-          error_id: ErrorIds.program_list_query_error(),
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :database_query_error}
-
-      error ->
-        Logger.error(
-          "[ProgramRepository] Unexpected database error",
-          error_id: ErrorIds.program_list_generic_error(),
-          error_type: error.__struct__,
-          stacktrace: Exception.format(:error, error, __STACKTRACE__)
-        )
-
-        {:error, :database_unavailable}
-    end
+    programs
   end
 
   @impl true
   @doc """
   Retrieves a single program by its unique ID (UUID) from the database.
 
-  Data integrity is enforced at the database level through NOT NULL constraints
-  on all required fields.
-
   Returns:
-  - {:ok, Program.t()} when program is found
-  - {:error, :not_found} when no program exists with the given ID
-  - {:error, :database_connection_error} - Connection/network failure
-  - {:error, :database_query_error} - SQL error or constraint violation
-  - {:error, :database_unavailable} - Unexpected error
-
-  ## Examples
-
-      iex> ProgramRepository.get_by_id("550e8400-e29b-41d4-a716-446655440001")
-      {:ok, %Program{id: "550e8400-e29b-41d4-a716-446655440001", title: "Art Adventures", ...}}
-
-      iex> ProgramRepository.get_by_id("550e8400-e29b-41d4-a716-446655440099")
-      {:error, :not_found}
-
-      iex> ProgramRepository.get_by_id("invalid-uuid")
-      {:error, :database_query_error}  # Invalid UUID format
-
+  - `{:ok, Program.t()}` when program is found
+  - `{:error, :not_found}` when no program exists with the given ID or ID is invalid
   """
-  @spec get_by_id(String.t()) ::
-          {:ok, Program.t()}
-          | {:error,
-             :not_found
-             | :database_connection_error
-             | :database_query_error
-             | :database_unavailable}
   def get_by_id(id) when is_binary(id) do
     Logger.info("[ProgramRepository] Starting get_by_id query for program ID: #{id}")
 
-    query = from p in ProgramSchema, where: p.id == ^id
+    # Use dump/1 to validate UUID format - cast/1 incorrectly accepts 16-byte binaries
+    case Ecto.UUID.dump(id) do
+      {:ok, _binary} ->
+        case Repo.get(ProgramSchema, id) do
+          nil ->
+            Logger.info("[ProgramRepository] Program not found with ID: #{id}")
+            {:error, :not_found}
 
-    try do
-      case Repo.one(query) do
-        nil ->
-          Logger.info("[ProgramRepository] Program not found with ID: #{id}")
-          {:error, :not_found}
+          schema ->
+            program = ProgramMapper.to_domain(schema)
 
-        schema ->
-          program = ProgramMapper.to_domain(schema)
+            Logger.info(
+              "[ProgramRepository] Successfully retrieved program '#{program.title}' (ID: #{id}) from database"
+            )
 
-          Logger.info(
-            "[ProgramRepository] Successfully retrieved program '#{program.title}' (ID: #{id}) from database"
-          )
+            {:ok, program}
+        end
 
-          {:ok, program}
-      end
-    rescue
-      error in [DBConnection.ConnectionError] ->
-        Logger.error(
-          "[ProgramRepository] Database connection failed while fetching program ID: #{id}",
-          error_id: ErrorIds.program_get_connection_error(),
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :database_connection_error}
-
-      error in [Postgrex.Error, Ecto.Query.CastError] ->
-        Logger.error(
-          "[ProgramRepository] Database query error while fetching program ID: #{id}",
-          error_id: ErrorIds.program_get_query_error(),
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :database_query_error}
-
-      error ->
-        Logger.error(
-          "[ProgramRepository] Unexpected database error while fetching program ID: #{id}",
-          error_id: ErrorIds.program_get_generic_error(),
-          error_type: error.__struct__,
-          stacktrace: Exception.format(:error, error, __STACKTRACE__)
-        )
-
-        {:error, :database_unavailable}
+      :error ->
+        Logger.info("[ProgramRepository] Invalid UUID format: #{id}")
+        {:error, :not_found}
     end
   end
 
@@ -196,34 +91,10 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
   Uses seek pagination (cursor-based) for efficient pagination of large result sets.
   Programs are ordered by creation time (newest first) using (inserted_at DESC, id DESC).
 
-  Parameters:
-  - `limit` - Number of items per page (1-100, silently constrained if out of range)
-  - `cursor` - Base64-encoded cursor for pagination, nil for first page
-
   Returns:
-  - {:ok, PageResult.t()} - Page of programs with pagination metadata
-  - {:error, :invalid_cursor} - Cursor decoding/validation failure
-  - {:error, :database_connection_error} - Connection/network failure
-  - {:error, :database_query_error} - SQL error or constraint violation
-  - {:error, :database_unavailable} - Unexpected error
-
-  ## Examples
-
-      # First page
-      iex> ProgramRepository.list_programs_paginated(20, nil)
-      {:ok, %PageResult{items: [...], next_cursor: "...", has_more: true}}
-
-      # Subsequent page
-      iex> ProgramRepository.list_programs_paginated(20, cursor)
-      {:ok, %PageResult{items: [...], next_cursor: nil, has_more: false}}
+  - `{:ok, PageResult.t()}` - Page of programs with pagination metadata
+  - `{:error, :invalid_cursor}` - Cursor decoding/validation failure
   """
-  @spec list_programs_paginated(pos_integer(), String.t() | nil) ::
-          {:ok, PageResult.t()}
-          | {:error,
-             :invalid_cursor
-             | :database_connection_error
-             | :database_query_error
-             | :database_unavailable}
   def list_programs_paginated(limit, cursor) do
     Logger.info(
       "[ProgramRepository] Starting list_programs_paginated query",
@@ -232,8 +103,9 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
     )
 
     with {:ok, validated_limit} <- validate_limit(limit),
-         {:ok, cursor_data} <- decode_cursor(cursor),
-         {:ok, schemas} <- fetch_page(validated_limit, cursor_data) do
+         {:ok, cursor_data} <- decode_cursor(cursor) do
+      schemas = fetch_page(validated_limit, cursor_data)
+
       {items, has_more} =
         if length(schemas) > validated_limit do
           {Enum.take(schemas, validated_limit), true}
@@ -265,15 +137,6 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
         )
 
         error
-
-      {:error, reason} ->
-        Logger.error(
-          "[ProgramRepository] Failed to list programs (paginated)",
-          error_id: ErrorIds.program_pagination_error(),
-          reason: reason
-        )
-
-        {:error, :database_unavailable}
     end
   end
 
@@ -285,29 +148,11 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
   applies the updates via an update changeset with optimistic locking,
   and returns the updated domain entity.
 
-  The lock_version field is automatically incremented on successful update.
-  If the program was modified by another process since it was loaded,
-  the update fails with Ecto.StaleEntryError and returns {:error, :stale_data}.
-
-  Parameters:
-  - `program` - Domain Program entity with updated fields
-
   Returns:
-  - {:ok, Program.t()} - Successfully updated program
-  - {:error, :stale_data} - Optimistic lock conflict
-  - {:error, :not_found} - Program ID does not exist
-  - {:error, :constraint_violation} - Database constraint violation
-  - {:error, :database_connection_error} - Connection/network failure
-  - {:error, :database_query_error} - SQL error or schema mismatch
-  - {:error, :database_unavailable} - Unexpected error
-
-  ## Examples
-
-      program = %Program{id: "uuid", title: "Updated Title", ...}
-      {:ok, updated} = ProgramRepository.update(program)
-
-      {:error, :stale_data} = ProgramRepository.update(stale_program)
-      {:error, :not_found} = ProgramRepository.update(non_existent_program)
+  - `{:ok, Program.t()}` - Successfully updated program
+  - `{:error, :stale_data}` - Optimistic lock conflict
+  - `{:error, :not_found}` - Program ID does not exist
+  - `{:error, changeset}` - Validation failure
   """
   def update(%Program{} = program) do
     Logger.info(
@@ -316,112 +161,61 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
       title: program.title
     )
 
-    try do
-      # Verify program exists before attempting update
-      if !Repo.get(ProgramSchema, program.id) do
+    case Repo.get(ProgramSchema, program.id) do
+      nil ->
         Logger.info(
           "[ProgramRepository] Program not found during update",
           program_id: program.id
         )
 
-        throw({:error, :not_found})
-      end
+        {:error, :not_found}
 
-      # Fetch the current schema from database to get all current values
-      # This preserves fields that aren't being updated
-      current_schema = Repo.get!(ProgramSchema, program.id)
+      current_schema ->
+        do_update(current_schema, program)
+    end
+  rescue
+    Ecto.StaleEntryError ->
+      Logger.warning(
+        "[ProgramRepository] Optimistic lock conflict during program update",
+        error_id: ErrorIds.program_update_stale_entry_error(),
+        program_id: program.id
+      )
 
-      # Build a schema with the original lock_version from the domain model
-      # This is what the client saw when they loaded the program
-      schema_with_client_version = %{current_schema | lock_version: program.lock_version || 1}
+      {:error, :stale_data}
+  end
 
-      # Convert domain Program to update attributes
-      attrs = ProgramMapper.to_schema(program)
+  defp do_update(current_schema, program) do
+    # Build a schema with the original lock_version from the domain model
+    # This is what the client saw when they loaded the program
+    schema_with_client_version = %{current_schema | lock_version: program.lock_version || 1}
 
-      # Build update changeset with optimistic locking
-      # Ecto will check if current_schema.lock_version matches what's in the DB
-      changeset = ProgramSchema.update_changeset(schema_with_client_version, attrs)
+    # Convert domain Program to update attributes
+    attrs = ProgramMapper.to_schema(program)
 
-      # Execute update
-      case Repo.update(changeset) do
-        {:ok, updated_schema} ->
-          updated_program = ProgramMapper.to_domain(updated_schema)
+    # Build update changeset with optimistic locking
+    changeset = ProgramSchema.update_changeset(schema_with_client_version, attrs)
 
-          Logger.info(
-            "[ProgramRepository] Successfully updated program",
-            program_id: program.id,
-            title: updated_program.title,
-            lock_version: updated_schema.lock_version
-          )
+    case Repo.update(changeset) do
+      {:ok, updated_schema} ->
+        updated_program = ProgramMapper.to_domain(updated_schema)
 
-          {:ok, updated_program}
+        Logger.info(
+          "[ProgramRepository] Successfully updated program",
+          program_id: program.id,
+          title: updated_program.title,
+          lock_version: updated_schema.lock_version
+        )
 
-        {:error, changeset} ->
-          Logger.warning(
-            "[ProgramRepository] Program update failed due to changeset errors",
-            error_id: ErrorIds.program_update_query_error(),
-            program_id: program.id,
-            errors: changeset.errors
-          )
+        {:ok, updated_program}
 
-          {:error, :database_query_error}
-      end
-    rescue
-      error in [Ecto.StaleEntryError] ->
+      {:error, changeset} ->
         Logger.warning(
-          "[ProgramRepository] Optimistic lock conflict during program update",
-          error_id: ErrorIds.program_update_stale_entry_error(),
+          "[ProgramRepository] Program update failed due to changeset errors",
           program_id: program.id,
-          error_type: error.__struct__
+          errors: changeset.errors
         )
 
-        {:error, :stale_data}
-
-      error in [Ecto.ConstraintError] ->
-        Logger.error(
-          "[ProgramRepository] Constraint violation during program update",
-          error_id: ErrorIds.program_update_constraint_violation(),
-          program_id: program.id,
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :constraint_violation}
-
-      error in [DBConnection.ConnectionError] ->
-        Logger.error(
-          "[ProgramRepository] Database connection failed during program update",
-          error_id: ErrorIds.program_update_connection_error(),
-          program_id: program.id,
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :database_connection_error}
-
-      error in [Postgrex.Error] ->
-        Logger.error(
-          "[ProgramRepository] Database query error during program update",
-          error_id: ErrorIds.program_update_query_error(),
-          program_id: program.id,
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :database_query_error}
-
-      error ->
-        Logger.error(
-          "[ProgramRepository] Unexpected database error during program update",
-          error_id: ErrorIds.program_update_generic_error(),
-          program_id: program.id,
-          error_type: error.__struct__,
-          stacktrace: Exception.format(:error, error, __STACKTRACE__)
-        )
-
-        {:error, :database_unavailable}
-    catch
-      {:error, reason} -> {:error, reason}
+        {:error, changeset}
     end
   end
 
@@ -484,46 +278,11 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
   end
 
   defp fetch_page(limit, cursor_data) do
-    query =
-      ProgramQueries.base_query()
-      |> apply_cursor_filter(cursor_data)
-      |> ProgramQueries.order_by_creation(:desc)
-      |> ProgramQueries.limit_results(limit + 1)
-
-    try do
-      schemas = Repo.all(query)
-      {:ok, schemas}
-    rescue
-      error in [DBConnection.ConnectionError] ->
-        Logger.error(
-          "[ProgramRepository] Database connection failed during pagination",
-          error_id: ErrorIds.program_pagination_connection_error(),
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :database_connection_error}
-
-      error in [Postgrex.Error, Ecto.Query.CastError] ->
-        Logger.error(
-          "[ProgramRepository] Database query error during pagination",
-          error_id: ErrorIds.program_pagination_query_error(),
-          error_type: error.__struct__,
-          error_message: Exception.message(error)
-        )
-
-        {:error, :database_query_error}
-
-      error ->
-        Logger.error(
-          "[ProgramRepository] Unexpected database error during pagination",
-          error_id: ErrorIds.program_pagination_generic_error(),
-          error_type: error.__struct__,
-          stacktrace: Exception.format(:error, error, __STACKTRACE__)
-        )
-
-        {:error, :database_unavailable}
-    end
+    ProgramQueries.base_query()
+    |> apply_cursor_filter(cursor_data)
+    |> ProgramQueries.order_by_creation(:desc)
+    |> ProgramQueries.limit_results(limit + 1)
+    |> Repo.all()
   end
 
   defp apply_cursor_filter(query, nil), do: query

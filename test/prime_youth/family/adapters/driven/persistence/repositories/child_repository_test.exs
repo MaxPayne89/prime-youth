@@ -147,16 +147,16 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildReposi
       refute is_nil(child.updated_at)
     end
 
-    test "returns :database_query_error for missing required fields" do
+    test "returns changeset error for missing required fields" do
       attrs = %{
         first_name: "Alice",
         last_name: "Smith"
       }
 
-      assert {:error, :database_query_error} = ChildRepository.create(attrs)
+      assert {:error, %Ecto.Changeset{valid?: false}} = ChildRepository.create(attrs)
     end
 
-    test "returns :database_query_error for invalid date_of_birth (future)" do
+    test "returns changeset error for invalid date_of_birth (future)" do
       parent_schema = insert(:parent_schema)
       future_date = Date.add(Date.utc_today(), 1)
 
@@ -167,7 +167,7 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildReposi
         date_of_birth: future_date
       }
 
-      assert {:error, :database_query_error} = ChildRepository.create(attrs)
+      assert {:error, %Ecto.Changeset{valid?: false}} = ChildRepository.create(attrs)
     end
   end
 
@@ -183,7 +183,7 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildReposi
       child2 = insert(:child_schema, parent_id: parent_schema.id, first_name: "Bob")
       child3 = insert(:child_schema, parent_id: parent_schema.id, first_name: "Charlie")
 
-      assert {:ok, children} = ChildRepository.list_by_parent(parent_schema.id)
+      children = ChildRepository.list_by_parent(parent_schema.id)
 
       assert length(children) == 3
       assert Enum.all?(children, &match?(%Child{}, &1))
@@ -197,7 +197,7 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildReposi
     test "returns empty list when parent has no children" do
       parent_id = Ecto.UUID.generate()
 
-      assert {:ok, []} = ChildRepository.list_by_parent(parent_id)
+      assert [] = ChildRepository.list_by_parent(parent_id)
     end
 
     test "orders children by first_name ASC, then last_name ASC" do
@@ -227,7 +227,7 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildReposi
       _bob =
         insert(:child_schema, parent_id: parent_schema.id, first_name: "Bob", last_name: "Davis")
 
-      assert {:ok, children} = ChildRepository.list_by_parent(parent_schema.id)
+      children = ChildRepository.list_by_parent(parent_schema.id)
 
       assert length(children) == 4
       assert Enum.at(children, 0).first_name == "Alice"
@@ -264,7 +264,7 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildReposi
           last_name: "Jones"
         )
 
-      assert {:ok, children} = ChildRepository.list_by_parent(parent_schema.id)
+      children = ChildRepository.list_by_parent(parent_schema.id)
 
       assert length(children) == 3
       assert Enum.all?(children, &(&1.first_name == "Alice"))
@@ -282,7 +282,7 @@ defmodule PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildReposi
       _child3 = insert(:child_schema, parent_id: parent2_schema.id, first_name: "Charlie")
       _child4 = insert(:child_schema, parent_id: parent2_schema.id, first_name: "Diana")
 
-      assert {:ok, children} = ChildRepository.list_by_parent(parent1_schema.id)
+      children = ChildRepository.list_by_parent(parent1_schema.id)
 
       assert length(children) == 2
       assert Enum.all?(children, &(&1.parent_id == parent1_schema.id))

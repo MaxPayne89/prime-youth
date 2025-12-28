@@ -22,20 +22,19 @@ defmodule PrimeYouth.Attendance.Application.UseCases.ListSessions do
   - `filter_value` - Value to filter by (program_id or date)
 
   ## Returns
-  - `{:ok, [session]}` - List of matching sessions
-  - `{:error, reason}` - Query failed
-    - Database errors (`:database_connection_error`, etc.)
+  - `[ProgramSession.t()]` - List of matching sessions (may be empty)
+  - `{:error, {:invalid_filter_type, atom()}}` - Invalid filter type provided
 
   ## Examples
 
       iex> ListSessions.execute(:by_program, program_id)
-      {:ok, [%ProgramSession{}, ...]}
+      [%ProgramSession{}, ...]
 
       iex> ListSessions.execute(:today, ~D[2025-01-15])
-      {:ok, [%ProgramSession{}, ...]}
+      [%ProgramSession{}, ...]
 
       iex> ListSessions.execute(:invalid_filter, "value")
-      {:error, :invalid_filter_type}
+      {:error, {:invalid_filter_type, :invalid_filter}}
   """
   def execute(:by_program, program_id) when is_binary(program_id) do
     session_repository().list_by_program(program_id)

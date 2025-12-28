@@ -41,7 +41,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.ListSessionsTest do
         start_time: ~T[09:00:00]
       )
 
-      assert {:ok, sessions} = ListSessions.execute(:by_program, program.id)
+      sessions = ListSessions.execute(:by_program, program.id)
       assert length(sessions) == 4
       assert Enum.all?(sessions, &match?(%ProgramSession{}, &1))
 
@@ -56,7 +56,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.ListSessionsTest do
     test "returns empty list when program has no sessions" do
       program = insert(:program_schema)
 
-      assert {:ok, sessions} = ListSessions.execute(:by_program, program.id)
+      sessions = ListSessions.execute(:by_program, program.id)
       assert sessions == []
     end
 
@@ -67,7 +67,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.ListSessionsTest do
       insert(:program_session_schema, program_id: program1.id)
       insert(:program_session_schema, program_id: program2.id)
 
-      assert {:ok, sessions} = ListSessions.execute(:by_program, program1.id)
+      sessions = ListSessions.execute(:by_program, program1.id)
       assert length(sessions) == 1
       assert Enum.all?(sessions, &(&1.program_id == program1.id))
     end
@@ -97,7 +97,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.ListSessionsTest do
         start_time: ~T[09:00:00]
       )
 
-      assert {:ok, sessions} = ListSessions.execute(:today, target_date)
+      sessions = ListSessions.execute(:today, target_date)
       assert length(sessions) == 2
       assert Enum.all?(sessions, &(&1.session_date == target_date))
 
@@ -108,7 +108,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.ListSessionsTest do
     test "returns empty list when no sessions for date" do
       target_date = ~D[2025-02-15]
 
-      assert {:ok, sessions} = ListSessions.execute(:today, target_date)
+      sessions = ListSessions.execute(:today, target_date)
       assert sessions == []
     end
   end
