@@ -24,6 +24,17 @@ config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+config :opentelemetry, :resource,
+  service: [
+    name: "klass-hero",
+    namespace: "klass-hero"
+  ]
+
+# OpenTelemetry base configuration
+config :opentelemetry,
+  span_processor: :batch,
+  traces_exporter: :otlp
+
 # GDPR: Filter sensitive parameters from logs
 config :phoenix, :filter_parameters, [
   "password",
@@ -125,17 +136,6 @@ config :tailwind,
       --output=priv/static/assets/css/app.css
     ),
     cd: Path.expand("..", __DIR__)
-  ]
-
-# OpenTelemetry base configuration
-config :opentelemetry,
-  span_processor: :batch,
-  traces_exporter: :otlp
-
-config :opentelemetry, :resource,
-  service: [
-    name: "klass-hero",
-    namespace: "klass-hero"
   ]
 
 # Import environment specific config. This must remain at the bottom

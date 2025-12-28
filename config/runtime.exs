@@ -47,8 +47,7 @@ if config_env() == :prod do
 
   # OpenTelemetry: Override service name from env if provided
   if otel_service_name = System.get_env("OTEL_SERVICE_NAME") do
-    config :opentelemetry, :resource,
-      service: [name: otel_service_name, namespace: "klass-hero"]
+    config :opentelemetry, :resource, service: [name: otel_service_name, namespace: "klass-hero"]
   end
 
   # OpenTelemetry: Only configure Honeycomb exporter if all credentials are present
