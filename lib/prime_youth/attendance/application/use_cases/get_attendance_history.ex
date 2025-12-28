@@ -23,23 +23,22 @@ defmodule PrimeYouth.Attendance.Application.UseCases.GetAttendanceHistory do
   - `filter_value` - Value to filter by (child_id, session_id, or parent_id)
 
   ## Returns
-  - `{:ok, [record]}` - List of matching attendance records
-  - `{:error, reason}` - Query failed
-    - Database errors (`:database_connection_error`, etc.)
+  - `[AttendanceRecord.t()]` - List of matching attendance records (may be empty)
+  - `{:error, {:invalid_filter_type, atom()}}` - Invalid filter type provided
 
   ## Examples
 
       iex> GetAttendanceHistory.execute(:by_child, child_id)
-      {:ok, [%AttendanceRecord{}, ...]}
+      [%AttendanceRecord{}, ...]
 
       iex> GetAttendanceHistory.execute(:by_session, session_id)
-      {:ok, [%AttendanceRecord{}, ...]}
+      [%AttendanceRecord{}, ...]
 
       iex> GetAttendanceHistory.execute(:by_parent, parent_id)
-      {:ok, [%AttendanceRecord{}, ...]}
+      [%AttendanceRecord{}, ...]
 
       iex> GetAttendanceHistory.execute(:invalid_filter, "value")
-      {:error, :invalid_filter_type}
+      {:error, {:invalid_filter_type, :invalid_filter}}
   """
   def execute(:by_child, child_id) when is_binary(child_id) do
     attendance_repository().list_by_child(child_id)

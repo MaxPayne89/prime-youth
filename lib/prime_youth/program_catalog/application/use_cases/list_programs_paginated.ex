@@ -13,10 +13,11 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListProgramsPaginated d
       # Get next page using cursor from previous result
       {:ok, next_page} = ListProgramsPaginated.execute(20, page_result.next_cursor)
 
+  Infrastructure errors (connection, query) are not caught - they crash and
+  are handled by the supervision tree.
   """
 
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
-  alias PrimeYouth.Shared.Domain.Types.Pagination.PageResult
 
   @doc """
   Lists programs with pagination.
@@ -30,13 +31,8 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListProgramsPaginated d
 
     * `{:ok, PageResult.t()}` - Page of programs with pagination metadata
     * `{:error, :invalid_cursor}` - Cursor is malformed or invalid
-    * `{:error, :database_connection_error}` - Database connection failed
-    * `{:error, :database_query_error}` - Query execution failed
-    * `{:error, :database_unavailable}` - Unexpected database error
 
   """
-  @spec execute(pos_integer(), String.t() | nil) ::
-          {:ok, PageResult.t()} | {:error, atom()}
   def execute(limit, cursor) do
     ProgramRepository.list_programs_paginated(limit, cursor)
   end

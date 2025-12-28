@@ -25,14 +25,12 @@ defmodule PrimeYouth.Attendance.Application.UseCases.ListProviderSessions do
   - `date` - Date to filter sessions
 
   ## Returns
-  - `{:ok, [session]}` - List of matching sessions
-  - `{:error, reason}` - Query failed
-    - Database errors
+  - `[ProgramSession.t()]` - List of matching sessions (may be empty)
 
   ## Examples
 
       iex> ListProviderSessions.execute(provider_id, ~D[2025-01-15])
-      {:ok, [%ProgramSession{}, ...]}
+      [%ProgramSession{}, ...]
   """
   def execute(provider_id, %Date{} = date) when is_binary(provider_id) do
     session_repository().list_by_provider_and_date(provider_id, date)

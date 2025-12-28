@@ -22,17 +22,14 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListFeaturedPrograms do
 
   ## Usage
 
-      {:ok, featured} = ListFeaturedPrograms.execute()
+      featured = ListFeaturedPrograms.execute()
       # Returns first 2 programs ordered by title
 
-      {:ok, []} = ListFeaturedPrograms.execute()
+      [] = ListFeaturedPrograms.execute()
       # Returns empty list if no programs exist
-
-      {:error, :database_connection_error} = ListFeaturedPrograms.execute()
   """
 
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
-  alias PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms
 
   @featured_count 2
 
@@ -44,35 +41,23 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListFeaturedPrograms do
   for the home page.
 
   Returns:
-  - `{:ok, [Program.t()]}` - List of featured programs (up to #{@featured_count}, may be empty)
-  - `{:error, :database_connection_error}` - Connection/network failure
-  - `{:error, :database_query_error}` - SQL error or constraint violation
-  - `{:error, :database_unavailable}` - Unexpected error
+  - `[Program.t()]` - List of featured programs (up to #{@featured_count}, may be empty)
 
   ## Examples
 
       # Successful retrieval with multiple programs
-      {:ok, [program1, program2]} = ListFeaturedPrograms.execute()
+      [program1, program2] = ListFeaturedPrograms.execute()
 
       # Database has only 1 program
-      {:ok, [program1]} = ListFeaturedPrograms.execute()
+      [program1] = ListFeaturedPrograms.execute()
 
       # Empty database
-      {:ok, []} = ListFeaturedPrograms.execute()
-
-      # Database errors
-      {:error, :database_connection_error} = ListFeaturedPrograms.execute()
+      [] = ListFeaturedPrograms.execute()
   """
-  @spec execute() :: {:ok, [Program.t()]} | {:error, ForListingPrograms.list_error()}
+  @spec execute() :: [Program.t()]
   def execute do
-    case repository_module().list_all_programs() do
-      {:ok, programs} ->
-        featured = Enum.take(programs, @featured_count)
-        {:ok, featured}
-
-      error ->
-        error
-    end
+    repository_module().list_all_programs()
+    |> Enum.take(@featured_count)
   end
 
   # Private helper to get the configured repository module

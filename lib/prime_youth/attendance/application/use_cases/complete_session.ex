@@ -45,18 +45,13 @@ defmodule PrimeYouth.Attendance.Application.UseCases.CompleteSession do
   end
 
   defp get_attendance_count(session_id) do
-    case attendance_repository().list_by_session(session_id) do
-      {:ok, records} ->
-        count =
-          records
-          |> Enum.count(fn record -> record.status in [:checked_in, :checked_out] end)
+    records = attendance_repository().list_by_session(session_id)
 
-        {:ok, count}
+    count =
+      records
+      |> Enum.count(fn record -> record.status in [:checked_in, :checked_out] end)
 
-      {:error, _reason} ->
-        # Fallback to 0 if we can't get the count
-        {:ok, 0}
-    end
+    {:ok, count}
   end
 
   defp publish_session_completed_event(session, attendance_count) do

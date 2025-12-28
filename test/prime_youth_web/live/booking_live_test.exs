@@ -32,7 +32,8 @@ defmodule PrimeYouthWeb.BookingLiveTest do
                live(conn, ~p"/programs/invalid/booking")
 
       assert path == ~p"/programs"
-      assert flash["error"] == "Unable to load program. Please try again later."
+      # Invalid UUIDs return :not_found, which shows the "not found" message
+      assert flash["error"] == "Program not found"
     end
 
     test "redirects with error flash for non-existent program ID", %{conn: conn} do

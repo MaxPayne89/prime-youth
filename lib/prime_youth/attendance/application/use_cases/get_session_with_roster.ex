@@ -26,8 +26,8 @@ defmodule PrimeYouth.Attendance.Application.UseCases.GetSessionWithRoster do
     - Database errors
   """
   def execute(session_id) when is_binary(session_id) do
-    with {:ok, session} <- session_repository().get_by_id(session_id),
-         {:ok, records} <- attendance_repository().list_by_session(session_id) do
+    with {:ok, session} <- session_repository().get_by_id(session_id) do
+      records = attendance_repository().list_by_session(session_id)
       {:ok, Map.put(session, :attendance_records, records)}
     end
   end
@@ -49,8 +49,8 @@ defmodule PrimeYouth.Attendance.Application.UseCases.GetSessionWithRoster do
     - Database errors
   """
   def execute_enriched(session_id) when is_binary(session_id) do
-    with {:ok, session} <- session_repository().get_by_id(session_id),
-         {:ok, enriched_records} <- attendance_repository().list_by_session_enriched(session_id) do
+    with {:ok, session} <- session_repository().get_by_id(session_id) do
+      enriched_records = attendance_repository().list_by_session_enriched(session_id)
       {:ok, Map.put(session, :attendance_records, enriched_records)}
     end
   end

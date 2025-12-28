@@ -37,7 +37,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.ListProviderSessionsTest do
         start_time: ~T[09:00:00]
       )
 
-      assert {:ok, sessions} = ListProviderSessions.execute(provider_id, target_date)
+      sessions = ListProviderSessions.execute(provider_id, target_date)
       assert length(sessions) == 2
       assert Enum.all?(sessions, &match?(%ProgramSession{}, &1))
       assert Enum.all?(sessions, &(&1.session_date == target_date))
@@ -50,7 +50,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.ListProviderSessionsTest do
       provider_id = Ecto.UUID.generate()
       target_date = ~D[2025-02-15]
 
-      assert {:ok, sessions} = ListProviderSessions.execute(provider_id, target_date)
+      sessions = ListProviderSessions.execute(provider_id, target_date)
       assert sessions == []
     end
 
@@ -73,7 +73,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.ListProviderSessionsTest do
         end_time: ~T[17:00:00]
       )
 
-      assert {:ok, sessions} = ListProviderSessions.execute(provider_id, target_date)
+      sessions = ListProviderSessions.execute(provider_id, target_date)
       assert length(sessions) == 2
     end
   end

@@ -87,7 +87,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         spots_available: 15
       })
 
-      {:ok, programs} = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
       assert length(programs) == 2
       assert Enum.all?(programs, &match?(%Program{}, &1))
@@ -123,7 +123,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
       Repo.delete_all(ProgramSessionSchema)
       Repo.delete_all(ProgramSchema)
 
-      {:ok, programs} = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
       assert programs == []
       assert is_list(programs)
@@ -161,7 +161,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         spots_available: 10
       })
 
-      {:ok, programs} = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
       titles = Enum.map(programs, & &1.title)
       assert titles == ["Art Class", "Music Lessons", "Zebra Camp"]
@@ -185,7 +185,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         spots_available: 10
       })
 
-      {:ok, programs} = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
       assert length(programs) == 1
       assert List.first(programs).title == "Test Program"
@@ -213,7 +213,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         spots_available: 0
       })
 
-      {:ok, programs} = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
       assert length(programs) == 2
 
@@ -254,7 +254,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         spots_available: 0
       })
 
-      {:ok, programs} = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
       assert length(programs) == 2
 
@@ -299,7 +299,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
         spots_available: 10
       })
 
-      {:ok, programs} = ListAllPrograms.execute()
+      programs = ListAllPrograms.execute()
 
       assert length(programs) == 2
 

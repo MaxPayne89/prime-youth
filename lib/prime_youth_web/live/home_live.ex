@@ -8,7 +8,7 @@ defmodule PrimeYouthWeb.HomeLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, featured} = ListFeaturedPrograms.execute()
+    featured = ListFeaturedPrograms.execute()
 
     socket =
       socket

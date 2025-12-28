@@ -50,106 +50,49 @@ defmodule PrimeYouthWeb.ProgramsLive do
     active_filter = validate_filter(params["filter"])
 
     # Load first page of programs using pagination (always resets to page 1)
-    case ListProgramsPaginated.execute(socket.assigns.page_size, nil) do
-      {:ok, page_result} ->
-        start_time = System.monotonic_time(:millisecond)
-        # Apply search filter to domain programs BEFORE converting to maps
-        filtered_domain = FilterPrograms.execute(page_result.items, search_query)
-        # Convert to maps for UI
-        programs = Enum.map(filtered_domain, &program_to_map/1)
-        # Apply category filter
-        filtered = filter_by_category(programs, active_filter)
-        duration_ms = System.monotonic_time(:millisecond) - start_time
+    # Infrastructure errors will crash and be handled by supervision tree
+    {:ok, page_result} = ListProgramsPaginated.execute(socket.assigns.page_size, nil)
 
-        Logger.info(
-          "[ProgramsLive.handle_params] Filter operation completed",
-          search_query: search_query,
-          result_count: length(filtered),
-          page_has_more: page_result.has_more,
-          duration_ms: duration_ms,
-          current_user_id: get_user_id(socket)
-        )
+    start_time = System.monotonic_time(:millisecond)
+    # Apply search filter to domain programs BEFORE converting to maps
+    filtered_domain = FilterPrograms.execute(page_result.items, search_query)
+    # Convert to maps for UI
+    programs = Enum.map(filtered_domain, &program_to_map/1)
+    # Apply category filter
+    filtered = filter_by_category(programs, active_filter)
+    duration_ms = System.monotonic_time(:millisecond) - start_time
 
-        if duration_ms > 150 do
-          Logger.warning(
-            "[ProgramsLive.handle_params] Filter operation exceeded performance target",
-            search_query: search_query,
-            result_count: length(filtered),
-            duration_ms: duration_ms,
-            target_ms: 150,
-            current_user_id: get_user_id(socket)
-          )
-        end
+    Logger.info(
+      "[ProgramsLive.handle_params] Filter operation completed",
+      search_query: search_query,
+      result_count: length(filtered),
+      page_has_more: page_result.has_more,
+      duration_ms: duration_ms,
+      current_user_id: get_user_id(socket)
+    )
 
-        socket =
-          socket
-          |> assign(search_query: search_query)
-          |> assign(active_filter: active_filter)
-          |> assign(next_cursor: page_result.next_cursor)
-          |> assign(has_more: page_result.has_more)
-          |> stream(:programs, filtered, reset: true)
-          |> assign(:programs_empty?, Enum.empty?(filtered))
-          |> assign(database_error: false)
-
-        {:noreply, socket}
-
-      {:error, :database_connection_error} ->
-        Logger.error(
-          "[ProgramsLive.handle_params] Database connection error",
-          error_id: ErrorIds.program_list_connection_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        socket =
-          socket
-          |> assign(search_query: search_query)
-          |> assign(active_filter: active_filter)
-          |> stream(:programs, [], reset: true)
-          |> assign(:programs_empty?, true)
-          |> assign(database_error: true)
-          |> put_flash(:error, "Connection lost. Please try again.")
-
-        {:noreply, socket}
-
-      {:error, :database_query_error} ->
-        Logger.error(
-          "[ProgramsLive.handle_params] Database query error",
-          error_id: ErrorIds.program_list_query_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        socket =
-          socket
-          |> assign(search_query: search_query)
-          |> assign(active_filter: active_filter)
-          |> stream(:programs, [], reset: true)
-          |> assign(:programs_empty?, true)
-          |> assign(:database_error, true)
-          |> put_flash(:error, "System error. Please contact support.")
-
-        {:noreply, socket}
-
-      {:error, :database_unavailable} ->
-        Logger.error(
-          "[ProgramsLive.handle_params] Database unavailable",
-          error_id: ErrorIds.program_list_generic_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        socket =
-          socket
-          |> assign(search_query: search_query)
-          |> assign(active_filter: active_filter)
-          |> stream(:programs, [], reset: true)
-          |> assign(:programs_empty?, true)
-          |> assign(:database_error, true)
-          |> put_flash(:error, "Service temporarily unavailable.")
-
-        {:noreply, socket}
+    if duration_ms > 150 do
+      Logger.warning(
+        "[ProgramsLive.handle_params] Filter operation exceeded performance target",
+        search_query: search_query,
+        result_count: length(filtered),
+        duration_ms: duration_ms,
+        target_ms: 150,
+        current_user_id: get_user_id(socket)
+      )
     end
+
+    socket =
+      socket
+      |> assign(search_query: search_query)
+      |> assign(active_filter: active_filter)
+      |> assign(next_cursor: page_result.next_cursor)
+      |> assign(has_more: page_result.has_more)
+      |> stream(:programs, filtered, reset: true)
+      |> assign(:programs_empty?, Enum.empty?(filtered))
+      |> assign(database_error: false)
+
+    {:noreply, socket}
   end
 
   # Private helper - Domain to UI conversion
@@ -199,6 +142,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
     socket = assign(socket, loading_more: true)
 
     # Load next page using current cursor
+    # Infrastructure errors will crash and be handled by supervision tree
     case ListProgramsPaginated.execute(socket.assigns.page_size, socket.assigns.next_cursor) do
       {:ok, page_result} ->
         # Apply same filters as current page
@@ -224,53 +168,8 @@ defmodule PrimeYouthWeb.ProgramsLive do
 
         {:noreply, socket}
 
-      {:error, :database_connection_error} ->
-        Logger.error(
-          "[ProgramsLive.load_more] Database connection error",
-          error_id: ErrorIds.program_list_connection_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        socket =
-          socket
-          |> assign(loading_more: false)
-          |> put_flash(:error, "Connection lost. Please try again.")
-
-        {:noreply, socket}
-
-      {:error, :database_query_error} ->
-        Logger.error(
-          "[ProgramsLive.load_more] Database query error",
-          error_id: ErrorIds.program_list_query_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        socket =
-          socket
-          |> assign(loading_more: false)
-          |> put_flash(:error, "System error. Please contact support.")
-
-        {:noreply, socket}
-
-      {:error, :database_unavailable} ->
-        Logger.error(
-          "[ProgramsLive.load_more] Database unavailable",
-          error_id: ErrorIds.program_list_generic_error(),
-          current_user_id: get_user_id(socket),
-          live_view: __MODULE__
-        )
-
-        socket =
-          socket
-          |> assign(loading_more: false)
-          |> put_flash(:error, "Service temporarily unavailable.")
-
-        {:noreply, socket}
-
       {:error, :invalid_cursor} ->
-        Logger.error(
+        Logger.warning(
           "[ProgramsLive.load_more] Invalid cursor",
           error_id: ErrorIds.program_pagination_invalid_cursor(),
           current_user_id: get_user_id(socket),

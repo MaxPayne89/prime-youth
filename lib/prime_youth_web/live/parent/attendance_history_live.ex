@@ -123,17 +123,18 @@ defmodule PrimeYouthWeb.Parent.AttendanceHistoryLive do
   defp load_attendance_history(socket) do
     parent_id = socket.assigns.parent_id
 
-    with {:ok, children} <- GetChildren.execute(:simple),
-         {:ok, attendance_records} <- GetAttendanceHistory.execute(:by_parent, parent_id) do
-      child_names = Map.new(children, fn child -> {child.id, Child.full_name(child)} end)
-      children_ids = MapSet.new(children, fn child -> child.id end)
+    case GetChildren.execute(:simple) do
+      {:ok, children} ->
+        attendance_records = GetAttendanceHistory.execute(:by_parent, parent_id)
+        child_names = Map.new(children, fn child -> {child.id, Child.full_name(child)} end)
+        children_ids = MapSet.new(children, fn child -> child.id end)
 
-      socket
-      |> assign(:child_names, child_names)
-      |> assign(:children_ids, children_ids)
-      |> stream(:attendance_records, attendance_records, reset: true)
-      |> assign(:attendance_error, nil)
-    else
+        socket
+        |> assign(:child_names, child_names)
+        |> assign(:children_ids, children_ids)
+        |> stream(:attendance_records, attendance_records, reset: true)
+        |> assign(:attendance_error, nil)
+
       {:error, reason} ->
         Logger.error(
           "[AttendanceHistoryLive.load_attendance_history] Failed to load attendance",
