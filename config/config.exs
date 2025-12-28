@@ -124,10 +124,20 @@ config :tailwind,
       --input=assets/css/app.css
       --output=priv/static/assets/css/app.css
     ),
-
-    # Import environment specific config. This must remain at the bottom
-    # of this file so it overrides the configuration defined above.
     cd: Path.expand("..", __DIR__)
   ]
 
+# OpenTelemetry base configuration
+config :opentelemetry,
+  span_processor: :batch,
+  traces_exporter: :otlp
+
+config :opentelemetry, :resource,
+  service: [
+    name: "klass-hero",
+    namespace: "klass-hero"
+  ]
+
+# Import environment specific config. This must remain at the bottom
+# of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

@@ -91,3 +91,6 @@ config :prime_youth, dev_routes: true
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# OpenTelemetry: console output for local debugging
+config :opentelemetry, traces_exporter: {:otel_exporter_stdout, []}
