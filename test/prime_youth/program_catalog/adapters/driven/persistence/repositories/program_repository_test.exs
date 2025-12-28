@@ -1,6 +1,7 @@
 defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepositoryTest do
   use PrimeYouth.DataCase, async: true
 
+  alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapper
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
@@ -297,7 +298,8 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
     end
 
     test "returns empty results when no programs exist" do
-      # Clean database
+      # Clean database (delete sessions first due to FK constraint)
+      Repo.delete_all(ProgramSessionSchema)
       Repo.delete_all(ProgramSchema)
 
       {:ok, page} = ProgramRepository.list_programs_paginated(20, nil)
@@ -407,7 +409,8 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
     end
 
     test "handles exactly page_size results correctly" do
-      # Clean database and insert exactly 10 programs
+      # Clean database (delete sessions first due to FK constraint) and insert exactly 10 programs
+      Repo.delete_all(ProgramSessionSchema)
       Repo.delete_all(ProgramSchema)
 
       base_time = ~U[2024-01-01 00:00:00Z]
@@ -436,7 +439,8 @@ defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Pro
     end
 
     test "handles exactly page_size + 1 results correctly" do
-      # Clean database and insert exactly 11 programs
+      # Clean database (delete sessions first due to FK constraint) and insert exactly 11 programs
+      Repo.delete_all(ProgramSessionSchema)
       Repo.delete_all(ProgramSchema)
 
       base_time = ~U[2024-01-01 00:00:00Z]

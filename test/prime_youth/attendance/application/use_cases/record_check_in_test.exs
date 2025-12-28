@@ -16,13 +16,13 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInTest do
     test "creates new attendance record and checks in" do
       session = insert(:program_session_schema, status: "in_progress")
       child = insert(:child_schema)
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_schema)
 
       assert {:ok, record} =
                RecordCheckIn.execute(
                  session.id,
                  child.id,
-                 provider_id,
+                 provider.id,
                  "Child arrived happy"
                )
 
@@ -31,17 +31,17 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInTest do
       assert record.child_id == child.id
       assert record.status == :checked_in
       assert record.check_in_notes == "Child arrived happy"
-      assert record.check_in_by == provider_id
+      assert record.check_in_by == provider.id
       assert record.check_in_at != nil
     end
 
     test "checks in with nil notes when not provided" do
       session = insert(:program_session_schema, status: "in_progress")
       child = insert(:child_schema)
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_schema)
 
       assert {:ok, record} =
-               RecordCheckIn.execute(session.id, child.id, provider_id)
+               RecordCheckIn.execute(session.id, child.id, provider.id)
 
       assert record.check_in_notes == nil
     end
@@ -49,7 +49,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInTest do
     test "checks in existing expected record" do
       session = insert(:program_session_schema, status: "in_progress")
       child = insert(:child_schema)
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_schema)
 
       _existing =
         insert(:attendance_record_schema,
@@ -59,37 +59,42 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInTest do
         )
 
       assert {:ok, record} =
-               RecordCheckIn.execute(session.id, child.id, provider_id, "Late arrival")
+               RecordCheckIn.execute(session.id, child.id, provider.id, "Late arrival")
 
       assert record.status == :checked_in
       assert record.check_in_notes == "Late arrival"
     end
 
-    test "returns error when checking in already checked-in record" do
+    test "idempotent check-in succeeds for already checked-in record" do
       session = insert(:program_session_schema, status: "in_progress")
       child = insert(:child_schema)
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_schema)
+      original_check_in_time = DateTime.add(DateTime.utc_now(), -300, :second)
 
       _already_checked_in =
         insert(:attendance_record_schema,
           session_id: session.id,
           child_id: child.id,
           status: "checked_in",
-          check_in_at: DateTime.utc_now()
+          check_in_at: original_check_in_time
         )
 
-      assert {:error, message} =
-               RecordCheckIn.execute(session.id, child.id, provider_id)
+      # Idempotent: re-check-in succeeds and updates the record
+      assert {:ok, record} =
+               RecordCheckIn.execute(session.id, child.id, provider.id, "Updated notes")
 
-      assert message =~ "Cannot check in"
+      assert record.status == :checked_in
+      assert record.check_in_notes == "Updated notes"
+      # Check-in time was updated (idempotent upsert replaces fields)
+      assert DateTime.compare(record.check_in_at, original_check_in_time) != :eq
     end
 
     test "persists check-in to database" do
       session = insert(:program_session_schema, status: "in_progress")
       child = insert(:child_schema)
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_schema)
 
-      {:ok, record} = RecordCheckIn.execute(session.id, child.id, provider_id)
+      {:ok, record} = RecordCheckIn.execute(session.id, child.id, provider.id)
 
       reloaded =
         PrimeYouth.Repo.get(

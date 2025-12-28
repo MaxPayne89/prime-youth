@@ -81,9 +81,6 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
         {:error, :database_query_error}
 
       error ->
-        IO.inspect(error, label: "DEBUG: Unexpected error during create")
-        IO.inspect(Exception.format(:error, error, __STACKTRACE__), label: "DEBUG: Stacktrace")
-
         Logger.error(
           "[AttendanceRepository] Unexpected database error during create",
           error_id: ErrorIds.attendance_create_generic_error(),
@@ -682,6 +679,147 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.Attenda
           "[AttendanceRepository] Unexpected database error during list_by_parent",
           error_id: ErrorIds.attendance_list_generic_error(),
           parent_id: parent_id,
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
+        )
+
+        {:error, :database_unavailable}
+    end
+  end
+
+  @impl true
+  def check_in_atomic(session_id, child_id, provider_id, notes \\ nil) do
+    Logger.info(
+      "[AttendanceRepository] Performing atomic check-in",
+      session_id: session_id,
+      child_id: child_id,
+      provider_id: provider_id
+    )
+
+    now = DateTime.utc_now()
+
+    attrs = %{
+      session_id: session_id,
+      child_id: child_id,
+      provider_id: provider_id,
+      status: "checked_in",
+      check_in_at: now,
+      check_in_notes: notes,
+      check_in_by: provider_id
+    }
+
+    changeset = AttendanceRecordSchema.changeset(%AttendanceRecordSchema{}, attrs)
+
+    try do
+      case Repo.insert(
+             changeset,
+             on_conflict:
+               {:replace, [:status, :check_in_at, :check_in_notes, :check_in_by, :updated_at]},
+             conflict_target: [:session_id, :child_id],
+             returning: true
+           ) do
+        {:ok, schema} ->
+          record = AttendanceRecordMapper.to_domain(schema)
+
+          Logger.info(
+            "[AttendanceRepository] Successfully performed atomic check-in",
+            record_id: record.id,
+            session_id: record.session_id,
+            child_id: record.child_id,
+            status: record.status
+          )
+
+          {:ok, record}
+
+        {:error, changeset} ->
+          handle_changeset_error(changeset, "check_in_atomic")
+      end
+    rescue
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[AttendanceRepository] Database connection failed during check_in_atomic",
+          error_id: ErrorIds.attendance_create_connection_error(),
+          session_id: session_id,
+          child_id: child_id,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error, Ecto.Query.CastError] ->
+        Logger.error(
+          "[AttendanceRepository] Database query error during check_in_atomic",
+          error_id: ErrorIds.attendance_create_query_error(),
+          session_id: session_id,
+          child_id: child_id,
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
+      error ->
+        Logger.error(
+          "[AttendanceRepository] Unexpected database error during check_in_atomic",
+          error_id: ErrorIds.attendance_create_generic_error(),
+          session_id: session_id,
+          child_id: child_id,
+          error_type: error.__struct__,
+          stacktrace: Exception.format(:error, error, __STACKTRACE__)
+        )
+
+        {:error, :database_unavailable}
+    end
+  end
+
+  @impl true
+  def list_by_session_ids(session_ids) when is_list(session_ids) do
+    Logger.info("[AttendanceRepository] Listing attendance records by session IDs",
+      count: length(session_ids)
+    )
+
+    query =
+      from a in AttendanceRecordSchema,
+        where: a.session_id in ^session_ids,
+        order_by: [asc: a.session_id, asc: a.child_id]
+
+    try do
+      schemas = Repo.all(query)
+      records = AttendanceRecordMapper.to_domain_list(schemas)
+
+      Logger.info(
+        "[AttendanceRepository] Successfully retrieved attendance records by session IDs",
+        session_count: length(session_ids),
+        record_count: length(records)
+      )
+
+      {:ok, records}
+    rescue
+      error in [DBConnection.ConnectionError] ->
+        Logger.error(
+          "[AttendanceRepository] Database connection failed during list_by_session_ids",
+          error_id: ErrorIds.attendance_list_connection_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_connection_error}
+
+      error in [Postgrex.Error, Ecto.Query.CastError] ->
+        Logger.error(
+          "[AttendanceRepository] Database query error during list_by_session_ids",
+          error_id: ErrorIds.attendance_list_query_error(),
+          error_type: error.__struct__,
+          error_message: Exception.message(error)
+        )
+
+        {:error, :database_query_error}
+
+      error ->
+        Logger.error(
+          "[AttendanceRepository] Unexpected database error during list_by_session_ids",
+          error_id: ErrorIds.attendance_list_generic_error(),
           error_type: error.__struct__,
           stacktrace: Exception.format(:error, error, __STACKTRACE__)
         )

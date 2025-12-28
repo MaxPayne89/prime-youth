@@ -30,4 +30,7 @@ defmodule PrimeYouth.Attendance.Domain.Ports.ForManagingSessions do
   Currently filters by date only until schema is updated.
   """
   @callback list_by_provider_and_date(binary(), Date.t()) :: {:ok, [struct()]} | {:error, atom()}
+
+  @doc "Retrieves multiple sessions by their IDs (batch fetch)."
+  @callback get_many_by_ids([binary()]) :: {:ok, [struct()]} | {:error, atom()}
 end
