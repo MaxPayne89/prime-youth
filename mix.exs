@@ -74,7 +74,7 @@ defmodule PrimeYouth.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      {:swoosh, "~> 1.16"},
+      {:swoosh, "~> 1.20"},
       {:req, "~> 0.5"},
       {:telemetry_metrics, "~> 1.0"},
       {:telemetry_poller, "~> 1.0"},
@@ -91,7 +91,14 @@ defmodule PrimeYouth.MixProject do
       {:ex_machina, "~> 2.8", only: :test},
       {:stream_data, "~> 1.1", only: :test},
       {:faker, "~> 0.18", only: :test},
-      {:mimic, "~> 2.0", only: :test}
+      {:mimic, "~> 2.0", only: :test},
+      # OpenTelemetry
+      {:opentelemetry_exporter, "~> 1.6"},
+      {:opentelemetry, "~> 1.3"},
+      {:opentelemetry_api, "~> 1.2"},
+      {:opentelemetry_bandit, "~> 0.2"},
+      {:opentelemetry_phoenix, "~> 2.0"},
+      {:opentelemetry_ecto, "~> 1.1"}
     ]
   end
 

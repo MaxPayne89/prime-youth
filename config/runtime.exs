@@ -45,6 +45,26 @@ if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
+  # OpenTelemetry: Override service name from env if provided
+  if otel_service_name = System.get_env("OTEL_SERVICE_NAME") do
+    config :opentelemetry, :resource, service: [name: otel_service_name, namespace: "klass-hero"]
+  end
+
+  # OpenTelemetry: Only configure Honeycomb exporter if all credentials are present
+  honeycomb_api_key = System.get_env("HONEYCOMB_KLASS_HERO_API_KEY")
+  honeycomb_dataset = System.get_env("HONEYCOMB_KLASS_HERO_DATASET")
+  otel_endpoint = System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT")
+
+  if honeycomb_api_key && honeycomb_dataset && otel_endpoint do
+    config :opentelemetry_exporter,
+      otlp_protocol: :http_protobuf,
+      otlp_endpoint: otel_endpoint,
+      otlp_headers: [
+        {"x-honeycomb-team", honeycomb_api_key},
+        {"x-honeycomb-dataset", honeycomb_dataset}
+      ]
+  end
+
   config :prime_youth, PrimeYouth.Repo,
     # ssl: true,
     url: database_url,
@@ -58,46 +78,46 @@ if config_env() == :prod do
     http: [
       # Enable IPv6 and bind on all interfaces.
       # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
+      # ## SSL Support
       # See the documentation on https://hexdocs.pm/bandit/Bandit.html#t:options/0
+      #
       # for details about using IPv6 vs IPv4 and loopback vs public addresses.
+      # To get SSL working, you will need to add the `https` key
+      # to your endpoint configuration:
+      #
+      #     config :prime_youth, PrimeYouthWeb.Endpoint,
+      #       https: [
+      #         ...,
+      #         port: 443,
+      #         cipher_suite: :strong,
+      #         keyfile: System.get_env("SOME_APP_SSL_KEY_PATH"),
+      #         certfile: System.get_env("SOME_APP_SSL_CERT_PATH")
+      #       ]
+      #
+      # The `cipher_suite` is set to `:strong` to support only the
+      # latest and more secure SSL ciphers. This means old browsers
+      # and clients may not be supported. You can set it to
+      # `:compatible` for wider support.
+      #
+      # `:keyfile` and `:certfile` expect an absolute path to the key
+      # and cert in disk or a relative path inside priv, for example
+      # "priv/ssl/server.key". For all supported SSL configuration
+      # options, see https://hexdocs.pm/plug/Plug.SSL.html#configure/1
+      #
+      # We also recommend setting `force_ssl` in your config/prod.exs,
+      # ensuring no data is ever sent via http, always redirecting to https:
+      #
+      #     config :prime_youth, PrimeYouthWeb.Endpoint,
+      #       force_ssl: [hsts: true]
+      #
+      # Check `Plug.SSL` for all available options in `force_ssl`.
+
       ip: {0, 0, 0, 0, 0, 0, 0, 0},
       port: port
     ],
     secret_key_base: secret_key_base
 
   config :prime_youth, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
-
-  # ## SSL Support
-  #
-  # To get SSL working, you will need to add the `https` key
-  # to your endpoint configuration:
-  #
-  #     config :prime_youth, PrimeYouthWeb.Endpoint,
-  #       https: [
-  #         ...,
-  #         port: 443,
-  #         cipher_suite: :strong,
-  #         keyfile: System.get_env("SOME_APP_SSL_KEY_PATH"),
-  #         certfile: System.get_env("SOME_APP_SSL_CERT_PATH")
-  #       ]
-  #
-  # The `cipher_suite` is set to `:strong` to support only the
-  # latest and more secure SSL ciphers. This means old browsers
-  # and clients may not be supported. You can set it to
-  # `:compatible` for wider support.
-  #
-  # `:keyfile` and `:certfile` expect an absolute path to the key
-  # and cert in disk or a relative path inside priv, for example
-  # "priv/ssl/server.key". For all supported SSL configuration
-  # options, see https://hexdocs.pm/plug/Plug.SSL.html#configure/1
-  #
-  # We also recommend setting `force_ssl` in your config/prod.exs,
-  # ensuring no data is ever sent via http, always redirecting to https:
-  #
-  #     config :prime_youth, PrimeYouthWeb.Endpoint,
-  #       force_ssl: [hsts: true]
-  #
-  # Check `Plug.SSL` for all available options in `force_ssl`.
 
   # ## Configuring the mailer
   #
