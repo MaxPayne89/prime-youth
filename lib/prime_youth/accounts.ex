@@ -207,6 +207,37 @@ defmodule PrimeYouth.Accounts do
     |> update_user_and_delete_all_tokens()
   end
 
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user locale.
+
+  ## Examples
+
+      iex> change_user_locale(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_locale(user, attrs \\ %{}) do
+    User.locale_changeset(user, attrs)
+  end
+
+  @doc """
+  Updates the user locale preference.
+
+  ## Examples
+
+      iex> update_user_locale(user, %{locale: "de"})
+      {:ok, %User{locale: "de"}}
+
+      iex> update_user_locale(user, %{locale: "invalid"})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_user_locale(user, attrs) do
+    user
+    |> User.locale_changeset(attrs)
+    |> Repo.update()
+  end
+
   ## Session
 
   @doc """
