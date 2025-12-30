@@ -66,6 +66,11 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
   pubsub_server: PrimeYouth.PubSub,
   live_view: [signing_salt: "JU2osypv"]
 
+# Configure Gettext for internationalization
+config :prime_youth, PrimeYouthWeb.Gettext,
+  default_locale: "en",
+  locales: ~w(en de)
+
 # Configure Activities bounded context
 config :prime_youth, :activities,
   repository:

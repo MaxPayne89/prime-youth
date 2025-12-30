@@ -26,7 +26,7 @@ defmodule PrimeYouthWeb.BookingLive do
 
       socket =
         socket
-        |> assign(page_title: "Enrollment - #{program.title}")
+        |> assign(page_title: gettext("Enrollment - %{title}", title: program.title))
         |> assign(current_user: current_user)
         |> assign(program: program)
         |> assign(children: children_for_view)
@@ -45,7 +45,7 @@ defmodule PrimeYouthWeb.BookingLive do
       {:error, :not_found} ->
         {:ok,
          socket
-         |> put_flash(:error, "Program not found")
+         |> put_flash(:error, gettext("Program not found"))
          |> redirect(to: ~p"/programs")}
 
       {:error, :no_spots} ->
@@ -55,14 +55,14 @@ defmodule PrimeYouthWeb.BookingLive do
          socket
          |> put_flash(
            :error,
-           "Sorry, this program is currently full. Check back later for availability."
+           gettext("Sorry, this program is currently full. Check back later for availability.")
          )
          |> redirect(to: ~p"/programs/#{program_for_redirect.id}")}
 
       {:error, _error} ->
         {:ok,
          socket
-         |> put_flash(:error, "Unable to load program. Please try again later.")
+         |> put_flash(:error, gettext("Unable to load program. Please try again later."))
          |> redirect(to: ~p"/programs")}
     end
   end
@@ -96,28 +96,38 @@ defmodule PrimeYouthWeb.BookingLive do
 
       {:noreply,
        socket
-       |> put_flash(:info, "Enrollment successful! You'll receive a confirmation email shortly.")
+       |> put_flash(
+         :info,
+         gettext("Enrollment successful! You'll receive a confirmation email shortly.")
+       )
        |> push_navigate(to: ~p"/dashboard")}
     else
       {:error, :no_spots} ->
         {:noreply,
          socket
-         |> put_flash(:error, "Sorry, this program is now full. Please choose another program.")
+         |> put_flash(
+           :error,
+           gettext("Sorry, this program is now full. Please choose another program.")
+         )
          |> push_navigate(to: ~p"/programs")}
 
       {:error, :invalid_payment} ->
         {:noreply,
-         put_flash(socket, :error, "Payment information is invalid. Please check your details.")}
+         put_flash(
+           socket,
+           :error,
+           gettext("Payment information is invalid. Please check your details.")
+         )}
 
       {:error, :child_not_selected} ->
-        {:noreply, put_flash(socket, :error, "Please select a child for enrollment.")}
+        {:noreply, put_flash(socket, :error, gettext("Please select a child for enrollment."))}
 
       {:error, :processing_failed} ->
         {:noreply,
          put_flash(
            socket,
            :error,
-           "Enrollment failed. Please try again or contact support."
+           gettext("Enrollment failed. Please try again or contact support.")
          )}
     end
   end
@@ -182,12 +192,12 @@ defmodule PrimeYouthWeb.BookingLive do
           class="!p-0 !bg-transparent !shadow-none mb-6"
         >
           <:title>
-            <h1 class={[Theme.typography(:page_title), "text-white"]}>Enrollment</h1>
+            <h1 class={[Theme.typography(:page_title), "text-white"]}>{gettext("Enrollment")}</h1>
           </:title>
         </.page_header>
 
         <div class="mb-6">
-          <h3 class="text-white font-semibold mb-3">Activity Summary</h3>
+          <h3 class="text-white font-semibold mb-3">{gettext("Activity Summary")}</h3>
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
             <div class="flex gap-4 mb-4">
               <div class={[
@@ -201,25 +211,29 @@ defmodule PrimeYouthWeb.BookingLive do
                 <h4 class={[Theme.typography(:card_title), "mb-1", Theme.text_color(:heading)]}>
                   {@program.title}
                 </h4>
-                <p class={["text-sm", Theme.text_color(:secondary)]}>Wednesdays 4-6 PM</p>
+                <p class={["text-sm", Theme.text_color(:secondary)]}>
+                  {gettext("Wednesdays 4-6 PM")}
+                </p>
               </div>
             </div>
             <div class={["border-t pt-4", Theme.border_color(:medium)]}>
               <div class="flex justify-between items-center mb-2">
-                <span class={["font-semibold", Theme.text_color(:body)]}>Total Price:</span>
+                <span class={["font-semibold", Theme.text_color(:body)]}>
+                  {gettext("Total Price:")}
+                </span>
                 <span class={[Theme.typography(:section_title), Theme.text_color(:primary)]}>
                   €{:erlang.float_to_binary(@total, decimals: 2)}
                 </span>
               </div>
               <div class="flex justify-between text-sm">
-                <span class={Theme.text_color(:secondary)}>Duration:</span>
-                <span class={Theme.text_color(:secondary)}>Jan 15 - Mar 15, 2024</span>
+                <span class={Theme.text_color(:secondary)}>{gettext("Duration:")}</span>
+                <span class={Theme.text_color(:secondary)}>{gettext("Jan 15 - Mar 15, 2024")}</span>
               </div>
             </div>
           </div>
           <div class="mt-2">
             <a href="#" class="text-xs text-white/80 hover:text-white underline">
-              Add another program
+              {gettext("Add another program")}
             </a>
           </div>
         </div>
@@ -227,7 +241,7 @@ defmodule PrimeYouthWeb.BookingLive do
         <form phx-submit="complete_enrollment" class="space-y-6">
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
             <label class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>
-              Select Child
+              {gettext("Select Child")}
             </label>
             <select
               name="child_id"
@@ -236,9 +250,9 @@ defmodule PrimeYouthWeb.BookingLive do
                 Theme.rounded(:lg)
               ]}
             >
-              <option value="">Select a child</option>
+              <option value="">{gettext("Select a child")}</option>
               <option :for={child <- @children} value={child.id}>
-                {child.name} (Age {child.age})
+                {gettext("%{name} (Age %{age})", name: child.name, age: child.age)}
               </option>
             </select>
             <div class="mt-2">
@@ -250,7 +264,7 @@ defmodule PrimeYouthWeb.BookingLive do
                   "hover:#{Theme.text_color(:body)}"
                 ]}
               >
-                Add another child
+                {gettext("Add another child")}
               </a>
             </div>
           </div>
@@ -260,14 +274,14 @@ defmodule PrimeYouthWeb.BookingLive do
               for="special-requirements"
               class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}
             >
-              Special Requirements
+              {gettext("Special Requirements")}
             </label>
             <textarea
               id="special-requirements"
               name="special_requirements"
               rows="3"
               maxlength="500"
-              placeholder="Any allergies, medical conditions, or special instructions..."
+              placeholder={gettext("Any allergies, medical conditions, or special instructions...")}
               class={[
                 "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none",
                 Theme.rounded(:lg)
@@ -275,7 +289,9 @@ defmodule PrimeYouthWeb.BookingLive do
             ></textarea>
             <div class="flex justify-between mt-2">
               <p class={["text-xs", Theme.text_color(:muted)]}>
-                Optional: Include any important information we should know about your child.
+                {gettext(
+                  "Optional: Include any important information we should know about your child."
+                )}
               </p>
               <p class={["text-xs", Theme.text_color(:muted)]}>0/500</p>
             </div>
@@ -284,13 +300,13 @@ defmodule PrimeYouthWeb.BookingLive do
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>
             <fieldset>
               <legend class={["block text-sm font-semibold mb-3", Theme.text_color(:body)]}>
-                Payment Method
+                {gettext("Payment Method")}
               </legend>
               <div class="space-y-3">
                 <.payment_option
                   value="card"
-                  title="Credit Card"
-                  description="Pay securely with Visa, Mastercard, or other cards"
+                  title={gettext("Credit Card")}
+                  description={gettext("Pay securely with Visa, Mastercard, or other cards")}
                   selected={@payment_method == "card"}
                   phx-click="select_payment_method"
                   phx-value-method="card"
@@ -298,8 +314,8 @@ defmodule PrimeYouthWeb.BookingLive do
 
                 <.payment_option
                   value="transfer"
-                  title="Cash / Bank Transfer"
-                  description="Avoid card fees - pay cash or direct transfer"
+                  title={gettext("Cash / Bank Transfer")}
+                  description={gettext("Avoid card fees - pay cash or direct transfer")}
                   selected={@payment_method == "transfer"}
                   phx-click="select_payment_method"
                   phx-value-method="transfer"
@@ -308,72 +324,79 @@ defmodule PrimeYouthWeb.BookingLive do
             </fieldset>
           </div>
 
-          <.booking_summary title="Payment Summary">
+          <.booking_summary title={gettext("Payment Summary")}>
             <:line_item
-              label={"Weekly fee (#{@weeks_count} weeks):"}
+              label={gettext("Weekly fee (%{count} weeks):", count: @weeks_count)}
               value={"€#{:erlang.float_to_binary(@weekly_fee, decimals: 2)}"}
             />
             <:line_item
-              label="Registration fee:"
+              label={gettext("Registration fee:")}
               value={"€#{:erlang.float_to_binary(@registration_fee, decimals: 2)}"}
             />
             <:subtotal
-              label="Subtotal:"
+              label={gettext("Subtotal:")}
               value={"€#{:erlang.float_to_binary(@subtotal, decimals: 2)}"}
             />
             <:line_item
-              label="VAT (19%):"
+              label={gettext("VAT (19%):")}
               value={"€#{:erlang.float_to_binary(@vat_amount, decimals: 2)}"}
               after_subtotal={true}
             />
             <:line_item
               :if={@payment_method == "card"}
-              label="Credit card fee:"
+              label={gettext("Credit card fee:")}
               value={"€#{:erlang.float_to_binary(@card_fee_amount, decimals: 2)}"}
               after_subtotal={true}
             />
             <:total
-              label="Total due today:"
+              label={gettext("Total due today:")}
               value={"€#{:erlang.float_to_binary(@total, decimals: 2)}"}
             />
           </.booking_summary>
 
-          <.info_box :if={@payment_method == "transfer"} variant={:info} title="Bank Transfer Details">
+          <.info_box
+            :if={@payment_method == "transfer"}
+            variant={:info}
+            title={gettext("Bank Transfer Details")}
+          >
             <p class="mb-4">
-              Please transfer <strong>€{:erlang.float_to_binary(@total, decimals: 2)}</strong>
-              (no card fees) to the following account:
+              {gettext("Please transfer")}
+              <strong>€{:erlang.float_to_binary(@total, decimals: 2)}</strong>
+              {gettext("(no card fees) to the following account:")}
             </p>
             <div class="space-y-2 font-mono text-sm">
               <div class="flex justify-between">
-                <span class={Theme.text_color(:secondary)}>Account Name:</span>
+                <span class={Theme.text_color(:secondary)}>{gettext("Account Name:")}</span>
                 <span class="font-semibold">Prime Youth Connect</span>
               </div>
               <div class="flex justify-between">
-                <span class={Theme.text_color(:secondary)}>IBAN:</span>
+                <span class={Theme.text_color(:secondary)}>{gettext("IBAN:")}</span>
                 <span class="font-semibold">IE64 BOFI 9000 1234 5678 90</span>
               </div>
               <div class="flex justify-between">
-                <span class={Theme.text_color(:secondary)}>BIC:</span>
+                <span class={Theme.text_color(:secondary)}>{gettext("BIC:")}</span>
                 <span class="font-semibold">BOFIIE2D</span>
               </div>
               <div class="flex justify-between">
-                <span class={Theme.text_color(:secondary)}>Reference:</span>
+                <span class={Theme.text_color(:secondary)}>{gettext("Reference:")}</span>
                 <span class="font-semibold">CAW-EMMA-0124</span>
               </div>
             </div>
             <:footer>
               <p class={["text-xs", Theme.text_color(:secondary)]}>
-                💡 <strong>Important:</strong>
-                Please include the reference code in your transfer to ensure proper allocation.
+                💡 <strong>{gettext("Important:")}</strong>
+                {gettext(
+                  "Please include the reference code in your transfer to ensure proper allocation."
+                )}
               </p>
             </:footer>
           </.info_box>
 
-          <.info_box variant={:neutral} icon="📧" title="Invoice & Payment Confirmation">
+          <.info_box variant={:neutral} icon="📧" title={gettext("Invoice & Payment Confirmation")}>
             <div class="text-sm space-y-1">
-              <p>• An invoice will be emailed to you after enrollment completion</p>
-              <p>• Credit card payments are processed immediately</p>
-              <p>• Cash/transfer payments will show as "Pending" until received</p>
+              <p>• {gettext("An invoice will be emailed to you after enrollment completion")}</p>
+              <p>• {gettext("Credit card payments are processed immediately")}</p>
+              <p>• {gettext("Cash/transfer payments will show as \"Pending\" until received")}</p>
             </div>
           </.info_box>
 
@@ -388,7 +411,7 @@ defmodule PrimeYouthWeb.BookingLive do
               Theme.gradient(:primary)
             ]}
           >
-            Complete Enrollment
+            {gettext("Complete Enrollment")}
           </button>
         </form>
       </div>

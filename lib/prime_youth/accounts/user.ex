@@ -25,6 +25,7 @@ defmodule PrimeYouth.Accounts.User do
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
     field :intended_roles, UserRoles, default: []
+    field :locale, :string, default: "en"
 
     timestamps(type: :utc_datetime)
   end
@@ -211,6 +212,20 @@ defmodule PrimeYouth.Accounts.User do
       name: "Deleted User",
       avatar: nil
     )
+  end
+
+  @supported_locales ~w(en de)
+
+  @doc """
+  A user changeset for changing locale preference.
+
+  Validates that the locale is one of the supported locales: #{inspect(@supported_locales)}.
+  """
+  def locale_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:locale])
+    |> validate_required([:locale])
+    |> validate_inclusion(:locale, @supported_locales)
   end
 
   @doc """

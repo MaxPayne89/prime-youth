@@ -11,8 +11,8 @@ defmodule PrimeYouthWeb.UserLive.Settings do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="text-center">
         <.header>
-          Account Settings
-          <:subtitle>Manage your account email address and password settings</:subtitle>
+          {gettext("Account Settings")}
+          <:subtitle>{gettext("Manage your account email address and password settings")}</:subtitle>
         </.header>
       </div>
 
@@ -20,11 +20,11 @@ defmodule PrimeYouthWeb.UserLive.Settings do
         <.input
           field={@email_form[:email]}
           type="email"
-          label="Email"
+          label={gettext("Email")}
           autocomplete="username"
           required
         />
-        <.button phx-disable-with="Changing...">Change Email</.button>
+        <.button phx-disable-with={gettext("Changing...")}>{gettext("Change Email")}</.button>
       </.form>
 
       <div class="divider" />
@@ -48,18 +48,18 @@ defmodule PrimeYouthWeb.UserLive.Settings do
         <.input
           field={@password_form[:password]}
           type="password"
-          label="New password"
+          label={gettext("New password")}
           autocomplete="new-password"
           required
         />
         <.input
           field={@password_form[:password_confirmation]}
           type="password"
-          label="Confirm new password"
+          label={gettext("Confirm new password")}
           autocomplete="new-password"
         />
-        <.button phx-disable-with="Saving...">
-          Save Password
+        <.button phx-disable-with={gettext("Saving...")}>
+          {gettext("Save Password")}
         </.button>
       </.form>
 
@@ -67,15 +67,64 @@ defmodule PrimeYouthWeb.UserLive.Settings do
 
       <div class="text-center">
         <.header>
-          Your Data
-          <:subtitle>Download a copy of all your personal data</:subtitle>
+          {gettext("Language Preference")}
+          <:subtitle>{gettext("Choose your preferred language for the interface")}</:subtitle>
+        </.header>
+
+        <.form for={@locale_form} id="locale_form" phx-change="update_locale">
+          <div class="flex justify-center gap-4">
+            <label class={[
+              "flex items-center gap-2 px-4 py-3 rounded-lg border-2 cursor-pointer transition-all",
+              if(@current_scope.user.locale == "en",
+                do: "border-teal-500 bg-teal-50",
+                else: "border-gray-200 hover:border-gray-300"
+              )
+            ]}>
+              <input
+                type="radio"
+                name="user[locale]"
+                value="en"
+                checked={@current_scope.user.locale == "en"}
+                class="hidden"
+              />
+              <span class="text-2xl">🇬🇧</span>
+              <span class="font-medium">{gettext("English")}</span>
+            </label>
+
+            <label class={[
+              "flex items-center gap-2 px-4 py-3 rounded-lg border-2 cursor-pointer transition-all",
+              if(@current_scope.user.locale == "de",
+                do: "border-teal-500 bg-teal-50",
+                else: "border-gray-200 hover:border-gray-300"
+              )
+            ]}>
+              <input
+                type="radio"
+                name="user[locale]"
+                value="de"
+                checked={@current_scope.user.locale == "de"}
+                class="hidden"
+              />
+              <span class="text-2xl">🇩🇪</span>
+              <span class="font-medium">{gettext("Deutsch")}</span>
+            </label>
+          </div>
+        </.form>
+      </div>
+
+      <div class="divider" />
+
+      <div class="text-center">
+        <.header>
+          {gettext("Your Data")}
+          <:subtitle>{gettext("Download a copy of all your personal data")}</:subtitle>
         </.header>
 
         <.link
           href={~p"/users/export-data"}
           class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
-          <.icon name="hero-arrow-down-tray" class="w-5 h-5" /> Download My Data
+          <.icon name="hero-arrow-down-tray" class="w-5 h-5" /> {gettext("Download My Data")}
         </.link>
       </div>
 
@@ -83,23 +132,29 @@ defmodule PrimeYouthWeb.UserLive.Settings do
 
       <div class="text-center">
         <.header>
-          Delete Account
-          <:subtitle>Permanently delete your account and all associated data</:subtitle>
+          {gettext("Delete Account")}
+          <:subtitle>{gettext("Permanently delete your account and all associated data")}</:subtitle>
         </.header>
 
         <.form for={@delete_form} id="delete_account_form" phx-submit="delete_account">
           <p class="text-sm text-gray-600 mb-4">
-            This action cannot be undone. Your account data will be anonymized and you will be logged out.
+            {gettext(
+              "This action cannot be undone. Your account data will be anonymized and you will be logged out."
+            )}
           </p>
           <.input
             field={@delete_form[:password]}
             type="password"
-            label="Enter your password to confirm"
+            label={gettext("Enter your password to confirm")}
             autocomplete="current-password"
             required
           />
-          <.button type="submit" class="bg-red-600 hover:bg-red-700" phx-disable-with="Deleting...">
-            Delete My Account
+          <.button
+            type="submit"
+            class="bg-red-600 hover:bg-red-700"
+            phx-disable-with={gettext("Deleting...")}
+          >
+            {gettext("Delete My Account")}
           </.button>
         </.form>
       </div>
@@ -112,10 +167,10 @@ defmodule PrimeYouthWeb.UserLive.Settings do
     socket =
       case Accounts.update_user_email(socket.assigns.current_scope.user, token) do
         {:ok, _user} ->
-          put_flash(socket, :info, "Email changed successfully.")
+          put_flash(socket, :info, gettext("Email changed successfully."))
 
         {:error, _} ->
-          put_flash(socket, :error, "Email change link is invalid or it has expired.")
+          put_flash(socket, :error, gettext("Email change link is invalid or it has expired."))
       end
 
     {:ok, push_navigate(socket, to: ~p"/users/settings")}
@@ -125,12 +180,14 @@ defmodule PrimeYouthWeb.UserLive.Settings do
     user = socket.assigns.current_scope.user
     email_changeset = Accounts.change_user_email(user, %{}, validate_unique: false)
     password_changeset = Accounts.change_user_password(user, %{}, hash_password: false)
+    locale_changeset = Accounts.change_user_locale(user, %{})
 
     socket =
       socket
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
+      |> assign(:locale_form, to_form(locale_changeset))
       |> assign(:delete_form, to_form(%{"password" => ""}, as: :delete))
       |> assign(:trigger_submit, false)
 
@@ -163,7 +220,7 @@ defmodule PrimeYouthWeb.UserLive.Settings do
           &url(~p"/users/settings/confirm-email/#{&1}")
         )
 
-        info = "A link to confirm your email change has been sent to the new address."
+        info = gettext("A link to confirm your email change has been sent to the new address.")
         {:noreply, socket |> put_flash(:info, info)}
 
       changeset ->
@@ -197,6 +254,24 @@ defmodule PrimeYouthWeb.UserLive.Settings do
     end
   end
 
+  def handle_event("update_locale", %{"user" => %{"locale" => locale}}, socket) do
+    user = socket.assigns.current_scope.user
+
+    case Accounts.update_user_locale(user, %{locale: locale}) do
+      {:ok, updated_user} ->
+        Gettext.put_locale(PrimeYouthWeb.Gettext, locale)
+
+        {:noreply,
+         socket
+         |> assign(:current_scope, %{socket.assigns.current_scope | user: updated_user})
+         |> assign(:locale, locale)
+         |> put_flash(:info, gettext("Language preference updated successfully."))}
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to update language preference."))}
+    end
+  end
+
   def handle_event("delete_account", %{"delete" => %{"password" => password}}, socket) do
     user = socket.assigns.current_scope.user
     true = Accounts.sudo_mode?(user)
@@ -207,20 +282,20 @@ defmodule PrimeYouthWeb.UserLive.Settings do
           {:ok, _anonymized_user} ->
             {:noreply,
              socket
-             |> put_flash(:info, "Your account has been deleted.")
+             |> put_flash(:info, gettext("Your account has been deleted."))
              |> redirect(to: ~p"/")}
 
           {:error, _reason} ->
             {:noreply,
              socket
-             |> put_flash(:error, "Failed to delete account. Please try again.")
+             |> put_flash(:error, gettext("Failed to delete account. Please try again."))
              |> assign(:delete_form, to_form(%{"password" => ""}, as: :delete))}
         end
 
       nil ->
         {:noreply,
          socket
-         |> put_flash(:error, "Invalid password.")
+         |> put_flash(:error, gettext("Invalid password."))
          |> assign(:delete_form, to_form(%{"password" => ""}, as: :delete))}
     end
   end

@@ -10,7 +10,7 @@ defmodule PrimeYouthWeb.SettingsLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(page_title: "Settings")
+      |> assign(page_title: gettext("Settings"))
       |> assign(user: sample_user())
 
     {:ok, socket}
@@ -30,8 +30,8 @@ defmodule PrimeYouthWeb.SettingsLive do
     <div class={["min-h-screen", Theme.bg(:muted)]}>
       <!-- Header -->
       <.page_header variant={:gradient} container_class="max-w-4xl mx-auto">
-        <:title>Settings</:title>
-        <:subtitle>Manage your account and preferences</:subtitle>
+        <:title>{gettext("Settings")}</:title>
+        <:subtitle>{gettext("Manage your account and preferences")}</:subtitle>
       </.page_header>
       
     <!-- Content -->
@@ -44,15 +44,17 @@ defmodule PrimeYouthWeb.SettingsLive do
           Theme.border_color(:light)
         ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
-            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Account & Profile</h3>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>
+              {gettext("Account & Profile")}
+            </h3>
           </div>
           <div>
             <.settings_menu_item
               icon="hero-user"
               icon_bg={Theme.bg(:primary_light)}
               icon_color={Theme.text_color(:primary)}
-              title="Profile Information"
-              description="Name, email, profile photo"
+              title={gettext("Profile Information")}
+              description={gettext("Name, email, profile photo")}
               phx-click="navigate_to"
               phx-value-section="profile-information"
             />
@@ -60,8 +62,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-lock-closed"
               icon_bg={Theme.bg(:secondary_light)}
               icon_color={Theme.text_color(:secondary)}
-              title="Privacy & Security"
-              description="Account preferences, password"
+              title={gettext("Privacy & Security")}
+              description={gettext("Account preferences, password")}
               phx-click="navigate_to"
               phx-value-section="privacy-security"
             />
@@ -76,14 +78,16 @@ defmodule PrimeYouthWeb.SettingsLive do
           Theme.border_color(:light)
         ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
-            <h3 class={["font-semibold", Theme.text_color(:heading)]}>My Family</h3>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>
+              {gettext("My Family")}
+            </h3>
           </div>
           <div>
             <.settings_menu_item
               icon="hero-user-group"
               icon_bg={Theme.bg(:primary_light)}
               icon_color={Theme.text_color(:primary)}
-              title="Children Profiles"
+              title={gettext("Children Profiles")}
               description={@user.children_summary}
               phx-click="navigate_to"
               phx-value-section="children-profiles"
@@ -92,8 +96,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-calendar"
               icon_bg={Theme.bg(:secondary_light)}
               icon_color={Theme.text_color(:secondary)}
-              title="My Schedule"
-              description="View all family activities"
+              title={gettext("My Schedule")}
+              description={gettext("View all family activities")}
               phx-click="navigate_to"
               phx-value-section="my-schedule"
             />
@@ -101,8 +105,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-badge-check"
               icon_bg={Theme.bg(:accent_light)}
               icon_color={Theme.text_color(:accent)}
-              title="Family Progress"
-              description="Achievements and milestones"
+              title={gettext("Family Progress")}
+              description={gettext("Achievements and milestones")}
               phx-click="navigate_to"
               phx-value-section="family-progress"
             />
@@ -117,15 +121,17 @@ defmodule PrimeYouthWeb.SettingsLive do
           Theme.border_color(:light)
         ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
-            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Contact Information</h3>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>
+              {gettext("Contact Information")}
+            </h3>
           </div>
           <div>
             <.settings_menu_item
               icon="hero-home"
               icon_bg="bg-blue-100"
               icon_color="text-blue-500"
-              title="Home Address"
-              description="Primary address and phone"
+              title={gettext("Home Address")}
+              description={gettext("Primary address and phone")}
               phx-click="navigate_to"
               phx-value-section="home-address"
             />
@@ -133,8 +139,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-users"
               icon_bg="bg-purple-100"
               icon_color="text-purple-500"
-              title="Parent/Guardian Details"
-              description="Contact info for both parents"
+              title={gettext("Parent/Guardian Details")}
+              description={gettext("Contact info for both parents")}
               phx-click="navigate_to"
               phx-value-section="parent-guardian"
             />
@@ -142,8 +148,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-exclamation-triangle"
               icon_bg="bg-red-100"
               icon_color="text-red-500"
-              title="Emergency Contacts"
-              description="Backup contacts for emergencies"
+              title={gettext("Emergency Contacts")}
+              description={gettext("Backup contacts for emergencies")}
               phx-click="navigate_to"
               phx-value-section="emergency-contacts"
             />
@@ -158,15 +164,17 @@ defmodule PrimeYouthWeb.SettingsLive do
           Theme.border_color(:light)
         ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
-            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Health & Safety</h3>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>
+              {gettext("Health & Safety")}
+            </h3>
           </div>
           <div>
             <.settings_menu_item
               icon="hero-heart"
               icon_bg="bg-red-100"
               icon_color="text-red-500"
-              title="Medical Information"
-              description="Conditions, medications, special needs"
+              title={gettext("Medical Information")}
+              description={gettext("Conditions, medications, special needs")}
               phx-click="navigate_to"
               phx-value-section="medical-information"
             />
@@ -174,8 +182,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-exclamation-circle"
               icon_bg="bg-orange-100"
               icon_color="text-orange-500"
-              title="Allergies & Dietary"
-              description="Food allergies, dietary restrictions"
+              title={gettext("Allergies & Dietary")}
+              description={gettext("Food allergies, dietary restrictions")}
               phx-click="navigate_to"
               phx-value-section="allergies-dietary"
             />
@@ -183,8 +191,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-shield-check"
               icon_bg="bg-green-100"
               icon_color="text-green-500"
-              title="Insurance Information"
-              description="Health insurance details"
+              title={gettext("Insurance Information")}
+              description={gettext("Health insurance details")}
               phx-click="navigate_to"
               phx-value-section="insurance-information"
             />
@@ -199,15 +207,17 @@ defmodule PrimeYouthWeb.SettingsLive do
           Theme.border_color(:light)
         ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
-            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Permissions & Consents</h3>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>
+              {gettext("Permissions & Consents")}
+            </h3>
           </div>
           <div>
             <.settings_menu_item
               icon="hero-camera"
               icon_bg="bg-purple-100"
               icon_color="text-purple-500"
-              title="Photo & Video Release"
-              description="Marketing and social media permissions"
+              title={gettext("Photo & Video Release")}
+              description={gettext("Marketing and social media permissions")}
               phx-click="navigate_to"
               phx-value-section="photo-video-release"
             />
@@ -215,8 +225,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-check-circle"
               icon_bg="bg-green-100"
               icon_color="text-green-500"
-              title="Activity Permissions"
-              description="Swimming, field trips, group activities"
+              title={gettext("Activity Permissions")}
+              description={gettext("Swimming, field trips, group activities")}
               phx-click="navigate_to"
               phx-value-section="activity-permissions"
             />
@@ -224,8 +234,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-chat-bubble-left-right"
               icon_bg={Theme.bg(:primary_light)}
               icon_color={Theme.text_color(:primary)}
-              title="WhatsApp Community"
-              description="Updates, discounts, family credit"
+              title={gettext("WhatsApp Community")}
+              description={gettext("Updates, discounts, family credit")}
               phx-click="navigate_to"
               phx-value-section="whatsapp-community"
             />
@@ -240,15 +250,17 @@ defmodule PrimeYouthWeb.SettingsLive do
           Theme.border_color(:light)
         ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
-            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Payment & Billing</h3>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>
+              {gettext("Payment & Billing")}
+            </h3>
           </div>
           <div>
             <.settings_menu_item
               icon="hero-credit-card"
               icon_bg="bg-blue-100"
               icon_color="text-blue-500"
-              title="Payment Methods"
-              description="Cards, bank accounts, billing info"
+              title={gettext("Payment Methods")}
+              description={gettext("Cards, bank accounts, billing info")}
               phx-click="navigate_to"
               phx-value-section="payment-methods"
             />
@@ -256,8 +268,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-document-text"
               icon_bg={Theme.bg(:secondary_light)}
               icon_color={Theme.text_color(:secondary)}
-              title="Transaction History"
-              description="Past payments and invoices"
+              title={gettext("Transaction History")}
+              description={gettext("Past payments and invoices")}
               phx-click="navigate_to"
               phx-value-section="transaction-history"
             />
@@ -265,8 +277,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-currency-dollar"
               icon_bg={Theme.bg(:accent_light)}
               icon_color={Theme.text_color(:accent)}
-              title="Family Credits & Discounts"
-              description="Available credits and promo codes"
+              title={gettext("Family Credits & Discounts")}
+              description={gettext("Available credits and promo codes")}
               phx-click="navigate_to"
               phx-value-section="family-credits"
             />
@@ -282,7 +294,7 @@ defmodule PrimeYouthWeb.SettingsLive do
         ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
             <h3 class={["font-semibold", Theme.text_color(:heading)]}>
-              Notifications & Communication
+              {gettext("Notifications & Communication")}
             </h3>
           </div>
           <div>
@@ -290,8 +302,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-bell"
               icon_bg={Theme.bg(:primary_light)}
               icon_color={Theme.text_color(:primary)}
-              title="Notification Preferences"
-              description="Push, email, SMS settings"
+              title={gettext("Notification Preferences")}
+              description={gettext("Push, email, SMS settings")}
               phx-click="navigate_to"
               phx-value-section="notification-preferences"
             />
@@ -299,8 +311,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-envelope"
               icon_bg={Theme.bg(:secondary_light)}
               icon_color={Theme.text_color(:secondary)}
-              title="Communication Settings"
-              description="How you want to be contacted"
+              title={gettext("Communication Settings")}
+              description={gettext("How you want to be contacted")}
               phx-click="navigate_to"
               phx-value-section="communication-settings"
             />
@@ -315,15 +327,17 @@ defmodule PrimeYouthWeb.SettingsLive do
           Theme.border_color(:light)
         ]}>
           <div class={["p-4 border-b", Theme.border_color(:light)]}>
-            <h3 class={["font-semibold", Theme.text_color(:heading)]}>Help & Support</h3>
+            <h3 class={["font-semibold", Theme.text_color(:heading)]}>
+              {gettext("Help & Support")}
+            </h3>
           </div>
           <div>
             <.settings_menu_item
               icon="hero-question-mark-circle"
               icon_bg="bg-blue-100"
               icon_color="text-blue-500"
-              title="FAQ & Help Center"
-              description="Common questions and guides"
+              title={gettext("FAQ & Help Center")}
+              description={gettext("Common questions and guides")}
               phx-click="navigate_to"
               phx-value-section="faq-help"
             />
@@ -331,8 +345,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-lifebuoy"
               icon_bg={Theme.bg(:primary_light)}
               icon_color={Theme.text_color(:primary)}
-              title="Contact Support"
-              description="Get help from our team"
+              title={gettext("Contact Support")}
+              description={gettext("Get help from our team")}
               phx-click="navigate_to"
               phx-value-section="contact-support"
             />
@@ -340,8 +354,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-information-circle"
               icon_bg="bg-purple-100"
               icon_color="text-purple-500"
-              title="App Information"
-              description="Version, terms, privacy policy"
+              title={gettext("App Information")}
+              description={gettext("Version, terms, privacy policy")}
               phx-click="navigate_to"
               phx-value-section="app-information"
             />
@@ -349,8 +363,8 @@ defmodule PrimeYouthWeb.SettingsLive do
               icon="hero-arrow-right-on-rectangle"
               icon_bg="bg-red-100"
               icon_color="text-red-600"
-              title="Sign Out"
-              description="Log out of your account"
+              title={gettext("Sign Out")}
+              description={gettext("Log out of your account")}
               class="hover:bg-red-50 text-red-600"
               phx-click="navigate_to"
               phx-value-section="sign-out"

@@ -7,7 +7,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(page_title: "Privacy Policy")
+      |> assign(page_title: gettext("Privacy Policy"))
 
     {:ok, socket}
   end
@@ -20,7 +20,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "introduction",
         icon: "hero-information-circle",
         gradient: Theme.gradient(:cool),
-        title: "Introduction",
+        title: gettext("Introduction"),
         content: """
         <p class="mb-4">Welcome to Prime Youth Connect's Privacy Policy. At Prime Youth Connect, we connect families with enriching afterschool programs, camps, and educational activities. We understand that when you entrust us with your family's information, you expect us to handle it responsibly and transparently.</p>
         <p class="mb-4">This Privacy Policy explains what information we collect, how we use it, and your rights regarding your personal data. We are committed to protecting your privacy and complying with data protection laws, including GDPR.</p>
@@ -31,7 +31,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "information-collected",
         icon: "hero-document-text",
         gradient: Theme.gradient(:primary),
-        title: "Information We Collect",
+        title: gettext("Information We Collect"),
         content: """
         <p class="mb-4">To provide our platform services, we collect the following types of information:</p>
         <h4 class="font-semibold text-gray-900 mb-2">Account Information:</h4>
@@ -71,7 +71,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "how-we-use",
         icon: "hero-cog-6-tooth",
         gradient: Theme.gradient(:warm_yellow),
-        title: "How We Use Your Information",
+        title: gettext("How We Use Your Information"),
         content: """
         <p class="mb-4">We use the information we collect for the following purposes:</p>
         <ul class="list-disc pl-6 space-y-2">
@@ -87,7 +87,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "data-sharing",
         icon: "hero-share",
         gradient: Theme.gradient(:cool_magenta),
-        title: "Data Sharing",
+        title: gettext("Data Sharing"),
         content: """
         <p class="mb-4">We take your privacy seriously and limit data sharing to what's necessary:</p>
         <h4 class="font-semibold text-gray-900 mb-2">Program Instructors:</h4>
@@ -106,7 +106,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "user-rights",
         icon: "hero-shield-check",
         gradient: Theme.gradient(:safety),
-        title: "Your Privacy Rights",
+        title: gettext("Your Privacy Rights"),
         content: """
         <p class="mb-4">Under GDPR and other data protection laws, you have the following rights:</p>
         <h4 class="font-semibold text-gray-900 mb-2">Right to Access:</h4>
@@ -128,7 +128,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "data-security",
         icon: "hero-lock-closed",
         gradient: Theme.gradient(:primary),
-        title: "Data Security",
+        title: gettext("Data Security"),
         content: """
         <p class="mb-4">We take data security seriously and implement multiple layers of protection:</p>
         <ul class="list-disc pl-6 space-y-2">
@@ -145,7 +145,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "children-privacy",
         icon: "hero-heart",
         gradient: Theme.gradient(:cool_magenta),
-        title: "Children's Privacy",
+        title: gettext("Children's Privacy"),
         content: """
         <p class="mb-4">Prime Youth Connect is designed to help parents manage their children's activities. We take special care with children's information:</p>
         <ul class="list-disc pl-6 space-y-2 mb-4">
@@ -163,7 +163,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "cookies",
         icon: "hero-computer-desktop",
         gradient: Theme.gradient(:warm_yellow),
-        title: "Cookies & Tracking",
+        title: gettext("Cookies & Tracking"),
         content: """
         <p class="mb-4">Prime Youth Connect uses minimal tracking to provide essential functionality:</p>
         <h4 class="font-semibold text-gray-900 mb-2">Essential Cookies:</h4>
@@ -179,7 +179,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "data-retention",
         icon: "hero-clock",
         gradient: Theme.gradient(:cool),
-        title: "Data Retention",
+        title: gettext("Data Retention"),
         content: """
         <p class="mb-4">We retain your personal data only as long as necessary:</p>
         <ul class="list-disc pl-6 space-y-2">
@@ -194,7 +194,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "policy-changes",
         icon: "hero-arrow-path",
         gradient: Theme.gradient(:primary),
-        title: "Changes to This Policy",
+        title: gettext("Changes to This Policy"),
         content: """
         <p class="mb-4">We may update this Privacy Policy from time to time to reflect changes in our practices or legal requirements.</p>
         <h4 class="font-semibold text-gray-900 mb-2">How We Notify You:</h4>
@@ -210,7 +210,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         id: "contact",
         icon: "hero-envelope",
         gradient: Theme.gradient(:cool_magenta),
-        title: "Contact Us",
+        title: gettext("Contact Us"),
         content: """
         <p class="mb-4">If you have any questions about this Privacy Policy or how we handle your data, please contact us:</p>
         <div class="space-y-2">
@@ -233,15 +233,15 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         gradient_class={Theme.gradient(:cool)}
         show_back_button
       >
-        <:title>Privacy Policy</:title>
-        <:subtitle>Your privacy matters to us</:subtitle>
+        <:title>{gettext("Privacy Policy")}</:title>
+        <:subtitle>{gettext("Your privacy matters to us")}</:subtitle>
       </.hero_section>
 
       <div class="max-w-4xl mx-auto p-6 space-y-6">
         <%!-- Last Updated Banner --%>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p class="text-sm text-blue-800">
-            <span class="font-semibold">Last Updated:</span> {last_updated()}
+            <span class="font-semibold">{gettext("Last Updated:")}</span> {last_updated()}
           </p>
         </div>
 
@@ -249,7 +249,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
         <.card>
           <:header>
             <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              Table of Contents
+              {gettext("Table of Contents")}
             </h2>
           </:header>
           <:body>
@@ -295,10 +295,10 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
           <:body>
             <div class="text-center">
               <h3 class={["font-semibold mb-2", Theme.text_color(:heading)]}>
-                Questions About Privacy?
+                {gettext("Questions About Privacy?")}
               </h3>
               <p class={["text-sm mb-4", Theme.text_color(:secondary)]}>
-                We're here to help with any privacy-related concerns.
+                {gettext("We're here to help with any privacy-related concerns.")}
               </p>
               <.link
                 navigate={~p"/contact"}
@@ -310,7 +310,7 @@ defmodule PrimeYouthWeb.PrivacyPolicyLive do
                   Theme.rounded(:lg)
                 ]}
               >
-                Contact Us
+                {gettext("Contact Us")}
               </.link>
             </div>
           </:body>

@@ -7,7 +7,7 @@ defmodule PrimeYouthWeb.AboutLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(page_title: "About Us")
+      |> assign(page_title: gettext("About Us"))
 
     {:ok, socket}
   end
@@ -18,28 +18,34 @@ defmodule PrimeYouthWeb.AboutLive do
       %{
         icon: "hero-star",
         gradient: Theme.gradient(:primary),
-        title: "Quality First",
+        title: gettext("Quality First"),
         description:
-          "We partner with qualified instructors who are passionate about youth development"
+          gettext(
+            "We partner with qualified instructors who are passionate about youth development"
+          )
       },
       %{
         icon: "hero-users",
         gradient: Theme.gradient(:primary),
-        title: "Accessibility",
+        title: gettext("Accessibility"),
         description:
-          "Making enriching programs accessible to families through transparent pricing and easy booking"
+          gettext(
+            "Making enriching programs accessible to families through transparent pricing and easy booking"
+          )
       },
       %{
         icon: "hero-shield-check",
         gradient: Theme.gradient(:safety),
-        title: "Safety",
-        description: "Verified instructors, secure facilities, and comprehensive safety protocols"
+        title: gettext("Safety"),
+        description:
+          gettext("Verified instructors, secure facilities, and comprehensive safety protocols")
       },
       %{
         icon: "hero-heart",
         gradient: Theme.gradient(:primary),
-        title: "Community",
-        description: "Building a supportive community of parents, instructors, and young learners"
+        title: gettext("Community"),
+        description:
+          gettext("Building a supportive community of parents, instructors, and young learners")
       }
     ]
   end
@@ -49,36 +55,38 @@ defmodule PrimeYouthWeb.AboutLive do
       %{
         icon: "hero-magnifying-glass",
         gradient: Theme.bg(:primary_light),
-        title: "Easy Discovery",
-        description: "Browse and filter programs by age, interest, location, and schedule"
+        title: gettext("Easy Discovery"),
+        description:
+          gettext("Browse and filter programs by age, interest, location, and schedule")
       },
       %{
         icon: "hero-calendar",
         gradient: Theme.bg(:secondary_light),
-        title: "Simple Booking",
-        description: "Book activities in minutes with clear pricing and flexible scheduling"
+        title: gettext("Simple Booking"),
+        description:
+          gettext("Book activities in minutes with clear pricing and flexible scheduling")
       },
       %{
         icon: "hero-credit-card",
         gradient: Theme.bg(:accent_light),
-        title: "Secure Payments",
-        description: "Safe, encrypted payment processing with multiple payment options"
+        title: gettext("Secure Payments"),
+        description: gettext("Safe, encrypted payment processing with multiple payment options")
       },
       %{
         icon: "hero-chart-bar",
         gradient: Theme.bg(:primary_light),
-        title: "Progress Tracking",
-        description: "Monitor your child's participation and achievements in real-time"
+        title: gettext("Progress Tracking"),
+        description: gettext("Monitor your child's participation and achievements in real-time")
       }
     ]
   end
 
   defp stats do
     [
-      %{value: "500+", label: "Programs"},
-      %{value: "1,200+", label: "Students"},
-      %{value: "150+", label: "Instructors"},
-      %{value: "98%", label: "Satisfaction"}
+      %{value: "500+", label: gettext("Programs")},
+      %{value: "1,200+", label: gettext("Students")},
+      %{value: "150+", label: gettext("Instructors")},
+      %{value: "98%", label: gettext("Satisfaction")}
     ]
   end
 
@@ -92,8 +100,10 @@ defmodule PrimeYouthWeb.AboutLive do
         gradient_class={Theme.gradient(:hero)}
         show_back_button
       >
-        <:title>About Prime Youth Connect</:title>
-        <:subtitle>Empowering young minds through quality after-school programs</:subtitle>
+        <:title>{gettext("About Prime Youth Connect")}</:title>
+        <:subtitle>
+          {gettext("Empowering young minds through quality after-school programs")}
+        </:subtitle>
       </.hero_section>
 
       <div class="max-w-4xl mx-auto p-6 space-y-8">
@@ -101,15 +111,19 @@ defmodule PrimeYouthWeb.AboutLive do
         <.card>
           <:header>
             <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              Our Mission
+              {gettext("Our Mission")}
             </h2>
           </:header>
           <:body>
             <p class={[Theme.text_color(:secondary), "leading-relaxed"]}>
-              At Prime Youth Connect, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology.
+              {gettext(
+                "At Prime Youth Connect, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
+              )}
             </p>
             <p class={[Theme.text_color(:secondary), "leading-relaxed mt-4"]}>
-              Our platform makes it easy for parents to discover, book, and manage activities while providing instructors with the tools they need to run successful programs.
+              {gettext(
+                "Our platform makes it easy for parents to discover, book, and manage activities while providing instructors with the tools they need to run successful programs."
+              )}
             </p>
           </:body>
         </.card>
@@ -117,7 +131,9 @@ defmodule PrimeYouthWeb.AboutLive do
         <%!-- Core Values --%>
         <.card>
           <:header>
-            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>Our Values</h2>
+            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+              {gettext("Our Values")}
+            </h2>
           </:header>
           <:body>
             <div class="space-y-4">
@@ -140,7 +156,7 @@ defmodule PrimeYouthWeb.AboutLive do
         <.card>
           <:header>
             <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              Why Choose Prime Youth Connect?
+              {gettext("Why Choose Prime Youth Connect?")}
             </h2>
           </:header>
           <:body>
@@ -175,10 +191,10 @@ defmodule PrimeYouthWeb.AboutLive do
           <:body>
             <div class="text-center">
               <h2 class={[Theme.typography(:section_title), "mb-3", Theme.text_color(:heading)]}>
-                Ready to Get Started?
+                {gettext("Ready to Get Started?")}
               </h2>
               <p class={["mb-6", Theme.text_color(:secondary)]}>
-                Explore our programs and find the perfect activities for your child.
+                {gettext("Explore our programs and find the perfect activities for your child.")}
               </p>
               <.link
                 navigate={~p"/programs"}
@@ -190,7 +206,7 @@ defmodule PrimeYouthWeb.AboutLive do
                   Theme.rounded(:lg)
                 ]}
               >
-                Browse Programs
+                {gettext("Browse Programs")}
               </.link>
             </div>
           </:body>

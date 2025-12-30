@@ -11,13 +11,13 @@ defmodule PrimeYouthWeb.UserLive.Registration do
       <div class="mx-auto max-w-sm">
         <div class="text-center">
           <.header>
-            Register for an account
+            {gettext("Register for an account")}
             <:subtitle>
-              Already registered?
+              {gettext("Already registered?")}
               <.link navigate={~p"/users/log-in"} class="font-semibold text-brand hover:underline">
-                Log in
+                {gettext("Log in")}
               </.link>
-              to your account now.
+              {gettext("to your account now.")}
             </:subtitle>
           </.header>
         </div>
@@ -26,7 +26,7 @@ defmodule PrimeYouthWeb.UserLive.Registration do
           <.input
             field={@form[:name]}
             type="text"
-            label="Name"
+            label={gettext("Name")}
             autocomplete="name"
             required
             phx-mounted={JS.focus()}
@@ -35,14 +35,16 @@ defmodule PrimeYouthWeb.UserLive.Registration do
           <.input
             field={@form[:email]}
             type="email"
-            label="Email"
+            label={gettext("Email")}
             autocomplete="username"
             required
           />
 
           <fieldset class="mt-6">
-            <legend class="text-sm font-semibold leading-6 text-zinc-800">I want to...</legend>
-            <p class="mt-1 text-sm text-zinc-500">Select one or both options</p>
+            <legend class="text-sm font-semibold leading-6 text-zinc-800">
+              {gettext("I want to...")}
+            </legend>
+            <p class="mt-1 text-sm text-zinc-500">{gettext("Select one or both options")}</p>
             <div class="mt-3 space-y-3">
               <label class="flex items-start gap-3 cursor-pointer">
                 <input
@@ -53,9 +55,11 @@ defmodule PrimeYouthWeb.UserLive.Registration do
                   class="mt-1 rounded border-2 border-zinc-400 text-cyan-600 focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0 shadow-sm transition-all duration-200"
                 />
                 <div>
-                  <span class="font-medium text-zinc-900">Enroll children in programs</span>
+                  <span class="font-medium text-zinc-900">
+                    {gettext("Enroll children in programs")}
+                  </span>
                   <p class="text-sm text-zinc-500">
-                    Find and book activities, camps, and classes for your children
+                    {gettext("Find and book activities, camps, and classes for your children")}
                   </p>
                 </div>
               </label>
@@ -68,9 +72,11 @@ defmodule PrimeYouthWeb.UserLive.Registration do
                   class="mt-1 rounded border-2 border-zinc-400 text-cyan-600 focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0 shadow-sm transition-all duration-200"
                 />
                 <div>
-                  <span class="font-medium text-zinc-900">Offer programs and services</span>
+                  <span class="font-medium text-zinc-900">
+                    {gettext("Offer programs and services")}
+                  </span>
                   <p class="text-sm text-zinc-500">
-                    Create and manage programs, activities, and services for families
+                    {gettext("Create and manage programs, activities, and services for families")}
                   </p>
                 </div>
               </label>
@@ -80,8 +86,11 @@ defmodule PrimeYouthWeb.UserLive.Registration do
             </.error>
           </fieldset>
 
-          <.button phx-disable-with="Creating account..." class="btn btn-primary w-full mt-6">
-            Create an account
+          <.button
+            phx-disable-with={gettext("Creating account...")}
+            class="btn btn-primary w-full mt-6"
+          >
+            {gettext("Create an account")}
           </.button>
         </.form>
       </div>
@@ -115,7 +124,9 @@ defmodule PrimeYouthWeb.UserLive.Registration do
          socket
          |> put_flash(
            :info,
-           "An email was sent to #{user.email}, please access it to confirm your account."
+           gettext("An email was sent to %{email}, please access it to confirm your account.",
+             email: user.email
+           )
          )
          |> push_navigate(to: ~p"/users/log-in")}
 
