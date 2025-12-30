@@ -9,16 +9,16 @@ defmodule PrimeYouthWeb.UserLive.Login do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <div class="mx-auto max-w-sm space-y-4">
         <div class="text-center">
-          <h2 class="text-3xl font-bold text-zinc-900">Welcome Back</h2>
+          <h2 class="text-3xl font-bold text-zinc-900">{gettext("Welcome Back")}</h2>
           <p class="mt-2 text-sm text-zinc-600">
             <%= if @current_scope do %>
-              You need to reauthenticate to perform sensitive actions on your account.
+              {gettext("You need to reauthenticate to perform sensitive actions on your account.")}
             <% else %>
-              Don't have an account? <.link
+              {gettext("Don't have an account?")} <.link
                 navigate={~p"/users/register"}
                 class="font-semibold text-brand hover:underline"
                 phx-no-format
-              >Register</.link> for an account now.
+              >{gettext("Register")}</.link> {gettext("for an account now.")}
             <% end %>
           </p>
         </div>
@@ -26,9 +26,9 @@ defmodule PrimeYouthWeb.UserLive.Login do
         <div :if={local_mail_adapter?()} class="alert alert-info">
           <.icon name="hero-information-circle" class="size-6 shrink-0" />
           <div>
-            <p>You are running the local mail adapter.</p>
+            <p>{gettext("You are running the local mail adapter.")}</p>
             <p>
-              To see sent emails, visit <.link href="/dev/mailbox" class="underline">the mailbox page</.link>.
+              {gettext("To see sent emails, visit")} <.link href="/dev/mailbox" class="underline">{gettext("the mailbox page")}</.link>.
             </p>
           </div>
         </div>
@@ -45,13 +45,13 @@ defmodule PrimeYouthWeb.UserLive.Login do
               readonly={!!@current_scope}
               field={f[:email]}
               type="email"
-              label="Email"
+              label={gettext("Email")}
               autocomplete="username"
               required
               phx-mounted={JS.focus()}
             />
             <.button class="btn btn-primary w-full mt-6">
-              Send Magic Link
+              {gettext("Send Magic Link")}
             </.button>
           </.form>
 
@@ -60,7 +60,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
             phx-click="toggle_form"
             class="btn btn-ghost w-full mt-4"
           >
-            Or use password
+            {gettext("Or use password")}
           </button>
         </div>
 
@@ -77,7 +77,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
               readonly={!!@current_scope}
               field={f[:email]}
               type="email"
-              label="Email"
+              label={gettext("Email")}
               autocomplete="username"
               required
               phx-mounted={JS.focus()}
@@ -85,14 +85,14 @@ defmodule PrimeYouthWeb.UserLive.Login do
             <.input
               field={@form[:password]}
               type="password"
-              label="Password"
+              label={gettext("Password")}
               autocomplete="current-password"
             />
             <.button class="btn btn-primary w-full mt-6" name={@form[:remember_me].name} value="true">
-              Log in and stay logged in <span aria-hidden="true">→</span>
+              {gettext("Log in and stay logged in")} <span aria-hidden="true">→</span>
             </.button>
             <.button class="btn btn-primary btn-soft w-full mt-2">
-              Log in only this time
+              {gettext("Log in only this time")}
             </.button>
           </.form>
 
@@ -101,7 +101,7 @@ defmodule PrimeYouthWeb.UserLive.Login do
             phx-click="toggle_form"
             class="btn btn-ghost w-full mt-4"
           >
-            Or use magic link
+            {gettext("Or use magic link")}
           </button>
         </div>
       </div>
@@ -138,7 +138,9 @@ defmodule PrimeYouthWeb.UserLive.Login do
     end
 
     info =
-      "If your email is in our system, you will receive instructions for logging in shortly."
+      gettext(
+        "If your email is in our system, you will receive instructions for logging in shortly."
+      )
 
     {:noreply,
      socket

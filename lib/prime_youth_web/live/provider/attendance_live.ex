@@ -14,7 +14,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
 
     socket =
       socket
-      |> assign(:page_title, "Manage Attendance")
+      |> assign(:page_title, gettext("Manage Attendance"))
       |> assign(:session_id, session_id)
       |> assign(:provider_id, provider_id)
       |> assign(:session, nil)
@@ -42,7 +42,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
 
     case record do
       nil ->
-        {:noreply, put_flash(socket, :error, "Record not found")}
+        {:noreply, put_flash(socket, :error, gettext("Record not found"))}
 
       record ->
         case RecordCheckIn.execute(
@@ -53,7 +53,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
           {:ok, _record} ->
             {:noreply,
              socket
-             |> put_flash(:info, "Child checked in successfully")
+             |> put_flash(:info, gettext("Child checked in successfully"))
              |> load_session_data()}
 
           {:error, reason} ->
@@ -64,7 +64,12 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
               reason: inspect(reason)
             )
 
-            {:noreply, put_flash(socket, :error, "Failed to check in: #{inspect(reason)}")}
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("Failed to check in: %{reason}", reason: inspect(reason))
+             )}
         end
     end
   end
@@ -113,7 +118,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
 
     case record do
       nil ->
-        {:noreply, put_flash(socket, :error, "Record not found")}
+        {:noreply, put_flash(socket, :error, gettext("Record not found"))}
 
       record ->
         case RecordCheckOut.execute(
@@ -125,7 +130,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
           {:ok, _record} ->
             {:noreply,
              socket
-             |> put_flash(:info, "Child checked out successfully")
+             |> put_flash(:info, gettext("Child checked out successfully"))
              |> assign(:checkout_form_expanded, nil)
              |> assign(:checkout_forms, Map.delete(socket.assigns.checkout_forms, record_id))
              |> load_session_data()}
@@ -138,7 +143,12 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
               reason: inspect(reason)
             )
 
-            {:noreply, put_flash(socket, :error, "Failed to check out: #{inspect(reason)}")}
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("Failed to check out: %{reason}", reason: inspect(reason))
+             )}
         end
     end
   end
@@ -202,7 +212,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
         )
 
         socket
-        |> put_flash(:error, "Session not found")
+        |> put_flash(:error, gettext("Session not found"))
         |> push_navigate(to: ~p"/provider/sessions")
 
       {:error, reason} ->
@@ -213,7 +223,7 @@ defmodule PrimeYouthWeb.Provider.AttendanceLive do
         )
 
         socket
-        |> assign(:session_error, "Failed to load session data")
+        |> assign(:session_error, gettext("Failed to load session data"))
     end
   end
 

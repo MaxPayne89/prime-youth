@@ -13,7 +13,8 @@ defmodule PrimeYouthWeb.HomeLive do
     socket =
       socket
       |> assign(
-        page_title: "Prime Youth Connect - Connecting Families with Trusted Youth Educators"
+        page_title:
+          gettext("Prime Youth Connect - Connecting Families with Trusted Youth Educators")
       )
       |> stream(:featured_programs, featured)
       |> assign(:featured_empty?, Enum.empty?(featured))
@@ -41,8 +42,8 @@ defmodule PrimeYouthWeb.HomeLive do
         gradient_class={Theme.gradient(:hero)}
         show_logo
       >
-        <:title>Prime Youth Connect</:title>
-        <:subtitle>Connecting Families with Trusted Youth Educators</:subtitle>
+        <:title>{gettext("Prime Youth Connect")}</:title>
+        <:subtitle>{gettext("Connecting Families with Trusted Youth Educators")}</:subtitle>
         <:actions>
           <button
             phx-click="get_started"
@@ -56,7 +57,7 @@ defmodule PrimeYouthWeb.HomeLive do
               "hover:#{Theme.bg(:light)}"
             ]}
           >
-            Get Started Free
+            {gettext("Get Started Free")}
           </button>
           <button
             phx-click="explore_programs"
@@ -67,7 +68,7 @@ defmodule PrimeYouthWeb.HomeLive do
               Theme.rounded(:lg)
             ]}
           >
-            Explore Programs
+            {gettext("Explore Programs")}
           </button>
         </:actions>
       </.hero_section>
@@ -77,10 +78,10 @@ defmodule PrimeYouthWeb.HomeLive do
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div class="text-center mb-16">
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
-              Why Prime Youth Connect?
+              {gettext("Why Prime Youth Connect?")}
             </h2>
             <p class={["text-xl", Theme.text_color(:secondary)]}>
-              Safety, quality, and convenience for modern families.
+              {gettext("Safety, quality, and convenience for modern families.")}
             </p>
           </div>
 
@@ -88,20 +89,32 @@ defmodule PrimeYouthWeb.HomeLive do
             <.feature_card
               gradient_class={Theme.gradient(:cool)}
               icon_path="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-              title="Safety First"
-              description="Every provider is rigorously vetted. We prioritize child safety above all else, giving parents peace of mind."
+              title={gettext("Safety First")}
+              description={
+                gettext(
+                  "Every provider is rigorously vetted. We prioritize child safety above all else, giving parents peace of mind."
+                )
+              }
             />
             <.feature_card
               gradient_class={Theme.gradient(:primary)}
               icon_path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              title="Easy Scheduling"
-              description="Book camps, tutors, and workshops instantly. Our integrated planner helps you manage your child's busy life."
+              title={gettext("Easy Scheduling")}
+              description={
+                gettext(
+                  "Book camps, tutors, and workshops instantly. Our integrated planner helps you manage your child's busy life."
+                )
+              }
             />
             <.feature_card
               gradient_class={Theme.gradient(:primary)}
               icon_path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-              title="Community Focused"
-              description="Built for the Berlin international community. Connect with local families and trusted educators nearby."
+              title={gettext("Community Focused")}
+              description={
+                gettext(
+                  "Built for the Berlin international community. Connect with local families and trusted educators nearby."
+                )
+              }
             />
           </div>
         </div>
@@ -112,10 +125,10 @@ defmodule PrimeYouthWeb.HomeLive do
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="text-center mb-12">
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
-              Featured Programs
+              {gettext("Featured Programs")}
             </h2>
             <p class={["text-xl", Theme.text_color(:secondary)]}>
-              Explore top-rated activities for your children
+              {gettext("Explore top-rated activities for your children")}
             </p>
           </div>
 
@@ -147,7 +160,7 @@ defmodule PrimeYouthWeb.HomeLive do
                 Theme.rounded(:lg)
               ]}
             >
-              View All Programs →
+              {gettext("View All Programs →")}
             </button>
           </div>
         </div>
@@ -158,24 +171,24 @@ defmodule PrimeYouthWeb.HomeLive do
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div class="text-center mb-12">
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
-              Trusted by Families Everywhere
+              {gettext("Trusted by Families Everywhere")}
             </h2>
           </div>
 
           <div class="grid md:grid-cols-3 gap-8">
             <.stat_display
               value="10,000+"
-              label="Active Families"
+              label={gettext("Active Families")}
               gradient_class={Theme.gradient(:primary)}
             />
             <.stat_display
               value="500+"
-              label="Programs Available"
+              label={gettext("Programs Available")}
               gradient_class={Theme.gradient(:primary)}
             />
             <.stat_display
               value="4.9/5"
-              label="Average Rating"
+              label={gettext("Average Rating")}
               gradient_class={Theme.gradient(:primary)}
             />
           </div>
@@ -186,10 +199,10 @@ defmodule PrimeYouthWeb.HomeLive do
       <div class={[Theme.gradient(:primary), "py-16 lg:py-20"]}>
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 class={[Theme.typography(:page_title), "text-white mb-6"]}>
-            Ready to Get Started?
+            {gettext("Ready to Get Started?")}
           </h2>
           <p class="text-xl text-white/90 mb-8">
-            Join thousands of families discovering amazing afterschool programs
+            {gettext("Join thousands of families discovering amazing afterschool programs")}
           </p>
           <button
             phx-click="get_started"
@@ -203,7 +216,7 @@ defmodule PrimeYouthWeb.HomeLive do
               Theme.text_color(:primary)
             ]}
           >
-            Create Free Account →
+            {gettext("Create Free Account →")}
           </button>
         </div>
       </div>

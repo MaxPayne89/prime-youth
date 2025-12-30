@@ -13,7 +13,7 @@ defmodule PrimeYouthWeb.ContactLive do
 
     socket =
       socket
-      |> assign(page_title: "Contact Us")
+      |> assign(page_title: gettext("Contact Us"))
       |> assign(current_user: nil)
       |> assign(form: to_form(changeset, as: :contact))
       |> assign(submission_status: nil)
@@ -48,7 +48,7 @@ defmodule PrimeYouthWeb.ContactLive do
 
         {:noreply,
          socket
-         |> put_flash(:error, "Failed to submit contact form. Please try again.")
+         |> put_flash(:error, gettext("Failed to submit contact form. Please try again."))
          |> assign(
            form: to_form(ContactForm.changeset(%ContactForm{}, contact_params), as: :contact)
          )}
@@ -60,21 +60,21 @@ defmodule PrimeYouthWeb.ContactLive do
       %{
         icon: "hero-envelope",
         gradient: Theme.gradient(:primary),
-        title: "Email",
+        title: gettext("Email"),
         value: "support@primeyouth.com",
-        note: "We respond within 24 hours"
+        note: gettext("We respond within 24 hours")
       },
       %{
         icon: "hero-phone",
         gradient: Theme.gradient(:primary),
-        title: "Phone",
+        title: gettext("Phone"),
         value: "+1 (555) 123-4567",
-        note: "Mon-Fri, 9am-5pm EST"
+        note: gettext("Mon-Fri, 9am-5pm EST")
       },
       %{
         icon: "hero-map-pin",
         gradient: Theme.gradient(:primary),
-        title: "Address",
+        title: gettext("Address"),
         value: "123 Youth Avenue, Suite 100",
         note: "New York, NY 10001"
       }
@@ -83,9 +83,9 @@ defmodule PrimeYouthWeb.ContactLive do
 
   defp office_hours do
     [
-      %{days: "Monday - Friday", hours: "9:00 AM - 6:00 PM"},
-      %{days: "Saturday", hours: "10:00 AM - 4:00 PM"},
-      %{days: "Sunday", hours: "Closed"}
+      %{days: gettext("Monday - Friday"), hours: "9:00 AM - 6:00 PM"},
+      %{days: gettext("Saturday"), hours: "10:00 AM - 4:00 PM"},
+      %{days: gettext("Sunday"), hours: gettext("Closed")}
     ]
   end
 
@@ -98,8 +98,8 @@ defmodule PrimeYouthWeb.ContactLive do
         gradient_class={Theme.gradient(:primary)}
         show_back_button
       >
-        <:title>Contact Us</:title>
-        <:subtitle>We're here to help with any questions you may have</:subtitle>
+        <:title>{gettext("Contact Us")}</:title>
+        <:subtitle>{gettext("We're here to help with any questions you may have")}</:subtitle>
       </.hero_section>
 
       <div class="max-w-6xl mx-auto p-6">
@@ -107,7 +107,9 @@ defmodule PrimeYouthWeb.ContactLive do
           <div>
             <.card>
               <:header>
-                <h2 class={[Theme.typography(:section_title), "text-gray-900"]}>Send us a Message</h2>
+                <h2 class={[Theme.typography(:section_title), "text-gray-900"]}>
+                  {gettext("Send us a Message")}
+                </h2>
               </:header>
               <:body>
                 <.form
@@ -117,22 +119,22 @@ defmodule PrimeYouthWeb.ContactLive do
                   phx-submit="submit"
                   class="space-y-4"
                 >
-                  <.input field={@form[:name]} type="text" label="Name" required />
+                  <.input field={@form[:name]} type="text" label={gettext("Name")} required />
 
-                  <.input field={@form[:email]} type="email" label="Email" required />
+                  <.input field={@form[:email]} type="email" label={gettext("Email")} required />
 
                   <.input
                     field={@form[:subject]}
                     type="select"
-                    label="Subject"
-                    prompt="Select a topic..."
+                    label={gettext("Subject")}
+                    prompt={gettext("Select a topic...")}
                     options={[
-                      {"General Inquiry", "general"},
-                      {"Program Question", "program"},
-                      {"Booking Support", "booking"},
-                      {"Instructor Application", "instructor"},
-                      {"Technical Issue", "technical"},
-                      {"Other", "other"}
+                      {gettext("General Inquiry"), "general"},
+                      {gettext("Program Question"), "program"},
+                      {gettext("Booking Support"), "booking"},
+                      {gettext("Instructor Application"), "instructor"},
+                      {gettext("Technical Issue"), "technical"},
+                      {gettext("Other"), "other"}
                     ]}
                     required
                   />
@@ -140,7 +142,7 @@ defmodule PrimeYouthWeb.ContactLive do
                   <.input
                     field={@form[:message]}
                     type="textarea"
-                    label="Message"
+                    label={gettext("Message")}
                     rows="5"
                     required
                   />
@@ -151,10 +153,10 @@ defmodule PrimeYouthWeb.ContactLive do
                   >
                     <div class="flex items-center gap-2 text-teal-800">
                       <.icon name="hero-check-circle" class="w-5 h-5" />
-                      <span class="font-medium">Message sent successfully!</span>
+                      <span class="font-medium">{gettext("Message sent successfully!")}</span>
                     </div>
                     <p class="text-sm text-green-700 mt-1">
-                      We'll get back to you within 24 hours.
+                      {gettext("We'll get back to you within 24 hours.")}
                     </p>
                   </div>
 
@@ -168,7 +170,7 @@ defmodule PrimeYouthWeb.ContactLive do
                       Theme.rounded(:lg)
                     ]}
                   >
-                    Send Message
+                    {gettext("Send Message")}
                   </button>
                 </.form>
               </:body>
@@ -178,7 +180,7 @@ defmodule PrimeYouthWeb.ContactLive do
           <div class="space-y-6">
             <.card>
               <:header>
-                <h2 class="text-xl font-bold text-gray-900">Get in Touch</h2>
+                <h2 class="text-xl font-bold text-gray-900">{gettext("Get in Touch")}</h2>
               </:header>
               <:body>
                 <div class="space-y-4">
@@ -202,7 +204,7 @@ defmodule PrimeYouthWeb.ContactLive do
 
             <.card>
               <:header>
-                <h2 class="text-xl font-bold text-gray-900">Office Hours</h2>
+                <h2 class="text-xl font-bold text-gray-900">{gettext("Office Hours")}</h2>
               </:header>
               <:body>
                 <div class="space-y-2 text-sm">
@@ -221,12 +223,14 @@ defmodule PrimeYouthWeb.ContactLive do
                     name="hero-question-mark-circle"
                     class={"w-12 h-12 mx-auto mb-3 #{Theme.text_color(:primary)}"}
                   />
-                  <h3 class="font-semibold text-gray-900 mb-2">Looking for Quick Answers?</h3>
+                  <h3 class="font-semibold text-gray-900 mb-2">
+                    {gettext("Looking for Quick Answers?")}
+                  </h3>
                   <p class="text-sm text-gray-600 mb-4">
-                    Check out our FAQ section for answers to common questions.
+                    {gettext("Check out our FAQ section for answers to common questions.")}
                   </p>
                   <button class={[Theme.text_color(:primary), "font-medium text-sm hover:underline"]}>
-                    Visit FAQ →
+                    {gettext("Visit FAQ")} →
                   </button>
                 </div>
               </:body>

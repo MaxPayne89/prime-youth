@@ -15,10 +15,10 @@ defmodule PrimeYouthWeb.ProgramsLive do
   # Private helpers - Static data
   defp filter_options do
     [
-      %{id: "all", label: "All Programs"},
-      %{id: "available", label: "Available"},
-      %{id: "ages", label: "By Age"},
-      %{id: "price", label: "By Price"}
+      %{id: "all", label: gettext("All Programs")},
+      %{id: "available", label: gettext("Available")},
+      %{id: "ages", label: gettext("By Age")},
+      %{id: "price", label: gettext("By Price")}
     ]
   end
 
@@ -27,7 +27,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
     # Initialize socket state - actual program loading happens in handle_params
     socket =
       socket
-      |> assign(page_title: "Programs")
+      |> assign(page_title: gettext("Programs"))
       |> assign(current_user: nil)
       |> assign(search_query: "")
       |> assign(active_filter: "all")
@@ -179,7 +179,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
         socket =
           socket
           |> assign(loading_more: false)
-          |> put_flash(:error, "Invalid pagination state. Please refresh the page.")
+          |> put_flash(:error, gettext("Invalid pagination state. Please refresh the page."))
 
         {:noreply, socket}
     end
@@ -275,7 +275,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
     <div class="min-h-screen bg-gray-50 pb-20 md:pb-6">
       <!-- Header -->
       <.page_header>
-        <:title>Programs</:title>
+        <:title>{gettext("Programs")}</:title>
         <:actions>
           <.icon_button
             icon_path="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
@@ -290,7 +290,7 @@ defmodule PrimeYouthWeb.ProgramsLive do
         <!-- Search Bar -->
         <.search_bar
           id="search-programs"
-          placeholder="Search programs..."
+          placeholder={gettext("Search programs...")}
           value={@search_query}
           name="search"
           phx-change="search"
@@ -350,10 +350,10 @@ defmodule PrimeYouthWeb.ProgramsLive do
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Loading...
+                {gettext("Loading...")}
               </span>
             <% else %>
-              Load More Programs
+              {gettext("Load More Programs")}
             <% end %>
           </button>
         </div>
@@ -363,8 +363,8 @@ defmodule PrimeYouthWeb.ProgramsLive do
           :if={@programs_empty?}
           data-testid="empty-state"
           icon_path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          title="No programs found"
-          description="Try adjusting your search or filter criteria."
+          title={gettext("No programs found")}
+          description={gettext("Try adjusting your search or filter criteria.")}
         />
       </div>
     </div>

@@ -16,10 +16,10 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
         # Add temporary included_items field (fixture data until proper implementation)
         program_with_items =
           Map.put(program, :included_items, [
-            "Weekly art supplies and materials",
-            "Take-home projects every week",
-            "Portfolio folder to track progress",
-            "Final exhibition showcase"
+            gettext("Weekly art supplies and materials"),
+            gettext("Take-home projects every week"),
+            gettext("Portfolio folder to track progress"),
+            gettext("Final exhibition showcase")
           ])
 
         socket =
@@ -36,14 +36,14 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
          socket
          |> put_flash(
            :error,
-           "Program not found. It may have been removed or is no longer available."
+           gettext("Program not found. It may have been removed or is no longer available.")
          )
          |> redirect(to: ~p"/programs")}
 
       {:error, _error} ->
         {:ok,
          socket
-         |> put_flash(:error, "Unable to load program. Please try again later.")
+         |> put_flash(:error, gettext("Unable to load program. Please try again later."))
          |> redirect(to: ~p"/programs")}
     end
   end
@@ -161,7 +161,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
                     >
                     </path>
                   </svg>
-                  Ages {@program.age_range}
+                  {gettext("Ages %{range}", range: @program.age_range)}
                 </span>
               </div>
               <div class="flex items-center space-x-2">
@@ -176,13 +176,13 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
                     )
                   ]}
                 >
-                  Only {@program.spots_available} spots left!
+                  {gettext("Only %{count} spots left!", count: @program.spots_available)}
                 </span>
                 <span class={[
                   "bg-green-100 text-green-700 px-2 py-1 text-xs font-medium",
                   Theme.rounded(:full)
                 ]}>
-                  ✓ No hidden fees
+                  {gettext("✓ No hidden fees")}
                 </span>
               </div>
             </div>
@@ -190,11 +190,13 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               <p class={[Theme.typography(:page_title), Theme.text_color(:secondary)]}>
                 {format_total_price(@program.price)}
               </p>
-              <p class={["text-sm", Theme.text_color(:muted)]}>Total: Sept 1 - Oct 26</p>
+              <p class={["text-sm", Theme.text_color(:muted)]}>{gettext("Total: Sept 1 - Oct 26")}</p>
               <p class={["text-xs", Theme.text_color(:subtle)]}>
-                {format_price(@program.price)}/week • 4 weeks
+                {gettext("%{price}/week • 4 weeks", price: format_price(@program.price))}
               </p>
-              <p class={["text-xs mt-1", Theme.text_color(:secondary)]}>with {@instructor.name}</p>
+              <p class={["text-xs mt-1", Theme.text_color(:secondary)]}>
+                {gettext("with %{name}", name: @instructor.name)}
+              </p>
             </div>
           </div>
         </div>
@@ -213,7 +215,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               Theme.gradient(:primary)
             ]}
           >
-            Book Now - {format_total_price(@program.price)}
+            {gettext("Book Now - %{price}", price: format_total_price(@program.price))}
           </button>
           <p class={["text-center text-sm mt-2", Theme.text_color(:secondary)]}>
             <svg
@@ -230,7 +232,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
               >
               </path>
             </svg>
-            Free cancellation up to 48 hours before start date
+            {gettext("Free cancellation up to 48 hours before start date")}
           </p>
         </div>
 
@@ -242,7 +244,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
             Theme.border_color(:light)
           ]}>
             <h3 class={[Theme.typography(:card_title), "mb-3", Theme.text_color(:heading)]}>
-              About This Program
+              {gettext("About This Program")}
             </h3>
             <p class={["leading-relaxed mb-4", Theme.text_color(:secondary)]}>
               {@program.description}
@@ -250,7 +252,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
 
             <div class="space-y-2">
               <h4 class={[Theme.typography(:card_title), Theme.text_color(:heading)]}>
-                What's Included:
+                {gettext("What's Included:")}
               </h4>
               <ul class={["space-y-2 text-sm", Theme.text_color(:secondary)]}>
                 <li :for={item <- @program.included_items} class="flex items-center">
@@ -281,7 +283,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
             Theme.border_color(:light)
           ]}>
             <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:heading)]}>
-              Meet Your Instructor
+              {gettext("Meet Your Instructor")}
             </h3>
             <div class="flex items-start space-x-4">
               <img
@@ -318,7 +320,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
             Theme.border_color(:light)
           ]}>
             <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:heading)]}>
-              What Other Parents Say
+              {gettext("What Other Parents Say")}
             </h3>
             <div class="space-y-4">
               <.review_card
@@ -338,7 +340,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
                 Theme.text_color(:primary),
                 "text-sm font-medium hover:opacity-80 underline"
               ]}>
-                View all {@instructor.review_count} reviews
+                {gettext("View all %{count} reviews", count: @instructor.review_count)}
               </button>
             </div>
           </div>
@@ -355,7 +357,7 @@ defmodule PrimeYouthWeb.ProgramDetailLive do
                 Theme.gradient(:primary)
               ]}
             >
-              Enroll Now - {format_total_price(@program.price)}
+              {gettext("Enroll Now - %{price}", price: format_total_price(@program.price))}
             </button>
           </div>
         </div>

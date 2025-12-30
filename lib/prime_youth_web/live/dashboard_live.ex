@@ -18,7 +18,7 @@ defmodule PrimeYouthWeb.DashboardLive do
 
     socket =
       socket
-      |> assign(page_title: "Dashboard")
+      |> assign(page_title: gettext("Dashboard"))
       |> assign(user: user)
       |> assign(children_count: length(children_for_view))
       |> stream(:children, children_for_view)
@@ -42,7 +42,11 @@ defmodule PrimeYouthWeb.DashboardLive do
           />
           <div>
             <h2 class={Theme.typography(:card_title)}>{@user.name}</h2>
-            <p class="text-white/80 text-sm">{@children_count} children enrolled</p>
+            <p class="text-white/80 text-sm">
+              {ngettext("%{count} child enrolled", "%{count} children enrolled", @children_count,
+                count: @children_count
+              )}
+            </p>
           </div>
         </:profile>
         <:actions>
@@ -109,10 +113,10 @@ defmodule PrimeYouthWeb.DashboardLive do
                 >
                 </path>
               </svg>
-              My Children
+              {gettext("My Children")}
             </h3>
             <button class={[Theme.text_color(:primary), "text-sm font-medium hover:opacity-80"]}>
-              View All
+              {gettext("View All")}
             </button>
           </div>
           <div
@@ -136,30 +140,30 @@ defmodule PrimeYouthWeb.DashboardLive do
     <!-- Quick Actions -->
         <div>
           <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:body)]}>
-            Quick Actions
+            {gettext("Quick Actions")}
           </h3>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <.quick_action_button
               icon="hero-calendar"
-              label="Book Activity"
+              label={gettext("Book Activity")}
               bg_color={Theme.bg(:primary_light)}
               icon_color={Theme.text_color(:primary)}
             />
             <.quick_action_button
               icon="hero-clock"
-              label="View Schedule"
+              label={gettext("View Schedule")}
               bg_color={Theme.bg(:secondary_light)}
               icon_color={Theme.text_color(:secondary)}
             />
             <.quick_action_button
               icon="hero-chat-bubble-left-right"
-              label="Messages"
+              label={gettext("Messages")}
               bg_color={Theme.bg(:accent_light)}
               icon_color={Theme.text_color(:accent)}
             />
             <.quick_action_button
               icon="hero-credit-card"
-              label="Payments"
+              label={gettext("Payments")}
               bg_color={Theme.bg(:primary_light)}
               icon_color={Theme.text_color(:primary)}
             />
@@ -170,10 +174,10 @@ defmodule PrimeYouthWeb.DashboardLive do
         <div>
           <div class="flex items-center justify-between mb-4">
             <h3 class={[Theme.typography(:card_title), Theme.text_color(:body)]}>
-              Upcoming Activities
+              {gettext("Upcoming Activities")}
             </h3>
             <button class={[Theme.text_color(:primary), "text-sm font-medium hover:opacity-80"]}>
-              View All
+              {gettext("View All")}
             </button>
           </div>
           <div id="upcoming-activities" phx-update="stream" class="space-y-3">
@@ -190,8 +194,12 @@ defmodule PrimeYouthWeb.DashboardLive do
           <.empty_state
             :if={@activities_empty?}
             icon_path="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-            title="No upcoming activities"
-            description="Check back later for scheduled programs, or browse available programs to book a new activity."
+            title={gettext("No upcoming activities")}
+            description={
+              gettext(
+                "Check back later for scheduled programs, or browse available programs to book a new activity."
+              )
+            }
           />
         </div>
       </div>

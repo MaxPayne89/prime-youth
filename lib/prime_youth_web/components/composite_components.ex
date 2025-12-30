@@ -6,6 +6,7 @@ defmodule PrimeYouthWeb.CompositeComponents do
   atomic components from UIComponents to create cohesive interface elements.
   """
   use Phoenix.Component
+  use Gettext, backend: PrimeYouthWeb.Gettext
 
   use Phoenix.VerifiedRoutes,
     endpoint: PrimeYouthWeb.Endpoint,
@@ -97,10 +98,10 @@ defmodule PrimeYouthWeb.CompositeComponents do
           </div>
           <div class="text-right">
             <div class="text-sm font-medium text-gray-900">{@sessions}</div>
-            <div class="text-xs text-gray-500">Sessions</div>
+            <div class="text-xs text-gray-500">{gettext("Sessions")}</div>
           </div>
         </div>
-        <.progress_bar label="Progress" percentage={@progress} class="mb-3" />
+        <.progress_bar label={gettext("Progress")} percentage={@progress} class="mb-3" />
         <div class="flex flex-wrap gap-1">
           <.status_pill
             :for={activity <- @activities}
@@ -191,12 +192,14 @@ defmodule PrimeYouthWeb.CompositeComponents do
           <div class="flex-1">
             <div class="flex items-center mb-2">
               <.status_pill color="custom" class={@status_color}>
-                {@status}
+                {Gettext.gettext(PrimeYouthWeb.Gettext, @status)}
               </.status_pill>
-              <span class="ml-2 text-sm text-gray-600">{@time}</span>
+              <span class="ml-2 text-sm text-gray-600">
+                {Gettext.gettext(PrimeYouthWeb.Gettext, @status)}, {@time}
+              </span>
             </div>
             <h4 class={[Theme.typography(:card_title), "text-gray-900 mb-1"]}>{@name}</h4>
-            <p class="text-sm text-gray-600">Instructor: {@instructor}</p>
+            <p class="text-sm text-gray-600">{gettext("Instructor")}: {@instructor}</p>
           </div>
           <.gradient_icon gradient_class="bg-gray-100" size="sm" shape="circle" class="flex-shrink-0">
             <.icon name="hero-chevron-right" class="w-5 h-5 text-gray-500" />
@@ -400,32 +403,32 @@ defmodule PrimeYouthWeb.CompositeComponents do
         <div class="text-left">
           <h3 class="font-bold text-lg text-white mb-4">Prime Youth Connect</h3>
           <p class="text-sm">
-            Building the future of youth education by connecting communities.
+            {gettext("Building the future of youth education by connecting communities.")}
           </p>
         </div>
 
         <div class="text-left">
-          <h4 class="font-semibold mb-4">Quick Links</h4>
+          <h4 class="font-semibold mb-4">{gettext("Quick Links")}</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="#programs" class="link link-hover">Programs</a></li>
-            <li><a href="#about" class="link link-hover">About Us</a></li>
-            <li><a href="#contact" class="link link-hover">Contact</a></li>
-            <li><a href="#faq" class="link link-hover">FAQ</a></li>
+            <li><a href="#programs" class="link link-hover">{gettext("Programs")}</a></li>
+            <li><a href="#about" class="link link-hover">{gettext("About Us")}</a></li>
+            <li><a href="#contact" class="link link-hover">{gettext("Contact")}</a></li>
+            <li><a href="#faq" class="link link-hover">{gettext("FAQ")}</a></li>
           </ul>
         </div>
 
         <div class="text-left">
-          <h4 class="font-semibold mb-4">Programs</h4>
+          <h4 class="font-semibold mb-4">{gettext("Programs")}</h4>
           <ul class="space-y-2 text-sm">
-            <li><a href="#afterschool" class="link link-hover">Afterschool</a></li>
-            <li><a href="#camps" class="link link-hover">Summer Camps</a></li>
-            <li><a href="#trips" class="link link-hover">Class Trips</a></li>
-            <li><a href="#enrichment" class="link link-hover">Enrichment</a></li>
+            <li><a href="#afterschool" class="link link-hover">{gettext("Afterschool")}</a></li>
+            <li><a href="#camps" class="link link-hover">{gettext("Summer Camps")}</a></li>
+            <li><a href="#trips" class="link link-hover">{gettext("Class Trips")}</a></li>
+            <li><a href="#enrichment" class="link link-hover">{gettext("Enrichment")}</a></li>
           </ul>
         </div>
 
         <div class="text-left">
-          <h4 class="font-semibold mb-4">Connect</h4>
+          <h4 class="font-semibold mb-4">{gettext("Connect")}</h4>
           <div class="flex gap-2 mb-4">
             <a href="#facebook" class="btn btn-circle btn-sm btn-ghost">
               <svg
@@ -458,11 +461,11 @@ defmodule PrimeYouthWeb.CompositeComponents do
       </div>
 
       <div class="border-t border-base-300 pt-6 mt-6 w-full">
-        <p class="text-sm">&copy; 2025 Prime Youth Connect. All rights reserved.</p>
+        <p class="text-sm">&copy; 2025 Prime Youth Connect. {gettext("All rights reserved.")}</p>
         <div class="flex gap-4 justify-center mt-2 text-xs">
-          <.link navigate={~p"/privacy"} class="link link-hover">Privacy Policy</.link>
+          <.link navigate={~p"/privacy"} class="link link-hover">{gettext("Privacy Policy")}</.link>
           <span class="text-gray-400">•</span>
-          <.link navigate={~p"/terms"} class="link link-hover">Terms of Service</.link>
+          <.link navigate={~p"/terms"} class="link link-hover">{gettext("Terms of Service")}</.link>
         </div>
       </div>
     </footer>

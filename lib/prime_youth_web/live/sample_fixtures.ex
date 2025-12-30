@@ -17,6 +17,8 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
       end
   """
 
+  use Gettext, backend: PrimeYouthWeb.Gettext
+
   alias PrimeYouthWeb.Theme
 
   # User Fixtures
@@ -338,7 +340,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
         id: 1,
         name: "Creative Art World",
         instructor: "Ms. Rodriguez",
-        time: "Today, 4:00 PM",
+        time: "4:00 PM",
         status: "Today",
         status_color: "bg-red-100 text-red-700"
       },
@@ -346,7 +348,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
         id: 2,
         name: "Chess Masters",
         instructor: "Mr. Chen",
-        time: "Tomorrow, 3:30 PM",
+        time: "3:30 PM",
         status: "Tomorrow",
         status_color: "bg-orange-100 text-orange-700"
       },
@@ -354,7 +356,7 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
         id: 3,
         name: "Swimming Lessons",
         instructor: "Coach Davis",
-        time: "Friday, 2:00 PM",
+        time: "2:00 PM",
         status: "This Week",
         status_color: "bg-blue-100 text-blue-700"
       }

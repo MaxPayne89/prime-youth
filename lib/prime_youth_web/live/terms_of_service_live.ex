@@ -7,7 +7,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(page_title: "Terms of Service")
+      |> assign(page_title: gettext("Terms of Service"))
 
     {:ok, socket}
   end
@@ -20,7 +20,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "agreement",
         icon: "hero-document-check",
         gradient: Theme.gradient(:primary),
-        title: "Agreement to Terms",
+        title: gettext("Agreement to Terms"),
         content: """
         <p class="mb-4">By accessing and using Prime Youth Connect ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
         <p class="mb-4">These terms constitute a legally binding agreement between you and Prime Youth Connect. Please read them carefully.</p>
@@ -31,7 +31,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "user-accounts",
         icon: "hero-user-circle",
         gradient: Theme.gradient(:cool),
-        title: "User Accounts & Registration",
+        title: gettext("User Accounts & Registration"),
         content: """
         <h4 class="font-semibold text-gray-900 mb-2">Account Creation:</h4>
         <ul class="list-disc pl-6 space-y-2 mb-4">
@@ -53,7 +53,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "program-enrollment",
         icon: "hero-academic-cap",
         gradient: Theme.gradient(:warm_yellow),
-        title: "Program Enrollment & Bookings",
+        title: gettext("Program Enrollment & Bookings"),
         content: """
         <h4 class="font-semibold text-gray-900 mb-2">Enrollment Process:</h4>
         <ul class="list-disc pl-6 space-y-2 mb-4">
@@ -74,7 +74,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "payment-terms",
         icon: "hero-credit-card",
         gradient: Theme.gradient(:cool_magenta),
-        title: "Payment Terms",
+        title: gettext("Payment Terms"),
         content: """
         <h4 class="font-semibold text-gray-900 mb-2">Accepted Payment Methods:</h4>
         <p class="mb-4">We accept the following payment methods:</p>
@@ -101,7 +101,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "cancellation-refund",
         icon: "hero-arrow-uturn-left",
         gradient: Theme.gradient(:safety),
-        title: "Cancellation & Refund Policy",
+        title: gettext("Cancellation & Refund Policy"),
         content: """
         <p class="mb-4"><em class="text-amber-600">Note: This is a basic policy template. Specific terms may vary by program and will be provided during enrollment.</em></p>
         <h4 class="font-semibold text-gray-900 mb-2">User Cancellations:</h4>
@@ -123,7 +123,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "user-conduct",
         icon: "hero-shield-check",
         gradient: Theme.gradient(:primary),
-        title: "User Conduct & Responsibilities",
+        title: gettext("User Conduct & Responsibilities"),
         content: """
         <h4 class="font-semibold text-gray-900 mb-2">Expected Behavior:</h4>
         <ul class="list-disc pl-6 space-y-2 mb-4">
@@ -148,7 +148,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "liability",
         icon: "hero-exclamation-triangle",
         gradient: Theme.gradient(:warm_yellow),
-        title: "Limitation of Liability",
+        title: gettext("Limitation of Liability"),
         content: """
         <h4 class="font-semibold text-gray-900 mb-2">Platform Use:</h4>
         <p class="mb-4">Prime Youth Connect provides a platform to connect families with program instructors. While we verify instructor credentials and monitor program quality, the actual programs are provided by independent instructors.</p>
@@ -170,7 +170,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "intellectual-property",
         icon: "hero-sparkles",
         gradient: Theme.gradient(:cool),
-        title: "Intellectual Property",
+        title: gettext("Intellectual Property"),
         content: """
         <h4 class="font-semibold text-gray-900 mb-2">Platform Content:</h4>
         <p class="mb-4">All content on Prime Youth Connect, including text, graphics, logos, and software, is owned by Prime Youth Connect or licensed to us and protected by copyright and trademark laws.</p>
@@ -192,7 +192,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "changes-to-terms",
         icon: "hero-arrow-path",
         gradient: Theme.gradient(:cool_magenta),
-        title: "Changes to Terms",
+        title: gettext("Changes to Terms"),
         content: """
         <p class="mb-4">We may update these Terms of Service from time to time to reflect changes in our practices, legal requirements, or service offerings.</p>
         <h4 class="font-semibold text-gray-900 mb-2">How We Notify You:</h4>
@@ -209,7 +209,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "termination",
         icon: "hero-x-circle",
         gradient: Theme.gradient(:primary),
-        title: "Account Termination",
+        title: gettext("Account Termination"),
         content: """
         <h4 class="font-semibold text-gray-900 mb-2">Your Right to Terminate:</h4>
         <p class="mb-4">You may delete your account at any time through your Settings page. Upon deletion, your personal information will be anonymized as described in our Privacy Policy.</p>
@@ -227,7 +227,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "dispute-resolution",
         icon: "hero-scale",
         gradient: Theme.gradient(:safety),
-        title: "Dispute Resolution",
+        title: gettext("Dispute Resolution"),
         content: """
         <h4 class="font-semibold text-gray-900 mb-2">Contact Us First:</h4>
         <p class="mb-4">If you have a dispute or concern, please contact us first at hello@primeyouth.com. We are committed to resolving issues amicably and will work with you in good faith.</p>
@@ -244,7 +244,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         id: "contact",
         icon: "hero-envelope",
         gradient: Theme.gradient(:warm_yellow),
-        title: "Contact Information",
+        title: gettext("Contact Information"),
         content: """
         <p class="mb-4">If you have questions about these Terms of Service, please contact us:</p>
         <div class="space-y-2">
@@ -270,15 +270,15 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         gradient_class={Theme.gradient(:primary)}
         show_back_button
       >
-        <:title>Terms of Service</:title>
-        <:subtitle>Understanding our agreement with you</:subtitle>
+        <:title>{gettext("Terms of Service")}</:title>
+        <:subtitle>{gettext("Understanding our agreement with you")}</:subtitle>
       </.hero_section>
 
       <div class="max-w-4xl mx-auto p-6 space-y-6">
         <%!-- Last Updated Banner --%>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p class="text-sm text-blue-800">
-            <span class="font-semibold">Last Updated:</span> {last_updated()}
+            <span class="font-semibold">{gettext("Last Updated:")}</span> {last_updated()}
           </p>
         </div>
 
@@ -286,7 +286,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
         <.card>
           <:header>
             <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              Table of Contents
+              {gettext("Table of Contents")}
             </h2>
           </:header>
           <:body>
@@ -332,10 +332,10 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
           <:body>
             <div class="text-center">
               <h3 class={["font-semibold mb-2", Theme.text_color(:heading)]}>
-                Questions About These Terms?
+                {gettext("Questions About These Terms?")}
               </h3>
               <p class={["text-sm mb-4", Theme.text_color(:secondary)]}>
-                We're here to clarify any questions you may have.
+                {gettext("We're here to clarify any questions you may have.")}
               </p>
               <.link
                 navigate={~p"/contact"}
@@ -347,7 +347,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLive do
                   Theme.rounded(:lg)
                 ]}
               >
-                Contact Us
+                {gettext("Contact Us")}
               </.link>
             </div>
           </:body>

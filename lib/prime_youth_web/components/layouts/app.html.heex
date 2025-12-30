@@ -38,7 +38,7 @@
         <ul class="menu menu-horizontal px-1">
           <li>
             <.link navigate={~p"/"} class="btn btn-ghost text-slate-700 hover:text-teal-600">
-              Home
+              {gettext("Home")}
             </.link>
           </li>
           <li>
@@ -46,12 +46,12 @@
               navigate={~p"/programs"}
               class="btn btn-ghost text-slate-700 hover:text-teal-600"
             >
-              Programs
+              {gettext("Programs")}
             </.link>
           </li>
           <li>
             <.link navigate={~p"/about"} class="btn btn-ghost text-slate-700 hover:text-teal-600">
-              About
+              {gettext("About")}
             </.link>
           </li>
           <li>
@@ -59,7 +59,7 @@
               navigate={~p"/contact"}
               class="btn btn-ghost text-slate-700 hover:text-teal-600"
             >
-              Contact
+              {gettext("Contact")}
             </.link>
           </li>
         </ul>
@@ -67,6 +67,7 @@
 
       <div class="navbar-end">
         <div class="flex items-center gap-2">
+          <.language_switcher locale={assigns[:locale] || "en"} />
           <.theme_toggle />
 
           <%= if assigns[:current_scope] && @current_scope.user do %>
@@ -106,7 +107,7 @@
                       >
                       </path>
                     </svg>
-                    Dashboard
+                    {gettext("Dashboard")}
                   </.link>
                 </li>
                 <li>
@@ -120,7 +121,7 @@
                       >
                       </path>
                     </svg>
-                    Highlights
+                    {gettext("Highlights")}
                   </.link>
                 </li>
                 <li>
@@ -141,7 +142,7 @@
                       >
                       </path>
                     </svg>
-                    Settings
+                    {gettext("Settings")}
                   </.link>
                 </li>
                 <div class="divider my-0"></div>
@@ -160,19 +161,21 @@
                       >
                       </path>
                     </svg>
-                    Sign Out
+                    {gettext("Sign Out")}
                   </.link>
                 </li>
               </ul>
             </div>
           <% else %>
             <!-- Unauthenticated -->
-            <.link navigate={~p"/users/log-in"} class="btn btn-ghost text-slate-700">Login</.link>
+            <.link navigate={~p"/users/log-in"} class="btn btn-ghost text-slate-700">
+              {gettext("Login")}
+            </.link>
             <.link
               navigate={~p"/users/register"}
               class="btn bg-teal-600 text-white hover:bg-teal-700"
             >
-              Sign Up
+              {gettext("Sign Up")}
             </.link>
           <% end %>
         </div>
@@ -223,28 +226,28 @@
         </div>
 
         <ul class="menu w-full text-slate-900">
-          <li><.link navigate={~p"/"}>Home</.link></li>
-          <li><.link navigate={~p"/programs"}>Programs</.link></li>
-          <li><.link navigate={~p"/about"}>About</.link></li>
-          <li><.link navigate={~p"/contact"}>Contact</.link></li>
+          <li><.link navigate={~p"/"}>{gettext("Home")}</.link></li>
+          <li><.link navigate={~p"/programs"}>{gettext("Programs")}</.link></li>
+          <li><.link navigate={~p"/about"}>{gettext("About")}</.link></li>
+          <li><.link navigate={~p"/contact"}>{gettext("Contact")}</.link></li>
 
           <%= if assigns[:current_scope] && @current_scope.user do %>
-            <li class="mt-4"><.link navigate={~p"/dashboard"}>Dashboard</.link></li>
-            <li><.link navigate={~p"/highlights"}>Highlights</.link></li>
-            <li><.link navigate={~p"/users/settings"}>Settings</.link></li>
+            <li class="mt-4"><.link navigate={~p"/dashboard"}>{gettext("Dashboard")}</.link></li>
+            <li><.link navigate={~p"/highlights"}>{gettext("Highlights")}</.link></li>
+            <li><.link navigate={~p"/users/settings"}>{gettext("Settings")}</.link></li>
             <li class="mt-4">
               <.link
                 href={~p"/users/log-out"}
                 method="delete"
                 class="text-red-600 hover:text-red-700"
               >
-                Sign Out
+                {gettext("Sign Out")}
               </.link>
             </li>
           <% else %>
             <li class="mt-4">
               <.link navigate={~p"/users/log-in"} class="btn btn-ghost text-slate-700">
-                Login
+                {gettext("Login")}
               </.link>
             </li>
             <li class="mt-2">
@@ -252,7 +255,7 @@
                 navigate={~p"/users/register"}
                 class="btn bg-teal-600 text-white hover:bg-teal-700"
               >
-                Sign Up
+                {gettext("Sign Up")}
               </.link>
             </li>
           <% end %>

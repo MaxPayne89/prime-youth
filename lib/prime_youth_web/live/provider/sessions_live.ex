@@ -16,7 +16,7 @@ defmodule PrimeYouthWeb.Provider.SessionsLive do
 
     socket =
       socket
-      |> assign(:page_title, "My Sessions")
+      |> assign(:page_title, gettext("My Sessions"))
       |> assign(:provider_id, provider_id)
       |> assign(:selected_date, selected_date)
       |> stream(:sessions, [])
@@ -43,7 +43,7 @@ defmodule PrimeYouthWeb.Provider.SessionsLive do
         {:noreply, socket}
 
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Invalid date format")}
+        {:noreply, put_flash(socket, :error, gettext("Invalid date format"))}
     end
   end
 
@@ -51,7 +51,7 @@ defmodule PrimeYouthWeb.Provider.SessionsLive do
   def handle_event("start_session", %{"session_id" => session_id}, socket) do
     case StartSession.execute(session_id) do
       {:ok, _session} ->
-        {:noreply, put_flash(socket, :info, "Session started successfully")}
+        {:noreply, put_flash(socket, :info, gettext("Session started successfully"))}
 
       {:error, reason} ->
         Logger.error(
@@ -61,7 +61,12 @@ defmodule PrimeYouthWeb.Provider.SessionsLive do
           provider_id: socket.assigns.provider_id
         )
 
-        {:noreply, put_flash(socket, :error, "Failed to start session: #{inspect(reason)}")}
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Failed to start session: %{reason}", reason: inspect(reason))
+         )}
     end
   end
 
@@ -69,7 +74,7 @@ defmodule PrimeYouthWeb.Provider.SessionsLive do
   def handle_event("complete_session", %{"session_id" => session_id}, socket) do
     case CompleteSession.execute(session_id) do
       {:ok, _session} ->
-        {:noreply, put_flash(socket, :info, "Session completed successfully")}
+        {:noreply, put_flash(socket, :info, gettext("Session completed successfully"))}
 
       {:error, reason} ->
         Logger.error(
@@ -79,7 +84,12 @@ defmodule PrimeYouthWeb.Provider.SessionsLive do
           provider_id: socket.assigns.provider_id
         )
 
-        {:noreply, put_flash(socket, :error, "Failed to complete session: #{inspect(reason)}")}
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Failed to complete session: %{reason}", reason: inspect(reason))
+         )}
     end
   end
 
@@ -149,7 +159,7 @@ defmodule PrimeYouthWeb.Provider.SessionsLive do
 
         socket
         |> stream(:sessions, [], reset: true)
-        |> assign(:sessions_error, "Failed to load sessions")
+        |> assign(:sessions_error, gettext("Failed to load sessions"))
     end
   end
 

@@ -16,7 +16,7 @@ defmodule PrimeYouthWeb.Parent.AttendanceHistoryLive do
 
     socket =
       socket
-      |> assign(:page_title, "Attendance History")
+      |> assign(:page_title, gettext("Attendance History"))
       |> assign(:parent_id, parent_id)
       |> assign(:child_names, %{})
       |> assign(:children_ids, MapSet.new())
@@ -144,7 +144,7 @@ defmodule PrimeYouthWeb.Parent.AttendanceHistoryLive do
 
         socket
         |> stream(:attendance_records, [], reset: true)
-        |> assign(:attendance_error, "Failed to load attendance history")
+        |> assign(:attendance_error, gettext("Failed to load attendance history"))
     end
   end
 
