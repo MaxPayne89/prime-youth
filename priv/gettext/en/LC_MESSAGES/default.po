@@ -1,0 +1,1955 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/prime_youth_web/components/layouts/app.html.heex:54
+#: lib/prime_youth_web/components/layouts/app.html.heex:231
+#, elixir-autogen, elixir-format
+msgid "About"
+msgstr ""
+
+#: lib/prime_youth_web/components/layouts.ex:38
+#: lib/prime_youth_web/components/layouts.ex:50
+#, elixir-autogen, elixir-format
+msgid "Attempting to reconnect"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:71
+#, elixir-autogen, elixir-format
+msgid "Choose your preferred language for the interface"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:413
+#: lib/prime_youth_web/components/layouts/app.html.heex:62
+#: lib/prime_youth_web/components/layouts/app.html.heex:232
+#, elixir-autogen, elixir-format
+msgid "Contact"
+msgstr ""
+
+#: lib/prime_youth_web/components/layouts/app.html.heex:110
+#: lib/prime_youth_web/components/layouts/app.html.heex:235
+#: lib/prime_youth_web/live/dashboard_live.ex:21
+#, elixir-autogen, elixir-format
+msgid "Dashboard"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:127
+#, elixir-autogen, elixir-format
+msgid "Download My Data"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:120
+#, elixir-autogen, elixir-format
+msgid "Download a copy of all your personal data"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:271
+#, elixir-autogen, elixir-format
+msgid "Failed to update language preference."
+msgstr ""
+
+#: lib/prime_youth_web/components/layouts/app.html.heex:124
+#: lib/prime_youth_web/components/layouts/app.html.heex:236
+#: lib/prime_youth_web/live/highlights_live.ex:19
+#: lib/prime_youth_web/live/highlights_live.ex:69
+#, elixir-autogen, elixir-format
+msgid "Highlights"
+msgstr ""
+
+#: lib/prime_youth_web/components/layouts/app.html.heex:41
+#: lib/prime_youth_web/components/layouts/app.html.heex:229
+#, elixir-autogen, elixir-format
+msgid "Home"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:70
+#, elixir-autogen, elixir-format
+msgid "Language Preference"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:268
+#, elixir-autogen, elixir-format
+msgid "Language preference updated successfully."
+msgstr ""
+
+#: lib/prime_youth_web/components/layouts/app.html.heex:172
+#: lib/prime_youth_web/components/layouts/app.html.heex:250
+#, elixir-autogen, elixir-format
+msgid "Login"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:411
+#: lib/prime_youth_web/components/composite_components.ex:419
+#: lib/prime_youth_web/components/layouts/app.html.heex:49
+#: lib/prime_youth_web/components/layouts/app.html.heex:230
+#: lib/prime_youth_web/live/about_live.ex:86
+#: lib/prime_youth_web/live/programs_live.ex:30
+#: lib/prime_youth_web/live/programs_live.ex:278
+#, elixir-autogen, elixir-format
+msgid "Programs"
+msgstr ""
+
+#: lib/prime_youth_web/components/layouts/app.html.heex:145
+#: lib/prime_youth_web/components/layouts/app.html.heex:237
+#: lib/prime_youth_web/live/settings_live.ex:13
+#: lib/prime_youth_web/live/settings_live.ex:33
+#, elixir-autogen, elixir-format
+msgid "Settings"
+msgstr ""
+
+#: lib/prime_youth_web/components/layouts/app.html.heex:164
+#: lib/prime_youth_web/components/layouts/app.html.heex:244
+#: lib/prime_youth_web/live/settings_live.ex:366
+#, elixir-autogen, elixir-format
+msgid "Sign Out"
+msgstr ""
+
+#: lib/prime_youth_web/components/layouts/app.html.heex:178
+#: lib/prime_youth_web/components/layouts/app.html.heex:258
+#, elixir-autogen, elixir-format
+msgid "Sign Up"
+msgstr ""
+
+#: lib/prime_youth_web/components/layouts.ex:45
+#, elixir-autogen, elixir-format
+msgid "Something went wrong!"
+msgstr ""
+
+#: lib/prime_youth_web/components/layouts.ex:33
+#, elixir-autogen, elixir-format
+msgid "We can't find the internet"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:119
+#, elixir-autogen, elixir-format
+msgid "Your Data"
+msgstr ""
+
+#: lib/prime_youth_web/components/core_components.ex:60
+#, elixir-autogen, elixir-format
+msgid "close"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:255
+#, elixir-autogen, elixir-format
+msgid "%{name} (Age %{age})"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:195
+#, elixir-autogen, elixir-format
+msgid "%{price}/week • 4 weeks"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:365
+#, elixir-autogen, elixir-format
+msgid "(no card fees) to the following account:"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:247
+#, elixir-autogen, elixir-format
+msgid "About This Program"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:369
+#, elixir-autogen, elixir-format
+msgid "Account Name:"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:181
+#, elixir-autogen, elixir-format
+msgid "Active Families"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:200
+#, elixir-autogen, elixir-format
+msgid "Activity Summary"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:267
+#, elixir-autogen, elixir-format
+msgid "Add another child"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:236
+#, elixir-autogen, elixir-format
+msgid "Add another program"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:164
+#, elixir-autogen, elixir-format
+msgid "Ages %{range}"
+msgstr ""
+
+#: lib/prime_youth_web/live/programs_live.ex:18
+#, elixir-autogen, elixir-format, fuzzy
+msgid "All Programs"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:397
+#, elixir-autogen, elixir-format
+msgid "An invoice will be emailed to you after enrollment completion"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:284
+#, elixir-autogen, elixir-format
+msgid "Any allergies, medical conditions, or special instructions..."
+msgstr ""
+
+#: lib/prime_youth_web/live/programs_live.ex:19
+#, elixir-autogen, elixir-format
+msgid "Available"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:191
+#, elixir-autogen, elixir-format
+msgid "Average Rating"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:318
+#, elixir-autogen, elixir-format
+msgid "Avoid card fees - pay cash or direct transfer"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:377
+#, elixir-autogen, elixir-format
+msgid "BIC:"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:360
+#, elixir-autogen, elixir-format
+msgid "Bank Transfer Details"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:218
+#, elixir-autogen, elixir-format
+msgid "Book Now - %{price}"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:104
+#, elixir-autogen, elixir-format
+msgid "Book camps, tutors, and workshops instantly. Our integrated planner helps you manage your child's busy life."
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:114
+#, elixir-autogen, elixir-format
+msgid "Built for the Berlin international community. Connect with local families and trusted educators nearby."
+msgstr ""
+
+#: lib/prime_youth_web/live/programs_live.ex:20
+#, elixir-autogen, elixir-format
+msgid "By Age"
+msgstr ""
+
+#: lib/prime_youth_web/live/programs_live.ex:21
+#, elixir-autogen, elixir-format
+msgid "By Price"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:317
+#, elixir-autogen, elixir-format
+msgid "Cash / Bank Transfer"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:399
+#, elixir-autogen, elixir-format
+msgid "Cash/transfer payments will show as \"Pending\" until received"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:112
+#, elixir-autogen, elixir-format
+msgid "Community Focused"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:414
+#, elixir-autogen, elixir-format
+msgid "Complete Enrollment"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "Connecting Families with Trusted Youth Educators"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:219
+#, elixir-autogen, elixir-format
+msgid "Create Free Account →"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:308
+#, elixir-autogen, elixir-format
+msgid "Credit Card"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:347
+#, elixir-autogen, elixir-format
+msgid "Credit card fee:"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:398
+#, elixir-autogen, elixir-format
+msgid "Credit card payments are processed immediately"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:229
+#, elixir-autogen, elixir-format
+msgid "Duration:"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:102
+#, elixir-autogen, elixir-format
+msgid "Easy Scheduling"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:360
+#, elixir-autogen, elixir-format
+msgid "Enroll Now - %{price}"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:195
+#, elixir-autogen, elixir-format
+msgid "Enrollment"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:29
+#, elixir-autogen, elixir-format
+msgid "Enrollment - %{title}"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:130
+#, elixir-autogen, elixir-format
+msgid "Enrollment failed. Please try again or contact support."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:101
+#, elixir-autogen, elixir-format
+msgid "Enrollment successful! You'll receive a confirmation email shortly."
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:94
+#, elixir-autogen, elixir-format
+msgid "Every provider is rigorously vetted. We prioritize child safety above all else, giving parents peace of mind."
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:71
+#, elixir-autogen, elixir-format
+msgid "Explore Programs"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:131
+#, elixir-autogen, elixir-format
+msgid "Explore top-rated activities for your children"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:128
+#, elixir-autogen, elixir-format
+msgid "Featured Programs"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:22
+#, elixir-autogen, elixir-format
+msgid "Final exhibition showcase"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:235
+#, elixir-autogen, elixir-format
+msgid "Free cancellation up to 48 hours before start date"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:60
+#, elixir-autogen, elixir-format
+msgid "Get Started Free"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:373
+#, elixir-autogen, elixir-format
+msgid "IBAN:"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:387
+#, elixir-autogen, elixir-format
+msgid "Important:"
+msgstr ""
+
+#: lib/prime_youth_web/live/programs_live.ex:182
+#, elixir-autogen, elixir-format
+msgid "Invalid pagination state. Please refresh the page."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:395
+#, elixir-autogen, elixir-format
+msgid "Invoice & Payment Confirmation"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:230
+#, elixir-autogen, elixir-format
+msgid "Jan 15 - Mar 15, 2024"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:205
+#, elixir-autogen, elixir-format
+msgid "Join thousands of families discovering amazing afterschool programs"
+msgstr ""
+
+#: lib/prime_youth_web/live/programs_live.ex:356
+#, elixir-autogen, elixir-format
+msgid "Load More Programs"
+msgstr ""
+
+#: lib/prime_youth_web/live/programs_live.ex:353
+#, elixir-autogen, elixir-format
+msgid "Loading..."
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:286
+#, elixir-autogen, elixir-format
+msgid "Meet Your Instructor"
+msgstr ""
+
+#: lib/prime_youth_web/live/programs_live.ex:366
+#, elixir-autogen, elixir-format
+msgid "No programs found"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:179
+#, elixir-autogen, elixir-format
+msgid "Only %{count} spots left!"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:292
+#, elixir-autogen, elixir-format
+msgid "Optional: Include any important information we should know about your child."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:309
+#, elixir-autogen, elixir-format
+msgid "Pay securely with Visa, Mastercard, or other cards"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:303
+#, elixir-autogen, elixir-format
+msgid "Payment Method"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:327
+#, elixir-autogen, elixir-format
+msgid "Payment Summary"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:119
+#, elixir-autogen, elixir-format
+msgid "Payment information is invalid. Please check your details."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:388
+#, elixir-autogen, elixir-format
+msgid "Please include the reference code in your transfer to ensure proper allocation."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:123
+#, elixir-autogen, elixir-format
+msgid "Please select a child for enrollment."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:363
+#, elixir-autogen, elixir-format
+msgid "Please transfer"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:21
+#, elixir-autogen, elixir-format
+msgid "Portfolio folder to track progress"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:45
+#, elixir-autogen, elixir-format
+msgid "Prime Youth Connect"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:17
+#, elixir-autogen, elixir-format
+msgid "Prime Youth Connect - Connecting Families with Trusted Youth Educators"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:48
+#, elixir-autogen, elixir-format
+msgid "Program not found"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:39
+#, elixir-autogen, elixir-format
+msgid "Program not found. It may have been removed or is no longer available."
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:186
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Programs Available"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:194
+#: lib/prime_youth_web/live/home_live.ex:202
+#, elixir-autogen, elixir-format
+msgid "Ready to Get Started?"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:381
+#, elixir-autogen, elixir-format
+msgid "Reference:"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:333
+#, elixir-autogen, elixir-format
+msgid "Registration fee:"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:92
+#, elixir-autogen, elixir-format
+msgid "Safety First"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:84
+#, elixir-autogen, elixir-format
+msgid "Safety, quality, and convenience for modern families."
+msgstr ""
+
+#: lib/prime_youth_web/live/programs_live.ex:293
+#, elixir-autogen, elixir-format
+msgid "Search programs..."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:244
+#, elixir-autogen, elixir-format
+msgid "Select Child"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:253
+#, elixir-autogen, elixir-format
+msgid "Select a child"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:58
+#, elixir-autogen, elixir-format
+msgid "Sorry, this program is currently full. Check back later for availability."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:110
+#, elixir-autogen, elixir-format
+msgid "Sorry, this program is now full. Please choose another program."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:277
+#, elixir-autogen, elixir-format
+msgid "Special Requirements"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:337
+#, elixir-autogen, elixir-format
+msgid "Subtotal:"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:20
+#, elixir-autogen, elixir-format
+msgid "Take-home projects every week"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:222
+#, elixir-autogen, elixir-format
+msgid "Total Price:"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:352
+#, elixir-autogen, elixir-format
+msgid "Total due today:"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:193
+#, elixir-autogen, elixir-format
+msgid "Total: Sept 1 - Oct 26"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:174
+#, elixir-autogen, elixir-format
+msgid "Trusted by Families Everywhere"
+msgstr ""
+
+#: lib/prime_youth_web/live/programs_live.ex:367
+#, elixir-autogen, elixir-format
+msgid "Try adjusting your search or filter criteria."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:65
+#: lib/prime_youth_web/live/program_detail_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "Unable to load program. Please try again later."
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:341
+#, elixir-autogen, elixir-format
+msgid "VAT (19%):"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:163
+#, elixir-autogen, elixir-format
+msgid "View All Programs →"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:343
+#, elixir-autogen, elixir-format
+msgid "View all %{count} reviews"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:215
+#, elixir-autogen, elixir-format
+msgid "Wednesdays 4-6 PM"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:19
+#, elixir-autogen, elixir-format
+msgid "Weekly art supplies and materials"
+msgstr ""
+
+#: lib/prime_youth_web/live/booking_live.ex:329
+#, elixir-autogen, elixir-format
+msgid "Weekly fee (%{count} weeks):"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:323
+#, elixir-autogen, elixir-format
+msgid "What Other Parents Say"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:255
+#, elixir-autogen, elixir-format
+msgid "What's Included:"
+msgstr ""
+
+#: lib/prime_youth_web/live/home_live.ex:81
+#, elixir-autogen, elixir-format
+msgid "Why Prime Youth Connect?"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:198
+#, elixir-autogen, elixir-format
+msgid "with %{name}"
+msgstr ""
+
+#: lib/prime_youth_web/live/program_detail_live.ex:185
+#, elixir-autogen, elixir-format
+msgid "✓ No hidden fees"
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "%{count} child enrolled"
+msgid_plural "%{count} children enrolled"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:223
+#, elixir-autogen, elixir-format
+msgid "A link to confirm your email change has been sent to the new address."
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:103
+#, elixir-autogen, elixir-format
+msgid "About Prime Youth Connect"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:412
+#: lib/prime_youth_web/live/about_live.ex:10
+#, elixir-autogen, elixir-format, fuzzy
+msgid "About Us"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:30
+#, elixir-autogen, elixir-format
+msgid "Accessibility"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:14
+#, elixir-autogen, elixir-format
+msgid "Account Settings"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:212
+#, elixir-autogen, elixir-format
+msgid "Account Termination"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:77
+#, elixir-autogen, elixir-format
+msgid "Address"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:23
+#, elixir-autogen, elixir-format
+msgid "Agreement to Terms"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:16
+#, elixir-autogen, elixir-format
+msgid "Already registered?"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:127
+#, elixir-autogen, elixir-format
+msgid "An email was sent to %{email}, please access it to confirm your account."
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:119
+#, elixir-autogen, elixir-format
+msgid "At Prime Youth Connect, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
+msgstr ""
+
+#: lib/prime_youth_web/live/parent/attendance_history_live.ex:19
+#, elixir-autogen, elixir-format
+msgid "Attendance History"
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:148
+#, elixir-autogen, elixir-format
+msgid "Book Activity"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:67
+#, elixir-autogen, elixir-format
+msgid "Book activities in minutes with clear pricing and flexible scheduling"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:134
+#, elixir-autogen, elixir-format
+msgid "Booking Support"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:209
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Browse Programs"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:60
+#, elixir-autogen, elixir-format
+msgid "Browse and filter programs by age, interest, location, and schedule"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:48
+#, elixir-autogen, elixir-format
+msgid "Building a supportive community of parents, instructors, and young learners"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:104
+#, elixir-autogen, elixir-format
+msgid "Cancellation & Refund Policy"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:27
+#, elixir-autogen, elixir-format
+msgid "Change Email"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:195
+#, elixir-autogen, elixir-format
+msgid "Changes to Terms"
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:197
+#, elixir-autogen, elixir-format
+msgid "Changes to This Policy"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:27
+#, elixir-autogen, elixir-format
+msgid "Changing..."
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:199
+#, elixir-autogen, elixir-format
+msgid "Check back later for scheduled programs, or browse available programs to book a new activity."
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:230
+#, elixir-autogen, elixir-format
+msgid "Check out our FAQ section for answers to common questions."
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/attendance_live.ex:56
+#, elixir-autogen, elixir-format
+msgid "Child checked in successfully"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/attendance_live.ex:133
+#, elixir-autogen, elixir-format
+msgid "Child checked out successfully"
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:148
+#, elixir-autogen, elixir-format
+msgid "Children's Privacy"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:88
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Closed"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:46
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Community"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/confirmation.ex:37
+#, elixir-autogen, elixir-format
+msgid "Confirm and log in only this time"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/confirmation.ex:31
+#, elixir-autogen, elixir-format
+msgid "Confirm and stay logged in"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:58
+#, elixir-autogen, elixir-format
+msgid "Confirm new password"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/confirmation.ex:28
+#: lib/prime_youth_web/live/user_live/confirmation.ex:34
+#, elixir-autogen, elixir-format
+msgid "Confirming..."
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:125
+#: lib/prime_youth_web/live/terms_of_service_live.ex:247
+#, elixir-autogen, elixir-format
+msgid "Contact Information"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:16
+#: lib/prime_youth_web/live/contact_live.ex:101
+#: lib/prime_youth_web/live/privacy_policy_live.ex:213
+#: lib/prime_youth_web/live/privacy_policy_live.ex:313
+#: lib/prime_youth_web/live/terms_of_service_live.ex:350
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Contact Us"
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:166
+#, elixir-autogen, elixir-format
+msgid "Cookies & Tracking"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:93
+#, elixir-autogen, elixir-format
+msgid "Create an account"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:79
+#, elixir-autogen, elixir-format
+msgid "Create and manage programs, activities, and services for families"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:90
+#, elixir-autogen, elixir-format
+msgid "Creating account..."
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:182
+#, elixir-autogen, elixir-format
+msgid "Data Retention"
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:131
+#, elixir-autogen, elixir-format
+msgid "Data Security"
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:90
+#, elixir-autogen, elixir-format
+msgid "Data Sharing"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:135
+#, elixir-autogen, elixir-format
+msgid "Delete Account"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:157
+#, elixir-autogen, elixir-format
+msgid "Delete My Account"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:155
+#, elixir-autogen, elixir-format
+msgid "Deleting..."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:109
+#, elixir-autogen, elixir-format
+msgid "Deutsch"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:230
+#, elixir-autogen, elixir-format
+msgid "Dispute Resolution"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:17
+#, elixir-autogen, elixir-format
+msgid "Don't have an account?"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:58
+#, elixir-autogen, elixir-format
+msgid "Easy Discovery"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:63
+#: lib/prime_youth_web/live/contact_live.ex:124
+#: lib/prime_youth_web/live/user_live/login.ex:48
+#: lib/prime_youth_web/live/user_live/login.ex:80
+#: lib/prime_youth_web/live/user_live/registration.ex:38
+#: lib/prime_youth_web/live/user_live/settings.ex:23
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:173
+#, elixir-autogen, elixir-format
+msgid "Email change link is invalid or it has expired."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:170
+#, elixir-autogen, elixir-format
+msgid "Email changed successfully."
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:105
+#, elixir-autogen, elixir-format
+msgid "Empowering young minds through quality after-school programs"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:91
+#, elixir-autogen, elixir-format
+msgid "English"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:59
+#, elixir-autogen, elixir-format
+msgid "Enroll children in programs"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:148
+#, elixir-autogen, elixir-format
+msgid "Enter your password to confirm"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:197
+#, elixir-autogen, elixir-format
+msgid "Explore our programs and find the perfect activities for your child."
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/attendance_live.ex:71
+#, elixir-autogen, elixir-format
+msgid "Failed to check in: %{reason}"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/attendance_live.ex:150
+#, elixir-autogen, elixir-format
+msgid "Failed to check out: %{reason}"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/sessions_live.ex:91
+#, elixir-autogen, elixir-format
+msgid "Failed to complete session: %{reason}"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:291
+#, elixir-autogen, elixir-format
+msgid "Failed to delete account. Please try again."
+msgstr ""
+
+#: lib/prime_youth_web/live/parent/attendance_history_live.ex:147
+#, elixir-autogen, elixir-format
+msgid "Failed to load attendance history"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/attendance_live.ex:226
+#, elixir-autogen, elixir-format
+msgid "Failed to load session data"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/sessions_live.ex:162
+#, elixir-autogen, elixir-format
+msgid "Failed to load sessions"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/sessions_live.ex:68
+#, elixir-autogen, elixir-format
+msgid "Failed to start session: %{reason}"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:51
+#, elixir-autogen, elixir-format
+msgid "Failed to submit contact form. Please try again."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:62
+#, elixir-autogen, elixir-format
+msgid "Find and book activities, camps, and classes for your children"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:132
+#, elixir-autogen, elixir-format
+msgid "General Inquiry"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:183
+#, elixir-autogen, elixir-format
+msgid "Get in Touch"
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:74
+#, elixir-autogen, elixir-format
+msgid "How We Use Your Information"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:45
+#, elixir-autogen, elixir-format
+msgid "I want to..."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:141
+#, elixir-autogen, elixir-format
+msgid "If your email is in our system, you will receive instructions for logging in shortly."
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:34
+#, elixir-autogen, elixir-format
+msgid "Information We Collect"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:135
+#, elixir-autogen, elixir-format
+msgid "Instructor Application"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:88
+#, elixir-autogen, elixir-format
+msgid "Instructors"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:173
+#, elixir-autogen, elixir-format
+msgid "Intellectual Property"
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:23
+#, elixir-autogen, elixir-format
+msgid "Introduction"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/sessions_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "Invalid date format"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:298
+#, elixir-autogen, elixir-format
+msgid "Invalid password."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/confirmation.ex:62
+#, elixir-autogen, elixir-format
+msgid "Keep me logged in on this device"
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:244
+#: lib/prime_youth_web/live/terms_of_service_live.ex:281
+#, elixir-autogen, elixir-format
+msgid "Last Updated:"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:151
+#, elixir-autogen, elixir-format
+msgid "Limitation of Liability"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/confirmation.ex:53
+#: lib/prime_youth_web/live/user_live/registration.ex:18
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Log in"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:92
+#, elixir-autogen, elixir-format
+msgid "Log in and stay logged in"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:95
+#, elixir-autogen, elixir-format
+msgid "Log in only this time"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/confirmation.ex:68
+#, elixir-autogen, elixir-format
+msgid "Log me in only this time"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/confirmation.ex:52
+#: lib/prime_youth_web/live/user_live/confirmation.ex:59
+#: lib/prime_youth_web/live/user_live/confirmation.ex:65
+#, elixir-autogen, elixir-format
+msgid "Logging in..."
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:227
+#, elixir-autogen, elixir-format
+msgid "Looking for Quick Answers?"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/confirmation.ex:91
+#, elixir-autogen, elixir-format
+msgid "Magic link is invalid or it has expired."
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:32
+#, elixir-autogen, elixir-format
+msgid "Making enriching programs accessible to families through transparent pricing and easy booking"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/attendance_live.ex:17
+#, elixir-autogen, elixir-format
+msgid "Manage Attendance"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:15
+#, elixir-autogen, elixir-format
+msgid "Manage your account email address and password settings"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:145
+#, elixir-autogen, elixir-format
+msgid "Message"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:156
+#, elixir-autogen, elixir-format
+msgid "Message sent successfully!"
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:160
+#, elixir-autogen, elixir-format
+msgid "Messages"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:72
+#, elixir-autogen, elixir-format
+msgid "Mon-Fri, 9am-5pm EST"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:86
+#, elixir-autogen, elixir-format
+msgid "Monday - Friday"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:79
+#, elixir-autogen, elixir-format
+msgid "Monitor your child's participation and achievements in real-time"
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:116
+#, elixir-autogen, elixir-format
+msgid "My Children"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/sessions_live.ex:19
+#, elixir-autogen, elixir-format
+msgid "My Sessions"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:122
+#: lib/prime_youth_web/live/user_live/registration.ex:29
+#, elixir-autogen, elixir-format
+msgid "Name"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:51
+#, elixir-autogen, elixir-format
+msgid "New password"
+msgstr ""
+
+#: lib/prime_youth_web/live/highlights_live.ex:138
+#, elixir-autogen, elixir-format
+msgid "No highlights yet"
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:197
+#, elixir-autogen, elixir-format
+msgid "No upcoming activities"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:76
+#, elixir-autogen, elixir-format
+msgid "Offer programs and services"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:207
+#, elixir-autogen, elixir-format
+msgid "Office Hours"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:104
+#, elixir-autogen, elixir-format
+msgid "Or use magic link"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:63
+#, elixir-autogen, elixir-format
+msgid "Or use password"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:137
+#, elixir-autogen, elixir-format
+msgid "Other"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:114
+#, elixir-autogen, elixir-format
+msgid "Our Mission"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:135
+#, elixir-autogen, elixir-format
+msgid "Our Values"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:124
+#, elixir-autogen, elixir-format
+msgid "Our platform makes it easy for parents to discover, book, and manage activities while providing instructors with the tools they need to run successful programs."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:88
+#, elixir-autogen, elixir-format
+msgid "Password"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:77
+#, elixir-autogen, elixir-format
+msgid "Payment Terms"
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:166
+#, elixir-autogen, elixir-format
+msgid "Payments"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:136
+#, elixir-autogen, elixir-format
+msgid "Permanently delete your account and all associated data"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:70
+#, elixir-autogen, elixir-format
+msgid "Phone"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:464
+#: lib/prime_youth_web/live/privacy_policy_live.ex:10
+#: lib/prime_youth_web/live/privacy_policy_live.ex:236
+#, elixir-autogen, elixir-format
+msgid "Privacy Policy"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:56
+#, elixir-autogen, elixir-format
+msgid "Program Enrollment & Bookings"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:133
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Program Question"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:78
+#, elixir-autogen, elixir-format
+msgid "Progress Tracking"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:21
+#, elixir-autogen, elixir-format
+msgid "Quality First"
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:298
+#, elixir-autogen, elixir-format
+msgid "Questions About Privacy?"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:335
+#, elixir-autogen, elixir-format
+msgid "Questions About These Terms?"
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:143
+#, elixir-autogen, elixir-format
+msgid "Quick Actions"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/attendance_live.ex:45
+#: lib/prime_youth_web/live/provider/attendance_live.ex:121
+#, elixir-autogen, elixir-format
+msgid "Record not found"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:21
+#, elixir-autogen, elixir-format
+msgid "Register"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:14
+#, elixir-autogen, elixir-format
+msgid "Register for an account"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:73
+#, elixir-autogen, elixir-format
+msgid "Safe, encrypted payment processing with multiple payment options"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:39
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Safety"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:89
+#, elixir-autogen, elixir-format
+msgid "Satisfaction"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:87
+#, elixir-autogen, elixir-format
+msgid "Saturday"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:62
+#, elixir-autogen, elixir-format
+msgid "Save Password"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:61
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Saving..."
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:72
+#, elixir-autogen, elixir-format
+msgid "Secure Payments"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:130
+#, elixir-autogen, elixir-format
+msgid "Select a topic..."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:47
+#, elixir-autogen, elixir-format
+msgid "Select one or both options"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:54
+#, elixir-autogen, elixir-format
+msgid "Send Magic Link"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:173
+#, elixir-autogen, elixir-format
+msgid "Send Message"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:111
+#, elixir-autogen, elixir-format
+msgid "Send us a Message"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/sessions_live.ex:77
+#, elixir-autogen, elixir-format
+msgid "Session completed successfully"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/attendance_live.ex:215
+#, elixir-autogen, elixir-format
+msgid "Session not found"
+msgstr ""
+
+#: lib/prime_youth_web/live/provider/sessions_live.ex:54
+#, elixir-autogen, elixir-format
+msgid "Session started successfully"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:65
+#, elixir-autogen, elixir-format
+msgid "Simple Booking"
+msgstr ""
+
+#: lib/prime_youth_web/live/highlights_live.ex:140
+#, elixir-autogen, elixir-format
+msgid "Stay tuned for updates, photos, and announcements from instructors and the Prime Youth Connect community."
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:87
+#, elixir-autogen, elixir-format
+msgid "Students"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:129
+#, elixir-autogen, elixir-format
+msgid "Subject"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:88
+#, elixir-autogen, elixir-format
+msgid "Sunday"
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:252
+#: lib/prime_youth_web/live/terms_of_service_live.ex:289
+#, elixir-autogen, elixir-format
+msgid "Table of Contents"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:136
+#, elixir-autogen, elixir-format
+msgid "Technical Issue"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:466
+#: lib/prime_youth_web/live/terms_of_service_live.ex:10
+#: lib/prime_youth_web/live/terms_of_service_live.ex:273
+#, elixir-autogen, elixir-format
+msgid "Terms of Service"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:141
+#, elixir-autogen, elixir-format
+msgid "This action cannot be undone. Your account data will be anonymized and you will be logged out."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/confirmation.ex:74
+#, elixir-autogen, elixir-format
+msgid "Tip: If you prefer passwords, you can enable them in the user settings."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:31
+#, elixir-autogen, elixir-format
+msgid "To see sent emails, visit"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:274
+#, elixir-autogen, elixir-format
+msgid "Understanding our agreement with you"
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:177
+#, elixir-autogen, elixir-format
+msgid "Upcoming Activities"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:34
+#, elixir-autogen, elixir-format
+msgid "User Accounts & Registration"
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:126
+#, elixir-autogen, elixir-format
+msgid "User Conduct & Responsibilities"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:41
+#, elixir-autogen, elixir-format
+msgid "Verified instructors, secure facilities, and comprehensive safety protocols"
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:119
+#: lib/prime_youth_web/live/dashboard_live.ex:180
+#, elixir-autogen, elixir-format, fuzzy
+msgid "View All"
+msgstr ""
+
+#: lib/prime_youth_web/live/dashboard_live.ex:154
+#, elixir-autogen, elixir-format
+msgid "View Schedule"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:233
+#, elixir-autogen, elixir-format
+msgid "Visit FAQ"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:23
+#, elixir-autogen, elixir-format
+msgid "We partner with qualified instructors who are passionate about youth development"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:65
+#, elixir-autogen, elixir-format
+msgid "We respond within 24 hours"
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:159
+#, elixir-autogen, elixir-format
+msgid "We'll get back to you within 24 hours."
+msgstr ""
+
+#: lib/prime_youth_web/live/terms_of_service_live.ex:338
+#, elixir-autogen, elixir-format
+msgid "We're here to clarify any questions you may have."
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:301
+#, elixir-autogen, elixir-format
+msgid "We're here to help with any privacy-related concerns."
+msgstr ""
+
+#: lib/prime_youth_web/live/contact_live.ex:102
+#, elixir-autogen, elixir-format
+msgid "We're here to help with any questions you may have"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/confirmation.ex:12
+#, elixir-autogen, elixir-format
+msgid "Welcome %{email}"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:12
+#, elixir-autogen, elixir-format
+msgid "Welcome Back"
+msgstr ""
+
+#: lib/prime_youth_web/live/about_live.ex:159
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Why Choose Prime Youth Connect?"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:29
+#, elixir-autogen, elixir-format
+msgid "You are running the local mail adapter."
+msgstr ""
+
+#: lib/prime_youth_web/user_auth.ex:284
+#: lib/prime_youth_web/user_auth.ex:318
+#, elixir-autogen, elixir-format
+msgid "You must be authenticated to access this page."
+msgstr ""
+
+#: lib/prime_youth_web/user_auth.ex:273
+#, elixir-autogen, elixir-format
+msgid "You must have a parent profile to access this page."
+msgstr ""
+
+#: lib/prime_youth_web/user_auth.ex:307
+#, elixir-autogen, elixir-format
+msgid "You must have a provider profile to access this page."
+msgstr ""
+
+#: lib/prime_youth_web/user_auth.ex:233
+#: lib/prime_youth_web/user_auth.ex:353
+#, elixir-autogen, elixir-format
+msgid "You must log in to access this page."
+msgstr ""
+
+#: lib/prime_youth_web/user_auth.ex:250
+#, elixir-autogen, elixir-format
+msgid "You must re-authenticate to access this page."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:15
+#, elixir-autogen, elixir-format
+msgid "You need to reauthenticate to perform sensitive actions on your account."
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:109
+#, elixir-autogen, elixir-format
+msgid "Your Privacy Rights"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/settings.ex:285
+#, elixir-autogen, elixir-format
+msgid "Your account has been deleted."
+msgstr ""
+
+#: lib/prime_youth_web/live/privacy_policy_live.ex:237
+#, elixir-autogen, elixir-format
+msgid "Your privacy matters to us"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:21
+#, elixir-autogen, elixir-format
+msgid "for an account now."
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/login.ex:31
+#, elixir-autogen, elixir-format
+msgid "the mailbox page"
+msgstr ""
+
+#: lib/prime_youth_web/live/user_live/registration.ex:20
+#, elixir-autogen, elixir-format
+msgid "to your account now."
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:421
+#, elixir-autogen, elixir-format
+msgid "Afterschool"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:462
+#, elixir-autogen, elixir-format
+msgid "All rights reserved."
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:404
+#, elixir-autogen, elixir-format
+msgid "Building the future of youth education by connecting communities."
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:423
+#, elixir-autogen, elixir-format
+msgid "Class Trips"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:429
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Connect"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:424
+#, elixir-autogen, elixir-format
+msgid "Enrichment"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:414
+#, elixir-autogen, elixir-format
+msgid "FAQ"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:409
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Quick Links"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:422
+#, elixir-autogen, elixir-format
+msgid "Summer Camps"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:48
+#, elixir-autogen, elixir-format
+msgid "Account & Profile"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:66
+#, elixir-autogen, elixir-format
+msgid "Account preferences, password"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:109
+#, elixir-autogen, elixir-format
+msgid "Achievements and milestones"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:228
+#, elixir-autogen, elixir-format
+msgid "Activity Permissions"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:185
+#, elixir-autogen, elixir-format
+msgid "Allergies & Dietary"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:357
+#, elixir-autogen, elixir-format
+msgid "App Information"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:281
+#, elixir-autogen, elixir-format
+msgid "Available credits and promo codes"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:152
+#, elixir-autogen, elixir-format
+msgid "Backup contacts for emergencies"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:263
+#, elixir-autogen, elixir-format
+msgid "Cards, bank accounts, billing info"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:90
+#, elixir-autogen, elixir-format
+msgid "Children Profiles"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:340
+#, elixir-autogen, elixir-format
+msgid "Common questions and guides"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:314
+#, elixir-autogen, elixir-format
+msgid "Communication Settings"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:177
+#, elixir-autogen, elixir-format
+msgid "Conditions, medications, special needs"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:348
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Contact Support"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:143
+#, elixir-autogen, elixir-format
+msgid "Contact info for both parents"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:151
+#, elixir-autogen, elixir-format
+msgid "Emergency Contacts"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:339
+#, elixir-autogen, elixir-format
+msgid "FAQ & Help Center"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:280
+#, elixir-autogen, elixir-format
+msgid "Family Credits & Discounts"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:108
+#, elixir-autogen, elixir-format
+msgid "Family Progress"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:186
+#, elixir-autogen, elixir-format
+msgid "Food allergies, dietary restrictions"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:349
+#, elixir-autogen, elixir-format
+msgid "Get help from our team"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:168
+#, elixir-autogen, elixir-format
+msgid "Health & Safety"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:195
+#, elixir-autogen, elixir-format
+msgid "Health insurance details"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:331
+#, elixir-autogen, elixir-format
+msgid "Help & Support"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:133
+#, elixir-autogen, elixir-format
+msgid "Home Address"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:315
+#, elixir-autogen, elixir-format
+msgid "How you want to be contacted"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:200
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Instructor"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:194
+#, elixir-autogen, elixir-format
+msgid "Insurance Information"
+msgstr ""
+
+#: lib/prime_youth_web/controllers/user_session_controller.ex:43
+#, elixir-autogen, elixir-format
+msgid "Invalid email or password"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:367
+#, elixir-autogen, elixir-format
+msgid "Log out of your account"
+msgstr ""
+
+#: lib/prime_youth_web/controllers/user_session_controller.ex:64
+#, elixir-autogen, elixir-format
+msgid "Logged out successfully."
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:34
+#, elixir-autogen, elixir-format
+msgid "Manage your account and preferences"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:220
+#, elixir-autogen, elixir-format
+msgid "Marketing and social media permissions"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:176
+#, elixir-autogen, elixir-format
+msgid "Medical Information"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:82
+#, elixir-autogen, elixir-format
+msgid "My Family"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:99
+#, elixir-autogen, elixir-format, fuzzy
+msgid "My Schedule"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:57
+#, elixir-autogen, elixir-format
+msgid "Name, email, profile photo"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:305
+#, elixir-autogen, elixir-format
+msgid "Notification Preferences"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:297
+#, elixir-autogen, elixir-format
+msgid "Notifications & Communication"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:142
+#, elixir-autogen, elixir-format
+msgid "Parent/Guardian Details"
+msgstr ""
+
+#: lib/prime_youth_web/controllers/user_session_controller.ex:59
+#, elixir-autogen, elixir-format
+msgid "Password updated successfully!"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:272
+#, elixir-autogen, elixir-format
+msgid "Past payments and invoices"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:254
+#, elixir-autogen, elixir-format
+msgid "Payment & Billing"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:262
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Payment Methods"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:211
+#, elixir-autogen, elixir-format
+msgid "Permissions & Consents"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:219
+#, elixir-autogen, elixir-format
+msgid "Photo & Video Release"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:134
+#, elixir-autogen, elixir-format
+msgid "Primary address and phone"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:65
+#, elixir-autogen, elixir-format
+msgid "Privacy & Security"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:56
+#, elixir-autogen, elixir-format
+msgid "Profile Information"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:104
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Progress"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:306
+#, elixir-autogen, elixir-format
+msgid "Push, email, SMS settings"
+msgstr ""
+
+#: lib/prime_youth_web/components/composite_components.ex:101
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Sessions"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:229
+#, elixir-autogen, elixir-format
+msgid "Swimming, field trips, group activities"
+msgstr ""
+
+#: lib/prime_youth_web/controllers/user_session_controller.ex:27
+#, elixir-autogen, elixir-format
+msgid "The link is invalid or it has expired."
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:271
+#, elixir-autogen, elixir-format
+msgid "Transaction History"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:238
+#, elixir-autogen, elixir-format
+msgid "Updates, discounts, family credit"
+msgstr ""
+
+#: lib/prime_youth_web/controllers/user_session_controller.ex:8
+#, elixir-autogen, elixir-format
+msgid "User confirmed successfully."
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:358
+#, elixir-autogen, elixir-format
+msgid "Version, terms, privacy policy"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:100
+#, elixir-autogen, elixir-format
+msgid "View all family activities"
+msgstr ""
+
+#: lib/prime_youth_web/controllers/user_session_controller.ex:12
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Welcome back!"
+msgstr ""
+
+#: lib/prime_youth_web/live/settings_live.ex:237
+#, elixir-autogen, elixir-format
+msgid "WhatsApp Community"
+msgstr ""
