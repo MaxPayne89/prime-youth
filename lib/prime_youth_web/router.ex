@@ -11,6 +11,7 @@ defmodule PrimeYouthWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_user
+    plug PrimeYouthWeb.Plugs.SetLocale
   end
 
   pipeline :api do
@@ -23,7 +24,10 @@ defmodule PrimeYouthWeb.Router do
     # Public routes - optional authentication
     live_session :public,
       layout: {PrimeYouthWeb.Layouts, :app},
-      on_mount: [{PrimeYouthWeb.UserAuth, :mount_current_scope}] do
+      on_mount: [
+        {PrimeYouthWeb.UserAuth, :mount_current_scope},
+        {PrimeYouthWeb.Hooks.RestoreLocale, :restore_locale}
+      ] do
       live "/", HomeLive, :index
       live "/programs", ProgramsLive, :index
       live "/programs/:id", ProgramDetailLive, :show
@@ -36,7 +40,10 @@ defmodule PrimeYouthWeb.Router do
     # Protected routes - authentication required
     live_session :authenticated,
       layout: {PrimeYouthWeb.Layouts, :app},
-      on_mount: [{PrimeYouthWeb.UserAuth, :require_authenticated}] do
+      on_mount: [
+        {PrimeYouthWeb.UserAuth, :require_authenticated},
+        {PrimeYouthWeb.Hooks.RestoreLocale, :restore_locale}
+      ] do
       live "/dashboard", DashboardLive, :index
       live "/settings", SettingsLive, :index
       live "/highlights", HighlightsLive, :index
@@ -48,7 +55,8 @@ defmodule PrimeYouthWeb.Router do
       layout: {PrimeYouthWeb.Layouts, :app},
       on_mount: [
         {PrimeYouthWeb.UserAuth, :require_authenticated},
-        {PrimeYouthWeb.UserAuth, :require_provider}
+        {PrimeYouthWeb.UserAuth, :require_provider},
+        {PrimeYouthWeb.Hooks.RestoreLocale, :restore_locale}
       ] do
       scope "/provider", Provider do
         live "/sessions", SessionsLive, :index
@@ -61,7 +69,8 @@ defmodule PrimeYouthWeb.Router do
       layout: {PrimeYouthWeb.Layouts, :app},
       on_mount: [
         {PrimeYouthWeb.UserAuth, :require_authenticated},
-        {PrimeYouthWeb.UserAuth, :require_parent}
+        {PrimeYouthWeb.UserAuth, :require_parent},
+        {PrimeYouthWeb.Hooks.RestoreLocale, :restore_locale}
       ] do
       scope "/parent", Parent do
         live "/attendance", AttendanceHistoryLive, :index
@@ -100,7 +109,10 @@ defmodule PrimeYouthWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
-      on_mount: [{PrimeYouthWeb.UserAuth, :require_authenticated}] do
+      on_mount: [
+        {PrimeYouthWeb.UserAuth, :require_authenticated},
+        {PrimeYouthWeb.Hooks.RestoreLocale, :restore_locale}
+      ] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
     end
@@ -113,7 +125,10 @@ defmodule PrimeYouthWeb.Router do
     pipe_through [:browser]
 
     live_session :current_user,
-      on_mount: [{PrimeYouthWeb.UserAuth, :mount_current_scope}] do
+      on_mount: [
+        {PrimeYouthWeb.UserAuth, :mount_current_scope},
+        {PrimeYouthWeb.Hooks.RestoreLocale, :restore_locale}
+      ] do
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new
