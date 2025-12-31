@@ -1,7 +1,7 @@
-defmodule PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolverTest do
+defmodule PrimeYouth.Attendance.Adapters.Driven.IdentityContext.ChildNameResolverTest do
   use PrimeYouth.DataCase, async: true
 
-  alias PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolver
+  alias PrimeYouth.Attendance.Adapters.Driven.IdentityContext.ChildNameResolver
 
   describe "resolve_child_name/1" do
     test "returns child full name when child exists" do
@@ -57,7 +57,7 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolverT
       assert {:error, :child_not_found} = result
     end
 
-    test "propagates database errors from Family context" do
+    test "propagates database errors from Identity context" do
       # Note: This test would require mocking or a test double for the repository
       # to simulate database errors. For now, we verify the adapter passes through
       # error atoms unchanged (except :not_found → :child_not_found mapping)
@@ -71,12 +71,12 @@ defmodule PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolverT
     end
   end
 
-  # Helper to get configured repositories
+  # Helper to get configured repositories from Identity context
   defp parent_repository do
-    Application.get_env(:prime_youth, :parenting)[:parent_repository]
+    Application.get_env(:prime_youth, :identity)[:for_storing_parent_profiles]
   end
 
   defp child_repository do
-    Application.get_env(:prime_youth, :family)[:child_repository]
+    Application.get_env(:prime_youth, :identity)[:for_storing_children]
   end
 end

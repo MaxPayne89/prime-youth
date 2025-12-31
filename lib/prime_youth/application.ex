@@ -42,21 +42,9 @@ defmodule PrimeYouth.Application do
     [
       Supervisor.child_spec(
         {PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: PrimeYouth.Family.Adapters.Driven.Events.UserEventHandler,
+         handler: PrimeYouth.Identity.Adapters.Driven.Events.IdentityEventHandler,
          topics: ["user:user_registered", "user:user_confirmed"]},
-        id: :family_event_subscriber
-      ),
-      Supervisor.child_spec(
-        {PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: PrimeYouth.Parenting.Adapters.Driven.Events.IdentityEventHandler,
-         topics: ["user:user_registered"]},
-        id: :parenting_event_subscriber
-      ),
-      Supervisor.child_spec(
-        {PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: PrimeYouth.Providing.Adapters.Driven.Events.IdentityEventHandler,
-         topics: ["user:user_registered"]},
-        id: :providing_event_subscriber
+        id: :identity_event_subscriber
       )
     ]
   end
@@ -64,6 +52,7 @@ defmodule PrimeYouth.Application do
   defp in_memory_repositories do
     [
       PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository,
+      # TODO: Remove after Phase 3 (Web Layer) migrates AttendanceHistoryLive to Identity context
       PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFamilyRepository
     ]
   end

@@ -17,8 +17,7 @@ defmodule PrimeYouth.Accounts.Scope do
   """
 
   alias PrimeYouth.Accounts.User
-  alias PrimeYouth.Parenting
-  alias PrimeYouth.Providing
+  alias PrimeYouth.Identity
 
   defstruct user: nil,
             roles: [],
@@ -49,8 +48,8 @@ defmodule PrimeYouth.Accounts.Scope do
   def resolve_roles(%__MODULE__{user: nil} = scope), do: scope
 
   def resolve_roles(%__MODULE__{user: user} = scope) do
-    parent = extract_profile(Parenting.get_parent_by_identity(user.id))
-    provider = extract_profile(Providing.get_provider_by_identity(user.id))
+    parent = extract_profile(Identity.get_parent_by_identity(user.id))
+    provider = extract_profile(Identity.get_provider_by_identity(user.id))
 
     roles =
       []

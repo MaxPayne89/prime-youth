@@ -113,7 +113,9 @@ defmodule PrimeYouth.IdentityTest do
           business_name: "My Business"
         })
 
-      assert {:ok, %ProviderProfile{} = retrieved} = Identity.get_provider_by_identity(identity_id)
+      assert {:ok, %ProviderProfile{} = retrieved} =
+               Identity.get_provider_by_identity(identity_id)
+
       assert retrieved.id == created.id
     end
 
@@ -152,9 +154,9 @@ defmodule PrimeYouth.IdentityTest do
 
   describe "get_children/1" do
     test "returns children for parent" do
-      parent = create_parent_for_children()
-
       alias PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
+
+      parent = create_parent_for_children()
 
       {:ok, _} =
         ChildRepository.create(%{
@@ -180,9 +182,9 @@ defmodule PrimeYouth.IdentityTest do
 
   describe "get_child_by_id/1" do
     test "retrieves existing child" do
-      parent = create_parent_for_children()
-
       alias PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
+
+      parent = create_parent_for_children()
 
       {:ok, created} =
         ChildRepository.create(%{

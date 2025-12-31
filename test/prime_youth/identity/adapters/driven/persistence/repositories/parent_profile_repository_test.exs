@@ -18,7 +18,9 @@ defmodule PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ParentPro
         notification_preferences: %{email: true, sms: false}
       }
 
-      assert {:ok, %ParentProfile{} = profile} = ParentProfileRepository.create_parent_profile(attrs)
+      assert {:ok, %ParentProfile{} = profile} =
+               ParentProfileRepository.create_parent_profile(attrs)
+
       assert is_binary(profile.id)
       assert profile.identity_id == attrs.identity_id
       assert profile.display_name == "John Doe"
@@ -29,7 +31,9 @@ defmodule PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ParentPro
     test "creates parent profile with minimal fields" do
       attrs = %{identity_id: Ecto.UUID.generate()}
 
-      assert {:ok, %ParentProfile{} = profile} = ParentProfileRepository.create_parent_profile(attrs)
+      assert {:ok, %ParentProfile{} = profile} =
+               ParentProfileRepository.create_parent_profile(attrs)
+
       assert is_binary(profile.id)
       assert is_nil(profile.display_name)
     end

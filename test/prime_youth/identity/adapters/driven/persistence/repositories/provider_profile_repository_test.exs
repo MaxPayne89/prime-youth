@@ -50,7 +50,9 @@ defmodule PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ProviderP
       assert {:ok, _} = ProviderProfileRepository.create_provider_profile(attrs)
 
       second_attrs = %{identity_id: identity_id, business_name: "Second Business"}
-      assert {:error, :duplicate_identity} = ProviderProfileRepository.create_provider_profile(second_attrs)
+
+      assert {:error, :duplicate_identity} =
+               ProviderProfileRepository.create_provider_profile(second_attrs)
     end
   end
 

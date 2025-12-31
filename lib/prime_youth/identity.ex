@@ -42,8 +42,14 @@ defmodule PrimeYouth.Identity do
   alias PrimeYouth.Identity.Application.UseCases.Providers.CreateProviderProfile
   alias PrimeYouth.Identity.Application.UseCases.Providers.GetProviderByIdentity
 
-  @parent_repository Application.compile_env!(:prime_youth, [:identity, :for_storing_parent_profiles])
-  @provider_repository Application.compile_env!(:prime_youth, [:identity, :for_storing_provider_profiles])
+  @parent_repository Application.compile_env!(:prime_youth, [
+                       :identity,
+                       :for_storing_parent_profiles
+                     ])
+  @provider_repository Application.compile_env!(:prime_youth, [
+                         :identity,
+                         :for_storing_provider_profiles
+                       ])
 
   # ============================================================================
   # Parent Profile Functions

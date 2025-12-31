@@ -116,7 +116,7 @@ defmodule PrimeYouth.Identity.Domain.Models.Child do
   defp validate_last_name(errors, _), do: ["Last name must be a string" | errors]
 
   defp validate_date_of_birth(errors, %Date{} = date) do
-    if Date.compare(date, Date.utc_today()) == :gt do
+    if Date.after?(date, Date.utc_today()) do
       ["Date of birth cannot be in the future" | errors]
     else
       errors

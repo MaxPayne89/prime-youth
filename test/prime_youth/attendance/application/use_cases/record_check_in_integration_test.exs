@@ -3,7 +3,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
   Integration tests for RecordCheckIn and RecordCheckOut use cases.
 
   These tests verify the integration between the Attendance context and
-  the Family context for child name resolution in event publishing.
+  the Identity context for child name resolution in event publishing.
 
   ## Database Constraints
   The attendance_records table has a foreign key constraint on child_id
@@ -13,8 +13,8 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
     (like DB lookup errors during name resolution), not a normal flow
 
   Test Coverage:
-  - Check-in publishes event with correct child name from Family context
-  - Check-out publishes event with correct child name from Family context
+  - Check-in publishes event with correct child name from Identity context
+  - Check-out publishes event with correct child name from Identity context
   - Child name is correctly resolved from database
   """
 
@@ -26,7 +26,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
   alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias PrimeYouth.Attendance.Application.UseCases.RecordCheckIn
   alias PrimeYouth.Attendance.Application.UseCases.RecordCheckOut
-  alias PrimeYouth.Family.Domain.Models.Child
+  alias PrimeYouth.Identity.Domain.Models.Child
   alias PrimeYouth.Repo
 
   # Test event publisher that captures published events using Agent
@@ -54,7 +54,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
   setup do
     # Store original configs
     original_attendance_config = Application.get_env(:prime_youth, :attendance)
-    original_family_config = Application.get_env(:prime_youth, :family)
+    original_identity_config = Application.get_env(:prime_youth, :identity)
     original_publisher_config = Application.get_env(:prime_youth, :event_publisher)
 
     # Start test event publisher
@@ -66,13 +66,16 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
         PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.SessionRepository,
       attendance_repository:
         PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.AttendanceRepository,
-      child_name_resolver: PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolver
+      child_name_resolver: PrimeYouth.Attendance.Adapters.Driven.IdentityContext.ChildNameResolver
     )
 
-    Application.put_env(:prime_youth, :family,
-      repository:
-        PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFamilyRepository,
-      child_repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
+    Application.put_env(:prime_youth, :identity,
+      for_storing_parent_profiles:
+        PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
+      for_storing_provider_profiles:
+        PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
+      for_storing_children:
+        PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
     )
 
     Application.put_env(:prime_youth, :event_publisher,
@@ -88,10 +91,10 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
         Application.delete_env(:prime_youth, :attendance)
       end
 
-      if original_family_config do
-        Application.put_env(:prime_youth, :family, original_family_config)
+      if original_identity_config do
+        Application.put_env(:prime_youth, :identity, original_identity_config)
       else
-        Application.delete_env(:prime_youth, :family)
+        Application.delete_env(:prime_youth, :identity)
       end
 
       if original_publisher_config do
@@ -104,7 +107,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
     :ok
   end
 
-  describe "RecordCheckIn with Family context integration" do
+  describe "RecordCheckIn with Identity context integration" do
     test "publishes event with correct child name when child exists" do
       # Insert child using factory (which also creates parent)
       child_schema = insert(:child_schema, first_name: "Emma", last_name: "Johnson")
@@ -151,7 +154,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
     end
   end
 
-  describe "RecordCheckOut with Family context integration" do
+  describe "RecordCheckOut with Identity context integration" do
     test "publishes event with correct child name when child exists" do
       # Insert child using factory
       child_schema = insert(:child_schema, first_name: "Oliver", last_name: "Williams")
@@ -230,7 +233,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
       child_schema = insert(:child_schema, first_name: "Sophia", last_name: "Martinez")
 
       # Fetch using the repository to verify integration
-      child_repository = Application.get_env(:prime_youth, :family)[:child_repository]
+      child_repository = Application.get_env(:prime_youth, :identity)[:for_storing_children]
       {:ok, child} = child_repository.get_by_id(child_schema.id)
 
       assert %Child{} = child
@@ -246,7 +249,7 @@ defmodule PrimeYouth.Attendance.Application.UseCases.RecordCheckInIntegrationTes
           notes: "Allergic to peanuts"
         )
 
-      child_repository = Application.get_env(:prime_youth, :family)[:child_repository]
+      child_repository = Application.get_env(:prime_youth, :identity)[:for_storing_children]
       {:ok, child} = child_repository.get_by_id(child_schema.id)
 
       assert child.first_name == "Noah"
