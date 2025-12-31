@@ -17,49 +17,6 @@ defmodule PrimeYouthWeb.I18n.Phase8ResponsiveI18nTest do
   describe "Dashboard Translation Verification" do
     setup :register_and_log_in_user
 
-    test "displays 'Today' translation correctly in English", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
-
-      assert_translation(view, "Today", "en")
-      assert_locale(view, "en")
-    end
-
-    test "displays 'Heute' translation correctly in German", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
-
-      assert_translation(view, "Today", "de")
-      assert_locale(view, "de")
-    end
-
-    test "displays 'Tomorrow' translation correctly in English", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
-
-      assert_translation(view, "Tomorrow", "en")
-    end
-
-    test "displays 'Morgen' translation correctly in German", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
-
-      assert_translation(view, "Tomorrow", "de")
-    end
-
-    test "displays 'This Week' translation correctly in English", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
-
-      # Sample fixture uses "This Week" in English
-      html = render(view)
-      assert html =~ "This Week" || html =~ "week"
-    end
-
-    test "displays 'Diese Woche' translation correctly in German", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
-
-      # Sample fixture uses "This Week" which should be translated
-      html = render(view)
-      # The fixture data might use the translation or the string directly
-      assert html =~ "Diese Woche" || html =~ get_translation("This Week", "de")
-    end
-
     test "displays 'Progress' translation correctly in English", %{conn: conn} do
       {:ok, view, _html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
 
@@ -88,7 +45,7 @@ defmodule PrimeYouthWeb.I18n.Phase8ResponsiveI18nTest do
       # Start on dashboard with German locale (query param sets session)
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
       assert_locale(view, "de")
-      assert_translation(view, "Today", "de")
+      assert_translation(view, "My Children", "de")
 
       # Navigate to programs page - locale should persist from session
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/programs")
@@ -118,7 +75,7 @@ defmodule PrimeYouthWeb.I18n.Phase8ResponsiveI18nTest do
       # Navigate with German locale
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
       assert_locale(view, "de")
-      assert_translation(view, "Today", "de")
+      assert_translation(view, "My Children", "de")
     end
   end
 

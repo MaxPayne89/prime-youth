@@ -164,53 +164,6 @@ defmodule PrimeYouthWeb.CompositeComponents do
   end
 
   @doc """
-  Renders an upcoming activity card.
-
-  ## Examples
-
-      <.activity_card
-        status="Today"
-        status_color="bg-red-100 text-red-700"
-        time="Today, 4:00 PM"
-        name="Creative Art World"
-        instructor="Ms. Rodriguez"
-      />
-  """
-  attr :status, :string, required: true
-  attr :status_color, :string, required: true, doc: "Custom color class for status badge"
-  attr :time, :string, required: true
-  attr :name, :string, required: true
-  attr :instructor, :string, required: true
-  attr :class, :string, default: ""
-  attr :rest, :global, include: ~w(phx-click phx-value-*)
-
-  def activity_card(assigns) do
-    ~H"""
-    <.card padding="p-4" class={"hover:shadow-md #{Theme.transition(:normal)} #{@class}"} {@rest}>
-      <:body>
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <div class="flex items-center mb-2">
-              <.status_pill color="custom" class={@status_color}>
-                {Gettext.gettext(PrimeYouthWeb.Gettext, @status)}
-              </.status_pill>
-              <span class="ml-2 text-sm text-gray-600">
-                {Gettext.gettext(PrimeYouthWeb.Gettext, @status)}, {@time}
-              </span>
-            </div>
-            <h4 class={[Theme.typography(:card_title), "text-gray-900 mb-1"]}>{@name}</h4>
-            <p class="text-sm text-gray-600">{gettext("Instructor")}: {@instructor}</p>
-          </div>
-          <.gradient_icon gradient_class="bg-gray-100" size="sm" shape="circle" class="flex-shrink-0">
-            <.icon name="hero-chevron-right" class="w-5 h-5 text-gray-500" />
-          </.gradient_icon>
-        </div>
-      </:body>
-    </.card>
-    """
-  end
-
-  @doc """
   Renders a payment option radio button with title and description.
 
   ## Examples

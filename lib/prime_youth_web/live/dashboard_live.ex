@@ -3,7 +3,6 @@ defmodule PrimeYouthWeb.DashboardLive do
 
   import PrimeYouthWeb.CompositeComponents
 
-  alias PrimeYouth.Activities.Application.UseCases.ListUpcomingActivities
   alias PrimeYouth.Family.Application.UseCases.{GetChildren, GetCurrentUser}
   alias PrimeYouthWeb.Presenters.ChildPresenter
   alias PrimeYouthWeb.Theme
@@ -12,7 +11,6 @@ defmodule PrimeYouthWeb.DashboardLive do
   def mount(_params, _session, socket) do
     {:ok, user} = GetCurrentUser.execute()
     {:ok, children} = GetChildren.execute(:extended)
-    {:ok, activities} = ListUpcomingActivities.execute()
 
     children_for_view = Enum.map(children, &ChildPresenter.to_extended_view/1)
 
@@ -22,8 +20,6 @@ defmodule PrimeYouthWeb.DashboardLive do
       |> assign(user: user)
       |> assign(children_count: length(children_for_view))
       |> stream(:children, children_for_view)
-      |> stream(:upcoming_activities, activities)
-      |> assign(:activities_empty?, Enum.empty?(activities))
 
     {:ok, socket}
   end
@@ -170,38 +166,6 @@ defmodule PrimeYouthWeb.DashboardLive do
           </div>
         </div>
         
-    <!-- Upcoming Activities -->
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <h3 class={[Theme.typography(:card_title), Theme.text_color(:body)]}>
-              {gettext("Upcoming Activities")}
-            </h3>
-            <button class={[Theme.text_color(:primary), "text-sm font-medium hover:opacity-80"]}>
-              {gettext("View All")}
-            </button>
-          </div>
-          <div id="upcoming-activities" phx-update="stream" class="space-y-3">
-            <.activity_card
-              :for={{dom_id, activity} <- @streams.upcoming_activities}
-              id={dom_id}
-              status={activity.status}
-              status_color={activity.status_color}
-              time={activity.time}
-              name={activity.name}
-              instructor={activity.instructor}
-            />
-          </div>
-          <.empty_state
-            :if={@activities_empty?}
-            icon_path="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-            title={gettext("No upcoming activities")}
-            description={
-              gettext(
-                "Check back later for scheduled programs, or browse available programs to book a new activity."
-              )
-            }
-          />
-        </div>
       </div>
     </div>
     """

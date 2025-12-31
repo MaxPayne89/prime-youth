@@ -71,11 +71,6 @@ config :prime_youth, PrimeYouthWeb.Gettext,
   default_locale: "en",
   locales: ~w(en de)
 
-# Configure Activities bounded context
-config :prime_youth, :activities,
-  repository:
-    PrimeYouth.Activities.Adapters.Driven.Persistence.Repositories.InMemoryActivityRepository
-
 # Configure Attendance bounded context
 config :prime_youth, :attendance,
   session_repository:
