@@ -165,7 +165,6 @@ defmodule PrimeYouthWeb.DashboardLive do
             />
           </div>
         </div>
-        
       </div>
     </div>
     """

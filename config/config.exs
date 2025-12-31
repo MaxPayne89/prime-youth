@@ -94,6 +94,15 @@ config :prime_youth, :highlights,
   repository:
     PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
 
+# Configure Identity bounded context
+config :prime_youth, :identity,
+  for_storing_parent_profiles:
+    PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
+  for_storing_provider_profiles:
+    PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
+  for_storing_children:
+    PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
+
 # Configure Parenting bounded context
 config :prime_youth, :parenting,
   repository: PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRepository
