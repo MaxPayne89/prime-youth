@@ -73,18 +73,14 @@ defmodule PrimeYouthWeb.ErrorIds do
   @doc "Attendance validation error - changeset validation failed."
   def attendance_validation_error, do: "attendance.record.validation.error"
 
-  # Parenting Context - Domain Errors
+  # Identity Context - Domain Errors
 
   @doc "Duplicate parent profile - identity already has a parent profile."
-  def parent_duplicate_identity, do: "parenting.profile.create.duplicate_identity"
-
-  # Providing Context - Domain Errors
+  def parent_duplicate_identity, do: "identity.parent.create.duplicate_identity"
 
   @doc "Duplicate provider profile - identity already has a provider profile."
-  def provider_duplicate_identity, do: "providing.profile.create.duplicate_identity"
-
-  # Family Context - Domain Errors
+  def provider_duplicate_identity, do: "identity.provider.create.duplicate_identity"
 
   @doc "Child validation error - changeset validation failed."
-  def child_validation_error, do: "family.child.validation.error"
+  def child_validation_error, do: "identity.child.validation.error"
 end

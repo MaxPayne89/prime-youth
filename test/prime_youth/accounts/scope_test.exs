@@ -2,8 +2,7 @@ defmodule PrimeYouth.Accounts.ScopeTest do
   use PrimeYouth.DataCase, async: true
 
   alias PrimeYouth.Accounts.Scope
-  alias PrimeYouth.Parenting
-  alias PrimeYouth.Providing
+  alias PrimeYouth.Identity
 
   describe "for_user/1" do
     test "creates scope with user" do
@@ -47,7 +46,7 @@ defmodule PrimeYouth.Accounts.ScopeTest do
       user = user_fixture()
 
       {:ok, parent} =
-        Parenting.create_parent_profile(%{
+        Identity.create_parent_profile(%{
           identity_id: user.id,
           display_name: "Test Parent"
         })
@@ -65,7 +64,7 @@ defmodule PrimeYouth.Accounts.ScopeTest do
       user = user_fixture()
 
       {:ok, provider} =
-        Providing.create_provider_profile(%{
+        Identity.create_provider_profile(%{
           identity_id: user.id,
           business_name: "Test Provider"
         })
@@ -83,13 +82,13 @@ defmodule PrimeYouth.Accounts.ScopeTest do
       user = user_fixture()
 
       {:ok, parent} =
-        Parenting.create_parent_profile(%{
+        Identity.create_parent_profile(%{
           identity_id: user.id,
           display_name: "Test Parent"
         })
 
       {:ok, provider} =
-        Providing.create_provider_profile(%{
+        Identity.create_provider_profile(%{
           identity_id: user.id,
           business_name: "Test Provider"
         })
@@ -131,7 +130,7 @@ defmodule PrimeYouth.Accounts.ScopeTest do
       user = user_fixture()
 
       {:ok, parent} =
-        Parenting.create_parent_profile(%{
+        Identity.create_parent_profile(%{
           identity_id: user.id,
           display_name: "Test Parent"
         })
@@ -153,7 +152,7 @@ defmodule PrimeYouth.Accounts.ScopeTest do
       user = user_fixture()
 
       {:ok, provider} =
-        Providing.create_provider_profile(%{
+        Identity.create_provider_profile(%{
           identity_id: user.id,
           business_name: "Test Provider"
         })

@@ -31,14 +31,14 @@ defmodule PrimeYouth.Factory do
   alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias PrimeYouth.Attendance.Domain.Models.AttendanceRecord
   alias PrimeYouth.Attendance.Domain.Models.ProgramSession
-  alias PrimeYouth.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
-  alias PrimeYouth.Family.Domain.Models.Child
-  alias PrimeYouth.Parenting.Adapters.Driven.Persistence.Schemas.ParentSchema
-  alias PrimeYouth.Parenting.Domain.Models.Parent
+  alias PrimeYouth.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
+  alias PrimeYouth.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+  alias PrimeYouth.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias PrimeYouth.Identity.Domain.Models.Child
+  alias PrimeYouth.Identity.Domain.Models.ParentProfile
+  alias PrimeYouth.Identity.Domain.Models.ProviderProfile
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
-  alias PrimeYouth.Providing.Adapters.Driven.Persistence.Schemas.ProviderSchema
-  alias PrimeYouth.Providing.Domain.Models.Provider
 
   @doc """
   Factory for creating Program domain entities (pure Elixir structs).
@@ -206,21 +206,21 @@ defmodule PrimeYouth.Factory do
   end
 
   # =============================================================================
-  # Parenting Context Factories
+  # Identity Context - Parent Profile Factories
   # =============================================================================
 
   @doc """
-  Factory for creating Parent domain entities (pure Elixir structs).
+  Factory for creating ParentProfile domain entities (pure Elixir structs).
 
   Used in use case tests where we don't need database persistence.
 
   ## Examples
 
-      parent = build(:parent)
-      parent = build(:parent, display_name: "Jane Doe", phone: "+1555123456")
+      parent = build(:parent_profile)
+      parent = build(:parent_profile, display_name: "Jane Doe", phone: "+1555123456")
   """
-  def parent_factory do
-    %Parent{
+  def parent_profile_factory do
+    %ParentProfile{
       id:
         sequence(
           :parent_id,
@@ -241,17 +241,17 @@ defmodule PrimeYouth.Factory do
   end
 
   @doc """
-  Factory for creating ParentSchema Ecto schemas.
+  Factory for creating ParentProfileSchema Ecto schemas.
 
   Used in repository and integration tests where we need database persistence.
 
   ## Examples
 
-      schema = build(:parent_schema)
-      schema = insert(:parent_schema, display_name: "John Parent")
+      schema = build(:parent_profile_schema)
+      schema = insert(:parent_profile_schema, display_name: "John Parent")
   """
-  def parent_schema_factory do
-    %ParentSchema{
+  def parent_profile_schema_factory do
+    %ParentProfileSchema{
       id: Ecto.UUID.generate(),
       identity_id: Ecto.UUID.generate(),
       display_name: sequence(:parent_schema_display_name, &"Test Parent #{&1}"),
@@ -261,22 +261,26 @@ defmodule PrimeYouth.Factory do
     }
   end
 
+  # Backwards-compatible aliases for Parent factories
+  def parent_factory, do: parent_profile_factory()
+  def parent_schema_factory, do: parent_profile_schema_factory()
+
   # =============================================================================
-  # Providing Context Factories
+  # Identity Context - Provider Profile Factories
   # =============================================================================
 
   @doc """
-  Factory for creating Provider domain entities (pure Elixir structs).
+  Factory for creating ProviderProfile domain entities (pure Elixir structs).
 
   Used in use case tests where we don't need database persistence.
 
   ## Examples
 
-      provider = build(:provider)
-      provider = build(:provider, business_name: "Youth Sports", verified: true)
+      provider = build(:provider_profile)
+      provider = build(:provider_profile, business_name: "Youth Sports", verified: true)
   """
-  def provider_factory do
-    %Provider{
+  def provider_profile_factory do
+    %ProviderProfile{
       id:
         sequence(
           :provider_id,
@@ -302,17 +306,17 @@ defmodule PrimeYouth.Factory do
   end
 
   @doc """
-  Factory for creating ProviderSchema Ecto schemas.
+  Factory for creating ProviderProfileSchema Ecto schemas.
 
   Used in repository and integration tests where we need database persistence.
 
   ## Examples
 
-      schema = build(:provider_schema)
-      schema = insert(:provider_schema, business_name: "Youth Arts Center")
+      schema = build(:provider_profile_schema)
+      schema = insert(:provider_profile_schema, business_name: "Youth Arts Center")
   """
-  def provider_schema_factory do
-    %ProviderSchema{
+  def provider_profile_schema_factory do
+    %ProviderProfileSchema{
       id: Ecto.UUID.generate(),
       identity_id: Ecto.UUID.generate(),
       business_name: sequence(:provider_schema_business_name, &"Test Provider #{&1}"),
@@ -327,11 +331,15 @@ defmodule PrimeYouth.Factory do
     }
   end
 
+  # Backwards-compatible aliases for Provider factories
+  def provider_factory, do: provider_profile_factory()
+  def provider_schema_factory, do: provider_profile_schema_factory()
+
   @doc """
-  Verified provider variant - commonly used for testing verified provider flows.
+  Verified provider profile variant - commonly used for testing verified provider flows.
   """
-  def verified_provider_factory do
-    build(:provider, %{
+  def verified_provider_profile_factory do
+    build(:provider_profile, %{
       business_name: "Verified Sports Academy",
       verified: true,
       verified_at: ~U[2025-01-15 10:00:00Z],
@@ -339,8 +347,11 @@ defmodule PrimeYouth.Factory do
     })
   end
 
+  # Backwards-compatible alias for verified provider factory
+  def verified_provider_factory, do: verified_provider_profile_factory()
+
   # =============================================================================
-  # Family Context Factories
+  # Identity Context - Child Factories
   # =============================================================================
 
   @doc """
@@ -386,7 +397,7 @@ defmodule PrimeYouth.Factory do
       schema = insert(:child_schema, first_name: "Bob")
   """
   def child_schema_factory do
-    parent_schema = insert(:parent_schema)
+    parent_schema = insert(:parent_profile_schema)
 
     %ChildSchema{
       id: Ecto.UUID.generate(),

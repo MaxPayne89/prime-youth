@@ -84,11 +84,6 @@ config :prime_youth, :event_publisher,
   module: PrimeYouth.Shared.Adapters.Driven.Events.PubSubEventPublisher,
   pubsub: PrimeYouth.PubSub
 
-# Configure Family bounded context
-config :prime_youth, :family,
-  repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFamilyRepository,
-  child_repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
-
 # Configure Highlights bounded context
 config :prime_youth, :highlights,
   repository:
@@ -103,17 +98,9 @@ config :prime_youth, :identity,
   for_storing_children:
     PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
 
-# Configure Parenting bounded context
-config :prime_youth, :parenting,
-  repository: PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRepository
-
 # Configure Program Catalog bounded context
 config :prime_youth, :program_catalog,
   repository: PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
-
-# Configure Providing bounded context
-config :prime_youth, :providing,
-  repository: PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.ProviderRepository
 
 config :prime_youth, :scopes,
   user: [
