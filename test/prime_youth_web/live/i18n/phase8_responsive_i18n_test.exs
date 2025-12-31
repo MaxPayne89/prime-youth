@@ -15,7 +15,8 @@ defmodule PrimeYouthWeb.I18n.Phase8ResponsiveI18nTest do
   import PrimeYouthWeb.I18nHelpers
 
   describe "Dashboard Translation Verification" do
-    setup :register_and_log_in_user
+    # Use with_child variant to ensure children are displayed on dashboard
+    setup :register_and_log_in_user_with_child
 
     test "displays 'Progress' translation correctly in English", %{conn: conn} do
       {:ok, view, _html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")

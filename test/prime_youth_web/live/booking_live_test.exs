@@ -77,13 +77,17 @@ defmodule PrimeYouthWeb.BookingLiveTest do
       assert html =~ "Please select a child for enrollment."
     end
 
-    test "complete_enrollment with valid data shows success message", %{conn: conn} do
+    test "complete_enrollment with valid data shows success message", %{conn: conn, user: user} do
+      # Create parent profile and child for the logged-in user
+      parent = insert(:parent_schema, identity_id: user.id)
+      child = insert(:child_schema, parent_id: parent.id, first_name: "Emma")
+
       program = insert(:program_schema)
       {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}/booking")
 
       view
       |> form("form[phx-submit='complete_enrollment']", %{
-        "child_id" => "child-1",
+        "child_id" => child.id,
         "special_requirements" => "No allergies"
       })
       |> render_submit()

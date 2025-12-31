@@ -117,6 +117,26 @@ defmodule PrimeYouthWeb.ConnCase do
     |> Plug.Conn.put_session(:user_token, token)
   end
 
+  @doc """
+  Setup helper that registers and logs in users, and creates a parent profile with a child.
+
+      setup :register_and_log_in_user_with_child
+
+  It stores an updated connection, registered user, parent profile, and child in the test context.
+  This is useful for tests that require the user to have children (dashboard, booking, etc.)
+  """
+  def register_and_log_in_user_with_child(%{conn: _conn} = context) do
+    result = register_and_log_in_user(context)
+
+    # Create parent profile linked to the user
+    parent = PrimeYouth.Factory.insert(:parent_schema, identity_id: result.user.id)
+
+    # Create a child for the parent
+    child = PrimeYouth.Factory.insert(:child_schema, parent_id: parent.id, first_name: "Emma")
+
+    Map.merge(result, %{parent: parent, child: child})
+  end
+
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do

@@ -4,7 +4,7 @@ defmodule PrimeYouthWeb.BookingLive do
   import PrimeYouthWeb.BookingComponents
 
   alias PrimeYouth.Enrollment.Application.UseCases.CalculateEnrollmentFees
-  alias PrimeYouth.Family.Application.UseCases.GetChildren
+  alias PrimeYouth.Identity
   alias PrimeYouth.ProgramCatalog.Application.UseCases.GetProgramById
   alias PrimeYouthWeb.Presenters.ChildPresenter
   alias PrimeYouthWeb.Theme
@@ -21,7 +21,7 @@ defmodule PrimeYouthWeb.BookingLive do
 
     with {:ok, program} <- fetch_program(program_id),
          :ok <- validate_program_availability(program) do
-      {:ok, children} = GetChildren.execute(:simple)
+      children = get_children_for_parent(socket)
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
 
       socket =
@@ -177,6 +177,15 @@ defmodule PrimeYouthWeb.BookingLive do
     case socket.assigns.payment_method do
       method when method in ["card", "transfer"] -> :ok
       _ -> {:error, :invalid_payment}
+    end
+  end
+
+  defp get_children_for_parent(socket) do
+    with %{current_scope: %{user: %{id: identity_id}}} <- socket.assigns,
+         {:ok, parent} <- Identity.get_parent_by_identity(identity_id) do
+      Identity.get_children(parent.id)
+    else
+      _ -> []
     end
   end
 

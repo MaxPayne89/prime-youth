@@ -3,9 +3,8 @@ defmodule PrimeYouthWeb.Parent.AttendanceHistoryLive do
 
   alias PrimeYouth.Attendance.Application.UseCases.GetAttendanceHistory
   alias PrimeYouth.Attendance.Application.UseCases.GetAttendanceRecord
-  alias PrimeYouth.Family.Application.UseCases.GetChildren
-  alias PrimeYouth.Family.Domain.Models.Child
-  alias PrimeYouth.Parenting.Application.UseCases.GetParentByIdentity
+  alias PrimeYouth.Identity
+  alias PrimeYouth.Identity.Domain.Models.Child
   alias PrimeYouthWeb.Theme
 
   require Logger
@@ -106,7 +105,7 @@ defmodule PrimeYouthWeb.Parent.AttendanceHistoryLive do
   defp get_parent_id(socket) do
     case socket.assigns do
       %{current_scope: %{user: %{id: identity_id}}} ->
-        case GetParentByIdentity.execute(identity_id) do
+        case Identity.get_parent_by_identity(identity_id) do
           {:ok, parent} -> parent.id
           {:error, _reason} -> nil
         end
@@ -123,28 +122,23 @@ defmodule PrimeYouthWeb.Parent.AttendanceHistoryLive do
   defp load_attendance_history(socket) do
     parent_id = socket.assigns.parent_id
 
-    case GetChildren.execute(:simple) do
-      {:ok, children} ->
-        attendance_records = GetAttendanceHistory.execute(:by_parent, parent_id)
-        child_names = Map.new(children, fn child -> {child.id, Child.full_name(child)} end)
-        children_ids = MapSet.new(children, fn child -> child.id end)
+    if parent_id do
+      children = Identity.get_children(parent_id)
+      attendance_records = GetAttendanceHistory.execute(:by_parent, parent_id)
+      child_names = Map.new(children, fn child -> {child.id, Child.full_name(child)} end)
+      children_ids = MapSet.new(children, fn child -> child.id end)
 
-        socket
-        |> assign(:child_names, child_names)
-        |> assign(:children_ids, children_ids)
-        |> stream(:attendance_records, attendance_records, reset: true)
-        |> assign(:attendance_error, nil)
+      socket
+      |> assign(:child_names, child_names)
+      |> assign(:children_ids, children_ids)
+      |> stream(:attendance_records, attendance_records, reset: true)
+      |> assign(:attendance_error, nil)
+    else
+      Logger.warning("[AttendanceHistoryLive.load_attendance_history] No parent_id available")
 
-      {:error, reason} ->
-        Logger.error(
-          "[AttendanceHistoryLive.load_attendance_history] Failed to load attendance",
-          parent_id: parent_id,
-          reason: inspect(reason)
-        )
-
-        socket
-        |> stream(:attendance_records, [], reset: true)
-        |> assign(:attendance_error, gettext("Failed to load attendance history"))
+      socket
+      |> stream(:attendance_records, [], reset: true)
+      |> assign(:attendance_error, gettext("Failed to load attendance history"))
     end
   end
 

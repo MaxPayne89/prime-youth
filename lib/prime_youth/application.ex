@@ -51,9 +51,7 @@ defmodule PrimeYouth.Application do
 
   defp in_memory_repositories do
     [
-      PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository,
-      # TODO: Remove after Phase 3 (Web Layer) migrates AttendanceHistoryLive to Identity context
-      PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFamilyRepository
+      PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
     ]
   end
 end

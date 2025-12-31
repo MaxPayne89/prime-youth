@@ -3,15 +3,14 @@ defmodule PrimeYouthWeb.DashboardLive do
 
   import PrimeYouthWeb.CompositeComponents
 
-  alias PrimeYouth.Family.Application.UseCases.{GetChildren, GetCurrentUser}
+  alias PrimeYouth.Identity
   alias PrimeYouthWeb.Presenters.ChildPresenter
   alias PrimeYouthWeb.Theme
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, user} = GetCurrentUser.execute()
-    {:ok, children} = GetChildren.execute(:extended)
-
+    user = socket.assigns.current_scope.user
+    children = get_children_for_parent(socket)
     children_for_view = Enum.map(children, &ChildPresenter.to_extended_view/1)
 
     socket =
@@ -22,6 +21,15 @@ defmodule PrimeYouthWeb.DashboardLive do
       |> stream(:children, children_for_view)
 
     {:ok, socket}
+  end
+
+  defp get_children_for_parent(socket) do
+    with %{current_scope: %{user: %{id: identity_id}}} <- socket.assigns,
+         {:ok, parent} <- Identity.get_parent_by_identity(identity_id) do
+      Identity.get_children(parent.id)
+    else
+      _ -> []
+    end
   end
 
   @impl true
