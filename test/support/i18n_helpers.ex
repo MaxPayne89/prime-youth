@@ -1,4 +1,4 @@
-defmodule PrimeYouthWeb.I18nHelpers do
+defmodule KlassHeroWeb.I18nHelpers do
   @moduledoc """
   Helper functions for testing internationalization (i18n) and localization.
 
@@ -12,8 +12,8 @@ defmodule PrimeYouthWeb.I18nHelpers do
   import ExUnit.Assertions
   import Phoenix.LiveViewTest
 
-  alias PrimeYouth.Accounts
-  alias PrimeYouth.Repo
+  alias KlassHero.Accounts
+  alias KlassHero.Repo
 
   @doc """
   Adds locale query parameter to a path.
@@ -37,13 +37,13 @@ defmodule PrimeYouthWeb.I18nHelpers do
   """
   def get_translation(msgid, locale) do
     # Temporarily set the locale to retrieve the translation
-    previous_locale = Gettext.get_locale(PrimeYouthWeb.Gettext)
-    Gettext.put_locale(PrimeYouthWeb.Gettext, locale)
+    previous_locale = Gettext.get_locale(KlassHeroWeb.Gettext)
+    Gettext.put_locale(KlassHeroWeb.Gettext, locale)
 
-    translation = Gettext.dgettext(PrimeYouthWeb.Gettext, "default", msgid)
+    translation = Gettext.dgettext(KlassHeroWeb.Gettext, "default", msgid)
 
     # Restore previous locale
-    Gettext.put_locale(PrimeYouthWeb.Gettext, previous_locale)
+    Gettext.put_locale(KlassHeroWeb.Gettext, previous_locale)
 
     translation
   end
@@ -121,7 +121,7 @@ defmodule PrimeYouthWeb.I18nHelpers do
       assert user.locale == "de"
   """
   def user_with_locale(locale, attrs \\ %{}) do
-    user = PrimeYouth.AccountsFixtures.user_fixture(attrs)
+    user = KlassHero.AccountsFixtures.user_fixture(attrs)
 
     # Update user locale preference
     {:ok, user} =
@@ -227,7 +227,7 @@ defmodule PrimeYouthWeb.I18nHelpers do
   """
   def setup_locale_for_navigation(conn, locale) do
     # Set Gettext locale for this process
-    Gettext.put_locale(PrimeYouthWeb.Gettext, locale)
+    Gettext.put_locale(KlassHeroWeb.Gettext, locale)
 
     # Only attempt session-related operations if session is configured
     # Public routes may not have session configuration in tests
@@ -245,7 +245,7 @@ defmodule PrimeYouthWeb.I18nHelpers do
         user_token ->
           {user, _user_token} = Accounts.get_user_by_session_token(user_token)
 
-          if user && is_struct(user, PrimeYouth.Accounts.User) do
+          if user && is_struct(user, KlassHero.Accounts.User) do
             user
             |> Accounts.User.locale_changeset(%{locale: locale})
             |> Repo.update!()
@@ -267,7 +267,7 @@ defmodule PrimeYouthWeb.I18nHelpers do
       supported_locales() # => ["en", "de"]
   """
   def supported_locales do
-    Application.get_env(:prime_youth, PrimeYouthWeb.Gettext)[:locales] || ["en", "de"]
+    Application.get_env(:klass_hero, KlassHeroWeb.Gettext)[:locales] || ["en", "de"]
   end
 
   @doc """
@@ -278,6 +278,6 @@ defmodule PrimeYouthWeb.I18nHelpers do
       default_locale() # => "en"
   """
   def default_locale do
-    Application.get_env(:prime_youth, PrimeYouthWeb.Gettext)[:default_locale] || "en"
+    Application.get_env(:klass_hero, KlassHeroWeb.Gettext)[:default_locale] || "en"
   end
 end

@@ -1,5 +1,5 @@
-defmodule PrimeYouthWeb.TermsOfServiceLiveTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.TermsOfServiceLiveTest do
+  use KlassHeroWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
 
@@ -124,7 +124,7 @@ defmodule PrimeYouthWeb.TermsOfServiceLiveTest do
     test "mentions agreement acknowledgment", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/terms")
 
-      assert html =~ "By using Prime Youth" or html =~ "agree to be bound"
+      assert html =~ "By using Klass Hero" or html =~ "agree to be bound"
     end
   end
 end

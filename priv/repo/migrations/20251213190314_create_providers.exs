@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Repo.Migrations.CreateProviders do
+defmodule KlassHero.Repo.Migrations.CreateProviders do
   use Ecto.Migration
 
   def change do

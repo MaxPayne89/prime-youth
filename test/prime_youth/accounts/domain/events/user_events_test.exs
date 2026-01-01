@@ -1,8 +1,8 @@
-defmodule PrimeYouth.Accounts.Domain.Events.UserEventsTest do
+defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Accounts.Domain.Events.UserEvents
-  alias PrimeYouth.Accounts.User
+  alias KlassHero.Accounts.Domain.Events.UserEvents
+  alias KlassHero.Accounts.User
 
   describe "user_registered/3 validation" do
     test "raises when user.id is nil" do

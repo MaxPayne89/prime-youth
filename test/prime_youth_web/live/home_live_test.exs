@@ -1,5 +1,5 @@
-defmodule PrimeYouthWeb.HomeLiveTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.HomeLiveTest do
+  use KlassHeroWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
 
@@ -7,7 +7,7 @@ defmodule PrimeYouthWeb.HomeLiveTest do
     test "renders home page successfully", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "h1", "Prime Youth Connect")
+      assert has_element?(view, "h1", "Klass Hero Connect")
       assert render(view) =~ "Connecting Families with Trusted Youth Educators"
     end
 
@@ -15,7 +15,7 @@ defmodule PrimeYouthWeb.HomeLiveTest do
       {:ok, _view, html} = live(conn, ~p"/")
 
       # Verify hero section content
-      assert html =~ "Prime Youth Connect"
+      assert html =~ "Klass Hero Connect"
       assert html =~ "Connecting Families with Trusted Youth Educators"
       assert html =~ "Get Started Free"
       assert html =~ "Explore Programs"
@@ -25,7 +25,7 @@ defmodule PrimeYouthWeb.HomeLiveTest do
       {:ok, _view, html} = live(conn, ~p"/")
 
       # Verify features section heading
-      assert html =~ "Why Prime Youth Connect?"
+      assert html =~ "Why Klass Hero Connect?"
 
       # Verify all three feature cards are present
       assert html =~ "Safety First"
@@ -112,7 +112,7 @@ defmodule PrimeYouthWeb.HomeLiveTest do
 
       # Verify page title is set (though it may not be directly visible in HTML)
       # This is more about ensuring the mount function sets it properly
-      assert html =~ "Prime Youth Connect"
+      assert html =~ "Klass Hero Connect"
     end
 
     test "featured programs are displayed from sample data", %{conn: conn} do

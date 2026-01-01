@@ -1,9 +1,9 @@
-defmodule PrimeYouthWeb.UserSessionControllerTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.UserSessionControllerTest do
+  use KlassHeroWeb.ConnCase, async: true
 
-  import PrimeYouth.AccountsFixtures
+  import KlassHero.AccountsFixtures
 
-  alias PrimeYouth.Accounts
+  alias KlassHero.Accounts
 
   setup do
     %{unconfirmed_user: unconfirmed_user_fixture(), user: user_fixture()}
@@ -41,7 +41,7 @@ defmodule PrimeYouthWeb.UserSessionControllerTest do
           }
         })
 
-      assert conn.resp_cookies["_prime_youth_web_user_remember_me"]
+      assert conn.resp_cookies["_klass_hero_web_user_remember_me"]
       assert redirected_to(conn) == ~p"/"
     end
 

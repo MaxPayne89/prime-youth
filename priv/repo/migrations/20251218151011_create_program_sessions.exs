@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Repo.Migrations.CreateProgramSessions do
+defmodule KlassHero.Repo.Migrations.CreateProgramSessions do
   use Ecto.Migration
 
   def change do

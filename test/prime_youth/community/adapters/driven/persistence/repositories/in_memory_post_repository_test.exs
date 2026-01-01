@@ -1,8 +1,8 @@
-defmodule PrimeYouth.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepositoryTest do
+defmodule KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepositoryTest do
   use ExUnit.Case, async: false
 
-  alias PrimeYouth.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
-  alias PrimeYouth.Community.Domain.Models.{Post, Comment}
+  alias KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
+  alias KlassHero.Community.Domain.Models.{Post, Comment}
 
   setup do
     # Repository is already started by the application supervisor

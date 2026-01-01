@@ -1,15 +1,15 @@
-defmodule PrimeYouth.Participation.Domain.Models.ParticipationRecordTest do
+defmodule KlassHero.Participation.Domain.Models.ParticipationRecordTest do
   @moduledoc """
   Tests for ParticipationRecord domain entity.
 
   Covers validation, status transitions, and check-in/out flows.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
   describe "new/1" do
     test "creates a valid participation record with required fields" do

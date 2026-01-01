@@ -1,7 +1,7 @@
-defmodule PrimeYouth.Shared.Adapters.Driven.Events.RetryHelpersTest do
+defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpersTest do
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Shared.Adapters.Driven.Events.RetryHelpers
+  alias KlassHero.Shared.Adapters.Driven.Events.RetryHelpers
 
   @default_context %{
     operation_name: "test operation",

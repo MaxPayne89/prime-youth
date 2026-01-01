@@ -1,11 +1,11 @@
-defmodule PrimeYouth.Identity.Domain.Models.ParentProfileTest do
+defmodule KlassHero.Identity.Domain.Models.ParentProfileTest do
   @moduledoc """
   Tests for the ParentProfile domain entity.
   """
 
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Identity.Domain.Models.ParentProfile
+  alias KlassHero.Identity.Domain.Models.ParentProfile
 
   describe "new/1 with valid attributes" do
     test "creates parent profile with all fields" do

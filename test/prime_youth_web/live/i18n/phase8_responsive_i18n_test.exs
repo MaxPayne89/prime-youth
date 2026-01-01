@@ -1,4 +1,4 @@
-defmodule PrimeYouthWeb.I18n.Phase8ResponsiveI18nTest do
+defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
   @moduledoc """
   Phase 8: Mobile Navigation & Responsive Design Testing
 
@@ -9,10 +9,10 @@ defmodule PrimeYouthWeb.I18n.Phase8ResponsiveI18nTest do
   - Form validation messages in both languages
   """
 
-  use PrimeYouthWeb.ConnCase, async: true
+  use KlassHeroWeb.ConnCase, async: true
 
+  import KlassHeroWeb.I18nHelpers
   import Phoenix.LiveViewTest
-  import PrimeYouthWeb.I18nHelpers
 
   describe "Dashboard Translation Verification" do
     # Use with_child variant to ensure children are displayed on dashboard
@@ -209,7 +209,7 @@ defmodule PrimeYouthWeb.I18n.Phase8ResponsiveI18nTest do
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/about")
 
       assert_locale(view, "de")
-      assert_translation(view, "About Prime Youth Connect", "de")
+      assert_translation(view, "About Klass Hero Connect", "de")
     end
 
     test "contact page displays German translations", %{conn: conn} do

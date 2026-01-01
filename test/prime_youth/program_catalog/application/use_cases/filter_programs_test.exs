@@ -1,4 +1,4 @@
-defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
+defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
   @moduledoc """
   Tests for the FilterPrograms use case.
 
@@ -8,9 +8,9 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.FilterProgramsTest do
 
   use ExUnit.Case, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.ProgramCatalog.Application.UseCases.FilterPrograms
+  alias KlassHero.ProgramCatalog.Application.UseCases.FilterPrograms
 
   # Test helper: Assert that result contains exactly one program with the expected title
   defp assert_single_match(result, expected_title) do

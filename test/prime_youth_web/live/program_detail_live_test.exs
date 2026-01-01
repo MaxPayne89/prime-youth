@@ -1,8 +1,8 @@
-defmodule PrimeYouthWeb.ProgramDetailLiveTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.ProgramDetailLiveTest do
+  use KlassHeroWeb.ConnCase, async: true
 
+  import KlassHero.Factory
   import Phoenix.LiveViewTest
-  import PrimeYouth.Factory
 
   describe "ProgramDetailLive mount validation" do
     test "renders program detail page with valid program ID", %{conn: conn} do

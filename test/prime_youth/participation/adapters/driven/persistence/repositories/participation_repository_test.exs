@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepositoryTest do
+defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepositoryTest do
   @moduledoc """
   Integration tests for ParticipationRepository.
 
@@ -6,15 +6,15 @@ defmodule PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.Part
   creation, retrieval, updates, batch operations, and optimistic locking.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Mappers.ParticipationRecordMapper
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
-  alias PrimeYouth.Participation.Domain.Models.ParticipationRecord
-  alias PrimeYouth.Repo
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Mappers.ParticipationRecordMapper
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
+  alias KlassHero.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Repo
 
   describe "create/1" do
     test "successfully creates participation record and returns domain entity" do

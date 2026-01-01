@@ -1,10 +1,10 @@
-defmodule PrimeYouth.AccountsTest do
-  use PrimeYouth.DataCase, async: true
+defmodule KlassHero.AccountsTest do
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.AccountsFixtures
+  import KlassHero.AccountsFixtures
 
-  alias PrimeYouth.Accounts
-  alias PrimeYouth.Accounts.{User, UserToken}
+  alias KlassHero.Accounts
+  alias KlassHero.Accounts.{User, UserToken}
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do
@@ -397,7 +397,7 @@ defmodule PrimeYouth.AccountsTest do
   end
 
   describe "anonymize_user/1" do
-    import PrimeYouth.EventTestHelper
+    import KlassHero.EventTestHelper
 
     setup do
       setup_test_events()

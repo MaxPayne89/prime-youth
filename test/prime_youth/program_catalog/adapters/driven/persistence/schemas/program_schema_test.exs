@@ -1,7 +1,7 @@
-defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchemaTest do
-  use PrimeYouth.DataCase, async: true
+defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchemaTest do
+  use KlassHero.DataCase, async: true
 
-  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
 
   describe "changeset/2" do
     test "valid changeset with all required fields" do

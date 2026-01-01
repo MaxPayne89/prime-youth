@@ -1,8 +1,8 @@
-defmodule PrimeYouthWeb.UserLive.RegistrationTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.UserLive.RegistrationTest do
+  use KlassHeroWeb.ConnCase, async: true
 
+  import KlassHero.AccountsFixtures
   import Phoenix.LiveViewTest
-  import PrimeYouth.AccountsFixtures
 
   describe "Registration page" do
     test "renders registration page", %{conn: conn} do
@@ -116,7 +116,7 @@ defmodule PrimeYouthWeb.UserLive.RegistrationTest do
       assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
 
       # Verify user was created with both roles
-      user = PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.User, email: email)
+      user = KlassHero.Repo.get_by!(KlassHero.Accounts.User, email: email)
       assert :parent in user.intended_roles
       assert :provider in user.intended_roles
     end
@@ -138,7 +138,7 @@ defmodule PrimeYouthWeb.UserLive.RegistrationTest do
       assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
 
       # Verify user was created with provider role only
-      user = PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.User, email: email)
+      user = KlassHero.Repo.get_by!(KlassHero.Accounts.User, email: email)
       assert user.intended_roles == [:provider]
     end
 
@@ -160,7 +160,7 @@ defmodule PrimeYouthWeb.UserLive.RegistrationTest do
       assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
 
       # Verify user was created with default parent role
-      user = PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.User, email: email)
+      user = KlassHero.Repo.get_by!(KlassHero.Accounts.User, email: email)
       assert user.intended_roles == [:parent]
     end
   end

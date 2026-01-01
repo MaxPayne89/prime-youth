@@ -32,7 +32,7 @@ jobs:
       # Wait for PostgreSQL to be ready
       - name: Wait for PostgreSQL
         run: |
-          timeout 30 bash -c 'until docker exec prime_youth_postgres pg_isready -U postgres; do sleep 1; done'
+          timeout 30 bash -c 'until docker exec klass_hero_postgres pg_isready -U postgres; do sleep 1; done'
         timeout-minutes: 1
 
       # erlef/setup-beam@v1.20.4

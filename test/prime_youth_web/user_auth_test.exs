@@ -1,21 +1,21 @@
-defmodule PrimeYouthWeb.UserAuthTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.UserAuthTest do
+  use KlassHeroWeb.ConnCase, async: true
 
-  import PrimeYouth.AccountsFixtures
+  import KlassHero.AccountsFixtures
 
+  alias KlassHero.Accounts
+  alias KlassHero.Accounts.Scope
+  alias KlassHero.Identity
+  alias KlassHeroWeb.UserAuth
   alias Phoenix.LiveView
-  alias PrimeYouth.Accounts
-  alias PrimeYouth.Accounts.Scope
-  alias PrimeYouth.Identity
-  alias PrimeYouthWeb.UserAuth
 
-  @remember_me_cookie "_prime_youth_web_user_remember_me"
+  @remember_me_cookie "_klass_hero_web_user_remember_me"
   @remember_me_cookie_max_age 60 * 60 * 24 * 14
 
   setup %{conn: conn} do
     conn =
       conn
-      |> Map.replace!(:secret_key_base, PrimeYouthWeb.Endpoint.config(:secret_key_base))
+      |> Map.replace!(:secret_key_base, KlassHeroWeb.Endpoint.config(:secret_key_base))
       |> init_test_session(%{})
 
     %{user: %{user_fixture() | authenticated_at: DateTime.utc_now(:second)}, conn: conn}
@@ -92,7 +92,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       conn =
         conn
         |> recycle()
-        |> Map.replace!(:secret_key_base, PrimeYouthWeb.Endpoint.config(:secret_key_base))
+        |> Map.replace!(:secret_key_base, KlassHeroWeb.Endpoint.config(:secret_key_base))
         |> fetch_cookies()
         |> init_test_session(%{user_remember_me: true})
 
@@ -127,7 +127,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
 
     test "broadcasts to the given live_socket_id", %{conn: conn} do
       live_socket_id = "users_sessions:abcdef-token"
-      PrimeYouthWeb.Endpoint.subscribe(live_socket_id)
+      KlassHeroWeb.Endpoint.subscribe(live_socket_id)
 
       conn
       |> put_session(:live_socket_id, live_socket_id)
@@ -262,7 +262,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{
-        endpoint: PrimeYouthWeb.Endpoint,
+        endpoint: KlassHeroWeb.Endpoint,
         assigns: %{__changed__: %{}, flash: %{}}
       }
 
@@ -274,7 +274,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       session = conn |> get_session()
 
       socket = %LiveView.Socket{
-        endpoint: PrimeYouthWeb.Endpoint,
+        endpoint: KlassHeroWeb.Endpoint,
         assigns: %{__changed__: %{}, flash: %{}}
       }
 
@@ -289,7 +289,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{
-        endpoint: PrimeYouthWeb.Endpoint,
+        endpoint: KlassHeroWeb.Endpoint,
         assigns: %{__changed__: %{}, flash: %{}}
       }
 
@@ -306,7 +306,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{
-        endpoint: PrimeYouthWeb.Endpoint,
+        endpoint: KlassHeroWeb.Endpoint,
         assigns: %{__changed__: %{}, flash: %{}}
       }
 
@@ -329,7 +329,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{
-        endpoint: PrimeYouthWeb.Endpoint,
+        endpoint: KlassHeroWeb.Endpoint,
         assigns: %{__changed__: %{}, flash: %{}}
       }
 
@@ -346,7 +346,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{
-        endpoint: PrimeYouthWeb.Endpoint,
+        endpoint: KlassHeroWeb.Endpoint,
         assigns: %{__changed__: %{}, flash: %{}}
       }
 
@@ -360,7 +360,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       session = get_session(conn)
 
       socket = %LiveView.Socket{
-        endpoint: PrimeYouthWeb.Endpoint,
+        endpoint: KlassHeroWeb.Endpoint,
         assigns: %{__changed__: %{}, flash: %{}}
       }
 
@@ -385,7 +385,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{
-        endpoint: PrimeYouthWeb.Endpoint,
+        endpoint: KlassHeroWeb.Endpoint,
         assigns: %{__changed__: %{}, flash: %{}}
       }
 
@@ -402,7 +402,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       session = conn |> put_session(:user_token, user_token) |> get_session()
 
       socket = %LiveView.Socket{
-        endpoint: PrimeYouthWeb.Endpoint,
+        endpoint: KlassHeroWeb.Endpoint,
         assigns: %{__changed__: %{}, flash: %{}}
       }
 
@@ -416,7 +416,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       session = get_session(conn)
 
       socket = %LiveView.Socket{
-        endpoint: PrimeYouthWeb.Endpoint,
+        endpoint: KlassHeroWeb.Endpoint,
         assigns: %{__changed__: %{}, flash: %{}}
       }
 
@@ -484,7 +484,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       tokens = [%{token: "token1"}, %{token: "token2"}]
 
       for %{token: token} <- tokens do
-        PrimeYouthWeb.Endpoint.subscribe("users_sessions:#{Base.url_encode64(token)}")
+        KlassHeroWeb.Endpoint.subscribe("users_sessions:#{Base.url_encode64(token)}")
       end
 
       UserAuth.disconnect_sessions(tokens)

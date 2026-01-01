@@ -1,4 +1,4 @@
-defmodule PrimeYouthWeb.ConnCase do
+defmodule KlassHeroWeb.ConnCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.
@@ -11,31 +11,32 @@ defmodule PrimeYouthWeb.ConnCase do
   we enable the SQL sandbox, so changes done to the database
   are reverted at the end of every test. If you are using
   PostgreSQL, you can even run database tests asynchronously
-  by setting `use PrimeYouthWeb.ConnCase, async: true`, although
+  by setting `use KlassHeroWeb.ConnCase, async: true`, although
   this option is not recommended for other databases.
   """
 
   use ExUnit.CaseTemplate
 
-  alias PrimeYouth.Accounts.Scope
+  alias KlassHero.Accounts.Scope
 
   using do
     quote do
-      use PrimeYouthWeb, :verified_routes
+      use KlassHeroWeb, :verified_routes
 
+      import KlassHeroWeb.ConnCase
       import Phoenix.ConnTest
       import Phoenix.LiveViewTest
       import Plug.Conn
-      import PrimeYouthWeb.ConnCase
+
       # The default endpoint for testing
-      @endpoint PrimeYouthWeb.Endpoint
+      @endpoint KlassHeroWeb.Endpoint
 
       # Import conveniences for testing with connections
     end
   end
 
   setup tags do
-    PrimeYouth.DataCase.setup_sandbox(tags)
+    KlassHero.DataCase.setup_sandbox(tags)
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 
@@ -91,7 +92,7 @@ defmodule PrimeYouthWeb.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn} = context) do
-    user = PrimeYouth.AccountsFixtures.user_fixture()
+    user = KlassHero.AccountsFixtures.user_fixture()
     scope = Scope.for_user(user)
 
     opts =
@@ -108,7 +109,7 @@ defmodule PrimeYouthWeb.ConnCase do
   It returns an updated `conn`.
   """
   def log_in_user(conn, user, opts \\ []) do
-    token = PrimeYouth.Accounts.generate_user_session_token(user)
+    token = KlassHero.Accounts.generate_user_session_token(user)
 
     maybe_set_token_authenticated_at(token, opts[:token_authenticated_at])
 
@@ -129,10 +130,10 @@ defmodule PrimeYouthWeb.ConnCase do
     result = register_and_log_in_user(context)
 
     # Create parent profile linked to the user
-    parent = PrimeYouth.Factory.insert(:parent_schema, identity_id: result.user.id)
+    parent = KlassHero.Factory.insert(:parent_schema, identity_id: result.user.id)
 
     # Create a child for the parent
-    child = PrimeYouth.Factory.insert(:child_schema, parent_id: parent.id, first_name: "Emma")
+    child = KlassHero.Factory.insert(:child_schema, parent_id: parent.id, first_name: "Emma")
 
     Map.merge(result, %{parent: parent, child: child})
   end
@@ -140,6 +141,6 @@ defmodule PrimeYouthWeb.ConnCase do
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do
-    PrimeYouth.AccountsFixtures.override_token_authenticated_at(token, authenticated_at)
+    KlassHero.AccountsFixtures.override_token_authenticated_at(token, authenticated_at)
   end
 end

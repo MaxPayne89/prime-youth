@@ -1,10 +1,10 @@
-defmodule PrimeYouthWeb.UserLive.ConfirmationTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.UserLive.ConfirmationTest do
+  use KlassHeroWeb.ConnCase, async: true
 
+  import KlassHero.AccountsFixtures
   import Phoenix.LiveViewTest
-  import PrimeYouth.AccountsFixtures
 
-  alias PrimeYouth.Accounts
+  alias KlassHero.Accounts
 
   setup do
     %{unconfirmed_user: unconfirmed_user_fixture(), confirmed_user: user_fixture()}

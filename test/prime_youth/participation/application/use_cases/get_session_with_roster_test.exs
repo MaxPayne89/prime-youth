@@ -1,17 +1,17 @@
-defmodule PrimeYouth.Participation.Application.UseCases.GetSessionWithRosterTest do
+defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest do
   @moduledoc """
   Integration tests for GetSessionWithRoster use case.
 
   Tests retrieving a session with its participation roster.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Application.UseCases.GetSessionWithRoster
-  alias PrimeYouth.Participation.Domain.Models.ParticipationRecord
-  alias PrimeYouth.Participation.Domain.Models.ProgramSession
+  alias KlassHero.Participation.Application.UseCases.GetSessionWithRoster
+  alias KlassHero.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Participation.Domain.Models.ProgramSession
 
   describe "execute/1" do
     test "returns session with roster entries" do

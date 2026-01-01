@@ -1,11 +1,11 @@
-defmodule PrimeYouth.Identity.Domain.Models.ChildTest do
+defmodule KlassHero.Identity.Domain.Models.ChildTest do
   @moduledoc """
   Tests for the Child domain entity.
   """
 
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Identity.Domain.Models.Child
+  alias KlassHero.Identity.Domain.Models.Child
 
   describe "new/1 with valid attributes" do
     test "creates child with all fields" do

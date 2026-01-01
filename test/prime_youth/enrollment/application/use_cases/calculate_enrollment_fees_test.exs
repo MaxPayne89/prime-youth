@@ -1,8 +1,8 @@
-defmodule PrimeYouth.Enrollment.Application.UseCases.CalculateEnrollmentFeesTest do
+defmodule KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFeesTest do
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Enrollment.Application.UseCases.CalculateEnrollmentFees
-  alias PrimeYouth.Enrollment.Domain.Models.FeeCalculation
+  alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
+  alias KlassHero.Enrollment.Domain.Models.FeeCalculation
 
   describe "execute/1" do
     test "calculates fees correctly for card payment" do

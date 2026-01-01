@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Repo.Migrations.CreateParticipationRecords do
+defmodule KlassHero.Repo.Migrations.CreateParticipationRecords do
   use Ecto.Migration
 
   def change do

@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Prime Youth Brand Colors - extending DaisyUI
+        // Klass Hero Brand Colors - extending DaisyUI
         'prime': {
           yellow: {
             50: '#FFFCEB',

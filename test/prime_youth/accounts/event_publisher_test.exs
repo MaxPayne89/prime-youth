@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Accounts.EventPublisherTest do
-  use PrimeYouth.DataCase, async: true
+defmodule KlassHero.Accounts.EventPublisherTest do
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.EventTestHelper
+  import KlassHero.EventTestHelper
 
-  alias PrimeYouth.Accounts.EventPublisher
-  alias PrimeYouth.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Accounts.EventPublisher
+  alias KlassHero.Shared.Domain.Events.DomainEvent
 
   setup do
     setup_test_events()
@@ -167,7 +167,7 @@ defmodule PrimeYouth.Accounts.EventPublisherTest do
   end
 
   defp build_user(attrs \\ []) do
-    %PrimeYouth.Accounts.User{
+    %KlassHero.Accounts.User{
       id: Keyword.get(attrs, :id, 1),
       email: Keyword.get(attrs, :email, "default@example.com"),
       name: Keyword.get(attrs, :name, "Default User"),

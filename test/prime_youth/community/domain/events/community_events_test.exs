@@ -1,8 +1,8 @@
-defmodule PrimeYouth.Community.Domain.Events.CommunityEventsTest do
+defmodule KlassHero.Community.Domain.Events.CommunityEventsTest do
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Community.Domain.Events.CommunityEvents
-  alias PrimeYouth.Community.Domain.Models.Post
+  alias KlassHero.Community.Domain.Events.CommunityEvents
+  alias KlassHero.Community.Domain.Models.Post
 
   # Helper to create a valid post with only required overrides
   defp valid_post(overrides \\ []) do

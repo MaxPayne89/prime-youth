@@ -1,7 +1,7 @@
-defmodule PrimeYouth.Participation.Adapters.Driven.IdentityContext.ChildNameResolverTest do
-  use PrimeYouth.DataCase, async: true
+defmodule KlassHero.Participation.Adapters.Driven.IdentityContext.ChildNameResolverTest do
+  use KlassHero.DataCase, async: true
 
-  alias PrimeYouth.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
+  alias KlassHero.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
 
   describe "resolve_child_name/1" do
     test "returns child full name when child exists" do
@@ -73,10 +73,10 @@ defmodule PrimeYouth.Participation.Adapters.Driven.IdentityContext.ChildNameReso
 
   # Helper to get configured repositories from Identity context
   defp parent_repository do
-    Application.get_env(:prime_youth, :identity)[:for_storing_parent_profiles]
+    Application.get_env(:klass_hero, :identity)[:for_storing_parent_profiles]
   end
 
   defp child_repository do
-    Application.get_env(:prime_youth, :identity)[:for_storing_children]
+    Application.get_env(:klass_hero, :identity)[:for_storing_children]
   end
 end

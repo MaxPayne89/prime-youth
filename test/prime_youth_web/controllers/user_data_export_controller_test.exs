@@ -1,7 +1,7 @@
-defmodule PrimeYouthWeb.UserDataExportControllerTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.UserDataExportControllerTest do
+  use KlassHeroWeb.ConnCase, async: true
 
-  import PrimeYouth.AccountsFixtures
+  import KlassHero.AccountsFixtures
 
   setup %{conn: conn} do
     user = user_fixture()
@@ -21,7 +21,7 @@ defmodule PrimeYouthWeb.UserDataExportControllerTest do
 
       content_disposition = get_resp_header(conn, "content-disposition") |> List.first()
       assert content_disposition =~ "attachment"
-      assert content_disposition =~ "prime_youth_data_export_"
+      assert content_disposition =~ "klass_hero_data_export_"
       assert content_disposition =~ ".json"
     end
 

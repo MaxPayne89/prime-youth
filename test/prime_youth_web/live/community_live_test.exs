@@ -1,5 +1,5 @@
-defmodule PrimeYouthWeb.CommunityLiveTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.CommunityLiveTest do
+  use KlassHeroWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
 
@@ -26,7 +26,7 @@ defmodule PrimeYouthWeb.CommunityLiveTest do
       # Verify sample posts are displayed using data-testid
       assert has_element?(view, "[data-testid='post-author']", "Ms. Sarah - Art Instructor")
       assert has_element?(view, "[data-testid='post-author']", "Mr. David - Chess Coach")
-      assert has_element?(view, "[data-testid='post-author']", "Prime Youth Admin")
+      assert has_element?(view, "[data-testid='post-author']", "Klass Hero Admin")
     end
 
     test "displays post content correctly", %{conn: conn} do
@@ -132,7 +132,7 @@ defmodule PrimeYouthWeb.CommunityLiveTest do
       # Verify all posts still present after update
       assert has_element?(view, "[data-testid='post-author']", "Ms. Sarah - Art Instructor")
       assert has_element?(view, "[data-testid='post-author']", "Mr. David - Chess Coach")
-      assert has_element?(view, "[data-testid='post-author']", "Prime Youth Admin")
+      assert has_element?(view, "[data-testid='post-author']", "Klass Hero Admin")
     end
 
     test "add_comment event trims whitespace", %{conn: conn} do
@@ -147,7 +147,7 @@ defmodule PrimeYouthWeb.CommunityLiveTest do
       # Verify all posts still present after update
       assert has_element?(view, "[data-testid='post-author']", "Ms. Sarah - Art Instructor")
       assert has_element?(view, "[data-testid='post-author']", "Mr. David - Chess Coach")
-      assert has_element?(view, "[data-testid='post-author']", "Prime Youth Admin")
+      assert has_element?(view, "[data-testid='post-author']", "Klass Hero Admin")
     end
 
     test "add_comment event ignores empty comments", %{conn: conn} do
@@ -162,7 +162,7 @@ defmodule PrimeYouthWeb.CommunityLiveTest do
       # Verify all posts still present (no changes made)
       assert has_element?(view, "[data-testid='post-author']", "Ms. Sarah - Art Instructor")
       assert has_element?(view, "[data-testid='post-author']", "Mr. David - Chess Coach")
-      assert has_element?(view, "[data-testid='post-author']", "Prime Youth Admin")
+      assert has_element?(view, "[data-testid='post-author']", "Klass Hero Admin")
     end
 
     test "add_comment event ignores whitespace-only comments", %{conn: conn} do
@@ -177,7 +177,7 @@ defmodule PrimeYouthWeb.CommunityLiveTest do
       # Verify all posts still present (no changes made)
       assert has_element?(view, "[data-testid='post-author']", "Ms. Sarah - Art Instructor")
       assert has_element?(view, "[data-testid='post-author']", "Mr. David - Chess Coach")
-      assert has_element?(view, "[data-testid='post-author']", "Prime Youth Admin")
+      assert has_element?(view, "[data-testid='post-author']", "Klass Hero Admin")
     end
 
     test "add_comment increments comment count", %{conn: conn} do
@@ -234,7 +234,7 @@ defmodule PrimeYouthWeb.CommunityLiveTest do
       # Verify all posts are still present after stream update
       assert has_element?(view, "[data-testid='post-author']", "Ms. Sarah - Art Instructor")
       assert has_element?(view, "[data-testid='post-author']", "Mr. David - Chess Coach")
-      assert has_element?(view, "[data-testid='post-author']", "Prime Youth Admin")
+      assert has_element?(view, "[data-testid='post-author']", "Klass Hero Admin")
     end
 
     test "stream updates when add_comment is called", %{conn: conn} do
@@ -249,7 +249,7 @@ defmodule PrimeYouthWeb.CommunityLiveTest do
       # Verify all posts are still present after stream update
       assert has_element?(view, "[data-testid='post-author']", "Ms. Sarah - Art Instructor")
       assert has_element?(view, "[data-testid='post-author']", "Mr. David - Chess Coach")
-      assert has_element?(view, "[data-testid='post-author']", "Prime Youth Admin")
+      assert has_element?(view, "[data-testid='post-author']", "Klass Hero Admin")
     end
 
     test "multiple comments can be added to same post", %{conn: conn} do
@@ -270,7 +270,7 @@ defmodule PrimeYouthWeb.CommunityLiveTest do
       # Verify all posts still present after multiple updates
       assert has_element?(view, "[data-testid='post-author']", "Ms. Sarah - Art Instructor")
       assert has_element?(view, "[data-testid='post-author']", "Mr. David - Chess Coach")
-      assert has_element?(view, "[data-testid='post-author']", "Prime Youth Admin")
+      assert has_element?(view, "[data-testid='post-author']", "Klass Hero Admin")
     end
 
     test "likes and comments are independent across posts", %{conn: conn} do

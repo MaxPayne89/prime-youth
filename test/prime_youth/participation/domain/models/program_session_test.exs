@@ -1,15 +1,15 @@
-defmodule PrimeYouth.Participation.Domain.Models.ProgramSessionTest do
+defmodule KlassHero.Participation.Domain.Models.ProgramSessionTest do
   @moduledoc """
   Tests for ProgramSession domain entity.
 
   Covers validation, status transitions, and predicate functions.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Domain.Models.ProgramSession
+  alias KlassHero.Participation.Domain.Models.ProgramSession
 
   describe "new/1" do
     test "creates a valid session with all required fields" do

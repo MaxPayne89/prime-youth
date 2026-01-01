@@ -1,2 +1,2 @@
 ExUnit.start()
-Ecto.Adapters.SQL.Sandbox.mode(PrimeYouth.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(KlassHero.Repo, :manual)

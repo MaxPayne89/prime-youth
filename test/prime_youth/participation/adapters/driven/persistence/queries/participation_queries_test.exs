@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Participation.Adapters.Driven.Persistence.Queries.ParticipationQueriesTest do
+defmodule KlassHero.Participation.Adapters.Driven.Persistence.Queries.ParticipationQueriesTest do
   @moduledoc """
   Tests for ParticipationQueries composable query functions.
 
@@ -6,10 +6,10 @@ defmodule PrimeYouth.Participation.Adapters.Driven.Persistence.Queries.Participa
   an Ecto.Query that can be piped into other query functions.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Queries.ParticipationQueries
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Queries.ParticipationQueries
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
 
   describe "base/0" do
     test "returns base query for ParticipationRecordSchema" do

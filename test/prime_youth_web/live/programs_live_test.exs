@@ -1,10 +1,10 @@
-defmodule PrimeYouthWeb.ProgramsLiveTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.ProgramsLiveTest do
+  use KlassHeroWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
 
-  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
-  alias PrimeYouth.Repo
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.Repo
 
   describe "ProgramsLive - Integration with Database (User Story 1)" do
     # T052: Write LiveView test - displays all programs from database

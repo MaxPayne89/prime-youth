@@ -1,9 +1,9 @@
-defmodule PrimeYouth.Community.Application.UseCases.ListPostsTest do
+defmodule KlassHero.Community.Application.UseCases.ListPostsTest do
   use ExUnit.Case, async: false
 
-  alias PrimeYouth.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
-  alias PrimeYouth.Community.Application.UseCases.ListPosts
-  alias PrimeYouth.Community.Domain.Models.Post
+  alias KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
+  alias KlassHero.Community.Application.UseCases.ListPosts
+  alias KlassHero.Community.Domain.Models.Post
 
   setup do
     # Repository is already started by the application supervisor
@@ -48,7 +48,7 @@ defmodule PrimeYouth.Community.Application.UseCases.ListPostsTest do
       authors = Enum.map(posts, & &1.author)
       assert "Ms. Sarah - Art Instructor" in authors
       assert "Mr. David - Chess Coach" in authors
-      assert "Prime Youth Admin" in authors
+      assert "Klass Hero Admin" in authors
     end
 
     test "posts contain engagement metrics" do

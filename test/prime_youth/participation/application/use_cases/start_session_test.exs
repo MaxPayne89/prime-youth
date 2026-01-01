@@ -1,16 +1,16 @@
-defmodule PrimeYouth.Participation.Application.UseCases.StartSessionTest do
+defmodule KlassHero.Participation.Application.UseCases.StartSessionTest do
   @moduledoc """
   Integration tests for StartSession use case.
 
   Tests starting a scheduled session and transitioning it to in_progress.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Application.UseCases.StartSession
-  alias PrimeYouth.Participation.Domain.Models.ProgramSession
+  alias KlassHero.Participation.Application.UseCases.StartSession
+  alias KlassHero.Participation.Domain.Models.ProgramSession
 
   describe "execute/1" do
     test "successfully starts a scheduled session" do
@@ -52,8 +52,8 @@ defmodule PrimeYouth.Participation.Application.UseCases.StartSessionTest do
       {:ok, started_session} = StartSession.execute(session_schema.id)
 
       reloaded =
-        PrimeYouth.Repo.get(
-          PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema,
+        KlassHero.Repo.get(
+          KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema,
           session_schema.id
         )
 

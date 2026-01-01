@@ -1,8 +1,8 @@
-defmodule PrimeYouthWeb.PageControllerTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.PageControllerTest do
+  use KlassHeroWeb.ConnCase, async: true
 
   test "GET /", %{conn: conn} do
     conn = get(conn, ~p"/")
-    assert html_response(conn, 200) =~ "Prime Youth"
+    assert html_response(conn, 200) =~ "Klass Hero"
   end
 end

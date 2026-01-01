@@ -1,16 +1,16 @@
-defmodule PrimeYouth.Participation.Application.UseCases.GetParticipationHistoryTest do
+defmodule KlassHero.Participation.Application.UseCases.GetParticipationHistoryTest do
   @moduledoc """
   Integration tests for GetParticipationHistory use case.
 
   Tests participation history retrieval for children with optional date filtering.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Application.UseCases.GetParticipationHistory
-  alias PrimeYouth.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Participation.Application.UseCases.GetParticipationHistory
+  alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
   describe "execute/1 with single child" do
     test "returns all participation records for a child" do

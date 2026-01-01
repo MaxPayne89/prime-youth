@@ -1,16 +1,16 @@
-defmodule PrimeYouth.Participation.Application.UseCases.CreateSessionTest do
+defmodule KlassHero.Participation.Application.UseCases.CreateSessionTest do
   @moduledoc """
   Integration tests for CreateSession use case.
 
   Tests session creation with domain validation and persistence.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Application.UseCases.CreateSession
-  alias PrimeYouth.Participation.Domain.Models.ProgramSession
+  alias KlassHero.Participation.Application.UseCases.CreateSession
+  alias KlassHero.Participation.Domain.Models.ProgramSession
 
   describe "execute/1" do
     test "successfully creates a session with valid attributes" do

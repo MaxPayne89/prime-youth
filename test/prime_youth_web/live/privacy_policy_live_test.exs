@@ -1,5 +1,5 @@
-defmodule PrimeYouthWeb.PrivacyPolicyLiveTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.PrivacyPolicyLiveTest do
+  use KlassHeroWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
 

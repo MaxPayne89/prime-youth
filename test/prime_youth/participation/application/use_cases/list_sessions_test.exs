@@ -1,16 +1,16 @@
-defmodule PrimeYouth.Participation.Application.UseCases.ListSessionsTest do
+defmodule KlassHero.Participation.Application.UseCases.ListSessionsTest do
   @moduledoc """
   Integration tests for ListSessions use case.
 
   Tests listing sessions with different filter criteria.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Application.UseCases.ListSessions
-  alias PrimeYouth.Participation.Domain.Models.ProgramSession
+  alias KlassHero.Participation.Application.UseCases.ListSessions
+  alias KlassHero.Participation.Domain.Models.ProgramSession
 
   describe "execute/1 with program_id filter" do
     test "returns sessions for a program ordered by date and time" do

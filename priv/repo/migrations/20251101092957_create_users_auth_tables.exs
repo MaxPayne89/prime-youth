@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Repo.Migrations.CreateUsersAuthTables do
+defmodule KlassHero.Repo.Migrations.CreateUsersAuthTables do
   use Ecto.Migration
 
   def change do

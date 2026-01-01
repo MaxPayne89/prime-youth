@@ -1,6 +1,6 @@
-defmodule PrimeYouth.Factory do
+defmodule KlassHero.Factory do
   @moduledoc """
-  ExMachina factory for creating test data across the Prime Youth application.
+  ExMachina factory for creating test data across the Klass Hero application.
 
   This factory provides builders for both domain entities and Ecto schemas,
   following the DDD/Ports & Adapters architecture.
@@ -25,20 +25,20 @@ defmodule PrimeYouth.Factory do
       programs = build_list(3, :program)
   """
 
-  use ExMachina.Ecto, repo: PrimeYouth.Repo
+  use ExMachina.Ecto, repo: KlassHero.Repo
 
-  alias PrimeYouth.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
-  alias PrimeYouth.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
-  alias PrimeYouth.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
-  alias PrimeYouth.Identity.Domain.Models.Child
-  alias PrimeYouth.Identity.Domain.Models.ParentProfile
-  alias PrimeYouth.Identity.Domain.Models.ProviderProfile
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
-  alias PrimeYouth.Participation.Domain.Models.ParticipationRecord
-  alias PrimeYouth.Participation.Domain.Models.ProgramSession
-  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
-  alias PrimeYouth.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Identity.Domain.Models.Child
+  alias KlassHero.Identity.Domain.Models.ParentProfile
+  alias KlassHero.Identity.Domain.Models.ProviderProfile
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
+  alias KlassHero.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Participation.Domain.Models.ProgramSession
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.ProgramCatalog.Domain.Models.Program
 
   @doc """
   Factory for creating Program domain entities (pure Elixir structs).

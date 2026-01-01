@@ -1,11 +1,11 @@
-defmodule PrimeYouth.Community.Application.UseCases.ToggleLikeTest do
+defmodule KlassHero.Community.Application.UseCases.ToggleLikeTest do
   use ExUnit.Case, async: false
 
-  import PrimeYouth.EventTestHelper
+  import KlassHero.EventTestHelper
 
-  alias PrimeYouth.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
-  alias PrimeYouth.Community.Application.UseCases.ToggleLike
-  alias PrimeYouth.Community.Domain.Models.Post
+  alias KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
+  alias KlassHero.Community.Application.UseCases.ToggleLike
+  alias KlassHero.Community.Domain.Models.Post
 
   setup do
     setup_test_events()

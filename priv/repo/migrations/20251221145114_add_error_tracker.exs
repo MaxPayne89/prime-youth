@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Repo.Migrations.AddErrorTracker do
+defmodule KlassHero.Repo.Migrations.AddErrorTracker do
   use Ecto.Migration
 
   def up, do: ErrorTracker.Migration.up()

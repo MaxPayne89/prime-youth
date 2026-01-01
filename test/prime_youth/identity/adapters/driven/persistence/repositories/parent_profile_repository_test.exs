@@ -1,12 +1,12 @@
-defmodule PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepositoryTest do
+defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepositoryTest do
   @moduledoc """
   Tests for the ParentProfileRepository adapter.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  alias PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository
-  alias PrimeYouth.Identity.Domain.Models.ParentProfile
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository
+  alias KlassHero.Identity.Domain.Models.ParentProfile
 
   describe "create_parent_profile/1" do
     test "creates parent profile and returns domain entity" do

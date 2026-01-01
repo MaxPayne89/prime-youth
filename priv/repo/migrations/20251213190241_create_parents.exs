@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Repo.Migrations.CreateParents do
+defmodule KlassHero.Repo.Migrations.CreateParents do
   use Ecto.Migration
 
   def change do

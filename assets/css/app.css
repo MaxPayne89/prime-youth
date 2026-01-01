@@ -4,7 +4,7 @@
 @import "tailwindcss" source(none);
 @source "../css";
 @source "../js";
-@source "../../lib/prime_youth_web";
+@source "../../lib/klass_hero_web";
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */
@@ -69,7 +69,7 @@
   --color-primary-content: oklch(98% 0.016 175);
   --color-secondary: oklch(65% 0.25 335); /* Pink #EC4899 */
   --color-secondary-content: oklch(98% 0.016 335);
-  --color-accent: oklch(80% 0.20 85); /* Prime Youth Yellow #FFD700 */
+  --color-accent: oklch(80% 0.20 85); /* Klass Hero Yellow #FFD700 */
   --color-accent-content: oklch(20% 0.020 85);
   --color-neutral: oklch(44% 0.017 285.786);
   --color-neutral-content: oklch(98% 0 0);
@@ -104,7 +104,7 @@
 
 /* This file is for your main application CSS */
 
-/* Prime Youth Brand Colors */
+/* Klass Hero Brand Colors */
 @theme {
   --color-prime-cyan-50: oklch(98% 0.02 175);
   --color-prime-cyan-100: oklch(95% 0.04 175);
