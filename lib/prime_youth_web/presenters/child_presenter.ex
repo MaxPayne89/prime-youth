@@ -16,7 +16,7 @@ defmodule PrimeYouthWeb.Presenters.ChildPresenter do
       children_for_view = Enum.map(children, &ChildPresenter.to_extended_view/1)
   """
 
-  alias PrimeYouth.Family.Domain.Models.Child
+  alias PrimeYouth.Identity.Domain.Models.Child
 
   @doc """
   Transforms a Child domain model to a simple view format.

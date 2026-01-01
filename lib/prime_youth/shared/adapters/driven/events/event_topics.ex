@@ -68,14 +68,6 @@ defmodule PrimeYouth.Shared.Adapters.Driven.Events.EventTopics do
     ]
   end
 
-  def topics_for_aggregate(:family) do
-    [
-      "family:family_created",
-      "family:child_added",
-      "family:child_removed"
-    ]
-  end
-
   def topics_for_aggregate(_), do: []
 
   @doc """
@@ -89,7 +81,7 @@ defmodule PrimeYouth.Shared.Adapters.Driven.Events.EventTopics do
   """
   @spec all_topics() :: [String.t()]
   def all_topics do
-    [:user, :enrollment, :program, :family]
+    [:user, :enrollment, :program]
     |> Enum.flat_map(&topics_for_aggregate/1)
   end
 

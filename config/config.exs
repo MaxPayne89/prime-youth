@@ -71,45 +71,35 @@ config :prime_youth, PrimeYouthWeb.Gettext,
   default_locale: "en",
   locales: ~w(en de)
 
-# Configure Activities bounded context
-config :prime_youth, :activities,
-  repository:
-    PrimeYouth.Activities.Adapters.Driven.Persistence.Repositories.InMemoryActivityRepository
-
-# Configure Attendance bounded context
-config :prime_youth, :attendance,
-  session_repository:
-    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.SessionRepository,
-  attendance_repository:
-    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.AttendanceRepository,
-  child_name_resolver: PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolver
+# Configure Community bounded context
+config :prime_youth, :community,
+  repository: PrimeYouth.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
 
 # Configure Event Publisher
 config :prime_youth, :event_publisher,
   module: PrimeYouth.Shared.Adapters.Driven.Events.PubSubEventPublisher,
   pubsub: PrimeYouth.PubSub
 
-# Configure Family bounded context
-config :prime_youth, :family,
-  repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.InMemoryFamilyRepository,
-  child_repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
+# Configure Identity bounded context
+config :prime_youth, :identity,
+  for_storing_parent_profiles:
+    PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
+  for_storing_provider_profiles:
+    PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
+  for_storing_children:
+    PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
 
-# Configure Highlights bounded context
-config :prime_youth, :highlights,
-  repository:
-    PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
-
-# Configure Parenting bounded context
-config :prime_youth, :parenting,
-  repository: PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRepository
+# Configure Participation bounded context
+config :prime_youth, :participation,
+  session_repository:
+    PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
+  participation_repository:
+    PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
+  child_name_resolver: PrimeYouth.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
 
 # Configure Program Catalog bounded context
 config :prime_youth, :program_catalog,
   repository: PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
-
-# Configure Providing bounded context
-config :prime_youth, :providing,
-  repository: PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.ProviderRepository
 
 config :prime_youth, :scopes,
   user: [

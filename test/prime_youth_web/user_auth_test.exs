@@ -6,8 +6,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
   alias Phoenix.LiveView
   alias PrimeYouth.Accounts
   alias PrimeYouth.Accounts.Scope
-  alias PrimeYouth.Parenting
-  alias PrimeYouth.Providing
+  alias PrimeYouth.Identity
   alias PrimeYouthWeb.UserAuth
 
   @remember_me_cookie "_prime_youth_web_user_remember_me"
@@ -321,7 +320,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       user = user_fixture()
 
       {:ok, _parent} =
-        Parenting.create_parent_profile(%{
+        Identity.create_parent_profile(%{
           identity_id: user.id,
           display_name: user.name
         })
@@ -377,7 +376,7 @@ defmodule PrimeYouthWeb.UserAuthTest do
       user = user_fixture()
 
       {:ok, _provider} =
-        Providing.create_provider_profile(%{
+        Identity.create_provider_profile(%{
           identity_id: user.id,
           business_name: "Test Business"
         })

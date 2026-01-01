@@ -13,13 +13,11 @@ config :opentelemetry, traces_exporter: :none
 config :phoenix, :plug_init_mode, :runtime
 
 # Configure your database
-
-# Enable helpful, but potentially expensive runtime checks
-#
-
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
 
+# Enable helpful, but potentially expensive runtime checks
+#
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 # In test we don't send emails
@@ -43,29 +41,17 @@ config :prime_youth, PrimeYouthWeb.Endpoint,
   secret_key_base: "gY/oKuAYeC5ExhHrtu1JBwrpQdoGwtPOo3X9GdS7CFOnLe0eqRQ9w4cyV1MqvoYc",
   server: false
 
-config :prime_youth, :attendance,
-  session_repository:
-    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.SessionRepository,
-  attendance_repository:
-    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.AttendanceRepository,
-  child_name_resolver: PrimeYouth.Attendance.Adapters.Driven.FamilyContext.ChildNameResolver
-
 # Use test event publisher for testing
 config :prime_youth, :event_publisher,
   module: PrimeYouth.Shared.Adapters.Driven.Events.TestEventPublisher,
   pubsub: PrimeYouth.PubSub
 
-config :prime_youth, :family,
-  child_repository: PrimeYouth.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
-
-# Repository configurations for test environment
-config :prime_youth, :parenting,
-  parent_repository:
-    PrimeYouth.Parenting.Adapters.Driven.Persistence.Repositories.ParentRepository
-
-config :prime_youth, :providing,
-  provider_repository:
-    PrimeYouth.Providing.Adapters.Driven.Persistence.Repositories.ProviderRepository
+config :prime_youth, :participation,
+  session_repository:
+    PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
+  participation_repository:
+    PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
+  child_name_resolver: PrimeYouth.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false

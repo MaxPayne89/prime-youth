@@ -339,9 +339,9 @@ defmodule PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTes
 
   describe "production subscriber isolation" do
     test "test subscribers do not interfere with production subscriber" do
-      # The production UserEventHandler subscriber is started in application.ex
+      # The production IdentityEventHandler subscriber is started in application.ex
       production_subscriber =
-        Process.whereis(PrimeYouth.Family.Adapters.Driven.Events.UserEventHandler)
+        Process.whereis(PrimeYouth.Identity.Adapters.Driven.Events.IdentityEventHandler)
 
       {:ok, test_subscriber} =
         start_test_subscriber(

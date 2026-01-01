@@ -11,7 +11,6 @@ defmodule PrimeYouthWeb.DashboardLiveTest do
 
       assert has_element?(view, "h3", "My Children")
       assert has_element?(view, "h3", "Quick Actions")
-      assert has_element?(view, "h3", "Upcoming Activities")
     end
 
     test "displays profile header with user information", %{conn: conn} do
@@ -34,17 +33,6 @@ defmodule PrimeYouthWeb.DashboardLiveTest do
       assert html =~ "My Children"
     end
 
-    test "streams upcoming activities with phx-update=\"stream\"", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify stream container has correct attributes
-      assert html =~ "id=\"upcoming-activities\""
-      assert html =~ "phx-update=\"stream\""
-
-      # Verify upcoming activities section exists
-      assert html =~ "Upcoming Activities"
-    end
-
     test "displays child cards from stream data", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
@@ -54,24 +42,6 @@ defmodule PrimeYouthWeb.DashboardLiveTest do
 
       # Child cards should include progress indicators
       # The word "sessions" appears in child card data but may be lowercase
-    end
-
-    test "displays activity cards from stream data", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify activity cards are rendered with status, time, name, instructor
-      assert html =~ "Upcoming Activities"
-    end
-
-    test "shows empty state when no activities are available", %{conn: conn} do
-      # This test requires mocking empty activities
-      # For now, we test that the empty state component is conditionally rendered
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Empty state should be conditionally rendered based on @activities_empty?
-      # If activities exist, empty state should NOT be shown
-      # We can't test the empty state without mocking data
-      assert html =~ "Upcoming Activities"
     end
 
     test "displays quick action buttons", %{conn: conn} do
@@ -100,14 +70,6 @@ defmodule PrimeYouthWeb.DashboardLiveTest do
       assert has_element?(view, "button", "View All")
     end
 
-    test "upcoming activities section has View All button", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/dashboard")
-
-      # There are multiple "View All" buttons
-      # One for children, one for activities
-      assert has_element?(view, "button", "View All")
-    end
-
     test "settings link navigates to settings page", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
@@ -121,7 +83,6 @@ defmodule PrimeYouthWeb.DashboardLiveTest do
       # Verify dashboard content is rendered
       assert html =~ "My Children"
       assert html =~ "Quick Actions"
-      assert html =~ "Upcoming Activities"
     end
 
     test "responsive grid layout for children cards", %{conn: conn} do
@@ -154,17 +115,6 @@ defmodule PrimeYouthWeb.DashboardLiveTest do
       # These are passed as assigns to child_card component
     end
 
-    test "activity cards display status, time, name, and instructor", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify activity card structure includes all expected data
-      assert html =~ "Upcoming Activities"
-
-      # Activity cards should include:
-      # - status, status_color, time, name, instructor
-      # These are passed as assigns to activity_card component
-    end
-
     test "stream maintains order of children", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
@@ -173,16 +123,6 @@ defmodule PrimeYouthWeb.DashboardLiveTest do
       assert html =~ "phx-update=\"stream\""
 
       # Stream should maintain insertion order from sample_children(:extended)
-    end
-
-    test "stream maintains order of activities", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify activities stream container exists
-      assert html =~ "id=\"upcoming-activities\""
-      assert html =~ "phx-update=\"stream\""
-
-      # Stream should maintain insertion order from sample_upcoming_activities()
     end
 
     test "dashboard uses gradient page header variant", %{conn: conn} do

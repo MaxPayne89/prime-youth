@@ -329,40 +329,6 @@ defmodule PrimeYouthWeb.Live.SampleFixtures do
     ]
   end
 
-  # Activity Fixtures
-
-  @doc """
-  Returns sample upcoming activities for the dashboard.
-  """
-  def sample_upcoming_activities do
-    [
-      %{
-        id: 1,
-        name: "Creative Art World",
-        instructor: "Ms. Rodriguez",
-        time: "4:00 PM",
-        status: "Today",
-        status_color: "bg-red-100 text-red-700"
-      },
-      %{
-        id: 2,
-        name: "Chess Masters",
-        instructor: "Mr. Chen",
-        time: "3:30 PM",
-        status: "Tomorrow",
-        status_color: "bg-orange-100 text-orange-700"
-      },
-      %{
-        id: 3,
-        name: "Swimming Lessons",
-        instructor: "Coach Davis",
-        time: "2:00 PM",
-        status: "This Week",
-        status_color: "bg-blue-100 text-blue-700"
-      }
-    ]
-  end
-
   # Helper Data Fixtures
 
   @doc """

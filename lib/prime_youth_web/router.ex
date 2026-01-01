@@ -46,7 +46,7 @@ defmodule PrimeYouthWeb.Router do
       ] do
       live "/dashboard", DashboardLive, :index
       live "/settings", SettingsLive, :index
-      live "/highlights", HighlightsLive, :index
+      live "/community", CommunityLive, :index
       live "/programs/:id/booking", BookingLive, :new
     end
 
@@ -60,7 +60,7 @@ defmodule PrimeYouthWeb.Router do
       ] do
       scope "/provider", Provider do
         live "/sessions", SessionsLive, :index
-        live "/attendance/:session_id", AttendanceLive, :show
+        live "/participation/:session_id", ParticipationLive, :show
       end
     end
 
@@ -73,7 +73,7 @@ defmodule PrimeYouthWeb.Router do
         {PrimeYouthWeb.Hooks.RestoreLocale, :restore_locale}
       ] do
       scope "/parent", Parent do
-        live "/attendance", AttendanceHistoryLive, :index
+        live "/participation", ParticipationHistoryLive, :index
       end
     end
   end
