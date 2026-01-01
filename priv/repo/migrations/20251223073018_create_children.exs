@@ -15,8 +15,8 @@ defmodule PrimeYouth.Repo.Migrations.CreateChildren do
 
     create index(:children, [:parent_id])
 
-    # Add FK constraint from attendance_records.child_id to children.id
-    alter table(:attendance_records) do
+    # Add FK constraint from participation_records.child_id to children.id
+    alter table(:participation_records) do
       modify :child_id, references(:children, type: :binary_id, on_delete: :restrict),
         from: {:binary_id, null: false}
     end

@@ -46,7 +46,7 @@
   <%!-- Sessions list --%>
   <div id="sessions" phx-update="stream" class="space-y-4">
     <div :for={{id, session} <- @streams.sessions} id={id}>
-      <.attendance_card session={session} role={:provider}>
+      <.participation_card session={session} role={:provider}>
         <:actions>
           <%= cond do %>
             <% session.status == :scheduled -> %>
@@ -63,14 +63,14 @@
               </button>
             <% session.status == :in_progress -> %>
               <.link
-                navigate={~p"/provider/attendance/#{session.id}"}
+                navigate={~p"/provider/participation/#{session.id}"}
                 class={[
                   "px-4 py-2 bg-teal-600 text-white font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 text-center",
                   Theme.rounded(:lg),
                   Theme.transition(:normal)
                 ]}
               >
-                Manage Attendance
+                Manage Participation
               </.link>
               <button
                 phx-click="complete_session"
@@ -85,20 +85,20 @@
               </button>
             <% session.status == :completed -> %>
               <.link
-                navigate={~p"/provider/attendance/#{session.id}"}
+                navigate={~p"/provider/participation/#{session.id}"}
                 class={[
                   "px-4 py-2 bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-center",
                   Theme.rounded(:lg),
                   Theme.transition(:normal)
                 ]}
               >
-                View Attendance
+                View Participation
               </.link>
             <% true -> %>
               <span class="text-sm text-gray-500">No actions available</span>
           <% end %>
         </:actions>
-      </.attendance_card>
+      </.participation_card>
     </div>
 
     <%!-- Empty state --%>

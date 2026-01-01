@@ -7,7 +7,7 @@ defmodule PrimeYouthWeb.ErrorIds do
   ## Error ID Ranges by Bounded Context
 
   - `program.*` - Program Catalog context errors
-  - `attendance.*` - Attendance context errors (sessions and records)
+  - `participation.*` - Participation context errors (sessions and records)
 
   ## Usage
 
@@ -45,33 +45,50 @@ defmodule PrimeYouthWeb.ErrorIds do
   @doc "Program update failed - program not found."
   def program_update_not_found, do: "program.catalog.update.not_found"
 
-  # Attendance Context - Session Domain Errors
+  # Participation Context - Session Domain Errors
 
   @doc "Session update failed due to concurrent modification (optimistic lock conflict)."
-  def session_update_stale_error, do: "attendance.session.update.stale"
+  def session_update_stale_error, do: "participation.session.update.stale"
 
   @doc "Session update failed due to constraint violation."
-  def session_update_constraint_violation, do: "attendance.session.update.constraint_violation"
+  def session_update_constraint_violation, do: "participation.session.update.constraint_violation"
 
   @doc "Duplicate session error - session already exists for the same program/date/time."
-  def session_duplicate_error, do: "attendance.session.create.duplicate"
+  def session_duplicate_error, do: "participation.session.create.duplicate"
 
   @doc "Session validation error - changeset validation failed."
-  def session_validation_error, do: "attendance.session.validation.error"
+  def session_validation_error, do: "participation.session.validation.error"
 
-  # Attendance Context - Attendance Record Domain Errors
+  @doc "Session create failed due to changeset errors."
+  def session_create_failed(%Ecto.Changeset{} = _changeset),
+    do: "participation.session.create.failed"
 
-  @doc "Attendance update failed due to concurrent modification (optimistic lock conflict)."
-  def attendance_update_stale_error, do: "attendance.record.update.stale_entry"
+  @doc "Session update failed due to changeset errors."
+  def session_update_failed(%Ecto.Changeset{} = _changeset),
+    do: "participation.session.update.failed"
 
-  @doc "Attendance update failed due to constraint violation."
-  def attendance_update_constraint_violation, do: "attendance.record.update.constraint_violation"
+  # Participation Context - Participation Record Domain Errors
 
-  @doc "Duplicate attendance record error - record already exists for session/child combination."
-  def attendance_duplicate_error, do: "attendance.record.create.duplicate"
+  @doc "Participation update failed due to concurrent modification (optimistic lock conflict)."
+  def participation_update_stale_error, do: "participation.record.update.stale_entry"
 
-  @doc "Attendance validation error - changeset validation failed."
-  def attendance_validation_error, do: "attendance.record.validation.error"
+  @doc "Participation update failed due to constraint violation."
+  def participation_update_constraint_violation,
+    do: "participation.record.update.constraint_violation"
+
+  @doc "Duplicate participation record error - record already exists for session/child combination."
+  def participation_duplicate_error, do: "participation.record.create.duplicate"
+
+  @doc "Participation validation error - changeset validation failed."
+  def participation_validation_error, do: "participation.record.validation.error"
+
+  @doc "Participation record create failed due to changeset errors."
+  def participation_record_create_failed(%Ecto.Changeset{} = _changeset),
+    do: "participation.record.create.failed"
+
+  @doc "Participation record update failed due to changeset errors."
+  def participation_record_update_failed(%Ecto.Changeset{} = _changeset),
+    do: "participation.record.update.failed"
 
   # Identity Context - Domain Errors
 

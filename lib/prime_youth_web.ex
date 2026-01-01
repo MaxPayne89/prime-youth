@@ -84,10 +84,10 @@ defmodule PrimeYouthWeb do
 
       # HTML escaping functionality
       import Phoenix.HTML
-      import PrimeYouthWeb.AttendanceComponents
       import PrimeYouthWeb.CompositeComponents
-      # Core UI components
       import PrimeYouthWeb.CoreComponents
+      import PrimeYouthWeb.ParticipationComponents
+      # Core UI components
       import PrimeYouthWeb.UIComponents, except: [icon: 1]
 
       # Common modules used in templates

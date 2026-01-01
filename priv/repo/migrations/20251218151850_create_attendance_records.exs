@@ -1,8 +1,8 @@
-defmodule PrimeYouth.Repo.Migrations.CreateAttendanceRecords do
+defmodule PrimeYouth.Repo.Migrations.CreateParticipationRecords do
   use Ecto.Migration
 
   def change do
-    create table(:attendance_records, primary_key: false) do
+    create table(:participation_records, primary_key: false) do
       add :id, :binary_id, primary_key: true
 
       add :session_id,
@@ -42,17 +42,17 @@ defmodule PrimeYouth.Repo.Migrations.CreateAttendanceRecords do
     end
 
     # Indexes for common queries
-    create index(:attendance_records, [:session_id])
-    create index(:attendance_records, [:child_id])
-    create index(:attendance_records, [:parent_id])
-    create index(:attendance_records, [:provider_id])
-    create index(:attendance_records, [:status])
+    create index(:participation_records, [:session_id])
+    create index(:participation_records, [:child_id])
+    create index(:participation_records, [:parent_id])
+    create index(:participation_records, [:provider_id])
+    create index(:participation_records, [:status])
 
-    # Unique constraint: one attendance record per child per session
-    create unique_index(:attendance_records, [:session_id, :child_id])
+    # Unique constraint: one participation record per child per session
+    create unique_index(:participation_records, [:session_id, :child_id])
 
     # Check constraint: cannot check out before checking in
-    create constraint(:attendance_records, :check_out_after_check_in,
+    create constraint(:participation_records, :check_out_after_check_in,
              check: "check_out_at IS NULL OR check_in_at IS NULL OR check_out_at >= check_in_at"
            )
   end

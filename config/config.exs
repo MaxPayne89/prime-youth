@@ -71,14 +71,6 @@ config :prime_youth, PrimeYouthWeb.Gettext,
   default_locale: "en",
   locales: ~w(en de)
 
-# Configure Attendance bounded context
-config :prime_youth, :attendance,
-  session_repository:
-    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.SessionRepository,
-  attendance_repository:
-    PrimeYouth.Attendance.Adapters.Driven.Persistence.Repositories.AttendanceRepository,
-  child_name_resolver: PrimeYouth.Attendance.Adapters.Driven.IdentityContext.ChildNameResolver
-
 # Configure Event Publisher
 config :prime_youth, :event_publisher,
   module: PrimeYouth.Shared.Adapters.Driven.Events.PubSubEventPublisher,
@@ -97,6 +89,14 @@ config :prime_youth, :identity,
     PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
   for_storing_children:
     PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
+
+# Configure Participation bounded context
+config :prime_youth, :participation,
+  session_repository:
+    PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
+  participation_repository:
+    PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
+  child_name_resolver: PrimeYouth.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
 
 # Configure Program Catalog bounded context
 config :prime_youth, :program_catalog,

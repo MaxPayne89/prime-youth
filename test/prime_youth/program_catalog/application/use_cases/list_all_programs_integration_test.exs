@@ -28,7 +28,7 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
   # which is not process-safe and can interfere with parallel tests
   use PrimeYouth.DataCase, async: false
 
-  alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
+  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program

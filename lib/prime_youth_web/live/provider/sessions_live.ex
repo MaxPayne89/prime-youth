@@ -1,10 +1,10 @@
 defmodule PrimeYouthWeb.Provider.SessionsLive do
   use PrimeYouthWeb, :live_view
 
-  alias PrimeYouth.Attendance.Application.UseCases.CompleteSession
-  alias PrimeYouth.Attendance.Application.UseCases.GetSessionWithRoster
-  alias PrimeYouth.Attendance.Application.UseCases.ListProviderSessions
-  alias PrimeYouth.Attendance.Application.UseCases.StartSession
+  alias PrimeYouth.Participation.Application.UseCases.CompleteSession
+  alias PrimeYouth.Participation.Application.UseCases.GetSessionWithRoster
+  alias PrimeYouth.Participation.Application.UseCases.ListProviderSessions
+  alias PrimeYouth.Participation.Application.UseCases.StartSession
   alias PrimeYouthWeb.Theme
 
   require Logger
@@ -24,7 +24,7 @@ defmodule PrimeYouthWeb.Provider.SessionsLive do
     if connected?(socket) do
       Phoenix.PubSub.subscribe(
         PrimeYouth.PubSub,
-        "attendance:provider:#{provider_id}"
+        "participation:provider:#{provider_id}"
       )
     end
 
@@ -143,24 +143,12 @@ defmodule PrimeYouthWeb.Provider.SessionsLive do
     provider_id = socket.assigns.provider_id
     selected_date = socket.assigns.selected_date
 
-    case ListProviderSessions.execute(provider_id, selected_date) do
-      {:ok, sessions} ->
-        socket
-        |> stream(:sessions, sessions, reset: true)
-        |> assign(:sessions_error, nil)
+    {:ok, sessions} =
+      ListProviderSessions.execute(%{provider_id: provider_id, date: selected_date})
 
-      {:error, reason} ->
-        Logger.error(
-          "[SessionsLive.load_sessions] Failed to load sessions",
-          provider_id: provider_id,
-          selected_date: selected_date,
-          reason: inspect(reason)
-        )
-
-        socket
-        |> stream(:sessions, [], reset: true)
-        |> assign(:sessions_error, gettext("Failed to load sessions"))
-    end
+    socket
+    |> stream(:sessions, sessions, reset: true)
+    |> assign(:sessions_error, nil)
   end
 
   defp update_session_in_stream(socket, session_id) do

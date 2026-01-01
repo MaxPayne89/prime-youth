@@ -28,7 +28,7 @@ msgstr "Verbindung wird wiederhergestellt"
 msgid "Choose your preferred language for the interface"
 msgstr "Wählen Sie Ihre bevorzugte Sprache für die Benutzeroberfläche"
 
-#: lib/prime_youth_web/components/composite_components.ex:413
+#: lib/prime_youth_web/components/composite_components.ex:368
 #: lib/prime_youth_web/components/layouts/app.html.heex:62
 #: lib/prime_youth_web/components/layouts/app.html.heex:232
 #, elixir-autogen, elixir-format
@@ -37,7 +37,7 @@ msgstr "Kontakt"
 
 #: lib/prime_youth_web/components/layouts/app.html.heex:110
 #: lib/prime_youth_web/components/layouts/app.html.heex:235
-#: lib/prime_youth_web/live/dashboard_live.ex:21
+#: lib/prime_youth_web/live/dashboard_live.ex:18
 #, elixir-autogen, elixir-format
 msgid "Dashboard"
 msgstr "Dashboard"
@@ -87,8 +87,8 @@ msgstr "Spracheinstellung erfolgreich aktualisiert."
 msgid "Login"
 msgstr "Anmelden"
 
-#: lib/prime_youth_web/components/composite_components.ex:411
-#: lib/prime_youth_web/components/composite_components.ex:419
+#: lib/prime_youth_web/components/composite_components.ex:366
+#: lib/prime_youth_web/components/composite_components.ex:374
 #: lib/prime_youth_web/components/layouts/app.html.heex:49
 #: lib/prime_youth_web/components/layouts/app.html.heex:230
 #: lib/prime_youth_web/live/about_live.ex:86
@@ -139,7 +139,7 @@ msgstr "Ihre Daten"
 msgid "close"
 msgstr "schließen"
 
-#: lib/prime_youth_web/live/booking_live.ex:255
+#: lib/prime_youth_web/live/booking_live.ex:264
 #, elixir-autogen, elixir-format
 msgid "%{name} (Age %{age})"
 msgstr "%{name} (Alter %{age})"
@@ -149,7 +149,7 @@ msgstr "%{name} (Alter %{age})"
 msgid "%{price}/week • 4 weeks"
 msgstr "%{price}/Woche • 4 Wochen"
 
-#: lib/prime_youth_web/live/booking_live.ex:365
+#: lib/prime_youth_web/live/booking_live.ex:374
 #, elixir-autogen, elixir-format
 msgid "(no card fees) to the following account:"
 msgstr "(keine Kartengebühren) auf folgendes Konto:"
@@ -159,7 +159,7 @@ msgstr "(keine Kartengebühren) auf folgendes Konto:"
 msgid "About This Program"
 msgstr "Über dieses Programm"
 
-#: lib/prime_youth_web/live/booking_live.ex:369
+#: lib/prime_youth_web/live/booking_live.ex:378
 #, elixir-autogen, elixir-format
 msgid "Account Name:"
 msgstr "Kontoinhaber:"
@@ -169,17 +169,17 @@ msgstr "Kontoinhaber:"
 msgid "Active Families"
 msgstr "Aktive Familien"
 
-#: lib/prime_youth_web/live/booking_live.ex:200
+#: lib/prime_youth_web/live/booking_live.ex:209
 #, elixir-autogen, elixir-format
 msgid "Activity Summary"
 msgstr "Aktivitätsübersicht"
 
-#: lib/prime_youth_web/live/booking_live.ex:267
+#: lib/prime_youth_web/live/booking_live.ex:276
 #, elixir-autogen, elixir-format
 msgid "Add another child"
 msgstr "Weiteres Kind hinzufügen"
 
-#: lib/prime_youth_web/live/booking_live.ex:236
+#: lib/prime_youth_web/live/booking_live.ex:245
 #, elixir-autogen, elixir-format
 msgid "Add another program"
 msgstr "Weiteres Programm hinzufügen"
@@ -194,12 +194,12 @@ msgstr "Alter %{range}"
 msgid "All Programs"
 msgstr "Programme"
 
-#: lib/prime_youth_web/live/booking_live.ex:397
+#: lib/prime_youth_web/live/booking_live.ex:406
 #, elixir-autogen, elixir-format
 msgid "An invoice will be emailed to you after enrollment completion"
 msgstr "Nach Abschluss der Anmeldung erhalten Sie eine Rechnung per E-Mail"
 
-#: lib/prime_youth_web/live/booking_live.ex:284
+#: lib/prime_youth_web/live/booking_live.ex:293
 #, elixir-autogen, elixir-format
 msgid "Any allergies, medical conditions, or special instructions..."
 msgstr "Allergien, medizinische Bedingungen oder besondere Hinweise..."
@@ -214,17 +214,17 @@ msgstr "Verfügbar"
 msgid "Average Rating"
 msgstr "Durchschnittsbewertung"
 
-#: lib/prime_youth_web/live/booking_live.ex:318
+#: lib/prime_youth_web/live/booking_live.ex:327
 #, elixir-autogen, elixir-format
 msgid "Avoid card fees - pay cash or direct transfer"
 msgstr "Kartengebühren vermeiden - bar oder per Überweisung zahlen"
 
-#: lib/prime_youth_web/live/booking_live.ex:377
+#: lib/prime_youth_web/live/booking_live.ex:386
 #, elixir-autogen, elixir-format
 msgid "BIC:"
 msgstr "BIC:"
 
-#: lib/prime_youth_web/live/booking_live.ex:360
+#: lib/prime_youth_web/live/booking_live.ex:369
 #, elixir-autogen, elixir-format
 msgid "Bank Transfer Details"
 msgstr "Bankverbindung"
@@ -254,12 +254,12 @@ msgstr "Nach Alter"
 msgid "By Price"
 msgstr "Nach Preis"
 
-#: lib/prime_youth_web/live/booking_live.ex:317
+#: lib/prime_youth_web/live/booking_live.ex:326
 #, elixir-autogen, elixir-format
 msgid "Cash / Bank Transfer"
 msgstr "Bar / Überweisung"
 
-#: lib/prime_youth_web/live/booking_live.ex:399
+#: lib/prime_youth_web/live/booking_live.ex:408
 #, elixir-autogen, elixir-format
 msgid "Cash/transfer payments will show as \"Pending\" until received"
 msgstr "Bar-/Überweisungszahlungen werden als \"Ausstehend\" angezeigt, bis sie eingegangen sind"
@@ -269,7 +269,7 @@ msgstr "Bar-/Überweisungszahlungen werden als \"Ausstehend\" angezeigt, bis sie
 msgid "Community Focused"
 msgstr "Gemeinschaftsorientiert"
 
-#: lib/prime_youth_web/live/booking_live.ex:414
+#: lib/prime_youth_web/live/booking_live.ex:423
 #, elixir-autogen, elixir-format
 msgid "Complete Enrollment"
 msgstr "Anmeldung abschließen"
@@ -284,22 +284,22 @@ msgstr "Wir verbinden Familien mit vertrauenswürdigen Jugendpädagogen"
 msgid "Create Free Account →"
 msgstr "Kostenloses Konto erstellen →"
 
-#: lib/prime_youth_web/live/booking_live.ex:308
+#: lib/prime_youth_web/live/booking_live.ex:317
 #, elixir-autogen, elixir-format
 msgid "Credit Card"
 msgstr "Kreditkarte"
 
-#: lib/prime_youth_web/live/booking_live.ex:347
+#: lib/prime_youth_web/live/booking_live.ex:356
 #, elixir-autogen, elixir-format
 msgid "Credit card fee:"
 msgstr "Kreditkartengebühr:"
 
-#: lib/prime_youth_web/live/booking_live.ex:398
+#: lib/prime_youth_web/live/booking_live.ex:407
 #, elixir-autogen, elixir-format
 msgid "Credit card payments are processed immediately"
 msgstr "Kreditkartenzahlungen werden sofort verarbeitet"
 
-#: lib/prime_youth_web/live/booking_live.ex:229
+#: lib/prime_youth_web/live/booking_live.ex:238
 #, elixir-autogen, elixir-format
 msgid "Duration:"
 msgstr "Dauer:"
@@ -314,7 +314,7 @@ msgstr "Einfache Terminplanung"
 msgid "Enroll Now - %{price}"
 msgstr "Jetzt anmelden - %{price}"
 
-#: lib/prime_youth_web/live/booking_live.ex:195
+#: lib/prime_youth_web/live/booking_live.ex:204
 #, elixir-autogen, elixir-format
 msgid "Enrollment"
 msgstr "Anmeldung"
@@ -369,12 +369,12 @@ msgstr "Kostenlose Stornierung bis 48 Stunden vor Beginn"
 msgid "Get Started Free"
 msgstr "Kostenlos starten"
 
-#: lib/prime_youth_web/live/booking_live.ex:373
+#: lib/prime_youth_web/live/booking_live.ex:382
 #, elixir-autogen, elixir-format
 msgid "IBAN:"
 msgstr "IBAN:"
 
-#: lib/prime_youth_web/live/booking_live.ex:387
+#: lib/prime_youth_web/live/booking_live.ex:396
 #, elixir-autogen, elixir-format
 msgid "Important:"
 msgstr "Wichtig:"
@@ -384,12 +384,12 @@ msgstr "Wichtig:"
 msgid "Invalid pagination state. Please refresh the page."
 msgstr "Ungültiger Seitenstatus. Bitte laden Sie die Seite neu."
 
-#: lib/prime_youth_web/live/booking_live.ex:395
+#: lib/prime_youth_web/live/booking_live.ex:404
 #, elixir-autogen, elixir-format
 msgid "Invoice & Payment Confirmation"
 msgstr "Rechnung & Zahlungsbestätigung"
 
-#: lib/prime_youth_web/live/booking_live.ex:230
+#: lib/prime_youth_web/live/booking_live.ex:239
 #, elixir-autogen, elixir-format
 msgid "Jan 15 - Mar 15, 2024"
 msgstr "15. Jan - 15. März 2024"
@@ -424,22 +424,22 @@ msgstr "Keine Programme gefunden"
 msgid "Only %{count} spots left!"
 msgstr "Nur noch %{count} Plätze frei!"
 
-#: lib/prime_youth_web/live/booking_live.ex:292
+#: lib/prime_youth_web/live/booking_live.ex:301
 #, elixir-autogen, elixir-format
 msgid "Optional: Include any important information we should know about your child."
 msgstr "Optional: Wichtige Informationen über Ihr Kind, die wir wissen sollten."
 
-#: lib/prime_youth_web/live/booking_live.ex:309
+#: lib/prime_youth_web/live/booking_live.ex:318
 #, elixir-autogen, elixir-format
 msgid "Pay securely with Visa, Mastercard, or other cards"
 msgstr "Sicher bezahlen mit Visa, Mastercard oder anderen Karten"
 
-#: lib/prime_youth_web/live/booking_live.ex:303
+#: lib/prime_youth_web/live/booking_live.ex:312
 #, elixir-autogen, elixir-format
 msgid "Payment Method"
 msgstr "Zahlungsmethode"
 
-#: lib/prime_youth_web/live/booking_live.ex:327
+#: lib/prime_youth_web/live/booking_live.ex:336
 #, elixir-autogen, elixir-format
 msgid "Payment Summary"
 msgstr "Zahlungsübersicht"
@@ -449,7 +449,7 @@ msgstr "Zahlungsübersicht"
 msgid "Payment information is invalid. Please check your details."
 msgstr "Zahlungsinformationen ungültig. Bitte überprüfen Sie Ihre Angaben."
 
-#: lib/prime_youth_web/live/booking_live.ex:388
+#: lib/prime_youth_web/live/booking_live.ex:397
 #, elixir-autogen, elixir-format
 msgid "Please include the reference code in your transfer to ensure proper allocation."
 msgstr "Bitte geben Sie den Verwendungszweck bei Ihrer Überweisung an."
@@ -459,7 +459,7 @@ msgstr "Bitte geben Sie den Verwendungszweck bei Ihrer Überweisung an."
 msgid "Please select a child for enrollment."
 msgstr "Bitte wählen Sie ein Kind für die Anmeldung aus."
 
-#: lib/prime_youth_web/live/booking_live.ex:363
+#: lib/prime_youth_web/live/booking_live.ex:372
 #, elixir-autogen, elixir-format
 msgid "Please transfer"
 msgstr "Bitte überweisen Sie"
@@ -500,12 +500,12 @@ msgstr "Programme"
 msgid "Ready to Get Started?"
 msgstr "Bereit loszulegen?"
 
-#: lib/prime_youth_web/live/booking_live.ex:381
+#: lib/prime_youth_web/live/booking_live.ex:390
 #, elixir-autogen, elixir-format
 msgid "Reference:"
 msgstr "Verwendungszweck:"
 
-#: lib/prime_youth_web/live/booking_live.ex:333
+#: lib/prime_youth_web/live/booking_live.ex:342
 #, elixir-autogen, elixir-format
 msgid "Registration fee:"
 msgstr "Anmeldegebühr:"
@@ -525,12 +525,12 @@ msgstr "Sicherheit, Qualität und Komfort für moderne Familien."
 msgid "Search programs..."
 msgstr "Programme suchen..."
 
-#: lib/prime_youth_web/live/booking_live.ex:244
+#: lib/prime_youth_web/live/booking_live.ex:253
 #, elixir-autogen, elixir-format
 msgid "Select Child"
 msgstr "Kind auswählen"
 
-#: lib/prime_youth_web/live/booking_live.ex:253
+#: lib/prime_youth_web/live/booking_live.ex:262
 #, elixir-autogen, elixir-format
 msgid "Select a child"
 msgstr "Ein Kind auswählen"
@@ -545,12 +545,12 @@ msgstr "Dieses Programm ist derzeit ausgebucht. Bitte schauen Sie später wieder
 msgid "Sorry, this program is now full. Please choose another program."
 msgstr "Dieses Programm ist jetzt ausgebucht. Bitte wählen Sie ein anderes Programm."
 
-#: lib/prime_youth_web/live/booking_live.ex:277
+#: lib/prime_youth_web/live/booking_live.ex:286
 #, elixir-autogen, elixir-format
 msgid "Special Requirements"
 msgstr "Besondere Anforderungen"
 
-#: lib/prime_youth_web/live/booking_live.ex:337
+#: lib/prime_youth_web/live/booking_live.ex:346
 #, elixir-autogen, elixir-format
 msgid "Subtotal:"
 msgstr "Zwischensumme:"
@@ -560,12 +560,12 @@ msgstr "Zwischensumme:"
 msgid "Take-home projects every week"
 msgstr "Wöchentliche Projekte zum Mitnehmen"
 
-#: lib/prime_youth_web/live/booking_live.ex:222
+#: lib/prime_youth_web/live/booking_live.ex:231
 #, elixir-autogen, elixir-format
 msgid "Total Price:"
 msgstr "Gesamtpreis:"
 
-#: lib/prime_youth_web/live/booking_live.ex:352
+#: lib/prime_youth_web/live/booking_live.ex:361
 #, elixir-autogen, elixir-format
 msgid "Total due today:"
 msgstr "Heute fällig:"
@@ -591,7 +591,7 @@ msgstr "Versuchen Sie, Ihre Such- oder Filterkriterien anzupassen."
 msgid "Unable to load program. Please try again later."
 msgstr "Programm konnte nicht geladen werden. Bitte versuchen Sie es später erneut."
 
-#: lib/prime_youth_web/live/booking_live.ex:341
+#: lib/prime_youth_web/live/booking_live.ex:350
 #, elixir-autogen, elixir-format
 msgid "VAT (19%):"
 msgstr "MwSt. (19%):"
@@ -606,7 +606,7 @@ msgstr "Alle Programme ansehen →"
 msgid "View all %{count} reviews"
 msgstr "Alle %{count} Bewertungen ansehen"
 
-#: lib/prime_youth_web/live/booking_live.ex:215
+#: lib/prime_youth_web/live/booking_live.ex:224
 #, elixir-autogen, elixir-format
 msgid "Wednesdays 4-6 PM"
 msgstr "Mittwochs 16-18 Uhr"
@@ -616,7 +616,7 @@ msgstr "Mittwochs 16-18 Uhr"
 msgid "Weekly art supplies and materials"
 msgstr "Wöchentliche Kunstmaterialien und Zubehör"
 
-#: lib/prime_youth_web/live/booking_live.ex:329
+#: lib/prime_youth_web/live/booking_live.ex:338
 #, elixir-autogen, elixir-format
 msgid "Weekly fee (%{count} weeks):"
 msgstr "Wochengebühr (%{count} Wochen):"
@@ -646,7 +646,7 @@ msgstr "mit %{name}"
 msgid "✓ No hidden fees"
 msgstr "✓ Keine versteckten Gebühren"
 
-#: lib/prime_youth_web/live/dashboard_live.ex:46
+#: lib/prime_youth_web/live/dashboard_live.ex:50
 #, elixir-autogen, elixir-format
 msgid "%{count} child enrolled"
 msgid_plural "%{count} children enrolled"
@@ -663,7 +663,7 @@ msgstr "Ein Bestätigungslink wurde an Ihre neue E-Mail-Adresse gesendet."
 msgid "About Prime Youth Connect"
 msgstr "Über Prime Youth Connect"
 
-#: lib/prime_youth_web/components/composite_components.ex:412
+#: lib/prime_youth_web/components/composite_components.ex:367
 #: lib/prime_youth_web/live/about_live.ex:10
 #, elixir-autogen, elixir-format
 msgid "About Us"
@@ -709,12 +709,7 @@ msgstr "Eine E-Mail wurde an %{email} gesendet. Bitte bestätigen Sie Ihr Konto 
 msgid "At Prime Youth Connect, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
 msgstr "Bei Prime Youth Connect glauben wir, dass jedes Kind Zugang zu bereichernden Nachmittagsaktivitäten verdient, die seine Talente und Interessen fördern. Wir arbeiten mit qualifizierten Kursleitern zusammen, um ein vielfältiges Programmangebot in Kunst, Sport, Bildung und Technologie anzubieten."
 
-#: lib/prime_youth_web/live/parent/attendance_history_live.ex:19
-#, elixir-autogen, elixir-format
-msgid "Attendance History"
-msgstr "Anwesenheitsverlauf"
-
-#: lib/prime_youth_web/live/dashboard_live.ex:148
+#: lib/prime_youth_web/live/dashboard_live.ex:152
 #, elixir-autogen, elixir-format
 msgid "Book Activity"
 msgstr "Aktivität buchen"
@@ -769,22 +764,17 @@ msgstr "Änderungen dieser Richtlinie"
 msgid "Changing..."
 msgstr "Wird geändert..."
 
-#: lib/prime_youth_web/live/dashboard_live.ex:199
-#, elixir-autogen, elixir-format
-msgid "Check back later for scheduled programs, or browse available programs to book a new activity."
-msgstr "Schauen Sie später nach geplanten Programmen oder durchsuchen Sie verfügbare Programme, um eine neue Aktivität zu buchen."
-
 #: lib/prime_youth_web/live/contact_live.ex:230
 #, elixir-autogen, elixir-format
 msgid "Check out our FAQ section for answers to common questions."
 msgstr "Schauen Sie in unsere FAQ für Antworten auf häufige Fragen."
 
-#: lib/prime_youth_web/live/provider/attendance_live.ex:56
+#: lib/prime_youth_web/live/provider/participation_live.ex:56
 #, elixir-autogen, elixir-format
 msgid "Child checked in successfully"
 msgstr "Kind erfolgreich eingecheckt"
 
-#: lib/prime_youth_web/live/provider/attendance_live.ex:133
+#: lib/prime_youth_web/live/provider/participation_live.ex:133
 #, elixir-autogen, elixir-format
 msgid "Child checked out successfully"
 msgstr "Kind erfolgreich ausgecheckt"
@@ -955,12 +945,12 @@ msgstr "Geben Sie Ihr Passwort zur Bestätigung ein"
 msgid "Explore our programs and find the perfect activities for your child."
 msgstr "Entdecken Sie unsere Programme und finden Sie die perfekten Aktivitäten für Ihr Kind."
 
-#: lib/prime_youth_web/live/provider/attendance_live.ex:71
+#: lib/prime_youth_web/live/provider/participation_live.ex:71
 #, elixir-autogen, elixir-format
 msgid "Failed to check in: %{reason}"
 msgstr "Einchecken fehlgeschlagen: %{reason}"
 
-#: lib/prime_youth_web/live/provider/attendance_live.ex:150
+#: lib/prime_youth_web/live/provider/participation_live.ex:150
 #, elixir-autogen, elixir-format
 msgid "Failed to check out: %{reason}"
 msgstr "Auschecken fehlgeschlagen: %{reason}"
@@ -975,12 +965,7 @@ msgstr "Sitzung konnte nicht abgeschlossen werden: %{reason}"
 msgid "Failed to delete account. Please try again."
 msgstr "Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
 
-#: lib/prime_youth_web/live/parent/attendance_history_live.ex:147
-#, elixir-autogen, elixir-format
-msgid "Failed to load attendance history"
-msgstr "Anwesenheitsverlauf konnte nicht geladen werden"
-
-#: lib/prime_youth_web/live/provider/attendance_live.ex:226
+#: lib/prime_youth_web/live/provider/participation_live.ex:226
 #, elixir-autogen, elixir-format
 msgid "Failed to load session data"
 msgstr "Sitzungsdaten konnten nicht geladen werden"
@@ -1124,11 +1109,6 @@ msgstr "Der Magic-Link ist ungültig oder abgelaufen."
 msgid "Making enriching programs accessible to families through transparent pricing and easy booking"
 msgstr "Bereichernde Programme für Familien zugänglich machen durch transparente Preise und einfache Buchung"
 
-#: lib/prime_youth_web/live/provider/attendance_live.ex:17
-#, elixir-autogen, elixir-format
-msgid "Manage Attendance"
-msgstr "Anwesenheit verwalten"
-
 #: lib/prime_youth_web/live/user_live/settings.ex:15
 #, elixir-autogen, elixir-format
 msgid "Manage your account email address and password settings"
@@ -1144,7 +1124,7 @@ msgstr "Nachricht"
 msgid "Message sent successfully!"
 msgstr "Nachricht erfolgreich gesendet!"
 
-#: lib/prime_youth_web/live/dashboard_live.ex:160
+#: lib/prime_youth_web/live/dashboard_live.ex:164
 #, elixir-autogen, elixir-format
 msgid "Messages"
 msgstr "Nachrichten"
@@ -1164,7 +1144,7 @@ msgstr "Montag - Freitag"
 msgid "Monitor your child's participation and achievements in real-time"
 msgstr "Überwachen Sie die Teilnahme und Erfolge Ihres Kindes in Echtzeit"
 
-#: lib/prime_youth_web/live/dashboard_live.ex:116
+#: lib/prime_youth_web/live/dashboard_live.ex:120
 #, elixir-autogen, elixir-format
 msgid "My Children"
 msgstr "Meine Kinder"
@@ -1189,11 +1169,6 @@ msgstr "Neues Passwort"
 #, elixir-autogen, elixir-format
 msgid "No highlights yet"
 msgstr "Noch keine Highlights"
-
-#: lib/prime_youth_web/live/dashboard_live.ex:197
-#, elixir-autogen, elixir-format
-msgid "No upcoming activities"
-msgstr "Keine bevorstehenden Aktivitäten"
 
 #: lib/prime_youth_web/live/user_live/registration.ex:76
 #, elixir-autogen, elixir-format
@@ -1245,7 +1220,7 @@ msgstr "Passwort"
 msgid "Payment Terms"
 msgstr "Zahlungsbedingungen"
 
-#: lib/prime_youth_web/live/dashboard_live.ex:166
+#: lib/prime_youth_web/live/dashboard_live.ex:170
 #, elixir-autogen, elixir-format
 msgid "Payments"
 msgstr "Zahlungen"
@@ -1260,7 +1235,7 @@ msgstr "Löschen Sie Ihr Konto und alle zugehörigen Daten dauerhaft"
 msgid "Phone"
 msgstr "Telefon"
 
-#: lib/prime_youth_web/components/composite_components.ex:464
+#: lib/prime_youth_web/components/composite_components.ex:419
 #: lib/prime_youth_web/live/privacy_policy_live.ex:10
 #: lib/prime_youth_web/live/privacy_policy_live.ex:236
 #, elixir-autogen, elixir-format
@@ -1297,13 +1272,13 @@ msgstr "Fragen zum Datenschutz?"
 msgid "Questions About These Terms?"
 msgstr "Fragen zu diesen Bedingungen?"
 
-#: lib/prime_youth_web/live/dashboard_live.ex:143
+#: lib/prime_youth_web/live/dashboard_live.ex:147
 #, elixir-autogen, elixir-format
 msgid "Quick Actions"
 msgstr "Schnellaktionen"
 
-#: lib/prime_youth_web/live/provider/attendance_live.ex:45
-#: lib/prime_youth_web/live/provider/attendance_live.ex:121
+#: lib/prime_youth_web/live/provider/participation_live.ex:45
+#: lib/prime_youth_web/live/provider/participation_live.ex:121
 #, elixir-autogen, elixir-format
 msgid "Record not found"
 msgstr "Eintrag nicht gefunden"
@@ -1383,7 +1358,7 @@ msgstr "Schreiben Sie uns eine Nachricht"
 msgid "Session completed successfully"
 msgstr "Sitzung erfolgreich abgeschlossen"
 
-#: lib/prime_youth_web/live/provider/attendance_live.ex:215
+#: lib/prime_youth_web/live/provider/participation_live.ex:215
 #, elixir-autogen, elixir-format
 msgid "Session not found"
 msgstr "Sitzung nicht gefunden"
@@ -1429,7 +1404,7 @@ msgstr "Inhaltsverzeichnis"
 msgid "Technical Issue"
 msgstr "Technisches Problem"
 
-#: lib/prime_youth_web/components/composite_components.ex:466
+#: lib/prime_youth_web/components/composite_components.ex:421
 #: lib/prime_youth_web/live/terms_of_service_live.ex:10
 #: lib/prime_youth_web/live/terms_of_service_live.ex:273
 #, elixir-autogen, elixir-format
@@ -1456,11 +1431,6 @@ msgstr "Um gesendete E-Mails zu sehen, besuchen Sie"
 msgid "Understanding our agreement with you"
 msgstr "Unsere Vereinbarung mit Ihnen verstehen"
 
-#: lib/prime_youth_web/live/dashboard_live.ex:177
-#, elixir-autogen, elixir-format
-msgid "Upcoming Activities"
-msgstr "Bevorstehende Aktivitäten"
-
 #: lib/prime_youth_web/live/terms_of_service_live.ex:34
 #, elixir-autogen, elixir-format
 msgid "User Accounts & Registration"
@@ -1476,13 +1446,12 @@ msgstr "Nutzerverhalten & Verantwortlichkeiten"
 msgid "Verified instructors, secure facilities, and comprehensive safety protocols"
 msgstr "Verifizierte Kursleiter, sichere Einrichtungen und umfassende Sicherheitsprotokolle"
 
-#: lib/prime_youth_web/live/dashboard_live.ex:119
-#: lib/prime_youth_web/live/dashboard_live.ex:180
+#: lib/prime_youth_web/live/dashboard_live.ex:123
 #, elixir-autogen, elixir-format
 msgid "View All"
 msgstr "Alle anzeigen"
 
-#: lib/prime_youth_web/live/dashboard_live.ex:154
+#: lib/prime_youth_web/live/dashboard_live.ex:158
 #, elixir-autogen, elixir-format
 msgid "View Schedule"
 msgstr "Zeitplan anzeigen"
@@ -1604,47 +1573,47 @@ msgstr "die Postfach-Seite"
 msgid "to your account now."
 msgstr "zu Ihrem Konto jetzt."
 
-#: lib/prime_youth_web/components/composite_components.ex:421
+#: lib/prime_youth_web/components/composite_components.ex:376
 #, elixir-autogen, elixir-format
 msgid "Afterschool"
 msgstr "Nachmittagsbetreuung"
 
-#: lib/prime_youth_web/components/composite_components.ex:462
+#: lib/prime_youth_web/components/composite_components.ex:417
 #, elixir-autogen, elixir-format
 msgid "All rights reserved."
 msgstr "Alle Rechte vorbehalten."
 
-#: lib/prime_youth_web/components/composite_components.ex:404
+#: lib/prime_youth_web/components/composite_components.ex:359
 #, elixir-autogen, elixir-format
 msgid "Building the future of youth education by connecting communities."
 msgstr "Wir gestalten die Zukunft der Jugendbildung durch die Vernetzung von Gemeinschaften."
 
-#: lib/prime_youth_web/components/composite_components.ex:423
+#: lib/prime_youth_web/components/composite_components.ex:378
 #, elixir-autogen, elixir-format
 msgid "Class Trips"
 msgstr "Klassenfahrten"
 
-#: lib/prime_youth_web/components/composite_components.ex:429
+#: lib/prime_youth_web/components/composite_components.ex:384
 #, elixir-autogen, elixir-format
 msgid "Connect"
 msgstr "Verbinden"
 
-#: lib/prime_youth_web/components/composite_components.ex:424
+#: lib/prime_youth_web/components/composite_components.ex:379
 #, elixir-autogen, elixir-format
 msgid "Enrichment"
 msgstr "Bereicherung"
 
-#: lib/prime_youth_web/components/composite_components.ex:414
+#: lib/prime_youth_web/components/composite_components.ex:369
 #, elixir-autogen, elixir-format
 msgid "FAQ"
 msgstr "FAQ"
 
-#: lib/prime_youth_web/components/composite_components.ex:409
+#: lib/prime_youth_web/components/composite_components.ex:364
 #, elixir-autogen, elixir-format
 msgid "Quick Links"
 msgstr "Schnellzugriffe"
 
-#: lib/prime_youth_web/components/composite_components.ex:422
+#: lib/prime_youth_web/components/composite_components.ex:377
 #, elixir-autogen, elixir-format
 msgid "Summer Camps"
 msgstr "Sommercamps"
@@ -1778,11 +1747,6 @@ msgstr "Wohnadresse"
 #, elixir-autogen, elixir-format
 msgid "How you want to be contacted"
 msgstr "Wie Sie kontaktiert werden möchten"
-
-#: lib/prime_youth_web/components/composite_components.ex:200
-#, elixir-autogen, elixir-format
-msgid "Instructor"
-msgstr "Lehrer"
 
 #: lib/prime_youth_web/live/settings_live.ex:194
 #, elixir-autogen, elixir-format
@@ -1953,3 +1917,18 @@ msgstr "Willkommen zurück"
 #, elixir-autogen, elixir-format
 msgid "WhatsApp Community"
 msgstr "WhatsApp-Community"
+
+#: lib/prime_youth_web/live/parent/participation_history_live.ex:141
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Failed to load participation history"
+msgstr "Anwesenheitsverlauf konnte nicht geladen werden"
+
+#: lib/prime_youth_web/live/provider/participation_live.ex:17
+#, elixir-autogen, elixir-format
+msgid "Manage Participation"
+msgstr ""
+
+#: lib/prime_youth_web/live/parent/participation_history_live.ex:18
+#, elixir-autogen, elixir-format
+msgid "Participation History"
+msgstr ""

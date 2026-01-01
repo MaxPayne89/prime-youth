@@ -27,16 +27,16 @@ defmodule PrimeYouth.Factory do
 
   use ExMachina.Ecto, repo: PrimeYouth.Repo
 
-  alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.AttendanceRecordSchema
-  alias PrimeYouth.Attendance.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
-  alias PrimeYouth.Attendance.Domain.Models.AttendanceRecord
-  alias PrimeYouth.Attendance.Domain.Models.ProgramSession
   alias PrimeYouth.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias PrimeYouth.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias PrimeYouth.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias PrimeYouth.Identity.Domain.Models.Child
   alias PrimeYouth.Identity.Domain.Models.ParentProfile
   alias PrimeYouth.Identity.Domain.Models.ProviderProfile
+  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
+  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
+  alias PrimeYouth.Participation.Domain.Models.ParticipationRecord
+  alias PrimeYouth.Participation.Domain.Models.ProgramSession
   alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias PrimeYouth.ProgramCatalog.Domain.Models.Program
 
@@ -410,7 +410,7 @@ defmodule PrimeYouth.Factory do
   end
 
   # =============================================================================
-  # Attendance Context Factories
+  # Participation Context Factories
   # =============================================================================
 
   @doc """
@@ -473,35 +473,35 @@ defmodule PrimeYouth.Factory do
   end
 
   @doc """
-  Factory for creating AttendanceRecord domain entities (pure Elixir structs).
+  Factory for creating ParticipationRecord domain entities (pure Elixir structs).
 
   Used in use case tests where we don't need database persistence.
 
   ## Examples
 
-      record = build(:attendance_record)
-      record = build(:attendance_record, status: :checked_in)
+      record = build(:participation_record)
+      record = build(:participation_record, status: :checked_in)
   """
-  def attendance_record_factory do
-    %AttendanceRecord{
+  def participation_record_factory do
+    %ParticipationRecord{
       id:
         sequence(
-          :attendance_record_id,
+          :participation_record_id,
           &"990e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
         ),
       session_id:
         sequence(
-          :attendance_record_session_id,
+          :participation_record_session_id,
           &"880e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
         ),
       child_id:
         sequence(
-          :attendance_record_child_id,
+          :participation_record_child_id,
           &"550e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
         ),
       parent_id: nil,
       provider_id: nil,
-      status: :expected,
+      status: :registered,
       check_in_at: nil,
       check_in_notes: nil,
       check_in_by: nil,
@@ -514,27 +514,27 @@ defmodule PrimeYouth.Factory do
   end
 
   @doc """
-  Factory for creating AttendanceRecordSchema Ecto schemas.
+  Factory for creating ParticipationRecordSchema Ecto schemas.
 
   Used in repository and integration tests where we need database persistence.
   Automatically creates a program session and child when inserted to avoid foreign key violations.
 
   ## Examples
 
-      schema = build(:attendance_record_schema)
-      schema = insert(:attendance_record_schema, status: "checked_in")
+      schema = build(:participation_record_schema)
+      schema = insert(:participation_record_schema, status: :checked_in)
   """
-  def attendance_record_schema_factory do
+  def participation_record_schema_factory do
     session_schema = insert(:program_session_schema)
     child_schema = insert(:child_schema)
 
-    %AttendanceRecordSchema{
+    %ParticipationRecordSchema{
       id: Ecto.UUID.generate(),
       session_id: session_schema.id,
       child_id: child_schema.id,
       parent_id: child_schema.parent_id,
       provider_id: nil,
-      status: "expected",
+      status: :registered,
       check_in_at: nil,
       check_in_notes: nil,
       check_in_by: nil,
@@ -545,13 +545,13 @@ defmodule PrimeYouth.Factory do
   end
 
   @doc """
-  Checked-in attendance record variant for testing check-out flows.
+  Checked-in participation record variant for testing check-out flows.
   """
-  def checked_in_attendance_record_factory do
+  def checked_in_participation_record_factory do
     now = DateTime.utc_now()
     provider_id = Ecto.UUID.generate()
 
-    build(:attendance_record, %{
+    build(:participation_record, %{
       status: :checked_in,
       check_in_at: now,
       check_in_notes: "Arrived on time",
@@ -561,14 +561,14 @@ defmodule PrimeYouth.Factory do
   end
 
   @doc """
-  Completed attendance record variant (checked out) for testing submission flows.
+  Completed participation record variant (checked out) for testing submission flows.
   """
-  def checked_out_attendance_record_factory do
+  def checked_out_participation_record_factory do
     check_in_at = DateTime.add(DateTime.utc_now(), -3600, :second)
     check_out_at = DateTime.utc_now()
     provider_id = Ecto.UUID.generate()
 
-    build(:attendance_record, %{
+    build(:participation_record, %{
       status: :checked_out,
       check_in_at: check_in_at,
       check_in_notes: "Arrived on time",
