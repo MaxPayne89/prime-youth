@@ -209,7 +209,7 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/about")
 
       assert_locale(view, "de")
-      assert_translation(view, "About Klass Hero Connect", "de")
+      assert_translation(view, "About Klass Hero", "de")
     end
 
     test "contact page displays German translations", %{conn: conn} do

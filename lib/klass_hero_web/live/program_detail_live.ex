@@ -172,7 +172,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
                     Theme.rounded(:full),
                     if(@program.spots_available <= 2,
                       do: "bg-orange-100 text-orange-700",
-                      else: "bg-yellow-100 text-yellow-700"
+                      else: "bg-hero-yellow-100 text-hero-yellow-700"
                     )
                   ]}
                 >

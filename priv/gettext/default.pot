@@ -471,12 +471,12 @@ msgstr ""
 
 #: lib/prime_youth_web/live/home_live.ex:45
 #, elixir-autogen, elixir-format
-msgid "Klass Hero Connect"
+msgid "Klass Hero"
 msgstr ""
 
 #: lib/prime_youth_web/live/home_live.ex:17
 #, elixir-autogen, elixir-format
-msgid "Klass Hero Connect - Connecting Families with Trusted Youth Educators"
+msgid "Klass Hero - Connecting Families with Trusted Youth Educators"
 msgstr ""
 
 #: lib/prime_youth_web/live/booking_live.ex:48
@@ -633,7 +633,7 @@ msgstr ""
 
 #: lib/prime_youth_web/live/home_live.ex:81
 #, elixir-autogen, elixir-format
-msgid "Why Klass Hero Connect?"
+msgid "Why Klass Hero?"
 msgstr ""
 
 #: lib/prime_youth_web/live/program_detail_live.ex:198
@@ -660,7 +660,7 @@ msgstr ""
 
 #: lib/prime_youth_web/live/about_live.ex:103
 #, elixir-autogen, elixir-format
-msgid "About Klass Hero Connect"
+msgid "About Klass Hero"
 msgstr ""
 
 #: lib/prime_youth_web/components/composite_components.ex:367
@@ -706,7 +706,7 @@ msgstr ""
 
 #: lib/prime_youth_web/live/about_live.ex:119
 #, elixir-autogen, elixir-format
-msgid "At Klass Hero Connect, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
+msgid "At Klass Hero, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
 msgstr ""
 
 #: lib/prime_youth_web/live/dashboard_live.ex:152
@@ -1375,7 +1375,7 @@ msgstr ""
 
 #: lib/prime_youth_web/live/highlights_live.ex:140
 #, elixir-autogen, elixir-format
-msgid "Stay tuned for updates, photos, and announcements from instructors and the Klass Hero Connect community."
+msgid "Stay tuned for updates, photos, and announcements from instructors and the Klass Hero community."
 msgstr ""
 
 #: lib/prime_youth_web/live/about_live.ex:87
@@ -1503,7 +1503,7 @@ msgstr ""
 
 #: lib/prime_youth_web/live/about_live.ex:159
 #, elixir-autogen, elixir-format
-msgid "Why Choose Klass Hero Connect?"
+msgid "Why Choose Klass Hero?"
 msgstr ""
 
 #: lib/prime_youth_web/live/user_live/login.ex:29

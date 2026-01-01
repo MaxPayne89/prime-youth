@@ -471,13 +471,13 @@ msgstr "Portfolio-Mappe zur Fortschrittsdokumentation"
 
 #: lib/klass_hero_web/live/home_live.ex:45
 #, elixir-autogen, elixir-format
-msgid "Klass Hero Connect"
-msgstr "Klass Hero Connect"
+msgid "Klass Hero"
+msgstr "Klass Hero"
 
 #: lib/klass_hero_web/live/home_live.ex:17
 #, elixir-autogen, elixir-format
-msgid "Klass Hero Connect - Connecting Families with Trusted Youth Educators"
-msgstr "Klass Hero Connect - Wir verbinden Familien mit vertrauenswürdigen Jugendpädagogen"
+msgid "Klass Hero - Connecting Families with Trusted Youth Educators"
+msgstr "Klass Hero - Wir verbinden Familien mit vertrauenswürdigen Jugendpädagogen"
 
 #: lib/klass_hero_web/live/booking_live.ex:48
 #, elixir-autogen, elixir-format
@@ -633,7 +633,7 @@ msgstr "Was enthalten ist:"
 
 #: lib/klass_hero_web/live/home_live.ex:81
 #, elixir-autogen, elixir-format
-msgid "Why Klass Hero Connect?"
+msgid "Why Klass Hero?"
 msgstr "Warum Klass Hero Connect?"
 
 #: lib/klass_hero_web/live/program_detail_live.ex:198
@@ -660,7 +660,7 @@ msgstr "Ein Bestätigungslink wurde an Ihre neue E-Mail-Adresse gesendet."
 
 #: lib/klass_hero_web/live/about_live.ex:103
 #, elixir-autogen, elixir-format
-msgid "About Klass Hero Connect"
+msgid "About Klass Hero"
 msgstr "Über Klass Hero Connect"
 
 #: lib/klass_hero_web/components/composite_components.ex:367
@@ -706,7 +706,7 @@ msgstr "Eine E-Mail wurde an %{email} gesendet. Bitte bestätigen Sie Ihr Konto 
 
 #: lib/klass_hero_web/live/about_live.ex:119
 #, elixir-autogen, elixir-format
-msgid "At Klass Hero Connect, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
+msgid "At Klass Hero, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
 msgstr "Bei Klass Hero Connect glauben wir, dass jedes Kind Zugang zu bereichernden Nachmittagsaktivitäten verdient, die seine Talente und Interessen fördern. Wir arbeiten mit qualifizierten Kursleitern zusammen, um ein vielfältiges Programmangebot in Kunst, Sport, Bildung und Technologie anzubieten."
 
 #: lib/klass_hero_web/live/dashboard_live.ex:152
@@ -1375,7 +1375,7 @@ msgstr "Einfache Buchung"
 
 #: lib/klass_hero_web/live/highlights_live.ex:140
 #, elixir-autogen, elixir-format
-msgid "Stay tuned for updates, photos, and announcements from instructors and the Klass Hero Connect community."
+msgid "Stay tuned for updates, photos, and announcements from instructors and the Klass Hero community."
 msgstr "Bleiben Sie auf dem Laufenden mit Updates, Fotos und Ankündigungen von Kursleitern und der Klass Hero Connect Community."
 
 #: lib/klass_hero_web/live/about_live.ex:87
@@ -1503,7 +1503,7 @@ msgstr "Willkommen zurück"
 
 #: lib/klass_hero_web/live/about_live.ex:159
 #, elixir-autogen, elixir-format
-msgid "Why Choose Klass Hero Connect?"
+msgid "Why Choose Klass Hero?"
 msgstr "Warum Klass Hero Connect wählen?"
 
 #: lib/klass_hero_web/live/user_live/login.ex:29

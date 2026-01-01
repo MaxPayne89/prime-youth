@@ -215,7 +215,7 @@ defmodule KlassHeroWeb.CoreComponents do
 
     ~H"""
     <div phx-feedback-for={@name}>
-      <label class="flex items-center gap-4 text-sm leading-6 text-zinc-600">
+      <label class="flex items-center gap-4 text-sm leading-6 text-hero-black-100">
         <input type="hidden" name={@name} value="false" />
         <input
           type="checkbox"
@@ -223,7 +223,7 @@ defmodule KlassHeroWeb.CoreComponents do
           name={@name}
           value="true"
           checked={@checked}
-          class="rounded border-2 border-zinc-400 text-cyan-600 focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0 shadow-sm transition-all duration-200"
+          class="rounded border-2 border-hero-grey-300 text-hero-blue-600 focus:ring-2 focus:ring-hero-blue-500/20 focus:ring-offset-0 shadow-sm transition-all duration-200"
           {@rest}
         />
         {@label}
@@ -240,7 +240,7 @@ defmodule KlassHeroWeb.CoreComponents do
       <select
         id={@id}
         name={@name}
-        class="mt-2 block w-full rounded-lg border-2 border-zinc-400 bg-white/90 backdrop-blur-sm shadow-sm focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 focus:shadow-md sm:text-sm transition-all duration-200"
+        class="mt-2 block w-full rounded-lg border-2 border-hero-grey-300 bg-white/90 backdrop-blur-sm shadow-sm focus:border-hero-blue-500 focus:ring-2 focus:ring-hero-blue-500/20 focus:shadow-md sm:text-sm transition-all duration-200"
         multiple={@multiple}
         {@rest}
       >
@@ -262,16 +262,16 @@ defmodule KlassHeroWeb.CoreComponents do
         class={
           [
             # Base styles - increased spacing and text
-            "mt-2 block w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6",
+            "mt-2 block w-full rounded-lg text-hero-black sm:text-sm sm:leading-6",
             "min-h-[6rem]",
             # Solid background for contrast
             "bg-white/90 backdrop-blur-sm",
             # Thicker, darker borders for visibility
             "border-2",
             # Default state - visible dark border
-            "phx-no-feedback:border-zinc-400 phx-no-feedback:focus:border-cyan-500",
-            # Valid state - darker border with cyan accent on focus
-            @errors == [] && "border-zinc-400 focus:border-cyan-500",
+            "phx-no-feedback:border-hero-grey-300 phx-no-feedback:focus:border-hero-blue-500",
+            # Valid state - darker border with hero-blue accent on focus
+            @errors == [] && "border-hero-grey-300 focus:border-hero-blue-500",
             # Error state - red border
             @errors != [] && "border-rose-500 focus:border-rose-600",
             # Add subtle shadow for depth
@@ -279,7 +279,7 @@ defmodule KlassHeroWeb.CoreComponents do
             # Smooth transitions
             "transition-all duration-200",
             # Enhanced focus ring
-            "focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0"
+            "focus:ring-2 focus:ring-hero-blue-500/20 focus:ring-offset-0"
           ]
         }
         {@rest}
@@ -301,15 +301,15 @@ defmodule KlassHeroWeb.CoreComponents do
         class={
           [
             # Base styles - increased spacing and text
-            "mt-2 block w-full rounded-lg text-zinc-900 sm:text-sm sm:leading-6",
+            "mt-2 block w-full rounded-lg text-hero-black sm:text-sm sm:leading-6",
             # Solid background for contrast
             "bg-white/90 backdrop-blur-sm",
             # Thicker, darker borders for visibility
             "border-2",
             # Default state - visible dark border
-            "phx-no-feedback:border-zinc-400 phx-no-feedback:focus:border-cyan-500",
-            # Valid state - darker border with cyan accent on focus
-            @errors == [] && "border-zinc-400 focus:border-cyan-500",
+            "phx-no-feedback:border-hero-grey-300 phx-no-feedback:focus:border-hero-blue-500",
+            # Valid state - darker border with hero-blue accent on focus
+            @errors == [] && "border-hero-grey-300 focus:border-hero-blue-500",
             # Error state - red border
             @errors != [] && "border-rose-500 focus:border-rose-600",
             # Add subtle shadow for depth
@@ -317,7 +317,7 @@ defmodule KlassHeroWeb.CoreComponents do
             # Smooth transitions
             "transition-all duration-200",
             # Enhanced focus ring
-            "focus:ring-2 focus:ring-cyan-500/20 focus:ring-offset-0"
+            "focus:ring-2 focus:ring-hero-blue-500/20 focus:ring-offset-0"
           ]
         }
         {@rest}
@@ -335,7 +335,7 @@ defmodule KlassHeroWeb.CoreComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="block text-sm font-semibold leading-6 text-zinc-800">
+    <label for={@for} class="block text-sm font-semibold leading-6 text-hero-black">
       {render_slot(@inner_block)}
     </label>
     """
@@ -369,7 +369,7 @@ defmodule KlassHeroWeb.CoreComponents do
     <button
       type={@type}
       class={[
-        "phx-submit-loading:opacity-75 rounded-lg bg-zinc-900 hover:bg-zinc-700 py-2 px-3",
+        "phx-submit-loading:opacity-75 rounded-lg bg-hero-blue-600 hover:bg-hero-blue-700 py-2 px-3",
         "text-sm font-semibold leading-6 text-white active:text-white/80",
         @class
       ]}

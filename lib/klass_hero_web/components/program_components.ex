@@ -37,7 +37,7 @@ defmodule KlassHeroWeb.ProgramComponents do
         placeholder={@placeholder}
         value={@value}
         class={[
-          "w-full px-4 py-3 pl-11 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent",
+          "w-full px-4 py-3 pl-11 border border-hero-grey-300 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:border-transparent",
           Theme.transition(:normal),
           Theme.rounded(:lg)
         ]}
@@ -45,7 +45,7 @@ defmodule KlassHeroWeb.ProgramComponents do
       />
       <.icon
         name="hero-magnifying-glass"
-        class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400"
+        class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-hero-grey-400"
       />
     </div>
     """
@@ -89,8 +89,9 @@ defmodule KlassHeroWeb.ProgramComponents do
             Theme.transition(:normal),
             Theme.rounded(:full),
             if(filter.id == @active_filter,
-              do: "bg-teal-600 text-white shadow-md",
-              else: "bg-white text-gray-700 border border-gray-300 hover:border-gray-400"
+              do: "bg-hero-blue-600 text-white shadow-md",
+              else:
+                "bg-white text-hero-black-100 border border-hero-grey-300 hover:border-hero-grey-400"
             )
           ]}
         >
@@ -128,7 +129,7 @@ defmodule KlassHeroWeb.ProgramComponents do
     ~H"""
     <div
       class={[
-        "bg-white shadow-sm border border-gray-100",
+        "bg-white shadow-sm border border-hero-grey-100",
         Theme.rounded(:xl),
         "hover:shadow-lg hover:scale-[1.02]",
         Theme.transition(:slow),
@@ -147,7 +148,7 @@ defmodule KlassHeroWeb.ProgramComponents do
             phx-click="toggle_favorite"
             phx-value-program={@program.title}
             class={[
-              "p-2 bg-white shadow-sm hover:bg-gray-50",
+              "p-2 bg-white shadow-sm hover:bg-hero-grey-50",
               Theme.transition(:normal),
               Theme.rounded(:full)
             ]}
@@ -159,7 +160,7 @@ defmodule KlassHeroWeb.ProgramComponents do
                 Theme.transition(:normal),
                 if(@favorited,
                   do: "text-red-500 fill-red-500",
-                  else: "text-gray-600 hover:text-red-500"
+                  else: "text-hero-black-100 hover:text-red-500"
                 )
               ]}
               fill={if @favorited, do: "currentColor", else: "none"}
@@ -206,14 +207,14 @@ defmodule KlassHeroWeb.ProgramComponents do
       <div class="p-6">
         <div class="flex items-start justify-between mb-3">
           <div class="flex-1">
-            <h3 class={[Theme.typography(:card_title), "text-gray-900 mb-2"]}>{@program.title}</h3>
-            <p class="text-gray-600 text-sm mb-3 line-clamp-2">{@program.description}</p>
+            <h3 class={[Theme.typography(:card_title), "text-hero-black mb-2"]}>{@program.title}</h3>
+            <p class="text-hero-black-100 text-sm mb-3 line-clamp-2">{@program.description}</p>
           </div>
         </div>
         
     <!-- Program Details -->
         <div class="space-y-2 mb-4">
-          <div class="flex items-center text-sm text-gray-600">
+          <div class="flex items-center text-sm text-hero-black-100">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -238,11 +239,11 @@ defmodule KlassHeroWeb.ProgramComponents do
         </div>
         
     <!-- Price -->
-        <div class="pt-4 border-t border-gray-100">
+        <div class="pt-4 border-t border-hero-grey-100">
           <div class={[Theme.typography(:card_title), Theme.text_color(:primary)]}>
             {format_price(@program.price)}
           </div>
-          <div class="text-sm text-gray-500">{@program.period}</div>
+          <div class="text-sm text-hero-grey-500">{@program.period}</div>
         </div>
       </div>
     </div>

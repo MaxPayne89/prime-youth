@@ -1,6 +1,6 @@
 # LiveView Patterns Guide
 
-This document establishes patterns for Phoenix LiveView development in Klass Hero Connect, ensuring consistency and best practices across the codebase.
+This document establishes patterns for Phoenix LiveView development in Klass Hero, ensuring consistency and best practices across the codebase.
 
 ## Stream Usage
 

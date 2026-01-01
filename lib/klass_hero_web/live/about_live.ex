@@ -100,7 +100,7 @@ defmodule KlassHeroWeb.AboutLive do
         gradient_class={Theme.gradient(:hero)}
         show_back_button
       >
-        <:title>{gettext("About Klass Hero Connect")}</:title>
+        <:title>{gettext("About Klass Hero")}</:title>
         <:subtitle>
           {gettext("Empowering young minds through quality after-school programs")}
         </:subtitle>
@@ -117,7 +117,7 @@ defmodule KlassHeroWeb.AboutLive do
           <:body>
             <p class={[Theme.text_color(:secondary), "leading-relaxed"]}>
               {gettext(
-                "At Klass Hero Connect, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
+                "At Klass Hero, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
               )}
             </p>
             <p class={[Theme.text_color(:secondary), "leading-relaxed mt-4"]}>
@@ -156,7 +156,7 @@ defmodule KlassHeroWeb.AboutLive do
         <.card>
           <:header>
             <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              {gettext("Why Choose Klass Hero Connect?")}
+              {gettext("Why Choose Klass Hero?")}
             </h2>
           </:header>
           <:body>

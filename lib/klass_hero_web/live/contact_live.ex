@@ -92,7 +92,7 @@ defmodule KlassHeroWeb.ContactLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-gray-50 pb-20 md:pb-6">
+    <div class="min-h-screen bg-hero-grey-50 pb-20 md:pb-6">
       <.hero_section
         variant="page"
         gradient_class={Theme.gradient(:primary)}
@@ -107,7 +107,7 @@ defmodule KlassHeroWeb.ContactLive do
           <div>
             <.card>
               <:header>
-                <h2 class={[Theme.typography(:section_title), "text-gray-900"]}>
+                <h2 class={[Theme.typography(:section_title), "text-hero-black"]}>
                   {gettext("Send us a Message")}
                 </h2>
               </:header>
@@ -149,9 +149,9 @@ defmodule KlassHeroWeb.ContactLive do
 
                   <div
                     :if={@submission_status == :success}
-                    class={["p-4 bg-teal-50 border border-teal-200", Theme.rounded(:md)]}
+                    class={["p-4 bg-hero-blue-50 border border-hero-blue-200", Theme.rounded(:md)]}
                   >
-                    <div class="flex items-center gap-2 text-teal-800">
+                    <div class="flex items-center gap-2 text-hero-blue-800">
                       <.icon name="hero-check-circle" class="w-5 h-5" />
                       <span class="font-medium">{gettext("Message sent successfully!")}</span>
                     </div>
@@ -180,7 +180,7 @@ defmodule KlassHeroWeb.ContactLive do
           <div class="space-y-6">
             <.card>
               <:header>
-                <h2 class="text-xl font-bold text-gray-900">{gettext("Get in Touch")}</h2>
+                <h2 class="text-xl font-bold text-hero-black">{gettext("Get in Touch")}</h2>
               </:header>
               <:body>
                 <div class="space-y-4">
@@ -193,9 +193,9 @@ defmodule KlassHeroWeb.ContactLive do
                       <.icon name={method.icon} class="w-5 h-5 text-white" />
                     </UIComponents.gradient_icon>
                     <div class="flex-1">
-                      <h3 class="font-semibold text-gray-900">{method.title}</h3>
-                      <p class="text-sm text-gray-600">{method.value}</p>
-                      <p :if={method.note} class="text-xs text-gray-500 mt-1">{method.note}</p>
+                      <h3 class="font-semibold text-hero-black">{method.title}</h3>
+                      <p class="text-sm text-hero-grey-600">{method.value}</p>
+                      <p :if={method.note} class="text-xs text-hero-grey-500 mt-1">{method.note}</p>
                     </div>
                   </div>
                 </div>
@@ -204,13 +204,13 @@ defmodule KlassHeroWeb.ContactLive do
 
             <.card>
               <:header>
-                <h2 class="text-xl font-bold text-gray-900">{gettext("Office Hours")}</h2>
+                <h2 class="text-xl font-bold text-hero-black">{gettext("Office Hours")}</h2>
               </:header>
               <:body>
                 <div class="space-y-2 text-sm">
                   <div :for={hours <- office_hours()} class="flex justify-between">
-                    <span class="font-medium text-gray-900">{hours.days}</span>
-                    <span class="text-gray-600">{hours.hours}</span>
+                    <span class="font-medium text-hero-black">{hours.days}</span>
+                    <span class="text-hero-grey-600">{hours.hours}</span>
                   </div>
                 </div>
               </:body>
@@ -223,10 +223,10 @@ defmodule KlassHeroWeb.ContactLive do
                     name="hero-question-mark-circle"
                     class={"w-12 h-12 mx-auto mb-3 #{Theme.text_color(:primary)}"}
                   />
-                  <h3 class="font-semibold text-gray-900 mb-2">
+                  <h3 class="font-semibold text-hero-black mb-2">
                     {gettext("Looking for Quick Answers?")}
                   </h3>
-                  <p class="text-sm text-gray-600 mb-4">
+                  <p class="text-sm text-hero-grey-600 mb-4">
                     {gettext("Check out our FAQ section for answers to common questions.")}
                   </p>
                   <button class={[Theme.text_color(:primary), "font-medium text-sm hover:underline"]}>

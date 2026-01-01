@@ -7,47 +7,73 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Klass Hero Brand Colors - extending DaisyUI
-        'prime': {
+        // Klass Hero Superhero Brand Colors
+        'hero': {
+          blue: {
+            50: '#E5F9FF',
+            100: '#CCF3FF',
+            200: '#99E7FF',
+            300: '#66DBFF',
+            400: '#33CFFF',
+            500: '#0FC3FF', // Primary brand blue
+            600: '#0C9CCC',
+            700: '#097599',
+            800: '#064E66',
+            900: '#032733',
+          },
           yellow: {
-            50: '#FFFCEB',
-            100: '#FFF8D1',
-            200: '#FFF0A8',
-            300: '#FFE875',
-            400: '#FFD700', // Primary brand yellow
-            500: '#E6C200',
-            600: '#CCAD00',
-            700: '#B39700',
-            800: '#997800',
-            900: '#805C00',
+            50: '#FFFEF5',
+            100: '#FFFCEB',
+            200: '#FFFAD6',
+            300: '#FFF7C2',
+            400: '#FFF5AD',
+            500: '#FFFF36', // Primary brand yellow
+            600: '#CCCC2B',
+            700: '#999920',
+            800: '#666616',
+            900: '#33330B',
           },
-          magenta: {
-            50: '#FFF0F7',
-            100: '#FFE1F0',
-            200: '#FFC3E1',
-            300: '#FFA5D2',
-            400: '#FF1493', // Primary brand magenta
-            500: '#E6127D',
-            600: '#CC1067',
-            700: '#B30E51',
-            800: '#990C3B',
-            900: '#800A25',
+          grey: {
+            50: '#F7F7F7',
+            100: '#EFEFEF',
+            200: '#DFDFDF',
+            300: '#CFCFCF',
+            400: '#C7C7C7', // Brand grey
+            500: '#A8A8A8',
+            600: '#8A8A8A',
+            700: '#6B6B6B',
+            800: '#4D4D4D',
+            900: '#2E2E2E',
           },
-          cyan: {
-            50: '#F0FDFC',
-            100: '#E1FBF9',
-            200: '#C3F7F3',
-            300: '#A5F3ED',
-            400: '#00CED1', // Primary brand cyan
-            500: '#00B4B7',
-            600: '#009A9D',
-            700: '#008083',
-            800: '#006669',
-            900: '#004C4F',
+          pink: {
+            50: '#FFEAC9', // Primary brand background
+            100: '#FFE4B8',
+            200: '#FFDEA7',
+            300: '#FFD896',
+            400: '#FFD285',
+            500: '#FFCC74',
+            600: '#CCA35D',
+            700: '#997A46',
+            800: '#66522E',
+            900: '#332917',
+          },
+          black: {
+            DEFAULT: '#000000', // Primary brand text
+            50: '#1A1A1A',
+            100: '#333333',
+            200: '#4D4D4D',
+            300: '#666666',
+            400: '#808080',
+            500: '#999999',
+            600: '#B3B3B3',
+            700: '#CCCCCC',
+            800: '#E6E6E6',
+            900: '#F2F2F2',
           }
         }
       },
       fontFamily: {
+        'display': ['Bangers', 'Impact', 'Arial Black', 'sans-serif'],
         'sans': ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       animation: {
@@ -81,5 +107,6 @@ module.exports = {
   plugins: [
     require('@tailwindcss/forms'),
     require('@tailwindcss/aspect-ratio'),
+    require('./assets/vendor/heroicons'),
   ],
 }

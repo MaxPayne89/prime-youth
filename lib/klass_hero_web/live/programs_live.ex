@@ -272,7 +272,7 @@ defmodule KlassHeroWeb.ProgramsLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen bg-gray-50 pb-20 md:pb-6">
+    <div class="min-h-screen bg-hero-grey-50 pb-20 md:pb-6">
       <!-- Header -->
       <.page_header>
         <:title>{gettext("Programs")}</:title>
@@ -280,7 +280,7 @@ defmodule KlassHeroWeb.ProgramsLive do
           <.icon_button
             icon_path="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
             variant="light"
-            class="text-gray-600"
+            class="text-hero-grey-600"
             aria_label="More options"
           />
         </:actions>
@@ -330,7 +330,7 @@ defmodule KlassHeroWeb.ProgramsLive do
             type="button"
             phx-click="load_more"
             disabled={@loading_more}
-            class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-hero-grey-400 disabled:cursor-not-allowed transition-colors"
           >
             <%= if @loading_more do %>
               <span class="flex items-center gap-2">

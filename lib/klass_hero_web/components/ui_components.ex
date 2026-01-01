@@ -211,7 +211,7 @@ defmodule KlassHeroWeb.UIComponents do
         @size_classes.padding,
         "bg-white shadow-sm",
         Theme.rounded(:full),
-        "hover:bg-gray-50",
+        "hover:bg-hero-grey-50",
         Theme.transition(:normal),
         @class
       ]}
@@ -855,7 +855,7 @@ defmodule KlassHeroWeb.UIComponents do
               ]}
             >
               <img
-                src={~p"/images/logo-standard.png"}
+                src={~p"/images/logo.png"}
                 alt="Klass Hero Logo"
                 class="w-16 h-16 object-contain"
               />

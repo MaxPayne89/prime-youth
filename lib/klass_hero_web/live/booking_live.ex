@@ -255,7 +255,7 @@ defmodule KlassHeroWeb.BookingLive do
             <select
               name="child_id"
               class={[
-                "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent",
+                "w-full px-4 py-3 border border-hero-grey-300 focus:ring-2 focus:ring-hero-blue-500 focus:border-transparent",
                 Theme.rounded(:lg)
               ]}
             >
@@ -292,7 +292,7 @@ defmodule KlassHeroWeb.BookingLive do
               maxlength="500"
               placeholder={gettext("Any allergies, medical conditions, or special instructions...")}
               class={[
-                "w-full px-4 py-3 border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none",
+                "w-full px-4 py-3 border border-hero-grey-300 focus:ring-2 focus:ring-hero-blue-500 focus:border-transparent resize-none",
                 Theme.rounded(:lg)
               ]}
             ></textarea>
@@ -376,7 +376,7 @@ defmodule KlassHeroWeb.BookingLive do
             <div class="space-y-2 font-mono text-sm">
               <div class="flex justify-between">
                 <span class={Theme.text_color(:secondary)}>{gettext("Account Name:")}</span>
-                <span class="font-semibold">Klass Hero Connect</span>
+                <span class="font-semibold">Klass Hero</span>
               </div>
               <div class="flex justify-between">
                 <span class={Theme.text_color(:secondary)}>{gettext("IBAN:")}</span>

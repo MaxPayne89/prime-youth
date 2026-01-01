@@ -39,9 +39,10 @@ defmodule KlassHeroWeb.Theme do
   # ============================================
 
   @gradients %{
-    # Primary brand gradients
-    primary: "bg-gradient-to-r from-teal-500 to-teal-600",
-    hero: "bg-gradient-to-br from-teal-400 via-teal-500 to-teal-600",
+    # Primary brand gradients - Superhero theme
+    primary: "bg-gradient-to-r from-hero-blue-500 to-hero-blue-600",
+    hero: "bg-gradient-to-br from-hero-blue-400 via-hero-yellow-400 to-hero-yellow-500",
+    comic: "bg-gradient-to-r from-hero-yellow-400 to-hero-blue-400",
     safety: "bg-gradient-to-r from-green-500 to-emerald-600"
   }
 
@@ -80,9 +81,9 @@ defmodule KlassHeroWeb.Theme do
   # ============================================
 
   @colors %{
-    primary: "teal",
-    secondary: "pink",
-    accent: "prime-yellow"
+    primary: "hero-blue",
+    secondary: "hero-grey",
+    accent: "hero-yellow"
   }
 
   @doc """
@@ -102,31 +103,39 @@ defmodule KlassHeroWeb.Theme do
   # ============================================
 
   @brand_colors %{
-    # Primary brand color (teal)
-    primary: "teal-600",
-    primary_hover: "teal-700",
-    primary_light: "teal-50",
+    # Primary brand color (hero blue)
+    primary: "hero-blue-600",
+    primary_hover: "hero-blue-700",
+    primary_light: "hero-blue-50",
 
-    # Accent color (pink)
-    accent: "pink-500",
-    accent_hover: "pink-600",
+    # Secondary color (hero grey)
+    secondary: "hero-grey-500",
+    secondary_hover: "hero-grey-600",
+
+    # Accent color (hero yellow)
+    accent: "hero-yellow-400",
+    accent_hover: "hero-yellow-500",
+
+    # Background color (hero pink)
+    background: "hero-pink-50",
+    background_light: "hero-pink-100",
 
     # Surface colors
     surface: "white",
-    surface_light: "slate-50",
+    surface_light: "hero-pink-50",
 
-    # Text colors
-    text_primary: "slate-900",
-    text_secondary: "slate-700",
-    text_muted: "slate-500",
+    # Text colors (hero black)
+    text_primary: "hero-black",
+    text_secondary: "hero-black-100",
+    text_muted: "hero-grey-500",
 
-    # Border colors
-    border_light: "slate-200",
-    border_medium: "slate-300",
+    # Border colors (hero grey)
+    border_light: "hero-grey-200",
+    border_medium: "hero-grey-300",
 
     # Footer
-    footer_bg: "slate-900",
-    footer_text: "slate-300"
+    footer_bg: "hero-black",
+    footer_text: "hero-grey-300"
   }
 
   @doc """
@@ -199,18 +208,19 @@ defmodule KlassHeroWeb.Theme do
       iex> Theme.bg(:primary_light)
       "bg-prime-cyan-100"
   """
-  def bg(:primary), do: "bg-teal-600"
-  def bg(:primary_light), do: "bg-teal-50"
-  def bg(:primary_dark), do: "bg-teal-700"
-  def bg(:secondary), do: "bg-pink-500"
-  def bg(:secondary_light), do: "bg-pink-50"
-  def bg(:secondary_dark), do: "bg-pink-700"
-  def bg(:accent), do: "bg-prime-yellow-400"
-  def bg(:accent_light), do: "bg-prime-yellow-100"
+  def bg(:primary), do: "bg-hero-blue-600"
+  def bg(:primary_light), do: "bg-hero-blue-50"
+  def bg(:primary_dark), do: "bg-hero-blue-700"
+  def bg(:secondary), do: "bg-hero-grey-500"
+  def bg(:secondary_light), do: "bg-hero-grey-50"
+  def bg(:secondary_dark), do: "bg-hero-grey-700"
+  def bg(:accent), do: "bg-hero-yellow-400"
+  def bg(:accent_light), do: "bg-hero-yellow-100"
+  def bg(:base), do: "bg-hero-pink-50"
   def bg(:surface), do: "bg-white"
-  def bg(:muted), do: "bg-gray-50"
-  def bg(:light), do: "bg-gray-100"
-  def bg(:medium), do: "bg-gray-200"
+  def bg(:muted), do: "bg-hero-grey-50"
+  def bg(:light), do: "bg-hero-grey-100"
+  def bg(:medium), do: "bg-hero-grey-200"
 
   # ============================================
   # TEXT COLOR CLASSES
@@ -237,16 +247,16 @@ defmodule KlassHeroWeb.Theme do
       iex> Theme.text_color(:heading)
       "text-gray-900"
   """
-  def text_color(:primary), do: "text-teal-600"
-  def text_color(:primary_dark), do: "text-teal-700"
-  def text_color(:secondary), do: "text-gray-600"
-  def text_color(:secondary_dark), do: "text-pink-600"
-  def text_color(:accent), do: "text-prime-yellow-400"
-  def text_color(:accent_dark), do: "text-prime-yellow-600"
-  def text_color(:heading), do: "text-gray-900"
-  def text_color(:body), do: "text-gray-700"
-  def text_color(:muted), do: "text-gray-500"
-  def text_color(:subtle), do: "text-gray-400"
+  def text_color(:primary), do: "text-hero-blue-600"
+  def text_color(:primary_dark), do: "text-hero-blue-700"
+  def text_color(:secondary), do: "text-hero-grey-600"
+  def text_color(:secondary_dark), do: "text-hero-grey-700"
+  def text_color(:accent), do: "text-hero-yellow-400"
+  def text_color(:accent_dark), do: "text-hero-yellow-600"
+  def text_color(:heading), do: "text-hero-black"
+  def text_color(:body), do: "text-hero-black-100"
+  def text_color(:muted), do: "text-hero-grey-500"
+  def text_color(:subtle), do: "text-hero-grey-400"
   def text_color(:inverse), do: "text-white"
 
   # ============================================
@@ -264,13 +274,13 @@ defmodule KlassHeroWeb.Theme do
       iex> Theme.border_color(:light)
       "border-gray-200"
   """
-  def border_color(:primary), do: "border-teal-500"
-  def border_color(:primary_light), do: "border-teal-200"
-  def border_color(:secondary), do: "border-pink-500"
-  def border_color(:accent), do: "border-prime-yellow-400"
-  def border_color(:light), do: "border-gray-200"
-  def border_color(:medium), do: "border-gray-300"
-  def border_color(:dark), do: "border-gray-400"
+  def border_color(:primary), do: "border-hero-blue-500"
+  def border_color(:primary_light), do: "border-hero-blue-200"
+  def border_color(:secondary), do: "border-hero-grey-500"
+  def border_color(:accent), do: "border-hero-yellow-400"
+  def border_color(:light), do: "border-hero-grey-200"
+  def border_color(:medium), do: "border-hero-grey-300"
+  def border_color(:dark), do: "border-hero-grey-400"
 
   # ============================================
   # ICON STYLE PAIRS (bg + text)
@@ -290,13 +300,13 @@ defmodule KlassHeroWeb.Theme do
       # bg = "bg-prime-cyan-100"
       # text = "text-prime-cyan-400"
   """
-  def icon_styles(:primary), do: {"bg-teal-50", "text-teal-600"}
-  def icon_styles(:secondary), do: {"bg-pink-50", "text-pink-500"}
-  def icon_styles(:accent), do: {"bg-prime-yellow-100", "text-prime-yellow-600"}
+  def icon_styles(:primary), do: {"bg-hero-blue-50", "text-hero-blue-600"}
+  def icon_styles(:secondary), do: {"bg-hero-grey-50", "text-hero-grey-500"}
+  def icon_styles(:accent), do: {"bg-hero-yellow-100", "text-hero-yellow-600"}
   def icon_styles(:success), do: {"bg-green-100", "text-green-600"}
-  def icon_styles(:warning), do: {"bg-yellow-100", "text-yellow-600"}
+  def icon_styles(:warning), do: {"bg-hero-yellow-100", "text-hero-yellow-600"}
   def icon_styles(:danger), do: {"bg-red-100", "text-red-600"}
-  def icon_styles(:info), do: {"bg-blue-100", "text-blue-600"}
+  def icon_styles(:info), do: {"bg-hero-blue-100", "text-hero-blue-600"}
   def icon_styles(:neutral), do: {"bg-gray-100", "text-gray-600"}
 
   # ============================================
@@ -422,9 +432,13 @@ defmodule KlassHeroWeb.Theme do
 
   ## Styles
 
+  ### Display Font (Bangers)
   - `:hero` - Page hero text (largest)
   - `:page_title` - Main page titles
   - `:section_title` - Section headings
+  - `:cta` - Call-to-action button text
+
+  ### Sans Font (Inter)
   - `:card_title` - Card/component headings
   - `:body` - Default body text
   - `:body_small` - Smaller body text
@@ -433,15 +447,27 @@ defmodule KlassHeroWeb.Theme do
   ## Examples
 
       iex> Theme.typography(:hero)
-      "text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
+      "font-display text-4xl md:text-5xl lg:text-6xl font-normal tracking-wide"
+
+      iex> Theme.typography(:body)
+      "font-sans text-base"
   """
-  def typography(:hero), do: "text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
-  def typography(:page_title), do: "text-3xl md:text-4xl font-bold"
-  def typography(:section_title), do: "text-2xl md:text-3xl font-bold"
-  def typography(:card_title), do: "text-lg font-semibold"
-  def typography(:body), do: "text-base"
-  def typography(:body_small), do: "text-sm"
-  def typography(:caption), do: "text-xs text-gray-500"
+  # Display font (Bangers) for hero/heading text
+  def typography(:hero),
+    do: "font-display text-4xl md:text-5xl lg:text-6xl font-normal tracking-wide"
+
+  def typography(:page_title), do: "font-display text-3xl md:text-4xl font-normal tracking-wide"
+
+  def typography(:section_title),
+    do: "font-display text-2xl md:text-3xl font-normal tracking-wide"
+
+  def typography(:cta), do: "font-display text-lg md:text-xl font-normal tracking-wide"
+
+  # Sans font (Inter) for functional text
+  def typography(:card_title), do: "font-sans text-lg font-semibold"
+  def typography(:body), do: "font-sans text-base"
+  def typography(:body_small), do: "font-sans text-sm"
+  def typography(:caption), do: "font-sans text-xs text-gray-500"
 
   # ============================================
   # BORDER RADIUS

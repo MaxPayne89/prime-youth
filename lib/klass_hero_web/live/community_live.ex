@@ -138,7 +138,7 @@ defmodule KlassHeroWeb.CommunityLive do
             title={gettext("No highlights yet")}
             description={
               gettext(
-                "Stay tuned for updates, photos, and announcements from instructors and the Klass Hero Connect community."
+                "Stay tuned for updates, photos, and announcements from instructors and the Klass Hero community."
               )
             }
           />

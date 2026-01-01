@@ -45,9 +45,9 @@ defmodule KlassHeroWeb.CompositeComponents do
     <button
       type="button"
       class={[
-        "w-full flex items-center gap-4 p-4 hover:bg-gray-50",
+        "w-full flex items-center gap-4 p-4 hover:bg-hero-grey-50",
         Theme.transition(:normal),
-        "border-b border-gray-100 last:border-b-0",
+        "border-b border-hero-grey-200 last:border-b-0",
         @class
       ]}
       {@rest}
@@ -56,10 +56,10 @@ defmodule KlassHeroWeb.CompositeComponents do
         <.icon name={@icon} class={"w-5 h-5 #{@icon_color}"} />
       </.gradient_icon>
       <div class="flex-1 text-left">
-        <div class="font-medium text-gray-900">{@title}</div>
-        <div class="text-sm text-gray-500">{@description}</div>
+        <div class="font-medium text-hero-black">{@title}</div>
+        <div class="text-sm text-hero-grey-500">{@description}</div>
       </div>
-      <.icon name="hero-chevron-right" class="w-5 h-5 text-gray-400 flex-shrink-0" />
+      <.icon name="hero-chevron-right" class="w-5 h-5 text-hero-grey-400 flex-shrink-0" />
     </button>
     """
   end
@@ -354,7 +354,7 @@ defmodule KlassHeroWeb.CompositeComponents do
     <footer class="footer footer-center p-10 bg-slate-900 text-slate-300">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl">
         <div class="text-left">
-          <h3 class="font-bold text-lg text-white mb-4">Klass Hero Connect</h3>
+          <h3 class="font-bold text-lg text-white mb-4">Klass Hero</h3>
           <p class="text-sm">
             {gettext("Building the future of youth education by connecting communities.")}
           </p>
@@ -414,7 +414,7 @@ defmodule KlassHeroWeb.CompositeComponents do
       </div>
 
       <div class="border-t border-base-300 pt-6 mt-6 w-full">
-        <p class="text-sm">&copy; 2025 Klass Hero Connect. {gettext("All rights reserved.")}</p>
+        <p class="text-sm">&copy; 2025 Klass Hero. {gettext("All rights reserved.")}</p>
         <div class="flex gap-4 justify-center mt-2 text-xs">
           <.link navigate={~p"/privacy"} class="link link-hover">{gettext("Privacy Policy")}</.link>
           <span class="text-gray-400">•</span>

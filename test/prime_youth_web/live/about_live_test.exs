@@ -7,14 +7,14 @@ defmodule KlassHeroWeb.AboutLiveTest do
     test "renders about page successfully", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/about")
 
-      assert has_element?(view, "h1", "About Klass Hero Connect")
+      assert has_element?(view, "h1", "About Klass Hero")
     end
 
     test "displays hero section with page variant", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify hero section content
-      assert html =~ "About Klass Hero Connect"
+      assert html =~ "About Klass Hero"
       assert html =~ "Empowering young minds through quality after-school programs"
     end
 
@@ -52,7 +52,7 @@ defmodule KlassHeroWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify key features heading
-      assert html =~ "Why Choose Klass Hero Connect?"
+      assert html =~ "Why Choose Klass Hero?"
 
       # Verify all four key features are present
       assert html =~ "Easy Discovery"
@@ -105,7 +105,7 @@ defmodule KlassHeroWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify page title is set
-      assert html =~ "About Klass Hero Connect"
+      assert html =~ "About Klass Hero"
     end
 
     test "responsive grid layout for key features", %{conn: conn} do
@@ -128,7 +128,7 @@ defmodule KlassHeroWeb.AboutLiveTest do
 
       # The hero_section component with show_back_button should render a back button
       # This is a navigation aid for the page variant
-      assert html =~ "About Klass Hero Connect"
+      assert html =~ "About Klass Hero"
     end
 
     test "mission section contains complete description", %{conn: conn} do
@@ -168,7 +168,7 @@ defmodule KlassHeroWeb.AboutLiveTest do
       # Verify multiple sections use card component (indicated by structured content)
       assert html =~ "Our Mission"
       assert html =~ "Our Values"
-      assert html =~ "Why Choose Klass Hero Connect?"
+      assert html =~ "Why Choose Klass Hero?"
       assert html =~ "Ready to Get Started?"
     end
   end

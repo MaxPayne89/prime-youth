@@ -43,7 +43,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   def participation_card(assigns) do
     ~H"""
     <div class={[
-      "bg-white border border-gray-200 p-4 md:p-6",
+      "bg-white border border-hero-grey-200 p-4 md:p-6",
       Theme.rounded(:lg),
       Theme.shadow(:md),
       @class
@@ -51,10 +51,10 @@ defmodule KlassHeroWeb.ParticipationComponents do
       <%!-- Session header --%>
       <div class="flex items-start justify-between gap-4 mb-4">
         <div class="flex-1">
-          <h3 class="text-lg font-semibold text-gray-900">
+          <h3 class="text-lg font-semibold text-hero-black">
             {Map.get(@session, :program_name, "Session")}
           </h3>
-          <p class="text-sm text-gray-600 mt-1">
+          <p class="text-sm text-hero-black-100 mt-1">
             {format_session_datetime(@session)}
           </p>
         </div>
@@ -63,8 +63,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
       <%!-- Session details --%>
       <div class="space-y-2 mb-4">
-        <div class="flex items-center gap-2 text-sm text-gray-700">
-          <.icon name="hero-map-pin" class="w-4 h-4 text-gray-400" />
+        <div class="flex items-center gap-2 text-sm text-hero-black-100">
+          <.icon name="hero-map-pin" class="w-4 h-4 text-hero-grey-400" />
           <span>{Map.get(@session, :location, "Location TBD")}</span>
         </div>
 
@@ -161,7 +161,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
       <.form for={@form} id="participation-form" phx-submit={@on_submit}>
         <%!-- Session context --%>
         <div class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-900 mb-2">
+          <h3 class="text-lg font-semibold text-hero-black mb-2">
             Participation Check-In
           </h3>
           <p class="text-sm text-gray-600">
@@ -190,14 +190,14 @@ defmodule KlassHeroWeb.ParticipationComponents do
                   name="participation[checked_in][]"
                   value={record.id}
                   checked={record.status == :checked_in}
-                  class="mt-1 w-4 h-4 text-teal-600 rounded border-gray-300 focus:ring-teal-500"
+                  class="mt-1 w-4 h-4 text-hero-blue-600 rounded border-hero-grey-300 focus:ring-hero-blue-500"
                 />
                 <div class="flex-1">
-                  <div class="font-medium text-gray-900">
+                  <div class="font-medium text-hero-black">
                     {record.child_first_name} {record.child_last_name}
                   </div>
                   <%= if record.status == :checked_in && record.check_in_at do %>
-                    <div class="text-xs text-gray-500 mt-1">
+                    <div class="text-xs text-hero-grey-500 mt-1">
                       Checked in at {format_time(record.check_in_at)}
                     </div>
                   <% end %>
@@ -224,7 +224,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
           <button
             type="submit"
             class={[
-              "flex-1 px-4 py-3 bg-teal-600 text-white font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
+              "flex-1 px-4 py-3 bg-hero-blue-600 text-white font-medium hover:bg-hero-blue-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
               Theme.rounded(:lg),
               Theme.transition(:normal)
             ]}
@@ -295,7 +295,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
       <%!-- Header with count --%>
       <div class="p-4 md:p-6 border-b border-gray-200">
         <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold text-gray-900">
+          <h3 class="text-lg font-semibold text-hero-black">
             Session Roster
           </h3>
           <div class="text-sm text-gray-600">
@@ -308,12 +308,12 @@ defmodule KlassHeroWeb.ParticipationComponents do
       <div class="divide-y divide-gray-200">
         <div
           :for={record <- @participation_records}
-          class="p-4 md:p-6 hover:bg-gray-50 transition-colors"
+          class="p-4 md:p-6 hover:bg-hero-grey-50 transition-colors"
         >
           <div class="flex items-start justify-between gap-4">
             <%!-- Child info --%>
             <div class="flex-1">
-              <div class="font-medium text-gray-900 mb-1">
+              <div class="font-medium text-hero-black mb-1">
                 {record.child_first_name} {record.child_last_name}
               </div>
 
@@ -402,7 +402,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
                       phx-value-id={record.id}
                       class={[
                         "px-4 py-2 bg-white text-gray-700 font-medium border border-gray-300",
-                        "hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                        "hover:bg-hero-grey-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
                         Theme.rounded(:md),
                         Theme.transition(:normal)
                       ]}
@@ -461,7 +461,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp icon_size_classes(:md), do: "w-4 h-4"
   defp icon_size_classes(:lg), do: "w-5 h-5"
 
-  defp status_color_classes(:scheduled), do: "bg-gray-100 text-gray-700 border border-gray-300"
+  defp status_color_classes(:scheduled),
+    do: "bg-hero-grey-50 text-hero-black-100 border border-hero-grey-300"
 
   defp status_color_classes(:in_progress), do: "bg-blue-100 text-blue-700 border border-blue-300"
 

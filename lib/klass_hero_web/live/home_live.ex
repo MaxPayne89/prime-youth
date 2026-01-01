@@ -13,8 +13,7 @@ defmodule KlassHeroWeb.HomeLive do
     socket =
       socket
       |> assign(
-        page_title:
-          gettext("Klass Hero Connect - Connecting Families with Trusted Youth Educators")
+        page_title: gettext("Klass Hero - Connecting Families with Trusted Youth Educators")
       )
       |> stream(:featured_programs, featured)
       |> assign(:featured_empty?, Enum.empty?(featured))
@@ -42,14 +41,14 @@ defmodule KlassHeroWeb.HomeLive do
         gradient_class={Theme.gradient(:hero)}
         show_logo
       >
-        <:title>{gettext("Klass Hero Connect")}</:title>
+        <:title>{gettext("Klass Hero")}</:title>
         <:subtitle>{gettext("Connecting Families with Trusted Youth Educators")}</:subtitle>
         <:actions>
           <button
             phx-click="get_started"
             class={[
               "px-8 py-4 transform hover:scale-105 shadow-lg",
-              Theme.typography(:card_title),
+              Theme.typography(:cta),
               Theme.transition(:normal),
               Theme.rounded(:lg),
               Theme.bg(:surface),
@@ -63,7 +62,7 @@ defmodule KlassHeroWeb.HomeLive do
             phx-click="explore_programs"
             class={[
               "px-8 py-4 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white/30",
-              Theme.typography(:card_title),
+              Theme.typography(:cta),
               Theme.transition(:normal),
               Theme.rounded(:lg)
             ]}
@@ -78,7 +77,7 @@ defmodule KlassHeroWeb.HomeLive do
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div class="text-center mb-16">
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
-              {gettext("Why Klass Hero Connect?")}
+              {gettext("Why Klass Hero?")}
             </h2>
             <p class={["text-xl", Theme.text_color(:secondary)]}>
               {gettext("Safety, quality, and convenience for modern families.")}
@@ -155,7 +154,7 @@ defmodule KlassHeroWeb.HomeLive do
               class={[
                 Theme.gradient(:primary),
                 "px-8 py-3 text-white hover:shadow-lg transform hover:scale-105",
-                Theme.typography(:card_title),
+                Theme.typography(:cta),
                 Theme.transition(:normal),
                 Theme.rounded(:lg)
               ]}
@@ -208,7 +207,7 @@ defmodule KlassHeroWeb.HomeLive do
             phx-click="get_started"
             class={[
               "px-8 py-4 transform hover:scale-105 shadow-lg",
-              Theme.typography(:card_title),
+              Theme.typography(:cta),
               Theme.transition(:normal),
               Theme.rounded(:lg),
               Theme.bg(:surface),
