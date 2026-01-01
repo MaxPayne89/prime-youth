@@ -15,7 +15,7 @@ defmodule Mix.Tasks.Test.Setup do
   """
   use Mix.Task
 
-  @container_name "prime_youth_postgres"
+  @container_name "klass_hero_postgres"
   @service_name "postgres"
   @max_health_check_retries 30
 

@@ -1,9 +1,9 @@
 defmodule KlassHeroWeb.Theme do
   @moduledoc """
-  Centralized theme utilities for Prime Youth design system.
+  Centralized theme utilities for Klass Hero design system.
 
   This module provides consistent access to gradients, colors, spacing, shadows,
-  typography, and other design tokens used throughout the Prime Youth application.
+  typography, and other design tokens used throughout the Klass Hero application.
 
   ## Design Tokens
 

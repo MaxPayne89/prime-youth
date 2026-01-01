@@ -1,6 +1,6 @@
 defmodule KlassHeroWeb.ProgramComponents do
   @moduledoc """
-  Provides program-specific components for Prime Youth application.
+  Provides program-specific components for Klass Hero application.
 
   This module contains domain-specific components related to programs,
   activities, and the program catalog.
@@ -12,7 +12,7 @@ defmodule KlassHeroWeb.ProgramComponents do
   alias KlassHeroWeb.Theme
 
   @doc """
-  Renders a search input with icon and Prime Youth styling.
+  Renders a search input with icon and Klass Hero styling.
 
   ## Examples
 

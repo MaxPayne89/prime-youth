@@ -185,12 +185,12 @@ defmodule KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryP
       },
       %Post{
         id: "post_3",
-        author: "Prime Youth Admin",
+        author: "Klass Hero Admin",
         avatar_bg: Theme.bg(:accent),
         avatar_emoji: "📋",
         timestamp: "1 day ago",
         content:
-          "🎉 Exciting News! We're hosting a Family Fun Day next Saturday! Join us for games, food trucks, and showcase performances from all our programs. Free entry for all Prime Youth families!",
+          "🎉 Exciting News! We're hosting a Family Fun Day next Saturday! Join us for games, food trucks, and showcase performances from all our programs. Free entry for all Klass Hero families!",
         type: :event,
         event_details: %{
           title: "📅 Family Fun Day",

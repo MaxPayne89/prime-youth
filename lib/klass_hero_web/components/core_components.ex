@@ -1,6 +1,6 @@
 defmodule KlassHeroWeb.CoreComponents do
   @moduledoc """
-  Provides core UI components for Prime Youth application.
+  Provides core UI components for Klass Hero application.
 
   This module contains essential building blocks that are used across the application.
   """

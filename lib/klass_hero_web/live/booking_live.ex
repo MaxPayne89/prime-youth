@@ -376,7 +376,7 @@ defmodule KlassHeroWeb.BookingLive do
             <div class="space-y-2 font-mono text-sm">
               <div class="flex justify-between">
                 <span class={Theme.text_color(:secondary)}>{gettext("Account Name:")}</span>
-                <span class="font-semibold">Prime Youth Connect</span>
+                <span class="font-semibold">Klass Hero Connect</span>
               </div>
               <div class="flex justify-between">
                 <span class={Theme.text_color(:secondary)}>{gettext("IBAN:")}</span>

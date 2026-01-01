@@ -22,8 +22,8 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
         gradient: Theme.gradient(:primary),
         title: gettext("Agreement to Terms"),
         content: """
-        <p class="mb-4">By accessing and using Prime Youth Connect ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
-        <p class="mb-4">These terms constitute a legally binding agreement between you and Prime Youth Connect. Please read them carefully.</p>
+        <p class="mb-4">By accessing and using Klass Hero Connect ("the Platform"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
+        <p class="mb-4">These terms constitute a legally binding agreement between you and Klass Hero Connect. Please read them carefully.</p>
         <p class="font-semibold text-gray-900">Last Updated: #{last_updated()}</p>
         """
       },
@@ -113,7 +113,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
         </ul>
         <h4 class="font-semibold text-gray-900 mb-2">Program Cancellations:</h4>
         <ul class="list-disc pl-6 space-y-2">
-          <li>If Prime Youth Connect or an instructor cancels a program, you will receive a full refund</li>
+          <li>If Klass Hero Connect or an instructor cancels a program, you will receive a full refund</li>
           <li>Weather-related cancellations will be rescheduled when possible</li>
           <li>We will notify you as soon as possible of any cancellations</li>
         </ul>
@@ -151,7 +151,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
         title: gettext("Limitation of Liability"),
         content: """
         <h4 class="font-semibold text-gray-900 mb-2">Platform Use:</h4>
-        <p class="mb-4">Prime Youth Connect provides a platform to connect families with program instructors. While we verify instructor credentials and monitor program quality, the actual programs are provided by independent instructors.</p>
+        <p class="mb-4">Klass Hero Connect provides a platform to connect families with program instructors. While we verify instructor credentials and monitor program quality, the actual programs are provided by independent instructors.</p>
         <h4 class="font-semibold text-gray-900 mb-2">Liability Limits:</h4>
         <ul class="list-disc pl-6 space-y-2 mb-4">
           <li>We are not liable for injuries or accidents that occur during programs</li>
@@ -162,7 +162,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
         <h4 class="font-semibold text-gray-900 mb-2">Service Availability:</h4>
         <p class="mb-4">We strive to keep the Platform available, but we cannot guarantee uninterrupted access. We are not liable for service interruptions or technical issues.</p>
         <p class="mt-4 text-sm italic text-gray-600">
-          To the extent permitted by law, Prime Youth Connect's total liability shall not exceed the amount you paid for services in the 12 months preceding any claim.
+          To the extent permitted by law, Klass Hero Connect's total liability shall not exceed the amount you paid for services in the 12 months preceding any claim.
         </p>
         """
       },
@@ -173,7 +173,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
         title: gettext("Intellectual Property"),
         content: """
         <h4 class="font-semibold text-gray-900 mb-2">Platform Content:</h4>
-        <p class="mb-4">All content on Prime Youth Connect, including text, graphics, logos, and software, is owned by Prime Youth Connect or licensed to us and protected by copyright and trademark laws.</p>
+        <p class="mb-4">All content on Klass Hero Connect, including text, graphics, logos, and software, is owned by Klass Hero Connect or licensed to us and protected by copyright and trademark laws.</p>
         <h4 class="font-semibold text-gray-900 mb-2">User Content:</h4>
         <ul class="list-disc pl-6 space-y-2 mb-4">
           <li>You retain ownership of any content you submit (reviews, photos with permission)</li>
@@ -199,7 +199,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
         <ul class="list-disc pl-6 space-y-2 mb-4">
           <li>We will update the "Last Updated" date at the top of these terms</li>
           <li>For material changes, we will send an email notification to all active users</li>
-          <li>Continued use of Prime Youth Connect after changes constitute acceptance of the updated terms</li>
+          <li>Continued use of Klass Hero Connect after changes constitute acceptance of the updated terms</li>
           <li>If you disagree with changes, you may terminate your account</li>
         </ul>
         <p>We encourage you to review these terms periodically to stay informed.</p>
@@ -253,7 +253,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
         </div>
         <p class="mt-4">You can also reach us through our <a href="/contact" class="text-blue-600 hover:underline">Contact Page</a>.</p>
         <p class="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700">
-          By using Prime Youth Connect, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and our Privacy Policy.
+          By using Klass Hero Connect, you acknowledge that you have read, understood, and agree to be bound by these Terms of Service and our Privacy Policy.
         </p>
         """
       }

@@ -1,6 +1,6 @@
 defmodule KlassHeroWeb.ReviewComponents do
   @moduledoc """
-  Provides review and rating UI components for Prime Youth application.
+  Provides review and rating UI components for Klass Hero application.
 
   This module contains components related to reviews, ratings, and feedback display.
   """

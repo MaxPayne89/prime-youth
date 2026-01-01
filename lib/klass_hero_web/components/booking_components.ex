@@ -1,6 +1,6 @@
 defmodule KlassHeroWeb.BookingComponents do
   @moduledoc """
-  Provides booking and enrollment-specific components for Prime Youth application.
+  Provides booking and enrollment-specific components for Klass Hero application.
 
   This module contains domain-specific components related to the booking process,
   payment information, and enrollment confirmations.

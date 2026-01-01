@@ -1,8 +1,8 @@
 defmodule KlassHeroWeb.UIComponents do
   @moduledoc """
-  Provides UI components for Prime Youth application.
+  Provides UI components for Klass Hero application.
 
-  This module contains reusable UI components that follow the Prime Youth design system
+  This module contains reusable UI components that follow the Klass Hero design system
   with custom gradients, rounded corners, and Tailwind utilities.
   """
   use Phoenix.Component
@@ -774,7 +774,7 @@ defmodule KlassHeroWeb.UIComponents do
 
       # Landing page hero (home page style)
       <.hero_section variant="landing" show_logo>
-        <:title>Prime Youth</:title>
+        <:title>Klass Hero</:title>
         <:subtitle>Afterschool Adventures Await</:subtitle>
         <:actions>
           <button phx-click="get_started" class={["px-8 py-4 font-semibold", Theme.rounded(:lg), Theme.bg(:surface), Theme.text_color(:heading)]}>
@@ -794,7 +794,7 @@ defmodule KlassHeroWeb.UIComponents do
         phx-click="back_to_home"
       >
         <:title>About Us</:title>
-        <:subtitle>Learn more about Prime Youth</:subtitle>
+        <:subtitle>Learn more about Klass Hero</:subtitle>
       </.hero_section>
 
       # Minimal header
@@ -856,7 +856,7 @@ defmodule KlassHeroWeb.UIComponents do
             >
               <img
                 src={~p"/images/logo-standard.png"}
-                alt="Prime Youth Logo"
+                alt="Klass Hero Logo"
                 class="w-16 h-16 object-contain"
               />
             </div>

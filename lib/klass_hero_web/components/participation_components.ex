@@ -1,6 +1,6 @@
 defmodule KlassHeroWeb.ParticipationComponents do
   @moduledoc """
-  Provides participation-specific components for Prime Youth application.
+  Provides participation-specific components for Klass Hero application.
 
   This module contains domain-specific components for participation check-in/out workflows,
   session management, and participation status tracking for providers and parents.
