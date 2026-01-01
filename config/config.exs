@@ -71,15 +71,14 @@ config :prime_youth, PrimeYouthWeb.Gettext,
   default_locale: "en",
   locales: ~w(en de)
 
+# Configure Community bounded context
+config :prime_youth, :community,
+  repository: PrimeYouth.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
+
 # Configure Event Publisher
 config :prime_youth, :event_publisher,
   module: PrimeYouth.Shared.Adapters.Driven.Events.PubSubEventPublisher,
   pubsub: PrimeYouth.PubSub
-
-# Configure Highlights bounded context
-config :prime_youth, :highlights,
-  repository:
-    PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
 
 # Configure Identity bounded context
 config :prime_youth, :identity,

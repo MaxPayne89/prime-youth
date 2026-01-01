@@ -111,7 +111,7 @@
                   </.link>
                 </li>
                 <li>
-                  <.link navigate={~p"/highlights"} class="text-gray-700 hover:bg-gray-50">
+                  <.link navigate={~p"/community"} class="text-gray-700 hover:bg-gray-50">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         stroke-linecap="round"
@@ -121,7 +121,7 @@
                       >
                       </path>
                     </svg>
-                    {gettext("Highlights")}
+                    {gettext("Community")}
                   </.link>
                 </li>
                 <li>
@@ -233,7 +233,7 @@
 
           <%= if assigns[:current_scope] && @current_scope.user do %>
             <li class="mt-4"><.link navigate={~p"/dashboard"}>{gettext("Dashboard")}</.link></li>
-            <li><.link navigate={~p"/highlights"}>{gettext("Highlights")}</.link></li>
+            <li><.link navigate={~p"/community"}>{gettext("Community")}</.link></li>
             <li><.link navigate={~p"/users/settings"}>{gettext("Settings")}</.link></li>
             <li class="mt-4">
               <.link

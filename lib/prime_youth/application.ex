@@ -51,7 +51,7 @@ defmodule PrimeYouth.Application do
 
   defp in_memory_repositories do
     [
-      PrimeYouth.Highlights.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
+      PrimeYouth.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
     ]
   end
 end

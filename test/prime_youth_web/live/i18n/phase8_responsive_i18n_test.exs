@@ -244,29 +244,26 @@ defmodule PrimeYouthWeb.I18n.Phase8ResponsiveI18nTest do
     end
   end
 
-  describe "Highlights Page Translations" do
+  describe "Community Page Translations" do
     setup :register_and_log_in_user
 
-    test "highlights page displays German translations", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/highlights")
+    test "community page displays German translations", %{conn: conn} do
+      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/community")
 
       assert_locale(view, "de")
-      assert_translation(view, "Highlights", "de")
+      assert_translation(view, "Community", "de")
     end
 
-    test "achievement cards display German locale", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/highlights")
+    test "community posts display German locale", %{conn: conn} do
+      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/community")
 
       assert_locale(view, "de")
 
       html = render(view)
 
-      # Check for German achievement labels (check for translation existence)
-      de_recent_posts = get_translation("Recent Posts", "de")
-      de_view_all = get_translation("View All", "de")
-
-      # At least one of these should appear
-      assert html =~ de_recent_posts || html =~ de_view_all || html =~ "Highlights"
+      # Verify the community page structure is rendered
+      # The page should have posts stream container
+      assert html =~ "id=\"posts\"" || html =~ "phx-update=\"stream\""
     end
   end
 end

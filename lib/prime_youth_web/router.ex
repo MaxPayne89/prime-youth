@@ -46,7 +46,7 @@ defmodule PrimeYouthWeb.Router do
       ] do
       live "/dashboard", DashboardLive, :index
       live "/settings", SettingsLive, :index
-      live "/highlights", HighlightsLive, :index
+      live "/community", CommunityLive, :index
       live "/programs/:id/booking", BookingLive, :new
     end
 
