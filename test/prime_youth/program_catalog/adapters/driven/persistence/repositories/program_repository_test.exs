@@ -1,13 +1,13 @@
-defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepositoryTest do
-  use PrimeYouth.DataCase, async: true
+defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepositoryTest do
+  use KlassHero.DataCase, async: true
 
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
-  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapper
-  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
-  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
-  alias PrimeYouth.ProgramCatalog.Domain.Models.Program
-  alias PrimeYouth.Repo
-  alias PrimeYouth.Shared.Domain.Types.Pagination.PageResult
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapper
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.Repo
+  alias KlassHero.Shared.Domain.Types.Pagination.PageResult
 
   describe "list_all_programs/0" do
     test "returns all valid programs" do

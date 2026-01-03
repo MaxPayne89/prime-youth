@@ -1,4 +1,4 @@
-defmodule PrimeYouthWeb.FeatureCase do
+defmodule KlassHeroWeb.FeatureCase do
   @moduledoc """
   This module defines the test case to be used by
   feature tests using phoenix_test.
@@ -11,13 +11,13 @@ defmodule PrimeYouthWeb.FeatureCase do
 
   using do
     quote do
-      use PrimeYouthWeb.ConnCase
+      use KlassHeroWeb.ConnCase
 
+      import KlassHero.AccountsFixtures
+      import KlassHero.Factory
       import PhoenixTest
 
       # Import helpers for feature testing
-      import PrimeYouth.AccountsFixtures
-      import PrimeYouth.Factory
     end
   end
 

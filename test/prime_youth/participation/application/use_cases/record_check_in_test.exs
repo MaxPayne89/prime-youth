@@ -1,16 +1,16 @@
-defmodule PrimeYouth.Participation.Application.UseCases.RecordCheckInTest do
+defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
   @moduledoc """
   Integration tests for RecordCheckIn use case.
 
   Tests check-in recording for children registered for a session.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Application.UseCases.RecordCheckIn
-  alias PrimeYouth.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Participation.Application.UseCases.RecordCheckIn
+  alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
   describe "execute/1" do
     test "successfully checks in a registered record" do
@@ -137,8 +137,8 @@ defmodule PrimeYouth.Participation.Application.UseCases.RecordCheckInTest do
         })
 
       reloaded =
-        PrimeYouth.Repo.get(
-          PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema,
+        KlassHero.Repo.get(
+          KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema,
           record.id
         )
 

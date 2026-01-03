@@ -1,8 +1,8 @@
-defmodule PrimeYouthWeb.BookingLiveTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.BookingLiveTest do
+  use KlassHeroWeb.ConnCase, async: true
 
+  import KlassHero.Factory
   import Phoenix.LiveViewTest
-  import PrimeYouth.Factory
 
   describe "BookingLive authentication" do
     test "redirects to login when not authenticated", %{conn: conn} do

@@ -1,9 +1,9 @@
-defmodule PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapperTest do
-  use PrimeYouth.DataCase, async: true
+defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapperTest do
+  use KlassHero.DataCase, async: true
 
-  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapper
-  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
-  alias PrimeYouth.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapper
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.ProgramCatalog.Domain.Models.Program
 
   describe "to_domain/1" do
     test "converts schema to domain model with all fields" do

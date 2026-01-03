@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Repo.Migrations.AddNameAndAvatarToUsers do
+defmodule KlassHero.Repo.Migrations.AddNameAndAvatarToUsers do
   use Ecto.Migration
 
   def change do

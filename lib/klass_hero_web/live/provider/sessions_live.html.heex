@@ -1,0 +1,99 @@
+<div class="max-w-4xl mx-auto p-4 md:p-6">
+  <%!-- Page header --%>
+  <div class="mb-6">
+    <.page_header>
+      <:title>My Sessions</:title>
+      <:subtitle>Manage your scheduled sessions and attendance</:subtitle>
+    </.page_header>
+  </div>
+
+  <%!-- Date selector --%>
+  <div class="mb-6">
+    <.date_selector
+      id="date-select"
+      name="date"
+      value={@selected_date}
+      label="Select Date:"
+      phx_change="change_date"
+    />
+  </div>
+
+  <%!-- Error state --%>
+  <.error_alert :if={assigns[:sessions_error]} errors={[@sessions_error]} />
+
+  <%!-- Sessions list --%>
+  <div id="sessions" phx-update="stream" class="space-y-4">
+    <div :for={{id, session} <- @streams.sessions} id={id}>
+      <.participation_card session={session} role={:provider}>
+        <:actions>
+          <%= cond do %>
+            <% session.status == :scheduled -> %>
+              <button
+                phx-click="start_session"
+                phx-value-session_id={session.id}
+                class={[
+                  "px-4 py-2 bg-teal-600 text-white font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
+                  Theme.rounded(:lg),
+                  Theme.transition(:normal)
+                ]}
+              >
+                Start Session
+              </button>
+            <% session.status == :in_progress -> %>
+              <.link
+                navigate={~p"/provider/participation/#{session.id}"}
+                class={[
+                  "px-4 py-2 bg-teal-600 text-white font-medium hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 text-center",
+                  Theme.rounded(:lg),
+                  Theme.transition(:normal)
+                ]}
+              >
+                Manage Participation
+              </.link>
+              <button
+                phx-click="complete_session"
+                phx-value-session_id={session.id}
+                class={[
+                  "px-4 py-2 bg-gray-600 text-white font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2",
+                  Theme.rounded(:lg),
+                  Theme.transition(:normal)
+                ]}
+              >
+                Complete Session
+              </button>
+            <% session.status == :completed -> %>
+              <.link
+                navigate={~p"/provider/participation/#{session.id}"}
+                class={[
+                  "px-4 py-2 bg-gray-100 text-gray-700 font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-center",
+                  Theme.rounded(:lg),
+                  Theme.transition(:normal)
+                ]}
+              >
+                View Participation
+              </.link>
+            <% true -> %>
+              <span class="text-sm text-gray-500">No actions available</span>
+          <% end %>
+        </:actions>
+      </.participation_card>
+    </div>
+
+    <%!-- Empty state --%>
+    <div class="hidden only:block">
+      <div class={[
+        "p-8 text-center bg-white border border-gray-200",
+        Theme.rounded(:lg),
+        Theme.shadow(:md)
+      ]}>
+        <.icon name="hero-calendar" class="w-16 h-16 mx-auto mb-4 text-gray-400" />
+        <h3 class="text-lg font-medium text-gray-900 mb-2">
+          No sessions scheduled
+        </h3>
+        <p class="text-gray-600">
+          You have no sessions scheduled for {Calendar.strftime(@selected_date, "%B %d, %Y")}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

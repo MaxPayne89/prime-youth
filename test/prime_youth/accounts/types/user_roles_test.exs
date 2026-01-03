@@ -1,7 +1,7 @@
-defmodule PrimeYouth.Accounts.Types.UserRolesTest do
+defmodule KlassHero.Accounts.Types.UserRolesTest do
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Accounts.Types.UserRoles
+  alias KlassHero.Accounts.Types.UserRoles
 
   describe "type/0" do
     test "returns :array of :string" do

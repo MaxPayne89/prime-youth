@@ -1,16 +1,16 @@
-defmodule PrimeYouth.IdentityTest do
+defmodule KlassHero.IdentityTest do
   @moduledoc """
   Integration tests for the Identity context public API.
 
   Tests the complete flow from context facade through use cases to repositories.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  alias PrimeYouth.Identity
-  alias PrimeYouth.Identity.Domain.Models.Child
-  alias PrimeYouth.Identity.Domain.Models.ParentProfile
-  alias PrimeYouth.Identity.Domain.Models.ProviderProfile
+  alias KlassHero.Identity
+  alias KlassHero.Identity.Domain.Models.Child
+  alias KlassHero.Identity.Domain.Models.ParentProfile
+  alias KlassHero.Identity.Domain.Models.ProviderProfile
 
   # ============================================================================
   # Parent Profile Functions
@@ -154,7 +154,7 @@ defmodule PrimeYouth.IdentityTest do
 
   describe "get_children/1" do
     test "returns children for parent" do
-      alias PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
+      alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
 
       parent = create_parent_for_children()
 
@@ -182,7 +182,7 @@ defmodule PrimeYouth.IdentityTest do
 
   describe "get_child_by_id/1" do
     test "retrieves existing child" do
-      alias PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
+      alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
 
       parent = create_parent_for_children()
 

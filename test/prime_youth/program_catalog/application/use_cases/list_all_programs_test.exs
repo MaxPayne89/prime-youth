@@ -1,4 +1,4 @@
-defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
+defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
   @moduledoc """
   Tests for the ListAllPrograms use case.
 
@@ -13,13 +13,13 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
 
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
-  alias PrimeYouth.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Application.UseCases.ListAllPrograms
+  alias KlassHero.ProgramCatalog.Domain.Models.Program
 
   # Mock repository for testing
   defmodule MockRepository do
     @moduledoc false
-    @behaviour PrimeYouth.ProgramCatalog.Domain.Ports.ForListingPrograms
+    @behaviour KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms
 
     def list_all_programs do
       # This will be overridden by setting process dictionary in tests
@@ -42,17 +42,17 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
 
   setup do
     # Store original config
-    original_config = Application.get_env(:prime_youth, :program_catalog)
+    original_config = Application.get_env(:klass_hero, :program_catalog)
 
     # Configure use case to use mock repository
-    Application.put_env(:prime_youth, :program_catalog, repository: __MODULE__.MockRepository)
+    Application.put_env(:klass_hero, :program_catalog, repository: __MODULE__.MockRepository)
 
     on_exit(fn ->
       # Restore original config
       if original_config do
-        Application.put_env(:prime_youth, :program_catalog, original_config)
+        Application.put_env(:klass_hero, :program_catalog, original_config)
       else
-        Application.delete_env(:prime_youth, :program_catalog)
+        Application.delete_env(:klass_hero, :program_catalog)
       end
 
       # Clean up process dictionary

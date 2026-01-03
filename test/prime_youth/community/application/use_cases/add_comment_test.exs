@@ -1,11 +1,11 @@
-defmodule PrimeYouth.Community.Application.UseCases.AddCommentTest do
+defmodule KlassHero.Community.Application.UseCases.AddCommentTest do
   use ExUnit.Case, async: false
 
-  import PrimeYouth.EventTestHelper
+  import KlassHero.EventTestHelper
 
-  alias PrimeYouth.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
-  alias PrimeYouth.Community.Application.UseCases.AddComment
-  alias PrimeYouth.Community.Domain.Models.{Post, Comment}
+  alias KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
+  alias KlassHero.Community.Application.UseCases.AddComment
+  alias KlassHero.Community.Domain.Models.{Post, Comment}
 
   setup do
     setup_test_events()

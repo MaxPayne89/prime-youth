@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Repo.Migrations.AddIntendedRolesToUsers do
+defmodule KlassHero.Repo.Migrations.AddIntendedRolesToUsers do
   use Ecto.Migration
 
   def change do

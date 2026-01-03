@@ -1,5 +1,5 @@
-defmodule PrimeYouthWeb.ContactLiveTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.ContactLiveTest do
+  use KlassHeroWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
 

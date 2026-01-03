@@ -1,9 +1,9 @@
-defmodule PrimeYouth.MixProject do
+defmodule KlassHero.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :prime_youth,
+      app: :klass_hero,
       version: "0.1.0",
       elixir: "~> 1.19",
       erlang: "~> 28.3",
@@ -30,7 +30,7 @@ defmodule PrimeYouth.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {PrimeYouth.Application, []},
+      mod: {KlassHero.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -115,10 +115,10 @@ defmodule PrimeYouth.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: test_alias(),
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["compile", "tailwind prime_youth", "esbuild prime_youth"],
+      "assets.build": ["compile", "tailwind klass_hero", "esbuild klass_hero"],
       "assets.deploy": [
-        "tailwind prime_youth --minify",
-        "esbuild prime_youth --minify",
+        "tailwind klass_hero --minify",
+        "esbuild klass_hero --minify",
         "phx.digest"
       ],
       "test.clean": ["test.teardown --remove-volumes", "test.setup --force-recreate"],

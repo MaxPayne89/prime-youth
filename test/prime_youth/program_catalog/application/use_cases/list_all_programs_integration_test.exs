@@ -1,4 +1,4 @@
-defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrationTest do
+defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrationTest do
   @moduledoc """
   Integration tests for the ListAllPrograms use case.
 
@@ -26,13 +26,13 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
 
   # async: false is REQUIRED because this test modifies global Application config
   # which is not process-safe and can interfere with parallel tests
-  use PrimeYouth.DataCase, async: false
+  use KlassHero.DataCase, async: false
 
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
-  alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
-  alias PrimeYouth.ProgramCatalog.Application.UseCases.ListAllPrograms
-  alias PrimeYouth.ProgramCatalog.Domain.Models.Program
-  alias PrimeYouth.Repo
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.ProgramCatalog.Application.UseCases.ListAllPrograms
+  alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.Repo
 
   # Ensure we're using the real repository for integration tests
   setup do
@@ -42,22 +42,22 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
     Repo.delete_all(ProgramSchema)
 
     # Store original config
-    original_config = Application.get_env(:prime_youth, :program_catalog)
+    original_config = Application.get_env(:klass_hero, :program_catalog)
 
     # Ensure use case is configured to use the REAL repository
     Application.put_env(
-      :prime_youth,
+      :klass_hero,
       :program_catalog,
       repository:
-        PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+        KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
     )
 
     on_exit(fn ->
       # Restore original config
       if original_config do
-        Application.put_env(:prime_youth, :program_catalog, original_config)
+        Application.put_env(:klass_hero, :program_catalog, original_config)
       else
-        Application.delete_env(:prime_youth, :program_catalog)
+        Application.delete_env(:klass_hero, :program_catalog)
       end
     end)
 
@@ -169,11 +169,11 @@ defmodule PrimeYouth.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrat
 
     # T052: Configuration injection resolves repository correctly
     test "configuration injection resolves repository correctly" do
-      config = Application.get_env(:prime_youth, :program_catalog)
+      config = Application.get_env(:klass_hero, :program_catalog)
       repository_module = config[:repository]
 
       assert repository_module ==
-               PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+               KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
 
       insert_program(%{
         title: "Test Program",

@@ -1,5 +1,5 @@
-defmodule PrimeYouthWeb.AboutLiveTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.AboutLiveTest do
+  use KlassHeroWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
 
@@ -7,14 +7,14 @@ defmodule PrimeYouthWeb.AboutLiveTest do
     test "renders about page successfully", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/about")
 
-      assert has_element?(view, "h1", "About Prime Youth Connect")
+      assert has_element?(view, "h1", "About Klass Hero")
     end
 
     test "displays hero section with page variant", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify hero section content
-      assert html =~ "About Prime Youth Connect"
+      assert html =~ "About Klass Hero"
       assert html =~ "Empowering young minds through quality after-school programs"
     end
 
@@ -52,7 +52,7 @@ defmodule PrimeYouthWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify key features heading
-      assert html =~ "Why Choose Prime Youth Connect?"
+      assert html =~ "Why Choose Klass Hero?"
 
       # Verify all four key features are present
       assert html =~ "Easy Discovery"
@@ -105,7 +105,7 @@ defmodule PrimeYouthWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify page title is set
-      assert html =~ "About Prime Youth Connect"
+      assert html =~ "About Klass Hero"
     end
 
     test "responsive grid layout for key features", %{conn: conn} do
@@ -128,7 +128,7 @@ defmodule PrimeYouthWeb.AboutLiveTest do
 
       # The hero_section component with show_back_button should render a back button
       # This is a navigation aid for the page variant
-      assert html =~ "About Prime Youth Connect"
+      assert html =~ "About Klass Hero"
     end
 
     test "mission section contains complete description", %{conn: conn} do
@@ -144,7 +144,7 @@ defmodule PrimeYouthWeb.AboutLiveTest do
 
       # Verify gradient classes are present (Theme module gradients)
       # Primary gradient appears 3 times (Quality First, Accessibility, Community)
-      assert html =~ "bg-gradient-to-r from-teal-500 to-teal-600"
+      assert html =~ "bg-gradient-to-r from-hero-blue-500 to-hero-blue-600"
 
       # Safety gradient appears once (Safety value)
       assert html =~ "bg-gradient-to-r from-green-500 to-emerald-600"
@@ -154,12 +154,12 @@ defmodule PrimeYouthWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify background classes match Theme.bg() outputs
-      # primary_light
-      assert html =~ "bg-teal-50"
-      # secondary_light
-      assert html =~ "bg-pink-50"
-      # accent_light
-      assert html =~ "bg-prime-yellow-100"
+      # primary_light: bg-hero-blue-50
+      assert html =~ "bg-hero-blue-50"
+      # secondary_light: bg-hero-grey-50
+      assert html =~ "bg-hero-grey-50"
+      # accent_light: bg-hero-yellow-100
+      assert html =~ "bg-hero-yellow-100"
     end
 
     test "all sections use card component styling", %{conn: conn} do
@@ -168,7 +168,7 @@ defmodule PrimeYouthWeb.AboutLiveTest do
       # Verify multiple sections use card component (indicated by structured content)
       assert html =~ "Our Mission"
       assert html =~ "Our Values"
-      assert html =~ "Why Choose Prime Youth Connect?"
+      assert html =~ "Why Choose Klass Hero?"
       assert html =~ "Ready to Get Started?"
     end
   end

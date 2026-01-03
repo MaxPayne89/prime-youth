@@ -1,12 +1,12 @@
-defmodule PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepositoryTest do
+defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepositoryTest do
   @moduledoc """
   Tests for the ProviderProfileRepository adapter.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  alias PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
-  alias PrimeYouth.Identity.Domain.Models.ProviderProfile
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
+  alias KlassHero.Identity.Domain.Models.ProviderProfile
 
   describe "create_provider_profile/1" do
     test "creates provider profile and returns domain entity" do

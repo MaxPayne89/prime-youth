@@ -1,11 +1,11 @@
-defmodule PrimeYouth.Identity.Domain.Models.ProviderProfileTest do
+defmodule KlassHero.Identity.Domain.Models.ProviderProfileTest do
   @moduledoc """
   Tests for the ProviderProfile domain entity.
   """
 
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Identity.Domain.Models.ProviderProfile
+  alias KlassHero.Identity.Domain.Models.ProviderProfile
 
   describe "new/1 with valid attributes" do
     test "creates provider profile with all fields" do

@@ -1,6 +1,6 @@
 # Domain Documentation
 
-This directory contains the domain analysis and architecture documentation for Prime Youth, split into business and technical perspectives.
+This directory contains the domain analysis and architecture documentation for Klass Hero, split into business and technical perspectives.
 
 ## File Structure
 

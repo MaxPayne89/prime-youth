@@ -1,9 +1,9 @@
-# Prime Youth Domain Stories
+# Klass Hero Domain Stories
 *Business Domain Analysis using Domain Storytelling*
 
 ## Overview
 
-This document captures the core business domain stories for Prime Youth using visual domain storytelling. These diagrams show how parents, children, and the system interact during program discovery, enrollment, and progress tracking, forming the foundation for understanding our business domain without technical implementation details.
+This document captures the core business domain stories for Klass Hero using visual domain storytelling. These diagrams show how parents, children, and the system interact during program discovery, enrollment, and progress tracking, forming the foundation for understanding our business domain without technical implementation details.
 
 ## Domain Summary
 

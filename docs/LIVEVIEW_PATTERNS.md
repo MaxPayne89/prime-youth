@@ -1,6 +1,6 @@
 # LiveView Patterns Guide
 
-This document establishes patterns for Phoenix LiveView development in Prime Youth Connect, ensuring consistency and best practices across the codebase.
+This document establishes patterns for Phoenix LiveView development in Klass Hero, ensuring consistency and best practices across the codebase.
 
 ## Stream Usage
 
@@ -97,7 +97,7 @@ For real-time updates across clients:
 **1. Subscribe on mount (only when connected):**
 
 ```elixir
-alias PrimeYouth.Shared.Adapters.Driven.Events.PubSubEventPublisher
+alias KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher
 
 def mount(_params, _session, socket) do
   if connected?(socket), do: subscribe_to_events()
@@ -109,7 +109,7 @@ defp subscribe_to_events do
     PubSubEventPublisher.build_topic(:entity, :event_name),
     PubSubEventPublisher.build_topic(:entity, :other_event)
   ]
-  Enum.each(topics, &Phoenix.PubSub.subscribe(PrimeYouth.PubSub, &1))
+  Enum.each(topics, &Phoenix.PubSub.subscribe(KlassHero.PubSub, &1))
 end
 ```
 
@@ -126,7 +126,7 @@ end
 **3. Handle incoming events:**
 
 ```elixir
-alias PrimeYouth.Shared.Domain.Events.DomainEvent
+alias KlassHero.Shared.Domain.Events.DomainEvent
 
 def handle_info({:domain_event, %DomainEvent{payload: %{entity: entity}}}, socket) do
   {:noreply, stream_insert(socket, :entities, entity)}

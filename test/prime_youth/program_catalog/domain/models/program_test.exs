@@ -1,7 +1,7 @@
-defmodule PrimeYouth.ProgramCatalog.Domain.Models.ProgramTest do
+defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Domain.Models.Program
 
   # T017: Write domain model test: valid program creation
   describe "valid?/1 with valid program" do

@@ -1,4 +1,4 @@
-defmodule PrimeYouth.EventTestHelper do
+defmodule KlassHero.EventTestHelper do
   @moduledoc """
   Test helpers for asserting on domain events.
 
@@ -10,7 +10,7 @@ defmodule PrimeYouth.EventTestHelper do
   For testing that events are published (without PubSub):
 
       setup do
-        PrimeYouth.EventTestHelper.setup_test_events()
+        KlassHero.EventTestHelper.setup_test_events()
         :ok
       end
 
@@ -47,11 +47,11 @@ defmodule PrimeYouth.EventTestHelper do
 
   import ExUnit.Assertions
 
-  alias PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriber
-  alias PrimeYouth.Shared.Adapters.Driven.Events.PubSubEventPublisher
-  alias PrimeYouth.Shared.Adapters.Driven.Events.TestEventPublisher
-  alias PrimeYouth.Shared.Domain.Events.DomainEvent
-  alias PrimeYouth.TestableEventHandler
+  alias KlassHero.Shared.Adapters.Driven.Events.EventSubscriber
+  alias KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher
+  alias KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher
+  alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.TestableEventHandler
 
   @doc """
   Initializes event collection for the current test.
@@ -225,7 +225,7 @@ defmodule PrimeYouth.EventTestHelper do
   - `:topics` - (required) List of topic strings to subscribe to
   - `:test_pid` - PID to receive `{:event_handled, event, handler_pid}` messages (default: `self()`)
   - `:behavior` - Handler behavior: `:ok` | `:ignore` | `{:error, reason}` | `:crash` (default: `:ok`)
-  - `:pubsub` - PubSub server name (default: `PrimeYouth.PubSub`)
+  - `:pubsub` - PubSub server name (default: `KlassHero.PubSub`)
 
   ## Example
 
@@ -242,7 +242,7 @@ defmodule PrimeYouth.EventTestHelper do
     topics = Keyword.fetch!(opts, :topics)
     test_pid = Keyword.get(opts, :test_pid, self())
     behavior = Keyword.get(opts, :behavior, :ok)
-    pubsub = Keyword.get(opts, :pubsub, PrimeYouth.PubSub)
+    pubsub = Keyword.get(opts, :pubsub, KlassHero.PubSub)
 
     # Generate unique name to avoid conflicts with production subscriber
     name = :"test_subscriber_#{:erlang.unique_integer([:positive])}"
@@ -296,7 +296,7 @@ defmodule PrimeYouth.EventTestHelper do
   ## Options
 
   - `:topic` - Override the topic (default: derived from event via `derive_topic/1`)
-  - `:pubsub` - PubSub server name (default: `PrimeYouth.PubSub`)
+  - `:pubsub` - PubSub server name (default: `KlassHero.PubSub`)
 
   ## Example
 
@@ -308,7 +308,7 @@ defmodule PrimeYouth.EventTestHelper do
   """
   @spec publish_via_pubsub(DomainEvent.t(), keyword()) :: :ok | {:error, term()}
   def publish_via_pubsub(%DomainEvent{} = event, opts \\ []) do
-    pubsub = Keyword.get(opts, :pubsub, PrimeYouth.PubSub)
+    pubsub = Keyword.get(opts, :pubsub, KlassHero.PubSub)
 
     topic =
       Keyword.get_lazy(opts, :topic, fn ->

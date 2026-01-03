@@ -1,8 +1,8 @@
-defmodule PrimeYouth.Accounts.ScopeTest do
-  use PrimeYouth.DataCase, async: true
+defmodule KlassHero.Accounts.ScopeTest do
+  use KlassHero.DataCase, async: true
 
-  alias PrimeYouth.Accounts.Scope
-  alias PrimeYouth.Identity
+  alias KlassHero.Accounts.Scope
+  alias KlassHero.Identity
 
   describe "for_user/1" do
     test "creates scope with user" do
@@ -180,7 +180,7 @@ defmodule PrimeYouth.Accounts.ScopeTest do
         email: unique_email,
         password: "ValidPassword123!"
       })
-      |> PrimeYouth.Accounts.register_user()
+      |> KlassHero.Accounts.register_user()
 
     user
   end

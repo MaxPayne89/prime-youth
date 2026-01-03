@@ -23,8 +23,8 @@ defmodule Mix.Tasks.Test.Db.Setup do
     end
   end
 
-  @container_name "prime_youth_postgres"
-  @database_name "prime_youth_test"
+  @container_name "klass_hero_postgres"
+  @database_name "klass_hero_test"
 
   defp ensure_test_db_exists do
     create_db_command = build_create_db_command()

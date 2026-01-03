@@ -1,13 +1,13 @@
-defmodule PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepositoryTest do
+defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepositoryTest do
   @moduledoc """
   Tests for the ChildRepository adapter.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  alias PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
-  alias PrimeYouth.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository
-  alias PrimeYouth.Identity.Domain.Models.Child
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository
+  alias KlassHero.Identity.Domain.Models.Child
 
   defp create_parent do
     identity_id = Ecto.UUID.generate()

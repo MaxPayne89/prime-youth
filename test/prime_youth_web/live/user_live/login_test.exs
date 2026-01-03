@@ -1,8 +1,8 @@
-defmodule PrimeYouthWeb.UserLive.LoginTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.UserLive.LoginTest do
+  use KlassHeroWeb.ConnCase, async: true
 
+  import KlassHero.AccountsFixtures
   import Phoenix.LiveViewTest
-  import PrimeYouth.AccountsFixtures
 
   describe "login page" do
     test "renders login page", %{conn: conn} do
@@ -27,7 +27,7 @@ defmodule PrimeYouthWeb.UserLive.LoginTest do
 
       assert html =~ "If your email is in our system"
 
-      assert PrimeYouth.Repo.get_by!(PrimeYouth.Accounts.UserToken, user_id: user.id).context ==
+      assert KlassHero.Repo.get_by!(KlassHero.Accounts.UserToken, user_id: user.id).context ==
                "login"
     end
 

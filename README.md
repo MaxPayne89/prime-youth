@@ -1,4 +1,4 @@
-# Prime Youth
+# Klass Hero
 
 **Afterschool activities, camps, and class trips management platform** connecting parents, providers, and administrators.
 
@@ -205,7 +205,7 @@ mix ecto.reset
 ### Making Changes
 
 The app auto-reloads when files change. Edit and save:
-- Code: `lib/prime_youth_web/`
+- Code: `lib/klass_hero_web/`
 - Styles: `assets/css/`
 
 Stop the server with `Ctrl+C` twice.
@@ -302,7 +302,7 @@ elixir --version
 **Check PostgreSQL:**
 ```bash
 # Connect to database
-docker-compose exec postgres psql -U postgres -d prime_youth_dev
+docker-compose exec postgres psql -U postgres -d klass_hero_dev
 
 # Inside psql, check version:
 SELECT version();
@@ -314,7 +314,7 @@ SELECT version();
 **Check Docker container:**
 ```bash
 docker-compose ps
-# Should show prime_youth_postgres as "Up"
+# Should show klass_hero_postgres as "Up"
 ```
 
 ### Nuclear Reset
@@ -354,8 +354,8 @@ This project follows Domain-Driven Design with Ports & Adapters architecture. Ke
 
 ```text
 lib/
-├── prime_youth/          # Business logic (contexts)
-├── prime_youth_web/      # Web layer (LiveView, controllers)
+├── klass_hero/          # Business logic (contexts)
+├── klass_hero_web/      # Web layer (LiveView, controllers)
 assets/                   # CSS, JavaScript
 priv/                     # Migrations, seeds, static files
 test/                     # Test files

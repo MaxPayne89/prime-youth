@@ -4,7 +4,7 @@
 @import "tailwindcss" source(none);
 @source "../css";
 @source "../js";
-@source "../../lib/prime_youth_web";
+@source "../../lib/klass_hero_web";
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */
@@ -26,19 +26,19 @@
   default: false;
   prefersdark: true;
   color-scheme: "dark";
-  --color-base-100: oklch(30.33% 0.016 252.42);
-  --color-base-200: oklch(25.26% 0.014 253.1);
-  --color-base-300: oklch(20.15% 0.012 254.09);
-  --color-base-content: oklch(97.807% 0.029 256.847);
-  --color-primary: oklch(58% 0.233 277.117);
-  --color-primary-content: oklch(96% 0.018 272.314);
-  --color-secondary: oklch(58% 0.233 277.117);
-  --color-secondary-content: oklch(96% 0.018 272.314);
-  --color-accent: oklch(60% 0.25 292.717);
-  --color-accent-content: oklch(96% 0.016 293.756);
+  --color-base-100: oklch(15% 0.01 0); /* Dark background */
+  --color-base-200: oklch(12% 0.01 0);
+  --color-base-300: oklch(9% 0.01 0);
+  --color-base-content: oklch(93% 0.06 75); /* Hero Pink for dark mode text */
+  --color-primary: oklch(75% 0.15 195); /* Hero Blue #0FC3FF */
+  --color-primary-content: oklch(98% 0.02 195);
+  --color-secondary: oklch(82% 0 0); /* Hero Grey #C7C7C7 */
+  --color-secondary-content: oklch(20% 0 0);
+  --color-accent: oklch(97% 0.22 105); /* Hero Yellow #FFFF36 */
+  --color-accent-content: oklch(20% 0.10 105);
   --color-neutral: oklch(37% 0.044 257.287);
   --color-neutral-content: oklch(98% 0.003 247.858);
-  --color-info: oklch(58% 0.158 241.966);
+  --color-info: oklch(62% 0.214 259.815);
   --color-info-content: oklch(97% 0.013 236.62);
   --color-success: oklch(60% 0.118 184.704);
   --color-success-content: oklch(98% 0.014 180.72);
@@ -61,16 +61,16 @@
   default: true;
   prefersdark: false;
   color-scheme: "light";
-  --color-base-100: oklch(98% 0 0);
-  --color-base-200: oklch(96% 0.001 286.375);
-  --color-base-300: oklch(92% 0.004 286.32);
-  --color-base-content: oklch(21% 0.006 285.885);
-  --color-primary: oklch(48% 0.12 175); /* Teal #0D9488 */
-  --color-primary-content: oklch(98% 0.016 175);
-  --color-secondary: oklch(65% 0.25 335); /* Pink #EC4899 */
-  --color-secondary-content: oklch(98% 0.016 335);
-  --color-accent: oklch(80% 0.20 85); /* Prime Youth Yellow #FFD700 */
-  --color-accent-content: oklch(20% 0.020 85);
+  --color-base-100: oklch(93% 0.06 75); /* Hero Pink #FFEAC9 */
+  --color-base-200: oklch(90% 0.08 75);
+  --color-base-300: oklch(87% 0.10 75);
+  --color-base-content: oklch(0% 0 0); /* Hero Black #000000 */
+  --color-primary: oklch(75% 0.15 195); /* Hero Blue #0FC3FF */
+  --color-primary-content: oklch(98% 0.02 195);
+  --color-secondary: oklch(82% 0 0); /* Hero Grey #C7C7C7 */
+  --color-secondary-content: oklch(20% 0 0);
+  --color-accent: oklch(97% 0.22 105); /* Hero Yellow #FFFF36 */
+  --color-accent-content: oklch(20% 0.10 105);
   --color-neutral: oklch(44% 0.017 285.786);
   --color-neutral-content: oklch(98% 0 0);
   --color-info: oklch(62% 0.214 259.815);
@@ -104,38 +104,66 @@
 
 /* This file is for your main application CSS */
 
-/* Prime Youth Brand Colors */
+/* Klass Hero Superhero Brand Colors */
 @theme {
-  --color-prime-cyan-50: oklch(98% 0.02 175);
-  --color-prime-cyan-100: oklch(95% 0.04 175);
-  --color-prime-cyan-200: oklch(88% 0.08 175);
-  --color-prime-cyan-300: oklch(78% 0.10 175);
-  --color-prime-cyan-400: oklch(68% 0.12 175); /* Teal-400 */
-  --color-prime-cyan-500: oklch(58% 0.11 175);
-  --color-prime-cyan-600: oklch(48% 0.10 175); /* Teal-600 #0D9488 */
-  --color-prime-cyan-700: oklch(38% 0.09 175);
-  --color-prime-cyan-800: oklch(28% 0.08 175);
-  --color-prime-cyan-900: oklch(18% 0.07 175);
+  /* Hero Blue #0FC3FF */
+  --color-hero-blue-50: oklch(95% 0.03 195);
+  --color-hero-blue-100: oklch(90% 0.06 195);
+  --color-hero-blue-200: oklch(85% 0.09 195);
+  --color-hero-blue-300: oklch(80% 0.12 195);
+  --color-hero-blue-400: oklch(78% 0.14 195);
+  --color-hero-blue-500: oklch(75% 0.15 195); /* Primary #0FC3FF */
+  --color-hero-blue-600: oklch(65% 0.13 195);
+  --color-hero-blue-700: oklch(55% 0.11 195);
+  --color-hero-blue-800: oklch(45% 0.09 195);
+  --color-hero-blue-900: oklch(35% 0.07 195);
 
-  --color-prime-magenta-50: oklch(98% 0.02 335);
-  --color-prime-magenta-100: oklch(95% 0.05 335);
-  --color-prime-magenta-200: oklch(88% 0.12 335);
-  --color-prime-magenta-300: oklch(78% 0.18 335);
-  --color-prime-magenta-400: oklch(65% 0.25 335); /* Pink-500 #EC4899 */
-  --color-prime-magenta-500: oklch(58% 0.23 335);
-  --color-prime-magenta-600: oklch(50% 0.20 335);
-  --color-prime-magenta-700: oklch(42% 0.17 335);
-  --color-prime-magenta-800: oklch(34% 0.14 335);
-  --color-prime-magenta-900: oklch(26% 0.11 335);
+  /* Hero Yellow #FFFF36 */
+  --color-hero-yellow-50: oklch(99% 0.05 105);
+  --color-hero-yellow-100: oklch(98% 0.10 105);
+  --color-hero-yellow-200: oklch(98% 0.15 105);
+  --color-hero-yellow-300: oklch(97.5% 0.18 105);
+  --color-hero-yellow-400: oklch(97.2% 0.20 105);
+  --color-hero-yellow-500: oklch(97% 0.22 105); /* Primary #FFFF36 */
+  --color-hero-yellow-600: oklch(87% 0.20 105);
+  --color-hero-yellow-700: oklch(77% 0.18 105);
+  --color-hero-yellow-800: oklch(67% 0.16 105);
+  --color-hero-yellow-900: oklch(57% 0.14 105);
 
-  --color-prime-yellow-50: oklch(98% 0.02 85);
-  --color-prime-yellow-100: oklch(95% 0.05 85);
-  --color-prime-yellow-200: oklch(90% 0.12 85);
-  --color-prime-yellow-300: oklch(85% 0.16 85);
-  --color-prime-yellow-400: oklch(80% 0.20 85); /* #FFD700 */
-  --color-prime-yellow-500: oklch(75% 0.18 85);
-  --color-prime-yellow-600: oklch(68% 0.16 85);
-  --color-prime-yellow-700: oklch(60% 0.14 85);
-  --color-prime-yellow-800: oklch(52% 0.12 85);
-  --color-prime-yellow-900: oklch(44% 0.10 85);
+  /* Hero Grey #C7C7C7 */
+  --color-hero-grey-50: oklch(97% 0 0);
+  --color-hero-grey-100: oklch(94% 0 0);
+  --color-hero-grey-200: oklch(88% 0 0);
+  --color-hero-grey-300: oklch(85% 0 0);
+  --color-hero-grey-400: oklch(82% 0 0); /* Primary #C7C7C7 */
+  --color-hero-grey-500: oklch(72% 0 0);
+  --color-hero-grey-600: oklch(62% 0 0);
+  --color-hero-grey-700: oklch(52% 0 0);
+  --color-hero-grey-800: oklch(42% 0 0);
+  --color-hero-grey-900: oklch(32% 0 0);
+
+  /* Hero Pink #FFEAC9 */
+  --color-hero-pink-50: oklch(93% 0.06 75); /* Primary #FFEAC9 */
+  --color-hero-pink-100: oklch(91% 0.07 75);
+  --color-hero-pink-200: oklch(89% 0.08 75);
+  --color-hero-pink-300: oklch(87% 0.09 75);
+  --color-hero-pink-400: oklch(85% 0.10 75);
+  --color-hero-pink-500: oklch(83% 0.11 75);
+  --color-hero-pink-600: oklch(73% 0.10 75);
+  --color-hero-pink-700: oklch(63% 0.09 75);
+  --color-hero-pink-800: oklch(53% 0.08 75);
+  --color-hero-pink-900: oklch(43% 0.07 75);
+
+  /* Hero Black #000000 */
+  --color-hero-black: oklch(0% 0 0); /* Pure black */
+  --color-hero-black-50: oklch(10% 0 0);
+  --color-hero-black-100: oklch(20% 0 0);
+  --color-hero-black-200: oklch(30% 0 0);
+  --color-hero-black-300: oklch(40% 0 0);
+  --color-hero-black-400: oklch(50% 0 0);
+  --color-hero-black-500: oklch(60% 0 0);
+  --color-hero-black-600: oklch(70% 0 0);
+  --color-hero-black-700: oklch(80% 0 0);
+  --color-hero-black-800: oklch(90% 0 0);
+  --color-hero-black-900: oklch(95% 0 0);
 }

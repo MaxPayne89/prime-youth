@@ -1,16 +1,16 @@
-defmodule PrimeYouth.Participation.Application.UseCases.CompleteSessionTest do
+defmodule KlassHero.Participation.Application.UseCases.CompleteSessionTest do
   @moduledoc """
   Integration tests for CompleteSession use case.
 
   Tests completing an in_progress session and transitioning it to completed.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Application.UseCases.CompleteSession
-  alias PrimeYouth.Participation.Domain.Models.ProgramSession
+  alias KlassHero.Participation.Application.UseCases.CompleteSession
+  alias KlassHero.Participation.Domain.Models.ProgramSession
 
   describe "execute/1" do
     test "successfully completes an in_progress session" do
@@ -52,8 +52,8 @@ defmodule PrimeYouth.Participation.Application.UseCases.CompleteSessionTest do
       {:ok, completed_session} = CompleteSession.execute(session_schema.id)
 
       reloaded =
-        PrimeYouth.Repo.get(
-          PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema,
+        KlassHero.Repo.get(
+          KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema,
           session_schema.id
         )
 

@@ -1,12 +1,12 @@
-defmodule PrimeYouthWeb.ErrorJSONTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.ErrorJSONTest do
+  use KlassHeroWeb.ConnCase, async: true
 
   test "renders 404" do
-    assert PrimeYouthWeb.ErrorJSON.render("404.json", %{}) == %{errors: %{detail: "Not Found"}}
+    assert KlassHeroWeb.ErrorJSON.render("404.json", %{}) == %{errors: %{detail: "Not Found"}}
   end
 
   test "renders 500" do
-    assert PrimeYouthWeb.ErrorJSON.render("500.json", %{}) ==
+    assert KlassHeroWeb.ErrorJSON.render("500.json", %{}) ==
              %{errors: %{detail: "Internal Server Error"}}
   end
 end

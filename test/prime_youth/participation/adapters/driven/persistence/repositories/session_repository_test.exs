@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.SessionRepositoryTest do
+defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepositoryTest do
   @moduledoc """
   Integration tests for SessionRepository.
 
@@ -6,15 +6,15 @@ defmodule PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.Sess
   creation, retrieval, updates, and query operations.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Mappers.ProgramSessionMapper
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository
-  alias PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
-  alias PrimeYouth.Participation.Domain.Models.ProgramSession
-  alias PrimeYouth.Repo
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Mappers.ProgramSessionMapper
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
+  alias KlassHero.Participation.Domain.Models.ProgramSession
+  alias KlassHero.Repo
 
   describe "create/1" do
     test "successfully creates a session and returns domain entity" do

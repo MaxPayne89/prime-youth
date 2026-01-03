@@ -1,8 +1,8 @@
-defmodule PrimeYouth.Support.Domain.Events.SupportEventsTest do
+defmodule KlassHero.Support.Domain.Events.SupportEventsTest do
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Support.Domain.Events.SupportEvents
-  alias PrimeYouth.Support.Domain.Models.ContactRequest
+  alias KlassHero.Support.Domain.Events.SupportEvents
+  alias KlassHero.Support.Domain.Models.ContactRequest
 
   # Helper to create a valid contact request with only required overrides
   defp valid_contact_request(overrides \\ []) do

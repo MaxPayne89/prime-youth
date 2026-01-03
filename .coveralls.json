@@ -5,9 +5,9 @@
   },
   "skip_files": [
     "test/",
-    "lib/prime_youth_web/telemetry.ex",
-    "lib/prime_youth/application.ex",
-    "lib/prime_youth/mailer.ex",
-    "lib/prime_youth/repo.ex"
+    "lib/klass_hero_web/telemetry.ex",
+    "lib/klass_hero/application.ex",
+    "lib/klass_hero/mailer.ex",
+    "lib/klass_hero/repo.ex"
   ]
 }

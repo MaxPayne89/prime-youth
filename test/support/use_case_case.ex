@@ -1,4 +1,4 @@
-defmodule PrimeYouth.UseCaseCase do
+defmodule KlassHero.UseCaseCase do
   @moduledoc """
   This module defines the test case to be used by
   tests for domain use cases.
@@ -11,8 +11,8 @@ defmodule PrimeYouth.UseCaseCase do
 
   using do
     quote do
+      import KlassHero.UseCaseCase
       import Mox
-      import PrimeYouth.UseCaseCase
 
       # Make the code testable without requiring real adapters
       setup :verify_on_exit!
@@ -20,7 +20,7 @@ defmodule PrimeYouth.UseCaseCase do
   end
 
   setup tags do
-    PrimeYouth.DataCase.setup_sandbox(tags)
+    KlassHero.DataCase.setup_sandbox(tags)
     :ok
   end
 end

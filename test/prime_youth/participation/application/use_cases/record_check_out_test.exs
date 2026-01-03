@@ -1,16 +1,16 @@
-defmodule PrimeYouth.Participation.Application.UseCases.RecordCheckOutTest do
+defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
   @moduledoc """
   Integration tests for RecordCheckOut use case.
 
   Tests check-out recording for children already checked in.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Application.UseCases.RecordCheckOut
-  alias PrimeYouth.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Participation.Application.UseCases.RecordCheckOut
+  alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
   describe "execute/1" do
     test "successfully checks out a checked-in record" do
@@ -144,8 +144,8 @@ defmodule PrimeYouth.Participation.Application.UseCases.RecordCheckOutTest do
         })
 
       reloaded =
-        PrimeYouth.Repo.get(
-          PrimeYouth.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema,
+        KlassHero.Repo.get(
+          KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema,
           record.id
         )
 

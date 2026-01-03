@@ -1,16 +1,16 @@
-defmodule PrimeYouth.Participation.Application.UseCases.GetParticipationRecordTest do
+defmodule KlassHero.Participation.Application.UseCases.GetParticipationRecordTest do
   @moduledoc """
   Integration tests for GetParticipationRecord use case.
 
   Tests retrieval of participation records by ID.
   """
 
-  use PrimeYouth.DataCase, async: true
+  use KlassHero.DataCase, async: true
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Application.UseCases.GetParticipationRecord
-  alias PrimeYouth.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Participation.Application.UseCases.GetParticipationRecord
+  alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
   describe "execute/1" do
     test "returns participation record when found" do

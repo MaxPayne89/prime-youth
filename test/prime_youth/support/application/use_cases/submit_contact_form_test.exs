@@ -1,10 +1,10 @@
-defmodule PrimeYouth.Support.Application.UseCases.SubmitContactFormTest do
+defmodule KlassHero.Support.Application.UseCases.SubmitContactFormTest do
   use ExUnit.Case, async: true
 
-  import PrimeYouth.EventTestHelper
+  import KlassHero.EventTestHelper
 
-  alias PrimeYouth.Support.Application.UseCases.SubmitContactForm
-  alias PrimeYouth.Support.Domain.Models.ContactRequest
+  alias KlassHero.Support.Application.UseCases.SubmitContactForm
+  alias KlassHero.Support.Domain.Models.ContactRequest
 
   setup do
     setup_test_events()

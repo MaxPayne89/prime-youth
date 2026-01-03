@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Participation.Application.UseCases.RecordCheckInIntegrationTest do
+defmodule KlassHero.Participation.Application.UseCases.RecordCheckInIntegrationTest do
   @moduledoc """
   Integration tests for RecordCheckIn and RecordCheckOut use cases.
 
@@ -11,12 +11,12 @@ defmodule PrimeYouth.Participation.Application.UseCases.RecordCheckInIntegration
   """
 
   # async: false is REQUIRED because this test modifies global Application config
-  use PrimeYouth.DataCase, async: false
+  use KlassHero.DataCase, async: false
 
-  import PrimeYouth.Factory
+  import KlassHero.Factory
 
-  alias PrimeYouth.Participation.Application.UseCases.RecordCheckIn
-  alias PrimeYouth.Participation.Application.UseCases.RecordCheckOut
+  alias KlassHero.Participation.Application.UseCases.RecordCheckIn
+  alias KlassHero.Participation.Application.UseCases.RecordCheckOut
 
   # Test event publisher that captures published events using Agent
   defmodule TestEventPublisher do
@@ -42,39 +42,39 @@ defmodule PrimeYouth.Participation.Application.UseCases.RecordCheckInIntegration
 
   setup do
     # Store original configs
-    original_participation_config = Application.get_env(:prime_youth, :participation)
-    original_publisher_config = Application.get_env(:prime_youth, :event_publisher)
+    original_participation_config = Application.get_env(:klass_hero, :participation)
+    original_publisher_config = Application.get_env(:klass_hero, :event_publisher)
 
     # Start test event publisher
     start_supervised!(TestEventPublisher)
 
     # Configure real repositories + test publisher
-    Application.put_env(:prime_youth, :participation,
+    Application.put_env(:klass_hero, :participation,
       session_repository:
-        PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
+        KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
       participation_repository:
-        PrimeYouth.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
+        KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
       child_name_resolver:
-        PrimeYouth.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
+        KlassHero.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
     )
 
-    Application.put_env(:prime_youth, :event_publisher,
+    Application.put_env(:klass_hero, :event_publisher,
       module: TestEventPublisher,
-      pubsub: PrimeYouth.PubSub
+      pubsub: KlassHero.PubSub
     )
 
     on_exit(fn ->
       # Restore original configs
       if original_participation_config do
-        Application.put_env(:prime_youth, :participation, original_participation_config)
+        Application.put_env(:klass_hero, :participation, original_participation_config)
       else
-        Application.delete_env(:prime_youth, :participation)
+        Application.delete_env(:klass_hero, :participation)
       end
 
       if original_publisher_config do
-        Application.put_env(:prime_youth, :event_publisher, original_publisher_config)
+        Application.put_env(:klass_hero, :event_publisher, original_publisher_config)
       else
-        Application.delete_env(:prime_youth, :event_publisher)
+        Application.delete_env(:klass_hero, :event_publisher)
       end
     end)
 

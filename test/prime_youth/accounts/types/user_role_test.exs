@@ -1,7 +1,7 @@
-defmodule PrimeYouth.Accounts.Types.UserRoleTest do
+defmodule KlassHero.Accounts.Types.UserRoleTest do
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Accounts.Types.UserRole
+  alias KlassHero.Accounts.Types.UserRole
 
   describe "valid_roles/0" do
     test "returns list of valid role atoms" do

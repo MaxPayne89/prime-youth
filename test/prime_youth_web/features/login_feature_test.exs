@@ -1,10 +1,10 @@
-defmodule PrimeYouthWeb.Features.LoginFeatureTest do
+defmodule KlassHeroWeb.Features.LoginFeatureTest do
   @moduledoc """
   Feature test for user login flow using phoenix_test.
   Demonstrates the user-centric testing approach.
   """
 
-  use PrimeYouthWeb.FeatureCase, async: true
+  use KlassHeroWeb.FeatureCase, async: true
 
   import Ecto.Query
 
@@ -23,8 +23,8 @@ defmodule PrimeYouthWeb.Features.LoginFeatureTest do
       |> assert_has("[role='alert']", text: "If your email is in our system")
 
       # Verify token was created
-      assert PrimeYouth.Repo.exists?(
-               from t in PrimeYouth.Accounts.UserToken,
+      assert KlassHero.Repo.exists?(
+               from t in KlassHero.Accounts.UserToken,
                  where: t.user_id == ^user.id and t.context == "login"
              )
     end

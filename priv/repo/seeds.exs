@@ -5,14 +5,14 @@
 # Inside the script, you can read and write to any of your
 # repositories directly:
 #
-#     PrimeYouth.Repo.insert!(%PrimeYouth.SomeSchema{})
+#     KlassHero.Repo.insert!(%KlassHero.SomeSchema{})
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
-alias PrimeYouth.Accounts.User
-alias PrimeYouth.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
-alias PrimeYouth.Repo
+alias KlassHero.Accounts.User
+alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+alias KlassHero.Repo
 
 require Logger
 
@@ -31,7 +31,7 @@ test_users = [
     confirmed_at: DateTime.utc_now(:second)
   },
   %{
-    name: "Prime Youth Admin",
+    name: "Klass Hero Admin",
     email: "app@primeyouth.de",
     hashed_password: Bcrypt.hash_pwd_salt("password"),
     confirmed_at: DateTime.utc_now(:second)

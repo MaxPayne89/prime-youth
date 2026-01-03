@@ -1,7 +1,7 @@
-defmodule PrimeYouth.Shared.Adapters.Driven.Persistence.EctoErrorHelpersTest do
+defmodule KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpersTest do
   use ExUnit.Case, async: true
 
-  alias PrimeYouth.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
+  alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
 
   describe "unique_constraint_violation?/2" do
     test "returns true when unique constraint violation exists for specified field" do

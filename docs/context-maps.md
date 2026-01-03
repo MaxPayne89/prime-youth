@@ -1,6 +1,6 @@
-# Context Maps for Prime Youth Application
+# Context Maps for Klass Hero Application
 
-This document contains context maps for the Prime Youth bounded contexts, showing high-level domain relationships and interactions.
+This document contains context maps for the Klass Hero bounded contexts, showing high-level domain relationships and interactions.
 
 **Scope**: Maps show both **current state (as-is)** and **planned state (to-be)** with clear visual distinction:
 - **Solid lines/boxes**: Currently implemented
@@ -311,4 +311,4 @@ flowchart TB
 ## References
 
 - `docs/domain-stories.md` - Business domain understanding
-- `lib/prime_youth/` - Implementation of bounded contexts
+- `lib/klass_hero/` - Implementation of bounded contexts

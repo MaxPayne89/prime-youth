@@ -1,4 +1,4 @@
-defmodule PrimeYouth.TestableEventHandler do
+defmodule KlassHero.TestableEventHandler do
   @moduledoc """
   Configurable event handler for integration testing.
 
@@ -27,7 +27,7 @@ defmodule PrimeYouth.TestableEventHandler do
   - `:behavior` - Handler behavior: :ok | :ignore | {:error, reason} | :crash
   """
 
-  @behaviour PrimeYouth.Shared.Domain.Ports.ForHandlingEvents
+  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingEvents
 
   @table :testable_handler_config
 

@@ -1,14 +1,14 @@
-defmodule PrimeYouthWeb.ErrorHTMLTest do
-  use PrimeYouthWeb.ConnCase, async: true
+defmodule KlassHeroWeb.ErrorHTMLTest do
+  use KlassHeroWeb.ConnCase, async: true
 
   # Bring render_to_string/4 for testing custom views
   import Phoenix.Template, only: [render_to_string: 4]
 
   test "renders 404.html" do
-    assert render_to_string(PrimeYouthWeb.ErrorHTML, "404", "html", []) == "Not Found"
+    assert render_to_string(KlassHeroWeb.ErrorHTML, "404", "html", []) == "Not Found"
   end
 
   test "renders 500.html" do
-    assert render_to_string(PrimeYouthWeb.ErrorHTML, "500", "html", []) == "Internal Server Error"
+    assert render_to_string(KlassHeroWeb.ErrorHTML, "500", "html", []) == "Internal Server Error"
   end
 end

@@ -1,4 +1,4 @@
-defmodule PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest do
+defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest do
   @moduledoc """
   Integration tests for the EventSubscriber → Handler flow.
 
@@ -12,12 +12,12 @@ defmodule PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTes
 
   use ExUnit.Case, async: false
 
-  import PrimeYouth.EventTestHelper
+  import KlassHero.EventTestHelper
 
-  alias PrimeYouth.Shared.Adapters.Driven.Events.PubSubEventPublisher
-  alias PrimeYouth.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher
+  alias KlassHero.Shared.Domain.Events.DomainEvent
 
-  @pubsub PrimeYouth.PubSub
+  @pubsub KlassHero.PubSub
 
   setup do
     # Ensure PubSub is available (started in application.ex)
@@ -341,7 +341,7 @@ defmodule PrimeYouth.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTes
     test "test subscribers do not interfere with production subscriber" do
       # The production IdentityEventHandler subscriber is started in application.ex
       production_subscriber =
-        Process.whereis(PrimeYouth.Identity.Adapters.Driven.Events.IdentityEventHandler)
+        Process.whereis(KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler)
 
       {:ok, test_subscriber} =
         start_test_subscriber(
