@@ -244,18 +244,21 @@ defmodule KlassHeroWeb.I18nHelpers do
 
         user_token ->
           {user, _user_token} = Accounts.get_user_by_session_token(user_token)
-
-          if user && is_struct(user, KlassHero.Accounts.User) do
-            user
-            |> Accounts.User.locale_changeset(%{locale: locale})
-            |> Repo.update!()
-          end
-
+          update_user_locale(user, locale)
           conn
       end
     else
       # No session configured, just return conn with locale set
       conn
+    end
+  end
+
+  # Private helper to update user locale in database if user exists
+  defp update_user_locale(user, locale) do
+    if user && is_struct(user, KlassHero.Accounts.User) do
+      user
+      |> Accounts.User.locale_changeset(%{locale: locale})
+      |> Repo.update!()
     end
   end
 

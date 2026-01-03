@@ -5,7 +5,7 @@ defmodule KlassHero.Community.Application.UseCases.AddCommentTest do
 
   alias KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
   alias KlassHero.Community.Application.UseCases.AddComment
-  alias KlassHero.Community.Domain.Models.{Post, Comment}
+  alias KlassHero.Community.Domain.Models.{Comment, Post}
 
   setup do
     setup_test_events()

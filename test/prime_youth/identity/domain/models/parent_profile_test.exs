@@ -46,7 +46,7 @@ defmodule KlassHero.Identity.Domain.Models.ParentProfileTest do
     end
 
     test "returns error when identity_id is not a string" do
-      attrs = %{id: "550e8400-e29b-41d4-a716-446655440000", identity_id: 12345}
+      attrs = %{id: "550e8400-e29b-41d4-a716-446655440000", identity_id: 12_345}
 
       assert {:error, errors} = ParentProfile.new(attrs)
       assert "Identity ID must be a string" in errors
