@@ -97,9 +97,55 @@ defmodule KlassHeroWeb.HomeLive do
           </div>
         </:trending_tags>
       </.hero_section>
-      
+
+    <!-- Featured Programs Section -->
+      <div id="featured-programs-section" class={[Theme.bg(:muted), "py-16 lg:py-24"]}>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-12">
+            <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
+              {gettext("Featured Programs")}
+            </h2>
+            <p class={["text-xl", Theme.text_color(:secondary)]}>
+              {gettext("Explore top-rated activities for your children")}
+            </p>
+          </div>
+
+          <div
+            id="featured-programs"
+            phx-update="stream"
+            class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8"
+          >
+            <.program_card_simple
+              :for={{dom_id, program} <- @streams.featured_programs}
+              id={dom_id}
+              gradient_class={program.gradient_class}
+              icon_path={program.icon_path}
+              title={program.title}
+              description={program.description}
+              price={program.price}
+              phx-click="explore_programs"
+            />
+          </div>
+
+          <div class="text-center">
+            <button
+              phx-click="explore_programs"
+              class={[
+                Theme.gradient(:primary),
+                "px-8 py-3 text-white hover:shadow-lg transform hover:scale-105",
+                Theme.typography(:cta),
+                Theme.transition(:normal),
+                Theme.rounded(:lg)
+              ]}
+            >
+              {gettext("View All Programs →")}
+            </button>
+          </div>
+        </div>
+      </div>
+
     <!-- Features Section -->
-      <div class={Theme.bg(:surface)}>
+      <div id="why-klass-hero-section" class={Theme.bg(:surface)}>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
           <div class="text-center mb-16">
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
@@ -141,52 +187,6 @@ defmodule KlassHeroWeb.HomeLive do
                 )
               }
             />
-          </div>
-        </div>
-      </div>
-      
-    <!-- Featured Programs Section -->
-      <div class={[Theme.bg(:muted), "py-16 lg:py-24"]}>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center mb-12">
-            <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
-              {gettext("Featured Programs")}
-            </h2>
-            <p class={["text-xl", Theme.text_color(:secondary)]}>
-              {gettext("Explore top-rated activities for your children")}
-            </p>
-          </div>
-
-          <div
-            id="featured-programs"
-            phx-update="stream"
-            class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8"
-          >
-            <.program_card_simple
-              :for={{dom_id, program} <- @streams.featured_programs}
-              id={dom_id}
-              gradient_class={program.gradient_class}
-              icon_path={program.icon_path}
-              title={program.title}
-              description={program.description}
-              price={program.price}
-              phx-click="explore_programs"
-            />
-          </div>
-
-          <div class="text-center">
-            <button
-              phx-click="explore_programs"
-              class={[
-                Theme.gradient(:primary),
-                "px-8 py-3 text-white hover:shadow-lg transform hover:scale-105",
-                Theme.typography(:cta),
-                Theme.transition(:normal),
-                Theme.rounded(:lg)
-              ]}
-            >
-              {gettext("View All Programs →")}
-            </button>
           </div>
         </div>
       </div>
