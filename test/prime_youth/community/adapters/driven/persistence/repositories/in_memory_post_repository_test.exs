@@ -2,7 +2,7 @@ defmodule KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryP
   use ExUnit.Case, async: false
 
   alias KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
-  alias KlassHero.Community.Domain.Models.{Post, Comment}
+  alias KlassHero.Community.Domain.Models.{Comment, Post}
 
   setup do
     # Repository is already started by the application supervisor

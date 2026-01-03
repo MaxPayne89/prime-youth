@@ -28,7 +28,7 @@ defmodule KlassHero.Community.Application.UseCases.AddComment do
       {:error, :not_found} = AddComment.execute("invalid_id", "Comment", "User")
   """
 
-  alias KlassHero.Community.Domain.Models.{Post, Comment}
+  alias KlassHero.Community.Domain.Models.{Comment, Post}
   alias KlassHero.Community.Domain.Ports.ForManagingPosts
   alias KlassHero.Community.EventPublisher
 

@@ -38,7 +38,7 @@ defmodule KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryP
 
   use Agent
 
-  alias KlassHero.Community.Domain.Models.{Post, Comment}
+  alias KlassHero.Community.Domain.Models.{Comment, Post}
   alias KlassHero.Community.Domain.Ports.ForManagingPosts
   alias KlassHeroWeb.Theme
 
