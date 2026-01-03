@@ -1301,4 +1301,300 @@ defmodule KlassHeroWeb.UIComponents do
   defp format_date_value(nil), do: nil
   defp format_date_value(%Date{} = date), do: Date.to_iso8601(date)
   defp format_date_value(value) when is_binary(value), do: value
+
+  @doc """
+  Renders a provider step card for "Grow Your Passion Business" section.
+
+  Displays a numbered step with icon, title, and description. Designed for
+  multi-step process displays with visual consistency and mobile-first layout.
+
+  ## Examples
+
+      <.provider_step_card
+        step_number={1}
+        title="Create a Program"
+        description="Set up your teaching profile and list your programs in minutes."
+        icon="hero-clipboard-document-list"
+      />
+
+      <.provider_step_card
+        step_number={2}
+        title="Deliver Quality"
+        description="Share your expertise with students while we handle the logistics."
+        icon_path="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+      />
+
+      <.provider_step_card
+        step_number={3}
+        title="Get Paid & Grow"
+        description="Receive secure payments and grow your teaching business."
+        icon="hero-chart-bar"
+        class="mb-6"
+      />
+  """
+  attr :step_number, :integer, required: true, doc: "Step number (1, 2, 3, etc.)"
+  attr :title, :string, required: true, doc: "Step title"
+  attr :description, :string, required: true, doc: "Step description"
+  attr :icon, :string, default: nil, doc: "Heroicon name (e.g., 'hero-clipboard-document-list')"
+  attr :icon_path, :string, default: nil, doc: "SVG path data (alternative to icon)"
+  attr :class, :string, default: "", doc: "Additional CSS classes"
+
+  def provider_step_card(assigns) do
+    ~H"""
+    <div class={[
+      Theme.bg(:surface),
+      Theme.rounded(:xl),
+      "shadow-sm border",
+      Theme.border_color(:light),
+      "p-6 hover:shadow-md hover:transform hover:scale-105",
+      Theme.transition(:normal),
+      @class
+    ]}>
+      <div class="flex items-start gap-4">
+        <%!-- Step Number Badge --%>
+        <div class={[
+          "flex-shrink-0 w-12 h-12 flex items-center justify-center",
+          Theme.rounded(:full),
+          Theme.gradient(:primary),
+          "text-white font-bold text-lg"
+        ]}>
+          {@step_number}
+        </div>
+
+        <div class="flex-1">
+          <%!-- Icon (if provided) --%>
+          <div
+            :if={@icon || @icon_path}
+            class={[
+              "w-12 h-12 flex items-center justify-center mb-4",
+              Theme.rounded(:lg),
+              Theme.gradient(:primary)
+            ]}
+          >
+            <%= if @icon do %>
+              <.icon name={@icon} class="w-6 h-6 text-white" />
+            <% else %>
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d={@icon_path}
+                >
+                </path>
+              </svg>
+            <% end %>
+          </div>
+
+          <%!-- Title and Description --%>
+          <h3 class={[Theme.typography(:card_title), "mb-2", Theme.text_color(:heading)]}>
+            {@title}
+          </h3>
+          <p class={Theme.text_color(:secondary)}>
+            {@description}
+          </p>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a pricing tier card with features list and CTA button.
+
+  Displays pricing information with optional "Most Popular" badge, feature list with
+  checkmarks, and call-to-action button. Supports both default and popular variants.
+
+  ## Examples
+
+      <.pricing_card
+        title="Explorer Family"
+        subtitle="Perfect for trying out Klass Hero"
+        price="Free"
+        period="forever"
+        features={["Browse all programs", "2 bookings per month", "Read reviews", "Join community"]}
+        cta_text="Start Exploring"
+        phx-click="select_plan"
+        phx-value-plan="explorer"
+      />
+
+      <.pricing_card
+        title="Active Family"
+        subtitle="For families who love activities"
+        price="€8"
+        period="month"
+        features={["AI Support Bot", "Unlimited bookings", "Progress tracking", "Direct messaging", "1 free cancellation/month"]}
+        popular
+        cta_text="Get Started"
+        phx-click="select_plan"
+        phx-value-plan="active"
+      />
+  """
+  attr :title, :string, required: true, doc: "Plan name (e.g., 'Explorer Family')"
+  attr :subtitle, :string, default: nil, doc: "Plan description subtitle"
+  attr :price, :string, required: true, doc: "Price text (e.g., 'Free', '€8')"
+  attr :period, :string, default: "forever", doc: "Billing period (e.g., 'forever', 'month')"
+  attr :features, :list, required: true, doc: "List of feature strings"
+  attr :popular, :boolean, default: false, doc: "Show 'Most Popular' badge"
+  attr :cta_text, :string, default: "Start Exploring", doc: "Button text"
+  attr :class, :string, default: ""
+  attr :rest, :global, include: ~w(phx-click phx-value-*)
+
+  def pricing_card(assigns) do
+    ~H"""
+    <div class={[
+      "relative",
+      Theme.bg(:surface),
+      Theme.rounded(:xl),
+      "border p-6",
+      @popular && "border-2 border-hero-blue-500 shadow-lg transform scale-105",
+      !@popular && ["border", Theme.border_color(:light), "shadow-sm"],
+      Theme.transition(:normal),
+      @class
+    ]}>
+      <%!-- Most Popular Badge --%>
+      <div
+        :if={@popular}
+        class={[
+          "absolute -top-3 left-1/2 transform -translate-x-1/2 px-4 py-1",
+          Theme.rounded(:full),
+          Theme.gradient(:primary),
+          "text-white text-sm font-semibold"
+        ]}
+      >
+        Most Popular
+      </div>
+
+      <%!-- Header --%>
+      <div class="mb-6">
+        <h3 class={[Theme.typography(:card_title), "mb-1", Theme.text_color(:heading)]}>
+          {@title}
+        </h3>
+        <p :if={@subtitle} class={["text-sm", Theme.text_color(:muted)]}>
+          {@subtitle}
+        </p>
+      </div>
+
+      <%!-- Price --%>
+      <div class="mb-6">
+        <div class="flex items-baseline gap-1">
+          <span class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+            {@price}
+          </span>
+          <span class={["text-sm", Theme.text_color(:muted)]}>
+            / {@period}
+          </span>
+        </div>
+      </div>
+
+      <%!-- Features List --%>
+      <ul class="space-y-3 mb-6">
+        <li :for={feature <- @features} class="flex items-start gap-2">
+          <.icon name="hero-check-circle" class="w-5 h-5 flex-shrink-0 mt-0.5 text-hero-blue-600" />
+          <span class={["text-sm", Theme.text_color(:body)]}>{feature}</span>
+        </li>
+      </ul>
+
+      <%!-- CTA Button --%>
+      <button
+        class={[
+          "w-full py-3 font-semibold",
+          Theme.rounded(:lg),
+          @popular && [Theme.gradient(:primary), "text-white hover:shadow-lg"],
+          !@popular &&
+            [
+              Theme.bg(:primary),
+              "text-white",
+              "hover:#{Theme.bg(:primary)}/90"
+            ],
+          Theme.transition(:normal)
+        ]}
+        {@rest}
+      >
+        {@cta_text}
+      </button>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a collapsible FAQ accordion item.
+
+  Interactive FAQ item with smooth expand/collapse transitions using Phoenix LiveView JS.
+  The chevron icon rotates 180 degrees when expanded. Handles all interaction client-side
+  without server round-trips.
+
+  ## Examples
+
+      <.faq_item
+        id="faq-1"
+        question="How does the 4-step provider vetting process work?"
+        answer="Our vetting process includes background checks, credential verification, reference checks, and a personal interview to ensure the highest quality providers."
+      />
+
+      <.faq_item
+        id="faq-2"
+        question="Is there a free trial for the Active Family plan?"
+        answer="Yes! All new families get a 14-day free trial of the Active Family plan. Cancel anytime during the trial with no charges."
+        expanded
+      />
+
+      <.faq_item
+        id="faq-3"
+        question="Can I cancel a booking?"
+        answer="Yes, you can cancel bookings according to each provider's cancellation policy. Active Family members get 1 free cancellation per month."
+        class="mb-4"
+      />
+  """
+  attr :id, :string, required: true, doc: "Unique ID for JS targeting (e.g., 'faq-1')"
+  attr :question, :string, required: true, doc: "FAQ question text"
+  attr :answer, :string, required: true, doc: "FAQ answer text"
+  attr :expanded, :boolean, default: false, doc: "Initial expanded state"
+  attr :class, :string, default: ""
+
+  def faq_item(assigns) do
+    ~H"""
+    <div class={["border-b", Theme.border_color(:light), @class]}>
+      <button
+        type="button"
+        class={[
+          "w-full py-4 flex items-center justify-between text-left",
+          "hover:bg-hero-grey-50",
+          Theme.transition(:fast)
+        ]}
+        phx-click={
+          Phoenix.LiveView.JS.toggle(to: "##{@id}-answer")
+          |> Phoenix.LiveView.JS.toggle_class("rotate-180", to: "##{@id}-chevron")
+        }
+      >
+        <span class={[Theme.typography(:card_title), Theme.text_color(:heading)]}>
+          {@question}
+        </span>
+        <span
+          id={"#{@id}-chevron"}
+          class={[
+            "w-5 h-5 flex-shrink-0 ml-4",
+            Theme.text_color(:secondary),
+            Theme.transition(:fast),
+            @expanded && "rotate-180"
+          ]}
+        >
+          <.icon name="hero-chevron-down" class="w-5 h-5" />
+        </span>
+      </button>
+      <div
+        id={"#{@id}-answer"}
+        class={[
+          "overflow-hidden",
+          Theme.transition(:fast),
+          @expanded == false && "hidden"
+        ]}
+      >
+        <p class={["pb-4 pr-12", Theme.text_color(:secondary)]}>
+          {@answer}
+        </p>
+      </div>
+    </div>
+    """
+  end
 end
