@@ -85,7 +85,7 @@ defmodule KlassHeroWeb do
       import KlassHeroWeb.CompositeComponents
       import KlassHeroWeb.CoreComponents
       import KlassHeroWeb.ParticipationComponents
-      import KlassHeroWeb.UIComponents, except: [icon: 1]
+      import KlassHeroWeb.UIComponents
 
       # HTML escaping functionality
       import Phoenix.HTML

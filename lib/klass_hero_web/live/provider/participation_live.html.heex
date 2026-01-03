@@ -11,17 +11,7 @@
   </div>
 
   <%!-- Error state --%>
-  <%= if assigns[:session_error] do %>
-    <div class={[
-      "p-4 mb-6 bg-red-50 border border-red-200 text-red-700",
-      Theme.rounded(:lg)
-    ]}>
-      <div class="flex items-center gap-2">
-        <.icon name="hero-exclamation-triangle" class="w-5 h-5" />
-        <span>{@session_error}</span>
-      </div>
-    </div>
-  <% end %>
+  <.error_alert :if={assigns[:session_error]} errors={[@session_error]} />
 
   <%= if @session do %>
     <%!-- Session context card --%>

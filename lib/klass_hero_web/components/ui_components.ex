@@ -669,6 +669,8 @@ defmodule KlassHeroWeb.UIComponents do
   Displays a centered empty state with gray icon circle, title, and description.
   Commonly used when no results are found or when a list is empty.
 
+  Supports either SVG path data via `icon_path` or heroicons via `icon`.
+
   ## Examples
 
       <.empty_state
@@ -676,6 +678,16 @@ defmodule KlassHeroWeb.UIComponents do
         title="No programs found"
         description="Try adjusting your search or filter criteria."
       />
+
+      <.empty_state
+        icon="hero-calendar"
+        title="No sessions scheduled"
+        description="You have no sessions scheduled for today."
+      />
+
+      <.empty_state icon="hero-clipboard-document-list" title="No records yet">
+        Your children's participation will appear here
+      </.empty_state>
 
       <.empty_state
         icon_path="M12 4v16m8-8H4"
@@ -689,12 +701,14 @@ defmodule KlassHeroWeb.UIComponents do
         </:action>
       </.empty_state>
   """
-  attr :icon_path, :string, required: true, doc: "SVG path data for the icon"
+  attr :icon_path, :string, default: nil, doc: "SVG path data for the icon"
+  attr :icon, :string, default: nil, doc: "Heroicon name (e.g., 'hero-calendar')"
   attr :title, :string, required: true
-  attr :description, :string, required: true
+  attr :description, :string, default: nil, doc: "Static description text"
   attr :class, :string, default: ""
   attr :data_testid, :string, default: "empty-state", doc: "Test ID for testing"
   attr :rest, :global, doc: "Additional HTML attributes"
+  slot :inner_block, doc: "Optional dynamic description content (overrides description attr)"
   slot :action, doc: "Optional action button or link"
 
   def empty_state(assigns) do
@@ -705,23 +719,33 @@ defmodule KlassHeroWeb.UIComponents do
         Theme.rounded(:full),
         Theme.bg(:light)
       ]}>
-        <svg
-          class={["w-8 h-8", Theme.text_color(:subtle)]}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d={@icon_path}
+        <%= if @icon do %>
+          <.icon name={@icon} class={"w-8 h-8 #{Theme.text_color(:subtle)}"} />
+        <% else %>
+          <svg
+            class={["w-8 h-8", Theme.text_color(:subtle)]}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-          </path>
-        </svg>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d={@icon_path}
+            >
+            </path>
+          </svg>
+        <% end %>
       </div>
       <h3 class={[Theme.typography(:card_title), "mb-2", Theme.text_color(:heading)]}>{@title}</h3>
-      <p class={Theme.text_color(:secondary)}>{@description}</p>
+      <p class={Theme.text_color(:secondary)}>
+        <%= if @inner_block != [] do %>
+          {render_slot(@inner_block)}
+        <% else %>
+          {@description}
+        <% end %>
+      </p>
       <div :if={@action != []}>
         {render_slot(@action)}
       </div>
@@ -1218,4 +1242,63 @@ defmodule KlassHeroWeb.UIComponents do
   defp card_variant_classes(:default), do: "shadow-sm border #{Theme.border_color(:light)}"
   defp card_variant_classes(:elevated), do: "shadow-lg"
   defp card_variant_classes(:outlined), do: "border-2 #{Theme.border_color(:medium)}"
+
+  @doc """
+  Renders a styled date selector with label and form wrapper.
+
+  Commonly used for date-based filtering in lists and streams. Automatically
+  handles date formatting for the HTML date input.
+
+  ## Examples
+
+      <.date_selector
+        id="session-date"
+        name="date"
+        value={@selected_date}
+        label="Select Date:"
+        phx_change="change_date"
+      />
+
+      <.date_selector
+        id="filter-date"
+        name="filter_date"
+        value={@filter_date}
+      />
+  """
+  attr :id, :string, required: true, doc: "Input element ID"
+  attr :name, :string, required: true, doc: "Form field name"
+  attr :value, :any, default: nil, doc: "Current date value (Date or ISO8601 string)"
+  attr :label, :string, default: nil, doc: "Optional label text"
+  attr :phx_change, :string, default: nil, doc: "Change event name"
+  attr :class, :string, default: "", doc: "Additional container classes"
+  attr :rest, :global, doc: "Additional HTML attributes for the input"
+
+  def date_selector(assigns) do
+    ~H"""
+    <form
+      phx-change={@phx_change}
+      class={["flex flex-col sm:flex-row gap-4 items-start sm:items-center", @class]}
+    >
+      <label :if={@label} for={@id} class="text-sm font-medium text-gray-700">
+        {@label}
+      </label>
+      <input
+        type="date"
+        id={@id}
+        name={@name}
+        value={format_date_value(@value)}
+        class={[
+          "px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent",
+          Theme.rounded(:lg),
+          Theme.transition(:normal)
+        ]}
+        {@rest}
+      />
+    </form>
+    """
+  end
+
+  defp format_date_value(nil), do: nil
+  defp format_date_value(%Date{} = date), do: Date.to_iso8601(date)
+  defp format_date_value(value) when is_binary(value), do: value
 end
