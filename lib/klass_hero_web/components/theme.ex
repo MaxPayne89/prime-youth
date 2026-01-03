@@ -43,7 +43,9 @@ defmodule KlassHeroWeb.Theme do
     primary: "bg-gradient-to-r from-hero-blue-500 to-hero-blue-600",
     hero: "bg-gradient-to-br from-hero-blue-400 via-hero-yellow-400 to-hero-yellow-500",
     comic: "bg-gradient-to-r from-hero-yellow-400 to-hero-blue-400",
-    safety: "bg-gradient-to-r from-green-500 to-emerald-600"
+    safety: "bg-gradient-to-r from-green-500 to-emerald-600",
+    cool: "bg-gradient-to-r from-hero-blue-400 to-hero-blue-600",
+    art: "bg-gradient-to-r from-hero-yellow-400 to-hero-pink-400"
   }
 
   @doc """
@@ -538,8 +540,11 @@ defmodule KlassHeroWeb.Theme do
       iex> Theme.button_variant(:primary)
       "bg-prime-cyan-400 text-white hover:bg-prime-cyan-500"
   """
-  def button_variant(:primary), do: "bg-teal-600 text-white hover:bg-teal-700"
-  def button_variant(:secondary), do: "bg-pink-500 text-white hover:bg-pink-600"
+  def button_variant(:primary), do: "bg-hero-blue-600 text-white hover:bg-hero-blue-700"
+
+  def button_variant(:secondary),
+    do: "bg-hero-yellow-400 text-hero-black hover:bg-hero-yellow-500"
+
   def button_variant(:outline), do: "border-2 border-gray-200 text-gray-700 hover:bg-gray-50"
   def button_variant(:ghost), do: "text-gray-600 hover:bg-gray-100"
 

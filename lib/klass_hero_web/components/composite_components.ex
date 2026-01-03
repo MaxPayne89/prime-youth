@@ -93,12 +93,12 @@ defmodule KlassHeroWeb.CompositeComponents do
       <:body>
         <div class="flex items-start justify-between mb-3">
           <div class="flex-1">
-            <h4 class={[Theme.typography(:card_title), "text-gray-900"]}>{@name}</h4>
-            <p class="text-sm text-gray-600">{@age} years old • {@school}</p>
+            <h4 class={[Theme.typography(:card_title), "text-hero-black"]}>{@name}</h4>
+            <p class="text-sm text-hero-grey-500">{@age} years old • {@school}</p>
           </div>
           <div class="text-right">
-            <div class="text-sm font-medium text-gray-900">{@sessions}</div>
-            <div class="text-xs text-gray-500">{gettext("Sessions")}</div>
+            <div class="text-sm font-medium text-hero-black">{@sessions}</div>
+            <div class="text-xs text-hero-grey-400">{gettext("Sessions")}</div>
           </div>
         </div>
         <.progress_bar label={gettext("Progress")} percentage={@progress} class="mb-3" />
@@ -106,7 +106,7 @@ defmodule KlassHeroWeb.CompositeComponents do
           <.status_pill
             :for={activity <- @activities}
             color="custom"
-            class="bg-gray-100 text-gray-700"
+            class="bg-hero-grey-100 text-hero-black-100"
           >
             {activity}
           </.status_pill>
@@ -141,7 +141,7 @@ defmodule KlassHeroWeb.CompositeComponents do
     <button
       type="button"
       class={[
-        "bg-white p-4 shadow-sm border border-gray-100",
+        "bg-white p-4 shadow-sm border border-hero-grey-200",
         Theme.rounded(:xl),
         "hover:shadow-md hover:scale-[1.02]",
         Theme.transition(:normal),
@@ -158,7 +158,7 @@ defmodule KlassHeroWeb.CompositeComponents do
       >
         <.icon name={@icon} class={"w-5 h-5 #{@icon_color}"} />
       </.gradient_icon>
-      <div class="text-sm font-medium text-gray-900">{@label}</div>
+      <div class="text-sm font-medium text-hero-black">{@label}</div>
     </button>
     """
   end
@@ -193,7 +193,7 @@ defmodule KlassHeroWeb.CompositeComponents do
       Theme.rounded(:lg),
       if(@selected,
         do: [Theme.border_color(:primary), Theme.bg(:primary_light)],
-        else: "border-gray-200 hover:border-gray-300"
+        else: "border-hero-grey-200 hover:border-hero-grey-300"
       ),
       @class
     ]}>
@@ -206,8 +206,8 @@ defmodule KlassHeroWeb.CompositeComponents do
         {@rest}
       />
       <div>
-        <div class={[Theme.typography(:card_title), "text-gray-800"]}>{@title}</div>
-        <div class="text-sm text-gray-600">{@description}</div>
+        <div class={[Theme.typography(:card_title), "text-hero-black"]}>{@title}</div>
+        <div class="text-sm text-hero-grey-500">{@description}</div>
       </div>
     </label>
     """
@@ -275,15 +275,15 @@ defmodule KlassHeroWeb.CompositeComponents do
             {@avatar_emoji}
           </.gradient_icon>
           <div class="flex-1">
-            <div data-testid="post-author" class={[Theme.typography(:card_title), "text-gray-800"]}>
+            <div data-testid="post-author" class={[Theme.typography(:card_title), "text-hero-black"]}>
               {@author}
             </div>
-            <div class="text-sm text-gray-500">{@timestamp}</div>
+            <div class="text-sm text-hero-grey-400">{@timestamp}</div>
           </div>
         </div>
         
     <!-- Post Content -->
-        <p data-testid="post-content" class="text-gray-700 mb-4 leading-relaxed">
+        <p data-testid="post-content" class="text-hero-black-100 mb-4 leading-relaxed">
           {@content}
         </p>
         
@@ -292,7 +292,7 @@ defmodule KlassHeroWeb.CompositeComponents do
         {render_slot(@event_content)}
         
     <!-- Post Actions -->
-        <div class="border-t border-gray-100 pt-4">
+        <div class="border-t border-hero-grey-200 pt-4">
           <div class="flex gap-6 mb-3">
             <button
               data-testid="like-button"
@@ -301,14 +301,14 @@ defmodule KlassHeroWeb.CompositeComponents do
               class={[
                 "flex items-center gap-2",
                 Theme.transition(:normal),
-                if(@user_liked, do: "text-red-500", else: "text-gray-500 hover:text-red-500")
+                if(@user_liked, do: "text-red-500", else: "text-hero-grey-400 hover:text-red-500")
               ]}
             >
               <span class="text-xl">{if @user_liked, do: "❤️", else: "🤍"}</span>
               <span data-testid="like-count" class="text-sm font-medium">{@likes}</span>
             </button>
             <button class={[
-              "flex items-center gap-2 text-gray-500 hover:text-teal-600",
+              "flex items-center gap-2 text-hero-grey-400 hover:text-hero-blue-600",
               Theme.transition(:normal)
             ]}>
               <span class="text-xl">💬</span>
@@ -326,7 +326,7 @@ defmodule KlassHeroWeb.CompositeComponents do
               type="text"
               name="comment"
               placeholder="Write a comment..."
-              class="flex-1 input input-bordered input-sm bg-white border-gray-300 focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+              class="flex-1 input input-bordered input-sm bg-white border-hero-grey-300 focus:border-hero-blue-600 focus:ring-1 focus:ring-hero-blue-600"
               autocomplete="off"
             />
             <button
@@ -351,7 +351,7 @@ defmodule KlassHeroWeb.CompositeComponents do
   """
   def app_footer(assigns) do
     ~H"""
-    <footer class="footer footer-center p-10 bg-slate-900 text-slate-300">
+    <footer class="footer footer-center p-10 bg-hero-black text-hero-grey-300">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl">
         <div class="text-left">
           <h3 class="font-bold text-lg text-white mb-4">Klass Hero</h3>

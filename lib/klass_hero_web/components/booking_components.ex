@@ -50,8 +50,10 @@ defmodule KlassHeroWeb.BookingComponents do
       <div class="flex items-start gap-3">
         <div :if={@icon} class="text-2xl">{@icon}</div>
         <div class="flex-1">
-          <h3 :if={@title} class={[Theme.typography(:card_title), "text-gray-800 mb-4"]}>{@title}</h3>
-          <div class="text-gray-700">
+          <h3 :if={@title} class={[Theme.typography(:card_title), "text-hero-black mb-4"]}>
+            {@title}
+          </h3>
+          <div class="text-hero-black-100">
             {render_slot(@inner_block)}
           </div>
         </div>
@@ -69,16 +71,16 @@ defmodule KlassHeroWeb.BookingComponents do
     """
   end
 
-  defp info_box_styles(:info), do: "bg-blue-50 border-2 border-blue-200"
-  defp info_box_styles(:neutral), do: "bg-gray-50 border border-gray-200"
+  defp info_box_styles(:info), do: "bg-hero-blue-50 border-2 border-hero-blue-200"
+  defp info_box_styles(:neutral), do: "bg-hero-grey-50 border border-hero-grey-200"
   defp info_box_styles(:success), do: "bg-green-50 border-2 border-green-200"
-  defp info_box_styles(:warning), do: "bg-yellow-50 border-2 border-yellow-200"
+  defp info_box_styles(:warning), do: "bg-hero-yellow-50 border-2 border-hero-yellow-200"
   defp info_box_styles(:error), do: "bg-red-50 border-2 border-red-200"
 
-  defp info_box_footer_border(:info), do: "border-t border-blue-300"
-  defp info_box_footer_border(:neutral), do: "border-t border-gray-300"
+  defp info_box_footer_border(:info), do: "border-t border-hero-blue-300"
+  defp info_box_footer_border(:neutral), do: "border-t border-hero-grey-300"
   defp info_box_footer_border(:success), do: "border-t border-green-300"
-  defp info_box_footer_border(:warning), do: "border-t border-yellow-300"
+  defp info_box_footer_border(:warning), do: "border-t border-hero-yellow-300"
   defp info_box_footer_border(:error), do: "border-t border-red-300"
 
   @doc """
@@ -124,13 +126,13 @@ defmodule KlassHeroWeb.BookingComponents do
   def booking_summary(assigns) do
     ~H"""
     <div class={["bg-white p-6 shadow-lg", Theme.rounded(:xl), @class]}>
-      <h3 class={[Theme.typography(:card_title), "text-gray-800 mb-4"]}>{@title}</h3>
+      <h3 class={[Theme.typography(:card_title), "text-hero-black mb-4"]}>{@title}</h3>
       <div class="space-y-2">
         <!-- Regular line items before subtotal -->
         <div
           :for={item <- @line_item}
           :if={!Map.get(item, :after_subtotal, false)}
-          class="flex justify-between text-gray-700"
+          class="flex justify-between text-hero-black-100"
         >
           <span>{item[:label]}</span>
           <span>{item[:value]}</span>
@@ -139,7 +141,7 @@ defmodule KlassHeroWeb.BookingComponents do
     <!-- Subtotal with border -->
         <div
           :for={subtotal <- @subtotal}
-          class="flex justify-between text-gray-700 pb-2 border-b border-gray-200"
+          class="flex justify-between text-hero-black-100 pb-2 border-b border-hero-grey-200"
         >
           <span>{subtotal[:label]}</span>
           <span>{subtotal[:value]}</span>
@@ -149,7 +151,7 @@ defmodule KlassHeroWeb.BookingComponents do
         <div
           :for={item <- @line_item}
           :if={Map.get(item, :after_subtotal, false)}
-          class="flex justify-between text-gray-700"
+          class="flex justify-between text-hero-black-100"
         >
           <span>{item[:label]}</span>
           <span>{item[:value]}</span>
@@ -158,7 +160,10 @@ defmodule KlassHeroWeb.BookingComponents do
     <!-- Total with emphasis -->
         <div
           :for={total <- @total}
-          class={["flex justify-between pt-2 border-t border-gray-300", Theme.typography(:card_title)]}
+          class={[
+            "flex justify-between pt-2 border-t border-hero-grey-300",
+            Theme.typography(:card_title)
+          ]}
         >
           <span>{total[:label]}</span>
           <span class={Theme.text_color(:primary)}>{total[:value]}</span>

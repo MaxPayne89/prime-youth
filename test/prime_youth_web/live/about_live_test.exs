@@ -144,7 +144,7 @@ defmodule KlassHeroWeb.AboutLiveTest do
 
       # Verify gradient classes are present (Theme module gradients)
       # Primary gradient appears 3 times (Quality First, Accessibility, Community)
-      assert html =~ "bg-gradient-to-r from-teal-500 to-teal-600"
+      assert html =~ "bg-gradient-to-r from-hero-blue-500 to-hero-blue-600"
 
       # Safety gradient appears once (Safety value)
       assert html =~ "bg-gradient-to-r from-green-500 to-emerald-600"
@@ -154,12 +154,12 @@ defmodule KlassHeroWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify background classes match Theme.bg() outputs
-      # primary_light
-      assert html =~ "bg-teal-50"
-      # secondary_light
-      assert html =~ "bg-pink-50"
-      # accent_light
-      assert html =~ "bg-prime-yellow-100"
+      # primary_light: bg-hero-blue-50
+      assert html =~ "bg-hero-blue-50"
+      # secondary_light: bg-hero-grey-50
+      assert html =~ "bg-hero-grey-50"
+      # accent_light: bg-hero-yellow-100
+      assert html =~ "bg-hero-yellow-100"
     end
 
     test "all sections use card component styling", %{conn: conn} do

@@ -5,10 +5,11 @@ defmodule KlassHeroWeb.HomeLiveTest do
 
   describe "HomeLive" do
     test "renders home page successfully", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/")
+      {:ok, view, html} = live(conn, ~p"/")
 
-      assert has_element?(view, "h1", "Klass Hero")
-      assert render(view) =~ "Connecting Families with Trusted Youth Educators"
+      assert has_element?(view, "h1")
+      assert html =~ "Connecting Families with Trusted"
+      assert html =~ "Heroes for Our Youth"
     end
 
     test "displays hero section with landing variant", %{conn: conn} do

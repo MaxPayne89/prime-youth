@@ -517,6 +517,53 @@ defmodule KlassHeroWeb.UIComponents do
       <div class={["h-48 relative", @gradient_class]}>
         <div class={["absolute inset-0 bg-black/10 group-hover:bg-black/5", Theme.transition(:normal)]}>
         </div>
+        <%!-- Verification Badges (Visual Only) --%>
+        <div class="absolute top-2 left-2 flex gap-1">
+          <div
+            class="w-6 h-6 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center"
+            title="Background Check"
+          >
+            <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
+          <div
+            class="w-6 h-6 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center"
+            title="First Aid"
+          >
+            <svg class="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
+          <div
+            class="w-6 h-6 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center"
+            title="Child Safeguarding"
+          >
+            <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6z" />
+            </svg>
+          </div>
+          <div
+            class="w-6 h-6 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center"
+            title="Insurance"
+          >
+            <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+              <path
+                fill-rule="evenodd"
+                d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V5a1 1 0 00-1-1z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </div>
+        </div>
         <div class="absolute inset-0 flex items-center justify-center">
           <div class={[
             "w-20 h-20 bg-white/20 backdrop-blur-sm flex items-center justify-center",
@@ -529,15 +576,57 @@ defmodule KlassHeroWeb.UIComponents do
           </div>
         </div>
       </div>
-      <div class="p-6">
+      <div class="p-5">
         <h3 class={[Theme.typography(:card_title), "mb-2", Theme.text_color(:heading)]}>{@title}</h3>
         <p class={["text-sm mb-4 line-clamp-2", Theme.text_color(:secondary)]}>{@description}</p>
+        <%!-- Provider Info (Visual Only with Mock Data) --%>
+        <div class="flex items-center gap-3 mb-4 pt-4 border-t border-hero-grey-100">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-hero-blue-400 to-hero-yellow-400 flex items-center justify-center text-white text-xs font-semibold">
+            KH
+          </div>
+          <div class="flex-1">
+            <div class="text-sm font-medium text-hero-black">Klass Hero Instructor</div>
+            <div class="flex items-center gap-2 text-xs text-hero-grey-500">
+              <div class="flex items-center">
+                <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                  <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                </svg>
+                <span class="ml-1">4.8 (124)</span>
+              </div>
+              <span>•</span>
+              <div class="flex items-center">
+                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                Berlin, DE
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="flex items-center justify-between">
           <span class={[Theme.typography(:section_title), Theme.text_color(:secondary)]}>
             €{@price}
           </span>
           <span class={["text-sm", Theme.text_color(:muted)]}>per week</span>
         </div>
+        <%!-- Book Now Button (Visual Only) --%>
+        <button
+          class="w-full mt-4 py-2.5 bg-hero-blue-600 text-white font-semibold rounded-lg hover:bg-hero-blue-700 transition-all duration-200"
+          onclick="event.stopPropagation();"
+        >
+          Book Now
+        </button>
       </div>
     </div>
     """
@@ -831,6 +920,8 @@ defmodule KlassHeroWeb.UIComponents do
 
   slot :title, required: true, doc: "Hero title text"
   slot :subtitle, doc: "Optional subtitle text"
+  slot :search_bar, doc: "Optional search bar (visual only, landing variant)"
+  slot :trending_tags, doc: "Optional trending tags (visual only, landing variant)"
   slot :actions, doc: "Action buttons (landing variant only)"
 
   def hero_section(assigns) do
@@ -839,7 +930,7 @@ defmodule KlassHeroWeb.UIComponents do
       "relative",
       variant_wrapper_classes(@variant),
       @variant == "landing" && "overflow-hidden",
-      @variant == "landing" && @gradient_class,
+      @variant == "landing" && "bg-hero-pink-50",
       @variant != "landing" && @gradient_class,
       @class
     ]}>
@@ -861,16 +952,17 @@ defmodule KlassHeroWeb.UIComponents do
               />
             </div>
 
-            <h1 class={[Theme.typography(:hero), "text-white mb-4 animate-fade-in"]}>
+            <h1 class={[Theme.typography(:hero), "mb-4 animate-fade-in"]}>
               {render_slot(@title)}
             </h1>
 
-            <p
-              :if={@subtitle != []}
-              class={[Theme.typography(:section_title), "text-white/90 mb-8 max-w-3xl mx-auto"]}
-            >
-              {render_slot(@subtitle)}
-            </p>
+            <div :if={@search_bar != []} class="mb-6">
+              {render_slot(@search_bar)}
+            </div>
+
+            <div :if={@trending_tags != []}>
+              {render_slot(@trending_tags)}
+            </div>
 
             <div :if={@actions != []} class="flex flex-col sm:flex-row gap-4 justify-center">
               {render_slot(@actions)}

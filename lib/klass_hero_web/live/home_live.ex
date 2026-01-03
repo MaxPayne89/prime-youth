@@ -38,11 +38,63 @@ defmodule KlassHeroWeb.HomeLive do
       <!-- Hero Section -->
       <.hero_section
         variant="landing"
-        gradient_class={Theme.gradient(:hero)}
         show_logo
       >
-        <:title>{gettext("Klass Hero")}</:title>
-        <:subtitle>{gettext("Connecting Families with Trusted Youth Educators")}</:subtitle>
+        <:title>
+          <span class="text-hero-grey-600">Connecting Families with Trusted</span>
+          <br />
+          <span class="text-hero-black">Heroes for Our Youth</span>
+        </:title>
+        <:search_bar>
+          <div class="max-w-3xl mx-auto mb-8">
+            <div class="flex items-center gap-2 bg-white rounded-full shadow-sm p-2">
+              <div class="flex-1 flex items-center px-4">
+                <svg
+                  class="w-5 h-5 text-hero-grey-400 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search for programs..."
+                  class="w-full outline-none text-hero-black bg-transparent"
+                  disabled
+                />
+              </div>
+              <button class="bg-hero-blue-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-hero-blue-700 transition-all duration-200">
+                SEARCH
+              </button>
+            </div>
+          </div>
+        </:search_bar>
+        <:trending_tags>
+          <div class="flex flex-wrap justify-center gap-2 mb-8">
+            <span class="text-sm text-hero-grey-600 font-medium mr-2">Trending:</span>
+            <span class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 cursor-default">
+              Swimming
+            </span>
+            <span class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 cursor-default">
+              Math Tutor
+            </span>
+            <span class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 cursor-default">
+              Summer Camp
+            </span>
+            <span class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 cursor-default">
+              Piano
+            </span>
+            <span class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 cursor-default">
+              Soccer
+            </span>
+          </div>
+        </:trending_tags>
         <:actions>
           <button
             phx-click="get_started"

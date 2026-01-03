@@ -225,7 +225,7 @@ defmodule KlassHeroWeb.ProgramComponents do
             </svg>
             {@program.schedule}
           </div>
-          <div class="flex items-center text-sm text-gray-600">
+          <div class="flex items-center text-sm text-hero-grey-500">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -313,7 +313,7 @@ defmodule KlassHeroWeb.ProgramComponents do
       <div class={[Theme.typography(:section_title), Theme.text_color(:primary)]}>
         {@currency}{@price}
       </div>
-      <div class="text-xs text-gray-500">
+      <div class="text-xs text-hero-grey-400">
         per {@period}
       </div>
     </div>
