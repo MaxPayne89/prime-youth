@@ -27,24 +27,23 @@ defmodule KlassHeroWeb.HomeLive do
   end
 
   @impl true
-  def handle_event("get_started", _params, socket) do
-    {:noreply, push_navigate(socket, to: ~p"/users/register")}
-  end
-
-  @impl true
   def render(assigns) do
     ~H"""
     <div class="min-h-screen">
       <!-- Hero Section -->
-      <.hero_section
-        variant="landing"
-        show_logo
-      >
+      <.hero_section variant="landing">
         <:title>
           <span class="text-hero-grey-600">Connecting Families with Trusted</span>
           <br />
           <span class="text-hero-black">Heroes for Our Youth</span>
         </:title>
+        <:subtitle>
+          <p class="text-lg text-hero-grey-600 max-w-2xl mx-auto">
+            {gettext("Klass Hero is Berlin's leading marketplace for")}
+            <strong class="text-hero-black">{gettext(" youth education, sports, and recreational activities")}</strong>.
+            {gettext(" Find verified tutors, coaches, and camps near you.")}
+          </p>
+        </:subtitle>
         <:search_bar>
           <div class="max-w-3xl mx-auto mb-8">
             <div class="flex items-center gap-2 bg-white rounded-full shadow-sm p-2">
@@ -69,59 +68,34 @@ defmodule KlassHeroWeb.HomeLive do
                   disabled
                 />
               </div>
-              <button class="bg-hero-blue-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-hero-blue-700 transition-all duration-200">
-                SEARCH
+              <button class="bg-hero-yellow-400 text-hero-black px-6 py-3 rounded-full font-semibold hover:bg-hero-yellow-500 transition-all duration-200">
+                {gettext("Search")}
               </button>
             </div>
           </div>
         </:search_bar>
         <:trending_tags>
-          <div class="flex flex-wrap justify-center gap-2 mb-8">
-            <span class="text-sm text-hero-grey-600 font-medium mr-2">Trending:</span>
-            <span class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 cursor-default">
-              Swimming
+          <div class="flex flex-wrap items-center justify-center gap-2">
+            <span class="text-sm text-hero-grey-600 font-medium">
+              {gettext("Trending in Berlin:")}
             </span>
-            <span class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 cursor-default">
-              Math Tutor
-            </span>
-            <span class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 cursor-default">
-              Summer Camp
-            </span>
-            <span class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 cursor-default">
-              Piano
-            </span>
-            <span class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 cursor-default">
-              Soccer
-            </span>
+            <button class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200">
+              {gettext("Swimming")}
+            </button>
+            <button class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200">
+              {gettext("Math Tutor")}
+            </button>
+            <button class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200">
+              {gettext("Summer Camp")}
+            </button>
+            <button class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200">
+              {gettext("Piano")}
+            </button>
+            <button class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200">
+              {gettext("Soccer")}
+            </button>
           </div>
         </:trending_tags>
-        <:actions>
-          <button
-            phx-click="get_started"
-            class={[
-              "px-8 py-4 transform hover:scale-105 shadow-lg",
-              Theme.typography(:cta),
-              Theme.transition(:normal),
-              Theme.rounded(:lg),
-              Theme.bg(:surface),
-              Theme.text_color(:heading),
-              "hover:#{Theme.bg(:light)}"
-            ]}
-          >
-            {gettext("Get Started Free")}
-          </button>
-          <button
-            phx-click="explore_programs"
-            class={[
-              "px-8 py-4 bg-white/20 backdrop-blur-sm border-2 border-white text-white hover:bg-white/30",
-              Theme.typography(:cta),
-              Theme.transition(:normal),
-              Theme.rounded(:lg)
-            ]}
-          >
-            {gettext("Explore Programs")}
-          </button>
-        </:actions>
       </.hero_section>
       
     <!-- Features Section -->
@@ -214,61 +188,6 @@ defmodule KlassHeroWeb.HomeLive do
               {gettext("View All Programs →")}
             </button>
           </div>
-        </div>
-      </div>
-      
-    <!-- Social Proof / Trust Section -->
-      <div class={Theme.bg(:surface)}>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div class="text-center mb-12">
-            <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
-              {gettext("Trusted by Families Everywhere")}
-            </h2>
-          </div>
-
-          <div class="grid md:grid-cols-3 gap-8">
-            <.stat_display
-              value="10,000+"
-              label={gettext("Active Families")}
-              gradient_class={Theme.gradient(:primary)}
-            />
-            <.stat_display
-              value="500+"
-              label={gettext("Programs Available")}
-              gradient_class={Theme.gradient(:primary)}
-            />
-            <.stat_display
-              value="4.9/5"
-              label={gettext("Average Rating")}
-              gradient_class={Theme.gradient(:primary)}
-            />
-          </div>
-        </div>
-      </div>
-      
-    <!-- CTA Section -->
-      <div class={[Theme.gradient(:primary), "py-16 lg:py-20"]}>
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 class={[Theme.typography(:page_title), "text-white mb-6"]}>
-            {gettext("Ready to Get Started?")}
-          </h2>
-          <p class="text-xl text-white/90 mb-8">
-            {gettext("Join thousands of families discovering amazing afterschool programs")}
-          </p>
-          <button
-            phx-click="get_started"
-            class={[
-              "px-8 py-4 transform hover:scale-105 shadow-lg",
-              Theme.typography(:cta),
-              Theme.transition(:normal),
-              Theme.rounded(:lg),
-              Theme.bg(:surface),
-              "hover:#{Theme.bg(:light)}",
-              Theme.text_color(:primary)
-            ]}
-          >
-            {gettext("Create Free Account →")}
-          </button>
         </div>
       </div>
     </div>

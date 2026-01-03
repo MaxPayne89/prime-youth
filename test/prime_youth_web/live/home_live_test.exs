@@ -17,9 +17,8 @@ defmodule KlassHeroWeb.HomeLiveTest do
 
       # Verify hero section content
       assert html =~ "Klass Hero"
-      assert html =~ "Connecting Families with Trusted Youth Educators"
-      assert html =~ "Get Started Free"
-      assert html =~ "Explore Programs"
+      assert html =~ "Connecting Families with Trusted"
+      assert html =~ "Heroes for Our Youth"
     end
 
     test "displays features section", %{conn: conn} do
@@ -45,40 +44,6 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert html =~ "View All Programs"
     end
 
-    test "displays social proof section with stats", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/")
-
-      # Verify social proof section heading
-      assert html =~ "Trusted by Families Everywhere"
-
-      # Verify stats are displayed
-      assert html =~ "10,000+"
-      assert html =~ "Active Families"
-      assert html =~ "500+"
-      assert html =~ "Programs Available"
-      assert html =~ "4.9/5"
-      assert html =~ "Average Rating"
-    end
-
-    test "displays CTA section", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/")
-
-      # Verify CTA section content
-      assert html =~ "Ready to Get Started?"
-      assert html =~ "Join thousands of families discovering amazing afterschool programs"
-      assert html =~ "Create Free Account"
-    end
-
-    test "get_started button navigates to registration page", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/")
-
-      # Click "Get Started Free" button
-      render_click(view, "get_started", %{})
-
-      # Should navigate to registration page
-      assert_redirect(view, ~p"/users/register")
-    end
-
     test "explore_programs button navigates to programs page", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
@@ -87,16 +52,6 @@ defmodule KlassHeroWeb.HomeLiveTest do
 
       # Should navigate to programs page
       assert_redirect(view, ~p"/programs")
-    end
-
-    test "CTA get_started button navigates to registration page", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/")
-
-      # There are multiple "get_started" buttons (hero and CTA sections)
-      # Both should navigate to registration
-      render_click(view, "get_started", %{})
-
-      assert_redirect(view, ~p"/users/register")
     end
 
     test "View All Programs button navigates to programs page", %{conn: conn} do
