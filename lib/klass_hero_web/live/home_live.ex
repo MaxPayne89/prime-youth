@@ -13,7 +13,8 @@ defmodule KlassHeroWeb.HomeLive do
     socket =
       socket
       |> assign(
-        page_title: gettext("Klass Hero - Connecting Families with Trusted Youth Educators")
+        page_title: gettext("Klass Hero - Connecting Families with Trusted Youth Educators"),
+        pricing_tab: :families
       )
       |> stream(:featured_programs, featured)
       |> assign(:featured_empty?, Enum.empty?(featured))
@@ -24,6 +25,12 @@ defmodule KlassHeroWeb.HomeLive do
   @impl true
   def handle_event("explore_programs", _params, socket) do
     {:noreply, push_navigate(socket, to: ~p"/programs")}
+  end
+
+  @impl true
+  def handle_event("switch_pricing_tab", %{"tab" => tab}, socket) do
+    pricing_tab = String.to_existing_atom(tab)
+    {:noreply, assign(socket, :pricing_tab, pricing_tab)}
   end
 
   @impl true
@@ -40,8 +47,9 @@ defmodule KlassHeroWeb.HomeLive do
         <:subtitle>
           <p class="text-lg text-hero-grey-600 max-w-2xl mx-auto">
             {gettext("Klass Hero is Berlin's leading marketplace for")}
-            <strong class="text-hero-black">{gettext(" youth education, sports, and recreational activities")}</strong>.
-            {gettext(" Find verified tutors, coaches, and camps near you.")}
+            <strong class="text-hero-black">{gettext(" youth education, sports, and recreational activities")}</strong>. {gettext(
+              " Find verified tutors, coaches, and camps near you."
+            )}
           </p>
         </:subtitle>
         <:search_bar>
@@ -97,7 +105,7 @@ defmodule KlassHeroWeb.HomeLive do
           </div>
         </:trending_tags>
       </.hero_section>
-
+      
     <!-- Featured Programs Section -->
       <div id="featured-programs-section" class={[Theme.bg(:muted), "py-16 lg:py-24"]}>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -143,7 +151,7 @@ defmodule KlassHeroWeb.HomeLive do
           </div>
         </div>
       </div>
-
+      
     <!-- Features Section -->
       <div id="why-klass-hero-section" class={Theme.bg(:surface)}>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
@@ -184,6 +192,298 @@ defmodule KlassHeroWeb.HomeLive do
               description={
                 gettext(
                   "Built for the Berlin international community. Connect with local families and trusted educators nearby."
+                )
+              }
+            />
+          </div>
+        </div>
+      </div>
+      
+    <!-- Grow Your Passion Business Section -->
+      <div id="grow-passion-business-section" class={[Theme.bg(:muted), "py-16 lg:py-24"]}>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <!-- Label Badge -->
+          <div class="text-center mb-4">
+            <span class={[
+              "inline-block px-4 py-1.5 text-sm font-medium",
+              Theme.gradient(:primary),
+              "text-white",
+              Theme.rounded(:full)
+            ]}>
+              {gettext("For Providers")}
+            </span>
+          </div>
+          
+    <!-- Section Heading -->
+          <div class="text-center mb-12">
+            <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
+              {gettext("Grow Your Passion Business")}
+            </h2>
+            <p class={["text-xl", Theme.text_color(:secondary)]}>
+              {gettext(
+                "Join our community of passionate educators. Tools and support to help you succeed."
+              )}
+            </p>
+          </div>
+          
+    <!-- Provider Steps Grid -->
+          <div class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8">
+            <.provider_step_card
+              step_number={1}
+              title={gettext("Create a Program")}
+              description={
+                gettext(
+                  "Set up your teaching profile and list your programs in minutes. Share your expertise with families who need it."
+                )
+              }
+              icon="hero-clipboard-document-list"
+            />
+            <.provider_step_card
+              step_number={2}
+              title={gettext("Deliver Quality")}
+              description={
+                gettext(
+                  "Teach your passion with our tools for scheduling, communication, and progress tracking."
+                )
+              }
+              icon="hero-chat-bubble-left-right"
+            />
+            <.provider_step_card
+              step_number={3}
+              title={gettext("Get Paid & Grow")}
+              description={
+                gettext(
+                  "Secure payments, insights into your business, and opportunities to expand your impact."
+                )
+              }
+              icon="hero-arrow-trending-up"
+            />
+          </div>
+          
+    <!-- CTA Button -->
+          <div class="text-center">
+            <button class={[
+              "bg-hero-yellow-400 text-hero-black px-8 py-3 font-semibold hover:bg-hero-yellow-500",
+              Theme.transition(:normal),
+              Theme.rounded(:lg),
+              "hover:shadow-lg transform hover:scale-105"
+            ]}>
+              {gettext("Start Teaching Today →")}
+            </button>
+          </div>
+        </div>
+      </div>
+      
+    <!-- Simple, Transparent Pricing Section -->
+      <div id="pricing-section" class={[Theme.bg(:surface), "py-16 lg:py-24"]}>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <!-- Section Heading -->
+          <div class="text-center mb-12">
+            <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
+              {gettext("Simple, Transparent Pricing")}
+            </h2>
+            <p class={["text-xl", Theme.text_color(:secondary)]}>
+              {gettext("Choose the plan that fits your needs")}
+            </p>
+          </div>
+          
+    <!-- Tab Toggle -->
+          <div class="flex justify-center mb-12">
+            <div class={[
+              "inline-flex",
+              Theme.rounded(:lg),
+              "p-1",
+              Theme.bg(:muted)
+            ]}>
+              <button
+                phx-click="switch_pricing_tab"
+                phx-value-tab="families"
+                class={[
+                  "px-6 py-2.5 text-sm font-medium",
+                  Theme.rounded(:lg),
+                  Theme.transition(:fast),
+                  if(@pricing_tab == :families,
+                    do: [
+                      Theme.gradient(:primary),
+                      "text-white shadow-md"
+                    ],
+                    else: [
+                      "text-hero-grey-600 hover:text-hero-grey-900"
+                    ]
+                  )
+                ]}
+              >
+                {gettext("For Families")}
+              </button>
+              <button
+                phx-click="switch_pricing_tab"
+                phx-value-tab="providers"
+                class={[
+                  "px-6 py-2.5 text-sm font-medium",
+                  Theme.rounded(:lg),
+                  Theme.transition(:fast),
+                  if(@pricing_tab == :providers,
+                    do: [
+                      Theme.gradient(:primary),
+                      "text-white shadow-md"
+                    ],
+                    else: [
+                      "text-hero-grey-600 hover:text-hero-grey-900"
+                    ]
+                  )
+                ]}
+              >
+                {gettext("For Providers")}
+              </button>
+            </div>
+          </div>
+          
+    <!-- Pricing Cards Grid -->
+          <div class="grid md:grid-cols-2 gap-8 lg:gap-12 mb-8">
+            <%= if @pricing_tab == :families do %>
+              <!-- Explorer Family Plan -->
+              <.pricing_card
+                title={gettext("Explorer Family")}
+                subtitle={gettext("Perfect for getting started")}
+                price={gettext("Free")}
+                period={gettext("forever")}
+                features={[
+                  gettext("Browse all programs"),
+                  gettext("Book up to 2 activities per month"),
+                  gettext("Read and write reviews"),
+                  gettext("Join the community")
+                ]}
+                cta_text={gettext("Start Exploring")}
+              />
+              
+    <!-- Active Family Plan (Popular) -->
+              <.pricing_card
+                title={gettext("Active Family")}
+                subtitle={gettext("For families who love activities")}
+                price="€8"
+                period={gettext("month")}
+                popular
+                features={[
+                  gettext("AI Support Bot for recommendations"),
+                  gettext("Unlimited bookings"),
+                  gettext("Progress tracking dashboard"),
+                  gettext("Direct messaging with providers"),
+                  gettext("1 free cancellation per month")
+                ]}
+                cta_text={gettext("Get Started")}
+              />
+            <% else %>
+              <!-- Starter Provider Plan -->
+              <.pricing_card
+                title={gettext("Starter Provider")}
+                subtitle={gettext("Begin your teaching journey")}
+                price={gettext("Free")}
+                period={gettext("forever")}
+                features={[
+                  gettext("Basic profile page"),
+                  gettext("List up to 3 programs"),
+                  gettext("Accept bookings"),
+                  gettext("Basic analytics")
+                ]}
+                cta_text={gettext("Start Teaching")}
+              />
+              
+    <!-- Pro Provider Plan (Popular) -->
+              <.pricing_card
+                title={gettext("Pro Provider")}
+                subtitle={gettext("For serious educators")}
+                price="€15"
+                period={gettext("month")}
+                popular
+                features={[
+                  gettext("Unlimited program listings"),
+                  gettext("Advanced analytics dashboard"),
+                  gettext("Priority customer support"),
+                  gettext("Featured placement opportunities")
+                ]}
+                cta_text={gettext("Go Pro")}
+              />
+            <% end %>
+          </div>
+          
+    <!-- Footer Link -->
+          <div class="text-center">
+            <a
+              href="#"
+              class={[
+                "text-sm",
+                Theme.text_color(:secondary),
+                "hover:underline",
+                Theme.transition(:fast)
+              ]}
+            >
+              {gettext("Compare all plan features details →")}
+            </a>
+          </div>
+        </div>
+      </div>
+      
+    <!-- Frequently Asked Questions Section -->
+      <div id="faq-section" class={[Theme.bg(:muted), "py-16 lg:py-24"]}>
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <!-- Section Heading -->
+          <div class="text-center mb-12">
+            <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
+              {gettext("Frequently Asked Questions")}
+            </h2>
+            <p class={["text-xl", Theme.text_color(:secondary)]}>
+              {gettext("Everything you need to know about Klass Hero")}
+            </p>
+          </div>
+          
+    <!-- FAQ Items -->
+          <div class="space-y-4">
+            <.faq_item
+              id="faq-1"
+              question={gettext("How does the 4-step provider vetting process work?")}
+              answer={
+                gettext(
+                  "We verify credentials, conduct background checks, check references, and perform a personal interview before approving any provider."
+                )
+              }
+            />
+
+            <.faq_item
+              id="faq-2"
+              question={gettext("Is there a free trial for the Active Family plan?")}
+              answer={
+                gettext(
+                  "Yes! New families get a 14-day free trial of the Active Family plan with full access to all features."
+                )
+              }
+            />
+
+            <.faq_item
+              id="faq-3"
+              question={gettext("Can I cancel a booking?")}
+              answer={
+                gettext(
+                  "Explorer Family members can cancel up to 48 hours before. Active Family members get 1 free same-day cancellation per month."
+                )
+              }
+            />
+
+            <.faq_item
+              id="faq-4"
+              question={gettext("Do you offer programs for adults?")}
+              answer={
+                gettext(
+                  "Currently, Klass Hero focuses exclusively on youth education and activities for children ages 3-18."
+                )
+              }
+            />
+
+            <.faq_item
+              id="faq-5"
+              question={gettext("What are Klass Points?")}
+              answer={
+                gettext(
+                  "Klass Points are rewards you earn for bookings, reviews, and referrals. Redeem them for discounts on future programs."
                 )
               }
             />
