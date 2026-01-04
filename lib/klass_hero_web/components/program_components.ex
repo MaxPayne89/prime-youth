@@ -103,6 +103,134 @@ defmodule KlassHeroWeb.ProgramComponents do
   end
 
   @doc """
+  Renders horizontally scrollable trending tag pills.
+
+  ## Examples
+
+      <.trending_tags
+        tags={["Swimming", "Math Tutor", "Summer Camp", "Piano", "Soccer"]}
+      />
+  """
+  attr :tags, :list, required: true, doc: "List of trending tag strings"
+  attr :class, :string, default: ""
+
+  def trending_tags(assigns) do
+    ~H"""
+    <div class={["flex gap-2 overflow-x-auto pb-2 scrollbar-hide mt-4", @class]}>
+      <div class="flex gap-2 min-w-max">
+        <span
+          :for={tag <- @tags}
+          class={[
+            "px-3 py-1.5 text-sm font-medium whitespace-nowrap",
+            "bg-white/20 backdrop-blur-sm text-white border border-white/30",
+            "hover:bg-white/30",
+            Theme.transition(:normal),
+            Theme.rounded(:full)
+          ]}
+        >
+          {tag}
+        </span>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a sort dropdown button (visual only, no functionality).
+
+  ## Examples
+
+      <.sort_dropdown selected={@sort_by} />
+  """
+  attr :selected, :string, default: "Recommended", doc: "Currently selected sort option"
+  attr :class, :string, default: ""
+
+  def sort_dropdown(assigns) do
+    ~H"""
+    <button
+      type="button"
+      class={[
+        "px-4 py-2 bg-white border border-hero-grey-300 text-hero-black-100",
+        "hover:border-hero-grey-400 flex items-center gap-2",
+        Theme.transition(:normal),
+        Theme.rounded(:lg),
+        @class
+      ]}
+    >
+      <span class="text-sm font-medium">{@selected}</span>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M19 9l-7 7-7-7"
+        />
+      </svg>
+    </button>
+    """
+  end
+
+  @doc """
+  Renders view toggle buttons (Grid/List).
+
+  ## Examples
+
+      <.view_toggle active_view={:grid} />
+  """
+  attr :active_view, :atom, default: :grid, values: [:grid, :list]
+  attr :class, :string, default: ""
+
+  def view_toggle(assigns) do
+    ~H"""
+    <div class={["flex gap-1 bg-hero-grey-100 p-1", Theme.rounded(:lg), @class]}>
+      <button
+        type="button"
+        class={[
+          "p-2",
+          Theme.transition(:normal),
+          Theme.rounded(:md),
+          if(@active_view == :grid,
+            do: "bg-white text-hero-blue-600 shadow-sm",
+            else: "text-hero-grey-500 hover:text-hero-grey-700"
+          )
+        ]}
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+          />
+        </svg>
+      </button>
+      <button
+        type="button"
+        disabled
+        class={[
+          "p-2 opacity-40 cursor-not-allowed",
+          Theme.transition(:normal),
+          Theme.rounded(:md),
+          if(@active_view == :list,
+            do: "bg-white text-hero-blue-600 shadow-sm",
+            else: "text-hero-grey-500"
+          )
+        ]}
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 10h16M4 14h16M4 18h16"
+          />
+        </svg>
+      </button>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a program card with gradient header, favorite button, and program details.
 
   Supports two variants:
@@ -142,7 +270,27 @@ defmodule KlassHeroWeb.ProgramComponents do
       <div class={["h-48 relative overflow-hidden", @program.gradient_class]}>
         <div class="absolute inset-0 bg-black/10"></div>
         
-    <!-- Favorite Button -->
+    <!-- Category Badge (top-left) -->
+        <div :if={Map.get(@program, :category)} class="absolute top-4 left-4 z-10">
+          <span class={[
+            "px-3 py-1 text-xs font-semibold bg-white/90 text-hero-black backdrop-blur-sm",
+            Theme.rounded(:full)
+          ]}>
+            {@program.category}
+          </span>
+        </div>
+        
+    <!-- ONLINE Badge -->
+        <div :if={Map.get(@program, :is_online, false)} class="absolute top-4 left-4 mt-10 z-10">
+          <span class={[
+            "px-3 py-1 text-xs font-semibold bg-hero-blue-500 text-white",
+            Theme.rounded(:full)
+          ]}>
+            ONLINE
+          </span>
+        </div>
+        
+    <!-- Favorite Button (top-right) -->
         <div :if={@show_favorite} class="absolute top-4 right-4 z-10">
           <button
             phx-click="toggle_favorite"
@@ -177,7 +325,7 @@ defmodule KlassHeroWeb.ProgramComponents do
           </button>
         </div>
         
-    <!-- Spots Left Badge -->
+    <!-- Spots Left Badge (bottom-left) -->
         <.spots_badge :if={@program.spots_left <= 5} spots_left={@program.spots_left} />
         
     <!-- Program Icon -->
@@ -210,6 +358,62 @@ defmodule KlassHeroWeb.ProgramComponents do
             <h3 class={[Theme.typography(:card_title), "text-hero-black mb-2"]}>{@program.title}</h3>
             <p class="text-hero-black-100 text-sm mb-3 line-clamp-2">{@program.description}</p>
           </div>
+        </div>
+        
+    <!-- Provider Info -->
+        <div
+          :if={Map.get(@program, :provider_name)}
+          class="flex items-center gap-2 mb-4 pb-3 border-b border-hero-grey-100"
+        >
+          <div class={[
+            "w-8 h-8 bg-hero-blue-100 text-hero-blue-600 flex items-center justify-center text-xs font-semibold",
+            Theme.rounded(:full)
+          ]}>
+            {Map.get(@program, :provider_avatar, "KH")}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1">
+              <span class="text-sm font-medium text-hero-black truncate">
+                {@program.provider_name}
+              </span>
+              <svg
+                :if={Map.get(@program, :is_verified, false)}
+                class="w-4 h-4 text-hero-blue-500 flex-shrink-0"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <div
+              :if={Map.get(@program, :provider_location)}
+              class="text-xs text-hero-grey-500 truncate"
+            >
+              {@program.provider_location}
+            </div>
+          </div>
+        </div>
+        
+    <!-- Rating -->
+        <div :if={Map.get(@program, :rating)} class="flex items-center gap-2 mb-4">
+          <div class="flex items-center">
+            <%= for _i <- 1..5 do %>
+              <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
+            <% end %>
+          </div>
+          <span class="text-sm font-medium text-hero-black">{@program.rating}</span>
+          <span
+            :if={Map.get(@program, :review_count)}
+            class="text-sm text-hero-grey-500"
+          >
+            ({@program.review_count} reviews)
+          </span>
         </div>
         
     <!-- Program Details -->
