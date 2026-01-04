@@ -12,205 +12,297 @@ defmodule KlassHeroWeb.AboutLive do
     {:ok, socket}
   end
 
-  # Private helpers - Sample data (local variations from fixtures)
-  defp core_values do
-    [
-      %{
-        icon: "hero-star",
-        gradient: Theme.gradient(:primary),
-        title: gettext("Quality First"),
-        description:
-          gettext(
-            "We partner with qualified instructors who are passionate about youth development"
-          )
-      },
-      %{
-        icon: "hero-users",
-        gradient: Theme.gradient(:primary),
-        title: gettext("Accessibility"),
-        description:
-          gettext(
-            "Making enriching programs accessible to families through transparent pricing and easy booking"
-          )
-      },
-      %{
-        icon: "hero-shield-check",
-        gradient: Theme.gradient(:safety),
-        title: gettext("Safety"),
-        description:
-          gettext("Verified instructors, secure facilities, and comprehensive safety protocols")
-      },
-      %{
-        icon: "hero-heart",
-        gradient: Theme.gradient(:primary),
-        title: gettext("Community"),
-        description:
-          gettext("Building a supportive community of parents, instructors, and young learners")
-      }
-    ]
-  end
-
-  defp key_features do
-    [
-      %{
-        icon: "hero-magnifying-glass",
-        gradient: Theme.bg(:primary_light),
-        title: gettext("Easy Discovery"),
-        description:
-          gettext("Browse and filter programs by age, interest, location, and schedule")
-      },
-      %{
-        icon: "hero-calendar",
-        gradient: Theme.bg(:secondary_light),
-        title: gettext("Simple Booking"),
-        description:
-          gettext("Book activities in minutes with clear pricing and flexible scheduling")
-      },
-      %{
-        icon: "hero-credit-card",
-        gradient: Theme.bg(:accent_light),
-        title: gettext("Secure Payments"),
-        description: gettext("Safe, encrypted payment processing with multiple payment options")
-      },
-      %{
-        icon: "hero-chart-bar",
-        gradient: Theme.bg(:primary_light),
-        title: gettext("Progress Tracking"),
-        description: gettext("Monitor your child's participation and achievements in real-time")
-      }
-    ]
-  end
-
-  defp stats do
-    [
-      %{value: "500+", label: gettext("Programs")},
-      %{value: "1,200+", label: gettext("Students")},
-      %{value: "150+", label: gettext("Instructors")},
-      %{value: "98%", label: gettext("Satisfaction")}
-    ]
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
     <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
       <%!-- Hero Section --%>
-      <.hero_section
-        variant="page"
-        gradient_class={Theme.gradient(:hero)}
-        show_back_button
-      >
-        <:title>{gettext("About Klass Hero")}</:title>
-        <:subtitle>
-          {gettext("Empowering young minds through quality after-school programs")}
-        </:subtitle>
-      </.hero_section>
+      <div class="bg-hero-black py-16 lg:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 class="font-display text-4xl md:text-5xl lg:text-6xl text-white mb-6">
+            {gettext("OUR MISSION")}
+          </h1>
+          <p class="text-xl text-white/80 max-w-3xl mx-auto">
+            {gettext(
+              "To modernize how families discover and engage with children's programs in Berlin"
+            )}
+          </p>
+        </div>
+      </div>
 
-      <div class="max-w-4xl mx-auto p-6 space-y-8">
-        <%!-- Mission Section --%>
-        <.card>
-          <:header>
-            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              {gettext("Our Mission")}
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
+        <%!-- Built for Berlin Families Section --%>
+        <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div class="space-y-6">
+            <h2 class="font-display text-3xl md:text-4xl text-hero-black">
+              {gettext("Built for Berlin Families")}
             </h2>
-          </:header>
-          <:body>
-            <p class={[Theme.text_color(:secondary), "leading-relaxed"]}>
+            <p class="text-lg text-hero-grey-700 leading-relaxed">
               {gettext(
-                "At Klass Hero, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
+                "We understand the unique needs of Berlin's diverse families. Our platform connects you with vetted, high-quality programs that match your values and your children's interests."
               )}
             </p>
-            <p class={[Theme.text_color(:secondary), "leading-relaxed mt-4"]}>
+            <p class="text-lg text-hero-grey-700 leading-relaxed">
               {gettext(
-                "Our platform makes it easy for parents to discover, book, and manage activities while providing instructors with the tools they need to run successful programs."
+                "From sports to arts, technology to languages, we make it easy to discover enriching activities that fit your family's schedule and budget."
               )}
             </p>
-          </:body>
-        </.card>
+          </div>
 
-        <%!-- Core Values --%>
-        <.card>
-          <:header>
-            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              {gettext("Our Values")}
-            </h2>
-          </:header>
-          <:body>
-            <div class="space-y-4">
-              <div :for={value <- core_values()} class="flex items-start gap-3">
-                <div class="flex-shrink-0 mt-1">
-                  <UIComponents.gradient_icon gradient_class={value.gradient} size="sm" shape="circle">
-                    <.icon name={value.icon} class="w-5 h-5 text-white" />
+          <div class="space-y-4">
+            <%!-- Safety First --%>
+            <div class="border-2 border-hero-blue-400 rounded-lg p-6 bg-white">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0">
+                  <UIComponents.gradient_icon
+                    gradient_class="bg-hero-blue-400"
+                    size="md"
+                    shape="circle"
+                  >
+                    <.icon name="hero-shield-check" class="w-6 h-6 text-white" />
                   </UIComponents.gradient_icon>
                 </div>
-                <div class="flex-1">
-                  <h3 class={["font-semibold mb-1", Theme.text_color(:heading)]}>{value.title}</h3>
-                  <p class={["text-sm", Theme.text_color(:secondary)]}>{value.description}</p>
+                <div>
+                  <h3 class="font-semibold text-lg text-hero-black mb-2">
+                    {gettext("Safety First")}
+                  </h3>
+                  <p class="text-hero-grey-700">
+                    {gettext("All instructors are background-checked and verified")}
+                  </p>
                 </div>
               </div>
             </div>
-          </:body>
-        </.card>
 
-        <%!-- Key Features --%>
-        <.card>
-          <:header>
-            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              {gettext("Why Choose Klass Hero?")}
+            <%!-- Sustainability --%>
+            <div class="border-2 border-green-500 rounded-lg p-6 bg-white">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0">
+                  <UIComponents.gradient_icon gradient_class="bg-green-500" size="md" shape="circle">
+                    <.icon name="hero-globe-alt" class="w-6 h-6 text-white" />
+                  </UIComponents.gradient_icon>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-lg text-hero-black mb-2">
+                    {gettext("Sustainability")}
+                  </h3>
+                  <p class="text-hero-grey-700">
+                    {gettext("Supporting local programs and eco-conscious practices")}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <%!-- Community --%>
+            <div class="border-2 border-hero-yellow-400 rounded-lg p-6 bg-white">
+              <div class="flex items-start gap-4">
+                <div class="flex-shrink-0">
+                  <UIComponents.gradient_icon
+                    gradient_class="bg-hero-yellow-400"
+                    size="md"
+                    shape="circle"
+                  >
+                    <.icon name="hero-heart" class="w-6 h-6 text-white" />
+                  </UIComponents.gradient_icon>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-lg text-hero-black mb-2">
+                    {gettext("Community")}
+                  </h3>
+                  <p class="text-hero-grey-700">
+                    {gettext("Building connections between families and local instructors")}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%!-- 4-Step Vetting Process --%>
+      <div class="bg-hero-pink-50 py-12 md:py-16 lg:py-24">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="text-center mb-12">
+            <h2 class="font-display text-3xl md:text-4xl lg:text-5xl text-hero-black mb-4">
+              {gettext("Our 4-Step Vetting Process")}
             </h2>
-          </:header>
-          <:body>
-            <div class="grid md:grid-cols-2 gap-4">
-              <div :for={feature <- key_features()} class="p-4 text-center">
-                <div class={[
-                  "w-16 h-16 mx-auto mb-4 flex items-center justify-center",
-                  Theme.rounded(:full),
-                  feature.gradient
-                ]}>
-                  <.icon name={feature.icon} class="w-8 h-8 text-white" />
-                </div>
-                <h3 class={["font-semibold mb-2", Theme.text_color(:heading)]}>{feature.title}</h3>
-                <p class={["text-sm", Theme.text_color(:secondary)]}>{feature.description}</p>
-              </div>
-            </div>
-          </:body>
-        </.card>
+            <p class="text-lg text-hero-grey-700 max-w-3xl mx-auto">
+              {gettext(
+                "Every instructor goes through rigorous screening to ensure the highest quality"
+              )}
+            </p>
+          </div>
 
-        <%!-- Stats Section --%>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <UIComponents.stat_display
-            :for={stat <- stats()}
-            value={stat.value}
-            label={stat.label}
-            gradient_class={Theme.gradient(:primary)}
-          />
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            <%!-- Step 1: Identity Verification --%>
+            <div class="bg-white rounded-xl p-6 text-center">
+              <div class="w-16 h-16 mx-auto mb-4 bg-blue-200 rounded-full flex items-center justify-center">
+                <span class="text-2xl font-bold text-blue-700">1</span>
+              </div>
+              <div class="mb-4">
+                <UIComponents.gradient_icon
+                  gradient_class="bg-blue-500"
+                  size="md"
+                  shape="circle"
+                >
+                  <.icon name="hero-identification" class="w-6 h-6 text-white" />
+                </UIComponents.gradient_icon>
+              </div>
+              <h3 class="font-semibold text-lg text-hero-black mb-2">
+                {gettext("Identity Verification")}
+              </h3>
+              <p class="text-hero-grey-700">
+                {gettext("Official ID and credentials check")}
+              </p>
+            </div>
+
+            <%!-- Step 2: Background Check --%>
+            <div class="bg-white rounded-xl p-6 text-center">
+              <div class="w-16 h-16 mx-auto mb-4 bg-purple-200 rounded-full flex items-center justify-center">
+                <span class="text-2xl font-bold text-purple-700">2</span>
+              </div>
+              <div class="mb-4">
+                <UIComponents.gradient_icon
+                  gradient_class="bg-purple-500"
+                  size="md"
+                  shape="circle"
+                >
+                  <.icon name="hero-magnifying-glass-circle" class="w-6 h-6 text-white" />
+                </UIComponents.gradient_icon>
+              </div>
+              <h3 class="font-semibold text-lg text-hero-black mb-2">
+                {gettext("Background Check")}
+              </h3>
+              <p class="text-hero-grey-700">
+                {gettext("Comprehensive criminal record screening")}
+              </p>
+            </div>
+
+            <%!-- Step 3: Qualifications --%>
+            <div class="bg-white rounded-xl p-6 text-center">
+              <div class="w-16 h-16 mx-auto mb-4 bg-pink-200 rounded-full flex items-center justify-center">
+                <span class="text-2xl font-bold text-pink-700">3</span>
+              </div>
+              <div class="mb-4">
+                <UIComponents.gradient_icon
+                  gradient_class="bg-pink-500"
+                  size="md"
+                  shape="circle"
+                >
+                  <.icon name="hero-academic-cap" class="w-6 h-6 text-white" />
+                </UIComponents.gradient_icon>
+              </div>
+              <h3 class="font-semibold text-lg text-hero-black mb-2">
+                {gettext("Qualifications")}
+              </h3>
+              <p class="text-hero-grey-700">
+                {gettext("Certification and experience verification")}
+              </p>
+            </div>
+
+            <%!-- Step 4: Personal Interview --%>
+            <div class="bg-white rounded-xl p-6 text-center">
+              <div class="w-16 h-16 mx-auto mb-4 bg-green-200 rounded-full flex items-center justify-center">
+                <span class="text-2xl font-bold text-green-700">4</span>
+              </div>
+              <div class="mb-4">
+                <UIComponents.gradient_icon
+                  gradient_class="bg-green-500"
+                  size="md"
+                  shape="circle"
+                >
+                  <.icon name="hero-video-camera" class="w-6 h-6 text-white" />
+                </UIComponents.gradient_icon>
+              </div>
+              <h3 class="font-semibold text-lg text-hero-black mb-2">
+                {gettext("Personal Interview")}
+              </h3>
+              <p class="text-hero-grey-700">
+                {gettext("In-depth conversation about values and approach")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%!-- Founding Team Section --%>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
+        <div class="text-center mb-12">
+          <h2 class="font-display text-3xl md:text-4xl lg:text-5xl text-hero-black mb-4">
+            {gettext("The Founding Team")}
+          </h2>
+          <p class="text-lg text-hero-grey-700 max-w-3xl mx-auto">
+            {gettext("Meet the team building the future of children's programs in Berlin")}
+          </p>
         </div>
 
-        <%!-- CTA Section --%>
-        <.card padding="p-8">
-          <:body>
-            <div class="text-center">
-              <h2 class={[Theme.typography(:section_title), "mb-3", Theme.text_color(:heading)]}>
-                {gettext("Ready to Get Started?")}
-              </h2>
-              <p class={["mb-6", Theme.text_color(:secondary)]}>
-                {gettext("Explore our programs and find the perfect activities for your child.")}
-              </p>
-              <.link
-                navigate={~p"/programs"}
-                class={[
-                  "inline-block",
-                  Theme.gradient(:primary),
-                  "text-white px-8 py-3 font-semibold hover:shadow-lg transform hover:scale-[1.02]",
-                  Theme.transition(:normal),
-                  Theme.rounded(:lg)
-                ]}
-              >
-                {gettext("Browse Programs")}
-              </.link>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          <%!-- Shane Ogilvie - CEO & Co-Founder --%>
+          <div class="text-center">
+            <div class="w-32 h-32 mx-auto mb-6 bg-hero-blue-400 rounded-full flex items-center justify-center">
+              <span class="text-4xl font-bold text-white">SO</span>
             </div>
-          </:body>
-        </.card>
+            <h3 class="font-semibold text-xl text-hero-black mb-1">
+              {gettext("Shane Ogilvie")}
+            </h3>
+            <p class="text-hero-blue-500 font-medium mb-4">
+              {gettext("CEO & Co-Founder")}
+            </p>
+            <p class="text-hero-grey-700">
+              {gettext(
+                "Former education technology leader with a passion for making quality programs accessible to all families."
+              )}
+            </p>
+          </div>
+
+          <%!-- Max Pergl - CTO & Co-Founder --%>
+          <div class="text-center">
+            <div class="w-32 h-32 mx-auto mb-6 bg-pink-500 rounded-full flex items-center justify-center">
+              <span class="text-4xl font-bold text-white">MP</span>
+            </div>
+            <h3 class="font-semibold text-xl text-hero-black mb-1">
+              {gettext("Max Pergl")}
+            </h3>
+            <p class="text-pink-500 font-medium mb-4">
+              {gettext("CTO & Co-Founder")}
+            </p>
+            <p class="text-hero-grey-700">
+              {gettext(
+                "Technology innovator committed to building platforms that empower families and instructors."
+              )}
+            </p>
+          </div>
+
+          <%!-- Konstantin Pergl - CFO & Co-Founder --%>
+          <div class="text-center">
+            <div class="w-32 h-32 mx-auto mb-6 bg-orange-500 rounded-full flex items-center justify-center">
+              <span class="text-4xl font-bold text-white">KP</span>
+            </div>
+            <h3 class="font-semibold text-xl text-hero-black mb-1">
+              {gettext("Konstantin Pergl")}
+            </h3>
+            <p class="text-orange-500 font-medium mb-4">
+              {gettext("CFO & Co-Founder")}
+            </p>
+            <p class="text-hero-grey-700">
+              {gettext(
+                "Financial strategist focused on sustainable growth and value creation for all stakeholders."
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <%!-- CTA Section --%>
+      <div class="bg-hero-pink-50 py-16 text-center">
+        <h2 class="font-display text-3xl md:text-4xl text-hero-black mb-8">
+          {gettext("Ready to join the movement?")}
+        </h2>
+        <.link
+          navigate={~p"/users/register"}
+          class="inline-block bg-hero-blue-500 hover:bg-hero-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105"
+        >
+          {gettext("GET STARTED TODAY")}
+        </.link>
       </div>
     </div>
     """
