@@ -7,169 +7,169 @@ defmodule KlassHeroWeb.AboutLiveTest do
     test "renders about page successfully", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/about")
 
-      assert has_element?(view, "h1", "About Klass Hero")
+      assert has_element?(view, "h1", "OUR MISSION")
     end
 
-    test "displays hero section with page variant", %{conn: conn} do
+    test "displays hero section with black background", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify hero section content
-      assert html =~ "About Klass Hero"
-      assert html =~ "Empowering young minds through quality after-school programs"
+      # Verify hero section content and styling
+      assert html =~ "OUR MISSION"
+      assert html =~ "To modernize how families discover and engage"
+      assert html =~ "bg-hero-black"
     end
 
-    test "displays mission section", %{conn: conn} do
+    test "displays Built for Berlin Families section", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify mission heading and content
-      assert html =~ "Our Mission"
-      assert html =~ "every child deserves access to enriching after-school activities"
-      assert html =~ "partner with qualified instructors"
-      assert html =~ "easy for parents to discover, book, and manage activities"
+      # Verify section heading and content
+      assert html =~ "Built for Berlin Families"
+      assert html =~ "unique needs of Berlin&#39;s diverse families"
+      assert html =~ "sports to arts, technology to languages"
     end
 
-    test "displays core values section", %{conn: conn} do
+    test "displays three value cards in Berlin Families section", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify core values heading
-      assert html =~ "Our Values"
+      # Verify all three value cards are present
+      assert html =~ "Safety First"
+      assert html =~ "All instructors are background-checked and verified"
 
-      # Verify all four core values are present
-      assert html =~ "Quality First"
-      assert html =~ "qualified instructors who are passionate"
-
-      assert html =~ "Accessibility"
-      assert html =~ "transparent pricing and easy booking"
-
-      assert html =~ "Safety"
-      assert html =~ "Verified instructors, secure facilities"
+      assert html =~ "Sustainability"
+      assert html =~ "Supporting local programs and eco-conscious practices"
 
       assert html =~ "Community"
-      assert html =~ "supportive community of parents, instructors"
+      assert html =~ "Building connections between families and local instructors"
     end
 
-    test "displays key features section", %{conn: conn} do
+    test "value cards have colored borders", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify key features heading
-      assert html =~ "Why Choose Klass Hero?"
-
-      # Verify all four key features are present
-      assert html =~ "Easy Discovery"
-      assert html =~ "Browse and filter programs by age, interest"
-
-      assert html =~ "Simple Booking"
-      assert html =~ "Book activities in minutes"
-
-      assert html =~ "Secure Payments"
-      assert html =~ "Safe, encrypted payment processing"
-
-      assert html =~ "Progress Tracking"
-      assert html =~ "Monitor your child&#39;s participation and achievements"
+      # Verify colored borders on value cards
+      assert html =~ "border-hero-blue-400"
+      assert html =~ "border-green-500"
+      assert html =~ "border-hero-yellow-400"
     end
 
-    test "displays stats section", %{conn: conn} do
+    test "displays 4-Step Vetting Process section with beige background", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify all four stats are displayed
-      assert html =~ "500+"
-      assert html =~ "Programs"
-
-      assert html =~ "1,200+"
-      assert html =~ "Students"
-
-      assert html =~ "150+"
-      assert html =~ "Instructors"
-
-      assert html =~ "98%"
-      assert html =~ "Satisfaction"
+      # Verify section heading and background
+      assert html =~ "Our 4-Step Vetting Process"
+      assert html =~ "bg-hero-pink-50"
+      assert html =~ "rigorous screening to ensure the highest quality"
     end
 
-    test "displays CTA section with browse programs link", %{conn: conn} do
+    test "displays all four vetting process steps", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify CTA section content
-      assert html =~ "Ready to Get Started?"
-      assert html =~ "Explore our programs and find the perfect activities"
-      assert html =~ "Browse Programs"
+      # Verify all four steps are present with numbered circles
+      assert html =~ "Identity Verification"
+      assert html =~ "Official ID and credentials check"
+
+      assert html =~ "Background Check"
+      assert html =~ "Comprehensive criminal record screening"
+
+      assert html =~ "Qualifications"
+      assert html =~ "Certification and experience verification"
+
+      assert html =~ "Personal Interview"
+      assert html =~ "In-depth conversation about values and approach"
     end
 
-    test "browse programs link navigates to programs page", %{conn: conn} do
+    test "vetting steps have colored numbered circles", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify link points to programs page
-      assert html =~ "href=\"/programs\""
+      # Verify numbered circles with pastel backgrounds
+      assert html =~ "bg-blue-200"
+      assert html =~ "bg-purple-200"
+      assert html =~ "bg-pink-200"
+      assert html =~ "bg-green-200"
+    end
+
+    test "displays Founding Team section", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/about")
+
+      # Verify section heading
+      assert html =~ "The Founding Team"
+      assert html =~ "Meet the team building the future"
+    end
+
+    test "displays all three founding team members", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/about")
+
+      # Shane Ogilvie
+      assert html =~ "Shane Ogilvie"
+      assert html =~ "CEO &amp; Co-Founder"
+      assert html =~ "Former education technology leader"
+
+      # Max Pergl
+      assert html =~ "Max Pergl"
+      assert html =~ "CTO &amp; Co-Founder"
+      assert html =~ "Technology innovator"
+
+      # Konstantin Pergl
+      assert html =~ "Konstantin Pergl"
+      assert html =~ "CFO &amp; Co-Founder"
+      assert html =~ "Financial strategist"
+    end
+
+    test "team member avatars have colored backgrounds", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/about")
+
+      # Verify colored avatar backgrounds
+      assert html =~ "bg-hero-blue-400"
+      assert html =~ "bg-pink-500"
+      assert html =~ "bg-orange-500"
+    end
+
+    test "displays CTA section with beige background", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/about")
+
+      # Verify CTA section content and styling
+      assert html =~ "Ready to join the movement?"
+      assert html =~ "GET STARTED TODAY"
+      assert html =~ "bg-hero-pink-50"
+    end
+
+    test "CTA button links to registration page", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/about")
+
+      # Verify link points to registration page
+      assert html =~ "href=\"/users/register\""
+    end
+
+    test "CTA button has cyan background", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/about")
+
+      # Verify button styling
+      assert html =~ "bg-hero-blue-500"
+      assert html =~ "hover:bg-hero-blue-600"
+    end
+
+    test "page uses mobile-first responsive design", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/about")
+
+      # Verify responsive grid classes
+      assert html =~ "md:grid-cols-2"
+      assert html =~ "lg:grid-cols-4"
+      assert html =~ "md:grid-cols-3"
+    end
+
+    test "sections use consistent spacing", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/about")
+
+      # Verify consistent padding and margins
+      assert html =~ "py-12"
+      assert html =~ "py-16"
+      assert html =~ "lg:py-24"
     end
 
     test "page title is set to About Us", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify page title is set
-      assert html =~ "About Klass Hero"
-    end
-
-    test "responsive grid layout for key features", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify responsive grid classes
-      assert html =~ "md:grid-cols-2"
-    end
-
-    test "responsive grid layout for stats", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify responsive grid classes for stats
-      assert html =~ "grid-cols-2"
-      assert html =~ "md:grid-cols-4"
-    end
-
-    test "hero section shows back button", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # The hero_section component with show_back_button should render a back button
-      # This is a navigation aid for the page variant
-      assert html =~ "About Klass Hero"
-    end
-
-    test "mission section contains complete description", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify both mission paragraphs are present
-      assert html =~ "nurture their talents and interests"
-      assert html =~ "tools they need to run successful programs"
-    end
-
-    test "core values display with gradient icons", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify gradient classes are present (Theme module gradients)
-      # Primary gradient appears 3 times (Quality First, Accessibility, Community)
-      assert html =~ "bg-gradient-to-r from-hero-blue-500 to-hero-blue-600"
-
-      # Safety gradient appears once (Safety value)
-      assert html =~ "bg-gradient-to-r from-green-500 to-emerald-600"
-    end
-
-    test "key features display with gradient backgrounds", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify background classes match Theme.bg() outputs
-      # primary_light: bg-hero-blue-50
-      assert html =~ "bg-hero-blue-50"
-      # secondary_light: bg-hero-grey-50
-      assert html =~ "bg-hero-grey-50"
-      # accent_light: bg-hero-yellow-100
-      assert html =~ "bg-hero-yellow-100"
-    end
-
-    test "all sections use card component styling", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify multiple sections use card component (indicated by structured content)
-      assert html =~ "Our Mission"
-      assert html =~ "Our Values"
-      assert html =~ "Why Choose Klass Hero?"
-      assert html =~ "Ready to Get Started?"
+      # Verify page title is set (in the socket assign)
+      assert html =~ "OUR MISSION"
     end
   end
 end

@@ -11,8 +11,8 @@ msgstr ""
 "Language: de\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: lib/klass_hero_web/components/layouts/app.html.heex:54
-#: lib/klass_hero_web/components/layouts/app.html.heex:231
+#: lib/klass_hero_web/components/layouts/app.html.heex:57
+#: lib/klass_hero_web/components/layouts/app.html.heex:242
 #, elixir-autogen, elixir-format
 msgid "About"
 msgstr "Über uns"
@@ -29,14 +29,14 @@ msgid "Choose your preferred language for the interface"
 msgstr "Wählen Sie Ihre bevorzugte Sprache für die Benutzeroberfläche"
 
 #: lib/klass_hero_web/components/composite_components.ex:368
-#: lib/klass_hero_web/components/layouts/app.html.heex:62
-#: lib/klass_hero_web/components/layouts/app.html.heex:232
+#: lib/klass_hero_web/components/layouts/app.html.heex:65
+#: lib/klass_hero_web/components/layouts/app.html.heex:243
 #, elixir-autogen, elixir-format
 msgid "Contact"
 msgstr "Kontakt"
 
-#: lib/klass_hero_web/components/layouts/app.html.heex:110
-#: lib/klass_hero_web/components/layouts/app.html.heex:235
+#: lib/klass_hero_web/components/layouts/app.html.heex:116
+#: lib/klass_hero_web/components/layouts/app.html.heex:246
 #: lib/klass_hero_web/live/dashboard_live.ex:18
 #, elixir-autogen, elixir-format
 msgid "Dashboard"
@@ -57,16 +57,8 @@ msgstr "Laden Sie eine Kopie aller Ihrer persönlichen Daten herunter"
 msgid "Failed to update language preference."
 msgstr "Spracheinstellung konnte nicht aktualisiert werden."
 
-#: lib/klass_hero_web/components/layouts/app.html.heex:124
-#: lib/klass_hero_web/components/layouts/app.html.heex:236
-#: lib/klass_hero_web/live/highlights_live.ex:19
-#: lib/klass_hero_web/live/highlights_live.ex:69
-#, elixir-autogen, elixir-format
-msgid "Highlights"
-msgstr "Highlights"
-
 #: lib/klass_hero_web/components/layouts/app.html.heex:41
-#: lib/klass_hero_web/components/layouts/app.html.heex:229
+#: lib/klass_hero_web/components/layouts/app.html.heex:240
 #, elixir-autogen, elixir-format
 msgid "Home"
 msgstr "Startseite"
@@ -81,8 +73,8 @@ msgstr "Spracheinstellung"
 msgid "Language preference updated successfully."
 msgstr "Spracheinstellung erfolgreich aktualisiert."
 
-#: lib/klass_hero_web/components/layouts/app.html.heex:172
-#: lib/klass_hero_web/components/layouts/app.html.heex:250
+#: lib/klass_hero_web/components/layouts/app.html.heex:184
+#: lib/klass_hero_web/components/layouts/app.html.heex:261
 #, elixir-autogen, elixir-format
 msgid "Login"
 msgstr "Anmelden"
@@ -90,31 +82,28 @@ msgstr "Anmelden"
 #: lib/klass_hero_web/components/composite_components.ex:366
 #: lib/klass_hero_web/components/composite_components.ex:374
 #: lib/klass_hero_web/components/layouts/app.html.heex:49
-#: lib/klass_hero_web/components/layouts/app.html.heex:230
-#: lib/klass_hero_web/live/about_live.ex:86
-#: lib/klass_hero_web/live/programs_live.ex:30
-#: lib/klass_hero_web/live/programs_live.ex:278
+#: lib/klass_hero_web/components/layouts/app.html.heex:241
 #, elixir-autogen, elixir-format
 msgid "Programs"
 msgstr "Programme"
 
-#: lib/klass_hero_web/components/layouts/app.html.heex:145
-#: lib/klass_hero_web/components/layouts/app.html.heex:237
+#: lib/klass_hero_web/components/layouts/app.html.heex:157
+#: lib/klass_hero_web/components/layouts/app.html.heex:248
 #: lib/klass_hero_web/live/settings_live.ex:13
 #: lib/klass_hero_web/live/settings_live.ex:33
 #, elixir-autogen, elixir-format
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: lib/klass_hero_web/components/layouts/app.html.heex:164
-#: lib/klass_hero_web/components/layouts/app.html.heex:244
+#: lib/klass_hero_web/components/layouts/app.html.heex:176
+#: lib/klass_hero_web/components/layouts/app.html.heex:255
 #: lib/klass_hero_web/live/settings_live.ex:366
 #, elixir-autogen, elixir-format
 msgid "Sign Out"
 msgstr "Abmelden"
 
-#: lib/klass_hero_web/components/layouts/app.html.heex:178
-#: lib/klass_hero_web/components/layouts/app.html.heex:258
+#: lib/klass_hero_web/components/layouts/app.html.heex:190
+#: lib/klass_hero_web/components/layouts/app.html.heex:269
 #, elixir-autogen, elixir-format
 msgid "Sign Up"
 msgstr "Registrieren"
@@ -134,7 +123,7 @@ msgstr "Keine Internetverbindung gefunden"
 msgid "Your Data"
 msgstr "Ihre Daten"
 
-#: lib/klass_hero_web/components/core_components.ex:60
+#: lib/klass_hero_web/components/core_components.ex:62
 #, elixir-autogen, elixir-format
 msgid "close"
 msgstr "schließen"
@@ -164,11 +153,6 @@ msgstr "Über dieses Programm"
 msgid "Account Name:"
 msgstr "Kontoinhaber:"
 
-#: lib/klass_hero_web/live/home_live.ex:181
-#, elixir-autogen, elixir-format
-msgid "Active Families"
-msgstr "Aktive Familien"
-
 #: lib/klass_hero_web/live/booking_live.ex:209
 #, elixir-autogen, elixir-format
 msgid "Activity Summary"
@@ -189,11 +173,6 @@ msgstr "Weiteres Programm hinzufügen"
 msgid "Ages %{range}"
 msgstr "Alter %{range}"
 
-#: lib/klass_hero_web/live/programs_live.ex:18
-#, elixir-autogen, elixir-format
-msgid "All Programs"
-msgstr "Programme"
-
 #: lib/klass_hero_web/live/booking_live.ex:406
 #, elixir-autogen, elixir-format
 msgid "An invoice will be emailed to you after enrollment completion"
@@ -203,16 +182,6 @@ msgstr "Nach Abschluss der Anmeldung erhalten Sie eine Rechnung per E-Mail"
 #, elixir-autogen, elixir-format
 msgid "Any allergies, medical conditions, or special instructions..."
 msgstr "Allergien, medizinische Bedingungen oder besondere Hinweise..."
-
-#: lib/klass_hero_web/live/programs_live.ex:19
-#, elixir-autogen, elixir-format
-msgid "Available"
-msgstr "Verfügbar"
-
-#: lib/klass_hero_web/live/home_live.ex:191
-#, elixir-autogen, elixir-format
-msgid "Average Rating"
-msgstr "Durchschnittsbewertung"
 
 #: lib/klass_hero_web/live/booking_live.ex:327
 #, elixir-autogen, elixir-format
@@ -234,25 +203,15 @@ msgstr "Bankverbindung"
 msgid "Book Now - %{price}"
 msgstr "Jetzt buchen - %{price}"
 
-#: lib/klass_hero_web/live/home_live.ex:104
+#: lib/klass_hero_web/live/home_live.ex:183
 #, elixir-autogen, elixir-format
 msgid "Book camps, tutors, and workshops instantly. Our integrated planner helps you manage your child's busy life."
 msgstr "Buchen Sie Camps, Nachhilfe und Workshops sofort. Unser integrierter Planer hilft Ihnen, den vollen Terminkalender Ihres Kindes zu verwalten."
 
-#: lib/klass_hero_web/live/home_live.ex:114
+#: lib/klass_hero_web/live/home_live.ex:193
 #, elixir-autogen, elixir-format
 msgid "Built for the Berlin international community. Connect with local families and trusted educators nearby."
 msgstr "Entwickelt für die internationale Berliner Gemeinschaft. Verbinden Sie sich mit lokalen Familien und vertrauenswürdigen Pädagogen in Ihrer Nähe."
-
-#: lib/klass_hero_web/live/programs_live.ex:20
-#, elixir-autogen, elixir-format
-msgid "By Age"
-msgstr "Nach Alter"
-
-#: lib/klass_hero_web/live/programs_live.ex:21
-#, elixir-autogen, elixir-format
-msgid "By Price"
-msgstr "Nach Preis"
 
 #: lib/klass_hero_web/live/booking_live.ex:326
 #, elixir-autogen, elixir-format
@@ -264,7 +223,7 @@ msgstr "Bar / Überweisung"
 msgid "Cash/transfer payments will show as \"Pending\" until received"
 msgstr "Bar-/Überweisungszahlungen werden als \"Ausstehend\" angezeigt, bis sie eingegangen sind"
 
-#: lib/klass_hero_web/live/home_live.ex:112
+#: lib/klass_hero_web/live/home_live.ex:191
 #, elixir-autogen, elixir-format
 msgid "Community Focused"
 msgstr "Gemeinschaftsorientiert"
@@ -273,16 +232,6 @@ msgstr "Gemeinschaftsorientiert"
 #, elixir-autogen, elixir-format
 msgid "Complete Enrollment"
 msgstr "Anmeldung abschließen"
-
-#: lib/klass_hero_web/live/home_live.ex:46
-#, elixir-autogen, elixir-format
-msgid "Connecting Families with Trusted Youth Educators"
-msgstr "Wir verbinden Familien mit vertrauenswürdigen Jugendpädagogen"
-
-#: lib/klass_hero_web/live/home_live.ex:219
-#, elixir-autogen, elixir-format
-msgid "Create Free Account →"
-msgstr "Kostenloses Konto erstellen →"
 
 #: lib/klass_hero_web/live/booking_live.ex:317
 #, elixir-autogen, elixir-format
@@ -304,7 +253,7 @@ msgstr "Kreditkartenzahlungen werden sofort verarbeitet"
 msgid "Duration:"
 msgstr "Dauer:"
 
-#: lib/klass_hero_web/live/home_live.ex:102
+#: lib/klass_hero_web/live/home_live.ex:181
 #, elixir-autogen, elixir-format
 msgid "Easy Scheduling"
 msgstr "Einfache Terminplanung"
@@ -334,22 +283,23 @@ msgstr "Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut oder kontaktiere
 msgid "Enrollment successful! You'll receive a confirmation email shortly."
 msgstr "Anmeldung erfolgreich! Sie erhalten in Kürze eine Bestätigungs-E-Mail."
 
-#: lib/klass_hero_web/live/home_live.ex:94
+#: lib/klass_hero_web/live/home_live.ex:173
 #, elixir-autogen, elixir-format
 msgid "Every provider is rigorously vetted. We prioritize child safety above all else, giving parents peace of mind."
 msgstr "Jeder Anbieter wird sorgfältig geprüft. Wir stellen die Sicherheit der Kinder an erste Stelle und geben Eltern die nötige Sicherheit."
 
-#: lib/klass_hero_web/live/home_live.ex:71
+#: lib/klass_hero_web/live/programs_live.ex:43
+#: lib/klass_hero_web/live/programs_live.ex:372
 #, elixir-autogen, elixir-format
 msgid "Explore Programs"
 msgstr "Programme entdecken"
 
-#: lib/klass_hero_web/live/home_live.ex:131
+#: lib/klass_hero_web/live/home_live.ex:117
 #, elixir-autogen, elixir-format
 msgid "Explore top-rated activities for your children"
 msgstr "Entdecken Sie erstklassige Aktivitäten für Ihre Kinder"
 
-#: lib/klass_hero_web/live/home_live.ex:128
+#: lib/klass_hero_web/live/home_live.ex:114
 #, elixir-autogen, elixir-format
 msgid "Featured Programs"
 msgstr "Empfohlene Programme"
@@ -364,11 +314,6 @@ msgstr "Abschlusspräsentation"
 msgid "Free cancellation up to 48 hours before start date"
 msgstr "Kostenlose Stornierung bis 48 Stunden vor Beginn"
 
-#: lib/klass_hero_web/live/home_live.ex:60
-#, elixir-autogen, elixir-format
-msgid "Get Started Free"
-msgstr "Kostenlos starten"
-
 #: lib/klass_hero_web/live/booking_live.ex:382
 #, elixir-autogen, elixir-format
 msgid "IBAN:"
@@ -379,7 +324,7 @@ msgstr "IBAN:"
 msgid "Important:"
 msgstr "Wichtig:"
 
-#: lib/klass_hero_web/live/programs_live.ex:182
+#: lib/klass_hero_web/live/programs_live.ex:299
 #, elixir-autogen, elixir-format
 msgid "Invalid pagination state. Please refresh the page."
 msgstr "Ungültiger Seitenstatus. Bitte laden Sie die Seite neu."
@@ -394,17 +339,12 @@ msgstr "Rechnung & Zahlungsbestätigung"
 msgid "Jan 15 - Mar 15, 2024"
 msgstr "15. Jan - 15. März 2024"
 
-#: lib/klass_hero_web/live/home_live.ex:205
-#, elixir-autogen, elixir-format
-msgid "Join thousands of families discovering amazing afterschool programs"
-msgstr "Schließen Sie sich Tausenden von Familien an, die tolle Nachmittagsprogramme entdecken"
-
-#: lib/klass_hero_web/live/programs_live.ex:356
+#: lib/klass_hero_web/live/programs_live.ex:458
 #, elixir-autogen, elixir-format
 msgid "Load More Programs"
 msgstr "Mehr Programme laden"
 
-#: lib/klass_hero_web/live/programs_live.ex:353
+#: lib/klass_hero_web/live/programs_live.ex:455
 #, elixir-autogen, elixir-format
 msgid "Loading..."
 msgstr "Laden..."
@@ -414,7 +354,7 @@ msgstr "Laden..."
 msgid "Meet Your Instructor"
 msgstr "Ihr Kursleiter"
 
-#: lib/klass_hero_web/live/programs_live.ex:366
+#: lib/klass_hero_web/live/programs_live.ex:468
 #, elixir-autogen, elixir-format
 msgid "No programs found"
 msgstr "Keine Programme gefunden"
@@ -469,12 +409,7 @@ msgstr "Bitte überweisen Sie"
 msgid "Portfolio folder to track progress"
 msgstr "Portfolio-Mappe zur Fortschrittsdokumentation"
 
-#: lib/klass_hero_web/live/home_live.ex:45
-#, elixir-autogen, elixir-format
-msgid "Klass Hero"
-msgstr "Klass Hero"
-
-#: lib/klass_hero_web/live/home_live.ex:17
+#: lib/klass_hero_web/live/home_live.ex:16
 #, elixir-autogen, elixir-format
 msgid "Klass Hero - Connecting Families with Trusted Youth Educators"
 msgstr "Klass Hero - Wir verbinden Familien mit vertrauenswürdigen Jugendpädagogen"
@@ -489,17 +424,6 @@ msgstr "Programm nicht gefunden"
 msgid "Program not found. It may have been removed or is no longer available."
 msgstr "Programm nicht gefunden. Es wurde möglicherweise entfernt oder ist nicht mehr verfügbar."
 
-#: lib/klass_hero_web/live/home_live.ex:186
-#, elixir-autogen, elixir-format
-msgid "Programs Available"
-msgstr "Programme"
-
-#: lib/klass_hero_web/live/about_live.ex:194
-#: lib/klass_hero_web/live/home_live.ex:202
-#, elixir-autogen, elixir-format
-msgid "Ready to Get Started?"
-msgstr "Bereit loszulegen?"
-
 #: lib/klass_hero_web/live/booking_live.ex:390
 #, elixir-autogen, elixir-format
 msgid "Reference:"
@@ -510,17 +434,18 @@ msgstr "Verwendungszweck:"
 msgid "Registration fee:"
 msgstr "Anmeldegebühr:"
 
-#: lib/klass_hero_web/live/home_live.ex:92
+#: lib/klass_hero_web/live/about_live.ex:67
+#: lib/klass_hero_web/live/home_live.ex:171
 #, elixir-autogen, elixir-format
 msgid "Safety First"
 msgstr "Sicherheit zuerst"
 
-#: lib/klass_hero_web/live/home_live.ex:84
+#: lib/klass_hero_web/live/home_live.ex:163
 #, elixir-autogen, elixir-format
 msgid "Safety, quality, and convenience for modern families."
 msgstr "Sicherheit, Qualität und Komfort für moderne Familien."
 
-#: lib/klass_hero_web/live/programs_live.ex:293
+#: lib/klass_hero_web/live/programs_live.ex:380
 #, elixir-autogen, elixir-format
 msgid "Search programs..."
 msgstr "Programme suchen..."
@@ -575,12 +500,7 @@ msgstr "Heute fällig:"
 msgid "Total: Sept 1 - Oct 26"
 msgstr "Gesamt: 1. Sept - 26. Okt"
 
-#: lib/klass_hero_web/live/home_live.ex:174
-#, elixir-autogen, elixir-format
-msgid "Trusted by Families Everywhere"
-msgstr "Von Familien überall vertraut"
-
-#: lib/klass_hero_web/live/programs_live.ex:367
+#: lib/klass_hero_web/live/programs_live.ex:469
 #, elixir-autogen, elixir-format
 msgid "Try adjusting your search or filter criteria."
 msgstr "Versuchen Sie, Ihre Such- oder Filterkriterien anzupassen."
@@ -596,7 +516,7 @@ msgstr "Programm konnte nicht geladen werden. Bitte versuchen Sie es später ern
 msgid "VAT (19%):"
 msgstr "MwSt. (19%):"
 
-#: lib/klass_hero_web/live/home_live.ex:163
+#: lib/klass_hero_web/live/home_live.ex:149
 #, elixir-autogen, elixir-format
 msgid "View All Programs →"
 msgstr "Alle Programme ansehen →"
@@ -631,7 +551,7 @@ msgstr "Was andere Eltern sagen"
 msgid "What's Included:"
 msgstr "Was enthalten ist:"
 
-#: lib/klass_hero_web/live/home_live.ex:81
+#: lib/klass_hero_web/live/home_live.ex:160
 #, elixir-autogen, elixir-format
 msgid "Why Klass Hero?"
 msgstr "Warum Klass Hero Connect?"
@@ -658,21 +578,11 @@ msgstr[1] "%{count} Kinder angemeldet"
 msgid "A link to confirm your email change has been sent to the new address."
 msgstr "Ein Bestätigungslink wurde an Ihre neue E-Mail-Adresse gesendet."
 
-#: lib/klass_hero_web/live/about_live.ex:103
-#, elixir-autogen, elixir-format
-msgid "About Klass Hero"
-msgstr "Über Klass Hero Connect"
-
 #: lib/klass_hero_web/components/composite_components.ex:367
 #: lib/klass_hero_web/live/about_live.ex:10
 #, elixir-autogen, elixir-format
 msgid "About Us"
 msgstr "Über uns"
-
-#: lib/klass_hero_web/live/about_live.ex:30
-#, elixir-autogen, elixir-format
-msgid "Accessibility"
-msgstr "Barrierefreiheit"
 
 #: lib/klass_hero_web/live/user_live/settings.ex:14
 #, elixir-autogen, elixir-format
@@ -704,40 +614,15 @@ msgstr "Bereits registriert?"
 msgid "An email was sent to %{email}, please access it to confirm your account."
 msgstr "Eine E-Mail wurde an %{email} gesendet. Bitte bestätigen Sie Ihr Konto über den Link."
 
-#: lib/klass_hero_web/live/about_live.ex:119
-#, elixir-autogen, elixir-format
-msgid "At Klass Hero, we believe every child deserves access to enriching after-school activities that nurture their talents and interests. We partner with qualified instructors to provide a diverse range of programs in arts, sports, academics, and technology."
-msgstr "Bei Klass Hero Connect glauben wir, dass jedes Kind Zugang zu bereichernden Nachmittagsaktivitäten verdient, die seine Talente und Interessen fördern. Wir arbeiten mit qualifizierten Kursleitern zusammen, um ein vielfältiges Programmangebot in Kunst, Sport, Bildung und Technologie anzubieten."
-
 #: lib/klass_hero_web/live/dashboard_live.ex:152
 #, elixir-autogen, elixir-format
 msgid "Book Activity"
 msgstr "Aktivität buchen"
 
-#: lib/klass_hero_web/live/about_live.ex:67
-#, elixir-autogen, elixir-format
-msgid "Book activities in minutes with clear pricing and flexible scheduling"
-msgstr "Aktivitäten in Minuten buchen mit transparenten Preisen und flexibler Terminplanung"
-
 #: lib/klass_hero_web/live/contact_live.ex:134
 #, elixir-autogen, elixir-format
 msgid "Booking Support"
 msgstr "Buchungshilfe"
-
-#: lib/klass_hero_web/live/about_live.ex:209
-#, elixir-autogen, elixir-format
-msgid "Browse Programs"
-msgstr "Programme durchsuchen"
-
-#: lib/klass_hero_web/live/about_live.ex:60
-#, elixir-autogen, elixir-format
-msgid "Browse and filter programs by age, interest, location, and schedule"
-msgstr "Programme nach Alter, Interesse, Standort und Zeitplan durchsuchen und filtern"
-
-#: lib/klass_hero_web/live/about_live.ex:48
-#, elixir-autogen, elixir-format
-msgid "Building a supportive community of parents, instructors, and young learners"
-msgstr "Aufbau einer unterstützenden Gemeinschaft von Eltern, Kursleitern und jungen Lernenden"
 
 #: lib/klass_hero_web/live/terms_of_service_live.ex:104
 #, elixir-autogen, elixir-format
@@ -769,12 +654,12 @@ msgstr "Wird geändert..."
 msgid "Check out our FAQ section for answers to common questions."
 msgstr "Schauen Sie in unsere FAQ für Antworten auf häufige Fragen."
 
-#: lib/klass_hero_web/live/provider/participation_live.ex:56
+#: lib/klass_hero_web/live/provider/participation_live.ex:59
 #, elixir-autogen, elixir-format
 msgid "Child checked in successfully"
 msgstr "Kind erfolgreich eingecheckt"
 
-#: lib/klass_hero_web/live/provider/participation_live.ex:133
+#: lib/klass_hero_web/live/provider/participation_live.ex:135
 #, elixir-autogen, elixir-format
 msgid "Child checked out successfully"
 msgstr "Kind erfolgreich ausgecheckt"
@@ -789,7 +674,11 @@ msgstr "Datenschutz für Kinder"
 msgid "Closed"
 msgstr "Geschlossen"
 
-#: lib/klass_hero_web/live/about_live.ex:46
+#: lib/klass_hero_web/components/layouts/app.html.heex:133
+#: lib/klass_hero_web/components/layouts/app.html.heex:247
+#: lib/klass_hero_web/live/about_live.ex:109
+#: lib/klass_hero_web/live/community_live.ex:19
+#: lib/klass_hero_web/live/community_live.ex:69
 #, elixir-autogen, elixir-format
 msgid "Community"
 msgstr "Gemeinschaft"
@@ -895,11 +784,6 @@ msgstr "Streitbeilegung"
 msgid "Don't have an account?"
 msgstr "Noch kein Konto?"
 
-#: lib/klass_hero_web/live/about_live.ex:58
-#, elixir-autogen, elixir-format
-msgid "Easy Discovery"
-msgstr "Einfaches Entdecken"
-
 #: lib/klass_hero_web/live/contact_live.ex:63
 #: lib/klass_hero_web/live/contact_live.ex:124
 #: lib/klass_hero_web/live/user_live/login.ex:48
@@ -920,11 +804,6 @@ msgstr "Der Link zur E-Mail-Änderung ist ungültig oder abgelaufen."
 msgid "Email changed successfully."
 msgstr "E-Mail erfolgreich geändert."
 
-#: lib/klass_hero_web/live/about_live.ex:105
-#, elixir-autogen, elixir-format
-msgid "Empowering young minds through quality after-school programs"
-msgstr "Junge Köpfe durch hochwertige Nachmittagsprogramme fördern"
-
 #: lib/klass_hero_web/live/user_live/settings.ex:91
 #, elixir-autogen, elixir-format
 msgid "English"
@@ -940,17 +819,12 @@ msgstr "Kinder für Programme anmelden"
 msgid "Enter your password to confirm"
 msgstr "Geben Sie Ihr Passwort zur Bestätigung ein"
 
-#: lib/klass_hero_web/live/about_live.ex:197
-#, elixir-autogen, elixir-format
-msgid "Explore our programs and find the perfect activities for your child."
-msgstr "Entdecken Sie unsere Programme und finden Sie die perfekten Aktivitäten für Ihr Kind."
-
-#: lib/klass_hero_web/live/provider/participation_live.ex:71
+#: lib/klass_hero_web/live/provider/participation_live.ex:74
 #, elixir-autogen, elixir-format
 msgid "Failed to check in: %{reason}"
 msgstr "Einchecken fehlgeschlagen: %{reason}"
 
-#: lib/klass_hero_web/live/provider/participation_live.ex:150
+#: lib/klass_hero_web/live/provider/participation_live.ex:152
 #, elixir-autogen, elixir-format
 msgid "Failed to check out: %{reason}"
 msgstr "Auschecken fehlgeschlagen: %{reason}"
@@ -965,15 +839,10 @@ msgstr "Sitzung konnte nicht abgeschlossen werden: %{reason}"
 msgid "Failed to delete account. Please try again."
 msgstr "Konto konnte nicht gelöscht werden. Bitte versuchen Sie es erneut."
 
-#: lib/klass_hero_web/live/provider/participation_live.ex:226
+#: lib/klass_hero_web/live/provider/participation_live.ex:228
 #, elixir-autogen, elixir-format
 msgid "Failed to load session data"
 msgstr "Sitzungsdaten konnten nicht geladen werden"
-
-#: lib/klass_hero_web/live/provider/sessions_live.ex:162
-#, elixir-autogen, elixir-format
-msgid "Failed to load sessions"
-msgstr "Sitzungen konnten nicht geladen werden"
 
 #: lib/klass_hero_web/live/provider/sessions_live.ex:68
 #, elixir-autogen, elixir-format
@@ -1024,11 +893,6 @@ msgstr "Daten, die wir erheben"
 #, elixir-autogen, elixir-format
 msgid "Instructor Application"
 msgstr "Kursleiter-Bewerbung"
-
-#: lib/klass_hero_web/live/about_live.ex:88
-#, elixir-autogen, elixir-format
-msgid "Instructors"
-msgstr "Kursleiter"
 
 #: lib/klass_hero_web/live/terms_of_service_live.ex:173
 #, elixir-autogen, elixir-format
@@ -1104,11 +968,6 @@ msgstr "Suchen Sie schnelle Antworten?"
 msgid "Magic link is invalid or it has expired."
 msgstr "Der Magic-Link ist ungültig oder abgelaufen."
 
-#: lib/klass_hero_web/live/about_live.ex:32
-#, elixir-autogen, elixir-format
-msgid "Making enriching programs accessible to families through transparent pricing and easy booking"
-msgstr "Bereichernde Programme für Familien zugänglich machen durch transparente Preise und einfache Buchung"
-
 #: lib/klass_hero_web/live/user_live/settings.ex:15
 #, elixir-autogen, elixir-format
 msgid "Manage your account email address and password settings"
@@ -1139,11 +998,6 @@ msgstr "Mo-Fr, 9-17 Uhr"
 msgid "Monday - Friday"
 msgstr "Montag - Freitag"
 
-#: lib/klass_hero_web/live/about_live.ex:79
-#, elixir-autogen, elixir-format
-msgid "Monitor your child's participation and achievements in real-time"
-msgstr "Überwachen Sie die Teilnahme und Erfolge Ihres Kindes in Echtzeit"
-
 #: lib/klass_hero_web/live/dashboard_live.ex:120
 #, elixir-autogen, elixir-format
 msgid "My Children"
@@ -1165,7 +1019,7 @@ msgstr "Name"
 msgid "New password"
 msgstr "Neues Passwort"
 
-#: lib/klass_hero_web/live/highlights_live.ex:138
+#: lib/klass_hero_web/live/community_live.ex:138
 #, elixir-autogen, elixir-format
 msgid "No highlights yet"
 msgstr "Noch keine Highlights"
@@ -1194,21 +1048,6 @@ msgstr "Oder Passwort verwenden"
 #, elixir-autogen, elixir-format
 msgid "Other"
 msgstr "Sonstiges"
-
-#: lib/klass_hero_web/live/about_live.ex:114
-#, elixir-autogen, elixir-format
-msgid "Our Mission"
-msgstr "Unsere Mission"
-
-#: lib/klass_hero_web/live/about_live.ex:135
-#, elixir-autogen, elixir-format
-msgid "Our Values"
-msgstr "Unsere Werte"
-
-#: lib/klass_hero_web/live/about_live.ex:124
-#, elixir-autogen, elixir-format
-msgid "Our platform makes it easy for parents to discover, book, and manage activities while providing instructors with the tools they need to run successful programs."
-msgstr "Unsere Plattform macht es Eltern leicht, Aktivitäten zu entdecken, zu buchen und zu verwalten, während sie Kursleitern die Werkzeuge bietet, die sie für erfolgreiche Programme benötigen."
 
 #: lib/klass_hero_web/live/user_live/login.ex:88
 #, elixir-autogen, elixir-format
@@ -1252,16 +1091,6 @@ msgstr "Programm-Anmeldung & Buchungen"
 msgid "Program Question"
 msgstr "Programmfrage"
 
-#: lib/klass_hero_web/live/about_live.ex:78
-#, elixir-autogen, elixir-format
-msgid "Progress Tracking"
-msgstr "Fortschrittsverfolgung"
-
-#: lib/klass_hero_web/live/about_live.ex:21
-#, elixir-autogen, elixir-format
-msgid "Quality First"
-msgstr "Qualität zuerst"
-
 #: lib/klass_hero_web/live/privacy_policy_live.ex:298
 #, elixir-autogen, elixir-format
 msgid "Questions About Privacy?"
@@ -1277,8 +1106,8 @@ msgstr "Fragen zu diesen Bedingungen?"
 msgid "Quick Actions"
 msgstr "Schnellaktionen"
 
-#: lib/klass_hero_web/live/provider/participation_live.ex:45
-#: lib/klass_hero_web/live/provider/participation_live.ex:121
+#: lib/klass_hero_web/live/provider/participation_live.ex:49
+#: lib/klass_hero_web/live/provider/participation_live.ex:124
 #, elixir-autogen, elixir-format
 msgid "Record not found"
 msgstr "Eintrag nicht gefunden"
@@ -1292,21 +1121,6 @@ msgstr "Registrieren"
 #, elixir-autogen, elixir-format
 msgid "Register for an account"
 msgstr "Konto registrieren"
-
-#: lib/klass_hero_web/live/about_live.ex:73
-#, elixir-autogen, elixir-format
-msgid "Safe, encrypted payment processing with multiple payment options"
-msgstr "Sichere, verschlüsselte Zahlungsabwicklung mit mehreren Zahlungsoptionen"
-
-#: lib/klass_hero_web/live/about_live.ex:39
-#, elixir-autogen, elixir-format
-msgid "Safety"
-msgstr "Sicherheit"
-
-#: lib/klass_hero_web/live/about_live.ex:89
-#, elixir-autogen, elixir-format
-msgid "Satisfaction"
-msgstr "Zufriedenheit"
 
 #: lib/klass_hero_web/live/contact_live.ex:87
 #, elixir-autogen, elixir-format
@@ -1322,11 +1136,6 @@ msgstr "Passwort speichern"
 #, elixir-autogen, elixir-format
 msgid "Saving..."
 msgstr "Speichern..."
-
-#: lib/klass_hero_web/live/about_live.ex:72
-#, elixir-autogen, elixir-format
-msgid "Secure Payments"
-msgstr "Sichere Zahlungen"
 
 #: lib/klass_hero_web/live/contact_live.ex:130
 #, elixir-autogen, elixir-format
@@ -1358,7 +1167,7 @@ msgstr "Schreiben Sie uns eine Nachricht"
 msgid "Session completed successfully"
 msgstr "Sitzung erfolgreich abgeschlossen"
 
-#: lib/klass_hero_web/live/provider/participation_live.ex:215
+#: lib/klass_hero_web/live/provider/participation_live.ex:217
 #, elixir-autogen, elixir-format
 msgid "Session not found"
 msgstr "Sitzung nicht gefunden"
@@ -1368,20 +1177,10 @@ msgstr "Sitzung nicht gefunden"
 msgid "Session started successfully"
 msgstr "Sitzung erfolgreich gestartet"
 
-#: lib/klass_hero_web/live/about_live.ex:65
-#, elixir-autogen, elixir-format
-msgid "Simple Booking"
-msgstr "Einfache Buchung"
-
-#: lib/klass_hero_web/live/highlights_live.ex:140
+#: lib/klass_hero_web/live/community_live.ex:140
 #, elixir-autogen, elixir-format
 msgid "Stay tuned for updates, photos, and announcements from instructors and the Klass Hero community."
 msgstr "Bleiben Sie auf dem Laufenden mit Updates, Fotos und Ankündigungen von Kursleitern und der Klass Hero Connect Community."
-
-#: lib/klass_hero_web/live/about_live.ex:87
-#, elixir-autogen, elixir-format
-msgid "Students"
-msgstr "Teilnehmer"
 
 #: lib/klass_hero_web/live/contact_live.ex:129
 #, elixir-autogen, elixir-format
@@ -1441,11 +1240,6 @@ msgstr "Benutzerkonten & Registrierung"
 msgid "User Conduct & Responsibilities"
 msgstr "Nutzerverhalten & Verantwortlichkeiten"
 
-#: lib/klass_hero_web/live/about_live.ex:41
-#, elixir-autogen, elixir-format
-msgid "Verified instructors, secure facilities, and comprehensive safety protocols"
-msgstr "Verifizierte Kursleiter, sichere Einrichtungen und umfassende Sicherheitsprotokolle"
-
 #: lib/klass_hero_web/live/dashboard_live.ex:123
 #, elixir-autogen, elixir-format
 msgid "View All"
@@ -1460,11 +1254,6 @@ msgstr "Zeitplan anzeigen"
 #, elixir-autogen, elixir-format
 msgid "Visit FAQ"
 msgstr "FAQ besuchen"
-
-#: lib/klass_hero_web/live/about_live.ex:23
-#, elixir-autogen, elixir-format
-msgid "We partner with qualified instructors who are passionate about youth development"
-msgstr "Wir arbeiten mit qualifizierten Kursleitern zusammen, die sich für die Entwicklung von Kindern und Jugendlichen begeistern"
 
 #: lib/klass_hero_web/live/contact_live.ex:65
 #, elixir-autogen, elixir-format
@@ -1500,11 +1289,6 @@ msgstr "Willkommen %{email}"
 #, elixir-autogen, elixir-format
 msgid "Welcome Back"
 msgstr "Willkommen zurück"
-
-#: lib/klass_hero_web/live/about_live.ex:159
-#, elixir-autogen, elixir-format
-msgid "Why Choose Klass Hero?"
-msgstr "Warum Klass Hero Connect wählen?"
 
 #: lib/klass_hero_web/live/user_live/login.ex:29
 #, elixir-autogen, elixir-format
@@ -1918,7 +1702,7 @@ msgstr "Willkommen zurück"
 msgid "WhatsApp Community"
 msgstr "WhatsApp-Community"
 
-#: lib/klass_hero_web/live/parent/participation_history_live.ex:141
+#: lib/klass_hero_web/live/parent/participation_history_live.ex:150
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Failed to load participation history"
 msgstr "Anwesenheitsverlauf konnte nicht geladen werden"
@@ -1931,4 +1715,553 @@ msgstr ""
 #: lib/klass_hero_web/live/parent/participation_history_live.ex:18
 #, elixir-autogen, elixir-format
 msgid "Participation History"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:50
+#, elixir-autogen, elixir-format
+msgid " Find verified tutors, coaches, and camps near you."
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:50
+#, elixir-autogen, elixir-format
+msgid " youth education, sports, and recreational activities"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:371
+#, elixir-autogen, elixir-format
+msgid "1 free cancellation per month"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:367
+#, elixir-autogen, elixir-format
+msgid "AI Support Bot for recommendations"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:385
+#, elixir-autogen, elixir-format
+msgid "Accept bookings"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:361
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Active Family"
+msgstr "Aktive Familien"
+
+#: lib/klass_hero_web/live/home_live.ex:400
+#, elixir-autogen, elixir-format
+msgid "Advanced analytics dashboard"
+msgstr ""
+
+#: lib/klass_hero_web/live/programs_live.ex:27
+#, elixir-autogen, elixir-format
+msgid "All"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:70
+#, elixir-autogen, elixir-format
+msgid "All instructors are background-checked and verified"
+msgstr "Alle Lehrkräfte sind hintergrundgeprüft und verifiziert"
+
+#: lib/klass_hero_web/live/programs_live.ex:29
+#, elixir-autogen, elixir-format
+msgid "Arts"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:172
+#, elixir-autogen, elixir-format
+msgid "Background Check"
+msgstr "Hintergrundüberprüfung"
+
+#: lib/klass_hero_web/live/home_live.ex:386
+#, elixir-autogen, elixir-format
+msgid "Basic analytics"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:383
+#, elixir-autogen, elixir-format
+msgid "Basic profile page"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:379
+#, elixir-autogen, elixir-format
+msgid "Begin your teaching journey"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:352
+#, elixir-autogen, elixir-format
+msgid "Book up to 2 activities per month"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:351
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Browse all programs"
+msgstr "Programme durchsuchen"
+
+#: lib/klass_hero_web/live/about_live.ex:112
+#, elixir-autogen, elixir-format
+msgid "Building connections between families and local instructors"
+msgstr "Aufbau von Verbindungen zwischen Familien und lokalen Lehrkräften"
+
+#: lib/klass_hero_web/live/about_live.ex:38
+#, elixir-autogen, elixir-format
+msgid "Built for Berlin Families"
+msgstr "Für Berliner Familien entwickelt"
+
+#: lib/klass_hero_web/live/about_live.ex:247
+#, elixir-autogen, elixir-format
+msgid "CEO & Co-Founder"
+msgstr "CEO & Mitgründer"
+
+#: lib/klass_hero_web/live/about_live.ex:283
+#, elixir-autogen, elixir-format
+msgid "CFO & Co-Founder"
+msgstr "CFO & Mitgründer"
+
+#: lib/klass_hero_web/live/about_live.ex:265
+#, elixir-autogen, elixir-format
+msgid "CTO & Co-Founder"
+msgstr "CTO & Mitgründer"
+
+#: lib/klass_hero_web/live/programs_live.ex:33
+#, elixir-autogen, elixir-format
+msgid "Camps"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:463
+#, elixir-autogen, elixir-format
+msgid "Can I cancel a booking?"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:197
+#, elixir-autogen, elixir-format
+msgid "Certification and experience verification"
+msgstr "Überprüfung von Zertifikaten und Erfahrung"
+
+#: lib/klass_hero_web/live/home_live.ex:286
+#, elixir-autogen, elixir-format
+msgid "Choose the plan that fits your needs"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:420
+#, elixir-autogen, elixir-format
+msgid "Compare all plan features details →"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:175
+#, elixir-autogen, elixir-format
+msgid "Comprehensive criminal record screening"
+msgstr "Umfassende Überprüfung des Führungszeugnisses"
+
+#: lib/klass_hero_web/live/home_live.ex:233
+#, elixir-autogen, elixir-format
+msgid "Create a Program"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:475
+#, elixir-autogen, elixir-format
+msgid "Currently, Klass Hero focuses exclusively on youth education and activities for children ages 3-18."
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:243
+#, elixir-autogen, elixir-format
+msgid "Deliver Quality"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:370
+#, elixir-autogen, elixir-format
+msgid "Direct messaging with providers"
+msgstr ""
+
+#: lib/klass_hero_web/live/programs_live.ex:374
+#, elixir-autogen, elixir-format
+msgid "Discover activities, camps, and classes for your child"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:473
+#, elixir-autogen, elixir-format
+msgid "Do you offer programs for adults?"
+msgstr ""
+
+#: lib/klass_hero_web/live/programs_live.ex:31
+#, elixir-autogen, elixir-format
+msgid "Education"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:130
+#, elixir-autogen, elixir-format
+msgid "Every instructor goes through rigorous screening to ensure the highest quality"
+msgstr "Jede Lehrkraft durchläuft eine strenge Überprüfung, um höchste Qualität zu gewährleisten"
+
+#: lib/klass_hero_web/live/home_live.ex:435
+#, elixir-autogen, elixir-format
+msgid "Everything you need to know about Klass Hero"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:346
+#, elixir-autogen, elixir-format
+msgid "Explorer Family"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:465
+#, elixir-autogen, elixir-format
+msgid "Explorer Family members can cancel up to 48 hours before. Active Family members get 1 free same-day cancellation per month."
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:402
+#, elixir-autogen, elixir-format
+msgid "Featured placement opportunities"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:286
+#, elixir-autogen, elixir-format
+msgid "Financial strategist focused on sustainable growth and value creation for all stakeholders."
+msgstr "Finanzstratege mit Fokus auf nachhaltiges Wachstum und Wertschöpfung für alle Beteiligten."
+
+#: lib/klass_hero_web/live/home_live.ex:316
+#, elixir-autogen, elixir-format
+msgid "For Families"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:213
+#: lib/klass_hero_web/live/home_live.ex:336
+#, elixir-autogen, elixir-format
+msgid "For Providers"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:362
+#, elixir-autogen, elixir-format
+msgid "For families who love activities"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:394
+#, elixir-autogen, elixir-format
+msgid "For serious educators"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:250
+#, elixir-autogen, elixir-format
+msgid "Former education technology leader with a passion for making quality programs accessible to all families."
+msgstr "Ehemaliger Leiter im Bereich Bildungstechnologie mit der Leidenschaft, hochwertige Programme allen Familien zugänglich zu machen."
+
+#: lib/klass_hero_web/live/home_live.ex:348
+#: lib/klass_hero_web/live/home_live.ex:380
+#, elixir-autogen, elixir-format
+msgid "Free"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:432
+#, elixir-autogen, elixir-format
+msgid "Frequently Asked Questions"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "From sports to arts, technology to languages, we make it easy to discover enriching activities that fit your family's schedule and budget."
+msgstr "Von Sport über Kunst, Technologie bis Sprachen – wir machen es einfach, bereichernde Aktivitäten zu entdecken, die zu Zeitplan und Budget Ihrer Familie passen."
+
+#: lib/klass_hero_web/live/about_live.ex:303
+#, elixir-autogen, elixir-format
+msgid "GET STARTED TODAY"
+msgstr "HEUTE LOSLEGEN"
+
+#: lib/klass_hero_web/live/home_live.ex:253
+#, elixir-autogen, elixir-format
+msgid "Get Paid & Grow"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:373
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Get Started"
+msgstr "Kostenlos starten"
+
+#: lib/klass_hero_web/live/home_live.ex:404
+#, elixir-autogen, elixir-format
+msgid "Go Pro"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:220
+#, elixir-autogen, elixir-format
+msgid "Grow Your Passion Business"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:443
+#, elixir-autogen, elixir-format
+msgid "How does the 4-step provider vetting process work?"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:150
+#, elixir-autogen, elixir-format
+msgid "Identity Verification"
+msgstr "Identitätsverifizierung"
+
+#: lib/klass_hero_web/live/about_live.ex:219
+#, elixir-autogen, elixir-format
+msgid "In-depth conversation about values and approach"
+msgstr "Ausführliches Gespräch über Werte und Ansatz"
+
+#: lib/klass_hero_web/live/home_live.ex:453
+#, elixir-autogen, elixir-format
+msgid "Is there a free trial for the Active Family plan?"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:223
+#, elixir-autogen, elixir-format
+msgid "Join our community of passionate educators. Tools and support to help you succeed."
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:354
+#, elixir-autogen, elixir-format
+msgid "Join the community"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:49
+#, elixir-autogen, elixir-format
+msgid "Klass Hero is Berlin's leading marketplace for"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:485
+#, elixir-autogen, elixir-format
+msgid "Klass Points are rewards you earn for bookings, reviews, and referrals. Redeem them for discounts on future programs."
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:280
+#, elixir-autogen, elixir-format
+msgid "Konstantin Pergl"
+msgstr ""
+
+#: lib/klass_hero_web/live/programs_live.ex:32
+#, elixir-autogen, elixir-format
+msgid "Life Skills"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:384
+#, elixir-autogen, elixir-format
+msgid "List up to 3 programs"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:94
+#, elixir-autogen, elixir-format
+msgid "Math Tutor"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:262
+#, elixir-autogen, elixir-format
+msgid "Max Pergl"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:233
+#, elixir-autogen, elixir-format
+msgid "Meet the team building the future of children's programs in Berlin"
+msgstr "Lernen Sie das Team kennen, das die Zukunft der Kinderprogramme in Berlin gestaltet"
+
+#: lib/klass_hero_web/live/programs_live.ex:30
+#, elixir-autogen, elixir-format
+msgid "Music"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:23
+#, elixir-autogen, elixir-format
+msgid "OUR MISSION"
+msgstr "UNSERE MISSION"
+
+#: lib/klass_hero_web/live/about_live.ex:153
+#, elixir-autogen, elixir-format
+msgid "Official ID and credentials check"
+msgstr "Überprüfung von Ausweis und Qualifikationen"
+
+#: lib/klass_hero_web/live/about_live.ex:127
+#, elixir-autogen, elixir-format
+msgid "Our 4-Step Vetting Process"
+msgstr "Unser 4-Schritte-Überprüfungsverfahren"
+
+#: lib/klass_hero_web/live/home_live.ex:347
+#, elixir-autogen, elixir-format
+msgid "Perfect for getting started"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:216
+#, elixir-autogen, elixir-format
+msgid "Personal Interview"
+msgstr "Persönliches Gespräch"
+
+#: lib/klass_hero_web/live/home_live.ex:100
+#, elixir-autogen, elixir-format
+msgid "Piano"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:401
+#, elixir-autogen, elixir-format
+msgid "Priority customer support"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:393
+#, elixir-autogen, elixir-format
+msgid "Pro Provider"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:369
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Progress tracking dashboard"
+msgstr "Fortschrittsverfolgung"
+
+#: lib/klass_hero_web/live/about_live.ex:194
+#, elixir-autogen, elixir-format
+msgid "Qualifications"
+msgstr "Qualifikationen"
+
+#: lib/klass_hero_web/live/home_live.ex:353
+#, elixir-autogen, elixir-format
+msgid "Read and write reviews"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:297
+#, elixir-autogen, elixir-format
+msgid "Ready to join the movement?"
+msgstr "Bereit, Teil der Bewegung zu werden?"
+
+#: lib/klass_hero_web/live/home_live.ex:80
+#, elixir-autogen, elixir-format
+msgid "Search"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:255
+#, elixir-autogen, elixir-format
+msgid "Secure payments, insights into your business, and opportunities to expand your impact."
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:235
+#, elixir-autogen, elixir-format
+msgid "Set up your teaching profile and list your programs in minutes. Share your expertise with families who need it."
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:244
+#, elixir-autogen, elixir-format
+msgid "Shane Ogilvie"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:283
+#, elixir-autogen, elixir-format
+msgid "Simple, Transparent Pricing"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:103
+#, elixir-autogen, elixir-format
+msgid "Soccer"
+msgstr ""
+
+#: lib/klass_hero_web/live/programs_live.ex:28
+#, elixir-autogen, elixir-format
+msgid "Sports"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:356
+#, elixir-autogen, elixir-format
+msgid "Start Exploring"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:388
+#, elixir-autogen, elixir-format
+msgid "Start Teaching"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:271
+#, elixir-autogen, elixir-format
+msgid "Start Teaching Today →"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:378
+#, elixir-autogen, elixir-format
+msgid "Starter Provider"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:97
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Summer Camp"
+msgstr "Sommercamps"
+
+#: lib/klass_hero_web/live/about_live.ex:89
+#, elixir-autogen, elixir-format
+msgid "Supporting local programs and eco-conscious practices"
+msgstr "Unterstützung lokaler Programme und umweltbewusster Praktiken"
+
+#: lib/klass_hero_web/live/about_live.ex:86
+#, elixir-autogen, elixir-format
+msgid "Sustainability"
+msgstr "Nachhaltigkeit"
+
+#: lib/klass_hero_web/live/home_live.ex:91
+#, elixir-autogen, elixir-format
+msgid "Swimming"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:245
+#, elixir-autogen, elixir-format
+msgid "Teach your passion with our tools for scheduling, communication, and progress tracking."
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:268
+#, elixir-autogen, elixir-format
+msgid "Technology innovator committed to building platforms that empower families and instructors."
+msgstr "Technologie-Innovator, der sich dem Aufbau von Plattformen widmet, die Familien und Lehrkräfte stärken."
+
+#: lib/klass_hero_web/live/about_live.ex:230
+#, elixir-autogen, elixir-format
+msgid "The Founding Team"
+msgstr "Das Gründungsteam"
+
+#: lib/klass_hero_web/live/about_live.ex:26
+#, elixir-autogen, elixir-format
+msgid "To modernize how families discover and engage with children's programs in Berlin"
+msgstr "Die Art und Weise zu modernisieren, wie Familien Kinderprogramme in Berlin entdecken und nutzen"
+
+#: lib/klass_hero_web/live/home_live.ex:88
+#, elixir-autogen, elixir-format
+msgid "Trending in Berlin:"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:368
+#, elixir-autogen, elixir-format
+msgid "Unlimited bookings"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:399
+#, elixir-autogen, elixir-format
+msgid "Unlimited program listings"
+msgstr ""
+
+#: lib/klass_hero_web/live/about_live.ex:41
+#, elixir-autogen, elixir-format
+msgid "We understand the unique needs of Berlin's diverse families. Our platform connects you with vetted, high-quality programs that match your values and your children's interests."
+msgstr "Wir verstehen die einzigartigen Bedürfnisse der vielfältigen Familien Berlins. Unsere Plattform verbindet Sie mit geprüften, hochwertigen Programmen, die zu Ihren Werten und den Interessen Ihrer Kinder passen."
+
+#: lib/klass_hero_web/live/home_live.ex:445
+#, elixir-autogen, elixir-format
+msgid "We verify credentials, conduct background checks, check references, and perform a personal interview before approving any provider."
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:483
+#, elixir-autogen, elixir-format
+msgid "What are Klass Points?"
+msgstr ""
+
+#: lib/klass_hero_web/live/programs_live.ex:34
+#, elixir-autogen, elixir-format
+msgid "Workshops"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:455
+#, elixir-autogen, elixir-format
+msgid "Yes! New families get a 14-day free trial of the Active Family plan with full access to all features."
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:349
+#: lib/klass_hero_web/live/home_live.ex:381
+#, elixir-autogen, elixir-format
+msgid "forever"
+msgstr ""
+
+#: lib/klass_hero_web/live/home_live.ex:364
+#: lib/klass_hero_web/live/home_live.ex:396
+#, elixir-autogen, elixir-format
+msgid "month"
 msgstr ""
