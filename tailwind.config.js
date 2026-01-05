@@ -15,11 +15,11 @@ module.exports = {
             200: '#99E7FF',
             300: '#66DBFF',
             400: '#33CFFF',
-            500: '#0FC3FF', // Primary brand blue
-            600: '#0C9CCC',
-            700: '#097599',
-            800: '#064E66',
-            900: '#032733',
+            500: '#00D4FF', // Primary brand blue (bright cyan from localhost:3000)
+            600: '#00A7CC',
+            700: '#007D99',
+            800: '#005466',
+            900: '#002A33',
           },
           yellow: {
             50: '#FFFEF5',
@@ -56,6 +56,18 @@ module.exports = {
             700: '#997A46',
             800: '#66522E',
             900: '#332917',
+          },
+          cream: {
+            50: '#FDFCF9',
+            100: '#F5F1E8', // Primary cream background (from localhost:3000)
+            200: '#EDE9E0',
+            300: '#E5E1D8',
+            400: '#DDD9D0',
+            500: '#D5D1C8',
+            600: '#ABA8A0',
+            700: '#807E78',
+            800: '#555450',
+            900: '#2B2A28',
           },
           black: {
             DEFAULT: '#000000', // Primary brand text
