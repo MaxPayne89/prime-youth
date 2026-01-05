@@ -81,9 +81,12 @@ defmodule KlassHeroWeb.ContactLive do
     ]
   end
 
-  defp border_color(:email), do: "rgb(102 204 255)"  # hero-blue-400
-  defp border_color(:phone), do: "rgb(34 197 94)"  # green-500
-  defp border_color(:address), do: "rgb(255 255 54)"  # hero-yellow-500
+  # hero-blue-400
+  defp border_color(:email), do: "rgb(102 204 255)"
+  # green-500
+  defp border_color(:phone), do: "rgb(34 197 94)"
+  # hero-yellow-500
+  defp border_color(:address), do: "rgb(255 255 54)"
 
   defp gradient_color(:email), do: "bg-hero-blue-400"
   defp gradient_color(:phone), do: "bg-green-500"
@@ -116,146 +119,146 @@ defmodule KlassHeroWeb.ContactLive do
       <%!-- Main Content - White Background --%>
       <div class="bg-white py-12 md:py-16 lg:py-24">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid md:grid-cols-2 gap-8">
-          <div>
-            <.card>
-              <:header>
-                <h2 class={[Theme.typography(:section_title), "text-hero-black"]}>
-                  {gettext("Send us a Message")}
-                </h2>
-              </:header>
-              <:body>
-                <.form
-                  for={@form}
-                  id="contact-form"
-                  phx-change="validate"
-                  phx-submit="submit"
-                  class="space-y-4"
-                >
-                  <.input field={@form[:name]} type="text" label={gettext("Name")} required />
-
-                  <.input field={@form[:email]} type="email" label={gettext("Email")} required />
-
-                  <.input
-                    field={@form[:subject]}
-                    type="select"
-                    label={gettext("Subject")}
-                    prompt={gettext("Select a topic...")}
-                    options={[
-                      {gettext("General Inquiry"), "general"},
-                      {gettext("Program Question"), "program"},
-                      {gettext("Booking Support"), "booking"},
-                      {gettext("Instructor Application"), "instructor"},
-                      {gettext("Technical Issue"), "technical"},
-                      {gettext("Other"), "other"}
-                    ]}
-                    required
-                  />
-
-                  <.input
-                    field={@form[:message]}
-                    type="textarea"
-                    label={gettext("Message")}
-                    rows="5"
-                    required
-                  />
-
-                  <div
-                    :if={@submission_status == :success}
-                    class={["p-4 bg-hero-blue-50 border border-hero-blue-200", Theme.rounded(:md)]}
+          <div class="grid md:grid-cols-2 gap-8">
+            <div>
+              <.card>
+                <:header>
+                  <h2 class={[Theme.typography(:section_title), "text-hero-black"]}>
+                    {gettext("Send us a Message")}
+                  </h2>
+                </:header>
+                <:body>
+                  <.form
+                    for={@form}
+                    id="contact-form"
+                    phx-change="validate"
+                    phx-submit="submit"
+                    class="space-y-4"
                   >
-                    <div class="flex items-center gap-2 text-hero-blue-800">
-                      <.icon name="hero-check-circle" class="w-5 h-5" />
-                      <span class="font-medium">{gettext("Message sent successfully!")}</span>
+                    <.input field={@form[:name]} type="text" label={gettext("Name")} required />
+
+                    <.input field={@form[:email]} type="email" label={gettext("Email")} required />
+
+                    <.input
+                      field={@form[:subject]}
+                      type="select"
+                      label={gettext("Subject")}
+                      prompt={gettext("Select a topic...")}
+                      options={[
+                        {gettext("General Inquiry"), "general"},
+                        {gettext("Program Question"), "program"},
+                        {gettext("Booking Support"), "booking"},
+                        {gettext("Instructor Application"), "instructor"},
+                        {gettext("Technical Issue"), "technical"},
+                        {gettext("Other"), "other"}
+                      ]}
+                      required
+                    />
+
+                    <.input
+                      field={@form[:message]}
+                      type="textarea"
+                      label={gettext("Message")}
+                      rows="5"
+                      required
+                    />
+
+                    <div
+                      :if={@submission_status == :success}
+                      class={["p-4 bg-hero-blue-50 border border-hero-blue-200", Theme.rounded(:md)]}
+                    >
+                      <div class="flex items-center gap-2 text-hero-blue-800">
+                        <.icon name="hero-check-circle" class="w-5 h-5" />
+                        <span class="font-medium">{gettext("Message sent successfully!")}</span>
+                      </div>
+                      <p class="text-sm text-green-700 mt-1">
+                        {gettext("We'll get back to you within 24 hours.")}
+                      </p>
                     </div>
-                    <p class="text-sm text-green-700 mt-1">
-                      {gettext("We'll get back to you within 24 hours.")}
+
+                    <button
+                      type="submit"
+                      class="w-full bg-hero-blue-500 hover:bg-hero-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105"
+                    >
+                      {gettext("Send Message")}
+                    </button>
+                  </.form>
+                </:body>
+              </.card>
+            </div>
+
+            <div class="space-y-6">
+              <.card>
+                <:header>
+                  <h2 class="text-xl font-bold text-hero-black">{gettext("Get in Touch")}</h2>
+                </:header>
+                <:body>
+                  <div class="space-y-4">
+                    <div
+                      :for={method <- contact_methods()}
+                      class="border-2 rounded-lg p-6 bg-white flex items-start gap-4"
+                      style={"border-color: #{border_color(method.type)}"}
+                    >
+                      <div class="flex-shrink-0">
+                        <UIComponents.gradient_icon
+                          gradient_class={gradient_color(method.type)}
+                          size="md"
+                          shape="circle"
+                        >
+                          <.icon name={method.icon} class="w-6 h-6 text-white" />
+                        </UIComponents.gradient_icon>
+                      </div>
+                      <div class="flex-1">
+                        <h3 class="font-semibold text-hero-black">{method.title}</h3>
+                        <p class="text-sm text-hero-grey-600">{method.value}</p>
+                        <p :if={method.note} class="text-xs text-hero-grey-500 mt-1">{method.note}</p>
+                      </div>
+                    </div>
+                  </div>
+                </:body>
+              </.card>
+
+              <.card>
+                <:header>
+                  <h2 class="text-xl font-bold text-hero-black">{gettext("Office Hours")}</h2>
+                </:header>
+                <:body>
+                  <div class="space-y-2 text-sm">
+                    <div :for={hours <- office_hours()} class="flex justify-between">
+                      <span class="font-medium text-hero-black">{hours.days}</span>
+                      <span class="text-hero-grey-600">{hours.hours}</span>
+                    </div>
+                  </div>
+                </:body>
+              </.card>
+
+              <.card>
+                <:body>
+                  <div class="text-center">
+                    <UIComponents.gradient_icon
+                      gradient_class="bg-hero-blue-500"
+                      size="lg"
+                      shape="circle"
+                      class="mx-auto mb-4"
+                    >
+                      <.icon name="hero-question-mark-circle" class="w-8 h-8 text-white" />
+                    </UIComponents.gradient_icon>
+                    <h3 class="font-semibold text-hero-black mb-2">
+                      {gettext("Looking for Quick Answers?")}
+                    </h3>
+                    <p class="text-sm text-hero-grey-600 mb-4">
+                      {gettext("Check out our FAQ section for answers to common questions.")}
                     </p>
+                    <button class="text-hero-blue-500 font-medium text-sm hover:underline">
+                      {gettext("Visit FAQ")} →
+                    </button>
                   </div>
-
-                  <button
-                    type="submit"
-                    class="w-full bg-hero-blue-500 hover:bg-hero-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105"
-                  >
-                    {gettext("Send Message")}
-                  </button>
-                </.form>
-              </:body>
-            </.card>
-          </div>
-
-          <div class="space-y-6">
-            <.card>
-              <:header>
-                <h2 class="text-xl font-bold text-hero-black">{gettext("Get in Touch")}</h2>
-              </:header>
-              <:body>
-                <div class="space-y-4">
-                  <div
-                    :for={method <- contact_methods()}
-                    class="border-2 rounded-lg p-6 bg-white flex items-start gap-4"
-                    style={"border-color: #{border_color(method.type)}"}
-                  >
-                    <div class="flex-shrink-0">
-                      <UIComponents.gradient_icon
-                        gradient_class={gradient_color(method.type)}
-                        size="md"
-                        shape="circle"
-                      >
-                        <.icon name={method.icon} class="w-6 h-6 text-white" />
-                      </UIComponents.gradient_icon>
-                    </div>
-                    <div class="flex-1">
-                      <h3 class="font-semibold text-hero-black">{method.title}</h3>
-                      <p class="text-sm text-hero-grey-600">{method.value}</p>
-                      <p :if={method.note} class="text-xs text-hero-grey-500 mt-1">{method.note}</p>
-                    </div>
-                  </div>
-                </div>
-              </:body>
-            </.card>
-
-            <.card>
-              <:header>
-                <h2 class="text-xl font-bold text-hero-black">{gettext("Office Hours")}</h2>
-              </:header>
-              <:body>
-                <div class="space-y-2 text-sm">
-                  <div :for={hours <- office_hours()} class="flex justify-between">
-                    <span class="font-medium text-hero-black">{hours.days}</span>
-                    <span class="text-hero-grey-600">{hours.hours}</span>
-                  </div>
-                </div>
-              </:body>
-            </.card>
-
-            <.card>
-              <:body>
-                <div class="text-center">
-                  <UIComponents.gradient_icon
-                    gradient_class="bg-hero-blue-500"
-                    size="lg"
-                    shape="circle"
-                    class="mx-auto mb-4"
-                  >
-                    <.icon name="hero-question-mark-circle" class="w-8 h-8 text-white" />
-                  </UIComponents.gradient_icon>
-                  <h3 class="font-semibold text-hero-black mb-2">
-                    {gettext("Looking for Quick Answers?")}
-                  </h3>
-                  <p class="text-sm text-hero-grey-600 mb-4">
-                    {gettext("Check out our FAQ section for answers to common questions.")}
-                  </p>
-                  <button class="text-hero-blue-500 font-medium text-sm hover:underline">
-                    {gettext("Visit FAQ")} →
-                  </button>
-                </div>
-              </:body>
-            </.card>
+                </:body>
+              </.card>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
     """
   end
