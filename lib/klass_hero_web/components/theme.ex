@@ -45,7 +45,8 @@ defmodule KlassHeroWeb.Theme do
     comic: "bg-gradient-to-r from-hero-yellow-400 to-hero-blue-400",
     safety: "bg-gradient-to-r from-green-500 to-emerald-600",
     cool: "bg-gradient-to-r from-hero-blue-400 to-hero-blue-600",
-    art: "bg-gradient-to-r from-hero-yellow-400 to-hero-pink-400"
+    art: "bg-gradient-to-r from-hero-yellow-400 to-hero-pink-400",
+    cream: "bg-hero-cream-100"
   }
 
   @doc """

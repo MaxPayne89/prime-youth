@@ -30,7 +30,7 @@
   --color-base-200: oklch(12% 0.01 0);
   --color-base-300: oklch(9% 0.01 0);
   --color-base-content: oklch(93% 0.06 75); /* Hero Pink for dark mode text */
-  --color-primary: oklch(75% 0.15 195); /* Hero Blue #0FC3FF */
+  --color-primary: oklch(78% 0.16 195); /* Hero Blue #00D4FF */
   --color-primary-content: oklch(98% 0.02 195);
   --color-secondary: oklch(82% 0 0); /* Hero Grey #C7C7C7 */
   --color-secondary-content: oklch(20% 0 0);
@@ -65,7 +65,7 @@
   --color-base-200: oklch(90% 0.08 75);
   --color-base-300: oklch(87% 0.10 75);
   --color-base-content: oklch(0% 0 0); /* Hero Black #000000 */
-  --color-primary: oklch(75% 0.15 195); /* Hero Blue #0FC3FF */
+  --color-primary: oklch(78% 0.16 195); /* Hero Blue #00D4FF */
   --color-primary-content: oklch(98% 0.02 195);
   --color-secondary: oklch(82% 0 0); /* Hero Grey #C7C7C7 */
   --color-secondary-content: oklch(20% 0 0);
@@ -106,17 +106,17 @@
 
 /* Klass Hero Superhero Brand Colors */
 @theme {
-  /* Hero Blue #0FC3FF */
-  --color-hero-blue-50: oklch(95% 0.03 195);
-  --color-hero-blue-100: oklch(90% 0.06 195);
-  --color-hero-blue-200: oklch(85% 0.09 195);
-  --color-hero-blue-300: oklch(80% 0.12 195);
-  --color-hero-blue-400: oklch(78% 0.14 195);
-  --color-hero-blue-500: oklch(75% 0.15 195); /* Primary #0FC3FF */
-  --color-hero-blue-600: oklch(65% 0.13 195);
-  --color-hero-blue-700: oklch(55% 0.11 195);
-  --color-hero-blue-800: oklch(45% 0.09 195);
-  --color-hero-blue-900: oklch(35% 0.07 195);
+  /* Hero Blue #00D4FF */
+  --color-hero-blue-50: oklch(96% 0.03 195);
+  --color-hero-blue-100: oklch(92% 0.06 195);
+  --color-hero-blue-200: oklch(88% 0.09 195);
+  --color-hero-blue-300: oklch(84% 0.12 195);
+  --color-hero-blue-400: oklch(81% 0.14 195);
+  --color-hero-blue-500: oklch(78% 0.16 195); /* Primary #00D4FF */
+  --color-hero-blue-600: oklch(68% 0.14 195);
+  --color-hero-blue-700: oklch(58% 0.12 195);
+  --color-hero-blue-800: oklch(48% 0.10 195);
+  --color-hero-blue-900: oklch(38% 0.08 195);
 
   /* Hero Yellow #FFFF36 */
   --color-hero-yellow-50: oklch(99% 0.05 105);
@@ -166,4 +166,16 @@
   --color-hero-black-700: oklch(80% 0 0);
   --color-hero-black-800: oklch(90% 0 0);
   --color-hero-black-900: oklch(95% 0 0);
+
+  /* Hero Cream #F5F1E8 */
+  --color-hero-cream-50: oklch(99% 0.01 75);
+  --color-hero-cream-100: oklch(96% 0.02 75); /* Primary #F5F1E8 */
+  --color-hero-cream-200: oklch(93% 0.03 75);
+  --color-hero-cream-300: oklch(90% 0.04 75);
+  --color-hero-cream-400: oklch(87% 0.05 75);
+  --color-hero-cream-500: oklch(84% 0.06 75);
+  --color-hero-cream-600: oklch(74% 0.05 75);
+  --color-hero-cream-700: oklch(64% 0.04 75);
+  --color-hero-cream-800: oklch(54% 0.03 75);
+  --color-hero-cream-900: oklch(44% 0.02 75);
 }
