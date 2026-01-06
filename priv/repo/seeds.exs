@@ -11,49 +11,162 @@
 # and so on) as they will fail if something goes wrong.
 
 alias KlassHero.Accounts.User
+alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
+alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
+alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
+alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
 alias KlassHero.Repo
 
 require Logger
 
-# Test Users
-Logger.info("Seeding test users...")
+# ==============================================================================
+# CLEAR EXISTING DATA
+# ==============================================================================
 
-# Clear existing users to ensure idempotent seeding
+Logger.info("Clearing existing data...")
+
+# Order matters due to foreign key constraints
+Repo.delete_all(ChildSchema)
+Logger.info("Cleared existing children")
+
+Repo.delete_all(ParentProfileSchema)
+Logger.info("Cleared existing parent profiles")
+
+Repo.delete_all(ProviderProfileSchema)
+Logger.info("Cleared existing provider profiles")
+
 Repo.delete_all(User)
 Logger.info("Cleared existing users")
 
-test_users = [
-  %{
+Repo.delete_all(ProgramSchema)
+Logger.info("Cleared existing programs")
+
+# ==============================================================================
+# CREATE USERS
+# ==============================================================================
+
+Logger.info("Seeding users...")
+
+# Max - Parent user
+{:ok, max} =
+  %User{}
+  |> Ecto.Changeset.change(%{
     name: "Max Pergl",
     email: "maxpergl@gmail.com",
     hashed_password: Bcrypt.hash_pwd_salt("password"),
-    confirmed_at: DateTime.utc_now(:second)
-  },
-  %{
+    confirmed_at: DateTime.utc_now(:second),
+    intended_roles: [:parent]
+  })
+  |> Repo.insert()
+
+Logger.info("Created Max as parent user")
+
+# Shane - Provider user
+{:ok, shane} =
+  %User{}
+  |> Ecto.Changeset.change(%{
+    name: "Shane Provider",
+    email: "shane.provider@gmail.com",
+    hashed_password: Bcrypt.hash_pwd_salt("password"),
+    confirmed_at: DateTime.utc_now(:second),
+    intended_roles: [:provider]
+  })
+  |> Repo.insert()
+
+Logger.info("Created Shane as provider user")
+
+# Admin user (kept for admin purposes)
+{:ok, _admin} =
+  %User{}
+  |> Ecto.Changeset.change(%{
     name: "Klass Hero Admin",
     email: "app@primeyouth.de",
     hashed_password: Bcrypt.hash_pwd_salt("password"),
     confirmed_at: DateTime.utc_now(:second)
-  }
-]
+  })
+  |> Repo.insert()
 
-Enum.each(test_users, fn user_attrs ->
-  %User{}
-  |> Ecto.Changeset.change(user_attrs)
-  |> Repo.insert!()
-end)
+Logger.info("Created admin user")
 
-Logger.info("Seeded #{length(test_users)} test users successfully")
+# ==============================================================================
+# CREATE PARENT PROFILE & CHILDREN FOR MAX
+# ==============================================================================
 
-# Program Catalog Seeds
-# Reference: specs/001-program-catalog/data-model.md (Sample Data section)
+Logger.info("Creating parent profile for Max...")
+
+# Create parent profile for Max
+{:ok, max_parent_profile} =
+  CreateParentProfile.execute(%{
+    identity_id: max.id,
+    display_name: "Max P.",
+    phone: "+49 123 456 7890",
+    location: "Berlin, Germany"
+  })
+
+Logger.info("Created parent profile for Max")
+
+# Create children for Max
+# Calculate dates for 8 and 6 year olds
+today = Date.utc_today()
+tj_birth_date = Date.add(today, -365 * 8)
+rafael_birth_date = Date.add(today, -365 * 6)
+
+# TJ - 8 years old
+{:ok, _tj} =
+  %ChildSchema{}
+  |> ChildSchema.changeset(%{
+    parent_id: max_parent_profile.id,
+    first_name: "TJ",
+    last_name: "Pergl",
+    date_of_birth: tj_birth_date,
+    notes: "Loves sports and outdoor activities"
+  })
+  |> Repo.insert()
+
+Logger.info("Created child: TJ Pergl (8 years old)")
+
+# Rafael - 6 years old
+{:ok, _rafael} =
+  %ChildSchema{}
+  |> ChildSchema.changeset(%{
+    parent_id: max_parent_profile.id,
+    first_name: "Rafael",
+    last_name: "Pergl",
+    date_of_birth: rafael_birth_date,
+    notes: "Enjoys arts and crafts"
+  })
+  |> Repo.insert()
+
+Logger.info("Created child: Rafael Pergl (6 years old)")
+
+# ==============================================================================
+# CREATE PROVIDER PROFILE FOR SHANE
+# ==============================================================================
+
+Logger.info("Creating provider profile for Shane...")
+
+{:ok, _shane_provider_profile} =
+  CreateProviderProfile.execute(%{
+    identity_id: shane.id,
+    business_name: "Shane's Sports Academy",
+    description: "Professional sports training and athletic development for youth",
+    phone: "+49 987 654 3210",
+    website: "https://shanes-sports-academy.example.com",
+    address: "123 Sports Street, Munich, Germany",
+    verified: true,
+    verified_at: DateTime.utc_now(:second),
+    categories: ["Sports", "Athletics", "Physical Education"]
+  })
+
+Logger.info("Created provider profile for Shane's Sports Academy")
+
+# ==============================================================================
+# CREATE SAMPLE PROGRAMS
+# ==============================================================================
 
 Logger.info("Seeding Program Catalog...")
-
-# Clear existing programs to ensure idempotent seeding
-Repo.delete_all(ProgramSchema)
-Logger.info("Cleared existing programs")
 
 programs = [
   %{
@@ -131,4 +244,15 @@ Enum.each(programs, fn program_attrs ->
 end)
 
 Logger.info("Seeded #{length(programs)} programs successfully")
-Logger.info("Program Catalog seeding complete!")
+
+# ==============================================================================
+# SUMMARY
+# ==============================================================================
+
+Logger.info("✅ Seeding complete!")
+Logger.info("Summary:")
+Logger.info("  - 3 users created (Max as parent, Shane as provider, Admin)")
+Logger.info("  - 1 parent profile created (Max)")
+Logger.info("  - 2 children created (TJ and Rafael)")
+Logger.info("  - 1 provider profile created (Shane's Sports Academy)")
+Logger.info("  - #{length(programs)} programs created")

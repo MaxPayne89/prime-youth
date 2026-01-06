@@ -71,7 +71,6 @@
       <div class="navbar-end">
         <div class="flex items-center gap-2">
           <.language_switcher locale={assigns[:locale] || "en"} />
-          <.theme_toggle />
 
           <%= if assigns[:current_scope] && @current_scope.user do %>
             <!-- Authenticated User Dropdown -->
@@ -206,21 +205,6 @@
     
 <!-- Footer -->
     <KlassHeroWeb.CompositeComponents.app_footer />
-    
-<!-- Dev Auth Toggle Button (only in development) -->
-    <%= if Application.get_env(:klass_hero, :dev_routes) do %>
-      <button
-        phx-click="toggle_auth"
-        class="fixed bottom-4 right-4 z-50 btn btn-sm bg-gradient-to-r from-prime-cyan-400 to-prime-magenta-400 text-white shadow-lg hover:shadow-xl border-0"
-        title="Toggle Authentication State (Dev Only)"
-      >
-        <%= if assigns[:current_scope] && @current_scope.user do %>
-          🔐 Authenticated
-        <% else %>
-          🔓 Guest
-        <% end %>
-      </button>
-    <% end %>
   </div>
   
 <!-- Sidebar for mobile -->
