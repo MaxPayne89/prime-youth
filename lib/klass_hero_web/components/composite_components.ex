@@ -117,6 +117,241 @@ defmodule KlassHeroWeb.CompositeComponents do
   end
 
   @doc """
+  Renders a child profile card for horizontal scrolling display with circular avatar.
+
+  ## Examples
+
+      <.child_profile_card
+        child=%{name: "Leo", age: 10, school: "JFK School", initials: "L"}
+      />
+  """
+  attr :child, :map, required: true
+  attr :class, :string, default: nil
+
+  def child_profile_card(assigns) do
+    ~H"""
+    <div class={["flex-shrink-0 w-64 snap-start", @class]}>
+      <.card padding="p-4" class="hover:shadow-md transition-all">
+        <:body>
+          <div class="flex items-center gap-3">
+            <div class={[
+              "w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-2xl",
+              Theme.gradient(:primary)
+            ]}>
+              {@child.initials}
+            </div>
+            <div class="flex-1 min-w-0">
+              <h4 class={[Theme.typography(:card_title), "text-hero-black truncate"]}>
+                {@child.name} ({@child.age})
+              </h4>
+              <p class="text-sm text-hero-grey-500 truncate">{@child.school}</p>
+            </div>
+          </div>
+        </:body>
+      </.card>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a weekly activity goal card with gradient background and progress bar.
+
+  ## Examples
+
+      <.weekly_goal_card
+        goal=%{
+          current: 4,
+          target: 5,
+          percentage: 80,
+          message: "You're doing great! Just 1 more activity to reach your goal!"
+        }
+      />
+  """
+  attr :goal, :map, required: true
+  attr :class, :string, default: nil
+
+  def weekly_goal_card(assigns) do
+    ~H"""
+    <div class={[
+      "w-full max-w-2xl mx-auto p-6",
+      Theme.gradient(:hero),
+      Theme.rounded(:xl),
+      "shadow-lg",
+      @class
+    ]}>
+      <div class="flex items-center gap-2 mb-4">
+        <.icon name="hero-trophy-mini" class="w-6 h-6 text-white" />
+        <h2 class="text-xl font-semibold text-white">
+          <%= gettext("Weekly Activity Goal") %>
+        </h2>
+      </div>
+
+      <div class="text-center mb-4">
+        <div class="text-6xl font-bold text-white mb-2">
+          {@goal.percentage}%
+        </div>
+        <p class="text-white/90 text-sm">
+          {@goal.current} / {@goal.target} <%= gettext("activities completed") %>
+        </p>
+      </div>
+
+      <div class="w-full bg-white/30 rounded-full h-3 mb-4">
+        <div
+          class="bg-hero-yellow h-3 rounded-full transition-all duration-300"
+          style={"width: #{@goal.percentage}%"}
+        >
+        </div>
+      </div>
+
+      <p class="text-center text-white font-medium">
+        {@goal.message}
+      </p>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a single achievement badge with emoji icon and date.
+
+  ## Examples
+
+      <.achievement_badge
+        achievement=%{emoji: "🌍", name: "Activity Explorer", date: "2023-11-15"}
+      />
+  """
+  attr :achievement, :map, required: true
+  attr :class, :string, default: nil
+
+  def achievement_badge(assigns) do
+    ~H"""
+    <div class={[
+      "bg-white p-4 shadow-sm border border-hero-grey-200",
+      Theme.rounded(:xl),
+      "hover:shadow-md hover:scale-[1.02]",
+      Theme.transition(:normal),
+      "text-center",
+      @class
+    ]}>
+      <div class="text-4xl mb-2">{@achievement.emoji}</div>
+      <h4 class={[Theme.typography(:card_title), "text-hero-black mb-1"]}>
+        {@achievement.name}
+      </h4>
+      <p class="text-xs text-hero-grey-400">{@achievement.date}</p>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a family achievements section with responsive grid of badges.
+
+  ## Examples
+
+      <.family_achievements
+        achievements={[
+          %{emoji: "🌍", name: "Activity Explorer", date: "2023-11-15"},
+          %{emoji: "⭐", name: "Super Reviewer", date: "2024-01-20"}
+        ]}
+      />
+  """
+  attr :achievements, :list, required: true
+  attr :class, :string, default: nil
+
+  def family_achievements(assigns) do
+    ~H"""
+    <div class={@class}>
+      <div class="flex items-center gap-2 mb-4">
+        <.icon name="hero-trophy-mini" class="w-6 h-6 text-hero-yellow" />
+        <h2 class="text-xl font-semibold text-hero-charcoal">
+          <%= gettext("Family Achievements") %>
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <.achievement_badge :for={achievement <- @achievements} achievement={achievement} />
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a referral card with dark background, stats, and referral code.
+
+  ## Examples
+
+      <.referral_card
+        referral_stats=%{count: 3, points: 600, code: "SARAH-BERLIN-24"}
+      />
+  """
+  attr :referral_stats, :map, required: true
+  attr :class, :string, default: nil
+
+  def referral_card(assigns) do
+    ~H"""
+    <div class={[
+      "bg-hero-black text-white p-6",
+      Theme.rounded(:xl),
+      "shadow-lg",
+      @class
+    ]}>
+      <div class="flex items-center gap-2 mb-4">
+        <.icon name="hero-user-group-mini" class="w-6 h-6 text-hero-cyan" />
+        <h2 class="text-xl font-semibold">
+          <%= gettext("Refer & Earn") %>
+        </h2>
+      </div>
+
+      <p class="text-hero-grey-300 mb-6">
+        <%= gettext("Invite friends and earn points!") %>
+      </p>
+
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-white/10 p-4 rounded-lg text-center">
+          <div class="text-3xl font-bold text-hero-cyan">{@referral_stats.count}</div>
+          <div class="text-sm text-hero-grey-300"><%= gettext("Friends Referred") %></div>
+        </div>
+        <div class="bg-white/10 p-4 rounded-lg text-center">
+          <div class="text-3xl font-bold text-hero-yellow">{@referral_stats.points}</div>
+          <div class="text-sm text-hero-grey-300"><%= gettext("Points Earned") %></div>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <h3 class="text-sm font-semibold mb-2"><%= gettext("Your Referral Code") %></h3>
+        <div class="flex gap-2">
+          <div class="flex-1 bg-white/10 p-3 rounded-lg font-mono text-hero-cyan">
+            {@referral_stats.code}
+          </div>
+          <button
+            type="button"
+            phx-click="copy_referral_code"
+            class={[
+              "px-4 py-3 bg-white/10 hover:bg-white/20",
+              Theme.rounded(:lg),
+              Theme.transition(:normal)
+            ]}
+            title={gettext("Copy Code")}
+          >
+            <.icon name="hero-clipboard-mini" class="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        phx-click="share_referral_code"
+        class={[
+          "w-full py-3 bg-hero-cyan hover:bg-hero-cyan-dark text-white font-semibold",
+          Theme.rounded(:lg),
+          Theme.transition(:normal)
+        ]}
+      >
+        <%= gettext("Share Code") %>
+      </button>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a quick action button with icon and label.
 
   ## Examples

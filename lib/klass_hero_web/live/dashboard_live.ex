@@ -11,13 +11,18 @@ defmodule KlassHeroWeb.DashboardLive do
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
     children = get_children_for_parent(socket)
-    children_for_view = Enum.map(children, &ChildPresenter.to_extended_view/1)
+    children_for_view = Enum.map(children, &ChildPresenter.to_profile_view/1)
+    children_extended = Enum.map(children, &ChildPresenter.to_extended_view/1)
 
     socket =
       socket
       |> assign(page_title: gettext("Dashboard"))
       |> assign(user: user)
       |> assign(children_count: length(children_for_view))
+      |> assign(activity_goal: calculate_activity_goal(children_extended))
+      |> assign(achievements: get_achievements(socket))
+      |> assign(recommended_programs: get_recommended_programs(socket))
+      |> assign(referral_stats: get_referral_stats(user))
       |> stream(:children, children_for_view)
 
     {:ok, socket}
@@ -30,6 +35,78 @@ defmodule KlassHeroWeb.DashboardLive do
     else
       _ -> []
     end
+  end
+
+  defp calculate_activity_goal(children) do
+    current =
+      Enum.reduce(children, 0, fn c, acc ->
+        session_count =
+          case c.sessions do
+            sessions when is_list(sessions) -> length(sessions)
+            sessions when is_binary(sessions) -> parse_session_count(sessions)
+            _ -> 0
+          end
+
+        acc + session_count
+      end)
+
+    target = 5
+    percentage = min(100, div(current * 100, max(target, 1)))
+
+    %{
+      current: current,
+      target: target,
+      percentage: percentage,
+      message: goal_message(percentage)
+    }
+  end
+
+  defp parse_session_count(sessions_string) do
+    case String.split(sessions_string, "/") do
+      [current, _total] ->
+        case Integer.parse(current) do
+          {count, _} -> count
+          :error -> 0
+        end
+
+      _ ->
+        0
+    end
+  end
+
+  defp goal_message(percentage) when percentage >= 100,
+    do: gettext("Congratulations! Goal achieved!")
+
+  defp goal_message(percentage) when percentage >= 80,
+    do: gettext("Almost there! One more to go!")
+
+  defp goal_message(_), do: gettext("You're doing great! Keep it up!")
+
+  defp get_achievements(_socket) do
+    [
+      %{emoji: "🌍", name: gettext("Activity Explorer"), date: "2023-11-15"},
+      %{emoji: "⭐", name: gettext("Super Reviewer"), date: "2024-01-20"},
+      %{emoji: "🎨", name: gettext("Art Pro"), date: "2024-02-10"},
+      %{emoji: "⚽", name: gettext("Sporty Kid"), date: "2024-03-01"}
+    ]
+  end
+
+  defp get_recommended_programs(_socket) do
+    # Mock empty list for now - will be populated when program catalog is implemented
+    []
+  end
+
+  defp get_referral_stats(user) do
+    %{
+      count: 3,
+      points: 600,
+      code: generate_referral_code(user)
+    }
+  end
+
+  defp generate_referral_code(user) do
+    [first_name | _] = String.split(user.name, " ")
+    "#{String.upcase(first_name)}-BERLIN-24"
   end
 
   @impl true
@@ -99,48 +176,41 @@ defmodule KlassHeroWeb.DashboardLive do
       
     <!-- Content Area -->
       <div class="p-6 space-y-6">
-        <!-- My Children Section -->
-        <div>
-          <div class="flex items-center justify-between mb-4">
-            <h3 class={[Theme.typography(:card_title), "flex items-center", Theme.text_color(:body)]}>
-              <svg
-                class={["w-5 h-5 mr-2", Theme.text_color(:primary)]}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                >
-                </path>
-              </svg>
-              {gettext("My Children")}
-            </h3>
-            <button class={[Theme.text_color(:primary), "text-sm font-medium hover:opacity-80"]}>
-              {gettext("View All")}
-            </button>
+        <!-- Children Profiles - Horizontal Scroll -->
+        <section class="mb-8">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-hero-charcoal flex items-center gap-2">
+              <.icon name="hero-user-group-mini" class="w-6 h-6 text-hero-cyan" />
+              <%= gettext("My Children") %>
+            </h2>
+            <%!-- Placeholder link - will navigate to /children when children management page is implemented --%>
+            <span class="text-hero-cyan cursor-not-allowed opacity-50">
+              <%= gettext("View All") %>
+            </span>
           </div>
+
           <div
             id="children"
             phx-update="stream"
-            class="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 md:gap-4 md:space-y-0"
+            class="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 -mx-4 px-4"
           >
-            <.child_card
-              :for={{dom_id, child} <- @streams.children}
-              id={dom_id}
-              name={child.name}
-              age={child.age}
-              school={child.school}
-              sessions={child.sessions}
-              progress={child.progress}
-              activities={child.activities}
-            />
+            <div :for={{dom_id, child} <- @streams.children} id={dom_id}>
+              <.child_profile_card child={child} />
+            </div>
+            <%!-- Add Child Button --%>
+            <div class="flex-shrink-0 w-64 snap-start">
+              <button class="w-full h-full min-h-[120px] border-2 border-dashed border-hero-grey-200 rounded-2xl flex items-center justify-center gap-2 text-hero-grey-500 hover:border-hero-cyan hover:text-hero-cyan transition-colors">
+                <.icon name="hero-plus-mini" class="w-6 h-6" />
+                <span><%= gettext("Add Child") %></span>
+              </button>
+            </div>
           </div>
-        </div>
-        
+        </section>
+        <%!-- Weekly Activity Goal --%>
+        <section class="mb-8">
+          <.weekly_goal_card goal={@activity_goal} />
+        </section>
+
     <!-- Quick Actions -->
         <div>
           <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:body)]}>
@@ -173,6 +243,36 @@ defmodule KlassHeroWeb.DashboardLive do
             />
           </div>
         </div>
+        <%!-- Family Achievements --%>
+        <section class="mb-8">
+          <.family_achievements achievements={@achievements} />
+        </section>
+        <%!-- Recommended Programs --%>
+        <section class="mb-8" :if={@recommended_programs != []}>
+          <div class="flex items-center gap-2 mb-4">
+            <.icon name="hero-sparkles-mini" class="w-6 h-6 text-hero-yellow" />
+            <h2 class="text-xl font-semibold text-hero-charcoal">
+              <%= gettext("Recommended For You") %>
+            </h2>
+          </div>
+
+          <p class="text-hero-grey-500 mb-4">
+            <%= gettext("Based on your children's interests") %>
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div :for={program <- @recommended_programs}>
+              <%!-- Program cards will be implemented when Program Catalog context is ready --%>
+              <div class="bg-white rounded-2xl shadow-md p-4">
+                <p class="text-hero-grey-500">{program.title}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <%!-- Refer & Earn --%>
+        <section class="mb-8">
+          <.referral_card referral_stats={@referral_stats} />
+        </section>
       </div>
     </div>
     """
