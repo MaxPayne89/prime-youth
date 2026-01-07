@@ -14,48 +14,13 @@
    curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui.js
    Make sure to look at the daisyUI changelog: https://daisyui.com/docs/changelog/ */
 @plugin "../vendor/daisyui" {
-  themes: ["light", "dark"];
+  themes: ["light"];
 }
 
 /* daisyUI theme plugin. You can update this file by fetching the latest version with:
   curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui-theme.js
-  We ship with two themes, a light one inspired on Phoenix colors and a dark one inspired
-  on Elixir colors. Build your own at: https://daisyui.com/theme-generator/ */
-@plugin "../vendor/daisyui-theme" {
-  name: "dark";
-  default: false;
-  prefersdark: true;
-  color-scheme: "dark";
-  --color-base-100: oklch(15% 0.01 0); /* Dark background */
-  --color-base-200: oklch(12% 0.01 0);
-  --color-base-300: oklch(9% 0.01 0);
-  --color-base-content: oklch(93% 0.06 75); /* Hero Pink for dark mode text */
-  --color-primary: oklch(78% 0.16 195); /* Hero Blue #00D4FF */
-  --color-primary-content: oklch(98% 0.02 195);
-  --color-secondary: oklch(82% 0 0); /* Hero Grey #C7C7C7 */
-  --color-secondary-content: oklch(20% 0 0);
-  --color-accent: oklch(97% 0.22 105); /* Hero Yellow #FFFF36 */
-  --color-accent-content: oklch(20% 0.10 105);
-  --color-neutral: oklch(37% 0.044 257.287);
-  --color-neutral-content: oklch(98% 0.003 247.858);
-  --color-info: oklch(62% 0.214 259.815);
-  --color-info-content: oklch(97% 0.013 236.62);
-  --color-success: oklch(60% 0.118 184.704);
-  --color-success-content: oklch(98% 0.014 180.72);
-  --color-warning: oklch(66% 0.179 58.318);
-  --color-warning-content: oklch(98% 0.022 95.277);
-  --color-error: oklch(58% 0.253 17.585);
-  --color-error-content: oklch(96% 0.015 12.422);
-  --radius-selector: 0.25rem;
-  --radius-field: 0.25rem;
-  --radius-box: 0.5rem;
-  --size-selector: 0.21875rem;
-  --size-field: 0.21875rem;
-  --border: 1.5px;
-  --depth: 1;
-  --noise: 0;
-}
-
+  We ship with a light theme inspired on Phoenix/Klass Hero brand colors.
+  Build your own at: https://daisyui.com/theme-generator/ */
 @plugin "../vendor/daisyui-theme" {
   name: "light";
   default: true;
@@ -95,9 +60,6 @@
 @custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
 @custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
 @custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
-
-/* Use the data attribute for dark mode  */
-@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 /* Make LiveView wrapper divs transparent for layout */
 [data-phx-session], [data-phx-teleported-src] { display: contents }
