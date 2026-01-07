@@ -181,11 +181,11 @@ defmodule KlassHeroWeb.DashboardLive do
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold text-hero-charcoal flex items-center gap-2">
               <.icon name="hero-user-group-mini" class="w-6 h-6 text-hero-cyan" />
-              <%= gettext("My Children") %>
+              {gettext("My Children")}
             </h2>
             <%!-- Placeholder link - will navigate to /children when children management page is implemented --%>
             <span class="text-hero-cyan cursor-not-allowed opacity-50">
-              <%= gettext("View All") %>
+              {gettext("View All")}
             </span>
           </div>
 
@@ -198,10 +198,10 @@ defmodule KlassHeroWeb.DashboardLive do
               <.child_profile_card child={child} />
             </div>
             <%!-- Add Child Button --%>
-            <div class="flex-shrink-0 w-64 snap-start">
+            <div id="add-child-button" class="flex-shrink-0 w-64 snap-start">
               <button class="w-full h-full min-h-[120px] border-2 border-dashed border-hero-grey-200 rounded-2xl flex items-center justify-center gap-2 text-hero-grey-500 hover:border-hero-cyan hover:text-hero-cyan transition-colors">
                 <.icon name="hero-plus-mini" class="w-6 h-6" />
-                <span><%= gettext("Add Child") %></span>
+                <span>{gettext("Add Child")}</span>
               </button>
             </div>
           </div>
@@ -210,7 +210,7 @@ defmodule KlassHeroWeb.DashboardLive do
         <section class="mb-8">
           <.weekly_goal_card goal={@activity_goal} />
         </section>
-
+        
     <!-- Quick Actions -->
         <div>
           <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:body)]}>
@@ -248,16 +248,16 @@ defmodule KlassHeroWeb.DashboardLive do
           <.family_achievements achievements={@achievements} />
         </section>
         <%!-- Recommended Programs --%>
-        <section class="mb-8" :if={@recommended_programs != []}>
+        <section :if={@recommended_programs != []} class="mb-8">
           <div class="flex items-center gap-2 mb-4">
             <.icon name="hero-sparkles-mini" class="w-6 h-6 text-hero-yellow" />
             <h2 class="text-xl font-semibold text-hero-charcoal">
-              <%= gettext("Recommended For You") %>
+              {gettext("Recommended For You")}
             </h2>
           </div>
 
           <p class="text-hero-grey-500 mb-4">
-            <%= gettext("Based on your children's interests") %>
+            {gettext("Based on your children's interests")}
           </p>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

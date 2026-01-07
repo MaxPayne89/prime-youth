@@ -182,7 +182,7 @@ defmodule KlassHeroWeb.CompositeComponents do
       <div class="flex items-center gap-2 mb-4">
         <.icon name="hero-trophy-mini" class="w-6 h-6 text-white" />
         <h2 class="text-xl font-semibold text-white">
-          <%= gettext("Weekly Activity Goal") %>
+          {gettext("Weekly Activity Goal")}
         </h2>
       </div>
 
@@ -191,7 +191,7 @@ defmodule KlassHeroWeb.CompositeComponents do
           {@goal.percentage}%
         </div>
         <p class="text-white/90 text-sm">
-          {@goal.current} / {@goal.target} <%= gettext("activities completed") %>
+          {@goal.current} / {@goal.target} {gettext("activities completed")}
         </p>
       </div>
 
@@ -262,7 +262,7 @@ defmodule KlassHeroWeb.CompositeComponents do
       <div class="flex items-center gap-2 mb-4">
         <.icon name="hero-trophy-mini" class="w-6 h-6 text-hero-yellow" />
         <h2 class="text-xl font-semibold text-hero-charcoal">
-          <%= gettext("Family Achievements") %>
+          {gettext("Family Achievements")}
         </h2>
       </div>
 
@@ -296,27 +296,27 @@ defmodule KlassHeroWeb.CompositeComponents do
       <div class="flex items-center gap-2 mb-4">
         <.icon name="hero-user-group-mini" class="w-6 h-6 text-hero-cyan" />
         <h2 class="text-xl font-semibold">
-          <%= gettext("Refer & Earn") %>
+          {gettext("Refer & Earn")}
         </h2>
       </div>
 
       <p class="text-hero-grey-300 mb-6">
-        <%= gettext("Invite friends and earn points!") %>
+        {gettext("Invite friends and earn points!")}
       </p>
 
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="bg-white/10 p-4 rounded-lg text-center">
           <div class="text-3xl font-bold text-hero-cyan">{@referral_stats.count}</div>
-          <div class="text-sm text-hero-grey-300"><%= gettext("Friends Referred") %></div>
+          <div class="text-sm text-hero-grey-300">{gettext("Friends Referred")}</div>
         </div>
         <div class="bg-white/10 p-4 rounded-lg text-center">
           <div class="text-3xl font-bold text-hero-yellow">{@referral_stats.points}</div>
-          <div class="text-sm text-hero-grey-300"><%= gettext("Points Earned") %></div>
+          <div class="text-sm text-hero-grey-300">{gettext("Points Earned")}</div>
         </div>
       </div>
 
       <div class="mb-6">
-        <h3 class="text-sm font-semibold mb-2"><%= gettext("Your Referral Code") %></h3>
+        <h3 class="text-sm font-semibold mb-2">{gettext("Your Referral Code")}</h3>
         <div class="flex gap-2">
           <div class="flex-1 bg-white/10 p-3 rounded-lg font-mono text-hero-cyan">
             {@referral_stats.code}
@@ -345,7 +345,7 @@ defmodule KlassHeroWeb.CompositeComponents do
           Theme.transition(:normal)
         ]}
       >
-        <%= gettext("Share Code") %>
+        {gettext("Share Code")}
       </button>
     </div>
     """

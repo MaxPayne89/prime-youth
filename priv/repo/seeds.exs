@@ -11,11 +11,11 @@
 # and so on) as they will fail if something goes wrong.
 
 alias KlassHero.Accounts.User
-alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
-alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
+alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
 alias KlassHero.Repo
 

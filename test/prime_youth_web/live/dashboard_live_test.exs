@@ -9,7 +9,7 @@ defmodule KlassHeroWeb.DashboardLiveTest do
     test "renders dashboard page successfully", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      assert has_element?(view, "h3", "My Children")
+      assert has_element?(view, "h2", "My Children")
       assert has_element?(view, "h3", "Quick Actions")
     end
 
@@ -63,11 +63,11 @@ defmodule KlassHeroWeb.DashboardLiveTest do
       assert html =~ "Quick Actions"
     end
 
-    test "children section has View All button", %{conn: conn} do
+    test "children section has View All placeholder", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      # Verify "View All" button exists for children section
-      assert has_element?(view, "button", "View All")
+      # Verify "View All" placeholder exists for children section (currently disabled)
+      assert has_element?(view, "span", "View All")
     end
 
     test "settings link navigates to settings page", %{conn: conn} do
@@ -85,13 +85,12 @@ defmodule KlassHeroWeb.DashboardLiveTest do
       assert html =~ "Quick Actions"
     end
 
-    test "responsive grid layout for children cards", %{conn: conn} do
+    test "children section uses horizontal scroll layout", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
-      # Verify responsive grid classes are present
-      assert html =~ "md:grid-cols-2"
-      assert html =~ "lg:grid-cols-1"
-      assert html =~ "xl:grid-cols-2"
+      # Verify horizontal scroll layout classes are present for children carousel
+      assert html =~ "overflow-x-auto"
+      assert html =~ "snap-x"
     end
 
     test "profile header shows correct number of enrolled children", %{conn: conn} do
