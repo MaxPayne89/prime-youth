@@ -32,13 +32,13 @@ defmodule KlassHeroWeb.Hooks.RestoreLocale do
 
   defp determine_locale(session, socket) do
     cond do
-      # 1. Check authenticated user preference (highest priority for logged-in users)
-      user_locale = get_user_locale(socket) ->
-        user_locale
-
-      # 2. Fall back to session locale (set by plug)
+      # 1. Session locale (set by plug - includes query param for explicit user choice)
       session_locale = Map.get(session, "locale") ->
         session_locale
+
+      # 2. Fall back to authenticated user preference
+      user_locale = get_user_locale(socket) ->
+        user_locale
 
       # 3. Default
       true ->
