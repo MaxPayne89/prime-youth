@@ -174,7 +174,7 @@ defmodule KlassHeroWeb.CompositeComponents do
     ~H"""
     <div class={[
       "w-full max-w-2xl mx-auto p-6",
-      Theme.gradient(:hero),
+      "bg-hero-blue-500",
       Theme.rounded(:xl),
       "shadow-lg",
       @class
@@ -197,7 +197,7 @@ defmodule KlassHeroWeb.CompositeComponents do
 
       <div class="w-full bg-white/30 rounded-full h-3 mb-4">
         <div
-          class="bg-hero-yellow h-3 rounded-full transition-all duration-300"
+          class="bg-white h-3 rounded-full transition-all duration-300"
           style={"width: #{@goal.percentage}%"}
         >
         </div>

@@ -18,16 +18,16 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
     # Use with_child variant to ensure children are displayed on dashboard
     setup :register_and_log_in_user_with_child
 
-    test "displays 'Quick Actions' translation correctly in English", %{conn: conn} do
+    test "displays 'My Children' translation correctly in English", %{conn: conn} do
       {:ok, view, _html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
 
-      assert_translation(view, "Quick Actions", "en")
+      assert_translation(view, "My Children", "en")
     end
 
-    test "displays 'Schnellaktionen' translation correctly in German", %{conn: conn} do
+    test "displays 'Meine Kinder' translation correctly in German", %{conn: conn} do
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
 
-      assert_translation(view, "Quick Actions", "de")
+      assert_translation(view, "My Children", "de")
     end
 
     test "locale is properly set in view assigns", %{conn: conn} do

@@ -91,9 +91,49 @@ defmodule KlassHeroWeb.DashboardLive do
     ]
   end
 
-  defp get_recommended_programs(_socket) do
-    # Mock empty list for now - will be populated when program catalog is implemented
-    []
+  defp get_recommended_programs(socket) do
+    children = get_children_for_parent(socket)
+    first_child_name = get_first_child_name(children)
+
+    %{
+      child_name: first_child_name,
+      programs: [
+        %{
+          id: 1,
+          title: gettext("Creative Art Workshop"),
+          category: gettext("Arts & Crafts"),
+          age_range: "6-12",
+          schedule: gettext("Saturdays 10:00 AM"),
+          price: "€15",
+          image_url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400"
+        },
+        %{
+          id: 2,
+          title: gettext("Junior Soccer Academy"),
+          category: gettext("Sports"),
+          age_range: "5-10",
+          schedule: gettext("Tuesdays & Thursdays 4:00 PM"),
+          price: "€20",
+          image_url: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400"
+        },
+        %{
+          id: 3,
+          title: gettext("Coding for Kids"),
+          category: gettext("Technology"),
+          age_range: "8-14",
+          schedule: gettext("Wednesdays 3:30 PM"),
+          price: "€25",
+          image_url: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400"
+        }
+      ]
+    }
+  end
+
+  defp get_first_child_name(children) do
+    case children do
+      [first | _] -> first.first_name || gettext("Your Child")
+      [] -> gettext("Your Child")
+    end
   end
 
   defp get_referral_stats(user) do
@@ -113,68 +153,7 @@ defmodule KlassHeroWeb.DashboardLive do
   def render(assigns) do
     ~H"""
     <div class={["min-h-screen", Theme.bg(:muted)]}>
-      <!-- Profile Header -->
-      <.page_header variant={:gradient} rounded>
-        <:profile>
-          <img
-            src={@user.avatar}
-            alt="Profile"
-            class={["w-12 h-12 border-2 border-white/30", Theme.rounded(:full)]}
-          />
-          <div>
-            <h2 class={Theme.typography(:card_title)}>{@user.name}</h2>
-            <p class="text-white/80 text-sm">
-              {ngettext("%{count} child enrolled", "%{count} children enrolled", @children_count,
-                count: @children_count
-              )}
-            </p>
-          </div>
-        </:profile>
-        <:actions>
-          <button class={[
-            "p-2 bg-white/20 hover:bg-white/30",
-            Theme.transition(:normal),
-            Theme.rounded(:full)
-          ]}>
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 17h5l-5 5-5-5h5v-7a1 1 0 011-1h3a1 1 0 011 1v7z"
-              >
-              </path>
-            </svg>
-          </button>
-          <.link
-            navigate={~p"/settings"}
-            class={[
-              "p-2 bg-white/20 hover:bg-white/30",
-              Theme.transition(:normal),
-              Theme.rounded(:full)
-            ]}
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              >
-              </path>
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              >
-              </path>
-            </svg>
-          </.link>
-        </:actions>
-      </.page_header>
-      
-    <!-- Content Area -->
+      <!-- Content Area -->
       <div class="p-6 space-y-6">
         <!-- Children Profiles - Horizontal Scroll -->
         <section class="mb-8">
@@ -210,49 +189,16 @@ defmodule KlassHeroWeb.DashboardLive do
         <section class="mb-8">
           <.weekly_goal_card goal={@activity_goal} />
         </section>
-        
-    <!-- Quick Actions -->
-        <div>
-          <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:body)]}>
-            {gettext("Quick Actions")}
-          </h3>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <.quick_action_button
-              icon="hero-calendar"
-              label={gettext("Book Activity")}
-              bg_color={Theme.bg(:primary_light)}
-              icon_color={Theme.text_color(:primary)}
-            />
-            <.quick_action_button
-              icon="hero-clock"
-              label={gettext("View Schedule")}
-              bg_color={Theme.bg(:secondary_light)}
-              icon_color={Theme.text_color(:secondary)}
-            />
-            <.quick_action_button
-              icon="hero-chat-bubble-left-right"
-              label={gettext("Messages")}
-              bg_color={Theme.bg(:accent_light)}
-              icon_color={Theme.text_color(:accent)}
-            />
-            <.quick_action_button
-              icon="hero-credit-card"
-              label={gettext("Payments")}
-              bg_color={Theme.bg(:primary_light)}
-              icon_color={Theme.text_color(:primary)}
-            />
-          </div>
-        </div>
         <%!-- Family Achievements --%>
         <section class="mb-8">
           <.family_achievements achievements={@achievements} />
         </section>
         <%!-- Recommended Programs --%>
-        <section :if={@recommended_programs != []} class="mb-8">
+        <section class="mb-8">
           <div class="flex items-center gap-2 mb-4">
-            <.icon name="hero-sparkles-mini" class="w-6 h-6 text-hero-yellow" />
+            <.icon name="hero-sparkles-mini" class="w-6 h-6 text-hero-cyan" />
             <h2 class="text-xl font-semibold text-hero-charcoal">
-              {gettext("Recommended For You")}
+              {gettext("Recommended for %{name}", name: @recommended_programs.child_name)}
             </h2>
           </div>
 
@@ -261,10 +207,30 @@ defmodule KlassHeroWeb.DashboardLive do
           </p>
 
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div :for={program <- @recommended_programs}>
-              <%!-- Program cards will be implemented when Program Catalog context is ready --%>
-              <div class="bg-white rounded-2xl shadow-md p-4">
-                <p class="text-hero-grey-500">{program.title}</p>
+            <div
+              :for={program <- @recommended_programs.programs}
+              class="bg-white rounded-2xl shadow-md overflow-hidden"
+            >
+              <img
+                src={program.image_url}
+                alt={program.title}
+                class="w-full h-32 object-cover"
+              />
+              <div class="p-4">
+                <span class="inline-block px-2 py-1 text-xs font-medium bg-hero-blue-100 text-hero-blue-600 rounded-full mb-2">
+                  {program.category}
+                </span>
+                <h3 class="font-semibold text-hero-charcoal mb-1">{program.title}</h3>
+                <p class="text-sm text-hero-grey-500 mb-2">
+                  <.icon name="hero-clock-mini" class="w-4 h-4 inline mr-1" />
+                  {program.schedule}
+                </p>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-hero-grey-400">
+                    {gettext("Ages")} {program.age_range}
+                  </span>
+                  <span class="font-semibold text-hero-blue-600">{program.price}</span>
+                </div>
               </div>
             </div>
           </div>
