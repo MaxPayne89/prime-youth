@@ -109,6 +109,7 @@ defmodule KlassHeroWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
+      layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
