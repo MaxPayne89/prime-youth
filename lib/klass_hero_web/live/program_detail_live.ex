@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   import KlassHeroWeb.Live.SampleFixtures
   import KlassHeroWeb.ReviewComponents
+  import KlassHeroWeb.UIComponents
 
   alias KlassHero.ProgramCatalog.Application.UseCases.GetProgramById
   alias KlassHeroWeb.Theme
@@ -90,16 +91,15 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
-      <div class="relative">
-        <div class={["h-64 relative overflow-hidden", @program.gradient_class]}>
-          <div class="absolute inset-0 bg-black/20"></div>
+    <div class={["min-h-screen pb-24 md:pb-6", Theme.bg(:muted)]}>
+      <%!-- Hero Section --%>
+      <div class={["relative", Theme.gradient(:hero)]}>
+        <div class="absolute inset-0 bg-black/20"></div>
 
-          <div class="absolute top-4 left-4 z-10">
+        <%!-- Navigation Bar --%>
+        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+          <div class="flex items-center justify-between">
             <.back_button phx-click="back_to_programs" />
-          </div>
-
-          <div class="absolute top-4 right-4 z-10">
             <button
               phx-click="toggle_favorite"
               class={[
@@ -113,97 +113,258 @@ defmodule KlassHeroWeb.ProgramDetailLive do
               </svg>
             </button>
           </div>
+        </div>
 
-          <div class="absolute inset-0 flex items-center justify-center">
-            <div class={[
-              "w-24 h-24 bg-white/20 backdrop-blur-sm flex items-center justify-center",
-              Theme.rounded(:full)
-            ]}>
-              <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d={@program.icon_path}
-                >
-                </path>
-              </svg>
-            </div>
+        <%!-- Program Icon --%>
+        <div class="relative flex justify-center py-6">
+          <div class={[
+            "w-20 h-20 bg-white/20 backdrop-blur-sm flex items-center justify-center",
+            Theme.rounded(:full)
+          ]}>
+            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d={@program.icon_path}
+              >
+              </path>
+            </svg>
           </div>
         </div>
 
-        <div class={["absolute bottom-0 left-0 right-0 rounded-t-3xl p-6", Theme.bg(:surface)]}>
-          <div class="flex items-start justify-between mb-4">
-            <div class="flex-1">
-              <h1 class={[Theme.typography(:section_title), "mb-2", Theme.text_color(:heading)]}>
-                {@program.title}
-              </h1>
-              <div class={["flex items-center space-x-4 text-sm mb-2", Theme.text_color(:secondary)]}>
-                <span class="flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    >
-                    </path>
-                  </svg>
-                  {@program.schedule}
-                </span>
-                <span class="flex items-center">
-                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                    >
-                    </path>
-                  </svg>
-                  {gettext("Ages %{range}", range: @program.age_range)}
-                </span>
-              </div>
-              <div class="flex items-center space-x-2">
-                <span
-                  :if={@program.spots_available <= 5}
-                  class={[
-                    "px-2 py-1 text-xs font-medium",
-                    Theme.rounded(:full),
-                    if(@program.spots_available <= 2,
-                      do: "bg-orange-100 text-orange-700",
-                      else: "bg-hero-yellow-100 text-hero-yellow-700"
-                    )
-                  ]}
-                >
-                  {gettext("Only %{count} spots left!", count: @program.spots_available)}
-                </span>
-                <span class={[
-                  "bg-green-100 text-green-700 px-2 py-1 text-xs font-medium",
-                  Theme.rounded(:full)
-                ]}>
-                  {gettext("✓ No hidden fees")}
-                </span>
-              </div>
+        <%!-- Program Title & Info (Centered in Hero) --%>
+        <div class="relative pb-12 px-4">
+          <div class="max-w-4xl mx-auto text-center text-white">
+            <h1 class={[Theme.typography(:page_title), "mb-3"]}>
+              {@program.title}
+            </h1>
+            <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-white/90 mb-4">
+              <span class="flex items-center">
+                <.icon name="hero-clock" class="w-4 h-4 mr-1" />
+                {@program.schedule}
+              </span>
+              <span class="flex items-center">
+                <.icon name="hero-user-group" class="w-4 h-4 mr-1" />
+                {gettext("Ages %{range}", range: @program.age_range)}
+              </span>
+              <span class="flex items-center">
+                <.icon name="hero-map-pin" class="w-4 h-4 mr-1" /> Berlin
+              </span>
             </div>
-            <div class="text-right ml-4">
-              <p class={[Theme.typography(:page_title), Theme.text_color(:secondary)]}>
+            <%!-- Badges --%>
+            <div class="flex flex-wrap justify-center gap-2">
+              <span
+                :if={@program.spots_available <= 5}
+                class={[
+                  "px-3 py-1 text-xs font-medium bg-white/90 backdrop-blur-sm",
+                  Theme.rounded(:full),
+                  if(@program.spots_available <= 2,
+                    do: "text-orange-700",
+                    else: "text-hero-yellow-700"
+                  )
+                ]}
+              >
+                {gettext("Only %{count} spots left!", count: @program.spots_available)}
+              </span>
+              <span class={[
+                "px-3 py-1 text-xs font-medium bg-white/90 backdrop-blur-sm text-green-700",
+                Theme.rounded(:full)
+              ]}>
+                {gettext("✓ No hidden fees")}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <%!-- Pricing Card (Overlapping Hero) --%>
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
+        <div class={[
+          Theme.bg(:surface),
+          Theme.rounded(:xl),
+          "p-6 shadow-lg border",
+          Theme.border_color(:light)
+        ]}>
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p class={[Theme.typography(:page_title), Theme.text_color(:heading)]}>
                 {format_total_price(@program.price)}
               </p>
-              <p class={["text-sm", Theme.text_color(:muted)]}>{gettext("Total: Sept 1 - Oct 26")}</p>
-              <p class={["text-xs", Theme.text_color(:subtle)]}>
+              <p class={["text-sm", Theme.text_color(:muted)]}>
+                {gettext("Total: Sept 1 - Oct 26")}
+              </p>
+              <p class={["text-xs mt-1", Theme.text_color(:subtle)]}>
                 {gettext("%{price}/week • 4 weeks", price: format_price(@program.price))}
               </p>
               <p class={["text-xs mt-1", Theme.text_color(:secondary)]}>
                 {gettext("with %{name}", name: @instructor.name)}
               </p>
             </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button
+                id="book-now-button"
+                phx-click="enroll_now"
+                class={[
+                  "text-white py-3 px-6",
+                  Theme.typography(:card_title),
+                  Theme.rounded(:lg),
+                  "hover:shadow-lg transform hover:scale-[1.02]",
+                  Theme.transition(:normal),
+                  Theme.gradient(:primary)
+                ]}
+              >
+                {gettext("Book Now")}
+              </button>
+              <button
+                phx-click="save_for_later"
+                class={[
+                  "py-3 px-6 border-2",
+                  Theme.border_color(:medium),
+                  Theme.text_color(:body),
+                  Theme.rounded(:lg),
+                  "hover:bg-hero-grey-50",
+                  Theme.transition(:normal)
+                ]}
+              >
+                {gettext("Save for Later")}
+              </button>
+            </div>
           </div>
+          <p class={[
+            "text-center text-sm mt-4 pt-4 border-t",
+            Theme.border_color(:light),
+            Theme.text_color(:secondary)
+          ]}>
+            <.icon name="hero-check-circle" class="w-4 h-4 inline mr-1 text-green-500" />
+            {gettext("Free cancellation up to 48 hours before start date")}
+          </p>
         </div>
       </div>
 
-      <div class="mt-20 p-6 max-w-4xl mx-auto">
-        <div class="mb-6">
+      <%!-- Main Content Sections --%>
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <%!-- About This Program Section --%>
+        <section>
+          <div class={[
+            Theme.bg(:surface),
+            Theme.rounded(:xl),
+            "shadow-sm border overflow-hidden",
+            Theme.border_color(:light)
+          ]}>
+            <div class={["p-4 border-b", Theme.border_color(:light)]}>
+              <h3 class={["font-semibold flex items-center gap-2", Theme.text_color(:heading)]}>
+                <.icon name="hero-information-circle" class="w-5 h-5 text-hero-blue-500" />
+                {gettext("About This Program")}
+              </h3>
+            </div>
+            <div class="p-6">
+              <p class={["leading-relaxed mb-6", Theme.text_color(:secondary)]}>
+                {@program.description}
+              </p>
+
+              <div class="space-y-3">
+                <h4 class={["font-semibold", Theme.text_color(:heading)]}>
+                  {gettext("What's Included:")}
+                </h4>
+                <ul class={["space-y-2 text-sm", Theme.text_color(:secondary)]}>
+                  <li :for={item <- @program.included_items} class="flex items-start">
+                    <.icon name="hero-check" class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" />
+                    <span>{item}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <%!-- Meet Your Instructor Section --%>
+        <section>
+          <div class={[
+            Theme.bg(:surface),
+            Theme.rounded(:xl),
+            "shadow-sm border overflow-hidden",
+            Theme.border_color(:light)
+          ]}>
+            <div class={["p-4 border-b", Theme.border_color(:light)]}>
+              <h3 class={["font-semibold flex items-center gap-2", Theme.text_color(:heading)]}>
+                <.icon name="hero-user" class="w-5 h-5 text-hero-blue-500" />
+                {gettext("Meet Your Instructor")}
+              </h3>
+            </div>
+            <div class="p-6">
+              <div class="flex items-start space-x-4">
+                <img
+                  src={@instructor.avatar}
+                  alt={gettext("Instructor")}
+                  class={["w-16 h-16 object-cover", Theme.rounded(:full)]}
+                />
+                <div class="flex-1">
+                  <h4 class={["font-semibold", Theme.text_color(:heading)]}>
+                    {@instructor.name}
+                  </h4>
+                  <p class={["text-sm mb-2", Theme.text_color(:muted)]}>
+                    {@instructor.credentials}
+                  </p>
+                  <p class={["text-sm leading-relaxed mb-3", Theme.text_color(:secondary)]}>
+                    {@instructor.bio}
+                  </p>
+                  <div class="flex items-center">
+                    <.star_rating
+                      rating={@instructor.rating}
+                      size={:medium}
+                      show_count
+                      count={@instructor.review_count}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <%!-- What Other Parents Say Section --%>
+        <section>
+          <div class={[
+            Theme.bg(:surface),
+            Theme.rounded(:xl),
+            "shadow-sm border overflow-hidden",
+            Theme.border_color(:light)
+          ]}>
+            <div class={["p-4 border-b", Theme.border_color(:light)]}>
+              <h3 class={["font-semibold flex items-center gap-2", Theme.text_color(:heading)]}>
+                <.icon name="hero-star" class="w-5 h-5 text-hero-yellow-400" />
+                {gettext("What Other Parents Say")}
+              </h3>
+            </div>
+            <div class="p-6">
+              <div class="space-y-4">
+                <.review_card
+                  :for={review <- @reviews}
+                  parent_name={review.parent_name}
+                  parent_avatar={review.parent_avatar}
+                  child_name={review.child_name}
+                  child_age={review.child_age}
+                  rating={5.0}
+                  comment={review.comment}
+                  verified={true}
+                />
+              </div>
+
+              <div class="text-center mt-6 pt-4 border-t border-hero-grey-100">
+                <button class={[
+                  Theme.text_color(:primary),
+                  "text-sm font-medium hover:opacity-80"
+                ]}>
+                  {gettext("View all %{count} reviews →", count: @instructor.review_count)}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <%!-- Bottom CTA (Hidden on Mobile - Mobile has sticky footer) --%>
+        <div class="hidden md:block mt-8">
           <button
             phx-click="enroll_now"
             class={[
@@ -215,151 +376,37 @@ defmodule KlassHeroWeb.ProgramDetailLive do
               Theme.gradient(:primary)
             ]}
           >
-            {gettext("Book Now - %{price}", price: format_total_price(@program.price))}
+            {gettext("Enroll Now - %{price}", price: format_total_price(@program.price))}
           </button>
-          <p class={["text-center text-sm mt-2", Theme.text_color(:secondary)]}>
-            <svg
-              class="w-4 h-4 inline mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              >
-              </path>
-            </svg>
-            {gettext("Free cancellation up to 48 hours before start date")}
-          </p>
         </div>
+      </div>
 
-        <div class="space-y-6">
-          <div class={[
-            Theme.bg(:surface),
-            Theme.rounded(:xl),
-            "p-6 shadow-sm border",
-            Theme.border_color(:light)
-          ]}>
-            <h3 class={[Theme.typography(:card_title), "mb-3", Theme.text_color(:heading)]}>
-              {gettext("About This Program")}
-            </h3>
-            <p class={["leading-relaxed mb-4", Theme.text_color(:secondary)]}>
-              {@program.description}
+      <%!-- Mobile Sticky CTA Footer --%>
+      <div class={[
+        "fixed bottom-0 left-0 right-0 md:hidden border-t p-4 z-50",
+        Theme.bg(:surface),
+        Theme.border_color(:light)
+      ]}>
+        <div class="flex items-center justify-between gap-4 max-w-4xl mx-auto">
+          <div>
+            <p class={["font-semibold", Theme.text_color(:heading)]}>
+              {format_total_price(@program.price)}
             </p>
-
-            <div class="space-y-2">
-              <h4 class={[Theme.typography(:card_title), Theme.text_color(:heading)]}>
-                {gettext("What's Included:")}
-              </h4>
-              <ul class={["space-y-2 text-sm", Theme.text_color(:secondary)]}>
-                <li :for={item <- @program.included_items} class="flex items-center">
-                  <svg
-                    class="w-4 h-4 text-green-500 mr-2 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M5 13l4 4L19 7"
-                    >
-                    </path>
-                  </svg>
-                  {item}
-                </li>
-              </ul>
-            </div>
+            <p class={["text-xs", Theme.text_color(:muted)]}>
+              {gettext("%{price}/week", price: format_price(@program.price))}
+            </p>
           </div>
-
-          <div class={[
-            Theme.bg(:surface),
-            Theme.rounded(:xl),
-            "p-6 shadow-sm border",
-            Theme.border_color(:light)
-          ]}>
-            <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:heading)]}>
-              {gettext("Meet Your Instructor")}
-            </h3>
-            <div class="flex items-start space-x-4">
-              <img
-                src={@instructor.avatar}
-                alt="Instructor"
-                class={["w-16 h-16", Theme.rounded(:full)]}
-              />
-              <div class="flex-1">
-                <h4 class={[Theme.typography(:card_title), Theme.text_color(:heading)]}>
-                  {@instructor.name}
-                </h4>
-                <p class={["text-sm mb-2", Theme.text_color(:secondary)]}>
-                  {@instructor.credentials}
-                </p>
-                <p class={["text-sm leading-relaxed", Theme.text_color(:secondary)]}>
-                  {@instructor.bio}
-                </p>
-                <div class="flex items-center mt-2">
-                  <.star_rating
-                    rating={@instructor.rating}
-                    size={:medium}
-                    show_count
-                    count={@instructor.review_count}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class={[
-            Theme.bg(:surface),
-            Theme.rounded(:xl),
-            "p-6 shadow-sm border",
-            Theme.border_color(:light)
-          ]}>
-            <h3 class={[Theme.typography(:card_title), "mb-4", Theme.text_color(:heading)]}>
-              {gettext("What Other Parents Say")}
-            </h3>
-            <div class="space-y-4">
-              <.review_card
-                :for={review <- @reviews}
-                parent_name={review.parent_name}
-                parent_avatar={review.parent_avatar}
-                child_name={review.child_name}
-                child_age={review.child_age}
-                rating={5.0}
-                comment={review.comment}
-                verified={true}
-              />
-            </div>
-
-            <div class="text-center mt-4">
-              <button class={[
-                Theme.text_color(:primary),
-                "text-sm font-medium hover:opacity-80 underline"
-              ]}>
-                {gettext("View all %{count} reviews", count: @instructor.review_count)}
-              </button>
-            </div>
-          </div>
-
-          <div class="mt-8">
-            <button
-              phx-click="enroll_now"
-              class={[
-                "w-full text-white py-4 px-6",
-                Theme.typography(:card_title),
-                Theme.rounded(:lg),
-                "hover:shadow-lg transform hover:scale-[1.02]",
-                Theme.transition(:normal),
-                Theme.gradient(:primary)
-              ]}
-            >
-              {gettext("Enroll Now - %{price}", price: format_total_price(@program.price))}
-            </button>
-          </div>
+          <button
+            phx-click="enroll_now"
+            class={[
+              "flex-1 text-white py-3 px-4 max-w-xs",
+              Theme.typography(:card_title),
+              Theme.rounded(:lg),
+              Theme.gradient(:primary)
+            ]}
+          >
+            {gettext("Book Now")}
+          </button>
         </div>
       </div>
     </div>

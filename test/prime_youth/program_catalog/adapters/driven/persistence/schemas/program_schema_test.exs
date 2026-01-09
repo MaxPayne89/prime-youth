@@ -13,7 +13,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
         price: Decimal.new("150.00"),
         pricing_period: "per week",
         spots_available: 20,
-        gradient_class: "from-blue-500 to-purple-600",
         icon_path: "/images/soccer.svg"
       }
 

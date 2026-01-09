@@ -122,7 +122,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       period: program.pricing_period,
       spots_left: program.spots_available,
       # Default UI properties (these will come from the database in the future)
-      gradient_class: program.gradient_class || default_gradient_class(),
+      gradient_class: default_gradient_class(),
       icon_path: program.icon_path || default_icon_path()
     }
 

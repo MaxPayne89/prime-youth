@@ -240,7 +240,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         price: Decimal.new("100.00"),
         pricing_period: "per week",
         spots_available: 10,
-        gradient_class: "custom-gradient",
         icon_path: "/custom/icon.svg"
       })
 
@@ -268,7 +267,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         assert is_binary(program.pricing_period) && program.pricing_period != ""
         assert is_integer(program.spots_available) && program.spots_available >= 0
 
-        if program.gradient_class, do: assert(is_binary(program.gradient_class))
         if program.icon_path, do: assert(is_binary(program.icon_path))
 
         assert match?(%DateTime{}, program.inserted_at)
@@ -285,7 +283,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         price: Decimal.new("100.00"),
         pricing_period: "per week",
         spots_available: 10,
-        gradient_class: "gradient-1",
         icon_path: "/icon1.svg"
       })
 
@@ -304,11 +301,9 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
       assert length(programs) == 2
 
       program1 = Enum.find(programs, &(&1.title == "Program 1"))
-      assert program1.gradient_class == "gradient-1"
       assert program1.icon_path == "/icon1.svg"
 
       program2 = Enum.find(programs, &(&1.title == "Program 2"))
-      assert program2.gradient_class == nil
       assert program2.icon_path == nil
     end
   end

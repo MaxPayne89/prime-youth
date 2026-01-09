@@ -212,7 +212,7 @@ defmodule KlassHeroWeb.BookingLive do
               <div class={[
                 "w-16 h-16 flex items-center justify-center text-3xl",
                 Theme.rounded(:lg),
-                @program.gradient_class
+                Theme.gradient(:hero)
               ]}>
                 🎨
               </div>
