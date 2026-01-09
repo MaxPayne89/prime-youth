@@ -64,7 +64,6 @@ defmodule KlassHero.Factory do
       price: Decimal.new("100.00"),
       pricing_period: "per month",
       spots_available: 10,
-      gradient_class: "bg-gradient-to-br from-blue-400 to-green-500",
       icon_path: "/images/icons/default.svg",
       inserted_at: ~U[2025-01-01 12:00:00Z],
       updated_at: ~U[2025-01-01 12:00:00Z]
@@ -91,7 +90,6 @@ defmodule KlassHero.Factory do
       price: Decimal.new("100.00"),
       pricing_period: "per month",
       spots_available: 10,
-      gradient_class: "bg-gradient-to-br from-blue-400 to-green-500",
       icon_path: "/images/icons/default.svg"
     }
   end
@@ -112,7 +110,6 @@ defmodule KlassHero.Factory do
       age_range: "6-10 years",
       price: Decimal.new("150.00"),
       spots_available: 12,
-      gradient_class: "bg-gradient-to-br from-green-400 to-blue-500",
       icon_path: "/images/icons/soccer.svg"
     })
   end
@@ -129,7 +126,6 @@ defmodule KlassHero.Factory do
       age_range: "7-12 years",
       price: Decimal.new("120.00"),
       spots_available: 8,
-      gradient_class: "bg-gradient-to-br from-purple-400 to-pink-500",
       icon_path: "/images/icons/dance.svg"
     })
   end
@@ -146,7 +142,6 @@ defmodule KlassHero.Factory do
       age_range: "5-8 years",
       price: Decimal.new("80.00"),
       spots_available: 15,
-      gradient_class: "bg-gradient-to-br from-teal-400 to-cyan-500",
       icon_path: "/images/icons/yoga.svg"
     })
   end
@@ -163,7 +158,6 @@ defmodule KlassHero.Factory do
       age_range: "8-14 years",
       price: Decimal.new("200.00"),
       spots_available: 16,
-      gradient_class: "bg-gradient-to-br from-orange-400 to-red-500",
       icon_path: "/images/icons/basketball.svg"
     })
   end
@@ -180,7 +174,6 @@ defmodule KlassHero.Factory do
       age_range: "5-10 years",
       price: Decimal.new("90.00"),
       spots_available: 12,
-      gradient_class: "bg-gradient-to-br from-yellow-400 to-orange-500",
       icon_path: "/images/icons/art.svg"
     })
   end

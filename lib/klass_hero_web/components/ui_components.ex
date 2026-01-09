@@ -171,7 +171,7 @@ defmodule KlassHeroWeb.UIComponents do
       <.back_button size={:lg} color="text-blue-600" />  # Large button with custom color
   """
   attr :size, :atom, default: :md, values: [:sm, :md, :lg], doc: "Button and icon size"
-  attr :color, :string, default: "text-white", doc: "Icon color class"
+  attr :color, :string, default: "text-hero-grey-600", doc: "Icon color class"
 
   attr :use_browser_back, :boolean,
     default: true,

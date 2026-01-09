@@ -16,7 +16,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         price: Decimal.new("150.00"),
         pricing_period: "per week",
         spots_available: 20,
-        gradient_class: "from-blue-500 to-purple-600",
         icon_path: "/images/soccer.svg",
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -33,7 +32,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert domain.price == Decimal.new("150.00")
       assert domain.pricing_period == "per week"
       assert domain.spots_available == 20
-      assert domain.gradient_class == "from-blue-500 to-purple-600"
       assert domain.icon_path == "/images/soccer.svg"
     end
 
@@ -47,7 +45,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         price: Decimal.new("75.00"),
         pricing_period: "per month",
         spots_available: 15,
-        gradient_class: nil,
         icon_path: nil,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -58,7 +55,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert %Program{} = domain
       assert domain.id == schema.id
       assert domain.title == "Art Class"
-      assert domain.gradient_class == nil
       assert domain.icon_path == nil
     end
 
@@ -72,7 +68,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         price: Decimal.new("0.00"),
         pricing_period: "per session",
         spots_available: 100,
-        gradient_class: "from-green-500 to-teal-600",
         icon_path: "/images/community.svg",
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -95,7 +90,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         price: Decimal.new("200.00"),
         pricing_period: "per week",
         spots_available: 0,
-        gradient_class: "from-red-500 to-orange-600",
         icon_path: "/images/camp.svg",
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -118,7 +112,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         price: Decimal.new("99.99"),
         pricing_period: "per session",
         spots_available: 10,
-        gradient_class: nil,
         icon_path: nil,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -143,7 +136,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           price: Decimal.new("100.00"),
           pricing_period: "per week",
           spots_available: 15,
-          gradient_class: "from-blue-500 to-purple-600",
           icon_path: "/images/a.svg",
           inserted_at: ~U[2024-01-01 10:00:00Z],
           updated_at: ~U[2024-01-01 10:00:00Z]
@@ -157,7 +149,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           price: Decimal.new("75.00"),
           pricing_period: "per month",
           spots_available: 20,
-          gradient_class: "from-green-500 to-teal-600",
           icon_path: "/images/b.svg",
           inserted_at: ~U[2024-01-01 10:00:00Z],
           updated_at: ~U[2024-01-01 10:00:00Z]
@@ -171,7 +162,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           price: Decimal.new("0.00"),
           pricing_period: "per session",
           spots_available: 0,
-          gradient_class: nil,
           icon_path: nil,
           inserted_at: ~U[2024-01-01 10:00:00Z],
           updated_at: ~U[2024-01-01 10:00:00Z]
@@ -214,7 +204,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         price: Decimal.new("100.00"),
         pricing_period: "per week",
         spots_available: 10,
-        gradient_class: nil,
         icon_path: nil,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -229,7 +218,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         price: Decimal.new("100.00"),
         pricing_period: "per week",
         spots_available: 10,
-        gradient_class: nil,
         icon_path: nil,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -244,7 +232,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         price: Decimal.new("100.00"),
         pricing_period: "per week",
         spots_available: 10,
-        gradient_class: nil,
         icon_path: nil,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -264,13 +251,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         %ProgramSchema{
           id: Ecto.UUID.generate(),
           title: "With Optional",
-          description: "Has gradient and icon",
+          description: "Has icon",
           schedule: "Mon",
           age_range: "6-10",
           price: Decimal.new("100.00"),
           pricing_period: "per week",
           spots_available: 10,
-          gradient_class: "from-blue-500 to-purple-600",
           icon_path: "/images/icon.svg",
           inserted_at: ~U[2024-01-01 10:00:00Z],
           updated_at: ~U[2024-01-01 10:00:00Z]
@@ -278,13 +264,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         %ProgramSchema{
           id: Ecto.UUID.generate(),
           title: "Without Optional",
-          description: "No gradient or icon",
+          description: "No icon",
           schedule: "Tue",
           age_range: "8-12",
           price: Decimal.new("75.00"),
           pricing_period: "per month",
           spots_available: 15,
-          gradient_class: nil,
           icon_path: nil,
           inserted_at: ~U[2024-01-01 10:00:00Z],
           updated_at: ~U[2024-01-01 10:00:00Z]
@@ -296,10 +281,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert length(domains) == 2
       [with_optional, without_optional] = domains
 
-      assert with_optional.gradient_class == "from-blue-500 to-purple-600"
       assert with_optional.icon_path == "/images/icon.svg"
 
-      assert without_optional.gradient_class == nil
       assert without_optional.icon_path == nil
     end
   end

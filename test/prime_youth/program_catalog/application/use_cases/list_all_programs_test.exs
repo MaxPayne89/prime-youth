@@ -74,7 +74,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("150.00"),
         pricing_period: "per month",
         spots_available: 12,
-        gradient_class: "bg-gradient-to-br from-green-400 to-blue-500",
         icon_path: "/images/icons/soccer.svg",
         inserted_at: ~U[2025-01-01 12:00:00Z],
         updated_at: ~U[2025-01-01 12:00:00Z]
@@ -89,7 +88,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("120.00"),
         pricing_period: "per month",
         spots_available: 8,
-        gradient_class: "bg-gradient-to-br from-purple-400 to-pink-500",
         icon_path: "/images/icons/art.svg",
         inserted_at: ~U[2025-01-02 10:00:00Z],
         updated_at: ~U[2025-01-02 10:00:00Z]
@@ -123,7 +121,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("100.00"),
         pricing_period: "per session",
         spots_available: 15,
-        gradient_class: "bg-gradient-to-br from-yellow-400 to-orange-500",
         icon_path: nil,
         inserted_at: ~U[2025-01-03 09:00:00Z],
         updated_at: ~U[2025-01-03 09:00:00Z]
@@ -138,7 +135,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("80.00"),
         pricing_period: "per session",
         spots_available: 10,
-        gradient_class: nil,
         icon_path: "/images/icons/paint.svg",
         inserted_at: ~U[2025-01-04 11:00:00Z],
         updated_at: ~U[2025-01-04 11:00:00Z]
@@ -163,7 +159,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("0.00"),
         pricing_period: "free",
         spots_available: 20,
-        gradient_class: "bg-gradient-to-br from-gray-400 to-gray-600",
         icon_path: nil,
         inserted_at: ~U[2025-01-05 08:00:00Z],
         updated_at: ~U[2025-01-05 08:00:00Z]
@@ -178,7 +173,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("500.00"),
         pricing_period: "per week",
         spots_available: 0,
-        gradient_class: "bg-gradient-to-br from-red-400 to-orange-500",
         icon_path: "/images/icons/camp.svg",
         inserted_at: ~U[2025-01-06 14:00:00Z],
         updated_at: ~U[2025-01-06 14:00:00Z]

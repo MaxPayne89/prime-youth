@@ -28,7 +28,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       ...>   price: Decimal.new("120.00"),
       ...>   pricing_period: "per month",
       ...>   spots_available: 12,
-      ...>   gradient_class: "from-purple-500 to-pink-500",
       ...>   icon_path: "/images/icons/art.svg",
       ...>   inserted_at: ~U[2025-11-15 10:00:00Z],
       ...>   updated_at: ~U[2025-11-15 10:00:00Z]
@@ -49,7 +48,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       price: schema.price,
       pricing_period: schema.pricing_period,
       spots_available: schema.spots_available,
-      gradient_class: schema.gradient_class,
       icon_path: schema.icon_path,
       lock_version: schema.lock_version,
       inserted_at: schema.inserted_at,
@@ -95,7 +93,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       ...>   price: Decimal.new("150.00"),
       ...>   pricing_period: "per month",
       ...>   spots_available: 10,
-      ...>   gradient_class: "from-purple-500 to-pink-500",
       ...>   icon_path: "/images/icons/art.svg"
       ...> }
       iex> attrs = ProgramMapper.to_schema(program)
@@ -112,7 +109,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       price: program.price,
       pricing_period: program.pricing_period,
       spots_available: program.spots_available,
-      gradient_class: program.gradient_class,
       icon_path: program.icon_path
     }
   end

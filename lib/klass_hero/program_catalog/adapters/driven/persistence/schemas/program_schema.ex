@@ -22,7 +22,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :pricing_period, :string
     field :spots_available, :integer, default: 0
     field :lock_version, :integer, default: 1
-    field :gradient_class, :string
     field :icon_path, :string
 
     timestamps()
@@ -38,7 +37,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           pricing_period: String.t() | nil,
           spots_available: integer() | nil,
           lock_version: integer() | nil,
-          gradient_class: String.t() | nil,
           icon_path: String.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
@@ -57,7 +55,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
   - spots_available (>= 0)
 
   Optional fields:
-  - gradient_class
   - icon_path
   """
   @spec changeset(t(), map()) :: Ecto.Changeset.t()
@@ -71,7 +68,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :price,
       :pricing_period,
       :spots_available,
-      :gradient_class,
       :icon_path
     ])
     |> validate_required([
@@ -111,7 +107,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :price,
       :pricing_period,
       :spots_available,
-      :gradient_class,
       :icon_path
     ])
     |> validate_required([

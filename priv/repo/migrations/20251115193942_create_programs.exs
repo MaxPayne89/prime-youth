@@ -12,7 +12,6 @@ defmodule KlassHero.Repo.Migrations.CreatePrograms do
       add :pricing_period, :string, null: false, size: 100
       add :spots_available, :integer, null: false, default: 0
       add :lock_version, :integer, null: false, default: 1
-      add :gradient_class, :string, size: 255
       add :icon_path, :text
 
       timestamps(type: :utc_datetime)

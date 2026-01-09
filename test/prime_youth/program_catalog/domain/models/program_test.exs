@@ -30,7 +30,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         price: Decimal.new("75.50"),
         pricing_period: "per session",
         spots_available: 15,
-        gradient_class: "gradient-blue",
         icon_path: "/images/art-icon.svg",
         inserted_at: DateTime.utc_now(),
         updated_at: DateTime.utc_now()

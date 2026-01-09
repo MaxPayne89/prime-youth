@@ -177,7 +177,6 @@ programs = [
     price: Decimal.new("120.00"),
     pricing_period: "per month",
     spots_available: 12,
-    gradient_class: "from-purple-500 to-pink-500",
     icon_path: "/images/icons/art.svg"
   },
   %{
@@ -188,7 +187,6 @@ programs = [
     price: Decimal.new("150.00"),
     pricing_period: "per month",
     spots_available: 8,
-    gradient_class: "from-blue-500 to-cyan-500",
     icon_path: "/images/icons/tech.svg"
   },
   %{
@@ -199,7 +197,6 @@ programs = [
     price: Decimal.new("200.00"),
     pricing_period: "per week",
     spots_available: 20,
-    gradient_class: "from-green-500 to-emerald-500",
     icon_path: "/images/icons/sports.svg"
   },
   %{
@@ -210,7 +207,6 @@ programs = [
     price: Decimal.new("100.00"),
     pricing_period: "per month",
     spots_available: 0,
-    gradient_class: "from-orange-500 to-red-500",
     icon_path: "/images/icons/science.svg"
   },
   %{
@@ -221,7 +217,6 @@ programs = [
     price: Decimal.new("130.00"),
     pricing_period: "per month",
     spots_available: 6,
-    gradient_class: "from-indigo-500 to-purple-500",
     icon_path: "/images/icons/music.svg"
   },
   %{
@@ -232,7 +227,6 @@ programs = [
     price: Decimal.new("0.00"),
     pricing_period: "free",
     spots_available: 15,
-    gradient_class: "from-pink-500 to-rose-500",
     icon_path: "/images/icons/drama.svg"
   }
 ]

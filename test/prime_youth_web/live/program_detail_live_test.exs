@@ -60,7 +60,7 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
 
       view
-      |> element("button[phx-click='enroll_now']", "Book Now")
+      |> element("#book-now-button")
       |> render_click()
 
       assert_redirect(view, ~p"/programs/#{program.id}/booking")

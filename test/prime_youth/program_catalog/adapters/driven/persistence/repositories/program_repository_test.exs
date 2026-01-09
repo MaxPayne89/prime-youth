@@ -587,7 +587,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         price: Decimal.new("100.00"),
         pricing_period: "per week",
         spots_available: 10,
-        gradient_class: "from-blue-500",
         icon_path: "/images/icon.svg",
         inserted_at: DateTime.utc_now(),
         updated_at: DateTime.utc_now()
@@ -660,7 +659,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           price: Decimal.new("150.00"),
           pricing_period: "per week",
           spots_available: 20,
-          gradient_class: "from-blue-500",
           icon_path: "/images/original.svg"
         })
 
@@ -676,7 +674,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           price: Decimal.new("200.00"),
           pricing_period: "per month",
           spots_available: 15,
-          gradient_class: "from-purple-500",
           icon_path: "/images/new.svg"
       }
 
@@ -690,7 +687,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       assert result.price == Decimal.new("200.00")
       assert result.pricing_period == "per month"
       assert result.spots_available == 15
-      assert result.gradient_class == "from-purple-500"
       assert result.icon_path == "/images/new.svg"
 
       # Verify in database
@@ -742,7 +738,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   defp insert_program(attrs) do
     default_attrs = %{
       id: Ecto.UUID.generate(),
-      gradient_class: "from-blue-500 to-purple-600",
       icon_path: "/images/default.svg"
     }
 
@@ -757,7 +752,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   defp insert_program_with_timestamp(attrs, inserted_at) do
     default_attrs = %{
       id: Ecto.UUID.generate(),
-      gradient_class: "from-blue-500 to-purple-600",
       icon_path: "/images/default.svg"
     }
 

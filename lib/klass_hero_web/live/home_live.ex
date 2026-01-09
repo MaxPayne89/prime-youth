@@ -126,7 +126,7 @@ defmodule KlassHeroWeb.HomeLive do
             <.program_card_simple
               :for={{dom_id, program} <- @streams.featured_programs}
               id={dom_id}
-              gradient_class={program.gradient_class}
+              gradient_class={Theme.gradient(:program_default)}
               icon_path={program.icon_path}
               title={program.title}
               description={program.description}

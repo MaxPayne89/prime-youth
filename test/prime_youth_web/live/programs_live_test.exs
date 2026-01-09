@@ -1271,7 +1271,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       price: Decimal.new("100.00"),
       pricing_period: "per month",
       spots_available: 10,
-      gradient_class: "from-purple-500 to-pink-500",
       icon_path: "/images/icons/default.svg"
     }
 
