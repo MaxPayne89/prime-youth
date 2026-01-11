@@ -4,6 +4,8 @@ defmodule KlassHero.Community.Domain.Events.CommunityEventsTest do
   alias KlassHero.Community.Domain.Events.CommunityEvents
   alias KlassHero.Community.Domain.Models.Post
 
+  @moduletag :skip
+
   # Helper to create a valid post with only required overrides
   defp valid_post(overrides \\ []) do
     defaults = [

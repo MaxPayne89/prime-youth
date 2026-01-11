@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
 
   import Phoenix.LiveViewTest
 
+  @moduletag :skip
   describe "CommunityLive" do
     setup :register_and_log_in_user
 

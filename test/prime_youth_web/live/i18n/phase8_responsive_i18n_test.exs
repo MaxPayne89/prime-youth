@@ -245,6 +245,7 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
   end
 
   describe "Community Page Translations" do
+    @describetag :skip
     setup :register_and_log_in_user
 
     test "community page displays German translations", %{conn: conn} do

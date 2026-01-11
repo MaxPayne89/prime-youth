@@ -38,7 +38,7 @@ defmodule KlassHeroWeb.HomeLive do
     ~H"""
     <div class="min-h-screen">
       <!-- Hero Section -->
-      <.hero_section variant="landing">
+      <.hero_section variant="landing" show_wave={false}>
         <:title>
           <span class="text-hero-grey-600">Connecting Families with Trusted</span>
           <br />
