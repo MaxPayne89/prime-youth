@@ -76,9 +76,7 @@
             <!-- Authenticated User Dropdown -->
             <div class="dropdown dropdown-end">
               <label tabindex="0" class="btn btn-ghost btn-circle avatar">
-                <div class="w-10 rounded-full ring ring-hero-blue-500 ring-offset-2">
-                  <img src={@current_scope.user.avatar} alt={@current_scope.user.name} />
-                </div>
+                <.user_avatar size="sm" ring={true} />
               </label>
               <ul
                 tabindex="0"
@@ -86,11 +84,7 @@
               >
                 <li class="menu-title px-4 py-2">
                   <div class="flex items-center gap-3">
-                    <img
-                      src={@current_scope.user.avatar}
-                      alt={@current_scope.user.name}
-                      class="w-10 h-10 rounded-full"
-                    />
+                    <.user_avatar size="md" />
                     <div>
                       <div class="font-semibold text-hero-black">{@current_scope.user.name}</div>
                       <div class="text-xs text-hero-grey-500">{@current_scope.user.email}</div>

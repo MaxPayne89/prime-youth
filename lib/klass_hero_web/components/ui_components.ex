@@ -88,6 +88,45 @@ defmodule KlassHeroWeb.UIComponents do
   defp shape_classes("rounded"), do: Theme.rounded(:lg)
 
   @doc """
+  Renders a user avatar with a default emoticon.
+
+  A circular container with gradient background and person emoji inside.
+  Used for user avatars throughout the application when custom profile pictures
+  are not available.
+
+  ## Examples
+
+      <.user_avatar size="sm" />
+      <.user_avatar size="md" />
+      <.user_avatar size="lg" ring={true} />
+  """
+  attr :size, :string, default: "md", values: ~w(sm md lg), doc: "Size of the avatar"
+  attr :ring, :boolean, default: false, doc: "Whether to show a ring around the avatar"
+  attr :class, :string, default: "", doc: "Additional CSS classes"
+
+  def user_avatar(assigns) do
+    ~H"""
+    <div class={[
+      "flex items-center justify-center bg-hero-blue-500",
+      avatar_size_classes(@size),
+      Theme.rounded(:full),
+      @ring && "ring ring-hero-blue-500 ring-offset-2",
+      @class
+    ]}>
+      <span class={avatar_emoji_classes(@size)}>👤</span>
+    </div>
+    """
+  end
+
+  defp avatar_size_classes("sm"), do: "w-10 h-10"
+  defp avatar_size_classes("md"), do: "w-10 h-10"
+  defp avatar_size_classes("lg"), do: "w-16 h-16"
+
+  defp avatar_emoji_classes("sm"), do: "text-lg"
+  defp avatar_emoji_classes("md"), do: "text-xl"
+  defp avatar_emoji_classes("lg"), do: "text-2xl"
+
+  @doc """
   Renders a status pill/badge.
 
   Small colored pill with text, used for status indicators, tags, and labels.
@@ -1069,7 +1108,7 @@ defmodule KlassHeroWeb.UIComponents do
       # Header with profile section (Dashboard)
       <.page_header variant={:gradient} rounded>
         <:profile>
-          <img src={@user.avatar} class={["w-12 h-12", Theme.rounded(:full)]} />
+          <.user_avatar size="md" />
           <div>
             <h2 class={Theme.typography(:card_title)}>{@user.name}</h2>
             <p class={[Theme.typography(:body_small), "text-white/80"]}>{length(@children)} children enrolled</p>
