@@ -151,7 +151,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             {gettext("Team & Provider Profiles")}
           </h2>
           <p class="text-sm text-hero-grey-500">
-            {gettext("Create profiles for your staff. These will be visible to parents when assigned to programs.")}
+            {gettext(
+              "Create profiles for your staff. These will be visible to parents when assigned to programs."
+            )}
           </p>
         </div>
         <button

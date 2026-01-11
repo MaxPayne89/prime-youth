@@ -11,6 +11,7 @@ defmodule KlassHeroWeb.ProviderComponents do
     statics: KlassHeroWeb.static_paths()
 
   import KlassHeroWeb.UIComponents
+
   alias KlassHeroWeb.Theme
 
   @doc """
@@ -65,7 +66,8 @@ defmodule KlassHeroWeb.ProviderComponents do
         "flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
         if(@active,
           do: "border-hero-cyan text-hero-cyan",
-          else: "border-transparent text-hero-grey-500 hover:text-hero-grey-700 hover:border-hero-grey-300"
+          else:
+            "border-transparent text-hero-grey-500 hover:text-hero-grey-700 hover:border-hero-grey-300"
         )
       ]}
     >
@@ -131,7 +133,9 @@ defmodule KlassHeroWeb.ProviderComponents do
             {gettext("Business Profile")}
           </h2>
           <p class="text-sm text-hero-grey-500">
-            {gettext("This is your main business identity. Verification is required to list programs.")}
+            {gettext(
+              "This is your main business identity. Verification is required to list programs."
+            )}
           </p>
         </div>
         <button
@@ -234,7 +238,9 @@ defmodule KlassHeroWeb.ProviderComponents do
             {gettext("Program Slots")}
           </p>
           <p class="text-lg font-semibold text-hero-charcoal">
-            {@business.program_slots_used}/{if @business.program_slots_total, do: @business.program_slots_total, else: "∞"}
+            {@business.program_slots_used}/{if @business.program_slots_total,
+              do: @business.program_slots_total,
+              else: "∞"}
           </p>
         </div>
         <button
@@ -424,7 +430,11 @@ defmodule KlassHeroWeb.ProviderComponents do
                 ]}
                 phx-change="filter_by_staff"
               >
-                <option :for={option <- @staff_options} value={option.value} selected={option.value == @selected_staff}>
+                <option
+                  :for={option <- @staff_options}
+                  value={option.value}
+                  selected={option.value == @selected_staff}
+                >
                   {option.label}
                 </option>
               </select>
