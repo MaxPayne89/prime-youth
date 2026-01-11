@@ -249,14 +249,14 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
     setup :register_and_log_in_user
 
     test "community page displays German translations", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/community")
+      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live("/community")
 
       assert_locale(view, "de")
       assert_translation(view, "Community", "de")
     end
 
     test "community posts display German locale", %{conn: conn} do
-      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/community")
+      {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live("/community")
 
       assert_locale(view, "de")
 

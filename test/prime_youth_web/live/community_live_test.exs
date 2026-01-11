@@ -8,13 +8,13 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     setup :register_and_log_in_user
 
     test "renders community page successfully", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       assert has_element?(view, "h1", "Community")
     end
 
     test "displays social feed posts", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Verify posts section exists with stream
       assert has_element?(view, "#posts[phx-update='stream']")
@@ -22,7 +22,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "displays sample posts from mount", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Verify sample posts are displayed using data-testid
       assert has_element?(view, "[data-testid='post-author']", "Ms. Sarah - Art Instructor")
@@ -31,7 +31,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "displays post content correctly", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Verify post content is rendered using data-testid
       assert has_element?(
@@ -50,14 +50,14 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "displays photo content for photo posts", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/community")
+      {:ok, _view, html} = live(conn, "/community")
 
       # Verify photo emoji is displayed for photo type posts
       assert html =~ "🎨📸"
     end
 
     test "displays event details for event posts", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/community")
+      {:ok, _view, html} = live(conn, "/community")
 
       # Verify event details are displayed
       assert html =~ "📅 Family Fun Day"
@@ -66,7 +66,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "displays like counts for posts", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Verify like count elements are present for each post
       # Use element selector to count the number of like-count elements
@@ -76,7 +76,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "displays comment counts for posts", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Verify comment count elements are present for each post
       html = render(view)
@@ -85,7 +85,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "displays existing comments for posts", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/community")
+      {:ok, _view, html} = live(conn, "/community")
 
       # Verify existing comments are displayed (sample data has comments in post_1)
       assert html =~ "Parent Maria"
@@ -96,7 +96,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "toggle_like event increments likes when not liked", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Initial state: post_1 has 12 likes and user_liked: false
       assert has_element?(view, "[data-testid='post-author']", "Ms. Sarah - Art Instructor")
@@ -109,7 +109,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "toggle_like event decrements likes when already liked", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Like the post first
       render_click(view, "toggle_like", %{"post_id" => "post_1"})
@@ -122,7 +122,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "add_comment event adds comment to post", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Add a comment - this triggers a stream update via PubSub
       render_click(view, "add_comment", %{
@@ -137,7 +137,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "add_comment event trims whitespace", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Add a comment with surrounding whitespace
       render_click(view, "add_comment", %{
@@ -152,7 +152,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "add_comment event ignores empty comments", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Try to add an empty comment
       render_click(view, "add_comment", %{
@@ -167,7 +167,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "add_comment event ignores whitespace-only comments", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Try to add a whitespace-only comment
       render_click(view, "add_comment", %{
@@ -182,7 +182,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "add_comment increments comment count", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Add a comment to post_1 (initially has 2 comments)
       render_click(view, "add_comment", %{
@@ -197,7 +197,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     test "displays empty state when no posts exist", %{conn: conn} do
       # This test requires mocking empty posts
       # For now, we verify the empty state component is conditionally rendered
-      {:ok, _view, html} = live(conn, ~p"/community")
+      {:ok, _view, html} = live(conn, "/community")
 
       # Empty state should be conditionally rendered based on @posts_empty?
       # Since we have posts, empty state should NOT be shown
@@ -205,21 +205,21 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "shows notification button in header", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Verify notification button exists
       assert has_element?(view, "button")
     end
 
     test "page title is set to Community", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/community")
+      {:ok, _view, html} = live(conn, "/community")
 
       # Verify page title content
       assert html =~ "Community"
     end
 
     test "posts use stream with proper DOM IDs", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Verify stream container using selectors
       assert has_element?(view, "#posts[phx-update='stream']")
@@ -227,7 +227,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "stream updates when toggle_like is called", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Trigger toggle_like which updates the stream via PubSub
       render_click(view, "toggle_like", %{"post_id" => "post_2"})
@@ -239,7 +239,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "stream updates when add_comment is called", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Trigger add_comment which updates the stream via PubSub
       render_click(view, "add_comment", %{
@@ -254,7 +254,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "multiple comments can be added to same post", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Add first comment
       render_click(view, "add_comment", %{
@@ -275,7 +275,7 @@ defmodule KlassHeroWeb.CommunityLiveTest do
     end
 
     test "likes and comments are independent across posts", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/community")
+      {:ok, view, _html} = live(conn, "/community")
 
       # Like post_1
       render_click(view, "toggle_like", %{"post_id" => "post_1"})
