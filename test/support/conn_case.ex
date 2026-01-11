@@ -138,6 +138,23 @@ defmodule KlassHeroWeb.ConnCase do
     Map.merge(result, %{parent: parent, child: child})
   end
 
+  @doc """
+  Setup helper that registers and logs in users with a provider profile.
+
+      setup :register_and_log_in_provider
+
+  It stores an updated connection, registered user, and provider profile in the test context.
+  This is useful for tests that require provider-only routes.
+  """
+  def register_and_log_in_provider(%{conn: _conn} = context) do
+    user = KlassHero.AccountsFixtures.user_fixture(%{intended_roles: [:provider]})
+    provider = KlassHero.Factory.insert(:provider_profile_schema, identity_id: user.id)
+
+    scope = Scope.for_user(user) |> Scope.resolve_roles()
+
+    %{conn: log_in_user(context.conn, user), user: user, scope: scope, provider: provider}
+  end
+
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do
