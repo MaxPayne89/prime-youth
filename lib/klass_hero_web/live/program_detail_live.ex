@@ -294,11 +294,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             </div>
             <div class="p-6">
               <div class="flex items-start space-x-4">
-                <img
-                  src={@instructor.avatar}
-                  alt={gettext("Instructor")}
-                  class={["w-16 h-16 object-cover", Theme.rounded(:full)]}
-                />
+                <.user_avatar size="lg" />
                 <div class="flex-1">
                   <h4 class={["font-semibold", Theme.text_color(:heading)]}>
                     {@instructor.name}
@@ -342,7 +338,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
                 <.review_card
                   :for={review <- @reviews}
                   parent_name={review.parent_name}
-                  parent_avatar={review.parent_avatar}
                   child_name={review.child_name}
                   child_age={review.child_age}
                   rating={5.0}

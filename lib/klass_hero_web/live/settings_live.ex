@@ -29,7 +29,7 @@ defmodule KlassHeroWeb.SettingsLive do
     ~H"""
     <div class={["min-h-screen", Theme.bg(:muted)]}>
       <!-- Header -->
-      <.page_header variant={:gradient} container_class="max-w-4xl mx-auto">
+      <.page_header variant={:dark} size={:large} centered container_class="max-w-7xl mx-auto">
         <:title>{gettext("Settings")}</:title>
         <:subtitle>{gettext("Manage your account and preferences")}</:subtitle>
       </.page_header>

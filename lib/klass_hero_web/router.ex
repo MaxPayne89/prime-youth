@@ -46,7 +46,6 @@ defmodule KlassHeroWeb.Router do
       ] do
       live "/dashboard", DashboardLive, :index
       live "/settings", SettingsLive, :index
-      live "/community", CommunityLive, :index
       live "/programs/:id/booking", BookingLive, :new
     end
 

@@ -30,8 +30,6 @@ defmodule KlassHeroWeb.Live.SampleFixtures do
     %{
       name: "Sarah Johnson",
       email: "sarah.johnson@example.com",
-      avatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=64&h=64&fit=crop&crop=face",
       children_summary: "Emma (8), Liam (6)"
     }
   end
@@ -282,8 +280,6 @@ defmodule KlassHeroWeb.Live.SampleFixtures do
       credentials: "Master of Fine Arts, 8+ years teaching experience",
       bio:
         "Elena specializes in fostering creativity while building technical skills. Her students have won numerous local art competitions and developed lifelong passions for the arts.",
-      avatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face",
       rating: "4.9",
       review_count: 47
     }
@@ -300,8 +296,6 @@ defmodule KlassHeroWeb.Live.SampleFixtures do
         comment:
           "My daughter Emma has grown so much in confidence and creativity. She can't wait for art class each week!",
         parent_name: "Sarah Johnson",
-        parent_avatar:
-          "https://images.unsplash.com/photo-1494790108755-2616b612b388?w=32&h=32&fit=crop&crop=face",
         child_name: "Emma",
         child_age: 8,
         verified: true
@@ -310,8 +304,6 @@ defmodule KlassHeroWeb.Live.SampleFixtures do
         comment:
           "Excellent program with caring instructors. The small class size makes all the difference.",
         parent_name: "Michael Chen",
-        parent_avatar:
-          "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=32&h=32&fit=crop&crop=face",
         child_name: "Sophie",
         child_age: 7,
         verified: true
@@ -320,8 +312,6 @@ defmodule KlassHeroWeb.Live.SampleFixtures do
         comment:
           "As a working parent, I appreciate the reliable schedule and professional communication. Max has made friends and learned techniques I never could have taught him at home.",
         parent_name: "Lisa Rodriguez",
-        parent_avatar:
-          "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=32&h=32&fit=crop&crop=face",
         child_name: "Max",
         child_age: 9,
         verified: true

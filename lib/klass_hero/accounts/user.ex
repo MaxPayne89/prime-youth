@@ -57,13 +57,12 @@ defmodule KlassHero.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:name, :email, :avatar, :intended_roles])
+    |> cast(attrs, [:name, :email, :intended_roles])
     |> put_default_role()
     |> validate_required([:name, :email, :intended_roles])
     |> validate_length(:name, min: 2, max: 100)
     |> validate_subset(:intended_roles, UserRole.valid_roles())
     |> validate_at_least_one_role()
-    |> put_default_avatar()
     |> validate_email(opts)
   end
 
@@ -72,20 +71,6 @@ defmodule KlassHero.Accounts.User do
       nil -> put_change(changeset, :intended_roles, [:parent])
       [] -> put_change(changeset, :intended_roles, [:parent])
       _ -> changeset
-    end
-  end
-
-  defp put_default_avatar(changeset) do
-    case get_field(changeset, :avatar) do
-      nil ->
-        put_change(
-          changeset,
-          :avatar,
-          "https://ui-avatars.com/api/?name=#{URI.encode_www_form(get_field(changeset, :name) || "User")}&background=4F46E5&color=fff"
-        )
-
-      _ ->
-        changeset
     end
   end
 

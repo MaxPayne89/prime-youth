@@ -53,7 +53,6 @@ defmodule KlassHeroWeb.ReviewComponents do
 
       <.review_card
         parent_name="Sarah Johnson"
-        parent_avatar="https://..."
         child_name="Emma"
         child_age={8}
         rating={5}
@@ -62,7 +61,6 @@ defmodule KlassHeroWeb.ReviewComponents do
       />
   """
   attr :parent_name, :string, required: true
-  attr :parent_avatar, :string, required: true
   attr :child_name, :string, required: true
   attr :child_age, :integer, required: true
   attr :rating, :float, default: 5.0
@@ -76,7 +74,7 @@ defmodule KlassHeroWeb.ReviewComponents do
       <:body>
         <div class="flex justify-between items-start mb-3">
           <div class="flex items-start gap-3">
-            <img src={@parent_avatar} alt={@parent_name} class={["w-10 h-10", Theme.rounded(:full)]} />
+            <.user_avatar size="sm" />
             <div>
               <div class={["font-medium text-sm", Theme.text_color(:heading)]}>{@parent_name}</div>
               <div class={["text-xs", Theme.text_color(:muted)]}>

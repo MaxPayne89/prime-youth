@@ -88,6 +88,45 @@ defmodule KlassHeroWeb.UIComponents do
   defp shape_classes("rounded"), do: Theme.rounded(:lg)
 
   @doc """
+  Renders a user avatar with a default emoticon.
+
+  A circular container with gradient background and person emoji inside.
+  Used for user avatars throughout the application when custom profile pictures
+  are not available.
+
+  ## Examples
+
+      <.user_avatar size="sm" />
+      <.user_avatar size="md" />
+      <.user_avatar size="lg" ring={true} />
+  """
+  attr :size, :string, default: "md", values: ~w(sm md lg), doc: "Size of the avatar"
+  attr :ring, :boolean, default: false, doc: "Whether to show a ring around the avatar"
+  attr :class, :string, default: "", doc: "Additional CSS classes"
+
+  def user_avatar(assigns) do
+    ~H"""
+    <div class={[
+      "flex items-center justify-center bg-hero-blue-500",
+      avatar_size_classes(@size),
+      Theme.rounded(:full),
+      @ring && "ring ring-hero-blue-500 ring-offset-2",
+      @class
+    ]}>
+      <span class={avatar_emoji_classes(@size)}>👤</span>
+    </div>
+    """
+  end
+
+  defp avatar_size_classes("sm"), do: "w-10 h-10"
+  defp avatar_size_classes("md"), do: "w-10 h-10"
+  defp avatar_size_classes("lg"), do: "w-16 h-16"
+
+  defp avatar_emoji_classes("sm"), do: "text-lg"
+  defp avatar_emoji_classes("md"), do: "text-xl"
+  defp avatar_emoji_classes("lg"), do: "text-2xl"
+
+  @doc """
   Renders a status pill/badge.
 
   Small colored pill with text, used for status indicators, tags, and labels.
@@ -1069,7 +1108,7 @@ defmodule KlassHeroWeb.UIComponents do
       # Header with profile section (Dashboard)
       <.page_header variant={:gradient} rounded>
         <:profile>
-          <img src={@user.avatar} class={["w-12 h-12", Theme.rounded(:full)]} />
+          <.user_avatar size="md" />
           <div>
             <h2 class={Theme.typography(:card_title)}>{@user.name}</h2>
             <p class={[Theme.typography(:body_small), "text-white/80"]}>{length(@children)} children enrolled</p>
@@ -1093,12 +1132,18 @@ defmodule KlassHeroWeb.UIComponents do
         </:actions>
       </.page_header>
   """
-  attr :variant, :atom, default: :white, values: [:white, :gradient]
+  attr :variant, :atom, default: :white, values: [:white, :gradient, :dark]
 
   attr :gradient_class, :string, default: Theme.gradient(:primary)
 
   attr :rounded, :boolean, default: false, doc: "Apply rounded-b-3xl style for Dashboard"
   attr :show_back_button, :boolean, default: false
+  attr :centered, :boolean, default: false, doc: "Center-align content (for hero-style headers)"
+
+  attr :size, :atom,
+    default: :normal,
+    values: [:normal, :large],
+    doc: "Padding size - :large for hero sections"
 
   attr :container_class, :string,
     default: nil,
@@ -1111,12 +1156,15 @@ defmodule KlassHeroWeb.UIComponents do
   slot :subtitle
   slot :profile, doc: "Profile section with avatar and user info (alternative to :title)"
   slot :actions, doc: "Action buttons (settings, notifications, more options)"
+  slot :inner_block, doc: "Additional content below title (search bars, tags, etc.)"
 
   def page_header(assigns) do
     ~H"""
     <div class={[
-      "p-6",
+      @size == :normal && "p-6",
+      @size == :large && "py-16 lg:py-24 px-4 sm:px-6 lg:px-8",
       @variant == :gradient && [@gradient_class, "text-white"],
+      @variant == :dark && "bg-hero-black text-white",
       @variant == :white && "#{Theme.bg(:surface)} shadow-sm",
       @rounded && "rounded-b-3xl",
       @class
@@ -1135,23 +1183,32 @@ defmodule KlassHeroWeb.UIComponents do
           </div>
         <% else %>
           <%!-- Standard title layout --%>
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-4">
-              <.back_button :if={@show_back_button} {@rest} />
+          <div class={[
+            @centered && "text-center",
+            !@centered && "flex items-center justify-between mb-4"
+          ]}>
+            <div class={[
+              @centered && "mx-auto",
+              !@centered && "flex items-center gap-4"
+            ]}>
+              <.back_button :if={@show_back_button && !@centered} {@rest} />
               <div>
                 <h1 class={[
-                  Theme.typography(:section_title),
+                  @centered && Theme.typography(:page_title),
+                  !@centered && Theme.typography(:section_title),
                   @variant == :white && Theme.text_color(:heading),
-                  @variant == :gradient && "text-white"
+                  @variant in [:gradient, :dark] && "text-white"
                 ]}>
                   {render_slot(@title)}
                 </h1>
                 <p
                   :if={@subtitle != []}
                   class={[
-                    "text-sm mt-1",
+                    "mt-1",
+                    @centered && "text-xl max-w-3xl mx-auto",
+                    !@centered && "text-sm",
                     @variant == :white && Theme.text_color(:secondary),
-                    @variant == :gradient && "text-white/80"
+                    @variant in [:gradient, :dark] && "text-white/80"
                   ]}
                 >
                   {render_slot(@subtitle)}
@@ -1159,9 +1216,14 @@ defmodule KlassHeroWeb.UIComponents do
               </div>
             </div>
 
-            <div :if={@actions != []} class="flex space-x-2">
+            <div :if={@actions != [] && !@centered} class="flex space-x-2">
               {render_slot(@actions)}
             </div>
+          </div>
+
+          <%!-- Additional content (search bars, tags, etc.) --%>
+          <div :if={@inner_block != []} class={[@centered && "max-w-7xl mx-auto mt-6"]}>
+            {render_slot(@inner_block)}
           </div>
         <% end %>
       </div>

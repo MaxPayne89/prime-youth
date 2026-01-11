@@ -76,9 +76,7 @@
             <!-- Authenticated User Dropdown -->
             <div class="dropdown dropdown-end">
               <label tabindex="0" class="btn btn-ghost btn-circle avatar">
-                <div class="w-10 rounded-full ring ring-hero-blue-500 ring-offset-2">
-                  <img src={@current_scope.user.avatar} alt={@current_scope.user.name} />
-                </div>
+                <.user_avatar size="sm" ring={true} />
               </label>
               <ul
                 tabindex="0"
@@ -86,11 +84,7 @@
               >
                 <li class="menu-title px-4 py-2">
                   <div class="flex items-center gap-3">
-                    <img
-                      src={@current_scope.user.avatar}
-                      alt={@current_scope.user.name}
-                      class="w-10 h-10 rounded-full"
-                    />
+                    <.user_avatar size="md" />
                     <div>
                       <div class="font-semibold text-hero-black">{@current_scope.user.name}</div>
                       <div class="text-xs text-hero-grey-500">{@current_scope.user.email}</div>
@@ -113,23 +107,6 @@
                       </path>
                     </svg>
                     {gettext("Dashboard")}
-                  </.link>
-                </li>
-                <li>
-                  <.link
-                    navigate={~p"/community"}
-                    class="text-hero-black-100 hover:bg-hero-grey-50"
-                  >
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                      >
-                      </path>
-                    </svg>
-                    {gettext("Community")}
                   </.link>
                 </li>
                 <li>
@@ -228,7 +205,6 @@
 
           <%= if assigns[:current_scope] && @current_scope.user do %>
             <li class="mt-4"><.link navigate={~p"/dashboard"}>{gettext("Dashboard")}</.link></li>
-            <li><.link navigate={~p"/community"}>{gettext("Community")}</.link></li>
             <li><.link navigate={~p"/users/settings"}>{gettext("Settings")}</.link></li>
             <li class="mt-4">
               <.link
