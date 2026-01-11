@@ -1093,12 +1093,18 @@ defmodule KlassHeroWeb.UIComponents do
         </:actions>
       </.page_header>
   """
-  attr :variant, :atom, default: :white, values: [:white, :gradient]
+  attr :variant, :atom, default: :white, values: [:white, :gradient, :dark]
 
   attr :gradient_class, :string, default: Theme.gradient(:primary)
 
   attr :rounded, :boolean, default: false, doc: "Apply rounded-b-3xl style for Dashboard"
   attr :show_back_button, :boolean, default: false
+  attr :centered, :boolean, default: false, doc: "Center-align content (for hero-style headers)"
+
+  attr :size, :atom,
+    default: :normal,
+    values: [:normal, :large],
+    doc: "Padding size - :large for hero sections"
 
   attr :container_class, :string,
     default: nil,
@@ -1111,12 +1117,15 @@ defmodule KlassHeroWeb.UIComponents do
   slot :subtitle
   slot :profile, doc: "Profile section with avatar and user info (alternative to :title)"
   slot :actions, doc: "Action buttons (settings, notifications, more options)"
+  slot :inner_block, doc: "Additional content below title (search bars, tags, etc.)"
 
   def page_header(assigns) do
     ~H"""
     <div class={[
-      "p-6",
+      @size == :normal && "p-6",
+      @size == :large && "py-16 lg:py-24 px-4 sm:px-6 lg:px-8",
       @variant == :gradient && [@gradient_class, "text-white"],
+      @variant == :dark && "bg-hero-black text-white",
       @variant == :white && "#{Theme.bg(:surface)} shadow-sm",
       @rounded && "rounded-b-3xl",
       @class
@@ -1135,23 +1144,32 @@ defmodule KlassHeroWeb.UIComponents do
           </div>
         <% else %>
           <%!-- Standard title layout --%>
-          <div class="flex items-center justify-between mb-4">
-            <div class="flex items-center gap-4">
-              <.back_button :if={@show_back_button} {@rest} />
+          <div class={[
+            @centered && "text-center",
+            !@centered && "flex items-center justify-between mb-4"
+          ]}>
+            <div class={[
+              @centered && "mx-auto",
+              !@centered && "flex items-center gap-4"
+            ]}>
+              <.back_button :if={@show_back_button && !@centered} {@rest} />
               <div>
                 <h1 class={[
-                  Theme.typography(:section_title),
+                  @centered && Theme.typography(:page_title),
+                  !@centered && Theme.typography(:section_title),
                   @variant == :white && Theme.text_color(:heading),
-                  @variant == :gradient && "text-white"
+                  @variant in [:gradient, :dark] && "text-white"
                 ]}>
                   {render_slot(@title)}
                 </h1>
                 <p
                   :if={@subtitle != []}
                   class={[
-                    "text-sm mt-1",
+                    "mt-1",
+                    @centered && "text-xl max-w-3xl mx-auto",
+                    !@centered && "text-sm",
                     @variant == :white && Theme.text_color(:secondary),
-                    @variant == :gradient && "text-white/80"
+                    @variant in [:gradient, :dark] && "text-white/80"
                   ]}
                 >
                   {render_slot(@subtitle)}
@@ -1159,9 +1177,14 @@ defmodule KlassHeroWeb.UIComponents do
               </div>
             </div>
 
-            <div :if={@actions != []} class="flex space-x-2">
+            <div :if={@actions != [] && !@centered} class="flex space-x-2">
               {render_slot(@actions)}
             </div>
+          </div>
+
+          <%!-- Additional content (search bars, tags, etc.) --%>
+          <div :if={@inner_block != []} class={[@centered && "max-w-7xl mx-auto mt-6"]}>
+            {render_slot(@inner_block)}
           </div>
         <% end %>
       </div>

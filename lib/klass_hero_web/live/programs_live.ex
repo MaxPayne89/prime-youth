@@ -367,29 +367,23 @@ defmodule KlassHeroWeb.ProgramsLive do
     ~H"""
     <div class="min-h-screen bg-hero-grey-50">
       <!-- Hero Section -->
-      <div class="bg-gradient-to-br from-hero-blue-400 to-hero-purple-500 text-white py-12 px-6">
-        <div class="max-w-7xl mx-auto">
-          <h1 class="text-3xl md:text-4xl font-bold mb-2">{gettext("Explore Programs")}</h1>
-          <p class="text-lg md:text-xl text-white/90 mb-6">
-            {gettext("Discover activities, camps, and classes for your child")}
-          </p>
-          
-    <!-- Search Bar -->
-          <.search_bar
-            id="search-programs"
-            placeholder={gettext("Search programs...")}
-            value={@search_query}
-            name="search"
-            phx-change="search"
-            phx-hook="Debounce"
-            data-debounce="150"
-            class="mb-4"
-          />
-          
-    <!-- Trending Tags -->
-          <.trending_tags tags={@trending_tags} />
-        </div>
-      </div>
+      <.page_header variant={:dark} size={:large} centered container_class="max-w-7xl mx-auto">
+        <:title>{gettext("Explore Programs")}</:title>
+        <:subtitle>{gettext("Discover activities, camps, and classes for your child")}</:subtitle>
+
+        <.search_bar
+          id="search-programs"
+          placeholder={gettext("Search programs...")}
+          value={@search_query}
+          name="search"
+          phx-change="search"
+          phx-hook="Debounce"
+          data-debounce="150"
+          class="mb-4"
+        />
+
+        <.trending_tags tags={@trending_tags} />
+      </.page_header>
       
     <!-- Main Content -->
       <div class="max-w-7xl mx-auto px-6 py-6">
