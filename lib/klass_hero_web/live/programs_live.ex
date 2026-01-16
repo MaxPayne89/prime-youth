@@ -10,6 +10,9 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   require Logger
 
+  # Compile-time environment check (Mix is not available in releases)
+  @env Mix.env()
+
   @valid_filters [
     "all",
     "sports",
@@ -133,7 +136,7 @@ defmodule KlassHeroWeb.ProgramsLive do
   # This is temporary until these fields are added to the database
   # Only enriches in non-test environments to avoid affecting test behavior
   defp enrich_program_with_mock_data(program) do
-    if Mix.env() == :test do
+    if @env == :test do
       program
     else
       enrich_with_mock_data(program)
