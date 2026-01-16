@@ -11,9 +11,9 @@
 #   - https://pkgs.org/ - resource for finding needed packages
 #   - Ex: hexpm/elixir:1.19.5-erlang-28.3-debian-bookworm-20250113-slim
 #
-ARG ELIXIR_VERSION=1.19.5
+ARG ELIXIR_VERSION=1.20.0-rc.1
 ARG OTP_VERSION=28.3
-ARG DEBIAN_VERSION=bookworm-20250113-slim
+ARG DEBIAN_VERSION=bookworm-20260112-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
@@ -55,11 +55,11 @@ COPY lib lib
 
 COPY assets assets
 
-# compile assets
-RUN mix assets.deploy
-
-# Compile the release
+# Compile the release first (generates phoenix-colocated hooks)
 RUN mix compile
+
+# compile assets (needs colocated hooks from compilation)
+RUN mix assets.deploy
 
 # Changes to config/runtime.exs don't require recompiling the code
 COPY config/runtime.exs config/
