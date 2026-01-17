@@ -10,6 +10,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   import KlassHeroWeb.CoreComponents, only: [input: 1]
   import KlassHeroWeb.UIComponents
 
+  alias KlassHero.Participation.Domain.Services.ParticipationCollection
   alias KlassHeroWeb.Theme
 
   @doc """
@@ -299,7 +300,9 @@ defmodule KlassHeroWeb.ParticipationComponents do
             Session Roster
           </h3>
           <div class="text-sm text-gray-600">
-            {count_checked_in(@participation_records)} / {length(@participation_records)} checked in
+            {ParticipationCollection.count_checked_in(@participation_records)} / {length(
+              @participation_records
+            )} checked in
           </div>
         </div>
       </div>
@@ -445,10 +448,6 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
   defp format_time(%Time{} = time) do
     Calendar.strftime(time, "%I:%M %p")
-  end
-
-  defp count_checked_in(records) do
-    Enum.count(records, fn record -> record.status == :checked_in end)
   end
 
   # Status badge helper functions

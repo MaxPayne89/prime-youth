@@ -11,7 +11,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    parent_id = get_parent_id(socket)
+    parent_id = socket.assigns.current_scope.parent.id
 
     socket =
       socket
@@ -106,19 +106,6 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
 
   # Private helper functions
 
-  defp get_parent_id(socket) do
-    case socket.assigns do
-      %{current_scope: %{user: %{id: identity_id}}} ->
-        case Identity.get_parent_by_identity(identity_id) do
-          {:ok, parent} -> parent.id
-          {:error, _reason} -> nil
-        end
-
-      _ ->
-        nil
-    end
-  end
-
   defp child_belongs_to_parent?(child_id, socket) do
     MapSet.member?(socket.assigns.children_ids, child_id)
   end
@@ -133,7 +120,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
       {:ok, participation_records} = GetParticipationHistory.execute(%{child_ids: child_ids})
 
       child_names = Map.new(children, fn child -> {child.id, Child.full_name(child)} end)
-      children_ids = MapSet.new(child_ids)
+      children_ids = Identity.get_child_ids_for_parent(parent_id)
 
       socket
       |> assign(:child_names, child_names)

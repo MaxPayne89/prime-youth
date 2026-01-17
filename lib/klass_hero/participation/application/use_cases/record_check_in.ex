@@ -43,7 +43,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckIn do
   """
   @spec execute(params()) :: result()
   def execute(%{record_id: record_id, checked_in_by: checked_in_by} = params) do
-    notes = Map.get(params, :notes)
+    notes = params |> Map.get(:notes) |> normalize_notes()
 
     with {:ok, record} <- participation_repository().get_by_id(record_id),
          {:ok, checked_in} <- ParticipationRecord.check_in(record, checked_in_by, notes),
@@ -61,5 +61,14 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckIn do
 
   defp participation_repository do
     Application.get_env(:klass_hero, :participation)[:participation_repository]
+  end
+
+  defp normalize_notes(nil), do: nil
+
+  defp normalize_notes(notes) when is_binary(notes) do
+    case String.trim(notes) do
+      "" -> nil
+      trimmed -> trimmed
+    end
   end
 end

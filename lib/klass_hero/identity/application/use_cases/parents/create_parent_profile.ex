@@ -15,7 +15,7 @@ defmodule KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile do
   Returns:
   - `{:ok, ParentProfile.t()}` on success
   - `{:error, {:validation_error, errors}}` for domain validation failures
-  - `{:error, :duplicate_identity}` if profile already exists
+  - `{:error, :duplicate_resource}` if profile already exists
   - `{:error, changeset}` for persistence validation failures
   """
   def execute(attrs) when is_map(attrs) do

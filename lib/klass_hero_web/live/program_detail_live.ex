@@ -6,9 +6,8 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   import KlassHeroWeb.UIComponents
 
   alias KlassHero.ProgramCatalog.Application.UseCases.GetProgramById
+  alias KlassHero.ProgramCatalog.Domain.Services.ProgramPricing
   alias KlassHeroWeb.Theme
-
-  @default_weeks_count 4
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
@@ -75,13 +74,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   def handle_event("ask_questions", _params, socket) do
     # TODO: Open questions/contact modal
     {:noreply, socket}
-  end
-
-  defp format_price(amount), do: "€#{amount}"
-
-  defp format_total_price(weekly_amount) do
-    total = Decimal.mult(weekly_amount, @default_weeks_count)
-    "€#{total}"
   end
 
   defp fetch_program(id) do
@@ -189,13 +181,15 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p class={[Theme.typography(:page_title), Theme.text_color(:heading)]}>
-                {format_total_price(@program.price)}
+                {ProgramPricing.format_total_price(@program.price)}
               </p>
               <p class={["text-sm", Theme.text_color(:muted)]}>
                 {gettext("Total: Sept 1 - Oct 26")}
               </p>
               <p class={["text-xs mt-1", Theme.text_color(:subtle)]}>
-                {gettext("%{price}/week • 4 weeks", price: format_price(@program.price))}
+                {gettext("%{price}/week • 4 weeks",
+                  price: ProgramPricing.format_price(@program.price)
+                )}
               </p>
               <p class={["text-xs mt-1", Theme.text_color(:secondary)]}>
                 {gettext("with %{name}", name: @instructor.name)}
@@ -371,7 +365,9 @@ defmodule KlassHeroWeb.ProgramDetailLive do
               Theme.gradient(:primary)
             ]}
           >
-            {gettext("Enroll Now - %{price}", price: format_total_price(@program.price))}
+            {gettext("Enroll Now - %{price}",
+              price: ProgramPricing.format_total_price(@program.price)
+            )}
           </button>
         </div>
       </div>
@@ -385,10 +381,10 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         <div class="flex items-center justify-between gap-4 max-w-4xl mx-auto">
           <div>
             <p class={["font-semibold", Theme.text_color(:heading)]}>
-              {format_total_price(@program.price)}
+              {ProgramPricing.format_total_price(@program.price)}
             </p>
             <p class={["text-xs", Theme.text_color(:muted)]}>
-              {gettext("%{price}/week", price: format_price(@program.price))}
+              {gettext("%{price}/week", price: ProgramPricing.format_price(@program.price))}
             </p>
           </div>
           <button

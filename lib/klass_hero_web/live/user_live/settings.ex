@@ -465,21 +465,27 @@ defmodule KlassHeroWeb.UserLive.Settings do
   def handle_event("update_email", params, socket) do
     %{"user" => user_params} = params
     user = socket.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_email(user, user_params) do
-      %{valid?: true} = changeset ->
-        Accounts.deliver_user_update_email_instructions(
-          Ecto.Changeset.apply_action!(changeset, :insert),
-          user.email,
-          &url(~p"/users/settings/confirm-email/#{&1}")
-        )
+    if Accounts.sudo_mode?(user) do
+      case Accounts.change_user_email(user, user_params) do
+        %{valid?: true} = changeset ->
+          Accounts.deliver_user_update_email_instructions(
+            Ecto.Changeset.apply_action!(changeset, :insert),
+            user.email,
+            &url(~p"/users/settings/confirm-email/#{&1}")
+          )
 
-        info = gettext("A link to confirm your email change has been sent to the new address.")
-        {:noreply, socket |> put_flash(:info, info)}
+          info = gettext("A link to confirm your email change has been sent to the new address.")
+          {:noreply, socket |> put_flash(:info, info)}
 
-      changeset ->
-        {:noreply, assign(socket, :email_form, to_form(changeset, action: :insert))}
+        changeset ->
+          {:noreply, assign(socket, :email_form, to_form(changeset, action: :insert))}
+      end
+    else
+      {:noreply,
+       socket
+       |> put_flash(:error, gettext("Please re-authenticate to change your email."))
+       |> redirect(to: ~p"/users/log-in")}
     end
   end
 
@@ -498,14 +504,20 @@ defmodule KlassHeroWeb.UserLive.Settings do
   def handle_event("update_password", params, socket) do
     %{"user" => user_params} = params
     user = socket.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
 
-    case Accounts.change_user_password(user, user_params) do
-      %{valid?: true} = changeset ->
-        {:noreply, assign(socket, trigger_submit: true, password_form: to_form(changeset))}
+    if Accounts.sudo_mode?(user) do
+      case Accounts.change_user_password(user, user_params) do
+        %{valid?: true} = changeset ->
+          {:noreply, assign(socket, trigger_submit: true, password_form: to_form(changeset))}
 
-      changeset ->
-        {:noreply, assign(socket, password_form: to_form(changeset, action: :insert))}
+        changeset ->
+          {:noreply, assign(socket, password_form: to_form(changeset, action: :insert))}
+      end
+    else
+      {:noreply,
+       socket
+       |> put_flash(:error, gettext("Please re-authenticate to change your password."))
+       |> redirect(to: ~p"/users/log-in")}
     end
   end
 
@@ -529,28 +541,30 @@ defmodule KlassHeroWeb.UserLive.Settings do
 
   def handle_event("delete_account", %{"delete" => %{"password" => password}}, socket) do
     user = socket.assigns.current_scope.user
-    true = Accounts.sudo_mode?(user)
 
-    case Accounts.get_user_by_email_and_password(user.email, password) do
-      %{} = _verified_user ->
-        case Accounts.anonymize_user(user) do
-          {:ok, _anonymized_user} ->
-            {:noreply,
-             socket
-             |> put_flash(:info, gettext("Your account has been deleted."))
-             |> redirect(to: ~p"/")}
+    case Accounts.delete_account(user, password) do
+      {:ok, _anonymized_user} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Your account has been deleted."))
+         |> redirect(to: ~p"/")}
 
-          {:error, _reason} ->
-            {:noreply,
-             socket
-             |> put_flash(:error, gettext("Failed to delete account. Please try again."))
-             |> assign(:delete_form, to_form(%{"password" => ""}, as: :delete))}
-        end
+      {:error, :sudo_required} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("Please re-authenticate to delete your account."))
+         |> redirect(to: ~p"/users/log-in")}
 
-      nil ->
+      {:error, :invalid_password} ->
         {:noreply,
          socket
          |> put_flash(:error, gettext("Invalid password."))
+         |> assign(:delete_form, to_form(%{"password" => ""}, as: :delete))}
+
+      {:error, _reason} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("Failed to delete account. Please try again."))
          |> assign(:delete_form, to_form(%{"password" => ""}, as: :delete))}
     end
   end

@@ -10,7 +10,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
 
   @impl true
   def mount(%{"session_id" => session_id}, _session, socket) do
-    provider_id = get_provider_id(socket)
+    provider_id = socket.assigns.current_scope.provider.id
 
     socket =
       socket
@@ -116,8 +116,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
   @impl true
   def handle_event("confirm_checkout", %{"id" => record_id, "checkout" => params}, socket) do
     record = find_participation_record(socket, record_id)
-    notes = Map.get(params, "notes", "") |> String.trim()
-    notes = if notes != "", do: notes
+    notes = Map.get(params, "notes")
 
     case record do
       nil ->
@@ -245,13 +244,6 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
         )
 
         socket
-    end
-  end
-
-  defp get_provider_id(socket) do
-    case socket.assigns do
-      %{current_scope: %{user: %{id: user_id}}} -> user_id
-      _ -> nil
     end
   end
 

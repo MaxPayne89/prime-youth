@@ -9,6 +9,33 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterPrograms do
 
   alias KlassHero.ProgramCatalog.Domain.Models.Program
 
+  @max_query_length 100
+
+  @doc """
+  Sanitizes a search query by trimming whitespace and limiting length.
+
+  Returns empty string for nil input.
+
+  ## Examples
+
+      iex> FilterPrograms.sanitize_query("  art  ")
+      "art"
+
+      iex> FilterPrograms.sanitize_query(nil)
+      ""
+
+      iex> FilterPrograms.sanitize_query(String.duplicate("a", 150))
+      String.duplicate("a", 100)
+  """
+  @spec sanitize_query(String.t() | nil) :: String.t()
+  def sanitize_query(nil), do: ""
+
+  def sanitize_query(query) when is_binary(query) do
+    query
+    |> String.trim()
+    |> String.slice(0, @max_query_length)
+  end
+
   @doc """
   Filters programs by search query using word-boundary matching.
 

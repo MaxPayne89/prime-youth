@@ -36,6 +36,7 @@ defmodule KlassHero.Community.EventPublisher do
 
   alias KlassHero.Community.Domain.Events.CommunityEvents
   alias KlassHero.Community.Domain.Models.Post
+  alias KlassHero.Shared.EventPublishing
 
   @doc """
   Publishes a `comment_added` event.
@@ -63,7 +64,7 @@ defmodule KlassHero.Community.EventPublisher do
   def publish_comment_added(%Post{} = post, author, comment_text, opts \\ []) do
     post
     |> CommunityEvents.comment_added(author, comment_text, %{}, opts)
-    |> publisher_module().publish()
+    |> EventPublishing.publish()
   end
 
   @doc """
@@ -89,7 +90,7 @@ defmodule KlassHero.Community.EventPublisher do
   def publish_post_liked(%Post{} = post, opts \\ []) do
     post
     |> CommunityEvents.post_liked(%{}, opts)
-    |> publisher_module().publish()
+    |> EventPublishing.publish()
   end
 
   @doc """
@@ -115,11 +116,6 @@ defmodule KlassHero.Community.EventPublisher do
   def publish_post_unliked(%Post{} = post, opts \\ []) do
     post
     |> CommunityEvents.post_unliked(%{}, opts)
-    |> publisher_module().publish()
-  end
-
-  defp publisher_module do
-    Application.get_env(:klass_hero, :event_publisher, [])
-    |> Keyword.get(:module, KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher)
+    |> EventPublishing.publish()
   end
 end

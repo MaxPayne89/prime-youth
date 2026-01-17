@@ -40,7 +40,7 @@ defmodule KlassHero.IdentityTest do
       attrs = %{identity_id: identity_id}
 
       assert {:ok, _} = Identity.create_parent_profile(attrs)
-      assert {:error, :duplicate_identity} = Identity.create_parent_profile(attrs)
+      assert {:error, :duplicate_resource} = Identity.create_parent_profile(attrs)
     end
   end
 
@@ -99,7 +99,7 @@ defmodule KlassHero.IdentityTest do
       attrs = %{identity_id: identity_id, business_name: "My Business"}
 
       assert {:ok, _} = Identity.create_provider_profile(attrs)
-      assert {:error, :duplicate_identity} = Identity.create_provider_profile(attrs)
+      assert {:error, :duplicate_resource} = Identity.create_provider_profile(attrs)
     end
   end
 

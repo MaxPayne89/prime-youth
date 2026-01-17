@@ -32,7 +32,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
 
   Returns:
   - `{:ok, ProviderProfile.t()}` on success
-  - `{:error, :duplicate_identity}` - Provider profile already exists for this identity_id
+  - `{:error, :duplicate_resource}` - Provider profile already exists for this identity_id
   - `{:error, changeset}` - Validation failure
   """
   def create_provider_profile(attrs) when is_map(attrs) do
@@ -62,7 +62,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
             identity_id: attrs[:identity_id]
           )
 
-          {:error, :duplicate_identity}
+          {:error, :duplicate_resource}
         else
           Logger.warning(
             "[Identity.ProviderProfileRepository] Validation error creating provider profile",
