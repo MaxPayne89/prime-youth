@@ -11,6 +11,7 @@ defmodule KlassHeroWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_user
+    plug :set_error_tracker_context
     plug KlassHeroWeb.Plugs.SetLocale
   end
 
@@ -158,5 +159,17 @@ defmodule KlassHeroWeb.Router do
 
       error_tracker_dashboard "/errors"
     end
+  end
+
+  defp set_error_tracker_context(conn, _opts) do
+    case conn.assigns[:current_scope] do
+      %{user: %{id: id, email: email}} ->
+        ErrorTracker.set_context(%{user_id: id, email: email})
+
+      _ ->
+        :ok
+    end
+
+    conn
   end
 end
