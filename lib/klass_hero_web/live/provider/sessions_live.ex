@@ -11,7 +11,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    provider_id = get_provider_id(socket)
+    provider_id = socket.assigns.current_scope.provider.id
     selected_date = Date.utc_today()
 
     socket =
@@ -131,13 +131,6 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   end
 
   # Private helper functions
-
-  defp get_provider_id(socket) do
-    case socket.assigns do
-      %{current_scope: %{user: %{id: user_id}}} -> user_id
-      _ -> nil
-    end
-  end
 
   defp load_sessions(socket) do
     provider_id = socket.assigns.provider_id
