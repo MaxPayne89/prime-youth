@@ -1,0 +1,76 @@
+# This file excludes paths from the Docker build context.
+#
+# By default, Docker's build context includes all files (and folders) in the
+# current directory. Even if a file isn't copied into the container, it is
+# still sent to the Docker daemon.
+#
+# There are multiple reasons to exclude files from the build context:
+#
+# 1. Prevent nested folders from being copied into the container – while loading
+#    native code installed outside of the container, packages may have been
+#    compiled for the wrong architecture
+# 2. Reduce the size of the build context and the final image size
+# 3. Prevent sensitive information from leaking into the built image
+# 4. Reduce the time it takes to load the context
+#
+
+# Git
+.git
+.gitignore
+
+# Elixir/Phoenix
+_build/
+cover/
+deps/
+doc/
+.fetch
+erl_crash.dump
+*.ez
+*.beam
+/config/*.secret.exs
+.elixir_ls/
+
+# Node
+/assets/node_modules/
+node_modules/
+
+# Test
+/test/
+
+# Generated on crash by the VM
+erl_crash.dump
+
+# Static artifacts - these should be built inside the Docker image
+/priv/static/assets/
+
+# Files matching config/*.secret.exs pattern used for sensitive data
+/config/*.secret.exs
+
+# Ignore env files
+.env*
+!.env.example
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# IDE/Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude/Development docs
+claudedocs/
+.claude/
+CLAUDE.md
+docs/
+
+# Temporary files
+tmp/
+*.log

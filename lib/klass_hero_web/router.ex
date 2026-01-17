@@ -18,6 +18,13 @@ defmodule KlassHeroWeb.Router do
     plug :accepts, ["json"]
   end
 
+  # Health check endpoint for Fly.io
+  scope "/", KlassHeroWeb do
+    pipe_through :api
+
+    get "/health", HealthController, :index
+  end
+
   scope "/", KlassHeroWeb do
     pipe_through :browser
 

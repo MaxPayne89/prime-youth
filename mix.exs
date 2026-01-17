@@ -5,7 +5,7 @@ defmodule KlassHero.MixProject do
     [
       app: :klass_hero,
       version: "0.1.0",
-      elixir: "~> 1.19",
+      elixir: "~> 1.20.0-rc.1",
       erlang: "~> 28.3",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -90,7 +90,7 @@ defmodule KlassHero.MixProject do
       {:excoveralls, "~> 0.18", only: :test},
       {:ex_machina, "~> 2.8", only: :test},
       {:stream_data, "~> 1.1", only: :test},
-      {:faker, "~> 0.18", only: :test},
+      {:faker, github: "naserca/faker", branch: "escape-chars-for-v1.19", only: :test},
       {:mimic, "~> 2.0", only: :test},
       # OpenTelemetry
       {:opentelemetry_exporter, "~> 1.6"},

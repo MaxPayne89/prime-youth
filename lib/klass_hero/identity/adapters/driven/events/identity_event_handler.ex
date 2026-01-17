@@ -26,8 +26,6 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler do
   alias KlassHero.Identity
   alias KlassHero.Shared.Adapters.Driven.Events.RetryHelpers
 
-  require Logger
-
   @impl true
   def subscribed_events, do: [:user_registered]
 

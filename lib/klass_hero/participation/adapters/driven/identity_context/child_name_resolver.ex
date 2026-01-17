@@ -45,8 +45,6 @@ defmodule KlassHero.Participation.Adapters.Driven.IdentityContext.ChildNameResol
 
   alias KlassHero.Identity.Domain.Models.Child
 
-  require Logger
-
   @impl true
   def resolve_child_name(child_id) when is_binary(child_id) do
     case child_repository().get_by_id(child_id) do
