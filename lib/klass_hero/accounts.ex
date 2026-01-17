@@ -208,6 +208,29 @@ defmodule KlassHero.Accounts do
   end
 
   @doc """
+  Updates the user password, requiring sudo mode.
+
+  Returns `{:error, :sudo_required}` if user is not in sudo mode.
+  Otherwise behaves like `update_user_password/2`.
+
+  ## Examples
+
+      iex> update_user_password_with_sudo(user_in_sudo_mode, %{password: ...})
+      {:ok, {%User{}, [...]}}
+
+      iex> update_user_password_with_sudo(user_not_in_sudo_mode, %{password: ...})
+      {:error, :sudo_required}
+
+  """
+  def update_user_password_with_sudo(user, attrs) do
+    if sudo_mode?(user) do
+      update_user_password(user, attrs)
+    else
+      {:error, :sudo_required}
+    end
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for changing the user locale.
 
   ## Examples
@@ -445,4 +468,41 @@ defmodule KlassHero.Accounts do
   end
 
   def anonymize_user(nil), do: {:error, :user_not_found}
+
+  @doc """
+  Deletes (anonymizes) user account after password verification.
+
+  This function orchestrates the complete account deletion flow:
+  1. Verifies user is in sudo mode
+  2. Verifies password matches
+  3. Anonymizes the user account
+
+  ## Returns
+
+    * `{:ok, %User{}}` - Account successfully anonymized
+    * `{:error, :sudo_required}` - User is not in sudo mode
+    * `{:error, :invalid_password}` - Password doesn't match
+    * `{:error, reason}` - Anonymization failed
+
+  ## Examples
+
+      iex> delete_account(user_in_sudo_mode, "correct_password")
+      {:ok, %User{email: "deleted_123@anonymized.local"}}
+
+      iex> delete_account(user_not_in_sudo_mode, "password")
+      {:error, :sudo_required}
+
+      iex> delete_account(user_in_sudo_mode, "wrong_password")
+      {:error, :invalid_password}
+
+  """
+  def delete_account(%User{} = user, password) when is_binary(password) do
+    with true <- sudo_mode?(user),
+         %User{} <- get_user_by_email_and_password(user.email, password) do
+      anonymize_user(user)
+    else
+      false -> {:error, :sudo_required}
+      nil -> {:error, :invalid_password}
+    end
+  end
 end
