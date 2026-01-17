@@ -11,8 +11,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
   - `:database_connection_error` - Network/connection issues that may resolve
 
   **Permanent Errors** (no retry):
-  - `:duplicate_identity` - Profile already exists (idempotent - returns `:ok`)
-  - `:invalid_identity` - Identity doesn't exist
+  - `:duplicate_resource` - Resource already exists (idempotent - returns `:ok`)
+  - `:resource_not_found` - Referenced resource doesn't exist
   - `:database_query_error` - SQL/schema/validation errors
   - `:database_unavailable` - Generic/unexpected database errors
   - `{:validation_error, _}` - Domain validation failures
@@ -65,7 +65,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
   1. **First Attempt**: Execute operation immediately
   2. **Transient Errors**: Wait `backoff_ms` and retry once
   3. **Permanent Errors**: Return immediately without retry
-  4. **Duplicate Identity**: Treated as success (idempotent operation)
+  4. **Duplicate Resource**: Treated as success (idempotent operation)
 
   All retry attempts are logged with unique error IDs for correlation.
 
@@ -91,12 +91,12 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
       # => {:ok, %Parent{}} (after 100ms retry)
 
       # Permanent error (no retry)
-      operation = fn -> {:error, :invalid_identity} end
+      operation = fn -> {:error, :resource_not_found} end
       retry_with_backoff(operation, context)
-      # => {:error, :invalid_identity}
+      # => {:error, :resource_not_found}
 
-      # Duplicate identity (idempotent)
-      operation = fn -> {:error, :duplicate_identity} end
+      # Duplicate resource (idempotent)
+      operation = fn -> {:error, :duplicate_resource} end
       retry_with_backoff(operation, context)
       # => :ok
   """
@@ -114,8 +114,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
       {:ok, result} ->
         {:ok, result}
 
-      {:error, :duplicate_identity} ->
-        log_duplicate_identity(context)
+      {:error, :duplicate_resource} ->
+        log_duplicate_resource(context)
         :ok
 
       {:error, reason} = error ->
@@ -141,8 +141,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
         log_retry_success(context)
         {:ok, result}
 
-      {:error, :duplicate_identity} ->
-        log_duplicate_identity(context)
+      {:error, :duplicate_resource} ->
+        log_duplicate_resource(context)
         :ok
 
       {:error, _reason} ->
@@ -166,8 +166,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
   Determines if an error is permanent and should not be retried.
   """
   @spec permanent_error?(atom() | {atom(), term()}) :: boolean()
-  def permanent_error?(:duplicate_identity), do: true
-  def permanent_error?(:invalid_identity), do: true
+  def permanent_error?(:duplicate_resource), do: true
+  def permanent_error?(:resource_not_found), do: true
   def permanent_error?(:database_query_error), do: true
   def permanent_error?(:database_unavailable), do: true
   def permanent_error?({:validation_error, _}), do: true
@@ -209,10 +209,10 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
     )
   end
 
-  defp log_duplicate_identity(context) do
+  defp log_duplicate_resource(context) do
     Logger.debug(
       "[RetryHelpers] #{context.operation_name} for aggregate #{context.aggregate_id}: " <>
-        "duplicate identity (idempotent - treated as success)"
+        "duplicate resource (idempotent - treated as success)"
     )
   end
 

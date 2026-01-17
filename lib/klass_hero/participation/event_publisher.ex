@@ -2,8 +2,10 @@ defmodule KlassHero.Participation.EventPublisher do
   @moduledoc """
   Event publishing wrapper for the Participation context.
 
-  Delegates to the configured event publisher implementation.
+  Delegates to the shared event publishing infrastructure.
   """
+
+  alias KlassHero.Shared.EventPublishing
 
   @doc """
   Publishes a domain event.
@@ -12,10 +14,6 @@ defmodule KlassHero.Participation.EventPublisher do
   """
   @spec publish(map()) :: :ok | {:error, term()}
   def publish(event) do
-    publisher_module().publish(event)
-  end
-
-  defp publisher_module do
-    Application.get_env(:klass_hero, :event_publisher)[:module]
+    EventPublishing.publish(event)
   end
 end

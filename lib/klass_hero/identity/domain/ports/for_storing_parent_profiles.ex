@@ -22,11 +22,11 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringParentProfiles do
 
   Returns:
   - `{:ok, ParentProfile.t()}` - Parent profile created successfully
-  - `{:error, :duplicate_identity}` - Parent profile already exists for this identity_id
+  - `{:error, :duplicate_resource}` - Parent profile already exists for this identity_id
   - `{:error, changeset}` - Validation failure
   """
   @callback create_parent_profile(attrs :: map()) ::
-              {:ok, term()} | {:error, :duplicate_identity | term()}
+              {:ok, term()} | {:error, :duplicate_resource | term()}
 
   @doc """
   Retrieves a parent profile by identity ID.

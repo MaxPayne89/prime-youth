@@ -39,6 +39,7 @@ defmodule KlassHero.Accounts.EventPublisher do
 
   alias KlassHero.Accounts.Domain.Events.UserEvents
   alias KlassHero.Accounts.User
+  alias KlassHero.Shared.EventPublishing
 
   @doc """
   Publishes a `user_registered` event.
@@ -69,7 +70,7 @@ defmodule KlassHero.Accounts.EventPublisher do
 
     user
     |> UserEvents.user_registered(payload, meta_opts)
-    |> publisher_module().publish()
+    |> EventPublishing.publish()
   end
 
   @doc """
@@ -100,7 +101,7 @@ defmodule KlassHero.Accounts.EventPublisher do
 
     user
     |> UserEvents.user_confirmed(payload, meta_opts)
-    |> publisher_module().publish()
+    |> EventPublishing.publish()
   end
 
   @doc """
@@ -130,7 +131,7 @@ defmodule KlassHero.Accounts.EventPublisher do
 
     user
     |> UserEvents.user_email_changed(payload, meta_opts)
-    |> publisher_module().publish()
+    |> EventPublishing.publish()
   end
 
   @doc """
@@ -162,12 +163,7 @@ defmodule KlassHero.Accounts.EventPublisher do
 
     user
     |> UserEvents.user_anonymized(payload, meta_opts)
-    |> publisher_module().publish()
-  end
-
-  defp publisher_module do
-    Application.get_env(:klass_hero, :event_publisher, [])
-    |> Keyword.get(:module, KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher)
+    |> EventPublishing.publish()
   end
 
   defp extract_payload_opts(opts, payload_keys) do

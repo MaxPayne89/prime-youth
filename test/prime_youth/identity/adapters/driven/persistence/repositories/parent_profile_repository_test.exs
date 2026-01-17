@@ -38,12 +38,12 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProf
       assert is_nil(profile.display_name)
     end
 
-    test "returns :duplicate_identity error when profile exists" do
+    test "returns :duplicate_resource error when profile exists" do
       identity_id = Ecto.UUID.generate()
       attrs = %{identity_id: identity_id}
 
       assert {:ok, _} = ParentProfileRepository.create_parent_profile(attrs)
-      assert {:error, :duplicate_identity} = ParentProfileRepository.create_parent_profile(attrs)
+      assert {:error, :duplicate_resource} = ParentProfileRepository.create_parent_profile(attrs)
     end
   end
 

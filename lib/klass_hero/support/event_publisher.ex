@@ -28,6 +28,7 @@ defmodule KlassHero.Support.EventPublisher do
       EventPublisher.publish_contact_request_submitted(contact_request)
   """
 
+  alias KlassHero.Shared.EventPublishing
   alias KlassHero.Support.Domain.Events.SupportEvents
   alias KlassHero.Support.Domain.Models.ContactRequest
 
@@ -55,12 +56,6 @@ defmodule KlassHero.Support.EventPublisher do
   def publish_contact_request_submitted(%ContactRequest{} = contact_request, opts \\ []) do
     contact_request
     |> SupportEvents.contact_request_submitted(%{}, opts)
-    |> publisher_module().publish()
-  end
-
-  defp publisher_module do
-    :klass_hero
-    |> Application.get_env(:event_publisher, [])
-    |> Keyword.get(:module, KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher)
+    |> EventPublishing.publish()
   end
 end

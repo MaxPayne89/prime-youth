@@ -43,7 +43,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
       assert profile.business_name == "My Business"
     end
 
-    test "returns :duplicate_identity error when profile exists" do
+    test "returns :duplicate_resource error when profile exists" do
       identity_id = Ecto.UUID.generate()
       attrs = %{identity_id: identity_id, business_name: "First Business"}
 
@@ -51,7 +51,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
 
       second_attrs = %{identity_id: identity_id, business_name: "Second Business"}
 
-      assert {:error, :duplicate_identity} =
+      assert {:error, :duplicate_resource} =
                ProviderProfileRepository.create_provider_profile(second_attrs)
     end
   end

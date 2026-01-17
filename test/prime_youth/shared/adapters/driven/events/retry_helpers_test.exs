@@ -21,8 +21,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpersTest do
       assert {:ok, %{id: "123"}} = RetryHelpers.retry_with_backoff(operation, @default_context)
     end
 
-    test "returns :ok for duplicate identity error (idempotent)" do
-      operation = fn -> {:error, :duplicate_identity} end
+    test "returns :ok for duplicate resource error (idempotent)" do
+      operation = fn -> {:error, :duplicate_resource} end
 
       assert :ok = RetryHelpers.retry_with_backoff(operation, @default_context)
     end
@@ -99,15 +99,15 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpersTest do
       Agent.stop(counter)
     end
 
-    test "does not retry permanent errors - invalid_identity" do
+    test "does not retry permanent errors - resource_not_found" do
       {:ok, counter} = Agent.start_link(fn -> 0 end)
 
       operation = fn ->
         Agent.update(counter, &(&1 + 1))
-        {:error, :invalid_identity}
+        {:error, :resource_not_found}
       end
 
-      assert {:error, :invalid_identity} =
+      assert {:error, :resource_not_found} =
                RetryHelpers.retry_with_backoff(operation, @default_context)
 
       # Verify operation was called only once (no retry)
@@ -182,7 +182,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpersTest do
       Agent.stop(counter)
     end
 
-    test "treats duplicate identity as success on retry" do
+    test "treats duplicate resource as success on retry" do
       {:ok, counter} = Agent.start_link(fn -> 0 end)
 
       operation = fn ->
@@ -190,7 +190,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpersTest do
 
         case count do
           0 -> {:error, :database_connection_error}
-          1 -> {:error, :duplicate_identity}
+          1 -> {:error, :duplicate_resource}
         end
       end
 
@@ -207,8 +207,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpersTest do
     end
 
     test "returns false for all other errors" do
-      refute RetryHelpers.retryable_error?(:duplicate_identity)
-      refute RetryHelpers.retryable_error?(:invalid_identity)
+      refute RetryHelpers.retryable_error?(:duplicate_resource)
+      refute RetryHelpers.retryable_error?(:resource_not_found)
       refute RetryHelpers.retryable_error?(:database_query_error)
       refute RetryHelpers.retryable_error?(:database_unavailable)
       refute RetryHelpers.retryable_error?({:validation_error, []})
@@ -217,12 +217,12 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpersTest do
   end
 
   describe "permanent_error?/1" do
-    test "returns true for duplicate_identity" do
-      assert RetryHelpers.permanent_error?(:duplicate_identity)
+    test "returns true for duplicate_resource" do
+      assert RetryHelpers.permanent_error?(:duplicate_resource)
     end
 
-    test "returns true for invalid_identity" do
-      assert RetryHelpers.permanent_error?(:invalid_identity)
+    test "returns true for resource_not_found" do
+      assert RetryHelpers.permanent_error?(:resource_not_found)
     end
 
     test "returns true for database_query_error" do
