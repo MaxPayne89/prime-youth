@@ -9,6 +9,7 @@ defmodule KlassHeroWeb.ProgramComponents do
 
   import KlassHeroWeb.UIComponents
 
+  alias KlassHero.ProgramCatalog.Domain.Services.ProgramPricing
   alias KlassHeroWeb.Theme
 
   @doc """
@@ -445,7 +446,7 @@ defmodule KlassHeroWeb.ProgramComponents do
     <!-- Price -->
         <div class="pt-4 border-t border-hero-grey-100">
           <div class={[Theme.typography(:card_title), Theme.text_color(:primary)]}>
-            {format_price(@program.price)}
+            {ProgramPricing.format_price(@program.price)}
           </div>
           <div class="text-sm text-hero-grey-500">{@program.period}</div>
         </div>
@@ -484,13 +485,6 @@ defmodule KlassHeroWeb.ProgramComponents do
     </div>
     """
   end
-
-  # Helper function to format price
-  defp format_price(price) when is_integer(price) or is_float(price) do
-    "€#{:erlang.float_to_binary(price / 1, decimals: 2)}"
-  end
-
-  defp format_price(price) when is_binary(price), do: price
 
   @doc """
   Renders a formatted price with currency and period.

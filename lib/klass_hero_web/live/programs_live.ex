@@ -5,6 +5,7 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   alias KlassHero.ProgramCatalog.Application.UseCases.FilterPrograms
   alias KlassHero.ProgramCatalog.Application.UseCases.ListProgramsPaginated
+  alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
   alias KlassHeroWeb.ErrorIds
   alias KlassHeroWeb.Theme
 
@@ -12,17 +13,6 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   # Compile-time environment check (Mix is not available in releases)
   @env Mix.env()
-
-  @valid_filters [
-    "all",
-    "sports",
-    "arts",
-    "music",
-    "education",
-    "life-skills",
-    "camps",
-    "workshops"
-  ]
 
   # Private helpers - Static data
   defp filter_options do
@@ -64,8 +54,8 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   @impl true
   def handle_params(params, _uri, socket) do
-    search_query = sanitize_search_query(params["q"])
-    active_filter = validate_filter(params["filter"])
+    search_query = FilterPrograms.sanitize_query(params["q"])
+    active_filter = ProgramCategories.validate_filter(params["filter"])
 
     # Load first page of programs using pagination (always resets to page 1)
     # Infrastructure errors will crash and be handled by supervision tree
@@ -337,18 +327,6 @@ defmodule KlassHeroWeb.ProgramsLive do
     |> Map.merge(updates_map)
     |> Enum.reject(fn {_k, v} -> v == "" || v == "all" end)
     |> Map.new()
-  end
-
-  defp validate_filter(nil), do: "all"
-  defp validate_filter(filter) when filter in @valid_filters, do: filter
-  defp validate_filter(_invalid), do: "all"
-
-  defp sanitize_search_query(nil), do: ""
-
-  defp sanitize_search_query(query) do
-    query
-    |> String.trim()
-    |> String.slice(0, 100)
   end
 
   # Private helpers - Business logic
