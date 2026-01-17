@@ -38,49 +38,13 @@ defmodule KlassHeroWeb.DashboardLive do
   end
 
   defp calculate_activity_goal(children) do
-    current =
-      Enum.reduce(children, 0, fn c, acc ->
-        session_count =
-          case c.sessions do
-            sessions when is_list(sessions) -> length(sessions)
-            sessions when is_binary(sessions) -> parse_session_count(sessions)
-            _ -> 0
-          end
-
-        acc + session_count
-      end)
-
-    target = 5
-    percentage = min(100, div(current * 100, max(target, 1)))
-
-    %{
-      current: current,
-      target: target,
-      percentage: percentage,
-      message: goal_message(percentage)
-    }
+    goal = Identity.calculate_activity_goal(children)
+    Map.put(goal, :message, goal_message(goal.status))
   end
 
-  defp parse_session_count(sessions_string) do
-    case String.split(sessions_string, "/") do
-      [current, _total] ->
-        case Integer.parse(current) do
-          {count, _} -> count
-          :error -> 0
-        end
-
-      _ ->
-        0
-    end
-  end
-
-  defp goal_message(percentage) when percentage >= 100,
-    do: gettext("Congratulations! Goal achieved!")
-
-  defp goal_message(percentage) when percentage >= 80,
-    do: gettext("Almost there! One more to go!")
-
-  defp goal_message(_), do: gettext("You're doing great! Keep it up!")
+  defp goal_message(:achieved), do: gettext("Congratulations! Goal achieved!")
+  defp goal_message(:almost_there), do: gettext("Almost there! One more to go!")
+  defp goal_message(:in_progress), do: gettext("You're doing great! Keep it up!")
 
   defp get_achievements(_socket) do
     [
@@ -145,8 +109,7 @@ defmodule KlassHeroWeb.DashboardLive do
   end
 
   defp generate_referral_code(user) do
-    [first_name | _] = String.split(user.name, " ")
-    "#{String.upcase(first_name)}-BERLIN-24"
+    Identity.generate_referral_code(user.name)
   end
 
   @impl true

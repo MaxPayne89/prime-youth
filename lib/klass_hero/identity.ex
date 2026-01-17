@@ -41,6 +41,8 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Parents.GetParentByIdentity
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
   alias KlassHero.Identity.Application.UseCases.Providers.GetProviderByIdentity
+  alias KlassHero.Identity.Domain.Services.ActivityGoalCalculator
+  alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
 
   @parent_repository Application.compile_env!(:klass_hero, [
                        :identity,
@@ -152,5 +154,60 @@ defmodule KlassHero.Identity do
   """
   def get_child_by_id(child_id) when is_binary(child_id) do
     GetChildById.execute(child_id)
+  end
+
+  @doc """
+  Returns a MapSet of child IDs for a given parent.
+  Useful for authorization checks when processing multiple children.
+  """
+  def get_child_ids_for_parent(parent_id) when is_binary(parent_id) do
+    parent_id
+    |> get_children()
+    |> MapSet.new(& &1.id)
+  end
+
+  @doc """
+  Checks if a child belongs to a specific parent.
+  Returns true if the child's parent_id matches the given parent_id.
+  """
+  def child_belongs_to_parent?(child_id, parent_id)
+      when is_binary(child_id) and is_binary(parent_id) do
+    case get_child_by_id(child_id) do
+      {:ok, child} -> child.parent_id == parent_id
+      {:error, :not_found} -> false
+    end
+  end
+
+  # ============================================================================
+  # Activity & Referral Functions
+  # ============================================================================
+
+  @doc """
+  Calculates the weekly activity goal progress for a family's children.
+
+  Options:
+  - `:target` - Weekly session target (default: 5)
+
+  Returns a map with:
+  - `current` - Number of sessions completed
+  - `target` - Target number of sessions
+  - `percentage` - Progress percentage (capped at 100)
+  - `status` - One of `:achieved`, `:almost_there`, or `:in_progress`
+  """
+  def calculate_activity_goal(children, opts \\ []) when is_list(children) do
+    ActivityGoalCalculator.calculate(children, opts)
+  end
+
+  @doc """
+  Generates a referral code for a user.
+
+  Options:
+  - `:location` - Location string (default: "BERLIN")
+  - `:year_suffix` - Year suffix string (default: current year's last 2 digits)
+
+  Returns a string in format "{FIRST_NAME}-{LOCATION}-{YEAR_SUFFIX}"
+  """
+  def generate_referral_code(name, opts \\ []) when is_binary(name) do
+    ReferralCodeGenerator.generate(name, opts)
   end
 end
