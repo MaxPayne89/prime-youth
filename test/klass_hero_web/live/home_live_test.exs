@@ -23,6 +23,49 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "span", "Trending in Berlin:")
       assert has_element?(view, "button", "Swimming")
       assert has_element?(view, "button", "Math Tutor")
+      assert has_element?(view, "button", "Summer Camp")
+      assert has_element?(view, "button", "Piano")
+      assert has_element?(view, "button", "Soccer")
+    end
+
+    test "search form submission navigates to programs page with query", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view
+      |> form("#home-search-form", %{search: "piano lessons"})
+      |> render_submit()
+
+      assert_redirect(view, "/programs?q=piano+lessons")
+    end
+
+    test "empty search does not navigate", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view
+      |> form("#home-search-form", %{search: "  "})
+      |> render_submit()
+
+      refute_redirected(view, "/programs")
+    end
+
+    test "clicking trending tag navigates to programs page with tag query", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view
+      |> element("button[phx-value-tag='Swimming']")
+      |> render_click()
+
+      assert_redirect(view, "/programs?q=Swimming")
+    end
+
+    test "clicking different trending tag navigates correctly", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view
+      |> element("button[phx-value-tag='Math Tutor']")
+      |> render_click()
+
+      assert_redirect(view, "/programs?q=Math+Tutor")
     end
 
     test "renders featured programs section", %{conn: conn} do

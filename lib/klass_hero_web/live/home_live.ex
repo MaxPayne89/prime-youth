@@ -4,17 +4,20 @@ defmodule KlassHeroWeb.HomeLive do
   import KlassHeroWeb.UIComponents
 
   alias KlassHero.ProgramCatalog.Application.UseCases.ListFeaturedPrograms
+  alias KlassHero.ProgramCatalog.Domain.Services.TrendingSearches
   alias KlassHeroWeb.Theme
 
   @impl true
   def mount(_params, _session, socket) do
     featured = ListFeaturedPrograms.execute()
+    trending_tags = TrendingSearches.list()
 
     socket =
       socket
       |> assign(
         page_title: gettext("Klass Hero - Connecting Families with Trusted Youth Educators"),
-        pricing_tab: :families
+        pricing_tab: :families,
+        trending_tags: trending_tags
       )
       |> stream(:featured_programs, featured)
       |> assign(:featured_empty?, Enum.empty?(featured))
@@ -31,6 +34,22 @@ defmodule KlassHeroWeb.HomeLive do
   def handle_event("switch_pricing_tab", %{"tab" => tab}, socket) do
     pricing_tab = String.to_existing_atom(tab)
     {:noreply, assign(socket, :pricing_tab, pricing_tab)}
+  end
+
+  @impl true
+  def handle_event("search", %{"search" => query}, socket) do
+    query = String.trim(query)
+
+    if query == "" do
+      {:noreply, socket}
+    else
+      {:noreply, push_navigate(socket, to: ~p"/programs?q=#{query}")}
+    end
+  end
+
+  @impl true
+  def handle_event("tag_search", %{"tag" => tag}, socket) do
+    {:noreply, push_navigate(socket, to: ~p"/programs?q=#{tag}")}
   end
 
   @impl true
@@ -53,7 +72,7 @@ defmodule KlassHeroWeb.HomeLive do
           </p>
         </:subtitle>
         <:search_bar>
-          <div class="max-w-3xl mx-auto mb-8">
+          <form id="home-search-form" phx-submit="search" class="max-w-3xl mx-auto mb-8">
             <div class="flex items-center gap-2 bg-white rounded-full shadow-sm p-2">
               <div class="flex-1 flex items-center px-4">
                 <svg
@@ -71,36 +90,33 @@ defmodule KlassHeroWeb.HomeLive do
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search for programs..."
+                  name="search"
+                  placeholder={gettext("Search for programs...")}
                   class="w-full outline-none text-hero-black bg-transparent"
-                  disabled
                 />
               </div>
-              <button class="bg-hero-yellow-400 text-hero-black px-6 py-3 rounded-full font-semibold hover:bg-hero-yellow-500 transition-all duration-200">
+              <button
+                type="submit"
+                class="bg-hero-yellow-400 text-hero-black px-6 py-3 rounded-full font-semibold hover:bg-hero-yellow-500 transition-all duration-200"
+              >
                 {gettext("Search")}
               </button>
             </div>
-          </div>
+          </form>
         </:search_bar>
         <:trending_tags>
           <div class="flex flex-wrap items-center justify-center gap-2">
             <span class="text-sm text-hero-grey-600 font-medium">
               {gettext("Trending in Berlin:")}
             </span>
-            <button class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200">
-              {gettext("Swimming")}
-            </button>
-            <button class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200">
-              {gettext("Math Tutor")}
-            </button>
-            <button class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200">
-              {gettext("Summer Camp")}
-            </button>
-            <button class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200">
-              {gettext("Piano")}
-            </button>
-            <button class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200">
-              {gettext("Soccer")}
+            <button
+              :for={tag <- @trending_tags}
+              type="button"
+              phx-click="tag_search"
+              phx-value-tag={tag}
+              class="px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full text-sm text-hero-black border border-hero-grey-200 hover:bg-white hover:shadow-sm transition-all duration-200"
+            >
+              {tag}
             </button>
           </div>
         </:trending_tags>
