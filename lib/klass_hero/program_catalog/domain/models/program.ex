@@ -10,6 +10,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     :id,
     :title,
     :description,
+    :category,
     :schedule,
     :age_range,
     :price,
@@ -21,6 +22,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     :id,
     :title,
     :description,
+    :category,
     :schedule,
     :age_range,
     :price,
@@ -36,6 +38,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
           id: String.t(),
           title: String.t(),
           description: String.t(),
+          category: String.t(),
           schedule: String.t(),
           age_range: String.t(),
           price: Decimal.t(),
@@ -108,6 +111,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     []
     |> validate_title(program.title)
     |> validate_description(program.description)
+    |> validate_category(program.category)
     |> validate_schedule(program.schedule)
     |> validate_age_range(program.age_range)
     |> validate_pricing_period(program.pricing_period)
@@ -138,6 +142,21 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   end
 
   defp validate_description(errors, _), do: ["Description must be a string" | errors]
+
+  defp validate_category(errors, category) when is_binary(category) do
+    alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
+
+    if ProgramCategories.valid_program_category?(category) do
+      errors
+    else
+      [
+        "Category must be one of: #{Enum.join(ProgramCategories.program_categories(), ", ")}"
+        | errors
+      ]
+    end
+  end
+
+  defp validate_category(errors, _), do: ["Category must be a string" | errors]
 
   defp validate_schedule(errors, schedule) when is_binary(schedule) do
     if String.trim(schedule) == "" do

@@ -582,6 +582,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         id: Ecto.UUID.generate(),
         title: "Non-existent",
         description: "Description",
+        category: "education",
         schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
@@ -738,6 +739,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   defp insert_program(attrs) do
     default_attrs = %{
       id: Ecto.UUID.generate(),
+      category: "education",
       icon_path: "/images/default.svg"
     }
 
@@ -752,6 +754,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   defp insert_program_with_timestamp(attrs, inserted_at) do
     default_attrs = %{
       id: Ecto.UUID.generate(),
+      category: "education",
       icon_path: "/images/default.svg"
     }
 

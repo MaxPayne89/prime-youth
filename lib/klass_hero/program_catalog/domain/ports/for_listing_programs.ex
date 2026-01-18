@@ -56,4 +56,26 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms do
   """
   @callback list_programs_paginated(limit :: pos_integer(), cursor :: binary() | nil) ::
               {:ok, term()} | {:error, :invalid_cursor}
+
+  @doc """
+  Lists programs with cursor-based pagination and optional category filter.
+
+  Same as `list_programs_paginated/2` but with an additional category filter.
+  Uses database-level filtering for efficient pagination with category constraints.
+
+  Parameters:
+  - `limit` - Number of items per page (1-100)
+  - `cursor` - Base64-encoded cursor for pagination, nil for first page
+  - `category` - Category to filter by, or nil/"all" for all categories
+
+  Returns:
+  - `{:ok, PageResult.t()}` - Page of programs with pagination metadata
+  - `{:error, :invalid_cursor}` - Cursor decoding/validation failure
+  """
+  @callback list_programs_paginated(
+              limit :: pos_integer(),
+              cursor :: binary() | nil,
+              category :: String.t() | nil
+            ) ::
+              {:ok, term()} | {:error, :invalid_cursor}
 end

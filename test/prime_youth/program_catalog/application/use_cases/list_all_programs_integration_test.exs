@@ -310,7 +310,8 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
 
   defp insert_program(attrs) do
     default_attrs = %{
-      id: Ecto.UUID.generate()
+      id: Ecto.UUID.generate(),
+      category: "education"
     }
 
     attrs = Map.merge(default_attrs, attrs)

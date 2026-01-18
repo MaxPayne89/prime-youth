@@ -1266,6 +1266,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
     default_attrs = %{
       title: "Default Program",
       description: "Default description",
+      category: "education",
       schedule: "Mon-Fri, 3:00-5:00 PM",
       age_range: "6-12 years",
       price: Decimal.new("100.00"),

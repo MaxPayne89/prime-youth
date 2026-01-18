@@ -38,6 +38,11 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
       # This mock is not used in these tests, but required by the behavior
       {:error, :not_implemented}
     end
+
+    def list_programs_paginated(_limit, _cursor, _category) do
+      # This mock is not used in these tests, but required by the behavior
+      {:error, :not_implemented}
+    end
   end
 
   setup do
@@ -69,6 +74,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         id: "550e8400-e29b-41d4-a716-446655440001",
         title: "Soccer Stars",
         description: "Learn soccer fundamentals in a fun environment",
+        category: "education",
         schedule: "Mon-Wed 3-5pm",
         age_range: "6-10 years",
         price: Decimal.new("150.00"),
@@ -83,6 +89,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         id: "550e8400-e29b-41d4-a716-446655440002",
         title: "Art Adventure",
         description: "Explore creativity through painting and sculpture",
+        category: "education",
         schedule: "Tue-Thu 4-6pm",
         age_range: "7-12 years",
         price: Decimal.new("120.00"),
@@ -116,6 +123,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         id: "550e8400-e29b-41d4-a716-446655440003",
         title: "Zebra Zone",
         description: "Wildlife education program",
+        category: "education",
         schedule: "Fri 2-4pm",
         age_range: "5-8 years",
         price: Decimal.new("100.00"),
@@ -130,6 +138,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         id: "550e8400-e29b-41d4-a716-446655440004",
         title: "Art Club",
         description: "Creative arts exploration",
+        category: "education",
         schedule: "Mon 3-5pm",
         age_range: "6-9 years",
         price: Decimal.new("80.00"),
@@ -154,6 +163,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         id: "550e8400-e29b-41d4-a716-446655440005",
         title: "Community Service",
         description: "Give back to the community",
+        category: "education",
         schedule: "Sat 10am-12pm",
         age_range: "12-18 years",
         price: Decimal.new("0.00"),
@@ -168,6 +178,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         id: "550e8400-e29b-41d4-a716-446655440006",
         title: "Popular Camp",
         description: "High-demand summer camp",
+        category: "education",
         schedule: "Jun 15-20",
         age_range: "8-14 years",
         price: Decimal.new("500.00"),

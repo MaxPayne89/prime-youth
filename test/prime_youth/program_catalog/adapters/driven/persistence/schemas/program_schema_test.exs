@@ -8,6 +8,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Summer Soccer Camp",
         description: "Fun soccer activities for kids",
+        category: "education",
         schedule: "Mon-Fri 9AM-12PM",
         age_range: "6-12",
         price: Decimal.new("150.00"),
@@ -26,6 +27,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Art Class",
         description: "Creative art activities",
+        category: "education",
         schedule: "Saturdays 10AM-12PM",
         age_range: "8-14",
         price: Decimal.new("75.00"),
@@ -43,6 +45,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Community Day",
         description: "Free community event",
+        category: "education",
         schedule: "Sunday 2PM-5PM",
         age_range: "All ages",
         price: Decimal.new("0.00"),
@@ -60,6 +63,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Popular Camp",
         description: "Sold out camp",
+        category: "education",
         schedule: "All week",
         age_range: "10-15",
         price: Decimal.new("200.00"),
@@ -77,6 +81,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     test "invalid changeset when title is missing" do
       attrs = %{
         description: "Description without title",
+        category: "education",
         schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
@@ -110,6 +115,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Program",
         description: "Description",
+        category: "education",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -126,6 +132,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Program",
         description: "Description",
+        category: "education",
         schedule: "Mon-Fri",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -142,6 +149,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Program",
         description: "Description",
+        category: "education",
         schedule: "Mon-Fri",
         age_range: "6-12",
         pricing_period: "per week",
@@ -158,6 +166,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Program",
         description: "Description",
+        category: "education",
         schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
@@ -176,6 +185,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: long_title,
         description: "Description",
+        category: "education",
         schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
@@ -212,6 +222,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Program",
         description: "Description",
+        category: "education",
         schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("-10.00"),
@@ -229,6 +240,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Program",
         description: "Description",
+        category: "education",
         schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
@@ -248,6 +260,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: title_100,
         description: "Description",
+        category: "education",
         schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
@@ -266,6 +279,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs = %{
         title: "Program",
         description: description_500,
+        category: "education",
         schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
