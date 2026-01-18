@@ -302,5 +302,20 @@ defmodule KlassHeroWeb.HomeLiveTest do
       # View All Programs button present
       assert has_element?(view, "button", "View All Programs")
     end
+
+    test "clicking featured program card navigates to program detail", %{conn: conn} do
+      # Insert a program into the database
+      program = insert(:program_schema)
+
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      # Click the program card with the program-id attribute
+      view
+      |> element("[phx-click='view_program'][phx-value-program-id='#{program.id}']")
+      |> render_click()
+
+      # Should redirect to program detail page
+      assert_redirect(view, ~p"/programs/#{program.id}")
+    end
   end
 end

@@ -53,6 +53,11 @@ defmodule KlassHeroWeb.HomeLive do
   end
 
   @impl true
+  def handle_event("view_program", %{"program-id" => program_id}, socket) do
+    {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="min-h-screen">
@@ -147,7 +152,8 @@ defmodule KlassHeroWeb.HomeLive do
               title={program.title}
               description={program.description}
               price={program.price}
-              phx-click="explore_programs"
+              phx-click="view_program"
+              phx-value-program-id={program.id}
             />
           </div>
 
