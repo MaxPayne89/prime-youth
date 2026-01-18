@@ -200,6 +200,10 @@ defmodule KlassHeroWeb.UserAuth do
       on user_token.
       Redirects to login page if there's no logged user.
 
+    * `:redirect_provider_from_parent_routes` - Redirects provider users
+      away from parent-specific routes to the provider dashboard.
+      Use this hook on routes that should redirect providers.
+
   ## Examples
 
   Use the `on_mount` lifecycle macro in LiveViews to mount or authenticate
@@ -271,6 +275,29 @@ defmodule KlassHeroWeb.UserAuth do
       &Scope.provider?/1,
       gettext("You must have a provider profile to access this page.")
     )
+  end
+
+  # Redirects provider users away from parent-specific routes.
+  # Use this hook on routes that should redirect providers to their dashboard.
+  def on_mount(:redirect_provider_from_parent_routes, _params, session, socket) do
+    socket = mount_current_scope(socket, session)
+
+    if socket.assigns.current_scope && socket.assigns.current_scope.user do
+      scope = Scope.resolve_roles(socket.assigns.current_scope)
+      socket = Phoenix.Component.assign(socket, :current_scope, scope)
+
+      if Scope.provider?(scope) do
+        socket =
+          socket
+          |> Phoenix.LiveView.redirect(to: ~p"/provider/dashboard")
+
+        {:halt, socket}
+      else
+        {:cont, socket}
+      end
+    else
+      {:cont, socket}
+    end
   end
 
   # Helper to require a specific role with role resolution
