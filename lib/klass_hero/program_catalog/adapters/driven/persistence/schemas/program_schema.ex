@@ -10,12 +10,15 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
 
   import Ecto.Changeset
 
+  alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]
 
   schema "programs" do
     field :title, :string
     field :description, :string
+    field :category, :string
     field :schedule, :string
     field :age_range, :string
     field :price, :decimal
@@ -31,6 +34,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           id: Ecto.UUID.t() | nil,
           title: String.t() | nil,
           description: String.t() | nil,
+          category: String.t() | nil,
           schedule: String.t() | nil,
           age_range: String.t() | nil,
           price: Decimal.t() | nil,
@@ -63,6 +67,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> cast(attrs, [
       :title,
       :description,
+      :category,
       :schedule,
       :age_range,
       :price,
@@ -73,6 +78,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_required([
       :title,
       :description,
+      :category,
       :schedule,
       :age_range,
       :price,
@@ -84,6 +90,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_length(:schedule, min: 1, max: 255)
     |> validate_length(:age_range, min: 1, max: 100)
     |> validate_length(:pricing_period, min: 1, max: 100)
+    |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_number(:spots_available, greater_than_or_equal_to: 0)
   end
@@ -102,6 +109,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> cast(attrs, [
       :title,
       :description,
+      :category,
       :schedule,
       :age_range,
       :price,
@@ -112,6 +120,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_required([
       :title,
       :description,
+      :category,
       :schedule,
       :age_range,
       :price,
@@ -123,6 +132,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_length(:schedule, min: 1, max: 255)
     |> validate_length(:age_range, min: 1, max: 100)
     |> validate_length(:pricing_period, min: 1, max: 100)
+    |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_number(:spots_available, greater_than_or_equal_to: 0)
     |> optimistic_lock(:lock_version)

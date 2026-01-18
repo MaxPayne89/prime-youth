@@ -70,4 +70,36 @@ defmodule KlassHero.ProgramCatalog.Domain.Services.ProgramCategories do
   """
   @spec default_category() :: String.t()
   def default_category, do: @default_category
+
+  @doc """
+  Returns valid categories for programs (excludes "all" which is only for filtering).
+
+  ## Examples
+
+      iex> ProgramCategories.program_categories()
+      ["sports", "arts", "music", "education", "life-skills", "camps", "workshops"]
+  """
+  @spec program_categories() :: [String.t()]
+  def program_categories do
+    Enum.reject(@valid_categories, &(&1 == "all"))
+  end
+
+  @doc """
+  Checks if a category is valid for assignment to a program.
+
+  Unlike `valid?/1`, this excludes "all" which is only valid as a filter.
+
+  ## Examples
+
+      iex> ProgramCategories.valid_program_category?("sports")
+      true
+
+      iex> ProgramCategories.valid_program_category?("all")
+      false
+
+      iex> ProgramCategories.valid_program_category?("invalid")
+      false
+  """
+  @spec valid_program_category?(String.t()) :: boolean()
+  def valid_program_category?(category), do: category in program_categories()
 end

@@ -45,4 +45,17 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Queries.ProgramQu
   def limit_results(query, limit) when is_integer(limit) and limit > 0 do
     from(p in query, limit: ^limit)
   end
+
+  @doc """
+  Filters programs by category.
+
+  Returns all programs if category is nil or "all".
+  Otherwise, filters to only programs matching the specified category.
+  """
+  def filter_by_category(query, nil), do: query
+  def filter_by_category(query, "all"), do: query
+
+  def filter_by_category(query, category) do
+    from(p in query, where: p.category == ^category)
+  end
 end

@@ -96,15 +96,31 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   - `{:error, :invalid_cursor}` - Cursor decoding/validation failure
   """
   def list_programs_paginated(limit, cursor) do
+    list_programs_paginated(limit, cursor, nil)
+  end
+
+  @impl true
+  @doc """
+  Lists programs with cursor-based pagination and optional category filter.
+
+  Same as `list_programs_paginated/2` but with an additional category filter.
+  Uses database-level filtering for efficient pagination with category constraints.
+
+  Returns:
+  - `{:ok, PageResult.t()}` - Page of programs with pagination metadata
+  - `{:error, :invalid_cursor}` - Cursor decoding/validation failure
+  """
+  def list_programs_paginated(limit, cursor, category) do
     Logger.info(
       "[ProgramRepository] Starting list_programs_paginated query",
       limit: limit,
-      has_cursor: !is_nil(cursor)
+      has_cursor: !is_nil(cursor),
+      category: category
     )
 
     with {:ok, validated_limit} <- validate_limit(limit),
          {:ok, cursor_data} <- decode_cursor(cursor) do
-      schemas = fetch_page(validated_limit, cursor_data)
+      schemas = fetch_page(validated_limit, cursor_data, category)
 
       {items, has_more} =
         if length(schemas) > validated_limit do
@@ -124,7 +140,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       Logger.info(
         "[ProgramRepository] Successfully retrieved paginated programs",
         returned_count: length(domain_programs),
-        has_more: has_more
+        has_more: has_more,
+        category: category
       )
 
       {:ok, page_result}
@@ -277,8 +294,9 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     |> Base.url_encode64(padding: false)
   end
 
-  defp fetch_page(limit, cursor_data) do
+  defp fetch_page(limit, cursor_data, category) do
     ProgramQueries.base_query()
+    |> ProgramQueries.filter_by_category(category)
     |> apply_cursor_filter(cursor_data)
     |> ProgramQueries.order_by_creation(:desc)
     |> ProgramQueries.limit_results(limit + 1)

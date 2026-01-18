@@ -38,7 +38,6 @@ defmodule KlassHeroWeb.ProgramsLive do
       |> assign(search_query: "")
       |> assign(active_filter: "all")
       |> assign(sort_by: "Recommended")
-      |> assign(trending_tags: ["Swimming", "Math Tutor", "Summer Camp", "Piano", "Soccer"])
       |> stream(:programs, [])
       |> assign(programs_count: 0)
       |> assign(programs_empty?: true)
@@ -57,23 +56,24 @@ defmodule KlassHeroWeb.ProgramsLive do
     search_query = FilterPrograms.sanitize_query(params["q"])
     active_filter = ProgramCategories.validate_filter(params["filter"])
 
-    # Load first page of programs using pagination (always resets to page 1)
+    # Load first page of programs using pagination with category filter (always resets to page 1)
+    # Category filtering happens at the database level for consistent pagination
     # Infrastructure errors will crash and be handled by supervision tree
-    {:ok, page_result} = ListProgramsPaginated.execute(socket.assigns.page_size, nil)
+    {:ok, page_result} =
+      ListProgramsPaginated.execute(socket.assigns.page_size, nil, active_filter)
 
     start_time = System.monotonic_time(:millisecond)
     # Apply search filter to domain programs BEFORE converting to maps
     filtered_domain = FilterPrograms.execute(page_result.items, search_query)
     # Convert to maps for UI
     programs = Enum.map(filtered_domain, &program_to_map/1)
-    # Apply category filter
-    filtered = filter_by_category(programs, active_filter)
     duration_ms = System.monotonic_time(:millisecond) - start_time
 
     Logger.info(
       "[ProgramsLive.handle_params] Filter operation completed",
       search_query: search_query,
-      result_count: length(filtered),
+      category: active_filter,
+      result_count: length(programs),
       page_has_more: page_result.has_more,
       duration_ms: duration_ms,
       current_user_id: get_user_id(socket)
@@ -83,7 +83,8 @@ defmodule KlassHeroWeb.ProgramsLive do
       Logger.warning(
         "[ProgramsLive.handle_params] Filter operation exceeded performance target",
         search_query: search_query,
-        result_count: length(filtered),
+        category: active_filter,
+        result_count: length(programs),
         duration_ms: duration_ms,
         target_ms: 150,
         current_user_id: get_user_id(socket)
@@ -96,8 +97,8 @@ defmodule KlassHeroWeb.ProgramsLive do
       |> assign(active_filter: active_filter)
       |> assign(next_cursor: page_result.next_cursor)
       |> assign(has_more: page_result.has_more)
-      |> stream(:programs, filtered, reset: true)
-      |> assign(:programs_empty?, Enum.empty?(filtered))
+      |> stream(:programs, programs, reset: true)
+      |> assign(:programs_empty?, Enum.empty?(programs))
       |> assign(database_error: false)
 
     {:noreply, socket}
@@ -109,6 +110,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       id: program.id,
       title: program.title,
       description: program.description,
+      category: format_category_for_display(program.category),
       schedule: program.schedule,
       age_range: program.age_range,
       price: safe_decimal_to_float(program.price),
@@ -121,6 +123,15 @@ defmodule KlassHeroWeb.ProgramsLive do
 
     enrich_program_with_mock_data(base_map)
   end
+
+  # Formats category for display (capitalizes and handles hyphenated categories)
+  defp format_category_for_display(category) when is_binary(category) do
+    category
+    |> String.split("-")
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  defp format_category_for_display(_), do: "Education"
 
   # Enrich program with mock data for UI elements
   # This is temporary until these fields are added to the database
@@ -251,21 +262,25 @@ defmodule KlassHeroWeb.ProgramsLive do
     # Set loading state
     socket = assign(socket, loading_more: true)
 
-    # Load next page using current cursor
+    # Load next page using current cursor with category filter
     # Infrastructure errors will crash and be handled by supervision tree
-    case ListProgramsPaginated.execute(socket.assigns.page_size, socket.assigns.next_cursor) do
+    case ListProgramsPaginated.execute(
+           socket.assigns.page_size,
+           socket.assigns.next_cursor,
+           socket.assigns.active_filter
+         ) do
       {:ok, page_result} ->
-        # Apply same filters as current page
+        # Apply same search filter as current page
         filtered_domain =
           FilterPrograms.execute(page_result.items, socket.assigns.search_query)
 
         programs = Enum.map(filtered_domain, &program_to_map/1)
-        filtered = filter_by_category(programs, socket.assigns.active_filter)
 
         Logger.info(
           "[ProgramsLive.load_more] Successfully loaded next page",
-          returned_count: length(filtered),
+          returned_count: length(programs),
           has_more: page_result.has_more,
+          category: socket.assigns.active_filter,
           current_user_id: get_user_id(socket)
         )
 
@@ -274,7 +289,7 @@ defmodule KlassHeroWeb.ProgramsLive do
           |> assign(next_cursor: page_result.next_cursor)
           |> assign(has_more: page_result.has_more)
           |> assign(loading_more: false)
-          |> stream(:programs, filtered)
+          |> stream(:programs, programs)
 
         {:noreply, socket}
 
@@ -329,11 +344,6 @@ defmodule KlassHeroWeb.ProgramsLive do
     |> Map.new()
   end
 
-  # Private helpers - Business logic
-  # Category filtering is visual-only for now - no actual filtering logic
-  # This preserves existing test behavior while showing the new category UI
-  defp filter_by_category(programs, _category), do: programs
-
   # Extract user ID from socket for logging context
   # Returns nil if user is not authenticated
   defp get_user_id(socket) do
@@ -363,24 +373,20 @@ defmodule KlassHeroWeb.ProgramsLive do
           class="mb-4"
         />
 
-        <.trending_tags tags={@trending_tags} />
+        <.filter_pills
+          filters={@filters}
+          active_filter={@active_filter}
+          phx-click="filter_select"
+          class="justify-center"
+        />
       </.page_header>
       
     <!-- Main Content -->
       <div class="max-w-7xl mx-auto px-6 py-6">
-        <!-- Filters + Controls Row -->
-        <div class="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center mb-6">
-          <.filter_pills
-            filters={@filters}
-            active_filter={@active_filter}
-            phx-click="filter_select"
-            class="flex-1"
-          />
-
-          <div class="flex gap-3 w-full md:w-auto">
-            <.sort_dropdown selected={@sort_by} class="flex-1 md:flex-initial" />
-            <.view_toggle active_view={:grid} />
-          </div>
+        <!-- Controls Row -->
+        <div class="flex justify-end gap-3 mb-6">
+          <.sort_dropdown selected={@sort_by} />
+          <.view_toggle active_view={:grid} />
         </div>
         
     <!-- Programs Grid -->

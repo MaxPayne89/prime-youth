@@ -43,6 +43,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       id: to_string(schema.id),
       title: schema.title,
       description: schema.description,
+      category: schema.category,
       schedule: schema.schedule,
       age_range: schema.age_range,
       price: schema.price,
@@ -104,6 +105,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
     %{
       title: program.title,
       description: program.description,
+      category: program.category,
       schedule: program.schedule,
       age_range: program.age_range,
       price: program.price,

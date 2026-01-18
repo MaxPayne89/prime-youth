@@ -172,6 +172,7 @@ programs = [
   %{
     title: "Art Adventures",
     description: "Explore creativity through painting, drawing, and crafts",
+    category: "arts",
     schedule: "Mon-Fri, 3:00-5:00 PM",
     age_range: "6-8 years",
     price: Decimal.new("120.00"),
@@ -182,6 +183,7 @@ programs = [
   %{
     title: "Tech Explorers",
     description: "Learn coding, robotics, and digital creation",
+    category: "education",
     schedule: "Tue/Thu, 4:00-6:00 PM",
     age_range: "9-12 years",
     price: Decimal.new("150.00"),
@@ -192,6 +194,7 @@ programs = [
   %{
     title: "Sports Camp",
     description: "Multi-sport activities including soccer, basketball, and more",
+    category: "sports",
     schedule: "Mon-Fri, 9:00 AM-3:00 PM",
     age_range: "7-14 years",
     price: Decimal.new("200.00"),
@@ -202,6 +205,7 @@ programs = [
   %{
     title: "Science Lab",
     description: "Hands-on experiments and STEM learning",
+    category: "education",
     schedule: "Wed, 3:30-5:30 PM",
     age_range: "8-11 years",
     price: Decimal.new("100.00"),
@@ -212,6 +216,7 @@ programs = [
   %{
     title: "Music Journey",
     description: "Learn instruments, singing, and music theory",
+    category: "music",
     schedule: "Mon/Wed, 4:00-5:00 PM",
     age_range: "6-10 years",
     price: Decimal.new("130.00"),
@@ -222,6 +227,7 @@ programs = [
   %{
     title: "Drama Club",
     description: "Acting, improvisation, and theatrical performances",
+    category: "arts",
     schedule: "Fri, 3:00-5:00 PM",
     age_range: "8-13 years",
     price: Decimal.new("0.00"),
