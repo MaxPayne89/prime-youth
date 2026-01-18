@@ -23,6 +23,49 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "span", "Trending in Berlin:")
       assert has_element?(view, "button", "Swimming")
       assert has_element?(view, "button", "Math Tutor")
+      assert has_element?(view, "button", "Summer Camp")
+      assert has_element?(view, "button", "Piano")
+      assert has_element?(view, "button", "Soccer")
+    end
+
+    test "search form submission navigates to programs page with query", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view
+      |> form("#home-search-form", %{search: "piano lessons"})
+      |> render_submit()
+
+      assert_redirect(view, "/programs?q=piano+lessons")
+    end
+
+    test "empty search does not navigate", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view
+      |> form("#home-search-form", %{search: "  "})
+      |> render_submit()
+
+      refute_redirected(view, "/programs")
+    end
+
+    test "clicking trending tag navigates to programs page with tag query", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view
+      |> element("button[phx-value-tag='Swimming']")
+      |> render_click()
+
+      assert_redirect(view, "/programs?q=Swimming")
+    end
+
+    test "clicking different trending tag navigates correctly", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      view
+      |> element("button[phx-value-tag='Math Tutor']")
+      |> render_click()
+
+      assert_redirect(view, "/programs?q=Math+Tutor")
     end
 
     test "renders featured programs section", %{conn: conn} do
@@ -258,6 +301,21 @@ defmodule KlassHeroWeb.HomeLiveTest do
 
       # View All Programs button present
       assert has_element?(view, "button", "View All Programs")
+    end
+
+    test "clicking featured program card navigates to program detail", %{conn: conn} do
+      # Insert a program into the database
+      program = insert(:program_schema)
+
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      # Click the program card with the program-id attribute
+      view
+      |> element("[phx-click='view_program'][phx-value-program-id='#{program.id}']")
+      |> render_click()
+
+      # Should redirect to program detail page
+      assert_redirect(view, ~p"/programs/#{program.id}")
     end
   end
 end
