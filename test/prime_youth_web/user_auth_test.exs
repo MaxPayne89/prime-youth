@@ -427,6 +427,84 @@ defmodule KlassHeroWeb.UserAuthTest do
     end
   end
 
+  describe "on_mount :redirect_provider_from_parent_routes" do
+    test "redirects provider users to provider dashboard", %{conn: conn} do
+      user = user_fixture()
+
+      {:ok, _provider} =
+        Identity.create_provider_profile(%{
+          identity_id: user.id,
+          business_name: "Test Business"
+        })
+
+      user_token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, user_token) |> get_session()
+
+      socket = %LiveView.Socket{
+        endpoint: KlassHeroWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:halt, updated_socket} =
+        UserAuth.on_mount(:redirect_provider_from_parent_routes, %{}, session, socket)
+
+      assert {:redirect, redirect_opts} = updated_socket.redirected
+      assert redirect_opts.to == "/provider/dashboard"
+    end
+
+    test "continues for non-provider users", %{conn: conn} do
+      user = user_fixture()
+      user_token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, user_token) |> get_session()
+
+      socket = %LiveView.Socket{
+        endpoint: KlassHeroWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:cont, updated_socket} =
+        UserAuth.on_mount(:redirect_provider_from_parent_routes, %{}, session, socket)
+
+      assert updated_socket.assigns.current_scope.user.id == user.id
+    end
+
+    test "continues for parent users", %{conn: conn} do
+      user = user_fixture()
+
+      {:ok, _parent} =
+        Identity.create_parent_profile(%{
+          identity_id: user.id,
+          display_name: user.name
+        })
+
+      user_token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, user_token) |> get_session()
+
+      socket = %LiveView.Socket{
+        endpoint: KlassHeroWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:cont, updated_socket} =
+        UserAuth.on_mount(:redirect_provider_from_parent_routes, %{}, session, socket)
+
+      assert updated_socket.assigns.current_scope.user.id == user.id
+      assert Scope.parent?(updated_socket.assigns.current_scope)
+    end
+
+    test "continues when user is not authenticated", %{conn: conn} do
+      session = get_session(conn)
+
+      socket = %LiveView.Socket{
+        endpoint: KlassHeroWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:cont, _updated_socket} =
+        UserAuth.on_mount(:redirect_provider_from_parent_routes, %{}, session, socket)
+    end
+  end
+
   describe "require_authenticated_user/2" do
     setup %{conn: conn} do
       %{conn: UserAuth.fetch_current_scope_for_user(conn, [])}
