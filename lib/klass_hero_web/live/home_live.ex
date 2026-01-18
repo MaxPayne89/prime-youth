@@ -142,7 +142,7 @@ defmodule KlassHeroWeb.HomeLive do
           <div
             id="featured-programs"
             phx-update="stream"
-            class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8"
+            class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8 items-stretch"
           >
             <.program_card_simple
               :for={{dom_id, program} <- @streams.featured_programs}

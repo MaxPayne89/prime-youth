@@ -547,7 +547,7 @@ defmodule KlassHeroWeb.UIComponents do
         Theme.rounded(:xl),
         "shadow-sm border",
         Theme.border_color(:light),
-        "hover:shadow-lg overflow-hidden group cursor-pointer",
+        "hover:shadow-lg overflow-hidden group cursor-pointer h-full flex flex-col",
         Theme.transition(:slow),
         @class
       ]}
@@ -615,7 +615,7 @@ defmodule KlassHeroWeb.UIComponents do
           </div>
         </div>
       </div>
-      <div class="p-5">
+      <div class="p-5 flex flex-col flex-1">
         <h3 class={[Theme.typography(:card_title), "mb-2", Theme.text_color(:heading)]}>{@title}</h3>
         <p class={["text-sm mb-4 line-clamp-2", Theme.text_color(:secondary)]}>{@description}</p>
         <%!-- Provider Info (Visual Only with Mock Data) --%>
@@ -653,7 +653,7 @@ defmodule KlassHeroWeb.UIComponents do
             </div>
           </div>
         </div>
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between mt-auto">
           <span class={[Theme.typography(:section_title), Theme.text_color(:secondary)]}>
             €{@price}
           </span>
