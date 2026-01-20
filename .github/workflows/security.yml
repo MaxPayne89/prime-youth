@@ -1,0 +1,56 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ['**']
+
+env:
+  MIX_ENV: dev
+  ELIXIR_VERSION: '1.20.0-rc.1'
+  OTP_VERSION: '28.3'
+
+jobs:
+  sobelow:
+    name: Sobelow Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      # actions/checkout@v6.0.2
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      # erlef/setup-beam@v1.20.4
+      - name: Set up Elixir
+        uses: erlef/setup-beam@e6d7c94229049569db56a7ad5a540c051a010af9
+        with:
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+          otp-version: ${{ env.OTP_VERSION }}
+          version-type: strict
+
+      # actions/cache@v5.0.2
+      - name: Restore dependencies cache
+        uses: actions/cache@8b402f58fbc84540c8b491a91e594a4576fec3d7
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.OTP_VERSION }}-${{ env.ELIXIR_VERSION }}-
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Create results directory
+        run: mkdir -p results
+
+      - name: Run Sobelow
+        run: mix sobelow --config
+
+      # github/codeql-action@v4.31.10
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@cdefb33c0f6224e58673d9004f47f7cb3e328b89
+        if: always()
+        with:
+          sarif_file: results/sobelow.sarif

@@ -84,8 +84,7 @@ defmodule KlassHero.MixProject do
       {:bandit, "~> 1.5"},
       {:tidewave, "~> 0.5", only: :dev},
       {:quokka, "~> 2.11", only: [:dev, :test], runtime: false},
-      {:oban, "~> 2.20"},
-      {:oban_web, "~> 2.11.4"},
+      {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       # Testing infrastructure
       {:excoveralls, "~> 0.18", only: :test},
       {:ex_machina, "~> 2.8", only: :test},

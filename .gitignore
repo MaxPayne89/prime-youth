@@ -45,4 +45,4 @@ npm-debug.log
 .mcp.json
 
 # specify
-.specify/
+.specify/results/
