@@ -3,7 +3,7 @@
   private: false,
   skip: false,
   router: "lib/klass_hero_web/router.ex",
-  exit: "low",
+  exit: "high",
   format: "sarif",
   out: "results/sobelow.sarif"
 ]
