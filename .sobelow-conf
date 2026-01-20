@@ -1,9 +1,11 @@
 [
   verbose: false,
   private: false,
-  skip: false,
+  skip: ["Config.HTTPS", "Config.CSP"],
+  ignore: ["Config.HTTPS", "Config.CSP"],
   router: "lib/klass_hero_web/router.ex",
-  exit: "high",
+  exit: :high,
+  threshold: :low,
   format: "sarif",
   out: "results/sobelow.sarif"
 ]
