@@ -1,0 +1,9 @@
+[
+  verbose: false,
+  private: false,
+  skip: false,
+  router: "lib/klass_hero_web/router.ex",
+  exit: "low",
+  format: "sarif",
+  out: "results/sobelow.sarif"
+]
