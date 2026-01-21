@@ -18,15 +18,14 @@ defmodule KlassHero.Support.Adapters.Driven.Persistence.Repositories.ContactRequ
 
   @impl true
   def submit(%ContactRequest{} = contact_request) do
-    Logger.info("""
-    Contact Form Submission:
-    ID: #{contact_request.id}
-    Name: #{contact_request.name}
-    Email: #{contact_request.email}
-    Subject: #{contact_request.subject}
-    Message: #{contact_request.message}
-    Submitted At: #{DateTime.to_iso8601(contact_request.submitted_at)}
-    """)
+    Logger.info("Contact form submitted",
+      contact_id: contact_request.id,
+      name: contact_request.name,
+      email: contact_request.email,
+      subject: contact_request.subject,
+      message: contact_request.message,
+      submitted_at: DateTime.to_iso8601(contact_request.submitted_at)
+    )
 
     {:ok, contact_request}
   end
