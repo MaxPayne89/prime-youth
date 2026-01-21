@@ -81,16 +81,13 @@ defmodule KlassHeroWeb.ContactLive do
     ]
   end
 
-  # hero-blue-400
-  defp border_color(:email), do: "rgb(102 204 255)"
-  # green-500
-  defp border_color(:phone), do: "rgb(34 197 94)"
-  # hero-yellow-500
-  defp border_color(:address), do: "rgb(255 255 54)"
+  @contact_colors %{
+    email: %{border: "rgb(102 204 255)", gradient: "bg-hero-blue-400"},
+    phone: %{border: "rgb(34 197 94)", gradient: "bg-green-500"},
+    address: %{border: "rgb(255 255 54)", gradient: "bg-hero-yellow-500"}
+  }
 
-  defp gradient_color(:email), do: "bg-hero-blue-400"
-  defp gradient_color(:phone), do: "bg-green-500"
-  defp gradient_color(:address), do: "bg-hero-yellow-500"
+  defp contact_color(type, key), do: @contact_colors[type][key]
 
   defp office_hours do
     [
@@ -197,11 +194,11 @@ defmodule KlassHeroWeb.ContactLive do
                     <div
                       :for={method <- contact_methods()}
                       class="border-2 rounded-lg p-6 bg-white flex items-start gap-4"
-                      style={"border-color: #{border_color(method.type)}"}
+                      style={"border-color: #{contact_color(method.type, :border)}"}
                     >
                       <div class="flex-shrink-0">
                         <UIComponents.gradient_icon
-                          gradient_class={gradient_color(method.type)}
+                          gradient_class={contact_color(method.type, :gradient)}
                           size="md"
                           shape="circle"
                         >

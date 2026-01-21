@@ -12,6 +12,85 @@ defmodule KlassHeroWeb.AboutLive do
     {:ok, socket}
   end
 
+  defp vetting_steps do
+    [
+      %{
+        number: 1,
+        number_bg: "bg-blue-200",
+        number_color: "text-blue-700",
+        icon: "hero-identification",
+        icon_gradient: "bg-blue-500",
+        title: gettext("Identity Verification"),
+        description: gettext("Official ID and credentials check")
+      },
+      %{
+        number: 2,
+        number_bg: "bg-purple-200",
+        number_color: "text-purple-700",
+        icon: "hero-magnifying-glass-circle",
+        icon_gradient: "bg-purple-500",
+        title: gettext("Background Check"),
+        description: gettext("Comprehensive criminal record screening")
+      },
+      %{
+        number: 3,
+        number_bg: "bg-pink-200",
+        number_color: "text-pink-700",
+        icon: "hero-academic-cap",
+        icon_gradient: "bg-pink-500",
+        title: gettext("Qualifications"),
+        description: gettext("Certification and experience verification")
+      },
+      %{
+        number: 4,
+        number_bg: "bg-green-200",
+        number_color: "text-green-700",
+        icon: "hero-video-camera",
+        icon_gradient: "bg-green-500",
+        title: gettext("Personal Interview"),
+        description: gettext("In-depth conversation about values and approach")
+      }
+    ]
+  end
+
+  defp team_members do
+    [
+      %{
+        initials: "SO",
+        bg_color: "bg-hero-blue-400",
+        name: gettext("Shane Ogilvie"),
+        role: gettext("CEO & Co-Founder"),
+        role_color: "text-hero-blue-500",
+        bio:
+          gettext(
+            "Former education technology leader with a passion for making quality programs accessible to all families."
+          )
+      },
+      %{
+        initials: "MP",
+        bg_color: "bg-pink-500",
+        name: gettext("Max Pergl"),
+        role: gettext("CTO & Co-Founder"),
+        role_color: "text-pink-500",
+        bio:
+          gettext(
+            "Technology innovator committed to building platforms that empower families and instructors."
+          )
+      },
+      %{
+        initials: "KP",
+        bg_color: "bg-orange-500",
+        name: gettext("Konstantin Pergl"),
+        role: gettext("CFO & Co-Founder"),
+        role_color: "text-orange-500",
+        bio:
+          gettext(
+            "Financial strategist focused on sustainable growth and value creation for all stakeholders."
+          )
+      }
+    ]
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -133,92 +212,24 @@ defmodule KlassHeroWeb.AboutLive do
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-            <%!-- Step 1: Identity Verification --%>
-            <div class="bg-white rounded-xl p-6 text-center">
-              <div class="w-16 h-16 mx-auto mb-4 bg-blue-200 rounded-full flex items-center justify-center">
-                <span class="text-2xl font-bold text-blue-700">1</span>
+            <div :for={step <- vetting_steps()} class="bg-white rounded-xl p-6 text-center">
+              <div class={[
+                "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center",
+                step.number_bg
+              ]}>
+                <span class={["text-2xl font-bold", step.number_color]}>{step.number}</span>
               </div>
               <div class="mb-4">
                 <UIComponents.gradient_icon
-                  gradient_class="bg-blue-500"
+                  gradient_class={step.icon_gradient}
                   size="md"
                   shape="circle"
                 >
-                  <.icon name="hero-identification" class="w-6 h-6 text-white" />
+                  <.icon name={step.icon} class="w-6 h-6 text-white" />
                 </UIComponents.gradient_icon>
               </div>
-              <h3 class="font-semibold text-lg text-hero-black mb-2">
-                {gettext("Identity Verification")}
-              </h3>
-              <p class="text-hero-grey-700">
-                {gettext("Official ID and credentials check")}
-              </p>
-            </div>
-
-            <%!-- Step 2: Background Check --%>
-            <div class="bg-white rounded-xl p-6 text-center">
-              <div class="w-16 h-16 mx-auto mb-4 bg-purple-200 rounded-full flex items-center justify-center">
-                <span class="text-2xl font-bold text-purple-700">2</span>
-              </div>
-              <div class="mb-4">
-                <UIComponents.gradient_icon
-                  gradient_class="bg-purple-500"
-                  size="md"
-                  shape="circle"
-                >
-                  <.icon name="hero-magnifying-glass-circle" class="w-6 h-6 text-white" />
-                </UIComponents.gradient_icon>
-              </div>
-              <h3 class="font-semibold text-lg text-hero-black mb-2">
-                {gettext("Background Check")}
-              </h3>
-              <p class="text-hero-grey-700">
-                {gettext("Comprehensive criminal record screening")}
-              </p>
-            </div>
-
-            <%!-- Step 3: Qualifications --%>
-            <div class="bg-white rounded-xl p-6 text-center">
-              <div class="w-16 h-16 mx-auto mb-4 bg-pink-200 rounded-full flex items-center justify-center">
-                <span class="text-2xl font-bold text-pink-700">3</span>
-              </div>
-              <div class="mb-4">
-                <UIComponents.gradient_icon
-                  gradient_class="bg-pink-500"
-                  size="md"
-                  shape="circle"
-                >
-                  <.icon name="hero-academic-cap" class="w-6 h-6 text-white" />
-                </UIComponents.gradient_icon>
-              </div>
-              <h3 class="font-semibold text-lg text-hero-black mb-2">
-                {gettext("Qualifications")}
-              </h3>
-              <p class="text-hero-grey-700">
-                {gettext("Certification and experience verification")}
-              </p>
-            </div>
-
-            <%!-- Step 4: Personal Interview --%>
-            <div class="bg-white rounded-xl p-6 text-center">
-              <div class="w-16 h-16 mx-auto mb-4 bg-green-200 rounded-full flex items-center justify-center">
-                <span class="text-2xl font-bold text-green-700">4</span>
-              </div>
-              <div class="mb-4">
-                <UIComponents.gradient_icon
-                  gradient_class="bg-green-500"
-                  size="md"
-                  shape="circle"
-                >
-                  <.icon name="hero-video-camera" class="w-6 h-6 text-white" />
-                </UIComponents.gradient_icon>
-              </div>
-              <h3 class="font-semibold text-lg text-hero-black mb-2">
-                {gettext("Personal Interview")}
-              </h3>
-              <p class="text-hero-grey-700">
-                {gettext("In-depth conversation about values and approach")}
-              </p>
+              <h3 class="font-semibold text-lg text-hero-black mb-2">{step.title}</h3>
+              <p class="text-hero-grey-700">{step.description}</p>
             </div>
           </div>
         </div>
@@ -236,58 +247,16 @@ defmodule KlassHeroWeb.AboutLive do
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          <%!-- Shane Ogilvie - CEO & Co-Founder --%>
-          <div class="text-center">
-            <div class="w-32 h-32 mx-auto mb-6 bg-hero-blue-400 rounded-full flex items-center justify-center">
-              <span class="text-4xl font-bold text-white">SO</span>
+          <div :for={member <- team_members()} class="text-center">
+            <div class={[
+              "w-32 h-32 mx-auto mb-6 rounded-full flex items-center justify-center",
+              member.bg_color
+            ]}>
+              <span class="text-4xl font-bold text-white">{member.initials}</span>
             </div>
-            <h3 class="font-semibold text-xl text-hero-black mb-1">
-              {gettext("Shane Ogilvie")}
-            </h3>
-            <p class="text-hero-blue-500 font-medium mb-4">
-              {gettext("CEO & Co-Founder")}
-            </p>
-            <p class="text-hero-grey-700">
-              {gettext(
-                "Former education technology leader with a passion for making quality programs accessible to all families."
-              )}
-            </p>
-          </div>
-
-          <%!-- Max Pergl - CTO & Co-Founder --%>
-          <div class="text-center">
-            <div class="w-32 h-32 mx-auto mb-6 bg-pink-500 rounded-full flex items-center justify-center">
-              <span class="text-4xl font-bold text-white">MP</span>
-            </div>
-            <h3 class="font-semibold text-xl text-hero-black mb-1">
-              {gettext("Max Pergl")}
-            </h3>
-            <p class="text-pink-500 font-medium mb-4">
-              {gettext("CTO & Co-Founder")}
-            </p>
-            <p class="text-hero-grey-700">
-              {gettext(
-                "Technology innovator committed to building platforms that empower families and instructors."
-              )}
-            </p>
-          </div>
-
-          <%!-- Konstantin Pergl - CFO & Co-Founder --%>
-          <div class="text-center">
-            <div class="w-32 h-32 mx-auto mb-6 bg-orange-500 rounded-full flex items-center justify-center">
-              <span class="text-4xl font-bold text-white">KP</span>
-            </div>
-            <h3 class="font-semibold text-xl text-hero-black mb-1">
-              {gettext("Konstantin Pergl")}
-            </h3>
-            <p class="text-orange-500 font-medium mb-4">
-              {gettext("CFO & Co-Founder")}
-            </p>
-            <p class="text-hero-grey-700">
-              {gettext(
-                "Financial strategist focused on sustainable growth and value creation for all stakeholders."
-              )}
-            </p>
+            <h3 class="font-semibold text-xl text-hero-black mb-1">{member.name}</h3>
+            <p class={["font-medium mb-4", member.role_color]}>{member.role}</p>
+            <p class="text-hero-grey-700">{member.bio}</p>
           </div>
         </div>
       </div>

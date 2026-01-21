@@ -10,7 +10,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
-    case fetch_program(program_id) do
+    case ProgramCatalog.get_program_by_id(program_id) do
       {:ok, program} ->
         # Add temporary included_items field (fixture data until proper implementation)
         program_with_items =
@@ -54,7 +54,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   @impl true
   def handle_event("toggle_favorite", _params, socket) do
-    # TODO: Implement favorite toggle functionality
     {:noreply, socket}
   end
 
@@ -65,18 +64,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   @impl true
   def handle_event("save_for_later", _params, socket) do
-    # TODO: Implement save for later functionality
     {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("ask_questions", _params, socket) do
-    # TODO: Open questions/contact modal
-    {:noreply, socket}
-  end
-
-  defp fetch_program(id) do
-    ProgramCatalog.get_program_by_id(id)
   end
 
   @impl true
