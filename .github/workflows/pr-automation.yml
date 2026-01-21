@@ -1,0 +1,42 @@
+name: PR Automation
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  automate:
+    name: Assign & Request Review
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign PR and request review
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const creator = pr.user.login;
+            const reviewer = 'MaxPayne89';
+
+            // Assign PR to creator
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              assignees: [creator]
+            });
+            console.log(`Assigned PR to: ${creator}`);
+
+            // Request review (skip if creator is the reviewer)
+            if (creator !== reviewer) {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                reviewers: [reviewer]
+              });
+              console.log(`Requested review from: ${reviewer}`);
+            }
