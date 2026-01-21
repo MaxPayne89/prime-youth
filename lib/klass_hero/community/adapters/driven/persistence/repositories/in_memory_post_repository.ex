@@ -40,7 +40,6 @@ defmodule KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryP
 
   alias KlassHero.Community.Domain.Models.{Comment, Post}
   alias KlassHero.Community.Domain.Ports.ForManagingPosts
-  alias KlassHeroWeb.Theme
 
   @doc """
   Starts the in-memory post repository as a named Agent.
@@ -154,7 +153,7 @@ defmodule KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryP
       %Post{
         id: "post_1",
         author: "Ms. Sarah - Art Instructor",
-        avatar_bg: Theme.bg(:primary),
+        avatar_bg: "bg-hero-blue-600",
         avatar_emoji: "👩‍🏫",
         timestamp: "2 hours ago",
         content:
@@ -172,7 +171,7 @@ defmodule KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryP
       %Post{
         id: "post_2",
         author: "Mr. David - Chess Coach",
-        avatar_bg: Theme.bg(:secondary),
+        avatar_bg: "bg-hero-grey-500",
         avatar_emoji: "👨‍🏫",
         timestamp: "5 hours ago",
         content:
@@ -186,7 +185,7 @@ defmodule KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryP
       %Post{
         id: "post_3",
         author: "Klass Hero Admin",
-        avatar_bg: Theme.bg(:accent),
+        avatar_bg: "bg-hero-yellow-400",
         avatar_emoji: "📋",
         timestamp: "1 day ago",
         content:
