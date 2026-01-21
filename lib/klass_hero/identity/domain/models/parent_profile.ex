@@ -9,6 +9,8 @@ defmodule KlassHero.Identity.Domain.Models.ParentProfile do
   not foreign key, maintaining bounded context independence.
   """
 
+  alias KlassHero.Entitlements
+
   @enforce_keys [:id, :identity_id]
 
   defstruct [
@@ -18,6 +20,7 @@ defmodule KlassHero.Identity.Domain.Models.ParentProfile do
     :phone,
     :location,
     :notification_preferences,
+    :subscription_tier,
     :inserted_at,
     :updated_at
   ]
@@ -29,6 +32,7 @@ defmodule KlassHero.Identity.Domain.Models.ParentProfile do
           phone: String.t() | nil,
           location: String.t() | nil,
           notification_preferences: map() | nil,
+          subscription_tier: :explorer | :active | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -70,6 +74,7 @@ defmodule KlassHero.Identity.Domain.Models.ParentProfile do
     |> validate_phone(parent_profile.phone)
     |> validate_location(parent_profile.location)
     |> validate_notification_preferences(parent_profile.notification_preferences)
+    |> validate_subscription_tier(parent_profile.subscription_tier)
   end
 
   defp validate_identity_id(errors, identity_id) when is_binary(identity_id) do
@@ -131,6 +136,17 @@ defmodule KlassHero.Identity.Domain.Models.ParentProfile do
 
   defp validate_notification_preferences(errors, _),
     do: ["Notification preferences must be a map" | errors]
+
+  defp validate_subscription_tier(errors, nil), do: errors
+
+  defp validate_subscription_tier(errors, tier) do
+    if Entitlements.valid_parent_tier?(tier) do
+      errors
+    else
+      valid = Entitlements.parent_tiers() |> Enum.join(", ")
+      ["Subscription tier must be one of: #{valid}" | errors]
+    end
+  end
 
   @doc """
   Checks if the parent profile has notification preferences configured.
