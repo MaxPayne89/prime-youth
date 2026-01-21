@@ -100,5 +100,5 @@ defmodule KlassHero.Accounts.Scope do
   defp extract_profile({:error, _}), do: nil
 
   defp maybe_add_role(roles, nil, _role), do: roles
-  defp maybe_add_role(roles, _profile, role), do: roles ++ [role]
+  defp maybe_add_role(roles, _profile, role), do: [role | roles]
 end

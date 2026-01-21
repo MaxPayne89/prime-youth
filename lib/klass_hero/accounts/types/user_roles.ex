@@ -49,17 +49,7 @@ defmodule KlassHero.Accounts.Types.UserRoles do
   def cast([]), do: {:ok, []}
 
   def cast(roles) when is_list(roles) do
-    roles
-    |> Enum.reduce_while([], fn role, acc ->
-      case normalize_role(role) do
-        {:ok, atom_role} -> {:cont, [atom_role | acc]}
-        :error -> {:halt, :error}
-      end
-    end)
-    |> case do
-      :error -> :error
-      atom_roles -> {:ok, atom_roles |> Enum.reverse() |> Enum.uniq()}
-    end
+    transform_roles(roles, &normalize_role/1, finalize: &Enum.uniq/1)
   end
 
   def cast(_), do: :error
@@ -69,17 +59,12 @@ defmodule KlassHero.Accounts.Types.UserRoles do
   def load([]), do: {:ok, []}
 
   def load(roles) when is_list(roles) do
-    roles
-    |> Enum.reduce_while([], fn role_str, acc ->
+    transform_roles(roles, fn role_str ->
       case UserRole.from_string(role_str) do
-        {:ok, atom_role} -> {:cont, [atom_role | acc]}
-        {:error, _} -> {:halt, :error}
+        {:ok, atom_role} -> {:ok, atom_role}
+        {:error, _} -> :error
       end
     end)
-    |> case do
-      :error -> :error
-      atom_roles -> {:ok, Enum.reverse(atom_roles)}
-    end
   end
 
   def load(_), do: :error
@@ -89,17 +74,12 @@ defmodule KlassHero.Accounts.Types.UserRoles do
   def dump([]), do: {:ok, []}
 
   def dump(roles) when is_list(roles) do
-    roles
-    |> Enum.reduce_while([], fn role, acc ->
+    transform_roles(roles, fn role ->
       case UserRole.to_string(role) do
-        {:ok, str_role} -> {:cont, [str_role | acc]}
-        {:error, _} -> {:halt, :error}
+        {:ok, str_role} -> {:ok, str_role}
+        {:error, _} -> :error
       end
     end)
-    |> case do
-      :error -> :error
-      str_roles -> {:ok, Enum.reverse(str_roles)}
-    end
   end
 
   def dump(_), do: :error
@@ -108,6 +88,22 @@ defmodule KlassHero.Accounts.Types.UserRoles do
   def embed_as(_), do: :dump
 
   # Private helpers
+
+  defp transform_roles(roles, transform_fn, opts \\ []) do
+    finalize = Keyword.get(opts, :finalize, &Function.identity/1)
+
+    roles
+    |> Enum.reduce_while([], fn role, acc ->
+      case transform_fn.(role) do
+        {:ok, transformed} -> {:cont, [transformed | acc]}
+        :error -> {:halt, :error}
+      end
+    end)
+    |> case do
+      :error -> :error
+      transformed -> {:ok, transformed |> Enum.reverse() |> finalize.()}
+    end
+  end
 
   defp normalize_role(role) when is_atom(role) do
     if UserRole.valid_role?(role), do: {:ok, role}, else: :error
