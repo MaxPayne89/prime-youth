@@ -70,8 +70,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
         </div>
 
         <%= if @role == :provider && Map.get(@session, :capacity) do %>
-          <div class="flex items-center gap-2 text-sm text-gray-700">
-            <.icon name="hero-user-group" class="w-4 h-4 text-gray-400" />
+          <div class="flex items-center gap-2 text-sm text-hero-black-100">
+            <.icon name="hero-user-group" class="w-4 h-4 text-hero-grey-400" />
             <span>
               {Map.get(@session, :checked_in_count, 0)} / {Map.get(@session, :capacity)} checked in
             </span>
@@ -154,7 +154,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   def check_in_form(assigns) do
     ~H"""
     <div class={[
-      "bg-white border border-gray-200 p-4 md:p-6",
+      "bg-white border border-hero-grey-200 p-4 md:p-6",
       Theme.rounded(:lg),
       Theme.shadow(:md),
       @class
@@ -165,14 +165,14 @@ defmodule KlassHeroWeb.ParticipationComponents do
           <h3 class="text-lg font-semibold text-hero-black mb-2">
             Participation Check-In
           </h3>
-          <p class="text-sm text-gray-600">
+          <p class="text-sm text-hero-grey-600">
             {format_session_datetime(@session)}
           </p>
         </div>
 
         <%!-- Roster grid --%>
         <div class="space-y-3 mb-6">
-          <h4 class="text-sm font-medium text-gray-700">Session Roster</h4>
+          <h4 class="text-sm font-medium text-hero-black-100">Session Roster</h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div
               :for={record <- @participation_records}
@@ -181,7 +181,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
                 Theme.rounded(:md),
                 if(record.status == :checked_in,
                   do: "border-green-300 bg-green-50",
-                  else: "border-gray-200 bg-white"
+                  else: "border-hero-grey-200 bg-white"
                 )
               ]}
             >
@@ -288,18 +288,18 @@ defmodule KlassHeroWeb.ParticipationComponents do
   def roster_list(assigns) do
     ~H"""
     <div class={[
-      "bg-white border border-gray-200",
+      "bg-white border border-hero-grey-200",
       Theme.rounded(:lg),
       Theme.shadow(:md),
       @class
     ]}>
       <%!-- Header with count --%>
-      <div class="p-4 md:p-6 border-b border-gray-200">
+      <div class="p-4 md:p-6 border-b border-hero-grey-200">
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold text-hero-black">
             Session Roster
           </h3>
-          <div class="text-sm text-gray-600">
+          <div class="text-sm text-hero-grey-600">
             {ParticipationCollection.count_checked_in(@participation_records)} / {length(
               @participation_records
             )} checked in
@@ -308,7 +308,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
       </div>
 
       <%!-- Roster list --%>
-      <div class="divide-y divide-gray-200">
+      <div class="divide-y divide-hero-grey-200">
         <div
           :for={record <- @participation_records}
           class="p-4 md:p-6 hover:bg-hero-grey-50 transition-colors"
@@ -321,7 +321,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
               </div>
 
               <%!-- Check-in/out times --%>
-              <div class="space-y-1 text-sm text-gray-600">
+              <div class="space-y-1 text-sm text-hero-grey-600">
                 <%= if record.check_in_at do %>
                   <div class="flex items-center gap-2">
                     <.icon name="hero-arrow-right-circle" class="w-4 h-4 text-green-600" />
@@ -330,7 +330,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
                 <% end %>
                 <%= if record.check_out_at do %>
                   <div class="flex items-center gap-2">
-                    <.icon name="hero-arrow-left-circle" class="w-4 h-4 text-blue-600" />
+                    <.icon name="hero-arrow-left-circle" class="w-4 h-4 text-hero-blue-600" />
                     <span>Out: {format_time(record.check_out_at)}</span>
                   </div>
                 <% end %>
@@ -340,14 +340,14 @@ defmodule KlassHeroWeb.ParticipationComponents do
               <%= if Map.get(record, :check_in_notes) || Map.get(record, :check_out_notes) do %>
                 <div class="mt-2 space-y-1">
                   <%= if Map.get(record, :check_in_notes) do %>
-                    <div class="text-sm text-gray-600 italic">
-                      <span class="font-medium text-gray-700">Check-in:</span>
+                    <div class="text-sm text-hero-grey-600 italic">
+                      <span class="font-medium text-hero-black-100">Check-in:</span>
                       "{record.check_in_notes}"
                     </div>
                   <% end %>
                   <%= if Map.get(record, :check_out_notes) do %>
-                    <div class="text-sm text-gray-600 italic">
-                      <span class="font-medium text-gray-700">Check-out:</span>
+                    <div class="text-sm text-hero-grey-600 italic">
+                      <span class="font-medium text-hero-black-100">Check-out:</span>
                       "{record.check_out_notes}"
                     </div>
                   <% end %>
@@ -368,7 +368,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
           <%!-- Checkout form (inline, below child info) --%>
           <%= if @checkout_form_expanded == to_string(record.id) do %>
-            <div class="mt-4 border-t border-gray-200 pt-4">
+            <div class="mt-4 border-t border-hero-grey-200 pt-4">
               <.form
                 for={Map.get(@checkout_forms, to_string(record.id))}
                 id={"checkout-form-#{record.id}"}
@@ -391,8 +391,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
                     <button
                       type="submit"
                       class={[
-                        "flex-1 px-4 py-2 bg-blue-600 text-white font-medium hover:bg-blue-700",
-                        "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                        "flex-1 px-4 py-2 bg-hero-blue-600 text-white font-medium hover:bg-hero-blue-700",
+                        "focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
                         Theme.rounded(:md),
                         Theme.transition(:normal)
                       ]}
@@ -404,8 +404,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
                       phx-click="cancel_checkout"
                       phx-value-id={record.id}
                       class={[
-                        "px-4 py-2 bg-white text-gray-700 font-medium border border-gray-300",
-                        "hover:bg-hero-grey-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                        "px-4 py-2 bg-white text-hero-black-100 font-medium border border-hero-grey-300",
+                        "hover:bg-hero-grey-50 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
                         Theme.rounded(:md),
                         Theme.transition(:normal)
                       ]}
@@ -421,8 +421,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
         <%!-- Empty state --%>
         <%= if @participation_records == [] do %>
-          <div class="p-8 text-center text-gray-500">
-            <.icon name="hero-user-group" class="w-12 h-12 mx-auto mb-2 text-gray-400" />
+          <div class="p-8 text-center text-hero-grey-500">
+            <.icon name="hero-user-group" class="w-12 h-12 mx-auto mb-2 text-hero-grey-400" />
             <p>No children enrolled in this session</p>
           </div>
         <% end %>
