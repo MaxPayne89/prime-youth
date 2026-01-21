@@ -12,8 +12,9 @@ defmodule KlassHeroWeb.Presenters.ChildPresenter do
       # For simple views (booking dropdown)
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
 
-      # For extended views (dashboard cards)
-      children_for_view = Enum.map(children, &ChildPresenter.to_extended_view/1)
+      # For extended views with enrichment data (dashboard cards)
+      enrichment = %{sessions: "8/10", progress: 80, activities: ["Art"]}
+      children_for_view = Enum.map(children, &ChildPresenter.to_extended_view(&1, enrichment))
   """
 
   alias KlassHero.Identity.Domain.Models.Child
@@ -37,31 +38,41 @@ defmodule KlassHeroWeb.Presenters.ChildPresenter do
   @doc """
   Transforms a Child domain model to an extended view format.
 
-  Used for dashboard displays that need additional UI-specific data
-  like school, sessions, progress, and activities.
+  When enrichment_data is provided (from Progress Tracking context),
+  merges additional fields into the view.
 
-  Returns a map with: id, name, age, school, sessions, progress, activities
+  ## Parameters
+    - child: A Child domain model
+    - enrichment_data: Optional map with additional data (default: %{})
+
+  ## Example enrichment_data
+      %{
+        sessions: "8/10",
+        progress: 80,
+        activities: ["Art", "Chess"]
+      }
+
+  Returns a map with: id, name, age, plus any enrichment fields
   """
-  def to_extended_view(%Child{} = child) do
+  def to_extended_view(%Child{} = child, enrichment_data \\ %{}) do
     child
     |> to_simple_view()
-    |> Map.merge(ui_enrichment_data(child))
+    |> Map.merge(enrichment_data)
   end
 
   @doc """
   Transforms a Child domain model to a profile view format.
 
   Used for horizontal scrollable profile cards that display child's
-  initials in a circular avatar, along with name, age, and school.
+  initials in a circular avatar, along with name and age.
 
-  Returns a map with: id, name, age, school, initials
+  Returns a map with: id, name, age, initials
   """
   def to_profile_view(%Child{} = child) do
     %{
       id: child.id,
       name: Child.full_name(child),
       age: calculate_age(child.date_of_birth),
-      school: "#{child.first_name}'s School",
       initials: extract_initials(Child.full_name(child))
     }
   end
@@ -77,34 +88,6 @@ defmodule KlassHeroWeb.Presenters.ChildPresenter do
       years - 1
     else
       years
-    end
-  end
-
-  defp ui_enrichment_data(child) do
-    case child.first_name do
-      "Emma" ->
-        %{
-          school: "Greenwood Elementary",
-          sessions: "8/10",
-          progress: 80,
-          activities: ["Art", "Chess", "Swimming"]
-        }
-
-      "Liam" ->
-        %{
-          school: "Sunny Hills Kindergarten",
-          sessions: "6/8",
-          progress: 75,
-          activities: ["Soccer", "Music"]
-        }
-
-      _ ->
-        %{
-          school: "Local School",
-          sessions: "0/0",
-          progress: 0,
-          activities: []
-        }
     end
   end
 

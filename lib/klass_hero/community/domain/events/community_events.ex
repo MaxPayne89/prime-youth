@@ -78,7 +78,7 @@ defmodule KlassHero.Community.Domain.Events.CommunityEvents do
   def comment_added(%Post{} = post, author, comment_text, payload \\ %{}, opts \\ [])
       when is_binary(author) and byte_size(author) > 0 and is_binary(comment_text) and
              byte_size(comment_text) > 0 do
-    validate_post!(post)
+    validate_post_for_comment!(post)
 
     base_payload = %{
       post_id: post.id,
@@ -129,7 +129,7 @@ defmodule KlassHero.Community.Domain.Events.CommunityEvents do
   """
   @spec post_liked(Post.t(), map(), keyword()) :: DomainEvent.t()
   def post_liked(%Post{} = post, payload \\ %{}, opts \\ []) do
-    validate_post_with_likes!(post)
+    validate_post_for_like!(post)
 
     base_payload = %{
       post_id: post.id,
@@ -179,7 +179,7 @@ defmodule KlassHero.Community.Domain.Events.CommunityEvents do
   """
   @spec post_unliked(Post.t(), map(), keyword()) :: DomainEvent.t()
   def post_unliked(%Post{} = post, payload \\ %{}, opts \\ []) do
-    validate_post_with_likes!(post)
+    validate_post_for_unlike!(post)
 
     base_payload = %{
       post_id: post.id,
@@ -196,22 +196,47 @@ defmodule KlassHero.Community.Domain.Events.CommunityEvents do
     )
   end
 
-  # Private validation functions
+  # Private validation functions using rules-based pattern
 
-  defp validate_post!(%Post{id: id}) when is_nil(id) or id == "" do
-    raise ArgumentError, "Post.id cannot be nil or empty"
+  @typep validation_rule :: :non_empty_string | :non_negative_integer
+
+  @spec validate_post!(Post.t(), atom(), [{atom(), validation_rule()}]) :: Post.t()
+  defp validate_post!(%Post{} = post, event_name, rules) do
+    Enum.each(rules, fn {field, rule} ->
+      value = Map.get(post, field)
+      validate_field!(field, value, rule, event_name)
+    end)
+
+    post
   end
 
-  defp validate_post!(%Post{} = post), do: post
-
-  defp validate_post_with_likes!(%Post{id: id}) when is_nil(id) or id == "" do
-    raise ArgumentError, "Post.id cannot be nil or empty"
+  defp validate_field!(field, value, :non_empty_string, event_name)
+       when is_nil(value) or value == "" do
+    raise ArgumentError, "Post.#{field} cannot be nil or empty for #{event_name} event"
   end
 
-  defp validate_post_with_likes!(%Post{likes: likes}) when not is_integer(likes) or likes < 0 do
+  defp validate_field!(_field, _value, :non_empty_string, _event_name), do: :ok
+
+  defp validate_field!(field, value, :non_negative_integer, event_name)
+       when not is_integer(value) or value < 0 do
     raise ArgumentError,
-          "Post.likes must be a non-negative integer, got: #{inspect(likes)}"
+          "Post.#{field} must be a non-negative integer for #{event_name} event, got: #{inspect(value)}"
   end
 
-  defp validate_post_with_likes!(%Post{} = post), do: post
+  defp validate_field!(_field, _value, :non_negative_integer, _event_name), do: :ok
+
+  defp validate_post_for_comment!(post) do
+    validate_post!(post, :comment_added, [{:id, :non_empty_string}])
+  end
+
+  defp validate_post_for_like!(post) do
+    validate_post!(post, :post_liked, [{:id, :non_empty_string}, {:likes, :non_negative_integer}])
+  end
+
+  defp validate_post_for_unlike!(post) do
+    validate_post!(post, :post_unliked, [
+      {:id, :non_empty_string},
+      {:likes, :non_negative_integer}
+    ])
+  end
 end

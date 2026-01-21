@@ -119,7 +119,7 @@ defmodule KlassHeroWeb.UIComponents do
   end
 
   defp avatar_size_classes("sm"), do: "w-10 h-10"
-  defp avatar_size_classes("md"), do: "w-10 h-10"
+  defp avatar_size_classes("md"), do: "w-12 h-12"
   defp avatar_size_classes("lg"), do: "w-16 h-16"
 
   defp avatar_emoji_classes("sm"), do: "text-lg"
@@ -860,57 +860,6 @@ defmodule KlassHeroWeb.UIComponents do
 
   defp icon_button_variant("solid"),
     do: "#{Theme.bg(:surface)} hover:#{Theme.bg(:muted)} shadow-sm"
-
-  @doc """
-  Renders a page hero section with title, optional subtitle, and optional back button.
-
-  **DEPRECATED**: Use `.hero_section` component instead with `variant="page"` for consistent hero patterns.
-
-  Full-width hero section commonly used at the top of pages. Supports gradient backgrounds
-  and can include a back button for navigation.
-
-  ## Examples
-
-      <.page_hero
-        title="Programs"
-        gradient_class={Theme.gradient(:hero)}
-      />
-
-      <.page_hero
-        title="Enrollment"
-        subtitle="Complete your program enrollment"
-        show_back_button
-        phx-click="back_to_programs"
-      />
-  """
-  attr :title, :string, required: true
-  attr :subtitle, :string, default: nil
-  attr :gradient_class, :string, default: Theme.bg(:surface)
-  attr :show_back_button, :boolean, default: false
-  attr :text_color, :string, default: Theme.text_color(:heading)
-  attr :class, :string, default: ""
-  attr :rest, :global, include: ~w(phx-click phx-value-*)
-
-  def page_hero(assigns) do
-    ~H"""
-    <div class={[gradient_class(@gradient_class), "p-6 shadow-sm", @class]}>
-      <div class="flex items-center gap-4 mb-4">
-        <.back_button :if={@show_back_button} {@rest} />
-        <div>
-          <h1 class={[Theme.typography(:section_title), @text_color]}>{@title}</h1>
-          <p :if={@subtitle} class={["text-sm mt-1", subtitle_color(@text_color)]}>{@subtitle}</p>
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  defp gradient_class("bg-white"), do: Theme.bg(:surface)
-  defp gradient_class(class), do: class
-
-  defp subtitle_color("text-white"), do: "text-white/80"
-  defp subtitle_color("text-gray-900"), do: Theme.text_color(:secondary)
-  defp subtitle_color(_), do: Theme.text_color(:secondary)
 
   @doc """
   Renders a unified hero section with multiple variant styles.

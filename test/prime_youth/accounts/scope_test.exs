@@ -96,7 +96,7 @@ defmodule KlassHero.Accounts.ScopeTest do
       scope = Scope.for_user(user)
       resolved = Scope.resolve_roles(scope)
 
-      assert resolved.roles == [:parent, :provider]
+      assert resolved.roles == [:provider, :parent]
       assert resolved.parent.id == parent.id
       assert resolved.provider.id == provider.id
     end

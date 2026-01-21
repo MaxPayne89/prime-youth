@@ -3,8 +3,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
 
   alias KlassHero.Identity
   alias KlassHero.Identity.Domain.Models.Child
-  alias KlassHero.Participation.Application.UseCases.GetParticipationHistory
-  alias KlassHero.Participation.Application.UseCases.GetParticipationRecord
+  alias KlassHero.Participation
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -40,64 +39,24 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
     {:ok, load_participation_history(socket)}
   end
 
-  # PubSub event handlers
+  # PubSub event handler for participation record events
   @impl true
   def handle_info(
         {:domain_event,
          %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :child_checked_in,
+           event_type: event_type,
            aggregate_id: record_id,
            payload: %{child_id: child_id}
          }},
         socket
-      ) do
+      )
+      when event_type in [:child_checked_in, :child_checked_out, :participation_marked_absent] do
     socket =
       if child_belongs_to_parent?(child_id, socket) do
-        load_and_insert_record(socket, record_id)
+        # New check-ins are prepended (at: 0), updates replace in-place
+        opts = if event_type == :child_checked_in, do: [at: 0], else: []
+        load_and_stream_record(socket, record_id, opts)
       else
-        # Ignore events for other families' children
-        socket
-      end
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :child_checked_out,
-           aggregate_id: record_id,
-           payload: %{child_id: child_id}
-         }},
-        socket
-      ) do
-    socket =
-      if child_belongs_to_parent?(child_id, socket) do
-        load_and_update_record(socket, record_id)
-      else
-        # Ignore events for other families' children
-        socket
-      end
-
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :participation_marked_absent,
-           aggregate_id: record_id,
-           payload: %{child_id: child_id}
-         }},
-        socket
-      ) do
-    socket =
-      if child_belongs_to_parent?(child_id, socket) do
-        load_and_update_record(socket, record_id)
-      else
-        # Ignore events for other families' children
         socket
       end
 
@@ -117,7 +76,8 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
       children = Identity.get_children(parent_id)
       child_ids = Enum.map(children, & &1.id)
 
-      {:ok, participation_records} = GetParticipationHistory.execute(%{child_ids: child_ids})
+      {:ok, participation_records} =
+        Participation.get_participation_history(%{child_ids: child_ids})
 
       child_names = Map.new(children, fn child -> {child.id, Child.full_name(child)} end)
       children_ids = Identity.get_child_ids_for_parent(parent_id)
@@ -138,30 +98,14 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
     end
   end
 
-  defp load_and_insert_record(socket, record_id) do
-    case GetParticipationRecord.execute(record_id) do
+  defp load_and_stream_record(socket, record_id, opts) do
+    case Participation.get_participation_record(record_id) do
       {:ok, record} ->
-        stream_insert(socket, :participation_records, record, at: 0)
+        stream_insert(socket, :participation_records, record, opts)
 
       {:error, reason} ->
         Logger.error(
-          "[ParticipationHistoryLive.load_and_insert_record] Failed to load record",
-          record_id: record_id,
-          reason: inspect(reason)
-        )
-
-        socket
-    end
-  end
-
-  defp load_and_update_record(socket, record_id) do
-    case GetParticipationRecord.execute(record_id) do
-      {:ok, record} ->
-        stream_insert(socket, :participation_records, record)
-
-      {:error, reason} ->
-        Logger.error(
-          "[ParticipationHistoryLive.load_and_update_record] Failed to load record",
+          "[ParticipationHistoryLive] Failed to load record",
           record_id: record_id,
           reason: inspect(reason)
         )

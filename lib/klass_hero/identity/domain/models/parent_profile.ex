@@ -22,6 +22,17 @@ defmodule KlassHero.Identity.Domain.Models.ParentProfile do
     :updated_at
   ]
 
+  @type t :: %__MODULE__{
+          id: String.t(),
+          identity_id: String.t(),
+          display_name: String.t() | nil,
+          phone: String.t() | nil,
+          location: String.t() | nil,
+          notification_preferences: map() | nil,
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   @doc """
   Creates a new ParentProfile with validation.
 

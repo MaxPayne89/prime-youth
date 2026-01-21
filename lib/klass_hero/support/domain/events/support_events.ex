@@ -90,25 +90,20 @@ defmodule KlassHero.Support.Domain.Events.SupportEvents do
     )
   end
 
-  # Private validation functions
+  # Private validation
 
-  defp validate_contact_request!(%ContactRequest{id: id}) when is_nil(id) or id == "" do
-    raise ArgumentError, "ContactRequest.id cannot be nil or empty"
+  @required_fields [:id, :name, :email, :subject]
+
+  defp validate_contact_request!(%ContactRequest{} = request) do
+    Enum.each(@required_fields, &validate_field!(request, &1))
+    request
   end
 
-  defp validate_contact_request!(%ContactRequest{name: name}) when is_nil(name) or name == "" do
-    raise ArgumentError, "ContactRequest.name cannot be nil or empty"
-  end
+  defp validate_field!(request, field) do
+    value = Map.get(request, field)
 
-  defp validate_contact_request!(%ContactRequest{email: email})
-       when is_nil(email) or email == "" do
-    raise ArgumentError, "ContactRequest.email cannot be nil or empty"
+    if is_nil(value) or value == "" do
+      raise ArgumentError, "ContactRequest.#{field} cannot be nil or empty"
+    end
   end
-
-  defp validate_contact_request!(%ContactRequest{subject: subject})
-       when is_nil(subject) or subject == "" do
-    raise ArgumentError, "ContactRequest.subject cannot be nil or empty"
-  end
-
-  defp validate_contact_request!(%ContactRequest{} = contact_request), do: contact_request
 end

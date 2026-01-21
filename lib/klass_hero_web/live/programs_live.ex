@@ -3,9 +3,7 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   import KlassHeroWeb.ProgramComponents
 
-  alias KlassHero.ProgramCatalog.Application.UseCases.FilterPrograms
-  alias KlassHero.ProgramCatalog.Application.UseCases.ListProgramsPaginated
-  alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
+  alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.ErrorIds
   alias KlassHeroWeb.Theme
 
@@ -53,18 +51,18 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   @impl true
   def handle_params(params, _uri, socket) do
-    search_query = FilterPrograms.sanitize_query(params["q"])
-    active_filter = ProgramCategories.validate_filter(params["filter"])
+    search_query = ProgramCatalog.sanitize_query(params["q"])
+    active_filter = ProgramCatalog.validate_category_filter(params["filter"])
 
     # Load first page of programs using pagination with category filter (always resets to page 1)
     # Category filtering happens at the database level for consistent pagination
     # Infrastructure errors will crash and be handled by supervision tree
     {:ok, page_result} =
-      ListProgramsPaginated.execute(socket.assigns.page_size, nil, active_filter)
+      ProgramCatalog.list_programs_paginated(socket.assigns.page_size, nil, active_filter)
 
     start_time = System.monotonic_time(:millisecond)
     # Apply search filter to domain programs BEFORE converting to maps
-    filtered_domain = FilterPrograms.execute(page_result.items, search_query)
+    filtered_domain = ProgramCatalog.filter_programs(page_result.items, search_query)
     # Convert to maps for UI
     programs = Enum.map(filtered_domain, &program_to_map/1)
     duration_ms = System.monotonic_time(:millisecond) - start_time
@@ -264,7 +262,7 @@ defmodule KlassHeroWeb.ProgramsLive do
 
     # Load next page using current cursor with category filter
     # Infrastructure errors will crash and be handled by supervision tree
-    case ListProgramsPaginated.execute(
+    case ProgramCatalog.list_programs_paginated(
            socket.assigns.page_size,
            socket.assigns.next_cursor,
            socket.assigns.active_filter
@@ -272,7 +270,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       {:ok, page_result} ->
         # Apply same search filter as current page
         filtered_domain =
-          FilterPrograms.execute(page_result.items, socket.assigns.search_query)
+          ProgramCatalog.filter_programs(page_result.items, socket.assigns.search_query)
 
         programs = Enum.map(filtered_domain, &program_to_map/1)
 

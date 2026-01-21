@@ -27,6 +27,8 @@ defmodule KlassHero.Support.Domain.Ports.ForContactRequests do
   - Multi-channel repository (logs + database + email)
   """
 
+  alias KlassHero.Support.Domain.Models.ContactRequest
+
   @doc """
   Submits a contact request to the repository.
 
@@ -37,5 +39,5 @@ defmodule KlassHero.Support.Domain.Ports.ForContactRequests do
   Returns:
   - `{:ok, ContactRequest.t()}` - Successfully submitted
   """
-  @callback submit(term()) :: {:ok, term()}
+  @callback submit(ContactRequest.t()) :: {:ok, ContactRequest.t()}
 end

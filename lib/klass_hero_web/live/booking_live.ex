@@ -5,7 +5,7 @@ defmodule KlassHeroWeb.BookingLive do
 
   alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
   alias KlassHero.Identity
-  alias KlassHero.ProgramCatalog.Application.UseCases.GetProgramById
+  alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
 
@@ -133,11 +133,11 @@ defmodule KlassHeroWeb.BookingLive do
   end
 
   defp fetch_program(id) do
-    GetProgramById.execute(id)
+    ProgramCatalog.get_program_by_id(id)
   end
 
   defp fetch_program_unsafe(program_id) do
-    case GetProgramById.execute(program_id) do
+    case ProgramCatalog.get_program_by_id(program_id) do
       {:ok, program} -> program
       {:error, _} -> %{id: program_id}
     end

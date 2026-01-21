@@ -1,9 +1,7 @@
 defmodule KlassHeroWeb.Provider.ParticipationLive do
   use KlassHeroWeb, :live_view
 
-  alias KlassHero.Participation.Application.UseCases.GetSessionWithRoster
-  alias KlassHero.Participation.Application.UseCases.RecordCheckIn
-  alias KlassHero.Participation.Application.UseCases.RecordCheckOut
+  alias KlassHero.Participation
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -49,7 +47,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
         {:noreply, put_flash(socket, :error, gettext("Record not found"))}
 
       record ->
-        case RecordCheckIn.execute(%{
+        case Participation.record_check_in(%{
                record_id: record.id,
                checked_in_by: socket.assigns.provider_id
              }) do
@@ -123,7 +121,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
         {:noreply, put_flash(socket, :error, gettext("Record not found"))}
 
       record ->
-        case RecordCheckOut.execute(%{
+        case Participation.record_check_out(%{
                record_id: record.id,
                checked_out_by: socket.assigns.provider_id,
                notes: notes
@@ -154,44 +152,18 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
     end
   end
 
-  # PubSub event handlers
+  # PubSub event handler for participation record events
   @impl true
   def handle_info(
         {:domain_event,
          %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :child_checked_in,
+           event_type: event_type,
            aggregate_id: record_id
          }},
         socket
-      ) do
-    socket = update_participation_record(socket, record_id)
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :child_checked_out,
-           aggregate_id: record_id
-         }},
-        socket
-      ) do
-    socket = update_participation_record(socket, record_id)
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :participation_marked_absent,
-           aggregate_id: record_id
-         }},
-        socket
-      ) do
-    socket = update_participation_record(socket, record_id)
-    {:noreply, socket}
+      )
+      when event_type in [:child_checked_in, :child_checked_out, :participation_marked_absent] do
+    {:noreply, update_participation_record(socket, record_id)}
   end
 
   # Private helper functions
@@ -199,7 +171,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
   defp load_session_data(socket) do
     session_id = socket.assigns.session_id
 
-    case GetSessionWithRoster.execute_enriched(session_id) do
+    case Participation.get_session_with_roster_enriched(session_id) do
       {:ok, session} ->
         socket
         |> assign(:session, session)
@@ -229,7 +201,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
   end
 
   defp update_participation_record(socket, record_id) do
-    case GetSessionWithRoster.execute_enriched(socket.assigns.session_id) do
+    case Participation.get_session_with_roster_enriched(socket.assigns.session_id) do
       {:ok, session} ->
         socket
         |> assign(:session, session)

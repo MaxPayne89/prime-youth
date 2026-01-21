@@ -29,6 +29,17 @@ defmodule KlassHero.Identity.Domain.Models.Child do
     :updated_at
   ]
 
+  @type t :: %__MODULE__{
+          id: String.t(),
+          parent_id: String.t(),
+          first_name: String.t(),
+          last_name: String.t(),
+          date_of_birth: Date.t(),
+          notes: String.t() | nil,
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   @doc """
   Returns the full name of the child (first name + last name).
 

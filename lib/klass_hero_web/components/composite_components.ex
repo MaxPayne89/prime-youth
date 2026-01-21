@@ -122,7 +122,7 @@ defmodule KlassHeroWeb.CompositeComponents do
   ## Examples
 
       <.child_profile_card
-        child=%{name: "Leo", age: 10, school: "JFK School", initials: "L"}
+        child=%{name: "Leo", age: 10, initials: "L"}
       />
   """
   attr :child, :map, required: true
@@ -144,7 +144,6 @@ defmodule KlassHeroWeb.CompositeComponents do
               <h4 class={[Theme.typography(:card_title), "text-hero-black truncate"]}>
                 {@child.name} ({@child.age})
               </h4>
-              <p class="text-sm text-hero-grey-500 truncate">{@child.school}</p>
             </div>
           </div>
         </:body>

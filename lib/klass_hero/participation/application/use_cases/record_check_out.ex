@@ -13,6 +13,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOut do
   - `child_checked_out` on successful check-out
   """
 
+  alias KlassHero.Participation.Application.UseCases.Shared
   alias KlassHero.Participation.Domain.Events.ParticipationEvents
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.EventPublisher
@@ -43,7 +44,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOut do
   """
   @spec execute(params()) :: result()
   def execute(%{record_id: record_id, checked_out_by: checked_out_by} = params) do
-    notes = params |> Map.get(:notes) |> normalize_notes()
+    notes = params |> Map.get(:notes) |> Shared.normalize_notes()
 
     with {:ok, record} <- participation_repository().get_by_id(record_id),
          {:ok, checked_out} <- ParticipationRecord.check_out(record, checked_out_by, notes),
@@ -61,14 +62,5 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOut do
 
   defp participation_repository do
     Application.get_env(:klass_hero, :participation)[:participation_repository]
-  end
-
-  defp normalize_notes(nil), do: nil
-
-  defp normalize_notes(notes) when is_binary(notes) do
-    case String.trim(notes) do
-      "" -> nil
-      trimmed -> trimmed
-    end
   end
 end

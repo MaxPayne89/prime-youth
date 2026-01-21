@@ -208,49 +208,68 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
   # Private validation functions
 
-  defp validate_user_for_registration!(%User{id: nil}) do
-    raise ArgumentError, "User.id cannot be nil for user_registered event"
+  @typep validation_rule :: :required | :non_empty_string | :non_nil | :list_or_nil
+
+  @spec validate_user!(User.t(), atom(), [{atom(), validation_rule()}]) :: User.t()
+  defp validate_user!(%User{} = user, event_name, rules) do
+    Enum.each(rules, fn {field, rule} ->
+      value = Map.get(user, field)
+      validate_field!(field, value, rule, event_name)
+    end)
+
+    user
   end
 
-  defp validate_user_for_registration!(%User{email: email}) when is_nil(email) or email == "" do
-    raise ArgumentError, "User.email cannot be nil or empty for user_registered event"
+  defp validate_field!(field, nil, :required, event_name) do
+    raise ArgumentError, "User.#{field} cannot be nil for #{event_name} event"
   end
 
-  defp validate_user_for_registration!(%User{name: name}) when is_nil(name) or name == "" do
-    raise ArgumentError, "User.name cannot be nil or empty for user_registered event"
+  defp validate_field!(_field, _value, :required, _event_name), do: :ok
+
+  defp validate_field!(field, value, :non_empty_string, event_name)
+       when is_nil(value) or value == "" do
+    raise ArgumentError, "User.#{field} cannot be nil or empty for #{event_name} event"
   end
 
-  defp validate_user_for_registration!(%User{intended_roles: roles})
-       when not is_list(roles) and not is_nil(roles) do
+  defp validate_field!(_field, _value, :non_empty_string, _event_name), do: :ok
+
+  defp validate_field!(field, nil, :non_nil, event_name) do
+    raise ArgumentError, "User.#{field} cannot be nil for #{event_name} event"
+  end
+
+  defp validate_field!(_field, _value, :non_nil, _event_name), do: :ok
+
+  defp validate_field!(field, value, :list_or_nil, event_name)
+       when not is_list(value) and not is_nil(value) do
     raise ArgumentError,
-          "User.intended_roles must be a list for user_registered event, got: #{inspect(roles)}"
+          "User.#{field} must be a list for #{event_name} event, got: #{inspect(value)}"
   end
 
-  defp validate_user_for_registration!(%User{} = user), do: user
+  defp validate_field!(_field, _value, :list_or_nil, _event_name), do: :ok
 
-  defp validate_user_for_confirmation!(%User{id: nil}) do
-    raise ArgumentError, "User.id cannot be nil for user_confirmed event"
+  defp validate_user_for_registration!(user) do
+    validate_user!(user, :user_registered, [
+      {:id, :required},
+      {:email, :non_empty_string},
+      {:name, :non_empty_string},
+      {:intended_roles, :list_or_nil}
+    ])
   end
 
-  defp validate_user_for_confirmation!(%User{email: email}) when is_nil(email) or email == "" do
-    raise ArgumentError, "User.email cannot be nil or empty for user_confirmed event"
+  defp validate_user_for_confirmation!(user) do
+    validate_user!(user, :user_confirmed, [
+      {:id, :required},
+      {:email, :non_empty_string},
+      {:confirmed_at, :non_nil}
+    ])
   end
 
-  defp validate_user_for_confirmation!(%User{confirmed_at: nil}) do
-    raise ArgumentError, "User.confirmed_at cannot be nil for user_confirmed event"
+  defp validate_user_for_email_change!(user) do
+    validate_user!(user, :user_email_changed, [
+      {:id, :required},
+      {:email, :non_empty_string}
+    ])
   end
-
-  defp validate_user_for_confirmation!(%User{} = user), do: user
-
-  defp validate_user_for_email_change!(%User{id: nil}) do
-    raise ArgumentError, "User.id cannot be nil for user_email_changed event"
-  end
-
-  defp validate_user_for_email_change!(%User{email: email}) when is_nil(email) or email == "" do
-    raise ArgumentError, "User.email cannot be nil or empty for user_email_changed event"
-  end
-
-  defp validate_user_for_email_change!(%User{} = user), do: user
 
   @doc """
   Creates a `user_anonymized` event.
@@ -313,9 +332,9 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
           "user_anonymized/3 requires :previous_email in payload, got keys: #{inspect(Map.keys(payload))}"
   end
 
-  defp validate_user_for_anonymization!(%User{id: nil}) do
-    raise ArgumentError, "User.id cannot be nil for user_anonymized event"
+  defp validate_user_for_anonymization!(user) do
+    validate_user!(user, :user_anonymized, [
+      {:id, :required}
+    ])
   end
-
-  defp validate_user_for_anonymization!(%User{} = user), do: user
 end

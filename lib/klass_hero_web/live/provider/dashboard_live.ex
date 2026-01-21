@@ -191,15 +191,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     """
   end
 
-  defp format_currency(amount) when is_integer(amount) do
-    amount
-    |> Integer.to_string()
-    |> String.replace(~r/(\d)(?=(\d{3})+$)/, "\\1,")
-  end
-
   defp format_number(number) when is_integer(number) do
     number
     |> Integer.to_string()
     |> String.replace(~r/(\d)(?=(\d{3})+$)/, "\\1,")
   end
+
+  defp format_currency(amount), do: format_number(amount)
 end

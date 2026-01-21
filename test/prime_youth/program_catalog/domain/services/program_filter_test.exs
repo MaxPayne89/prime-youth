@@ -1,16 +1,16 @@
-defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
+defmodule KlassHero.ProgramCatalog.Domain.Services.ProgramFilterTest do
   @moduledoc """
-  Tests for the FilterPrograms use case.
+  Tests for the ProgramFilter domain service.
 
-  This test suite verifies client-side program filtering with word-boundary matching
-  and special character normalization. The use case is a pure function with no side effects.
+  This test suite verifies program filtering with word-boundary matching
+  and special character normalization. The service is a pure function with no side effects.
   """
 
   use ExUnit.Case, async: true
 
   import KlassHero.Factory
 
-  alias KlassHero.ProgramCatalog.Application.UseCases.FilterPrograms
+  alias KlassHero.ProgramCatalog.Domain.Services.ProgramFilter
 
   # Test helper: Assert that result contains exactly one program with the expected title
   defp assert_single_match(result, expected_title) do
@@ -32,7 +32,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
     test "returns all programs for empty query" do
       programs = sample_programs()
 
-      result = FilterPrograms.execute(programs, "")
+      result = ProgramFilter.execute(programs, "")
 
       assert result == programs
       assert length(result) == 5
@@ -41,7 +41,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
     test "matches word at beginning of title" do
       programs = sample_programs()
 
-      result = FilterPrograms.execute(programs, "after")
+      result = ProgramFilter.execute(programs, "after")
 
       assert_single_match(result, "After School Soccer")
     end
@@ -49,7 +49,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
     test "matches word in middle of title" do
       programs = sample_programs()
 
-      result = FilterPrograms.execute(programs, "school")
+      result = ProgramFilter.execute(programs, "school")
 
       assert_single_match(result, "After School Soccer")
     end
@@ -57,9 +57,9 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
     test "is case-insensitive" do
       programs = sample_programs()
 
-      result_lower = FilterPrograms.execute(programs, "soccer")
-      result_upper = FilterPrograms.execute(programs, "SOCCER")
-      result_mixed = FilterPrograms.execute(programs, "SoCcEr")
+      result_lower = ProgramFilter.execute(programs, "soccer")
+      result_upper = ProgramFilter.execute(programs, "SOCCER")
+      result_mixed = ProgramFilter.execute(programs, "SoCcEr")
 
       assert result_lower == result_upper
       assert result_upper == result_mixed
@@ -69,7 +69,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
     test "returns empty list for no matches" do
       programs = sample_programs()
 
-      result = FilterPrograms.execute(programs, "nonexistent")
+      result = ProgramFilter.execute(programs, "nonexistent")
 
       assert result == []
       assert Enum.empty?(result)
@@ -78,7 +78,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
     test "handles empty programs list" do
       programs = []
 
-      result = FilterPrograms.execute(programs, "soccer")
+      result = ProgramFilter.execute(programs, "soccer")
 
       assert result == []
       assert Enum.empty?(result)
@@ -91,7 +91,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         build(:program, id: "550e8400-e29b-41d4-a716-446655440012", title: "Monkey Madness")
       ]
 
-      result = FilterPrograms.execute(programs, "")
+      result = ProgramFilter.execute(programs, "")
 
       assert length(result) == 3
       assert Enum.at(result, 0).title == "Zebra Zone"
@@ -102,9 +102,9 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
     test "handles whitespace-only query" do
       programs = sample_programs()
 
-      result_spaces = FilterPrograms.execute(programs, "   ")
-      result_tabs = FilterPrograms.execute(programs, "\t\t")
-      result_mixed = FilterPrograms.execute(programs, " \t \n ")
+      result_spaces = ProgramFilter.execute(programs, "   ")
+      result_tabs = ProgramFilter.execute(programs, "\t\t")
+      result_mixed = ProgramFilter.execute(programs, " \t \n ")
 
       assert result_spaces == programs
       assert result_tabs == programs
@@ -118,7 +118,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         build(:program, id: "550e8400-e29b-41d4-a716-446655440022", title: "Winter Soccer")
       ]
 
-      result = FilterPrograms.execute(programs, "summer")
+      result = ProgramFilter.execute(programs, "summer")
 
       assert length(result) == 2
       assert Enum.at(result, 0).title == "Summer Soccer"
@@ -130,7 +130,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
     test "typing 'so' filters to programs with words starting with 'so'" do
       programs = sample_programs()
 
-      result = FilterPrograms.execute(programs, "so")
+      result = ProgramFilter.execute(programs, "so")
 
       assert_single_match(result, "After School Soccer")
     end
@@ -142,11 +142,11 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         build(:program, id: "550e8400-e29b-41d4-a716-446655440032", title: "Meditation Flow")
       ]
 
-      result_yoga = FilterPrograms.execute(programs, "yoga")
+      result_yoga = ProgramFilter.execute(programs, "yoga")
       assert length(result_yoga) == 2
       assert_titles_include(result_yoga, ["Kids Yoga Flow", "Adult Yoga Class"])
 
-      result_flow = FilterPrograms.execute(programs, "flow")
+      result_flow = ProgramFilter.execute(programs, "flow")
       assert length(result_flow) == 2
       assert_titles_include(result_flow, ["Kids Yoga Flow", "Meditation Flow"])
     end
@@ -158,24 +158,24 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         build(:program, id: "550e8400-e29b-41d4-a716-446655440042", title: "Art Adventure")
       ]
 
-      result_soccer = FilterPrograms.execute(programs, "soccer")
+      result_soccer = ProgramFilter.execute(programs, "soccer")
       assert_single_match(result_soccer, "Soccer Stars")
 
-      result_soc = FilterPrograms.execute(programs, "soc")
+      result_soc = ProgramFilter.execute(programs, "soc")
       assert length(result_soc) == 2
       assert_titles_include(result_soc, ["Soccer Stars", "Social Club"])
 
-      result_so = FilterPrograms.execute(programs, "so")
+      result_so = ProgramFilter.execute(programs, "so")
       assert length(result_so) == 2
     end
 
     test "clearing search field shows all programs" do
       programs = sample_programs()
 
-      result_filtered = FilterPrograms.execute(programs, "soccer")
+      result_filtered = ProgramFilter.execute(programs, "soccer")
       assert length(result_filtered) == 1
 
-      result_cleared = FilterPrograms.execute(programs, "")
+      result_cleared = ProgramFilter.execute(programs, "")
 
       assert result_cleared == programs
       assert length(result_cleared) == 5
@@ -189,7 +189,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         build(:program, id: "550e8400-e29b-41d4-a716-446655440051", title: "Dance")
       ]
 
-      result = FilterPrograms.execute(programs, "soc")
+      result = ProgramFilter.execute(programs, "soc")
 
       assert_single_match(result, "Soccer")
     end
@@ -202,7 +202,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result = FilterPrograms.execute(programs, "future")
+      result = ProgramFilter.execute(programs, "future")
 
       assert length(result) == 1
       assert Enum.at(result, 0).title =~ "Future"
@@ -215,7 +215,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         build(:program, id: "550e8400-e29b-41d4-a716-446655440072", title: "Kids Dance Class")
       ]
 
-      result = FilterPrograms.execute(programs, "kids s")
+      result = ProgramFilter.execute(programs, "kids s")
 
       assert Enum.empty?(result)
     end
@@ -228,7 +228,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result = FilterPrograms.execute(programs, "ball")
+      result = ProgramFilter.execute(programs, "ball")
 
       assert result == []
     end
@@ -245,8 +245,8 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result_art = FilterPrograms.execute(programs, "art")
-      result_kids = FilterPrograms.execute(programs, "kids")
+      result_art = ProgramFilter.execute(programs, "art")
+      result_kids = ProgramFilter.execute(programs, "kids")
 
       assert length(result_art) == 1
       assert Enum.at(result_art, 0).title == "Art! & Crafts"
@@ -262,7 +262,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result = FilterPrograms.execute(programs, "art!")
+      result = ProgramFilter.execute(programs, "art!")
 
       assert length(result) == 1
       assert Enum.at(result, 0).title == "Art & Crafts"
@@ -280,7 +280,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result = FilterPrograms.execute(programs, "art!")
+      result = ProgramFilter.execute(programs, "art!")
 
       assert length(result) == 1
       assert Enum.at(result, 0).title == "Art! & Crafts"
@@ -294,7 +294,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result = FilterPrograms.execute(programs, "dance")
+      result = ProgramFilter.execute(programs, "dance")
 
       assert length(result) == 1
     end
@@ -317,13 +317,13 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result_ecole = FilterPrograms.execute(programs, "école")
+      result_ecole = ProgramFilter.execute(programs, "école")
       assert_single_match(result_ecole, "École de Danse")
 
-      result_ninos = FilterPrograms.execute(programs, "niños")
+      result_ninos = ProgramFilter.execute(programs, "niños")
       assert_single_match(result_ninos, "Niños Yoga")
 
-      result_cafe = FilterPrograms.execute(programs, "café")
+      result_cafe = ProgramFilter.execute(programs, "café")
       assert_single_match(result_cafe, "Café Cultural")
     end
 
@@ -335,9 +335,9 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result_lower = FilterPrograms.execute(programs, "école")
-      result_upper = FilterPrograms.execute(programs, "ÉCOLE")
-      result_mixed = FilterPrograms.execute(programs, "ÉcOlE")
+      result_lower = ProgramFilter.execute(programs, "école")
+      result_upper = ProgramFilter.execute(programs, "ÉCOLE")
+      result_mixed = ProgramFilter.execute(programs, "ÉcOlE")
 
       assert result_lower == result_upper
       assert result_upper == result_mixed
@@ -356,10 +356,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result_fussball = FilterPrograms.execute(programs, "fußball")
+      result_fussball = ProgramFilter.execute(programs, "fußball")
       assert_single_match(result_fussball, "Fußball für Kinder")
 
-      result_apfel = FilterPrograms.execute(programs, "äpfel")
+      result_apfel = ProgramFilter.execute(programs, "äpfel")
       assert_single_match(result_apfel, "Äpfel und Birnen")
     end
 
@@ -375,10 +375,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result_sao = FilterPrograms.execute(programs, "são")
+      result_sao = ProgramFilter.execute(programs, "são")
       assert_single_match(result_sao, "São Paulo Soccer")
 
-      result_acao = FilterPrograms.execute(programs, "ação")
+      result_acao = ProgramFilter.execute(programs, "ação")
       assert_single_match(result_acao, "Ação Cultural")
     end
 
@@ -394,10 +394,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result_moskva = FilterPrograms.execute(programs, "москва")
+      result_moskva = ProgramFilter.execute(programs, "москва")
       assert_single_match(result_moskva, "Москва Basketball")
 
-      result_kyiv = FilterPrograms.execute(programs, "київ")
+      result_kyiv = ProgramFilter.execute(programs, "київ")
       assert_single_match(result_kyiv, "Київ Dance")
     end
 
@@ -413,10 +413,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result_athina = FilterPrograms.execute(programs, "αθήνα")
+      result_athina = ProgramFilter.execute(programs, "αθήνα")
       assert_single_match(result_athina, "Αθήνα Yoga")
 
-      result_ellinika = FilterPrograms.execute(programs, "ελληνικά")
+      result_ellinika = ProgramFilter.execute(programs, "ελληνικά")
       assert_single_match(result_ellinika, "Ελληνικά Lessons")
     end
 
@@ -428,10 +428,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result_cafe = FilterPrograms.execute(programs, "café")
-      result_sao = FilterPrograms.execute(programs, "são")
-      result_moskva = FilterPrograms.execute(programs, "москва")
-      result_ecole = FilterPrograms.execute(programs, "école")
+      result_cafe = ProgramFilter.execute(programs, "café")
+      result_sao = ProgramFilter.execute(programs, "são")
+      result_moskva = ProgramFilter.execute(programs, "москва")
+      result_ecole = ProgramFilter.execute(programs, "école")
 
       assert length(result_cafe) == 1
       assert length(result_sao) == 1
@@ -448,7 +448,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
       ]
 
       # Special characters should be removed, accented characters preserved
-      result = FilterPrograms.execute(programs, "café")
+      result = ProgramFilter.execute(programs, "café")
 
       assert_single_match(result, "Café! & École")
     end
@@ -463,7 +463,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result = FilterPrograms.execute(programs, "soc")
+      result = ProgramFilter.execute(programs, "soc")
 
       assert_single_match(result, "After School Soccer")
     end
@@ -476,7 +476,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result = FilterPrograms.execute(programs, "dance")
+      result = ProgramFilter.execute(programs, "dance")
 
       assert_single_match(result, "Summer Dance Camp")
     end
@@ -489,7 +489,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result = FilterPrograms.execute(programs, "flow")
+      result = ProgramFilter.execute(programs, "flow")
 
       assert_single_match(result, "Kids Yoga Flow")
     end
@@ -502,9 +502,25 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterProgramsTest do
         )
       ]
 
-      result = FilterPrograms.execute(programs, "ball")
+      result = ProgramFilter.execute(programs, "ball")
 
       assert result == []
+    end
+  end
+
+  describe "sanitize_query/1" do
+    test "trims whitespace" do
+      assert ProgramFilter.sanitize_query("  art  ") == "art"
+    end
+
+    test "returns empty string for nil" do
+      assert ProgramFilter.sanitize_query(nil) == ""
+    end
+
+    test "limits query length to 100 characters" do
+      long_query = String.duplicate("a", 150)
+      result = ProgramFilter.sanitize_query(long_query)
+      assert String.length(result) == 100
     end
   end
 end

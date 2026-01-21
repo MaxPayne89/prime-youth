@@ -27,6 +27,22 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
     :updated_at
   ]
 
+  @type t :: %__MODULE__{
+          id: String.t(),
+          identity_id: String.t(),
+          business_name: String.t(),
+          description: String.t() | nil,
+          phone: String.t() | nil,
+          website: String.t() | nil,
+          address: String.t() | nil,
+          logo_url: String.t() | nil,
+          verified: boolean() | nil,
+          verified_at: DateTime.t() | nil,
+          categories: [String.t()] | nil,
+          inserted_at: DateTime.t() | nil,
+          updated_at: DateTime.t() | nil
+        }
+
   @doc """
   Creates a new ProviderProfile with validation.
 

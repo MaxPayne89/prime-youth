@@ -105,50 +105,53 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
           context :: map()
         ) :: :ok | {:ok, term()} | {:error, atom() | {atom(), term()}}
   def retry_with_backoff(operation, context) when is_function(operation, 0) and is_map(context) do
-    backoff_ms = Map.get(context, :backoff_ms, @default_backoff_ms)
+    case normalize_result(operation.(), context) do
+      {:success, result} ->
+        result
 
-    case operation.() do
-      :ok ->
-        :ok
+      {:error, reason, error} ->
+        maybe_retry(operation, context, reason, error)
+    end
+  end
 
-      {:ok, result} ->
-        {:ok, result}
-
-      {:error, :duplicate_resource} ->
-        log_duplicate_resource(context)
-        :ok
-
-      {:error, reason} = error ->
-        if retryable_error?(reason) do
-          log_retry_attempt(reason, context)
-          Process.sleep(backoff_ms)
-          handle_retry(operation, context, error)
-        else
-          log_permanent_error(reason, context)
-          error
-        end
+  # Attempt retry for transient errors, return immediately for permanent errors
+  defp maybe_retry(operation, context, reason, error) do
+    if retryable_error?(reason) do
+      backoff_ms = Map.get(context, :backoff_ms, @default_backoff_ms)
+      log_retry_attempt(reason, context)
+      Process.sleep(backoff_ms)
+      handle_retry(operation, context, error)
+    else
+      log_permanent_error(reason, context)
+      error
     end
   end
 
   # Handle the retry attempt
   defp handle_retry(operation, context, original_error) do
-    case operation.() do
-      :ok ->
+    case normalize_result(operation.(), context) do
+      {:success, result} ->
         log_retry_success(context)
-        :ok
+        result
 
-      {:ok, result} ->
-        log_retry_success(context)
-        {:ok, result}
-
-      {:error, :duplicate_resource} ->
-        log_duplicate_resource(context)
-        :ok
-
-      {:error, _reason} ->
+      {:error, _reason, _error} ->
         log_retry_failure(context)
         original_error
     end
+  end
+
+  # Normalize operation results into success or error tuples
+  # Duplicate resources are treated as idempotent success
+  defp normalize_result(:ok, _context), do: {:success, :ok}
+  defp normalize_result({:ok, result}, _context), do: {:success, {:ok, result}}
+
+  defp normalize_result({:error, :duplicate_resource} = _error, context) do
+    log_duplicate_resource(context)
+    {:success, :ok}
+  end
+
+  defp normalize_result({:error, reason} = error, _context) do
+    {:error, reason, error}
   end
 
   # Classify errors as retryable or permanent

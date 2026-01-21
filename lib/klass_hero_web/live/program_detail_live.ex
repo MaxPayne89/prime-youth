@@ -5,13 +5,12 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   import KlassHeroWeb.ReviewComponents
   import KlassHeroWeb.UIComponents
 
-  alias KlassHero.ProgramCatalog.Application.UseCases.GetProgramById
-  alias KlassHero.ProgramCatalog.Domain.Services.ProgramPricing
+  alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Theme
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
-    case fetch_program(program_id) do
+    case ProgramCatalog.get_program_by_id(program_id) do
       {:ok, program} ->
         # Add temporary included_items field (fixture data until proper implementation)
         program_with_items =
@@ -55,7 +54,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   @impl true
   def handle_event("toggle_favorite", _params, socket) do
-    # TODO: Implement favorite toggle functionality
     {:noreply, socket}
   end
 
@@ -66,18 +64,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   @impl true
   def handle_event("save_for_later", _params, socket) do
-    # TODO: Implement save for later functionality
     {:noreply, socket}
-  end
-
-  @impl true
-  def handle_event("ask_questions", _params, socket) do
-    # TODO: Open questions/contact modal
-    {:noreply, socket}
-  end
-
-  defp fetch_program(id) do
-    GetProgramById.execute(id)
   end
 
   @impl true
@@ -181,14 +168,14 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p class={[Theme.typography(:page_title), Theme.text_color(:heading)]}>
-                {ProgramPricing.format_total_price(@program.price)}
+                {ProgramCatalog.format_total_price(@program.price)}
               </p>
               <p class={["text-sm", Theme.text_color(:muted)]}>
                 {gettext("Total: Sept 1 - Oct 26")}
               </p>
               <p class={["text-xs mt-1", Theme.text_color(:subtle)]}>
                 {gettext("%{price}/week • 4 weeks",
-                  price: ProgramPricing.format_price(@program.price)
+                  price: ProgramCatalog.format_price(@program.price)
                 )}
               </p>
               <p class={["text-xs mt-1", Theme.text_color(:secondary)]}>
@@ -366,7 +353,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             ]}
           >
             {gettext("Enroll Now - %{price}",
-              price: ProgramPricing.format_total_price(@program.price)
+              price: ProgramCatalog.format_total_price(@program.price)
             )}
           </button>
         </div>
@@ -381,10 +368,10 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         <div class="flex items-center justify-between gap-4 max-w-4xl mx-auto">
           <div>
             <p class={["font-semibold", Theme.text_color(:heading)]}>
-              {ProgramPricing.format_total_price(@program.price)}
+              {ProgramCatalog.format_total_price(@program.price)}
             </p>
             <p class={["text-xs", Theme.text_color(:muted)]}>
-              {gettext("%{price}/week", price: ProgramPricing.format_price(@program.price))}
+              {gettext("%{price}/week", price: ProgramCatalog.format_price(@program.price))}
             </p>
           </div>
           <button
