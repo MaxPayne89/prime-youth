@@ -1,10 +1,11 @@
-defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterPrograms do
+defmodule KlassHero.ProgramCatalog.Domain.Services.ProgramFilter do
   @moduledoc """
-  Filters a list of programs by title using word-boundary matching.
+  Domain service for filtering programs by search query.
 
-  This use case implements the real-time filtering logic for the program catalog.
-  It matches programs where any word in the title starts with the search query,
-  ignoring special characters and case differences.
+  Implements word-boundary matching: matches programs where any word in the
+  title starts with the search query, ignoring special characters and case.
+
+  This is a pure domain service with no repository interaction.
   """
 
   alias KlassHero.ProgramCatalog.Domain.Models.Program
@@ -18,13 +19,13 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterPrograms do
 
   ## Examples
 
-      iex> FilterPrograms.sanitize_query("  art  ")
+      iex> ProgramFilter.sanitize_query("  art  ")
       "art"
 
-      iex> FilterPrograms.sanitize_query(nil)
+      iex> ProgramFilter.sanitize_query(nil)
       ""
 
-      iex> FilterPrograms.sanitize_query(String.duplicate("a", 150))
+      iex> ProgramFilter.sanitize_query(String.duplicate("a", 150))
       String.duplicate("a", 100)
   """
   @spec sanitize_query(String.t() | nil) :: String.t()
@@ -48,10 +49,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.FilterPrograms do
       ...>   %Program{id: "1", title: "After School Soccer"},
       ...>   %Program{id: "2", title: "Summer Dance Camp"}
       ...> ]
-      iex> FilterPrograms.execute(programs, "soc")
+      iex> ProgramFilter.execute(programs, "soc")
       [%Program{id: "1", title: "After School Soccer"}]
 
-      iex> FilterPrograms.execute(programs, "")
+      iex> ProgramFilter.execute(programs, "")
       [%Program{id: "1", title: "After School Soccer"}, %Program{id: "2", title: "Summer Dance Camp"}]
   """
   @spec execute([Program.t()], String.t()) :: [Program.t()]

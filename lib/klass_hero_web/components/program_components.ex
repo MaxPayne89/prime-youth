@@ -9,7 +9,7 @@ defmodule KlassHeroWeb.ProgramComponents do
 
   import KlassHeroWeb.UIComponents
 
-  alias KlassHero.ProgramCatalog.Domain.Services.ProgramPricing
+  alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Theme
 
   @doc """
@@ -446,7 +446,7 @@ defmodule KlassHeroWeb.ProgramComponents do
     <!-- Price -->
         <div class="pt-4 border-t border-hero-grey-100">
           <div class={[Theme.typography(:card_title), Theme.text_color(:primary)]}>
-            {ProgramPricing.format_price(@program.price)}
+            {ProgramCatalog.format_price(@program.price)}
           </div>
           <div class="text-sm text-hero-grey-500">{@program.period}</div>
         </div>

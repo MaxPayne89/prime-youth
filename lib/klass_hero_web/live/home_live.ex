@@ -3,14 +3,13 @@ defmodule KlassHeroWeb.HomeLive do
 
   import KlassHeroWeb.UIComponents
 
-  alias KlassHero.ProgramCatalog.Application.UseCases.ListFeaturedPrograms
-  alias KlassHero.ProgramCatalog.Domain.Services.TrendingSearches
+  alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Theme
 
   @impl true
   def mount(_params, _session, socket) do
-    featured = ListFeaturedPrograms.execute()
-    trending_tags = TrendingSearches.list()
+    featured = ProgramCatalog.list_featured_programs()
+    trending_tags = ProgramCatalog.trending_searches()
 
     socket =
       socket
