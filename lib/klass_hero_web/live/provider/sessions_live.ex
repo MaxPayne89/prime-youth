@@ -90,29 +90,17 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     end
   end
 
-  # PubSub event handlers
+  # PubSub event handlers for session lifecycle events
   @impl true
   def handle_info(
         %KlassHero.Shared.Domain.Events.DomainEvent{
-          event_type: :session_started,
+          event_type: event_type,
           aggregate_id: session_id
         },
         socket
-      ) do
-    socket = update_session_in_stream(socket, session_id)
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info(
-        %KlassHero.Shared.Domain.Events.DomainEvent{
-          event_type: :session_completed,
-          aggregate_id: session_id
-        },
-        socket
-      ) do
-    socket = update_session_in_stream(socket, session_id)
-    {:noreply, socket}
+      )
+      when event_type in [:session_started, :session_completed] do
+    {:noreply, update_session_in_stream(socket, session_id)}
   end
 
   @impl true
@@ -123,8 +111,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
         },
         socket
       ) do
-    socket = update_session_in_stream(socket, session_id)
-    {:noreply, socket}
+    {:noreply, update_session_in_stream(socket, session_id)}
   end
 
   # Private helper functions

@@ -152,44 +152,18 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
     end
   end
 
-  # PubSub event handlers
+  # PubSub event handler for participation record events
   @impl true
   def handle_info(
         {:domain_event,
          %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :child_checked_in,
+           event_type: event_type,
            aggregate_id: record_id
          }},
         socket
-      ) do
-    socket = update_participation_record(socket, record_id)
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :child_checked_out,
-           aggregate_id: record_id
-         }},
-        socket
-      ) do
-    socket = update_participation_record(socket, record_id)
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :participation_marked_absent,
-           aggregate_id: record_id
-         }},
-        socket
-      ) do
-    socket = update_participation_record(socket, record_id)
-    {:noreply, socket}
+      )
+      when event_type in [:child_checked_in, :child_checked_out, :participation_marked_absent] do
+    {:noreply, update_participation_record(socket, record_id)}
   end
 
   # Private helper functions
