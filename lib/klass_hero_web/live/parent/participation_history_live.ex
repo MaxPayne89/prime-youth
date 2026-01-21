@@ -3,8 +3,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
 
   alias KlassHero.Identity
   alias KlassHero.Identity.Domain.Models.Child
-  alias KlassHero.Participation.Application.UseCases.GetParticipationHistory
-  alias KlassHero.Participation.Application.UseCases.GetParticipationRecord
+  alias KlassHero.Participation
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -117,7 +116,8 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
       children = Identity.get_children(parent_id)
       child_ids = Enum.map(children, & &1.id)
 
-      {:ok, participation_records} = GetParticipationHistory.execute(%{child_ids: child_ids})
+      {:ok, participation_records} =
+        Participation.get_participation_history(%{child_ids: child_ids})
 
       child_names = Map.new(children, fn child -> {child.id, Child.full_name(child)} end)
       children_ids = Identity.get_child_ids_for_parent(parent_id)
@@ -139,7 +139,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
   end
 
   defp load_and_insert_record(socket, record_id) do
-    case GetParticipationRecord.execute(record_id) do
+    case Participation.get_participation_record(record_id) do
       {:ok, record} ->
         stream_insert(socket, :participation_records, record, at: 0)
 
@@ -155,7 +155,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
   end
 
   defp load_and_update_record(socket, record_id) do
-    case GetParticipationRecord.execute(record_id) do
+    case Participation.get_participation_record(record_id) do
       {:ok, record} ->
         stream_insert(socket, :participation_records, record)
 

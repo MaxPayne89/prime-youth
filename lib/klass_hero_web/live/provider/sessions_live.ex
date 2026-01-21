@@ -1,10 +1,7 @@
 defmodule KlassHeroWeb.Provider.SessionsLive do
   use KlassHeroWeb, :live_view
 
-  alias KlassHero.Participation.Application.UseCases.CompleteSession
-  alias KlassHero.Participation.Application.UseCases.GetSessionWithRoster
-  alias KlassHero.Participation.Application.UseCases.ListProviderSessions
-  alias KlassHero.Participation.Application.UseCases.StartSession
+  alias KlassHero.Participation
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -49,7 +46,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
 
   @impl true
   def handle_event("start_session", %{"session_id" => session_id}, socket) do
-    case StartSession.execute(session_id) do
+    case Participation.start_session(session_id) do
       {:ok, _session} ->
         {:noreply, put_flash(socket, :info, gettext("Session started successfully"))}
 
@@ -72,7 +69,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
 
   @impl true
   def handle_event("complete_session", %{"session_id" => session_id}, socket) do
-    case CompleteSession.execute(session_id) do
+    case Participation.complete_session(session_id) do
       {:ok, _session} ->
         {:noreply, put_flash(socket, :info, gettext("Session completed successfully"))}
 
@@ -136,8 +133,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     provider_id = socket.assigns.provider_id
     selected_date = socket.assigns.selected_date
 
-    {:ok, sessions} =
-      ListProviderSessions.execute(%{provider_id: provider_id, date: selected_date})
+    {:ok, sessions} = Participation.list_provider_sessions(provider_id, selected_date)
 
     socket
     |> stream(:sessions, sessions, reset: true)
@@ -145,7 +141,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   end
 
   defp update_session_in_stream(socket, session_id) do
-    case GetSessionWithRoster.execute(session_id) do
+    case Participation.get_session_with_roster(session_id) do
       {:ok, session} ->
         stream_insert(socket, :sessions, session)
 
