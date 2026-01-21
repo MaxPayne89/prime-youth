@@ -2,8 +2,9 @@ defmodule KlassHero.Shared.Domain.Services.ActivityGoalCalculator do
   @moduledoc """
   Domain service for calculating family activity goals.
 
-  Temporarily located in Shared context until Progress Tracking bounded context
-  is implemented. Once Progress Tracking exists, this service should be moved there.
+  This service provides reusable activity goal calculations that may be used
+  across multiple bounded contexts (e.g., Identity for dashboard display,
+  Progress Tracking for detailed analytics).
   """
 
   @default_weekly_target 5
