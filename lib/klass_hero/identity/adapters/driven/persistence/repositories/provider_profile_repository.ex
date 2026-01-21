@@ -36,23 +36,12 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
   - `{:error, changeset}` - Validation failure
   """
   def create_provider_profile(attrs) when is_map(attrs) do
-    Logger.info("[Identity.ProviderProfileRepository] Creating provider profile",
-      identity_id: attrs[:identity_id],
-      business_name: attrs[:business_name]
-    )
-
     %ProviderProfileSchema{}
     |> ProviderProfileSchema.changeset(attrs)
     |> Repo.insert()
     |> case do
       {:ok, schema} ->
-        provider_profile = ProviderProfileMapper.to_domain(schema)
-
-        Logger.info(
-          "[Identity.ProviderProfileRepository] Successfully created provider profile (ID: #{provider_profile.id}) for identity_id: #{provider_profile.identity_id}"
-        )
-
-        {:ok, provider_profile}
+        {:ok, ProviderProfileMapper.to_domain(schema)}
 
       {:error, %Ecto.Changeset{errors: errors} = changeset} ->
         if EctoErrorHelpers.unique_constraint_violation?(errors, :identity_id) do
@@ -84,26 +73,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
   - `{:error, :not_found}` when no provider profile exists with the given identity_id
   """
   def get_by_identity_id(identity_id) when is_binary(identity_id) do
-    Logger.info(
-      "[Identity.ProviderProfileRepository] Retrieving provider profile by identity_id: #{identity_id}"
-    )
-
     case Repo.one(from p in ProviderProfileSchema, where: p.identity_id == ^identity_id) do
-      nil ->
-        Logger.info(
-          "[Identity.ProviderProfileRepository] Provider profile not found for identity_id: #{identity_id}"
-        )
-
-        {:error, :not_found}
-
-      schema ->
-        provider_profile = ProviderProfileMapper.to_domain(schema)
-
-        Logger.info(
-          "[Identity.ProviderProfileRepository] Successfully retrieved provider profile (ID: #{provider_profile.id}) for identity_id: #{identity_id}"
-        )
-
-        {:ok, provider_profile}
+      nil -> {:error, :not_found}
+      schema -> {:ok, ProviderProfileMapper.to_domain(schema)}
     end
   end
 
@@ -114,19 +86,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
   Returns boolean directly.
   """
   def has_profile?(identity_id) when is_binary(identity_id) do
-    Logger.info(
-      "[Identity.ProviderProfileRepository] Checking if provider profile exists for identity_id: #{identity_id}"
-    )
-
-    exists =
-      ProviderProfileSchema
-      |> where([p], p.identity_id == ^identity_id)
-      |> Repo.exists?()
-
-    Logger.info(
-      "[Identity.ProviderProfileRepository] Provider profile existence check for identity_id #{identity_id}: #{exists}"
-    )
-
-    exists
+    ProviderProfileSchema
+    |> where([p], p.identity_id == ^identity_id)
+    |> Repo.exists?()
   end
 end

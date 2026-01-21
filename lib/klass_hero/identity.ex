@@ -35,14 +35,10 @@ defmodule KlassHero.Identity do
   - Repository implementations (adapter layer) → implement persistence
   """
 
-  alias KlassHero.Identity.Application.UseCases.Children.GetChildById
-  alias KlassHero.Identity.Application.UseCases.Children.GetChildren
   alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
-  alias KlassHero.Identity.Application.UseCases.Parents.GetParentByIdentity
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
-  alias KlassHero.Identity.Application.UseCases.Providers.GetProviderByIdentity
-  alias KlassHero.Identity.Domain.Services.ActivityGoalCalculator
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
+  alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
 
   @parent_repository Application.compile_env!(:klass_hero, [
                        :identity,
@@ -52,6 +48,10 @@ defmodule KlassHero.Identity do
                          :identity,
                          :for_storing_provider_profiles
                        ])
+  @child_repository Application.compile_env!(:klass_hero, [
+                      :identity,
+                      :for_storing_children
+                    ])
 
   # ============================================================================
   # Parent Profile Functions
@@ -80,7 +80,7 @@ defmodule KlassHero.Identity do
   - `{:error, :not_found}` - No parent profile exists
   """
   def get_parent_by_identity(identity_id) when is_binary(identity_id) do
-    GetParentByIdentity.execute(identity_id)
+    @parent_repository.get_by_identity_id(identity_id)
   end
 
   @doc """
@@ -119,7 +119,7 @@ defmodule KlassHero.Identity do
   - `{:error, :not_found}` - No provider profile exists
   """
   def get_provider_by_identity(identity_id) when is_binary(identity_id) do
-    GetProviderByIdentity.execute(identity_id)
+    @provider_repository.get_by_identity_id(identity_id)
   end
 
   @doc """
@@ -142,7 +142,7 @@ defmodule KlassHero.Identity do
   Returns an empty list if no children exist.
   """
   def get_children(parent_id) when is_binary(parent_id) do
-    GetChildren.execute(parent_id)
+    @child_repository.list_by_parent(parent_id)
   end
 
   @doc """
@@ -153,7 +153,7 @@ defmodule KlassHero.Identity do
   - `{:error, :not_found}` - No child exists or invalid UUID
   """
   def get_child_by_id(child_id) when is_binary(child_id) do
-    GetChildById.execute(child_id)
+    @child_repository.get_by_id(child_id)
   end
 
   @doc """

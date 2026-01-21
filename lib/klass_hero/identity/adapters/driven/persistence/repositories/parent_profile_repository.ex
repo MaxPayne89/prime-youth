@@ -36,22 +36,12 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProf
   - `{:error, changeset}` - Validation failure
   """
   def create_parent_profile(attrs) when is_map(attrs) do
-    Logger.info("[Identity.ParentProfileRepository] Creating parent profile",
-      identity_id: attrs[:identity_id]
-    )
-
     %ParentProfileSchema{}
     |> ParentProfileSchema.changeset(attrs)
     |> Repo.insert()
     |> case do
       {:ok, schema} ->
-        parent_profile = ParentProfileMapper.to_domain(schema)
-
-        Logger.info(
-          "[Identity.ParentProfileRepository] Successfully created parent profile (ID: #{parent_profile.id}) for identity_id: #{parent_profile.identity_id}"
-        )
-
-        {:ok, parent_profile}
+        {:ok, ParentProfileMapper.to_domain(schema)}
 
       {:error, %Ecto.Changeset{errors: errors} = changeset} ->
         if EctoErrorHelpers.unique_constraint_violation?(errors, :identity_id) do
@@ -83,26 +73,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProf
   - `{:error, :not_found}` when no parent profile exists with the given identity_id
   """
   def get_by_identity_id(identity_id) when is_binary(identity_id) do
-    Logger.info(
-      "[Identity.ParentProfileRepository] Retrieving parent profile by identity_id: #{identity_id}"
-    )
-
     case Repo.one(from p in ParentProfileSchema, where: p.identity_id == ^identity_id) do
-      nil ->
-        Logger.info(
-          "[Identity.ParentProfileRepository] Parent profile not found for identity_id: #{identity_id}"
-        )
-
-        {:error, :not_found}
-
-      schema ->
-        parent_profile = ParentProfileMapper.to_domain(schema)
-
-        Logger.info(
-          "[Identity.ParentProfileRepository] Successfully retrieved parent profile (ID: #{parent_profile.id}) for identity_id: #{identity_id}"
-        )
-
-        {:ok, parent_profile}
+      nil -> {:error, :not_found}
+      schema -> {:ok, ParentProfileMapper.to_domain(schema)}
     end
   end
 
@@ -113,19 +86,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProf
   Returns boolean directly.
   """
   def has_profile?(identity_id) when is_binary(identity_id) do
-    Logger.info(
-      "[Identity.ParentProfileRepository] Checking if parent profile exists for identity_id: #{identity_id}"
-    )
-
-    exists =
-      ParentProfileSchema
-      |> where([p], p.identity_id == ^identity_id)
-      |> Repo.exists?()
-
-    Logger.info(
-      "[Identity.ParentProfileRepository] Parent profile existence check for identity_id #{identity_id}: #{exists}"
-    )
-
-    exists
+    ParentProfileSchema
+    |> where([p], p.identity_id == ^identity_id)
+    |> Repo.exists?()
   end
 end
