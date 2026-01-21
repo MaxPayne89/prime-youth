@@ -50,18 +50,17 @@ if config_env() == :prod do
     config :opentelemetry, :resource, service: [name: otel_service_name, namespace: "klass-hero"]
   end
 
-  # OpenTelemetry: Only configure Honeycomb exporter if all credentials are present
+  # OpenTelemetry: Only configure Honeycomb exporter if credentials are present
+  # Note: Dataset is determined by OTEL_SERVICE_NAME (configured above), not x-honeycomb-dataset header
   honeycomb_api_key = System.get_env("HONEYCOMB_KLASS_HERO_API_KEY")
-  honeycomb_dataset = System.get_env("HONEYCOMB_KLASS_HERO_DATASET")
   otel_endpoint = System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT")
 
-  if honeycomb_api_key && honeycomb_dataset && otel_endpoint do
+  if honeycomb_api_key && otel_endpoint do
     config :opentelemetry_exporter,
       otlp_protocol: :http_protobuf,
       otlp_endpoint: otel_endpoint,
       otlp_headers: [
-        {"x-honeycomb-team", honeycomb_api_key},
-        {"x-honeycomb-dataset", honeycomb_dataset}
+        {"x-honeycomb-team", honeycomb_api_key}
       ]
   end
 
