@@ -2,11 +2,9 @@ defmodule KlassHeroWeb.BookingLive do
   use KlassHeroWeb, :live_view
 
   import KlassHeroWeb.BookingComponents
+  import KlassHeroWeb.Helpers.IdentityHelpers
 
   alias KlassHero.Enrollment
-  alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
-  alias KlassHero.Entitlements
-  alias KlassHero.Identity
   alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
@@ -23,23 +21,25 @@ defmodule KlassHeroWeb.BookingLive do
 
     with {:ok, program} <- fetch_program(program_id),
          :ok <- validate_program_availability(program) do
-      children = get_children_for_parent(socket)
+      children = get_children_for_current_user(socket)
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
 
       socket =
         socket
-        |> assign(page_title: gettext("Enrollment - %{title}", title: program.title))
-        |> assign(current_user: current_user)
-        |> assign(program: program)
-        |> assign(children: children_for_view)
-        |> assign(selected_child_id: "emma")
-        |> assign(special_requirements: "")
-        |> assign(payment_method: "card")
-        |> assign(weekly_fee: @default_weekly_fee)
-        |> assign(weeks_count: @default_weeks_count)
-        |> assign(registration_fee: @default_registration_fee)
-        |> assign(vat_rate: @default_vat_rate)
-        |> assign(card_fee: @default_card_processing_fee)
+        |> assign(
+          page_title: gettext("Enrollment - %{title}", title: program.title),
+          current_user: current_user,
+          program: program,
+          children: children_for_view,
+          selected_child_id: "emma",
+          special_requirements: "",
+          payment_method: "card",
+          weekly_fee: @default_weekly_fee,
+          weeks_count: @default_weeks_count,
+          registration_fee: @default_registration_fee,
+          vat_rate: @default_vat_rate,
+          card_fee: @default_card_processing_fee
+        )
         |> apply_fee_calculation()
         |> assign_booking_limit_info()
 
@@ -90,14 +90,7 @@ defmodule KlassHeroWeb.BookingLive do
     with :ok <- validate_enrollment_data(socket, params),
          :ok <- validate_payment_method(socket),
          :ok <- validate_program_availability(socket.assigns.program),
-         :ok <- validate_booking_entitlement(socket) do
-      # TODO: Implement actual enrollment processing:
-      # 1. Create enrollment record in database
-      # 2. Process payment (if card)
-      # 3. Send confirmation email
-      # 4. Update program spots_left
-      # 5. Return {:ok, enrollment} or {:error, reason}
-
+         {:ok, _enrollment} <- create_enrollment(socket, params) do
       {:noreply,
        socket
        |> put_flash(
@@ -165,7 +158,7 @@ defmodule KlassHeroWeb.BookingLive do
 
   defp apply_fee_calculation(socket) do
     {:ok, fees} =
-      CalculateEnrollmentFees.execute(%{
+      Enrollment.calculate_fees(%{
         weekly_fee: socket.assigns.weekly_fee,
         registration_fee: socket.assigns.registration_fee,
         vat_rate: socket.assigns.vat_rate,
@@ -173,11 +166,12 @@ defmodule KlassHeroWeb.BookingLive do
         payment_method: socket.assigns.payment_method
       })
 
-    socket
-    |> assign(subtotal: fees.subtotal)
-    |> assign(vat_amount: fees.vat_amount)
-    |> assign(card_fee_amount: fees.card_fee_amount)
-    |> assign(total: fees.total)
+    assign(socket,
+      subtotal: fees.subtotal,
+      vat_amount: fees.vat_amount,
+      card_fee_amount: fees.card_fee_amount,
+      total: fees.total
+    )
   end
 
   defp validate_program_availability(%{spots_available: spots_available})
@@ -185,13 +179,10 @@ defmodule KlassHeroWeb.BookingLive do
 
   defp validate_program_availability(_program), do: {:error, :no_spots}
 
-  defp validate_enrollment_data(_socket, params) do
-    if is_nil(params["child_id"]) or params["child_id"] == "" do
-      {:error, :child_not_selected}
-    else
-      :ok
-    end
-  end
+  defp validate_enrollment_data(_socket, %{"child_id" => child_id})
+       when is_binary(child_id) and byte_size(child_id) > 0, do: :ok
+
+  defp validate_enrollment_data(_socket, _params), do: {:error, :child_not_selected}
 
   defp validate_payment_method(socket) do
     case socket.assigns.payment_method do
@@ -200,60 +191,37 @@ defmodule KlassHeroWeb.BookingLive do
     end
   end
 
-  defp get_children_for_parent(socket) do
-    with %{current_scope: %{user: %{id: identity_id}}} <- socket.assigns,
-         {:ok, parent} <- Identity.get_parent_by_identity(identity_id) do
-      Identity.get_children(parent.id)
-    else
-      _ -> []
-    end
-  end
+  defp create_enrollment(socket, params) do
+    identity_id = socket.assigns.current_scope.user.id
 
-  defp validate_booking_entitlement(socket) do
-    case get_parent_profile(socket) do
-      {:ok, parent} ->
-        current_count = count_monthly_bookings(parent.id)
+    enrollment_params = %{
+      identity_id: identity_id,
+      program_id: socket.assigns.program.id,
+      child_id: params["child_id"],
+      payment_method: socket.assigns.payment_method,
+      subtotal: socket.assigns.subtotal,
+      vat_amount: socket.assigns.vat_amount,
+      card_fee_amount: socket.assigns.card_fee_amount,
+      total_amount: socket.assigns.total,
+      special_requirements: params["special_requirements"]
+    }
 
-        if Entitlements.can_create_booking?(parent, current_count) do
-          :ok
-        else
-          {:error, :booking_limit_exceeded}
-        end
-
-      {:error, _} ->
-        {:error, :no_parent_profile}
-    end
-  end
-
-  defp get_parent_profile(socket) do
-    case socket.assigns do
-      %{current_scope: %{user: %{id: identity_id}}} ->
-        Identity.get_parent_by_identity(identity_id)
-
-      _ ->
-        {:error, :no_user}
-    end
-  end
-
-  defp count_monthly_bookings(parent_id) do
-    Enrollment.count_monthly_bookings(parent_id)
+    Enrollment.create_enrollment(enrollment_params)
   end
 
   defp assign_booking_limit_info(socket) do
-    case get_parent_profile(socket) do
-      {:ok, parent} ->
-        cap = Entitlements.monthly_booking_cap(parent)
-        current = count_monthly_bookings(parent.id)
-        remaining = if cap == :unlimited, do: :unlimited, else: cap - current
+    identity_id = socket.assigns.current_scope.user.id
 
+    case Enrollment.get_booking_usage_info(identity_id) do
+      {:ok, info} ->
         assign(socket,
-          booking_tier: parent.subscription_tier,
-          booking_cap: cap,
-          bookings_used: current,
-          bookings_remaining: remaining
+          booking_tier: info.tier,
+          booking_cap: info.cap,
+          bookings_used: info.used,
+          bookings_remaining: info.remaining
         )
 
-      _ ->
+      {:error, :no_parent_profile} ->
         assign(socket,
           booking_tier: nil,
           booking_cap: nil,

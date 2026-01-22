@@ -40,6 +40,7 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
   alias KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings
   alias KlassHero.Enrollment.Application.UseCases.CreateEnrollment
+  alias KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo
   alias KlassHero.Enrollment.Application.UseCases.GetEnrollment
   alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
 
@@ -106,6 +107,30 @@ defmodule KlassHero.Enrollment do
   """
   def count_monthly_bookings(parent_id, month \\ nil) when is_binary(parent_id) do
     CountMonthlyBookings.execute(parent_id, month)
+  end
+
+  @doc """
+  Returns booking usage information for a parent.
+
+  This encapsulates the logic for fetching booking limits, current usage,
+  and remaining capacity based on the parent's subscription tier.
+
+  ## Parameters
+
+  - `identity_id` - The user's identity ID (from authentication)
+
+  ## Returns
+
+  - `{:ok, info}` with booking usage map containing:
+    - `parent_id` - The parent's UUID
+    - `tier` - The subscription tier atom
+    - `cap` - The monthly booking cap (integer or :unlimited)
+    - `used` - Number of bookings used this month
+    - `remaining` - Number of bookings remaining (:unlimited or integer)
+  - `{:error, :no_parent_profile}` if no parent profile exists
+  """
+  def get_booking_usage_info(identity_id) when is_binary(identity_id) do
+    GetBookingUsageInfo.execute(identity_id)
   end
 
   # ============================================================================

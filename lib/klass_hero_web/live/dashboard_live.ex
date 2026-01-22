@@ -1,8 +1,11 @@
 defmodule KlassHeroWeb.DashboardLive do
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.BookingComponents, only: [info_box: 1]
   import KlassHeroWeb.CompositeComponents
+  import KlassHeroWeb.Helpers.IdentityHelpers
 
+  alias KlassHero.Enrollment
   alias KlassHero.Identity
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
@@ -10,31 +13,25 @@ defmodule KlassHeroWeb.DashboardLive do
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
-    children = get_children_for_parent(socket)
+    children = get_children_for_current_user(socket)
     children_for_view = Enum.map(children, &ChildPresenter.to_profile_view/1)
     children_extended = Enum.map(children, &ChildPresenter.to_extended_view/1)
 
     socket =
       socket
-      |> assign(page_title: gettext("Dashboard"))
-      |> assign(user: user)
-      |> assign(children_count: length(children_for_view))
-      |> assign(activity_goal: calculate_activity_goal(children_extended))
-      |> assign(achievements: get_achievements(socket))
-      |> assign(recommended_programs: get_recommended_programs(socket))
-      |> assign(referral_stats: get_referral_stats(user))
+      |> assign(
+        page_title: gettext("Dashboard"),
+        user: user,
+        children_count: length(children_for_view),
+        activity_goal: calculate_activity_goal(children_extended),
+        achievements: get_achievements(socket),
+        recommended_programs: get_recommended_programs(socket),
+        referral_stats: get_referral_stats(user)
+      )
       |> stream(:children, children_for_view)
+      |> assign_booking_usage_info()
 
     {:ok, socket}
-  end
-
-  defp get_children_for_parent(socket) do
-    with %{current_scope: %{user: %{id: identity_id}}} <- socket.assigns,
-         {:ok, parent} <- Identity.get_parent_by_identity(identity_id) do
-      Identity.get_children(parent.id)
-    else
-      _ -> []
-    end
   end
 
   defp calculate_activity_goal(children) do
@@ -56,7 +53,7 @@ defmodule KlassHeroWeb.DashboardLive do
   end
 
   defp get_recommended_programs(socket) do
-    children = get_children_for_parent(socket)
+    children = get_children_for_current_user(socket)
     first_child_name = get_first_child_name(children)
 
     %{
@@ -112,6 +109,24 @@ defmodule KlassHeroWeb.DashboardLive do
     Identity.generate_referral_code(user.name)
   end
 
+  defp assign_booking_usage_info(socket) do
+    identity_id = socket.assigns.user.id
+
+    case Enrollment.get_booking_usage_info(identity_id) do
+      {:ok, info} when info.cap != :unlimited ->
+        assign(socket,
+          show_booking_usage: true,
+          booking_tier: info.tier,
+          booking_cap: info.cap,
+          bookings_used: info.used,
+          bookings_remaining: info.remaining
+        )
+
+      _ ->
+        assign(socket, show_booking_usage: false)
+    end
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -151,6 +166,37 @@ defmodule KlassHeroWeb.DashboardLive do
         <%!-- Weekly Activity Goal --%>
         <section class="mb-8">
           <.weekly_goal_card goal={@activity_goal} />
+        </section>
+        <%!-- Monthly Booking Usage (limited tiers only) --%>
+        <section :if={@show_booking_usage} class="mb-8">
+          <.info_box
+            variant={:info}
+            icon="📊"
+            title={gettext("Monthly Booking Usage")}
+          >
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm">
+                  {gettext("You have used %{used} of %{cap} bookings this month.",
+                    used: @bookings_used,
+                    cap: @booking_cap
+                  )}
+                </p>
+                <p class="text-lg font-semibold text-hero-blue-600 mt-1">
+                  {gettext("%{remaining} remaining", remaining: @bookings_remaining)}
+                </p>
+                <p class="text-xs text-hero-grey-500 mt-1">
+                  <span class="capitalize">{@booking_tier}</span> {gettext("tier")}
+                </p>
+              </div>
+              <.link
+                navigate={~p"/settings"}
+                class="text-sm text-hero-blue-600 hover:text-hero-blue-800 underline"
+              >
+                {gettext("Upgrade")}
+              </.link>
+            </div>
+          </.info_box>
         </section>
         <%!-- Family Achievements --%>
         <section class="mb-8">
