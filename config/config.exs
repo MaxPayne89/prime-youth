@@ -48,6 +48,11 @@ config :klass_hero, KlassHeroWeb.Gettext,
 config :klass_hero, :community,
   repository: KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
 
+# Configure Enrollment bounded context
+config :klass_hero, :enrollment,
+  for_managing_enrollments:
+    KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentRepository
+
 # Configure Event Publisher
 config :klass_hero, :event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher,

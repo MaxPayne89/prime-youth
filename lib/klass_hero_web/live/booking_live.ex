@@ -3,7 +3,9 @@ defmodule KlassHeroWeb.BookingLive do
 
   import KlassHeroWeb.BookingComponents
 
+  alias KlassHero.Enrollment
   alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
+  alias KlassHero.Entitlements
   alias KlassHero.Identity
   alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.ChildPresenter
@@ -39,6 +41,7 @@ defmodule KlassHeroWeb.BookingLive do
         |> assign(vat_rate: @default_vat_rate)
         |> assign(card_fee: @default_card_processing_fee)
         |> apply_fee_calculation()
+        |> assign_booking_limit_info()
 
       {:ok, socket}
     else
@@ -86,7 +89,8 @@ defmodule KlassHeroWeb.BookingLive do
   def handle_event("complete_enrollment", params, socket) do
     with :ok <- validate_enrollment_data(socket, params),
          :ok <- validate_payment_method(socket),
-         :ok <- validate_program_availability(socket.assigns.program) do
+         :ok <- validate_program_availability(socket.assigns.program),
+         :ok <- validate_booking_entitlement(socket) do
       # TODO: Implement actual enrollment processing:
       # 1. Create enrollment record in database
       # 2. Process payment (if card)
@@ -121,6 +125,22 @@ defmodule KlassHeroWeb.BookingLive do
 
       {:error, :child_not_selected} ->
         {:noreply, put_flash(socket, :error, gettext("Please select a child for enrollment."))}
+
+      {:error, :booking_limit_exceeded} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext(
+             "You've reached your monthly booking limit. Upgrade to Active tier for unlimited bookings."
+           )
+         )}
+
+      {:error, :no_parent_profile} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("Please complete your profile before making a booking."))
+         |> push_navigate(to: ~p"/settings")}
 
       {:error, :processing_failed} ->
         {:noreply,
@@ -189,6 +209,60 @@ defmodule KlassHeroWeb.BookingLive do
     end
   end
 
+  defp validate_booking_entitlement(socket) do
+    case get_parent_profile(socket) do
+      {:ok, parent} ->
+        current_count = count_monthly_bookings(parent.id)
+
+        if Entitlements.can_create_booking?(parent, current_count) do
+          :ok
+        else
+          {:error, :booking_limit_exceeded}
+        end
+
+      {:error, _} ->
+        {:error, :no_parent_profile}
+    end
+  end
+
+  defp get_parent_profile(socket) do
+    case socket.assigns do
+      %{current_scope: %{user: %{id: identity_id}}} ->
+        Identity.get_parent_by_identity(identity_id)
+
+      _ ->
+        {:error, :no_user}
+    end
+  end
+
+  defp count_monthly_bookings(parent_id) do
+    Enrollment.count_monthly_bookings(parent_id)
+  end
+
+  defp assign_booking_limit_info(socket) do
+    case get_parent_profile(socket) do
+      {:ok, parent} ->
+        cap = Entitlements.monthly_booking_cap(parent)
+        current = count_monthly_bookings(parent.id)
+        remaining = if cap == :unlimited, do: :unlimited, else: cap - current
+
+        assign(socket,
+          booking_tier: parent.subscription_tier,
+          booking_cap: cap,
+          bookings_used: current,
+          bookings_remaining: remaining
+        )
+
+      _ ->
+        assign(socket,
+          booking_tier: nil,
+          booking_cap: nil,
+          bookings_used: 0,
+          bookings_remaining: :unlimited
+        )
+    end
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -246,6 +320,34 @@ defmodule KlassHeroWeb.BookingLive do
             </a>
           </div>
         </div>
+
+        <.info_box
+          :if={@bookings_remaining != :unlimited}
+          variant={:info}
+          icon="📊"
+          title={gettext("Your Booking Plan")}
+          class="mb-6"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm">
+                {gettext("You have %{remaining} of %{total} bookings remaining this month.",
+                  remaining: @bookings_remaining,
+                  total: @booking_cap
+                )}
+              </p>
+              <p class="text-xs text-hero-blue-600 mt-1">
+                <span class="capitalize">{@booking_tier}</span> {gettext("tier")}
+              </p>
+            </div>
+            <.link
+              navigate={~p"/settings"}
+              class="text-sm text-hero-blue-600 hover:text-hero-blue-800 underline"
+            >
+              {gettext("Upgrade")}
+            </.link>
+          </div>
+        </.info_box>
 
         <form phx-submit="complete_enrollment" class="space-y-6">
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>

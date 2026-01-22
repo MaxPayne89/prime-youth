@@ -23,7 +23,6 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ProviderProfile
   import KlassHero.Identity.Adapters.Driven.Persistence.Mappers.MapperHelpers,
     only: [string_to_tier: 2, tier_to_string: 2, maybe_add_id: 2]
 
-  alias KlassHero.Identity.Adapters.Driven.Persistence.Mappers.MapperHelpers
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Identity.Domain.Models.ProviderProfile
 
