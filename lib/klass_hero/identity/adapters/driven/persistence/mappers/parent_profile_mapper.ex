@@ -20,6 +20,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ParentProfileMa
   (e.g., for updates or when domain entity already has an id).
   """
 
+  import KlassHero.Identity.Adapters.Driven.Persistence.Mappers.MapperHelpers,
+    only: [string_to_tier: 2, tier_to_string: 2, maybe_add_id: 2]
+
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Identity.Domain.Models.ParentProfile
 
@@ -28,6 +31,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ParentProfileMa
 
   Returns the domain ParentProfile struct with all fields mapped from the schema.
   UUIDs are converted to strings to maintain domain independence from Ecto types.
+  Subscription tier is converted from string to atom.
   """
   def to_domain(%ParentProfileSchema{} = schema) do
     %ParentProfile{
@@ -37,6 +41,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ParentProfileMa
       phone: schema.phone,
       location: schema.location,
       notification_preferences: schema.notification_preferences,
+      subscription_tier: string_to_tier(schema.subscription_tier, :explorer),
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -47,6 +52,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ParentProfileMa
 
   Returns a map suitable for Ecto changeset operations (insert/update).
   This is used when creating or updating parent profiles in the database.
+  Subscription tier is converted from atom to string.
   """
   def to_schema(%ParentProfile{} = parent_profile) do
     %{
@@ -54,7 +60,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ParentProfileMa
       display_name: parent_profile.display_name,
       phone: parent_profile.phone,
       location: parent_profile.location,
-      notification_preferences: parent_profile.notification_preferences
+      notification_preferences: parent_profile.notification_preferences,
+      subscription_tier: tier_to_string(parent_profile.subscription_tier, "explorer")
     }
     |> maybe_add_id(parent_profile.id)
   end
@@ -67,7 +74,4 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ParentProfileMa
   def to_domain_list(schemas) when is_list(schemas) do
     Enum.map(schemas, &to_domain/1)
   end
-
-  defp maybe_add_id(attrs, nil), do: attrs
-  defp maybe_add_id(attrs, id), do: Map.put(attrs, :id, id)
 end

@@ -2,9 +2,9 @@ defmodule KlassHeroWeb.BookingLive do
   use KlassHeroWeb, :live_view
 
   import KlassHeroWeb.BookingComponents
+  import KlassHeroWeb.Helpers.IdentityHelpers
 
-  alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
-  alias KlassHero.Identity
+  alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
@@ -21,24 +21,27 @@ defmodule KlassHeroWeb.BookingLive do
 
     with {:ok, program} <- fetch_program(program_id),
          :ok <- validate_program_availability(program) do
-      children = get_children_for_parent(socket)
+      children = get_children_for_current_user(socket)
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
 
       socket =
         socket
-        |> assign(page_title: gettext("Enrollment - %{title}", title: program.title))
-        |> assign(current_user: current_user)
-        |> assign(program: program)
-        |> assign(children: children_for_view)
-        |> assign(selected_child_id: "emma")
-        |> assign(special_requirements: "")
-        |> assign(payment_method: "card")
-        |> assign(weekly_fee: @default_weekly_fee)
-        |> assign(weeks_count: @default_weeks_count)
-        |> assign(registration_fee: @default_registration_fee)
-        |> assign(vat_rate: @default_vat_rate)
-        |> assign(card_fee: @default_card_processing_fee)
+        |> assign(
+          page_title: gettext("Enrollment - %{title}", title: program.title),
+          current_user: current_user,
+          program: program,
+          children: children_for_view,
+          selected_child_id: "emma",
+          special_requirements: "",
+          payment_method: "card",
+          weekly_fee: @default_weekly_fee,
+          weeks_count: @default_weeks_count,
+          registration_fee: @default_registration_fee,
+          vat_rate: @default_vat_rate,
+          card_fee: @default_card_processing_fee
+        )
         |> apply_fee_calculation()
+        |> assign_booking_limit_info()
 
       {:ok, socket}
     else
@@ -86,14 +89,8 @@ defmodule KlassHeroWeb.BookingLive do
   def handle_event("complete_enrollment", params, socket) do
     with :ok <- validate_enrollment_data(socket, params),
          :ok <- validate_payment_method(socket),
-         :ok <- validate_program_availability(socket.assigns.program) do
-      # TODO: Implement actual enrollment processing:
-      # 1. Create enrollment record in database
-      # 2. Process payment (if card)
-      # 3. Send confirmation email
-      # 4. Update program spots_left
-      # 5. Return {:ok, enrollment} or {:error, reason}
-
+         :ok <- validate_program_availability(socket.assigns.program),
+         {:ok, _enrollment} <- create_enrollment(socket, params) do
       {:noreply,
        socket
        |> put_flash(
@@ -122,6 +119,22 @@ defmodule KlassHeroWeb.BookingLive do
       {:error, :child_not_selected} ->
         {:noreply, put_flash(socket, :error, gettext("Please select a child for enrollment."))}
 
+      {:error, :booking_limit_exceeded} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext(
+             "You've reached your monthly booking limit. Upgrade to Active tier for unlimited bookings."
+           )
+         )}
+
+      {:error, :no_parent_profile} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("Please complete your profile before making a booking."))
+         |> push_navigate(to: ~p"/settings")}
+
       {:error, :processing_failed} ->
         {:noreply,
          put_flash(
@@ -145,7 +158,7 @@ defmodule KlassHeroWeb.BookingLive do
 
   defp apply_fee_calculation(socket) do
     {:ok, fees} =
-      CalculateEnrollmentFees.execute(%{
+      Enrollment.calculate_fees(%{
         weekly_fee: socket.assigns.weekly_fee,
         registration_fee: socket.assigns.registration_fee,
         vat_rate: socket.assigns.vat_rate,
@@ -153,11 +166,12 @@ defmodule KlassHeroWeb.BookingLive do
         payment_method: socket.assigns.payment_method
       })
 
-    socket
-    |> assign(subtotal: fees.subtotal)
-    |> assign(vat_amount: fees.vat_amount)
-    |> assign(card_fee_amount: fees.card_fee_amount)
-    |> assign(total: fees.total)
+    assign(socket,
+      subtotal: fees.subtotal,
+      vat_amount: fees.vat_amount,
+      card_fee_amount: fees.card_fee_amount,
+      total: fees.total
+    )
   end
 
   defp validate_program_availability(%{spots_available: spots_available})
@@ -165,13 +179,10 @@ defmodule KlassHeroWeb.BookingLive do
 
   defp validate_program_availability(_program), do: {:error, :no_spots}
 
-  defp validate_enrollment_data(_socket, params) do
-    if is_nil(params["child_id"]) or params["child_id"] == "" do
-      {:error, :child_not_selected}
-    else
-      :ok
-    end
-  end
+  defp validate_enrollment_data(_socket, %{"child_id" => child_id})
+       when is_binary(child_id) and byte_size(child_id) > 0, do: :ok
+
+  defp validate_enrollment_data(_socket, _params), do: {:error, :child_not_selected}
 
   defp validate_payment_method(socket) do
     case socket.assigns.payment_method do
@@ -180,12 +191,43 @@ defmodule KlassHeroWeb.BookingLive do
     end
   end
 
-  defp get_children_for_parent(socket) do
-    with %{current_scope: %{user: %{id: identity_id}}} <- socket.assigns,
-         {:ok, parent} <- Identity.get_parent_by_identity(identity_id) do
-      Identity.get_children(parent.id)
-    else
-      _ -> []
+  defp create_enrollment(socket, params) do
+    identity_id = socket.assigns.current_scope.user.id
+
+    enrollment_params = %{
+      identity_id: identity_id,
+      program_id: socket.assigns.program.id,
+      child_id: params["child_id"],
+      payment_method: socket.assigns.payment_method,
+      subtotal: socket.assigns.subtotal,
+      vat_amount: socket.assigns.vat_amount,
+      card_fee_amount: socket.assigns.card_fee_amount,
+      total_amount: socket.assigns.total,
+      special_requirements: params["special_requirements"]
+    }
+
+    Enrollment.create_enrollment(enrollment_params)
+  end
+
+  defp assign_booking_limit_info(socket) do
+    identity_id = socket.assigns.current_scope.user.id
+
+    case Enrollment.get_booking_usage_info(identity_id) do
+      {:ok, info} ->
+        assign(socket,
+          booking_tier: info.tier,
+          booking_cap: info.cap,
+          bookings_used: info.used,
+          bookings_remaining: info.remaining
+        )
+
+      {:error, :no_parent_profile} ->
+        assign(socket,
+          booking_tier: nil,
+          booking_cap: nil,
+          bookings_used: 0,
+          bookings_remaining: :unlimited
+        )
     end
   end
 
@@ -246,6 +288,34 @@ defmodule KlassHeroWeb.BookingLive do
             </a>
           </div>
         </div>
+
+        <.info_box
+          :if={@bookings_remaining != :unlimited}
+          variant={:info}
+          icon="📊"
+          title={gettext("Your Booking Plan")}
+          class="mb-6"
+        >
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm">
+                {gettext("You have %{remaining} of %{total} bookings remaining this month.",
+                  remaining: @bookings_remaining,
+                  total: @booking_cap
+                )}
+              </p>
+              <p class="text-xs text-hero-blue-600 mt-1">
+                <span class="capitalize">{@booking_tier}</span> {gettext("tier")}
+              </p>
+            </div>
+            <.link
+              navigate={~p"/settings"}
+              class="text-sm text-hero-blue-600 hover:text-hero-blue-800 underline"
+            >
+              {gettext("Upgrade")}
+            </.link>
+          </div>
+        </.info_box>
 
         <form phx-submit="complete_enrollment" class="space-y-6">
           <div class={[Theme.bg(:surface), Theme.rounded(:xl), "p-6 shadow-lg"]}>

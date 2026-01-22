@@ -27,6 +27,8 @@ defmodule KlassHero.Factory do
 
   use ExMachina.Ecto, repo: KlassHero.Repo
 
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
+  alias KlassHero.Enrollment.Domain.Models.Enrollment
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
@@ -572,6 +574,115 @@ defmodule KlassHero.Factory do
       check_out_notes: "Picked up by parent",
       check_out_by: provider_id,
       provider_id: provider_id
+    })
+  end
+
+  # =============================================================================
+  # Enrollment Context Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating Enrollment domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      enrollment = build(:enrollment)
+      enrollment = build(:enrollment, status: :confirmed)
+  """
+  def enrollment_factory do
+    %Enrollment{
+      id:
+        sequence(
+          :enrollment_id,
+          &"aa0e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      program_id:
+        sequence(
+          :enrollment_program_id,
+          &"550e8400-e29b-41d4-a716-44665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      child_id:
+        sequence(
+          :enrollment_child_id,
+          &"550e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      parent_id:
+        sequence(
+          :enrollment_parent_id,
+          &"550e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      status: :pending,
+      enrolled_at: DateTime.utc_now(),
+      confirmed_at: nil,
+      completed_at: nil,
+      cancelled_at: nil,
+      cancellation_reason: nil,
+      subtotal: Decimal.new("100.00"),
+      vat_amount: Decimal.new("19.00"),
+      card_fee_amount: Decimal.new("2.00"),
+      total_amount: Decimal.new("121.00"),
+      payment_method: "card",
+      special_requirements: nil,
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating EnrollmentSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a program, child, and parent when inserted to avoid foreign key violations.
+
+  ## Examples
+
+      schema = build(:enrollment_schema)
+      schema = insert(:enrollment_schema, status: "confirmed")
+  """
+  def enrollment_schema_factory do
+    program_schema = insert(:program_schema)
+    child_schema = insert(:child_schema)
+
+    %EnrollmentSchema{
+      id: Ecto.UUID.generate(),
+      program_id: program_schema.id,
+      child_id: child_schema.id,
+      parent_id: child_schema.parent_id,
+      status: "pending",
+      enrolled_at: DateTime.utc_now(),
+      confirmed_at: nil,
+      completed_at: nil,
+      cancelled_at: nil,
+      cancellation_reason: nil,
+      subtotal: Decimal.new("100.00"),
+      vat_amount: Decimal.new("19.00"),
+      card_fee_amount: Decimal.new("2.00"),
+      total_amount: Decimal.new("121.00"),
+      payment_method: "card",
+      special_requirements: nil
+    }
+  end
+
+  @doc """
+  Confirmed enrollment domain entity variant.
+  """
+  def confirmed_enrollment_factory do
+    build(:enrollment, %{
+      status: :confirmed,
+      confirmed_at: DateTime.utc_now()
+    })
+  end
+
+  @doc """
+  Cancelled enrollment domain entity variant.
+  """
+  def cancelled_enrollment_factory do
+    build(:enrollment, %{
+      status: :cancelled,
+      cancelled_at: DateTime.utc_now(),
+      cancellation_reason: "User requested cancellation"
     })
   end
 end

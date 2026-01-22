@@ -24,6 +24,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfile
     field :verified, :boolean, default: false
     field :verified_at, :utc_datetime
     field :categories, {:array, :string}, default: []
+    field :subscription_tier, :string, default: "starter"
 
     timestamps()
   end
@@ -44,6 +45,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfile
   - verified (boolean, defaults to false)
   - verified_at (DateTime if provided)
   - categories (list of strings, defaults to [])
+  - subscription_tier (must be "starter", "professional", or "business_plus", defaults to "starter")
   """
   def changeset(provider_profile_schema, attrs) do
     provider_profile_schema
@@ -57,7 +59,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfile
       :logo_url,
       :verified,
       :verified_at,
-      :categories
+      :categories,
+      :subscription_tier
     ])
     |> validate_required([:identity_id, :business_name])
     |> validate_length(:business_name, min: 1, max: 200)
@@ -67,6 +70,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfile
     |> validate_website_protocol()
     |> validate_length(:address, min: 1, max: 500)
     |> validate_length(:logo_url, min: 1, max: 500)
+    |> validate_inclusion(:subscription_tier, ["starter", "professional", "business_plus"])
     |> unique_constraint(:identity_id,
       name: :providers_identity_id_index,
       message: "Provider profile already exists for this identity"

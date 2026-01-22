@@ -19,6 +19,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSc
     field :phone, :string
     field :location, :string
     field :notification_preferences, :map
+    field :subscription_tier, :string, default: "explorer"
 
     timestamps()
   end
@@ -34,6 +35,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSc
   - phone (1-20 characters if provided)
   - location (1-200 characters if provided)
   - notification_preferences (must be a map if provided)
+  - subscription_tier (must be "explorer" or "active", defaults to "explorer")
   """
   def changeset(parent_profile_schema, attrs) do
     parent_profile_schema
@@ -42,12 +44,14 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSc
       :display_name,
       :phone,
       :location,
-      :notification_preferences
+      :notification_preferences,
+      :subscription_tier
     ])
     |> validate_required([:identity_id])
     |> validate_length(:display_name, min: 1, max: 100)
     |> validate_length(:phone, min: 1, max: 20)
     |> validate_length(:location, min: 1, max: 200)
+    |> validate_inclusion(:subscription_tier, ["explorer", "active"])
     |> unique_constraint(:identity_id,
       name: :parents_identity_id_index,
       message: "Parent profile already exists for this identity"

@@ -9,6 +9,8 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
   not foreign key, maintaining bounded context independence.
   """
 
+  alias KlassHero.Entitlements
+
   @enforce_keys [:id, :identity_id, :business_name]
 
   defstruct [
@@ -23,6 +25,7 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
     :verified,
     :verified_at,
     :categories,
+    :subscription_tier,
     :inserted_at,
     :updated_at
   ]
@@ -39,6 +42,7 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
           verified: boolean() | nil,
           verified_at: DateTime.t() | nil,
           categories: [String.t()] | nil,
+          subscription_tier: :starter | :professional | :business_plus | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -76,6 +80,7 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
     attrs
     |> Map.put_new(:verified, false)
     |> Map.put_new(:categories, [])
+    |> Map.put_new(:subscription_tier, Entitlements.default_provider_tier())
   end
 
   @doc """
@@ -103,6 +108,7 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
     |> validate_verified(provider_profile.verified)
     |> validate_verified_at(provider_profile.verified_at)
     |> validate_categories(provider_profile.categories)
+    |> validate_subscription_tier(provider_profile.subscription_tier)
   end
 
   defp validate_identity_id(errors, identity_id) when is_binary(identity_id) do
@@ -226,4 +232,15 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
   end
 
   defp validate_categories(errors, _), do: ["Categories must be a list" | errors]
+
+  defp validate_subscription_tier(errors, nil), do: errors
+
+  defp validate_subscription_tier(errors, tier) do
+    if Entitlements.valid_provider_tier?(tier) do
+      errors
+    else
+      valid = Entitlements.provider_tiers() |> Enum.join(", ")
+      ["Subscription tier must be one of: #{valid}" | errors]
+    end
+  end
 end

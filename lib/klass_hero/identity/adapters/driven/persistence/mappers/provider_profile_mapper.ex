@@ -20,6 +20,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ProviderProfile
   (e.g., for updates or when domain entity already has an id).
   """
 
+  import KlassHero.Identity.Adapters.Driven.Persistence.Mappers.MapperHelpers,
+    only: [string_to_tier: 2, tier_to_string: 2, maybe_add_id: 2]
+
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Identity.Domain.Models.ProviderProfile
 
@@ -28,6 +31,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ProviderProfile
 
   Returns the domain ProviderProfile struct with all fields mapped from the schema.
   UUIDs are converted to strings to maintain domain independence from Ecto types.
+  Subscription tier is converted from string to atom.
   """
   def to_domain(%ProviderProfileSchema{} = schema) do
     %ProviderProfile{
@@ -42,6 +46,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ProviderProfile
       verified: schema.verified,
       verified_at: schema.verified_at,
       categories: schema.categories,
+      subscription_tier: string_to_tier(schema.subscription_tier, :starter),
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -52,6 +57,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ProviderProfile
 
   Returns a map suitable for Ecto changeset operations (insert/update).
   This is used when creating or updating provider profiles in the database.
+  Subscription tier is converted from atom to string.
   """
   def to_schema(%ProviderProfile{} = provider_profile) do
     %{
@@ -64,7 +70,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ProviderProfile
       logo_url: provider_profile.logo_url,
       verified: provider_profile.verified,
       verified_at: provider_profile.verified_at,
-      categories: provider_profile.categories
+      categories: provider_profile.categories,
+      subscription_tier: tier_to_string(provider_profile.subscription_tier, "starter")
     }
     |> maybe_add_id(provider_profile.id)
   end
@@ -77,7 +84,4 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ProviderProfile
   def to_domain_list(schemas) when is_list(schemas) do
     Enum.map(schemas, &to_domain/1)
   end
-
-  defp maybe_add_id(attrs, nil), do: attrs
-  defp maybe_add_id(attrs, id), do: Map.put(attrs, :id, id)
 end
