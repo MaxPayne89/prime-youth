@@ -27,6 +27,7 @@ defmodule KlassHero.Factory do
 
   use ExMachina.Ecto, repo: KlassHero.Repo
 
+  alias KlassHero.AccountsFixtures
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
   alias KlassHero.Enrollment.Domain.Models.Enrollment
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
@@ -35,6 +36,14 @@ defmodule KlassHero.Factory do
   alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Identity.Domain.Models.ParentProfile
   alias KlassHero.Identity.Domain.Models.ProviderProfile
+
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.{
+    ConversationSchema,
+    MessageSchema,
+    ParticipantSchema
+  }
+
+  alias KlassHero.Messaging.Domain.Models.{Conversation, Message, Participant}
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
@@ -324,7 +333,8 @@ defmodule KlassHero.Factory do
       logo_url: "https://example.com/logo.png",
       verified: false,
       verified_at: nil,
-      categories: ["sports", "outdoor"]
+      categories: ["sports", "outdoor"],
+      subscription_tier: "professional"
     }
   end
 
@@ -651,7 +661,7 @@ defmodule KlassHero.Factory do
       child_id: child_schema.id,
       parent_id: child_schema.parent_id,
       status: "pending",
-      enrolled_at: DateTime.utc_now(),
+      enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second),
       confirmed_at: nil,
       completed_at: nil,
       cancelled_at: nil,
@@ -684,5 +694,238 @@ defmodule KlassHero.Factory do
       cancelled_at: DateTime.utc_now(),
       cancellation_reason: "User requested cancellation"
     })
+  end
+
+  # =============================================================================
+  # Messaging Context Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating Conversation domain entities (pure Elixir structs).
+
+  Used in domain model tests where we don't need database persistence.
+
+  ## Examples
+
+      conversation = build(:conversation)
+      conversation = build(:conversation, type: :program_broadcast, program_id: "...")
+  """
+  def conversation_factory do
+    provider_id = Ecto.UUID.generate()
+
+    %Conversation{
+      id:
+        sequence(
+          :conversation_id,
+          &"bb0e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      type: :direct,
+      provider_id: provider_id,
+      program_id: nil,
+      subject: nil,
+      archived_at: nil,
+      retention_until: nil,
+      lock_version: 1,
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z],
+      participants: [],
+      messages: []
+    }
+  end
+
+  @doc """
+  Factory for creating ConversationSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a provider when inserted to avoid foreign key violations.
+
+  ## Examples
+
+      schema = build(:conversation_schema)
+      schema = insert(:conversation_schema, type: "program_broadcast")
+  """
+  def conversation_schema_factory do
+    provider = insert(:provider_profile_schema)
+
+    %ConversationSchema{
+      id: Ecto.UUID.generate(),
+      type: "direct",
+      provider_id: provider.id,
+      program_id: nil,
+      subject: nil,
+      archived_at: nil,
+      retention_until: nil,
+      lock_version: 1
+    }
+  end
+
+  @doc """
+  Broadcast conversation variant for program-wide announcements.
+  """
+  def broadcast_conversation_factory do
+    provider_id = Ecto.UUID.generate()
+    program_id = Ecto.UUID.generate()
+
+    build(:conversation, %{
+      type: :program_broadcast,
+      provider_id: provider_id,
+      program_id: program_id,
+      subject: "Important Update"
+    })
+  end
+
+  @doc """
+  Broadcast conversation schema variant for program-wide announcements.
+  Requires a program to be created first.
+  """
+  def broadcast_conversation_schema_factory do
+    provider = insert(:provider_profile_schema)
+    program = insert(:program_schema)
+
+    %ConversationSchema{
+      id: Ecto.UUID.generate(),
+      type: "program_broadcast",
+      provider_id: provider.id,
+      program_id: program.id,
+      subject: "Important Update",
+      archived_at: nil,
+      retention_until: nil,
+      lock_version: 1
+    }
+  end
+
+  @doc """
+  Factory for creating Message domain entities (pure Elixir structs).
+
+  Used in domain model tests where we don't need database persistence.
+
+  ## Examples
+
+      message = build(:message)
+      message = build(:message, content: "Hello!", message_type: :system)
+  """
+  def message_factory do
+    %Message{
+      id:
+        sequence(
+          :message_id,
+          &"cc0e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      conversation_id:
+        sequence(
+          :message_conversation_id,
+          &"bb0e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      sender_id:
+        sequence(
+          :message_sender_id,
+          &"dd0e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      content: sequence(:message_content, &"Test message #{&1}"),
+      message_type: :text,
+      deleted_at: nil,
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating MessageSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a conversation and user when inserted.
+
+  ## Examples
+
+      schema = build(:message_schema)
+      schema = insert(:message_schema, content: "Hello world!")
+  """
+  def message_schema_factory do
+    conversation = insert(:conversation_schema)
+    user = AccountsFixtures.user_fixture()
+
+    # Add user as participant
+    insert(:participant_schema,
+      conversation_id: conversation.id,
+      user_id: user.id
+    )
+
+    %MessageSchema{
+      id: Ecto.UUID.generate(),
+      conversation_id: conversation.id,
+      sender_id: user.id,
+      content: sequence(:message_schema_content, &"Test message #{&1}"),
+      message_type: "text",
+      deleted_at: nil
+    }
+  end
+
+  @doc """
+  System message variant for automated messages.
+  """
+  def system_message_factory do
+    build(:message, %{
+      message_type: :system,
+      content: "User joined the conversation"
+    })
+  end
+
+  @doc """
+  Factory for creating Participant domain entities (pure Elixir structs).
+
+  Used in domain model tests where we don't need database persistence.
+
+  ## Examples
+
+      participant = build(:participant)
+      participant = build(:participant, last_read_at: DateTime.utc_now())
+  """
+  def participant_factory do
+    %Participant{
+      id:
+        sequence(
+          :participant_id,
+          &"ee0e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      conversation_id:
+        sequence(
+          :participant_conversation_id,
+          &"bb0e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      user_id:
+        sequence(
+          :participant_user_id,
+          &"ff0e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      last_read_at: nil,
+      joined_at: DateTime.utc_now(),
+      left_at: nil,
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating ParticipantSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+
+  ## Examples
+
+      schema = build(:participant_schema)
+      schema = insert(:participant_schema, conversation_id: conv.id, user_id: user.id)
+  """
+  def participant_schema_factory do
+    conversation = insert(:conversation_schema)
+    user = AccountsFixtures.user_fixture()
+
+    %ParticipantSchema{
+      id: Ecto.UUID.generate(),
+      conversation_id: conversation.id,
+      user_id: user.id,
+      last_read_at: nil,
+      joined_at: DateTime.utc_now(),
+      left_at: nil
+    }
   end
 end

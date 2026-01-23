@@ -13,6 +13,7 @@ defmodule KlassHeroWeb.I18nHelpers do
   import Phoenix.LiveViewTest
 
   alias KlassHero.Accounts
+  alias KlassHero.AccountsFixtures
   alias KlassHero.Repo
 
   @doc """
@@ -121,7 +122,7 @@ defmodule KlassHeroWeb.I18nHelpers do
       assert user.locale == "de"
   """
   def user_with_locale(locale, attrs \\ %{}) do
-    user = KlassHero.AccountsFixtures.user_fixture(attrs)
+    user = AccountsFixtures.user_fixture(attrs)
 
     # Update user locale preference
     {:ok, user} =

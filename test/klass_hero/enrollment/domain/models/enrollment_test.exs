@@ -134,7 +134,7 @@ defmodule KlassHero.Enrollment.Domain.Models.EnrollmentTest do
 
       assert {:ok, confirmed} = Enrollment.confirm(enrollment)
       assert confirmed.status == :confirmed
-      assert confirmed.confirmed_at != nil
+      assert is_struct(confirmed.confirmed_at, DateTime)
     end
 
     test "returns error when enrollment is not pending" do
@@ -150,7 +150,7 @@ defmodule KlassHero.Enrollment.Domain.Models.EnrollmentTest do
 
       assert {:ok, completed} = Enrollment.complete(enrollment)
       assert completed.status == :completed
-      assert completed.completed_at != nil
+      assert is_struct(completed.completed_at, DateTime)
     end
 
     test "returns error when enrollment is not confirmed" do
@@ -166,7 +166,7 @@ defmodule KlassHero.Enrollment.Domain.Models.EnrollmentTest do
 
       assert {:ok, cancelled} = Enrollment.cancel(enrollment, "Changed mind")
       assert cancelled.status == :cancelled
-      assert cancelled.cancelled_at != nil
+      assert is_struct(cancelled.cancelled_at, DateTime)
       assert cancelled.cancellation_reason == "Changed mind"
     end
 
@@ -175,7 +175,7 @@ defmodule KlassHero.Enrollment.Domain.Models.EnrollmentTest do
 
       assert {:ok, cancelled} = Enrollment.cancel(enrollment)
       assert cancelled.status == :cancelled
-      assert cancelled.cancelled_at != nil
+      assert is_struct(cancelled.cancelled_at, DateTime)
     end
 
     test "returns error when enrollment is already completed" do

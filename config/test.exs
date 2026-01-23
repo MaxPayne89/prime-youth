@@ -18,7 +18,10 @@ config :klass_hero, KlassHeroWeb.Endpoint,
   secret_key_base: "gY/oKuAYeC5ExhHrtu1JBwrpQdoGwtPOo3X9GdS7CFOnLe0eqRQ9w4cyV1MqvoYc",
   server: false
 
+# Oban: disable in tests, use inline testing mode
 # Use test event publisher for testing
+config :klass_hero, Oban, testing: :inline
+
 config :klass_hero, :event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher,
   pubsub: KlassHero.PubSub

@@ -44,6 +44,19 @@ config :klass_hero, KlassHeroWeb.Gettext,
   default_locale: "en",
   locales: ~w(en de)
 
+# Configure Oban for background jobs
+config :klass_hero, Oban,
+  repo: KlassHero.Repo,
+  plugins: [
+    Oban.Plugins.Pruner,
+    {Oban.Plugins.Cron,
+     crontab: [
+       {"0 3 * * *", KlassHero.Messaging.Workers.MessageCleanupWorker},
+       {"0 4 * * *", KlassHero.Messaging.Workers.RetentionPolicyWorker}
+     ]}
+  ],
+  queues: [default: 10, messaging: 5, cleanup: 2]
+
 # Configure Community bounded context
 config :klass_hero, :community,
   repository: KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
@@ -66,6 +79,17 @@ config :klass_hero, :identity,
     KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
   for_storing_children:
     KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
+
+# Configure Messaging bounded context
+config :klass_hero, :messaging,
+  for_managing_conversations:
+    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationRepository,
+  for_managing_messages:
+    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository,
+  for_managing_participants:
+    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository,
+  for_resolving_users: KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver,
+  for_querying_enrollments: KlassHero.Messaging.Adapters.Driven.Enrollment.EnrollmentResolver
 
 # Configure Participation bounded context
 config :klass_hero, :participation,

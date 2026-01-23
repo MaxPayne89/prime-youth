@@ -30,7 +30,8 @@ defmodule KlassHero.Application do
       KlassHeroWeb.Telemetry,
       KlassHero.Repo,
       {DNSCluster, query: Application.get_env(:klass_hero, :dns_cluster_query) || :ignore},
-      {Phoenix.PubSub, name: KlassHero.PubSub}
+      {Phoenix.PubSub, name: KlassHero.PubSub},
+      {Oban, Application.fetch_env!(:klass_hero, Oban)}
     ]
   end
 

@@ -97,7 +97,8 @@ defmodule KlassHero.MixProject do
       {:opentelemetry_api, "~> 1.2"},
       {:opentelemetry_bandit, "~> 0.2"},
       {:opentelemetry_phoenix, "~> 2.0"},
-      {:opentelemetry_ecto, "~> 1.1"}
+      {:opentelemetry_ecto, "~> 1.1"},
+      {:oban, "~> 2.18"}
     ]
   end
 

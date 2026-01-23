@@ -1,0 +1,138 @@
+defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationQueries do
+  @moduledoc """
+  Composable Ecto query builders for conversations.
+  """
+
+  import Ecto.Query
+
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.{
+    ConversationSchema,
+    MessageSchema,
+    ParticipantSchema
+  }
+
+  @doc """
+  Base query for conversations.
+  """
+  def base do
+    from(c in ConversationSchema, as: :conversation)
+  end
+
+  @doc """
+  Filter by conversation ID.
+  """
+  def by_id(query, id) do
+    where(query, [conversation: c], c.id == ^id)
+  end
+
+  @doc """
+  Filter by provider.
+  """
+  def by_provider(query, provider_id) do
+    where(query, [conversation: c], c.provider_id == ^provider_id)
+  end
+
+  @doc """
+  Filter by type.
+  """
+  def by_type(query, type) when is_atom(type) do
+    by_type(query, to_string(type))
+  end
+
+  def by_type(query, type) when is_binary(type) do
+    where(query, [conversation: c], c.type == ^type)
+  end
+
+  @doc """
+  Filter to only active (non-archived) conversations.
+  """
+  def active_only(query) do
+    where(query, [conversation: c], is_nil(c.archived_at))
+  end
+
+  @doc """
+  Filter to only archived conversations.
+  """
+  def archived_only(query) do
+    where(query, [conversation: c], not is_nil(c.archived_at))
+  end
+
+  @doc """
+  Filter conversations where user is an active participant.
+  """
+  def where_user_is_participant(query, user_id) do
+    query
+    |> join(:inner, [conversation: c], p in ParticipantSchema,
+      on: p.conversation_id == c.id and p.user_id == ^user_id and is_nil(p.left_at),
+      as: :participant
+    )
+  end
+
+  @doc """
+  Find direct conversation between provider and user.
+  """
+  def find_direct(provider_id, user_id) do
+    base()
+    |> by_provider(provider_id)
+    |> by_type(:direct)
+    |> active_only()
+    |> where_user_is_participant(user_id)
+  end
+
+  @doc """
+  Filter conversations with retention period expired.
+  """
+  def retention_expired(query, before) do
+    where(query, [conversation: c], c.retention_until < ^before)
+  end
+
+  @doc """
+  Order by most recent message first.
+  """
+  def order_by_recent_message(query) do
+    query
+    |> join(:left, [conversation: c], m in MessageSchema,
+      on: m.conversation_id == c.id,
+      as: :message
+    )
+    |> group_by([conversation: c], c.id)
+    |> order_by([conversation: c, message: m], desc: max(m.inserted_at), desc: c.inserted_at)
+  end
+
+  @doc """
+  Preload associations.
+  """
+  def preload_assocs(query, preloads) when is_list(preloads) do
+    preload(query, ^preloads)
+  end
+
+  @doc """
+  Apply pagination with cursor and limit.
+  """
+  def paginate(query, opts) do
+    limit = Keyword.get(opts, :limit, 50)
+
+    query
+    |> limit(^(limit + 1))
+  end
+
+  @doc """
+  Select with unread count for a user.
+  """
+  def with_unread_count(query, user_id) do
+    query
+    |> join(:left, [conversation: c], p in ParticipantSchema,
+      on: p.conversation_id == c.id and p.user_id == ^user_id,
+      as: :user_participant
+    )
+    |> join(:left, [conversation: c, user_participant: p], m in MessageSchema,
+      on:
+        m.conversation_id == c.id and
+          (is_nil(p.last_read_at) or m.inserted_at > p.last_read_at) and
+          is_nil(m.deleted_at),
+      as: :unread_message
+    )
+    |> group_by([conversation: c], c.id)
+    |> select_merge([conversation: c, unread_message: m], %{unread_count: count(m.id)})
+  end
+end
