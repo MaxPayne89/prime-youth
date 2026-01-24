@@ -179,4 +179,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
   defp get_retention_period_days do
     Application.get_env(:klass_hero, :messaging)[:retention][:retention_period_days] || 30
   end
+
+  @impl true
+  @spec get_total_unread_count(String.t()) :: non_neg_integer()
+  def get_total_unread_count(user_id) do
+    ConversationQueries.total_unread_count(user_id)
+    |> Repo.one() || 0
+  end
 end

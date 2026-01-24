@@ -49,8 +49,8 @@ defmodule KlassHeroWeb.MessagingComponents do
       navigate={@navigate}
       id={@id}
       class={[
-        "block p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors",
-        @unread_count > 0 && "bg-prime-cyan-50"
+        "block p-4 hover:bg-hero-grey-50 transition-colors",
+        @unread_count > 0 && "bg-hero-blue-50"
       ]}
     >
       <div class="flex items-start gap-3">
@@ -67,12 +67,12 @@ defmodule KlassHeroWeb.MessagingComponents do
           <div class="flex items-center justify-between gap-2">
             <h3 class={[
               "text-base truncate",
-              @unread_count > 0 && "font-semibold text-gray-900",
-              @unread_count == 0 && "font-medium text-gray-700"
+              @unread_count > 0 && ["font-semibold", Theme.text_color(:heading)],
+              @unread_count == 0 && ["font-medium", Theme.text_color(:body)]
             ]}>
               {@other_participant_name}
             </h3>
-            <span class="text-xs text-gray-500 flex-shrink-0">
+            <span class={["text-xs flex-shrink-0", Theme.text_color(:muted)]}>
               {format_timestamp(@latest_message && @latest_message.inserted_at)}
             </span>
           </div>
@@ -80,8 +80,8 @@ defmodule KlassHeroWeb.MessagingComponents do
           <div class="flex items-center justify-between gap-2 mt-1">
             <p class={[
               "text-sm truncate",
-              @unread_count > 0 && "text-gray-700",
-              @unread_count == 0 && "text-gray-500"
+              @unread_count > 0 && Theme.text_color(:body),
+              @unread_count == 0 && Theme.text_color(:muted)
             ]}>
               {preview_content(@latest_message)}
             </p>
@@ -111,9 +111,11 @@ defmodule KlassHeroWeb.MessagingComponents do
   @doc """
   Renders a broadcast indicator badge.
   """
+  attr :class, :string, default: nil
+
   def broadcast_badge(assigns) do
     ~H"""
-    <span class="inline-flex items-center gap-1 mt-1 text-xs text-prime-cyan-600">
+    <span class={["inline-flex items-center gap-1 mt-1 text-xs", @class || "text-prime-cyan-600"]}>
       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           stroke-linecap="round"
@@ -148,15 +150,18 @@ defmodule KlassHeroWeb.MessagingComponents do
       <div class={[
         "max-w-[80%] rounded-2xl px-4 py-2",
         @is_own && "bg-prime-cyan-500 text-white rounded-br-sm",
-        !@is_own && "bg-gray-100 text-gray-900 rounded-bl-sm"
+        !@is_own && [Theme.bg(:light), Theme.text_color(:heading), "rounded-bl-sm"]
       ]}>
         <p
           :if={!@is_own && @message.message_type != :system}
-          class="text-xs font-medium mb-1 text-gray-500"
+          class={["text-xs font-medium mb-1", Theme.text_color(:muted)]}
         >
           {@sender_name}
         </p>
-        <p :if={@message.message_type == :system} class="text-xs italic text-gray-500 text-center">
+        <p
+          :if={@message.message_type == :system}
+          class={["text-xs italic text-center", Theme.text_color(:muted)]}
+        >
           {@message.content}
         </p>
         <p :if={@message.message_type != :system} class="text-sm whitespace-pre-wrap break-words">
@@ -165,7 +170,7 @@ defmodule KlassHeroWeb.MessagingComponents do
         <p class={[
           "text-xs mt-1",
           @is_own && "text-prime-cyan-100",
-          !@is_own && "text-gray-400"
+          !@is_own && Theme.text_color(:subtle)
         ]}>
           {format_message_time(@message.inserted_at)}
         </p>
@@ -186,7 +191,7 @@ defmodule KlassHeroWeb.MessagingComponents do
       for={@form}
       phx-submit="send_message"
       id="message-form"
-      class="flex items-end gap-2 p-4 border-t border-gray-200 bg-white"
+      class={["flex items-end gap-2 p-4 border-t", Theme.border_color(:light), Theme.bg(:surface)]}
     >
       <div class="flex-1">
         <textarea
@@ -194,7 +199,8 @@ defmodule KlassHeroWeb.MessagingComponents do
           id="message-input"
           rows="1"
           class={[
-            "w-full px-4 py-2 border border-gray-300 rounded-full resize-none focus:outline-none focus:ring-2 focus:ring-prime-cyan-500 focus:border-transparent",
+            "w-full px-4 py-2 border resize-none focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:border-transparent",
+            Theme.border_color(:medium),
             Theme.rounded(:full)
           ]}
           placeholder={gettext("Type a message...")}
@@ -206,7 +212,7 @@ defmodule KlassHeroWeb.MessagingComponents do
         type="submit"
         disabled={@disabled}
         class={[
-          "w-10 h-10 flex items-center justify-center rounded-full bg-prime-cyan-500 text-white hover:bg-prime-cyan-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+          "w-10 h-10 flex items-center justify-center bg-hero-blue-600 text-white hover:bg-hero-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
           Theme.rounded(:full)
         ]}
       >
@@ -229,7 +235,7 @@ defmodule KlassHeroWeb.MessagingComponents do
   def messages_empty_state(assigns) do
     ~H"""
     <div class="flex flex-col items-center justify-center h-64 text-center px-4">
-      <div class="w-16 h-16 mb-4 text-gray-300">
+      <div class={["w-16 h-16 mb-4", Theme.text_color(:subtle)]}>
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             stroke-linecap="round"
@@ -239,8 +245,10 @@ defmodule KlassHeroWeb.MessagingComponents do
           />
         </svg>
       </div>
-      <h3 class="text-lg font-medium text-gray-900">{gettext("No messages yet")}</h3>
-      <p class="mt-1 text-sm text-gray-500">
+      <h3 class={["text-lg font-medium", Theme.text_color(:heading)]}>
+        {gettext("No messages yet")}
+      </h3>
+      <p class={["mt-1 text-sm", Theme.text_color(:muted)]}>
         {gettext("Send a message to start the conversation")}
       </p>
     </div>
@@ -253,7 +261,7 @@ defmodule KlassHeroWeb.MessagingComponents do
   def conversations_empty_state(assigns) do
     ~H"""
     <div class="flex flex-col items-center justify-center h-64 text-center px-4">
-      <div class="w-16 h-16 mb-4 text-gray-300">
+      <div class={["w-16 h-16 mb-4", Theme.text_color(:subtle)]}>
         <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             stroke-linecap="round"
@@ -263,8 +271,10 @@ defmodule KlassHeroWeb.MessagingComponents do
           />
         </svg>
       </div>
-      <h3 class="text-lg font-medium text-gray-900">{gettext("No conversations yet")}</h3>
-      <p class="mt-1 text-sm text-gray-500">
+      <h3 class={["text-lg font-medium", Theme.text_color(:heading)]}>
+        {gettext("No conversations yet")}
+      </h3>
+      <p class={["mt-1 text-sm", Theme.text_color(:muted)]}>
         {gettext("Your conversations with providers will appear here")}
       </p>
     </div>

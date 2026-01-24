@@ -1529,6 +1529,35 @@ defmodule KlassHeroWeb.UIComponents do
   end
 
   @doc """
+  Renders a messages notification indicator with unread badge.
+
+  A circular button with a chat icon that links to the messages page.
+  Shows an unread count badge when there are unread messages.
+
+  ## Examples
+
+      <.messages_indicator unread_count={5} />
+      <.messages_indicator unread_count={0} />
+
+  """
+  attr :unread_count, :integer, default: 0
+  attr :class, :string, default: ""
+
+  def messages_indicator(assigns) do
+    ~H"""
+    <.link navigate={~p"/messages"} class={["relative btn btn-ghost btn-circle", @class]}>
+      <.icon name="hero-chat-bubble-left-right" class="w-6 h-6 text-hero-grey-600" />
+      <span
+        :if={@unread_count > 0}
+        class="absolute -top-1 -right-1 min-w-5 h-5 px-1 text-xs font-semibold text-white bg-prime-magenta-500 rounded-full flex items-center justify-center"
+      >
+        {min(@unread_count, 99)}
+      </span>
+    </.link>
+    """
+  end
+
+  @doc """
   Renders a collapsible FAQ accordion item.
 
   Interactive FAQ item with smooth expand/collapse transitions using Phoenix LiveView JS.

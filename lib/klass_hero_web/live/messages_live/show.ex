@@ -16,6 +16,7 @@ defmodule KlassHeroWeb.MessagesLive.Show do
 
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHeroWeb.MessagingLiveHelper
+  alias KlassHeroWeb.Theme
 
   require Logger
 
@@ -48,48 +49,65 @@ defmodule KlassHeroWeb.MessagesLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col h-screen bg-gray-50">
-      <div class="max-w-2xl mx-auto w-full flex flex-col h-full bg-white shadow-sm">
-        <!-- Header -->
-        <header class="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-          <.link navigate={@back_path} class="text-gray-500 hover:text-gray-700">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+    <div class={["flex flex-col h-screen", Theme.bg(:muted)]}>
+      <div class="max-w-2xl mx-auto w-full flex flex-col h-full">
+        <!-- Gradient Header -->
+        <header class={[Theme.gradient(:primary), "px-4 py-3 flex items-center gap-3"]}>
+          <.link navigate={@back_path} class="text-white/80 hover:text-white">
+            <.icon name="hero-arrow-left" class="w-6 h-6" />
           </.link>
+          <div class={[
+            "w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold",
+            avatar_color(@page_title)
+          ]}>
+            {String.first(@page_title) |> String.upcase()}
+          </div>
           <div class="flex-1">
-            <h1 class="text-lg font-semibold text-gray-900 truncate">{@page_title}</h1>
-            <.broadcast_badge :if={@conversation.type == :program_broadcast} />
+            <h1 class="text-lg font-semibold text-white truncate">{@page_title}</h1>
+            <.broadcast_badge :if={@conversation.type == :program_broadcast} class="text-white/80" />
           </div>
         </header>
         
-    <!-- Messages -->
-        <div
-          id="messages-container"
-          class="flex-1 overflow-y-auto p-4 space-y-3"
-          phx-hook="ScrollToBottom"
-        >
-          <div id="messages" phx-update="stream" class="space-y-3">
-            <.message_bubble
-              :for={{dom_id, message} <- @streams.messages}
-              id={dom_id}
-              message={message}
-              is_own={MessagingLiveHelper.is_own_message?(message, @current_scope.user.id)}
-              sender_name={MessagingLiveHelper.get_sender_name(@sender_names, message.sender_id)}
-            />
+    <!-- Messages Container -->
+        <div class={[Theme.bg(:surface), "flex-1 flex flex-col shadow-sm overflow-hidden"]}>
+          <!-- Messages -->
+          <div
+            id="messages-container"
+            class="flex-1 overflow-y-auto p-4 space-y-3"
+            phx-hook="ScrollToBottom"
+          >
+            <div id="messages" phx-update="stream" class="space-y-3">
+              <.message_bubble
+                :for={{dom_id, message} <- @streams.messages}
+                id={dom_id}
+                message={message}
+                is_own={MessagingLiveHelper.is_own_message?(message, @current_scope.user.id)}
+                sender_name={MessagingLiveHelper.get_sender_name(@sender_names, message.sender_id)}
+              />
+            </div>
+            <.messages_empty_state :if={@messages_empty?} />
           </div>
-          <.messages_empty_state :if={@messages_empty?} />
-        </div>
-        
+          
     <!-- Message Input -->
-        <.message_input form={@form} />
+          <.message_input form={@form} />
+        </div>
       </div>
     </div>
     """
+  end
+
+  defp avatar_color(name) do
+    colors = [
+      "bg-prime-cyan-500",
+      "bg-prime-magenta-500",
+      "bg-prime-yellow-500",
+      "bg-emerald-500",
+      "bg-blue-500",
+      "bg-purple-500",
+      "bg-rose-500"
+    ]
+
+    index = :erlang.phash2(name, length(colors))
+    Enum.at(colors, index)
   end
 end

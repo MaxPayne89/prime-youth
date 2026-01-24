@@ -30,6 +30,7 @@ defmodule KlassHero.Messaging do
     BroadcastToProgram,
     CreateDirectConversation,
     GetConversation,
+    GetTotalUnreadCount,
     ListConversations,
     MarkAsRead,
     SendMessage
@@ -210,6 +211,28 @@ defmodule KlassHero.Messaging do
           | {:error, :not_entitled | :no_enrollments | term()}
   defdelegate broadcast_to_program(scope, program_id, content, opts \\ []),
     to: BroadcastToProgram,
+    as: :execute
+
+  @doc """
+  Gets the total unread message count across all conversations for a user.
+
+  This is useful for displaying an unread badge in the navigation.
+
+  ## Parameters
+  - user_id: The user to get unread count for
+
+  ## Returns
+  - Non-negative integer count of unread messages
+
+  ## Examples
+
+      iex> Messaging.get_total_unread_count(user_id)
+      5
+
+  """
+  @spec get_total_unread_count(String.t()) :: non_neg_integer()
+  defdelegate get_total_unread_count(user_id),
+    to: GetTotalUnreadCount,
     as: :execute
 
   @doc """

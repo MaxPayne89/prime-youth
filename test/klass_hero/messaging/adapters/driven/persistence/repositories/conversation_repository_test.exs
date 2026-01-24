@@ -341,6 +341,121 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
     end
   end
 
+  describe "get_total_unread_count/1" do
+    test "returns 0 for user with no conversations" do
+      user = AccountsFixtures.user_fixture()
+
+      assert ConversationRepository.get_total_unread_count(user.id) == 0
+    end
+
+    test "returns 0 for user with all messages read" do
+      user = AccountsFixtures.user_fixture()
+      other_user = AccountsFixtures.user_fixture()
+      conversation = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id,
+        last_read_at: DateTime.utc_now()
+      )
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: other_user.id
+      )
+
+      insert(:message_schema,
+        conversation_id: conversation.id,
+        sender_id: other_user.id,
+        inserted_at: DateTime.utc_now() |> DateTime.add(-1, :hour)
+      )
+
+      assert ConversationRepository.get_total_unread_count(user.id) == 0
+    end
+
+    test "returns correct count of unread messages" do
+      user = AccountsFixtures.user_fixture()
+      other_user = AccountsFixtures.user_fixture()
+      conversation = insert(:conversation_schema)
+
+      last_read = DateTime.utc_now() |> DateTime.add(-1, :hour)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id,
+        last_read_at: last_read
+      )
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: other_user.id
+      )
+
+      for _ <- 1..3 do
+        insert(:message_schema,
+          conversation_id: conversation.id,
+          sender_id: other_user.id,
+          inserted_at: DateTime.utc_now()
+        )
+      end
+
+      assert ConversationRepository.get_total_unread_count(user.id) == 3
+    end
+
+    test "excludes archived conversations" do
+      user = AccountsFixtures.user_fixture()
+      other_user = AccountsFixtures.user_fixture()
+
+      archived_conversation =
+        insert(:conversation_schema,
+          archived_at: DateTime.utc_now()
+        )
+
+      insert(:participant_schema,
+        conversation_id: archived_conversation.id,
+        user_id: user.id,
+        last_read_at: nil
+      )
+
+      insert(:participant_schema,
+        conversation_id: archived_conversation.id,
+        user_id: other_user.id
+      )
+
+      insert(:message_schema,
+        conversation_id: archived_conversation.id,
+        sender_id: other_user.id
+      )
+
+      assert ConversationRepository.get_total_unread_count(user.id) == 0
+    end
+
+    test "excludes messages from left conversations" do
+      user = AccountsFixtures.user_fixture()
+      other_user = AccountsFixtures.user_fixture()
+      conversation = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id,
+        last_read_at: nil,
+        left_at: DateTime.utc_now() |> DateTime.add(-1, :day)
+      )
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: other_user.id
+      )
+
+      insert(:message_schema,
+        conversation_id: conversation.id,
+        sender_id: other_user.id
+      )
+
+      assert ConversationRepository.get_total_unread_count(user.id) == 0
+    end
+  end
+
   describe "delete_expired/1" do
     test "deletes archived conversations past retention_until" do
       provider = insert(:provider_profile_schema)

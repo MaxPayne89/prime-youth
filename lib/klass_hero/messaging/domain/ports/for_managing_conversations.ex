@@ -97,4 +97,14 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingConversations do
   """
   @callback archive_ended_program_conversations(cutoff_date :: Date.t()) ::
               {:ok, %{count: non_neg_integer(), conversation_ids: [String.t()]}}
+
+  @doc """
+  Gets total unread count across all conversations for a user.
+
+  Counts unread messages in active conversations where the user is a participant.
+  Excludes archived conversations and conversations the user has left.
+
+  Returns a non-negative integer count.
+  """
+  @callback get_total_unread_count(user_id :: binary()) :: non_neg_integer()
 end
