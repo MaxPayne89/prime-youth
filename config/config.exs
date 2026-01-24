@@ -89,7 +89,11 @@ config :klass_hero, :messaging,
   for_managing_participants:
     KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository,
   for_resolving_users: KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver,
-  for_querying_enrollments: KlassHero.Messaging.Adapters.Driven.Enrollment.EnrollmentResolver
+  for_querying_enrollments: KlassHero.Messaging.Adapters.Driven.Enrollment.EnrollmentResolver,
+  retention: [
+    days_after_program_end: 30,
+    retention_period_days: 30
+  ]
 
 # Configure Participation bounded context
 config :klass_hero, :participation,

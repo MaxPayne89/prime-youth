@@ -83,4 +83,18 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingConversations do
   Returns count of deleted conversations.
   """
   @callback delete_expired(before :: DateTime.t()) :: {:ok, non_neg_integer()}
+
+  @doc """
+  Archives conversations for programs that ended before the cutoff date.
+
+  Performs a bulk update, setting archived_at and retention_until for all
+  matching program_broadcast conversations where the associated program
+  has ended.
+
+  Returns:
+  - `{:ok, %{count: n, conversation_ids: [ids]}}` - Success with count and IDs
+  - `{:error, reason}` - Failure
+  """
+  @callback archive_ended_program_conversations(cutoff_date :: Date.t()) ::
+              {:ok, %{count: non_neg_integer(), conversation_ids: [String.t()]}}
 end

@@ -1,65 +1,35 @@
 defmodule KlassHero.Messaging.Workers.RetentionPolicyWorker do
   @moduledoc """
-  Oban worker that permanently deletes messages from conversations
+  Oban worker that permanently deletes messages and conversations
   that have exceeded their retention period.
 
-  Scheduled to run daily at 4 AM via Oban cron configuration.
-  This is the final cleanup step after conversations have been archived.
+  This is a thin wrapper around the EnforceRetentionPolicy use case,
+  scheduled to run daily at 4 AM via Oban cron configuration
+  (after the archive worker has run at 3 AM).
   """
 
   use Oban.Worker, queue: :cleanup, max_attempts: 3
 
-  import Ecto.Query
-
-  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
-  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
-  alias KlassHero.Repo
+  alias KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy
 
   require Logger
 
   @impl Oban.Worker
   def perform(%Oban.Job{}) do
-    now = DateTime.utc_now()
+    Logger.info("Starting retention policy worker")
 
-    Logger.info("Starting retention policy enforcement at #{now}")
-
-    case Repo.transaction(fn ->
-           {message_count, _} = delete_expired_messages(now)
-           {conversation_count, _} = delete_expired_conversations(now)
-           {message_count, conversation_count}
-         end) do
-      {:ok, {message_count, conversation_count}} ->
-        Logger.info(
-          "Retention policy complete: deleted #{message_count} messages, #{conversation_count} conversations"
+    case EnforceRetentionPolicy.execute() do
+      {:ok, result} ->
+        Logger.info("Retention policy worker completed",
+          messages_deleted: result.messages_deleted,
+          conversations_deleted: result.conversations_deleted
         )
 
         :ok
 
       {:error, reason} ->
-        Logger.error("Retention policy failed: #{inspect(reason)}")
+        Logger.error("Retention policy worker failed", reason: inspect(reason))
         {:error, reason}
     end
-  end
-
-  defp delete_expired_messages(now) do
-    expired_conversation_ids =
-      from(c in ConversationSchema,
-        where: not is_nil(c.retention_until),
-        where: c.retention_until < ^now,
-        select: c.id
-      )
-
-    from(m in MessageSchema,
-      where: m.conversation_id in subquery(expired_conversation_ids)
-    )
-    |> Repo.delete_all()
-  end
-
-  defp delete_expired_conversations(now) do
-    from(c in ConversationSchema,
-      where: not is_nil(c.retention_until),
-      where: c.retention_until < ^now
-    )
-    |> Repo.delete_all()
   end
 end

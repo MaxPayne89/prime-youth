@@ -287,4 +287,71 @@ defmodule KlassHero.Messaging.EventPublisher do
         error
     end
   end
+
+  @doc """
+  Publishes a conversations_archived event for bulk archive operations.
+
+  Used by background workers when archiving conversations for ended programs.
+
+  ## Parameters
+
+  - `conversation_ids` - List of conversation IDs that were archived
+  - `reason` - The reason for archiving (:program_ended, :retention_policy)
+  - `count` - Number of conversations archived
+
+  ## Returns
+
+  - `:ok` on successful publish
+  """
+  @spec publish_conversations_archived([String.t()], atom(), non_neg_integer()) ::
+          :ok | {:error, term()}
+  def publish_conversations_archived(conversation_ids, reason, count) do
+    event = MessagingEvents.conversations_archived(conversation_ids, reason, count)
+
+    case EventPublishing.publisher_module().publish(event, "messaging:bulk_operations") do
+      :ok ->
+        Logger.info("Published conversations_archived event",
+          reason: reason,
+          count: count
+        )
+
+        :ok
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
+
+  @doc """
+  Publishes a retention_enforced event.
+
+  Used by retention policy worker after cleaning up expired data.
+
+  ## Parameters
+
+  - `messages_deleted` - Number of messages deleted
+  - `conversations_deleted` - Number of conversations deleted
+
+  ## Returns
+
+  - `:ok` on successful publish
+  """
+  @spec publish_retention_enforced(non_neg_integer(), non_neg_integer()) ::
+          :ok | {:error, term()}
+  def publish_retention_enforced(messages_deleted, conversations_deleted) do
+    event = MessagingEvents.retention_enforced(messages_deleted, conversations_deleted)
+
+    case EventPublishing.publisher_module().publish(event, "messaging:bulk_operations") do
+      :ok ->
+        Logger.info("Published retention_enforced event",
+          messages_deleted: messages_deleted,
+          conversations_deleted: conversations_deleted
+        )
+
+        :ok
+
+      {:error, _reason} = error ->
+        error
+    end
+  end
 end

@@ -7,9 +7,16 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingMessages
 
+  import Ecto.Query
+
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.MessageMapper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Queries.MessageQueries
-  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
+
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.{
+    ConversationSchema,
+    MessageSchema
+  }
+
   alias KlassHero.Repo
 
   require Logger
@@ -105,5 +112,33 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
   def count_unread(conversation_id, last_read_at) do
     MessageQueries.count_unread(conversation_id, last_read_at)
     |> Repo.one()
+  end
+
+  @impl true
+  def delete_for_expired_conversations(before) do
+    expired_conversation_ids =
+      from(c in ConversationSchema,
+        where: not is_nil(c.retention_until),
+        where: c.retention_until < ^before,
+        select: c.id
+      )
+      |> Repo.all()
+
+    if expired_conversation_ids == [] do
+      {:ok, 0, []}
+    else
+      {count, _} =
+        from(m in MessageSchema,
+          where: m.conversation_id in ^expired_conversation_ids
+        )
+        |> Repo.delete_all()
+
+      Logger.info("Deleted messages for expired conversations",
+        count: count,
+        conversation_count: length(expired_conversation_ids)
+      )
+
+      {:ok, count, expired_conversation_ids}
+    end
   end
 end

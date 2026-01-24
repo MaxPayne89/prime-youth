@@ -329,4 +329,117 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
       assert count == 0
     end
   end
+
+  describe "delete_for_expired_conversations/1" do
+    test "deletes messages for expired conversations" do
+      alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
+      alias KlassHero.Repo
+
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      # Set retention_until in the past to make it expired
+      past_retention =
+        DateTime.utc_now() |> DateTime.add(-5, :day) |> DateTime.truncate(:second)
+
+      Repo.get(ConversationSchema, conversation.id)
+      |> Ecto.Changeset.change(
+        archived_at: DateTime.utc_now() |> DateTime.add(-35, :day) |> DateTime.truncate(:second),
+        retention_until: past_retention
+      )
+      |> Repo.update!()
+
+      {:ok, msg1} =
+        MessageRepository.create(%{
+          conversation_id: conversation.id,
+          sender_id: user.id,
+          content: "Message 1"
+        })
+
+      {:ok, msg2} =
+        MessageRepository.create(%{
+          conversation_id: conversation.id,
+          sender_id: user.id,
+          content: "Message 2"
+        })
+
+      now = DateTime.utc_now()
+
+      assert {:ok, count, conv_ids} = MessageRepository.delete_for_expired_conversations(now)
+
+      assert count == 2
+      assert conversation.id in conv_ids
+
+      # Verify messages are deleted
+      assert {:error, :not_found} = MessageRepository.get_by_id(msg1.id)
+      assert {:error, :not_found} = MessageRepository.get_by_id(msg2.id)
+    end
+
+    test "returns empty result when no expired conversations" do
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      {:ok, message} =
+        MessageRepository.create(%{
+          conversation_id: conversation.id,
+          sender_id: user.id,
+          content: "Active message"
+        })
+
+      now = DateTime.utc_now()
+
+      assert {:ok, 0, []} = MessageRepository.delete_for_expired_conversations(now)
+
+      # Verify message still exists
+      assert {:ok, _} = MessageRepository.get_by_id(message.id)
+    end
+
+    test "does not delete messages for conversations with future retention" do
+      alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
+      alias KlassHero.Repo
+
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      # Set retention_until in the future
+      future_retention =
+        DateTime.utc_now() |> DateTime.add(20, :day) |> DateTime.truncate(:second)
+
+      Repo.get(ConversationSchema, conversation.id)
+      |> Ecto.Changeset.change(
+        archived_at: DateTime.utc_now() |> DateTime.add(-10, :day) |> DateTime.truncate(:second),
+        retention_until: future_retention
+      )
+      |> Repo.update!()
+
+      {:ok, message} =
+        MessageRepository.create(%{
+          conversation_id: conversation.id,
+          sender_id: user.id,
+          content: "Message with future retention"
+        })
+
+      now = DateTime.utc_now()
+
+      assert {:ok, 0, []} = MessageRepository.delete_for_expired_conversations(now)
+
+      # Verify message still exists
+      assert {:ok, _} = MessageRepository.get_by_id(message.id)
+    end
+  end
 end

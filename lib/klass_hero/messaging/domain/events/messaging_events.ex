@@ -135,4 +135,53 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
       }
     )
   end
+
+  @doc """
+  Creates a conversations_archived event for bulk archive operations.
+
+  Published when multiple conversations are archived at once (e.g., program ended).
+  """
+  @spec conversations_archived(
+          conversation_ids :: [String.t()],
+          reason :: :program_ended | :retention_policy,
+          count :: non_neg_integer()
+        ) :: DomainEvent.t()
+  def conversations_archived(conversation_ids, reason, count) do
+    aggregate_id = "bulk_archive_#{DateTime.to_unix(DateTime.utc_now())}"
+
+    DomainEvent.new(
+      :conversations_archived,
+      aggregate_id,
+      @aggregate_type,
+      %{
+        conversation_ids: conversation_ids,
+        reason: reason,
+        count: count
+      }
+    )
+  end
+
+  @doc """
+  Creates a retention_enforced event.
+
+  Published when retention policy is enforced, deleting expired messages and conversations.
+  """
+  @spec retention_enforced(
+          messages_deleted :: non_neg_integer(),
+          conversations_deleted :: non_neg_integer()
+        ) :: DomainEvent.t()
+  def retention_enforced(messages_deleted, conversations_deleted) do
+    aggregate_id = "retention_#{DateTime.to_unix(DateTime.utc_now())}"
+
+    DomainEvent.new(
+      :retention_enforced,
+      aggregate_id,
+      @aggregate_type,
+      %{
+        messages_deleted: messages_deleted,
+        conversations_deleted: conversations_deleted,
+        enforced_at: DateTime.utc_now()
+      }
+    )
+  end
 end

@@ -77,6 +77,7 @@ defmodule KlassHero.Factory do
       pricing_period: "per month",
       spots_available: 10,
       icon_path: "/images/icons/default.svg",
+      end_date: nil,
       inserted_at: ~U[2025-01-01 12:00:00Z],
       updated_at: ~U[2025-01-01 12:00:00Z]
     }
@@ -103,7 +104,8 @@ defmodule KlassHero.Factory do
       price: Decimal.new("100.00"),
       pricing_period: "per month",
       spots_available: 10,
-      icon_path: "/images/icons/default.svg"
+      icon_path: "/images/icons/default.svg",
+      end_date: nil
     }
   end
 

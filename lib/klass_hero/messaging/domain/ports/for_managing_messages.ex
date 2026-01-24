@@ -66,4 +66,16 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingMessages do
   """
   @callback count_unread(conversation_id :: binary(), last_read_at :: DateTime.t() | nil) ::
               non_neg_integer()
+
+  @doc """
+  Deletes all messages for conversations that have expired their retention period.
+
+  Performs a bulk delete of messages where the associated conversation's
+  retention_until is before the given timestamp.
+
+  Returns:
+  - `{:ok, count, conversation_ids}` - Count of deleted messages and affected conversation IDs
+  """
+  @callback delete_for_expired_conversations(before :: DateTime.t()) ::
+              {:ok, non_neg_integer(), [String.t()]}
 end

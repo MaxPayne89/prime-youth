@@ -11,6 +11,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationQu
     ParticipantSchema
   }
 
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+
   @doc """
   Base query for conversations.
   """
@@ -134,5 +136,33 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationQu
     )
     |> group_by([conversation: c], c.id)
     |> select_merge([conversation: c, unread_message: m], %{unread_count: count(m.id)})
+  end
+
+  @doc """
+  Filter to program_broadcast conversations where the associated program
+  has ended before the cutoff date.
+
+  Joins to the programs table and filters by end_date.
+  Only returns active (non-archived) conversations.
+
+  Note: Requires programs table to have an `end_date` column.
+  """
+  def with_ended_program(query, cutoff_date) do
+    query
+    |> by_type(:program_broadcast)
+    |> active_only()
+    |> join(:inner, [conversation: c], p in ProgramSchema,
+      on: p.id == c.program_id,
+      as: :program
+    )
+    |> where([program: p], not is_nil(p.end_date))
+    |> where([program: p], p.end_date < ^cutoff_date)
+  end
+
+  @doc """
+  Select only conversation IDs for bulk operations.
+  """
+  def select_ids(query) do
+    select(query, [conversation: c], c.id)
   end
 end

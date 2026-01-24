@@ -1,44 +1,46 @@
 defmodule KlassHero.Messaging.Workers.MessageCleanupWorker do
   @moduledoc """
-  Oban worker that archives conversations for programs that ended more than 30 days ago.
+  Oban worker that archives conversations for programs that ended.
 
-  Scheduled to run daily at 3 AM via Oban cron configuration.
+  This is a thin wrapper around the ArchiveEndedProgramConversations use case,
+  scheduled to run daily at 3 AM via Oban cron configuration.
+
+  The number of days after program end before archiving can be overridden
+  via job args for testing purposes.
   """
 
   use Oban.Worker, queue: :cleanup, max_attempts: 3
 
-  import Ecto.Query
-
-  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
-  alias KlassHero.Repo
+  alias KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversations
 
   require Logger
 
-  @days_after_program_end 30
-
   @impl Oban.Worker
-  def perform(%Oban.Job{}) do
-    cutoff_date = Date.utc_today() |> Date.add(-@days_after_program_end)
+  def perform(%Oban.Job{args: args}) do
+    opts = build_opts_from_args(args)
 
-    Logger.info("Starting message cleanup for programs ended before #{cutoff_date}")
+    Logger.info("Starting message cleanup worker", opts: opts)
 
-    {count, _} = archive_old_program_conversations(cutoff_date)
+    case ArchiveEndedProgramConversations.execute(opts) do
+      {:ok, %{count: count}} ->
+        Logger.info("Message cleanup worker completed", archived_count: count)
+        :ok
 
-    Logger.info("Archived #{count} conversations for ended programs")
-
-    :ok
+      {:error, reason} ->
+        Logger.error("Message cleanup worker failed", reason: inspect(reason))
+        {:error, reason}
+    end
   end
 
-  defp archive_old_program_conversations(cutoff_date) do
-    now = DateTime.utc_now()
-
-    from(c in ConversationSchema,
-      join: p in assoc(c, :program),
-      where: c.type == "program_broadcast",
-      where: is_nil(c.archived_at),
-      where: not is_nil(p.end_date),
-      where: p.end_date < ^cutoff_date
-    )
-    |> Repo.update_all(set: [archived_at: now, retention_until: DateTime.add(now, 30, :day)])
+  defp build_opts_from_args(args) when is_map(args) do
+    args
+    |> Map.take(["days_after_program_end"])
+    |> Enum.map(fn
+      {"days_after_program_end", value} when is_integer(value) -> {:days_after_program_end, value}
+      _ -> nil
+    end)
+    |> Enum.reject(&is_nil/1)
   end
+
+  defp build_opts_from_args(_), do: []
 end

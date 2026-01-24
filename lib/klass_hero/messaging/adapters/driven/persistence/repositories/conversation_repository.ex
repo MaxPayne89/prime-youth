@@ -7,6 +7,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingConversations
 
+  import Ecto.Query
+
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.ConversationMapper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationQueries
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
@@ -144,5 +146,37 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
 
     Logger.info("Deleted expired conversations", count: count)
     {:ok, count}
+  end
+
+  @impl true
+  def archive_ended_program_conversations(cutoff_date) do
+    now = DateTime.utc_now()
+    retention_days = get_retention_period_days()
+    retention_until = DateTime.add(now, retention_days, :day)
+
+    conversation_ids =
+      ConversationQueries.base()
+      |> ConversationQueries.with_ended_program(cutoff_date)
+      |> ConversationQueries.select_ids()
+      |> Repo.all()
+
+    if conversation_ids == [] do
+      {:ok, %{count: 0, conversation_ids: []}}
+    else
+      {count, _} =
+        from(c in ConversationSchema, where: c.id in ^conversation_ids)
+        |> Repo.update_all(set: [archived_at: now, retention_until: retention_until])
+
+      Logger.info("Archived conversations for ended programs",
+        count: count,
+        cutoff_date: cutoff_date
+      )
+
+      {:ok, %{count: count, conversation_ids: conversation_ids}}
+    end
+  end
+
+  defp get_retention_period_days do
+    Application.get_env(:klass_hero, :messaging)[:retention][:retention_period_days] || 30
   end
 end

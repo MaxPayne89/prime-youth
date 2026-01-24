@@ -227,4 +227,169 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
       assert {:error, :not_found} = ConversationRepository.archive(fake_conversation)
     end
   end
+
+  describe "archive_ended_program_conversations/1" do
+    test "archives conversations for programs that ended before cutoff" do
+      provider = insert(:provider_profile_schema)
+
+      # Program that ended 40 days ago
+      past_end_date = DateTime.utc_now() |> DateTime.add(-40, :day) |> DateTime.truncate(:second)
+      program = insert(:program_schema, end_date: past_end_date)
+
+      conversation =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id
+        )
+
+      # Cutoff datetime is 30 days ago (start of day)
+      cutoff_date =
+        Date.utc_today()
+        |> Date.add(-30)
+        |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+
+      assert {:ok, %{count: 1, conversation_ids: ids}} =
+               ConversationRepository.archive_ended_program_conversations(cutoff_date)
+
+      assert conversation.id in ids
+
+      # Verify conversation is archived
+      {:ok, archived} = ConversationRepository.get_by_id(conversation.id)
+      assert archived.archived_at != nil
+      assert archived.retention_until != nil
+    end
+
+    test "returns empty result when no matching conversations" do
+      cutoff_date =
+        Date.utc_today()
+        |> Date.add(-30)
+        |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+
+      assert {:ok, %{count: 0, conversation_ids: []}} =
+               ConversationRepository.archive_ended_program_conversations(cutoff_date)
+    end
+
+    test "ignores direct conversations" do
+      provider = insert(:provider_profile_schema)
+      user = AccountsFixtures.user_fixture()
+
+      # Program that ended
+      past_end_date = DateTime.utc_now() |> DateTime.add(-40, :day) |> DateTime.truncate(:second)
+      _program = insert(:program_schema, end_date: past_end_date)
+
+      # Direct conversation (not program_broadcast)
+      direct_conversation = insert(:conversation_schema, type: "direct", provider_id: provider.id)
+
+      insert(:participant_schema,
+        conversation_id: direct_conversation.id,
+        user_id: user.id
+      )
+
+      cutoff_date =
+        Date.utc_today()
+        |> Date.add(-30)
+        |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+
+      assert {:ok, %{count: 0, conversation_ids: []}} =
+               ConversationRepository.archive_ended_program_conversations(cutoff_date)
+    end
+
+    test "ignores already archived conversations" do
+      provider = insert(:provider_profile_schema)
+
+      past_end_date = DateTime.utc_now() |> DateTime.add(-40, :day) |> DateTime.truncate(:second)
+      program = insert(:program_schema, end_date: past_end_date)
+
+      # Already archived conversation
+      insert(:conversation_schema,
+        type: "program_broadcast",
+        provider_id: provider.id,
+        program_id: program.id,
+        archived_at: DateTime.utc_now() |> DateTime.add(-5, :day),
+        retention_until: DateTime.utc_now() |> DateTime.add(25, :day)
+      )
+
+      cutoff_date =
+        Date.utc_today()
+        |> Date.add(-30)
+        |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+
+      assert {:ok, %{count: 0, conversation_ids: []}} =
+               ConversationRepository.archive_ended_program_conversations(cutoff_date)
+    end
+
+    test "ignores programs with nil end_date" do
+      provider = insert(:provider_profile_schema)
+
+      # Program with nil end_date
+      program = insert(:program_schema, end_date: nil)
+
+      insert(:conversation_schema,
+        type: "program_broadcast",
+        provider_id: provider.id,
+        program_id: program.id
+      )
+
+      cutoff_date =
+        Date.utc_today()
+        |> Date.add(-30)
+        |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+
+      assert {:ok, %{count: 0, conversation_ids: []}} =
+               ConversationRepository.archive_ended_program_conversations(cutoff_date)
+    end
+  end
+
+  describe "delete_expired/1" do
+    test "deletes archived conversations past retention_until" do
+      provider = insert(:provider_profile_schema)
+
+      # Expired conversation
+      expired_conversation =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          archived_at: DateTime.utc_now() |> DateTime.add(-35, :day),
+          retention_until: DateTime.utc_now() |> DateTime.add(-5, :day)
+        )
+
+      now = DateTime.utc_now()
+
+      assert {:ok, count} = ConversationRepository.delete_expired(now)
+      assert count >= 1
+
+      # Verify conversation is deleted
+      assert {:error, :not_found} = ConversationRepository.get_by_id(expired_conversation.id)
+    end
+
+    test "returns 0 when no expired conversations" do
+      provider = insert(:provider_profile_schema)
+
+      # Active conversation
+      insert(:conversation_schema, provider_id: provider.id)
+
+      now = DateTime.utc_now()
+
+      assert {:ok, 0} = ConversationRepository.delete_expired(now)
+    end
+
+    test "does not delete conversations with future retention_until" do
+      provider = insert(:provider_profile_schema)
+
+      # Archived but retention not yet expired
+      active_conversation =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          archived_at: DateTime.utc_now() |> DateTime.add(-10, :day),
+          retention_until: DateTime.utc_now() |> DateTime.add(20, :day)
+        )
+
+      now = DateTime.utc_now()
+
+      assert {:ok, 0} = ConversationRepository.delete_expired(now)
+
+      # Verify conversation still exists
+      assert {:ok, _} = ConversationRepository.get_by_id(active_conversation.id)
+    end
+  end
 end
