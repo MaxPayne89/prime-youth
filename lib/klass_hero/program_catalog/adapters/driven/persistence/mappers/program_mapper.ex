@@ -50,6 +50,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       pricing_period: schema.pricing_period,
       spots_available: schema.spots_available,
       icon_path: schema.icon_path,
+      end_date: schema.end_date,
       lock_version: schema.lock_version,
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
@@ -111,7 +112,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       price: program.price,
       pricing_period: program.pricing_period,
       spots_available: program.spots_available,
-      icon_path: program.icon_path
+      icon_path: program.icon_path,
+      end_date: program.end_date
     }
   end
 end

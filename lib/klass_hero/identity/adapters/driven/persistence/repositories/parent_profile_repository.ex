@@ -36,8 +36,10 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProf
   - `{:error, changeset}` - Validation failure
   """
   def create_parent_profile(attrs) when is_map(attrs) do
+    schema_attrs = prepare_attrs_for_schema(attrs)
+
     %ParentProfileSchema{}
-    |> ParentProfileSchema.changeset(attrs)
+    |> ParentProfileSchema.changeset(schema_attrs)
     |> Repo.insert()
     |> case do
       {:ok, schema} ->
@@ -89,5 +91,20 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProf
     ParentProfileSchema
     |> where([p], p.identity_id == ^identity_id)
     |> Repo.exists?()
+  end
+
+  defp prepare_attrs_for_schema(attrs) do
+    attrs
+    |> maybe_convert_tier_to_string()
+  end
+
+  defp maybe_convert_tier_to_string(attrs) do
+    case Map.get(attrs, :subscription_tier) do
+      tier when is_atom(tier) and not is_nil(tier) ->
+        Map.put(attrs, :subscription_tier, Atom.to_string(tier))
+
+      _ ->
+        attrs
+    end
   end
 end

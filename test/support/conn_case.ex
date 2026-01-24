@@ -18,6 +18,7 @@ defmodule KlassHeroWeb.ConnCase do
   use ExUnit.CaseTemplate
 
   alias KlassHero.Accounts.Scope
+  alias KlassHero.AccountsFixtures
 
   using do
     quote do
@@ -92,7 +93,7 @@ defmodule KlassHeroWeb.ConnCase do
   test context.
   """
   def register_and_log_in_user(%{conn: conn} = context) do
-    user = KlassHero.AccountsFixtures.user_fixture()
+    user = AccountsFixtures.user_fixture()
     scope = Scope.for_user(user)
 
     opts =
@@ -147,7 +148,7 @@ defmodule KlassHeroWeb.ConnCase do
   This is useful for tests that require provider-only routes.
   """
   def register_and_log_in_provider(%{conn: _conn} = context) do
-    user = KlassHero.AccountsFixtures.user_fixture(%{intended_roles: [:provider]})
+    user = AccountsFixtures.user_fixture(%{intended_roles: [:provider]})
     provider = KlassHero.Factory.insert(:provider_profile_schema, identity_id: user.id)
 
     scope = Scope.for_user(user) |> Scope.resolve_roles()
@@ -158,6 +159,6 @@ defmodule KlassHeroWeb.ConnCase do
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do
-    KlassHero.AccountsFixtures.override_token_authenticated_at(token, authenticated_at)
+    AccountsFixtures.override_token_authenticated_at(token, authenticated_at)
   end
 end

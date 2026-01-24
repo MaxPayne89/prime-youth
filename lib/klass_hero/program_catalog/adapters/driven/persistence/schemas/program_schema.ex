@@ -26,6 +26,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :spots_available, :integer, default: 0
     field :lock_version, :integer, default: 1
     field :icon_path, :string
+    field :end_date, :utc_datetime
 
     timestamps()
   end
@@ -42,6 +43,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           spots_available: integer() | nil,
           lock_version: integer() | nil,
           icon_path: String.t() | nil,
+          end_date: DateTime.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -73,7 +75,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :price,
       :pricing_period,
       :spots_available,
-      :icon_path
+      :icon_path,
+      :end_date
     ])
     |> validate_required([
       :title,
@@ -115,7 +118,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :price,
       :pricing_period,
       :spots_available,
-      :icon_path
+      :icon_path,
+      :end_date
     ])
     |> validate_required([
       :title,

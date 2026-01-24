@@ -14,8 +14,6 @@ alias KlassHero.Accounts.User
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
-alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
-alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
 alias KlassHero.Repo
 
@@ -49,33 +47,83 @@ Logger.info("Cleared existing programs")
 
 Logger.info("Seeding users...")
 
-# Max - Parent user
-{:ok, max} =
+# ==============================================================================
+# PARENT USERS (2 users - one per tier)
+# ==============================================================================
+
+# Max Explorer - Parent user (explorer tier - cannot initiate messages)
+{:ok, max_explorer} =
   %User{}
   |> Ecto.Changeset.change(%{
-    name: "Max Pergl",
-    email: "maxpergl@gmail.com",
+    name: "Max Explorer",
+    email: "maxpergl-1@gmail.com",
     hashed_password: Bcrypt.hash_pwd_salt("password"),
     confirmed_at: DateTime.utc_now(:second),
     intended_roles: [:parent]
   })
   |> Repo.insert()
 
-Logger.info("Created Max as parent user")
+Logger.info("Created Max Explorer as parent user (explorer tier)")
 
-# Shane - Provider user
-{:ok, shane} =
+# Max Active - Parent user (active tier - can initiate messages)
+{:ok, max_active} =
   %User{}
   |> Ecto.Changeset.change(%{
-    name: "Shane Provider",
-    email: "shane.provider@gmail.com",
+    name: "Max Active",
+    email: "maxpergl-2@gmail.com",
+    hashed_password: Bcrypt.hash_pwd_salt("password"),
+    confirmed_at: DateTime.utc_now(:second),
+    intended_roles: [:parent]
+  })
+  |> Repo.insert()
+
+Logger.info("Created Max Active as parent user (active tier)")
+
+# ==============================================================================
+# PROVIDER USERS (3 users - one per tier)
+# ==============================================================================
+
+# Shane Starter - Provider user (starter tier - cannot initiate messages)
+{:ok, shane_starter} =
+  %User{}
+  |> Ecto.Changeset.change(%{
+    name: "Shane Starter",
+    email: "shane.provider-1@gmail.com",
     hashed_password: Bcrypt.hash_pwd_salt("password"),
     confirmed_at: DateTime.utc_now(:second),
     intended_roles: [:provider]
   })
   |> Repo.insert()
 
-Logger.info("Created Shane as provider user")
+Logger.info("Created Shane Starter as provider user (starter tier)")
+
+# Shane Professional - Provider user (professional tier - can initiate messages)
+{:ok, shane_professional} =
+  %User{}
+  |> Ecto.Changeset.change(%{
+    name: "Shane Professional",
+    email: "shane.provider-2@gmail.com",
+    hashed_password: Bcrypt.hash_pwd_salt("password"),
+    confirmed_at: DateTime.utc_now(:second),
+    intended_roles: [:provider]
+  })
+  |> Repo.insert()
+
+Logger.info("Created Shane Professional as provider user (professional tier)")
+
+# Shane Business Plus - Provider user (business_plus tier - can initiate messages)
+{:ok, shane_business_plus} =
+  %User{}
+  |> Ecto.Changeset.change(%{
+    name: "Shane Business Plus",
+    email: "shane.provider-3@gmail.com",
+    hashed_password: Bcrypt.hash_pwd_salt("password"),
+    confirmed_at: DateTime.utc_now(:second),
+    intended_roles: [:provider]
+  })
+  |> Repo.insert()
+
+Logger.info("Created Shane Business Plus as provider user (business_plus tier)")
 
 # Admin user (kept for admin purposes)
 {:ok, _admin} =
@@ -91,76 +139,160 @@ Logger.info("Created Shane as provider user")
 Logger.info("Created admin user")
 
 # ==============================================================================
-# CREATE PARENT PROFILE & CHILDREN FOR MAX
+# CREATE PARENT PROFILES & CHILDREN
 # ==============================================================================
 
-Logger.info("Creating parent profile for Max...")
+Logger.info("Creating parent profiles...")
 
-# Create parent profile for Max
-{:ok, max_parent_profile} =
-  CreateParentProfile.execute(%{
-    identity_id: max.id,
-    display_name: "Max P.",
-    phone: "+49 123 456 7890",
-    location: "Berlin, Germany"
-  })
-
-Logger.info("Created parent profile for Max")
-
-# Create children for Max
-# Calculate dates for 8 and 6 year olds
+# Calculate dates for children
 today = Date.utc_today()
 tj_birth_date = Date.add(today, -365 * 8)
 rafael_birth_date = Date.add(today, -365 * 6)
 
-# TJ - 8 years old
-{:ok, _tj} =
+# --- Max Explorer (explorer tier) ---
+{:ok, max_explorer_profile} =
+  %ParentProfileSchema{}
+  |> ParentProfileSchema.changeset(%{
+    identity_id: max_explorer.id,
+    display_name: "Max E.",
+    phone: "+49 123 456 7890",
+    location: "Berlin, Germany",
+    subscription_tier: "explorer"
+  })
+  |> Repo.insert()
+
+Logger.info("Created parent profile for Max Explorer (explorer tier)")
+
+# Children for Max Explorer
+{:ok, _tj_1} =
   %ChildSchema{}
   |> ChildSchema.changeset(%{
-    parent_id: max_parent_profile.id,
+    parent_id: max_explorer_profile.id,
     first_name: "TJ",
-    last_name: "Pergl",
+    last_name: "Explorer",
     date_of_birth: tj_birth_date,
     notes: "Loves sports and outdoor activities"
   })
   |> Repo.insert()
 
-Logger.info("Created child: TJ Pergl (8 years old)")
+Logger.info("Created child: TJ Explorer (8 years old) for Max Explorer")
 
-# Rafael - 6 years old
-{:ok, _rafael} =
+{:ok, _rafael_1} =
   %ChildSchema{}
   |> ChildSchema.changeset(%{
-    parent_id: max_parent_profile.id,
+    parent_id: max_explorer_profile.id,
     first_name: "Rafael",
-    last_name: "Pergl",
+    last_name: "Explorer",
     date_of_birth: rafael_birth_date,
     notes: "Enjoys arts and crafts"
   })
   |> Repo.insert()
 
-Logger.info("Created child: Rafael Pergl (6 years old)")
+Logger.info("Created child: Rafael Explorer (6 years old) for Max Explorer")
+
+# --- Max Active (active tier) ---
+{:ok, max_active_profile} =
+  %ParentProfileSchema{}
+  |> ParentProfileSchema.changeset(%{
+    identity_id: max_active.id,
+    display_name: "Max A.",
+    phone: "+49 123 456 7891",
+    location: "Munich, Germany",
+    subscription_tier: "active"
+  })
+  |> Repo.insert()
+
+Logger.info("Created parent profile for Max Active (active tier)")
+
+# Children for Max Active
+{:ok, _tj_2} =
+  %ChildSchema{}
+  |> ChildSchema.changeset(%{
+    parent_id: max_active_profile.id,
+    first_name: "TJ",
+    last_name: "Active",
+    date_of_birth: tj_birth_date,
+    notes: "Loves technology and coding"
+  })
+  |> Repo.insert()
+
+Logger.info("Created child: TJ Active (8 years old) for Max Active")
+
+{:ok, _rafael_2} =
+  %ChildSchema{}
+  |> ChildSchema.changeset(%{
+    parent_id: max_active_profile.id,
+    first_name: "Rafael",
+    last_name: "Active",
+    date_of_birth: rafael_birth_date,
+    notes: "Enjoys music and dance"
+  })
+  |> Repo.insert()
+
+Logger.info("Created child: Rafael Active (6 years old) for Max Active")
 
 # ==============================================================================
-# CREATE PROVIDER PROFILE FOR SHANE
+# CREATE PROVIDER PROFILES
 # ==============================================================================
 
-Logger.info("Creating provider profile for Shane...")
+Logger.info("Creating provider profiles...")
 
-{:ok, _shane_provider_profile} =
-  CreateProviderProfile.execute(%{
-    identity_id: shane.id,
-    business_name: "Shane's Sports Academy",
-    description: "Professional sports training and athletic development for youth",
+# --- Shane Starter (starter tier) ---
+{:ok, _shane_starter_profile} =
+  %ProviderProfileSchema{}
+  |> ProviderProfileSchema.changeset(%{
+    identity_id: shane_starter.id,
+    business_name: "Shane's Starter Academy",
+    description: "Entry-level sports training for youth",
     phone: "+49 987 654 3210",
-    website: "https://shanes-sports-academy.example.com",
-    address: "123 Sports Street, Munich, Germany",
+    website: "https://shanes-starter-academy.example.com",
+    address: "123 Beginner Street, Munich, Germany",
     verified: true,
     verified_at: DateTime.utc_now(:second),
-    categories: ["Sports", "Athletics", "Physical Education"]
+    categories: ["Sports", "Fitness"],
+    subscription_tier: "starter"
   })
+  |> Repo.insert()
 
-Logger.info("Created provider profile for Shane's Sports Academy")
+Logger.info("Created provider profile for Shane's Starter Academy (starter tier)")
+
+# --- Shane Professional (professional tier) ---
+{:ok, _shane_professional_profile} =
+  %ProviderProfileSchema{}
+  |> ProviderProfileSchema.changeset(%{
+    identity_id: shane_professional.id,
+    business_name: "Shane's Pro Academy",
+    description: "Professional sports training and athletic development for youth",
+    phone: "+49 987 654 3211",
+    website: "https://shanes-pro-academy.example.com",
+    address: "456 Pro Avenue, Munich, Germany",
+    verified: true,
+    verified_at: DateTime.utc_now(:second),
+    categories: ["Sports", "Athletics", "Physical Education"],
+    subscription_tier: "professional"
+  })
+  |> Repo.insert()
+
+Logger.info("Created provider profile for Shane's Pro Academy (professional tier)")
+
+# --- Shane Business Plus (business_plus tier) ---
+{:ok, _shane_business_plus_profile} =
+  %ProviderProfileSchema{}
+  |> ProviderProfileSchema.changeset(%{
+    identity_id: shane_business_plus.id,
+    business_name: "Shane's Elite Academy",
+    description: "Elite sports training, camps, and comprehensive youth development programs",
+    phone: "+49 987 654 3212",
+    website: "https://shanes-elite-academy.example.com",
+    address: "789 Elite Boulevard, Munich, Germany",
+    verified: true,
+    verified_at: DateTime.utc_now(:second),
+    categories: ["Sports", "Athletics", "Physical Education", "Camps", "Elite Training"],
+    subscription_tier: "business_plus"
+  })
+  |> Repo.insert()
+
+Logger.info("Created provider profile for Shane's Elite Academy (business_plus tier)")
 
 # ==============================================================================
 # CREATE SAMPLE PROGRAMS
@@ -249,10 +381,17 @@ Logger.info("Seeded #{length(programs)} programs successfully")
 # SUMMARY
 # ==============================================================================
 
-Logger.info("✅ Seeding complete!")
+Logger.info("Seeding complete!")
 Logger.info("Summary:")
-Logger.info("  - 3 users created (Max as parent, Shane as provider, Admin)")
-Logger.info("  - 1 parent profile created (Max)")
-Logger.info("  - 2 children created (TJ and Rafael)")
-Logger.info("  - 1 provider profile created (Shane's Sports Academy)")
+Logger.info("  - 6 users created:")
+Logger.info("    - 2 parents: Max Explorer (explorer), Max Active (active)")
+
+Logger.info(
+  "    - 3 providers: Shane Starter (starter), Shane Professional (professional), Shane Business Plus (business_plus)"
+)
+
+Logger.info("    - 1 admin: Klass Hero Admin")
+Logger.info("  - 2 parent profiles created with subscription tiers")
+Logger.info("  - 4 children created (2 per parent)")
+Logger.info("  - 3 provider profiles created with subscription tiers")
 Logger.info("  - #{length(programs)} programs created")

@@ -29,6 +29,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     :pricing_period,
     :spots_available,
     :icon_path,
+    :end_date,
     :lock_version,
     :inserted_at,
     :updated_at
@@ -45,6 +46,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
           pricing_period: String.t(),
           spots_available: non_neg_integer(),
           icon_path: String.t() | nil,
+          end_date: DateTime.t() | nil,
           lock_version: non_neg_integer() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
