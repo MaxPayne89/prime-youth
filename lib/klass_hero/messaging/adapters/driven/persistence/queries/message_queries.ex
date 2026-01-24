@@ -110,4 +110,13 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.MessageQueries
     |> after_timestamp(after_ts)
     |> limit(^(limit + 1))
   end
+
+  @doc """
+  Preload associations on the query.
+  """
+  def preload_assocs(query, []), do: query
+
+  def preload_assocs(query, preloads) when is_list(preloads) do
+    preload(query, ^preloads)
+  end
 end

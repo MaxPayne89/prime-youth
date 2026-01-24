@@ -41,16 +41,13 @@ defmodule KlassHero.Messaging.Application.UseCases.GetConversation do
     conversation_repo = conversation_repository()
     message_repo = message_repository()
     participant_repo = participant_repository()
-    user_resolver = user_resolver()
     mark_as_read? = Keyword.get(opts, :mark_as_read, false)
 
     with {:ok, conversation} <-
            conversation_repo.get_by_id(conversation_id, preload: [:participants]),
          :ok <- verify_participant(conversation_id, user_id, participant_repo),
-         {:ok, messages, has_more} <- message_repo.list_for_conversation(conversation_id, opts) do
-      sender_ids = messages |> Enum.map(& &1.sender_id) |> Enum.uniq()
-      {:ok, sender_names} = user_resolver.get_display_names(sender_ids)
-
+         {:ok, messages, sender_names, has_more} <-
+           message_repo.list_with_senders(conversation_id, opts) do
       if mark_as_read?, do: MarkAsRead.execute(conversation_id, user_id)
 
       Logger.debug("Retrieved conversation",
@@ -87,9 +84,5 @@ defmodule KlassHero.Messaging.Application.UseCases.GetConversation do
 
   defp participant_repository do
     Application.get_env(:klass_hero, :messaging)[:for_managing_participants]
-  end
-
-  defp user_resolver do
-    Application.get_env(:klass_hero, :messaging)[:for_resolving_users]
   end
 end

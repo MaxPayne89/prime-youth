@@ -9,6 +9,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema 
 
   import Ecto.Changeset
 
+  alias KlassHero.Accounts.User
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @timestamps_opts [type: :utc_datetime]
@@ -22,6 +25,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema 
     field :content, :string
     field :message_type, :string, default: "text"
     field :deleted_at, :utc_datetime
+
+    belongs_to :conversation, ConversationSchema, define_field: false
+    belongs_to :sender, User, foreign_key: :sender_id, define_field: false
 
     timestamps()
   end

@@ -74,6 +74,28 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
   end
 
   @impl true
+  def list_with_senders(conversation_id, opts \\ []) do
+    limit = Keyword.get(opts, :limit, 50)
+
+    results =
+      MessageQueries.base()
+      |> MessageQueries.by_conversation(conversation_id)
+      |> MessageQueries.not_deleted()
+      |> MessageQueries.order_by_newest()
+      |> MessageQueries.paginate(opts)
+      |> MessageQueries.preload_assocs([:sender])
+      |> Repo.all()
+
+    has_more = length(results) > limit
+    schemas = Enum.take(results, limit)
+
+    sender_names = MessageMapper.build_sender_names_map(schemas)
+    messages = Enum.map(schemas, &MessageMapper.to_domain/1)
+
+    {:ok, messages, sender_names, has_more}
+  end
+
+  @impl true
   def get_latest(conversation_id) do
     MessageQueries.latest_for_conversation(conversation_id)
     |> Repo.one()

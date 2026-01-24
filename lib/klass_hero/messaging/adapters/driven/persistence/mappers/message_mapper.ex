@@ -51,4 +51,19 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.MessageMapper 
       type -> type
     end)
   end
+
+  @doc """
+  Builds a sender_names map from schemas with preloaded senders.
+
+  Returns map of sender_id => display_name.
+  Schemas with unloaded or nil senders are skipped.
+  """
+  @spec build_sender_names_map([MessageSchema.t()]) :: %{String.t() => String.t()}
+  def build_sender_names_map(schemas) do
+    schemas
+    |> Enum.reject(fn schema ->
+      match?(%Ecto.Association.NotLoaded{}, schema.sender) or is_nil(schema.sender)
+    end)
+    |> Map.new(fn schema -> {schema.sender_id, schema.sender.name} end)
+  end
 end

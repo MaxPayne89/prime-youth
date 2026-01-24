@@ -42,6 +42,21 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingMessages do
               {:ok, [Message.t()], has_more :: boolean()}
 
   @doc """
+  Lists messages with sender names extracted from preloaded data.
+
+  Returns messages ordered by inserted_at descending (newest first),
+  along with a map of sender_id => display_name built from preloaded sender data.
+
+  Options:
+  - limit: integer - max results (default 50)
+  - before: DateTime - get messages before this timestamp
+  - after: DateTime - get messages after this timestamp
+  """
+  @callback list_with_senders(conversation_id :: binary(), opts :: keyword()) ::
+              {:ok, [Message.t()], sender_names :: %{binary() => String.t()},
+               has_more :: boolean()}
+
+  @doc """
   Gets the latest message for a conversation.
 
   Returns:
