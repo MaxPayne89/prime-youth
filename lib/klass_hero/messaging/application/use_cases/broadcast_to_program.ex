@@ -13,6 +13,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   alias KlassHero.Accounts.Scope
   alias KlassHero.Entitlements
   alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
 
   require Logger
@@ -39,12 +40,13 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
           | {:error, :not_entitled | :no_enrollments | term()}
   def execute(%Scope{} = scope, program_id, content, opts \\ []) do
     subject = Keyword.get(opts, :subject)
+    repos = Repositories.all()
 
     with :ok <- check_entitlement(scope),
-         {:ok, parent_user_ids} <- get_enrolled_parent_user_ids(program_id),
+         {:ok, parent_user_ids} <- get_enrolled_parent_user_ids(program_id, repos),
          :ok <- verify_has_recipients(parent_user_ids),
          {:ok, conversation, message} <-
-           create_broadcast(scope, program_id, subject, content, parent_user_ids) do
+           create_broadcast(scope, program_id, subject, content, parent_user_ids, repos) do
       recipient_count = length(parent_user_ids)
       publish_event(conversation, program_id, scope.provider.id, message.id, recipient_count)
 
@@ -67,35 +69,32 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
     end
   end
 
-  defp get_enrolled_parent_user_ids(program_id) do
-    parent_ids = enrollment_resolver().get_enrolled_parent_user_ids(program_id)
+  defp get_enrolled_parent_user_ids(program_id, repos) do
+    parent_ids = repos.enrollments.get_enrolled_parent_user_ids(program_id)
     {:ok, parent_ids}
   end
 
   defp verify_has_recipients([]), do: {:error, :no_enrollments}
   defp verify_has_recipients(_), do: :ok
 
-  defp create_broadcast(scope, program_id, subject, content, parent_user_ids) do
-    conversation_repo = conversation_repository()
-    participant_repo = participant_repository()
-    message_repo = message_repository()
-
+  defp create_broadcast(scope, program_id, subject, content, parent_user_ids, repos) do
     Repo.transaction(fn ->
-      conversation =
-        get_or_create_broadcast_conversation(scope, program_id, subject, conversation_repo)
-
-      {:ok, _participants} = participant_repo.add_batch(conversation.id, parent_user_ids)
-      {:ok, _} = participant_repo.add(%{conversation_id: conversation.id, user_id: scope.user.id})
-
-      {:ok, message} =
-        message_repo.create(%{
-          conversation_id: conversation.id,
-          sender_id: scope.user.id,
-          content: String.trim(content),
-          message_type: :text
-        })
-
-      {conversation, message}
+      with {:ok, conversation} <-
+             get_or_create_broadcast_conversation(scope, program_id, subject, repos.conversations),
+           {:ok, _participants} <- repos.participants.add_batch(conversation.id, parent_user_ids),
+           {:ok, _} <-
+             repos.participants.add(%{conversation_id: conversation.id, user_id: scope.user.id}),
+           {:ok, message} <-
+             repos.messages.create(%{
+               conversation_id: conversation.id,
+               sender_id: scope.user.id,
+               content: String.trim(content),
+               message_type: :text
+             }) do
+        {conversation, message}
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
     end)
     |> case do
       {:ok, {conversation, message}} -> {:ok, conversation, message}
@@ -113,39 +112,44 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
 
     case conversation_repo.create(attrs) do
       {:ok, conversation} ->
-        conversation
+        {:ok, conversation}
 
       {:error, :duplicate_broadcast} ->
-        {:ok, existing, _has_more} =
-          conversation_repo.list_for_provider(scope.provider.id, type: :program_broadcast)
+        find_existing_broadcast(scope.provider.id, program_id, conversation_repo)
+    end
+  end
 
-        Enum.find(existing, fn c -> c.program_id == program_id end)
+  defp find_existing_broadcast(provider_id, program_id, conversation_repo) do
+    case conversation_repo.list_for_provider(provider_id, type: :program_broadcast) do
+      {:ok, existing, _has_more} ->
+        case Enum.find(existing, fn c -> c.program_id == program_id end) do
+          nil -> {:error, :broadcast_not_found}
+          conversation -> {:ok, conversation}
+        end
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
   defp publish_event(conversation, program_id, provider_id, message_id, recipient_count) do
-    EventPublisher.publish_broadcast_sent(
-      conversation,
-      program_id,
-      provider_id,
-      message_id,
-      recipient_count
-    )
-  end
+    case EventPublisher.publish_broadcast_sent(
+           conversation,
+           program_id,
+           provider_id,
+           message_id,
+           recipient_count
+         ) do
+      :ok ->
+        :ok
 
-  defp conversation_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_conversations]
-  end
+      {:error, reason} ->
+        Logger.warning("Failed to publish broadcast_sent event",
+          conversation_id: conversation.id,
+          reason: inspect(reason)
+        )
 
-  defp participant_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_participants]
-  end
-
-  defp message_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_messages]
-  end
-
-  defp enrollment_resolver do
-    Application.get_env(:klass_hero, :messaging)[:for_querying_enrollments]
+        :ok
+    end
   end
 end

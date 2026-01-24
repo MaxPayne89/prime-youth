@@ -9,6 +9,7 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
   """
 
   alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Repositories
 
   require Logger
 
@@ -28,7 +29,7 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
           {:ok, KlassHero.Messaging.Domain.Models.Participant.t()}
           | {:error, :not_participant}
   def execute(conversation_id, user_id, read_at \\ nil) do
-    participant_repo = participant_repository()
+    participant_repo = Repositories.participants()
     read_at = read_at || DateTime.utc_now()
 
     case participant_repo.mark_as_read(conversation_id, user_id, read_at) do
@@ -49,10 +50,18 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
   end
 
   defp publish_event(conversation_id, user_id, read_at) do
-    EventPublisher.publish_messages_read(conversation_id, user_id, read_at)
-  end
+    case EventPublisher.publish_messages_read(conversation_id, user_id, read_at) do
+      :ok ->
+        :ok
 
-  defp participant_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_participants]
+      {:error, reason} ->
+        Logger.warning("Failed to publish messages_read event",
+          conversation_id: conversation_id,
+          user_id: user_id,
+          reason: inspect(reason)
+        )
+
+        :ok
+    end
   end
 end

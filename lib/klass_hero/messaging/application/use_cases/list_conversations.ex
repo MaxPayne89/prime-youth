@@ -6,6 +6,8 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
   with unread message counts for each conversation.
   """
 
+  alias KlassHero.Messaging.Repositories
+
   require Logger
 
   @doc """
@@ -30,19 +32,16 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
   @spec execute(String.t(), keyword()) ::
           {:ok, [map()], boolean()}
   def execute(user_id, opts \\ []) do
-    conversation_repo = conversation_repository()
-    message_repo = message_repository()
-    participant_repo = participant_repository()
-    user_resolver = user_resolver()
+    repos = Repositories.all()
 
-    {:ok, conversations, has_more} = conversation_repo.list_for_user(user_id, opts)
+    {:ok, conversations, has_more} = repos.conversations.list_for_user(user_id, opts)
 
     other_user_ids = collect_other_participant_ids(conversations, user_id)
-    {:ok, user_names} = user_resolver.get_display_names(other_user_ids)
+    {:ok, user_names} = repos.users.get_display_names(other_user_ids)
 
     enriched_conversations =
       Enum.map(conversations, fn conversation ->
-        enrich_conversation(conversation, user_id, user_names, message_repo, participant_repo)
+        enrich_conversation(conversation, user_id, user_names, repos)
       end)
 
     Logger.debug("Listed conversations",
@@ -63,12 +62,24 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
     |> Enum.uniq()
   end
 
-  defp enrich_conversation(conversation, user_id, user_names, message_repo, participant_repo) do
-    {:ok, participant} = participant_repo.get(conversation.id, user_id)
-    unread_count = message_repo.count_unread(conversation.id, participant.last_read_at)
+  defp enrich_conversation(conversation, user_id, user_names, repos) do
+    {last_read_at, unread_count} =
+      case repos.participants.get(conversation.id, user_id) do
+        {:ok, participant} ->
+          count = repos.messages.count_unread(conversation.id, participant.last_read_at)
+          {participant.last_read_at, count}
+
+        {:error, :not_found} ->
+          Logger.warning("Participant not found for conversation",
+            conversation_id: conversation.id,
+            user_id: user_id
+          )
+
+          {nil, 0}
+      end
 
     latest_message =
-      case message_repo.get_latest(conversation.id) do
+      case repos.messages.get_latest(conversation.id) do
         {:ok, message} -> message
         {:error, :not_found} -> nil
       end
@@ -79,7 +90,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
       conversation: conversation,
       unread_count: unread_count,
       latest_message: latest_message,
-      last_read_at: participant.last_read_at,
+      last_read_at: last_read_at,
       other_participant_name: other_participant_name
     }
   end
@@ -105,21 +116,5 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
       nil -> "Unknown"
       p -> Map.get(user_names, p.user_id, "Unknown")
     end
-  end
-
-  defp conversation_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_conversations]
-  end
-
-  defp message_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_messages]
-  end
-
-  defp participant_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_participants]
-  end
-
-  defp user_resolver do
-    Application.get_env(:klass_hero, :messaging)[:for_resolving_users]
   end
 end

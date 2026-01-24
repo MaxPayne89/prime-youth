@@ -12,6 +12,7 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   """
 
   alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
 
   require Logger
@@ -30,16 +31,18 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
           | {:error, term()}
   def execute do
     now = DateTime.utc_now()
+    repos = Repositories.all()
 
     Logger.info("Enforcing retention policy", timestamp: now)
 
     case Repo.transaction(fn ->
-           {:ok, msg_count, _conv_ids} =
-             message_repository().delete_for_expired_conversations(now)
-
-           {:ok, conv_count} = conversation_repository().delete_expired(now)
-
-           %{messages_deleted: msg_count, conversations_deleted: conv_count}
+           with {:ok, msg_count, _conv_ids} <-
+                  repos.messages.delete_for_expired_conversations(now),
+                {:ok, conv_count} <- repos.conversations.delete_expired(now) do
+             %{messages_deleted: msg_count, conversations_deleted: conv_count}
+           else
+             {:error, reason} -> Repo.rollback(reason)
+           end
          end) do
       {:ok, result} ->
         publish_event(result.messages_deleted, result.conversations_deleted)
@@ -61,14 +64,18 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   end
 
   defp publish_event(messages_deleted, conversations_deleted) do
-    EventPublisher.publish_retention_enforced(messages_deleted, conversations_deleted)
-  end
+    case EventPublisher.publish_retention_enforced(messages_deleted, conversations_deleted) do
+      :ok ->
+        :ok
 
-  defp message_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_messages]
-  end
+      {:error, reason} ->
+        Logger.warning("Failed to publish retention_enforced event",
+          messages_deleted: messages_deleted,
+          conversations_deleted: conversations_deleted,
+          reason: inspect(reason)
+        )
 
-  defp conversation_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_conversations]
+        :ok
+    end
   end
 end

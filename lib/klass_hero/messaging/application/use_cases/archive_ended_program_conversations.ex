@@ -11,6 +11,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
   """
 
   alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Repositories
 
   require Logger
 
@@ -39,7 +40,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
       days_after_program_end: days
     )
 
-    case conversation_repository().archive_ended_program_conversations(cutoff_date) do
+    case Repositories.conversations().archive_ended_program_conversations(cutoff_date) do
       {:ok, %{count: 0} = result} ->
         Logger.debug("No conversations to archive for ended programs")
         {:ok, result}
@@ -64,18 +65,21 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
   end
 
   defp publish_event(conversation_ids, count) do
-    EventPublisher.publish_conversations_archived(conversation_ids, :program_ended, count)
+    case EventPublisher.publish_conversations_archived(conversation_ids, :program_ended, count) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("Failed to publish conversations_archived event",
+          count: count,
+          reason: inspect(reason)
+        )
+
+        :ok
+    end
   end
 
   defp default_days_after_program_end do
-    get_retention_config()[:days_after_program_end] || 30
-  end
-
-  defp get_retention_config do
-    Application.get_env(:klass_hero, :messaging)[:retention] || []
-  end
-
-  defp conversation_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_conversations]
+    Repositories.retention_config()[:days_after_program_end] || 30
   end
 end

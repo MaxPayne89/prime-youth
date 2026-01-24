@@ -15,6 +15,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   alias KlassHero.Accounts.Scope
   alias KlassHero.Entitlements
   alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
 
   require Logger
@@ -51,51 +52,38 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   end
 
   defp find_or_create_conversation(scope, provider_id, target_user_id) do
-    conversation_repo = conversation_repository()
-    participant_repo = participant_repository()
+    repos = Repositories.all()
 
-    case conversation_repo.find_direct_conversation(provider_id, target_user_id) do
+    case repos.conversations.find_direct_conversation(provider_id, target_user_id) do
       {:ok, existing} ->
         Logger.debug("Found existing conversation", conversation_id: existing.id)
         {:ok, existing}
 
       {:error, :not_found} ->
-        create_new_conversation(
-          scope,
-          provider_id,
-          target_user_id,
-          conversation_repo,
-          participant_repo
-        )
+        create_new_conversation(scope, provider_id, target_user_id, repos)
     end
   end
 
-  defp create_new_conversation(
-         scope,
-         provider_id,
-         target_user_id,
-         conversation_repo,
-         participant_repo
-       ) do
+  defp create_new_conversation(scope, provider_id, target_user_id, repos) do
     Repo.transaction(fn ->
       attrs = %{
         type: :direct,
         provider_id: provider_id
       }
 
-      case conversation_repo.create(attrs) do
-        {:ok, conversation} ->
-          add_participants(conversation.id, scope.user.id, target_user_id, participant_repo)
-          publish_event(conversation, [scope.user.id, target_user_id], provider_id)
+      with {:ok, conversation} <- repos.conversations.create(attrs),
+           :ok <-
+             add_participants(conversation.id, scope.user.id, target_user_id, repos.participants) do
+        publish_event(conversation, [scope.user.id, target_user_id], provider_id)
 
-          Logger.info("Created direct conversation",
-            conversation_id: conversation.id,
-            provider_id: provider_id,
-            initiator_id: scope.user.id
-          )
+        Logger.info("Created direct conversation",
+          conversation_id: conversation.id,
+          provider_id: provider_id,
+          initiator_id: scope.user.id
+        )
 
-          conversation
-
+        conversation
+      else
         {:error, reason} ->
           Repo.rollback(reason)
       end
@@ -103,20 +91,24 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   end
 
   defp add_participants(conversation_id, user_id_1, user_id_2, participant_repo) do
-    {:ok, _} = participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_1})
-    {:ok, _} = participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_2})
-    :ok
+    with {:ok, _} <- participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_1}),
+         {:ok, _} <- participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_2}) do
+      :ok
+    end
   end
 
   defp publish_event(conversation, participant_ids, provider_id) do
-    EventPublisher.publish_new_conversation(conversation, participant_ids, provider_id)
-  end
+    case EventPublisher.publish_new_conversation(conversation, participant_ids, provider_id) do
+      :ok ->
+        :ok
 
-  defp conversation_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_conversations]
-  end
+      {:error, reason} ->
+        Logger.warning("Failed to publish conversation_created event",
+          conversation_id: conversation.id,
+          reason: inspect(reason)
+        )
 
-  defp participant_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_participants]
+        :ok
+    end
   end
 end

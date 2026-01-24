@@ -1,6 +1,6 @@
 defmodule KlassHeroWeb.MessagesLive.Show do
   @moduledoc """
-  LiveView for displaying a conversation with messages.
+  LiveView for displaying a conversation with messages (parent view).
 
   Features:
   - Displays messages in chronological order
@@ -14,106 +14,24 @@ defmodule KlassHeroWeb.MessagesLive.Show do
 
   import KlassHeroWeb.MessagingComponents
 
-  alias KlassHero.Messaging
-  alias KlassHero.Messaging.Domain.Models.Message
-  alias KlassHero.Messaging.EventPublisher
   alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHeroWeb.MessagingLiveHelper
 
   require Logger
 
   @impl true
   def mount(%{"id" => conversation_id}, _session, socket) do
-    user_id = socket.assigns.current_scope.user.id
-    mark_as_read? = connected?(socket)
-
-    case Messaging.get_conversation(conversation_id, user_id, mark_as_read: mark_as_read?) do
-      {:ok,
-       %{
-         conversation: conversation,
-         messages: messages,
-         has_more: has_more,
-         sender_names: sender_names
-       }} ->
-        if connected?(socket), do: subscribe_to_conversation(conversation_id)
-
-        reversed_messages = Enum.reverse(messages)
-
-        socket =
-          socket
-          |> assign(:page_title, get_conversation_title(conversation))
-          |> assign(:conversation, conversation)
-          |> assign(:has_more, has_more)
-          |> assign(:messages_empty?, Enum.empty?(messages))
-          |> assign(:sender_names, sender_names)
-          |> assign(:form, to_form(%{"content" => ""}))
-          |> stream(:messages, reversed_messages)
-
-        {:ok, socket}
-
-      {:error, :not_found} ->
-        {:ok,
-         socket
-         |> put_flash(:error, gettext("Conversation not found"))
-         |> push_navigate(to: ~p"/messages")}
-
-      {:error, :not_participant} ->
-        {:ok,
-         socket
-         |> put_flash(:error, gettext("You don't have access to this conversation"))
-         |> push_navigate(to: ~p"/messages")}
-    end
+    MessagingLiveHelper.mount_conversation_show(socket, conversation_id, back_path: ~p"/messages")
   end
 
   @impl true
-  def handle_event("send_message", %{"content" => content}, socket) do
-    content = String.trim(content)
-
-    if content == "" do
-      {:noreply, socket}
-    else
-      conversation_id = socket.assigns.conversation.id
-      sender_id = socket.assigns.current_scope.user.id
-
-      case Messaging.send_message(conversation_id, sender_id, content) do
-        {:ok, _message} ->
-          {:noreply, assign(socket, :form, to_form(%{"content" => ""}))}
-
-        {:error, reason} ->
-          Logger.error("Failed to send message", reason: reason)
-          {:noreply, put_flash(socket, :error, gettext("Failed to send message"))}
-      end
-    end
+  def handle_event("send_message", params, socket) do
+    MessagingLiveHelper.handle_send_message(params, socket)
   end
 
   @impl true
   def handle_info({:domain_event, %DomainEvent{event_type: :message_sent} = event}, socket) do
-    payload = event.payload
-
-    if payload.conversation_id == socket.assigns.conversation.id do
-      user_id = socket.assigns.current_scope.user.id
-      Messaging.mark_as_read(payload.conversation_id, user_id)
-
-      sender_names = socket.assigns.sender_names
-      sender_name = Map.get(sender_names, payload.sender_id)
-
-      socket =
-        if sender_name do
-          socket
-        else
-          update_sender_names_for_new_message(socket, payload.sender_id)
-        end
-
-      message = build_message_from_event(payload)
-
-      socket =
-        socket
-        |> assign(:messages_empty?, false)
-        |> stream_insert(:messages, message, at: -1)
-
-      {:noreply, socket}
-    else
-      {:noreply, socket}
-    end
+    MessagingLiveHelper.handle_message_sent_event(event, socket)
   end
 
   @impl true
@@ -127,56 +45,6 @@ defmodule KlassHeroWeb.MessagesLive.Show do
     {:noreply, socket}
   end
 
-  defp build_message_from_event(payload) do
-    %Message{
-      id: payload.message_id,
-      conversation_id: payload.conversation_id,
-      sender_id: payload.sender_id,
-      content: payload.content,
-      message_type: payload.message_type,
-      inserted_at: payload.sent_at
-    }
-  end
-
-  defp update_sender_names_for_new_message(socket, sender_id) do
-    user_resolver = Application.get_env(:klass_hero, :messaging)[:for_resolving_users]
-
-    case user_resolver.get_display_name(sender_id) do
-      {:ok, name} ->
-        sender_names = Map.put(socket.assigns.sender_names, sender_id, name)
-        assign(socket, :sender_names, sender_names)
-
-      {:error, :not_found} ->
-        socket
-    end
-  end
-
-  defp subscribe_to_conversation(conversation_id) do
-    topic = EventPublisher.conversation_topic(conversation_id)
-    Phoenix.PubSub.subscribe(KlassHero.PubSub, topic)
-  end
-
-  defp get_conversation_title(%{type: :program_broadcast, subject: subject})
-       when not is_nil(subject) do
-    subject
-  end
-
-  defp get_conversation_title(%{type: :program_broadcast}) do
-    gettext("Program Broadcast")
-  end
-
-  defp get_conversation_title(_conversation) do
-    gettext("Conversation")
-  end
-
-  defp is_own_message?(message, user_id) do
-    message.sender_id == user_id
-  end
-
-  defp get_sender_name(sender_names, sender_id) do
-    Map.get(sender_names, sender_id, "Unknown")
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -184,7 +52,7 @@ defmodule KlassHeroWeb.MessagesLive.Show do
       <div class="max-w-2xl mx-auto w-full flex flex-col h-full bg-white shadow-sm">
         <!-- Header -->
         <header class="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-          <.link navigate={~p"/messages"} class="text-gray-500 hover:text-gray-700">
+          <.link navigate={@back_path} class="text-gray-500 hover:text-gray-700">
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
                 stroke-linecap="round"
@@ -211,8 +79,8 @@ defmodule KlassHeroWeb.MessagesLive.Show do
               :for={{dom_id, message} <- @streams.messages}
               id={dom_id}
               message={message}
-              is_own={is_own_message?(message, @current_scope.user.id)}
-              sender_name={get_sender_name(@sender_names, message.sender_id)}
+              is_own={MessagingLiveHelper.is_own_message?(message, @current_scope.user.id)}
+              sender_name={MessagingLiveHelper.get_sender_name(@sender_names, message.sender_id)}
             />
           </div>
           <.messages_empty_state :if={@messages_empty?} />

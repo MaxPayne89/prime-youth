@@ -1,6 +1,6 @@
 defmodule KlassHeroWeb.MessagesLive.Index do
   @moduledoc """
-  LiveView for displaying the user's conversation list.
+  LiveView for displaying the user's conversation list (parent view).
 
   Features:
   - Lists all conversations with unread counts
@@ -12,58 +12,27 @@ defmodule KlassHeroWeb.MessagesLive.Index do
 
   import KlassHeroWeb.MessagingComponents
 
-  alias KlassHero.Messaging
-  alias KlassHero.Messaging.EventPublisher
   alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHeroWeb.MessagingLiveHelper
 
   @impl true
   def mount(_params, _session, socket) do
-    user_id = socket.assigns.current_scope.user.id
-
-    if connected?(socket), do: subscribe_to_updates(user_id)
-
-    {:ok, conversations, _has_more} = Messaging.list_conversations(user_id)
-
-    socket =
-      socket
-      |> assign(:page_title, gettext("Messages"))
-      |> assign(:conversations_empty?, Enum.empty?(conversations))
-      |> stream_configure(:conversations, dom_id: &"conversations-#{&1.conversation.id}")
-      |> stream(:conversations, conversations)
-
-    {:ok, socket}
+    MessagingLiveHelper.mount_conversation_index(socket, navigate_base: "/messages")
   end
 
   @impl true
   def handle_info({:domain_event, %DomainEvent{event_type: :message_sent}}, socket) do
-    refresh_conversations(socket)
+    MessagingLiveHelper.refresh_conversations(socket)
   end
 
   @impl true
   def handle_info({:domain_event, %DomainEvent{event_type: :conversation_created}}, socket) do
-    refresh_conversations(socket)
+    MessagingLiveHelper.refresh_conversations(socket)
   end
 
   @impl true
   def handle_info(_msg, socket) do
     {:noreply, socket}
-  end
-
-  defp refresh_conversations(socket) do
-    user_id = socket.assigns.current_scope.user.id
-    {:ok, conversations, _has_more} = Messaging.list_conversations(user_id)
-
-    socket =
-      socket
-      |> assign(:conversations_empty?, Enum.empty?(conversations))
-      |> stream(:conversations, conversations, reset: true)
-
-    {:noreply, socket}
-  end
-
-  defp subscribe_to_updates(user_id) do
-    topic = EventPublisher.user_messages_topic(user_id)
-    Phoenix.PubSub.subscribe(KlassHero.PubSub, topic)
   end
 
   @impl true
@@ -85,7 +54,7 @@ defmodule KlassHeroWeb.MessagesLive.Index do
             unread_count={conv_data.unread_count}
             latest_message={conv_data.latest_message}
             other_participant_name={conv_data.other_participant_name}
-            navigate={~p"/messages/#{conv_data.conversation.id}"}
+            navigate={@navigate_base <> "/" <> conv_data.conversation.id}
           />
           <div :if={@conversations_empty?} id="conversations-empty-state" class="p-4">
             <.conversations_empty_state />

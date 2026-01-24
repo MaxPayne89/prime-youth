@@ -11,6 +11,7 @@ defmodule KlassHero.Messaging.Application.UseCases.GetConversation do
   """
 
   alias KlassHero.Messaging.Application.UseCases.MarkAsRead
+  alias KlassHero.Messaging.Repositories
 
   require Logger
 
@@ -38,17 +39,15 @@ defmodule KlassHero.Messaging.Application.UseCases.GetConversation do
           {:ok, map()}
           | {:error, :not_found | :not_participant}
   def execute(conversation_id, user_id, opts \\ []) do
-    conversation_repo = conversation_repository()
-    message_repo = message_repository()
-    participant_repo = participant_repository()
+    repos = Repositories.all()
     mark_as_read? = Keyword.get(opts, :mark_as_read, false)
 
     with {:ok, conversation} <-
-           conversation_repo.get_by_id(conversation_id, preload: [:participants]),
-         :ok <- verify_participant(conversation_id, user_id, participant_repo),
+           repos.conversations.get_by_id(conversation_id, preload: [:participants]),
+         :ok <- verify_participant(conversation_id, user_id, repos.participants),
          {:ok, messages, sender_names, has_more} <-
-           message_repo.list_with_senders(conversation_id, opts) do
-      if mark_as_read?, do: MarkAsRead.execute(conversation_id, user_id)
+           repos.messages.list_with_senders(conversation_id, opts) do
+      maybe_mark_as_read(mark_as_read?, conversation_id, user_id)
 
       Logger.debug("Retrieved conversation",
         conversation_id: conversation_id,
@@ -74,15 +73,21 @@ defmodule KlassHero.Messaging.Application.UseCases.GetConversation do
     end
   end
 
-  defp conversation_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_conversations]
-  end
+  defp maybe_mark_as_read(false, _conversation_id, _user_id), do: :ok
 
-  defp message_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_messages]
-  end
+  defp maybe_mark_as_read(true, conversation_id, user_id) do
+    case MarkAsRead.execute(conversation_id, user_id) do
+      {:ok, _} ->
+        :ok
 
-  defp participant_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_participants]
+      {:error, reason} ->
+        Logger.warning("Failed to mark as read",
+          conversation_id: conversation_id,
+          user_id: user_id,
+          reason: inspect(reason)
+        )
+
+        :ok
+    end
   end
 end

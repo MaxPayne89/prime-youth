@@ -10,6 +10,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   """
 
   alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Repositories
 
   require Logger
 
@@ -33,13 +34,12 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
           | {:error, :not_participant | term()}
   def execute(conversation_id, sender_id, content, opts \\ []) do
     message_type = Keyword.get(opts, :message_type, :text)
-    participant_repo = participant_repository()
-    message_repo = message_repository()
+    repos = Repositories.all()
 
-    with :ok <- verify_participant(conversation_id, sender_id, participant_repo),
+    with :ok <- verify_participant(conversation_id, sender_id, repos.participants),
          {:ok, message} <-
-           create_message(conversation_id, sender_id, content, message_type, message_repo),
-         :ok <- update_sender_read_status(conversation_id, sender_id, participant_repo) do
+           create_message(conversation_id, sender_id, content, message_type, repos.messages) do
+      update_sender_read_status(conversation_id, sender_id, repos.participants)
       publish_event(message)
 
       Logger.info("Message sent",
@@ -78,19 +78,34 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
 
   defp update_sender_read_status(conversation_id, sender_id, participant_repo) do
     now = DateTime.utc_now()
-    {:ok, _} = participant_repo.mark_as_read(conversation_id, sender_id, now)
-    :ok
+
+    case participant_repo.mark_as_read(conversation_id, sender_id, now) do
+      {:ok, _} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("Failed to update sender read status",
+          conversation_id: conversation_id,
+          sender_id: sender_id,
+          reason: inspect(reason)
+        )
+
+        :ok
+    end
   end
 
   defp publish_event(message) do
-    EventPublisher.publish_message_sent(message)
-  end
+    case EventPublisher.publish_message_sent(message) do
+      :ok ->
+        :ok
 
-  defp message_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_messages]
-  end
+      {:error, reason} ->
+        Logger.warning("Failed to publish message_sent event",
+          message_id: message.id,
+          reason: inspect(reason)
+        )
 
-  defp participant_repository do
-    Application.get_env(:klass_hero, :messaging)[:for_managing_participants]
+        :ok
+    end
   end
 end
