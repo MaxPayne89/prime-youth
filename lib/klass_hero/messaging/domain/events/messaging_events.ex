@@ -39,15 +39,17 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
   Creates a message_sent event.
 
   Published when a message is sent to a conversation.
+  The sent_at field is included for real-time display in LiveViews.
   """
   @spec message_sent(
           conversation_id :: String.t(),
           message_id :: String.t(),
           sender_id :: String.t(),
           content :: String.t(),
-          message_type :: :text | :system
+          message_type :: :text | :system,
+          sent_at :: DateTime.t()
         ) :: DomainEvent.t()
-  def message_sent(conversation_id, message_id, sender_id, content, message_type) do
+  def message_sent(conversation_id, message_id, sender_id, content, message_type, sent_at \\ nil) do
     DomainEvent.new(
       :message_sent,
       conversation_id,
@@ -57,7 +59,8 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
         message_id: message_id,
         sender_id: sender_id,
         content: content,
-        message_type: message_type
+        message_type: message_type,
+        sent_at: sent_at || DateTime.utc_now()
       }
     )
   end

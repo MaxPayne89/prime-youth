@@ -14,6 +14,7 @@ defmodule KlassHeroWeb.MessagesLive.Index do
 
   alias KlassHero.Messaging
   alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Shared.Domain.Events.DomainEvent
 
   @impl true
   def mount(_params, _session, socket) do
@@ -34,17 +35,12 @@ defmodule KlassHeroWeb.MessagesLive.Index do
   end
 
   @impl true
-  def handle_info({:new_message, _message}, socket) do
+  def handle_info({:domain_event, %DomainEvent{event_type: :message_sent}}, socket) do
     refresh_conversations(socket)
   end
 
   @impl true
-  def handle_info({:message_notification, _}, socket) do
-    refresh_conversations(socket)
-  end
-
-  @impl true
-  def handle_info({:new_conversation, _conversation}, socket) do
+  def handle_info({:domain_event, %DomainEvent{event_type: :conversation_created}}, socket) do
     refresh_conversations(socket)
   end
 

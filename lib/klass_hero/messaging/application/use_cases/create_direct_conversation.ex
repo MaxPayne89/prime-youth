@@ -14,7 +14,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Entitlements
-  alias KlassHero.Messaging.Domain.Events.MessagingEvents
+  alias KlassHero.Messaging.EventPublisher
   alias KlassHero.Repo
 
   require Logger
@@ -109,10 +109,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   end
 
   defp publish_event(conversation, participant_ids, provider_id) do
-    event =
-      MessagingEvents.conversation_created(conversation.id, :direct, provider_id, participant_ids)
-
-    event_publisher().publish(event)
+    EventPublisher.publish_new_conversation(conversation, participant_ids, provider_id)
   end
 
   defp conversation_repository do
@@ -121,9 +118,5 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
 
   defp participant_repository do
     Application.get_env(:klass_hero, :messaging)[:for_managing_participants]
-  end
-
-  defp event_publisher do
-    Application.get_env(:klass_hero, :event_publisher)[:module]
   end
 end

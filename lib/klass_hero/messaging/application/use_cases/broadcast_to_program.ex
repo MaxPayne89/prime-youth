@@ -12,7 +12,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Entitlements
-  alias KlassHero.Messaging.Domain.Events.MessagingEvents
+  alias KlassHero.Messaging.EventPublisher
   alias KlassHero.Repo
 
   require Logger
@@ -124,16 +124,13 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   end
 
   defp publish_event(conversation, program_id, provider_id, message_id, recipient_count) do
-    event =
-      MessagingEvents.broadcast_sent(
-        conversation.id,
-        program_id,
-        provider_id,
-        message_id,
-        recipient_count
-      )
-
-    event_publisher().publish(event)
+    EventPublisher.publish_broadcast_sent(
+      conversation,
+      program_id,
+      provider_id,
+      message_id,
+      recipient_count
+    )
   end
 
   defp conversation_repository do
@@ -150,9 +147,5 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
 
   defp enrollment_resolver do
     Application.get_env(:klass_hero, :messaging)[:for_querying_enrollments]
-  end
-
-  defp event_publisher do
-    Application.get_env(:klass_hero, :event_publisher)[:module]
   end
 end

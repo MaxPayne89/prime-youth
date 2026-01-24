@@ -9,7 +9,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   4. Publishes a message_sent event for real-time updates
   """
 
-  alias KlassHero.Messaging.Domain.Events.MessagingEvents
+  alias KlassHero.Messaging.EventPublisher
 
   require Logger
 
@@ -83,16 +83,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   end
 
   defp publish_event(message) do
-    event =
-      MessagingEvents.message_sent(
-        message.conversation_id,
-        message.id,
-        message.sender_id,
-        message.content,
-        message.message_type
-      )
-
-    event_publisher().publish(event)
+    EventPublisher.publish_message_sent(message)
   end
 
   defp message_repository do
@@ -101,9 +92,5 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
 
   defp participant_repository do
     Application.get_env(:klass_hero, :messaging)[:for_managing_participants]
-  end
-
-  defp event_publisher do
-    Application.get_env(:klass_hero, :event_publisher)[:module]
   end
 end

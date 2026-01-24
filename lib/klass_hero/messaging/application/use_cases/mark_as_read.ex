@@ -8,7 +8,7 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
   3. Publishes a messages_read event for real-time updates
   """
 
-  alias KlassHero.Messaging.Domain.Events.MessagingEvents
+  alias KlassHero.Messaging.EventPublisher
 
   require Logger
 
@@ -49,15 +49,10 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
   end
 
   defp publish_event(conversation_id, user_id, read_at) do
-    event = MessagingEvents.messages_read(conversation_id, user_id, read_at)
-    event_publisher().publish(event)
+    EventPublisher.publish_messages_read(conversation_id, user_id, read_at)
   end
 
   defp participant_repository do
     Application.get_env(:klass_hero, :messaging)[:for_managing_participants]
-  end
-
-  defp event_publisher do
-    Application.get_env(:klass_hero, :event_publisher)[:module]
   end
 end

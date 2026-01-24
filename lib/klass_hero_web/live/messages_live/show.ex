@@ -15,7 +15,9 @@ defmodule KlassHeroWeb.MessagesLive.Show do
   import KlassHeroWeb.MessagingComponents
 
   alias KlassHero.Messaging
+  alias KlassHero.Messaging.Domain.Models.Message
   alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Shared.Domain.Events.DomainEvent
 
   require Logger
 
@@ -84,20 +86,24 @@ defmodule KlassHeroWeb.MessagesLive.Show do
   end
 
   @impl true
-  def handle_info({:new_message, message}, socket) do
-    if message.conversation_id == socket.assigns.conversation.id do
+  def handle_info({:domain_event, %DomainEvent{event_type: :message_sent} = event}, socket) do
+    payload = event.payload
+
+    if payload.conversation_id == socket.assigns.conversation.id do
       user_id = socket.assigns.current_scope.user.id
-      Messaging.mark_as_read(message.conversation_id, user_id)
+      Messaging.mark_as_read(payload.conversation_id, user_id)
 
       sender_names = socket.assigns.sender_names
-      sender_name = Map.get(sender_names, message.sender_id)
+      sender_name = Map.get(sender_names, payload.sender_id)
 
       socket =
         if sender_name do
           socket
         else
-          update_sender_names_for_new_message(socket, message.sender_id)
+          update_sender_names_for_new_message(socket, payload.sender_id)
         end
+
+      message = build_message_from_event(payload)
 
       socket =
         socket
@@ -111,14 +117,25 @@ defmodule KlassHeroWeb.MessagesLive.Show do
   end
 
   @impl true
-  def handle_info({:messages_read, %{user_id: user_id, read_at: _read_at}}, socket) do
-    Logger.debug("Messages read by user", user_id: user_id)
+  def handle_info({:domain_event, %DomainEvent{event_type: :messages_read} = event}, socket) do
+    Logger.debug("Messages read by user", user_id: event.payload.user_id)
     {:noreply, socket}
   end
 
   @impl true
   def handle_info(_msg, socket) do
     {:noreply, socket}
+  end
+
+  defp build_message_from_event(payload) do
+    %Message{
+      id: payload.message_id,
+      conversation_id: payload.conversation_id,
+      sender_id: payload.sender_id,
+      content: payload.content,
+      message_type: payload.message_type,
+      inserted_at: payload.sent_at
+    }
   end
 
   defp update_sender_names_for_new_message(socket, sender_id) do
