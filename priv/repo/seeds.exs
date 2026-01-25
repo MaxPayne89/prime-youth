@@ -14,6 +14,9 @@ alias KlassHero.Accounts.User
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
 alias KlassHero.Repo
 
@@ -26,6 +29,16 @@ require Logger
 Logger.info("Clearing existing data...")
 
 # Order matters due to foreign key constraints
+# Messaging tables first (they reference providers, users, programs)
+Repo.delete_all(MessageSchema)
+Logger.info("Cleared existing messages")
+
+Repo.delete_all(ParticipantSchema)
+Logger.info("Cleared existing participants")
+
+Repo.delete_all(ConversationSchema)
+Logger.info("Cleared existing conversations")
+
 Repo.delete_all(ChildSchema)
 Logger.info("Cleared existing children")
 
