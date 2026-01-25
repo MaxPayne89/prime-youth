@@ -51,6 +51,7 @@ defmodule KlassHeroWeb.Router do
       on_mount: [
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :redirect_provider_from_parent_routes},
+        {KlassHeroWeb.UserAuth, :fetch_unread_count},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
       ] do
       live "/dashboard", DashboardLive, :index
@@ -66,6 +67,7 @@ defmodule KlassHeroWeb.Router do
       on_mount: [
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_provider},
+        {KlassHeroWeb.UserAuth, :fetch_unread_count},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
       ] do
       scope "/provider", Provider do
@@ -90,6 +92,7 @@ defmodule KlassHeroWeb.Router do
       on_mount: [
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_parent},
+        {KlassHeroWeb.UserAuth, :fetch_unread_count},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
       ] do
       scope "/parent", Parent do
@@ -132,6 +135,7 @@ defmodule KlassHeroWeb.Router do
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
         {KlassHeroWeb.UserAuth, :require_authenticated},
+        {KlassHeroWeb.UserAuth, :fetch_unread_count},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
       ] do
       live "/users/settings", UserLive.Settings, :edit

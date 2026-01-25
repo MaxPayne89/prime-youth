@@ -228,7 +228,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
     end
   end
 
-  describe "archive_ended_program_conversations/1" do
+  describe "archive_ended_program_conversations/2" do
+    @retention_days 30
+
     test "archives conversations for programs that ended before cutoff" do
       provider = insert(:provider_profile_schema)
 
@@ -250,7 +252,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
         |> DateTime.new!(~T[00:00:00], "Etc/UTC")
 
       assert {:ok, %{count: 1, conversation_ids: ids}} =
-               ConversationRepository.archive_ended_program_conversations(cutoff_date)
+               ConversationRepository.archive_ended_program_conversations(
+                 cutoff_date,
+                 @retention_days
+               )
 
       assert conversation.id in ids
 
@@ -267,7 +272,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
         |> DateTime.new!(~T[00:00:00], "Etc/UTC")
 
       assert {:ok, %{count: 0, conversation_ids: []}} =
-               ConversationRepository.archive_ended_program_conversations(cutoff_date)
+               ConversationRepository.archive_ended_program_conversations(
+                 cutoff_date,
+                 @retention_days
+               )
     end
 
     test "ignores direct conversations" do
@@ -292,7 +300,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
         |> DateTime.new!(~T[00:00:00], "Etc/UTC")
 
       assert {:ok, %{count: 0, conversation_ids: []}} =
-               ConversationRepository.archive_ended_program_conversations(cutoff_date)
+               ConversationRepository.archive_ended_program_conversations(
+                 cutoff_date,
+                 @retention_days
+               )
     end
 
     test "ignores already archived conversations" do
@@ -316,7 +327,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
         |> DateTime.new!(~T[00:00:00], "Etc/UTC")
 
       assert {:ok, %{count: 0, conversation_ids: []}} =
-               ConversationRepository.archive_ended_program_conversations(cutoff_date)
+               ConversationRepository.archive_ended_program_conversations(
+                 cutoff_date,
+                 @retention_days
+               )
     end
 
     test "ignores programs with nil end_date" do
@@ -337,7 +351,161 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
         |> DateTime.new!(~T[00:00:00], "Etc/UTC")
 
       assert {:ok, %{count: 0, conversation_ids: []}} =
-               ConversationRepository.archive_ended_program_conversations(cutoff_date)
+               ConversationRepository.archive_ended_program_conversations(
+                 cutoff_date,
+                 @retention_days
+               )
+    end
+
+    test "sets retention_until based on provided retention_days" do
+      provider = insert(:provider_profile_schema)
+
+      past_end_date = DateTime.utc_now() |> DateTime.add(-40, :day) |> DateTime.truncate(:second)
+      program = insert(:program_schema, end_date: past_end_date)
+
+      conversation =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id
+        )
+
+      cutoff_date =
+        Date.utc_today()
+        |> Date.add(-30)
+        |> DateTime.new!(~T[00:00:00], "Etc/UTC")
+
+      custom_retention_days = 45
+
+      assert {:ok, %{count: 1}} =
+               ConversationRepository.archive_ended_program_conversations(
+                 cutoff_date,
+                 custom_retention_days
+               )
+
+      {:ok, archived} = ConversationRepository.get_by_id(conversation.id)
+
+      # retention_until should be approximately 45 days from now
+      expected_retention = DateTime.add(DateTime.utc_now(), custom_retention_days, :day)
+      diff_seconds = DateTime.diff(archived.retention_until, expected_retention)
+
+      # Allow 5 seconds tolerance for test execution time
+      assert abs(diff_seconds) < 5
+    end
+  end
+
+  describe "get_total_unread_count/1" do
+    test "returns 0 for user with no conversations" do
+      user = AccountsFixtures.user_fixture()
+
+      assert ConversationRepository.get_total_unread_count(user.id) == 0
+    end
+
+    test "returns 0 for user with all messages read" do
+      user = AccountsFixtures.user_fixture()
+      other_user = AccountsFixtures.user_fixture()
+      conversation = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id,
+        last_read_at: DateTime.utc_now()
+      )
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: other_user.id
+      )
+
+      insert(:message_schema,
+        conversation_id: conversation.id,
+        sender_id: other_user.id,
+        inserted_at: DateTime.utc_now() |> DateTime.add(-1, :hour)
+      )
+
+      assert ConversationRepository.get_total_unread_count(user.id) == 0
+    end
+
+    test "returns correct count of unread messages" do
+      user = AccountsFixtures.user_fixture()
+      other_user = AccountsFixtures.user_fixture()
+      conversation = insert(:conversation_schema)
+
+      last_read = DateTime.utc_now() |> DateTime.add(-1, :hour)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id,
+        last_read_at: last_read
+      )
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: other_user.id
+      )
+
+      for _ <- 1..3 do
+        insert(:message_schema,
+          conversation_id: conversation.id,
+          sender_id: other_user.id,
+          inserted_at: DateTime.utc_now()
+        )
+      end
+
+      assert ConversationRepository.get_total_unread_count(user.id) == 3
+    end
+
+    test "excludes archived conversations" do
+      user = AccountsFixtures.user_fixture()
+      other_user = AccountsFixtures.user_fixture()
+
+      archived_conversation =
+        insert(:conversation_schema,
+          archived_at: DateTime.utc_now()
+        )
+
+      insert(:participant_schema,
+        conversation_id: archived_conversation.id,
+        user_id: user.id,
+        last_read_at: nil
+      )
+
+      insert(:participant_schema,
+        conversation_id: archived_conversation.id,
+        user_id: other_user.id
+      )
+
+      insert(:message_schema,
+        conversation_id: archived_conversation.id,
+        sender_id: other_user.id
+      )
+
+      assert ConversationRepository.get_total_unread_count(user.id) == 0
+    end
+
+    test "excludes messages from left conversations" do
+      user = AccountsFixtures.user_fixture()
+      other_user = AccountsFixtures.user_fixture()
+      conversation = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id,
+        last_read_at: nil,
+        left_at: DateTime.utc_now() |> DateTime.add(-1, :day)
+      )
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: other_user.id
+      )
+
+      insert(:message_schema,
+        conversation_id: conversation.id,
+        sender_id: other_user.id
+      )
+
+      assert ConversationRepository.get_total_unread_count(user.id) == 0
     end
   end
 

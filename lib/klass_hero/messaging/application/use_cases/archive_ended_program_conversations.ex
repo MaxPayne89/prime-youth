@@ -15,12 +15,16 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
 
   require Logger
 
+  @default_days_after_program_end 30
+  @default_retention_period_days 30
+
   @doc """
   Archives conversations for programs that ended before the configured cutoff.
 
   ## Parameters
   - opts: Optional parameters
-    - days_after_program_end: Number of days after program end to archive (default from config)
+    - days_after_program_end: Number of days after program end to archive (default: #{@default_days_after_program_end})
+    - retention_period_days: Number of days to retain archived conversations (default: #{@default_retention_period_days})
 
   ## Returns
   - `{:ok, %{count: n, conversation_ids: [ids]}}` - Success with count and IDs
@@ -30,6 +34,9 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
   def execute(opts \\ []) do
     days = Keyword.get_lazy(opts, :days_after_program_end, &default_days_after_program_end/0)
 
+    retention_days =
+      Keyword.get_lazy(opts, :retention_period_days, &default_retention_period_days/0)
+
     cutoff_date =
       Date.utc_today()
       |> Date.add(-days)
@@ -37,10 +44,14 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
 
     Logger.info("Archiving conversations for programs ended before cutoff",
       cutoff_date: cutoff_date,
-      days_after_program_end: days
+      days_after_program_end: days,
+      retention_period_days: retention_days
     )
 
-    case Repositories.conversations().archive_ended_program_conversations(cutoff_date) do
+    case Repositories.conversations().archive_ended_program_conversations(
+           cutoff_date,
+           retention_days
+         ) do
       {:ok, %{count: 0} = result} ->
         Logger.debug("No conversations to archive for ended programs")
         {:ok, result}
@@ -80,6 +91,10 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
   end
 
   defp default_days_after_program_end do
-    Repositories.retention_config()[:days_after_program_end] || 30
+    Repositories.retention_config()[:days_after_program_end] || @default_days_after_program_end
+  end
+
+  defp default_retention_period_days do
+    Repositories.retention_config()[:retention_period_days] || @default_retention_period_days
   end
 end

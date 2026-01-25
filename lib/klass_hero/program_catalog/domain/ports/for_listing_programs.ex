@@ -12,11 +12,14 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms do
 
   - `list_all_programs/0` - Returns list of Program structs
   - `get_by_id/1` - Returns `{:ok, Program.t()}` or `{:error, :not_found}`
-  - `list_programs_paginated/2` - Returns `{:ok, PageResult.t()}` or `{:error, :invalid_cursor}`
+  - `list_programs_paginated/2` - Returns `{:ok, PageResult}` or `{:error, :invalid_cursor}`
 
   Infrastructure errors (connection, query) are not caught - they crash and
   are handled by the supervision tree.
   """
+
+  alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.Shared.Domain.Types.Pagination.PageResult
 
   @doc """
   Lists all valid programs from the repository.
@@ -26,7 +29,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms do
 
   Returns a list of Program structs (may be empty).
   """
-  @callback list_all_programs() :: [term()]
+  @callback list_all_programs() :: [Program.t()]
 
   @doc """
   Retrieves a single program by its unique ID (UUID).
@@ -35,7 +38,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms do
   - `{:ok, Program.t()}` - Program found with matching ID
   - `{:error, :not_found}` - No program exists with the given ID
   """
-  @callback get_by_id(id :: binary()) :: {:ok, term()} | {:error, :not_found}
+  @callback get_by_id(id :: binary()) :: {:ok, Program.t()} | {:error, :not_found}
 
   @doc """
   Lists programs with cursor-based pagination.
@@ -51,11 +54,11 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms do
   - `cursor` - Base64-encoded cursor for pagination, nil for first page
 
   Returns:
-  - `{:ok, PageResult.t()}` - Page of programs with pagination metadata
+  - `{:ok, PageResult}` - Page of programs with pagination metadata
   - `{:error, :invalid_cursor}` - Cursor decoding/validation failure
   """
   @callback list_programs_paginated(limit :: pos_integer(), cursor :: binary() | nil) ::
-              {:ok, term()} | {:error, :invalid_cursor}
+              {:ok, %PageResult{}} | {:error, :invalid_cursor}
 
   @doc """
   Lists programs with cursor-based pagination and optional category filter.
@@ -69,7 +72,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms do
   - `category` - Category to filter by, or nil/"all" for all categories
 
   Returns:
-  - `{:ok, PageResult.t()}` - Page of programs with pagination metadata
+  - `{:ok, PageResult}` - Page of programs with pagination metadata
   - `{:error, :invalid_cursor}` - Cursor decoding/validation failure
   """
   @callback list_programs_paginated(
@@ -77,5 +80,13 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms do
               cursor :: binary() | nil,
               category :: String.t() | nil
             ) ::
-              {:ok, term()} | {:error, :invalid_cursor}
+              {:ok, %PageResult{}} | {:error, :invalid_cursor}
+
+  @doc """
+  Lists all programs belonging to a specific provider.
+
+  Programs are returned in ascending order by title for consistent display.
+  Returns a list of Program structs (may be empty if provider has no programs).
+  """
+  @callback list_programs_for_provider(provider_id :: String.t()) :: [Program.t()]
 end

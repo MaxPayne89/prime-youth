@@ -165,4 +165,21 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationQu
   def select_ids(query) do
     select(query, [conversation: c], c.id)
   end
+
+  @doc """
+  Query to get total unread message count across all conversations for a user.
+  """
+  def total_unread_count(user_id) do
+    from(p in ParticipantSchema,
+      join: c in ConversationSchema,
+      on: c.id == p.conversation_id,
+      join: m in MessageSchema,
+      on:
+        m.conversation_id == c.id and
+          (is_nil(p.last_read_at) or m.inserted_at > p.last_read_at) and
+          is_nil(m.deleted_at),
+      where: p.user_id == ^user_id and is_nil(p.left_at) and is_nil(c.archived_at),
+      select: count(m.id)
+    )
+  end
 end

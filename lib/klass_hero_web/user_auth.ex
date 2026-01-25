@@ -15,6 +15,7 @@ defmodule KlassHeroWeb.UserAuth do
 
   alias KlassHero.Accounts
   alias KlassHero.Accounts.Scope
+  alias KlassHero.Messaging
 
   # Make the remember me cookie valid for 14 days. This should match
   # the session validity setting in UserToken.
@@ -224,6 +225,16 @@ defmodule KlassHeroWeb.UserAuth do
   """
   def on_mount(:mount_current_scope, _params, session, socket) do
     {:cont, mount_current_scope(socket, session)}
+  end
+
+  def on_mount(:fetch_unread_count, _params, _session, socket) do
+    if socket.assigns[:current_scope] && socket.assigns.current_scope.user do
+      user_id = socket.assigns.current_scope.user.id
+      count = Messaging.get_total_unread_count(user_id)
+      {:cont, Phoenix.Component.assign(socket, :total_unread_count, count)}
+    else
+      {:cont, Phoenix.Component.assign(socket, :total_unread_count, 0)}
+    end
   end
 
   def on_mount(:require_authenticated, _params, session, socket) do

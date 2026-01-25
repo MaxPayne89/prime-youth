@@ -383,7 +383,7 @@ defmodule KlassHeroWeb.ProviderComponents do
         selected_staff="all"
       />
   """
-  attr :programs, :list, required: true
+  attr :programs, :any, required: true, doc: "LiveView stream of programs"
   attr :staff_options, :list, required: true
   attr :search_query, :string, default: ""
   attr :selected_staff, :string, default: "all"
@@ -464,69 +464,61 @@ defmodule KlassHeroWeb.ProviderComponents do
               </th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-hero-grey-200">
-            <.program_row :for={program <- @programs} program={program} />
+          <tbody id="programs-table-body" phx-update="stream" class="divide-y divide-hero-grey-200">
+            <tr :for={{dom_id, program} <- @programs} id={dom_id} class="hover:bg-hero-grey-50">
+              <td class="px-4 py-4">
+                <div class="font-medium text-hero-charcoal">{program.name}</div>
+                <div class="text-sm text-hero-grey-500">
+                  {program.category} • €{program.price}
+                </div>
+              </td>
+              <td class="px-4 py-4">
+                <div :if={program.assigned_staff} class="flex items-center gap-2">
+                  <div class={[
+                    "w-8 h-8 flex items-center justify-center text-white text-xs font-medium",
+                    Theme.rounded(:full),
+                    Theme.gradient(:primary)
+                  ]}>
+                    {program.assigned_staff.initials}
+                  </div>
+                  <span class="text-sm text-hero-charcoal">{program.assigned_staff.name}</span>
+                </div>
+                <span :if={!program.assigned_staff} class="text-sm text-hero-grey-400 italic">
+                  {gettext("Unassigned")}
+                </span>
+              </td>
+              <td class="px-4 py-4">
+                <.status_pill color={status_color(program.status)}>
+                  {status_label(program.status)}
+                </.status_pill>
+              </td>
+              <td class="px-4 py-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-24 h-2 bg-hero-grey-200 rounded-full overflow-hidden">
+                    <div
+                      class="h-full bg-hero-cyan rounded-full"
+                      style={"width: #{enrollment_percentage(program)}%"}
+                    >
+                    </div>
+                  </div>
+                  <span class="text-sm text-hero-grey-600">
+                    {program.enrolled}/{program.capacity}
+                  </span>
+                </div>
+              </td>
+              <td class="px-4 py-4">
+                <div class="flex items-center justify-end gap-1">
+                  <.action_button icon="hero-eye-mini" title={gettext("Preview")} />
+                  <.action_button icon="hero-user-group-mini" title={gettext("View Roster")} />
+                  <.action_button icon="hero-pencil-square-mini" title={gettext("Edit")} />
+                  <.action_button icon="hero-document-duplicate-mini" title={gettext("Duplicate")} />
+                </div>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
     </div>
-    """
-  end
-
-  attr :program, :map, required: true
-
-  defp program_row(assigns) do
-    ~H"""
-    <tr class="hover:bg-hero-grey-50">
-      <td class="px-4 py-4">
-        <div class="font-medium text-hero-charcoal">{@program.name}</div>
-        <div class="text-sm text-hero-grey-500">
-          {@program.category} • €{@program.price}
-        </div>
-      </td>
-      <td class="px-4 py-4">
-        <div :if={@program.assigned_staff} class="flex items-center gap-2">
-          <div class={[
-            "w-8 h-8 flex items-center justify-center text-white text-xs font-medium",
-            Theme.rounded(:full),
-            Theme.gradient(:primary)
-          ]}>
-            {@program.assigned_staff.initials}
-          </div>
-          <span class="text-sm text-hero-charcoal">{@program.assigned_staff.name}</span>
-        </div>
-        <span :if={!@program.assigned_staff} class="text-sm text-hero-grey-400 italic">
-          {gettext("Unassigned")}
-        </span>
-      </td>
-      <td class="px-4 py-4">
-        <.status_pill color={status_color(@program.status)}>
-          {status_label(@program.status)}
-        </.status_pill>
-      </td>
-      <td class="px-4 py-4">
-        <div class="flex items-center gap-3">
-          <div class="w-24 h-2 bg-hero-grey-200 rounded-full overflow-hidden">
-            <div
-              class="h-full bg-hero-cyan rounded-full"
-              style={"width: #{enrollment_percentage(@program)}%"}
-            >
-            </div>
-          </div>
-          <span class="text-sm text-hero-grey-600">
-            {@program.enrolled}/{@program.capacity}
-          </span>
-        </div>
-      </td>
-      <td class="px-4 py-4">
-        <div class="flex items-center justify-end gap-1">
-          <.action_button icon="hero-eye-mini" title={gettext("Preview")} />
-          <.action_button icon="hero-user-group-mini" title={gettext("View Roster")} />
-          <.action_button icon="hero-pencil-square-mini" title={gettext("Edit")} />
-          <.action_button icon="hero-document-duplicate-mini" title={gettext("Duplicate")} />
-        </div>
-      </td>
-    </tr>
     """
   end
 

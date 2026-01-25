@@ -11,29 +11,53 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   import KlassHeroWeb.ProviderComponents
 
+  alias KlassHero.ProgramCatalog
+  alias KlassHeroWeb.Presenters.ProgramPresenter
+  alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Provider.MockData
   alias KlassHeroWeb.Theme
 
+  require Logger
+
   @impl true
   def mount(_params, _session, socket) do
-    business = MockData.business()
-    stats = MockData.stats()
-    team = MockData.team()
-    programs = MockData.programs()
-    staff_options = MockData.staff_options()
+    case socket.assigns.current_scope.provider do
+      nil ->
+        Logger.warning("Provider dashboard accessed without provider profile",
+          user_id: socket.assigns.current_scope.user.id
+        )
 
-    socket =
-      socket
-      |> assign(page_title: gettext("Provider Dashboard"))
-      |> assign(business: business)
-      |> assign(stats: stats)
-      |> assign(team: team)
-      |> assign(programs: programs)
-      |> assign(staff_options: staff_options)
-      |> assign(search_query: "")
-      |> assign(selected_staff: "all")
+        {:ok, redirect(socket, to: ~p"/")}
 
-    {:ok, socket}
+      provider_profile ->
+        business = ProviderPresenter.to_business_view(provider_profile)
+
+        # Load real programs for this provider
+        domain_programs = ProgramCatalog.list_programs_for_provider(provider_profile.id)
+        programs = Enum.map(domain_programs, &ProgramPresenter.to_table_view/1)
+
+        # Update business with actual program count
+        business = %{business | program_slots_used: length(programs)}
+
+        # Mock data for stats/team until features are implemented
+        stats = MockData.stats()
+        team = MockData.team()
+        staff_options = MockData.staff_options()
+
+        socket =
+          socket
+          |> assign(page_title: gettext("Provider Dashboard"))
+          |> assign(business: business)
+          |> assign(stats: stats)
+          |> assign(team: team)
+          |> stream(:programs, programs)
+          |> assign(programs_count: length(programs))
+          |> assign(staff_options: staff_options)
+          |> assign(search_query: "")
+          |> assign(selected_staff: "all")
+
+        {:ok, socket}
+    end
   end
 
   @impl true
@@ -43,18 +67,32 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("search_programs", %{"search" => query}, socket) do
-    {:noreply, assign(socket, search_query: query)}
+    {:noreply,
+     socket
+     |> assign(search_query: query)
+     |> reset_programs_stream()}
   end
 
   @impl true
   def handle_event("filter_by_staff", %{"staff_filter" => staff_id}, socket) do
-    {:noreply, assign(socket, selected_staff: staff_id)}
+    {:noreply,
+     socket
+     |> assign(selected_staff: staff_id)
+     |> reset_programs_stream()}
   end
 
-  defp filtered_programs(programs, search_query, selected_staff) do
-    programs
-    |> filter_by_search(search_query)
-    |> filter_by_staff(selected_staff)
+  defp reset_programs_stream(socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+
+    programs =
+      ProgramCatalog.list_programs_for_provider(provider_id)
+      |> Enum.map(&ProgramPresenter.to_table_view/1)
+      |> filter_by_search(socket.assigns.search_query)
+      |> filter_by_staff(socket.assigns.selected_staff)
+
+    socket
+    |> stream(:programs, programs, reset: true)
+    |> assign(programs_count: length(programs))
   end
 
   defp filter_by_search(programs, ""), do: programs
@@ -70,11 +108,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp filter_by_staff(programs, "all"), do: programs
 
   defp filter_by_staff(programs, staff_id) do
-    staff_id_int = String.to_integer(staff_id)
+    case Integer.parse(staff_id) do
+      {staff_id_int, ""} ->
+        Enum.filter(programs, fn program ->
+          program.assigned_staff && program.assigned_staff.id == staff_id_int
+        end)
 
-    Enum.filter(programs, fn program ->
-      program.assigned_staff && program.assigned_staff.id == staff_id_int
-    end)
+      _ ->
+        programs
+    end
   end
 
   @impl true
@@ -92,7 +134,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             <.team_section team={@team} />
           <% :programs -> %>
             <.programs_section
-              programs={filtered_programs(@programs, @search_query, @selected_staff)}
+              programs={@streams.programs}
               staff_options={@staff_options}
               search_query={@search_query}
               selected_staff={@selected_staff}

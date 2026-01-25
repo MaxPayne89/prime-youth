@@ -37,7 +37,8 @@ defmodule KlassHero.ProgramCatalog do
     GetProgramById,
     ListAllPrograms,
     ListFeaturedPrograms,
-    ListProgramsPaginated
+    ListProgramsPaginated,
+    ListProviderPrograms
   }
 
   alias KlassHero.ProgramCatalog.Domain.Models.Program
@@ -107,6 +108,18 @@ defmodule KlassHero.ProgramCatalog do
   def list_programs_paginated(limit, cursor, category \\ nil) do
     ListProgramsPaginated.execute(limit, cursor, category)
   end
+
+  @doc """
+  Lists all programs belonging to a specific provider.
+
+  Returns programs ordered by title for consistent display.
+
+  ## Examples
+
+      programs = ProgramCatalog.list_programs_for_provider(provider_id)
+  """
+  @spec list_programs_for_provider(String.t()) :: [Program.t()]
+  defdelegate list_programs_for_provider(provider_id), to: ListProviderPrograms, as: :execute
 
   # ============================================================================
   # Program Filtering

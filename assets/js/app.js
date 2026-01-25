@@ -25,12 +25,19 @@ import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/klass_hero"
 import topbar from "../vendor/topbar"
 import DebounceHook from "./hooks/debounce_hook"
+import ScrollToBottomHook from "./hooks/scroll_to_bottom_hook"
+import AutoResizeTextareaHook from "./hooks/auto_resize_textarea_hook"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, Debounce: DebounceHook},
+  hooks: {
+    ...colocatedHooks,
+    Debounce: DebounceHook,
+    ScrollToBottom: ScrollToBottomHook,
+    AutoResizeTextarea: AutoResizeTextareaHook
+  },
 })
 
 // Show progress bar on live navigation and form submits

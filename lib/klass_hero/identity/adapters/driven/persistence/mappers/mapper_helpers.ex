@@ -5,12 +5,32 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.MapperHelpers d
   Provides common conversion utilities for tier atoms/strings and optional id handling.
   """
 
+  # Known valid tiers - ensures atoms exist for String.to_existing_atom/1
+  @parent_tiers [:explorer, :active]
+  @provider_tiers [:starter, :professional, :business_plus]
+  @all_tiers @parent_tiers ++ @provider_tiers
+
   @doc """
-  Converts a string tier to an atom, returning the default if nil.
+  Converts a string tier to an atom, returning the default if nil or unknown.
+
+  Uses String.to_existing_atom/1 to prevent atom table exhaustion from
+  untrusted input. Falls back to default if the atom doesn't exist or
+  isn't in the allowed tier list.
   """
   @spec string_to_tier(String.t() | nil, atom()) :: atom()
   def string_to_tier(nil, default), do: default
-  def string_to_tier(tier, _default) when is_binary(tier), do: String.to_existing_atom(tier)
+
+  def string_to_tier(tier, default) when is_binary(tier) do
+    atom = String.to_existing_atom(tier)
+
+    if atom in @all_tiers do
+      atom
+    else
+      default
+    end
+  rescue
+    ArgumentError -> default
+  end
 
   @doc """
   Converts an atom tier to a string, returning the default string if nil.

@@ -43,6 +43,11 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
       # This mock is not used in these tests, but required by the behavior
       {:error, :not_implemented}
     end
+
+    def list_programs_for_provider(_provider_id) do
+      # This mock is not used in these tests, but required by the behavior
+      []
+    end
   end
 
   setup do
