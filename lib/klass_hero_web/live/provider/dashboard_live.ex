@@ -13,6 +13,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   alias KlassHero.Entitlements
   alias KlassHero.ProgramCatalog
+  alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Provider.MockData
   alias KlassHeroWeb.Theme
 
@@ -33,7 +34,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
         # Load real programs for this provider
         domain_programs = ProgramCatalog.list_programs_for_provider(provider_profile.id)
-        programs = Enum.map(domain_programs, &map_program_to_ui/1)
+        programs = Enum.map(domain_programs, &ProgramPresenter.to_table_view/1)
 
         # Update business with actual program count
         business = %{business | program_slots_used: length(programs)}
@@ -49,7 +50,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(business: business)
           |> assign(stats: stats)
           |> assign(team: team)
-          |> assign(programs: programs)
+          |> stream(:programs, programs)
+          |> assign(programs_count: length(programs))
           |> assign(staff_options: staff_options)
           |> assign(search_query: "")
           |> assign(selected_staff: "all")
@@ -57,26 +59,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         {:ok, socket}
     end
   end
-
-  defp map_program_to_ui(program) do
-    %{
-      id: program.id,
-      name: program.title,
-      category: humanize_category(program.category),
-      price: Decimal.to_integer(program.price),
-      assigned_staff: nil,
-      status: :active,
-      enrolled: 0,
-      capacity: program.spots_available
-    }
-  end
-
-  defp humanize_category(nil), do: "General"
-  defp humanize_category("arts"), do: gettext("Arts")
-  defp humanize_category("education"), do: gettext("Education")
-  defp humanize_category("sports"), do: gettext("Sports")
-  defp humanize_category("music"), do: gettext("Music")
-  defp humanize_category(category), do: String.capitalize(category)
 
   defp build_business_from_provider(provider) do
     tier = provider.subscription_tier || Entitlements.default_provider_tier()
@@ -126,18 +108,32 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("search_programs", %{"search" => query}, socket) do
-    {:noreply, assign(socket, search_query: query)}
+    {:noreply,
+     socket
+     |> assign(search_query: query)
+     |> reset_programs_stream()}
   end
 
   @impl true
   def handle_event("filter_by_staff", %{"staff_filter" => staff_id}, socket) do
-    {:noreply, assign(socket, selected_staff: staff_id)}
+    {:noreply,
+     socket
+     |> assign(selected_staff: staff_id)
+     |> reset_programs_stream()}
   end
 
-  defp filtered_programs(programs, search_query, selected_staff) do
-    programs
-    |> filter_by_search(search_query)
-    |> filter_by_staff(selected_staff)
+  defp reset_programs_stream(socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+
+    programs =
+      ProgramCatalog.list_programs_for_provider(provider_id)
+      |> Enum.map(&ProgramPresenter.to_table_view/1)
+      |> filter_by_search(socket.assigns.search_query)
+      |> filter_by_staff(socket.assigns.selected_staff)
+
+    socket
+    |> stream(:programs, programs, reset: true)
+    |> assign(programs_count: length(programs))
   end
 
   defp filter_by_search(programs, ""), do: programs
@@ -179,7 +175,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             <.team_section team={@team} />
           <% :programs -> %>
             <.programs_section
-              programs={filtered_programs(@programs, @search_query, @selected_staff)}
+              programs={@streams.programs}
               staff_options={@staff_options}
               search_query={@search_query}
               selected_staff={@selected_staff}
