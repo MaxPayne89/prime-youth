@@ -257,7 +257,12 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   @doc """
   Renders the conversations empty state.
+
+  ## Attributes
+  - user_type: Either :parent or :provider to show appropriate copy
   """
+  attr :user_type, :atom, default: :parent
+
   def conversations_empty_state(assigns) do
     ~H"""
     <div class="flex flex-col items-center justify-center h-64 text-center px-4">
@@ -275,11 +280,17 @@ defmodule KlassHeroWeb.MessagingComponents do
         {gettext("No conversations yet")}
       </h3>
       <p class={["mt-1 text-sm", Theme.text_color(:muted)]}>
-        {gettext("Your conversations with providers will appear here")}
+        {empty_state_message(@user_type)}
       </p>
     </div>
     """
   end
+
+  defp empty_state_message(:provider),
+    do: gettext("Your conversations with parents will appear here")
+
+  defp empty_state_message(_parent),
+    do: gettext("Your conversations with providers will appear here")
 
   # Helpers
 

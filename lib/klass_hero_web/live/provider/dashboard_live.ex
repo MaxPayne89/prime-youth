@@ -11,15 +11,26 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   import KlassHeroWeb.ProviderComponents
 
+  alias KlassHero.Entitlements
+  alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Provider.MockData
   alias KlassHeroWeb.Theme
 
   @impl true
   def mount(_params, _session, socket) do
-    business = MockData.business()
+    provider_profile = socket.assigns.current_scope.provider
+    business = build_business_from_provider(provider_profile)
+
+    # Load real programs for this provider
+    domain_programs = ProgramCatalog.list_programs_for_provider(provider_profile.id)
+    programs = Enum.map(domain_programs, &map_program_to_ui/1)
+
+    # Update business with actual program count
+    business = %{business | program_slots_used: length(programs)}
+
+    # Mock data for stats/team until features are implemented
     stats = MockData.stats()
     team = MockData.team()
-    programs = MockData.programs()
     staff_options = MockData.staff_options()
 
     socket =
@@ -34,6 +45,67 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       |> assign(selected_staff: "all")
 
     {:ok, socket}
+  end
+
+  defp map_program_to_ui(program) do
+    %{
+      id: program.id,
+      name: program.title,
+      category: humanize_category(program.category),
+      price: Decimal.to_integer(program.price),
+      assigned_staff: nil,
+      status: :active,
+      enrolled: 0,
+      capacity: program.spots_available
+    }
+  end
+
+  defp humanize_category(nil), do: "General"
+  defp humanize_category("arts"), do: gettext("Arts")
+  defp humanize_category("education"), do: gettext("Education")
+  defp humanize_category("sports"), do: gettext("Sports")
+  defp humanize_category("music"), do: gettext("Music")
+  defp humanize_category(category), do: String.capitalize(category)
+
+  defp build_business_from_provider(provider) do
+    tier = provider.subscription_tier || :starter
+    tier_info = Entitlements.provider_tier_info(tier)
+
+    %{
+      id: provider.id,
+      name: provider.business_name,
+      tagline: provider.description,
+      plan: tier,
+      plan_label: tier_label(tier),
+      verified: provider.verified || false,
+      verification_badges: build_verification_badges(provider),
+      program_slots_used: 0,
+      program_slots_total: tier_info[:max_programs],
+      initials: build_initials(provider.business_name)
+    }
+  end
+
+  defp tier_label(:starter), do: gettext("Starter Plan")
+  defp tier_label(:professional), do: gettext("Professional Plan")
+  defp tier_label(:business_plus), do: gettext("Business Plus Plan")
+  defp tier_label(_), do: gettext("Starter Plan")
+
+  defp build_verification_badges(%{verified: true}) do
+    [
+      %{key: :business_registration, label: gettext("Business Registration")}
+    ]
+  end
+
+  defp build_verification_badges(_), do: []
+
+  defp build_initials(nil), do: "?"
+
+  defp build_initials(name) do
+    name
+    |> String.split()
+    |> Enum.take(2)
+    |> Enum.map_join(&String.first/1)
+    |> String.upcase()
   end
 
   @impl true

@@ -54,7 +54,7 @@ defmodule KlassHeroWeb.Provider.MessagesLive.Index do
             navigate={@navigate_base <> "/" <> conv_data.conversation.id}
           />
           <div :if={@conversations_empty?} id="conversations-empty-state" class="p-4">
-            <.conversations_empty_state />
+            <.conversations_empty_state user_type={:provider} />
           </div>
         </div>
       </div>

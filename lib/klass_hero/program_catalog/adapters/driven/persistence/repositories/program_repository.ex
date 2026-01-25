@@ -49,6 +49,31 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     programs
   end
 
+  @doc """
+  Lists all programs belonging to a specific provider.
+
+  Programs are ordered by title in ascending order for consistent display.
+  Returns list of programs directly (may be empty).
+  """
+  def list_programs_for_provider(provider_id) when is_binary(provider_id) do
+    Logger.info(
+      "[ProgramRepository] Starting list_programs_for_provider query for provider: #{provider_id}"
+    )
+
+    programs =
+      ProgramSchema
+      |> where([p], p.provider_id == ^provider_id)
+      |> order_by([p], asc: p.title)
+      |> Repo.all()
+      |> ProgramMapper.to_domain_list()
+
+    Logger.info(
+      "[ProgramRepository] Successfully retrieved #{length(programs)} programs for provider #{provider_id}"
+    )
+
+    programs
+  end
+
   @impl true
   @doc """
   Retrieves a single program by its unique ID (UUID) from the database.

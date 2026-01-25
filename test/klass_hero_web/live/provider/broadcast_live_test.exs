@@ -106,7 +106,7 @@ defmodule KlassHeroWeb.Provider.BroadcastLiveTest do
       assert_flash(view, :error, "No parents are enrolled in this program")
     end
 
-    test "shows not_entitled error for starter tier provider", %{conn: conn} do
+    test "redirects starter tier provider with entitlement error", %{conn: conn} do
       # Re-register with starter tier
       user = AccountsFixtures.user_fixture(%{intended_roles: [:provider]})
 
@@ -123,13 +123,12 @@ defmodule KlassHeroWeb.Provider.BroadcastLiveTest do
         status: "confirmed"
       )
 
-      {:ok, view, _html} = live(conn, ~p"/provider/programs/#{program.id}/broadcast")
+      # Starter tier providers are redirected on mount with an error
+      {:error, {:live_redirect, %{to: to, flash: flash}}} =
+        live(conn, ~p"/provider/programs/#{program.id}/broadcast")
 
-      view
-      |> form("#broadcast-form", %{"subject" => "Update", "content" => "Hello everyone!"})
-      |> render_submit()
-
-      assert_flash(view, :error, "Your subscription tier doesn't support broadcasts")
+      assert to == "/provider/dashboard"
+      assert flash["error"] == "Your subscription tier doesn't support broadcasts"
     end
 
     test "successfully sends broadcast to enrolled parents", %{conn: conn} do

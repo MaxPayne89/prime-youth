@@ -251,7 +251,7 @@ Logger.info("Created child: Rafael Active (6 years old) for Max Active")
 Logger.info("Creating provider profiles...")
 
 # --- Shane Starter (starter tier) ---
-{:ok, _shane_starter_profile} =
+{:ok, shane_starter_profile} =
   %ProviderProfileSchema{}
   |> ProviderProfileSchema.changeset(%{
     identity_id: shane_starter.id,
@@ -270,7 +270,7 @@ Logger.info("Creating provider profiles...")
 Logger.info("Created provider profile for Shane's Starter Academy (starter tier)")
 
 # --- Shane Professional (professional tier) ---
-{:ok, _shane_professional_profile} =
+{:ok, shane_professional_profile} =
   %ProviderProfileSchema{}
   |> ProviderProfileSchema.changeset(%{
     identity_id: shane_professional.id,
@@ -289,7 +289,7 @@ Logger.info("Created provider profile for Shane's Starter Academy (starter tier)
 Logger.info("Created provider profile for Shane's Pro Academy (professional tier)")
 
 # --- Shane Business Plus (business_plus tier) ---
-{:ok, _shane_business_plus_profile} =
+{:ok, shane_business_plus_profile} =
   %ProviderProfileSchema{}
   |> ProviderProfileSchema.changeset(%{
     identity_id: shane_business_plus.id,
@@ -313,7 +313,116 @@ Logger.info("Created provider profile for Shane's Elite Academy (business_plus t
 
 Logger.info("Seeding Program Catalog...")
 
-programs = [
+# Programs for Shane Starter (starter tier - max 2 programs)
+starter_programs = [
+  %{
+    title: "Youth Fitness Basics",
+    description: "Entry-level fitness and movement for young athletes",
+    category: "sports",
+    schedule: "Mon/Wed, 4:00-5:00 PM",
+    age_range: "6-10 years",
+    price: Decimal.new("80.00"),
+    pricing_period: "per month",
+    spots_available: 10,
+    icon_path: "/images/icons/sports.svg",
+    provider_id: shane_starter_profile.id
+  },
+  %{
+    title: "Soccer Fundamentals",
+    description: "Learn basic soccer skills and teamwork",
+    category: "sports",
+    schedule: "Tue/Thu, 4:00-5:30 PM",
+    age_range: "7-12 years",
+    price: Decimal.new("100.00"),
+    pricing_period: "per month",
+    spots_available: 12,
+    icon_path: "/images/icons/sports.svg",
+    provider_id: shane_starter_profile.id
+  }
+]
+
+# Programs for Shane Professional (professional tier - max 5 programs)
+professional_programs = [
+  %{
+    title: "Sports Camp",
+    description: "Multi-sport activities including soccer, basketball, and more",
+    category: "sports",
+    schedule: "Mon-Fri, 9:00 AM-3:00 PM",
+    age_range: "7-14 years",
+    price: Decimal.new("200.00"),
+    pricing_period: "per week",
+    spots_available: 20,
+    icon_path: "/images/icons/sports.svg",
+    provider_id: shane_professional_profile.id
+  },
+  %{
+    title: "Junior Athletics",
+    description: "Track and field training for aspiring young athletes",
+    category: "sports",
+    schedule: "Tue/Thu, 3:30-5:30 PM",
+    age_range: "8-14 years",
+    price: Decimal.new("120.00"),
+    pricing_period: "per month",
+    spots_available: 15,
+    icon_path: "/images/icons/sports.svg",
+    provider_id: shane_professional_profile.id
+  },
+  %{
+    title: "Basketball Skills",
+    description: "Develop basketball fundamentals and game strategy",
+    category: "sports",
+    schedule: "Mon/Wed, 5:00-6:30 PM",
+    age_range: "9-15 years",
+    price: Decimal.new("110.00"),
+    pricing_period: "per month",
+    spots_available: 12,
+    icon_path: "/images/icons/sports.svg",
+    provider_id: shane_professional_profile.id
+  }
+]
+
+# Programs for Shane Business Plus (business_plus tier - unlimited programs)
+business_plus_programs = [
+  %{
+    title: "Elite Training Academy",
+    description: "Intensive sports training for competitive athletes",
+    category: "sports",
+    schedule: "Mon-Fri, 6:00-8:00 AM",
+    age_range: "12-18 years",
+    price: Decimal.new("300.00"),
+    pricing_period: "per month",
+    spots_available: 8,
+    icon_path: "/images/icons/sports.svg",
+    provider_id: shane_business_plus_profile.id
+  },
+  %{
+    title: "Summer Sports Camp",
+    description: "Comprehensive summer sports program with multiple activities",
+    category: "sports",
+    schedule: "Mon-Fri, 8:00 AM-4:00 PM",
+    age_range: "6-16 years",
+    price: Decimal.new("450.00"),
+    pricing_period: "per week",
+    spots_available: 40,
+    icon_path: "/images/icons/sports.svg",
+    provider_id: shane_business_plus_profile.id
+  },
+  %{
+    title: "Team Sports League",
+    description: "Organized team sports with regular competitions",
+    category: "sports",
+    schedule: "Sat, 9:00 AM-12:00 PM",
+    age_range: "8-14 years",
+    price: Decimal.new("150.00"),
+    pricing_period: "per season",
+    spots_available: 30,
+    icon_path: "/images/icons/sports.svg",
+    provider_id: shane_business_plus_profile.id
+  }
+]
+
+# Programs without a provider (community/public programs)
+public_programs = [
   %{
     title: "Art Adventures",
     description: "Explore creativity through painting, drawing, and crafts",
@@ -335,17 +444,6 @@ programs = [
     pricing_period: "per month",
     spots_available: 8,
     icon_path: "/images/icons/tech.svg"
-  },
-  %{
-    title: "Sports Camp",
-    description: "Multi-sport activities including soccer, basketball, and more",
-    category: "sports",
-    schedule: "Mon-Fri, 9:00 AM-3:00 PM",
-    age_range: "7-14 years",
-    price: Decimal.new("200.00"),
-    pricing_period: "per week",
-    spots_available: 20,
-    icon_path: "/images/icons/sports.svg"
   },
   %{
     title: "Science Lab",
@@ -382,13 +480,20 @@ programs = [
   }
 ]
 
-Enum.each(programs, fn program_attrs ->
+all_programs =
+  starter_programs ++ professional_programs ++ business_plus_programs ++ public_programs
+
+Enum.each(all_programs, fn program_attrs ->
   %ProgramSchema{}
   |> ProgramSchema.changeset(program_attrs)
   |> Repo.insert!()
 end)
 
-Logger.info("Seeded #{length(programs)} programs successfully")
+Logger.info("Seeded #{length(all_programs)} programs successfully")
+Logger.info("  - #{length(starter_programs)} programs for Shane's Starter Academy")
+Logger.info("  - #{length(professional_programs)} programs for Shane's Pro Academy")
+Logger.info("  - #{length(business_plus_programs)} programs for Shane's Elite Academy")
+Logger.info("  - #{length(public_programs)} public/community programs")
 
 # ==============================================================================
 # SUMMARY
@@ -407,4 +512,7 @@ Logger.info("    - 1 admin: Klass Hero Admin")
 Logger.info("  - 2 parent profiles created with subscription tiers")
 Logger.info("  - 4 children created (2 per parent)")
 Logger.info("  - 3 provider profiles created with subscription tiers")
-Logger.info("  - #{length(programs)} programs created")
+
+Logger.info(
+  "  - #{length(all_programs)} programs created (#{length(starter_programs)} starter, #{length(professional_programs)} professional, #{length(business_plus_programs)} business_plus, #{length(public_programs)} public)"
+)

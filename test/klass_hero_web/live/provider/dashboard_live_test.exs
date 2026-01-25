@@ -73,24 +73,37 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       assert has_element?(view, "select[name=\"staff_filter\"]")
     end
 
-    test "filters programs by search query", %{conn: conn} do
+    test "filters programs by search query", %{conn: conn, provider: provider} do
+      # Create programs for this provider
+      KlassHero.Factory.insert(:program_schema,
+        title: "Soccer Academy",
+        category: "sports",
+        provider_id: provider.id
+      )
+
+      KlassHero.Factory.insert(:program_schema,
+        title: "Art Class",
+        category: "arts",
+        provider_id: provider.id
+      )
+
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
 
-      # Search for "Soccer" which should match "Junior Soccer Academy" from mock data
+      # Search for "Soccer" which should match "Soccer Academy"
       view |> render_change("search_programs", %{"search" => "Soccer"})
 
       # Verify filtered result is present
-      assert has_element?(view, "td", "Junior Soccer Academy")
+      assert has_element?(view, "td", "Soccer Academy")
+      # Art Class should not be shown
+      refute has_element?(view, "td", "Art Class")
     end
 
-    test "filters programs by staff selection", %{conn: conn} do
+    test "shows empty state when provider has no programs", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
 
-      # Filter by staff id "1" (Coach Mike from mock data)
-      view |> render_change("filter_by_staff", %{"staff_filter" => "1"})
-
-      # Verify Coach Mike's programs are shown
-      assert has_element?(view, "td", "Coach Mike")
+      # The provider was just created and has no programs
+      # Table should exist but be empty (header row only)
+      assert has_element?(view, "table")
     end
   end
 end

@@ -7,6 +7,7 @@ defmodule KlassHeroWeb.Provider.BroadcastLive do
 
   use KlassHeroWeb, :live_view
 
+  alias KlassHero.Entitlements
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
 
@@ -14,6 +15,19 @@ defmodule KlassHeroWeb.Provider.BroadcastLive do
 
   @impl true
   def mount(%{"program_id" => program_id}, _session, socket) do
+    scope = socket.assigns.current_scope
+
+    if Entitlements.can_initiate_messaging?(scope) do
+      mount_broadcast_form(socket, program_id)
+    else
+      {:ok,
+       socket
+       |> put_flash(:error, gettext("Your subscription tier doesn't support broadcasts"))
+       |> push_navigate(to: ~p"/provider/dashboard")}
+    end
+  end
+
+  defp mount_broadcast_form(socket, program_id) do
     case ProgramCatalog.get_program_by_id(program_id) do
       {:ok, program} ->
         form = to_form(%{"subject" => "", "content" => ""})

@@ -27,6 +27,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :lock_version, :integer, default: 1
     field :icon_path, :string
     field :end_date, :utc_datetime
+    field :provider_id, :binary_id
 
     timestamps()
   end
@@ -44,6 +45,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           lock_version: integer() | nil,
           icon_path: String.t() | nil,
           end_date: DateTime.t() | nil,
+          provider_id: Ecto.UUID.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -76,7 +78,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :pricing_period,
       :spots_available,
       :icon_path,
-      :end_date
+      :end_date,
+      :provider_id
     ])
     |> validate_required([
       :title,
