@@ -11,20 +11,25 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.MapperHelpers d
   @all_tiers @parent_tiers ++ @provider_tiers
 
   @doc """
-  Converts a string tier to an atom, returning the default if nil.
-  Uses a whitelist approach to safely convert known tier strings.
+  Converts a string tier to an atom, returning the default if nil or unknown.
+
+  Uses String.to_existing_atom/1 to prevent atom table exhaustion from
+  untrusted input. Falls back to default if the atom doesn't exist or
+  isn't in the allowed tier list.
   """
   @spec string_to_tier(String.t() | nil, atom()) :: atom()
   def string_to_tier(nil, default), do: default
 
   def string_to_tier(tier, default) when is_binary(tier) do
-    atom = String.to_atom(tier)
+    atom = String.to_existing_atom(tier)
 
     if atom in @all_tiers do
       atom
     else
       default
     end
+  rescue
+    ArgumentError -> default
   end
 
   @doc """

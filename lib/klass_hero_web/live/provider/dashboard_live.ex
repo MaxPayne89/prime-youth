@@ -11,9 +11,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   import KlassHeroWeb.ProviderComponents
 
-  alias KlassHero.Entitlements
   alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.ProgramPresenter
+  alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Provider.MockData
   alias KlassHeroWeb.Theme
 
@@ -30,7 +30,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         {:ok, redirect(socket, to: ~p"/")}
 
       provider_profile ->
-        business = build_business_from_provider(provider_profile)
+        business = ProviderPresenter.to_business_view(provider_profile)
 
         # Load real programs for this provider
         domain_programs = ProgramCatalog.list_programs_for_provider(provider_profile.id)
@@ -58,47 +58,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
         {:ok, socket}
     end
-  end
-
-  defp build_business_from_provider(provider) do
-    tier = provider.subscription_tier || Entitlements.default_provider_tier()
-    tier_info = Entitlements.provider_tier_info(tier)
-
-    %{
-      id: provider.id,
-      name: provider.business_name,
-      tagline: provider.description,
-      plan: tier,
-      plan_label: tier_label(tier),
-      verified: provider.verified || false,
-      verification_badges: build_verification_badges(provider),
-      program_slots_used: 0,
-      program_slots_total: tier_info[:max_programs],
-      initials: build_initials(provider.business_name)
-    }
-  end
-
-  defp tier_label(:starter), do: gettext("Starter Plan")
-  defp tier_label(:professional), do: gettext("Professional Plan")
-  defp tier_label(:business_plus), do: gettext("Business Plus Plan")
-  defp tier_label(_), do: gettext("Starter Plan")
-
-  defp build_verification_badges(%{verified: true}) do
-    [
-      %{key: :business_registration, label: gettext("Business Registration")}
-    ]
-  end
-
-  defp build_verification_badges(_), do: []
-
-  defp build_initials(nil), do: "?"
-
-  defp build_initials(name) do
-    name
-    |> String.split()
-    |> Enum.take(2)
-    |> Enum.map_join(&String.first/1)
-    |> String.upcase()
   end
 
   @impl true

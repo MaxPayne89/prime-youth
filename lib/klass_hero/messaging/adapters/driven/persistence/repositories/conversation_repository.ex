@@ -149,9 +149,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
   end
 
   @impl true
-  def archive_ended_program_conversations(cutoff_date) do
+  def archive_ended_program_conversations(cutoff_date, retention_days) do
     now = DateTime.utc_now()
-    retention_days = get_retention_period_days()
     retention_until = DateTime.add(now, retention_days, :day)
 
     conversation_ids =
@@ -169,15 +168,12 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
 
       Logger.info("Archived conversations for ended programs",
         count: count,
-        cutoff_date: cutoff_date
+        cutoff_date: cutoff_date,
+        retention_days: retention_days
       )
 
       {:ok, %{count: count, conversation_ids: conversation_ids}}
     end
-  end
-
-  defp get_retention_period_days do
-    Application.get_env(:klass_hero, :messaging)[:retention][:retention_period_days] || 30
   end
 
   @impl true
@@ -187,13 +183,5 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
       nil -> 0
       count -> count
     end
-  rescue
-    error ->
-      Logger.error("Failed to fetch unread count",
-        user_id: user_id,
-        error: inspect(error)
-      )
-
-      reraise error, __STACKTRACE__
   end
 end

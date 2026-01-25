@@ -91,11 +91,18 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingConversations do
   matching program_broadcast conversations where the associated program
   has ended.
 
+  Parameters:
+  - `cutoff_date` - Programs ending before this datetime are considered ended
+  - `retention_days` - Number of days to retain archived conversations
+
   Returns:
   - `{:ok, %{count: n, conversation_ids: [ids]}}` - Success with count and IDs
   - `{:error, reason}` - Failure
   """
-  @callback archive_ended_program_conversations(cutoff_date :: Date.t()) ::
+  @callback archive_ended_program_conversations(
+              cutoff_date :: DateTime.t(),
+              retention_days :: pos_integer()
+            ) ::
               {:ok, %{count: non_neg_integer(), conversation_ids: [String.t()]}}
 
   @doc """

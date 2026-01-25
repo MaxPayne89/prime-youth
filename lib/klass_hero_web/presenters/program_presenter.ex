@@ -23,6 +23,17 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   Used for the provider dashboard program inventory table.
 
   Returns a map with: id, name, category, price, assigned_staff, status, enrolled, capacity
+
+  ## Placeholder Values
+
+  The following fields return placeholder values pending feature implementation:
+
+  - `assigned_staff: nil` - Staff assignment feature not yet implemented
+  - `status: :active` - Program status tracking not yet implemented
+  - `enrolled: 0` - Enrollment count integration not yet implemented
+
+  These placeholders ensure the UI can render properly while the underlying
+  features are developed in future iterations.
   """
   @spec to_table_view(Program.t()) :: map()
   def to_table_view(%Program{} = program) do
@@ -31,8 +42,11 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       name: program.title,
       category: humanize_category(program.category),
       price: Decimal.to_integer(program.price),
+      # Placeholder: Staff assignment feature pending implementation
       assigned_staff: nil,
+      # Placeholder: Program status tracking pending implementation
       status: :active,
+      # Placeholder: Enrollment count integration pending implementation
       enrolled: 0,
       capacity: program.spots_available
     }
