@@ -134,6 +134,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
   def count_unread(conversation_id, last_read_at) do
     MessageQueries.count_unread(conversation_id, last_read_at)
     |> Repo.one()
+    |> Kernel.||(0)
   end
 
   @impl true

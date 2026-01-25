@@ -79,7 +79,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp humanize_category(category), do: String.capitalize(category)
 
   defp build_business_from_provider(provider) do
-    tier = provider.subscription_tier || :starter
+    tier = provider.subscription_tier || Entitlements.default_provider_tier()
     tier_info = Entitlements.provider_tier_info(tier)
 
     %{
@@ -153,11 +153,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp filter_by_staff(programs, "all"), do: programs
 
   defp filter_by_staff(programs, staff_id) do
-    staff_id_int = String.to_integer(staff_id)
+    case Integer.parse(staff_id) do
+      {staff_id_int, ""} ->
+        Enum.filter(programs, fn program ->
+          program.assigned_staff && program.assigned_staff.id == staff_id_int
+        end)
 
-    Enum.filter(programs, fn program ->
-      program.assigned_staff && program.assigned_staff.id == staff_id_int
-    end)
+      _ ->
+        programs
+    end
   end
 
   @impl true
