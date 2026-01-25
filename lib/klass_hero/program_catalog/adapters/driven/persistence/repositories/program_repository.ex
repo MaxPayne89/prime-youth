@@ -49,6 +49,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     programs
   end
 
+  @impl true
   @doc """
   Lists all programs belonging to a specific provider.
 

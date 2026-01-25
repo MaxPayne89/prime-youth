@@ -183,7 +183,17 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
   @impl true
   @spec get_total_unread_count(String.t()) :: non_neg_integer()
   def get_total_unread_count(user_id) do
-    ConversationQueries.total_unread_count(user_id)
-    |> Repo.one() || 0
+    case Repo.one(ConversationQueries.total_unread_count(user_id)) do
+      nil -> 0
+      count -> count
+    end
+  rescue
+    error ->
+      Logger.error("Failed to fetch unread count",
+        user_id: user_id,
+        error: inspect(error)
+      )
+
+      reraise error, __STACKTRACE__
   end
 end

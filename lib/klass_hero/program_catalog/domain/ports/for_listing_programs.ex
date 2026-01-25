@@ -78,4 +78,12 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms do
               category :: String.t() | nil
             ) ::
               {:ok, term()} | {:error, :invalid_cursor}
+
+  @doc """
+  Lists all programs belonging to a specific provider.
+
+  Programs are returned in ascending order by title for consistent display.
+  Returns a list of Program structs (may be empty if provider has no programs).
+  """
+  @callback list_programs_for_provider(provider_id :: String.t()) :: [term()]
 end

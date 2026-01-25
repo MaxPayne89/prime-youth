@@ -16,35 +16,46 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   alias KlassHeroWeb.Provider.MockData
   alias KlassHeroWeb.Theme
 
+  require Logger
+
   @impl true
   def mount(_params, _session, socket) do
-    provider_profile = socket.assigns.current_scope.provider
-    business = build_business_from_provider(provider_profile)
+    case socket.assigns.current_scope.provider do
+      nil ->
+        Logger.warning("Provider dashboard accessed without provider profile",
+          user_id: socket.assigns.current_scope.user.id
+        )
 
-    # Load real programs for this provider
-    domain_programs = ProgramCatalog.list_programs_for_provider(provider_profile.id)
-    programs = Enum.map(domain_programs, &map_program_to_ui/1)
+        {:ok, redirect(socket, to: ~p"/")}
 
-    # Update business with actual program count
-    business = %{business | program_slots_used: length(programs)}
+      provider_profile ->
+        business = build_business_from_provider(provider_profile)
 
-    # Mock data for stats/team until features are implemented
-    stats = MockData.stats()
-    team = MockData.team()
-    staff_options = MockData.staff_options()
+        # Load real programs for this provider
+        domain_programs = ProgramCatalog.list_programs_for_provider(provider_profile.id)
+        programs = Enum.map(domain_programs, &map_program_to_ui/1)
 
-    socket =
-      socket
-      |> assign(page_title: gettext("Provider Dashboard"))
-      |> assign(business: business)
-      |> assign(stats: stats)
-      |> assign(team: team)
-      |> assign(programs: programs)
-      |> assign(staff_options: staff_options)
-      |> assign(search_query: "")
-      |> assign(selected_staff: "all")
+        # Update business with actual program count
+        business = %{business | program_slots_used: length(programs)}
 
-    {:ok, socket}
+        # Mock data for stats/team until features are implemented
+        stats = MockData.stats()
+        team = MockData.team()
+        staff_options = MockData.staff_options()
+
+        socket =
+          socket
+          |> assign(page_title: gettext("Provider Dashboard"))
+          |> assign(business: business)
+          |> assign(stats: stats)
+          |> assign(team: team)
+          |> assign(programs: programs)
+          |> assign(staff_options: staff_options)
+          |> assign(search_query: "")
+          |> assign(selected_staff: "all")
+
+        {:ok, socket}
+    end
   end
 
   defp map_program_to_ui(program) do

@@ -1,6 +1,8 @@
 defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepositoryTest do
   use KlassHero.DataCase, async: true
 
+  import KlassHero.Factory
+
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapper
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
@@ -732,6 +734,173 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       # Verify lock_version incremented only once
       final_schema = Repo.get(ProgramSchema, program_schema.id)
       assert final_schema.lock_version == 2
+    end
+  end
+
+  describe "list_programs_for_provider/1" do
+    test "returns programs for a specific provider" do
+      provider = insert(:provider_profile_schema)
+      other_provider = insert(:provider_profile_schema)
+
+      # Create programs for target provider
+      _program_1 =
+        insert_program(%{
+          title: "Soccer Camp",
+          description: "Fun soccer",
+          schedule: "Mon-Fri",
+          age_range: "6-12",
+          price: Decimal.new("150.00"),
+          pricing_period: "per week",
+          spots_available: 20,
+          provider_id: provider.id
+        })
+
+      _program_2 =
+        insert_program(%{
+          title: "Art Class",
+          description: "Creative arts",
+          schedule: "Sat 10AM",
+          age_range: "8-14",
+          price: Decimal.new("75.00"),
+          pricing_period: "per month",
+          spots_available: 15,
+          provider_id: provider.id
+        })
+
+      # Create program for different provider
+      _other_program =
+        insert_program(%{
+          title: "Music Lessons",
+          description: "Learn music",
+          schedule: "Tue-Thu",
+          age_range: "10-16",
+          price: Decimal.new("100.00"),
+          pricing_period: "per session",
+          spots_available: 12,
+          provider_id: other_provider.id
+        })
+
+      programs = ProgramRepository.list_programs_for_provider(provider.id)
+
+      assert length(programs) == 2
+      assert Enum.all?(programs, &match?(%Program{}, &1))
+
+      titles = Enum.map(programs, & &1.title)
+      assert "Soccer Camp" in titles
+      assert "Art Class" in titles
+      refute "Music Lessons" in titles
+    end
+
+    test "returns programs in ascending title order" do
+      provider = insert(:provider_profile_schema)
+
+      insert_program(%{
+        title: "Zebra Camp",
+        description: "Description",
+        schedule: "Mon-Fri",
+        age_range: "6-12",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 10,
+        provider_id: provider.id
+      })
+
+      insert_program(%{
+        title: "Art Class",
+        description: "Description",
+        schedule: "Mon-Fri",
+        age_range: "6-12",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 10,
+        provider_id: provider.id
+      })
+
+      insert_program(%{
+        title: "Music Lessons",
+        description: "Description",
+        schedule: "Mon-Fri",
+        age_range: "6-12",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 10,
+        provider_id: provider.id
+      })
+
+      programs = ProgramRepository.list_programs_for_provider(provider.id)
+
+      titles = Enum.map(programs, & &1.title)
+      assert titles == ["Art Class", "Music Lessons", "Zebra Camp"]
+    end
+
+    test "returns empty list when provider has no programs" do
+      provider = insert(:provider_profile_schema)
+
+      programs = ProgramRepository.list_programs_for_provider(provider.id)
+
+      assert programs == []
+    end
+
+    test "returns empty list for non-existent provider_id" do
+      non_existent_id = Ecto.UUID.generate()
+
+      # Create a program for a different provider to ensure database isn't empty
+      provider = insert(:provider_profile_schema)
+
+      insert_program(%{
+        title: "Some Program",
+        description: "Description",
+        schedule: "Mon-Fri",
+        age_range: "6-12",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 10,
+        provider_id: provider.id
+      })
+
+      programs = ProgramRepository.list_programs_for_provider(non_existent_id)
+
+      assert programs == []
+    end
+
+    test "includes free and sold out programs" do
+      provider = insert(:provider_profile_schema)
+
+      _free_program =
+        insert_program(%{
+          title: "Free Community Day",
+          description: "Free event",
+          schedule: "Sunday 2PM",
+          age_range: "All ages",
+          price: Decimal.new("0.00"),
+          pricing_period: "per session",
+          spots_available: 100,
+          provider_id: provider.id
+        })
+
+      _sold_out_program =
+        insert_program(%{
+          title: "Popular Camp",
+          description: "Fully booked",
+          schedule: "Mon-Fri",
+          age_range: "10-15",
+          price: Decimal.new("200.00"),
+          pricing_period: "per week",
+          spots_available: 0,
+          provider_id: provider.id
+        })
+
+      programs = ProgramRepository.list_programs_for_provider(provider.id)
+
+      assert length(programs) == 2
+
+      free = Enum.find(programs, &(&1.title == "Free Community Day"))
+      assert free.price == Decimal.new("0.00")
+      assert Program.free?(free)
+
+      sold_out = Enum.find(programs, &(&1.title == "Popular Camp"))
+      assert sold_out.spots_available == 0
+      assert Program.sold_out?(sold_out)
     end
   end
 
