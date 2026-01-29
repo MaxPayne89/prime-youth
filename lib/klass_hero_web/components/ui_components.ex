@@ -163,6 +163,32 @@ defmodule KlassHeroWeb.UIComponents do
   defp color_classes("custom"), do: ""
 
   @doc """
+  Renders a section label badge with gradient background.
+
+  Used as a category marker above section headings (e.g. "For Families", "For Providers").
+
+  ## Examples
+
+      <.section_label>For Families</.section_label>
+      <.section_label gradient={:safety}>Special</.section_label>
+  """
+  attr :gradient, :atom, default: :primary, doc: "Theme gradient name"
+  slot :inner_block, required: true
+
+  def section_label(assigns) do
+    ~H"""
+    <span class={[
+      "inline-block px-4 py-1.5 text-sm font-medium",
+      Theme.gradient(@gradient),
+      "text-white",
+      Theme.rounded(:full)
+    ]}>
+      {render_slot(@inner_block)}
+    </span>
+    """
+  end
+
+  @doc """
   Renders a progress bar with label and percentage.
 
   ## Examples

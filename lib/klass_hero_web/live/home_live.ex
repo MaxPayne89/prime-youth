@@ -176,7 +176,10 @@ defmodule KlassHeroWeb.HomeLive do
     <!-- Features Section -->
       <div id="why-klass-hero-section" class={Theme.bg(:surface)}>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div class="text-center mb-16">
+          <div class="text-center mb-12">
+            <div class="text-center mb-4">
+              <.section_label>{gettext("For Families")}</.section_label>
+            </div>
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
               {gettext("Why Klass Hero?")}
             </h2>
@@ -225,14 +228,7 @@ defmodule KlassHeroWeb.HomeLive do
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <!-- Label Badge -->
           <div class="text-center mb-4">
-            <span class={[
-              "inline-block px-4 py-1.5 text-sm font-medium",
-              Theme.gradient(:primary),
-              "text-white",
-              Theme.rounded(:full)
-            ]}>
-              {gettext("For Providers")}
-            </span>
+            <.section_label>{gettext("For Providers")}</.section_label>
           </div>
           
     <!-- Section Heading -->
