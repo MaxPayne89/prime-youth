@@ -15,7 +15,9 @@ defmodule KlassHero.Identity.Domain.Models.ChildTest do
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15],
-        notes: "Allergic to peanuts"
+        emergency_contact: "555-1234",
+        support_needs: "Extra help with reading",
+        allergies: "Peanuts"
       }
 
       assert {:ok, child} = Child.new(attrs)
@@ -24,7 +26,9 @@ defmodule KlassHero.Identity.Domain.Models.ChildTest do
       assert child.first_name == "Emma"
       assert child.last_name == "Smith"
       assert child.date_of_birth == ~D[2015-06-15]
-      assert child.notes == "Allergic to peanuts"
+      assert child.emergency_contact == "555-1234"
+      assert child.support_needs == "Extra help with reading"
+      assert child.allergies == "Peanuts"
     end
 
     test "creates child with only required fields" do
@@ -37,7 +41,9 @@ defmodule KlassHero.Identity.Domain.Models.ChildTest do
       }
 
       assert {:ok, child} = Child.new(attrs)
-      assert is_nil(child.notes)
+      assert is_nil(child.emergency_contact)
+      assert is_nil(child.support_needs)
+      assert is_nil(child.allergies)
     end
   end
 

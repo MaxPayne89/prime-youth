@@ -388,7 +388,9 @@ defmodule KlassHero.Factory do
       first_name: sequence(:child_first_name, &"Child#{&1}"),
       last_name: "Smith",
       date_of_birth: ~D[2018-06-15],
-      notes: nil,
+      emergency_contact: nil,
+      support_needs: nil,
+      allergies: nil,
       inserted_at: ~U[2025-01-01 12:00:00Z],
       updated_at: ~U[2025-01-01 12:00:00Z]
     }
@@ -414,7 +416,9 @@ defmodule KlassHero.Factory do
       first_name: sequence(:child_schema_first_name, &"Child#{&1}"),
       last_name: "Smith",
       date_of_birth: ~D[2018-06-15],
-      notes: nil
+      emergency_contact: nil,
+      support_needs: nil,
+      allergies: nil
     }
   end
 

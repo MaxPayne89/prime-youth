@@ -26,7 +26,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ChildMapper do
       first_name: schema.first_name,
       last_name: schema.last_name,
       date_of_birth: schema.date_of_birth,
-      notes: schema.notes,
+      emergency_contact: schema.emergency_contact,
+      support_needs: schema.support_needs,
+      allergies: schema.allergies,
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -44,7 +46,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ChildMapper do
       first_name: child.first_name,
       last_name: child.last_name,
       date_of_birth: child.date_of_birth,
-      notes: child.notes
+      emergency_contact: child.emergency_contact,
+      support_needs: child.support_needs,
+      allergies: child.allergies
     }
   end
 

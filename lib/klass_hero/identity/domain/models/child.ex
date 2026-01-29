@@ -12,7 +12,9 @@ defmodule KlassHero.Identity.Domain.Models.Child do
   - `first_name` - Child's first name
   - `last_name` - Child's last name
   - `date_of_birth` - Child's birth date
-  - `notes` - Optional notes about the child
+  - `emergency_contact` - Optional emergency contact info
+  - `support_needs` - Optional support needs or accommodations
+  - `allergies` - Optional allergy information
   - `inserted_at` - When the record was created
   - `updated_at` - When the record was last updated
   """
@@ -24,7 +26,9 @@ defmodule KlassHero.Identity.Domain.Models.Child do
     :first_name,
     :last_name,
     :date_of_birth,
-    :notes,
+    :emergency_contact,
+    :support_needs,
+    :allergies,
     :inserted_at,
     :updated_at
   ]
@@ -35,7 +39,9 @@ defmodule KlassHero.Identity.Domain.Models.Child do
           first_name: String.t(),
           last_name: String.t(),
           date_of_birth: Date.t(),
-          notes: String.t() | nil,
+          emergency_contact: String.t() | nil,
+          support_needs: String.t() | nil,
+          allergies: String.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }

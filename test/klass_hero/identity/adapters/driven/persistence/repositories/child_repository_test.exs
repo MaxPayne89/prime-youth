@@ -24,7 +24,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepos
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15],
-        notes: "Allergic to peanuts"
+        emergency_contact: "555-1234",
+        support_needs: "Extra help with reading",
+        allergies: "Peanuts"
       }
 
       assert {:ok, %Child{} = child} = ChildRepository.create(attrs)
@@ -33,6 +35,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepos
       assert child.first_name == "Emma"
       assert child.last_name == "Smith"
       assert child.date_of_birth == ~D[2015-06-15]
+      assert child.emergency_contact == "555-1234"
+      assert child.support_needs == "Extra help with reading"
+      assert child.allergies == "Peanuts"
       assert %DateTime{} = child.inserted_at
     end
 
@@ -47,7 +52,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepos
       }
 
       assert {:ok, %Child{} = child} = ChildRepository.create(attrs)
-      assert is_nil(child.notes)
+      assert is_nil(child.emergency_contact)
+      assert is_nil(child.support_needs)
+      assert is_nil(child.allergies)
     end
   end
 
