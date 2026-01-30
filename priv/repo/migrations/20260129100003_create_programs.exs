@@ -13,14 +13,19 @@ defmodule KlassHero.Repo.Migrations.CreatePrograms do
       add :spots_available, :integer, null: false, default: 0
       add :lock_version, :integer, null: false, default: 1
       add :icon_path, :text
+      add :category, :string, null: false, default: "education", size: 50
+      add :end_date, :utc_datetime, null: true
+      add :provider_id, references(:providers, type: :binary_id, on_delete: :nothing), null: true
 
       timestamps(type: :utc_datetime)
     end
 
-    # Index on title for sorting and future search capabilities
     create index(:programs, [:title])
+    create index(:programs, [:category])
+    create index(:programs, [:category, :inserted_at, :id])
+    create index(:programs, [:end_date])
+    create index(:programs, [:provider_id])
 
-    # Check constraints for business rules
     create constraint(:programs, :price_must_be_non_negative, check: "price >= 0")
 
     create constraint(:programs, :spots_available_must_be_non_negative,

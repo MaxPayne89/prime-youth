@@ -9,8 +9,9 @@ defmodule KlassHero.Repo.Migrations.CreateParticipationRecords do
           references(:program_sessions, type: :binary_id, on_delete: :restrict),
           null: false
 
-      # child_id: Future FK to children table - using binary_id but no constraint yet
-      add :child_id, :binary_id, null: false
+      add :child_id,
+          references(:children, type: :binary_id, on_delete: :restrict),
+          null: false
 
       add :parent_id,
           references(:parents, type: :binary_id, on_delete: :nilify_all),
