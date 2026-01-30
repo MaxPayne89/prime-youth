@@ -56,6 +56,9 @@ defmodule KlassHeroWeb.Router do
       ] do
       live "/dashboard", DashboardLive, :index
       live "/settings", SettingsLive, :index
+      live "/settings/children", Settings.ChildrenLive, :index
+      live "/settings/children/new", Settings.ChildrenLive, :new
+      live "/settings/children/:child_id/edit", Settings.ChildrenLive, :edit
       live "/programs/:id/booking", BookingLive, :new
       live "/messages", MessagesLive.Index, :index
       live "/messages/:id", MessagesLive.Show, :show

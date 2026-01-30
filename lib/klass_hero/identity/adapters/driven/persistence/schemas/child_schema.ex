@@ -61,11 +61,36 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema do
       :allergies
     ])
     |> validate_required([:parent_id, :first_name, :last_name, :date_of_birth])
+    |> shared_validations()
+    |> foreign_key_constraint(:parent_id)
+  end
+
+  @doc """
+  Form changeset for LiveView forms.
+
+  Excludes `parent_id` from cast and validate_required since it is set
+  programmatically by the use case layer, not via user input.
+  """
+  def form_changeset(schema, attrs) do
+    schema
+    |> cast(attrs, [
+      :first_name,
+      :last_name,
+      :date_of_birth,
+      :emergency_contact,
+      :support_needs,
+      :allergies
+    ])
+    |> validate_required([:first_name, :last_name, :date_of_birth])
+    |> shared_validations()
+  end
+
+  defp shared_validations(changeset) do
+    changeset
     |> validate_length(:first_name, min: 1, max: 100)
     |> validate_length(:last_name, min: 1, max: 100)
     |> validate_length(:emergency_contact, max: 255)
     |> validate_date_in_past(:date_of_birth)
-    |> foreign_key_constraint(:parent_id)
   end
 
   defp validate_date_in_past(changeset, field) do

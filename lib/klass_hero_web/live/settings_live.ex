@@ -2,24 +2,37 @@ defmodule KlassHeroWeb.SettingsLive do
   use KlassHeroWeb, :live_view
 
   import KlassHeroWeb.CompositeComponents
-  import KlassHeroWeb.Live.SampleFixtures
 
+  alias KlassHeroWeb.Helpers.IdentityHelpers
+  alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
 
   @impl true
   def mount(_params, _session, socket) do
+    children = IdentityHelpers.get_children_for_current_user(socket)
+    summary = children_summary(children)
+
     socket =
       socket
       |> assign(page_title: gettext("Settings"))
-      |> assign(user: sample_user())
+      |> assign(children_summary: summary)
 
     {:ok, socket}
   end
 
   @impl true
-  def handle_event("navigate_to", %{"section" => section}, socket) do
-    IO.puts("Navigate to: #{section}")
+  def handle_event("navigate_to", %{"section" => _section}, socket) do
     {:noreply, socket}
+  end
+
+  defp children_summary([]), do: gettext("No children yet")
+
+  defp children_summary(children) do
+    children
+    |> Enum.map_join(", ", fn child ->
+      view = ChildPresenter.to_simple_view(child)
+      "#{view.name} (#{view.age})"
+    end)
   end
 
   attr :title, :string, required: true
@@ -77,15 +90,15 @@ defmodule KlassHeroWeb.SettingsLive do
         </.settings_section>
 
         <.settings_section title={gettext("My Family")}>
-          <.settings_menu_item
-            icon="hero-user-group"
-            icon_bg={Theme.bg(:primary_light)}
-            icon_color={Theme.text_color(:primary)}
-            title={gettext("Children Profiles")}
-            description={@user.children_summary}
-            phx-click="navigate_to"
-            phx-value-section="children-profiles"
-          />
+          <.link navigate={~p"/settings/children"} class="block">
+            <.settings_menu_item
+              icon="hero-user-group"
+              icon_bg={Theme.bg(:primary_light)}
+              icon_color={Theme.text_color(:primary)}
+              title={gettext("Children Profiles")}
+              description={@children_summary}
+            />
+          </.link>
           <.settings_menu_item
             icon="hero-calendar"
             icon_bg={Theme.bg(:secondary_light)}

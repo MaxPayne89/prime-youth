@@ -35,6 +35,7 @@ defmodule KlassHero.Identity do
   - Repository implementations (adapter layer) → implement persistence
   """
 
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Identity.Application.UseCases.Children.CreateChild
   alias KlassHero.Identity.Application.UseCases.Children.DeleteChild
   alias KlassHero.Identity.Application.UseCases.Children.UpdateChild
@@ -42,6 +43,7 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Consents.WithdrawConsent
   alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
+  alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
   alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
 
@@ -199,6 +201,49 @@ defmodule KlassHero.Identity do
   """
   def delete_child(child_id) when is_binary(child_id) do
     DeleteChild.execute(child_id)
+  end
+
+  @doc """
+  Returns a changeset for tracking child form changes.
+
+  Used by LiveView forms for `to_form()` and `phx-change` validation.
+  Excludes `parent_id` from cast since it is set programmatically.
+
+  ## Examples
+
+      Identity.change_child(%{})
+      Identity.change_child(%Child{...}, %{first_name: "Emma"})
+  """
+  def change_child(attrs \\ %{})
+
+  def change_child(attrs) when is_map(attrs) and not is_struct(attrs) do
+    ChildSchema.form_changeset(%ChildSchema{}, attrs)
+  end
+
+  def change_child(%Child{} = child) do
+    child |> child_to_schema() |> ChildSchema.form_changeset(%{})
+  end
+
+  @doc """
+  Returns a changeset for tracking child form changes on an existing child.
+
+  Accepts a `%Child{}` domain struct and form attributes.
+  """
+  def change_child(%Child{} = child, attrs) when is_map(attrs) do
+    child |> child_to_schema() |> ChildSchema.form_changeset(attrs)
+  end
+
+  defp child_to_schema(%Child{} = child) do
+    %ChildSchema{
+      id: child.id,
+      parent_id: child.parent_id,
+      first_name: child.first_name,
+      last_name: child.last_name,
+      date_of_birth: child.date_of_birth,
+      emergency_contact: child.emergency_contact,
+      support_needs: child.support_needs,
+      allergies: child.allergies
+    }
   end
 
   @doc """
