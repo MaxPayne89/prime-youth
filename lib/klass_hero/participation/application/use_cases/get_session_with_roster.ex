@@ -59,31 +59,26 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
   def execute_enriched(session_id) when is_binary(session_id) do
     with {:ok, session} <- session_repository().get_by_id(session_id) do
       records = participation_repository().list_by_session(session_id)
-
-      enriched_records =
-        Enum.map(records, fn record ->
-          child_name =
-            case child_name_resolver().resolve_child_name(record.child_id) do
-              {:ok, name} -> name
-              {:error, _} -> "Unknown Child"
-            end
-
-          Map.put(record, :child_name, child_name)
-        end)
-
+      enriched_records = Enum.map(records, &enrich_record/1)
       enriched_session = Map.put(session, :participation_records, enriched_records)
       {:ok, enriched_session}
     end
   end
 
-  defp build_roster_entry(%ParticipationRecord{} = record) do
-    child_name =
-      case child_name_resolver().resolve_child_name(record.child_id) do
-        {:ok, name} -> name
-        {:error, _} -> "Unknown Child"
-      end
+  defp enrich_record(record) do
+    child_name = resolve_name(record.child_id)
+    Map.put(record, :child_name, child_name)
+  end
 
-    %{record: record, child_name: child_name}
+  defp build_roster_entry(%ParticipationRecord{} = record) do
+    %{record: record, child_name: resolve_name(record.child_id)}
+  end
+
+  defp resolve_name(child_id) do
+    case child_name_resolver().resolve_child_name(child_id) do
+      {:ok, name} -> name
+      {:error, _} -> "Unknown Child"
+    end
   end
 
   defp session_repository do

@@ -318,7 +318,7 @@ defmodule KlassHeroWeb.MessagingComponents do
     cond do
       diff < 60 -> gettext("Now")
       diff < 3600 -> gettext("%{n}m ago", n: div(diff, 60))
-      diff < 86400 -> Calendar.strftime(datetime, "%H:%M")
+      diff < 86_400 -> Calendar.strftime(datetime, "%H:%M")
       diff < 604_800 -> Calendar.strftime(datetime, "%a")
       true -> Calendar.strftime(datetime, "%d %b")
     end

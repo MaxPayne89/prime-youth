@@ -137,10 +137,10 @@ defmodule KlassHero.Messaging.MessagingIntegrationTest do
       assert recipient_count == 2
 
       {:ok, conversations, _} = Messaging.list_conversations(parent1.identity_id)
-      assert length(conversations) >= 1
+      assert conversations != []
 
       {:ok, conversations, _} = Messaging.list_conversations(parent2.identity_id)
-      assert length(conversations) >= 1
+      assert conversations != []
     end
   end
 

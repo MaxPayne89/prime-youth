@@ -195,7 +195,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   @doc """
   Checks if a message was sent by the given user.
   """
-  def is_own_message?(message, user_id) do
+  def own_message?(message, user_id) do
     message.sender_id == user_id
   end
 
