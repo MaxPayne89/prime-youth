@@ -148,4 +148,74 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepos
       assert Enum.at(children, 0).first_name == "Emma"
     end
   end
+
+  describe "update/2" do
+    test "updates child fields and returns domain entity" do
+      parent = create_parent()
+
+      {:ok, created} =
+        ChildRepository.create(%{
+          parent_id: parent.id,
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        })
+
+      assert {:ok, %Child{} = updated} =
+               ChildRepository.update(created.id, %{first_name: "Emily", allergies: "Peanuts"})
+
+      assert updated.id == created.id
+      assert updated.first_name == "Emily"
+      assert updated.last_name == "Smith"
+      assert updated.allergies == "Peanuts"
+    end
+
+    test "returns :not_found for non-existent child" do
+      assert {:error, :not_found} = ChildRepository.update(Ecto.UUID.generate(), %{first_name: "X"})
+    end
+
+    test "returns :not_found for invalid UUID" do
+      assert {:error, :not_found} = ChildRepository.update("invalid-uuid", %{first_name: "X"})
+    end
+
+    test "returns changeset error for invalid data" do
+      parent = create_parent()
+
+      {:ok, created} =
+        ChildRepository.create(%{
+          parent_id: parent.id,
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        })
+
+      assert {:error, %Ecto.Changeset{}} =
+               ChildRepository.update(created.id, %{first_name: ""})
+    end
+  end
+
+  describe "delete/1" do
+    test "deletes existing child" do
+      parent = create_parent()
+
+      {:ok, created} =
+        ChildRepository.create(%{
+          parent_id: parent.id,
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        })
+
+      assert :ok = ChildRepository.delete(created.id)
+      assert {:error, :not_found} = ChildRepository.get_by_id(created.id)
+    end
+
+    test "returns :not_found for non-existent child" do
+      assert {:error, :not_found} = ChildRepository.delete(Ecto.UUID.generate())
+    end
+
+    test "returns :not_found for invalid UUID" do
+      assert {:error, :not_found} = ChildRepository.delete("invalid-uuid")
+    end
+  end
 end

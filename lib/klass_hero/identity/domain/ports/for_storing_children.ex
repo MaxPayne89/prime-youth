@@ -34,6 +34,26 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringChildren do
   @callback create(map()) :: {:ok, term()} | {:error, term()}
 
   @doc """
+  Updates an existing child record.
+
+  Returns:
+  - `{:ok, Child.t()}` - Child updated successfully
+  - `{:error, :not_found}` - Child ID doesn't exist
+  - `{:error, changeset}` - Validation failed
+  """
+  @callback update(binary(), map()) :: {:ok, term()} | {:error, :not_found} | {:error, term()}
+
+  @doc """
+  Deletes a child record.
+
+  Returns:
+  - `:ok` - Child deleted successfully
+  - `{:error, :not_found}` - Child ID doesn't exist
+  - `{:error, changeset}` - Delete failed (e.g. FK constraint)
+  """
+  @callback delete(binary()) :: :ok | {:error, :not_found} | {:error, term()}
+
+  @doc """
   Lists all children for a given parent.
 
   Returns list of children (may be empty).

@@ -78,7 +78,9 @@ config :klass_hero, :identity,
   for_storing_provider_profiles:
     KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
   for_storing_children:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
+    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository,
+  for_storing_consents:
+    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRepository
 
 # Configure Messaging bounded context
 config :klass_hero, :messaging,

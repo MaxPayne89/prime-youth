@@ -22,10 +22,10 @@ Track completed work with ticket references. This is a quick reference, not a re
 #### Gap Analysis
 
 **Schema/Data Model**
-- Child schema (`identity/.../child_schema.ex`) has: first_name, last_name, date_of_birth, notes
-- Missing: emergency_contact field
-- Missing: structured optional notes (support needs, allergies) — currently one unstructured `notes` blob
-- Missing: consent tracking (no consent model exists anywhere)
+- Child schema (`identity/.../child_schema.ex`) has: first_name, last_name, date_of_birth, emergency_contact, support_needs, allergies
+- ~~Missing: emergency_contact field~~ — added
+- ~~Missing: structured optional notes (support needs, allergies)~~ — replaced `notes` blob with `support_needs` + `allergies`
+- ~~Missing: consent tracking~~ — consent model added (step 1)
 
 **Settings / Child Management** (`settings_live.ex`)
 - Settings page renders mocked sections (Children Profiles, Emergency Contacts, Medical Info, Allergies)
@@ -59,7 +59,7 @@ Track completed work with ticket references. This is a quick reference, not a re
 #### Implementation Steps (to be addressed sequentially)
 
 1. [x] Consent domain model + migration in Identity context (2026-01-29) — migration `create_consents`, domain model `consent.ex`, 10 tests passing
-2. [ ] Update child schema: add emergency_contact, structured note fields (support_needs, allergies), migrate existing `notes` data
+2. [x] Update child schema: add emergency_contact, structured note fields (support_needs, allergies), remove `notes` (2026-01-30) — also consolidated all migrations into sequential `20260129100001`–`20260129100011`
 3. [ ] Child profile CRUD in settings with consent checkbox (replaces current mocks)
 4. [ ] Provider visibility gate — check consent record before exposing optional child data
 5. [ ] Behavioral notes: provider-write + parent-approve workflow

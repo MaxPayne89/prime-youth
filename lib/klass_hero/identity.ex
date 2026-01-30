@@ -35,6 +35,11 @@ defmodule KlassHero.Identity do
   - Repository implementations (adapter layer) → implement persistence
   """
 
+  alias KlassHero.Identity.Application.UseCases.Children.CreateChild
+  alias KlassHero.Identity.Application.UseCases.Children.DeleteChild
+  alias KlassHero.Identity.Application.UseCases.Children.UpdateChild
+  alias KlassHero.Identity.Application.UseCases.Consents.GrantConsent
+  alias KlassHero.Identity.Application.UseCases.Consents.WithdrawConsent
   alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
@@ -52,6 +57,10 @@ defmodule KlassHero.Identity do
                       :identity,
                       :for_storing_children
                     ])
+  @consent_repository Application.compile_env!(:klass_hero, [
+                        :identity,
+                        :for_storing_consents
+                      ])
 
   # ============================================================================
   # Parent Profile Functions
@@ -157,6 +166,42 @@ defmodule KlassHero.Identity do
   end
 
   @doc """
+  Creates a new child for a parent.
+
+  Returns:
+  - `{:ok, Child.t()}` on success
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  - `{:error, changeset}` for persistence validation failures
+  """
+  def create_child(attrs) when is_map(attrs) do
+    CreateChild.execute(attrs)
+  end
+
+  @doc """
+  Updates an existing child.
+
+  Returns:
+  - `{:ok, Child.t()}` on success
+  - `{:error, :not_found}` if child doesn't exist
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  - `{:error, changeset}` for persistence validation failures
+  """
+  def update_child(child_id, attrs) when is_binary(child_id) and is_map(attrs) do
+    UpdateChild.execute(child_id, attrs)
+  end
+
+  @doc """
+  Deletes a child by ID.
+
+  Returns:
+  - `:ok` on success
+  - `{:error, :not_found}` if child doesn't exist
+  """
+  def delete_child(child_id) when is_binary(child_id) do
+    DeleteChild.execute(child_id)
+  end
+
+  @doc """
   Returns a MapSet of child IDs for a given parent.
   Useful for authorization checks when processing multiple children.
   """
@@ -174,6 +219,49 @@ defmodule KlassHero.Identity do
       when is_binary(child_id) and is_binary(parent_id) do
     case get_child_by_id(child_id) do
       {:ok, child} -> child.parent_id == parent_id
+      {:error, :not_found} -> false
+    end
+  end
+
+  # ============================================================================
+  # Consent Functions
+  # ============================================================================
+
+  @doc """
+  Grants a new consent for a child.
+
+  Expects a map with :parent_id, :child_id, and :consent_type.
+
+  Returns:
+  - `{:ok, Consent.t()}` on success
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  - `{:error, changeset}` for persistence validation failures
+  """
+  def grant_consent(attrs) when is_map(attrs) do
+    GrantConsent.execute(attrs)
+  end
+
+  @doc """
+  Withdraws the active consent for a child and consent type.
+
+  Returns:
+  - `{:ok, Consent.t()}` on success (with withdrawn_at set)
+  - `{:error, :not_found}` if no active consent exists
+  """
+  def withdraw_consent(child_id, consent_type)
+      when is_binary(child_id) and is_binary(consent_type) do
+    WithdrawConsent.execute(child_id, consent_type)
+  end
+
+  @doc """
+  Checks if a child has an active consent of the given type.
+
+  Returns boolean directly.
+  """
+  def child_has_active_consent?(child_id, consent_type)
+      when is_binary(child_id) and is_binary(consent_type) do
+    case @consent_repository.get_active_for_child(child_id, consent_type) do
+      {:ok, _} -> true
       {:error, :not_found} -> false
     end
   end

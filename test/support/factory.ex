@@ -31,9 +31,11 @@ defmodule KlassHero.Factory do
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
   alias KlassHero.Enrollment.Domain.Models.Enrollment
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Identity.Domain.Models.Child
+  alias KlassHero.Identity.Domain.Models.Consent
   alias KlassHero.Identity.Domain.Models.ParentProfile
   alias KlassHero.Identity.Domain.Models.ProviderProfile
 
@@ -419,6 +421,69 @@ defmodule KlassHero.Factory do
       emergency_contact: nil,
       support_needs: nil,
       allergies: nil
+    }
+  end
+
+  # =============================================================================
+  # Identity Context - Consent Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating Consent domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      consent = build(:consent)
+      consent = build(:consent, consent_type: "photo")
+  """
+  def consent_factory do
+    %Consent{
+      id:
+        sequence(
+          :consent_id,
+          &"550e8400-e29b-41d4-a716-77665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      parent_id:
+        sequence(
+          :consent_parent_id,
+          &"660e8400-e29b-41d4-a716-77665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      child_id:
+        sequence(
+          :consent_child_id,
+          &"550e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      consent_type: "provider_data_sharing",
+      granted_at: ~U[2025-06-01 12:00:00Z],
+      withdrawn_at: nil,
+      inserted_at: ~U[2025-06-01 12:00:00Z],
+      updated_at: ~U[2025-06-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating ConsentSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a parent and child when inserted to avoid foreign key violations.
+
+  ## Examples
+
+      schema = build(:consent_schema)
+      schema = insert(:consent_schema, consent_type: "photo")
+  """
+  def consent_schema_factory do
+    child_schema = insert(:child_schema)
+
+    %ConsentSchema{
+      id: Ecto.UUID.generate(),
+      parent_id: child_schema.parent_id,
+      child_id: child_schema.id,
+      consent_type: "provider_data_sharing",
+      granted_at: DateTime.utc_now() |> DateTime.truncate(:second),
+      withdrawn_at: nil
     }
   end
 
