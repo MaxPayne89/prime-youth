@@ -171,7 +171,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepos
     end
 
     test "returns :not_found for non-existent child" do
-      assert {:error, :not_found} = ChildRepository.update(Ecto.UUID.generate(), %{first_name: "X"})
+      assert {:error, :not_found} =
+               ChildRepository.update(Ecto.UUID.generate(), %{first_name: "X"})
     end
 
     test "returns :not_found for invalid UUID" do

@@ -18,9 +18,7 @@ defmodule KlassHero.Identity.Domain.Models.ConsentTest do
   describe "new/1 with valid attributes" do
     test "creates consent with all fields" do
       attrs =
-        Map.merge(@valid_attrs, %{
-          withdrawn_at: ~U[2025-07-01 12:00:00Z]
-        })
+        Map.put(@valid_attrs, :withdrawn_at, ~U[2025-07-01 12:00:00Z])
 
       assert {:ok, consent} = Consent.new(attrs)
       assert consent.id == attrs.id

@@ -52,8 +52,13 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema do
   def changeset(schema, attrs) do
     schema
     |> cast(attrs, [
-      :parent_id, :first_name, :last_name, :date_of_birth,
-      :emergency_contact, :support_needs, :allergies
+      :parent_id,
+      :first_name,
+      :last_name,
+      :date_of_birth,
+      :emergency_contact,
+      :support_needs,
+      :allergies
     ])
     |> validate_required([:parent_id, :first_name, :last_name, :date_of_birth])
     |> validate_length(:first_name, min: 1, max: 100)
