@@ -180,6 +180,61 @@ defmodule KlassHero.IdentityTest do
     end
   end
 
+  describe "change_child/0" do
+    test "returns a valid changeset for empty attrs" do
+      changeset = Identity.change_child()
+      assert %Ecto.Changeset{} = changeset
+    end
+  end
+
+  describe "change_child/1 with attrs" do
+    test "returns changeset with provided values" do
+      changeset = Identity.change_child(%{"first_name" => "Emma", "last_name" => "Smith"})
+      assert %Ecto.Changeset{} = changeset
+      assert Ecto.Changeset.get_field(changeset, :first_name) == "Emma"
+      assert Ecto.Changeset.get_field(changeset, :last_name) == "Smith"
+    end
+  end
+
+  describe "change_child/2 with Child struct" do
+    test "returns changeset pre-filled from domain struct" do
+      child = %Child{
+        id: Ecto.UUID.generate(),
+        parent_id: Ecto.UUID.generate(),
+        first_name: "Emma",
+        last_name: "Smith",
+        date_of_birth: ~D[2015-06-15],
+        emergency_contact: nil,
+        support_needs: nil,
+        allergies: nil
+      }
+
+      changeset = Identity.change_child(child, %{})
+      assert %Ecto.Changeset{} = changeset
+      assert Ecto.Changeset.get_field(changeset, :first_name) == "Emma"
+      assert Ecto.Changeset.get_field(changeset, :last_name) == "Smith"
+      assert Ecto.Changeset.get_field(changeset, :date_of_birth) == ~D[2015-06-15]
+    end
+
+    test "returns changeset with updated attrs from domain struct" do
+      child = %Child{
+        id: Ecto.UUID.generate(),
+        parent_id: Ecto.UUID.generate(),
+        first_name: "Emma",
+        last_name: "Smith",
+        date_of_birth: ~D[2015-06-15],
+        emergency_contact: nil,
+        support_needs: nil,
+        allergies: nil
+      }
+
+      changeset = Identity.change_child(child, %{"first_name" => "Updated"})
+      assert %Ecto.Changeset{} = changeset
+      assert Ecto.Changeset.get_field(changeset, :first_name) == "Updated"
+      assert Ecto.Changeset.get_field(changeset, :last_name) == "Smith"
+    end
+  end
+
   describe "get_child_by_id/1" do
     test "retrieves existing child" do
       alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository

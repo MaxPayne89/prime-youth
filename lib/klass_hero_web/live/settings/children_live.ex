@@ -16,11 +16,14 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
       {:ok, parent} ->
         children = Identity.get_children(parent.id)
 
+        children_count = length(children)
+
         socket =
           socket
           |> assign(page_title: gettext("Children Profiles"))
           |> assign(parent_id: parent.id)
-          |> assign(children_empty?: children == [])
+          |> assign(children_count: children_count)
+          |> assign(children_empty?: children_count == 0)
           |> stream(:children, Enum.map(children, &child_view_data/1))
 
         {:ok, socket}
@@ -118,10 +121,13 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     if Identity.child_belongs_to_parent?(child_id, socket.assigns.parent_id) do
       case Identity.delete_child(child_id) do
         :ok ->
+          new_count = socket.assigns.children_count - 1
+
           {:noreply,
            socket
            |> stream_delete_by_dom_id(:children, "children-#{child_id}")
-           |> update_children_empty()
+           |> assign(children_count: new_count)
+           |> assign(children_empty?: new_count == 0)
            |> put_flash(:info, gettext("Child removed successfully."))}
 
         {:error, :not_found} ->
@@ -157,9 +163,12 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
               socket.assigns.consent_checked
             )
 
+          new_count = socket.assigns.children_count + 1
+
           {:noreply,
            socket
            |> stream_insert(:children, child_view_data(child))
+           |> assign(children_count: new_count)
            |> assign(children_empty?: false)
            |> put_flash(:info, child_saved_flash(:new, consent_result))
            |> push_patch(to: ~p"/settings/children")}
@@ -279,18 +288,14 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     })
   end
 
-  defp update_children_empty(socket) do
-    children = Identity.get_children(socket.assigns.parent_id)
-    assign(socket, children_empty?: children == [])
-  end
-
   @allowed_keys ~w(first_name last_name date_of_birth emergency_contact support_needs allergies)a
 
   defp atomize_keys(params) when is_map(params) do
-    Map.new(@allowed_keys, fn key ->
-      value = Map.get(params, to_string(key))
-      {key, coerce_value(key, value)}
-    end)
+    for key <- @allowed_keys,
+        Map.has_key?(params, to_string(key)),
+        into: %{} do
+      {key, coerce_value(key, Map.get(params, to_string(key)))}
+    end
   end
 
   # Trigger: form sends date_of_birth as ISO 8601 string
@@ -299,7 +304,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
   defp coerce_value(:date_of_birth, value) when is_binary(value) and value != "" do
     case Date.from_iso8601(value) do
       {:ok, date} -> date
-      {:error, _} -> value
+      {:error, _} -> nil
     end
   end
 

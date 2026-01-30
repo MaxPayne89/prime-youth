@@ -122,7 +122,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
         )
         |> render_submit()
 
-      assert html =~ "can" or has_element?(view, ".text-rose-600")
+      assert html =~ "can&#39;t be blank" or html =~ "can't be blank"
     end
   end
 
