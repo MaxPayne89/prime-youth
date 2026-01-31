@@ -23,6 +23,7 @@ defmodule KlassHeroWeb.BookingLive do
          :ok <- validate_program_availability(program) do
       children = get_children_for_current_user(socket)
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
+      children_by_id = Map.new(children, &{&1.id, &1})
 
       socket =
         socket
@@ -31,7 +32,8 @@ defmodule KlassHeroWeb.BookingLive do
           current_user: current_user,
           program: program,
           children: children_for_view,
-          selected_child_id: "emma",
+          children_by_id: children_by_id,
+          selected_child_id: nil,
           special_requirements: "",
           payment_method: "card",
           weekly_fee: @default_weekly_fee,
@@ -83,6 +85,19 @@ defmodule KlassHeroWeb.BookingLive do
       |> apply_fee_calculation()
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("select_child", %{"child_id" => child_id}, socket) do
+    # Trigger: parent picks a child from the dropdown
+    # Why: pre-fill special requirements from stored medical/support data
+    # Outcome: textarea shows child's known needs, parent can edit before submitting
+    child = Map.get(socket.assigns.children_by_id, child_id)
+
+    special_requirements = build_special_requirements(child)
+
+    {:noreply,
+     assign(socket, selected_child_id: child_id, special_requirements: special_requirements)}
   end
 
   @impl true
@@ -231,6 +246,15 @@ defmodule KlassHeroWeb.BookingLive do
     end
   end
 
+  defp build_special_requirements(nil), do: ""
+
+  defp build_special_requirements(child) do
+    [child.allergies, child.support_needs]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.reject(&(String.trim(&1) == ""))
+    |> Enum.join("\n")
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -324,13 +348,14 @@ defmodule KlassHeroWeb.BookingLive do
             </label>
             <select
               name="child_id"
+              phx-change="select_child"
               class={[
                 "w-full px-4 py-3 border border-hero-grey-300 focus:ring-2 focus:ring-hero-blue-500 focus:border-transparent",
                 Theme.rounded(:lg)
               ]}
             >
               <option value="">{gettext("Select a child")}</option>
-              <option :for={child <- @children} value={child.id}>
+              <option :for={child <- @children} value={child.id} selected={child.id == @selected_child_id}>
                 {gettext("%{name} (Age %{age})", name: child.name, age: child.age)}
               </option>
             </select>
@@ -365,7 +390,7 @@ defmodule KlassHeroWeb.BookingLive do
                 "w-full px-4 py-3 border border-hero-grey-300 focus:ring-2 focus:ring-hero-blue-500 focus:border-transparent resize-none",
                 Theme.rounded(:lg)
               ]}
-            ></textarea>
+            >{@special_requirements}</textarea>
             <div class="flex justify-between mt-2">
               <p class={["text-xs", Theme.text_color(:muted)]}>
                 {gettext(

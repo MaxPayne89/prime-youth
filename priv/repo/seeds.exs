@@ -12,6 +12,7 @@
 
 alias KlassHero.Accounts.User
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
+alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
@@ -39,20 +40,24 @@ Logger.info("Cleared existing participants")
 Repo.delete_all(ConversationSchema)
 Logger.info("Cleared existing conversations")
 
+Repo.delete_all(ConsentSchema)
+Logger.info("Cleared existing consents")
+
 Repo.delete_all(ChildSchema)
 Logger.info("Cleared existing children")
 
 Repo.delete_all(ParentProfileSchema)
 Logger.info("Cleared existing parent profiles")
 
+# Programs reference providers via FK, so clear programs before providers
+Repo.delete_all(ProgramSchema)
+Logger.info("Cleared existing programs")
+
 Repo.delete_all(ProviderProfileSchema)
 Logger.info("Cleared existing provider profiles")
 
 Repo.delete_all(User)
 Logger.info("Cleared existing users")
-
-Repo.delete_all(ProgramSchema)
-Logger.info("Cleared existing programs")
 
 # ==============================================================================
 # CREATE USERS
@@ -177,27 +182,27 @@ rafael_birth_date = Date.add(today, -365 * 6)
 Logger.info("Created parent profile for Max Explorer (explorer tier)")
 
 # Children for Max Explorer
-{:ok, _tj_1} =
+{:ok, tj_1} =
   %ChildSchema{}
   |> ChildSchema.changeset(%{
     parent_id: max_explorer_profile.id,
     first_name: "TJ",
     last_name: "Explorer",
     date_of_birth: tj_birth_date,
-    notes: "Loves sports and outdoor activities"
+    emergency_contact: "+49 170 111 2222"
   })
   |> Repo.insert()
 
 Logger.info("Created child: TJ Explorer (8 years old) for Max Explorer")
 
-{:ok, _rafael_1} =
+{:ok, rafael_1} =
   %ChildSchema{}
   |> ChildSchema.changeset(%{
     parent_id: max_explorer_profile.id,
     first_name: "Rafael",
     last_name: "Explorer",
     date_of_birth: rafael_birth_date,
-    notes: "Enjoys arts and crafts"
+    emergency_contact: "+49 170 111 3333"
   })
   |> Repo.insert()
 
@@ -218,31 +223,62 @@ Logger.info("Created child: Rafael Explorer (6 years old) for Max Explorer")
 Logger.info("Created parent profile for Max Active (active tier)")
 
 # Children for Max Active
-{:ok, _tj_2} =
+{:ok, tj_2} =
   %ChildSchema{}
   |> ChildSchema.changeset(%{
     parent_id: max_active_profile.id,
     first_name: "TJ",
     last_name: "Active",
     date_of_birth: tj_birth_date,
-    notes: "Loves technology and coding"
+    emergency_contact: "+49 170 444 5555"
   })
   |> Repo.insert()
 
 Logger.info("Created child: TJ Active (8 years old) for Max Active")
 
-{:ok, _rafael_2} =
+{:ok, rafael_2} =
   %ChildSchema{}
   |> ChildSchema.changeset(%{
     parent_id: max_active_profile.id,
     first_name: "Rafael",
     last_name: "Active",
     date_of_birth: rafael_birth_date,
-    notes: "Enjoys music and dance"
+    emergency_contact: "+49 170 444 6666"
   })
   |> Repo.insert()
 
 Logger.info("Created child: Rafael Active (6 years old) for Max Active")
+
+# ==============================================================================
+# CREATE CONSENT RECORDS
+# ==============================================================================
+
+Logger.info("Creating consent records...")
+
+now = DateTime.utc_now(:second)
+
+# Trigger: each child needs a provider_data_sharing consent from their parent
+# Why: data minimization requires explicit consent before sharing child data with providers
+# Outcome: providers can access child info for enrolled programs
+consent_entries = [
+  {max_explorer_profile.id, tj_1.id},
+  {max_explorer_profile.id, rafael_1.id},
+  {max_active_profile.id, tj_2.id},
+  {max_active_profile.id, rafael_2.id}
+]
+
+Enum.each(consent_entries, fn {parent_id, child_id} ->
+  %ConsentSchema{}
+  |> ConsentSchema.changeset(%{
+    parent_id: parent_id,
+    child_id: child_id,
+    consent_type: "provider_data_sharing",
+    granted_at: now
+  })
+  |> Repo.insert!()
+end)
+
+Logger.info("Created #{length(consent_entries)} consent records (provider_data_sharing)")
 
 # ==============================================================================
 # CREATE PROVIDER PROFILES
@@ -511,6 +547,7 @@ Logger.info(
 Logger.info("    - 1 admin: Klass Hero Admin")
 Logger.info("  - 2 parent profiles created with subscription tiers")
 Logger.info("  - 4 children created (2 per parent)")
+Logger.info("  - 4 consent records created (provider_data_sharing)")
 Logger.info("  - 3 provider profiles created with subscription tiers")
 
 Logger.info(
