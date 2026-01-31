@@ -51,6 +51,22 @@ defmodule KlassHero.Identity.Domain.Models.Consent do
         }
 
   @doc """
+  Reconstructs a Consent from persistence data.
+
+  Unlike `new/1`, this skips business validation since data was validated
+  on write. Uses `struct!/2` to enforce `@enforce_keys`.
+
+  Returns:
+  - `{:ok, consent}` if all required keys are present
+  - `{:error, :invalid_persistence_data}` if required keys are missing
+  """
+  def from_persistence(attrs) when is_map(attrs) do
+    {:ok, struct!(__MODULE__, attrs)}
+  rescue
+    ArgumentError -> {:error, :invalid_persistence_data}
+  end
+
+  @doc """
   Creates a new Consent with validation.
 
   Business Rules:

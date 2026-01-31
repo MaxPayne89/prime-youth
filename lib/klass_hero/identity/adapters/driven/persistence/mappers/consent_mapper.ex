@@ -12,9 +12,12 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ConsentMapper d
 
   @doc """
   Converts a ConsentSchema (from database) to a Consent domain entity.
+
+  Routes construction through the domain model's `from_persistence/1`
+  to enforce `@enforce_keys` invariants. Raises on corrupted data.
   """
   def to_domain(%ConsentSchema{} = schema) do
-    %Consent{
+    attrs = %{
       id: Ecto.UUID.cast!(schema.id),
       parent_id: Ecto.UUID.cast!(schema.parent_id),
       child_id: Ecto.UUID.cast!(schema.child_id),
@@ -24,6 +27,11 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ConsentMapper d
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
+
+    case Consent.from_persistence(attrs) do
+      {:ok, consent} -> consent
+      {:error, :invalid_persistence_data} -> raise "Corrupted consent data: #{inspect(schema.id)}"
+    end
   end
 
   @doc """

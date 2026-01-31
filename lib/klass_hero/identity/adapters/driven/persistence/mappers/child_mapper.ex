@@ -18,9 +18,12 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ChildMapper do
 
   @doc """
   Converts a ChildSchema (from database) to a Child domain entity.
+
+  Routes construction through the domain model's `from_persistence/1`
+  to enforce `@enforce_keys` invariants. Raises on corrupted data.
   """
   def to_domain(%ChildSchema{} = schema) do
-    %Child{
+    attrs = %{
       id: Ecto.UUID.cast!(schema.id),
       parent_id: Ecto.UUID.cast!(schema.parent_id),
       first_name: schema.first_name,
@@ -32,6 +35,11 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ChildMapper do
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
+
+    case Child.from_persistence(attrs) do
+      {:ok, child} -> child
+      {:error, :invalid_persistence_data} -> raise "Corrupted child data: #{inspect(schema.id)}"
+    end
   end
 
   @doc """

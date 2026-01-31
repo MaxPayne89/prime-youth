@@ -47,6 +47,8 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
   alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
 
+  require Logger
+
   @parent_repository Application.compile_env!(:klass_hero, [
                        :identity,
                        :for_storing_parent_profiles
@@ -263,8 +265,22 @@ defmodule KlassHero.Identity do
   def child_belongs_to_parent?(child_id, parent_id)
       when is_binary(child_id) and is_binary(parent_id) do
     case get_child_by_id(child_id) do
-      {:ok, child} -> child.parent_id == parent_id
-      {:error, :not_found} -> false
+      {:ok, child} ->
+        child.parent_id == parent_id
+
+      {:error, :not_found} ->
+        false
+
+      # Trigger: unexpected error from repository (e.g. database issue)
+      # Why: authorization check must fail closed — never grant access on error
+      {:error, reason} ->
+        Logger.warning("[Identity] child_belongs_to_parent? failed",
+          child_id: child_id,
+          parent_id: parent_id,
+          reason: inspect(reason)
+        )
+
+        false
     end
   end
 
@@ -306,8 +322,22 @@ defmodule KlassHero.Identity do
   def child_has_active_consent?(child_id, consent_type)
       when is_binary(child_id) and is_binary(consent_type) do
     case @consent_repository.get_active_for_child(child_id, consent_type) do
-      {:ok, _} -> true
-      {:error, :not_found} -> false
+      {:ok, _} ->
+        true
+
+      {:error, :not_found} ->
+        false
+
+      # Trigger: unexpected error from consent repository (e.g. database issue)
+      # Why: consent check must fail closed — never expose data on error
+      {:error, reason} ->
+        Logger.warning("[Identity] child_has_active_consent? failed",
+          child_id: child_id,
+          consent_type: consent_type,
+          reason: inspect(reason)
+        )
+
+        false
     end
   end
 

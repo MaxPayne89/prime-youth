@@ -93,6 +93,37 @@ defmodule KlassHero.Identity.Domain.Models.ConsentTest do
     end
   end
 
+  describe "from_persistence/1" do
+    test "reconstructs consent from valid persistence data" do
+      attrs = %{
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        parent_id: "660e8400-e29b-41d4-a716-446655440001",
+        child_id: "770e8400-e29b-41d4-a716-446655440002",
+        consent_type: "photo",
+        granted_at: ~U[2025-06-15 10:00:00Z],
+        withdrawn_at: nil,
+        inserted_at: ~U[2025-06-15 10:00:00Z],
+        updated_at: ~U[2025-06-15 10:00:00Z]
+      }
+
+      assert {:ok, consent} = Consent.from_persistence(attrs)
+      assert consent.id == attrs.id
+      assert consent.consent_type == "photo"
+    end
+
+    test "returns error when required key is missing" do
+      # Missing :granted_at which is in @enforce_keys
+      attrs = %{
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        parent_id: "660e8400-e29b-41d4-a716-446655440001",
+        child_id: "770e8400-e29b-41d4-a716-446655440002",
+        consent_type: "photo"
+      }
+
+      assert {:error, :invalid_persistence_data} = Consent.from_persistence(attrs)
+    end
+  end
+
   describe "active?/1" do
     test "returns true when withdrawn_at is nil" do
       {:ok, consent} = Consent.new(@valid_attrs)

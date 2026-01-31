@@ -3,7 +3,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
   Use case for retrieving a session with its complete roster.
 
   Returns session details along with all registered children and their
-  participation status. Child names are resolved via the Identity context.
+  participation status. Child info is resolved via the Identity context.
   """
 
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
@@ -13,7 +13,12 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
 
   @type roster_entry :: %{
           record: ParticipationRecord.t(),
-          child_name: String.t()
+          child_name: String.t(),
+          child_first_name: String.t(),
+          child_last_name: String.t(),
+          allergies: String.t() | nil,
+          support_needs: String.t() | nil,
+          emergency_contact: String.t() | nil
         }
 
   @type result ::
@@ -68,86 +73,60 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
   end
 
   defp enrich_record(record) do
-    child_name = resolve_name(record.child_id)
-    {first_name, last_name} = split_name(child_name)
-    safety_info = resolve_safety_info(record.child_id)
+    info = resolve_child_info(record.child_id)
 
     record
-    |> Map.put(:child_name, child_name)
-    |> Map.put(:child_first_name, first_name)
-    |> Map.put(:child_last_name, last_name)
-    |> Map.put(:allergies, safety_field(safety_info, :allergies))
-    |> Map.put(:support_needs, safety_field(safety_info, :support_needs))
-    |> Map.put(:emergency_contact, safety_field(safety_info, :emergency_contact))
+    |> Map.put(:child_name, "#{info.first_name} #{info.last_name}")
+    |> Map.put(:child_first_name, info.first_name)
+    |> Map.put(:child_last_name, info.last_name)
+    |> Map.put(:allergies, info.allergies)
+    |> Map.put(:support_needs, info.support_needs)
+    |> Map.put(:emergency_contact, info.emergency_contact)
   end
 
   defp build_roster_entry(%ParticipationRecord{} = record) do
-    child_name = resolve_name(record.child_id)
-    {first_name, last_name} = split_name(child_name)
-    safety_info = resolve_safety_info(record.child_id)
+    info = resolve_child_info(record.child_id)
 
     %{
       record: record,
-      child_name: child_name,
-      child_first_name: first_name,
-      child_last_name: last_name,
-      allergies: safety_field(safety_info, :allergies),
-      support_needs: safety_field(safety_info, :support_needs),
-      emergency_contact: safety_field(safety_info, :emergency_contact)
+      child_name: "#{info.first_name} #{info.last_name}",
+      child_first_name: info.first_name,
+      child_last_name: info.last_name,
+      allergies: info.allergies,
+      support_needs: info.support_needs,
+      emergency_contact: info.emergency_contact
     }
   end
 
-  defp resolve_name(child_id) do
-    case child_name_resolver().resolve_child_name(child_id) do
-      {:ok, name} ->
-        name
-
-      # Trigger: child record deleted or ID invalid
-      # Why: expected scenario — no log needed, graceful fallback
-      {:error, :child_not_found} ->
-        "Unknown Child"
-
-      {:error, reason} ->
-        Logger.warning("[Participation.GetSessionWithRoster] Failed to resolve child name",
-          child_id: child_id,
-          reason: inspect(reason)
-        )
-
-        "Unknown Child"
-    end
-  end
-
-  defp resolve_safety_info(child_id) do
-    case child_safety_info_resolver().resolve_child_safety_info(child_id) do
+  defp resolve_child_info(child_id) do
+    case child_info_resolver().resolve_child_info(child_id) do
       {:ok, info} ->
         info
 
       # Trigger: child record deleted or ID invalid
       # Why: expected scenario — no log needed, graceful fallback
       {:error, :child_not_found} ->
-        nil
+        unknown_child_info()
 
       {:error, reason} ->
-        Logger.warning("[Participation.GetSessionWithRoster] Failed to resolve child safety info",
+        Logger.warning("[Participation.GetSessionWithRoster] Failed to resolve child info",
           child_id: child_id,
           reason: inspect(reason)
         )
 
-        nil
+        unknown_child_info()
     end
   end
 
-  # Splits "FirstName LastName" into {first, last}, handling edge cases
-  defp split_name(full_name) when is_binary(full_name) do
-    case String.split(full_name, " ", parts: 2) do
-      [first, last] -> {first, last}
-      [single] -> {single, ""}
-    end
+  defp unknown_child_info do
+    %{
+      first_name: "Unknown",
+      last_name: "Child",
+      allergies: nil,
+      support_needs: nil,
+      emergency_contact: nil
+    }
   end
-
-  # Extracts a field from safety info, returning nil when info is nil (no consent)
-  defp safety_field(nil, _key), do: nil
-  defp safety_field(info, key) when is_map(info), do: Map.get(info, key)
 
   defp session_repository do
     Application.get_env(:klass_hero, :participation)[:session_repository]
@@ -157,11 +136,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
     Application.get_env(:klass_hero, :participation)[:participation_repository]
   end
 
-  defp child_name_resolver do
-    Application.get_env(:klass_hero, :participation)[:child_name_resolver]
-  end
-
-  defp child_safety_info_resolver do
-    Application.get_env(:klass_hero, :participation)[:child_safety_info_resolver]
+  defp child_info_resolver do
+    Application.get_env(:klass_hero, :participation)[:child_info_resolver]
   end
 end
