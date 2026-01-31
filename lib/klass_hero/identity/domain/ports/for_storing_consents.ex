@@ -54,4 +54,14 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringConsents do
   Returns list of consents (may be empty).
   """
   @callback list_active_by_child(binary()) :: [term()]
+
+  @doc """
+  Deletes all consent records for a given child.
+
+  Used during child deletion to satisfy FK constraints.
+
+  Returns:
+  - `{:ok, count}` - Number of consent records deleted
+  """
+  @callback delete_all_for_child(binary()) :: {:ok, non_neg_integer()}
 end

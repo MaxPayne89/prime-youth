@@ -132,6 +132,10 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
 
         {:error, :not_found} ->
           {:noreply, put_flash(socket, :error, gettext("Child not found."))}
+
+        {:error, _reason} ->
+          {:noreply,
+           put_flash(socket, :error, gettext("Could not remove child. Please try again."))}
       end
     else
       {:noreply,

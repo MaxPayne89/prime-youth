@@ -90,6 +90,16 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
     |> ConsentMapper.to_domain_list()
   end
 
+  @impl true
+  def delete_all_for_child(child_id) when is_binary(child_id) do
+    {count, _} =
+      ConsentSchema
+      |> where([c], c.child_id == ^child_id)
+      |> Repo.delete_all()
+
+    {:ok, count}
+  end
+
   defp get_schema(consent_id) do
     case Ecto.UUID.dump(consent_id) do
       {:ok, _binary} ->
