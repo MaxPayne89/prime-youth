@@ -104,7 +104,15 @@ defmodule KlassHeroWeb.ParticipationComponents do
   """
   attr :status, :atom,
     required: true,
-    values: [:scheduled, :in_progress, :completed, :checked_in, :checked_out, :absent],
+    values: [
+      :registered,
+      :scheduled,
+      :in_progress,
+      :completed,
+      :checked_in,
+      :checked_out,
+      :absent
+    ],
     doc: "Status to display"
 
   attr :size, :atom, default: :md, values: [:sm, :md, :lg], doc: "Badge size"
@@ -197,6 +205,29 @@ defmodule KlassHeroWeb.ParticipationComponents do
                   <div class="font-medium text-hero-black">
                     {record.child_first_name} {record.child_last_name}
                   </div>
+                  <%!-- Consent-gated safety info --%>
+                  <%= if Map.get(record, :allergies) || Map.get(record, :support_needs) || Map.get(record, :emergency_contact) do %>
+                    <div class="flex flex-wrap gap-1 mt-1">
+                      <span
+                        :if={Map.get(record, :allergies)}
+                        class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-orange-50 text-orange-700 rounded-full"
+                      >
+                        Allergies: {record.allergies}
+                      </span>
+                      <span
+                        :if={Map.get(record, :support_needs)}
+                        class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-full"
+                      >
+                        Support: {record.support_needs}
+                      </span>
+                      <span
+                        :if={Map.get(record, :emergency_contact)}
+                        class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-50 text-red-700 rounded-full"
+                      >
+                        Emergency: {record.emergency_contact}
+                      </span>
+                    </div>
+                  <% end %>
                   <%= if record.status == :checked_in && record.check_in_at do %>
                     <div class="text-xs text-hero-grey-500 mt-1">
                       Checked in at {format_time(record.check_in_at)}
@@ -319,6 +350,30 @@ defmodule KlassHeroWeb.ParticipationComponents do
               <div class="font-medium text-hero-black mb-1">
                 {record.child_first_name} {record.child_last_name}
               </div>
+
+              <%!-- Consent-gated safety info --%>
+              <%= if Map.get(record, :allergies) || Map.get(record, :support_needs) || Map.get(record, :emergency_contact) do %>
+                <div class="flex flex-wrap gap-1 mt-1" id={"safety-info-#{record.id}"}>
+                  <span
+                    :if={Map.get(record, :allergies)}
+                    class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-orange-50 text-orange-700 rounded-full"
+                  >
+                    Allergies: {record.allergies}
+                  </span>
+                  <span
+                    :if={Map.get(record, :support_needs)}
+                    class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-full"
+                  >
+                    Support: {record.support_needs}
+                  </span>
+                  <span
+                    :if={Map.get(record, :emergency_contact)}
+                    class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-50 text-red-700 rounded-full"
+                  >
+                    Emergency: {record.emergency_contact}
+                  </span>
+                </div>
+              <% end %>
 
               <%!-- Check-in/out times --%>
               <div class="space-y-1 text-sm text-hero-grey-600">
@@ -460,6 +515,9 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp icon_size_classes(:md), do: "w-4 h-4"
   defp icon_size_classes(:lg), do: "w-5 h-5"
 
+  defp status_color_classes(:registered),
+    do: "bg-hero-grey-50 text-hero-black-100 border border-hero-grey-300"
+
   defp status_color_classes(:scheduled),
     do: "bg-hero-grey-50 text-hero-black-100 border border-hero-grey-300"
 
@@ -477,6 +535,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp status_color_classes(:expected),
     do: "bg-yellow-100 text-yellow-700 border border-yellow-300"
 
+  defp status_icon(:registered), do: "hero-clock"
   defp status_icon(:scheduled), do: "hero-clock"
   defp status_icon(:in_progress), do: "hero-play-circle"
   defp status_icon(:completed), do: "hero-check-circle"
@@ -485,6 +544,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp status_icon(:absent), do: "hero-x-circle"
   defp status_icon(:expected), do: "hero-clock"
 
+  defp status_label(:registered), do: "Registered"
   defp status_label(:scheduled), do: "Scheduled"
   defp status_label(:in_progress), do: "In Progress"
   defp status_label(:completed), do: "Completed"

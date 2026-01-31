@@ -103,7 +103,9 @@ config :klass_hero, :participation,
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
   participation_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-  child_name_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
+  child_name_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildNameResolver,
+  child_safety_info_resolver:
+    KlassHero.Participation.Adapters.Driven.IdentityContext.ChildSafetyInfoResolver
 
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,

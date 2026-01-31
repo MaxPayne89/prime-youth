@@ -355,7 +355,11 @@ defmodule KlassHeroWeb.BookingLive do
               ]}
             >
               <option value="">{gettext("Select a child")}</option>
-              <option :for={child <- @children} value={child.id} selected={child.id == @selected_child_id}>
+              <option
+                :for={child <- @children}
+                value={child.id}
+                selected={child.id == @selected_child_id}
+              >
                 {gettext("%{name} (Age %{age})", name: child.name, age: child.age)}
               </option>
             </select>

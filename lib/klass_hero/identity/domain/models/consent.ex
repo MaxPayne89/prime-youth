@@ -20,6 +20,13 @@ defmodule KlassHero.Identity.Domain.Models.Consent do
   - `updated_at` - When the record was last updated
   """
 
+  @valid_consent_types ~w(provider_data_sharing photo medical participation)
+
+  @doc """
+  Returns the list of valid consent types.
+  """
+  def valid_consent_types, do: @valid_consent_types
+
   @enforce_keys [:id, :parent_id, :child_id, :consent_type, :granted_at]
   defstruct [
     :id,
@@ -107,10 +114,17 @@ defmodule KlassHero.Identity.Domain.Models.Consent do
   defp validate_child_id(errors, _), do: ["Child ID must be a string" | errors]
 
   defp validate_consent_type(errors, consent_type) when is_binary(consent_type) do
-    if String.trim(consent_type) == "" do
-      ["Consent type cannot be empty" | errors]
-    else
-      errors
+    trimmed = String.trim(consent_type)
+
+    cond do
+      trimmed == "" ->
+        ["Consent type cannot be empty" | errors]
+
+      trimmed not in @valid_consent_types ->
+        ["Consent type must be one of: #{Enum.join(@valid_consent_types, ", ")}" | errors]
+
+      true ->
+        errors
     end
   end
 

@@ -15,7 +15,26 @@ defmodule KlassHero.Identity.Domain.Models.ConsentTest do
     granted_at: ~U[2025-06-15 10:00:00Z]
   }
 
+  describe "valid_consent_types/0" do
+    test "returns known consent types" do
+      types = Consent.valid_consent_types()
+
+      assert is_list(types)
+      assert "provider_data_sharing" in types
+      assert "photo" in types
+      assert "medical" in types
+      assert "participation" in types
+    end
+  end
+
   describe "new/1 with valid attributes" do
+    test "accepts all valid consent types" do
+      for type <- Consent.valid_consent_types() do
+        attrs = %{@valid_attrs | consent_type: type}
+        assert {:ok, _consent} = Consent.new(attrs)
+      end
+    end
+
     test "creates consent with all fields" do
       attrs =
         Map.put(@valid_attrs, :withdrawn_at, ~U[2025-07-01 12:00:00Z])
@@ -64,6 +83,13 @@ defmodule KlassHero.Identity.Domain.Models.ConsentTest do
 
       assert {:error, errors} = Consent.new(attrs)
       assert "Granted at must be a DateTime" in errors
+    end
+
+    test "returns error when consent_type is not a known type" do
+      attrs = %{@valid_attrs | consent_type: "typo_consent"}
+
+      assert {:error, errors} = Consent.new(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "must be one of"))
     end
   end
 

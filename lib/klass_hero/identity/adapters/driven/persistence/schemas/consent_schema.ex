@@ -21,6 +21,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema d
 
   import Ecto.Changeset
 
+  alias KlassHero.Identity.Domain.Models.Consent
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @timestamps_opts [type: :utc_datetime]
@@ -51,6 +53,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema d
     |> put_change(:child_id, attrs[:child_id])
     |> validate_required([:parent_id, :child_id, :consent_type, :granted_at])
     |> validate_length(:consent_type, max: 100)
+    |> validate_inclusion(:consent_type, Consent.valid_consent_types())
     |> foreign_key_constraint(:parent_id)
     |> foreign_key_constraint(:child_id)
   end
