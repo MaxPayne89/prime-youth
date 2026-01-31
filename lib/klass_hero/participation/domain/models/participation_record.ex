@@ -176,6 +176,11 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
   def completed?(%__MODULE__{status: :checked_out}), do: true
   def completed?(%__MODULE__{}), do: false
 
+  @doc "Returns true if a behavioral note can be added to this record."
+  @spec allows_behavioral_note?(t()) :: boolean()
+  def allows_behavioral_note?(%__MODULE__{status: status}),
+    do: status in [:checked_in, :checked_out]
+
   @doc "Returns list of valid status atoms."
   @spec valid_statuses() :: [status()]
   def valid_statuses, do: @valid_statuses

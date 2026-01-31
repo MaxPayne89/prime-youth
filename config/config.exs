@@ -103,7 +103,9 @@ config :klass_hero, :participation,
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
   participation_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-  child_info_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResolver
+  child_info_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResolver,
+  behavioral_note_repository:
+    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,
@@ -209,7 +211,8 @@ config :logger, :default_formatter,
     :message_count,
     :read_at,
     :retention_days,
-    :sender_id
+    :sender_id,
+    :note_id
   ]
 
 config :opentelemetry, :resource,

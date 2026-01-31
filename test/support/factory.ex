@@ -46,8 +46,10 @@ defmodule KlassHero.Factory do
   }
 
   alias KlassHero.Messaging.Domain.Models.{Conversation, Message, Participant}
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.BehavioralNoteSchema
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
+  alias KlassHero.Participation.Domain.Models.BehavioralNote
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
@@ -620,6 +622,107 @@ defmodule KlassHero.Factory do
       check_out_notes: nil,
       check_out_by: nil
     }
+  end
+
+  # =============================================================================
+  # Behavioral Note Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating BehavioralNote domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      note = build(:behavioral_note)
+      note = build(:behavioral_note, content: "Custom observation")
+  """
+  def behavioral_note_factory do
+    %BehavioralNote{
+      id:
+        sequence(
+          :behavioral_note_id,
+          &"aa1e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      participation_record_id:
+        sequence(
+          :behavioral_note_record_id,
+          &"990e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      child_id:
+        sequence(
+          :behavioral_note_child_id,
+          &"550e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      parent_id: nil,
+      provider_id:
+        sequence(
+          :behavioral_note_provider_id,
+          &"770e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      content: "Child was very engaged and cooperative during the session",
+      status: :pending_approval,
+      rejection_reason: nil,
+      submitted_at: ~U[2025-06-01 12:00:00Z],
+      reviewed_at: nil,
+      inserted_at: ~U[2025-06-01 12:00:00Z],
+      updated_at: ~U[2025-06-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating BehavioralNoteSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a participation record when inserted.
+
+  ## Examples
+
+      schema = insert(:behavioral_note_schema)
+      schema = insert(:behavioral_note_schema, content: "Custom observation")
+  """
+  def behavioral_note_schema_factory do
+    record =
+      insert(:participation_record_schema,
+        status: :checked_in,
+        check_in_at: DateTime.utc_now(),
+        check_in_by: Ecto.UUID.generate()
+      )
+
+    %BehavioralNoteSchema{
+      id: Ecto.UUID.generate(),
+      participation_record_id: record.id,
+      child_id: record.child_id,
+      parent_id: record.parent_id,
+      provider_id: Ecto.UUID.generate(),
+      content: "Child was very engaged and cooperative during the session",
+      status: :pending_approval,
+      rejection_reason: nil,
+      submitted_at: DateTime.utc_now() |> DateTime.truncate(:second),
+      reviewed_at: nil
+    }
+  end
+
+  @doc """
+  Approved behavioral note domain entity variant.
+  """
+  def approved_behavioral_note_factory do
+    build(:behavioral_note, %{
+      status: :approved,
+      reviewed_at: ~U[2025-06-02 12:00:00Z]
+    })
+  end
+
+  @doc """
+  Rejected behavioral note domain entity variant.
+  """
+  def rejected_behavioral_note_factory do
+    build(:behavioral_note, %{
+      status: :rejected,
+      rejection_reason: "Please rephrase",
+      reviewed_at: ~U[2025-06-02 12:00:00Z]
+    })
   end
 
   @doc """

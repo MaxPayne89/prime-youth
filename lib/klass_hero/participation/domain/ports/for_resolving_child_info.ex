@@ -32,7 +32,8 @@ defmodule KlassHero.Participation.Domain.Ports.ForResolvingChildInfo do
           last_name: String.t(),
           allergies: String.t() | nil,
           support_needs: String.t() | nil,
-          emergency_contact: String.t() | nil
+          emergency_contact: String.t() | nil,
+          has_consent?: boolean()
         }
 
   @doc """

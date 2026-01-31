@@ -275,4 +275,182 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
       assert entry.emergency_contact == nil
     end
   end
+
+  describe "behavioral notes in roster" do
+    test "enriched records include approved behavioral notes when consented" do
+      parent = insert(:parent_profile_schema)
+
+      child =
+        insert(:child_schema,
+          parent_id: parent.id,
+          allergies: "Peanuts"
+        )
+
+      insert(:consent_schema,
+        parent_id: parent.id,
+        child_id: child.id,
+        consent_type: "provider_data_sharing"
+      )
+
+      session_schema = insert(:program_session_schema)
+
+      record =
+        insert(:participation_record_schema,
+          session_id: session_schema.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: :checked_in,
+          check_in_at: DateTime.utc_now(),
+          check_in_by: Ecto.UUID.generate()
+        )
+
+      insert(:behavioral_note_schema,
+        participation_record_id: record.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: :approved,
+        reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+
+      assert {:ok, session} = GetSessionWithRoster.execute_enriched(session_schema.id)
+      assert [enriched] = session.participation_records
+      assert length(enriched.behavioral_notes) == 1
+      assert hd(enriched.behavioral_notes).status == :approved
+    end
+
+    test "enriched records have empty behavioral notes when no consent" do
+      child = insert(:child_schema, allergies: "Peanuts")
+      session_schema = insert(:program_session_schema)
+
+      record =
+        insert(:participation_record_schema,
+          session_id: session_schema.id,
+          child_id: child.id,
+          status: :checked_in,
+          check_in_at: DateTime.utc_now(),
+          check_in_by: Ecto.UUID.generate()
+        )
+
+      insert(:behavioral_note_schema,
+        participation_record_id: record.id,
+        child_id: child.id,
+        status: :approved,
+        reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+
+      assert {:ok, session} = GetSessionWithRoster.execute_enriched(session_schema.id)
+      assert [enriched] = session.participation_records
+      assert enriched.behavioral_notes == []
+    end
+
+    test "roster entries include approved behavioral notes when consented" do
+      parent = insert(:parent_profile_schema)
+
+      child =
+        insert(:child_schema,
+          parent_id: parent.id,
+          allergies: "Nuts"
+        )
+
+      insert(:consent_schema,
+        parent_id: parent.id,
+        child_id: child.id,
+        consent_type: "provider_data_sharing"
+      )
+
+      session_schema = insert(:program_session_schema)
+
+      record =
+        insert(:participation_record_schema,
+          session_id: session_schema.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: :registered
+        )
+
+      insert(:behavioral_note_schema,
+        participation_record_id: record.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: :approved,
+        reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+
+      assert {:ok, result} = GetSessionWithRoster.execute(session_schema.id)
+      assert [entry] = result.roster
+      assert length(entry.behavioral_notes) == 1
+    end
+
+    test "roster entries have empty behavioral notes when no consent" do
+      child = insert(:child_schema)
+      session_schema = insert(:program_session_schema)
+
+      record =
+        insert(:participation_record_schema,
+          session_id: session_schema.id,
+          child_id: child.id,
+          status: :registered
+        )
+
+      insert(:behavioral_note_schema,
+        participation_record_id: record.id,
+        child_id: child.id,
+        status: :approved,
+        reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+
+      assert {:ok, result} = GetSessionWithRoster.execute(session_schema.id)
+      assert [entry] = result.roster
+      assert entry.behavioral_notes == []
+    end
+
+    test "only approved notes appear in enriched records (pending excluded)" do
+      parent = insert(:parent_profile_schema)
+
+      child =
+        insert(:child_schema,
+          parent_id: parent.id
+        )
+
+      insert(:consent_schema,
+        parent_id: parent.id,
+        child_id: child.id,
+        consent_type: "provider_data_sharing"
+      )
+
+      session_schema = insert(:program_session_schema)
+
+      record =
+        insert(:participation_record_schema,
+          session_id: session_schema.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: :checked_in,
+          check_in_at: DateTime.utc_now(),
+          check_in_by: Ecto.UUID.generate()
+        )
+
+      # Approved note — should appear
+      insert(:behavioral_note_schema,
+        participation_record_id: record.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: :approved,
+        reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+
+      # Pending note — should NOT appear
+      insert(:behavioral_note_schema,
+        participation_record_id: record.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: :pending_approval
+      )
+
+      assert {:ok, session} = GetSessionWithRoster.execute_enriched(session_schema.id)
+      assert [enriched] = session.participation_records
+      assert length(enriched.behavioral_notes) == 1
+      assert hd(enriched.behavioral_notes).status == :approved
+    end
+  end
 end

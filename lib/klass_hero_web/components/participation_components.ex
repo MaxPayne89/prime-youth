@@ -444,7 +444,187 @@ defmodule KlassHeroWeb.ParticipationComponents do
     """
   end
 
+  @doc """
+  Renders a behavioral note status badge.
+
+  Shows the current status of a behavioral note (pending, approved, rejected)
+  with appropriate color coding.
+
+  ## Examples
+
+      <.note_status_badge status={:pending_approval} />
+      <.note_status_badge status={:approved} />
+      <.note_status_badge status={:rejected} />
+  """
+  attr :status, :atom,
+    required: true,
+    values: [:pending_approval, :approved, :rejected],
+    doc: "Note status"
+
+  attr :id, :string, default: nil, doc: "Optional DOM id"
+
+  def note_status_badge(assigns) do
+    ~H"""
+    <span
+      id={@id}
+      class={[
+        "inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full",
+        note_status_classes(@status)
+      ]}
+    >
+      <.icon name={note_status_icon(@status)} class="w-3 h-3" />
+      {note_status_label(@status)}
+    </span>
+    """
+  end
+
+  @doc """
+  Renders an inline form for submitting a behavioral note.
+
+  ## Examples
+
+      <.behavioral_note_form
+        form={@note_forms["record-id"]}
+        record_id="record-id"
+      />
+  """
+  attr :form, Phoenix.HTML.Form, required: true, doc: "Form struct from to_form/2"
+  attr :record_id, :string, required: true, doc: "Participation record ID"
+
+  def behavioral_note_form(assigns) do
+    assigns =
+      assign(assigns,
+        entity_id: assigns.record_id,
+        id_prefix: "behavioral-note-form",
+        wrapper_id_prefix: "note-form",
+        label: "Behavioral Note",
+        placeholder: "Observation about the child's participation...",
+        submit_label: "Submit Note",
+        submit_event: "submit_note",
+        change_event: "update_note_content",
+        cancel_event: "cancel_note"
+      )
+
+    behavioral_note_inline_form(assigns)
+  end
+
+  @doc """
+  Renders an inline form for revising a rejected behavioral note.
+
+  ## Examples
+
+      <.behavioral_note_revision_form
+        form={@revision_forms["note-id"]}
+        note_id="note-id"
+      />
+  """
+  attr :form, Phoenix.HTML.Form, required: true, doc: "Form struct from to_form/2"
+  attr :note_id, :string, required: true, doc: "Behavioral note ID"
+
+  def behavioral_note_revision_form(assigns) do
+    assigns =
+      assign(assigns,
+        entity_id: assigns.note_id,
+        id_prefix: "revision-note-form",
+        wrapper_id_prefix: "revision-form",
+        label: "Revised Note",
+        placeholder: "Update your observation...",
+        submit_label: "Resubmit Note",
+        submit_event: "submit_revision",
+        change_event: "update_revision_content",
+        cancel_event: "cancel_revision"
+      )
+
+    behavioral_note_inline_form(assigns)
+  end
+
+  @doc """
+  Renders a list of approved behavioral notes for a child.
+
+  ## Examples
+
+      <.approved_notes_list notes={record.behavioral_notes} record_id={record.id} />
+  """
+  attr :notes, :list, required: true, doc: "List of approved behavioral note domain models"
+  attr :record_id, :string, required: true, doc: "Participation record ID for DOM ids"
+
+  def approved_notes_list(assigns) do
+    ~H"""
+    <%= if @notes != [] do %>
+      <div class="mt-2 space-y-1" id={"approved-notes-#{@record_id}"}>
+        <div
+          :for={note <- @notes}
+          class="text-sm text-hero-grey-600 italic bg-green-50 px-2 py-1 rounded"
+        >
+          <span class="font-medium text-green-700">Note:</span> "{note.content}"
+        </div>
+      </div>
+    <% end %>
+    """
+  end
+
   # Private components
+
+  attr :form, Phoenix.HTML.Form, required: true
+  attr :entity_id, :string, required: true
+  attr :id_prefix, :string, required: true
+  attr :wrapper_id_prefix, :string, required: true
+  attr :label, :string, required: true
+  attr :placeholder, :string, required: true
+  attr :submit_label, :string, required: true
+  attr :submit_event, :string, required: true
+  attr :change_event, :string, required: true
+  attr :cancel_event, :string, required: true
+
+  defp behavioral_note_inline_form(assigns) do
+    ~H"""
+    <div class="mt-3 border-t border-hero-grey-200 pt-3" id={"#{@wrapper_id_prefix}-#{@entity_id}"}>
+      <.form
+        for={@form}
+        id={"#{@id_prefix}-#{@entity_id}"}
+        phx-change={@change_event}
+        phx-submit={@submit_event}
+        phx-value-id={@entity_id}
+      >
+        <div class="space-y-3">
+          <.input
+            field={@form[:content]}
+            type="textarea"
+            label={@label}
+            placeholder={@placeholder}
+            rows="3"
+          />
+          <div class="flex gap-2 flex-wrap">
+            <button
+              type="submit"
+              class={[
+                "flex-1 px-3 py-1.5 bg-teal-600 text-white text-sm font-medium hover:bg-teal-700",
+                "focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
+                Theme.rounded(:md),
+                Theme.transition(:normal)
+              ]}
+            >
+              {@submit_label}
+            </button>
+            <button
+              type="button"
+              phx-click={@cancel_event}
+              phx-value-id={@entity_id}
+              class={[
+                "px-3 py-1.5 bg-white text-hero-black-100 text-sm font-medium border border-hero-grey-300",
+                "hover:bg-hero-grey-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
+                Theme.rounded(:md),
+                Theme.transition(:normal)
+              ]}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </.form>
+    </div>
+    """
+  end
 
   attr :record, :map, required: true, doc: "Enriched participation record map with safety fields"
   attr :id, :string, default: nil, doc: "Optional DOM id for the badge container"
@@ -538,4 +718,21 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp status_label(:checked_out), do: "Checked Out"
   defp status_label(:absent), do: "Absent"
   defp status_label(:expected), do: "Expected"
+
+  # Behavioral note status helpers
+
+  defp note_status_classes(:pending_approval),
+    do: "bg-yellow-50 text-yellow-700 border border-yellow-300"
+
+  defp note_status_classes(:approved), do: "bg-green-50 text-green-700 border border-green-300"
+
+  defp note_status_classes(:rejected), do: "bg-red-50 text-red-700 border border-red-300"
+
+  defp note_status_icon(:pending_approval), do: "hero-clock"
+  defp note_status_icon(:approved), do: "hero-check-circle"
+  defp note_status_icon(:rejected), do: "hero-x-circle"
+
+  defp note_status_label(:pending_approval), do: "Pending Review"
+  defp note_status_label(:approved), do: "Approved"
+  defp note_status_label(:rejected), do: "Rejected"
 end

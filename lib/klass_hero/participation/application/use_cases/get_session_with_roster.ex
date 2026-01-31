@@ -6,6 +6,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
   participation status. Child info is resolved via the Identity context.
   """
 
+  alias KlassHero.Participation.Domain.Models.BehavioralNote
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.Domain.Models.ProgramSession
 
@@ -18,7 +19,8 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
           child_last_name: String.t(),
           allergies: String.t() | nil,
           support_needs: String.t() | nil,
-          emergency_contact: String.t() | nil
+          emergency_contact: String.t() | nil,
+          behavioral_notes: [BehavioralNote.t()]
         }
 
   @type result ::
@@ -74,6 +76,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
 
   defp enrich_record(record) do
     info = resolve_child_info(record.child_id)
+    notes = resolve_behavioral_notes(record.child_id, info.has_consent?)
 
     record
     |> Map.put(:child_name, "#{info.first_name} #{info.last_name}")
@@ -82,10 +85,12 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
     |> Map.put(:allergies, info.allergies)
     |> Map.put(:support_needs, info.support_needs)
     |> Map.put(:emergency_contact, info.emergency_contact)
+    |> Map.put(:behavioral_notes, notes)
   end
 
   defp build_roster_entry(%ParticipationRecord{} = record) do
     info = resolve_child_info(record.child_id)
+    notes = resolve_behavioral_notes(record.child_id, info.has_consent?)
 
     %{
       record: record,
@@ -94,8 +99,18 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
       child_last_name: info.last_name,
       allergies: info.allergies,
       support_needs: info.support_needs,
-      emergency_contact: info.emergency_contact
+      emergency_contact: info.emergency_contact,
+      behavioral_notes: notes
     }
+  end
+
+  # Trigger: consent check determines note visibility
+  # Why: behavioral notes contain provider observations — only visible when parent consented
+  # Outcome: returns approved notes list when consented, empty list otherwise
+  defp resolve_behavioral_notes(_child_id, false = _has_consent?), do: []
+
+  defp resolve_behavioral_notes(child_id, true = _has_consent?) do
+    behavioral_note_repository().list_approved_by_child(child_id)
   end
 
   defp resolve_child_info(child_id) do
@@ -124,7 +139,8 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
       last_name: "Child",
       allergies: nil,
       support_needs: nil,
-      emergency_contact: nil
+      emergency_contact: nil,
+      has_consent?: false
     }
   end
 
@@ -138,5 +154,9 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
 
   defp child_info_resolver do
     Application.get_env(:klass_hero, :participation)[:child_info_resolver]
+  end
+
+  defp behavioral_note_repository do
+    Application.get_env(:klass_hero, :participation)[:behavioral_note_repository]
   end
 end

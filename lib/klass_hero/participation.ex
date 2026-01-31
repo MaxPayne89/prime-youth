@@ -40,14 +40,20 @@ defmodule KlassHero.Participation do
   alias KlassHero.Participation.Application.UseCases.BulkCheckIn
   alias KlassHero.Participation.Application.UseCases.CompleteSession
   alias KlassHero.Participation.Application.UseCases.CreateSession
+  alias KlassHero.Participation.Application.UseCases.GetApprovedBehavioralNotes
+  alias KlassHero.Participation.Application.UseCases.GetBehavioralNoteForRecord
   alias KlassHero.Participation.Application.UseCases.GetParticipationHistory
   alias KlassHero.Participation.Application.UseCases.GetParticipationRecord
   alias KlassHero.Participation.Application.UseCases.GetSessionWithRoster
+  alias KlassHero.Participation.Application.UseCases.ListPendingBehavioralNotes
   alias KlassHero.Participation.Application.UseCases.ListProviderSessions
   alias KlassHero.Participation.Application.UseCases.ListSessions
   alias KlassHero.Participation.Application.UseCases.RecordCheckIn
   alias KlassHero.Participation.Application.UseCases.RecordCheckOut
+  alias KlassHero.Participation.Application.UseCases.ReviewBehavioralNote
+  alias KlassHero.Participation.Application.UseCases.ReviseBehavioralNote
   alias KlassHero.Participation.Application.UseCases.StartSession
+  alias KlassHero.Participation.Application.UseCases.SubmitBehavioralNote
 
   # ============================================================================
   # Session Management
@@ -280,5 +286,111 @@ defmodule KlassHero.Participation do
   """
   def get_participation_history(params) when is_map(params) do
     GetParticipationHistory.execute(params)
+  end
+
+  # ============================================================================
+  # Behavioral Notes
+  # ============================================================================
+
+  @doc """
+  Submits a behavioral note for a participation record.
+
+  ## Parameters
+
+  - `params` - Map containing:
+    - `participation_record_id` - ID of the participation record
+    - `provider_id` - ID of the provider
+    - `content` - Note content (max 1000 chars)
+
+  ## Returns
+
+  - `{:ok, note}` on success
+  - `{:error, reason}` on failure
+  """
+  def submit_behavioral_note(params) when is_map(params) do
+    SubmitBehavioralNote.execute(params)
+  end
+
+  @doc """
+  Reviews a behavioral note (approve or reject).
+
+  ## Parameters
+
+  - `params` - Map containing:
+    - `note_id` - ID of the note
+    - `decision` - `:approve` or `:reject`
+    - `reason` - Optional rejection reason
+
+  ## Returns
+
+  - `{:ok, note}` on success
+  - `{:error, reason}` on failure
+  """
+  def review_behavioral_note(params) when is_map(params) do
+    ReviewBehavioralNote.execute(params)
+  end
+
+  @doc """
+  Revises a rejected behavioral note with new content.
+
+  ## Parameters
+
+  - `params` - Map containing:
+    - `note_id` - ID of the note
+    - `content` - New content
+
+  ## Returns
+
+  - `{:ok, note}` on success
+  - `{:error, reason}` on failure
+  """
+  def revise_behavioral_note(params) when is_map(params) do
+    ReviseBehavioralNote.execute(params)
+  end
+
+  @doc """
+  Lists pending behavioral notes for a parent.
+
+  ## Returns
+
+  `{:ok, notes}` - List of notes awaiting review.
+  """
+  def list_pending_behavioral_notes(parent_id) when is_binary(parent_id) do
+    ListPendingBehavioralNotes.execute(parent_id)
+  end
+
+  @doc """
+  Gets approved behavioral notes for a child.
+
+  ## Returns
+
+  `{:ok, notes}` - List of approved notes.
+  """
+  def get_approved_behavioral_notes(child_id) when is_binary(child_id) do
+    GetApprovedBehavioralNotes.execute(child_id)
+  end
+
+  @doc """
+  Gets a behavioral note by participation record and provider.
+
+  ## Returns
+
+  - `{:ok, note}` if found
+  - `{:error, :not_found}` if no note exists
+  """
+  def get_behavioral_note_by_record_and_provider(record_id, provider_id)
+      when is_binary(record_id) and is_binary(provider_id) do
+    GetBehavioralNoteForRecord.execute(record_id, provider_id)
+  end
+
+  @doc """
+  Lists behavioral notes for multiple participation records by a single provider.
+
+  Returns a flat list of notes. Use this instead of calling
+  `get_behavioral_note_by_record_and_provider/2` per record to avoid N+1 queries.
+  """
+  def list_behavioral_notes_by_records_and_provider(record_ids, provider_id)
+      when is_list(record_ids) and is_binary(provider_id) do
+    GetBehavioralNoteForRecord.execute_batch(record_ids, provider_id)
   end
 end

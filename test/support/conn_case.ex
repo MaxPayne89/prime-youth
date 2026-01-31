@@ -156,6 +156,23 @@ defmodule KlassHeroWeb.ConnCase do
     %{conn: log_in_user(context.conn, user), user: user, scope: scope, provider: provider}
   end
 
+  @doc """
+  Setup helper that registers and logs in users with a parent profile.
+
+      setup :register_and_log_in_parent
+
+  It stores an updated connection, registered user, and parent profile in the test context.
+  This is useful for tests that require parent-only routes.
+  """
+  def register_and_log_in_parent(%{conn: _conn} = context) do
+    user = AccountsFixtures.user_fixture(%{intended_roles: [:parent]})
+    parent = KlassHero.Factory.insert(:parent_profile_schema, identity_id: user.id)
+
+    scope = Scope.for_user(user) |> Scope.resolve_roles()
+
+    %{conn: log_in_user(context.conn, user), user: user, scope: scope, parent: parent}
+  end
+
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do

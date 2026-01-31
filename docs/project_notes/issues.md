@@ -14,6 +14,12 @@ Track completed work with ticket references. This is a quick reference, not a re
 
 <!-- Add new entries below this line, newest first -->
 
+### 2026-01-31 - #71 Step 5: Behavioral Notes (Provider-Write + Parent-Approve)
+- **Status**: Completed
+- **Description**: Implemented behavioral notes feature — providers submit observations about children, parents approve/reject via consent-gated workflow
+- **URL**: https://github.com/MaxPayne89/prime-youth/issues/71
+- **Notes**: Domain model with status lifecycle (pending_approval → approved/rejected → revised), consent-gated display in roster, provider and parent LiveView UIs with PubSub real-time updates. 19 new files, 11 modified. All 1651 tests pass.
+
 ### 2026-01-29 - #71: Data Minimization (GDPR Child Data Protection)
 - **Status**: In Progress
 - **Description**: GDPR data minimization and consent-based sharing for child data
@@ -61,7 +67,7 @@ Track completed work with ticket references. This is a quick reference, not a re
 1. [x] Consent domain model + migration in Identity context (2026-01-29) — migration `create_consents`, domain model `consent.ex`, 10 tests passing
 2. [x] Update child schema: add emergency_contact, structured note fields (support_needs, allergies), remove `notes` (2026-01-30) — also consolidated all migrations into sequential `20260129100001`–`20260129100011`
 3. [x] Child profile CRUD in settings with consent checkbox (replaces current mocks) (2026-01-31) — `settings/children_live.ex` with full CRUD, consent toggle, provider data sharing gate
-4. [ ] Provider visibility gate — check consent record before exposing optional child data
+4. [x] Provider visibility gate — check consent record before exposing optional child data (2026-01-31) — `ChildInfoResolver` gates safety fields behind consent, `safety_info_badges` component renders consent-gated data in provider roster
 5. [ ] Behavioral notes: provider-write + parent-approve workflow
 6. [ ] Privacy policy text update with required children's data protection sentence
 7. [ ] Data export includes child + consent data

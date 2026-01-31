@@ -13,20 +13,24 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingSessions do
   are handled by the supervision tree.
   """
 
+  alias KlassHero.Participation.Domain.Models.ProgramSession
+
   @doc "Creates session. Returns `{:error, :duplicate_session}` on unique violation."
-  @callback create(struct()) :: {:ok, struct()} | {:error, :duplicate_session | term()}
+  @callback create(ProgramSession.t()) ::
+              {:ok, ProgramSession.t()} | {:error, :duplicate_session | :validation_failed}
 
   @doc "Retrieves session by ID. Returns `{:error, :not_found}` if not found."
-  @callback get_by_id(binary()) :: {:ok, struct()} | {:error, :not_found}
+  @callback get_by_id(binary()) :: {:ok, ProgramSession.t()} | {:error, :not_found}
 
   @doc "Lists sessions for program, ordered by session_date, then start_time."
-  @callback list_by_program(binary()) :: [struct()]
+  @callback list_by_program(binary()) :: [ProgramSession.t()]
 
   @doc "Lists sessions for date, ordered by start_time."
-  @callback list_today_sessions(Date.t()) :: [struct()]
+  @callback list_today_sessions(Date.t()) :: [ProgramSession.t()]
 
   @doc "Updates existing session. Returns `{:error, :stale_data}` on optimistic lock conflict."
-  @callback update(struct()) :: {:ok, struct()} | {:error, :stale_data | :not_found | term()}
+  @callback update(ProgramSession.t()) ::
+              {:ok, ProgramSession.t()} | {:error, :stale_data | :not_found | :validation_failed}
 
   @doc """
   Lists sessions for a provider on a specific date, ordered by start_time.
@@ -34,8 +38,8 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingSessions do
   Note: Requires provider-program relationship in schema for full filtering.
   Currently filters by date only until schema is updated.
   """
-  @callback list_by_provider_and_date(binary(), Date.t()) :: [struct()]
+  @callback list_by_provider_and_date(binary(), Date.t()) :: [ProgramSession.t()]
 
   @doc "Retrieves multiple sessions by their IDs (batch fetch)."
-  @callback get_many_by_ids([binary()]) :: [struct()]
+  @callback get_many_by_ids([binary()]) :: [ProgramSession.t()]
 end

@@ -48,7 +48,8 @@ defmodule KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResol
           last_name: child.last_name,
           allergies: if(has_consent?, do: child.allergies),
           support_needs: if(has_consent?, do: child.support_needs),
-          emergency_contact: if(has_consent?, do: child.emergency_contact)
+          emergency_contact: if(has_consent?, do: child.emergency_contact),
+          has_consent?: has_consent?
         }
 
         {:ok, child_info}
