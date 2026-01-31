@@ -61,7 +61,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema d
   @doc """
   Changeset for withdrawing a consent record (setting withdrawn_at).
   """
-  def withdraw_changeset(schema, withdrawn_at) do
+  def withdraw_changeset(schema, %DateTime{} = withdrawn_at) do
     schema
     |> change(%{withdrawn_at: withdrawn_at})
   end

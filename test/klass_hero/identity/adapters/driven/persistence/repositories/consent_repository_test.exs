@@ -189,4 +189,66 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
       assert ConsentRepository.list_active_by_child(Ecto.UUID.generate()) == []
     end
   end
+
+  describe "delete_all_for_child/1" do
+    test "deletes all consents for child and returns count" do
+      parent = create_parent()
+      child = create_child(parent)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      {:ok, _} =
+        ConsentRepository.grant(%{
+          parent_id: parent.id,
+          child_id: child.id,
+          consent_type: "provider_data_sharing",
+          granted_at: now
+        })
+
+      {:ok, _} =
+        ConsentRepository.grant(%{
+          parent_id: parent.id,
+          child_id: child.id,
+          consent_type: "photo",
+          granted_at: now
+        })
+
+      assert {:ok, 2} = ConsentRepository.delete_all_for_child(child.id)
+
+      # Verify consents are actually gone
+      assert ConsentRepository.list_active_by_child(child.id) == []
+    end
+
+    test "returns {:ok, 0} for child with no consents" do
+      assert {:ok, 0} = ConsentRepository.delete_all_for_child(Ecto.UUID.generate())
+    end
+
+    test "only deletes specified child's consents" do
+      parent = create_parent()
+      child_a = create_child(parent)
+      child_b = create_child(parent)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      {:ok, _} =
+        ConsentRepository.grant(%{
+          parent_id: parent.id,
+          child_id: child_a.id,
+          consent_type: "provider_data_sharing",
+          granted_at: now
+        })
+
+      {:ok, _} =
+        ConsentRepository.grant(%{
+          parent_id: parent.id,
+          child_id: child_b.id,
+          consent_type: "provider_data_sharing",
+          granted_at: now
+        })
+
+      assert {:ok, 1} = ConsentRepository.delete_all_for_child(child_a.id)
+
+      # Child B's consent should remain
+      assert {:ok, %Consent{}} =
+               ConsentRepository.get_active_for_child(child_b.id, "provider_data_sharing")
+    end
+  end
 end

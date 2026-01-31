@@ -33,6 +33,8 @@ defmodule KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResol
 
   alias KlassHero.Identity
 
+  require Logger
+
   @consent_type "provider_data_sharing"
 
   @impl true
@@ -58,5 +60,13 @@ defmodule KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResol
       {:error, error} ->
         {:error, error}
     end
+  rescue
+    exception ->
+      Logger.warning("Failed to resolve child info",
+        child_id: child_id,
+        error: Exception.message(exception)
+      )
+
+      {:error, :resolution_failed}
   end
 end

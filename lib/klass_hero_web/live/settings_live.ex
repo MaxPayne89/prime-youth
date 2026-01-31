@@ -10,7 +10,7 @@ defmodule KlassHeroWeb.SettingsLive do
   @impl true
   def mount(_params, _session, socket) do
     children = IdentityHelpers.get_children_for_current_user(socket)
-    summary = children_summary(children)
+    summary = ChildPresenter.children_summary(children)
 
     socket =
       socket
@@ -23,16 +23,6 @@ defmodule KlassHeroWeb.SettingsLive do
   @impl true
   def handle_event("navigate_to", %{"section" => _section}, socket) do
     {:noreply, socket}
-  end
-
-  defp children_summary([]), do: gettext("No children yet")
-
-  defp children_summary(children) do
-    children
-    |> Enum.map_join(", ", fn child ->
-      view = ChildPresenter.to_simple_view(child)
-      "#{view.name} (#{view.age})"
-    end)
   end
 
   attr :title, :string, required: true

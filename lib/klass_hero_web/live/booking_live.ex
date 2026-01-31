@@ -250,8 +250,7 @@ defmodule KlassHeroWeb.BookingLive do
 
   defp build_special_requirements(child) do
     [child.allergies, child.support_needs]
-    |> Enum.reject(&is_nil/1)
-    |> Enum.reject(&(String.trim(&1) == ""))
+    |> Enum.reject(&(is_nil(&1) or String.trim(&1) == ""))
     |> Enum.join("\n")
   end
 

@@ -516,7 +516,7 @@ defmodule KlassHeroWeb.UserLive.Settings do
       |> assign(:trigger_submit, false)
       |> assign(:user_initials, get_user_initials(user.email))
       |> assign(:member_since, format_member_since(user.inserted_at))
-      |> assign(:children_summary, children_summary(children))
+      |> assign(:children_summary, ChildPresenter.children_summary(children))
 
     {:ok, socket}
   end
@@ -536,16 +536,6 @@ defmodule KlassHeroWeb.UserLive.Settings do
   end
 
   defp format_member_since(_), do: ""
-
-  defp children_summary([]), do: gettext("No children yet")
-
-  defp children_summary(children) do
-    children
-    |> Enum.map_join(", ", fn child ->
-      view = ChildPresenter.to_simple_view(child)
-      "#{view.name} (#{view.age})"
-    end)
-  end
 
   @impl true
   def handle_event("validate_email", params, socket) do
