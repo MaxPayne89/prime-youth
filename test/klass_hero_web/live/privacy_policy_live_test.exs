@@ -15,7 +15,7 @@ defmodule KlassHeroWeb.PrivacyPolicyLiveTest do
       {:ok, _view, html} = live(conn, ~p"/privacy")
 
       assert html =~ "Last Updated"
-      assert html =~ "December 12, 2025"
+      assert html =~ "February 1, 2026"
     end
 
     test "includes table of contents", %{conn: conn} do
@@ -113,6 +113,21 @@ defmodule KlassHeroWeb.PrivacyPolicyLiveTest do
       {:ok, view, _html} = live(conn, ~p"/privacy")
 
       assert page_title(view) =~ "Privacy Policy"
+    end
+
+    test "includes required children's data protection statement", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/privacy")
+
+      assert html =~ "data minimization"
+      assert html =~ "explicit parental consent"
+      assert html =~ "safety and participation purposes"
+    end
+
+    test "describes consent-gated provider data sharing", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/privacy")
+
+      assert html =~ "consent"
+      assert html =~ "Behavioral"
     end
   end
 end
