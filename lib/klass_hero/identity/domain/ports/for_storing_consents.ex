@@ -56,6 +56,14 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringConsents do
   @callback list_active_by_child(binary()) :: [term()]
 
   @doc """
+  Lists all consents (including withdrawn) for a given child.
+
+  Used for GDPR data export where full audit history is required.
+  Returns list of consents ordered by consent_type asc, granted_at desc.
+  """
+  @callback list_all_by_child(binary()) :: [term()]
+
+  @doc """
   Deletes all consent records for a given child.
 
   Used during child deletion to satisfy FK constraints.

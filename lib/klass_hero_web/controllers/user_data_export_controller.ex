@@ -7,10 +7,14 @@ defmodule KlassHeroWeb.UserDataExportController do
   use KlassHeroWeb, :controller
 
   alias KlassHero.Accounts
+  alias KlassHero.Identity
 
   def export(conn, _params) do
     user = conn.assigns.current_scope.user
-    data = Accounts.export_user_data(user)
+    account_data = Accounts.export_user_data(user)
+    identity_data = Identity.export_data_for_user(user.id)
+
+    data = Map.merge(account_data, identity_data)
     json_data = Jason.encode!(data, pretty: true)
 
     filename = "klass_hero_data_export_#{Date.utc_today()}.json"

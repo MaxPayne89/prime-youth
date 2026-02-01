@@ -91,6 +91,15 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
   end
 
   @impl true
+  def list_all_by_child(child_id) when is_binary(child_id) do
+    ConsentSchema
+    |> where([c], c.child_id == ^child_id)
+    |> order_by([c], asc: c.consent_type, desc: c.granted_at)
+    |> Repo.all()
+    |> ConsentMapper.to_domain_list()
+  end
+
+  @impl true
   def delete_all_for_child(child_id) when is_binary(child_id) do
     {count, _} =
       ConsentSchema

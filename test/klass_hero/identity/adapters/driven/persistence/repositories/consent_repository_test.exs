@@ -190,6 +190,85 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
     end
   end
 
+  describe "list_all_by_child/1" do
+    test "returns both active and withdrawn consents" do
+      parent = create_parent()
+      child = create_child(parent)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      {:ok, active} =
+        ConsentRepository.grant(%{
+          parent_id: parent.id,
+          child_id: child.id,
+          consent_type: "provider_data_sharing",
+          granted_at: now
+        })
+
+      {:ok, to_withdraw} =
+        ConsentRepository.grant(%{
+          parent_id: parent.id,
+          child_id: child.id,
+          consent_type: "photo",
+          granted_at: now
+        })
+
+      ConsentRepository.withdraw(to_withdraw.id)
+
+      consents = ConsentRepository.list_all_by_child(child.id)
+
+      assert length(consents) == 2
+
+      ids = Enum.map(consents, & &1.id)
+      assert active.id in ids
+      assert to_withdraw.id in ids
+    end
+
+    test "orders by consent_type asc, granted_at desc" do
+      parent = create_parent()
+      child = create_child(parent)
+      earlier = ~U[2025-01-01 12:00:00Z]
+      later = ~U[2025-06-01 12:00:00Z]
+
+      {:ok, _} =
+        ConsentRepository.grant(%{
+          parent_id: parent.id,
+          child_id: child.id,
+          consent_type: "provider_data_sharing",
+          granted_at: earlier
+        })
+
+      {:ok, _} =
+        ConsentRepository.grant(%{
+          parent_id: parent.id,
+          child_id: child.id,
+          consent_type: "photo",
+          granted_at: later
+        })
+
+      {:ok, _} =
+        ConsentRepository.grant(%{
+          parent_id: parent.id,
+          child_id: child.id,
+          consent_type: "photo",
+          granted_at: earlier
+        })
+
+      consents = ConsentRepository.list_all_by_child(child.id)
+
+      types = Enum.map(consents, & &1.consent_type)
+      # Trigger: "photo" sorts before "provider_data_sharing" alphabetically
+      assert types == ["photo", "photo", "provider_data_sharing"]
+
+      # Within "photo" type, later granted_at comes first (desc)
+      [photo1, photo2 | _] = consents
+      assert DateTime.after?(photo1.granted_at, photo2.granted_at)
+    end
+
+    test "returns empty list when child has no consents" do
+      assert ConsentRepository.list_all_by_child(Ecto.UUID.generate()) == []
+    end
+  end
+
   describe "delete_all_for_child/1" do
     test "deletes all consents for child and returns count" do
       parent = create_parent()
