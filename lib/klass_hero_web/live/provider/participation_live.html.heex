@@ -95,8 +95,16 @@
                   status={existing_note.status}
                   id={"note-badge-#{existing_note.id}"}
                 />
-                <%!-- Rejected note: show revision button --%>
+                <%!-- Rejected note: show rejection reason and revision button --%>
                 <%= if existing_note.status == :rejected do %>
+                  <%= if existing_note.rejection_reason do %>
+                    <p
+                      class="text-sm text-red-600 italic mt-1"
+                      id={"rejection-reason-#{existing_note.id}"}
+                    >
+                      "{existing_note.rejection_reason}"
+                    </p>
+                  <% end %>
                   <%= if @revision_form_expanded != to_string(existing_note.id) do %>
                     <button
                       id={"revise-note-btn-#{existing_note.id}"}
@@ -115,38 +123,34 @@
                 <% end %>
             <% end %>
           <% end %>
+        </:actions>
 
-          <%!-- Inline note form --%>
+        <:expanded_content :let={record}>
+          <%!-- Inline note form (full-width below record row) --%>
           <%= if @note_form_expanded == to_string(record.id) do %>
-            <div class="w-full">
-              <.behavioral_note_form
-                form={Map.get(@note_forms, to_string(record.id))}
-                record_id={to_string(record.id)}
-              />
-            </div>
+            <.behavioral_note_form
+              form={Map.get(@note_forms, to_string(record.id))}
+              record_id={to_string(record.id)}
+            />
           <% end %>
 
-          <%!-- Inline revision form --%>
+          <%!-- Inline revision form (full-width below record row) --%>
           <% existing_note = Map.get(@record_note_map, to_string(record.id)) %>
           <%= if existing_note && @revision_form_expanded == to_string(existing_note.id) do %>
-            <div class="w-full">
-              <.behavioral_note_revision_form
-                form={Map.get(@revision_forms, to_string(existing_note.id))}
-                note_id={to_string(existing_note.id)}
-              />
-            </div>
+            <.behavioral_note_revision_form
+              form={Map.get(@revision_forms, to_string(existing_note.id))}
+              note_id={to_string(existing_note.id)}
+            />
           <% end %>
 
           <%!-- Approved behavioral notes from past sessions (consent-gated) --%>
           <%= if Map.get(record, :behavioral_notes) do %>
-            <div class="w-full">
-              <.approved_notes_list
-                notes={Map.get(record, :behavioral_notes, [])}
-                record_id={to_string(record.id)}
-              />
-            </div>
+            <.approved_notes_list
+              notes={Map.get(record, :behavioral_notes, [])}
+              record_id={to_string(record.id)}
+            />
           <% end %>
-        </:actions>
+        </:expanded_content>
       </.roster_list>
     </div>
   <% end %>

@@ -23,6 +23,7 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNote do
 
   @type params :: %{
           required(:note_id) => String.t(),
+          required(:parent_id) => String.t(),
           required(:decision) => :approve | :reject,
           optional(:reason) => String.t()
         }
@@ -36,20 +37,24 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNote do
 
   - `params` - Map containing:
     - `note_id` - ID of the behavioral note
+    - `parent_id` - ID of the parent (ownership enforced at DB level)
     - `decision` - `:approve` or `:reject`
     - `reason` - Optional rejection reason
 
   ## Returns
 
   - `{:ok, note}` on success
-  - `{:error, :not_found}` if note doesn't exist
+  - `{:error, :not_found}` if note doesn't exist or doesn't belong to parent
   - `{:error, :invalid_status_transition}` if note not pending
   """
   @spec execute(params()) :: result()
-  def execute(%{note_id: note_id, decision: decision} = params) do
+  def execute(%{note_id: note_id, parent_id: parent_id, decision: decision} = params) do
     reason = Map.get(params, :reason)
 
-    with {:ok, note} <- behavioral_note_repository().get_by_id(note_id),
+    # Trigger: scoped query ensures note belongs to this parent
+    # Why: DB-enforced ownership — no separate authorization check needed
+    # Outcome: returns :not_found if note doesn't belong to parent
+    with {:ok, note} <- behavioral_note_repository().get_by_id_and_parent(note_id, parent_id),
          {:ok, reviewed} <- apply_decision(note, decision, reason),
          {:ok, persisted} <- behavioral_note_repository().update(reviewed) do
       log_publish_result(publish_event(persisted, decision), persisted.id)

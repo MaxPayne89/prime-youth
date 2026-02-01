@@ -295,6 +295,11 @@ defmodule KlassHeroWeb.ParticipationComponents do
     attr :record, :map
   end
 
+  slot :expanded_content,
+    doc: "Full-width content rendered below the record row (forms, notes lists)" do
+    attr :record, :map
+  end
+
   def roster_list(assigns) do
     ~H"""
     <div class={[
@@ -429,6 +434,11 @@ defmodule KlassHeroWeb.ParticipationComponents do
                 </div>
               </.form>
             </div>
+          <% end %>
+
+          <%!-- Expanded content (forms, notes lists) rendered full-width below the row --%>
+          <%= if @expanded_content != [] do %>
+            {render_slot(@expanded_content, record)}
           <% end %>
         </div>
 

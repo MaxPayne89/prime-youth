@@ -221,6 +221,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       conn: conn,
       session: session,
       record: record,
+      parent: parent,
       provider: provider
     } do
       check_in_record(%{record: record, provider: provider})
@@ -236,6 +237,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       {:ok, _rejected} =
         KlassHero.Participation.review_behavioral_note(%{
           note_id: note.id,
+          parent_id: parent.id,
           decision: :reject,
           reason: "Too vague"
         })
@@ -243,6 +245,35 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
 
       assert has_element?(view, "#revise-note-btn-#{note.id}")
+    end
+
+    test "shows rejection reason when note is rejected with reason", %{
+      conn: conn,
+      session: session,
+      record: record,
+      parent: parent,
+      provider: provider
+    } do
+      check_in_record(%{record: record, provider: provider})
+
+      {:ok, note} =
+        KlassHero.Participation.submit_behavioral_note(%{
+          participation_record_id: record.id,
+          provider_id: provider.id,
+          content: "Some observation"
+        })
+
+      {:ok, _rejected} =
+        KlassHero.Participation.review_behavioral_note(%{
+          note_id: note.id,
+          parent_id: parent.id,
+          decision: :reject,
+          reason: "Too vague, please be specific"
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      assert has_element?(view, "#rejection-reason-#{note.id}")
     end
 
     test "shows approved notes from past sessions when consented", %{
@@ -293,6 +324,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       conn: conn,
       session: session,
       record: record,
+      parent: parent,
       provider: provider
     } do
       check_in_record(%{record: record, provider: provider})
@@ -308,6 +340,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       {:ok, _rejected} =
         KlassHero.Participation.review_behavioral_note(%{
           note_id: note.id,
+          parent_id: parent.id,
           decision: :reject,
           reason: "Needs more detail"
         })

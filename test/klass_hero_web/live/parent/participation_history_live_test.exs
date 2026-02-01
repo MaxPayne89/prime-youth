@@ -47,9 +47,17 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLiveTest do
       assert has_element?(view, "#pending-note-#{note.id}")
     end
 
-    test "does not show pending notes section when no notes", %{conn: conn, note: note} do
+    test "does not show pending notes section when no notes", %{
+      conn: conn,
+      note: note,
+      parent: parent
+    } do
       # Approve the note so nothing is pending
-      KlassHero.Participation.review_behavioral_note(%{note_id: note.id, decision: :approve})
+      KlassHero.Participation.review_behavioral_note(%{
+        note_id: note.id,
+        parent_id: parent.id,
+        decision: :approve
+      })
 
       {:ok, view, _html} = live(conn, ~p"/parent/participation")
 

@@ -7,6 +7,8 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
 
   @behaviour KlassHero.Participation.Domain.Ports.ForManagingBehavioralNotes
 
+  import Ecto.Query
+
   alias KlassHero.Participation.Adapters.Driven.Persistence.Mappers.BehavioralNoteMapper
   alias KlassHero.Participation.Adapters.Driven.Persistence.Queries.BehavioralNoteQueries
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.BehavioralNoteSchema
@@ -75,6 +77,30 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
     |> BehavioralNoteQueries.by_provider(provider_id)
     |> Repo.all()
     |> Enum.map(&BehavioralNoteMapper.to_domain/1)
+  end
+
+  @impl true
+  def get_by_id_and_parent(id, parent_id) when is_binary(id) and is_binary(parent_id) do
+    BehavioralNoteQueries.base()
+    |> BehavioralNoteQueries.by_parent(parent_id)
+    |> where([note: n], n.id == ^id)
+    |> Repo.one()
+    |> case do
+      nil -> {:error, :not_found}
+      schema -> {:ok, BehavioralNoteMapper.to_domain(schema)}
+    end
+  end
+
+  @impl true
+  def get_by_id_and_provider(id, provider_id) when is_binary(id) and is_binary(provider_id) do
+    BehavioralNoteQueries.base()
+    |> BehavioralNoteQueries.by_provider(provider_id)
+    |> where([note: n], n.id == ^id)
+    |> Repo.one()
+    |> case do
+      nil -> {:error, :not_found}
+      schema -> {:ok, BehavioralNoteMapper.to_domain(schema)}
+    end
   end
 
   @impl true

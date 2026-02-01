@@ -281,7 +281,11 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
   def handle_event("submit_revision", %{"id" => note_id, "revision" => params}, socket) do
     content = Map.get(params, "content", "")
 
-    case Participation.revise_behavioral_note(%{note_id: note_id, content: content}) do
+    case Participation.revise_behavioral_note(%{
+           note_id: note_id,
+           provider_id: socket.assigns.provider_id,
+           content: content
+         }) do
       {:ok, _note} ->
         {:noreply,
          socket

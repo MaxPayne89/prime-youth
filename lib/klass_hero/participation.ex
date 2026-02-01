@@ -318,6 +318,7 @@ defmodule KlassHero.Participation do
 
   - `params` - Map containing:
     - `note_id` - ID of the note
+    - `parent_id` - ID of the parent (ownership enforced at DB level)
     - `decision` - `:approve` or `:reject`
     - `reason` - Optional rejection reason
 
@@ -337,6 +338,7 @@ defmodule KlassHero.Participation do
 
   - `params` - Map containing:
     - `note_id` - ID of the note
+    - `provider_id` - ID of the provider (ownership enforced at DB level)
     - `content` - New content
 
   ## Returns

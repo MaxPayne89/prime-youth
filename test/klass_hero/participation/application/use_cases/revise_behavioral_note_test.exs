@@ -21,6 +21,7 @@ defmodule KlassHero.Participation.Application.UseCases.ReviseBehavioralNoteTest 
       assert {:ok, note} =
                ReviseBehavioralNote.execute(%{
                  note_id: schema.id,
+                 provider_id: schema.provider_id,
                  content: "Updated observation about the child"
                })
 
@@ -33,6 +34,7 @@ defmodule KlassHero.Participation.Application.UseCases.ReviseBehavioralNoteTest 
       assert {:error, :not_found} =
                ReviseBehavioralNote.execute(%{
                  note_id: Ecto.UUID.generate(),
+                 provider_id: Ecto.UUID.generate(),
                  content: "Some content"
                })
     end
@@ -43,6 +45,7 @@ defmodule KlassHero.Participation.Application.UseCases.ReviseBehavioralNoteTest 
       assert {:error, :invalid_status_transition} =
                ReviseBehavioralNote.execute(%{
                  note_id: schema.id,
+                 provider_id: schema.provider_id,
                  content: "Updated"
                })
     end
@@ -57,6 +60,7 @@ defmodule KlassHero.Participation.Application.UseCases.ReviseBehavioralNoteTest 
       assert {:error, :invalid_status_transition} =
                ReviseBehavioralNote.execute(%{
                  note_id: schema.id,
+                 provider_id: schema.provider_id,
                  content: "Updated"
                })
     end
@@ -70,7 +74,29 @@ defmodule KlassHero.Participation.Application.UseCases.ReviseBehavioralNoteTest 
         )
 
       assert {:error, :blank_content} =
-               ReviseBehavioralNote.execute(%{note_id: schema.id, content: "  "})
+               ReviseBehavioralNote.execute(%{
+                 note_id: schema.id,
+                 provider_id: schema.provider_id,
+                 content: "  "
+               })
+    end
+
+    test "returns not_found when provider_id does not match note owner" do
+      schema =
+        insert(:behavioral_note_schema,
+          status: :rejected,
+          rejection_reason: "reason",
+          reviewed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        )
+
+      wrong_provider_id = Ecto.UUID.generate()
+
+      assert {:error, :not_found} =
+               ReviseBehavioralNote.execute(%{
+                 note_id: schema.id,
+                 provider_id: wrong_provider_id,
+                 content: "Updated observation"
+               })
     end
   end
 end

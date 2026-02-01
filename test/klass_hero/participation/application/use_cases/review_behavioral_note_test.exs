@@ -14,7 +14,11 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNoteTest 
       schema = insert(:behavioral_note_schema, status: :pending_approval)
 
       assert {:ok, note} =
-               ReviewBehavioralNote.execute(%{note_id: schema.id, decision: :approve})
+               ReviewBehavioralNote.execute(%{
+                 note_id: schema.id,
+                 parent_id: schema.parent_id,
+                 decision: :approve
+               })
 
       assert note.status == :approved
       assert note.reviewed_at != nil
@@ -24,6 +28,7 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNoteTest 
       assert {:error, :not_found} =
                ReviewBehavioralNote.execute(%{
                  note_id: Ecto.UUID.generate(),
+                 parent_id: Ecto.UUID.generate(),
                  decision: :approve
                })
     end
@@ -36,7 +41,23 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNoteTest 
         )
 
       assert {:error, :invalid_status_transition} =
-               ReviewBehavioralNote.execute(%{note_id: schema.id, decision: :approve})
+               ReviewBehavioralNote.execute(%{
+                 note_id: schema.id,
+                 parent_id: schema.parent_id,
+                 decision: :approve
+               })
+    end
+
+    test "returns not_found when parent_id does not match note owner" do
+      schema = insert(:behavioral_note_schema, status: :pending_approval)
+      wrong_parent_id = Ecto.UUID.generate()
+
+      assert {:error, :not_found} =
+               ReviewBehavioralNote.execute(%{
+                 note_id: schema.id,
+                 parent_id: wrong_parent_id,
+                 decision: :approve
+               })
     end
   end
 
@@ -47,6 +68,7 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNoteTest 
       assert {:ok, note} =
                ReviewBehavioralNote.execute(%{
                  note_id: schema.id,
+                 parent_id: schema.parent_id,
                  decision: :reject,
                  reason: "Not accurate"
                })
@@ -60,7 +82,11 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNoteTest 
       schema = insert(:behavioral_note_schema, status: :pending_approval)
 
       assert {:ok, note} =
-               ReviewBehavioralNote.execute(%{note_id: schema.id, decision: :reject})
+               ReviewBehavioralNote.execute(%{
+                 note_id: schema.id,
+                 parent_id: schema.parent_id,
+                 decision: :reject
+               })
 
       assert note.status == :rejected
       assert note.rejection_reason == nil

@@ -10,6 +10,8 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingBehavioralNotes do
   - `list_pending_by_parent/1` - Returns list of notes directly
   - `list_approved_by_child/1` - Returns list of notes directly
   - `get_by_participation_record_and_provider/2` - Returns `{:ok, note}` or `{:error, :not_found}`
+  - `get_by_id_and_parent/2` - Returns `{:ok, note}` or `{:error, :not_found}`
+  - `get_by_id_and_provider/2` - Returns `{:ok, note}` or `{:error, :not_found}`
 
   Infrastructure errors (connection, query) are not caught - they crash and
   are handled by the supervision tree.
@@ -40,4 +42,12 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingBehavioralNotes do
 
   @doc "Lists notes for multiple participation records by a single provider."
   @callback list_by_records_and_provider([binary()], binary()) :: [BehavioralNote.t()]
+
+  @doc "Gets note by ID scoped to parent. Returns `{:error, :not_found}` if note doesn't belong to parent."
+  @callback get_by_id_and_parent(binary(), binary()) ::
+              {:ok, BehavioralNote.t()} | {:error, :not_found}
+
+  @doc "Gets note by ID scoped to provider. Returns `{:error, :not_found}` if note doesn't belong to provider."
+  @callback get_by_id_and_provider(binary(), binary()) ::
+              {:ok, BehavioralNote.t()} | {:error, :not_found}
 end

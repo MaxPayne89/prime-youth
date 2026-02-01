@@ -45,7 +45,11 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
 
   @impl true
   def handle_event("approve_note", %{"id" => note_id}, socket) do
-    case Participation.review_behavioral_note(%{note_id: note_id, decision: :approve}) do
+    case Participation.review_behavioral_note(%{
+           note_id: note_id,
+           parent_id: socket.assigns.parent_id,
+           decision: :approve
+         }) do
       {:ok, _note} ->
         {:noreply,
          socket
@@ -91,6 +95,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
 
     case Participation.review_behavioral_note(%{
            note_id: note_id,
+           parent_id: socket.assigns.parent_id,
            decision: :reject,
            reason: reason
          }) do
