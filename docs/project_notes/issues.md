@@ -70,6 +70,6 @@ Track completed work with ticket references. This is a quick reference, not a re
 4. [x] Provider visibility gate — check consent record before exposing optional child data (2026-01-31) — `ChildInfoResolver` gates safety fields behind consent, `safety_info_badges` component renders consent-gated data in provider roster
 5. [x] Behavioral notes: provider-write + parent-approve workflow
 6. [x] Privacy policy text update with required children's data protection sentence
-7. [ ] Data export includes child + consent data
-8. [ ] Cascade anonymization to child + consent records on account deletion
+7. [x] Data export includes child + consent data
+8. [x] Cascade anonymization to child + consent records on account deletion
 9. [ ] Tests for all of the above

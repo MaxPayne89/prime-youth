@@ -59,4 +59,17 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringChildren do
   Returns list of children (may be empty).
   """
   @callback list_by_parent(binary()) :: [term()]
+
+  @doc """
+  Anonymizes a child record for GDPR account deletion.
+
+  Receives the anonymized attribute values from the domain model and applies
+  them mechanically. The adapter does not decide what "anonymized" means.
+
+  Returns:
+  - `{:ok, Child.t()}` - Child anonymized successfully
+  - `{:error, :not_found}` - Child ID doesn't exist
+  - `{:error, changeset}` - Update failed
+  """
+  @callback anonymize(binary(), map()) :: {:ok, term()} | {:error, :not_found | term()}
 end

@@ -98,6 +98,24 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepos
   end
 
   @impl true
+  def anonymize(child_id, anonymized_attrs)
+      when is_binary(child_id) and is_map(anonymized_attrs) do
+    case get_schema(child_id) do
+      {:ok, schema} ->
+        schema
+        |> ChildSchema.anonymize_changeset(anonymized_attrs)
+        |> Repo.update()
+        |> case do
+          {:ok, updated} -> {:ok, ChildMapper.to_domain(updated)}
+          {:error, changeset} -> {:error, changeset}
+        end
+
+      {:error, :not_found} ->
+        {:error, :not_found}
+    end
+  end
+
+  @impl true
   def list_by_parent(parent_id) when is_binary(parent_id) do
     ChildSchema
     |> where([c], c.parent_id == ^parent_id)

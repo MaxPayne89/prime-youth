@@ -37,6 +37,7 @@ defmodule KlassHero.Participation do
   - Repository implementations (adapter layer) → implement persistence
   """
 
+  alias KlassHero.Participation.Application.UseCases.AnonymizeBehavioralNotesForChild
   alias KlassHero.Participation.Application.UseCases.BulkCheckIn
   alias KlassHero.Participation.Application.UseCases.CompleteSession
   alias KlassHero.Participation.Application.UseCases.CreateSession
@@ -394,5 +395,21 @@ defmodule KlassHero.Participation do
   def list_behavioral_notes_by_records_and_provider(record_ids, provider_id)
       when is_list(record_ids) and is_binary(provider_id) do
     GetBehavioralNoteForRecord.execute_batch(record_ids, provider_id)
+  end
+
+  # ============================================================================
+  # GDPR Anonymization
+  # ============================================================================
+
+  @doc """
+  Anonymizes all behavioral notes for a child during GDPR account deletion.
+
+  Replaces note content with "[Removed - account deleted]", clears rejection
+  reasons, and sets status to :rejected. Uses bulk update_all for efficiency.
+
+  Returns `{:ok, count}` with the number of notes anonymized.
+  """
+  def anonymize_behavioral_notes_for_child(child_id) when is_binary(child_id) do
+    AnonymizeBehavioralNotesForChild.execute(child_id)
   end
 end

@@ -3,8 +3,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler do
   Consolidated event handler for Identity context.
 
   This handler listens to user-related events from the Accounts context and
-  automatically creates Parent and/or Provider profiles when users register
-  with the corresponding roles.
+  reacts accordingly:
 
   ## Subscribed Events
 
@@ -13,9 +12,14 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler do
     - "provider" in roles → creates Provider profile
     - Both roles → creates both profiles
 
+  - `:user_anonymized` - Anonymizes Identity-owned data for the user:
+    - Deletes consent records for each child
+    - Anonymizes child PII
+    - Publishes `child_data_anonymized` per child for downstream contexts
+
   ## Error Handling
 
-  Profile creation errors are handled gracefully with retry logic:
+  Operations are handled gracefully with retry logic:
   - Duplicate identity → :ok (profile already exists)
   - Transient errors → Retry once, then log error
   - All errors are logged but don't block event processing
@@ -27,7 +31,12 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler do
   alias KlassHero.Shared.Adapters.Driven.Events.RetryHelpers
 
   @impl true
-  def subscribed_events, do: [:user_registered]
+  def subscribed_events, do: [:user_registered, :user_anonymized]
+
+  @impl true
+  def handle_event(%{event_type: :user_anonymized, aggregate_id: user_id}) do
+    anonymize_identity_data_with_retry(user_id)
+  end
 
   @impl true
   def handle_event(%{event_type: :user_registered, aggregate_id: user_id, payload: payload}) do
@@ -91,6 +100,26 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler do
     }
 
     RetryHelpers.retry_with_backoff(operation, context)
+  end
+
+  defp anonymize_identity_data_with_retry(user_id) do
+    operation = fn ->
+      Identity.anonymize_data_for_user(user_id)
+    end
+
+    context = %{
+      operation_name: "anonymize identity data",
+      aggregate_id: user_id,
+      backoff_ms: 100
+    }
+
+    # Trigger: RetryHelpers passes through {:ok, result} but EventSubscriber expects bare :ok
+    # Why: handler contract (ForHandlingEvents) returns :ok | {:error, _} | :ignore
+    # Outcome: normalize {:ok, _} to :ok for the subscriber
+    case RetryHelpers.retry_with_backoff(operation, context) do
+      {:ok, _} -> :ok
+      other -> other
+    end
   end
 
   defp combine_results(results) do

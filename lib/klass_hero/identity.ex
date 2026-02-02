@@ -45,6 +45,7 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
   alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
+  alias KlassHero.Identity.EventPublisher
   alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
 
   require Logger
@@ -338,6 +339,73 @@ defmodule KlassHero.Identity do
         )
 
         false
+    end
+  end
+
+  # ============================================================================
+  # GDPR Account Anonymization
+  # ============================================================================
+
+  @doc """
+  Anonymizes all Identity-owned data for a user during GDPR account deletion.
+
+  Looks up the user's parent profile, then for each child:
+  1. Deletes all consent records
+  2. Anonymizes child PII (names, emergency contact, support needs, allergies)
+  3. Publishes `child_data_anonymized` event for downstream contexts
+
+  Parent profile itself has no PII (only identity_id, subscription_tier, timestamps)
+  so it requires no anonymization.
+
+  Downstream contexts (e.g. Participation) react to the `child_data_anonymized`
+  event to anonymize their own child-related data.
+
+  Returns:
+  - `{:ok, :no_data}` if user has no parent profile
+  - `{:ok, %{children_anonymized: count, consents_deleted: count}}`
+  """
+  def anonymize_data_for_user(identity_id) when is_binary(identity_id) do
+    case @parent_repository.get_by_identity_id(identity_id) do
+      {:ok, parent} ->
+        children = @child_repository.list_by_parent(parent.id)
+        anonymize_children_data(children)
+
+      {:error, :not_found} ->
+        {:ok, :no_data}
+    end
+  end
+
+  defp anonymize_children_data(children) do
+    anonymized_child_attrs = Child.anonymized_attrs()
+
+    result =
+      Enum.reduce_while(
+        children,
+        %{children_anonymized: 0, consents_deleted: 0},
+        fn child, acc ->
+          with {:ok, consent_count} <- @consent_repository.delete_all_for_child(child.id),
+               {:ok, _anonymized_child} <-
+                 @child_repository.anonymize(child.id, anonymized_child_attrs) do
+            # Trigger: child PII anonymized and consents deleted
+            # Why: downstream contexts own their own child data and must clean it
+            # Outcome: Participation context will anonymize behavioral notes
+            EventPublisher.publish_child_data_anonymized(child.id)
+
+            {:cont,
+             %{
+               acc
+               | children_anonymized: acc.children_anonymized + 1,
+                 consents_deleted: acc.consents_deleted + consent_count
+             }}
+          else
+            {:error, reason} -> {:halt, {:error, reason}}
+          end
+        end
+      )
+
+    case result do
+      {:error, reason} -> {:error, reason}
+      summary -> {:ok, summary}
     end
   end
 

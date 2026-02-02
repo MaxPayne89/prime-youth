@@ -118,6 +118,26 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
     end
   end
 
+  @impl true
+  def anonymize_all_for_child(child_id, anonymized_attrs)
+      when is_binary(child_id) and is_map(anonymized_attrs) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    # Build the set list from domain-provided attrs + updated_at timestamp
+    set_fields =
+      anonymized_attrs
+      |> Enum.to_list()
+      |> Keyword.new()
+      |> Keyword.put(:updated_at, now)
+
+    {count, _} =
+      BehavioralNoteSchema
+      |> where([n], n.child_id == ^child_id)
+      |> Repo.update_all(set: set_fields)
+
+    {:ok, count}
+  end
+
   defp handle_insert_result({:ok, schema}) do
     {:ok, BehavioralNoteMapper.to_domain(schema)}
   end

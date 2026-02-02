@@ -50,4 +50,14 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingBehavioralNotes do
   @doc "Gets note by ID scoped to provider. Returns `{:error, :not_found}` if note doesn't belong to provider."
   @callback get_by_id_and_provider(binary(), binary()) ::
               {:ok, BehavioralNote.t()} | {:error, :not_found}
+
+  @doc """
+  Anonymizes all behavioral notes for a child (GDPR account deletion).
+
+  Receives the anonymized attribute values from the domain model and applies
+  them mechanically. The adapter does not decide what "anonymized" means.
+
+  Returns `{:ok, count}`.
+  """
+  @callback anonymize_all_for_child(binary(), map()) :: {:ok, non_neg_integer()}
 end

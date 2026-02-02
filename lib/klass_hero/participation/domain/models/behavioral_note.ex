@@ -158,6 +158,20 @@ defmodule KlassHero.Participation.Domain.Models.BehavioralNote do
   def rejected?(%__MODULE__{status: :rejected}), do: true
   def rejected?(%__MODULE__{}), do: false
 
+  @doc """
+  Returns the canonical anonymized attribute values for GDPR account deletion.
+
+  The domain model owns the definition of what "anonymized" means for a
+  behavioral note, keeping this business decision out of persistence adapters.
+  """
+  def anonymized_attrs do
+    %{
+      content: "[Removed - account deleted]",
+      rejection_reason: nil,
+      status: :rejected
+    }
+  end
+
   defp validate_content(content) when is_binary(content) do
     trimmed = String.trim(content)
 

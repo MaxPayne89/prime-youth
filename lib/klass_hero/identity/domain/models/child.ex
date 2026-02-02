@@ -76,6 +76,22 @@ defmodule KlassHero.Identity.Domain.Models.Child do
   end
 
   @doc """
+  Returns the canonical anonymized attribute values for GDPR account deletion.
+
+  The domain model owns the definition of what "anonymized" means for a child,
+  keeping this business decision out of persistence adapters.
+  """
+  def anonymized_attrs do
+    %{
+      first_name: "Anonymized",
+      last_name: "Child",
+      emergency_contact: nil,
+      support_needs: nil,
+      allergies: nil
+    }
+  end
+
+  @doc """
   Creates a new Child with validation.
 
   Business Rules:
