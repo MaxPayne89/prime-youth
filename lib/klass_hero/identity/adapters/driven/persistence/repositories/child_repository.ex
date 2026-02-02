@@ -100,18 +100,25 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepos
   @impl true
   def anonymize(child_id, anonymized_attrs)
       when is_binary(child_id) and is_map(anonymized_attrs) do
-    case get_schema(child_id) do
-      {:ok, schema} ->
-        schema
-        |> ChildSchema.anonymize_changeset(anonymized_attrs)
-        |> Repo.update()
-        |> case do
-          {:ok, updated} -> {:ok, ChildMapper.to_domain(updated)}
-          {:error, changeset} -> {:error, changeset}
-        end
-
+    with {:ok, schema} <- get_schema(child_id),
+         {:ok, updated} <-
+           schema
+           |> ChildSchema.anonymize_changeset(anonymized_attrs)
+           |> Repo.update() do
+      {:ok, ChildMapper.to_domain(updated)}
+    else
       {:error, :not_found} ->
         {:error, :not_found}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        Logger.warning(
+          "[Identity.ChildRepository] Changeset validation failed during anonymize",
+          error_id: ErrorIds.child_validation_error(),
+          child_id: child_id,
+          errors: changeset.errors
+        )
+
+        {:error, changeset}
     end
   end
 

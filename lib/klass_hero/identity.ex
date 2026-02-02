@@ -378,35 +378,36 @@ defmodule KlassHero.Identity do
   defp anonymize_children_data(children) do
     anonymized_child_attrs = Child.anonymized_attrs()
 
-    result =
-      Enum.reduce_while(
-        children,
-        %{children_anonymized: 0, consents_deleted: 0},
-        fn child, acc ->
-          with {:ok, consent_count} <- @consent_repository.delete_all_for_child(child.id),
-               {:ok, _anonymized_child} <-
-                 @child_repository.anonymize(child.id, anonymized_child_attrs) do
-            # Trigger: child PII anonymized and consents deleted
-            # Why: downstream contexts own their own child data and must clean it
-            # Outcome: Participation context will anonymize behavioral notes
-            EventPublisher.publish_child_data_anonymized(child.id)
+    Enum.reduce_while(
+      children,
+      {:ok, %{children_anonymized: 0, consents_deleted: 0}},
+      fn child, {:ok, acc} ->
+        with {:ok, consent_count} <- @consent_repository.delete_all_for_child(child.id),
+             {:ok, _anonymized_child} <-
+               @child_repository.anonymize(child.id, anonymized_child_attrs) do
+          # Trigger: child PII anonymized and consents deleted
+          # Why: downstream contexts own their own child data and must clean it
+          # Outcome: Participation context will anonymize behavioral notes
+          EventPublisher.publish_child_data_anonymized(child.id)
 
-            {:cont,
-             %{
-               acc
-               | children_anonymized: acc.children_anonymized + 1,
-                 consents_deleted: acc.consents_deleted + consent_count
-             }}
-          else
-            {:error, reason} -> {:halt, {:error, reason}}
-          end
+          {:cont,
+           {:ok,
+            %{
+              acc
+              | children_anonymized: acc.children_anonymized + 1,
+                consents_deleted: acc.consents_deleted + consent_count
+            }}}
+        else
+          {:error, reason} ->
+            Logger.error("[Identity] anonymize_children_data failed",
+              child_id: child.id,
+              reason: inspect(reason)
+            )
+
+            {:halt, {:error, reason}}
         end
-      )
-
-    case result do
-      {:error, reason} -> {:error, reason}
-      summary -> {:ok, summary}
-    end
+      end
+    )
   end
 
   # ============================================================================
