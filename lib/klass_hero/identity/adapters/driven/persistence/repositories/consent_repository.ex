@@ -28,13 +28,20 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
       {:ok, schema} ->
         {:ok, ConsentMapper.to_domain(schema)}
 
-      {:error, changeset} ->
-        Logger.warning(
-          "[Identity.ConsentRepository] Changeset validation failed during grant",
-          errors: changeset.errors
-        )
+      {:error, %Ecto.Changeset{} = changeset} ->
+        # Trigger: unique partial index on (child_id, consent_type) WHERE withdrawn_at IS NULL
+        # Why: prevent duplicate active consents for the same child and type
+        # Outcome: return domain-specific :already_active error
+        if has_unique_constraint_error?(changeset.errors) do
+          {:error, :already_active}
+        else
+          Logger.warning(
+            "[Identity.ConsentRepository] Changeset validation failed during grant",
+            errors: changeset.errors
+          )
 
-        {:error, changeset}
+          {:error, changeset}
+        end
     end
   end
 
@@ -90,6 +97,17 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
   end
 
   @impl true
+  def list_active_for_children(child_ids, consent_type)
+      when is_list(child_ids) and is_binary(consent_type) do
+    ConsentSchema
+    |> where([c], c.child_id in ^child_ids)
+    |> where([c], c.consent_type == ^consent_type)
+    |> where([c], is_nil(c.withdrawn_at))
+    |> Repo.all()
+    |> ConsentMapper.to_domain_list()
+  end
+
+  @impl true
   def list_all_by_child(child_id) when is_binary(child_id) do
     ConsentSchema
     |> where([c], c.child_id == ^child_id)
@@ -106,6 +124,13 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
       |> Repo.delete_all()
 
     {:ok, count}
+  end
+
+  defp has_unique_constraint_error?(errors) do
+    Enum.any?(errors, fn
+      {_field, {_msg, opts}} -> Keyword.get(opts, :constraint) == :unique
+      _ -> false
+    end)
   end
 
   defp get_schema(consent_id) do

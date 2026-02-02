@@ -143,39 +143,20 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     end
   end
 
-  defp save_child(socket, :new, child_params) do
+  defp save_child(socket, mode, child_params) do
     # Trigger: validate via changeset before calling domain layer
     # Why: domain layer expects atom keys and typed values; changeset catches form errors first
     # Outcome: user sees field-level errors if validation fails
     changeset =
-      child_params
-      |> Identity.change_child()
+      build_changeset(mode, socket.assigns.child, child_params)
       |> Map.put(:action, :validate)
 
     if changeset.valid? do
-      attrs =
-        child_params
-        |> atomize_keys()
-        |> Map.put(:parent_id, socket.assigns.parent_id)
+      attrs = build_attrs(mode, child_params, socket.assigns.parent_id)
 
-      case Identity.create_child(attrs) do
+      case persist_child(mode, attrs, socket.assigns.child) do
         {:ok, child} ->
-          consent_result =
-            handle_consent_change(
-              child.id,
-              socket.assigns.parent_id,
-              socket.assigns.consent_checked
-            )
-
-          new_count = socket.assigns.children_count + 1
-
-          {:noreply,
-           socket
-           |> stream_insert(:children, child_view_data(child))
-           |> assign(children_count: new_count)
-           |> assign(children_empty?: false)
-           |> put_flash(:info, child_saved_flash(:new, consent_result))
-           |> push_patch(to: ~p"/settings/children")}
+          handle_save_success(socket, mode, child)
 
         {:error, %Ecto.Changeset{} = cs} ->
           {:noreply, assign(socket, form: to_form(cs, as: :child))}
@@ -194,47 +175,44 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     end
   end
 
-  defp save_child(socket, :edit, child_params) do
-    child = socket.assigns.child
+  defp build_changeset(:new, _child, params), do: Identity.change_child(params)
+  defp build_changeset(:edit, child, params), do: Identity.change_child(child, params)
 
-    changeset =
-      child
-      |> Identity.change_child(child_params)
-      |> Map.put(:action, :validate)
+  defp build_attrs(:new, params, parent_id) do
+    params |> atomize_keys() |> Map.put(:parent_id, parent_id)
+  end
 
-    if changeset.valid? do
-      attrs = atomize_keys(child_params)
+  defp build_attrs(:edit, params, _parent_id), do: atomize_keys(params)
 
-      case Identity.update_child(child.id, attrs) do
-        {:ok, updated_child} ->
-          consent_result =
-            handle_consent_change(
-              updated_child.id,
-              socket.assigns.parent_id,
-              socket.assigns.consent_checked
-            )
+  defp persist_child(:new, attrs, _child), do: Identity.create_child(attrs)
+  defp persist_child(:edit, attrs, child), do: Identity.update_child(child.id, attrs)
 
-          {:noreply,
-           socket
-           |> stream_insert(:children, child_view_data(updated_child))
-           |> put_flash(:info, child_saved_flash(:edit, consent_result))
-           |> push_patch(to: ~p"/settings/children")}
+  defp handle_save_success(socket, mode, child) do
+    consent_result =
+      handle_consent_change(
+        child.id,
+        socket.assigns.parent_id,
+        socket.assigns.consent_checked
+      )
 
-        {:error, %Ecto.Changeset{} = cs} ->
-          {:noreply, assign(socket, form: to_form(cs, as: :child))}
+    socket =
+      socket
+      |> stream_insert(:children, child_view_data(child))
+      |> put_flash(:info, child_saved_flash(mode, consent_result))
+      |> push_patch(to: ~p"/settings/children")
 
-        {:error, {:validation_error, _errors}} ->
-          {:noreply, put_flash(socket, :error, gettext("Please check the form for errors."))}
-
-        {:error, reason} ->
-          Logger.error("Unexpected error saving child: #{inspect(reason)}")
-
-          {:noreply,
-           put_flash(socket, :error, gettext("An unexpected error occurred. Please try again."))}
+    # Trigger: new child creation increments count; edit doesn't
+    # Why: count tracks list length for empty state display
+    # Outcome: only :new mode updates the counter
+    socket =
+      if mode == :new do
+        new_count = socket.assigns.children_count + 1
+        socket |> assign(children_count: new_count) |> assign(children_empty?: false)
+      else
+        socket
       end
-    else
-      {:noreply, assign(socket, form: to_form(changeset, as: :child))}
-    end
+
+    {:noreply, socket}
   end
 
   defp handle_consent_change(child_id, parent_id, consent_checked) do
@@ -261,6 +239,11 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
         :ok
 
       :noop ->
+        :ok
+
+      # Trigger: concurrent grant or stale UI state
+      # Why: consent already exists — idempotent, treat as success
+      {:error, :already_active} ->
         :ok
 
       {:error, reason} ->

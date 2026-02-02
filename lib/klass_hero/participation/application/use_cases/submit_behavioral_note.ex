@@ -21,7 +21,14 @@ defmodule KlassHero.Participation.Application.UseCases.SubmitBehavioralNote do
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.EventPublisher
 
-  require Logger
+  @participation_repository Application.compile_env!(:klass_hero, [
+                              :participation,
+                              :participation_repository
+                            ])
+  @behavioral_note_repository Application.compile_env!(:klass_hero, [
+                                :participation,
+                                :behavioral_note_repository
+                              ])
 
   @type params :: %{
           required(:participation_record_id) => String.t(),
@@ -57,11 +64,11 @@ defmodule KlassHero.Participation.Application.UseCases.SubmitBehavioralNote do
     normalized_content = Shared.normalize_notes(content)
 
     with {:content, content} when content != nil <- {:content, normalized_content},
-         {:ok, record} <- participation_repository().get_by_id(record_id),
+         {:ok, record} <- @participation_repository.get_by_id(record_id),
          true <- ParticipationRecord.allows_behavioral_note?(record),
          {:ok, note} <- build_note(record, provider_id, content),
-         {:ok, persisted} <- behavioral_note_repository().create(note) do
-      log_publish_result(publish_event(persisted), persisted.id)
+         {:ok, persisted} <- @behavioral_note_repository.create(note) do
+      Shared.log_publish_result(publish_event(persisted), persisted.id)
       {:ok, persisted}
     else
       # Trigger: content was blank or whitespace-only
@@ -91,22 +98,5 @@ defmodule KlassHero.Participation.Application.UseCases.SubmitBehavioralNote do
     note
     |> ParticipationEvents.behavioral_note_submitted()
     |> EventPublisher.publish()
-  end
-
-  defp log_publish_result(:ok, _note_id), do: :ok
-
-  defp log_publish_result({:error, reason}, note_id) do
-    Logger.warning("[SubmitBehavioralNote] PubSub publish failed",
-      note_id: note_id,
-      reason: inspect(reason)
-    )
-  end
-
-  defp participation_repository do
-    Application.get_env(:klass_hero, :participation)[:participation_repository]
-  end
-
-  defp behavioral_note_repository do
-    Application.get_env(:klass_hero, :participation)[:behavioral_note_repository]
   end
 end

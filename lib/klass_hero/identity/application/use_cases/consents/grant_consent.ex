@@ -31,6 +31,7 @@ defmodule KlassHero.Identity.Application.UseCases.Consents.GrantConsent do
       {:ok, persisted}
     else
       {:error, errors} when is_list(errors) -> {:error, {:validation_error, errors}}
+      {:error, :already_active} -> {:error, :already_active}
       {:error, _} = error -> error
     end
   end

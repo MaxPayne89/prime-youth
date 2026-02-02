@@ -13,7 +13,7 @@ defmodule KlassHero.Identity.Domain.Models.Consent do
   - `id` - Unique identifier for the consent record
   - `parent_id` - Reference to the parent who granted consent
   - `child_id` - Reference to the child the consent applies to
-  - `consent_type` - Type of consent (e.g. "photo", "medical", "participation")
+  - `consent_type` - Type of consent (e.g. "photo", "medical", "participation", "provider_data_sharing")
   - `granted_at` - When consent was granted
   - `withdrawn_at` - When consent was withdrawn (nil if still active)
   - `inserted_at` - When the record was created

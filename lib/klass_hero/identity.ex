@@ -237,6 +237,27 @@ defmodule KlassHero.Identity do
   end
 
   @doc """
+  Retrieves multiple children by their IDs.
+
+  Returns a list of Child domain entities for the given IDs.
+  Missing or invalid IDs are silently excluded from the result.
+  """
+  def get_children_by_ids(child_ids) when is_list(child_ids) do
+    @child_repository.list_by_ids(child_ids)
+  end
+
+  @doc """
+  Returns a MapSet of child IDs that have active consent of the given type.
+
+  Performs a single batch query instead of N individual lookups.
+  """
+  def children_with_active_consents(child_ids, consent_type)
+      when is_list(child_ids) and is_binary(consent_type) do
+    @consent_repository.list_active_for_children(child_ids, consent_type)
+    |> MapSet.new(& &1.child_id)
+  end
+
+  @doc """
   Returns a MapSet of child IDs for a given parent.
   Useful for authorization checks when processing multiple children.
   """

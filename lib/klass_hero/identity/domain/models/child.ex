@@ -85,6 +85,7 @@ defmodule KlassHero.Identity.Domain.Models.Child do
     %{
       first_name: "Anonymized",
       last_name: "Child",
+      date_of_birth: nil,
       emergency_contact: nil,
       support_needs: nil,
       allergies: nil

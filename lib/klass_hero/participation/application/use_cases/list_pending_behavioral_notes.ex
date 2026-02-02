@@ -7,6 +7,11 @@ defmodule KlassHero.Participation.Application.UseCases.ListPendingBehavioralNote
 
   alias KlassHero.Participation.Domain.Models.BehavioralNote
 
+  @behavioral_note_repository Application.compile_env!(:klass_hero, [
+                                :participation,
+                                :behavioral_note_repository
+                              ])
+
   @type result :: {:ok, [BehavioralNote.t()]}
 
   @doc """
@@ -22,11 +27,7 @@ defmodule KlassHero.Participation.Application.UseCases.ListPendingBehavioralNote
   """
   @spec execute(String.t()) :: result()
   def execute(parent_id) when is_binary(parent_id) do
-    notes = behavioral_note_repository().list_pending_by_parent(parent_id)
+    notes = @behavioral_note_repository.list_pending_by_parent(parent_id)
     {:ok, notes}
-  end
-
-  defp behavioral_note_repository do
-    Application.get_env(:klass_hero, :participation)[:behavioral_note_repository]
   end
 end

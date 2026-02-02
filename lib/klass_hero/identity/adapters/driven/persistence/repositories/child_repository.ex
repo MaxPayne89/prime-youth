@@ -123,6 +123,14 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepos
   end
 
   @impl true
+  def list_by_ids(child_ids) when is_list(child_ids) do
+    ChildSchema
+    |> where([c], c.id in ^child_ids)
+    |> Repo.all()
+    |> ChildMapper.to_domain_list()
+  end
+
+  @impl true
   def list_by_parent(parent_id) when is_binary(parent_id) do
     ChildSchema
     |> where([c], c.parent_id == ^parent_id)

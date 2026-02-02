@@ -17,14 +17,18 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringConsents do
   are handled by the supervision tree.
   """
 
+  alias KlassHero.Identity.Domain.Models.Consent
+
   @doc """
   Grants a new consent record.
 
   Returns:
   - `{:ok, Consent.t()}` - Consent granted successfully
+  - `{:error, :already_active}` - Active consent already exists for this child+type
   - `{:error, changeset}` - Validation failed
   """
-  @callback grant(map()) :: {:ok, term()} | {:error, term()}
+  @callback grant(map()) ::
+              {:ok, Consent.t()} | {:error, :already_active} | {:error, Ecto.Changeset.t()}
 
   @doc """
   Withdraws a consent record by persisting the given withdrawn_at timestamp.
@@ -38,7 +42,7 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringConsents do
   - `{:error, changeset}` - Update failed
   """
   @callback withdraw(binary(), DateTime.t()) ::
-              {:ok, term()} | {:error, :not_found} | {:error, term()}
+              {:ok, Consent.t()} | {:error, :not_found} | {:error, Ecto.Changeset.t()}
 
   @doc """
   Retrieves the active consent for a child and consent type.
@@ -50,14 +54,22 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringConsents do
   - `{:error, :not_found}` - No active consent exists
   """
   @callback get_active_for_child(binary(), String.t()) ::
-              {:ok, term()} | {:error, :not_found}
+              {:ok, Consent.t()} | {:error, :not_found}
 
   @doc """
   Lists all active consents for a given child.
 
   Returns list of consents (may be empty).
   """
-  @callback list_active_by_child(binary()) :: [term()]
+  @callback list_active_by_child(binary()) :: [Consent.t()]
+
+  @doc """
+  Lists active consents of a specific type for multiple children.
+
+  Returns list of consents where child_id is in the given list and consent_type matches.
+  Used for batch consent checking across multiple children.
+  """
+  @callback list_active_for_children([binary()], String.t()) :: [Consent.t()]
 
   @doc """
   Lists all consents (including withdrawn) for a given child.
@@ -65,7 +77,7 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringConsents do
   Used for GDPR data export where full audit history is required.
   Returns list of consents ordered by consent_type asc, granted_at desc.
   """
-  @callback list_all_by_child(binary()) :: [term()]
+  @callback list_all_by_child(binary()) :: [Consent.t()]
 
   @doc """
   Deletes all consent records for a given child.

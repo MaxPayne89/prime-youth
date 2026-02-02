@@ -86,24 +86,21 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
 
   @impl true
   def handle_event("expand_checkout_form", %{"id" => record_id}, socket) do
-    form = to_form(%{"notes" => ""}, as: "checkout")
-
-    socket =
-      socket
-      |> assign(:checkout_form_expanded, record_id)
-      |> assign(:checkout_forms, Map.put(socket.assigns.checkout_forms, record_id, form))
-
-    {:noreply, socket}
+    {:noreply,
+     expand_form(
+       socket,
+       record_id,
+       "checkout",
+       "notes",
+       "",
+       :checkout_form_expanded,
+       :checkout_forms
+     )}
   end
 
   @impl true
   def handle_event("cancel_checkout", %{"id" => record_id}, socket) do
-    socket =
-      socket
-      |> assign(:checkout_form_expanded, nil)
-      |> assign(:checkout_forms, Map.delete(socket.assigns.checkout_forms, record_id))
-
-    {:noreply, socket}
+    {:noreply, cancel_form(socket, record_id, :checkout_form_expanded, :checkout_forms)}
   end
 
   @impl true
@@ -112,12 +109,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
         %{"id" => record_id, "checkout" => %{"notes" => notes}},
         socket
       ) do
-    current_forms = socket.assigns.checkout_forms
-    updated_form = to_form(%{"notes" => notes}, as: "checkout")
-
-    socket = assign(socket, :checkout_forms, Map.put(current_forms, record_id, updated_form))
-
-    {:noreply, socket}
+    {:noreply, update_form(socket, record_id, notes, "checkout", "notes", :checkout_forms)}
   end
 
   @impl true
@@ -165,24 +157,13 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
 
   @impl true
   def handle_event("expand_note_form", %{"id" => record_id}, socket) do
-    form = to_form(%{"content" => ""}, as: "note")
-
-    socket =
-      socket
-      |> assign(:note_form_expanded, record_id)
-      |> assign(:note_forms, Map.put(socket.assigns.note_forms, record_id, form))
-
-    {:noreply, socket}
+    {:noreply,
+     expand_form(socket, record_id, "note", "content", "", :note_form_expanded, :note_forms)}
   end
 
   @impl true
   def handle_event("cancel_note", %{"id" => record_id}, socket) do
-    socket =
-      socket
-      |> assign(:note_form_expanded, nil)
-      |> assign(:note_forms, Map.delete(socket.assigns.note_forms, record_id))
-
-    {:noreply, socket}
+    {:noreply, cancel_form(socket, record_id, :note_form_expanded, :note_forms)}
   end
 
   @impl true
@@ -191,12 +172,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
         %{"id" => record_id, "note" => %{"content" => content}},
         socket
       ) do
-    updated_form = to_form(%{"content" => content}, as: "note")
-
-    socket =
-      assign(socket, :note_forms, Map.put(socket.assigns.note_forms, record_id, updated_form))
-
-    {:noreply, socket}
+    {:noreply, update_form(socket, record_id, content, "note", "content", :note_forms)}
   end
 
   @impl true
@@ -238,25 +214,23 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
   @impl true
   def handle_event("expand_revision_form", %{"id" => note_id}, socket) do
     existing_note = Map.get(socket.assigns.provider_notes, note_id)
-    content = if existing_note, do: existing_note.content, else: ""
-    form = to_form(%{"content" => content}, as: "revision")
+    initial = if existing_note, do: existing_note.content, else: ""
 
-    socket =
-      socket
-      |> assign(:revision_form_expanded, note_id)
-      |> assign(:revision_forms, Map.put(socket.assigns.revision_forms, note_id, form))
-
-    {:noreply, socket}
+    {:noreply,
+     expand_form(
+       socket,
+       note_id,
+       "revision",
+       "content",
+       initial,
+       :revision_form_expanded,
+       :revision_forms
+     )}
   end
 
   @impl true
   def handle_event("cancel_revision", %{"id" => note_id}, socket) do
-    socket =
-      socket
-      |> assign(:revision_form_expanded, nil)
-      |> assign(:revision_forms, Map.delete(socket.assigns.revision_forms, note_id))
-
-    {:noreply, socket}
+    {:noreply, cancel_form(socket, note_id, :revision_form_expanded, :revision_forms)}
   end
 
   @impl true
@@ -265,16 +239,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
         %{"id" => note_id, "revision" => %{"content" => content}},
         socket
       ) do
-    updated_form = to_form(%{"content" => content}, as: "revision")
-
-    socket =
-      assign(
-        socket,
-        :revision_forms,
-        Map.put(socket.assigns.revision_forms, note_id, updated_form)
-      )
-
-    {:noreply, socket}
+    {:noreply, update_form(socket, note_id, content, "revision", "content", :revision_forms)}
   end
 
   @impl true
@@ -333,6 +298,27 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
              :behavioral_note_rejected
            ] do
     {:noreply, load_session_data(socket)}
+  end
+
+  # Form lifecycle helpers — parameterized expand/cancel/update for all form types
+
+  defp expand_form(socket, id, form_name, field, initial_value, expanded_key, forms_key) do
+    form = to_form(%{field => initial_value}, as: form_name)
+
+    socket
+    |> assign(expanded_key, id)
+    |> assign(forms_key, Map.put(Map.get(socket.assigns, forms_key), id, form))
+  end
+
+  defp cancel_form(socket, id, expanded_key, forms_key) do
+    socket
+    |> assign(expanded_key, nil)
+    |> assign(forms_key, Map.delete(Map.get(socket.assigns, forms_key), id))
+  end
+
+  defp update_form(socket, id, value, form_name, field, forms_key) do
+    updated_form = to_form(%{field => value}, as: form_name)
+    assign(socket, forms_key, Map.put(Map.get(socket.assigns, forms_key), id, updated_form))
   end
 
   # Private helper functions

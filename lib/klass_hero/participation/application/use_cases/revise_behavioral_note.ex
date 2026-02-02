@@ -18,7 +18,10 @@ defmodule KlassHero.Participation.Application.UseCases.ReviseBehavioralNote do
   alias KlassHero.Participation.Domain.Models.BehavioralNote
   alias KlassHero.Participation.EventPublisher
 
-  require Logger
+  @behavioral_note_repository Application.compile_env!(:klass_hero, [
+                                :participation,
+                                :behavioral_note_repository
+                              ])
 
   @type params :: %{
           required(:note_id) => String.t(),
@@ -53,10 +56,10 @@ defmodule KlassHero.Participation.Application.UseCases.ReviseBehavioralNote do
     # Why: DB-enforced ownership — no separate authorization check needed
     # Outcome: returns :not_found if note doesn't belong to provider
     with {:content, content} when content != nil <- {:content, normalized_content},
-         {:ok, note} <- behavioral_note_repository().get_by_id_and_provider(note_id, provider_id),
+         {:ok, note} <- @behavioral_note_repository.get_by_id_and_provider(note_id, provider_id),
          {:ok, revised} <- BehavioralNote.revise(note, content),
-         {:ok, persisted} <- behavioral_note_repository().update(revised) do
-      log_publish_result(publish_event(persisted), persisted.id)
+         {:ok, persisted} <- @behavioral_note_repository.update(revised) do
+      Shared.log_publish_result(publish_event(persisted), persisted.id)
       {:ok, persisted}
     else
       {:content, nil} -> {:error, :blank_content}
@@ -68,18 +71,5 @@ defmodule KlassHero.Participation.Application.UseCases.ReviseBehavioralNote do
     note
     |> ParticipationEvents.behavioral_note_submitted()
     |> EventPublisher.publish()
-  end
-
-  defp log_publish_result(:ok, _note_id), do: :ok
-
-  defp log_publish_result({:error, reason}, note_id) do
-    Logger.warning("[ReviseBehavioralNote] PubSub publish failed",
-      note_id: note_id,
-      reason: inspect(reason)
-    )
-  end
-
-  defp behavioral_note_repository do
-    Application.get_env(:klass_hero, :participation)[:behavioral_note_repository]
   end
 end

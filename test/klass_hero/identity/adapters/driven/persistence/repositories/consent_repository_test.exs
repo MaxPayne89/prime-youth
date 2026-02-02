@@ -234,6 +234,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
       child = create_child(parent)
       earlier = ~U[2025-01-01 12:00:00Z]
       later = ~U[2025-06-01 12:00:00Z]
+      withdrawn_at = ~U[2025-03-01 12:00:00Z]
 
       {:ok, _} =
         ConsentRepository.grant(%{
@@ -243,20 +244,23 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
           granted_at: earlier
         })
 
-      {:ok, _} =
+      # Grant first photo consent, then withdraw it to allow a second
+      {:ok, first_photo} =
         ConsentRepository.grant(%{
           parent_id: parent.id,
           child_id: child.id,
           consent_type: "photo",
-          granted_at: later
+          granted_at: earlier
         })
+
+      {:ok, _} = ConsentRepository.withdraw(first_photo.id, withdrawn_at)
 
       {:ok, _} =
         ConsentRepository.grant(%{
           parent_id: parent.id,
           child_id: child.id,
           consent_type: "photo",
-          granted_at: earlier
+          granted_at: later
         })
 
       consents = ConsentRepository.list_all_by_child(child.id)

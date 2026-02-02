@@ -41,23 +41,14 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler do
   @impl true
   def handle_event(%{event_type: :user_registered, aggregate_id: user_id, payload: payload}) do
     intended_roles = Map.get(payload, :intended_roles, [])
+    business_name = Map.get(payload, :name, "")
 
-    results = []
+    role_actions = [
+      {"parent", fn -> create_parent_profile_with_retry(user_id) end},
+      {"provider", fn -> create_provider_profile_with_retry(user_id, business_name) end}
+    ]
 
-    results =
-      if "parent" in intended_roles do
-        [create_parent_profile_with_retry(user_id) | results]
-      else
-        results
-      end
-
-    results =
-      if "provider" in intended_roles do
-        business_name = Map.get(payload, :name, "")
-        [create_provider_profile_with_retry(user_id, business_name) | results]
-      else
-        results
-      end
+    results = for {role, action} <- role_actions, role in intended_roles, do: action.()
 
     case results do
       [] -> :ignore

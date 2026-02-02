@@ -9,6 +9,11 @@ defmodule KlassHero.Participation.Application.UseCases.AnonymizeBehavioralNotesF
 
   alias KlassHero.Participation.Domain.Models.BehavioralNote
 
+  @behavioral_note_repository Application.compile_env!(:klass_hero, [
+                                :participation,
+                                :behavioral_note_repository
+                              ])
+
   @type result :: {:ok, non_neg_integer()}
 
   @doc """
@@ -24,13 +29,9 @@ defmodule KlassHero.Participation.Application.UseCases.AnonymizeBehavioralNotesF
   """
   @spec execute(String.t()) :: result()
   def execute(child_id) when is_binary(child_id) do
-    behavioral_note_repository().anonymize_all_for_child(
+    @behavioral_note_repository.anonymize_all_for_child(
       child_id,
       BehavioralNote.anonymized_attrs()
     )
-  end
-
-  defp behavioral_note_repository do
-    Application.get_env(:klass_hero, :participation)[:behavioral_note_repository]
   end
 end

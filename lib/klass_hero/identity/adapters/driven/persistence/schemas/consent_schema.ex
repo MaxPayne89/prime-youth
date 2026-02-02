@@ -56,6 +56,10 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema d
     |> validate_inclusion(:consent_type, Consent.valid_consent_types())
     |> foreign_key_constraint(:parent_id)
     |> foreign_key_constraint(:child_id)
+    |> unique_constraint(:consent_type,
+      name: :consents_active_child_consent_type_index,
+      message: "already has an active consent of this type"
+    )
   end
 
   @doc """

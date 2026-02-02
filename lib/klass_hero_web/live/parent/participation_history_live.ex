@@ -258,15 +258,17 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
     child_info =
       Map.get(child_names_map, record.child_id, %{first_name: "Unknown", last_name: "Child"})
 
-    record
-    |> Map.put(:child_first_name, child_info.first_name)
-    |> Map.put(:child_last_name, child_info.last_name)
-    # Trigger: struct doesn't declare these fields
-    # Why: template uses dot access (record.program_name) which raises KeyError on structs
-    # Outcome: adds keys with nil default so template renders safely
-    |> Map.put(:program_name, Map.get(record, :program_name))
-    |> Map.put(:session_date, Map.get(record, :session_date))
-    |> Map.put(:session_start_time, Map.get(record, :session_start_time))
+    # Trigger: record is a struct — Map.put on structs bypasses struct enforcement
+    # Why: convert to plain map so presentation fields can be safely merged
+    # Outcome: template gets a flat map with all struct fields + enrichment keys
+    Map.from_struct(record)
+    |> Map.merge(%{
+      child_first_name: child_info.first_name,
+      child_last_name: child_info.last_name,
+      program_name: Map.get(record, :program_name),
+      session_date: Map.get(record, :session_date),
+      session_start_time: Map.get(record, :session_start_time)
+    })
   end
 
   # Template helper functions

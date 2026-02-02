@@ -18,6 +18,11 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckIn do
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.EventPublisher
 
+  @participation_repository Application.compile_env!(:klass_hero, [
+                              :participation,
+                              :participation_repository
+                            ])
+
   @type params :: %{
           required(:record_id) => String.t(),
           required(:checked_in_by) => String.t(),
@@ -46,9 +51,9 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckIn do
   def execute(%{record_id: record_id, checked_in_by: checked_in_by} = params) do
     notes = params |> Map.get(:notes) |> Shared.normalize_notes()
 
-    with {:ok, record} <- participation_repository().get_by_id(record_id),
+    with {:ok, record} <- @participation_repository.get_by_id(record_id),
          {:ok, checked_in} <- ParticipationRecord.check_in(record, checked_in_by, notes),
-         {:ok, persisted} <- participation_repository().update(checked_in) do
+         {:ok, persisted} <- @participation_repository.update(checked_in) do
       publish_event(persisted)
       {:ok, persisted}
     end
@@ -58,9 +63,5 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckIn do
     record
     |> ParticipationEvents.child_checked_in()
     |> EventPublisher.publish()
-  end
-
-  defp participation_repository do
-    Application.get_env(:klass_hero, :participation)[:participation_repository]
   end
 end

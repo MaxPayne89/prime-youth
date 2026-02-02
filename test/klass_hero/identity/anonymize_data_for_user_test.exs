@@ -46,7 +46,7 @@ defmodule KlassHero.Identity.AnonymizeDataForUserTest do
       assert is_nil(reloaded.allergies)
     end
 
-    test "preserves date_of_birth and parent_id after anonymization" do
+    test "anonymizes date_of_birth and preserves parent_id after anonymization" do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
 
@@ -59,7 +59,7 @@ defmodule KlassHero.Identity.AnonymizeDataForUserTest do
       {:ok, _summary} = Identity.anonymize_data_for_user(user.id)
 
       reloaded = Repo.get!(ChildSchema, child.id)
-      assert reloaded.date_of_birth == ~D[2018-03-15]
+      assert is_nil(reloaded.date_of_birth)
       assert reloaded.parent_id == parent.id
     end
 

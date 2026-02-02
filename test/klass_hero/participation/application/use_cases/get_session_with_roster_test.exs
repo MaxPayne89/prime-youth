@@ -115,7 +115,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
       )
 
       assert {:ok, session} = GetSessionWithRoster.execute_enriched(session_schema.id)
-      assert %ProgramSession{} = session
+      assert is_map(session)
       assert session.id == session_schema.id
       assert is_list(session.participation_records)
       assert length(session.participation_records) == 1

@@ -15,6 +15,8 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
   alias KlassHero.Participation.Domain.Models.BehavioralNote
   alias KlassHero.Repo
 
+  require Logger
+
   @impl true
   def create(%BehavioralNote{} = note) do
     attrs = BehavioralNoteMapper.to_persistence(note)
@@ -67,6 +69,17 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
     |> BehavioralNoteQueries.order_by_submitted_desc()
     |> Repo.all()
     |> Enum.map(&BehavioralNoteMapper.to_domain/1)
+  end
+
+  @impl true
+  def list_approved_by_children(child_ids) when is_list(child_ids) do
+    BehavioralNoteQueries.base()
+    |> BehavioralNoteQueries.approved()
+    |> where([note: n], n.child_id in ^child_ids)
+    |> BehavioralNoteQueries.order_by_submitted_desc()
+    |> Repo.all()
+    |> Enum.map(&BehavioralNoteMapper.to_domain/1)
+    |> Enum.group_by(& &1.child_id)
   end
 
   @impl true
@@ -146,13 +159,17 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
     {:ok, BehavioralNoteMapper.to_domain(schema)}
   end
 
-  defp handle_insert_result({:error, %Ecto.Changeset{errors: errors}}) do
+  defp handle_insert_result({:error, %Ecto.Changeset{errors: errors} = changeset}) do
     # Trigger: unique constraint violation on [participation_record_id, provider_id]
     # Why: one note per provider per participation record
     # Outcome: return domain-specific error atom
     if has_unique_constraint_error?(errors) do
       {:error, :duplicate_note}
     else
+      Logger.warning("[BehavioralNoteRepository] Validation failed on insert",
+        errors: inspect(changeset.errors)
+      )
+
       {:error, :validation_failed}
     end
   end
@@ -161,7 +178,11 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
     {:ok, BehavioralNoteMapper.to_domain(schema)}
   end
 
-  defp handle_update_result({:error, %Ecto.Changeset{}}) do
+  defp handle_update_result({:error, %Ecto.Changeset{} = changeset}) do
+    Logger.warning("[BehavioralNoteRepository] Validation failed on update",
+      errors: inspect(changeset.errors)
+    )
+
     {:error, :validation_failed}
   end
 

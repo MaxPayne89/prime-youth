@@ -57,6 +57,22 @@ defmodule KlassHero.Participation.Domain.Models.BehavioralNote do
   @max_content_length 1000
 
   @doc """
+  Reconstructs a BehavioralNote from persistence data.
+
+  Skips business validation since data was validated on write.
+  Uses `struct!/2` to enforce `@enforce_keys`.
+
+  Returns:
+  - `{:ok, note}` if all required keys are present
+  - `{:error, :invalid_persistence_data}` if required keys are missing
+  """
+  def from_persistence(attrs) when is_map(attrs) do
+    {:ok, struct!(__MODULE__, attrs)}
+  rescue
+    ArgumentError -> {:error, :invalid_persistence_data}
+  end
+
+  @doc """
   Creates a new behavioral note in pending_approval status.
 
   Content must be non-blank and at most #{@max_content_length} characters.
@@ -168,6 +184,10 @@ defmodule KlassHero.Participation.Domain.Models.BehavioralNote do
     %{
       content: "[Removed - account deleted]",
       rejection_reason: nil,
+      # Trigger: account deletion / GDPR anonymization
+      # Why: rejected status ensures anonymized notes are excluded from active/visible
+      #   views and cannot be re-surfaced through approval workflows
+      # Outcome: note becomes permanently inert in the system
       status: :rejected
     }
   end

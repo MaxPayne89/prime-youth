@@ -5,6 +5,11 @@ defmodule KlassHero.Participation.Application.UseCases.GetParticipationRecord do
 
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
+  @participation_repository Application.compile_env!(:klass_hero, [
+                              :participation,
+                              :participation_repository
+                            ])
+
   @type result :: {:ok, ParticipationRecord.t()} | {:error, :not_found}
 
   @doc """
@@ -21,10 +26,6 @@ defmodule KlassHero.Participation.Application.UseCases.GetParticipationRecord do
   """
   @spec execute(String.t()) :: result()
   def execute(record_id) when is_binary(record_id) do
-    participation_repository().get_by_id(record_id)
-  end
-
-  defp participation_repository do
-    Application.get_env(:klass_hero, :participation)[:participation_repository]
+    @participation_repository.get_by_id(record_id)
   end
 end

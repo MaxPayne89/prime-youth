@@ -152,6 +152,26 @@ defmodule KlassHero.Identity.Domain.Models.ChildTest do
     end
   end
 
+  describe "anonymized_attrs/0" do
+    test "includes date_of_birth as nil" do
+      attrs = Child.anonymized_attrs()
+
+      assert Map.has_key?(attrs, :date_of_birth)
+      assert attrs.date_of_birth == nil
+    end
+
+    test "includes all PII fields" do
+      attrs = Child.anonymized_attrs()
+
+      assert attrs.first_name == "Anonymized"
+      assert attrs.last_name == "Child"
+      assert attrs.date_of_birth == nil
+      assert attrs.emergency_contact == nil
+      assert attrs.support_needs == nil
+      assert attrs.allergies == nil
+    end
+  end
+
   describe "valid?/1" do
     test "returns true for valid child" do
       {:ok, child} =

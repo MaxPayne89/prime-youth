@@ -15,11 +15,15 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNote do
   - `behavioral_note_rejected` on rejection
   """
 
+  alias KlassHero.Participation.Application.UseCases.Shared
   alias KlassHero.Participation.Domain.Events.ParticipationEvents
   alias KlassHero.Participation.Domain.Models.BehavioralNote
   alias KlassHero.Participation.EventPublisher
 
-  require Logger
+  @behavioral_note_repository Application.compile_env!(:klass_hero, [
+                                :participation,
+                                :behavioral_note_repository
+                              ])
 
   @type params :: %{
           required(:note_id) => String.t(),
@@ -54,10 +58,10 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNote do
     # Trigger: scoped query ensures note belongs to this parent
     # Why: DB-enforced ownership — no separate authorization check needed
     # Outcome: returns :not_found if note doesn't belong to parent
-    with {:ok, note} <- behavioral_note_repository().get_by_id_and_parent(note_id, parent_id),
+    with {:ok, note} <- @behavioral_note_repository.get_by_id_and_parent(note_id, parent_id),
          {:ok, reviewed} <- apply_decision(note, decision, reason),
-         {:ok, persisted} <- behavioral_note_repository().update(reviewed) do
-      log_publish_result(publish_event(persisted, decision), persisted.id)
+         {:ok, persisted} <- @behavioral_note_repository.update(reviewed) do
+      Shared.log_publish_result(publish_event(persisted, decision), persisted.id)
       {:ok, persisted}
     end
   end
@@ -76,18 +80,5 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNote do
     note
     |> ParticipationEvents.behavioral_note_rejected()
     |> EventPublisher.publish()
-  end
-
-  defp log_publish_result(:ok, _note_id), do: :ok
-
-  defp log_publish_result({:error, reason}, note_id) do
-    Logger.warning("[ReviewBehavioralNote] PubSub publish failed",
-      note_id: note_id,
-      reason: inspect(reason)
-    )
-  end
-
-  defp behavioral_note_repository do
-    Application.get_env(:klass_hero, :participation)[:behavioral_note_repository]
   end
 end

@@ -11,7 +11,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Mappers.Behavioral
   @doc "Converts a BehavioralNoteSchema to a BehavioralNote domain model."
   @spec to_domain(BehavioralNoteSchema.t()) :: BehavioralNote.t()
   def to_domain(%BehavioralNoteSchema{} = schema) do
-    %BehavioralNote{
+    attrs = %{
       id: schema.id,
       participation_record_id: schema.participation_record_id,
       child_id: schema.child_id,
@@ -25,6 +25,14 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Mappers.Behavioral
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
+
+    case BehavioralNote.from_persistence(attrs) do
+      {:ok, note} ->
+        note
+
+      {:error, :invalid_persistence_data} ->
+        raise "Corrupted behavioral note data: #{inspect(schema.id)}"
+    end
   end
 
   @doc "Converts a BehavioralNote domain model to attributes for persistence."
@@ -42,8 +50,6 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Mappers.Behavioral
       submitted_at: note.submitted_at,
       reviewed_at: note.reviewed_at
     }
-    |> Enum.reject(fn {_k, v} -> is_nil(v) end)
-    |> Map.new()
   end
 
   @doc "Updates a schema struct with domain model values for update operations."

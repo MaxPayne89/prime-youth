@@ -45,4 +45,12 @@ defmodule KlassHero.Participation.Domain.Ports.ForResolvingChildInfo do
   """
   @callback resolve_child_info(binary()) ::
               {:ok, child_info()} | {:error, :child_not_found | term()}
+
+  @doc """
+  Batch-resolves child info for multiple children in a single round-trip.
+
+  Returns a map of `child_id => child_info()`. Children not found are excluded
+  from the result map.
+  """
+  @callback resolve_children_info([binary()]) :: %{binary() => child_info()}
 end

@@ -7,6 +7,8 @@ defmodule KlassHero.Participation.Application.UseCases.ListProviderSessions do
 
   alias KlassHero.Participation.Domain.Models.ProgramSession
 
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+
   @type params :: %{
           required(:provider_id) => String.t(),
           optional(:date) => Date.t()
@@ -30,11 +32,7 @@ defmodule KlassHero.Participation.Application.UseCases.ListProviderSessions do
   @spec execute(params()) :: result()
   def execute(%{provider_id: provider_id} = params) do
     date = Map.get(params, :date, Date.utc_today())
-    sessions = session_repository().list_by_provider_and_date(provider_id, date)
+    sessions = @session_repository.list_by_provider_and_date(provider_id, date)
     {:ok, sessions}
-  end
-
-  defp session_repository do
-    Application.get_env(:klass_hero, :participation)[:session_repository]
   end
 end

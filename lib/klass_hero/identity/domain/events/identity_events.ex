@@ -57,7 +57,10 @@ defmodule KlassHero.Identity.Domain.Events.IdentityEvents do
       :child_data_anonymized,
       child_id,
       @aggregate_type,
-      Map.merge(base_payload, payload),
+      # Trigger: caller may pass a conflicting :child_id in payload
+      # Why: base_payload contains the canonical child_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
       opts
     )
   end

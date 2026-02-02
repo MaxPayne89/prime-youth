@@ -36,6 +36,9 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingBehavioralNotes do
   @doc "Lists approved behavioral notes for a child, ordered by submitted_at desc."
   @callback list_approved_by_child(binary()) :: [BehavioralNote.t()]
 
+  @doc "Batch-lists approved behavioral notes for multiple children, grouped by child_id."
+  @callback list_approved_by_children([binary()]) :: %{binary() => [BehavioralNote.t()]}
+
   @doc "Gets note by participation record and provider. Returns `{:error, :not_found}` if not found."
   @callback get_by_participation_record_and_provider(binary(), binary()) ::
               {:ok, BehavioralNote.t()} | {:error, :not_found}

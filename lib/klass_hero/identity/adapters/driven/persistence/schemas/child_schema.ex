@@ -43,8 +43,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema do
   Changeset for anonymizing a child record during GDPR account deletion.
 
   Receives pre-defined anonymized values from the domain model and applies
-  them mechanically. Preserves `date_of_birth` and `parent_id` for
-  referential integrity with participation records.
+  them mechanically. Preserves `parent_id` for referential integrity with
+  participation records.
   """
   def anonymize_changeset(%__MODULE__{} = child, anonymized_attrs)
       when is_map(anonymized_attrs) do

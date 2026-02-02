@@ -8,6 +8,11 @@ defmodule KlassHero.Participation.Application.UseCases.GetApprovedBehavioralNote
 
   alias KlassHero.Participation.Domain.Models.BehavioralNote
 
+  @behavioral_note_repository Application.compile_env!(:klass_hero, [
+                                :participation,
+                                :behavioral_note_repository
+                              ])
+
   @type result :: {:ok, [BehavioralNote.t()]}
 
   @doc """
@@ -23,11 +28,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetApprovedBehavioralNote
   """
   @spec execute(String.t()) :: result()
   def execute(child_id) when is_binary(child_id) do
-    notes = behavioral_note_repository().list_approved_by_child(child_id)
+    notes = @behavioral_note_repository.list_approved_by_child(child_id)
     {:ok, notes}
-  end
-
-  defp behavioral_note_repository do
-    Application.get_env(:klass_hero, :participation)[:behavioral_note_repository]
   end
 end

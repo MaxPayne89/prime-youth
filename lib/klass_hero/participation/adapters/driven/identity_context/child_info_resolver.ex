@@ -33,8 +33,6 @@ defmodule KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResol
 
   alias KlassHero.Identity
 
-  require Logger
-
   @consent_type "provider_data_sharing"
 
   @impl true
@@ -61,13 +59,26 @@ defmodule KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResol
       {:error, error} ->
         {:error, error}
     end
-  rescue
-    exception ->
-      Logger.warning("Failed to resolve child info",
-        child_id: child_id,
-        error: Exception.message(exception)
-      )
+  end
 
-      {:error, :resolution_failed}
+  @impl true
+  def resolve_children_info(child_ids) when is_list(child_ids) do
+    children = Identity.get_children_by_ids(child_ids)
+    consented_ids = Identity.children_with_active_consents(child_ids, @consent_type)
+
+    Map.new(children, fn child ->
+      has_consent? = MapSet.member?(consented_ids, child.id)
+
+      info = %{
+        first_name: child.first_name,
+        last_name: child.last_name,
+        allergies: if(has_consent?, do: child.allergies),
+        support_needs: if(has_consent?, do: child.support_needs),
+        emergency_contact: if(has_consent?, do: child.emergency_contact),
+        has_consent?: has_consent?
+      }
+
+      {child.id, info}
+    end)
   end
 end
