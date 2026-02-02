@@ -124,8 +124,12 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     # Build the set list from domain-provided attrs + updated_at timestamp
+    # Trigger: :status is an Ecto.Enum field on BehavioralNoteSchema
+    # Why: update_all bypasses Ecto.Enum casting, sending raw atoms to PostgreSQL
+    # Outcome: convert :status atom to string so PostgreSQL receives a valid value
     set_fields =
       anonymized_attrs
+      |> convert_enum_fields()
       |> Enum.to_list()
       |> Keyword.new()
       |> Keyword.put(:updated_at, now)
@@ -165,6 +169,13 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
     Enum.any?(errors, fn
       {_field, {_msg, opts}} -> Keyword.get(opts, :constraint) == :unique
       _ -> false
+    end)
+  end
+
+  defp convert_enum_fields(attrs) do
+    Map.update(attrs, :status, nil, fn
+      value when is_atom(value) and not is_nil(value) -> to_string(value)
+      value -> value
     end)
   end
 end

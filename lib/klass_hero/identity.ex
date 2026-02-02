@@ -35,7 +35,7 @@ defmodule KlassHero.Identity do
   - Repository implementations (adapter layer) → implement persistence
   """
 
-  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
+  alias KlassHero.Identity.Application.UseCases.Children.ChangeChild
   alias KlassHero.Identity.Application.UseCases.Children.CreateChild
   alias KlassHero.Identity.Application.UseCases.Children.DeleteChild
   alias KlassHero.Identity.Application.UseCases.Children.UpdateChild
@@ -220,11 +220,11 @@ defmodule KlassHero.Identity do
   def change_child(attrs \\ %{})
 
   def change_child(attrs) when is_map(attrs) and not is_struct(attrs) do
-    ChildSchema.form_changeset(%ChildSchema{}, attrs)
+    ChangeChild.execute(attrs)
   end
 
   def change_child(%Child{} = child) do
-    child |> child_to_schema() |> ChildSchema.form_changeset(%{})
+    ChangeChild.execute(child)
   end
 
   @doc """
@@ -233,20 +233,7 @@ defmodule KlassHero.Identity do
   Accepts a `%Child{}` domain struct and form attributes.
   """
   def change_child(%Child{} = child, attrs) when is_map(attrs) do
-    child |> child_to_schema() |> ChildSchema.form_changeset(attrs)
-  end
-
-  defp child_to_schema(%Child{} = child) do
-    %ChildSchema{
-      id: child.id,
-      parent_id: child.parent_id,
-      first_name: child.first_name,
-      last_name: child.last_name,
-      date_of_birth: child.date_of_birth,
-      emergency_contact: child.emergency_contact,
-      support_needs: child.support_needs,
-      allergies: child.allergies
-    }
+    ChangeChild.execute(child, attrs)
   end
 
   @doc """

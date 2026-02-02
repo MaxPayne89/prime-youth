@@ -54,8 +54,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
     end
   end
 
-  describe "withdraw/1" do
-    test "withdraws consent by setting withdrawn_at" do
+  describe "withdraw/2" do
+    test "withdraws consent by persisting the given withdrawn_at timestamp" do
       parent = create_parent()
       child = create_child(parent)
 
@@ -67,17 +67,23 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
           granted_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
 
-      assert {:ok, %Consent{} = withdrawn} = ConsentRepository.withdraw(granted.id)
-      assert %DateTime{} = withdrawn.withdrawn_at
+      withdrawn_at = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      assert {:ok, %Consent{} = withdrawn} =
+               ConsentRepository.withdraw(granted.id, withdrawn_at)
+
+      assert withdrawn.withdrawn_at == withdrawn_at
       assert withdrawn.id == granted.id
     end
 
     test "returns :not_found for non-existent consent" do
-      assert {:error, :not_found} = ConsentRepository.withdraw(Ecto.UUID.generate())
+      withdrawn_at = DateTime.utc_now() |> DateTime.truncate(:second)
+      assert {:error, :not_found} = ConsentRepository.withdraw(Ecto.UUID.generate(), withdrawn_at)
     end
 
     test "returns :not_found for invalid UUID" do
-      assert {:error, :not_found} = ConsentRepository.withdraw("invalid-uuid")
+      withdrawn_at = DateTime.utc_now() |> DateTime.truncate(:second)
+      assert {:error, :not_found} = ConsentRepository.withdraw("invalid-uuid", withdrawn_at)
     end
   end
 
@@ -112,7 +118,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
           granted_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
 
-      ConsentRepository.withdraw(granted.id)
+      ConsentRepository.withdraw(granted.id, DateTime.utc_now() |> DateTime.truncate(:second))
 
       assert {:error, :not_found} =
                ConsentRepository.get_active_for_child(child.id, "provider_data_sharing")
@@ -177,7 +183,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
           granted_at: now
         })
 
-      ConsentRepository.withdraw(to_withdraw.id)
+      ConsentRepository.withdraw(to_withdraw.id, DateTime.utc_now() |> DateTime.truncate(:second))
 
       consents = ConsentRepository.list_active_by_child(child.id)
 
@@ -212,7 +218,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
           granted_at: now
         })
 
-      ConsentRepository.withdraw(to_withdraw.id)
+      ConsentRepository.withdraw(to_withdraw.id, DateTime.utc_now() |> DateTime.truncate(:second))
 
       consents = ConsentRepository.list_all_by_child(child.id)
 

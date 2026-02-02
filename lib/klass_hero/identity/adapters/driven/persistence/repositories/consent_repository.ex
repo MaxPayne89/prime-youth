@@ -39,11 +39,10 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRep
   end
 
   @impl true
-  def withdraw(consent_id) when is_binary(consent_id) do
+  def withdraw(consent_id, %DateTime{} = withdrawn_at) when is_binary(consent_id) do
     case get_schema(consent_id) do
       {:ok, schema} ->
-        now = DateTime.utc_now() |> DateTime.truncate(:second)
-        changeset = ConsentSchema.withdraw_changeset(schema, now)
+        changeset = ConsentSchema.withdraw_changeset(schema, withdrawn_at)
 
         case Repo.update(changeset) do
           {:ok, updated} ->

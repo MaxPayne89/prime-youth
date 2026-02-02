@@ -8,7 +8,9 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
   import KlassHero.Factory
 
   alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.BehavioralNoteSchema
   alias KlassHero.Participation.Domain.Models.BehavioralNote
+  alias KlassHero.Repo
 
   describe "create/1" do
     test "creates a behavioral note" do
@@ -242,6 +244,31 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
                BehavioralNoteRepository.get_by_participation_record_and_provider(
                  Ecto.UUID.generate(),
                  Ecto.UUID.generate()
+               )
+    end
+  end
+
+  describe "anonymize_all_for_child/2" do
+    test "anonymizes notes and stores enum status as string in PostgreSQL" do
+      schema = insert(:behavioral_note_schema, status: :approved)
+
+      anonymized_attrs = BehavioralNote.anonymized_attrs()
+
+      assert {:ok, 1} =
+               BehavioralNoteRepository.anonymize_all_for_child(schema.child_id, anonymized_attrs)
+
+      # Query raw schema to confirm PostgreSQL accepted the enum string value
+      updated = Repo.get!(BehavioralNoteSchema, schema.id)
+      assert updated.status == :rejected
+      assert updated.content == "[Removed - account deleted]"
+      assert is_nil(updated.rejection_reason)
+    end
+
+    test "returns zero count when no notes exist for child" do
+      assert {:ok, 0} =
+               BehavioralNoteRepository.anonymize_all_for_child(
+                 Ecto.UUID.generate(),
+                 BehavioralNote.anonymized_attrs()
                )
     end
   end

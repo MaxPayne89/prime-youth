@@ -6,8 +6,7 @@ defmodule KlassHero.Identity.Application.UseCases.Children.DeleteChild do
   then deletes the child itself within a transaction.
   """
 
-  alias KlassHero.Repo
-
+  @repo Application.compile_env!(:klass_hero, [:identity, :repo])
   @child_repo Application.compile_env!(:klass_hero, [:identity, :for_storing_children])
   @consent_repo Application.compile_env!(:klass_hero, [:identity, :for_storing_consents])
 
@@ -17,17 +16,21 @@ defmodule KlassHero.Identity.Application.UseCases.Children.DeleteChild do
   Returns:
   - `:ok` on success
   - `{:error, :not_found}` if child doesn't exist
+  - `{:error, {:consent_deletion_failed, reason}}` if consent cleanup fails
   """
   def execute(child_id) when is_binary(child_id) do
     # Trigger: child deletion requested
     # Why: consents FK constraint is RESTRICT, so consents must be deleted first
     # Outcome: both consents and child are removed atomically
-    Repo.transaction(fn ->
-      @consent_repo.delete_all_for_child(child_id)
+    @repo.transaction(fn ->
+      # Trigger: consents have FK RESTRICT constraint on child_id
+      # Why: must delete consents before the child or PostgreSQL rejects the delete
+      # Outcome: consent records removed, child deletion can proceed
+      {:ok, _count} = @consent_repo.delete_all_for_child(child_id)
 
       case @child_repo.delete(child_id) do
         :ok -> :ok
-        {:error, reason} -> Repo.rollback(reason)
+        {:error, reason} -> @repo.rollback(reason)
       end
     end)
     |> case do

@@ -101,6 +101,21 @@ defmodule KlassHero.Identity.Domain.Models.Consent do
   def active?(%__MODULE__{withdrawn_at: nil}), do: true
   def active?(%__MODULE__{}), do: false
 
+  @doc """
+  Withdraws an active consent by setting `withdrawn_at` to the current time.
+
+  Returns:
+  - `{:ok, consent}` with `withdrawn_at` set
+  - `{:error, :already_withdrawn}` if consent was already withdrawn
+  """
+  def withdraw(%__MODULE__{withdrawn_at: nil} = consent) do
+    {:ok, %{consent | withdrawn_at: DateTime.utc_now() |> DateTime.truncate(:second)}}
+  end
+
+  def withdraw(%__MODULE__{}) do
+    {:error, :already_withdrawn}
+  end
+
   defp validate(%__MODULE__{} = consent) do
     []
     |> validate_parent_id(consent.parent_id)

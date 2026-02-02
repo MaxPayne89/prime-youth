@@ -73,6 +73,7 @@ config :klass_hero, :event_publisher,
 
 # Configure Identity bounded context
 config :klass_hero, :identity,
+  repo: KlassHero.Repo,
   for_storing_parent_profiles:
     KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
   for_storing_provider_profiles:

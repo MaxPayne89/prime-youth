@@ -139,6 +139,24 @@ defmodule KlassHero.Identity.Domain.Models.ConsentTest do
     end
   end
 
+  describe "withdraw/1" do
+    test "withdraws an active consent" do
+      {:ok, consent} = Consent.new(@valid_attrs)
+
+      assert {:ok, withdrawn} = Consent.withdraw(consent)
+      assert %DateTime{} = withdrawn.withdrawn_at
+      assert withdrawn.id == consent.id
+      assert withdrawn.consent_type == consent.consent_type
+    end
+
+    test "returns error when consent is already withdrawn" do
+      attrs = Map.put(@valid_attrs, :withdrawn_at, ~U[2025-07-01 12:00:00Z])
+      {:ok, consent} = Consent.new(attrs)
+
+      assert {:error, :already_withdrawn} = Consent.withdraw(consent)
+    end
+  end
+
   describe "valid?/1" do
     test "returns true for valid consent" do
       {:ok, consent} = Consent.new(@valid_attrs)
