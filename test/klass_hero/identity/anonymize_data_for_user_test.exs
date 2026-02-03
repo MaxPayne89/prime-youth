@@ -3,7 +3,7 @@ defmodule KlassHero.Identity.AnonymizeDataForUserTest do
   Tests for Identity.anonymize_data_for_user/1.
 
   Verifies GDPR account anonymization cascades to children and consents
-  in the Identity context, and publishes events for downstream contexts.
+  in the Identity context, and publishes integration events for downstream contexts.
   """
 
   use KlassHero.DataCase, async: true
@@ -15,10 +15,11 @@ defmodule KlassHero.Identity.AnonymizeDataForUserTest do
   alias KlassHero.Identity
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
+  alias KlassHero.Shared.Adapters.Driven.Events.TestIntegrationEventPublisher
 
   describe "anonymize_data_for_user/1" do
     setup do
-      setup_test_events()
+      setup_test_integration_events()
       :ok
     end
 
@@ -97,16 +98,17 @@ defmodule KlassHero.Identity.AnonymizeDataForUserTest do
              ) == 0
     end
 
-    test "publishes child_data_anonymized event per child" do
+    test "publishes child_data_anonymized integration event per child" do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
       child = insert(:child_schema, parent_id: parent.id)
 
       {:ok, _summary} = Identity.anonymize_data_for_user(user.id)
 
-      event = assert_event_published(:child_data_anonymized)
-      assert event.aggregate_id == child.id
+      event = assert_integration_event_published(:child_data_anonymized)
+      assert event.entity_id == child.id
       assert event.payload.child_id == child.id
+      assert event.source_context == :identity
     end
 
     test "handles multiple children — all anonymized with consents deleted and events published" do
@@ -139,15 +141,15 @@ defmodule KlassHero.Identity.AnonymizeDataForUserTest do
       assert reloaded_a.first_name == "Anonymized"
       assert reloaded_b.first_name == "Anonymized"
 
-      # Verify one child_data_anonymized event per child
-      events = get_published_events()
+      # Verify one child_data_anonymized integration event per child
+      events = get_published_integration_events()
 
       child_events =
         Enum.filter(events, &(&1.event_type == :child_data_anonymized))
 
       assert length(child_events) == 2
 
-      event_child_ids = MapSet.new(child_events, & &1.aggregate_id)
+      event_child_ids = MapSet.new(child_events, & &1.entity_id)
       assert MapSet.member?(event_child_ids, child_a.id)
       assert MapSet.member?(event_child_ids, child_b.id)
     end
@@ -156,6 +158,27 @@ defmodule KlassHero.Identity.AnonymizeDataForUserTest do
       user = AccountsFixtures.user_fixture()
 
       assert {:ok, :no_data} = Identity.anonymize_data_for_user(user.id)
+    end
+
+    test "propagates publish failure while child data remains anonymized" do
+      user = AccountsFixtures.user_fixture()
+      parent = insert(:parent_profile_schema, identity_id: user.id)
+
+      child =
+        insert(:child_schema,
+          parent_id: parent.id,
+          first_name: "Emma",
+          last_name: "Smith"
+        )
+
+      TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)
+
+      assert {:error, :pubsub_down} = Identity.anonymize_data_for_user(user.id)
+
+      # Child data was anonymized before publish was attempted
+      reloaded = Repo.get!(ChildSchema, child.id)
+      assert reloaded.first_name == "Anonymized"
+      assert reloaded.last_name == "Child"
     end
   end
 end

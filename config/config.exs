@@ -66,7 +66,7 @@ config :klass_hero, :enrollment,
   for_managing_enrollments:
     KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentRepository
 
-# Configure Event Publisher
+# Configure Event Publisher (domain events — internal context communication)
 config :klass_hero, :event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher,
   pubsub: KlassHero.PubSub
@@ -82,6 +82,11 @@ config :klass_hero, :identity,
     KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository,
   for_storing_consents:
     KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRepository
+
+# Configure Integration Event Publisher (cross-context communication)
+config :klass_hero, :integration_event_publisher,
+  module: KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher,
+  pubsub: KlassHero.PubSub
 
 # Configure Messaging bounded context
 config :klass_hero, :messaging,
@@ -213,7 +218,8 @@ config :logger, :default_formatter,
     :read_at,
     :retention_days,
     :sender_id,
-    :note_id
+    :note_id,
+    :stacktrace
   ]
 
 config :opentelemetry, :resource,

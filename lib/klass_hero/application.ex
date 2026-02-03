@@ -36,7 +36,18 @@ defmodule KlassHero.Application do
   end
 
   defp domain_children do
-    event_subscribers() ++ in_memory_repositories()
+    domain_event_buses() ++
+      event_subscribers() ++
+      integration_event_subscribers() ++
+      in_memory_repositories()
+  end
+
+  defp domain_event_buses do
+    # Pre-provisioned for Identity-internal domain events (e.g. child_updated)
+    # that will stay within the context — distinct from integration events via PubSub
+    [
+      {KlassHero.Shared.DomainEventBus, context: KlassHero.Identity}
+    ]
   end
 
   defp event_subscribers do
@@ -46,12 +57,19 @@ defmodule KlassHero.Application do
          handler: KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler,
          topics: ["user:user_registered", "user:user_confirmed", "user:user_anonymized"]},
         id: :identity_event_subscriber
-      ),
+      )
+    ]
+  end
+
+  defp integration_event_subscribers do
+    [
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
          handler: KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandler,
-         topics: ["child:child_data_anonymized"]},
-        id: :participation_event_subscriber
+         topics: ["integration:identity:child_data_anonymized"],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :participation_integration_event_subscriber
       )
     ]
   end

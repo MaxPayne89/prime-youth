@@ -16,7 +16,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandlerTest do
 
   describe "handle_event/1 for :user_anonymized" do
     setup do
-      setup_test_events()
+      setup_test_integration_events()
       :ok
     end
 
@@ -80,8 +80,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandlerTest do
 
       assert :ok == IdentityEventHandler.handle_event(event)
 
-      child_event = assert_event_published(:child_data_anonymized)
-      assert child_event.aggregate_id == child.id
+      child_event = assert_integration_event_published(:child_data_anonymized)
+      assert child_event.entity_id == child.id
     end
 
     test "returns :ok for user without parent profile" do

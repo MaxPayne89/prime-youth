@@ -18,6 +18,8 @@ defmodule KlassHero.Shared.Domain.Events.DomainEvent do
   - `:normal` - Standard fire-and-forget (default)
   """
 
+  alias KlassHero.Shared.Domain.Events.EventMetadata
+
   @type criticality :: :critical | :normal
 
   @type t :: %__MODULE__{
@@ -64,10 +66,13 @@ defmodule KlassHero.Shared.Domain.Events.DomainEvent do
   """
   @spec new(atom(), String.t() | integer(), atom(), map(), keyword()) :: t()
   def new(event_type, aggregate_id, aggregate_type, payload, opts \\ []) do
-    metadata = build_metadata(opts)
+    # Trigger: DomainEvent includes :user_id in metadata unlike IntegrationEvent
+    # Why: domain events track which user caused the action for audit/tracing
+    # Outcome: metadata map may contain :user_id when provided in opts
+    metadata = EventMetadata.build_metadata(opts, [:user_id])
 
     %__MODULE__{
-      event_id: generate_event_id(),
+      event_id: EventMetadata.generate_event_id(),
       event_type: event_type,
       aggregate_id: aggregate_id,
       aggregate_type: aggregate_type,
@@ -81,48 +86,23 @@ defmodule KlassHero.Shared.Domain.Events.DomainEvent do
   Returns the criticality level of the event (defaults to :normal).
   """
   @spec criticality(t()) :: criticality()
-  def criticality(%__MODULE__{metadata: %{criticality: level}}), do: level
-  def criticality(%__MODULE__{}), do: :normal
+  defdelegate criticality(event), to: EventMetadata
 
   @doc """
   Returns true if this is a critical event.
   """
   @spec critical?(t()) :: boolean()
-  def critical?(event), do: criticality(event) == :critical
+  defdelegate critical?(event), to: EventMetadata
 
   @doc """
   Returns the correlation_id from metadata if present.
   """
   @spec correlation_id(t()) :: String.t() | nil
-  def correlation_id(%__MODULE__{metadata: %{correlation_id: id}}), do: id
-  def correlation_id(%__MODULE__{}), do: nil
+  defdelegate correlation_id(event), to: EventMetadata
 
   @doc """
   Returns the causation_id from metadata if present.
   """
   @spec causation_id(t()) :: String.t() | nil
-  def causation_id(%__MODULE__{metadata: %{causation_id: id}}), do: id
-  def causation_id(%__MODULE__{}), do: nil
-
-  defp generate_event_id do
-    Ecto.UUID.generate()
-  end
-
-  defp build_metadata(opts) do
-    base = %{
-      criticality: Keyword.get(opts, :criticality, :normal)
-    }
-
-    base
-    |> maybe_add(:correlation_id, opts)
-    |> maybe_add(:causation_id, opts)
-    |> maybe_add(:user_id, opts)
-  end
-
-  defp maybe_add(map, key, opts) do
-    case Keyword.get(opts, key) do
-      nil -> map
-      value -> Map.put(map, key, value)
-    end
-  end
+  defdelegate causation_id(event), to: EventMetadata
 end
