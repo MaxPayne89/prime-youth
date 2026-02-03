@@ -11,7 +11,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Mappers.Participat
   @doc "Converts a ParticipationRecordSchema to a ParticipationRecord domain model."
   @spec to_domain(ParticipationRecordSchema.t()) :: ParticipationRecord.t()
   def to_domain(%ParticipationRecordSchema{} = schema) do
-    %ParticipationRecord{
+    attrs = %{
       id: schema.id,
       session_id: schema.session_id,
       child_id: schema.child_id,
@@ -28,6 +28,14 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Mappers.Participat
       updated_at: schema.updated_at,
       lock_version: schema.lock_version
     }
+
+    case ParticipationRecord.from_persistence(attrs) do
+      {:ok, record} ->
+        record
+
+      {:error, :invalid_persistence_data} ->
+        raise "Corrupted participation record data: #{inspect(schema.id)}"
+    end
   end
 
   @doc "Converts a ParticipationRecord domain model to attributes for persistence."
@@ -48,8 +56,6 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Mappers.Participat
       check_out_by: record.check_out_by,
       lock_version: record.lock_version
     }
-    |> Enum.reject(fn {_k, v} -> is_nil(v) end)
-    |> Map.new()
   end
 
   @doc "Updates a schema struct with domain model values for update operations."

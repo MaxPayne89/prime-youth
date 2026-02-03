@@ -38,6 +38,7 @@ defmodule KlassHero.Community.Domain.Events.CommunityEventsTest do
       post = valid_post()
 
       assert_raise FunctionClauseError, fn ->
+        # credo:disable-for-next-line Credo.Check.Refactor.Apply
         apply(CommunityEvents, :comment_added, [post, nil, "Great post!"])
       end
     end
@@ -54,6 +55,7 @@ defmodule KlassHero.Community.Domain.Events.CommunityEventsTest do
       post = valid_post()
 
       assert_raise FunctionClauseError, fn ->
+        # credo:disable-for-next-line Credo.Check.Refactor.Apply
         apply(CommunityEvents, :comment_added, [post, "John", nil])
       end
     end

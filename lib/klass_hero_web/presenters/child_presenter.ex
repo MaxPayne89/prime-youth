@@ -17,6 +17,8 @@ defmodule KlassHeroWeb.Presenters.ChildPresenter do
       children_for_view = Enum.map(children, &ChildPresenter.to_extended_view(&1, enrichment))
   """
 
+  use Gettext, backend: KlassHeroWeb.Gettext
+
   alias KlassHero.Identity.Domain.Models.Child
 
   @doc """
@@ -75,6 +77,29 @@ defmodule KlassHeroWeb.Presenters.ChildPresenter do
       age: calculate_age(child.date_of_birth),
       initials: extract_initials(Child.full_name(child))
     }
+  end
+
+  @doc """
+  Generates a human-readable summary of children for display in settings.
+
+  Returns a comma-separated string of "Name (age)" pairs, or a localized
+  "No children yet" message for an empty list.
+
+  ## Examples
+
+      children_summary([])
+      #=> "No children yet"
+
+      children_summary([%Child{first_name: "Emma", last_name: "Smith", ...}])
+      #=> "Emma Smith (7)"
+  """
+  def children_summary([]), do: gettext("No children yet")
+
+  def children_summary(children) when is_list(children) do
+    Enum.map_join(children, ", ", fn child ->
+      view = to_simple_view(child)
+      "#{view.name} (#{view.age})"
+    end)
   end
 
   defp calculate_age(date_of_birth) do

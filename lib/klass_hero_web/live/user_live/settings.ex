@@ -2,6 +2,8 @@ defmodule KlassHeroWeb.UserLive.Settings do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Accounts
+  alias KlassHeroWeb.Helpers.IdentityHelpers
+  alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
 
   on_mount {KlassHeroWeb.UserAuth, :require_sudo_mode}
@@ -38,6 +40,13 @@ defmodule KlassHeroWeb.UserLive.Settings do
                   icon_color={Theme.text_color(:primary)}
                   title={gettext("Profile")}
                   href="#profile"
+                />
+                <.settings_nav_item
+                  icon="hero-user-group"
+                  icon_bg={Theme.bg(:primary_light)}
+                  icon_color={Theme.text_color(:primary)}
+                  title={gettext("Children Profiles")}
+                  navigate={~p"/settings/children"}
                 />
                 <.settings_nav_item
                   icon="hero-shield-check"
@@ -281,6 +290,75 @@ defmodule KlassHeroWeb.UserLive.Settings do
               </div>
             </div>
 
+            <%!-- My Family Card --%>
+            <div
+              id="my-family"
+              class={[
+                Theme.bg(:surface),
+                "shadow-sm border overflow-hidden",
+                Theme.rounded(:xl),
+                Theme.border_color(:light)
+              ]}
+            >
+              <div class={["p-5 border-b", Theme.border_color(:light)]}>
+                <div class="flex items-center gap-3">
+                  <.gradient_icon
+                    gradient_class={Theme.bg(:primary_light)}
+                    size="sm"
+                    shape="circle"
+                  >
+                    <.icon
+                      name="hero-user-group"
+                      class={"w-5 h-5 #{Theme.text_color(:primary)}"}
+                    />
+                  </.gradient_icon>
+                  <div>
+                    <h2 class={["font-semibold", Theme.text_color(:heading)]}>
+                      {gettext("My Family")}
+                    </h2>
+                    <p class={["text-sm", Theme.text_color(:muted)]}>
+                      {gettext("Manage your children's profiles")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="p-5">
+                <.link
+                  navigate={~p"/settings/children"}
+                  class={[
+                    "flex items-center justify-between p-4 rounded-lg border",
+                    Theme.border_color(:light),
+                    "hover:bg-hero-grey-50",
+                    Theme.transition(:normal)
+                  ]}
+                >
+                  <div class="flex items-center gap-3">
+                    <div class={[
+                      "w-10 h-10 rounded-full flex items-center justify-center",
+                      Theme.bg(:primary_light)
+                    ]}>
+                      <.icon
+                        name="hero-user-group"
+                        class={"w-5 h-5 #{Theme.text_color(:primary)}"}
+                      />
+                    </div>
+                    <div>
+                      <p class={["font-medium", Theme.text_color(:heading)]}>
+                        {gettext("Children Profiles")}
+                      </p>
+                      <p class={["text-sm", Theme.text_color(:muted)]}>
+                        {@children_summary}
+                      </p>
+                    </div>
+                  </div>
+                  <.icon
+                    name="hero-chevron-right"
+                    class={"w-5 h-5 #{Theme.text_color(:muted)}"}
+                  />
+                </.link>
+              </div>
+            </div>
+
             <%!-- Data & Privacy Card --%>
             <div
               id="data-privacy"
@@ -379,11 +457,19 @@ defmodule KlassHeroWeb.UserLive.Settings do
     """
   end
 
-  # Helper component for sidebar navigation
+  # Sidebar nav: uses <.link navigate> for LiveView routes, plain <a href> for anchors
+  attr :icon, :string, required: true
+  attr :icon_bg, :string, required: true
+  attr :icon_color, :string, required: true
+  attr :title, :string, required: true
+  attr :href, :string, default: nil
+  attr :navigate, :string, default: nil
+
   defp settings_nav_item(assigns) do
     ~H"""
-    <a
+    <.link
       href={@href}
+      navigate={@navigate}
       class={[
         "flex items-center gap-3 p-3 hover:bg-hero-grey-50",
         Theme.transition(:normal)
@@ -395,7 +481,7 @@ defmodule KlassHeroWeb.UserLive.Settings do
       <span class={["text-sm font-medium", Theme.text_color(:body)]}>
         {@title}
       </span>
-    </a>
+    </.link>
     """
   end
 
@@ -418,6 +504,7 @@ defmodule KlassHeroWeb.UserLive.Settings do
     email_changeset = Accounts.change_user_email(user, %{}, validate_unique: false)
     password_changeset = Accounts.change_user_password(user, %{}, hash_password: false)
     locale_changeset = Accounts.change_user_locale(user, %{})
+    children = IdentityHelpers.get_children_for_current_user(socket)
 
     socket =
       socket
@@ -429,6 +516,7 @@ defmodule KlassHeroWeb.UserLive.Settings do
       |> assign(:trigger_submit, false)
       |> assign(:user_initials, get_user_initials(user.email))
       |> assign(:member_since, format_member_since(user.inserted_at))
+      |> assign(:children_summary, ChildPresenter.children_summary(children))
 
     {:ok, socket}
   end

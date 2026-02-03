@@ -120,15 +120,14 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   end
 
   defp find_existing_broadcast(provider_id, program_id, conversation_repo) do
-    case conversation_repo.list_for_provider(provider_id, type: :program_broadcast) do
-      {:ok, existing, _has_more} ->
-        case Enum.find(existing, fn c -> c.program_id == program_id end) do
-          nil -> {:error, :broadcast_not_found}
-          conversation -> {:ok, conversation}
-        end
-
-      {:error, reason} ->
-        {:error, reason}
+    with {:ok, existing, _has_more} <-
+           conversation_repo.list_for_provider(provider_id, type: :program_broadcast) do
+      existing
+      |> Enum.find(fn c -> c.program_id == program_id end)
+      |> case do
+        nil -> {:error, :broadcast_not_found}
+        conversation -> {:ok, conversation}
+      end
     end
   end
 

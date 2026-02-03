@@ -17,6 +17,8 @@ defmodule KlassHero.Participation.Application.UseCases.CreateSession do
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.Participation.EventPublisher
 
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+
   @type params :: %{
           required(:program_id) => String.t(),
           required(:session_date) => Date.t(),
@@ -51,7 +53,7 @@ defmodule KlassHero.Participation.Application.UseCases.CreateSession do
       |> Map.put(:status, :scheduled)
 
     with {:ok, session} <- ProgramSession.new(session_attrs),
-         {:ok, persisted} <- session_repository().create(session) do
+         {:ok, persisted} <- @session_repository.create(session) do
       publish_event(persisted)
       {:ok, persisted}
     end
@@ -61,9 +63,5 @@ defmodule KlassHero.Participation.Application.UseCases.CreateSession do
     session
     |> ParticipationEvents.session_created()
     |> EventPublisher.publish()
-  end
-
-  defp session_repository do
-    Application.get_env(:klass_hero, :participation)[:session_repository]
   end
 end

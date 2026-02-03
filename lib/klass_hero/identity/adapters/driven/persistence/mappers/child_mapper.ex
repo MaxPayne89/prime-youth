@@ -16,20 +16,40 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ChildMapper do
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Identity.Domain.Models.Child
 
+  require Logger
+
   @doc """
   Converts a ChildSchema (from database) to a Child domain entity.
+
+  Routes construction through the domain model's `from_persistence/1`
+  to enforce `@enforce_keys` invariants. Raises on corrupted data.
   """
   def to_domain(%ChildSchema{} = schema) do
-    %Child{
+    attrs = %{
       id: Ecto.UUID.cast!(schema.id),
       parent_id: Ecto.UUID.cast!(schema.parent_id),
       first_name: schema.first_name,
       last_name: schema.last_name,
       date_of_birth: schema.date_of_birth,
-      notes: schema.notes,
+      emergency_contact: schema.emergency_contact,
+      support_needs: schema.support_needs,
+      allergies: schema.allergies,
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
+
+    case Child.from_persistence(attrs) do
+      {:ok, child} ->
+        child
+
+      {:error, :invalid_persistence_data} ->
+        Logger.error("[ChildMapper] Corrupted persistence data",
+          child_id: schema.id,
+          fields: Map.keys(attrs)
+        )
+
+        raise "Corrupted child data for id=#{inspect(schema.id)} — required keys missing from persistence"
+    end
   end
 
   @doc """
@@ -44,7 +64,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ChildMapper do
       first_name: child.first_name,
       last_name: child.last_name,
       date_of_birth: child.date_of_birth,
-      notes: child.notes
+      emergency_contact: child.emergency_contact,
+      support_needs: child.support_needs,
+      allergies: child.allergies
     }
   end
 

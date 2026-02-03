@@ -34,58 +34,6 @@ defmodule KlassHeroWeb.Live.SampleFixtures do
     }
   end
 
-  # Children Fixtures
-
-  @doc """
-  Returns sample children data.
-
-  ## Options
-
-    * `:simple` - Basic children data with id, name, and age only
-    * `:extended` - Full children data including school, sessions, progress, and activities
-
-  Defaults to `:extended` if no option is provided.
-  """
-  def sample_children(variant \\ :extended)
-
-  def sample_children(:simple) do
-    [
-      %{
-        id: 1,
-        name: "Emma Johnson",
-        age: 8
-      },
-      %{
-        id: 2,
-        name: "Liam Johnson",
-        age: 6
-      }
-    ]
-  end
-
-  def sample_children(:extended) do
-    [
-      %{
-        id: 1,
-        name: "Emma Johnson",
-        age: 8,
-        school: "Greenwood Elementary",
-        sessions: "8/10",
-        progress: 80,
-        activities: ["Art", "Chess", "Swimming"]
-      },
-      %{
-        id: 2,
-        name: "Liam Johnson",
-        age: 6,
-        school: "Sunny Hills Kindergarten",
-        sessions: "6/8",
-        progress: 75,
-        activities: ["Soccer", "Music"]
-      }
-    ]
-  end
-
   # Program Fixtures
 
   @doc """

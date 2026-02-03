@@ -438,6 +438,9 @@ defmodule KlassHero.Accounts do
   3. Replaces PII with anonymized values
   4. Publishes `user_anonymized` domain event
 
+  Downstream contexts (Identity, Participation) react to the `user_anonymized`
+  event asynchronously to anonymize their own data.
+
   ## Examples
 
       iex> anonymize_user(user)

@@ -16,6 +16,8 @@ defmodule KlassHero.Participation.Application.UseCases.StartSession do
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.Participation.EventPublisher
 
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+
   @type result :: {:ok, ProgramSession.t()} | {:error, term()}
 
   @doc """
@@ -34,9 +36,9 @@ defmodule KlassHero.Participation.Application.UseCases.StartSession do
   """
   @spec execute(String.t()) :: result()
   def execute(session_id) when is_binary(session_id) do
-    with {:ok, session} <- session_repository().get_by_id(session_id),
+    with {:ok, session} <- @session_repository.get_by_id(session_id),
          {:ok, started} <- ProgramSession.start(session),
-         {:ok, persisted} <- session_repository().update(started) do
+         {:ok, persisted} <- @session_repository.update(started) do
       publish_event(persisted)
       {:ok, persisted}
     end
@@ -46,9 +48,5 @@ defmodule KlassHero.Participation.Application.UseCases.StartSession do
     session
     |> ParticipationEvents.session_started()
     |> EventPublisher.publish()
-  end
-
-  defp session_repository do
-    Application.get_env(:klass_hero, :participation)[:session_repository]
   end
 end

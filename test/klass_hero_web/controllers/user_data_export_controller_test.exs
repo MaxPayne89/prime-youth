@@ -2,6 +2,7 @@ defmodule KlassHeroWeb.UserDataExportControllerTest do
   use KlassHeroWeb.ConnCase, async: true
 
   import KlassHero.AccountsFixtures
+  import KlassHero.Factory
 
   setup %{conn: conn} do
     user = user_fixture()
@@ -31,6 +32,39 @@ defmodule KlassHeroWeb.UserDataExportControllerTest do
       response = json_response(conn, 200)
       refute Map.has_key?(response["user"], "hashed_password")
       refute Map.has_key?(response["user"], "password")
+    end
+
+    test "export includes children and consents", %{conn: conn, user: user} do
+      parent = insert(:parent_profile_schema, identity_id: user.id)
+
+      child =
+        insert(:child_schema,
+          parent_id: parent.id,
+          first_name: "Emma",
+          last_name: "Smith"
+        )
+
+      insert(:consent_schema,
+        parent_id: parent.id,
+        child_id: child.id,
+        consent_type: "provider_data_sharing"
+      )
+
+      conn = get(conn, ~p"/users/export-data")
+
+      response = json_response(conn, 200)
+      assert [exported_child] = response["children"]
+      assert exported_child["first_name"] == "Emma"
+      assert exported_child["last_name"] == "Smith"
+      assert [consent] = exported_child["consents"]
+      assert consent["consent_type"] == "provider_data_sharing"
+    end
+
+    test "export without parent profile has no children key", %{conn: conn} do
+      conn = get(conn, ~p"/users/export-data")
+
+      response = json_response(conn, 200)
+      refute Map.has_key?(response, "children")
     end
 
     test "requires authentication" do

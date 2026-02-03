@@ -12,7 +12,7 @@ defmodule KlassHeroWeb.PrivacyPolicyLive do
     {:ok, socket}
   end
 
-  defp last_updated, do: "December 12, 2025"
+  defp last_updated, do: "February 1, 2026"
 
   defp privacy_sections do
     [
@@ -42,9 +42,10 @@ defmodule KlassHeroWeb.PrivacyPolicyLive do
         </ul>
         <h4 class="font-semibold text-gray-900 mb-2">Child Information:</h4>
         <ul class="list-disc pl-6 mb-4 space-y-1">
-          <li>Child's first name (for program enrollment)</li>
-          <li>Child's age or grade level (to match appropriate programs)</li>
-          <li>Any special requirements or considerations provided by parents</li>
+          <li>Child's first and last name (for enrollment and identification)</li>
+          <li>Date of birth (to match age-appropriate programs)</li>
+          <li>Emergency contact information</li>
+          <li>Optional: support needs and allergies — parent-controlled, shared with program providers only when you explicitly consent</li>
         </ul>
         <h4 class="font-semibold text-gray-900 mb-2">Booking Information:</h4>
         <ul class="list-disc pl-6 mb-4 space-y-1">
@@ -90,8 +91,8 @@ defmodule KlassHeroWeb.PrivacyPolicyLive do
         title: gettext("Data Sharing"),
         content: """
         <p class="mb-4">We take your privacy seriously and limit data sharing to what's necessary:</p>
-        <h4 class="font-semibold text-gray-900 mb-2">Program Instructors:</h4>
-        <p class="mb-4">Instructors have access to enrolled students' names and relevant program information to provide their services effectively.</p>
+        <h4 class="font-semibold text-gray-900 mb-2">Program Providers:</h4>
+        <p class="mb-4">Providers see enrolled children's names for program management. Optional safety information (support needs, allergies) is visible to providers only when a parent explicitly consents to share it. Behavioral notes written by providers about a child require parent approval before being displayed.</p>
         <h4 class="font-semibold text-gray-900 mb-2">Payment Processors:</h4>
         <p class="mb-4">For credit card payments, we work with third-party payment processors who handle transaction processing securely. They only receive the information necessary to process payments.</p>
         <h4 class="font-semibold text-gray-900 mb-2">What We Don't Do:</h4>
@@ -147,9 +148,12 @@ defmodule KlassHeroWeb.PrivacyPolicyLive do
         gradient: Theme.gradient(:cool_magenta),
         title: gettext("Children's Privacy"),
         content: """
-        <p class="mb-4">Klass Hero is designed to help parents manage their children's activities. We take special care with children's information:</p>
+        <p class="mb-4">Klass Hero is designed to help parents manage their children's activities. We prioritize protection for children's data, strict data minimization, role-based access, and explicit parental consent for any optional health-related notes shared solely for safety and participation purposes.</p>
         <ul class="list-disc pl-6 space-y-2 mb-4">
           <li><strong>Parental Consent:</strong> Parents or legal guardians must create accounts and provide consent for their children's participation</li>
+          <li><strong>Consent-Gated Sharing:</strong> Optional safety information (support needs, allergies) is shared with program providers only when a parent explicitly consents</li>
+          <li><strong>Data Minimization:</strong> Only a child's name and date of birth are required; all health and safety notes are optional and parent-controlled</li>
+          <li><strong>Behavioral Notes:</strong> Observations written by providers about a child require parent approval before they are displayed</li>
           <li><strong>COPPA Compliance:</strong> We comply with the Children's Online Privacy Protection Act (COPPA) for children under 13</li>
           <li><strong>Limited Collection:</strong> We only collect the minimum information necessary for program enrollment and safety</li>
           <li><strong>No Direct Marketing:</strong> We never market directly to children or collect information from them for marketing purposes</li>

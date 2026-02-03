@@ -19,6 +19,12 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSession do
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.Participation.EventPublisher
 
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+  @participation_repository Application.compile_env!(:klass_hero, [
+                              :participation,
+                              :participation_repository
+                            ])
+
   @type result :: {:ok, ProgramSession.t()} | {:error, term()}
 
   @doc """
@@ -38,9 +44,9 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSession do
   """
   @spec execute(String.t()) :: result()
   def execute(session_id) when is_binary(session_id) do
-    with {:ok, session} <- session_repository().get_by_id(session_id),
+    with {:ok, session} <- @session_repository.get_by_id(session_id),
          {:ok, completed} <- ProgramSession.complete(session),
-         {:ok, persisted} <- session_repository().update(completed),
+         {:ok, persisted} <- @session_repository.update(completed),
          :ok <- mark_remaining_as_absent(session_id) do
       publish_session_completed(persisted)
       {:ok, persisted}
@@ -49,7 +55,7 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSession do
 
   defp mark_remaining_as_absent(session_id) do
     session_id
-    |> participation_repository().list_by_session()
+    |> @participation_repository.list_by_session()
     |> Enum.filter(&(&1.status == :registered))
     |> Enum.each(&mark_absent/1)
 
@@ -58,7 +64,7 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSession do
 
   defp mark_absent(%ParticipationRecord{} = record) do
     with {:ok, absent} <- ParticipationRecord.mark_absent(record),
-         {:ok, persisted} <- participation_repository().update(absent) do
+         {:ok, persisted} <- @participation_repository.update(absent) do
       publish_child_absent(persisted)
       :ok
     end
@@ -74,13 +80,5 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSession do
     record
     |> ParticipationEvents.child_marked_absent()
     |> EventPublisher.publish()
-  end
-
-  defp session_repository do
-    Application.get_env(:klass_hero, :participation)[:session_repository]
-  end
-
-  defp participation_repository do
-    Application.get_env(:klass_hero, :participation)[:participation_repository]
   end
 end

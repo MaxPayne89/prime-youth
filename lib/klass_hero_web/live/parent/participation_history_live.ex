@@ -2,7 +2,6 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Identity
-  alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Participation
   alias KlassHeroWeb.Theme
 
@@ -16,17 +15,18 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
       socket
       |> assign(:page_title, gettext("Participation History"))
       |> assign(:parent_id, parent_id)
-      |> assign(:child_names, %{})
+      |> assign(:child_names_map, %{})
       |> assign(:children_ids, MapSet.new())
       # Uses stream for memory efficiency because:
       # - Potentially large, unbounded collection (all parent's history)
       # - Incremental updates (new check-ins prepended via PubSub)
       # - No need to enumerate in memory (LiveView handles rendering)
       |> stream(:participation_records, [])
+      |> assign(:pending_notes, [])
+      |> assign(:reject_form_expanded, nil)
+      |> assign(:reject_forms, %{})
 
     if connected?(socket) do
-      # Subscribe to standard participation record topics to receive real-time updates
-      # Events are broadcast to these aggregate-type topics by the use cases
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "participation_record:child_checked_in")
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "participation_record:child_checked_out")
 
@@ -34,9 +34,87 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
         KlassHero.PubSub,
         "participation_record:participation_marked_absent"
       )
+
+      Phoenix.PubSub.subscribe(KlassHero.PubSub, "behavioral_note:behavioral_note_submitted")
     end
 
     {:ok, load_participation_history(socket)}
+  end
+
+  # Behavioral note review event handlers
+
+  @impl true
+  def handle_event("approve_note", %{"id" => note_id}, socket) do
+    case Participation.review_behavioral_note(%{
+           note_id: note_id,
+           parent_id: socket.assigns.parent_id,
+           decision: :approve
+         }) do
+      {:ok, _note} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Note approved"))
+         |> load_pending_notes()}
+
+      {:error, reason} ->
+        Logger.error("[ParticipationHistoryLive.approve_note] Failed",
+          note_id: note_id,
+          reason: inspect(reason)
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Failed to approve note"))}
+    end
+  end
+
+  @impl true
+  def handle_event("expand_reject_form", %{"id" => note_id}, socket) do
+    form = to_form(%{"reason" => ""}, as: "reject")
+
+    socket =
+      socket
+      |> assign(:reject_form_expanded, note_id)
+      |> assign(:reject_forms, Map.put(socket.assigns.reject_forms, note_id, form))
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("cancel_reject", %{"id" => note_id}, socket) do
+    socket =
+      socket
+      |> assign(:reject_form_expanded, nil)
+      |> assign(:reject_forms, Map.delete(socket.assigns.reject_forms, note_id))
+
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("reject_note", %{"id" => note_id, "reject" => params}, socket) do
+    reason = Map.get(params, "reason")
+    reason = if reason != "", do: reason
+
+    case Participation.review_behavioral_note(%{
+           note_id: note_id,
+           parent_id: socket.assigns.parent_id,
+           decision: :reject,
+           reason: reason
+         }) do
+      {:ok, _note} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Note rejected"))
+         |> assign(:reject_form_expanded, nil)
+         |> assign(:reject_forms, Map.delete(socket.assigns.reject_forms, note_id))
+         |> load_pending_notes()}
+
+      {:error, reason} ->
+        Logger.error("[ParticipationHistoryLive.reject_note] Failed",
+          note_id: note_id,
+          reason: inspect(reason)
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Failed to reject note"))}
+    end
   end
 
   # PubSub event handler for participation record events
@@ -63,6 +141,26 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
     {:noreply, socket}
   end
 
+  # PubSub handler for new behavioral note — refresh pending notes if child belongs to parent
+  @impl true
+  def handle_info(
+        {:domain_event,
+         %KlassHero.Shared.Domain.Events.DomainEvent{
+           event_type: :behavioral_note_submitted,
+           payload: %{child_id: child_id}
+         }},
+        socket
+      ) do
+    socket =
+      if child_belongs_to_parent?(child_id, socket) do
+        load_pending_notes(socket)
+      else
+        socket
+      end
+
+    {:noreply, socket}
+  end
+
   # Private helper functions
 
   defp child_belongs_to_parent?(child_id, socket) do
@@ -76,17 +174,10 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
       children = Identity.get_children(parent_id)
       child_ids = Enum.map(children, & &1.id)
 
-      {:ok, participation_records} =
-        Participation.get_participation_history(%{child_ids: child_ids})
-
-      child_names = Map.new(children, fn child -> {child.id, Child.full_name(child)} end)
-      children_ids = Identity.get_child_ids_for_parent(parent_id)
-
-      socket
-      |> assign(:child_names, child_names)
-      |> assign(:children_ids, children_ids)
-      |> stream(:participation_records, participation_records, reset: true)
-      |> assign(:participation_error, nil)
+      case Participation.get_participation_history(%{child_ids: child_ids}) do
+        {:ok, records} -> apply_history(socket, parent_id, children, records)
+        {:error, reason} -> handle_history_error(socket, parent_id, reason)
+      end
     else
       Logger.warning(
         "[ParticipationHistoryLive.load_participation_history] No parent_id available"
@@ -98,10 +189,59 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
     end
   end
 
+  defp apply_history(socket, parent_id, children, participation_records) do
+    child_names_map =
+      Map.new(children, fn child ->
+        {child.id, %{first_name: child.first_name, last_name: child.last_name}}
+      end)
+
+    children_ids = Identity.get_child_ids_for_parent(parent_id)
+
+    enriched_records =
+      Enum.map(participation_records, &enrich_history_record(&1, child_names_map))
+
+    socket
+    |> assign(:child_names_map, child_names_map)
+    |> assign(:children_ids, children_ids)
+    |> stream(:participation_records, enriched_records, reset: true)
+    |> assign(:participation_error, nil)
+    |> load_pending_notes()
+  end
+
+  defp handle_history_error(socket, parent_id, reason) do
+    Logger.error(
+      "[ParticipationHistoryLive.load_participation_history] Failed to load history",
+      parent_id: parent_id,
+      reason: inspect(reason)
+    )
+
+    socket
+    |> stream(:participation_records, [], reset: true)
+    |> assign(:participation_error, gettext("Failed to load participation history"))
+  end
+
+  defp load_pending_notes(socket) do
+    parent_id = socket.assigns.parent_id
+
+    case Participation.list_pending_behavioral_notes(parent_id) do
+      {:ok, notes} ->
+        assign(socket, :pending_notes, notes)
+
+      {:error, reason} ->
+        Logger.error("[ParticipationHistoryLive.load_pending_notes] Failed to load notes",
+          parent_id: parent_id,
+          reason: inspect(reason)
+        )
+
+        put_flash(socket, :error, gettext("Failed to load pending notes"))
+    end
+  end
+
   defp load_and_stream_record(socket, record_id, opts) do
     case Participation.get_participation_record(record_id) do
       {:ok, record} ->
-        stream_insert(socket, :participation_records, record, opts)
+        enriched = enrich_history_record(record, socket.assigns.child_names_map)
+        stream_insert(socket, :participation_records, enriched, opts)
 
       {:error, reason} ->
         Logger.error(
@@ -112,6 +252,23 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
 
         socket
     end
+  end
+
+  defp enrich_history_record(record, child_names_map) do
+    child_info =
+      Map.get(child_names_map, record.child_id, %{first_name: "Unknown", last_name: "Child"})
+
+    # Trigger: record is a struct — Map.put on structs bypasses struct enforcement
+    # Why: convert to plain map so presentation fields can be safely merged
+    # Outcome: template gets a flat map with all struct fields + enrichment keys
+    Map.from_struct(record)
+    |> Map.merge(%{
+      child_first_name: child_info.first_name,
+      child_last_name: child_info.last_name,
+      program_name: Map.get(record, :program_name),
+      session_date: Map.get(record, :session_date),
+      session_start_time: Map.get(record, :session_start_time)
+    })
   end
 
   # Template helper functions

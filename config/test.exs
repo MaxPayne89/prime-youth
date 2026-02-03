@@ -31,7 +31,9 @@ config :klass_hero, :participation,
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
   participation_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-  child_name_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
+  child_info_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResolver,
+  behavioral_note_repository:
+    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 
 # Print only warnings and errors during test
 config :logger, level: :warning

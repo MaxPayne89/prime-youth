@@ -35,10 +35,20 @@ defmodule KlassHero.Identity do
   - Repository implementations (adapter layer) → implement persistence
   """
 
+  alias KlassHero.Identity.Application.UseCases.Children.ChangeChild
+  alias KlassHero.Identity.Application.UseCases.Children.CreateChild
+  alias KlassHero.Identity.Application.UseCases.Children.DeleteChild
+  alias KlassHero.Identity.Application.UseCases.Children.UpdateChild
+  alias KlassHero.Identity.Application.UseCases.Consents.GrantConsent
+  alias KlassHero.Identity.Application.UseCases.Consents.WithdrawConsent
   alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
+  alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
+  alias KlassHero.Identity.EventPublisher
   alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
+
+  require Logger
 
   @parent_repository Application.compile_env!(:klass_hero, [
                        :identity,
@@ -52,6 +62,10 @@ defmodule KlassHero.Identity do
                       :identity,
                       :for_storing_children
                     ])
+  @consent_repository Application.compile_env!(:klass_hero, [
+                        :identity,
+                        :for_storing_consents
+                      ])
 
   # ============================================================================
   # Parent Profile Functions
@@ -157,6 +171,93 @@ defmodule KlassHero.Identity do
   end
 
   @doc """
+  Creates a new child for a parent.
+
+  Returns:
+  - `{:ok, Child.t()}` on success
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  - `{:error, changeset}` for persistence validation failures
+  """
+  def create_child(attrs) when is_map(attrs) do
+    CreateChild.execute(attrs)
+  end
+
+  @doc """
+  Updates an existing child.
+
+  Returns:
+  - `{:ok, Child.t()}` on success
+  - `{:error, :not_found}` if child doesn't exist
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  - `{:error, changeset}` for persistence validation failures
+  """
+  def update_child(child_id, attrs) when is_binary(child_id) and is_map(attrs) do
+    UpdateChild.execute(child_id, attrs)
+  end
+
+  @doc """
+  Deletes a child by ID.
+
+  Returns:
+  - `:ok` on success
+  - `{:error, :not_found}` if child doesn't exist
+  """
+  def delete_child(child_id) when is_binary(child_id) do
+    DeleteChild.execute(child_id)
+  end
+
+  @doc """
+  Returns a changeset for tracking child form changes.
+
+  Used by LiveView forms for `to_form()` and `phx-change` validation.
+  Excludes `parent_id` from cast since it is set programmatically.
+
+  ## Examples
+
+      Identity.change_child(%{})
+      Identity.change_child(%Child{...}, %{first_name: "Emma"})
+  """
+  def change_child(attrs \\ %{})
+
+  def change_child(attrs) when is_map(attrs) and not is_struct(attrs) do
+    ChangeChild.execute(attrs)
+  end
+
+  def change_child(%Child{} = child) do
+    ChangeChild.execute(child)
+  end
+
+  @doc """
+  Returns a changeset for tracking child form changes on an existing child.
+
+  Accepts a `%Child{}` domain struct and form attributes.
+  """
+  def change_child(%Child{} = child, attrs) when is_map(attrs) do
+    ChangeChild.execute(child, attrs)
+  end
+
+  @doc """
+  Retrieves multiple children by their IDs.
+
+  Returns a list of Child domain entities for the given IDs.
+  Missing or invalid IDs are silently excluded from the result.
+  """
+  def get_children_by_ids(child_ids) when is_list(child_ids) do
+    @child_repository.list_by_ids(child_ids)
+  end
+
+  @doc """
+  Returns a MapSet of child IDs that have active consent of the given type.
+
+  Performs a single batch query instead of N individual lookups.
+  """
+  def children_with_active_consents(child_ids, consent_type)
+      when is_list(child_ids) and is_binary(consent_type) do
+    @consent_repository.list_active_for_children(child_ids, consent_type)
+    |> MapSet.new(& &1.child_id)
+  end
+
+  @doc """
   Returns a MapSet of child IDs for a given parent.
   Useful for authorization checks when processing multiple children.
   """
@@ -173,10 +274,209 @@ defmodule KlassHero.Identity do
   def child_belongs_to_parent?(child_id, parent_id)
       when is_binary(child_id) and is_binary(parent_id) do
     case get_child_by_id(child_id) do
-      {:ok, child} -> child.parent_id == parent_id
-      {:error, :not_found} -> false
+      {:ok, child} ->
+        child.parent_id == parent_id
+
+      {:error, :not_found} ->
+        false
+
+      # Trigger: unexpected error from repository (e.g. database issue)
+      # Why: authorization check must fail closed — never grant access on error
+      {:error, reason} ->
+        Logger.warning("[Identity] child_belongs_to_parent? failed",
+          child_id: child_id,
+          parent_id: parent_id,
+          reason: inspect(reason)
+        )
+
+        false
     end
   end
+
+  # ============================================================================
+  # Consent Functions
+  # ============================================================================
+
+  @doc """
+  Grants a new consent for a child.
+
+  Expects a map with :parent_id, :child_id, and :consent_type.
+
+  Returns:
+  - `{:ok, Consent.t()}` on success
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  - `{:error, changeset}` for persistence validation failures
+  """
+  def grant_consent(attrs) when is_map(attrs) do
+    GrantConsent.execute(attrs)
+  end
+
+  @doc """
+  Withdraws the active consent for a child and consent type.
+
+  Returns:
+  - `{:ok, Consent.t()}` on success (with withdrawn_at set)
+  - `{:error, :not_found}` if no active consent exists
+  """
+  def withdraw_consent(child_id, consent_type)
+      when is_binary(child_id) and is_binary(consent_type) do
+    WithdrawConsent.execute(child_id, consent_type)
+  end
+
+  @doc """
+  Checks if a child has an active consent of the given type.
+
+  Returns boolean directly.
+  """
+  def child_has_active_consent?(child_id, consent_type)
+      when is_binary(child_id) and is_binary(consent_type) do
+    case @consent_repository.get_active_for_child(child_id, consent_type) do
+      {:ok, _} ->
+        true
+
+      {:error, :not_found} ->
+        false
+
+      # Trigger: unexpected error from consent repository (e.g. database issue)
+      # Why: consent check must fail closed — never expose data on error
+      {:error, reason} ->
+        Logger.warning("[Identity] child_has_active_consent? failed",
+          child_id: child_id,
+          consent_type: consent_type,
+          reason: inspect(reason)
+        )
+
+        false
+    end
+  end
+
+  # ============================================================================
+  # GDPR Account Anonymization
+  # ============================================================================
+
+  @doc """
+  Anonymizes all Identity-owned data for a user during GDPR account deletion.
+
+  Looks up the user's parent profile, then for each child:
+  1. Deletes all consent records
+  2. Anonymizes child PII (names, emergency contact, support needs, allergies)
+  3. Publishes `child_data_anonymized` event for downstream contexts
+
+  Parent profile itself has no PII (only identity_id, subscription_tier, timestamps)
+  so it requires no anonymization.
+
+  Downstream contexts (e.g. Participation) react to the `child_data_anonymized`
+  event to anonymize their own child-related data.
+
+  Returns:
+  - `{:ok, :no_data}` if user has no parent profile
+  - `{:ok, %{children_anonymized: count, consents_deleted: count}}`
+  """
+  def anonymize_data_for_user(identity_id) when is_binary(identity_id) do
+    case @parent_repository.get_by_identity_id(identity_id) do
+      {:ok, parent} ->
+        children = @child_repository.list_by_parent(parent.id)
+        anonymize_children_data(children)
+
+      {:error, :not_found} ->
+        {:ok, :no_data}
+    end
+  end
+
+  defp anonymize_children_data(children) do
+    anonymized_child_attrs = Child.anonymized_attrs()
+
+    Enum.reduce_while(
+      children,
+      {:ok, %{children_anonymized: 0, consents_deleted: 0}},
+      fn child, {:ok, acc} ->
+        with {:ok, consent_count} <- @consent_repository.delete_all_for_child(child.id),
+             {:ok, _anonymized_child} <-
+               @child_repository.anonymize(child.id, anonymized_child_attrs) do
+          # Trigger: child PII anonymized and consents deleted
+          # Why: downstream contexts own their own child data and must clean it
+          # Outcome: Participation context will anonymize behavioral notes
+          EventPublisher.publish_child_data_anonymized(child.id)
+
+          {:cont,
+           {:ok,
+            %{
+              acc
+              | children_anonymized: acc.children_anonymized + 1,
+                consents_deleted: acc.consents_deleted + consent_count
+            }}}
+        else
+          {:error, reason} ->
+            Logger.error("[Identity] anonymize_children_data failed",
+              child_id: child.id,
+              reason: inspect(reason)
+            )
+
+            {:halt, {:error, reason}}
+        end
+      end
+    )
+  end
+
+  # ============================================================================
+  # GDPR Data Export
+  # ============================================================================
+
+  @doc """
+  Exports all Identity-owned personal data for a user.
+
+  Looks up the user's parent profile, then collects all children and their
+  full consent history (including withdrawn records for audit purposes).
+
+  Returns `%{children: [...]}` when the user has a parent profile,
+  or `%{}` when no parent profile exists.
+  """
+  def export_data_for_user(identity_id) when is_binary(identity_id) do
+    case @parent_repository.get_by_identity_id(identity_id) do
+      {:ok, parent} ->
+        children = @child_repository.list_by_parent(parent.id)
+
+        children_data =
+          Enum.map(children, fn child ->
+            consents = @consent_repository.list_all_by_child(child.id)
+            format_child_export(child, consents)
+          end)
+
+        %{children: children_data}
+
+      {:error, :not_found} ->
+        %{}
+    end
+  end
+
+  defp format_child_export(child, consents) do
+    %{
+      id: child.id,
+      first_name: child.first_name,
+      last_name: child.last_name,
+      date_of_birth: Date.to_iso8601(child.date_of_birth),
+      emergency_contact: child.emergency_contact,
+      support_needs: child.support_needs,
+      allergies: child.allergies,
+      created_at: format_datetime(child.inserted_at),
+      updated_at: format_datetime(child.updated_at),
+      consents: Enum.map(consents, &format_consent_export/1)
+    }
+  end
+
+  defp format_consent_export(consent) do
+    %{
+      id: consent.id,
+      consent_type: consent.consent_type,
+      granted_at: format_datetime(consent.granted_at),
+      withdrawn_at: format_datetime(consent.withdrawn_at),
+      created_at: format_datetime(consent.inserted_at),
+      updated_at: format_datetime(consent.updated_at)
+    }
+  end
+
+  defp format_datetime(nil), do: nil
+  defp format_datetime(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
 
   # ============================================================================
   # Activity & Referral Functions

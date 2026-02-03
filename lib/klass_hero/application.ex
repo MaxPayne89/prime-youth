@@ -44,8 +44,14 @@ defmodule KlassHero.Application do
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
          handler: KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler,
-         topics: ["user:user_registered", "user:user_confirmed"]},
+         topics: ["user:user_registered", "user:user_confirmed", "user:user_anonymized"]},
         id: :identity_event_subscriber
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandler,
+         topics: ["child:child_data_anonymized"]},
+        id: :participation_event_subscriber
       )
     ]
   end

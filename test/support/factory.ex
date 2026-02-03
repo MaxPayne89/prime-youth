@@ -31,9 +31,11 @@ defmodule KlassHero.Factory do
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
   alias KlassHero.Enrollment.Domain.Models.Enrollment
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Identity.Domain.Models.Child
+  alias KlassHero.Identity.Domain.Models.Consent
   alias KlassHero.Identity.Domain.Models.ParentProfile
   alias KlassHero.Identity.Domain.Models.ProviderProfile
 
@@ -44,8 +46,10 @@ defmodule KlassHero.Factory do
   }
 
   alias KlassHero.Messaging.Domain.Models.{Conversation, Message, Participant}
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.BehavioralNoteSchema
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
+  alias KlassHero.Participation.Domain.Models.BehavioralNote
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
@@ -388,7 +392,9 @@ defmodule KlassHero.Factory do
       first_name: sequence(:child_first_name, &"Child#{&1}"),
       last_name: "Smith",
       date_of_birth: ~D[2018-06-15],
-      notes: nil,
+      emergency_contact: nil,
+      support_needs: nil,
+      allergies: nil,
       inserted_at: ~U[2025-01-01 12:00:00Z],
       updated_at: ~U[2025-01-01 12:00:00Z]
     }
@@ -414,7 +420,72 @@ defmodule KlassHero.Factory do
       first_name: sequence(:child_schema_first_name, &"Child#{&1}"),
       last_name: "Smith",
       date_of_birth: ~D[2018-06-15],
-      notes: nil
+      emergency_contact: nil,
+      support_needs: nil,
+      allergies: nil
+    }
+  end
+
+  # =============================================================================
+  # Identity Context - Consent Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating Consent domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      consent = build(:consent)
+      consent = build(:consent, consent_type: "photo")
+  """
+  def consent_factory do
+    %Consent{
+      id:
+        sequence(
+          :consent_id,
+          &"550e8400-e29b-41d4-a716-77665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      parent_id:
+        sequence(
+          :consent_parent_id,
+          &"660e8400-e29b-41d4-a716-77665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      child_id:
+        sequence(
+          :consent_child_id,
+          &"550e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      consent_type: "provider_data_sharing",
+      granted_at: ~U[2025-06-01 12:00:00Z],
+      withdrawn_at: nil,
+      inserted_at: ~U[2025-06-01 12:00:00Z],
+      updated_at: ~U[2025-06-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating ConsentSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a parent and child when inserted to avoid foreign key violations.
+
+  ## Examples
+
+      schema = build(:consent_schema)
+      schema = insert(:consent_schema, consent_type: "photo")
+  """
+  def consent_schema_factory do
+    child_schema = insert(:child_schema)
+
+    %ConsentSchema{
+      id: Ecto.UUID.generate(),
+      parent_id: child_schema.parent_id,
+      child_id: child_schema.id,
+      consent_type: "provider_data_sharing",
+      granted_at: DateTime.utc_now() |> DateTime.truncate(:second),
+      withdrawn_at: nil
     }
   end
 
@@ -551,6 +622,107 @@ defmodule KlassHero.Factory do
       check_out_notes: nil,
       check_out_by: nil
     }
+  end
+
+  # =============================================================================
+  # Behavioral Note Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating BehavioralNote domain entities (pure Elixir structs).
+
+  Used in use case tests where we don't need database persistence.
+
+  ## Examples
+
+      note = build(:behavioral_note)
+      note = build(:behavioral_note, content: "Custom observation")
+  """
+  def behavioral_note_factory do
+    %BehavioralNote{
+      id:
+        sequence(
+          :behavioral_note_id,
+          &"aa1e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      participation_record_id:
+        sequence(
+          :behavioral_note_record_id,
+          &"990e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      child_id:
+        sequence(
+          :behavioral_note_child_id,
+          &"550e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      parent_id: nil,
+      provider_id:
+        sequence(
+          :behavioral_note_provider_id,
+          &"770e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      content: "Child was very engaged and cooperative during the session",
+      status: :pending_approval,
+      rejection_reason: nil,
+      submitted_at: ~U[2025-06-01 12:00:00Z],
+      reviewed_at: nil,
+      inserted_at: ~U[2025-06-01 12:00:00Z],
+      updated_at: ~U[2025-06-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating BehavioralNoteSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a participation record when inserted.
+
+  ## Examples
+
+      schema = insert(:behavioral_note_schema)
+      schema = insert(:behavioral_note_schema, content: "Custom observation")
+  """
+  def behavioral_note_schema_factory do
+    record =
+      insert(:participation_record_schema,
+        status: :checked_in,
+        check_in_at: DateTime.utc_now(),
+        check_in_by: Ecto.UUID.generate()
+      )
+
+    %BehavioralNoteSchema{
+      id: Ecto.UUID.generate(),
+      participation_record_id: record.id,
+      child_id: record.child_id,
+      parent_id: record.parent_id,
+      provider_id: Ecto.UUID.generate(),
+      content: "Child was very engaged and cooperative during the session",
+      status: :pending_approval,
+      rejection_reason: nil,
+      submitted_at: DateTime.utc_now() |> DateTime.truncate(:second),
+      reviewed_at: nil
+    }
+  end
+
+  @doc """
+  Approved behavioral note domain entity variant.
+  """
+  def approved_behavioral_note_factory do
+    build(:behavioral_note, %{
+      status: :approved,
+      reviewed_at: ~U[2025-06-02 12:00:00Z]
+    })
+  end
+
+  @doc """
+  Rejected behavioral note domain entity variant.
+  """
+  def rejected_behavioral_note_factory do
+    build(:behavioral_note, %{
+      status: :rejected,
+      rejection_reason: "Please rephrase",
+      reviewed_at: ~U[2025-06-02 12:00:00Z]
+    })
   end
 
   @doc """

@@ -20,9 +20,12 @@ defmodule KlassHero.Participation.Domain.Services.ParticipationCollection do
       iex> ParticipationCollection.count_checked_in(records)
       1
   """
-  @spec count_checked_in([ParticipationRecord.t()]) :: non_neg_integer()
+  @spec count_checked_in([ParticipationRecord.t() | map()]) :: non_neg_integer()
   def count_checked_in(records) when is_list(records) do
-    Enum.count(records, &ParticipationRecord.checked_in?/1)
+    Enum.count(records, fn
+      %ParticipationRecord{} = record -> ParticipationRecord.checked_in?(record)
+      %{status: status} -> status == :checked_in
+    end)
   end
 
   @doc """

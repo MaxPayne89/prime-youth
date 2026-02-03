@@ -72,6 +72,37 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecordTest do
     end
   end
 
+  describe "from_persistence/1" do
+    test "reconstructs record from valid persistence data" do
+      attrs = %{
+        id: Ecto.UUID.generate(),
+        session_id: Ecto.UUID.generate(),
+        child_id: Ecto.UUID.generate(),
+        status: :checked_in,
+        parent_id: Ecto.UUID.generate(),
+        provider_id: Ecto.UUID.generate(),
+        check_in_at: DateTime.utc_now(),
+        check_in_by: Ecto.UUID.generate(),
+        lock_version: 2
+      }
+
+      assert {:ok, record} = ParticipationRecord.from_persistence(attrs)
+      assert record.id == attrs.id
+      assert record.status == :checked_in
+      assert record.lock_version == 2
+    end
+
+    test "returns error when required key is missing" do
+      attrs = %{
+        id: Ecto.UUID.generate(),
+        session_id: Ecto.UUID.generate()
+        # Missing child_id and status which are in @enforce_keys
+      }
+
+      assert {:error, :invalid_persistence_data} = ParticipationRecord.from_persistence(attrs)
+    end
+  end
+
   describe "check_in/3" do
     test "transitions :registered record to :checked_in" do
       record = build(:participation_record, status: :registered)

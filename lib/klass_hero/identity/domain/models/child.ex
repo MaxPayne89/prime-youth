@@ -12,7 +12,9 @@ defmodule KlassHero.Identity.Domain.Models.Child do
   - `first_name` - Child's first name
   - `last_name` - Child's last name
   - `date_of_birth` - Child's birth date
-  - `notes` - Optional notes about the child
+  - `emergency_contact` - Optional emergency contact info
+  - `support_needs` - Optional support needs or accommodations
+  - `allergies` - Optional allergy information
   - `inserted_at` - When the record was created
   - `updated_at` - When the record was last updated
   """
@@ -24,7 +26,9 @@ defmodule KlassHero.Identity.Domain.Models.Child do
     :first_name,
     :last_name,
     :date_of_birth,
-    :notes,
+    :emergency_contact,
+    :support_needs,
+    :allergies,
     :inserted_at,
     :updated_at
   ]
@@ -35,10 +39,28 @@ defmodule KlassHero.Identity.Domain.Models.Child do
           first_name: String.t(),
           last_name: String.t(),
           date_of_birth: Date.t(),
-          notes: String.t() | nil,
+          emergency_contact: String.t() | nil,
+          support_needs: String.t() | nil,
+          allergies: String.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
+
+  @doc """
+  Reconstructs a Child from persistence data.
+
+  Unlike `new/1`, this skips business validation since data was validated
+  on write. Uses `struct!/2` to enforce `@enforce_keys`.
+
+  Returns:
+  - `{:ok, child}` if all required keys are present
+  - `{:error, :invalid_persistence_data}` if required keys are missing
+  """
+  def from_persistence(attrs) when is_map(attrs) do
+    {:ok, struct!(__MODULE__, attrs)}
+  rescue
+    ArgumentError -> {:error, :invalid_persistence_data}
+  end
 
   @doc """
   Returns the full name of the child (first name + last name).
@@ -51,6 +73,23 @@ defmodule KlassHero.Identity.Domain.Models.Child do
   """
   def full_name(%__MODULE__{first_name: first_name, last_name: last_name}) do
     "#{first_name} #{last_name}"
+  end
+
+  @doc """
+  Returns the canonical anonymized attribute values for GDPR account deletion.
+
+  The domain model owns the definition of what "anonymized" means for a child,
+  keeping this business decision out of persistence adapters.
+  """
+  def anonymized_attrs do
+    %{
+      first_name: "Anonymized",
+      last_name: "Child",
+      date_of_birth: nil,
+      emergency_contact: nil,
+      support_needs: nil,
+      allergies: nil
+    }
   end
 
   @doc """

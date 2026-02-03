@@ -81,7 +81,7 @@ defmodule KlassHeroWeb.MessagesLive.Show do
                 :for={{dom_id, message} <- @streams.messages}
                 id={dom_id}
                 message={message}
-                is_own={MessagingLiveHelper.is_own_message?(message, @current_scope.user.id)}
+                is_own={MessagingLiveHelper.own_message?(message, @current_scope.user.id)}
                 sender_name={MessagingLiveHelper.get_sender_name(@sender_names, message.sender_id)}
               />
             </div>

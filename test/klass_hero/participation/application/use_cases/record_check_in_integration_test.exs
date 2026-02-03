@@ -54,8 +54,8 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInIntegrationT
         KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
       participation_repository:
         KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-      child_name_resolver:
-        KlassHero.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
+      child_info_resolver:
+        KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResolver
     )
 
     Application.put_env(:klass_hero, :event_publisher,

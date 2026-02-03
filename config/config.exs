@@ -73,12 +73,15 @@ config :klass_hero, :event_publisher,
 
 # Configure Identity bounded context
 config :klass_hero, :identity,
+  repo: KlassHero.Repo,
   for_storing_parent_profiles:
     KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
   for_storing_provider_profiles:
     KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
   for_storing_children:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository
+    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository,
+  for_storing_consents:
+    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRepository
 
 # Configure Messaging bounded context
 config :klass_hero, :messaging,
@@ -101,7 +104,9 @@ config :klass_hero, :participation,
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
   participation_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-  child_name_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildNameResolver
+  child_info_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResolver,
+  behavioral_note_repository:
+    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,
@@ -168,7 +173,47 @@ config :logger, :default_formatter,
     :error,
     :title,
     :lock_version,
-    :cursor
+    :cursor,
+    :archived_count,
+    :cap,
+    :category,
+    :consent_id,
+    :consent_type,
+    :contact_id,
+    :content,
+    :conversation_id,
+    :conversations_deleted,
+    :current_count,
+    :cutoff_date,
+    :days_after_program_end,
+    :email,
+    :end_date,
+    :enrollment_id,
+    :message,
+    :message_id,
+    :messages_deleted,
+    :name,
+    :opts,
+    :participant_id,
+    :recipient_count,
+    :remaining,
+    :retention_period_days,
+    :start_date,
+    :subject,
+    :submitted_at,
+    :tier,
+    :timestamp,
+    :type,
+    :used,
+    :user_count,
+    :user_id,
+    :conversation_count,
+    :initiator_id,
+    :message_count,
+    :read_at,
+    :retention_days,
+    :sender_id,
+    :note_id
   ]
 
 config :opentelemetry, :resource,

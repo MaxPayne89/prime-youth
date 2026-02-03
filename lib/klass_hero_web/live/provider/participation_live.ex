@@ -23,9 +23,14 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
       |> assign(:participation_records, [])
       |> assign(:checkout_form_expanded, nil)
       |> assign(:checkout_forms, %{})
+      |> assign(:note_form_expanded, nil)
+      |> assign(:note_forms, %{})
+      |> assign(:revision_form_expanded, nil)
+      |> assign(:revision_forms, %{})
+      |> assign(:provider_notes, %{})
+      |> assign(:record_note_map, %{})
 
     if connected?(socket) do
-      # Subscribe to participation record events for real-time UI updates
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "participation_record:child_checked_in")
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "participation_record:child_checked_out")
 
@@ -33,6 +38,10 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
         KlassHero.PubSub,
         "participation_record:participation_marked_absent"
       )
+
+      Phoenix.PubSub.subscribe(KlassHero.PubSub, "behavioral_note:behavioral_note_submitted")
+      Phoenix.PubSub.subscribe(KlassHero.PubSub, "behavioral_note:behavioral_note_approved")
+      Phoenix.PubSub.subscribe(KlassHero.PubSub, "behavioral_note:behavioral_note_rejected")
     end
 
     {:ok, load_session_data(socket)}
@@ -77,24 +86,21 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
 
   @impl true
   def handle_event("expand_checkout_form", %{"id" => record_id}, socket) do
-    form = to_form(%{"notes" => ""}, as: "checkout")
-
-    socket =
-      socket
-      |> assign(:checkout_form_expanded, record_id)
-      |> assign(:checkout_forms, Map.put(socket.assigns.checkout_forms, record_id, form))
-
-    {:noreply, socket}
+    {:noreply,
+     expand_form(
+       socket,
+       record_id,
+       "checkout",
+       "notes",
+       "",
+       :checkout_form_expanded,
+       :checkout_forms
+     )}
   end
 
   @impl true
   def handle_event("cancel_checkout", %{"id" => record_id}, socket) do
-    socket =
-      socket
-      |> assign(:checkout_form_expanded, nil)
-      |> assign(:checkout_forms, Map.delete(socket.assigns.checkout_forms, record_id))
-
-    {:noreply, socket}
+    {:noreply, cancel_form(socket, record_id, :checkout_form_expanded, :checkout_forms)}
   end
 
   @impl true
@@ -103,12 +109,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
         %{"id" => record_id, "checkout" => %{"notes" => notes}},
         socket
       ) do
-    current_forms = socket.assigns.checkout_forms
-    updated_form = to_form(%{"notes" => notes}, as: "checkout")
-
-    socket = assign(socket, :checkout_forms, Map.put(current_forms, record_id, updated_form))
-
-    {:noreply, socket}
+    {:noreply, update_form(socket, record_id, notes, "checkout", "notes", :checkout_forms)}
   end
 
   @impl true
@@ -152,6 +153,125 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
     end
   end
 
+  # Behavioral note form handlers
+
+  @impl true
+  def handle_event("expand_note_form", %{"id" => record_id}, socket) do
+    {:noreply,
+     expand_form(socket, record_id, "note", "content", "", :note_form_expanded, :note_forms)}
+  end
+
+  @impl true
+  def handle_event("cancel_note", %{"id" => record_id}, socket) do
+    {:noreply, cancel_form(socket, record_id, :note_form_expanded, :note_forms)}
+  end
+
+  @impl true
+  def handle_event(
+        "update_note_content",
+        %{"id" => record_id, "note" => %{"content" => content}},
+        socket
+      ) do
+    {:noreply, update_form(socket, record_id, content, "note", "content", :note_forms)}
+  end
+
+  @impl true
+  def handle_event("submit_note", %{"id" => record_id, "note" => params}, socket) do
+    content = Map.get(params, "content", "")
+
+    case Participation.submit_behavioral_note(%{
+           participation_record_id: record_id,
+           provider_id: socket.assigns.provider_id,
+           content: content
+         }) do
+      {:ok, _note} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Behavioral note submitted for review"))
+         |> assign(:note_form_expanded, nil)
+         |> assign(:note_forms, Map.delete(socket.assigns.note_forms, record_id))
+         |> load_session_data()}
+
+      {:error, :blank_content} ->
+        {:noreply, put_flash(socket, :error, gettext("Note content cannot be blank"))}
+
+      {:error, :duplicate_note} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("You already submitted a note for this record"))}
+
+      {:error, reason} ->
+        Logger.error("[ParticipationLive.submit_note] Failed",
+          record_id: record_id,
+          reason: inspect(reason)
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Failed to submit note"))}
+    end
+  end
+
+  # Revision form handlers
+
+  @impl true
+  def handle_event("expand_revision_form", %{"id" => note_id}, socket) do
+    existing_note = Map.get(socket.assigns.provider_notes, note_id)
+    initial = if existing_note, do: existing_note.content, else: ""
+
+    {:noreply,
+     expand_form(
+       socket,
+       note_id,
+       "revision",
+       "content",
+       initial,
+       :revision_form_expanded,
+       :revision_forms
+     )}
+  end
+
+  @impl true
+  def handle_event("cancel_revision", %{"id" => note_id}, socket) do
+    {:noreply, cancel_form(socket, note_id, :revision_form_expanded, :revision_forms)}
+  end
+
+  @impl true
+  def handle_event(
+        "update_revision_content",
+        %{"id" => note_id, "revision" => %{"content" => content}},
+        socket
+      ) do
+    {:noreply, update_form(socket, note_id, content, "revision", "content", :revision_forms)}
+  end
+
+  @impl true
+  def handle_event("submit_revision", %{"id" => note_id, "revision" => params}, socket) do
+    content = Map.get(params, "content", "")
+
+    case Participation.revise_behavioral_note(%{
+           note_id: note_id,
+           provider_id: socket.assigns.provider_id,
+           content: content
+         }) do
+      {:ok, _note} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Note resubmitted for review"))
+         |> assign(:revision_form_expanded, nil)
+         |> assign(:revision_forms, Map.delete(socket.assigns.revision_forms, note_id))
+         |> load_session_data()}
+
+      {:error, :blank_content} ->
+        {:noreply, put_flash(socket, :error, gettext("Note content cannot be blank"))}
+
+      {:error, reason} ->
+        Logger.error("[ParticipationLive.submit_revision] Failed",
+          note_id: note_id,
+          reason: inspect(reason)
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Failed to resubmit note"))}
+    end
+  end
+
   # PubSub event handler for participation record events
   @impl true
   def handle_info(
@@ -166,6 +286,41 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
     {:noreply, update_participation_record(socket, record_id)}
   end
 
+  # PubSub handler for behavioral note events — reload session + provider notes
+  @impl true
+  def handle_info(
+        {:domain_event, %KlassHero.Shared.Domain.Events.DomainEvent{event_type: event_type}},
+        socket
+      )
+      when event_type in [
+             :behavioral_note_submitted,
+             :behavioral_note_approved,
+             :behavioral_note_rejected
+           ] do
+    {:noreply, load_session_data(socket)}
+  end
+
+  # Form lifecycle helpers — parameterized expand/cancel/update for all form types
+
+  defp expand_form(socket, id, form_name, field, initial_value, expanded_key, forms_key) do
+    form = to_form(%{field => initial_value}, as: form_name)
+
+    socket
+    |> assign(expanded_key, id)
+    |> assign(forms_key, Map.put(Map.get(socket.assigns, forms_key), id, form))
+  end
+
+  defp cancel_form(socket, id, expanded_key, forms_key) do
+    socket
+    |> assign(expanded_key, nil)
+    |> assign(forms_key, Map.delete(Map.get(socket.assigns, forms_key), id))
+  end
+
+  defp update_form(socket, id, value, form_name, field, forms_key) do
+    updated_form = to_form(%{field => value}, as: form_name)
+    assign(socket, forms_key, Map.put(Map.get(socket.assigns, forms_key), id, updated_form))
+  end
+
   # Private helper functions
 
   defp load_session_data(socket) do
@@ -177,6 +332,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
         |> assign(:session, session)
         |> assign(:participation_records, session.participation_records || [])
         |> assign(:session_error, nil)
+        |> load_provider_notes()
 
       {:error, :not_found} ->
         Logger.warning(
@@ -197,6 +353,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
 
         socket
         |> assign(:session_error, gettext("Failed to load session data"))
+        |> put_flash(:error, gettext("Failed to load session data"))
     end
   end
 
@@ -215,8 +372,29 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
           reason: inspect(reason)
         )
 
-        socket
+        put_flash(socket, :warning, gettext("Unable to refresh roster. Please reload."))
     end
+  end
+
+  defp load_provider_notes(socket) do
+    provider_id = socket.assigns.provider_id
+    records = socket.assigns.participation_records
+    record_ids = Enum.map(records, & &1.id)
+
+    # Trigger: batch-fetch this provider's notes for all participation records
+    # Why: single query instead of N+1 per record
+    # Outcome: provider_notes map keyed by note.id, record_note_map keyed by record.id
+    notes =
+      Participation.list_behavioral_notes_by_records_and_provider(record_ids, provider_id)
+
+    notes_by_record =
+      Map.new(notes, fn note -> {to_string(note.participation_record_id), note} end)
+
+    notes_by_id = Map.new(notes, fn note -> {to_string(note.id), note} end)
+
+    socket
+    |> assign(:record_note_map, notes_by_record)
+    |> assign(:provider_notes, notes_by_id)
   end
 
   defp find_participation_record(socket, record_id) do

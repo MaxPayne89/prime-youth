@@ -31,36 +31,45 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
           | {:error, term()}
   def execute do
     now = DateTime.utc_now()
-    repos = Repositories.all()
 
     Logger.info("Enforcing retention policy", timestamp: now)
 
-    case Repo.transaction(fn ->
-           with {:ok, msg_count, _conv_ids} <-
-                  repos.messages.delete_for_expired_conversations(now),
-                {:ok, conv_count} <- repos.conversations.delete_expired(now) do
-             %{messages_deleted: msg_count, conversations_deleted: conv_count}
-           else
-             {:error, reason} -> Repo.rollback(reason)
-           end
-         end) do
-      {:ok, result} ->
-        publish_event(result.messages_deleted, result.conversations_deleted)
+    now
+    |> run_retention_transaction()
+    |> handle_result()
+  end
 
-        Logger.info("Retention policy enforcement complete",
-          messages_deleted: result.messages_deleted,
-          conversations_deleted: result.conversations_deleted
-        )
+  defp run_retention_transaction(now) do
+    repos = Repositories.all()
 
-        {:ok, result}
+    Repo.transaction(fn ->
+      with {:ok, msg_count, _conv_ids} <-
+             repos.messages.delete_for_expired_conversations(now),
+           {:ok, conv_count} <- repos.conversations.delete_expired(now) do
+        %{messages_deleted: msg_count, conversations_deleted: conv_count}
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
+  end
 
-      {:error, reason} = error ->
-        Logger.error("Retention policy enforcement failed",
-          reason: inspect(reason)
-        )
+  defp handle_result({:ok, result}) do
+    publish_event(result.messages_deleted, result.conversations_deleted)
 
-        error
-    end
+    Logger.info("Retention policy enforcement complete",
+      messages_deleted: result.messages_deleted,
+      conversations_deleted: result.conversations_deleted
+    )
+
+    {:ok, result}
+  end
+
+  defp handle_result({:error, reason} = error) do
+    Logger.error("Retention policy enforcement failed",
+      reason: inspect(reason)
+    )
+
+    error
   end
 
   defp publish_event(messages_deleted, conversations_deleted) do

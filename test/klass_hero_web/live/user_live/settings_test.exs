@@ -209,6 +209,30 @@ defmodule KlassHeroWeb.UserLive.SettingsTest do
     end
   end
 
+  describe "my family section" do
+    test "renders family section with no children", %{conn: conn} do
+      {:ok, _lv, html} =
+        conn
+        |> log_in_user(user_fixture())
+        |> live(~p"/users/settings")
+
+      assert html =~ "My Family"
+      assert html =~ "Children Profiles"
+      assert html =~ "/settings/children"
+      assert html =~ "No children yet"
+    end
+
+    test "renders family section with child summary", %{conn: conn} do
+      %{conn: conn} = register_and_log_in_user_with_child(%{conn: conn})
+
+      {:ok, _lv, html} = live(conn, ~p"/users/settings")
+
+      assert html =~ "My Family"
+      assert html =~ "Emma"
+      assert html =~ "/settings/children"
+    end
+  end
+
   describe "confirm email" do
     setup %{conn: conn} do
       user = user_fixture()

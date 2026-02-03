@@ -8,6 +8,11 @@ defmodule KlassHero.Participation.Application.UseCases.GetParticipationHistory d
 
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
+  @participation_repository Application.compile_env!(:klass_hero, [
+                              :participation,
+                              :participation_repository
+                            ])
+
   @type single_child_params :: %{
           required(:child_id) => String.t(),
           optional(:start_date) => Date.t(),
@@ -45,13 +50,13 @@ defmodule KlassHero.Participation.Application.UseCases.GetParticipationHistory d
 
     records =
       if start_date && end_date do
-        participation_repository().list_by_children_and_date_range(
+        @participation_repository.list_by_children_and_date_range(
           child_ids,
           start_date,
           end_date
         )
       else
-        participation_repository().list_by_children(child_ids)
+        @participation_repository.list_by_children(child_ids)
       end
 
     {:ok, records}
@@ -63,15 +68,11 @@ defmodule KlassHero.Participation.Application.UseCases.GetParticipationHistory d
 
     records =
       if start_date && end_date do
-        participation_repository().list_by_child_and_date_range(child_id, start_date, end_date)
+        @participation_repository.list_by_child_and_date_range(child_id, start_date, end_date)
       else
-        participation_repository().list_by_child(child_id)
+        @participation_repository.list_by_child(child_id)
       end
 
     {:ok, records}
-  end
-
-  defp participation_repository do
-    Application.get_env(:klass_hero, :participation)[:participation_repository]
   end
 end

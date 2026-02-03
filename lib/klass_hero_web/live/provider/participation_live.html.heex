@@ -67,7 +67,90 @@
                 Check In
               </button>
           <% end %>
+
+          <%!-- Behavioral note section (only for checked-in / checked-out records) --%>
+          <%= if record.status in [:checked_in, :checked_out] do %>
+            <% existing_note = Map.get(@record_note_map, to_string(record.id)) %>
+            <%= cond do %>
+              <%!-- No note yet: show "Add Note" button --%>
+              <% is_nil(existing_note) && @note_form_expanded != to_string(record.id) -> %>
+                <button
+                  id={"add-note-btn-#{record.id}"}
+                  phx-click="expand_note_form"
+                  phx-value-id={record.id}
+                  class={[
+                    "px-3 py-1.5 text-sm bg-amber-500 text-white font-medium hover:bg-amber-600",
+                    "focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2",
+                    Theme.rounded(:md),
+                    Theme.transition(:normal)
+                  ]}
+                >
+                  Add Note
+                </button>
+                <%!-- Note form is expanded for this record --%>
+              <% is_nil(existing_note) && @note_form_expanded == to_string(record.id) -> %>
+                <%!-- Note exists: show status badge --%>
+              <% true -> %>
+                <.note_status_badge
+                  status={existing_note.status}
+                  id={"note-badge-#{existing_note.id}"}
+                />
+                <%!-- Rejected note: show rejection reason and revision button --%>
+                <%= if existing_note.status == :rejected do %>
+                  <%= if existing_note.rejection_reason do %>
+                    <p
+                      class="text-sm text-red-600 italic mt-1"
+                      id={"rejection-reason-#{existing_note.id}"}
+                    >
+                      "{existing_note.rejection_reason}"
+                    </p>
+                  <% end %>
+                  <%= if @revision_form_expanded != to_string(existing_note.id) do %>
+                    <button
+                      id={"revise-note-btn-#{existing_note.id}"}
+                      phx-click="expand_revision_form"
+                      phx-value-id={existing_note.id}
+                      class={[
+                        "px-3 py-1.5 text-sm bg-amber-500 text-white font-medium hover:bg-amber-600",
+                        "focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2",
+                        Theme.rounded(:md),
+                        Theme.transition(:normal)
+                      ]}
+                    >
+                      Edit & Resubmit
+                    </button>
+                  <% end %>
+                <% end %>
+            <% end %>
+          <% end %>
         </:actions>
+
+        <:expanded_content :let={record}>
+          <%!-- Inline note form (full-width below record row) --%>
+          <%= if @note_form_expanded == to_string(record.id) do %>
+            <.behavioral_note_form
+              form={Map.get(@note_forms, to_string(record.id))}
+              record_id={to_string(record.id)}
+            />
+          <% end %>
+
+          <%!-- Inline revision form (full-width below record row) --%>
+          <% existing_note = Map.get(@record_note_map, to_string(record.id)) %>
+          <%= if existing_note && @revision_form_expanded == to_string(existing_note.id) do %>
+            <.behavioral_note_revision_form
+              form={Map.get(@revision_forms, to_string(existing_note.id))}
+              note_id={to_string(existing_note.id)}
+            />
+          <% end %>
+
+          <%!-- Approved behavioral notes from past sessions (consent-gated) --%>
+          <%= if Map.get(record, :behavioral_notes) do %>
+            <.approved_notes_list
+              notes={Map.get(record, :behavioral_notes, [])}
+              record_id={to_string(record.id)}
+            />
+          <% end %>
+        </:expanded_content>
       </.roster_list>
     </div>
   <% end %>
