@@ -43,10 +43,22 @@ defmodule KlassHero.Application do
   end
 
   defp domain_event_buses do
-    # Pre-provisioned for Identity-internal domain events (e.g. child_updated)
-    # that will stay within the context — distinct from integration events via PubSub
     [
-      {KlassHero.Shared.DomainEventBus, context: KlassHero.Identity}
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus, context: KlassHero.Identity},
+        id: :identity_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Messaging,
+         handlers: [
+           {:user_data_anonymized,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle},
+            priority: 10}
+         ]},
+        id: :messaging_domain_event_bus
+      )
     ]
   end
 

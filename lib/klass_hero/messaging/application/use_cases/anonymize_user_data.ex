@@ -3,26 +3,30 @@ defmodule KlassHero.Messaging.Application.UseCases.AnonymizeUserData do
   Use case for anonymizing a user's messaging data as part of GDPR deletion.
 
   Replaces message content with `"[deleted]"` and marks all active
-  conversation participations as left. Publishes a `message_data_anonymized`
-  integration event on success.
+  conversation participations as left. Dispatches a `user_data_anonymized`
+  domain event on success — registered handlers promote it to an integration
+  event for cross-context notification.
 
   Full GDPR-compliant anonymization of the user identity is performed by the
   Accounts context. This use case handles the Messaging context's portion of that cascade.
   """
 
-  alias KlassHero.Messaging.IntegrationEventPublisher
+  alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
+  alias KlassHero.Shared.DomainEventBus
 
   require Logger
+
+  @context KlassHero.Messaging
 
   @doc """
   Anonymizes all messaging data for a user.
 
   All database operations run in a single transaction to prevent partial
   anonymization (e.g. messages anonymized but participations still active).
-  The integration event is published after commit — PubSub is a side effect
-  that cannot be rolled back.
+  The domain event is dispatched after commit — handlers (integration event
+  promotion, etc.) run in this process.
 
   ## Parameters
 
@@ -60,7 +64,7 @@ defmodule KlassHero.Messaging.Application.UseCases.AnonymizeUserData do
   defp tag_step(step, {:error, reason}), do: {:error, {step, reason}}
 
   defp handle_result({:ok, result}, user_id) do
-    publish_integration_event(user_id)
+    DomainEventBus.dispatch(@context, MessagingEvents.user_data_anonymized(user_id))
 
     Logger.info("Anonymized messaging data for user",
       user_id: user_id,
@@ -78,20 +82,5 @@ defmodule KlassHero.Messaging.Application.UseCases.AnonymizeUserData do
     )
 
     error
-  end
-
-  defp publish_integration_event(user_id) do
-    case IntegrationEventPublisher.publish_message_data_anonymized(user_id) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("Failed to publish message_data_anonymized event",
-          user_id: user_id,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
   end
 end
