@@ -88,6 +88,40 @@ defmodule KlassHero.Application do
             {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
          ]},
         id: :messaging_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Participation,
+         handlers: [
+           {:session_created,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:session_started,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:session_completed,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:child_checked_in,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:child_checked_out,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:child_marked_absent,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:behavioral_note_submitted,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:behavioral_note_approved,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:behavioral_note_rejected,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}}
+         ]},
+        id: :participation_domain_event_bus
       )
     ]
   end

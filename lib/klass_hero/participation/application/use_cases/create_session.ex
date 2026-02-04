@@ -15,7 +15,9 @@ defmodule KlassHero.Participation.Application.UseCases.CreateSession do
 
   alias KlassHero.Participation.Domain.Events.ParticipationEvents
   alias KlassHero.Participation.Domain.Models.ProgramSession
-  alias KlassHero.Participation.EventPublisher
+  alias KlassHero.Shared.DomainEventBus
+
+  @context KlassHero.Participation
 
   @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
 
@@ -60,8 +62,7 @@ defmodule KlassHero.Participation.Application.UseCases.CreateSession do
   end
 
   defp publish_event(session) do
-    session
-    |> ParticipationEvents.session_created()
-    |> EventPublisher.publish()
+    event = ParticipationEvents.session_created(session)
+    DomainEventBus.dispatch(@context, event)
   end
 end
