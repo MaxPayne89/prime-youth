@@ -3,8 +3,8 @@ defmodule KlassHero.Support.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
 
   import KlassHero.EventTestHelper
 
-  alias KlassHero.Support.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
   alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Support.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
 
   setup do
     setup_test_events()

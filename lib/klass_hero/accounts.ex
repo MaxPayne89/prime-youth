@@ -5,8 +5,8 @@ defmodule KlassHero.Accounts do
 
   import Ecto.Query, warn: false
 
-  alias KlassHero.Accounts.{User, UserNotifier, UserToken}
   alias KlassHero.Accounts.Domain.Events.UserEvents
+  alias KlassHero.Accounts.{User, UserNotifier, UserToken}
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
 
@@ -85,6 +85,7 @@ defmodule KlassHero.Accounts do
           KlassHero.Accounts,
           UserEvents.user_registered(user, %{registration_source: :web})
         )
+
         {:ok, user}
 
       {:error, changeset} ->
@@ -168,6 +169,7 @@ defmodule KlassHero.Accounts do
         KlassHero.Accounts,
         UserEvents.user_email_changed(updated_user, %{previous_email: previous_email})
       )
+
       {:ok, updated_user}
     end)
     |> Repo.transaction()
@@ -472,6 +474,7 @@ defmodule KlassHero.Accounts do
         KlassHero.Accounts,
         UserEvents.user_anonymized(anonymized_user, %{previous_email: previous_email})
       )
+
       {:ok, anonymized_user}
     end)
     |> Repo.transaction()

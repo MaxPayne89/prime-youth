@@ -8,11 +8,11 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandlerTest do
   import KlassHero.EventTestHelper
   import KlassHero.Factory
 
+  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.AccountsFixtures
   alias KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
-  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
 
   describe "handle_event/1 for :user_anonymized" do
     setup do

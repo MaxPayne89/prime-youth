@@ -80,6 +80,7 @@ defmodule KlassHero.Community.Application.UseCases.AddComment do
         @context,
         CommunityEvents.comment_added(updated_post, author, comment_text)
       )
+
       {:ok, updated_post}
     end
   end

@@ -25,6 +25,7 @@ defmodule KlassHero.Messaging do
   """
 
   alias KlassHero.Accounts.Scope
+  alias KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
 
   alias KlassHero.Messaging.Application.UseCases.{
     AnonymizeUserData,
@@ -262,8 +263,6 @@ defmodule KlassHero.Messaging do
   # ---------------------------------------------------------------------------
   # Topic helpers & subscriptions
   # ---------------------------------------------------------------------------
-
-  alias KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
 
   @doc """
   Returns the PubSub topic for a conversation.

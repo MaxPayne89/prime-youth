@@ -3,8 +3,8 @@ defmodule KlassHeroWeb.CommunityLive do
 
   import KlassHeroWeb.CompositeComponents
 
-  alias KlassHero.Community.Application.UseCases.{AddComment, ListPosts, ToggleLike}
   alias KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
+  alias KlassHero.Community.Application.UseCases.{AddComment, ListPosts, ToggleLike}
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHeroWeb.Theme
 

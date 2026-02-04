@@ -8,11 +8,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandlerTest d
   import KlassHero.EventTestHelper
   import KlassHero.Factory
 
+  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
-  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
 
   describe "handle_event/1 for :user_anonymized" do
     setup do
