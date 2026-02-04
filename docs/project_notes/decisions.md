@@ -76,3 +76,24 @@ Record architectural decisions with context, alternatives, and trade-offs. Numbe
 - Complete test isolation
 - Requires Docker installed
 - `mix test` auto-starts container if needed
+
+### ADR-004: Split Domain Events and Integration Events (2026-02-03)
+
+**Context:**
+- Single `DomainEvent` struct was used for both intra-context logic and cross-context PubSub communication
+- This blurred bounded context boundaries — a domain event (internal concern) and an integration event (cross-context contract) have different evolution rules and audiences
+
+**Decision:**
+- Two distinct concepts: `DomainEvent` (internal to a bounded context) and `IntegrationEvent` (cross-context via PubSub)
+- Domain events stay within the context that raises them; integration events are explicitly published for external consumers
+- `KlassHero.Shared.IntegrationEvents` module provides the publishing contract
+
+**Alternatives Considered:**
+- Keep single `DomainEvent` for everything -> Rejected: couples internal context changes to external contracts, any rename/restructure of a domain event inadvertently breaks subscribers in other contexts
+- Full event sourcing -> Rejected: unnecessary complexity at current scale (see ADR-002)
+
+**Consequences:**
+- Clearer DDD boundaries — contexts own their domain events without worrying about external consumers
+- Integration events can evolve independently with explicit versioning if needed
+- Slightly more ceremony when a domain action needs cross-context notification (must publish an integration event separately)
+- Cross-context contracts are explicit and discoverable in one place

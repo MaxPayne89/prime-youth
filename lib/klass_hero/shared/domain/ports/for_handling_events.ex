@@ -2,8 +2,9 @@ defmodule KlassHero.Shared.Domain.Ports.ForHandlingEvents do
   @moduledoc """
   Behaviour for domain event handlers.
 
-  Implement this behaviour to create event handlers that react to
-  domain events from other bounded contexts.
+  Implement this behaviour to create event handlers that react to domain events
+  published via PubSub (e.g. Accounts context broadcasting user lifecycle events).
+  For cross-context integration events, see `ForHandlingIntegrationEvents`.
 
   ## Example
 

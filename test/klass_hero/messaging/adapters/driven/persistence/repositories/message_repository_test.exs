@@ -330,6 +330,82 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
     end
   end
 
+  describe "anonymize_for_sender/1" do
+    test "replaces content with [deleted] for all messages by sender and returns count" do
+      alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
+
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      MessageRepository.create(%{
+        conversation_id: conversation.id,
+        sender_id: user.id,
+        content: "Message 1"
+      })
+
+      MessageRepository.create(%{
+        conversation_id: conversation.id,
+        sender_id: user.id,
+        content: "Message 2"
+      })
+
+      assert {:ok, 2} = MessageRepository.anonymize_for_sender(user.id)
+
+      # Verify content replaced
+      messages = Repo.all(from(m in MessageSchema, where: m.sender_id == ^user.id))
+      assert Enum.all?(messages, &(&1.content == "[deleted]"))
+    end
+
+    test "does not affect messages from other senders" do
+      alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
+
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+      other_user = AccountsFixtures.user_fixture()
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: other_user.id
+      )
+
+      MessageRepository.create(%{
+        conversation_id: conversation.id,
+        sender_id: user.id,
+        content: "User message"
+      })
+
+      MessageRepository.create(%{
+        conversation_id: conversation.id,
+        sender_id: other_user.id,
+        content: "Other user message"
+      })
+
+      assert {:ok, 1} = MessageRepository.anonymize_for_sender(user.id)
+
+      # Verify other user's message untouched
+      other_messages =
+        Repo.all(from(m in MessageSchema, where: m.sender_id == ^other_user.id))
+
+      assert Enum.all?(other_messages, &(&1.content == "Other user message"))
+    end
+
+    test "returns zero count when user has no messages" do
+      user = AccountsFixtures.user_fixture()
+
+      assert {:ok, 0} = MessageRepository.anonymize_for_sender(user.id)
+    end
+  end
+
   describe "delete_for_expired_conversations/1" do
     test "deletes messages for expired conversations" do
       alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema

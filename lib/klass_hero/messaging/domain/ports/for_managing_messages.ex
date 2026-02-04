@@ -83,6 +83,21 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingMessages do
               non_neg_integer()
 
   @doc """
+  Anonymizes all messages sent by a user.
+
+  Replaces message content with `"[deleted]"` for all messages where
+  the sender matches the given user ID. Used for GDPR data anonymization.
+
+  Returns:
+  - `{:ok, count}` - Number of messages anonymized
+  - `{:error, :database_connection_error}` - Database connection failure
+  - `{:error, :database_query_error}` - Database query failure
+  """
+  @callback anonymize_for_sender(sender_id :: binary()) ::
+              {:ok, non_neg_integer()}
+              | {:error, :database_connection_error | :database_query_error}
+
+  @doc """
   Deletes all messages for conversations that have expired their retention period.
 
   Performs a bulk delete of messages where the associated conversation's

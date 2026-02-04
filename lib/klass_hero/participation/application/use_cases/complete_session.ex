@@ -17,7 +17,9 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSession do
   alias KlassHero.Participation.Domain.Events.ParticipationEvents
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.Domain.Models.ProgramSession
-  alias KlassHero.Participation.EventPublisher
+  alias KlassHero.Shared.DomainEventBus
+
+  @context KlassHero.Participation
 
   @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
   @participation_repository Application.compile_env!(:klass_hero, [
@@ -71,14 +73,12 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSession do
   end
 
   defp publish_session_completed(session) do
-    session
-    |> ParticipationEvents.session_completed()
-    |> EventPublisher.publish()
+    event = ParticipationEvents.session_completed(session)
+    DomainEventBus.dispatch(@context, event)
   end
 
   defp publish_child_absent(record) do
-    record
-    |> ParticipationEvents.child_marked_absent()
-    |> EventPublisher.publish()
+    event = ParticipationEvents.child_marked_absent(record)
+    DomainEventBus.dispatch(@context, event)
   end
 end

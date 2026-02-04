@@ -1,8 +1,8 @@
 defmodule KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandler do
   @moduledoc """
-  Event handler for Participation context.
+  Integration event handler for Participation context.
 
-  Listens to cross-context domain events and triggers Participation-owned
+  Listens to cross-context integration events and triggers Participation-owned
   data operations in response.
 
   ## Subscribed Events
@@ -19,16 +19,17 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandl
   - Permanent errors → Log and return error
   """
 
-  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingEvents
+  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingIntegrationEvents
 
   alias KlassHero.Participation
   alias KlassHero.Shared.Adapters.Driven.Events.RetryHelpers
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   @impl true
   def subscribed_events, do: [:child_data_anonymized]
 
   @impl true
-  def handle_event(%{event_type: :child_data_anonymized, aggregate_id: child_id}) do
+  def handle_event(%IntegrationEvent{event_type: :child_data_anonymized, entity_id: child_id}) do
     anonymize_notes_with_retry(child_id)
   end
 
@@ -41,12 +42,13 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandl
 
     context = %{
       operation_name: "anonymize behavioral notes",
+      # RetryHelpers API requires :aggregate_id — maps to entity_id in integration event context
       aggregate_id: child_id,
       backoff_ms: 100
     }
 
-    # Trigger: RetryHelpers passes through {:ok, count} but EventSubscriber expects bare :ok
-    # Why: handler contract (ForHandlingEvents) returns :ok | {:error, _} | :ignore
+    # Trigger: RetryHelpers passes through {:ok, count} but subscriber expects bare :ok
+    # Why: handler contract (ForHandlingIntegrationEvents) returns :ok | {:error, _} | :ignore
     # Outcome: normalize {:ok, _} to :ok for the subscriber
     case RetryHelpers.retry_with_backoff(operation, context) do
       {:ok, _} -> :ok

@@ -10,10 +10,13 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
   Typically run by a background worker (Oban) on a daily schedule.
   """
 
-  alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
+  alias KlassHero.Shared.DomainEventBus
 
   require Logger
+
+  @context KlassHero.Messaging
 
   @default_days_after_program_end 30
   @default_retention_period_days 30
@@ -76,18 +79,9 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
   end
 
   defp publish_event(conversation_ids, count) do
-    case EventPublisher.publish_conversations_archived(conversation_ids, :program_ended, count) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("Failed to publish conversations_archived event",
-          count: count,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    event = MessagingEvents.conversations_archived(conversation_ids, :program_ended, count)
+    DomainEventBus.dispatch(@context, event)
+    :ok
   end
 
   defp default_days_after_program_end do

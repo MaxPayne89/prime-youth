@@ -15,7 +15,9 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
 
   alias KlassHero.Participation.Domain.Events.ParticipationEvents
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
-  alias KlassHero.Participation.EventPublisher
+  alias KlassHero.Shared.DomainEventBus
+
+  @context KlassHero.Participation
 
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
@@ -84,8 +86,7 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
   end
 
   defp publish_event(record) do
-    record
-    |> ParticipationEvents.child_checked_in()
-    |> EventPublisher.publish()
+    event = ParticipationEvents.child_checked_in(record)
+    DomainEventBus.dispatch(@context, event)
   end
 end

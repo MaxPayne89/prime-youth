@@ -18,7 +18,9 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNote do
   alias KlassHero.Participation.Application.UseCases.Shared
   alias KlassHero.Participation.Domain.Events.ParticipationEvents
   alias KlassHero.Participation.Domain.Models.BehavioralNote
-  alias KlassHero.Participation.EventPublisher
+  alias KlassHero.Shared.DomainEventBus
+
+  @context KlassHero.Participation
 
   @behavioral_note_repository Application.compile_env!(:klass_hero, [
                                 :participation,
@@ -71,14 +73,12 @@ defmodule KlassHero.Participation.Application.UseCases.ReviewBehavioralNote do
   defp apply_decision(_note, _decision, _reason), do: {:error, :invalid_decision}
 
   defp publish_event(note, :approve) do
-    note
-    |> ParticipationEvents.behavioral_note_approved()
-    |> EventPublisher.publish()
+    event = ParticipationEvents.behavioral_note_approved(note)
+    DomainEventBus.dispatch(@context, event)
   end
 
   defp publish_event(note, :reject) do
-    note
-    |> ParticipationEvents.behavioral_note_rejected()
-    |> EventPublisher.publish()
+    event = ParticipationEvents.behavioral_note_rejected(note)
+    DomainEventBus.dispatch(@context, event)
   end
 end

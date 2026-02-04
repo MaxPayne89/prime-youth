@@ -107,6 +107,29 @@ defmodule KlassHero.TestableEventHandler do
     :ok
   end
 
+  @doc """
+  Executes the configured test behavior for the calling process.
+
+  Looks up the ETS config keyed by `self()` (the subscriber PID), notifies the
+  test process, and returns the configured result. Shared by both
+  `TestableEventHandler` and `TestableIntegrationEventHandler`.
+  """
+  @spec execute_configured_behavior(struct()) :: :ok | :ignore | {:error, term()}
+  def execute_configured_behavior(event) do
+    config = get_config(self())
+
+    if config.test_pid && Process.alive?(config.test_pid) do
+      send(config.test_pid, {:event_handled, event, self()})
+    end
+
+    case config.behavior do
+      :ok -> :ok
+      :ignore -> :ignore
+      {:error, reason} -> {:error, reason}
+      :crash -> raise "Simulated crash for testing"
+    end
+  end
+
   # ForHandlingEvents implementation
   # Note: handle_event/1 runs in the subscriber's process, so self() is the subscriber PID
 
@@ -118,21 +141,5 @@ defmodule KlassHero.TestableEventHandler do
   end
 
   @impl true
-  def handle_event(event) do
-    # self() is the subscriber's PID since this runs in its process
-    config = get_config(self())
-
-    # Notify test process of received event
-    if config.test_pid && Process.alive?(config.test_pid) do
-      send(config.test_pid, {:event_handled, event, self()})
-    end
-
-    # Execute configured behavior
-    case config.behavior do
-      :ok -> :ok
-      :ignore -> :ignore
-      {:error, reason} -> {:error, reason}
-      :crash -> raise "Simulated crash for testing"
-    end
-  end
+  def handle_event(event), do: execute_configured_behavior(event)
 end

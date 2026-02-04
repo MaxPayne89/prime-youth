@@ -8,15 +8,15 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandlerTest do
   import KlassHero.EventTestHelper
   import KlassHero.Factory
 
+  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.AccountsFixtures
   alias KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
-  alias KlassHero.Shared.Domain.Events.DomainEvent
 
   describe "handle_event/1 for :user_anonymized" do
     setup do
-      setup_test_events()
+      setup_test_integration_events()
       :ok
     end
 
@@ -41,12 +41,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandlerTest do
       )
 
       event =
-        DomainEvent.new(
-          :user_anonymized,
+        AccountsIntegrationEvents.user_anonymized(
           user.id,
-          :user,
-          %{anonymized_email: "deleted_#{user.id}@anonymized.local"},
-          criticality: :critical
+          %{anonymized_email: "deleted_#{user.id}@anonymized.local"}
         )
 
       assert :ok == IdentityEventHandler.handle_event(event)
@@ -70,30 +67,24 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandlerTest do
       child = insert(:child_schema, parent_id: parent.id)
 
       event =
-        DomainEvent.new(
-          :user_anonymized,
+        AccountsIntegrationEvents.user_anonymized(
           user.id,
-          :user,
-          %{anonymized_email: "deleted_#{user.id}@anonymized.local"},
-          criticality: :critical
+          %{anonymized_email: "deleted_#{user.id}@anonymized.local"}
         )
 
       assert :ok == IdentityEventHandler.handle_event(event)
 
-      child_event = assert_event_published(:child_data_anonymized)
-      assert child_event.aggregate_id == child.id
+      child_event = assert_integration_event_published(:child_data_anonymized)
+      assert child_event.entity_id == child.id
     end
 
     test "returns :ok for user without parent profile" do
       user = AccountsFixtures.user_fixture()
 
       event =
-        DomainEvent.new(
-          :user_anonymized,
+        AccountsIntegrationEvents.user_anonymized(
           user.id,
-          :user,
-          %{anonymized_email: "deleted_#{user.id}@anonymized.local"},
-          criticality: :critical
+          %{anonymized_email: "deleted_#{user.id}@anonymized.local"}
         )
 
       assert :ok == IdentityEventHandler.handle_event(event)

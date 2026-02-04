@@ -26,6 +26,10 @@ config :klass_hero, :event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher,
   pubsub: KlassHero.PubSub
 
+config :klass_hero, :integration_event_publisher,
+  module: KlassHero.Shared.Adapters.Driven.Events.TestIntegrationEventPublisher,
+  pubsub: KlassHero.PubSub
+
 config :klass_hero, :participation,
   session_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,

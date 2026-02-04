@@ -161,19 +161,29 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
 
   Only database connection errors are considered transient and worth retrying.
   """
-  @spec retryable_error?(atom() | {atom(), term()}) :: boolean()
+  @spec retryable_error?(atom() | {atom(), term()} | {atom(), atom() | {atom(), term()}}) ::
+          boolean()
   def retryable_error?(:database_connection_error), do: true
+  # Trigger: step-tagged error like {:anonymize_messages, :database_connection_error}
+  # Why: use case tags errors with the step name for traceability; we delegate to classify the inner reason
+  def retryable_error?({_step, reason}) when is_atom(reason), do: retryable_error?(reason)
   def retryable_error?(_), do: false
 
   @doc """
   Determines if an error is permanent and should not be retried.
   """
-  @spec permanent_error?(atom() | {atom(), term()}) :: boolean()
+  @spec permanent_error?(atom() | {atom(), term()} | {atom(), atom() | {atom(), term()}}) ::
+          boolean()
   def permanent_error?(:duplicate_resource), do: true
   def permanent_error?(:resource_not_found), do: true
   def permanent_error?(:database_query_error), do: true
   def permanent_error?(:database_unavailable), do: true
   def permanent_error?({:validation_error, _}), do: true
+  # Trigger: step-tagged error where the step is NOT :validation_error (already matched above)
+  # Why: delegates classification to the inner reason for use case step-tagged errors
+  def permanent_error?({step, reason}) when is_atom(step) and step != :validation_error,
+    do: permanent_error?(reason)
+
   def permanent_error?(_), do: false
 
   # Logging functions with error IDs for correlation

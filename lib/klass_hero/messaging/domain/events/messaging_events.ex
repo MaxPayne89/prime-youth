@@ -2,8 +2,12 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
   @moduledoc """
   Factory module for creating messaging domain events.
 
-  Events are published to PubSub for real-time updates and can be
-  consumed by other bounded contexts for cross-context integration.
+  These events are internal to the Messaging context and drive real-time
+  LiveView updates via PubSub. They are not intended for cross-context
+  communication.
+
+  For cross-context integration events, see
+  `KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents`.
   """
 
   alias KlassHero.Shared.Domain.Events.DomainEvent
@@ -182,6 +186,23 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
         conversations_deleted: conversations_deleted,
         enforced_at: DateTime.utc_now()
       }
+    )
+  end
+
+  @doc """
+  Creates a user_data_anonymized event.
+
+  Published after anonymizing a user's messaging data (content replaced,
+  participations ended). Handlers may promote this to an integration event
+  for cross-context notification.
+  """
+  @spec user_data_anonymized(user_id :: String.t()) :: DomainEvent.t()
+  def user_data_anonymized(user_id) do
+    DomainEvent.new(
+      :user_data_anonymized,
+      user_id,
+      :user,
+      %{user_id: user_id}
     )
   end
 end

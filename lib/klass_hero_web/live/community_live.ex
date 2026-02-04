@@ -3,8 +3,8 @@ defmodule KlassHeroWeb.CommunityLive do
 
   import KlassHeroWeb.CompositeComponents
 
+  alias KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
   alias KlassHero.Community.Application.UseCases.{AddComment, ListPosts, ToggleLike}
-  alias KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHeroWeb.Theme
 
@@ -50,9 +50,9 @@ defmodule KlassHeroWeb.CommunityLive do
 
   defp subscribe_to_post_events do
     topics = [
-      PubSubEventPublisher.build_topic(:post, :post_liked),
-      PubSubEventPublisher.build_topic(:post, :post_unliked),
-      PubSubEventPublisher.build_topic(:post, :comment_added)
+      NotifyLiveViews.build_topic(:post, :post_liked),
+      NotifyLiveViews.build_topic(:post, :post_unliked),
+      NotifyLiveViews.build_topic(:post, :comment_added)
     ]
 
     Enum.each(topics, &Phoenix.PubSub.subscribe(KlassHero.PubSub, &1))

@@ -25,8 +25,10 @@ defmodule KlassHero.Messaging do
   """
 
   alias KlassHero.Accounts.Scope
+  alias KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
 
   alias KlassHero.Messaging.Application.UseCases.{
+    AnonymizeUserData,
     BroadcastToProgram,
     CreateDirectConversation,
     GetConversation,
@@ -236,6 +238,49 @@ defmodule KlassHero.Messaging do
     as: :execute
 
   @doc """
+  Anonymizes all messaging data for a user as part of GDPR deletion.
+
+  Replaces message content with `"[deleted]"` and marks all active
+  conversation participations as left. Publishes a `message_data_anonymized`
+  integration event on success.
+
+  ## Parameters
+  - user_id: The ID of the user to anonymize
+
+  ## Returns
+  - `{:ok, %{messages_anonymized: n, participants_updated: n}}` - Success
+  - `{:error, reason}` - Failure
+
+  ## Examples
+
+      iex> Messaging.anonymize_data_for_user(user_id)
+      {:ok, %{messages_anonymized: 5, participants_updated: 2}}
+
+  """
+  @spec anonymize_data_for_user(String.t()) :: {:ok, map()} | {:error, term()}
+  defdelegate anonymize_data_for_user(user_id), to: AnonymizeUserData, as: :execute
+
+  # ---------------------------------------------------------------------------
+  # Topic helpers & subscriptions
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Returns the PubSub topic for a conversation.
+
+  Used by LiveViews to subscribe to real-time updates for a specific conversation.
+  """
+  @spec conversation_topic(String.t()) :: String.t()
+  defdelegate conversation_topic(conversation_id), to: NotifyLiveViews
+
+  @doc """
+  Returns the PubSub topic for a user's message notifications.
+
+  Used by LiveViews to subscribe to new conversation and message notifications.
+  """
+  @spec user_messages_topic(String.t()) :: String.t()
+  defdelegate user_messages_topic(user_id), to: NotifyLiveViews
+
+  @doc """
   Subscribes to real-time updates for a conversation.
 
   ## Examples
@@ -246,7 +291,7 @@ defmodule KlassHero.Messaging do
   """
   @spec subscribe_to_conversation(String.t()) :: :ok | {:error, term()}
   def subscribe_to_conversation(conversation_id) do
-    Phoenix.PubSub.subscribe(KlassHero.PubSub, "conversation:#{conversation_id}")
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, conversation_topic(conversation_id))
   end
 
   @doc """
@@ -260,6 +305,6 @@ defmodule KlassHero.Messaging do
   """
   @spec subscribe_to_user_messages(String.t()) :: :ok | {:error, term()}
   def subscribe_to_user_messages(user_id) do
-    Phoenix.PubSub.subscribe(KlassHero.PubSub, "user:#{user_id}:messages")
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, user_messages_topic(user_id))
   end
 end

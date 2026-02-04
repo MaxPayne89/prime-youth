@@ -36,22 +36,145 @@ defmodule KlassHero.Application do
   end
 
   defp domain_children do
-    event_subscribers() ++ in_memory_repositories()
+    domain_event_buses() ++
+      integration_event_subscribers() ++
+      in_memory_repositories()
   end
 
-  defp event_subscribers do
+  defp domain_event_buses do
+    [
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Accounts,
+         handlers: [
+           {:user_registered,
+            {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           {:user_anonymized,
+            {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10}
+         ]},
+        id: :accounts_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Identity,
+         handlers: [
+           {:child_data_anonymized,
+            {KlassHero.Identity.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10}
+         ]},
+        id: :identity_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Messaging,
+         handlers: [
+           {:user_data_anonymized,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           {:message_sent,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:messages_read,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:broadcast_sent,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:conversation_created,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:conversations_archived,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:retention_enforced,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
+         ]},
+        id: :messaging_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Participation,
+         handlers: [
+           {:session_created,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:session_started,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:session_completed,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:child_checked_in,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:child_checked_out,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:child_marked_absent,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:behavioral_note_submitted,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:behavioral_note_approved,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           {:behavioral_note_rejected,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}}
+         ]},
+        id: :participation_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Community,
+         handlers: [
+           {:comment_added,
+            {KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:post_liked,
+            {KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:post_unliked,
+            {KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
+         ]},
+        id: :community_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Support,
+         handlers: [
+           {:contact_request_submitted,
+            {KlassHero.Support.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
+         ]},
+        id: :support_domain_event_bus
+      )
+    ]
+  end
+
+  defp integration_event_subscribers do
     [
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
          handler: KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler,
-         topics: ["user:user_registered", "user:user_confirmed", "user:user_anonymized"]},
-        id: :identity_event_subscriber
+         topics: [
+           "integration:accounts:user_registered",
+           "integration:accounts:user_anonymized"
+         ],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :identity_integration_event_subscriber
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler,
+         topics: ["integration:accounts:user_anonymized"],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :messaging_integration_event_subscriber
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
          handler: KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandler,
-         topics: ["child:child_data_anonymized"]},
-        id: :participation_event_subscriber
+         topics: ["integration:identity:child_data_anonymized"],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :participation_integration_event_subscriber
       )
     ]
   end

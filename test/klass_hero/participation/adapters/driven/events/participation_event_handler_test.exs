@@ -1,6 +1,6 @@
 defmodule KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandlerTest do
   @moduledoc """
-  Tests for ParticipationEventHandler handling of child_data_anonymized events.
+  Tests for ParticipationEventHandler handling of child_data_anonymized integration events.
   """
 
   use KlassHero.DataCase, async: true
@@ -9,7 +9,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandl
 
   alias KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandler
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.BehavioralNoteSchema
-  alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   describe "handle_event/1 for :child_data_anonymized" do
     test "anonymizes all behavioral notes for the child" do
@@ -20,10 +20,11 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandl
         )
 
       event =
-        DomainEvent.new(
+        IntegrationEvent.new(
           :child_data_anonymized,
-          note.child_id,
+          :identity,
           :child,
+          note.child_id,
           %{child_id: note.child_id},
           criticality: :critical
         )
@@ -40,10 +41,11 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandl
       child_id = Ecto.UUID.generate()
 
       event =
-        DomainEvent.new(
+        IntegrationEvent.new(
           :child_data_anonymized,
-          child_id,
+          :identity,
           :child,
+          child_id,
           %{child_id: child_id},
           criticality: :critical
         )
@@ -55,10 +57,11 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandl
   describe "handle_event/1 for unknown events" do
     test "ignores unrecognized event types" do
       event =
-        DomainEvent.new(
+        IntegrationEvent.new(
           :some_unknown_event,
-          Ecto.UUID.generate(),
           :unknown,
+          :unknown,
+          Ecto.UUID.generate(),
           %{}
         )
 

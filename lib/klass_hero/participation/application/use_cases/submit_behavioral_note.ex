@@ -19,7 +19,9 @@ defmodule KlassHero.Participation.Application.UseCases.SubmitBehavioralNote do
   alias KlassHero.Participation.Domain.Events.ParticipationEvents
   alias KlassHero.Participation.Domain.Models.BehavioralNote
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
-  alias KlassHero.Participation.EventPublisher
+  alias KlassHero.Shared.DomainEventBus
+
+  @context KlassHero.Participation
 
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
@@ -95,8 +97,7 @@ defmodule KlassHero.Participation.Application.UseCases.SubmitBehavioralNote do
   end
 
   defp publish_event(note) do
-    note
-    |> ParticipationEvents.behavioral_note_submitted()
-    |> EventPublisher.publish()
+    event = ParticipationEvents.behavioral_note_submitted(note)
+    DomainEventBus.dispatch(@context, event)
   end
 end

@@ -138,6 +138,38 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
   end
 
   @impl true
+  def anonymize_for_sender(sender_id) do
+    {count, _} =
+      from(m in MessageSchema,
+        where: m.sender_id == ^sender_id
+      )
+      |> Repo.update_all(set: [content: "[deleted]"])
+
+    Logger.debug("Anonymized messages for sender",
+      sender_id: sender_id,
+      count: count
+    )
+
+    {:ok, count}
+  rescue
+    e in DBConnection.ConnectionError ->
+      Logger.error("Database connection error anonymizing messages for sender",
+        sender_id: sender_id,
+        error: Exception.message(e)
+      )
+
+      {:error, :database_connection_error}
+
+    e in Postgrex.Error ->
+      Logger.error("Database query error anonymizing messages for sender",
+        sender_id: sender_id,
+        error: Exception.message(e)
+      )
+
+      {:error, :database_query_error}
+  end
+
+  @impl true
   def delete_for_expired_conversations(before) do
     expired_conversation_ids =
       from(c in ConversationSchema,

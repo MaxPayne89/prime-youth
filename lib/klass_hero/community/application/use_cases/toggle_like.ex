@@ -26,9 +26,12 @@ defmodule KlassHero.Community.Application.UseCases.ToggleLike do
       {:error, :not_found} = ToggleLike.execute("invalid_id")
   """
 
+  alias KlassHero.Community.Domain.Events.CommunityEvents
   alias KlassHero.Community.Domain.Models.Post
   alias KlassHero.Community.Domain.Ports.ForManagingPosts
-  alias KlassHero.Community.EventPublisher
+  alias KlassHero.Shared.DomainEventBus
+
+  @context KlassHero.Community
 
   @doc """
   Executes the use case to toggle a like on a post.
@@ -76,11 +79,11 @@ defmodule KlassHero.Community.Application.UseCases.ToggleLike do
   end
 
   defp publish_like_event(%Post{user_liked: true} = post) do
-    EventPublisher.publish_post_liked(post)
+    DomainEventBus.dispatch(@context, CommunityEvents.post_liked(post))
   end
 
   defp publish_like_event(%Post{user_liked: false} = post) do
-    EventPublisher.publish_post_unliked(post)
+    DomainEventBus.dispatch(@context, CommunityEvents.post_unliked(post))
   end
 
   defp toggle_like_status(%Post{user_liked: true} = post) do

@@ -31,6 +31,10 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInIntegrationT
       :ok
     end
 
+    def publish(event, _topic) do
+      publish(event)
+    end
+
     def get_events do
       Agent.get(__MODULE__, & &1) |> Enum.reverse()
     end

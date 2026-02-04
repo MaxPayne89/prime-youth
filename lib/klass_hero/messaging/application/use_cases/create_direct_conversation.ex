@@ -14,11 +14,14 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Entitlements
-  alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
+  alias KlassHero.Shared.DomainEventBus
 
   require Logger
+
+  @context KlassHero.Messaging
 
   @doc """
   Creates or retrieves a direct conversation between provider and user.
@@ -98,17 +101,15 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   end
 
   defp publish_event(conversation, participant_ids, provider_id) do
-    case EventPublisher.publish_new_conversation(conversation, participant_ids, provider_id) do
-      :ok ->
-        :ok
+    event =
+      MessagingEvents.conversation_created(
+        conversation.id,
+        conversation.type,
+        provider_id,
+        participant_ids
+      )
 
-      {:error, reason} ->
-        Logger.warning("Failed to publish conversation_created event",
-          conversation_id: conversation.id,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    DomainEventBus.dispatch(@context, event)
+    :ok
   end
 end
