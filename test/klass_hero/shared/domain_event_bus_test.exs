@@ -154,7 +154,9 @@ defmodule KlassHero.Shared.DomainEventBusTest do
         fn _event ->
           send(test_pid, {:ran, :high_number})
           :ok
-        end, priority: 200)
+        end,
+        priority: 200
+      )
 
       DomainEventBus.subscribe(
         @test_context,
@@ -162,7 +164,9 @@ defmodule KlassHero.Shared.DomainEventBusTest do
         fn _event ->
           send(test_pid, {:ran, :low_number})
           :ok
-        end, priority: 10)
+        end,
+        priority: 10
+      )
 
       DomainEventBus.dispatch(@test_context, build_event(:priority_event))
 
@@ -219,7 +223,9 @@ defmodule KlassHero.Shared.DomainEventBusTest do
         fn _event ->
           send(test_pid, {:ran, :explicit_50})
           :ok
-        end, priority: 50)
+        end,
+        priority: 50
+      )
 
       # Register with explicit priority 150 (should run last)
       DomainEventBus.subscribe(
@@ -228,7 +234,9 @@ defmodule KlassHero.Shared.DomainEventBusTest do
         fn _event ->
           send(test_pid, {:ran, :explicit_150})
           :ok
-        end, priority: 150)
+        end,
+        priority: 150
+      )
 
       DomainEventBus.dispatch(@test_context, build_event(:default_pri_event))
 
@@ -283,7 +291,9 @@ defmodule KlassHero.Shared.DomainEventBusTest do
         fn _event ->
           send(test_pid, {:ran, :dynamic_first})
           :ok
-        end, priority: 10)
+        end,
+        priority: 10
+      )
 
       # The init-time handler (priority 200) returns :ok but we can't easily
       # observe its ordering via messages. Instead, subscribe another lower-priority
@@ -294,7 +304,9 @@ defmodule KlassHero.Shared.DomainEventBusTest do
         fn _event ->
           send(test_pid, {:ran, :dynamic_last})
           :ok
-        end, priority: 300)
+        end,
+        priority: 300
+      )
 
       DomainEventBus.dispatch(context, build_event(:pri_event))
 
