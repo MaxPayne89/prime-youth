@@ -45,7 +45,14 @@ defmodule KlassHero.Application do
   defp domain_event_buses do
     [
       Supervisor.child_spec(
-        {KlassHero.Shared.DomainEventBus, context: KlassHero.Identity},
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Identity,
+         handlers: [
+           {:child_data_anonymized,
+            {KlassHero.Identity.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle},
+            priority: 10}
+         ]},
         id: :identity_domain_event_bus
       ),
       Supervisor.child_spec(

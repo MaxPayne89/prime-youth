@@ -45,8 +45,9 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
   alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
-  alias KlassHero.Identity.IntegrationEventPublisher
+  alias KlassHero.Identity.Domain.Events.IdentityEvents
   alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
+  alias KlassHero.Shared.DomainEventBus
 
   require Logger
 
@@ -396,7 +397,7 @@ defmodule KlassHero.Identity do
              # Trigger: child PII anonymized and consents deleted
              # Why: downstream contexts own their own child data and must clean it
              # Outcome: Participation context will anonymize behavioral notes
-             :ok <- IntegrationEventPublisher.publish_child_data_anonymized(child.id) do
+             :ok <- dispatch_child_anonymized(child.id) do
           {:cont,
            {:ok,
             %{
@@ -415,6 +416,16 @@ defmodule KlassHero.Identity do
         end
       end
     )
+  end
+
+  # Trigger: DomainEventBus.dispatch returns {:error, [{:error, reason} | _]}
+  # Why: the `with` chain and tests expect a flat {:error, reason} shape
+  # Outcome: unwraps the first handler failure from the bus error list
+  defp dispatch_child_anonymized(child_id) do
+    case DomainEventBus.dispatch(KlassHero.Identity, IdentityEvents.child_data_anonymized(child_id)) do
+      :ok -> :ok
+      {:error, [{:error, reason} | _]} -> {:error, reason}
+    end
   end
 
   # ============================================================================
