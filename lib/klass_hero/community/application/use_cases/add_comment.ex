@@ -28,9 +28,12 @@ defmodule KlassHero.Community.Application.UseCases.AddComment do
       {:error, :not_found} = AddComment.execute("invalid_id", "Comment", "User")
   """
 
+  alias KlassHero.Community.Domain.Events.CommunityEvents
   alias KlassHero.Community.Domain.Models.{Comment, Post}
   alias KlassHero.Community.Domain.Ports.ForManagingPosts
-  alias KlassHero.Community.EventPublisher
+  alias KlassHero.Shared.DomainEventBus
+
+  @context KlassHero.Community
 
   @doc """
   Executes the use case to add a comment to a post.
@@ -73,7 +76,10 @@ defmodule KlassHero.Community.Application.UseCases.AddComment do
     with {:ok, post} <- repository_module().get_by_id(post_id),
          post_with_comment = add_comment_to_post(post, comment_text, author),
          {:ok, updated_post} <- repository_module().update(post_with_comment) do
-      EventPublisher.publish_comment_added(updated_post, author, comment_text)
+      DomainEventBus.dispatch(
+        @context,
+        CommunityEvents.comment_added(updated_post, author, comment_text)
+      )
       {:ok, updated_post}
     end
   end
