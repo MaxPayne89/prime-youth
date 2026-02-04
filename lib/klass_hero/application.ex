@@ -135,6 +135,15 @@ defmodule KlassHero.Application do
             {KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
          ]},
         id: :community_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Support,
+         handlers: [
+           {:contact_request_submitted,
+            {KlassHero.Support.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
+         ]},
+        id: :support_domain_event_bus
       )
     ]
   end

@@ -49,9 +49,12 @@ defmodule KlassHero.Support.Application.UseCases.SubmitContactForm do
       {:error, :repository_unavailable} = SubmitContactForm.execute(valid_params)
   """
 
+  alias KlassHero.Shared.DomainEventBus
+  alias KlassHero.Support.Domain.Events.SupportEvents
   alias KlassHero.Support.Domain.Models.ContactRequest
-  alias KlassHero.Support.EventPublisher
   alias KlassHeroWeb.Forms.ContactForm
+
+  @context KlassHero.Support
 
   @doc """
   Executes the contact form submission use case.
@@ -111,7 +114,11 @@ defmodule KlassHero.Support.Application.UseCases.SubmitContactForm do
         contact_request = build_contact_request(validated_form)
 
         with {:ok, submitted_request} <- repository_module().submit(contact_request) do
-          EventPublisher.publish_contact_request_submitted(submitted_request)
+          DomainEventBus.dispatch(
+            @context,
+            SupportEvents.contact_request_submitted(submitted_request)
+          )
+
           {:ok, submitted_request}
         end
 
