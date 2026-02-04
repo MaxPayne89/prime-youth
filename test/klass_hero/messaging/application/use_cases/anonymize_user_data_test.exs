@@ -133,6 +133,8 @@ defmodule KlassHero.Messaging.Application.UseCases.AnonymizeUserDataTest do
         content: "Original message"
       )
 
+      # Clear integration events from fixture setup (user registration triggers one)
+      clear_integration_events()
       TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)
 
       # Use case returns {:ok, _} — publish failure is swallowed with a warning log

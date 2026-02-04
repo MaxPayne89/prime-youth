@@ -45,7 +45,16 @@ defmodule KlassHero.Application do
   defp domain_event_buses do
     [
       Supervisor.child_spec(
-        {KlassHero.Shared.DomainEventBus, context: KlassHero.Accounts},
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Accounts,
+         handlers: [
+           {:user_registered,
+            {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           {:user_anonymized,
+            {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10}
+         ]},
         id: :accounts_domain_event_bus
       ),
       Supervisor.child_spec(
@@ -83,25 +92,29 @@ defmodule KlassHero.Application do
     ]
   end
 
-  defp event_subscribers do
+  defp event_subscribers, do: []
+
+  defp integration_event_subscribers do
     [
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
          handler: KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler,
-         topics: ["user:user_registered", "user:user_confirmed", "user:user_anonymized"]},
-        id: :identity_event_subscriber
+         topics: [
+           "integration:accounts:user_registered",
+           "integration:accounts:user_anonymized"
+         ],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :identity_integration_event_subscriber
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
          handler: KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler,
-         topics: ["user:user_anonymized"]},
-        id: :messaging_event_subscriber
-      )
-    ]
-  end
-
-  defp integration_event_subscribers do
-    [
+         topics: ["integration:accounts:user_anonymized"],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :messaging_integration_event_subscriber
+      ),
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
          handler: KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandler,

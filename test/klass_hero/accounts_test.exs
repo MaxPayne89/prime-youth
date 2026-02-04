@@ -400,7 +400,7 @@ defmodule KlassHero.AccountsTest do
     import KlassHero.EventTestHelper
 
     setup do
-      setup_test_events()
+      setup_test_integration_events()
       %{user: user_fixture()}
     end
 
@@ -426,15 +426,15 @@ defmodule KlassHero.AccountsTest do
       refute Repo.get_by(UserToken, user_id: user.id)
     end
 
-    test "publishes user_anonymized event", %{user: user} do
-      original_email = user.email
+    test "publishes user_anonymized integration event", %{user: user} do
+      # Clear events from fixture setup (user registration triggers user_registered)
+      clear_integration_events()
 
       {:ok, _anonymized_user} = Accounts.anonymize_user(user)
 
-      event = assert_event_published(:user_anonymized)
-      assert event.aggregate_id == user.id
-      assert event.payload.previous_email == original_email
-      assert event.payload.anonymized_email == "deleted_#{user.id}@anonymized.local"
+      event = assert_integration_event_published(:user_anonymized)
+      assert event.entity_id == user.id
+      assert event.payload.user_id == user.id
     end
 
     test "persists changes to database", %{user: user} do
