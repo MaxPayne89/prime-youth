@@ -263,13 +263,15 @@ defmodule KlassHero.Messaging do
   # Topic helpers & subscriptions
   # ---------------------------------------------------------------------------
 
+  alias KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
+
   @doc """
   Returns the PubSub topic for a conversation.
 
   Used by LiveViews to subscribe to real-time updates for a specific conversation.
   """
   @spec conversation_topic(String.t()) :: String.t()
-  def conversation_topic(conversation_id), do: "conversation:#{conversation_id}"
+  defdelegate conversation_topic(conversation_id), to: NotifyLiveViews
 
   @doc """
   Returns the PubSub topic for a user's message notifications.
@@ -277,7 +279,7 @@ defmodule KlassHero.Messaging do
   Used by LiveViews to subscribe to new conversation and message notifications.
   """
   @spec user_messages_topic(String.t()) :: String.t()
-  def user_messages_topic(user_id), do: "user:#{user_id}:messages"
+  defdelegate user_messages_topic(user_id), to: NotifyLiveViews
 
   @doc """
   Subscribes to real-time updates for a conversation.

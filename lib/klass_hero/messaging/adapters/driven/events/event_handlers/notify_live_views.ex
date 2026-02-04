@@ -94,6 +94,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveVie
     end
   end
 
-  defp conversation_topic(conversation_id), do: "conversation:#{conversation_id}"
-  defp user_messages_topic(user_id), do: "user:#{user_id}:messages"
+  @doc "Returns PubSub topic for a specific conversation."
+  def conversation_topic(conversation_id), do: "conversation:#{conversation_id}"
+
+  @doc "Returns PubSub topic for a user's message updates."
+  def user_messages_topic(user_id), do: "user:#{user_id}:messages"
 end
