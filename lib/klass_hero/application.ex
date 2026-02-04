@@ -37,7 +37,6 @@ defmodule KlassHero.Application do
 
   defp domain_children do
     domain_event_buses() ++
-      event_subscribers() ++
       integration_event_subscribers() ++
       in_memory_repositories()
   end
@@ -147,8 +146,6 @@ defmodule KlassHero.Application do
       )
     ]
   end
-
-  defp event_subscribers, do: []
 
   defp integration_event_subscribers do
     [
