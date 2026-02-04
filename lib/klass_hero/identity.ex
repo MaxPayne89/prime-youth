@@ -43,9 +43,9 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Consents.WithdrawConsent
   alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
+  alias KlassHero.Identity.Domain.Events.IdentityEvents
   alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
-  alias KlassHero.Identity.Domain.Events.IdentityEvents
   alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
   alias KlassHero.Shared.DomainEventBus
 
@@ -422,7 +422,10 @@ defmodule KlassHero.Identity do
   # Why: the `with` chain and tests expect a flat {:error, reason} shape
   # Outcome: unwraps the first handler failure from the bus error list
   defp dispatch_child_anonymized(child_id) do
-    case DomainEventBus.dispatch(KlassHero.Identity, IdentityEvents.child_data_anonymized(child_id)) do
+    case DomainEventBus.dispatch(
+           KlassHero.Identity,
+           IdentityEvents.child_data_anonymized(child_id)
+         ) do
       :ok -> :ok
       {:error, [{:error, reason} | _]} -> {:error, reason}
     end

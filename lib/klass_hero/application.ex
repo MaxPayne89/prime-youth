@@ -50,8 +50,7 @@ defmodule KlassHero.Application do
          handlers: [
            {:child_data_anonymized,
             {KlassHero.Identity.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
-             :handle},
-            priority: 10}
+             :handle}, priority: 10}
          ]},
         id: :identity_domain_event_bus
       ),
@@ -61,8 +60,7 @@ defmodule KlassHero.Application do
          handlers: [
            {:user_data_anonymized,
             {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
-             :handle},
-            priority: 10}
+             :handle}, priority: 10}
          ]},
         id: :messaging_domain_event_bus
       )
