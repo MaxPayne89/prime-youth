@@ -2,8 +2,12 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
   @moduledoc """
   Factory module for creating messaging domain events.
 
-  Events are published to PubSub for real-time updates and can be
-  consumed by other bounded contexts for cross-context integration.
+  These events are internal to the Messaging context and drive real-time
+  LiveView updates via PubSub. They are not intended for cross-context
+  communication.
+
+  For cross-context integration events, see
+  `KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents`.
   """
 
   alias KlassHero.Shared.Domain.Events.DomainEvent

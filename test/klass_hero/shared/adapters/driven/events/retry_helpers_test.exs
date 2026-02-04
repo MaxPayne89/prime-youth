@@ -214,6 +214,14 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpersTest do
       refute RetryHelpers.retryable_error?({:validation_error, []})
       refute RetryHelpers.retryable_error?(:unknown_error)
     end
+
+    test "delegates through step-tagged tuple with retryable inner reason" do
+      assert RetryHelpers.retryable_error?({:anonymize_messages, :database_connection_error})
+    end
+
+    test "delegates through step-tagged tuple with non-retryable inner reason" do
+      refute RetryHelpers.retryable_error?({:mark_as_left, :database_query_error})
+    end
   end
 
   describe "permanent_error?/1" do
@@ -243,6 +251,52 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpersTest do
 
     test "returns false for unknown errors" do
       refute RetryHelpers.permanent_error?(:unknown_error)
+    end
+
+    test "delegates through step-tagged tuple with permanent inner reason" do
+      assert RetryHelpers.permanent_error?({:anonymize_messages, :database_query_error})
+    end
+
+    test "delegates through step-tagged tuple with non-permanent inner reason" do
+      refute RetryHelpers.permanent_error?({:mark_as_left, :database_connection_error})
+    end
+  end
+
+  describe "retry_with_backoff/2 with step-tagged errors" do
+    test "retries tagged retryable error and succeeds on 2nd attempt" do
+      {:ok, counter} = Agent.start_link(fn -> 0 end)
+
+      operation = fn ->
+        count = Agent.get_and_update(counter, fn count -> {count, count + 1} end)
+
+        case count do
+          0 -> {:error, {:anonymize_messages, :database_connection_error}}
+          1 -> {:ok, %{success: true}}
+        end
+      end
+
+      assert {:ok, %{success: true}} =
+               RetryHelpers.retry_with_backoff(operation, @default_context)
+
+      assert Agent.get(counter, & &1) == 2
+
+      Agent.stop(counter)
+    end
+
+    test "does not retry tagged permanent error" do
+      {:ok, counter} = Agent.start_link(fn -> 0 end)
+
+      operation = fn ->
+        Agent.update(counter, &(&1 + 1))
+        {:error, {:mark_as_left, :database_query_error}}
+      end
+
+      assert {:error, {:mark_as_left, :database_query_error}} =
+               RetryHelpers.retry_with_backoff(operation, @default_context)
+
+      assert Agent.get(counter, & &1) == 1
+
+      Agent.stop(counter)
     end
   end
 end

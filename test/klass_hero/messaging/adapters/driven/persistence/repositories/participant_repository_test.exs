@@ -214,6 +214,57 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Participa
     end
   end
 
+  describe "mark_all_as_left/1" do
+    test "marks all active participations as left and returns count" do
+      user = AccountsFixtures.user_fixture()
+      conversation1 = insert(:conversation_schema)
+      conversation2 = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation1.id,
+        user_id: user.id,
+        left_at: nil
+      )
+
+      insert(:participant_schema,
+        conversation_id: conversation2.id,
+        user_id: user.id,
+        left_at: nil
+      )
+
+      assert {:ok, 2} = ParticipantRepository.mark_all_as_left(user.id)
+
+      # Verify all now have left_at set
+      participants =
+        Repo.all(
+          from(p in KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema,
+            where: p.user_id == ^user.id
+          )
+        )
+
+      assert Enum.all?(participants, &(not is_nil(&1.left_at)))
+    end
+
+    test "does not re-update already-left participations" do
+      user = AccountsFixtures.user_fixture()
+      conversation = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id,
+        left_at: ~U[2025-01-01 00:00:00Z]
+      )
+
+      assert {:ok, 0} = ParticipantRepository.mark_all_as_left(user.id)
+    end
+
+    test "returns zero count when user has no participations" do
+      user = AccountsFixtures.user_fixture()
+
+      assert {:ok, 0} = ParticipantRepository.mark_all_as_left(user.id)
+    end
+  end
+
   describe "add_batch/2" do
     test "adds multiple participants at once" do
       conversation = insert(:conversation_schema)

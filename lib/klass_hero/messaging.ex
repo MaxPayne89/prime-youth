@@ -27,6 +27,7 @@ defmodule KlassHero.Messaging do
   alias KlassHero.Accounts.Scope
 
   alias KlassHero.Messaging.Application.UseCases.{
+    AnonymizeUserData,
     BroadcastToProgram,
     CreateDirectConversation,
     GetConversation,
@@ -234,6 +235,29 @@ defmodule KlassHero.Messaging do
   defdelegate get_total_unread_count(user_id),
     to: GetTotalUnreadCount,
     as: :execute
+
+  @doc """
+  Anonymizes all messaging data for a user as part of GDPR deletion.
+
+  Replaces message content with `"[deleted]"` and marks all active
+  conversation participations as left. Publishes a `message_data_anonymized`
+  integration event on success.
+
+  ## Parameters
+  - user_id: The ID of the user to anonymize
+
+  ## Returns
+  - `{:ok, %{messages_anonymized: n, participants_updated: n}}` - Success
+  - `{:error, reason}` - Failure
+
+  ## Examples
+
+      iex> Messaging.anonymize_data_for_user(user_id)
+      {:ok, %{messages_anonymized: 5, participants_updated: 2}}
+
+  """
+  @spec anonymize_data_for_user(String.t()) :: {:ok, map()} | {:error, term()}
+  defdelegate anonymize_data_for_user(user_id), to: AnonymizeUserData, as: :execute
 
   @doc """
   Subscribes to real-time updates for a conversation.

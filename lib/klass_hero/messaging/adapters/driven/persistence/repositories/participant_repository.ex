@@ -138,6 +138,40 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Participa
   end
 
   @impl true
+  def mark_all_as_left(user_id) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    {count, _} =
+      from(p in ParticipantSchema,
+        where: p.user_id == ^user_id and is_nil(p.left_at)
+      )
+      |> Repo.update_all(set: [left_at: now])
+
+    Logger.debug("Marked all participations as left for user",
+      user_id: user_id,
+      count: count
+    )
+
+    {:ok, count}
+  rescue
+    e in DBConnection.ConnectionError ->
+      Logger.error("Database connection error marking participations as left",
+        user_id: user_id,
+        error: Exception.message(e)
+      )
+
+      {:error, :database_connection_error}
+
+    e in Postgrex.Error ->
+      Logger.error("Database query error marking participations as left",
+        user_id: user_id,
+        error: Exception.message(e)
+      )
+
+      {:error, :database_query_error}
+  end
+
+  @impl true
   def add_batch(conversation_id, user_ids) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 

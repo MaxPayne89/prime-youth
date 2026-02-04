@@ -64,6 +64,21 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingParticipants do
   @callback is_participant?(conversation_id :: binary(), user_id :: binary()) :: boolean()
 
   @doc """
+  Marks all active participations as left for a user.
+
+  Sets `left_at` on all participant records where `user_id` matches
+  and `left_at` is nil. Used for GDPR data anonymization.
+
+  Returns:
+  - `{:ok, count}` - Number of participant records updated
+  - `{:error, :database_connection_error}` - Database connection failure
+  - `{:error, :database_query_error}` - Database query failure
+  """
+  @callback mark_all_as_left(user_id :: binary()) ::
+              {:ok, non_neg_integer()}
+              | {:error, :database_connection_error | :database_query_error}
+
+  @doc """
   Adds multiple participants to a conversation in a batch.
 
   Used for program broadcasts to add all enrolled parents.
