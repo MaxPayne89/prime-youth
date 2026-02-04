@@ -11,11 +11,14 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   the archive worker has run.
   """
 
-  alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
+  alias KlassHero.Shared.DomainEventBus
 
   require Logger
+
+  @context KlassHero.Messaging
 
   @doc """
   Enforces retention policy by deleting expired messages and conversations.
@@ -73,18 +76,8 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   end
 
   defp publish_event(messages_deleted, conversations_deleted) do
-    case EventPublisher.publish_retention_enforced(messages_deleted, conversations_deleted) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("Failed to publish retention_enforced event",
-          messages_deleted: messages_deleted,
-          conversations_deleted: conversations_deleted,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    event = MessagingEvents.retention_enforced(messages_deleted, conversations_deleted)
+    DomainEventBus.dispatch(@context, event)
+    :ok
   end
 end

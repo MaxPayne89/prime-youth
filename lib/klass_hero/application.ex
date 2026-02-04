@@ -60,7 +60,19 @@ defmodule KlassHero.Application do
          handlers: [
            {:user_data_anonymized,
             {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
-             :handle}, priority: 10}
+             :handle}, priority: 10},
+           {:message_sent,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:messages_read,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:broadcast_sent,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:conversation_created,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:conversations_archived,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:retention_enforced,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
          ]},
         id: :messaging_domain_event_bus
       )

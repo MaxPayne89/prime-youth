@@ -12,11 +12,14 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Entitlements
-  alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
+  alias KlassHero.Shared.DomainEventBus
 
   require Logger
+
+  @context KlassHero.Messaging
 
   @doc """
   Sends a broadcast message to all enrolled parents of a program.
@@ -132,23 +135,16 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   end
 
   defp publish_event(conversation, program_id, provider_id, message_id, recipient_count) do
-    case EventPublisher.publish_broadcast_sent(
-           conversation,
-           program_id,
-           provider_id,
-           message_id,
-           recipient_count
-         ) do
-      :ok ->
-        :ok
+    event =
+      MessagingEvents.broadcast_sent(
+        conversation.id,
+        program_id,
+        provider_id,
+        message_id,
+        recipient_count
+      )
 
-      {:error, reason} ->
-        Logger.warning("Failed to publish broadcast_sent event",
-          conversation_id: conversation.id,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    DomainEventBus.dispatch(@context, event)
+    :ok
   end
 end

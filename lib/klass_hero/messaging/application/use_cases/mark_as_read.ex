@@ -8,10 +8,13 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
   3. Publishes a messages_read event for real-time updates
   """
 
-  alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
+  alias KlassHero.Shared.DomainEventBus
 
   require Logger
+
+  @context KlassHero.Messaging
 
   @doc """
   Marks messages as read for a user in a conversation.
@@ -50,18 +53,8 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
   end
 
   defp publish_event(conversation_id, user_id, read_at) do
-    case EventPublisher.publish_messages_read(conversation_id, user_id, read_at) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("Failed to publish messages_read event",
-          conversation_id: conversation_id,
-          user_id: user_id,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    event = MessagingEvents.messages_read(conversation_id, user_id, read_at)
+    DomainEventBus.dispatch(@context, event)
+    :ok
   end
 end

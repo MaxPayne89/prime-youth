@@ -9,10 +9,13 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   4. Publishes a message_sent event for real-time updates
   """
 
-  alias KlassHero.Messaging.EventPublisher
+  alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
+  alias KlassHero.Shared.DomainEventBus
 
   require Logger
+
+  @context KlassHero.Messaging
 
   @doc """
   Sends a message to a conversation.
@@ -95,17 +98,17 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   end
 
   defp publish_event(message) do
-    case EventPublisher.publish_message_sent(message) do
-      :ok ->
-        :ok
+    event =
+      MessagingEvents.message_sent(
+        message.conversation_id,
+        message.id,
+        message.sender_id,
+        message.content,
+        message.message_type,
+        message.inserted_at
+      )
 
-      {:error, reason} ->
-        Logger.warning("Failed to publish message_sent event",
-          message_id: message.id,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    DomainEventBus.dispatch(@context, event)
+    :ok
   end
 end
