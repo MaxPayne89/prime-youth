@@ -259,6 +259,26 @@ defmodule KlassHero.Messaging do
   @spec anonymize_data_for_user(String.t()) :: {:ok, map()} | {:error, term()}
   defdelegate anonymize_data_for_user(user_id), to: AnonymizeUserData, as: :execute
 
+  # ---------------------------------------------------------------------------
+  # Topic helpers & subscriptions
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Returns the PubSub topic for a conversation.
+
+  Used by LiveViews to subscribe to real-time updates for a specific conversation.
+  """
+  @spec conversation_topic(String.t()) :: String.t()
+  def conversation_topic(conversation_id), do: "conversation:#{conversation_id}"
+
+  @doc """
+  Returns the PubSub topic for a user's message notifications.
+
+  Used by LiveViews to subscribe to new conversation and message notifications.
+  """
+  @spec user_messages_topic(String.t()) :: String.t()
+  def user_messages_topic(user_id), do: "user:#{user_id}:messages"
+
   @doc """
   Subscribes to real-time updates for a conversation.
 
@@ -270,7 +290,7 @@ defmodule KlassHero.Messaging do
   """
   @spec subscribe_to_conversation(String.t()) :: :ok | {:error, term()}
   def subscribe_to_conversation(conversation_id) do
-    Phoenix.PubSub.subscribe(KlassHero.PubSub, "conversation:#{conversation_id}")
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, conversation_topic(conversation_id))
   end
 
   @doc """
@@ -284,6 +304,6 @@ defmodule KlassHero.Messaging do
   """
   @spec subscribe_to_user_messages(String.t()) :: :ok | {:error, term()}
   def subscribe_to_user_messages(user_id) do
-    Phoenix.PubSub.subscribe(KlassHero.PubSub, "user:#{user_id}:messages")
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, user_messages_topic(user_id))
   end
 end

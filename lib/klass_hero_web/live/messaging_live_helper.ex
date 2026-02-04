@@ -16,7 +16,6 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
   alias KlassHero.Messaging
   alias KlassHero.Messaging.Domain.Models.Message
-  alias KlassHero.Messaging.EventPublisher
   alias KlassHero.Messaging.Repositories
   alias KlassHero.Shared.Domain.Events.DomainEvent
 
@@ -231,12 +230,12 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   end
 
   defp subscribe_to_conversation(conversation_id) do
-    topic = EventPublisher.conversation_topic(conversation_id)
+    topic = Messaging.conversation_topic(conversation_id)
     Phoenix.PubSub.subscribe(KlassHero.PubSub, topic)
   end
 
   defp subscribe_to_user_updates(user_id) do
-    topic = EventPublisher.user_messages_topic(user_id)
+    topic = Messaging.user_messages_topic(user_id)
     Phoenix.PubSub.subscribe(KlassHero.PubSub, topic)
   end
 end
