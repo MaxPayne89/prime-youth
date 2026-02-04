@@ -5,8 +5,10 @@ defmodule KlassHero.Accounts do
 
   import Ecto.Query, warn: false
 
-  alias KlassHero.Accounts.{EventPublisher, User, UserNotifier, UserToken}
+  alias KlassHero.Accounts.{User, UserNotifier, UserToken}
+  alias KlassHero.Accounts.Domain.Events.UserEvents
   alias KlassHero.Repo
+  alias KlassHero.Shared.DomainEventBus
 
   ## Database getters
 
@@ -79,7 +81,10 @@ defmodule KlassHero.Accounts do
          |> User.registration_changeset(attrs)
          |> Repo.insert() do
       {:ok, user} ->
-        EventPublisher.publish_user_registered(user, registration_source: :web)
+        DomainEventBus.dispatch(
+          KlassHero.Accounts,
+          UserEvents.user_registered(user, %{registration_source: :web})
+        )
         {:ok, user}
 
       {:error, changeset} ->
@@ -159,7 +164,10 @@ defmodule KlassHero.Accounts do
       from(UserToken, where: [user_id: ^updated_user.id, context: ^context])
     end)
     |> Ecto.Multi.run(:publish_event, fn _repo, %{update_email: updated_user} ->
-      EventPublisher.publish_user_email_changed(updated_user, previous_email: previous_email)
+      DomainEventBus.dispatch(
+        KlassHero.Accounts,
+        UserEvents.user_email_changed(updated_user, %{previous_email: previous_email})
+      )
       {:ok, updated_user}
     end)
     |> Repo.transaction()
@@ -331,8 +339,9 @@ defmodule KlassHero.Accounts do
              |> User.confirm_changeset()
              |> update_user_and_delete_all_tokens() do
           {:ok, {confirmed_user, tokens}} ->
-            EventPublisher.publish_user_confirmed(confirmed_user,
-              confirmation_method: :magic_link
+            DomainEventBus.dispatch(
+              KlassHero.Accounts,
+              UserEvents.user_confirmed(confirmed_user, %{confirmation_method: :magic_link})
             )
 
             {:ok, {confirmed_user, tokens}}
@@ -459,7 +468,10 @@ defmodule KlassHero.Accounts do
       from(t in UserToken, where: t.user_id == ^anonymized_user.id)
     end)
     |> Ecto.Multi.run(:publish_event, fn _repo, %{anonymize_user: anonymized_user} ->
-      EventPublisher.publish_user_anonymized(anonymized_user, previous_email: previous_email)
+      DomainEventBus.dispatch(
+        KlassHero.Accounts,
+        UserEvents.user_anonymized(anonymized_user, %{previous_email: previous_email})
+      )
       {:ok, anonymized_user}
     end)
     |> Repo.transaction()

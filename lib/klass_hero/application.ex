@@ -45,6 +45,10 @@ defmodule KlassHero.Application do
   defp domain_event_buses do
     [
       Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus, context: KlassHero.Accounts},
+        id: :accounts_domain_event_bus
+      ),
+      Supervisor.child_spec(
         {KlassHero.Shared.DomainEventBus,
          context: KlassHero.Identity,
          handlers: [
