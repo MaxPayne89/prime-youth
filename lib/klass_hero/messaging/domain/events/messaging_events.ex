@@ -188,4 +188,21 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
       }
     )
   end
+
+  @doc """
+  Creates a user_data_anonymized event.
+
+  Published after anonymizing a user's messaging data (content replaced,
+  participations ended). Handlers may promote this to an integration event
+  for cross-context notification.
+  """
+  @spec user_data_anonymized(user_id :: String.t()) :: DomainEvent.t()
+  def user_data_anonymized(user_id) do
+    DomainEvent.new(
+      :user_data_anonymized,
+      user_id,
+      :user,
+      %{user_id: user_id}
+    )
+  end
 end

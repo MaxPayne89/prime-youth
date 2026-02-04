@@ -152,4 +152,16 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEventsTest do
       assert %DateTime{} = event.payload.enforced_at
     end
   end
+
+  describe "user_data_anonymized/1" do
+    test "creates event with correct type and payload" do
+      user_id = Ecto.UUID.generate()
+      event = MessagingEvents.user_data_anonymized(user_id)
+
+      assert event.event_type == :user_data_anonymized
+      assert event.aggregate_id == user_id
+      assert event.aggregate_type == :user
+      assert event.payload.user_id == user_id
+    end
+  end
 end
