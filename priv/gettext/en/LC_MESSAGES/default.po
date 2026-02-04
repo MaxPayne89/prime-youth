@@ -206,7 +206,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:193
 #, elixir-autogen, elixir-format
-msgid "Built for the Berlin international community. Connect with local families and trusted educators nearby."
+msgid "Built for the Berlin international community. Join parent groups, read verified reviews, and discover activities near you."
 msgstr ""
 
 #: lib/klass_hero_web/live/booking_live.ex:326
@@ -282,7 +282,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:173
 #, elixir-autogen, elixir-format
-msgid "Every provider is rigorously vetted. We prioritize child safety above all else, giving parents peace of mind."
+msgid "Every provider completes a 3-step verification: background screening, reference calls, and personal interviews. Your child's safety is non-negotiable"
 msgstr ""
 
 #: lib/klass_hero_web/live/programs_live.ex:43
@@ -1811,12 +1811,12 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:475
 #, elixir-autogen, elixir-format
-msgid "Currently, Klass Hero focuses exclusively on youth education and activities for children ages 3-18."
+msgid "Prices vary by subject and experience. Math tutors in Berlin average €25-45/hour. Music lessons range from €30-60/session. Summer camps start at €150/week."
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:243
 #, elixir-autogen, elixir-format
-msgid "Deliver Quality"
+msgid "Connect with Families"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:370
@@ -1831,7 +1831,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:473
 #, elixir-autogen, elixir-format
-msgid "Do you offer programs for adults?"
+msgid "How much do tutors cost on Klass Hero?"
 msgstr ""
 
 #: lib/klass_hero_web/live/programs_live.ex:31
@@ -1883,7 +1883,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:362
 #, elixir-autogen, elixir-format
-msgid "For families who love activities"
+msgid "For Families with Active Kids"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:394
@@ -1919,7 +1919,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:253
 #, elixir-autogen, elixir-format
-msgid "Get Paid & Grow"
+msgid "Grow Your Income"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:373
@@ -1934,12 +1934,12 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:220
 #, elixir-autogen, elixir-format
-msgid "Grow Your Passion Business"
+msgid "Let's Ignite Your Youth Program!"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:443
 #, elixir-autogen, elixir-format
-msgid "How does the 4-step provider vetting process work?"
+msgid "Are all teachers background checked?"
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:151
@@ -1954,12 +1954,12 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:453
 #, elixir-autogen, elixir-format
-msgid "Is there a free trial for the Active Family plan?"
+msgid "What activities can I find in Berlin?"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:223
 #, elixir-autogen, elixir-format
-msgid "Join our community of passionate educators. Tools and support to help you succeed."
+msgid "Professional tools to grow your youth education business. "
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:354
@@ -2021,12 +2021,12 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:154
 #, elixir-autogen, elixir-format
-msgid "Official ID and credentials check"
+msgid "Official ID check"
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:126
 #, elixir-autogen, elixir-format
-msgid "Our 4-Step Vetting Process"
+msgid "Our 3-Step Vetting Process"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:347
@@ -2081,12 +2081,12 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:255
 #, elixir-autogen, elixir-format
-msgid "Secure payments, insights into your business, and opportunities to expand your impact."
+msgid "Secure payments, Send Invoices, Track your Earnings, Manage Bookings, and Scale!"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:235
 #, elixir-autogen, elixir-format
-msgid "Set up your teaching profile and list your programs in minutes. Share your expertise with families who need it."
+msgid "Set up your teaching profile in minutes! List tutoring sessions, workshops, or camps with your availability and pricing."
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:245
@@ -2153,7 +2153,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:245
 #, elixir-autogen, elixir-format
-msgid "Teach your passion with our tools for scheduling, communication, and progress tracking."
+msgid "Get discovered by parents searching for qualified educators. Automated scheduling and built-in messaging keep communication simple."
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:269
@@ -2193,7 +2193,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:445
 #, elixir-autogen, elixir-format
-msgid "We verify credentials, conduct background checks, check references, and perform a personal interview before approving any provider."
+msgid "Yes. Every educator undergoes identity verification, reference calls, and enhanced background screening before approval"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:483
@@ -2208,7 +2208,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:455
 #, elixir-autogen, elixir-format
-msgid "Yes! New families get a 14-day free trial of the Active Family plan with full access to all features."
+msgid "Browse all programs including: private tutoring (math, English, German), music lessons (piano, guitar, violin), sports camps (soccer, swimming, tennis), STEM workshops, art classes, and summer camps."
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:349
