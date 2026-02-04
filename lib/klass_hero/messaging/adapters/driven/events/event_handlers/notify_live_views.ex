@@ -1,0 +1,99 @@
+defmodule KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews do
+  @moduledoc """
+  Routes Messaging domain events to PubSub topics for LiveView real-time updates.
+
+  Registered on the Messaging DomainEventBus. Each `handle/1` clause derives the
+  correct topic from the event payload and publishes via the configured event
+  publisher (PubSub in prod, TestEventPublisher in tests).
+
+  ## Error strategy
+
+  Swallows publish failures — the originating use case has already committed its
+  transaction. PubSub delivery is best-effort notification to connected LiveViews.
+
+  ## Topic routing
+
+  - `:message_sent`           → `"conversation:{id}"`
+  - `:messages_read`          → `"conversation:{id}"`
+  - `:broadcast_sent`         → `"conversation:{id}"`
+  - `:conversation_created`   → `"user:{id}:messages"` per participant (fan-out)
+  - `:conversations_archived` → `"messaging:bulk_operations"`
+  - `:retention_enforced`     → `"messaging:bulk_operations"`
+  """
+
+  alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.EventPublishing
+
+  require Logger
+
+  @bulk_topic "messaging:bulk_operations"
+
+  @doc """
+  Handles a domain event by publishing it to the appropriate PubSub topic.
+  """
+  @spec handle(DomainEvent.t()) :: :ok
+
+  # Per-conversation events → conversation:{id}
+
+  def handle(%DomainEvent{event_type: :message_sent} = event) do
+    topic = conversation_topic(event.payload.conversation_id)
+    safe_publish(event, topic)
+  end
+
+  def handle(%DomainEvent{event_type: :messages_read} = event) do
+    topic = conversation_topic(event.payload.conversation_id)
+    safe_publish(event, topic)
+  end
+
+  def handle(%DomainEvent{event_type: :broadcast_sent} = event) do
+    topic = conversation_topic(event.payload.conversation_id)
+    safe_publish(event, topic)
+  end
+
+  # Fan-out event → user:{id}:messages per participant
+
+  def handle(%DomainEvent{event_type: :conversation_created} = event) do
+    Enum.each(event.payload.participant_ids, fn user_id ->
+      topic = user_messages_topic(user_id)
+      safe_publish(event, topic)
+    end)
+
+    :ok
+  end
+
+  # Bulk operation events → messaging:bulk_operations
+
+  def handle(%DomainEvent{event_type: :conversations_archived} = event) do
+    safe_publish(event, @bulk_topic)
+  end
+
+  def handle(%DomainEvent{event_type: :retention_enforced} = event) do
+    safe_publish(event, @bulk_topic)
+  end
+
+  # ---------------------------------------------------------------------------
+  # Private
+  # ---------------------------------------------------------------------------
+
+  defp safe_publish(event, topic) do
+    case EventPublishing.publisher_module().publish(event, topic) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        # Trigger: PubSub publish failed after use case committed
+        # Why: transaction is durable, LiveView notification is best-effort
+        # Outcome: log warning, return :ok so bus reports success
+        Logger.warning("Failed to publish #{event.event_type} to #{topic}",
+          event_type: event.event_type,
+          topic: topic,
+          reason: inspect(reason)
+        )
+
+        :ok
+    end
+  end
+
+  defp conversation_topic(conversation_id), do: "conversation:#{conversation_id}"
+  defp user_messages_topic(user_id), do: "user:#{user_id}:messages"
+end
