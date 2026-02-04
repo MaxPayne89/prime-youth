@@ -12,7 +12,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandlerTest do
   alias KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
-  alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
 
   describe "handle_event/1 for :user_anonymized" do
     setup do
@@ -41,12 +41,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandlerTest do
       )
 
       event =
-        DomainEvent.new(
-          :user_anonymized,
+        AccountsIntegrationEvents.user_anonymized(
           user.id,
-          :user,
-          %{anonymized_email: "deleted_#{user.id}@anonymized.local"},
-          criticality: :critical
+          %{anonymized_email: "deleted_#{user.id}@anonymized.local"}
         )
 
       assert :ok == IdentityEventHandler.handle_event(event)
@@ -70,12 +67,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandlerTest do
       child = insert(:child_schema, parent_id: parent.id)
 
       event =
-        DomainEvent.new(
-          :user_anonymized,
+        AccountsIntegrationEvents.user_anonymized(
           user.id,
-          :user,
-          %{anonymized_email: "deleted_#{user.id}@anonymized.local"},
-          criticality: :critical
+          %{anonymized_email: "deleted_#{user.id}@anonymized.local"}
         )
 
       assert :ok == IdentityEventHandler.handle_event(event)
@@ -88,12 +82,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandlerTest do
       user = AccountsFixtures.user_fixture()
 
       event =
-        DomainEvent.new(
-          :user_anonymized,
+        AccountsIntegrationEvents.user_anonymized(
           user.id,
-          :user,
-          %{anonymized_email: "deleted_#{user.id}@anonymized.local"},
-          criticality: :critical
+          %{anonymized_email: "deleted_#{user.id}@anonymized.local"}
         )
 
       assert :ok == IdentityEventHandler.handle_event(event)

@@ -12,7 +12,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandlerTest d
   alias KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
-  alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
 
   describe "handle_event/1 for :user_anonymized" do
     setup do
@@ -37,12 +37,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandlerTest d
       )
 
       event =
-        DomainEvent.new(
-          :user_anonymized,
+        AccountsIntegrationEvents.user_anonymized(
           user.id,
-          :user,
-          %{anonymized_email: "deleted_#{user.id}@anonymized.local"},
-          criticality: :critical
+          %{anonymized_email: "deleted_#{user.id}@anonymized.local"}
         )
 
       assert :ok == MessagingEventHandler.handle_event(event)
@@ -72,12 +69,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandlerTest d
       user = AccountsFixtures.user_fixture()
 
       event =
-        DomainEvent.new(
-          :user_anonymized,
+        AccountsIntegrationEvents.user_anonymized(
           user.id,
-          :user,
-          %{anonymized_email: "deleted_#{user.id}@anonymized.local"},
-          criticality: :critical
+          %{anonymized_email: "deleted_#{user.id}@anonymized.local"}
         )
 
       assert :ok == MessagingEventHandler.handle_event(event)
@@ -90,12 +84,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandlerTest d
       user = AccountsFixtures.user_fixture()
 
       event =
-        DomainEvent.new(
-          :user_anonymized,
+        AccountsIntegrationEvents.user_anonymized(
           user.id,
-          :user,
-          %{anonymized_email: "deleted_#{user.id}@anonymized.local"},
-          criticality: :critical
+          %{anonymized_email: "deleted_#{user.id}@anonymized.local"}
         )
 
       assert :ok == MessagingEventHandler.handle_event(event)
@@ -104,13 +95,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandlerTest d
 
   describe "handle_event/1 for unknown events" do
     test "ignores unknown event types" do
-      event =
-        DomainEvent.new(
-          :unknown_event,
-          Ecto.UUID.generate(),
-          :user,
-          %{}
-        )
+      event = %{event_type: :unknown_event, entity_id: Ecto.UUID.generate(), payload: %{}}
 
       assert :ignore == MessagingEventHandler.handle_event(event)
     end

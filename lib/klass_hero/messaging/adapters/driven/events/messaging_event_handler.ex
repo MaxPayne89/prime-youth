@@ -26,7 +26,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler do
   def subscribed_events, do: [:user_anonymized]
 
   @impl true
-  def handle_event(%{event_type: :user_anonymized, aggregate_id: user_id}) do
+  def handle_event(%{event_type: :user_anonymized, entity_id: user_id}) do
     anonymize_messaging_data_with_retry(user_id)
   end
 

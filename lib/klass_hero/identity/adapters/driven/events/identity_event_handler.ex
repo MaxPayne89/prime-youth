@@ -34,12 +34,12 @@ defmodule KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler do
   def subscribed_events, do: [:user_registered, :user_anonymized]
 
   @impl true
-  def handle_event(%{event_type: :user_anonymized, aggregate_id: user_id}) do
+  def handle_event(%{event_type: :user_anonymized, entity_id: user_id}) do
     anonymize_identity_data_with_retry(user_id)
   end
 
   @impl true
-  def handle_event(%{event_type: :user_registered, aggregate_id: user_id, payload: payload}) do
+  def handle_event(%{event_type: :user_registered, entity_id: user_id, payload: payload}) do
     intended_roles = Map.get(payload, :intended_roles, [])
     business_name = Map.get(payload, :name, "")
 
