@@ -216,40 +216,40 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
   end
 
   defp handle_consent_change(child_id, parent_id, consent_checked) do
+    child_id
+    |> resolve_consent_action(parent_id, consent_checked)
+    |> normalize_consent_result(child_id)
+  end
+
+  defp resolve_consent_action(child_id, parent_id, consent_checked) do
     current_consent = Identity.child_has_active_consent?(child_id, @consent_type)
 
-    result =
-      cond do
-        consent_checked and not current_consent ->
-          Identity.grant_consent(%{
-            parent_id: parent_id,
-            child_id: child_id,
-            consent_type: @consent_type
-          })
+    cond do
+      consent_checked and not current_consent ->
+        Identity.grant_consent(%{
+          parent_id: parent_id,
+          child_id: child_id,
+          consent_type: @consent_type
+        })
 
-        not consent_checked and current_consent ->
-          Identity.withdraw_consent(child_id, @consent_type)
+      not consent_checked and current_consent ->
+        Identity.withdraw_consent(child_id, @consent_type)
 
-        true ->
-          :noop
-      end
-
-    case result do
-      {:ok, _} ->
-        :ok
-
-      :noop ->
-        :ok
-
-      # Trigger: concurrent grant or stale UI state
-      # Why: consent already exists — idempotent, treat as success
-      {:error, :already_active} ->
-        :ok
-
-      {:error, reason} ->
-        Logger.error("Consent update failed for child #{child_id}: #{inspect(reason)}")
-        {:error, :consent_failed}
+      true ->
+        :noop
     end
+  end
+
+  defp normalize_consent_result({:ok, _}, _child_id), do: :ok
+  defp normalize_consent_result(:noop, _child_id), do: :ok
+
+  # Trigger: concurrent grant or stale UI state
+  # Why: consent already exists — idempotent, treat as success
+  defp normalize_consent_result({:error, :already_active}, _child_id), do: :ok
+
+  defp normalize_consent_result({:error, reason}, child_id) do
+    Logger.error("Consent update failed for child #{child_id}: #{inspect(reason)}")
+    {:error, :consent_failed}
   end
 
   defp child_saved_flash(:new, :ok), do: gettext("Child added successfully.")
