@@ -130,6 +130,12 @@ config :klass_hero, :scopes,
     test_setup_helper: :register_and_log_in_user
   ]
 
+# Configure Storage (defaults, overridden per environment)
+config :klass_hero, :storage,
+  adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
+  public_bucket: "klass-hero-dev-public",
+  private_bucket: "klass-hero-dev-private"
+
 # Configure Support bounded context
 config :klass_hero, :support,
   repository: KlassHero.Support.Adapters.Driven.Persistence.Repositories.ContactRequestRepository

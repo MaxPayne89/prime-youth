@@ -118,6 +118,19 @@ if config_env() == :prod do
 
   config :klass_hero, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
+  # Storage configuration for production
+  config :klass_hero, :storage,
+    adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
+    public_bucket:
+      System.get_env("STORAGE_PUBLIC_BUCKET") || raise("STORAGE_PUBLIC_BUCKET not set"),
+    private_bucket:
+      System.get_env("STORAGE_PRIVATE_BUCKET") || raise("STORAGE_PRIVATE_BUCKET not set"),
+    endpoint: System.get_env("STORAGE_ENDPOINT"),
+    access_key_id:
+      System.get_env("STORAGE_ACCESS_KEY_ID") || raise("STORAGE_ACCESS_KEY_ID not set"),
+    secret_access_key:
+      System.get_env("STORAGE_SECRET_ACCESS_KEY") || raise("STORAGE_SECRET_ACCESS_KEY not set")
+
   # ## Configuring the mailer
   #
   # In production you need to configure the mailer to use a different adapter.
