@@ -40,8 +40,13 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   def signed_url(_bucket_type, key, expires_in, _opts \\ []) do
     bucket = get_bucket(:private)
 
+    # Trigger: Generating presigned URL for secure file access
+    # Why: presigned_url/5 requires config as a map, not keyword list
+    # Outcome: Temporary signed URL for private file download
+    config_map = ex_aws_config() |> Map.new()
+
     {:ok, url} =
-      ExAws.S3.presigned_url(ex_aws_config(), :get, bucket, key, expires_in: expires_in)
+      ExAws.S3.presigned_url(config_map, :get, bucket, key, expires_in: expires_in)
 
     {:ok, url}
   end
@@ -83,7 +88,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
 
     base = [
       access_key_id: config[:access_key_id],
-      secret_access_key: config[:secret_access_key]
+      secret_access_key: config[:secret_access_key],
+      region: config[:region] || "us-east-1"
     ]
 
     # Trigger: ExAws config construction
