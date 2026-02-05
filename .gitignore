@@ -46,3 +46,6 @@ npm-debug.log
 
 # specify
 .specify/results/
+
+# Git worktrees
+.worktrees/
