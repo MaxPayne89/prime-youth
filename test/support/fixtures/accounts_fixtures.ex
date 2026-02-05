@@ -37,7 +37,12 @@ defmodule KlassHero.AccountsFixtures do
   end
 
   def user_fixture(attrs \\ %{}) do
-    user = unconfirmed_user_fixture(attrs)
+    # Extract is_admin before passing to registration (since registration_changeset
+    # doesn't cast is_admin for security reasons)
+    attrs_map = Map.new(attrs)
+    {is_admin, registration_attrs} = Map.pop(attrs_map, :is_admin)
+
+    user = unconfirmed_user_fixture(registration_attrs)
 
     token =
       extract_user_token(fn url ->
@@ -47,7 +52,20 @@ defmodule KlassHero.AccountsFixtures do
     {:ok, {user, _expired_tokens}} =
       Accounts.login_user_by_magic_link(token)
 
-    user
+    # Set is_admin directly if provided (bypasses registration changeset)
+    # Trigger: test fixtures need to create admin users
+    # Why: registration_changeset doesn't cast is_admin for security
+    # Outcome: test user has is_admin set as requested
+    if is_admin do
+      {:ok, user} =
+        user
+        |> Ecto.Changeset.change(is_admin: is_admin)
+        |> KlassHero.Repo.update()
+
+      user
+    else
+      user
+    end
   end
 
   def user_scope_fixture do

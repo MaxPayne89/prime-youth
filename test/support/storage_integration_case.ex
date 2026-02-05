@@ -24,9 +24,9 @@ defmodule KlassHero.StorageIntegrationCase do
 
   using do
     quote do
-      @moduletag :integration
-
       alias KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter
+
+      @moduletag :integration
 
       @doc """
       Returns MinIO configuration for tests.
