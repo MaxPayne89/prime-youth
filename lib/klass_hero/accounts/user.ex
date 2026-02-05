@@ -26,6 +26,7 @@ defmodule KlassHero.Accounts.User do
     field :authenticated_at, :utc_datetime, virtual: true
     field :intended_roles, UserRoles, default: []
     field :locale, :string, default: "en"
+    field :is_admin, :boolean, default: false
 
     timestamps(type: :utc_datetime)
   end
