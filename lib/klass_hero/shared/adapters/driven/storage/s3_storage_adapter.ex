@@ -41,9 +41,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
     bucket = get_bucket(:private)
 
     {:ok, url} =
-      ExAws.S3.presigned_url(ex_aws_config(), :get, bucket, key,
-        expires_in: expires_in
-      )
+      ExAws.S3.presigned_url(ex_aws_config(), :get, bucket, key, expires_in: expires_in)
 
     {:ok, url}
   end

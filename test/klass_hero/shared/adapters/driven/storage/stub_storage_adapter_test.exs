@@ -5,34 +5,37 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapterTest do
 
   setup do
     {:ok, pid} = StubStorageAdapter.start_link([])
-    %{adapter: pid}
+    %{agent: pid}
   end
 
   describe "upload/4" do
-    test "stores file and returns stub URL for public bucket", %{adapter: adapter} do
-      result = StubStorageAdapter.upload(:public, "logos/test.png", "binary_data", adapter: adapter)
+    test "stores file and returns stub URL for public bucket", %{agent: agent} do
+      result =
+        StubStorageAdapter.upload(:public, "logos/test.png", "binary_data", agent: agent)
 
       assert {:ok, url} = result
       assert url == "stub://public/logos/test.png"
     end
 
-    test "stores file and returns key for private bucket", %{adapter: adapter} do
-      result = StubStorageAdapter.upload(:private, "docs/test.pdf", "binary_data", adapter: adapter)
+    test "stores file and returns key for private bucket", %{agent: agent} do
+      result =
+        StubStorageAdapter.upload(:private, "docs/test.pdf", "binary_data", agent: agent)
 
       assert {:ok, key} = result
       assert key == "docs/test.pdf"
     end
 
-    test "can retrieve uploaded file", %{adapter: adapter} do
-      StubStorageAdapter.upload(:public, "logos/test.png", "binary_data", adapter: adapter)
+    test "can retrieve uploaded file", %{agent: agent} do
+      StubStorageAdapter.upload(:public, "logos/test.png", "binary_data", agent: agent)
 
-      assert {:ok, "binary_data"} = StubStorageAdapter.get_uploaded(:public, "logos/test.png", adapter: adapter)
+      assert {:ok, "binary_data"} =
+               StubStorageAdapter.get_uploaded(:public, "logos/test.png", agent: agent)
     end
   end
 
   describe "signed_url/3" do
-    test "returns signed URL with expiration", %{adapter: adapter} do
-      result = StubStorageAdapter.signed_url(:private, "docs/test.pdf", 300, adapter: adapter)
+    test "returns signed URL with expiration", %{agent: agent} do
+      result = StubStorageAdapter.signed_url(:private, "docs/test.pdf", 300, agent: agent)
 
       assert {:ok, url} = result
       assert url =~ "stub://signed/docs/test.pdf"
@@ -41,11 +44,13 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapterTest do
   end
 
   describe "delete/2" do
-    test "removes file from storage", %{adapter: adapter} do
-      StubStorageAdapter.upload(:public, "logos/test.png", "binary_data", adapter: adapter)
+    test "removes file from storage", %{agent: agent} do
+      StubStorageAdapter.upload(:public, "logos/test.png", "binary_data", agent: agent)
 
-      assert :ok = StubStorageAdapter.delete(:public, "logos/test.png", adapter: adapter)
-      assert {:error, :file_not_found} = StubStorageAdapter.get_uploaded(:public, "logos/test.png", adapter: adapter)
+      assert :ok = StubStorageAdapter.delete(:public, "logos/test.png", agent: agent)
+
+      assert {:error, :file_not_found} =
+               StubStorageAdapter.get_uploaded(:public, "logos/test.png", agent: agent)
     end
   end
 end

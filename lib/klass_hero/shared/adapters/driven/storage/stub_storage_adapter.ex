@@ -5,9 +5,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
   Stores files in an Agent for test assertions.
   """
 
-  use Agent
-
   @behaviour KlassHero.Shared.Domain.Ports.ForStoringFiles
+
+  use Agent
 
   def start_link(opts) do
     name = Keyword.get(opts, :name, __MODULE__)
@@ -16,10 +16,10 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
 
   @impl true
   def upload(bucket_type, path, binary, opts \\ []) do
-    adapter = Keyword.get(opts, :adapter, __MODULE__)
+    agent = Keyword.get(opts, :agent, __MODULE__)
     key = make_key(bucket_type, path)
 
-    Agent.update(adapter, fn state ->
+    Agent.update(agent, fn state ->
       Map.put(state, key, binary)
     end)
 
@@ -31,16 +31,16 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
 
   @impl true
   def signed_url(_bucket_type, key, expires_in, opts \\ []) do
-    _adapter = Keyword.get(opts, :adapter, __MODULE__)
+    _agent = Keyword.get(opts, :agent, __MODULE__)
     {:ok, "stub://signed/#{key}?expires=#{expires_in}"}
   end
 
   @impl true
   def delete(bucket_type, path, opts \\ []) do
-    adapter = Keyword.get(opts, :adapter, __MODULE__)
+    agent = Keyword.get(opts, :agent, __MODULE__)
     key = make_key(bucket_type, path)
 
-    Agent.update(adapter, fn state ->
+    Agent.update(agent, fn state ->
       Map.delete(state, key)
     end)
 
@@ -51,10 +51,10 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
   Test helper to retrieve uploaded file content.
   """
   def get_uploaded(bucket_type, path, opts \\ []) do
-    adapter = Keyword.get(opts, :adapter, __MODULE__)
+    agent = Keyword.get(opts, :agent, __MODULE__)
     key = make_key(bucket_type, path)
 
-    case Agent.get(adapter, fn state -> Map.get(state, key) end) do
+    case Agent.get(agent, fn state -> Map.get(state, key) end) do
       nil -> {:error, :file_not_found}
       binary -> {:ok, binary}
     end
@@ -64,8 +64,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
   Test helper to clear all stored files.
   """
   def clear(opts \\ []) do
-    adapter = Keyword.get(opts, :adapter, __MODULE__)
-    Agent.update(adapter, fn _state -> %{} end)
+    agent = Keyword.get(opts, :agent, __MODULE__)
+    Agent.update(agent, fn _state -> %{} end)
   end
 
   defp make_key(bucket_type, path), do: "#{bucket_type}:#{path}"
