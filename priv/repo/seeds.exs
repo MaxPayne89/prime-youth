@@ -15,11 +15,13 @@ alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
 alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
 alias KlassHero.Repo
+alias KlassHero.Shared.Storage
 
 require Logger
 
@@ -52,6 +54,10 @@ Logger.info("Cleared existing parent profiles")
 # Programs reference providers via FK, so clear programs before providers
 Repo.delete_all(ProgramSchema)
 Logger.info("Cleared existing programs")
+
+# Verification documents reference providers via FK, so clear before providers
+Repo.delete_all(VerificationDocumentSchema)
+Logger.info("Cleared existing verification documents")
 
 Repo.delete_all(ProviderProfileSchema)
 Logger.info("Cleared existing provider profiles")
@@ -98,6 +104,23 @@ Logger.info("Created Max Explorer as parent user (explorer tier)")
 Logger.info("Created Max Active as parent user (active tier)")
 
 # ==============================================================================
+# ADMIN USER (created before providers so admin.id is available for verified_by_id)
+# ==============================================================================
+
+{:ok, admin} =
+  %User{}
+  |> Ecto.Changeset.change(%{
+    name: "Klass Hero Admin",
+    email: "app@primeyouth.de",
+    hashed_password: Bcrypt.hash_pwd_salt("password"),
+    confirmed_at: DateTime.utc_now(:second),
+    is_admin: true
+  })
+  |> Repo.insert()
+
+Logger.info("Created admin user (is_admin: true)")
+
+# ==============================================================================
 # PROVIDER USERS (3 users - one per tier)
 # ==============================================================================
 
@@ -142,19 +165,6 @@ Logger.info("Created Shane Professional as provider user (professional tier)")
   |> Repo.insert()
 
 Logger.info("Created Shane Business Plus as provider user (business_plus tier)")
-
-# Admin user (kept for admin purposes)
-{:ok, _admin} =
-  %User{}
-  |> Ecto.Changeset.change(%{
-    name: "Klass Hero Admin",
-    email: "app@primeyouth.de",
-    hashed_password: Bcrypt.hash_pwd_salt("password"),
-    confirmed_at: DateTime.utc_now(:second)
-  })
-  |> Repo.insert()
-
-Logger.info("Created admin user")
 
 # ==============================================================================
 # CREATE PARENT PROFILES & CHILDREN
@@ -298,6 +308,7 @@ Logger.info("Creating provider profiles...")
     address: "123 Beginner Street, Munich, Germany",
     verified: true,
     verified_at: DateTime.utc_now(:second),
+    verified_by_id: admin.id,
     categories: ["Sports", "Fitness"],
     subscription_tier: "starter"
   })
@@ -317,6 +328,7 @@ Logger.info("Created provider profile for Shane's Starter Academy (starter tier)
     address: "456 Pro Avenue, Munich, Germany",
     verified: true,
     verified_at: DateTime.utc_now(:second),
+    verified_by_id: admin.id,
     categories: ["Sports", "Athletics", "Physical Education"],
     subscription_tier: "professional"
   })
@@ -336,12 +348,170 @@ Logger.info("Created provider profile for Shane's Pro Academy (professional tier
     address: "789 Elite Boulevard, Munich, Germany",
     verified: true,
     verified_at: DateTime.utc_now(:second),
+    verified_by_id: admin.id,
     categories: ["Sports", "Athletics", "Physical Education", "Camps", "Elite Training"],
     subscription_tier: "business_plus"
   })
   |> Repo.insert()
 
 Logger.info("Created provider profile for Shane's Elite Academy (business_plus tier)")
+
+# ==============================================================================
+# CREATE VERIFICATION DOCUMENTS
+# ==============================================================================
+
+Logger.info("Creating verification documents...")
+
+reviewed_at = DateTime.utc_now(:second)
+
+# Deterministic seed timestamp matching build_path format from SubmitVerificationDocument
+seed_ts = 1_738_800_000_000
+
+# Trigger: file_url must match the private-bucket key format used by SubmitVerificationDocument
+# Why: real uploads produce "verification-docs/providers/{id}/{timestamp}_{filename}"
+# Outcome: seeded records reference keys that match actual storage paths
+seed_file_key = fn provider_id, filename ->
+  safe = String.replace(filename, ~r/[^a-zA-Z0-9._-]/, "_")
+  "verification-docs/providers/#{provider_id}/#{seed_ts}_#{safe}"
+end
+
+verification_documents = [
+  # Shane Starter: incomplete (1 approved, 1 pending)
+  %{
+    provider_id: shane_starter_profile.id,
+    document_type: "business_registration",
+    file_url: seed_file_key.(shane_starter_profile.id, "business_registration.pdf"),
+    original_filename: "business_registration.pdf",
+    status: "approved",
+    reviewed_by_id: admin.id,
+    reviewed_at: reviewed_at
+  },
+  %{
+    provider_id: shane_starter_profile.id,
+    document_type: "insurance_certificate",
+    file_url: seed_file_key.(shane_starter_profile.id, "insurance_certificate.pdf"),
+    original_filename: "insurance_certificate.pdf",
+    status: "pending"
+  },
+  # Shane Professional: mixed states (2 approved, 1 rejected)
+  %{
+    provider_id: shane_professional_profile.id,
+    document_type: "business_registration",
+    file_url: seed_file_key.(shane_professional_profile.id, "business_registration.pdf"),
+    original_filename: "business_registration.pdf",
+    status: "approved",
+    reviewed_by_id: admin.id,
+    reviewed_at: reviewed_at
+  },
+  %{
+    provider_id: shane_professional_profile.id,
+    document_type: "id_document",
+    file_url: seed_file_key.(shane_professional_profile.id, "id_document.pdf"),
+    original_filename: "id_document.pdf",
+    status: "approved",
+    reviewed_by_id: admin.id,
+    reviewed_at: reviewed_at
+  },
+  %{
+    provider_id: shane_professional_profile.id,
+    document_type: "insurance_certificate",
+    file_url: seed_file_key.(shane_professional_profile.id, "insurance_expired.pdf"),
+    original_filename: "insurance_expired.pdf",
+    status: "rejected",
+    rejection_reason: "Document expired",
+    reviewed_by_id: admin.id,
+    reviewed_at: reviewed_at
+  },
+  # Shane Business Plus: all approved (3 approved)
+  %{
+    provider_id: shane_business_plus_profile.id,
+    document_type: "business_registration",
+    file_url: seed_file_key.(shane_business_plus_profile.id, "business_registration.pdf"),
+    original_filename: "business_registration.pdf",
+    status: "approved",
+    reviewed_by_id: admin.id,
+    reviewed_at: reviewed_at
+  },
+  %{
+    provider_id: shane_business_plus_profile.id,
+    document_type: "insurance_certificate",
+    file_url: seed_file_key.(shane_business_plus_profile.id, "insurance_certificate.pdf"),
+    original_filename: "insurance_certificate.pdf",
+    status: "approved",
+    reviewed_by_id: admin.id,
+    reviewed_at: reviewed_at
+  },
+  %{
+    provider_id: shane_business_plus_profile.id,
+    document_type: "tax_certificate",
+    file_url: seed_file_key.(shane_business_plus_profile.id, "tax_certificate.pdf"),
+    original_filename: "tax_certificate.pdf",
+    status: "approved",
+    reviewed_by_id: admin.id,
+    reviewed_at: reviewed_at
+  }
+]
+
+Enum.each(verification_documents, fn doc_attrs ->
+  %VerificationDocumentSchema{}
+  |> VerificationDocumentSchema.changeset(doc_attrs)
+  |> Repo.insert!()
+end)
+
+Logger.info("Seeded #{length(verification_documents)} verification documents")
+Logger.info("  - 2 for Shane's Starter Academy (1 approved, 1 pending)")
+Logger.info("  - 3 for Shane's Pro Academy (2 approved, 1 rejected)")
+Logger.info("  - 3 for Shane's Elite Academy (3 approved)")
+
+# ==============================================================================
+# UPLOAD DUMMY PDFs TO STORAGE
+# ==============================================================================
+
+# Trigger: verification document records reference storage keys that should have actual files
+# Why: without actual objects, signed URL generation or admin preview would fail
+# Outcome: each document has a minimal valid PDF binary in storage (if storage is available)
+
+# Minimal valid PDF — single blank page, ~200 bytes
+seed_pdf_binary = fn label ->
+  content_stream = "BT /F1 12 Tf 72 720 Td (Seed: #{label}) Tj ET"
+  stream_length = byte_size(content_stream)
+
+  "%PDF-1.4\n" <>
+    "1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n" <>
+    "2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n" <>
+    "3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Contents 4 0 R/Resources<</Font<</F1<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>>>>>>>endobj\n" <>
+    "4 0 obj<</Length #{stream_length}>>\nstream\n#{content_stream}\nendstream\nendobj\n" <>
+    "xref\n0 5\n" <>
+    "trailer<</Size 5/Root 1 0 R>>\n" <>
+    "startxref\n0\n%%EOF\n"
+end
+
+storage_uploaded =
+  Enum.reduce(verification_documents, 0, fn doc_attrs, count ->
+    pdf = seed_pdf_binary.(doc_attrs[:original_filename])
+
+    case Storage.upload(:private, doc_attrs[:file_url], pdf, content_type: "application/pdf") do
+      {:ok, _} ->
+        count + 1
+
+      {:error, reason} ->
+        Logger.warning(
+          "Storage upload skipped for #{doc_attrs[:original_filename]}: #{inspect(reason)}"
+        )
+
+        count
+    end
+  end)
+
+if storage_uploaded > 0 do
+  Logger.info(
+    "Uploaded #{storage_uploaded}/#{length(verification_documents)} dummy PDFs to storage"
+  )
+else
+  Logger.warning(
+    "No PDFs uploaded — storage may be unavailable (MinIO not running?). DB records are fine."
+  )
+end
 
 # ==============================================================================
 # CREATE SAMPLE PROGRAMS
@@ -544,11 +714,15 @@ Logger.info(
   "    - 3 providers: Shane Starter (starter), Shane Professional (professional), Shane Business Plus (business_plus)"
 )
 
-Logger.info("    - 1 admin: Klass Hero Admin")
+Logger.info("    - 1 admin: Klass Hero Admin (is_admin: true)")
 Logger.info("  - 2 parent profiles created with subscription tiers")
 Logger.info("  - 4 children created (2 per parent)")
 Logger.info("  - 4 consent records created (provider_data_sharing)")
-Logger.info("  - 3 provider profiles created with subscription tiers")
+Logger.info("  - 3 provider profiles created with subscription tiers (verified_by: admin)")
+
+Logger.info(
+  "  - #{length(verification_documents)} verification documents created (mixed statuses)"
+)
 
 Logger.info(
   "  - #{length(all_programs)} programs created (#{length(starter_programs)} starter, #{length(professional_programs)} professional, #{length(business_plus_programs)} business_plus, #{length(public_programs)} public)"

@@ -34,8 +34,8 @@ defmodule KlassHero.StorageIntegrationCase do
       def minio_config do
         [
           adapter: S3StorageAdapter,
-          public_bucket: "test-public",
-          private_bucket: "test-private",
+          public_bucket: "klass-hero-test-public",
+          private_bucket: "klass-hero-test-private",
           endpoint: "http://localhost:9000",
           access_key_id: "minioadmin",
           secret_access_key: "minioadmin"
@@ -45,7 +45,7 @@ defmodule KlassHero.StorageIntegrationCase do
       @doc """
       Sets up MinIO buckets for testing.
 
-      Creates the test-public and test-private buckets if they don't exist.
+      Creates the klass-hero-test-public and klass-hero-test-private buckets if they don't exist.
       Also configures the application environment for storage.
       """
       def setup_minio_buckets do

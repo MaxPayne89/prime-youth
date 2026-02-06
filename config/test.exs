@@ -42,8 +42,8 @@ config :klass_hero, :participation,
 # Use stub adapter for tests by default
 config :klass_hero, :storage,
   adapter: KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter,
-  public_bucket: "test-public",
-  private_bucket: "test-private"
+  public_bucket: "klass-hero-test-public",
+  private_bucket: "klass-hero-test-private"
 
 # Print only warnings and errors during test
 config :logger, level: :warning

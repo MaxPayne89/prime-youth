@@ -20,6 +20,7 @@ services:
 
   minio:
     image: minio/minio:latest
+    container_name: klass_hero_minio
     command: server /data --console-address ":9001"
     ports:
       - "9000:9000"
@@ -34,6 +35,23 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  createbuckets:
+    image: minio/mc:latest
+    container_name: klass_hero_createbuckets
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 minioadmin minioadmin;
+      mc mb --ignore-existing local/klass-hero-dev-public;
+      mc mb --ignore-existing local/klass-hero-dev-private;
+      mc mb --ignore-existing local/klass-hero-test-public;
+      mc mb --ignore-existing local/klass-hero-test-private;
+      mc anonymous set download local/klass-hero-dev-public;
+      mc anonymous set download local/klass-hero-test-public;
+      "
 
 volumes:
   postgres_data:
