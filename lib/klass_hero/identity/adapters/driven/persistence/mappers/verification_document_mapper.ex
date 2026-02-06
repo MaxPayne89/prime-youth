@@ -107,8 +107,9 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.VerificationDoc
       raise "Unknown verification document status in database: #{inspect(status)}"
     end
   rescue
-    ArgumentError ->
-      raise "Unrecognized verification document status in database: #{inspect(status)}"
+    _e in ArgumentError ->
+      reraise "Unrecognized verification document status in database: #{inspect(status)}",
+              __STACKTRACE__
   end
 
   # Converts an atom status to a string, defaulting to "pending" if nil.
