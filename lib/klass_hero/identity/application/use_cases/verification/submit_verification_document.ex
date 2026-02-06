@@ -13,6 +13,11 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
   alias KlassHero.Identity.Domain.Models.VerificationDocument
   alias KlassHero.Shared.Storage
 
+  @repository Application.compile_env!(:klass_hero, [
+                :identity,
+                :for_storing_verification_documents
+              ])
+
   @doc """
   Submits a verification document for a provider.
 
@@ -111,10 +116,6 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
   end
 
   defp persist_document(document) do
-    repository().create(document)
-  end
-
-  defp repository do
-    Application.get_env(:klass_hero, :identity)[:for_storing_verification_documents]
+    @repository.create(document)
   end
 end

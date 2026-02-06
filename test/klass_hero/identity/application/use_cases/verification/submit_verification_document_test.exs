@@ -6,7 +6,8 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
   alias KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter
 
   setup do
-    {:ok, storage} = StubStorageAdapter.start_link([])
+    name = :"stub_storage_#{System.unique_integer([:positive])}"
+    {:ok, storage} = StubStorageAdapter.start_link(name: name)
     provider = IdentityFixtures.provider_profile_fixture()
     %{provider: provider, storage: storage}
   end

@@ -89,8 +89,10 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.VerificationDoc
     Enum.map(schemas, &to_domain/1)
   end
 
-  # Converts a string status to an atom, defaulting to :pending if unknown.
+  # Converts a string status to an atom, raising on unknown values.
   # Uses String.to_existing_atom/1 to prevent atom table exhaustion.
+  # Unknown status = corrupt data — raising surfaces the issue immediately
+  # rather than silently downgrading (e.g., approved docs appearing as pending).
   defp string_to_status(nil), do: :pending
 
   defp string_to_status(status) when is_binary(status) do
@@ -99,10 +101,11 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.VerificationDoc
     if atom in @valid_statuses do
       atom
     else
-      :pending
+      raise "Unknown verification document status in database: #{inspect(status)}"
     end
   rescue
-    ArgumentError -> :pending
+    ArgumentError ->
+      raise "Unrecognized verification document status in database: #{inspect(status)}"
   end
 
   # Converts an atom status to a string, defaulting to "pending" if nil.

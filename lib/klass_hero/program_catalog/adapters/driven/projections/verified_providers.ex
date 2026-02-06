@@ -145,26 +145,26 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
     {:noreply, %{state | verified_ids: new_ids}}
   end
 
-  # Catch-all for unhandled messages
+  # Catch-all for unhandled messages — logged so misrouted events are traceable
   @impl true
-  def handle_info(_msg, state) do
+  def handle_info(msg, state) do
+    Logger.debug("VerifiedProviders received unexpected message",
+      message: inspect(msg, limit: 200)
+    )
+
     {:noreply, state}
   end
 
   # Trigger: GenServer needs initial state from Identity context
   # Why: Cold start recovery - populate cache from authoritative source
-  # Outcome: Returns MapSet of verified provider IDs, or empty set on failure
+  # Outcome: Returns MapSet of verified provider IDs, or crashes to let supervisor retry
   defp bootstrap_verified_ids do
     case Identity.list_verified_provider_ids() do
       {:ok, ids} ->
         MapSet.new(ids)
 
       {:error, reason} ->
-        Logger.warning("Failed to bootstrap verified providers",
-          error: inspect(reason)
-        )
-
-        MapSet.new()
+        raise "Failed to bootstrap verified providers: #{inspect(reason)}"
     end
   end
 end

@@ -42,10 +42,19 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
     # presigned_url/5 requires config as a map, not keyword list
     config_map = ex_aws_config() |> Map.new()
 
-    {:ok, url} =
-      ExAws.S3.presigned_url(config_map, :get, bucket, key, expires_in: expires_in)
+    case ExAws.S3.presigned_url(config_map, :get, bucket, key, expires_in: expires_in) do
+      {:ok, url} ->
+        {:ok, url}
 
-    {:ok, url}
+      {:error, reason} ->
+        Logger.error("S3 presigned URL generation failed",
+          bucket: bucket,
+          key: key,
+          error: inspect(reason)
+        )
+
+        {:error, :signed_url_failed}
+    end
   end
 
   @impl true

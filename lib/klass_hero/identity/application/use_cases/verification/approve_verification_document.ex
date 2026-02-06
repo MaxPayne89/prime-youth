@@ -12,6 +12,11 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.ApproveVerificati
 
   alias KlassHero.Identity.Domain.Models.VerificationDocument
 
+  @repository Application.compile_env!(:klass_hero, [
+                :identity,
+                :for_storing_verification_documents
+              ])
+
   @doc """
   Approves a pending verification document.
 
@@ -27,15 +32,9 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.ApproveVerificati
   - `{:error, :document_not_pending}` if document is not in pending status
   """
   def execute(%{document_id: document_id, reviewer_id: reviewer_id}) do
-    with {:ok, document} <- get_document(document_id),
+    with {:ok, document} <- @repository.get(document_id),
          {:ok, approved} <- VerificationDocument.approve(document, reviewer_id) do
-      repository().update(approved)
+      @repository.update(approved)
     end
-  end
-
-  defp get_document(id), do: repository().get(id)
-
-  defp repository do
-    Application.get_env(:klass_hero, :identity)[:for_storing_verification_documents]
   end
 end

@@ -13,6 +13,11 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.RejectVerificatio
 
   alias KlassHero.Identity.Domain.Models.VerificationDocument
 
+  @repository Application.compile_env!(:klass_hero, [
+                :identity,
+                :for_storing_verification_documents
+              ])
+
   @doc """
   Rejects a pending verification document with a reason.
 
@@ -34,18 +39,12 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.RejectVerificatio
     # Why: rejection requires explanation for provider to understand and fix
     # Outcome: early validation prevents rejecting without reason
     with :ok <- validate_reason(reason),
-         {:ok, document} <- get_document(document_id),
+         {:ok, document} <- @repository.get(document_id),
          {:ok, rejected} <- VerificationDocument.reject(document, reviewer_id, reason) do
-      repository().update(rejected)
+      @repository.update(rejected)
     end
   end
 
   defp validate_reason(reason) when is_binary(reason) and byte_size(reason) > 0, do: :ok
   defp validate_reason(_), do: {:error, :reason_required}
-
-  defp get_document(id), do: repository().get(id)
-
-  defp repository do
-    Application.get_env(:klass_hero, :identity)[:for_storing_verification_documents]
-  end
 end

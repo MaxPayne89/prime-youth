@@ -4,7 +4,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapterTest do
   alias KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter
 
   setup do
-    {:ok, pid} = StubStorageAdapter.start_link([])
+    name = :"stub_storage_#{System.unique_integer([:positive])}"
+    {:ok, pid} = StubStorageAdapter.start_link(name: name)
     %{agent: pid}
   end
 
