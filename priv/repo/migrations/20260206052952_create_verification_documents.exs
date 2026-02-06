@@ -4,6 +4,7 @@ defmodule KlassHero.Repo.Migrations.CreateVerificationDocuments do
   def change do
     create table(:verification_documents, primary_key: false) do
       add :id, :binary_id, primary_key: true
+
       add :provider_id, references(:providers, type: :binary_id, on_delete: :delete_all),
         null: false
 
