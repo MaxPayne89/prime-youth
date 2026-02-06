@@ -23,7 +23,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
   - `file_binary` - Binary content of the uploaded file
   - `original_filename` - Original name of the uploaded file
   - `content_type` - MIME type of the file (optional, defaults to application/octet-stream)
-  - `storage_adapter` - Agent PID for the storage adapter (used in tests)
+  - `storage_opts` - Additional options passed to the storage adapter (optional)
 
   ## Returns
 
@@ -86,21 +86,10 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
 
     opts =
       [content_type: params[:content_type] || "application/octet-stream"]
-      |> maybe_add_storage_opts(params)
+      |> Keyword.merge(Map.get(params, :storage_opts, []))
 
     Storage.upload(:private, path, params[:file_binary], opts)
   end
-
-  # Trigger: storage_adapter is provided in params (test environment)
-  # Why: StubStorageAdapter uses :agent option to identify which Agent to use
-  # Outcome: adds both :adapter and :agent options for proper test isolation
-  defp maybe_add_storage_opts(opts, %{storage_adapter: agent}) when is_pid(agent) do
-    opts
-    |> Keyword.put(:adapter, KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter)
-    |> Keyword.put(:agent, agent)
-  end
-
-  defp maybe_add_storage_opts(opts, _params), do: opts
 
   # Trigger: filename may contain unsafe characters for URLs/storage
   # Why: sanitize to prevent path traversal or encoding issues
@@ -126,7 +115,6 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
   end
 
   defp repository do
-    Application.get_env(:klass_hero, :identity)[:for_storing_verification_documents] ||
-      KlassHero.Identity.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
+    Application.get_env(:klass_hero, :identity)[:for_storing_verification_documents]
   end
 end

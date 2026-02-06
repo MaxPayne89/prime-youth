@@ -19,7 +19,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
         file_binary: "pdf content here",
         original_filename: "registration.pdf",
         content_type: "application/pdf",
-        storage_adapter: storage
+        storage_opts: [adapter: StubStorageAdapter, agent: storage]
       }
 
       assert {:ok, doc} = SubmitVerificationDocument.execute(params)
@@ -38,7 +38,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
         file_binary: file_content,
         original_filename: "insurance.pdf",
         content_type: "application/pdf",
-        storage_adapter: storage
+        storage_opts: [adapter: StubStorageAdapter, agent: storage]
       }
 
       assert {:ok, doc} = SubmitVerificationDocument.execute(params)
@@ -55,7 +55,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
         file_binary: "content",
         original_filename: "my file (1).pdf",
         content_type: "application/pdf",
-        storage_adapter: storage
+        storage_opts: [adapter: StubStorageAdapter, agent: storage]
       }
 
       assert {:ok, doc} = SubmitVerificationDocument.execute(params)
@@ -70,7 +70,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
         file_binary: "content",
         original_filename: "doc.pdf",
         content_type: "application/pdf",
-        storage_adapter: storage
+        storage_opts: [adapter: StubStorageAdapter, agent: storage]
       }
 
       assert {:error, errors} = SubmitVerificationDocument.execute(params)
@@ -88,7 +88,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
           file_binary: "content for #{doc_type}",
           original_filename: "#{doc_type}.pdf",
           content_type: "application/pdf",
-          storage_adapter: storage
+          storage_opts: [adapter: StubStorageAdapter, agent: storage]
         }
 
         assert {:ok, doc} = SubmitVerificationDocument.execute(params)
@@ -102,7 +102,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
         file_binary: "content",
         original_filename: "doc.pdf",
         content_type: "application/pdf",
-        storage_adapter: storage
+        storage_opts: [adapter: StubStorageAdapter, agent: storage]
       }
 
       assert {:error, errors} = SubmitVerificationDocument.execute(params)
@@ -115,7 +115,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
         document_type: "business_registration",
         original_filename: "doc.pdf",
         content_type: "application/pdf",
-        storage_adapter: storage
+        storage_opts: [adapter: StubStorageAdapter, agent: storage]
       }
 
       assert {:error, errors} = SubmitVerificationDocument.execute(params)
@@ -128,7 +128,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
         document_type: "business_registration",
         file_binary: "content",
         content_type: "application/pdf",
-        storage_adapter: storage
+        storage_opts: [adapter: StubStorageAdapter, agent: storage]
       }
 
       assert {:error, errors} = SubmitVerificationDocument.execute(params)

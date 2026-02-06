@@ -10,6 +10,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfile
 
   import Ecto.Changeset
 
+  alias KlassHero.Accounts.User
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]
 
@@ -25,6 +27,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfile
     field :verified_at, :utc_datetime
     field :categories, {:array, :string}, default: []
     field :subscription_tier, :string, default: "starter"
+
+    belongs_to :verified_by, User, type: :binary_id
 
     timestamps()
   end
@@ -59,6 +63,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfile
       :logo_url,
       :verified,
       :verified_at,
+      :verified_by_id,
       :categories,
       :subscription_tier
     ])

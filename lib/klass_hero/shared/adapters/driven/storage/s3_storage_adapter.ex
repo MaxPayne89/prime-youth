@@ -10,7 +10,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   require Logger
 
   @impl true
-  def upload(bucket_type, path, binary, opts \\ []) do
+  def upload(bucket_type, path, binary, opts) do
     bucket = get_bucket(bucket_type)
     content_type = Keyword.get(opts, :content_type, "application/octet-stream")
 
@@ -37,7 +37,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   end
 
   @impl true
-  def signed_url(_bucket_type, key, expires_in, _opts \\ []) do
+  def signed_url(_bucket_type, key, expires_in, _opts) do
     bucket = get_bucket(:private)
 
     # Trigger: Generating presigned URL for secure file access
@@ -52,7 +52,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   end
 
   @impl true
-  def delete(bucket_type, key, _opts \\ []) do
+  def delete(bucket_type, key, _opts) do
     bucket = get_bucket(bucket_type)
 
     case ExAws.S3.delete_object(bucket, key) |> ExAws.request(ex_aws_config()) do

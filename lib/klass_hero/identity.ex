@@ -558,7 +558,7 @@ defmodule KlassHero.Identity do
   Returns:
   - `{:ok, VerificationDocument.t()}` on success
   - `{:error, :not_found}` if document doesn't exist
-  - `{:error, :invalid_status_transition}` if document is not pending
+  - `{:error, :document_not_pending}` if document is not pending
   """
   def approve_verification_document(document_id, reviewer_id) do
     ApproveVerificationDocument.execute(%{
@@ -573,7 +573,8 @@ defmodule KlassHero.Identity do
   Returns:
   - `{:ok, VerificationDocument.t()}` on success
   - `{:error, :not_found}` if document doesn't exist
-  - `{:error, :invalid_status_transition}` if document is not pending
+  - `{:error, :document_not_pending}` if document is not pending
+  - `{:error, :reason_required}` if reason is empty or nil
   """
   def reject_verification_document(document_id, reviewer_id, reason) do
     RejectVerificationDocument.execute(%{
@@ -613,11 +614,11 @@ defmodule KlassHero.Identity do
   Verify a provider (admin only).
 
   Sets the provider's verified flag to true and records the verification.
+  Idempotent - verifying an already verified provider updates the audit trail.
 
   Returns:
   - `{:ok, ProviderProfile.t()}` on success
   - `{:error, :not_found}` if provider doesn't exist
-  - `{:error, :already_verified}` if provider is already verified
   """
   def verify_provider(provider_id, admin_id) do
     VerifyProvider.execute(%{
@@ -630,11 +631,11 @@ defmodule KlassHero.Identity do
   Unverify a provider (admin only).
 
   Sets the provider's verified flag to false.
+  Idempotent - unverifying an already unverified provider succeeds.
 
   Returns:
   - `{:ok, ProviderProfile.t()}` on success
   - `{:error, :not_found}` if provider doesn't exist
-  - `{:error, :not_verified}` if provider is not currently verified
   """
   def unverify_provider(provider_id, admin_id) do
     UnverifyProvider.execute(%{

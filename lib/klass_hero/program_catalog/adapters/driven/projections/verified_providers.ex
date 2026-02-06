@@ -27,6 +27,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 
   use GenServer
 
+  alias KlassHero.Identity
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   require Logger
@@ -154,7 +155,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   # Why: Cold start recovery - populate cache from authoritative source
   # Outcome: Returns MapSet of verified provider IDs, or empty set on failure
   defp bootstrap_verified_ids do
-    case KlassHero.Identity.list_verified_provider_ids() do
+    case Identity.list_verified_provider_ids() do
       {:ok, ids} ->
         MapSet.new(ids)
 

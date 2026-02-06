@@ -78,34 +78,4 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.VerificationDoc
     |> foreign_key_constraint(:provider_id)
     |> foreign_key_constraint(:reviewed_by_id)
   end
-
-  @doc """
-  Creates a changeset for approving a document.
-
-  Sets status to "approved" and records the reviewer information.
-  """
-  def approve_changeset(schema, reviewer_id) do
-    schema
-    |> change(%{
-      status: "approved",
-      reviewed_by_id: reviewer_id,
-      reviewed_at: DateTime.utc_now()
-    })
-  end
-
-  @doc """
-  Creates a changeset for rejecting a document.
-
-  Sets status to "rejected" and records the reviewer information
-  along with the rejection reason.
-  """
-  def reject_changeset(schema, reviewer_id, reason) do
-    schema
-    |> change(%{
-      status: "rejected",
-      rejection_reason: reason,
-      reviewed_by_id: reviewer_id,
-      reviewed_at: DateTime.utc_now()
-    })
-  end
 end

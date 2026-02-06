@@ -27,11 +27,11 @@ defmodule KlassHero.Shared.Domain.Ports.ForStoringFiles do
 
   The URL expires after `expires_in_seconds`.
   """
-  @callback signed_url(bucket_type(), key(), pos_integer()) ::
+  @callback signed_url(bucket_type(), key(), pos_integer(), keyword()) ::
               {:ok, url()} | {:error, error_reason()}
 
   @doc """
   Delete a file from storage.
   """
-  @callback delete(bucket_type(), key()) :: :ok | {:error, error_reason()}
+  @callback delete(bucket_type(), key(), keyword()) :: :ok | {:error, error_reason()}
 end

@@ -15,7 +15,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
   end
 
   @impl true
-  def upload(bucket_type, path, binary, opts \\ []) do
+  def upload(bucket_type, path, binary, opts) do
     agent = Keyword.get(opts, :agent, __MODULE__)
     key = make_key(bucket_type, path)
 
@@ -30,13 +30,13 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
   end
 
   @impl true
-  def signed_url(_bucket_type, key, expires_in, opts \\ []) do
+  def signed_url(_bucket_type, key, expires_in, opts) do
     _agent = Keyword.get(opts, :agent, __MODULE__)
     {:ok, "stub://signed/#{key}?expires=#{expires_in}"}
   end
 
   @impl true
-  def delete(bucket_type, path, opts \\ []) do
+  def delete(bucket_type, path, opts) do
     agent = Keyword.get(opts, :agent, __MODULE__)
     key = make_key(bucket_type, path)
 

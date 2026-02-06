@@ -45,6 +45,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ProviderProfile
       logo_url: schema.logo_url,
       verified: schema.verified,
       verified_at: schema.verified_at,
+      verified_by_id: schema.verified_by_id && to_string(schema.verified_by_id),
       categories: schema.categories,
       subscription_tier: string_to_tier(schema.subscription_tier, :starter),
       inserted_at: schema.inserted_at,
@@ -70,6 +71,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ProviderProfile
       logo_url: provider_profile.logo_url,
       verified: provider_profile.verified,
       verified_at: provider_profile.verified_at,
+      verified_by_id: provider_profile.verified_by_id,
       categories: provider_profile.categories,
       subscription_tier: tier_to_string(provider_profile.subscription_tier, "starter")
     }

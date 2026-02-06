@@ -46,7 +46,6 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.RejectVerificatio
   defp get_document(id), do: repository().get(id)
 
   defp repository do
-    Application.get_env(:klass_hero, :identity)[:for_storing_verification_documents] ||
-      KlassHero.Identity.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
+    Application.get_env(:klass_hero, :identity)[:for_storing_verification_documents]
   end
 end
