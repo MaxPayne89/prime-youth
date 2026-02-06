@@ -81,7 +81,9 @@ config :klass_hero, :identity,
   for_storing_children:
     KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository,
   for_storing_consents:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRepository
+    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRepository,
+  for_storing_verification_documents:
+    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
 
 # Configure Integration Event Publisher (cross-context communication)
 config :klass_hero, :integration_event_publisher,
