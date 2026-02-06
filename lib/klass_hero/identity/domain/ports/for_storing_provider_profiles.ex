@@ -64,4 +64,14 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringProviderProfiles do
   """
   @callback update(provider_profile :: term()) ::
               {:ok, term()} | {:error, :not_found | term()}
+
+  @doc """
+  Lists all verified provider profile IDs.
+
+  Used by projections and caching layers to track verification status.
+
+  Returns:
+  - `{:ok, [String.t()]}` - List of verified provider profile IDs (may be empty)
+  """
+  @callback list_verified_ids() :: {:ok, [String.t()]}
 end

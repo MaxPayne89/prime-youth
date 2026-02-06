@@ -135,6 +135,25 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
     end
   end
 
+  @impl true
+  @doc """
+  Lists all verified provider profile IDs.
+
+  Used by projections and caching layers to track verification status.
+
+  Returns:
+  - `{:ok, [String.t()]}` - List of verified provider profile IDs (may be empty)
+  """
+  def list_verified_ids do
+    ids =
+      ProviderProfileSchema
+      |> where([p], p.verified == true)
+      |> select([p], p.id)
+      |> Repo.all()
+
+    {:ok, ids}
+  end
+
   defp prepare_attrs_for_schema(attrs) do
     attrs
     |> maybe_convert_tier_to_string()
