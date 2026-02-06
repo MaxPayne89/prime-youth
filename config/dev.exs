@@ -83,6 +83,16 @@ config :phoenix_live_view,
   #
   enable_expensive_runtime_checks: true
 
+# Storage: MinIO S3-compatible storage for development (via docker-compose)
+config :klass_hero, :storage,
+  adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
+  public_bucket: "klass-hero-dev-public",
+  private_bucket: "klass-hero-dev-private",
+  endpoint: "http://localhost:9000",
+  access_key_id: "minioadmin",
+  secret_access_key: "minioadmin",
+  region: "eu-central-1"
+
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
