@@ -98,7 +98,7 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocument do
   - document_type must be one of the valid types
   - file_url must be present and non-empty
   - original_filename must be present and non-empty
-  - status must be one of: :pending, :approved, :rejected (defaults to :pending)
+  - status is always set to :pending (constructor enforces initial state invariant)
 
   Returns:
   - `{:ok, document}` if all validations pass
@@ -116,7 +116,7 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocument do
            document_type: attrs.document_type,
            file_url: attrs.file_url,
            original_filename: attrs.original_filename,
-           status: Map.get(attrs, :status, :pending),
+           status: :pending,
            inserted_at: now,
            updated_at: now
          }}
@@ -133,9 +133,11 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocument do
 
   Returns:
   - `{:ok, document}` with updated status and review info
+  - `{:error, :invalid_reviewer}` if reviewer_id is nil, empty, or non-binary
   - `{:error, :document_not_pending}` if document is not in pending status
   """
-  def approve(%__MODULE__{status: :pending} = doc, reviewer_id) do
+  def approve(%__MODULE__{status: :pending} = doc, reviewer_id)
+      when is_binary(reviewer_id) and byte_size(reviewer_id) > 0 do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     {:ok,
@@ -146,6 +148,13 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocument do
          reviewed_at: now,
          updated_at: now
      }}
+  end
+
+  # Trigger: pending doc but reviewer_id is nil, empty, or non-binary
+  # Why: domain boundary validates caller identity before state transition
+  # Outcome: rejects the operation with a specific error
+  def approve(%__MODULE__{status: :pending}, _reviewer_id) do
+    {:error, :invalid_reviewer}
   end
 
   def approve(%__MODULE__{}, _reviewer_id) do
@@ -160,9 +169,12 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocument do
 
   Returns:
   - `{:ok, document}` with updated status, review info, and rejection reason
+  - `{:error, :invalid_review_params}` if reviewer_id or reason is nil, empty, or non-binary
   - `{:error, :document_not_pending}` if document is not in pending status
   """
-  def reject(%__MODULE__{status: :pending} = doc, reviewer_id, reason) when is_binary(reason) do
+  def reject(%__MODULE__{status: :pending} = doc, reviewer_id, reason)
+      when is_binary(reviewer_id) and byte_size(reviewer_id) > 0 and is_binary(reason) and
+             byte_size(reason) > 0 do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     {:ok,
@@ -174,6 +186,13 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocument do
          reviewed_at: now,
          updated_at: now
      }}
+  end
+
+  # Trigger: pending doc but reviewer_id or reason is nil, empty, or non-binary
+  # Why: domain boundary validates both caller identity and rejection reason
+  # Outcome: rejects the operation with a specific error
+  def reject(%__MODULE__{status: :pending}, _reviewer_id, _reason) do
+    {:error, :invalid_review_params}
   end
 
   def reject(%__MODULE__{}, _reviewer_id, _reason) do
@@ -190,7 +209,6 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocument do
     |> validate_required(attrs, :file_url)
     |> validate_required(attrs, :original_filename)
     |> validate_document_type(attrs)
-    |> validate_status(attrs)
   end
 
   defp validate_required(errors, attrs, key) do
@@ -213,20 +231,6 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocument do
 
       _ ->
         [{:document_type, "must be one of: #{inspect(@valid_document_types)}"} | errors]
-    end
-  end
-
-  defp validate_status(errors, attrs) do
-    case Map.get(attrs, :status) do
-      nil ->
-        # Default to :pending, no error
-        errors
-
-      status when status in @valid_statuses ->
-        errors
-
-      _ ->
-        [{:status, "must be one of: #{inspect(@valid_statuses)}"} | errors]
     end
   end
 end

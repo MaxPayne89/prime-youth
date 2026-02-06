@@ -41,6 +41,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.VerificationDoc
 
   Returns the domain VerificationDocument struct with all fields mapped from the schema.
   """
+  @spec to_domain(VerificationDocumentSchema.t()) :: VerificationDocument.t()
   def to_domain(%VerificationDocumentSchema{} = schema) do
     %VerificationDocument{
       id: to_string(schema.id),
@@ -66,6 +67,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.VerificationDoc
 
   Returns a map suitable for Ecto changeset operations (insert/update).
   """
+  @spec to_schema(VerificationDocument.t()) :: map()
   def to_schema(%VerificationDocument{} = domain) do
     %{
       provider_id: domain.provider_profile_id,
@@ -85,6 +87,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.VerificationDoc
 
   This is a convenience function for mapping collections returned from database queries.
   """
+  @spec to_domain_list([VerificationDocumentSchema.t()]) :: [VerificationDocument.t()]
   def to_domain_list(schemas) when is_list(schemas) do
     Enum.map(schemas, &to_domain/1)
   end

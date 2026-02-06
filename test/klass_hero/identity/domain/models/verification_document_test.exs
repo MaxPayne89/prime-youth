@@ -23,18 +23,21 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocumentTest do
       assert doc.reviewed_at == nil
     end
 
-    test "rejects invalid status" do
+    test "always sets status to :pending regardless of input" do
       attrs = %{
         id: Ecto.UUID.generate(),
         provider_profile_id: Ecto.UUID.generate(),
         document_type: "business_registration",
         file_url: "path",
         original_filename: "doc.pdf",
-        status: :invalid
+        status: :approved
       }
 
-      assert {:error, errors} = VerificationDocument.new(attrs)
-      assert :status in Keyword.keys(errors)
+      # Trigger: caller passes a non-pending status to new/1
+      # Why: constructor enforces initial state invariant — all new docs start as pending
+      # Outcome: passed status is ignored, :pending is always set
+      assert {:ok, doc} = VerificationDocument.new(attrs)
+      assert doc.status == :pending
     end
 
     test "rejects invalid document type" do
@@ -123,6 +126,32 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocumentTest do
       # Outcome: returns error indicating document is not pending
       assert {:error, :document_not_pending} = VerificationDocument.approve(approved, reviewer_id)
     end
+
+    test "fails with nil reviewer_id" do
+      {:ok, doc} =
+        VerificationDocument.new(%{
+          id: Ecto.UUID.generate(),
+          provider_profile_id: Ecto.UUID.generate(),
+          document_type: "insurance_certificate",
+          file_url: "path",
+          original_filename: "doc.pdf"
+        })
+
+      assert {:error, :invalid_reviewer} = VerificationDocument.approve(doc, nil)
+    end
+
+    test "fails with empty string reviewer_id" do
+      {:ok, doc} =
+        VerificationDocument.new(%{
+          id: Ecto.UUID.generate(),
+          provider_profile_id: Ecto.UUID.generate(),
+          document_type: "insurance_certificate",
+          file_url: "path",
+          original_filename: "doc.pdf"
+        })
+
+      assert {:error, :invalid_reviewer} = VerificationDocument.approve(doc, "")
+    end
   end
 
   describe "reject/3" do
@@ -163,6 +192,34 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocumentTest do
       # Outcome: returns error indicating document is not pending
       assert {:error, :document_not_pending} =
                VerificationDocument.reject(rejected, reviewer_id, "Another reason")
+    end
+
+    test "fails with empty reason" do
+      {:ok, doc} =
+        VerificationDocument.new(%{
+          id: Ecto.UUID.generate(),
+          provider_profile_id: Ecto.UUID.generate(),
+          document_type: "insurance_certificate",
+          file_url: "path",
+          original_filename: "doc.pdf"
+        })
+
+      reviewer_id = Ecto.UUID.generate()
+      assert {:error, :invalid_review_params} = VerificationDocument.reject(doc, reviewer_id, "")
+    end
+
+    test "fails with nil reviewer_id" do
+      {:ok, doc} =
+        VerificationDocument.new(%{
+          id: Ecto.UUID.generate(),
+          provider_profile_id: Ecto.UUID.generate(),
+          document_type: "insurance_certificate",
+          file_url: "path",
+          original_filename: "doc.pdf"
+        })
+
+      assert {:error, :invalid_review_params} =
+               VerificationDocument.reject(doc, nil, "Document expired")
     end
   end
 

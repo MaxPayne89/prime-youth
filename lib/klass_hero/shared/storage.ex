@@ -29,6 +29,7 @@ defmodule KlassHero.Shared.Storage do
 
   Returns public URL for `:public` bucket, storage key for `:private` bucket.
   """
+  @spec upload(atom(), String.t(), binary(), keyword()) :: {:ok, String.t()} | {:error, term()}
   def upload(bucket_type, path, binary, opts \\ []) do
     adapter(opts).upload(bucket_type, path, binary, opts)
   end
@@ -38,6 +39,8 @@ defmodule KlassHero.Shared.Storage do
 
   The URL expires after `expires_in_seconds`.
   """
+  @spec signed_url(atom(), String.t(), pos_integer(), keyword()) ::
+          {:ok, String.t()} | {:error, term()}
   def signed_url(bucket_type, key, expires_in_seconds, opts \\ []) do
     adapter(opts).signed_url(bucket_type, key, expires_in_seconds, opts)
   end
@@ -45,6 +48,7 @@ defmodule KlassHero.Shared.Storage do
   @doc """
   Delete a file from storage.
   """
+  @spec delete(atom(), String.t(), keyword()) :: :ok | {:error, term()}
   def delete(bucket_type, key, opts \\ []) do
     adapter(opts).delete(bucket_type, key, opts)
   end
