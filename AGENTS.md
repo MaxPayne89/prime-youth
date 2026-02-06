@@ -1,19 +1,5 @@
 This is a web application written using the Phoenix web framework.
 
-## Project Memory System
-
-Institutional knowledge is maintained in `docs/project_notes/`:
-
-- **bugs.md** - Bug log with dates, solutions, and prevention notes
-- **decisions.md** - Architectural Decision Records (ADRs) with context and trade-offs
-- **key_facts.md** - Project configuration, ports, URLs, infrastructure details
-- **issues.md** - Work log with GitHub issue references
-
-**Before proposing architectural changes:** check `decisions.md` for existing decisions.
-**When encountering bugs:** search `bugs.md` for similar issues before investigating.
-**When looking up configuration:** check `key_facts.md` for ports, URLs, roles, module paths.
-**When completing work:** log in `issues.md` with ticket ID and date.
-
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
