@@ -72,6 +72,10 @@ defmodule KlassHero.Identity do
                         :identity,
                         :for_storing_consents
                       ])
+  @verification_document_repository Application.compile_env!(:klass_hero, [
+                                      :identity,
+                                      :for_storing_verification_documents
+                                    ])
 
   # ============================================================================
   # Parent Profile Functions
@@ -538,14 +542,15 @@ defmodule KlassHero.Identity do
 
   Accepts a map with:
   - `:provider_profile_id` - Required provider profile ID
-  - `:document_type` - Required document type (e.g., "id_document", "business_license")
-  - `:storage_key` - Required S3 storage key where document is stored
+  - `:document_type` - Required document type (e.g., "id_document", "business_registration")
+  - `:file_binary` - Required binary content of the uploaded file
   - `:original_filename` - Required original filename
-  - `:mime_type` - Required MIME type of the document
+  - `:content_type` - Optional MIME type (defaults to "application/octet-stream")
+  - `:storage_opts` - Optional keyword list of additional storage adapter options
 
   Returns:
   - `{:ok, VerificationDocument.t()}` on success
-  - `{:error, {:validation_error, errors}}` for domain validation failures
+  - `{:error, keyword()}` for validation errors
   - `{:error, changeset}` for persistence validation failures
   """
   def submit_verification_document(params) do
@@ -591,7 +596,7 @@ defmodule KlassHero.Identity do
   - `{:ok, [VerificationDocument.t()]}` - List of documents (may be empty)
   """
   def get_provider_verification_documents(provider_profile_id) do
-    verification_document_repository().get_by_provider(provider_profile_id)
+    @verification_document_repository.get_by_provider(provider_profile_id)
   end
 
   @doc """
@@ -603,7 +608,7 @@ defmodule KlassHero.Identity do
   - `{:ok, [VerificationDocument.t()]}` - List of pending documents (may be empty)
   """
   def list_pending_verification_documents do
-    verification_document_repository().list_pending()
+    @verification_document_repository.list_pending()
   end
 
   # ============================================================================
@@ -654,9 +659,5 @@ defmodule KlassHero.Identity do
   """
   def list_verified_provider_ids do
     @provider_repository.list_verified_ids()
-  end
-
-  defp verification_document_repository do
-    Application.get_env(:klass_hero, :identity)[:for_storing_verification_documents]
   end
 end

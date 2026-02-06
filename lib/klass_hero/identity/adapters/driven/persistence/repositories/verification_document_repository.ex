@@ -66,9 +66,6 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
   - `{:ok, [VerificationDocument.t()]}` - List of documents (may be empty)
   """
   def get_by_provider(provider_id) do
-    # Trigger: Database column is named provider_id, not provider_profile_id
-    # Why: Schema references the providers table using provider_id
-    # Outcome: Query uses the correct column name for the filter
     docs =
       VerificationDocumentSchema
       |> where([d], d.provider_id == ^provider_id)

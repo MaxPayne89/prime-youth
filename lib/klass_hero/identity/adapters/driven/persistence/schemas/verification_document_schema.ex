@@ -31,9 +31,6 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.VerificationDoc
     field :rejection_reason, :string
     field :reviewed_at, :utc_datetime_usec
 
-    # Trigger: Database column is named provider_id
-    # Why: References the providers table (which stores ProviderProfiles)
-    # Outcome: Mapper translates provider_id <-> provider_profile_id
     belongs_to :provider, ProviderProfileSchema
 
     belongs_to :reviewed_by, User

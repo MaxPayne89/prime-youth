@@ -14,9 +14,6 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
     bucket = get_bucket(bucket_type)
     content_type = Keyword.get(opts, :content_type, "application/octet-stream")
 
-    # Trigger: S3 upload operation requested
-    # Why: ExAws handles S3-compatible API calls for us
-    # Outcome: File stored in bucket, URL or key returned
     case ExAws.S3.put_object(bucket, path, binary, content_type: content_type)
          |> ExAws.request(ex_aws_config()) do
       {:ok, _response} ->
@@ -37,12 +34,12 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   end
 
   @impl true
+  # Signed URLs only apply to the private bucket — public files are accessed
+  # directly via their public URL, so bucket_type is intentionally ignored.
   def signed_url(_bucket_type, key, expires_in, _opts) do
     bucket = get_bucket(:private)
 
-    # Trigger: Generating presigned URL for secure file access
-    # Why: presigned_url/5 requires config as a map, not keyword list
-    # Outcome: Temporary signed URL for private file download
+    # presigned_url/5 requires config as a map, not keyword list
     config_map = ex_aws_config() |> Map.new()
 
     {:ok, url} =
@@ -70,7 +67,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
     # Outcome: Appropriate public URL for the storage backend
     case storage_config(:endpoint) do
       nil ->
-        # Standard S3/Tigris URL
+        # Production default: Fly.io Tigris (S3-compatible storage backend)
         "https://#{bucket}.fly.storage.tigris.dev/#{path}"
 
       endpoint ->

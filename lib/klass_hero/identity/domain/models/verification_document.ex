@@ -13,7 +13,7 @@ defmodule KlassHero.Identity.Domain.Models.VerificationDocument do
   - `id` - Unique identifier for the document
   - `provider_profile_id` - Reference to the provider who submitted the document
   - `document_type` - Type of document (business_registration, insurance_certificate, etc.)
-  - `file_url` - Path to the uploaded file in object storage
+  - `file_url` - Storage key for the uploaded file (private bucket path, not a URL)
   - `original_filename` - Original name of the uploaded file
   - `status` - Document status (:pending, :approved, :rejected)
   - `rejection_reason` - Reason for rejection (only when status is :rejected)

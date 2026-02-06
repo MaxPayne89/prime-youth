@@ -44,9 +44,6 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.VerificationDoc
   def to_domain(%VerificationDocumentSchema{} = schema) do
     %VerificationDocument{
       id: to_string(schema.id),
-      # Trigger: Database uses provider_id, domain uses provider_profile_id
-      # Why: Semantic clarity in domain model vs table naming convention in DB
-      # Outcome: Domain code uses meaningful provider_profile_id
       provider_profile_id: to_string(schema.provider_id),
       document_type: schema.document_type,
       file_url: schema.file_url,
@@ -71,9 +68,6 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.VerificationDoc
   """
   def to_schema(%VerificationDocument{} = domain) do
     %{
-      # Trigger: Domain uses provider_profile_id, database uses provider_id
-      # Why: Maintain domain language while respecting DB naming conventions
-      # Outcome: Database operations use the correct column name
       provider_id: domain.provider_profile_id,
       document_type: domain.document_type,
       file_url: domain.file_url,
