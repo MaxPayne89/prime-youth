@@ -42,7 +42,8 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.VerificationDoc
   end
 
   @required_fields [:provider_id, :document_type, :file_url, :original_filename]
-  @optional_fields [:status, :rejection_reason, :reviewed_by_id, :reviewed_at]
+  # Note: :id is included to allow client-provided UUIDs (common in DDD for domain identity)
+  @optional_fields [:id, :status, :rejection_reason, :reviewed_by_id, :reviewed_at]
 
   @valid_statuses ["pending", "approved", "rejected"]
   @valid_document_types [
