@@ -38,6 +38,7 @@ defmodule KlassHero.Application do
   defp domain_children do
     domain_event_buses() ++
       integration_event_subscribers() ++
+      in_memory_projections() ++
       in_memory_repositories()
   end
 
@@ -176,6 +177,12 @@ defmodule KlassHero.Application do
          event_label: "Integration event"},
         id: :participation_integration_event_subscriber
       )
+    ]
+  end
+
+  defp in_memory_projections do
+    [
+      KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
     ]
   end
 
