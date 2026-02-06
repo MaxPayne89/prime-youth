@@ -1,9 +1,18 @@
 defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificationDocumentTest do
   use KlassHero.DataCase, async: true
 
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
   alias KlassHero.Identity.Application.UseCases.Verification.SubmitVerificationDocument
   alias KlassHero.IdentityFixtures
   alias KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter
+
+  defmodule FailingStorageAdapter do
+    @behaviour KlassHero.Shared.Domain.Ports.ForStoringFiles
+
+    def upload(_bucket, _path, _binary, _opts), do: {:error, :upload_failed}
+    def signed_url(_, _, _, _), do: {:error, :not_implemented}
+    def delete(_, _, _), do: :ok
+  end
 
   setup do
     name = :"stub_storage_#{System.unique_integer([:positive])}"
@@ -134,6 +143,24 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
 
       assert {:error, errors} = SubmitVerificationDocument.execute(params)
       assert :original_filename in Keyword.keys(errors)
+    end
+
+    test "returns error when storage upload fails", %{provider: provider} do
+      params = %{
+        provider_profile_id: provider.id,
+        document_type: "business_registration",
+        file_binary: "content",
+        original_filename: "doc.pdf",
+        storage_opts: [adapter: FailingStorageAdapter]
+      }
+
+      # Trigger: storage adapter returns {:error, :upload_failed}
+      # Why: the with chain should propagate the storage error
+      # Outcome: no document record created, error returned to caller
+      assert {:error, :upload_failed} = SubmitVerificationDocument.execute(params)
+
+      # Verify no document was persisted
+      assert {:ok, []} = VerificationDocumentRepository.get_by_provider(provider.id)
     end
   end
 end

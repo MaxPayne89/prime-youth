@@ -7,10 +7,17 @@ defmodule KlassHero.IdentityTest do
 
   use KlassHero.DataCase, async: true
 
+  import KlassHero.EventTestHelper
+
+  alias KlassHero.AccountsFixtures
   alias KlassHero.Identity
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
   alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Identity.Domain.Models.ParentProfile
   alias KlassHero.Identity.Domain.Models.ProviderProfile
+  alias KlassHero.Identity.Domain.Models.VerificationDocument
+  alias KlassHero.IdentityFixtures
+  alias KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter
 
   # ============================================================================
   # Parent Profile Functions
@@ -257,5 +264,171 @@ defmodule KlassHero.IdentityTest do
     test "returns not_found for non-existent child" do
       assert {:error, :not_found} = Identity.get_child_by_id(Ecto.UUID.generate())
     end
+  end
+
+  # ============================================================================
+  # Verification Document Functions
+  # ============================================================================
+
+  describe "submit_verification_document/1" do
+    setup do
+      name = :"stub_storage_#{System.unique_integer([:positive])}"
+      {:ok, storage} = StubStorageAdapter.start_link(name: name)
+      provider = IdentityFixtures.provider_profile_fixture()
+      %{provider: provider, storage: storage}
+    end
+
+    test "delegates to SubmitVerificationDocument use case", %{
+      provider: provider,
+      storage: storage
+    } do
+      params = %{
+        provider_profile_id: provider.id,
+        document_type: "business_registration",
+        file_binary: "content",
+        original_filename: "doc.pdf",
+        storage_opts: [adapter: StubStorageAdapter, agent: storage]
+      }
+
+      assert {:ok, %VerificationDocument{} = doc} = Identity.submit_verification_document(params)
+      assert doc.provider_profile_id == provider.id
+      assert doc.status == :pending
+    end
+  end
+
+  describe "approve_verification_document/2" do
+    setup do
+      provider = IdentityFixtures.provider_profile_fixture()
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
+      {:ok, doc} = create_pending_document(provider.id)
+      %{provider: provider, admin: admin, document: doc}
+    end
+
+    test "delegates with correct arg mapping", %{admin: admin, document: doc} do
+      assert {:ok, %VerificationDocument{} = approved} =
+               Identity.approve_verification_document(doc.id, admin.id)
+
+      assert approved.status == :approved
+      assert approved.reviewed_by_id == admin.id
+    end
+  end
+
+  describe "reject_verification_document/3" do
+    setup do
+      provider = IdentityFixtures.provider_profile_fixture()
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
+      {:ok, doc} = create_pending_document(provider.id)
+      %{provider: provider, admin: admin, document: doc}
+    end
+
+    test "delegates with correct arg mapping", %{admin: admin, document: doc} do
+      assert {:ok, %VerificationDocument{} = rejected} =
+               Identity.reject_verification_document(doc.id, admin.id, "Expired document")
+
+      assert rejected.status == :rejected
+      assert rejected.rejection_reason == "Expired document"
+    end
+  end
+
+  describe "get_provider_verification_documents/1" do
+    setup do
+      provider = IdentityFixtures.provider_profile_fixture()
+      {:ok, doc} = create_pending_document(provider.id)
+      %{provider: provider, document: doc}
+    end
+
+    test "returns documents for provider", %{provider: provider, document: doc} do
+      assert {:ok, docs} = Identity.get_provider_verification_documents(provider.id)
+      assert length(docs) == 1
+      assert Enum.at(docs, 0).id == doc.id
+    end
+
+    test "returns empty list for provider with no documents" do
+      other_provider = IdentityFixtures.provider_profile_fixture()
+      assert {:ok, []} = Identity.get_provider_verification_documents(other_provider.id)
+    end
+  end
+
+  describe "list_pending_verification_documents/0" do
+    setup do
+      provider = IdentityFixtures.provider_profile_fixture()
+      {:ok, doc} = create_pending_document(provider.id)
+      %{provider: provider, document: doc}
+    end
+
+    test "returns pending documents", %{document: doc} do
+      assert {:ok, docs} = Identity.list_pending_verification_documents()
+      assert Enum.any?(docs, fn d -> d.id == doc.id end)
+    end
+  end
+
+  # ============================================================================
+  # Provider Verification Functions
+  # ============================================================================
+
+  describe "verify_provider/2" do
+    setup do
+      setup_test_integration_events()
+      provider = IdentityFixtures.provider_profile_fixture()
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
+      %{provider: provider, admin: admin}
+    end
+
+    test "delegates with correct arg mapping", %{provider: provider, admin: admin} do
+      assert {:ok, %ProviderProfile{} = verified} =
+               Identity.verify_provider(provider.id, admin.id)
+
+      assert verified.verified == true
+      assert verified.verified_at != nil
+    end
+  end
+
+  describe "unverify_provider/2" do
+    setup do
+      setup_test_integration_events()
+      provider = IdentityFixtures.provider_profile_fixture()
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
+      # First verify the provider so we can unverify
+      {:ok, _} = Identity.verify_provider(provider.id, admin.id)
+      %{provider: provider, admin: admin}
+    end
+
+    test "delegates with correct arg mapping", %{provider: provider, admin: admin} do
+      assert {:ok, %ProviderProfile{} = unverified} =
+               Identity.unverify_provider(provider.id, admin.id)
+
+      assert unverified.verified == false
+      assert unverified.verified_at == nil
+    end
+  end
+
+  describe "list_verified_provider_ids/0" do
+    test "returns verified provider IDs" do
+      setup_test_integration_events()
+      provider = IdentityFixtures.provider_profile_fixture()
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
+
+      {:ok, _} = Identity.verify_provider(provider.id, admin.id)
+
+      assert {:ok, ids} = Identity.list_verified_provider_ids()
+      assert provider.id in ids
+    end
+  end
+
+  # ============================================================================
+  # Test Helpers
+  # ============================================================================
+
+  defp create_pending_document(provider_id) do
+    {:ok, doc} =
+      VerificationDocument.new(%{
+        id: Ecto.UUID.generate(),
+        provider_profile_id: provider_id,
+        document_type: "business_registration",
+        file_url: "verification-docs/test.pdf",
+        original_filename: "doc.pdf"
+      })
+
+    VerificationDocumentRepository.create(doc)
   end
 end

@@ -5,6 +5,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
 
   use KlassHero.DataCase, async: true
 
+  alias KlassHero.AccountsFixtures
   alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
   alias KlassHero.Identity.Domain.Models.ProviderProfile
 
@@ -94,6 +95,79 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
       non_existent_id = Ecto.UUID.generate()
 
       assert ProviderProfileRepository.has_profile?(non_existent_id) == false
+    end
+  end
+
+  describe "list_verified_ids/0" do
+    test "returns empty list when no providers exist" do
+      assert {:ok, []} = ProviderProfileRepository.list_verified_ids()
+    end
+
+    test "returns only verified provider IDs" do
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
+
+      {:ok, provider_1} =
+        ProviderProfileRepository.create_provider_profile(%{
+          identity_id: Ecto.UUID.generate(),
+          business_name: "Verified Business"
+        })
+
+      {:ok, provider_2} =
+        ProviderProfileRepository.create_provider_profile(%{
+          identity_id: Ecto.UUID.generate(),
+          business_name: "Unverified Business"
+        })
+
+      # Verify only provider_1
+      {:ok, verified} = ProviderProfile.verify(provider_1, admin.id)
+      {:ok, _} = ProviderProfileRepository.update(verified)
+
+      assert {:ok, ids} = ProviderProfileRepository.list_verified_ids()
+      assert provider_1.id in ids
+      refute provider_2.id in ids
+    end
+
+    test "returns all verified provider IDs" do
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
+
+      {:ok, provider_1} =
+        ProviderProfileRepository.create_provider_profile(%{
+          identity_id: Ecto.UUID.generate(),
+          business_name: "Business One"
+        })
+
+      {:ok, provider_2} =
+        ProviderProfileRepository.create_provider_profile(%{
+          identity_id: Ecto.UUID.generate(),
+          business_name: "Business Two"
+        })
+
+      # Verify both
+      {:ok, verified_1} = ProviderProfile.verify(provider_1, admin.id)
+      {:ok, _} = ProviderProfileRepository.update(verified_1)
+      {:ok, verified_2} = ProviderProfile.verify(provider_2, admin.id)
+      {:ok, _} = ProviderProfileRepository.update(verified_2)
+
+      assert {:ok, ids} = ProviderProfileRepository.list_verified_ids()
+      assert length(ids) == 2
+      assert provider_1.id in ids
+      assert provider_2.id in ids
+    end
+
+    test "returns IDs as strings" do
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
+
+      {:ok, provider} =
+        ProviderProfileRepository.create_provider_profile(%{
+          identity_id: Ecto.UUID.generate(),
+          business_name: "String ID Business"
+        })
+
+      {:ok, verified} = ProviderProfile.verify(provider, admin.id)
+      {:ok, _} = ProviderProfileRepository.update(verified)
+
+      assert {:ok, [id]} = ProviderProfileRepository.list_verified_ids()
+      assert is_binary(id)
     end
   end
 end

@@ -1,6 +1,9 @@
 defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProvidersTest do
   use KlassHero.DataCase, async: false
 
+  alias KlassHero.AccountsFixtures
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
+  alias KlassHero.Identity.Domain.Models.ProviderProfile
   alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
@@ -8,14 +11,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   @test_server_name :verified_providers_test
 
   setup do
-    # Start a separate test instance with a unique name
-    # This avoids conflicts with the application's supervised instance
-    {:ok, pid} = VerifiedProviders.start_link(name: @test_server_name)
-
-    on_exit(fn ->
-      if Process.alive?(pid), do: GenServer.stop(pid, :normal, 5000)
-    end)
-
+    pid = start_supervised!({VerifiedProviders, name: @test_server_name})
     {:ok, pid: pid}
   end
 
@@ -46,8 +42,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
         {:integration_event, event}
       )
 
-      # Wait for async message processing
-      Process.sleep(50)
+      # Synchronize: ensure GenServer has processed the broadcast
+      _ = :sys.get_state(@test_server_name)
 
       assert VerifiedProviders.verified?(provider_id, @test_server_name)
     end
@@ -73,7 +69,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
         {:integration_event, verify_event}
       )
 
-      Process.sleep(50)
+      _ = :sys.get_state(@test_server_name)
       assert VerifiedProviders.verified?(provider_id, @test_server_name)
 
       # Trigger: Provider loses verification
@@ -94,7 +90,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
         {:integration_event, unverify_event}
       )
 
-      Process.sleep(50)
+      _ = :sys.get_state(@test_server_name)
       refute VerifiedProviders.verified?(provider_id, @test_server_name)
     end
 
@@ -120,7 +116,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
         )
       end
 
-      Process.sleep(50)
+      _ = :sys.get_state(@test_server_name)
       assert VerifiedProviders.verified?(provider_1, @test_server_name)
       assert VerifiedProviders.verified?(provider_2, @test_server_name)
 
@@ -140,23 +136,44 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
         {:integration_event, unverify_event}
       )
 
-      Process.sleep(50)
+      _ = :sys.get_state(@test_server_name)
       refute VerifiedProviders.verified?(provider_1, @test_server_name)
       assert VerifiedProviders.verified?(provider_2, @test_server_name)
     end
   end
 
   describe "bootstrap from Identity context" do
-    test "loads verified provider IDs on startup" do
-      # Trigger: GenServer starts and calls Identity.list_verified_provider_ids()
-      # Why: Need to hydrate in-memory cache from database on startup
-      # Outcome: Any already-verified providers are immediately queryable
+    test "bootstraps verified providers from database on startup" do
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
 
-      # This test verifies the bootstrap mechanism works. In a real scenario,
-      # the GenServer would call Identity.list_verified_provider_ids/0 on init.
-      # Since we're using a test setup that starts a fresh GenServer without
-      # existing verified providers, we just verify the GenServer starts correctly.
-      assert Process.alive?(Process.whereis(@test_server_name))
+      # Create a provider and verify it directly in the database
+      {:ok, provider} =
+        ProviderProfileRepository.create_provider_profile(%{
+          identity_id: Ecto.UUID.generate(),
+          business_name: "Verified Business"
+        })
+
+      {:ok, verified} = ProviderProfile.verify(provider, admin.id)
+      {:ok, _} = ProviderProfileRepository.update(verified)
+
+      # Also create an unverified provider
+      {:ok, unverified_provider} =
+        ProviderProfileRepository.create_provider_profile(%{
+          identity_id: Ecto.UUID.generate(),
+          business_name: "Unverified Business"
+        })
+
+      # Start a new GenServer instance — it should bootstrap from DB
+      bootstrap_name = :"bootstrap_test_#{System.unique_integer([:positive])}"
+      bootstrap_pid = start_supervised!({VerifiedProviders, name: bootstrap_name}, id: :bootstrap)
+
+      # Trigger: New GenServer bootstraps from Identity.list_verified_provider_ids/0
+      # Why: On cold start, cache must be hydrated from the authoritative source
+      # Outcome: Already-verified providers are immediately queryable
+      _ = :sys.get_state(bootstrap_pid)
+
+      assert VerifiedProviders.verified?(provider.id, bootstrap_name)
+      refute VerifiedProviders.verified?(unverified_provider.id, bootstrap_name)
     end
   end
 
@@ -186,7 +203,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
         {:integration_event, event}
       )
 
-      Process.sleep(50)
+      _ = :sys.get_state(@test_server_name)
 
       # Trigger: Multiple verification events for same provider
       # Why: Events may be replayed or duplicated
@@ -215,7 +232,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
         {:integration_event, event}
       )
 
-      Process.sleep(50)
+      _ = :sys.get_state(@test_server_name)
       refute VerifiedProviders.verified?(provider_id, @test_server_name)
     end
   end
