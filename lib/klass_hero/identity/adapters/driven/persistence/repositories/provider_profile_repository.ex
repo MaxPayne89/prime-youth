@@ -125,12 +125,11 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
       schema ->
         attrs = ProviderProfileMapper.to_schema(provider_profile)
 
-        schema
-        |> ProviderProfileSchema.changeset(attrs)
-        |> Repo.update()
-        |> case do
-          {:ok, updated} -> {:ok, ProviderProfileMapper.to_domain(updated)}
-          {:error, changeset} -> {:error, changeset}
+        with {:ok, updated} <-
+               schema
+               |> ProviderProfileSchema.changeset(attrs)
+               |> Repo.update() do
+          {:ok, ProviderProfileMapper.to_domain(updated)}
         end
     end
   end

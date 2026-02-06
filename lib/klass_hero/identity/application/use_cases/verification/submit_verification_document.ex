@@ -13,6 +13,8 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
   alias KlassHero.Identity.Domain.Models.VerificationDocument
   alias KlassHero.Shared.Storage
 
+  @required_string_fields [:provider_profile_id, :original_filename, :document_type]
+
   @repository Application.compile_env!(:klass_hero, [
                 :identity,
                 :for_storing_verification_documents
@@ -47,35 +49,18 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
   # Why: early validation prevents partial operations (e.g., uploading file then failing)
   # Outcome: returns validation errors before any side effects occur
   defp validate_params(params) do
-    errors = []
+    errors =
+      Enum.reduce(@required_string_fields, [], fn field, acc ->
+        case params[field] do
+          val when is_binary(val) and byte_size(val) > 0 -> acc
+          _ -> [{field, "is required"} | acc]
+        end
+      end)
 
     errors =
-      if is_nil(params[:provider_profile_id]) or params[:provider_profile_id] == "" do
-        [{:provider_profile_id, "is required"} | errors]
-      else
-        errors
-      end
-
-    errors =
-      if is_nil(params[:file_binary]) do
-        [{:file_binary, "is required"} | errors]
-      else
-        errors
-      end
-
-    errors =
-      if is_nil(params[:original_filename]) or params[:original_filename] == "" do
-        [{:original_filename, "is required"} | errors]
-      else
-        errors
-      end
-
-    errors =
-      if is_nil(params[:document_type]) or params[:document_type] == "" do
-        [{:document_type, "is required"} | errors]
-      else
-        errors
-      end
+      if is_nil(params[:file_binary]),
+        do: [{:file_binary, "is required"} | errors],
+        else: errors
 
     case errors do
       [] -> :ok

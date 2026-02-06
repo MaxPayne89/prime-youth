@@ -29,15 +29,11 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
   def create(document) do
     attrs = VerificationDocumentMapper.to_schema(document)
 
-    %VerificationDocumentSchema{}
-    |> VerificationDocumentSchema.changeset(attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, schema} ->
-        {:ok, VerificationDocumentMapper.to_domain(schema)}
-
-      {:error, changeset} ->
-        {:error, changeset}
+    with {:ok, schema} <-
+           %VerificationDocumentSchema{}
+           |> VerificationDocumentSchema.changeset(attrs)
+           |> Repo.insert() do
+      {:ok, VerificationDocumentMapper.to_domain(schema)}
     end
   end
 
@@ -71,7 +67,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
       |> where([d], d.provider_id == ^provider_id)
       |> order_by([d], desc: d.inserted_at)
       |> Repo.all()
-      |> Enum.map(&VerificationDocumentMapper.to_domain/1)
+      |> VerificationDocumentMapper.to_domain_list()
 
     {:ok, docs}
   end
@@ -93,12 +89,11 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
       schema ->
         attrs = VerificationDocumentMapper.to_schema(document)
 
-        schema
-        |> VerificationDocumentSchema.changeset(attrs)
-        |> Repo.update()
-        |> case do
-          {:ok, updated} -> {:ok, VerificationDocumentMapper.to_domain(updated)}
-          {:error, changeset} -> {:error, changeset}
+        with {:ok, updated} <-
+               schema
+               |> VerificationDocumentSchema.changeset(attrs)
+               |> Repo.update() do
+          {:ok, VerificationDocumentMapper.to_domain(updated)}
         end
     end
   end
@@ -119,7 +114,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
       |> where([d], d.status == "pending")
       |> order_by([d], asc: d.inserted_at)
       |> Repo.all()
-      |> Enum.map(&VerificationDocumentMapper.to_domain/1)
+      |> VerificationDocumentMapper.to_domain_list()
 
     {:ok, docs}
   end
@@ -141,7 +136,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
       |> where([d], d.status == ^status_string)
       |> order_by([d], desc: d.inserted_at)
       |> Repo.all()
-      |> Enum.map(&VerificationDocumentMapper.to_domain/1)
+      |> VerificationDocumentMapper.to_domain_list()
 
     {:ok, docs}
   end

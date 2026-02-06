@@ -15,6 +15,8 @@ defmodule KlassHero.Identity.Application.UseCases.Providers.UnverifyProvider do
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
   alias KlassHero.Shared.IntegrationEventPublishing
 
+  @repository Application.compile_env!(:klass_hero, [:identity, :for_storing_provider_profiles])
+
   @doc """
   Revokes verification from a provider profile.
 
@@ -29,17 +31,13 @@ defmodule KlassHero.Identity.Application.UseCases.Providers.UnverifyProvider do
   - `{:error, :not_found}` if provider profile doesn't exist
   """
   def execute(%{provider_id: provider_id, admin_id: admin_id}) do
-    with {:ok, profile} <- get_profile(provider_id),
+    with {:ok, profile} <- @repository.get(provider_id),
          {:ok, unverified} <- ProviderProfile.unverify(profile),
-         {:ok, persisted} <- save_profile(unverified),
+         {:ok, persisted} <- @repository.update(unverified),
          :ok <- publish_event(persisted, admin_id) do
       {:ok, persisted}
     end
   end
-
-  defp get_profile(provider_id), do: repository().get(provider_id)
-
-  defp save_profile(profile), do: repository().update(profile)
 
   # Trigger: Provider unverification completed
   # Why: Other contexts (e.g., Program Catalog) may need to know about unverified providers
@@ -59,9 +57,5 @@ defmodule KlassHero.Identity.Application.UseCases.Providers.UnverifyProvider do
       )
 
     IntegrationEventPublishing.publish(event)
-  end
-
-  defp repository do
-    Application.get_env(:klass_hero, :identity)[:for_storing_provider_profiles]
   end
 end
