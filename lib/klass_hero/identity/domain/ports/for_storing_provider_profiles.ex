@@ -44,4 +44,24 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringProviderProfiles do
   Returns boolean directly (no error tuple for simple existence check).
   """
   @callback has_profile?(identity_id :: binary()) :: boolean()
+
+  @doc """
+  Retrieves a provider profile by its ID.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` - Provider profile found with matching ID
+  - `{:error, :not_found}` - No provider profile exists with this ID
+  """
+  @callback get(id :: binary()) :: {:ok, term()} | {:error, :not_found}
+
+  @doc """
+  Updates an existing provider profile in the repository.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` - Provider profile updated successfully
+  - `{:error, :not_found}` - Provider profile does not exist
+  - `{:error, changeset}` - Validation failure
+  """
+  @callback update(provider_profile :: term()) ::
+              {:ok, term()} | {:error, :not_found | term()}
 end

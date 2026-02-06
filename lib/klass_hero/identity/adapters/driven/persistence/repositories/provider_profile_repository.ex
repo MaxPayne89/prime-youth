@@ -93,6 +93,48 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
     |> Repo.exists?()
   end
 
+  @impl true
+  @doc """
+  Retrieves a provider profile by its ID.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` when provider profile is found
+  - `{:error, :not_found}` when no provider profile exists with the given ID
+  """
+  def get(id) when is_binary(id) do
+    case Repo.get(ProviderProfileSchema, id) do
+      nil -> {:error, :not_found}
+      schema -> {:ok, ProviderProfileMapper.to_domain(schema)}
+    end
+  end
+
+  @impl true
+  @doc """
+  Updates an existing provider profile in the database.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` on success
+  - `{:error, :not_found}` when provider profile doesn't exist
+  - `{:error, changeset}` on validation failure
+  """
+  def update(provider_profile) do
+    case Repo.get(ProviderProfileSchema, provider_profile.id) do
+      nil ->
+        {:error, :not_found}
+
+      schema ->
+        attrs = ProviderProfileMapper.to_schema(provider_profile)
+
+        schema
+        |> ProviderProfileSchema.changeset(attrs)
+        |> Repo.update()
+        |> case do
+          {:ok, updated} -> {:ok, ProviderProfileMapper.to_domain(updated)}
+          {:error, changeset} -> {:error, changeset}
+        end
+    end
+  end
+
   defp prepare_attrs_for_schema(attrs) do
     attrs
     |> maybe_convert_tier_to_string()
