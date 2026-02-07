@@ -101,10 +101,12 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     end
   end
 
+  @impl true
   def handle_event("toggle_reject_form", _params, socket) do
     {:noreply, assign(socket, :show_reject_form, !socket.assigns.show_reject_form)}
   end
 
+  @impl true
   def handle_event("reject", %{"rejection" => %{"reason" => reason}}, socket) do
     document = socket.assigns.document
     reviewer_id = socket.assigns.current_scope.user.id
