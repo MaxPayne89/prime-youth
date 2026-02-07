@@ -92,8 +92,7 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringVerificationDocuments do
   - `{:ok, [%{document: VerificationDocument.t(), provider_business_name: String.t()}]}`
   """
   @callback list_for_admin_review(VerificationDocument.status() | nil) ::
-              {:ok,
-               [%{document: VerificationDocument.t(), provider_business_name: String.t()}]}
+              {:ok, [%{document: VerificationDocument.t(), provider_business_name: String.t()}]}
 
   @doc """
   Retrieves a single verification document with provider business name for admin review.

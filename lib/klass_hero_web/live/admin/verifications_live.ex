@@ -10,8 +10,8 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Identity
-  alias KlassHeroWeb.Theme
   alias KlassHero.Shared.Storage
+  alias KlassHeroWeb.Theme
 
   @valid_statuses ~w(pending approved rejected)
 
@@ -243,7 +243,11 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
       <%!-- Back link --%>
       <.link
         navigate={~p"/admin/verifications"}
-        class={["inline-flex items-center gap-1 mb-6 text-sm", Theme.text_color(:muted), "hover:text-gray-900"]}
+        class={[
+          "inline-flex items-center gap-1 mb-6 text-sm",
+          Theme.text_color(:muted),
+          "hover:text-gray-900"
+        ]}
       >
         <.icon name="hero-arrow-left-mini" class="w-4 h-4" />
         {gettext("Back to verifications")}
@@ -291,7 +295,9 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
 
       <%!-- Document preview --%>
       <div id="document-preview" class={[Theme.card_variant(:default), "p-4 md:p-6 mb-6"]}>
-        <h2 class={["text-sm font-medium mb-4", Theme.text_color(:muted)]}>{gettext("Document preview")}</h2>
+        <h2 class={["text-sm font-medium mb-4", Theme.text_color(:muted)]}>
+          {gettext("Document preview")}
+        </h2>
 
         <%= if @signed_url do %>
           <.document_viewer preview_type={@preview_type} signed_url={@signed_url} />
@@ -308,8 +314,13 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
           </div>
         <% else %>
           <div class="text-center py-8">
-            <.icon name="hero-exclamation-triangle" class={"w-8 h-8 mx-auto mb-2 #{Theme.text_color(:muted)}"} />
-            <p class={["text-sm", Theme.text_color(:muted)]}>{gettext("Unable to load document preview.")}</p>
+            <.icon
+              name="hero-exclamation-triangle"
+              class={"w-8 h-8 mx-auto mb-2 #{Theme.text_color(:muted)}"}
+            />
+            <p class={["text-sm", Theme.text_color(:muted)]}>
+              {gettext("Unable to load document preview.")}
+            </p>
           </div>
         <% end %>
       </div>
@@ -359,7 +370,11 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
                 <button
                   type="button"
                   phx-click="toggle_reject_form"
-                  class={["px-4 py-2 text-sm font-medium rounded-lg", Theme.text_color(:muted), "hover:bg-gray-100 transition-colors"]}
+                  class={[
+                    "px-4 py-2 text-sm font-medium rounded-lg",
+                    Theme.text_color(:muted),
+                    "hover:bg-gray-100 transition-colors"
+                  ]}
                 >
                   {gettext("Cancel")}
                 </button>
@@ -415,7 +430,10 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   defp documents_empty_state(assigns) do
     ~H"""
     <div class="text-center py-12">
-      <.icon name="hero-document-magnifying-glass" class={"w-12 h-12 mx-auto mb-4 #{Theme.text_color(:muted)}"} />
+      <.icon
+        name="hero-document-magnifying-glass"
+        class={"w-12 h-12 mx-auto mb-4 #{Theme.text_color(:muted)}"}
+      />
       <p class={[Theme.typography(:body), Theme.text_color(:muted)]}>
         {empty_message(@current_status)}
       </p>
@@ -453,7 +471,9 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     ~H"""
     <div class="text-center py-8">
       <.icon name="hero-document" class={"w-12 h-12 mx-auto mb-2 #{Theme.text_color(:muted)}"} />
-      <p class={["text-sm", Theme.text_color(:muted)]}>{gettext("Preview not available for this file type.")}</p>
+      <p class={["text-sm", Theme.text_color(:muted)]}>
+        {gettext("Preview not available for this file type.")}
+      </p>
     </div>
     """
   end
