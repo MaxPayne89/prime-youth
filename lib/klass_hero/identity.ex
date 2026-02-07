@@ -627,6 +627,17 @@ defmodule KlassHero.Identity do
     @verification_document_repository.list_for_admin_review(status)
   end
 
+  @doc """
+  Get a single verification document with provider info for admin review.
+
+  Returns:
+  - `{:ok, %{document: VerificationDocument.t(), provider_business_name: String.t()}}`
+  - `{:error, :not_found}` if document doesn't exist
+  """
+  def get_verification_document_for_admin(document_id) do
+    @verification_document_repository.get_for_admin_review(document_id)
+  end
+
   # ============================================================================
   # Provider Verification
   # ============================================================================
