@@ -179,7 +179,7 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
 
       <%!-- Document List --%>
       <div id="documents" phx-update="stream" class="space-y-3">
-        <div class="hidden only:block">
+        <div id="documents-empty" class="hidden only:block">
           <.documents_empty_state current_status={@current_status} />
         </div>
 
