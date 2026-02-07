@@ -187,4 +187,33 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
 
     {:ok, results}
   end
+
+  @impl true
+  @doc """
+  Retrieves a single verification document joined with provider business name.
+
+  Returns:
+  - `{:ok, %{document: VerificationDocument.t(), provider_business_name: String.t()}}`
+  - `{:error, :not_found}` when no document exists with the given ID
+  """
+  def get_for_admin_review(id) do
+    query =
+      from d in VerificationDocumentSchema,
+        join: p in ProviderProfileSchema,
+        on: d.provider_id == p.id,
+        where: d.id == ^id,
+        select: {d, p.business_name}
+
+    case Repo.one(query) do
+      nil ->
+        {:error, :not_found}
+
+      {schema, business_name} ->
+        {:ok,
+         %{
+           document: VerificationDocumentMapper.to_domain(schema),
+           provider_business_name: business_name
+         }}
+    end
+  end
 end
