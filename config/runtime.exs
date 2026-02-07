@@ -119,17 +119,19 @@ if config_env() == :prod do
   config :klass_hero, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   # Storage configuration for production
+  # Trigger: Tigris storage on Fly.io auto-sets AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+  # Why: align with auto-set secrets to avoid manual duplication
+  # Outcome: credential env vars match what `fly storage create` provisions
   config :klass_hero, :storage,
     adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
     public_bucket:
       System.get_env("STORAGE_PUBLIC_BUCKET") || raise("STORAGE_PUBLIC_BUCKET not set"),
     private_bucket:
       System.get_env("STORAGE_PRIVATE_BUCKET") || raise("STORAGE_PRIVATE_BUCKET not set"),
-    endpoint: System.get_env("STORAGE_ENDPOINT"),
     access_key_id:
-      System.get_env("STORAGE_ACCESS_KEY_ID") || raise("STORAGE_ACCESS_KEY_ID not set"),
+      System.get_env("AWS_ACCESS_KEY_ID") || raise("AWS_ACCESS_KEY_ID not set"),
     secret_access_key:
-      System.get_env("STORAGE_SECRET_ACCESS_KEY") || raise("STORAGE_SECRET_ACCESS_KEY not set")
+      System.get_env("AWS_SECRET_ACCESS_KEY") || raise("AWS_SECRET_ACCESS_KEY not set")
 
   # ## Configuring the mailer
   #
