@@ -100,32 +100,32 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   defp ex_aws_config do
     config = Application.get_env(:klass_hero, :storage)
 
-    base = [
-      access_key_id: config[:access_key_id],
-      secret_access_key: config[:secret_access_key],
-      region: config[:region] || "us-east-1"
-    ]
-
     # Trigger: ExAws config construction
-    # Why: Tigris uses S3-compatible API but different host; MinIO uses custom endpoint
+    # Why: Tigris uses S3-compatible API but different host/region; MinIO uses custom endpoint
     # Outcome: Properly configured ExAws for the target storage backend
     case config[:endpoint] do
       nil ->
-        # Tigris uses S3-compatible API with custom host
-        Keyword.merge(base,
+        # Tigris: region must be "auto" per Tigris docs for global bucket routing
+        [
+          access_key_id: config[:access_key_id],
+          secret_access_key: config[:secret_access_key],
+          region: "auto",
           host: "fly.storage.tigris.dev",
           scheme: "https://"
-        )
+        ]
 
       endpoint ->
         # MinIO or custom endpoint
         uri = URI.parse(endpoint)
 
-        Keyword.merge(base,
+        [
+          access_key_id: config[:access_key_id],
+          secret_access_key: config[:secret_access_key],
+          region: config[:region] || "us-east-1",
           host: uri.host,
           port: uri.port,
           scheme: "#{uri.scheme}://"
-        )
+        ]
     end
   end
 end
