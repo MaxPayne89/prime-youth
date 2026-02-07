@@ -34,8 +34,7 @@ defmodule KlassHero.StorageIntegrationCase do
       def minio_config do
         [
           adapter: S3StorageAdapter,
-          public_bucket: "klass-hero-test-public",
-          private_bucket: "klass-hero-test-private",
+          bucket: "klass-hero-test",
           endpoint: "http://localhost:9000",
           access_key_id: "minioadmin",
           secret_access_key: "minioadmin"
@@ -43,9 +42,9 @@ defmodule KlassHero.StorageIntegrationCase do
       end
 
       @doc """
-      Sets up MinIO buckets for testing.
+      Sets up MinIO bucket for testing.
 
-      Creates the klass-hero-test-public and klass-hero-test-private buckets if they don't exist.
+      Creates the klass-hero-test bucket if it doesn't exist.
       Also configures the application environment for storage.
       """
       def setup_minio_buckets do
@@ -61,12 +60,9 @@ defmodule KlassHero.StorageIntegrationCase do
         ]
 
         # Trigger: Bucket creation for test isolation
-        # Why: Each test run needs clean buckets to avoid state leakage
-        # Outcome: Buckets exist and are ready for upload/download operations
-        ExAws.S3.put_bucket(config[:public_bucket], "us-east-1")
-        |> ExAws.request(ex_aws_config)
-
-        ExAws.S3.put_bucket(config[:private_bucket], "us-east-1")
+        # Why: Each test run needs the bucket to exist for upload/download operations
+        # Outcome: Single bucket exists, visibility controlled per-object via ACLs
+        ExAws.S3.put_bucket(config[:bucket], "us-east-1")
         |> ExAws.request(ex_aws_config)
 
         :ok

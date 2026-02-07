@@ -42,14 +42,10 @@ config :klass_hero, KlassHeroWeb.Endpoint,
 # Storage: MinIO S3-compatible storage for development (via docker-compose)
 config :klass_hero, :storage,
   adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
-  public_bucket: "klass-hero-dev-public",
-  private_bucket: "klass-hero-dev-private",
+  bucket: "klass-hero-dev",
   endpoint: "http://localhost:9000",
   access_key_id: "minioadmin",
   secret_access_key: "minioadmin",
-  # Configure your database
-  # OpenTelemetry: console output for local debugging
-  # For development, we disable any cache and enable
   region: "eu-central-1"
 
 # Enable dev routes for dashboard and mailbox

@@ -2,9 +2,9 @@ defmodule KlassHero.Shared.Domain.Ports.ForStoringFiles do
   @moduledoc """
   Port for file storage operations.
 
-  Supports two bucket types:
-  - `:public` — files served directly via URL (logos, program images)
-  - `:private` — files require signed URLs (verification docs)
+  Uses a single bucket with per-object visibility control:
+  - `:public` — files get public-read ACL, served directly via URL (logos, program images)
+  - `:private` — files use default (private) ACL, require signed URLs (verification docs)
   """
 
   @type bucket_type :: :public | :private

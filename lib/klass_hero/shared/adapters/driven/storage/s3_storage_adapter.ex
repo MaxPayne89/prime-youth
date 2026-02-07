@@ -11,10 +11,19 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
 
   @impl true
   def upload(bucket_type, path, binary, opts) do
-    bucket = get_bucket(bucket_type)
+    bucket = get_bucket()
     content_type = Keyword.get(opts, :content_type, "application/octet-stream")
 
-    case ExAws.S3.put_object(bucket, path, binary, content_type: content_type)
+    # Trigger: bucket_type is :public
+    # Why: single bucket — visibility is controlled per-object via S3 ACLs
+    # Outcome: public files are directly accessible, private files require signed URLs
+    put_opts =
+      case bucket_type do
+        :public -> [content_type: content_type, acl: :public_read]
+        :private -> [content_type: content_type]
+      end
+
+    case ExAws.S3.put_object(bucket, path, binary, put_opts)
          |> ExAws.request(ex_aws_config()) do
       {:ok, _response} ->
         case bucket_type do
@@ -34,10 +43,10 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   end
 
   @impl true
-  # Signed URLs only apply to the private bucket — public files are accessed
+  # Signed URLs are typically used for private files — public files are accessed
   # directly via their public URL, so bucket_type is intentionally ignored.
   def signed_url(_bucket_type, key, expires_in, _opts) do
-    bucket = get_bucket(:private)
+    bucket = get_bucket()
 
     # presigned_url/5 requires config as a map, not keyword list
     config_map = ex_aws_config() |> Map.new()
@@ -58,8 +67,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   end
 
   @impl true
-  def delete(bucket_type, key, _opts) do
-    bucket = get_bucket(bucket_type)
+  def delete(_bucket_type, key, _opts) do
+    bucket = get_bucket()
 
     case ExAws.S3.delete_object(bucket, key) |> ExAws.request(ex_aws_config()) do
       {:ok, _response} -> :ok
@@ -67,8 +76,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
     end
   end
 
-  defp get_bucket(:public), do: storage_config(:public_bucket)
-  defp get_bucket(:private), do: storage_config(:private_bucket)
+  defp get_bucket, do: storage_config(:bucket)
 
   defp public_url(bucket, path) do
     # Trigger: Public URL construction requested

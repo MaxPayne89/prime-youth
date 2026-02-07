@@ -135,8 +135,7 @@ config :klass_hero, :scopes,
 # Configure Storage (defaults, overridden per environment)
 config :klass_hero, :storage,
   adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
-  public_bucket: "klass-hero-dev-public",
-  private_bucket: "klass-hero-dev-private"
+  bucket: "klass-hero-dev"
 
 # Configure Support bounded context
 config :klass_hero, :support,

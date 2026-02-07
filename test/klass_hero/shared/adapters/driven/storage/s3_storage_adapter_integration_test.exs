@@ -31,7 +31,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapterIntegrationTe
       binary = "test image content"
 
       assert {:ok, url} = S3StorageAdapter.upload(:public, path, binary, [])
-      assert url =~ "test-public"
+      assert url =~ "klass-hero-test"
       assert url =~ path
     end
 
