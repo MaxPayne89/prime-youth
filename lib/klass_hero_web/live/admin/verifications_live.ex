@@ -11,31 +11,66 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
 
   alias KlassHero.Identity
   alias KlassHeroWeb.Theme
+  alias KlassHero.Shared.Storage
 
   @valid_statuses ~w(pending approved rejected)
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: gettext("Verifications"))}
+    {:ok, socket}
   end
 
   @impl true
   def handle_params(params, _uri, socket) do
-    status = parse_status_filter(params)
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
 
+  defp apply_action(socket, :index, params) do
+    status = parse_status_filter(params)
     {:ok, results} = Identity.list_verification_documents_for_admin(status)
 
-    socket =
-      socket
-      |> assign(:current_status, status)
-      |> assign(:document_count, length(results))
-      |> stream(:documents, results,
-        reset: true,
-        dom_id: fn %{document: doc} -> "doc-#{doc.id}" end
-      )
-
-    {:noreply, socket}
+    socket
+    |> assign(:page_title, gettext("Verifications"))
+    |> assign(:current_status, status)
+    |> assign(:document_count, length(results))
+    |> stream(:documents, results,
+      reset: true,
+      dom_id: fn %{document: doc} -> "doc-#{doc.id}" end
+    )
   end
+
+  defp apply_action(socket, :show, %{"id" => id}) do
+    case Identity.get_verification_document_for_admin(id) do
+      {:ok, %{document: document, provider_business_name: business_name}} ->
+        signed_url = fetch_signed_url(document.file_url)
+
+        socket
+        |> assign(:page_title, humanize_document_type(document.document_type))
+        |> assign(:document, document)
+        |> assign(:provider_business_name, business_name)
+        |> assign(:signed_url, signed_url)
+        |> assign(:preview_type, file_preview_type(document.original_filename))
+        |> assign(:show_reject_form, false)
+        |> assign(:reject_form, to_form(%{"reason" => ""}, as: :rejection))
+
+      {:error, :not_found} ->
+        socket
+        |> put_flash(:error, gettext("Verification document not found."))
+        |> push_navigate(to: ~p"/admin/verifications")
+    end
+  end
+
+  # Trigger: document has a file_url stored in private bucket
+  # Why: signed URLs expire, so we generate fresh ones on each page load
+  # Outcome: returns URL string on success, nil on failure
+  defp fetch_signed_url(file_url) when is_binary(file_url) do
+    case Storage.signed_url(:private, file_url, 900) do
+      {:ok, url} -> url
+      {:error, _} -> nil
+    end
+  end
+
+  defp fetch_signed_url(_), do: nil
 
   # Trigger: status param is a known value like "pending"
   # Why: only allow valid status filters, ignore garbage input
@@ -47,7 +82,58 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   defp parse_status_filter(_params), do: nil
 
   @impl true
+  def handle_event("approve", _params, socket) do
+    document = socket.assigns.document
+    reviewer_id = socket.assigns.current_scope.user.id
+
+    case Identity.approve_verification_document(document.id, reviewer_id) do
+      {:ok, updated} ->
+        {:noreply,
+         socket
+         |> assign(:document, updated)
+         |> put_flash(:info, gettext("Document approved successfully."))}
+
+      {:error, :document_not_pending} ->
+        {:noreply, put_flash(socket, :error, gettext("Document has already been reviewed."))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to approve document."))}
+    end
+  end
+
+  def handle_event("toggle_reject_form", _params, socket) do
+    {:noreply, assign(socket, :show_reject_form, !socket.assigns.show_reject_form)}
+  end
+
+  def handle_event("reject", %{"rejection" => %{"reason" => reason}}, socket) do
+    document = socket.assigns.document
+    reviewer_id = socket.assigns.current_scope.user.id
+
+    case Identity.reject_verification_document(document.id, reviewer_id, reason) do
+      {:ok, updated} ->
+        {:noreply,
+         socket
+         |> assign(:document, updated)
+         |> assign(:show_reject_form, false)
+         |> put_flash(:info, gettext("Document rejected."))}
+
+      {:error, :reason_required} ->
+        {:noreply, put_flash(socket, :error, gettext("Please provide a rejection reason."))}
+
+      {:error, :document_not_pending} ->
+        {:noreply, put_flash(socket, :error, gettext("Document has already been reviewed."))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to reject document."))}
+    end
+  end
+
+  @impl true
   def render(assigns) do
+    render_action(assigns)
+  end
+
+  defp render_action(%{live_action: :index} = assigns) do
     ~H"""
     <div class="min-h-screen p-4 md:p-6">
       <%!-- Header --%>
@@ -149,6 +235,141 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     """
   end
 
+  defp render_action(%{live_action: :show} = assigns) do
+    ~H"""
+    <div class="min-h-screen p-4 md:p-6 max-w-4xl mx-auto">
+      <%!-- Back link --%>
+      <.link
+        navigate={~p"/admin/verifications"}
+        class={["inline-flex items-center gap-1 mb-6 text-sm", Theme.text_color(:muted), "hover:text-gray-900"]}
+      >
+        <.icon name="hero-arrow-left-mini" class="w-4 h-4" />
+        {gettext("Back to verifications")}
+      </.link>
+
+      <%!-- Header --%>
+      <div class="flex items-center justify-between mb-6">
+        <h1 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+          {humanize_document_type(@document.document_type)}
+        </h1>
+        <.status_badge status={@document.status} />
+      </div>
+
+      <%!-- Info grid --%>
+      <div id="document-info" class={[Theme.card_variant(:default), "p-4 md:p-6 mb-6"]}>
+        <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <dt class={["text-sm font-medium", Theme.text_color(:muted)]}>{gettext("Business")}</dt>
+            <dd class="mt-1 text-sm">{@provider_business_name}</dd>
+          </div>
+          <div>
+            <dt class={["text-sm font-medium", Theme.text_color(:muted)]}>{gettext("File")}</dt>
+            <dd class="mt-1 text-sm truncate">{@document.original_filename}</dd>
+          </div>
+          <div>
+            <dt class={["text-sm font-medium", Theme.text_color(:muted)]}>{gettext("Submitted")}</dt>
+            <dd class="mt-1 text-sm">{format_date(@document.inserted_at)}</dd>
+          </div>
+          <%= if @document.reviewed_at do %>
+            <div>
+              <dt class={["text-sm font-medium", Theme.text_color(:muted)]}>{gettext("Reviewed")}</dt>
+              <dd class="mt-1 text-sm">{format_date(@document.reviewed_at)}</dd>
+            </div>
+          <% end %>
+        </dl>
+
+        <%!-- Rejection reason (shown only for rejected documents) --%>
+        <%= if @document.status == :rejected && @document.rejection_reason do %>
+          <div id="rejection-reason" class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p class="text-sm font-medium text-red-800">{gettext("Rejection reason")}</p>
+            <p class="mt-1 text-sm text-red-700">{@document.rejection_reason}</p>
+          </div>
+        <% end %>
+      </div>
+
+      <%!-- Document preview --%>
+      <div id="document-preview" class={[Theme.card_variant(:default), "p-4 md:p-6 mb-6"]}>
+        <h2 class={["text-sm font-medium mb-4", Theme.text_color(:muted)]}>{gettext("Document preview")}</h2>
+
+        <%= if @signed_url do %>
+          <.document_viewer preview_type={@preview_type} signed_url={@signed_url} />
+          <div class="mt-3">
+            <a
+              href={@signed_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800"
+            >
+              <.icon name="hero-arrow-down-tray-mini" class="w-4 h-4" />
+              {gettext("Download document")}
+            </a>
+          </div>
+        <% else %>
+          <div class="text-center py-8">
+            <.icon name="hero-exclamation-triangle" class={"w-8 h-8 mx-auto mb-2 #{Theme.text_color(:muted)}"} />
+            <p class={["text-sm", Theme.text_color(:muted)]}>{gettext("Unable to load document preview.")}</p>
+          </div>
+        <% end %>
+      </div>
+
+      <%!-- Action buttons (pending only) --%>
+      <%= if @document.status == :pending do %>
+        <div id="review-actions" class={[Theme.card_variant(:default), "p-4 md:p-6"]}>
+          <div class="flex gap-3">
+            <button
+              id="approve-button"
+              phx-click="approve"
+              data-confirm={gettext("Are you sure you want to approve this document?")}
+              class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <.icon name="hero-check-mini" class="w-4 h-4 mr-1" />
+              {gettext("Approve")}
+            </button>
+            <button
+              id="reject-button"
+              phx-click="toggle_reject_form"
+              class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <.icon name="hero-x-mark-mini" class="w-4 h-4 mr-1" />
+              {gettext("Reject")}
+            </button>
+          </div>
+
+          <%!-- Rejection form (toggled by Reject button) --%>
+          <%= if @show_reject_form do %>
+            <.form for={@reject_form} id="reject-form" phx-submit="reject" class="mt-4">
+              <.input
+                field={@reject_form[:reason]}
+                type="textarea"
+                label={gettext("Rejection reason")}
+                required
+                rows="3"
+                placeholder={gettext("Explain why this document is being rejected...")}
+              />
+              <div class="flex gap-3 mt-3">
+                <button
+                  id="confirm-reject-button"
+                  type="submit"
+                  class="inline-flex items-center px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  {gettext("Confirm rejection")}
+                </button>
+                <button
+                  type="button"
+                  phx-click="toggle_reject_form"
+                  class={["px-4 py-2 text-sm font-medium rounded-lg", Theme.text_color(:muted), "hover:bg-gray-100 transition-colors"]}
+                >
+                  {gettext("Cancel")}
+                </button>
+              </div>
+            </.form>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
   # ------------------------------------------------------------------
   # Components
   # ------------------------------------------------------------------
@@ -200,6 +421,41 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     """
   end
 
+  attr :preview_type, :atom, required: true
+  attr :signed_url, :string, required: true
+
+  defp document_viewer(%{preview_type: :image} = assigns) do
+    ~H"""
+    <a href={@signed_url} target="_blank" rel="noopener noreferrer">
+      <img
+        src={@signed_url}
+        alt={gettext("Document preview")}
+        class="max-w-full max-h-[600px] rounded-lg border border-gray-200"
+      />
+    </a>
+    """
+  end
+
+  defp document_viewer(%{preview_type: :pdf} = assigns) do
+    ~H"""
+    <iframe
+      src={@signed_url}
+      class="w-full h-[600px] rounded-lg border border-gray-200"
+      title={gettext("Document preview")}
+    >
+    </iframe>
+    """
+  end
+
+  defp document_viewer(assigns) do
+    ~H"""
+    <div class="text-center py-8">
+      <.icon name="hero-document" class={"w-12 h-12 mx-auto mb-2 #{Theme.text_color(:muted)}"} />
+      <p class={["text-sm", Theme.text_color(:muted)]}>{gettext("Preview not available for this file type.")}</p>
+    </div>
+    """
+  end
+
   # ------------------------------------------------------------------
   # Helpers
   # ------------------------------------------------------------------
@@ -232,4 +488,20 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   defp format_date(%DateTime{} = dt) do
     Calendar.strftime(dt, "%b %d, %Y")
   end
+
+  # Trigger: filename has a known image extension
+  # Why: determines whether to show inline preview or download-only
+  # Outcome: returns :image, :pdf, or :other for template branching
+  defp file_preview_type(filename) when is_binary(filename) do
+    filename
+    |> String.downcase()
+    |> Path.extname()
+    |> case do
+      ext when ext in ~w(.jpg .jpeg .png .gif .webp) -> :image
+      ".pdf" -> :pdf
+      _ -> :other
+    end
+  end
+
+  defp file_preview_type(_), do: :other
 end
