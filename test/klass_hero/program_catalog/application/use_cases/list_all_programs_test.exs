@@ -11,7 +11,9 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
   - T046: Returns empty list when no programs exist
   """
 
-  use ExUnit.Case, async: true
+  # async: false because setup mutates global Application config (:program_catalog repository),
+  # which would race with concurrent tests that use the real repository
+  use ExUnit.Case, async: false
 
   alias KlassHero.ProgramCatalog.Application.UseCases.ListAllPrograms
   alias KlassHero.ProgramCatalog.Domain.Models.Program
