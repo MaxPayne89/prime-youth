@@ -49,3 +49,6 @@ npm-debug.log
 
 # Git worktrees
 .worktrees/
+
+# Beads (managed by beads-sync worktree)
+.beads/
