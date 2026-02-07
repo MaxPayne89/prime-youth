@@ -15,6 +15,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
   import Ecto.Query
 
   alias KlassHero.Identity.Adapters.Driven.Persistence.Mappers.VerificationDocumentMapper
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
   alias KlassHero.Repo
 
@@ -139,5 +140,51 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
       |> VerificationDocumentMapper.to_domain_list()
 
     {:ok, docs}
+  end
+
+  @impl true
+  @doc """
+  Lists verification documents joined with provider business names for admin review.
+
+  When status is nil, returns all documents ordered by inserted_at descending.
+  When status is :pending, orders oldest-first (FIFO processing).
+  Other statuses order newest-first.
+  """
+  def list_for_admin_review(status) do
+    query =
+      from d in VerificationDocumentSchema,
+        join: p in ProviderProfileSchema,
+        on: d.provider_id == p.id,
+        select: {d, p.business_name}
+
+    query =
+      case status do
+        nil ->
+          order_by(query, [d], desc: d.inserted_at)
+
+        :pending ->
+          query
+          |> where([d], d.status == "pending")
+          |> order_by([d], asc: d.inserted_at)
+
+        status when is_atom(status) ->
+          status_string = Atom.to_string(status)
+
+          query
+          |> where([d], d.status == ^status_string)
+          |> order_by([d], desc: d.inserted_at)
+      end
+
+    results =
+      query
+      |> Repo.all()
+      |> Enum.map(fn {schema, business_name} ->
+        %{
+          document: VerificationDocumentMapper.to_domain(schema),
+          provider_business_name: business_name
+        }
+      end)
+
+    {:ok, results}
   end
 end

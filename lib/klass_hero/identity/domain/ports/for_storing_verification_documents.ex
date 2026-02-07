@@ -13,6 +13,7 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringVerificationDocuments do
   - `update/1` - Returns `{:ok, VerificationDocument.t()}` or domain errors
   - `list_pending/0` - Returns `{:ok, [VerificationDocument.t()]}`
   - `list_by_status/1` - Returns `{:ok, [VerificationDocument.t()]}`
+  - `list_for_admin_review/1` - Returns `{:ok, [%{document: VerificationDocument.t(), provider_business_name: String.t()}]}`
 
   Infrastructure errors (connection, query) are not caught - they crash and
   are handled by the supervision tree.
@@ -80,4 +81,17 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringVerificationDocuments do
   """
   @callback list_by_status(VerificationDocument.status()) ::
               {:ok, [VerificationDocument.t()]}
+
+  @doc """
+  Lists verification documents with provider business names for admin review.
+
+  Accepts an optional status filter. When nil, returns all documents.
+  Pending documents are ordered oldest-first (FIFO), others newest-first.
+
+  Returns:
+  - `{:ok, [%{document: VerificationDocument.t(), provider_business_name: String.t()}]}`
+  """
+  @callback list_for_admin_review(VerificationDocument.status() | nil) ::
+              {:ok,
+               [%{document: VerificationDocument.t(), provider_business_name: String.t()}]}
 end

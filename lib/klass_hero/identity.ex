@@ -611,6 +611,22 @@ defmodule KlassHero.Identity do
     @verification_document_repository.list_pending()
   end
 
+  @doc """
+  List verification documents with provider info for admin review.
+
+  Accepts an optional status filter atom:
+  - `nil` - All documents (newest first)
+  - `:pending` - Pending documents (oldest first, FIFO)
+  - `:approved` - Approved documents (newest first)
+  - `:rejected` - Rejected documents (newest first)
+
+  Returns:
+  - `{:ok, [%{document: VerificationDocument.t(), provider_business_name: String.t()}]}`
+  """
+  def list_verification_documents_for_admin(status \\ nil) do
+    @verification_document_repository.list_for_admin_review(status)
+  end
+
   # ============================================================================
   # Provider Verification
   # ============================================================================
