@@ -67,6 +67,31 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   end
 
   @impl true
+  # Trigger: need to verify file exists before generating signed URL
+  # Why: signed URLs succeed even for nonexistent files (just URL math), causing broken previews
+  # Outcome: returns boolean so callers can skip URL generation for missing files
+  def file_exists?(_bucket_type, key, _opts) do
+    bucket = get_bucket()
+
+    case ExAws.S3.head_object(bucket, key) |> ExAws.request(ex_aws_config()) do
+      {:ok, _} ->
+        {:ok, true}
+
+      {:error, {:http_error, 404, _}} ->
+        {:ok, false}
+
+      {:error, reason} ->
+        Logger.error("S3 file existence check failed",
+          bucket: bucket,
+          key: key,
+          error: inspect(reason)
+        )
+
+        {:error, :storage_unavailable}
+    end
+  end
+
+  @impl true
   def delete(_bucket_type, key, _opts) do
     bucket = get_bucket()
 

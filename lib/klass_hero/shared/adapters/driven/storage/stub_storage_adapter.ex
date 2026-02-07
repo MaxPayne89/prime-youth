@@ -36,6 +36,23 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
   end
 
   @impl true
+  # Trigger: file existence check during tests
+  # Why: LiveView tests don't start the StubStorageAdapter Agent, so we catch :exit
+  #      and default to true to avoid breaking existing tests that don't seed storage
+  # Outcome: returns true if Agent not running or file found, false only when Agent confirms absence
+  def file_exists?(bucket_type, path, opts) do
+    agent = Keyword.get(opts, :agent, __MODULE__)
+    key = make_key(bucket_type, path)
+
+    try do
+      exists? = Agent.get(agent, fn state -> Map.has_key?(state, key) end)
+      {:ok, exists?}
+    catch
+      :exit, _ -> {:ok, true}
+    end
+  end
+
+  @impl true
   def delete(bucket_type, path, opts) do
     agent = Keyword.get(opts, :agent, __MODULE__)
     key = make_key(bucket_type, path)

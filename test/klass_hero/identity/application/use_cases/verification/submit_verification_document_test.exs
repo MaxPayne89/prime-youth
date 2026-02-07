@@ -11,6 +11,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.SubmitVerificatio
 
     def upload(_bucket, _path, _binary, _opts), do: {:error, :upload_failed}
     def signed_url(_, _, _, _), do: {:error, :not_implemented}
+    def file_exists?(_, _, _), do: {:ok, false}
     def delete(_, _, _), do: :ok
   end
 

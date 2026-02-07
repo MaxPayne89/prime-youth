@@ -32,6 +32,15 @@ defmodule KlassHero.Shared.Domain.Ports.ForStoringFiles do
               {:ok, url()} | {:error, error_reason()}
 
   @doc """
+  Check if a file exists in storage.
+
+  Returns `{:ok, true}` if the file exists, `{:ok, false}` if not,
+  or `{:error, reason}` if the check cannot be performed.
+  """
+  @callback file_exists?(bucket_type(), key(), keyword()) ::
+              {:ok, boolean()} | {:error, error_reason()}
+
+  @doc """
   Delete a file from storage.
   """
   @callback delete(bucket_type(), key(), keyword()) :: :ok | {:error, error_reason()}

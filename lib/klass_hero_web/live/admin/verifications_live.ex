@@ -12,7 +12,6 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Identity
-  alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -59,16 +58,14 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   end
 
   defp apply_show_action(socket, id) do
-    case Identity.get_verification_document_for_admin(id) do
-      {:ok, %{document: document, provider_business_name: business_name}} ->
-        signed_url = fetch_signed_url(document.file_url)
-
+    case Identity.get_verification_document_preview(id) do
+      {:ok, result} ->
         socket
-        |> assign(:page_title, humanize_document_type(document.document_type))
-        |> assign(:document, document)
-        |> assign(:provider_business_name, business_name)
-        |> assign(:signed_url, signed_url)
-        |> assign(:preview_type, file_preview_type(document.original_filename))
+        |> assign(:page_title, humanize_document_type(result.document.document_type))
+        |> assign(:document, result.document)
+        |> assign(:provider_business_name, result.provider_business_name)
+        |> assign(:signed_url, result.signed_url)
+        |> assign(:preview_type, result.preview_type)
         |> assign(:show_reject_form, false)
         |> assign(:reject_form, to_form(%{"reason" => ""}, as: :rejection))
 
@@ -78,26 +75,6 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
         |> push_navigate(to: ~p"/admin/verifications")
     end
   end
-
-  # Trigger: document has a non-nil file_url stored in private bucket
-  # Why: signed URLs expire (TTL 900s = 15min), so we generate fresh ones on each page load
-  # Outcome: returns URL string on success, nil on failure (logged for diagnostics)
-  defp fetch_signed_url(file_url) when is_binary(file_url) do
-    case Storage.signed_url(:private, file_url, 900) do
-      {:ok, url} ->
-        url
-
-      {:error, reason} ->
-        Logger.warning("Failed to generate signed URL",
-          file_url: file_url,
-          reason: inspect(reason)
-        )
-
-        nil
-    end
-  end
-
-  defp fetch_signed_url(_), do: nil
 
   # Trigger: status param is a known value like "pending"
   # Why: only allow valid status filters, ignore garbage input
@@ -560,19 +537,4 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   defp format_date(%DateTime{} = dt) do
     Calendar.strftime(dt, "%b %d, %Y")
   end
-
-  # Trigger: filename has a known image extension
-  # Why: determines whether to show inline preview or download-only
-  # Outcome: returns :image, :pdf, or :other for template branching
-  defp file_preview_type(filename) when is_binary(filename) do
-    ext = filename |> String.downcase() |> Path.extname()
-
-    case ext do
-      ext when ext in ~w(.jpg .jpeg .png .gif .webp) -> :image
-      ".pdf" -> :pdf
-      _ -> :other
-    end
-  end
-
-  defp file_preview_type(_), do: :other
 end

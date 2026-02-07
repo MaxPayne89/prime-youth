@@ -46,6 +46,14 @@ defmodule KlassHero.Shared.Storage do
   end
 
   @doc """
+  Check if a file exists in storage.
+  """
+  @spec file_exists?(atom(), String.t(), keyword()) :: {:ok, boolean()} | {:error, term()}
+  def file_exists?(bucket_type, key, opts \\ []) do
+    adapter(opts).file_exists?(bucket_type, key, opts)
+  end
+
+  @doc """
   Delete a file from storage.
   """
   @spec delete(atom(), String.t(), keyword()) :: :ok | {:error, term()}

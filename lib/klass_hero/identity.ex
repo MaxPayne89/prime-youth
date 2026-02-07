@@ -46,6 +46,7 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Providers.UnverifyProvider
   alias KlassHero.Identity.Application.UseCases.Providers.VerifyProvider
   alias KlassHero.Identity.Application.UseCases.Verification.ApproveVerificationDocument
+  alias KlassHero.Identity.Application.UseCases.Verification.GetVerificationDocumentPreview
   alias KlassHero.Identity.Application.UseCases.Verification.RejectVerificationDocument
   alias KlassHero.Identity.Application.UseCases.Verification.SubmitVerificationDocument
   alias KlassHero.Identity.Domain.Events.IdentityEvents
@@ -642,6 +643,21 @@ defmodule KlassHero.Identity do
           {:ok, ForStoringVerificationDocuments.admin_review_result()} | {:error, :not_found}
   def get_verification_document_for_admin(document_id) do
     @verification_document_repository.get_for_admin_review(document_id)
+  end
+
+  @doc """
+  Get a verification document with a verified preview URL for admin review.
+
+  Unlike `get_verification_document_for_admin/1`, this also checks that the
+  file actually exists in storage before generating a signed URL. Prevents
+  broken document previews when the underlying file is missing.
+
+  Returns:
+  - `{:ok, %{document: ..., provider_business_name: ..., signed_url: ..., preview_type: ...}}`
+  - `{:error, :not_found}` if document doesn't exist
+  """
+  def get_verification_document_preview(document_id) do
+    GetVerificationDocumentPreview.execute(document_id)
   end
 
   # ============================================================================
