@@ -39,6 +39,11 @@ config :klass_hero, :participation,
   behavioral_note_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 
+# Use stub adapter for tests by default
+config :klass_hero, :storage,
+  adapter: KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter,
+  bucket: "klass-hero-test"
+
 # Print only warnings and errors during test
 config :logger, level: :warning
 

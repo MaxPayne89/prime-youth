@@ -24,6 +24,7 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
     :logo_url,
     :verified,
     :verified_at,
+    :verified_by_id,
     :categories,
     :subscription_tier,
     :inserted_at,
@@ -41,6 +42,7 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
           logo_url: String.t() | nil,
           verified: boolean() | nil,
           verified_at: DateTime.t() | nil,
+          verified_by_id: String.t() | nil,
           categories: [String.t()] | nil,
           subscription_tier: :starter | :professional | :business_plus | nil,
           inserted_at: DateTime.t() | nil,
@@ -95,6 +97,30 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
   """
   def verified?(%__MODULE__{verified: true}), do: true
   def verified?(_), do: false
+
+  @doc """
+  Marks a provider profile as verified by an admin.
+
+  Records the admin who performed the verification and the timestamp.
+  Idempotent - verifying an already-verified provider updates the audit trail.
+  """
+  def verify(%__MODULE__{} = profile, admin_id) when is_binary(admin_id) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    {:ok,
+     %{profile | verified: true, verified_at: now, verified_by_id: admin_id, updated_at: now}}
+  end
+
+  @doc """
+  Revokes verification from a provider profile.
+
+  Clears the verified flag, timestamp, and admin audit trail.
+  Idempotent - unverifying an already-unverified provider succeeds.
+  """
+  def unverify(%__MODULE__{} = profile) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    {:ok, %{profile | verified: false, verified_at: nil, verified_by_id: nil, updated_at: now}}
+  end
 
   defp validate(%__MODULE__{} = provider_profile) do
     []

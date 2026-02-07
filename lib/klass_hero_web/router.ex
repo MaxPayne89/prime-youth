@@ -102,6 +102,21 @@ defmodule KlassHeroWeb.Router do
         live "/participation", ParticipationHistoryLive, :index
       end
     end
+
+    # Admin routes - admin role required
+    live_session :require_admin,
+      layout: {KlassHeroWeb.Layouts, :app},
+      on_mount: [
+        {KlassHeroWeb.UserAuth, :mount_current_scope},
+        {KlassHeroWeb.UserAuth, :require_authenticated},
+        {KlassHeroWeb.UserAuth, :require_admin},
+        {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+      ] do
+      scope "/admin", Admin do
+        live "/verifications", VerificationsLive, :index
+        live "/verifications/:id", VerificationsLive, :show
+      end
+    end
   end
 
   # Other scopes may use custom stacks.

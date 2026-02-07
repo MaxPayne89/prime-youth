@@ -43,6 +43,11 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Consents.WithdrawConsent
   alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
+  alias KlassHero.Identity.Application.UseCases.Providers.UnverifyProvider
+  alias KlassHero.Identity.Application.UseCases.Providers.VerifyProvider
+  alias KlassHero.Identity.Application.UseCases.Verification.ApproveVerificationDocument
+  alias KlassHero.Identity.Application.UseCases.Verification.RejectVerificationDocument
+  alias KlassHero.Identity.Application.UseCases.Verification.SubmitVerificationDocument
   alias KlassHero.Identity.Domain.Events.IdentityEvents
   alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
@@ -67,6 +72,10 @@ defmodule KlassHero.Identity do
                         :identity,
                         :for_storing_consents
                       ])
+  @verification_document_repository Application.compile_env!(:klass_hero, [
+                                      :identity,
+                                      :for_storing_verification_documents
+                                    ])
 
   # ============================================================================
   # Parent Profile Functions
@@ -522,5 +531,133 @@ defmodule KlassHero.Identity do
   """
   def generate_referral_code(name, opts \\ []) when is_binary(name) do
     ReferralCodeGenerator.generate(name, opts)
+  end
+
+  # ============================================================================
+  # Verification Documents
+  # ============================================================================
+
+  @doc """
+  Submit a verification document for a provider.
+
+  Accepts a map with:
+  - `:provider_profile_id` - Required provider profile ID
+  - `:document_type` - Required document type (e.g., "id_document", "business_registration")
+  - `:file_binary` - Required binary content of the uploaded file
+  - `:original_filename` - Required original filename
+  - `:content_type` - Optional MIME type (defaults to "application/octet-stream")
+  - `:storage_opts` - Optional keyword list of additional storage adapter options
+
+  Returns:
+  - `{:ok, VerificationDocument.t()}` on success
+  - `{:error, keyword()}` for validation errors
+  - `{:error, changeset}` for persistence validation failures
+  """
+  def submit_verification_document(params) do
+    SubmitVerificationDocument.execute(params)
+  end
+
+  @doc """
+  Approve a verification document (admin only).
+
+  Returns:
+  - `{:ok, VerificationDocument.t()}` on success
+  - `{:error, :not_found}` if document doesn't exist
+  - `{:error, :document_not_pending}` if document is not pending
+  """
+  def approve_verification_document(document_id, reviewer_id) do
+    ApproveVerificationDocument.execute(%{
+      document_id: document_id,
+      reviewer_id: reviewer_id
+    })
+  end
+
+  @doc """
+  Reject a verification document with reason (admin only).
+
+  Returns:
+  - `{:ok, VerificationDocument.t()}` on success
+  - `{:error, :not_found}` if document doesn't exist
+  - `{:error, :document_not_pending}` if document is not pending
+  - `{:error, :reason_required}` if reason is empty or nil
+  """
+  def reject_verification_document(document_id, reviewer_id, reason) do
+    RejectVerificationDocument.execute(%{
+      document_id: document_id,
+      reviewer_id: reviewer_id,
+      reason: reason
+    })
+  end
+
+  @doc """
+  Get all verification documents for a provider.
+
+  Returns:
+  - `{:ok, [VerificationDocument.t()]}` - List of documents (may be empty)
+  """
+  def get_provider_verification_documents(provider_profile_id) do
+    @verification_document_repository.get_by_provider(provider_profile_id)
+  end
+
+  @doc """
+  List all pending verification documents (admin).
+
+  Documents are ordered by submission date (oldest first) for FIFO processing.
+
+  Returns:
+  - `{:ok, [VerificationDocument.t()]}` - List of pending documents (may be empty)
+  """
+  def list_pending_verification_documents do
+    @verification_document_repository.list_pending()
+  end
+
+  # ============================================================================
+  # Provider Verification
+  # ============================================================================
+
+  @doc """
+  Verify a provider (admin only).
+
+  Sets the provider's verified flag to true and records the verification.
+  Idempotent - verifying an already verified provider updates the audit trail.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` on success
+  - `{:error, :not_found}` if provider doesn't exist
+  """
+  def verify_provider(provider_id, admin_id) do
+    VerifyProvider.execute(%{
+      provider_id: provider_id,
+      admin_id: admin_id
+    })
+  end
+
+  @doc """
+  Unverify a provider (admin only).
+
+  Sets the provider's verified flag to false.
+  Idempotent - unverifying an already unverified provider succeeds.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` on success
+  - `{:error, :not_found}` if provider doesn't exist
+  """
+  def unverify_provider(provider_id, admin_id) do
+    UnverifyProvider.execute(%{
+      provider_id: provider_id,
+      admin_id: admin_id
+    })
+  end
+
+  @doc """
+  List all verified provider IDs (for projections).
+
+  Used by caching layers and projections to track verification status.
+
+  Returns:
+  - `{:ok, [String.t()]}` - List of verified provider profile IDs (may be empty)
+  """
+  def list_verified_provider_ids do
+    @provider_repository.list_verified_ids()
   end
 end

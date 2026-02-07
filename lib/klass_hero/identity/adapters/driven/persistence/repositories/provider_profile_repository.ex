@@ -93,6 +93,66 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderPr
     |> Repo.exists?()
   end
 
+  @impl true
+  @doc """
+  Retrieves a provider profile by its ID.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` when provider profile is found
+  - `{:error, :not_found}` when no provider profile exists with the given ID
+  """
+  def get(id) when is_binary(id) do
+    case Repo.get(ProviderProfileSchema, id) do
+      nil -> {:error, :not_found}
+      schema -> {:ok, ProviderProfileMapper.to_domain(schema)}
+    end
+  end
+
+  @impl true
+  @doc """
+  Updates an existing provider profile in the database.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` on success
+  - `{:error, :not_found}` when provider profile doesn't exist
+  - `{:error, changeset}` on validation failure
+  """
+  def update(provider_profile) do
+    case Repo.get(ProviderProfileSchema, provider_profile.id) do
+      nil ->
+        {:error, :not_found}
+
+      schema ->
+        attrs = ProviderProfileMapper.to_schema(provider_profile)
+
+        with {:ok, updated} <-
+               schema
+               |> ProviderProfileSchema.changeset(attrs)
+               |> Repo.update() do
+          {:ok, ProviderProfileMapper.to_domain(updated)}
+        end
+    end
+  end
+
+  @impl true
+  @doc """
+  Lists all verified provider profile IDs.
+
+  Used by projections and caching layers to track verification status.
+
+  Returns:
+  - `{:ok, [String.t()]}` - List of verified provider profile IDs (may be empty)
+  """
+  def list_verified_ids do
+    ids =
+      ProviderProfileSchema
+      |> where([p], p.verified == true)
+      |> select([p], p.id)
+      |> Repo.all()
+
+    {:ok, ids}
+  end
+
   defp prepare_attrs_for_schema(attrs) do
     attrs
     |> maybe_convert_tier_to_string()

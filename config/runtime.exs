@@ -118,6 +118,17 @@ if config_env() == :prod do
 
   config :klass_hero, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
+  # Storage configuration for production
+  # Trigger: Tigris storage on Fly.io auto-sets AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+  # Why: single bucket with per-object ACLs — Fly.io Tigris allows one bucket per app
+  # Outcome: public files get acl: :public_read, private files use signed URLs
+  config :klass_hero, :storage,
+    adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
+    bucket: System.get_env("STORAGE_BUCKET") || raise("STORAGE_BUCKET not set"),
+    access_key_id: System.get_env("AWS_ACCESS_KEY_ID") || raise("AWS_ACCESS_KEY_ID not set"),
+    secret_access_key:
+      System.get_env("AWS_SECRET_ACCESS_KEY") || raise("AWS_SECRET_ACCESS_KEY not set")
+
   # ## Configuring the mailer
   #
   # In production you need to configure the mailer to use a different adapter.

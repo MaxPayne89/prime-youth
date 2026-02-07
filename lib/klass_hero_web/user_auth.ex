@@ -201,6 +201,10 @@ defmodule KlassHeroWeb.UserAuth do
       on user_token.
       Redirects to login page if there's no logged user.
 
+    * `:require_admin` - Requires the user to have `is_admin: true`.
+      Redirects to home page with error flash if the user is not an admin.
+      Use this hook for admin-only routes (verification, moderation).
+
     * `:redirect_provider_from_parent_routes` - Redirects provider users
       away from parent-specific routes to the provider dashboard.
       Use this hook on routes that should redirect providers.
@@ -286,6 +290,23 @@ defmodule KlassHeroWeb.UserAuth do
       &Scope.provider?/1,
       gettext("You must have a provider profile to access this page.")
     )
+  end
+
+  # Requires the user to be an admin.
+  # Trigger: user attempts to access admin-only routes
+  # Why: admin routes contain sensitive verification/moderation functionality
+  # Outcome: non-admin users redirected to home with error flash
+  def on_mount(:require_admin, _params, _session, socket) do
+    case socket.assigns[:current_scope] do
+      %{user: %{is_admin: true}} ->
+        {:cont, socket}
+
+      _ ->
+        {:halt,
+         socket
+         |> Phoenix.LiveView.put_flash(:error, gettext("You don't have access to that page."))
+         |> Phoenix.LiveView.redirect(to: ~p"/")}
+    end
   end
 
   # Redirects provider users away from parent-specific routes.

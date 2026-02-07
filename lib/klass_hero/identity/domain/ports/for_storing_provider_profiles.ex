@@ -15,6 +15,8 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringProviderProfiles do
   are handled by the supervision tree.
   """
 
+  alias KlassHero.Identity.Domain.Models.ProviderProfile
+
   @doc """
   Creates a new provider profile in the repository.
 
@@ -26,7 +28,7 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringProviderProfiles do
   - `{:error, changeset}` - Validation failure
   """
   @callback create_provider_profile(attrs :: map()) ::
-              {:ok, term()} | {:error, :duplicate_resource | term()}
+              {:ok, ProviderProfile.t()} | {:error, :duplicate_resource | term()}
 
   @doc """
   Retrieves a provider profile by identity ID.
@@ -36,7 +38,7 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringProviderProfiles do
   - `{:error, :not_found}` - No provider profile exists for this identity_id
   """
   @callback get_by_identity_id(identity_id :: binary()) ::
-              {:ok, term()} | {:error, :not_found}
+              {:ok, ProviderProfile.t()} | {:error, :not_found}
 
   @doc """
   Checks if a provider profile exists for the given identity ID.
@@ -44,4 +46,34 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringProviderProfiles do
   Returns boolean directly (no error tuple for simple existence check).
   """
   @callback has_profile?(identity_id :: binary()) :: boolean()
+
+  @doc """
+  Retrieves a provider profile by its ID.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` - Provider profile found with matching ID
+  - `{:error, :not_found}` - No provider profile exists with this ID
+  """
+  @callback get(id :: binary()) :: {:ok, ProviderProfile.t()} | {:error, :not_found}
+
+  @doc """
+  Updates an existing provider profile in the repository.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` - Provider profile updated successfully
+  - `{:error, :not_found}` - Provider profile does not exist
+  - `{:error, changeset}` - Validation failure
+  """
+  @callback update(provider_profile :: ProviderProfile.t()) ::
+              {:ok, ProviderProfile.t()} | {:error, :not_found | term()}
+
+  @doc """
+  Lists all verified provider profile IDs.
+
+  Used by projections and caching layers to track verification status.
+
+  Returns:
+  - `{:ok, [String.t()]}` - List of verified provider profile IDs (may be empty)
+  """
+  @callback list_verified_ids() :: {:ok, [String.t()]}
 end

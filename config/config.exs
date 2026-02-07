@@ -81,7 +81,9 @@ config :klass_hero, :identity,
   for_storing_children:
     KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository,
   for_storing_consents:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRepository
+    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRepository,
+  for_storing_verification_documents:
+    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
 
 # Configure Integration Event Publisher (cross-context communication)
 config :klass_hero, :integration_event_publisher,
@@ -130,6 +132,11 @@ config :klass_hero, :scopes,
     test_setup_helper: :register_and_log_in_user
   ]
 
+# Configure Storage (defaults, overridden per environment)
+config :klass_hero, :storage,
+  adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
+  bucket: "klass-hero-dev"
+
 # Configure Support bounded context
 config :klass_hero, :support,
   repository: KlassHero.Support.Adapters.Driven.Persistence.Repositories.ContactRequestRepository
@@ -151,6 +158,7 @@ config :logger, :default_formatter,
     :program_id,
     :provider_name,
     :attendance_record_id,
+    :bucket,
     :child_name,
     :limit,
     :has_cursor,
@@ -159,6 +167,7 @@ config :logger, :default_formatter,
     :errors,
     :error_id,
     :identity_id,
+    :key,
     :business_name,
     :first_name,
     :last_name,
@@ -203,6 +212,7 @@ config :logger, :default_formatter,
     :name,
     :opts,
     :participant_id,
+    :path,
     :participants_updated,
     :recipient_count,
     :remaining,

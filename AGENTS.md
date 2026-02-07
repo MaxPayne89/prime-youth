@@ -1,19 +1,5 @@
 This is a web application written using the Phoenix web framework.
 
-## Project Memory System
-
-Institutional knowledge is maintained in `docs/project_notes/`:
-
-- **bugs.md** - Bug log with dates, solutions, and prevention notes
-- **decisions.md** - Architectural Decision Records (ADRs) with context and trade-offs
-- **key_facts.md** - Project configuration, ports, URLs, infrastructure details
-- **issues.md** - Work log with GitHub issue references
-
-**Before proposing architectural changes:** check `decisions.md` for existing decisions.
-**When encountering bugs:** search `bugs.md` for similar issues before investigating.
-**When looking up configuration:** check `key_facts.md` for ports, URLs, roles, module paths.
-**When completing work:** log in `issues.md` with ticket ID and date.
-
 ## Project guidelines
 
 - Use `mix precommit` alias when you are done with all changes and fix any pending issues
@@ -574,3 +560,29 @@ _A code generation and project patching framework_
 [funx usage rules](deps/funx/lib/usage-rules.md)
 <!-- funx-end -->
 <!-- usage-rules-end -->
+
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd sync
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds
