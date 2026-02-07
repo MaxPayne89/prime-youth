@@ -150,40 +150,24 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
   When status is :pending, orders oldest-first (FIFO processing).
   Other statuses order newest-first.
   """
-  def list_for_admin_review(status) do
-    query =
-      from d in VerificationDocumentSchema,
-        join: p in ProviderProfileSchema,
-        on: d.provider_id == p.id,
-        select: {d, p.business_name}
-
+  def list_for_admin_review(status) when is_atom(status) or is_nil(status) do
     query =
       case status do
         nil ->
-          order_by(query, [d], desc: d.inserted_at)
+          order_by(admin_review_base_query(), [d], desc: d.inserted_at)
 
         :pending ->
-          query
-          |> where([d], d.status == "pending")
+          admin_review_base_query()
+          |> where([d], d.status == ^Atom.to_string(:pending))
           |> order_by([d], asc: d.inserted_at)
 
         status when is_atom(status) ->
-          status_string = Atom.to_string(status)
-
-          query
-          |> where([d], d.status == ^status_string)
+          admin_review_base_query()
+          |> where([d], d.status == ^Atom.to_string(status))
           |> order_by([d], desc: d.inserted_at)
       end
 
-    results =
-      query
-      |> Repo.all()
-      |> Enum.map(fn {schema, business_name} ->
-        %{
-          document: VerificationDocumentMapper.to_domain(schema),
-          provider_business_name: business_name
-        }
-      end)
+    results = query |> Repo.all() |> Enum.map(&to_admin_review_result/1)
 
     {:ok, results}
   end
@@ -193,27 +177,31 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
   Retrieves a single verification document joined with provider business name.
 
   Returns:
-  - `{:ok, %{document: VerificationDocument.t(), provider_business_name: String.t()}}`
+  - `{:ok, admin_review_result()}` - Document found
   - `{:error, :not_found}` when no document exists with the given ID
   """
   def get_for_admin_review(id) do
-    query =
-      from d in VerificationDocumentSchema,
-        join: p in ProviderProfileSchema,
-        on: d.provider_id == p.id,
-        where: d.id == ^id,
-        select: {d, p.business_name}
+    query = where(admin_review_base_query(), [d], d.id == ^id)
 
     case Repo.one(query) do
-      nil ->
-        {:error, :not_found}
-
-      {schema, business_name} ->
-        {:ok,
-         %{
-           document: VerificationDocumentMapper.to_domain(schema),
-           provider_business_name: business_name
-         }}
+      nil -> {:error, :not_found}
+      result -> {:ok, to_admin_review_result(result)}
     end
+  end
+
+  # Shared base query joining documents with provider profiles for admin review.
+  defp admin_review_base_query do
+    from d in VerificationDocumentSchema,
+      join: p in ProviderProfileSchema,
+      on: d.provider_id == p.id,
+      select: {d, p.business_name}
+  end
+
+  # Maps a {schema, business_name} tuple to the admin review result map.
+  defp to_admin_review_result({schema, business_name}) do
+    %{
+      document: VerificationDocumentMapper.to_domain(schema),
+      provider_business_name: business_name
+    }
   end
 end

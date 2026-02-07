@@ -228,6 +228,13 @@ defmodule KlassHeroWeb.Admin.VerificationsLiveTest do
       assert flash["error"] =~ "not found"
     end
 
+    test "redirects with error flash when id is not a valid UUID", %{conn: conn} do
+      assert {:error, {:live_redirect, %{to: "/admin/verifications", flash: flash}}} =
+               live(conn, ~p"/admin/verifications/not-a-uuid")
+
+      assert flash["error"] =~ "not found"
+    end
+
     test "back link navigates to index", %{conn: conn} do
       doc = insert(:verification_document_schema)
 
@@ -258,6 +265,28 @@ defmodule KlassHeroWeb.Admin.VerificationsLiveTest do
 
       # Action buttons should be gone after approval
       refute has_element?(view, "#review-actions")
+    end
+
+    test "approve on already-reviewed document shows error flash", %{conn: conn} do
+      doc = insert(:approved_verification_document_schema)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/verifications/#{doc.id}")
+
+      # Document is already approved, so no approve button should be shown
+      refute has_element?(view, "#approve-button")
+    end
+
+    test "approve event on already-approved document returns document_not_pending error", %{
+      conn: conn
+    } do
+      doc = insert(:approved_verification_document_schema)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/verifications/#{doc.id}")
+
+      # Simulate a race condition: send approve event directly even though button isn't rendered
+      render_click(view, "approve")
+
+      assert_flash(view, :error, "Document has already been reviewed.")
     end
   end
 
@@ -312,6 +341,21 @@ defmodule KlassHeroWeb.Admin.VerificationsLiveTest do
 
       # Action buttons should be gone after rejection
       refute has_element?(view, "#review-actions")
+    end
+
+    test "reject event on already-approved document returns document_not_pending error", %{
+      conn: conn
+    } do
+      doc = insert(:approved_verification_document_schema)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/verifications/#{doc.id}")
+
+      # Simulate a race condition: send reject event directly even though form isn't rendered
+      render_submit(view, "reject", %{
+        "rejection" => %{"reason" => "Too late"}
+      })
+
+      assert_flash(view, :error, "Document has already been reviewed.")
     end
 
     test "reject without reason shows error flash", %{conn: conn} do

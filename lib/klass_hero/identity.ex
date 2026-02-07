@@ -50,6 +50,8 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Verification.SubmitVerificationDocument
   alias KlassHero.Identity.Domain.Events.IdentityEvents
   alias KlassHero.Identity.Domain.Models.Child
+  alias KlassHero.Identity.Domain.Models.VerificationDocument
+  alias KlassHero.Identity.Domain.Ports.ForStoringVerificationDocuments
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
   alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
   alias KlassHero.Shared.DomainEventBus
@@ -623,6 +625,8 @@ defmodule KlassHero.Identity do
   Returns:
   - `{:ok, [%{document: VerificationDocument.t(), provider_business_name: String.t()}]}`
   """
+  @spec list_verification_documents_for_admin(VerificationDocument.status() | nil) ::
+          {:ok, [ForStoringVerificationDocuments.admin_review_result()]}
   def list_verification_documents_for_admin(status \\ nil) do
     @verification_document_repository.list_for_admin_review(status)
   end
@@ -634,6 +638,8 @@ defmodule KlassHero.Identity do
   - `{:ok, %{document: VerificationDocument.t(), provider_business_name: String.t()}}`
   - `{:error, :not_found}` if document doesn't exist
   """
+  @spec get_verification_document_for_admin(String.t()) ::
+          {:ok, ForStoringVerificationDocuments.admin_review_result()} | {:error, :not_found}
   def get_verification_document_for_admin(document_id) do
     @verification_document_repository.get_for_admin_review(document_id)
   end

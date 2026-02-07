@@ -2,9 +2,11 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   @moduledoc """
   LiveView for admin verification document management.
 
-  Displays verification documents with status filtering and allows admins
-  to review provider verification requests. Supports URL-based filtering
-  via query params for bookmarkable views.
+  Supports two actions:
+  - `:index` - Lists verification documents with status filtering (all/pending/approved/rejected)
+  - `:show` - Document detail page with preview, approve, and reject workflows
+
+  Supports URL-based filtering via query params for bookmarkable views.
   """
 
   use KlassHeroWeb, :live_view
@@ -12,6 +14,8 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   alias KlassHero.Identity
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Theme
+
+  require Logger
 
   @valid_statuses ~w(pending approved rejected)
 
@@ -39,7 +43,22 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     )
   end
 
+  # Trigger: id param arrives from URL as raw string
+  # Why: non-UUID strings cause Ecto.Query.CastError before Repo.one executes
+  # Outcome: invalid UUIDs redirect to index with error flash instead of crashing
   defp apply_action(socket, :show, %{"id" => id}) do
+    case Ecto.UUID.cast(id) do
+      {:ok, _} ->
+        apply_show_action(socket, id)
+
+      :error ->
+        socket
+        |> put_flash(:error, gettext("Verification document not found."))
+        |> push_navigate(to: ~p"/admin/verifications")
+    end
+  end
+
+  defp apply_show_action(socket, id) do
     case Identity.get_verification_document_for_admin(id) do
       {:ok, %{document: document, provider_business_name: business_name}} ->
         signed_url = fetch_signed_url(document.file_url)
@@ -60,13 +79,21 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     end
   end
 
-  # Trigger: document has a file_url stored in private bucket
-  # Why: signed URLs expire, so we generate fresh ones on each page load
-  # Outcome: returns URL string on success, nil on failure
+  # Trigger: document has a non-nil file_url stored in private bucket
+  # Why: signed URLs expire (TTL 900s = 15min), so we generate fresh ones on each page load
+  # Outcome: returns URL string on success, nil on failure (logged for diagnostics)
   defp fetch_signed_url(file_url) when is_binary(file_url) do
     case Storage.signed_url(:private, file_url, 900) do
-      {:ok, url} -> url
-      {:error, _} -> nil
+      {:ok, url} ->
+        url
+
+      {:error, reason} ->
+        Logger.warning("Failed to generate signed URL",
+          file_url: file_url,
+          reason: inspect(reason)
+        )
+
+        nil
     end
   end
 
@@ -96,17 +123,26 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
       {:error, :document_not_pending} ->
         {:noreply, put_flash(socket, :error, gettext("Document has already been reviewed."))}
 
-      {:error, _reason} ->
+      {:error, :not_found} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("Verification document not found."))
+         |> push_navigate(to: ~p"/admin/verifications")}
+
+      {:error, reason} ->
+        Logger.error("Failed to approve verification document",
+          document_id: document.id,
+          reason: inspect(reason)
+        )
+
         {:noreply, put_flash(socket, :error, gettext("Failed to approve document."))}
     end
   end
 
-  @impl true
   def handle_event("toggle_reject_form", _params, socket) do
     {:noreply, assign(socket, :show_reject_form, !socket.assigns.show_reject_form)}
   end
 
-  @impl true
   def handle_event("reject", %{"rejection" => %{"reason" => reason}}, socket) do
     document = socket.assigns.document
     reviewer_id = socket.assigns.current_scope.user.id
@@ -125,7 +161,18 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
       {:error, :document_not_pending} ->
         {:noreply, put_flash(socket, :error, gettext("Document has already been reviewed."))}
 
-      {:error, _reason} ->
+      {:error, :not_found} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("Verification document not found."))
+         |> push_navigate(to: ~p"/admin/verifications")}
+
+      {:error, reason} ->
+        Logger.error("Failed to reject verification document",
+          document_id: document.id,
+          reason: inspect(reason)
+        )
+
         {:noreply, put_flash(socket, :error, gettext("Failed to reject document."))}
     end
   end
@@ -402,8 +449,8 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
       class={[
         "px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors",
         if(@status == @current_status,
-          do: "#{Theme.bg(:primary)} text-white",
-          else: "#{Theme.bg(:surface)} #{Theme.text_color(:muted)} hover:bg-gray-100"
+          do: [Theme.bg(:primary), "text-white"],
+          else: [Theme.bg(:surface), Theme.text_color(:muted), "hover:bg-gray-100"]
         )
       ]}
     >
@@ -488,10 +535,12 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   defp status_classes(:pending), do: "bg-yellow-100 text-yellow-800"
   defp status_classes(:approved), do: "bg-green-100 text-green-800"
   defp status_classes(:rejected), do: "bg-red-100 text-red-800"
+  defp status_classes(_), do: "bg-gray-100 text-gray-800"
 
   defp humanize_status(:pending), do: gettext("Pending")
   defp humanize_status(:approved), do: gettext("Approved")
   defp humanize_status(:rejected), do: gettext("Rejected")
+  defp humanize_status(status), do: status |> to_string() |> String.capitalize()
 
   defp humanize_document_type("business_registration"), do: gettext("Business Registration")
   defp humanize_document_type("insurance_certificate"), do: gettext("Insurance Certificate")
@@ -504,6 +553,7 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   defp empty_message(:pending), do: gettext("No pending documents to review.")
   defp empty_message(:approved), do: gettext("No approved documents.")
   defp empty_message(:rejected), do: gettext("No rejected documents.")
+  defp empty_message(_), do: gettext("No verification documents found.")
 
   defp format_date(nil), do: ""
 
@@ -515,10 +565,9 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   # Why: determines whether to show inline preview or download-only
   # Outcome: returns :image, :pdf, or :other for template branching
   defp file_preview_type(filename) when is_binary(filename) do
-    filename
-    |> String.downcase()
-    |> Path.extname()
-    |> case do
+    ext = filename |> String.downcase() |> Path.extname()
+
+    case ext do
       ext when ext in ~w(.jpg .jpeg .png .gif .webp) -> :image
       ".pdf" -> :pdf
       _ -> :other
