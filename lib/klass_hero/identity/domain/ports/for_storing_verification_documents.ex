@@ -94,4 +94,15 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringVerificationDocuments do
   @callback list_for_admin_review(VerificationDocument.status() | nil) ::
               {:ok,
                [%{document: VerificationDocument.t(), provider_business_name: String.t()}]}
+
+  @doc """
+  Retrieves a single verification document with provider business name for admin review.
+
+  Returns:
+  - `{:ok, %{document: VerificationDocument.t(), provider_business_name: String.t()}}`
+  - `{:error, :not_found}` if no document exists with this ID
+  """
+  @callback get_for_admin_review(id :: String.t()) ::
+              {:ok, %{document: VerificationDocument.t(), provider_business_name: String.t()}}
+              | {:error, :not_found}
 end
