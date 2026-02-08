@@ -63,8 +63,8 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   # Outcome: invalid UUIDs redirect to index with error flash instead of crashing
   defp apply_action(socket, :show, %{"id" => id}) do
     case Ecto.UUID.cast(id) do
-      {:ok, _} ->
-        apply_show_action(socket, id)
+      {:ok, uuid} ->
+        apply_show_action(socket, uuid)
 
       :error ->
         socket
