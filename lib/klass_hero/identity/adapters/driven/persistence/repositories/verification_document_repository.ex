@@ -15,6 +15,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
   import Ecto.Query
 
   alias KlassHero.Identity.Adapters.Driven.Persistence.Mappers.VerificationDocumentMapper
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
   alias KlassHero.Repo
 
@@ -139,5 +140,68 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.Verificati
       |> VerificationDocumentMapper.to_domain_list()
 
     {:ok, docs}
+  end
+
+  @impl true
+  @doc """
+  Lists verification documents joined with provider business names for admin review.
+
+  When status is nil, returns all documents ordered by inserted_at descending.
+  When status is :pending, orders oldest-first (FIFO processing).
+  Other statuses order newest-first.
+  """
+  def list_for_admin_review(status) when is_atom(status) or is_nil(status) do
+    query =
+      case status do
+        nil ->
+          order_by(admin_review_base_query(), [d], desc: d.inserted_at)
+
+        :pending ->
+          admin_review_base_query()
+          |> where([d], d.status == ^Atom.to_string(:pending))
+          |> order_by([d], asc: d.inserted_at)
+
+        status when is_atom(status) ->
+          admin_review_base_query()
+          |> where([d], d.status == ^Atom.to_string(status))
+          |> order_by([d], desc: d.inserted_at)
+      end
+
+    results = query |> Repo.all() |> Enum.map(&to_admin_review_result/1)
+
+    {:ok, results}
+  end
+
+  @impl true
+  @doc """
+  Retrieves a single verification document joined with provider business name.
+
+  Returns:
+  - `{:ok, admin_review_result()}` - Document found
+  - `{:error, :not_found}` when no document exists with the given ID
+  """
+  def get_for_admin_review(id) do
+    query = where(admin_review_base_query(), [d], d.id == ^id)
+
+    case Repo.one(query) do
+      nil -> {:error, :not_found}
+      result -> {:ok, to_admin_review_result(result)}
+    end
+  end
+
+  # Shared base query joining documents with provider profiles for admin review.
+  defp admin_review_base_query do
+    from d in VerificationDocumentSchema,
+      join: p in ProviderProfileSchema,
+      on: d.provider_id == p.id,
+      select: {d, p.business_name}
+  end
+
+  # Maps a {schema, business_name} tuple to the admin review result map.
+  defp to_admin_review_result({schema, business_name}) do
+    %{
+      document: VerificationDocumentMapper.to_domain(schema),
+      provider_business_name: business_name
+    }
   end
 end

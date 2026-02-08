@@ -1,10 +1,10 @@
-defmodule KlassHero.Identity.Application.UseCases.Children.ChangeChild do
+defmodule KlassHero.Identity.Adapters.Driven.Persistence.ChangeChild do
   @moduledoc """
-  Use case for building child form changesets.
+  Adapter for building child form changesets.
 
   Converts domain Child structs to persistence schemas and produces changesets
-  for LiveView form tracking. This keeps the adapter-layer dependency (ChildSchema)
-  out of the Identity facade.
+  for LiveView form tracking. Lives in the adapter layer because it depends on
+  the Ecto schema (ChildSchema).
   """
 
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema

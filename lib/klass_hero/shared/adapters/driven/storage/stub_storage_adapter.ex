@@ -30,9 +30,40 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
   end
 
   @impl true
-  def signed_url(_bucket_type, key, expires_in, opts) do
-    _agent = Keyword.get(opts, :agent, __MODULE__)
-    {:ok, "stub://signed/#{key}?expires=#{expires_in}"}
+  # Trigger: check if Agent process is running before verifying key existence
+  # Why: some tests don't start the StubStorageAdapter Agent
+  # Outcome: returns signed URL if file exists or Agent not started, :file_not_found otherwise
+  def signed_url(bucket_type, key, expires_in, opts) do
+    agent = Keyword.get(opts, :agent, __MODULE__)
+
+    if agent_alive?(agent) do
+      store_key = make_key(bucket_type, key)
+      exists? = Agent.get(agent, fn state -> Map.has_key?(state, store_key) end)
+
+      if exists? do
+        {:ok, "stub://signed/#{key}?expires=#{expires_in}"}
+      else
+        {:error, :file_not_found}
+      end
+    else
+      {:ok, "stub://signed/#{key}?expires=#{expires_in}"}
+    end
+  end
+
+  @impl true
+  # Trigger: check if Agent process is running
+  # Why: some tests don't start the StubStorageAdapter Agent
+  # Outcome: returns actual state if running, defaults to true if not started
+  def file_exists?(bucket_type, path, opts) do
+    agent = Keyword.get(opts, :agent, __MODULE__)
+    key = make_key(bucket_type, path)
+
+    if agent_alive?(agent) do
+      exists? = Agent.get(agent, fn state -> Map.has_key?(state, key) end)
+      {:ok, exists?}
+    else
+      {:ok, true}
+    end
   end
 
   @impl true
@@ -67,6 +98,12 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
     agent = Keyword.get(opts, :agent, __MODULE__)
     Agent.update(agent, fn _state -> %{} end)
   end
+
+  # Trigger: agent can be a PID (from start_link) or an atom (registered name)
+  # Why: Process.whereis/1 only accepts atoms; PIDs are already process references
+  # Outcome: returns true if the agent process is alive, regardless of reference type
+  defp agent_alive?(pid) when is_pid(pid), do: Process.alive?(pid)
+  defp agent_alive?(name) when is_atom(name), do: Process.whereis(name) != nil
 
   defp make_key(bucket_type, path), do: "#{bucket_type}:#{path}"
 end

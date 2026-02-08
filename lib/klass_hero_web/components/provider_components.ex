@@ -12,7 +12,40 @@ defmodule KlassHeroWeb.ProviderComponents do
 
   import KlassHeroWeb.UIComponents
 
+  alias KlassHero.Identity.Domain.Models.VerificationDocument
+  alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Theme
+
+  @doc """
+  Renders a colored status badge for a verification document status.
+
+  ## Examples
+
+      <.doc_status_badge status={:pending} />
+      <.doc_status_badge status={:approved} />
+  """
+  attr :status, :atom, required: true
+
+  def doc_status_badge(assigns) do
+    {bg_class, text_class, label} = doc_status_style(assigns.status)
+    assigns = assign(assigns, bg_class: bg_class, text_class: text_class, label: label)
+
+    ~H"""
+    <span class={[
+      "px-2.5 py-1 text-xs font-medium",
+      Theme.rounded(:full),
+      @bg_class,
+      @text_class
+    ]}>
+      {@label}
+    </span>
+    """
+  end
+
+  defp doc_status_style(:pending), do: {"bg-yellow-100", "text-yellow-800", gettext("Pending")}
+  defp doc_status_style(:approved), do: {"bg-green-100", "text-green-800", gettext("Approved")}
+  defp doc_status_style(:rejected), do: {"bg-red-100", "text-red-800", gettext("Rejected")}
+  defp doc_status_style(_), do: {"bg-hero-grey-100", "text-hero-grey-600", gettext("Unknown")}
 
   @doc """
   Renders the provider dashboard tab navigation.
@@ -138,8 +171,8 @@ defmodule KlassHeroWeb.ProviderComponents do
             )}
           </p>
         </div>
-        <button
-          type="button"
+        <.link
+          navigate={~p"/provider/dashboard/edit"}
           class={[
             "flex items-center gap-2 px-4 py-2 border border-hero-grey-300 bg-white",
             "hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium",
@@ -149,21 +182,34 @@ defmodule KlassHeroWeb.ProviderComponents do
         >
           <.icon name="hero-pencil-square-mini" class="w-4 h-4" />
           {gettext("Edit Profile")}
-        </button>
+        </.link>
       </div>
 
       <div class="flex items-center gap-4">
-        <div class={[
-          "w-20 h-20 flex items-center justify-center text-white text-2xl font-bold",
-          Theme.rounded(:full),
-          Theme.gradient(:primary)
-        ]}>
+        <%!-- Logo: real image or initials placeholder --%>
+        <img
+          :if={@business.logo_url}
+          src={@business.logo_url}
+          alt={@business.name}
+          id="business-logo"
+          class={["w-20 h-20 object-cover", Theme.rounded(:full)]}
+        />
+        <div
+          :if={!@business.logo_url}
+          id="business-logo-placeholder"
+          class={[
+            "w-20 h-20 flex items-center justify-center text-white text-2xl font-bold",
+            Theme.rounded(:full),
+            Theme.gradient(:primary)
+          ]}
+        >
           {@business.initials}
         </div>
         <div>
           <h3 class="text-xl font-semibold text-hero-charcoal">{@business.name}</h3>
           <p class="text-hero-grey-500 mb-2">{@business.tagline}</p>
           <div class="flex flex-wrap gap-2">
+            <.verification_status_badge status={@business.verification_status} />
             <.verification_badge
               :for={badge <- @business.verification_badges}
               icon={badge_icon(badge.key)}
@@ -172,6 +218,68 @@ defmodule KlassHeroWeb.ProviderComponents do
           </div>
         </div>
       </div>
+    </div>
+    """
+  end
+
+  attr :status, :atom, required: true
+
+  defp verification_status_badge(%{status: :verified} = assigns) do
+    ~H"""
+    <div
+      id="verification-status"
+      class={[
+        "flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 text-xs font-medium",
+        Theme.rounded(:full)
+      ]}
+    >
+      <.icon name="hero-check-badge-mini" class="w-4 h-4" />
+      <span class="uppercase tracking-wide">{gettext("Verified")}</span>
+    </div>
+    """
+  end
+
+  defp verification_status_badge(%{status: :pending} = assigns) do
+    ~H"""
+    <div
+      id="verification-status"
+      class={[
+        "flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 text-yellow-700 text-xs font-medium",
+        Theme.rounded(:full)
+      ]}
+    >
+      <.icon name="hero-clock-mini" class="w-4 h-4" />
+      <span class="uppercase tracking-wide">{gettext("Pending Review")}</span>
+    </div>
+    """
+  end
+
+  defp verification_status_badge(%{status: :rejected} = assigns) do
+    ~H"""
+    <div
+      id="verification-status"
+      class={[
+        "flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 text-xs font-medium",
+        Theme.rounded(:full)
+      ]}
+    >
+      <.icon name="hero-x-circle-mini" class="w-4 h-4" />
+      <span class="uppercase tracking-wide">{gettext("Action Required")}</span>
+    </div>
+    """
+  end
+
+  defp verification_status_badge(assigns) do
+    ~H"""
+    <div
+      id="verification-status"
+      class={[
+        "flex items-center gap-1.5 px-3 py-1.5 bg-hero-grey-100 text-hero-grey-500 text-xs font-medium",
+        Theme.rounded(:full)
+      ]}
+    >
+      <.icon name="hero-document-plus-mini" class="w-4 h-4" />
+      <span class="uppercase tracking-wide">{gettext("Not Verified")}</span>
     </div>
     """
   end
@@ -243,18 +351,38 @@ defmodule KlassHeroWeb.ProviderComponents do
               else: "∞"}
           </p>
         </div>
-        <button
-          type="button"
-          class={[
-            "flex items-center gap-2 px-4 py-2 bg-hero-yellow hover:bg-hero-yellow-dark",
-            "text-hero-charcoal font-semibold",
-            Theme.rounded(:lg),
-            Theme.transition(:normal)
-          ]}
-        >
-          <.icon name="hero-plus-mini" class="w-5 h-5" />
-          {gettext("New Program")}
-        </button>
+        <div class="relative group">
+          <button
+            type="button"
+            id="new-program-btn"
+            disabled={@business.verification_status != :verified}
+            class={[
+              "flex items-center gap-2 px-4 py-2 font-semibold",
+              if(@business.verification_status == :verified,
+                do: "bg-hero-yellow hover:bg-hero-yellow-dark text-hero-charcoal",
+                else: "bg-hero-grey-200 text-hero-grey-400 cursor-not-allowed"
+              ),
+              Theme.rounded(:lg),
+              Theme.transition(:normal)
+            ]}
+          >
+            <.icon name="hero-plus-mini" class="w-5 h-5" />
+            {gettext("New Program")}
+          </button>
+          <%!-- Tooltip: shown only when button is disabled --%>
+          <div
+            :if={@business.verification_status != :verified}
+            id="new-program-tooltip"
+            class={[
+              "absolute right-0 top-full mt-2 w-64 p-3 bg-hero-charcoal text-white text-xs",
+              "opacity-0 group-hover:opacity-100 pointer-events-none z-10",
+              Theme.rounded(:lg),
+              Theme.transition(:normal)
+            ]}
+          >
+            {gettext("Complete business verification to create programs.")}
+          </div>
+        </div>
       </div>
     </div>
     """
@@ -558,6 +686,163 @@ defmodule KlassHeroWeb.ProviderComponents do
     >
       <.icon name={@icon} class="w-5 h-5" />
     </button>
+    """
+  end
+
+  @doc """
+  Converts a Phoenix upload error atom to a human-readable string.
+  """
+  def upload_error_to_string(:too_large), do: gettext("File is too large.")
+  def upload_error_to_string(:too_many_files), do: gettext("Too many files.")
+  def upload_error_to_string(:not_accepted), do: gettext("File type not accepted.")
+  def upload_error_to_string(_), do: gettext("Upload error.")
+
+  @doc """
+  Renders the verification documents panel for the edit profile page.
+
+  Includes the list of existing documents (as a stream) and the upload form.
+  """
+  attr :verification_docs, :any, required: true, doc: "LiveView stream of verification documents"
+  attr :uploads, :map, required: true, doc: "The @uploads assign from the parent LiveView"
+  attr :doc_type, :string, required: true, doc: "Currently selected document type"
+
+  def verification_documents_panel(assigns) do
+    ~H"""
+    <div class={["bg-white p-6 shadow-sm border border-hero-grey-200", Theme.rounded(:xl)]}>
+      <h2 class="text-lg font-semibold text-hero-charcoal mb-4">
+        {gettext("Verification Documents")}
+      </h2>
+      <p class="text-sm text-hero-grey-500 mb-6">
+        {gettext("Upload documents to verify your business. Documents are reviewed by our team.")}
+      </p>
+
+      <%!-- Existing Documents --%>
+      <div id="verification-docs" phx-update="stream" class="space-y-3 mb-6">
+        <div id="vdoc-empty" class="hidden only:block text-sm text-hero-grey-400 italic py-4">
+          {gettext("No documents uploaded yet.")}
+        </div>
+        <div
+          :for={{id, doc} <- @verification_docs}
+          id={id}
+          class={[
+            "flex items-center justify-between p-4 border border-hero-grey-200",
+            Theme.rounded(:lg)
+          ]}
+        >
+          <div class="flex items-center gap-3">
+            <.icon name="hero-document-text-mini" class="w-5 h-5 text-hero-grey-400" />
+            <div>
+              <p class="text-sm font-medium text-hero-charcoal">
+                {ProviderPresenter.document_type_label(doc.document_type)}
+              </p>
+              <p class="text-xs text-hero-grey-500">{doc.original_filename}</p>
+            </div>
+          </div>
+          <.doc_status_badge status={doc.status} />
+        </div>
+      </div>
+
+      <%!-- Upload New Document --%>
+      <div class={[
+        "border-t border-hero-grey-200 pt-6"
+      ]}>
+        <h3 class="text-sm font-semibold text-hero-charcoal mb-3">
+          {gettext("Upload New Document")}
+        </h3>
+
+        <form
+          id="doc-upload-form"
+          phx-submit="upload_verification_doc"
+          phx-change="validate_upload"
+          class="space-y-4"
+        >
+          <div>
+            <label class="block text-sm font-medium text-hero-grey-700 mb-1">
+              {gettext("Document Type")}
+            </label>
+            <select
+              name="doc_type"
+              id="doc-type-select"
+              phx-change="select_doc_type"
+              class={[
+                "w-full sm:w-64 px-3 py-2 border border-hero-grey-300 bg-white",
+                "text-sm focus:border-hero-cyan focus:ring-1 focus:ring-hero-cyan",
+                Theme.rounded(:lg)
+              ]}
+            >
+              <option
+                :for={type <- VerificationDocument.valid_document_types()}
+                value={type}
+                selected={type == @doc_type}
+              >
+                {ProviderPresenter.document_type_label(type)}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <.live_file_input upload={@uploads.verification_doc} class="hidden" />
+            <label
+              for={@uploads.verification_doc.ref}
+              class={[
+                "inline-flex items-center gap-2 px-4 py-2 border border-hero-grey-300",
+                "bg-white hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium cursor-pointer",
+                Theme.rounded(:lg),
+                Theme.transition(:normal)
+              ]}
+            >
+              <.icon name="hero-document-plus-mini" class="w-4 h-4" />
+              {gettext("Select File")}
+            </label>
+            <p class="text-xs text-hero-grey-400 mt-2">
+              {gettext("PDF, JPG or PNG. Max 10MB.")}
+            </p>
+            <div
+              :for={entry <- @uploads.verification_doc.entries}
+              class={[
+                "flex items-center gap-3 mt-3 px-3 py-2 border border-hero-grey-200",
+                "bg-hero-grey-50",
+                Theme.rounded(:lg)
+              ]}
+            >
+              <.icon name="hero-document-text-mini" class="w-5 h-5 text-hero-grey-500 shrink-0" />
+              <span class="text-sm text-hero-charcoal truncate flex-1">{entry.client_name}</span>
+              <button
+                type="button"
+                phx-click="cancel_upload"
+                phx-value-ref={entry.ref}
+                phx-value-upload="verification_doc"
+                class="text-xs text-red-500 hover:text-red-700 shrink-0"
+              >
+                {gettext("Remove")}
+              </button>
+              <div
+                :for={err <- upload_errors(@uploads.verification_doc, entry)}
+                class="text-xs text-red-500"
+              >
+                {upload_error_to_string(err)}
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            id="upload-doc-btn"
+            disabled={@uploads.verification_doc.entries == []}
+            class={[
+              "flex items-center gap-2 px-4 py-2 border border-hero-grey-300",
+              "bg-white hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              Theme.rounded(:lg),
+              Theme.transition(:normal)
+            ]}
+          >
+            <.icon name="hero-arrow-up-tray-mini" class="w-4 h-4" />
+            {gettext("Upload Document")}
+          </button>
+        </form>
+      </div>
+    </div>
     """
   end
 end

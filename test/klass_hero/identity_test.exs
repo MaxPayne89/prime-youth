@@ -363,6 +363,91 @@ defmodule KlassHero.IdentityTest do
   end
 
   # ============================================================================
+  # Admin Verification Review Functions
+  # ============================================================================
+
+  describe "list_verification_documents_for_admin/1" do
+    setup do
+      provider = IdentityFixtures.provider_profile_fixture(%{business_name: "Admin Test Corp"})
+      {:ok, pending} = create_pending_document(provider.id)
+
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
+      {:ok, approved} = create_and_approve_document(provider.id, admin.id)
+
+      %{provider: provider, pending: pending, approved: approved}
+    end
+
+    test "returns all documents with provider business names when status is nil", %{
+      pending: pending,
+      approved: approved
+    } do
+      assert {:ok, results} = Identity.list_verification_documents_for_admin(nil)
+
+      ids = Enum.map(results, fn %{document: d} -> d.id end)
+      assert pending.id in ids
+      assert approved.id in ids
+
+      # Verify the result shape includes provider business name
+      result = Enum.find(results, fn %{document: d} -> d.id == pending.id end)
+      assert result.provider_business_name == "Admin Test Corp"
+    end
+
+    test "filters by pending status", %{pending: pending, approved: approved} do
+      assert {:ok, results} = Identity.list_verification_documents_for_admin(:pending)
+
+      ids = Enum.map(results, fn %{document: d} -> d.id end)
+      assert pending.id in ids
+      refute approved.id in ids
+    end
+
+    test "filters by approved status", %{pending: pending, approved: approved} do
+      assert {:ok, results} = Identity.list_verification_documents_for_admin(:approved)
+
+      ids = Enum.map(results, fn %{document: d} -> d.id end)
+      refute pending.id in ids
+      assert approved.id in ids
+    end
+
+    test "returns empty list when no documents match" do
+      assert {:ok, []} = Identity.list_verification_documents_for_admin(:rejected)
+    end
+
+    test "pending documents are ordered oldest first (FIFO)" do
+      provider = IdentityFixtures.provider_profile_fixture()
+      {:ok, first} = create_pending_document(provider.id)
+
+      # Small delay to ensure different timestamps
+      {:ok, second} = create_pending_document(provider.id)
+
+      assert {:ok, results} = Identity.list_verification_documents_for_admin(:pending)
+      pending_ids = Enum.map(results, fn %{document: d} -> d.id end)
+
+      first_idx = Enum.find_index(pending_ids, &(&1 == first.id))
+      second_idx = Enum.find_index(pending_ids, &(&1 == second.id))
+      assert first_idx < second_idx
+    end
+  end
+
+  describe "get_verification_document_for_admin/1" do
+    setup do
+      provider = IdentityFixtures.provider_profile_fixture(%{business_name: "Review Corp"})
+      {:ok, doc} = create_pending_document(provider.id)
+      %{provider: provider, document: doc}
+    end
+
+    test "returns document with provider business name", %{document: doc} do
+      assert {:ok, result} = Identity.get_verification_document_for_admin(doc.id)
+      assert result.document.id == doc.id
+      assert result.provider_business_name == "Review Corp"
+    end
+
+    test "returns {:error, :not_found} for nonexistent ID" do
+      assert {:error, :not_found} =
+               Identity.get_verification_document_for_admin(Ecto.UUID.generate())
+    end
+  end
+
+  # ============================================================================
   # Provider Verification Functions
   # ============================================================================
 
@@ -430,5 +515,10 @@ defmodule KlassHero.IdentityTest do
       })
 
     VerificationDocumentRepository.create(doc)
+  end
+
+  defp create_and_approve_document(provider_id, admin_id) do
+    {:ok, doc} = create_pending_document(provider_id)
+    Identity.approve_verification_document(doc.id, admin_id)
   end
 end

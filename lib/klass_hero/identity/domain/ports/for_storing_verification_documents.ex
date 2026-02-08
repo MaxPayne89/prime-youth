@@ -13,12 +13,20 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringVerificationDocuments do
   - `update/1` - Returns `{:ok, VerificationDocument.t()}` or domain errors
   - `list_pending/0` - Returns `{:ok, [VerificationDocument.t()]}`
   - `list_by_status/1` - Returns `{:ok, [VerificationDocument.t()]}`
+  - `list_for_admin_review/1` - Returns `{:ok, [admin_review_result()]}`
+  - `get_for_admin_review/1` - Returns `{:ok, admin_review_result()}` or `{:error, :not_found}`
 
   Infrastructure errors (connection, query) are not caught - they crash and
   are handled by the supervision tree.
   """
 
   alias KlassHero.Identity.Domain.Models.VerificationDocument
+
+  @typedoc "Result map returned by admin review queries, pairing a document with its provider's business name."
+  @type admin_review_result :: %{
+          document: VerificationDocument.t(),
+          provider_business_name: String.t()
+        }
 
   @doc """
   Creates a new verification document in the repository.
@@ -80,4 +88,26 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringVerificationDocuments do
   """
   @callback list_by_status(VerificationDocument.status()) ::
               {:ok, [VerificationDocument.t()]}
+
+  @doc """
+  Lists verification documents with provider business names for admin review.
+
+  Accepts an optional status filter. When nil, returns all documents.
+  Pending documents are ordered oldest-first (FIFO), others newest-first.
+
+  Returns:
+  - `{:ok, [admin_review_result()]}`
+  """
+  @callback list_for_admin_review(VerificationDocument.status() | nil) ::
+              {:ok, [admin_review_result()]}
+
+  @doc """
+  Retrieves a single verification document with provider business name for admin review.
+
+  Returns:
+  - `{:ok, admin_review_result()}`
+  - `{:error, :not_found}` if no document exists with this ID
+  """
+  @callback get_for_admin_review(id :: String.t()) ::
+              {:ok, admin_review_result()} | {:error, :not_found}
 end

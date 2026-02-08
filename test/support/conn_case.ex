@@ -157,6 +157,21 @@ defmodule KlassHeroWeb.ConnCase do
   end
 
   @doc """
+  Setup helper that registers and logs in an admin user.
+
+      setup :register_and_log_in_admin
+
+  It stores an updated connection, registered admin user, and scope in the test context.
+  This is useful for tests that require admin-only routes.
+  """
+  def register_and_log_in_admin(%{conn: _conn} = context) do
+    user = AccountsFixtures.user_fixture(%{is_admin: true})
+    scope = Scope.for_user(user)
+
+    %{conn: log_in_user(context.conn, user), user: user, scope: scope}
+  end
+
+  @doc """
   Setup helper that registers and logs in users with a parent profile.
 
       setup :register_and_log_in_parent

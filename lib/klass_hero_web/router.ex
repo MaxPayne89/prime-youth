@@ -81,6 +81,7 @@ defmodule KlassHeroWeb.Router do
         live "/dashboard", DashboardLive, :overview
         live "/dashboard/team", DashboardLive, :team
         live "/dashboard/programs", DashboardLive, :programs
+        live "/dashboard/edit", DashboardLive, :edit
 
         # Provider messaging routes
         live "/messages", MessagesLive.Index, :index

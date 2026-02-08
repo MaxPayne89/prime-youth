@@ -13,7 +13,13 @@ defmodule KlassHero.Shared.Domain.Ports.ForStoringFiles do
   @type url :: String.t()
   @type key :: String.t()
   @type error_reason ::
-          :upload_failed | :signed_url_failed | :file_not_found | :invalid_bucket | term()
+          :upload_failed
+          | :signed_url_failed
+          | :file_not_found
+          | :invalid_bucket
+          | :storage_unavailable
+          | :delete_failed
+          | term()
 
   @doc """
   Upload a file to storage.
@@ -30,6 +36,15 @@ defmodule KlassHero.Shared.Domain.Ports.ForStoringFiles do
   """
   @callback signed_url(bucket_type(), key(), pos_integer(), keyword()) ::
               {:ok, url()} | {:error, error_reason()}
+
+  @doc """
+  Check if a file exists in storage.
+
+  Returns `{:ok, true}` if the file exists, `{:ok, false}` if not,
+  or `{:error, reason}` if the check cannot be performed.
+  """
+  @callback file_exists?(bucket_type(), key(), keyword()) ::
+              {:ok, boolean()} | {:error, error_reason()}
 
   @doc """
   Delete a file from storage.

@@ -34,6 +34,7 @@ defmodule KlassHero.Factory do
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
   alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Identity.Domain.Models.Consent
   alias KlassHero.Identity.Domain.Models.ParentProfile
@@ -487,6 +488,68 @@ defmodule KlassHero.Factory do
       granted_at: DateTime.utc_now() |> DateTime.truncate(:second),
       withdrawn_at: nil
     }
+  end
+
+  # =============================================================================
+  # Identity Context - Verification Document Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating VerificationDocumentSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Automatically creates a provider when inserted to avoid foreign key violations.
+
+  ## Examples
+
+      schema = insert(:verification_document_schema)
+      schema = insert(:verification_document_schema, status: "approved")
+  """
+  def verification_document_schema_factory do
+    provider = insert(:provider_profile_schema)
+
+    %VerificationDocumentSchema{
+      id: Ecto.UUID.generate(),
+      provider_id: provider.id,
+      document_type: "business_registration",
+      file_url:
+        "verification-docs/providers/#{provider.id}/#{System.unique_integer([:positive])}_doc.pdf",
+      original_filename: "registration.pdf",
+      status: "pending"
+    }
+  end
+
+  @doc """
+  Approved verification document variant.
+  """
+  def approved_verification_document_schema_factory do
+    reviewer = AccountsFixtures.user_fixture(%{is_admin: true})
+
+    struct!(
+      verification_document_schema_factory(),
+      %{
+        status: "approved",
+        reviewed_by_id: reviewer.id,
+        reviewed_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+      }
+    )
+  end
+
+  @doc """
+  Rejected verification document variant.
+  """
+  def rejected_verification_document_schema_factory do
+    reviewer = AccountsFixtures.user_fixture(%{is_admin: true})
+
+    struct!(
+      verification_document_schema_factory(),
+      %{
+        status: "rejected",
+        rejection_reason: "Document is illegible",
+        reviewed_by_id: reviewer.id,
+        reviewed_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+      }
+    )
   end
 
   # =============================================================================

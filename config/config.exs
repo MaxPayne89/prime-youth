@@ -199,6 +199,7 @@ config :logger, :default_formatter,
     :conversations_deleted,
     :current_count,
     :cutoff_date,
+    :document_id,
     :days_after_program_end,
     :email,
     :end_date,
@@ -233,7 +234,8 @@ config :logger, :default_formatter,
     :retention_days,
     :sender_id,
     :note_id,
-    :stacktrace
+    :stacktrace,
+    :doc_type
   ]
 
 config :opentelemetry, :resource,

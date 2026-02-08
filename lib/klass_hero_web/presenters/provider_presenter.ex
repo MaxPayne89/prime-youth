@@ -24,7 +24,8 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
   Used for the provider dashboard header and business profile card.
 
   Returns a map with: id, name, tagline, plan, plan_label, verified,
-  verification_badges, program_slots_used, program_slots_total, initials
+  verification_badges, program_slots_used, program_slots_total, initials,
+  logo_url, verification_status
   """
   @spec to_business_view(ProviderProfile.t()) :: map()
   def to_business_view(%ProviderProfile{} = provider) do
@@ -41,8 +42,36 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
       verification_badges: build_verification_badges(provider),
       program_slots_used: 0,
       program_slots_total: tier_info[:max_programs],
-      initials: build_initials(provider.business_name)
+      initials: build_initials(provider.business_name),
+      logo_url: provider.logo_url,
+      verification_status: :not_started
     }
+  end
+
+  @doc """
+  Derives the aggregate verification status from a list of verification documents.
+
+  Status priority:
+  - `:verified` — provider.verified is true (takes precedence)
+  - `:pending` — documents under review OR all approved but provider not yet verified
+  - `:rejected` — at least one document is rejected (action required)
+  - `:not_started` — no documents submitted
+  """
+  @spec verification_status_from_docs(boolean(), [map()]) :: atom()
+  def verification_status_from_docs(true, _docs), do: :verified
+
+  def verification_status_from_docs(_verified, []), do: :not_started
+
+  def verification_status_from_docs(_verified, docs) do
+    # Trigger: at least one document exists but provider not yet verified
+    # Why: pending means review in progress; rejected means action needed;
+    #      all-approved means awaiting admin final verification (still pending from provider POV)
+    # Outcome: :pending, :rejected, or :pending (all approved, awaiting admin)
+    cond do
+      Enum.any?(docs, &(&1.status == :pending)) -> :pending
+      Enum.any?(docs, &(&1.status == :rejected)) -> :rejected
+      true -> :pending
+    end
   end
 
   @doc """
@@ -67,6 +96,17 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
   end
 
   def build_verification_badges(_provider), do: []
+
+  @doc """
+  Returns a human-readable label for a verification document type string.
+  """
+  @spec document_type_label(String.t()) :: String.t()
+  def document_type_label("business_registration"), do: gettext("Business Registration")
+  def document_type_label("insurance_certificate"), do: gettext("Insurance Certificate")
+  def document_type_label("id_document"), do: gettext("ID Document")
+  def document_type_label("tax_certificate"), do: gettext("Tax Certificate")
+  def document_type_label("other"), do: gettext("Other")
+  def document_type_label(type), do: type
 
   @doc """
   Builds initials from a business name for avatar display.

@@ -35,7 +35,8 @@ defmodule KlassHero.Identity do
   - Repository implementations (adapter layer) → implement persistence
   """
 
-  alias KlassHero.Identity.Application.UseCases.Children.ChangeChild
+  alias KlassHero.Identity.Adapters.Driven.Persistence.ChangeChild
+  alias KlassHero.Identity.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Identity.Application.UseCases.Children.CreateChild
   alias KlassHero.Identity.Application.UseCases.Children.DeleteChild
   alias KlassHero.Identity.Application.UseCases.Children.UpdateChild
@@ -44,12 +45,17 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
   alias KlassHero.Identity.Application.UseCases.Providers.UnverifyProvider
+  alias KlassHero.Identity.Application.UseCases.Providers.UpdateProviderProfile
   alias KlassHero.Identity.Application.UseCases.Providers.VerifyProvider
   alias KlassHero.Identity.Application.UseCases.Verification.ApproveVerificationDocument
+  alias KlassHero.Identity.Application.UseCases.Verification.GetVerificationDocumentPreview
   alias KlassHero.Identity.Application.UseCases.Verification.RejectVerificationDocument
   alias KlassHero.Identity.Application.UseCases.Verification.SubmitVerificationDocument
   alias KlassHero.Identity.Domain.Events.IdentityEvents
   alias KlassHero.Identity.Domain.Models.Child
+  alias KlassHero.Identity.Domain.Models.ProviderProfile
+  alias KlassHero.Identity.Domain.Models.VerificationDocument
+  alias KlassHero.Identity.Domain.Ports.ForStoringVerificationDocuments
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
   alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
   alias KlassHero.Shared.DomainEventBus
@@ -153,6 +159,33 @@ defmodule KlassHero.Identity do
   """
   def has_provider_profile?(identity_id) when is_binary(identity_id) do
     @provider_repository.has_profile?(identity_id)
+  end
+
+  @doc """
+  Returns a changeset for tracking provider profile form changes.
+
+  Used by LiveView forms for `to_form()` and `phx-change` validation.
+  Only tracks editable fields (description).
+  """
+  @spec change_provider_profile(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
+  def change_provider_profile(%ProviderProfile{} = provider, attrs \\ %{}) do
+    ChangeProviderProfile.execute(provider, attrs)
+  end
+
+  @doc """
+  Updates an existing provider profile.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` on success
+  - `{:error, :not_found}` if provider doesn't exist
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  - `{:error, changeset}` for persistence validation failures
+  """
+  @spec update_provider_profile(String.t(), map()) ::
+          {:ok, ProviderProfile.t()}
+          | {:error, :not_found | {:validation_error, list()} | Ecto.Changeset.t()}
+  def update_provider_profile(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
+    UpdateProviderProfile.execute(provider_id, attrs)
   end
 
   # ============================================================================
@@ -609,6 +642,61 @@ defmodule KlassHero.Identity do
   """
   def list_pending_verification_documents do
     @verification_document_repository.list_pending()
+  end
+
+  @doc """
+  List verification documents with provider info for admin review.
+
+  Accepts an optional status filter atom:
+  - `nil` - All documents (newest first)
+  - `:pending` - Pending documents (oldest first, FIFO)
+  - `:approved` - Approved documents (newest first)
+  - `:rejected` - Rejected documents (newest first)
+
+  Returns:
+  - `{:ok, [%{document: VerificationDocument.t(), provider_business_name: String.t()}]}`
+  """
+  @spec list_verification_documents_for_admin(VerificationDocument.status() | nil) ::
+          {:ok, [ForStoringVerificationDocuments.admin_review_result()]}
+  def list_verification_documents_for_admin(status \\ nil) do
+    @verification_document_repository.list_for_admin_review(status)
+  end
+
+  @doc """
+  Get a single verification document with provider info for admin review.
+
+  Returns:
+  - `{:ok, %{document: VerificationDocument.t(), provider_business_name: String.t()}}`
+  - `{:error, :not_found}` if document doesn't exist
+  """
+  @spec get_verification_document_for_admin(String.t()) ::
+          {:ok, ForStoringVerificationDocuments.admin_review_result()} | {:error, :not_found}
+  def get_verification_document_for_admin(document_id) do
+    @verification_document_repository.get_for_admin_review(document_id)
+  end
+
+  @doc """
+  Get a verification document with a verified preview URL for admin review.
+
+  Unlike `get_verification_document_for_admin/1`, this also checks that the
+  file actually exists in storage before generating a signed URL. Prevents
+  broken document previews when the underlying file is missing.
+
+  Returns:
+  - `{:ok, %{document: ..., provider_business_name: ..., signed_url: ..., preview_type: ...}}`
+  - `{:error, :not_found}` if document doesn't exist
+  """
+  @spec get_verification_document_preview(String.t()) ::
+          {:ok,
+           %{
+             document: VerificationDocument.t(),
+             provider_business_name: String.t(),
+             signed_url: String.t() | nil,
+             preview_type: :image | :pdf | :other
+           }}
+          | {:error, :not_found}
+  def get_verification_document_preview(document_id) do
+    GetVerificationDocumentPreview.execute(document_id)
   end
 
   # ============================================================================
