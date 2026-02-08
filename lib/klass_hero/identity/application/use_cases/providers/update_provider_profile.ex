@@ -10,8 +10,12 @@ defmodule KlassHero.Identity.Application.UseCases.Providers.UpdateProviderProfil
 
   @repository Application.compile_env!(:klass_hero, [:identity, :for_storing_provider_profiles])
 
+  @allowed_fields ~w(description logo_url)a
+
   @doc """
   Updates an existing provider profile with the given attributes.
+
+  Only the fields in `@allowed_fields` are accepted; all other keys are stripped.
 
   Returns:
   - `{:ok, ProviderProfile.t()}` on success
@@ -20,6 +24,8 @@ defmodule KlassHero.Identity.Application.UseCases.Providers.UpdateProviderProfil
   - `{:error, changeset}` for persistence validation failures
   """
   def execute(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
+    attrs = Map.take(attrs, @allowed_fields)
+
     with {:ok, existing} <- @repository.get(provider_id),
          merged = Map.merge(Map.from_struct(existing), attrs),
          {:ok, _validated} <- ProviderProfile.new(merged),

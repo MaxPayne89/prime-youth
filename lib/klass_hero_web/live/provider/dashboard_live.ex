@@ -84,7 +84,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     changeset = Identity.change_provider_profile(provider)
 
-    {:ok, docs} = Identity.get_provider_verification_documents(provider.id)
+    docs =
+      case Identity.get_provider_verification_documents(provider.id) do
+        {:ok, docs} -> docs
+        {:error, _reason} -> []
+      end
 
     socket =
       socket
@@ -103,7 +107,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     # Trigger: overview tab needs verification status derived from documents
     # Why: provider.verified alone is boolean; documents give granular status
     # Outcome: business map gets :verification_status (:verified/:pending/:rejected/:not_started)
-    {:ok, docs} = Identity.get_provider_verification_documents(provider.id)
+    docs =
+      case Identity.get_provider_verification_documents(provider.id) do
+        {:ok, docs} -> docs
+        {:error, _reason} -> []
+      end
 
     verification_status =
       ProviderPresenter.verification_status_from_docs(provider.verified, docs)
@@ -160,6 +168,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           {:error, {:validation_error, _errors}} ->
             {:noreply, put_flash(socket, :error, gettext("Please fix the errors below."))}
 
+          {:error, :not_found} ->
+            {:noreply,
+             socket
+             |> put_flash(:error, gettext("Provider profile not found."))
+             |> push_navigate(to: ~p"/")}
+
           {:error, changeset} ->
             {:noreply, assign(socket, form: to_form(changeset))}
         end
@@ -194,7 +208,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          |> stream_insert(:verification_docs, doc, dom_id: &"vdoc-#{&1.id}")
          |> put_flash(:info, gettext("Document uploaded successfully."))}
 
-      _ ->
+      other ->
+        Logger.error("Verification document upload failed",
+          provider_id: provider.id,
+          doc_type: doc_type,
+          errors: inspect(other)
+        )
+
         {:noreply, put_flash(socket, :error, gettext("Failed to upload document."))}
     end
   end
@@ -419,7 +439,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
               <.icon name="hero-document-text-mini" class="w-5 h-5 text-hero-grey-400" />
               <div>
                 <p class="text-sm font-medium text-hero-charcoal">
-                  {doc_type_label(doc.document_type)}
+                  {ProviderPresenter.document_type_label(doc.document_type)}
                 </p>
                 <p class="text-xs text-hero-grey-500">{doc.original_filename}</p>
               </div>
@@ -456,7 +476,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   value={type}
                   selected={type == @doc_type}
                 >
-                  {doc_type_label(type)}
+                  {ProviderPresenter.document_type_label(type)}
                 </option>
               </select>
             </div>
@@ -624,34 +644,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # ============================================================================
   # Display Helpers
   # ============================================================================
-
-  defp doc_status_badge(assigns) do
-    {bg_class, text_class, label} = doc_status_style(assigns.status)
-    assigns = assign(assigns, bg_class: bg_class, text_class: text_class, label: label)
-
-    ~H"""
-    <span class={[
-      "px-2.5 py-1 text-xs font-medium",
-      Theme.rounded(:full),
-      @bg_class,
-      @text_class
-    ]}>
-      {@label}
-    </span>
-    """
-  end
-
-  defp doc_status_style(:pending), do: {"bg-yellow-100", "text-yellow-800", gettext("Pending")}
-  defp doc_status_style(:approved), do: {"bg-green-100", "text-green-800", gettext("Approved")}
-  defp doc_status_style(:rejected), do: {"bg-red-100", "text-red-800", gettext("Rejected")}
-  defp doc_status_style(_), do: {"bg-hero-grey-100", "text-hero-grey-600", gettext("Unknown")}
-
-  defp doc_type_label("business_registration"), do: gettext("Business Registration")
-  defp doc_type_label("insurance_certificate"), do: gettext("Insurance Certificate")
-  defp doc_type_label("id_document"), do: gettext("ID Document")
-  defp doc_type_label("tax_certificate"), do: gettext("Tax Certificate")
-  defp doc_type_label("other"), do: gettext("Other")
-  defp doc_type_label(type), do: type
 
   defp upload_error_to_string(:too_large), do: gettext("File is too large.")
   defp upload_error_to_string(:too_many_files), do: gettext("Too many files.")

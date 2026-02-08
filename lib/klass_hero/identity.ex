@@ -167,6 +167,7 @@ defmodule KlassHero.Identity do
   Used by LiveView forms for `to_form()` and `phx-change` validation.
   Only tracks editable fields (description).
   """
+  @spec change_provider_profile(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
   def change_provider_profile(%ProviderProfile{} = provider, attrs \\ %{}) do
     ChangeProviderProfile.execute(provider, attrs)
   end
@@ -180,6 +181,9 @@ defmodule KlassHero.Identity do
   - `{:error, {:validation_error, errors}}` for domain validation failures
   - `{:error, changeset}` for persistence validation failures
   """
+  @spec update_provider_profile(String.t(), map()) ::
+          {:ok, ProviderProfile.t()}
+          | {:error, :not_found | {:validation_error, list()} | Ecto.Changeset.t()}
   def update_provider_profile(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
     UpdateProviderProfile.execute(provider_id, attrs)
   end
@@ -682,6 +686,15 @@ defmodule KlassHero.Identity do
   - `{:ok, %{document: ..., provider_business_name: ..., signed_url: ..., preview_type: ...}}`
   - `{:error, :not_found}` if document doesn't exist
   """
+  @spec get_verification_document_preview(String.t()) ::
+          {:ok,
+           %{
+             document: VerificationDocument.t(),
+             provider_business_name: String.t(),
+             signed_url: String.t() | nil,
+             preview_type: :image | :pdf | :other
+           }}
+          | {:error, :not_found}
   def get_verification_document_preview(document_id) do
     GetVerificationDocumentPreview.execute(document_id)
   end

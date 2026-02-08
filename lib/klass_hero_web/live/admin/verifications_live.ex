@@ -11,7 +11,10 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
 
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.ProviderComponents
+
   alias KlassHero.Identity
+  alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -30,16 +33,29 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
 
   defp apply_action(socket, :index, params) do
     status = parse_status_filter(params)
-    {:ok, results} = Identity.list_verification_documents_for_admin(status)
 
-    socket
-    |> assign(:page_title, gettext("Verifications"))
-    |> assign(:current_status, status)
-    |> assign(:document_count, length(results))
-    |> stream(:documents, results,
-      reset: true,
-      dom_id: fn %{document: doc} -> "doc-#{doc.id}" end
-    )
+    case Identity.list_verification_documents_for_admin(status) do
+      {:ok, results} ->
+        socket
+        |> assign(:page_title, gettext("Verifications"))
+        |> assign(:current_status, status)
+        |> assign(:document_count, length(results))
+        |> stream(:documents, results,
+          reset: true,
+          dom_id: fn %{document: doc} -> "doc-#{doc.id}" end
+        )
+
+      {:error, _reason} ->
+        socket
+        |> assign(:page_title, gettext("Verifications"))
+        |> assign(:current_status, status)
+        |> assign(:document_count, 0)
+        |> stream(:documents, [],
+          reset: true,
+          dom_id: fn %{document: doc} -> "doc-#{doc.id}" end
+        )
+        |> put_flash(:error, gettext("Could not load verification documents."))
+    end
   end
 
   # Trigger: id param arrives from URL as raw string
@@ -61,7 +77,10 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     case Identity.get_verification_document_preview(id) do
       {:ok, result} ->
         socket
-        |> assign(:page_title, humanize_document_type(result.document.document_type))
+        |> assign(
+          :page_title,
+          ProviderPresenter.document_type_label(result.document.document_type)
+        )
         |> assign(:document, result.document)
         |> assign(:provider_business_name, result.provider_business_name)
         |> assign(:signed_url, result.signed_url)
@@ -116,10 +135,12 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     end
   end
 
+  @impl true
   def handle_event("toggle_reject_form", _params, socket) do
     {:noreply, assign(socket, :show_reject_form, !socket.assigns.show_reject_form)}
   end
 
+  @impl true
   def handle_event("reject", %{"rejection" => %{"reason" => reason}}, socket) do
     document = socket.assigns.document
     reviewer_id = socket.assigns.current_scope.user.id
@@ -222,10 +243,10 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
               <span class="font-semibold text-sm truncate mr-2">
                 {entry.provider_business_name}
               </span>
-              <.status_badge status={entry.document.status} />
+              <.doc_status_badge status={entry.document.status} />
             </div>
             <p class={["text-sm", Theme.text_color(:body)]}>
-              {humanize_document_type(entry.document.document_type)}
+              {ProviderPresenter.document_type_label(entry.document.document_type)}
             </p>
             <div class="flex items-center justify-between">
               <span class={["text-xs truncate mr-2", Theme.text_color(:muted)]}>
@@ -243,10 +264,10 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
               {entry.provider_business_name}
             </span>
             <span class={["col-span-3 text-sm", Theme.text_color(:body)]}>
-              {humanize_document_type(entry.document.document_type)}
+              {ProviderPresenter.document_type_label(entry.document.document_type)}
             </span>
             <div class="col-span-2">
-              <.status_badge status={entry.document.status} />
+              <.doc_status_badge status={entry.document.status} />
             </div>
             <span class={["col-span-2 text-sm truncate", Theme.text_color(:muted)]}>
               {entry.document.original_filename}
@@ -280,9 +301,9 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
       <%!-- Header --%>
       <div class="flex items-center justify-between mb-6">
         <h1 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-          {humanize_document_type(@document.document_type)}
+          {ProviderPresenter.document_type_label(@document.document_type)}
         </h1>
-        <.status_badge status={@document.status} />
+        <.doc_status_badge status={@document.status} />
       </div>
 
       <%!-- Info grid --%>
@@ -436,19 +457,6 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     """
   end
 
-  attr :status, :atom, required: true
-
-  defp status_badge(assigns) do
-    ~H"""
-    <span class={[
-      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium",
-      status_classes(@status)
-    ]}>
-      {humanize_status(@status)}
-    </span>
-    """
-  end
-
   attr :current_status, :atom, required: true
 
   defp documents_empty_state(assigns) do
@@ -508,23 +516,6 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
 
   defp filter_path(nil), do: ~p"/admin/verifications"
   defp filter_path(status), do: ~p"/admin/verifications?status=#{status}"
-
-  defp status_classes(:pending), do: "bg-yellow-100 text-yellow-800"
-  defp status_classes(:approved), do: "bg-green-100 text-green-800"
-  defp status_classes(:rejected), do: "bg-red-100 text-red-800"
-  defp status_classes(_), do: "bg-gray-100 text-gray-800"
-
-  defp humanize_status(:pending), do: gettext("Pending")
-  defp humanize_status(:approved), do: gettext("Approved")
-  defp humanize_status(:rejected), do: gettext("Rejected")
-  defp humanize_status(status), do: status |> to_string() |> String.capitalize()
-
-  defp humanize_document_type("business_registration"), do: gettext("Business Registration")
-  defp humanize_document_type("insurance_certificate"), do: gettext("Insurance Certificate")
-  defp humanize_document_type("id_document"), do: gettext("ID Document")
-  defp humanize_document_type("tax_certificate"), do: gettext("Tax Certificate")
-  defp humanize_document_type("other"), do: gettext("Other")
-  defp humanize_document_type(type), do: type
 
   defp empty_message(nil), do: gettext("No verification documents found.")
   defp empty_message(:pending), do: gettext("No pending documents to review.")

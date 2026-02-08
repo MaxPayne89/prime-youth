@@ -15,6 +15,37 @@ defmodule KlassHeroWeb.ProviderComponents do
   alias KlassHeroWeb.Theme
 
   @doc """
+  Renders a colored status badge for a verification document status.
+
+  ## Examples
+
+      <.doc_status_badge status={:pending} />
+      <.doc_status_badge status={:approved} />
+  """
+  attr :status, :atom, required: true
+
+  def doc_status_badge(assigns) do
+    {bg_class, text_class, label} = doc_status_style(assigns.status)
+    assigns = assign(assigns, bg_class: bg_class, text_class: text_class, label: label)
+
+    ~H"""
+    <span class={[
+      "px-2.5 py-1 text-xs font-medium",
+      Theme.rounded(:full),
+      @bg_class,
+      @text_class
+    ]}>
+      {@label}
+    </span>
+    """
+  end
+
+  defp doc_status_style(:pending), do: {"bg-yellow-100", "text-yellow-800", gettext("Pending")}
+  defp doc_status_style(:approved), do: {"bg-green-100", "text-green-800", gettext("Approved")}
+  defp doc_status_style(:rejected), do: {"bg-red-100", "text-red-800", gettext("Rejected")}
+  defp doc_status_style(_), do: {"bg-hero-grey-100", "text-hero-grey-600", gettext("Unknown")}
+
+  @doc """
   Renders the provider dashboard tab navigation.
 
   ## Examples
