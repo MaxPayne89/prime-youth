@@ -28,6 +28,11 @@ defmodule KlassHero.Shared.StorageTest do
 
   describe "signed_url/4" do
     test "delegates to configured adapter", %{agent: agent} do
+      Storage.upload(:private, "docs/test.pdf", "binary",
+        adapter: StubStorageAdapter,
+        agent: agent
+      )
+
       result =
         Storage.signed_url(:private, "docs/test.pdf", 300,
           adapter: StubStorageAdapter,

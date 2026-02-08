@@ -35,12 +35,19 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapterTest do
   end
 
   describe "signed_url/3" do
-    test "returns signed URL with expiration", %{agent: agent} do
+    test "returns signed URL for existing file", %{agent: agent} do
+      StubStorageAdapter.upload(:private, "docs/test.pdf", "binary_data", agent: agent)
       result = StubStorageAdapter.signed_url(:private, "docs/test.pdf", 300, agent: agent)
 
       assert {:ok, url} = result
       assert url =~ "stub://signed/docs/test.pdf"
       assert url =~ "expires=300"
+    end
+
+    test "returns error for nonexistent file", %{agent: agent} do
+      result = StubStorageAdapter.signed_url(:private, "docs/missing.pdf", 300, agent: agent)
+
+      assert {:error, :file_not_found} = result
     end
   end
 

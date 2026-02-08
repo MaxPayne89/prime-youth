@@ -96,8 +96,17 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
     bucket = get_bucket()
 
     case ExAws.S3.delete_object(bucket, key) |> ExAws.request(ex_aws_config()) do
-      {:ok, _response} -> :ok
-      {:error, reason} -> {:error, reason}
+      {:ok, _response} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.error("S3 delete failed",
+          bucket: bucket,
+          key: key,
+          error: inspect(reason)
+        )
+
+        {:error, :delete_failed}
     end
   end
 

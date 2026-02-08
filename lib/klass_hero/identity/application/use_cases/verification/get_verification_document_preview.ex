@@ -62,7 +62,7 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.GetVerificationDo
         nil
 
       {:error, reason} ->
-        Logger.warning(
+        Logger.error(
           "[GetVerificationDocumentPreview] Failed to generate preview URL for #{file_url}: #{inspect(reason)}"
         )
 

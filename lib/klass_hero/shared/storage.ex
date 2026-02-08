@@ -24,12 +24,15 @@ defmodule KlassHero.Shared.Storage do
       :ok = Storage.delete(:public, "logos/providers/123/logo.png")
   """
 
+  alias KlassHero.Shared.Domain.Ports.ForStoringFiles
+
   @doc """
   Upload a file to storage.
 
   Returns public URL for `:public` bucket, storage key for `:private` bucket.
   """
-  @spec upload(atom(), String.t(), binary(), keyword()) :: {:ok, String.t()} | {:error, term()}
+  @spec upload(ForStoringFiles.bucket_type(), String.t(), binary(), keyword()) ::
+          {:ok, String.t()} | {:error, term()}
   def upload(bucket_type, path, binary, opts \\ []) do
     adapter(opts).upload(bucket_type, path, binary, opts)
   end
@@ -39,7 +42,7 @@ defmodule KlassHero.Shared.Storage do
 
   The URL expires after `expires_in_seconds`.
   """
-  @spec signed_url(atom(), String.t(), pos_integer(), keyword()) ::
+  @spec signed_url(ForStoringFiles.bucket_type(), String.t(), pos_integer(), keyword()) ::
           {:ok, String.t()} | {:error, term()}
   def signed_url(bucket_type, key, expires_in_seconds, opts \\ []) do
     adapter(opts).signed_url(bucket_type, key, expires_in_seconds, opts)
@@ -48,7 +51,8 @@ defmodule KlassHero.Shared.Storage do
   @doc """
   Check if a file exists in storage.
   """
-  @spec file_exists?(atom(), String.t(), keyword()) :: {:ok, boolean()} | {:error, term()}
+  @spec file_exists?(ForStoringFiles.bucket_type(), String.t(), keyword()) ::
+          {:ok, boolean()} | {:error, term()}
   def file_exists?(bucket_type, key, opts \\ []) do
     adapter(opts).file_exists?(bucket_type, key, opts)
   end
@@ -56,7 +60,7 @@ defmodule KlassHero.Shared.Storage do
   @doc """
   Delete a file from storage.
   """
-  @spec delete(atom(), String.t(), keyword()) :: :ok | {:error, term()}
+  @spec delete(ForStoringFiles.bucket_type(), String.t(), keyword()) :: :ok | {:error, term()}
   def delete(bucket_type, key, opts \\ []) do
     adapter(opts).delete(bucket_type, key, opts)
   end

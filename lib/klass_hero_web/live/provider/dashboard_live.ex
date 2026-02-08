@@ -13,7 +13,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   import KlassHeroWeb.ProviderComponents
 
   alias KlassHero.Identity
-  alias KlassHero.Identity.Domain.Models.VerificationDocument
   alias KlassHero.ProgramCatalog
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Presenters.ProgramPresenter
@@ -413,117 +412,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         </.form>
       </div>
 
-      <%!-- Verification Documents Section --%>
-      <div class={["bg-white p-6 shadow-sm border border-hero-grey-200", Theme.rounded(:xl)]}>
-        <h2 class="text-lg font-semibold text-hero-charcoal mb-4">
-          {gettext("Verification Documents")}
-        </h2>
-        <p class="text-sm text-hero-grey-500 mb-6">
-          {gettext("Upload documents to verify your business. Documents are reviewed by our team.")}
-        </p>
-
-        <%!-- Existing Documents --%>
-        <div id="verification-docs" phx-update="stream" class="space-y-3 mb-6">
-          <div id="vdoc-empty" class="hidden only:block text-sm text-hero-grey-400 italic py-4">
-            {gettext("No documents uploaded yet.")}
-          </div>
-          <div
-            :for={{id, doc} <- @verification_docs}
-            id={id}
-            class={[
-              "flex items-center justify-between p-4 border border-hero-grey-200",
-              Theme.rounded(:lg)
-            ]}
-          >
-            <div class="flex items-center gap-3">
-              <.icon name="hero-document-text-mini" class="w-5 h-5 text-hero-grey-400" />
-              <div>
-                <p class="text-sm font-medium text-hero-charcoal">
-                  {ProviderPresenter.document_type_label(doc.document_type)}
-                </p>
-                <p class="text-xs text-hero-grey-500">{doc.original_filename}</p>
-              </div>
-            </div>
-            <.doc_status_badge status={doc.status} />
-          </div>
-        </div>
-
-        <%!-- Upload New Document --%>
-        <div class={[
-          "border-t border-hero-grey-200 pt-6"
-        ]}>
-          <h3 class="text-sm font-semibold text-hero-charcoal mb-3">
-            {gettext("Upload New Document")}
-          </h3>
-
-          <form id="doc-upload-form" phx-submit="upload_verification_doc" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-hero-grey-700 mb-1">
-                {gettext("Document Type")}
-              </label>
-              <select
-                name="doc_type"
-                id="doc-type-select"
-                phx-change="select_doc_type"
-                class={[
-                  "w-full sm:w-64 px-3 py-2 border border-hero-grey-300 bg-white",
-                  "text-sm focus:border-hero-cyan focus:ring-1 focus:ring-hero-cyan",
-                  Theme.rounded(:lg)
-                ]}
-              >
-                <option
-                  :for={type <- VerificationDocument.valid_document_types()}
-                  value={type}
-                  selected={type == @doc_type}
-                >
-                  {ProviderPresenter.document_type_label(type)}
-                </option>
-              </select>
-            </div>
-
-            <div>
-              <.live_file_input upload={@uploads.verification_doc} />
-              <div
-                :for={entry <- @uploads.verification_doc.entries}
-                class="flex items-center gap-2 mt-2"
-              >
-                <span class="text-sm text-hero-grey-600">{entry.client_name}</span>
-                <button
-                  type="button"
-                  phx-click="cancel_upload"
-                  phx-value-ref={entry.ref}
-                  phx-value-upload="verification_doc"
-                  class="text-xs text-red-500 hover:text-red-700"
-                >
-                  {gettext("Remove")}
-                </button>
-                <div
-                  :for={err <- upload_errors(@uploads.verification_doc, entry)}
-                  class="text-xs text-red-500"
-                >
-                  {upload_error_to_string(err)}
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              id="upload-doc-btn"
-              disabled={@uploads.verification_doc.entries == []}
-              class={[
-                "flex items-center gap-2 px-4 py-2 border border-hero-grey-300",
-                "bg-white hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium",
-                "disabled:opacity-50 disabled:cursor-not-allowed",
-                Theme.rounded(:lg),
-                Theme.transition(:normal)
-              ]}
-            >
-              <.icon name="hero-arrow-up-tray-mini" class="w-4 h-4" />
-              {gettext("Upload Document")}
-            </button>
-          </form>
-        </div>
-      </div>
+      <.verification_documents_panel
+        verification_docs={@verification_docs}
+        uploads={@uploads}
+        doc_type={@doc_type}
+      />
     </div>
     """
   end
@@ -640,15 +533,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       _other -> :upload_error
     end
   end
-
-  # ============================================================================
-  # Display Helpers
-  # ============================================================================
-
-  defp upload_error_to_string(:too_large), do: gettext("File is too large.")
-  defp upload_error_to_string(:too_many_files), do: gettext("Too many files.")
-  defp upload_error_to_string(:not_accepted), do: gettext("File type not accepted.")
-  defp upload_error_to_string(_), do: gettext("Upload error.")
 
   defp reset_programs_stream(socket) do
     provider_id = socket.assigns.current_scope.provider.id

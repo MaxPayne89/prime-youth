@@ -13,7 +13,13 @@ defmodule KlassHero.Shared.Domain.Ports.ForStoringFiles do
   @type url :: String.t()
   @type key :: String.t()
   @type error_reason ::
-          :upload_failed | :signed_url_failed | :file_not_found | :invalid_bucket | term()
+          :upload_failed
+          | :signed_url_failed
+          | :file_not_found
+          | :invalid_bucket
+          | :storage_unavailable
+          | :delete_failed
+          | term()
 
   @doc """
   Upload a file to storage.
