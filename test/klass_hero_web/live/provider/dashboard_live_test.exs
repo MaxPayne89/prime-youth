@@ -89,6 +89,39 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
     end
   end
 
+  describe "new program button gating" do
+    test "disables 'New Program' button when provider is not verified", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+
+      assert has_element?(view, "#new-program-btn[disabled]")
+      assert has_element?(view, "#new-program-tooltip")
+    end
+
+    test "enables 'New Program' button when provider is verified", %{
+      conn: conn,
+      provider: provider
+    } do
+      provider
+      |> Ecto.Changeset.change(
+        verified: true,
+        verified_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+      |> KlassHero.Repo.update!()
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+
+      refute has_element?(view, "#new-program-btn[disabled]")
+      refute has_element?(view, "#new-program-tooltip")
+    end
+
+    test "shows tooltip explaining verification requirement", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+
+      html = render(view)
+      assert html =~ "Complete business verification to create programs."
+    end
+  end
+
   describe "tab navigation" do
     test "navigates to team section via tab", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard")

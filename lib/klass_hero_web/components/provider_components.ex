@@ -318,18 +318,38 @@ defmodule KlassHeroWeb.ProviderComponents do
               else: "∞"}
           </p>
         </div>
-        <button
-          type="button"
-          class={[
-            "flex items-center gap-2 px-4 py-2 bg-hero-yellow hover:bg-hero-yellow-dark",
-            "text-hero-charcoal font-semibold",
-            Theme.rounded(:lg),
-            Theme.transition(:normal)
-          ]}
-        >
-          <.icon name="hero-plus-mini" class="w-5 h-5" />
-          {gettext("New Program")}
-        </button>
+        <div class="relative group">
+          <button
+            type="button"
+            id="new-program-btn"
+            disabled={@business.verification_status != :verified}
+            class={[
+              "flex items-center gap-2 px-4 py-2 font-semibold",
+              if(@business.verification_status == :verified,
+                do: "bg-hero-yellow hover:bg-hero-yellow-dark text-hero-charcoal",
+                else: "bg-hero-grey-200 text-hero-grey-400 cursor-not-allowed"
+              ),
+              Theme.rounded(:lg),
+              Theme.transition(:normal)
+            ]}
+          >
+            <.icon name="hero-plus-mini" class="w-5 h-5" />
+            {gettext("New Program")}
+          </button>
+          <%!-- Tooltip: shown only when button is disabled --%>
+          <div
+            :if={@business.verification_status != :verified}
+            id="new-program-tooltip"
+            class={[
+              "absolute right-0 top-full mt-2 w-64 p-3 bg-hero-charcoal text-white text-xs",
+              "opacity-0 group-hover:opacity-100 pointer-events-none z-10",
+              Theme.rounded(:lg),
+              Theme.transition(:normal)
+            ]}
+          >
+            {gettext("Complete business verification to create programs.")}
+          </div>
+        </div>
       </div>
     </div>
     """
