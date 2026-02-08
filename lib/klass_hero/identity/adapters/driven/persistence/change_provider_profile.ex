@@ -1,10 +1,10 @@
-defmodule KlassHero.Identity.Application.UseCases.Providers.ChangeProviderProfile do
+defmodule KlassHero.Identity.Adapters.Driven.Persistence.ChangeProviderProfile do
   @moduledoc """
-  Use case for building provider profile form changesets.
+  Adapter for building provider profile form changesets.
 
   Converts domain ProviderProfile structs to persistence schemas and produces
-  changesets for LiveView form tracking. This keeps the adapter-layer dependency
-  (ProviderProfileSchema) out of the Identity facade.
+  changesets for LiveView form tracking. Lives in the adapter layer because it
+  depends on the Ecto schema (ProviderProfileSchema).
   """
 
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema

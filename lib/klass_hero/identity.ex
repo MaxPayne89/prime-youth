@@ -35,14 +35,14 @@ defmodule KlassHero.Identity do
   - Repository implementations (adapter layer) → implement persistence
   """
 
-  alias KlassHero.Identity.Application.UseCases.Children.ChangeChild
+  alias KlassHero.Identity.Adapters.Driven.Persistence.ChangeChild
+  alias KlassHero.Identity.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Identity.Application.UseCases.Children.CreateChild
   alias KlassHero.Identity.Application.UseCases.Children.DeleteChild
   alias KlassHero.Identity.Application.UseCases.Children.UpdateChild
   alias KlassHero.Identity.Application.UseCases.Consents.GrantConsent
   alias KlassHero.Identity.Application.UseCases.Consents.WithdrawConsent
   alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
-  alias KlassHero.Identity.Application.UseCases.Providers.ChangeProviderProfile
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
   alias KlassHero.Identity.Application.UseCases.Providers.UnverifyProvider
   alias KlassHero.Identity.Application.UseCases.Providers.UpdateProviderProfile

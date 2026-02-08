@@ -53,8 +53,8 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
 
   Status priority:
   - `:verified` — provider.verified is true (takes precedence)
-  - `:pending` — at least one document has :pending status
-  - `:rejected` — all documents are rejected
+  - `:pending` — documents under review OR all approved but provider not yet verified
+  - `:rejected` — at least one document is rejected (action required)
   - `:not_started` — no documents submitted
   """
   @spec verification_status_from_docs(boolean(), [map()]) :: atom()
@@ -63,13 +63,14 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
   def verification_status_from_docs(_verified, []), do: :not_started
 
   def verification_status_from_docs(_verified, docs) do
-    # Trigger: at least one document exists
-    # Why: pending docs mean review is in progress; all-rejected means action needed
-    # Outcome: :pending if any doc is pending, :rejected if all rejected
-    if Enum.any?(docs, &(&1.status == :pending)) do
-      :pending
-    else
-      :rejected
+    # Trigger: at least one document exists but provider not yet verified
+    # Why: pending means review in progress; rejected means action needed;
+    #      all-approved means awaiting admin final verification (still pending from provider POV)
+    # Outcome: :pending, :rejected, or :pending (all approved, awaiting admin)
+    cond do
+      Enum.any?(docs, &(&1.status == :pending)) -> :pending
+      Enum.any?(docs, &(&1.status == :rejected)) -> :rejected
+      true -> :pending
     end
   end
 

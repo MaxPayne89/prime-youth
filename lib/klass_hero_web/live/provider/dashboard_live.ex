@@ -101,7 +101,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     provider = socket.assigns.current_scope.provider
 
     # Trigger: overview tab needs verification status derived from documents
-    # Why: provider.verified alone is binary; documents give granular status
+    # Why: provider.verified alone is boolean; documents give granular status
     # Outcome: business map gets :verification_status (:verified/:pending/:rejected/:not_started)
     {:ok, docs} = Identity.get_provider_verification_documents(provider.id)
 
@@ -134,27 +134,35 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_event("save_profile", %{"provider_profile_schema" => params}, socket) do
     provider = socket.assigns.current_scope.provider
 
-    # Trigger: logo upload entry may or may not exist
-    # Why: provider can save description-only changes without uploading a new logo
-    # Outcome: logo_url is either a new storage URL or nil (preserving the existing one)
-    logo_url = upload_logo(socket, provider.id)
+    # Trigger: logo upload may succeed, be absent, or fail
+    # Why: provider can save without a new logo, but upload failures must not be silently ignored
+    # Outcome: :upload_error aborts save; :no_upload proceeds without logo; {:ok, url} includes logo
+    case upload_logo(socket, provider.id) do
+      :upload_error ->
+        {:noreply, put_flash(socket, :error, gettext("Logo upload failed. Please try again."))}
 
-    attrs =
-      %{description: params["description"]}
-      |> maybe_put_logo_url(logo_url)
+      logo_result ->
+        attrs = %{description: params["description"]}
 
-    case Identity.update_provider_profile(provider.id, attrs) do
-      {:ok, _updated} ->
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Profile updated successfully."))
-         |> push_navigate(to: ~p"/provider/dashboard")}
+        attrs =
+          case logo_result do
+            {:ok, url} -> Map.put(attrs, :logo_url, url)
+            :no_upload -> attrs
+          end
 
-      {:error, {:validation_error, _errors}} ->
-        {:noreply, put_flash(socket, :error, gettext("Please fix the errors below."))}
+        case Identity.update_provider_profile(provider.id, attrs) do
+          {:ok, _updated} ->
+            {:noreply,
+             socket
+             |> put_flash(:info, gettext("Profile updated successfully."))
+             |> push_navigate(to: ~p"/provider/dashboard")}
 
-      {:error, changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+          {:error, {:validation_error, _errors}} ->
+            {:noreply, put_flash(socket, :error, gettext("Please fix the errors below."))}
+
+          {:error, changeset} ->
+            {:noreply, assign(socket, form: to_form(changeset))}
+        end
     end
   end
 
@@ -598,7 +606,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   # Trigger: logo upload entries may be empty (provider didn't pick a new logo)
   # Why: consume_uploaded_entries returns [] when no entries exist
-  # Outcome: returns the storage URL of the uploaded logo, or nil
+  # Outcome: {:ok, url} on success, :no_upload if no file selected, :upload_error on failure
   defp upload_logo(socket, provider_id) do
     case consume_uploaded_entries(socket, :logo, fn %{path: path}, entry ->
            file_binary = File.read!(path)
@@ -607,13 +615,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
            Storage.upload(:public, storage_path, file_binary, content_type: entry.client_type)
          end) do
-      [{:ok, url}] -> url
-      _ -> nil
+      [{:ok, url}] -> {:ok, url}
+      [] -> :no_upload
+      _other -> :upload_error
     end
   end
-
-  defp maybe_put_logo_url(attrs, nil), do: attrs
-  defp maybe_put_logo_url(attrs, url), do: Map.put(attrs, :logo_url, url)
 
   # ============================================================================
   # Display Helpers
