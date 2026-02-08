@@ -24,7 +24,8 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
   Used for the provider dashboard header and business profile card.
 
   Returns a map with: id, name, tagline, plan, plan_label, verified,
-  verification_badges, program_slots_used, program_slots_total, initials
+  verification_badges, program_slots_used, program_slots_total, initials,
+  logo_url, verification_status
   """
   @spec to_business_view(ProviderProfile.t()) :: map()
   def to_business_view(%ProviderProfile{} = provider) do
@@ -41,8 +42,35 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
       verification_badges: build_verification_badges(provider),
       program_slots_used: 0,
       program_slots_total: tier_info[:max_programs],
-      initials: build_initials(provider.business_name)
+      initials: build_initials(provider.business_name),
+      logo_url: provider.logo_url,
+      verification_status: :not_started
     }
+  end
+
+  @doc """
+  Derives the aggregate verification status from a list of verification documents.
+
+  Status priority:
+  - `:verified` — provider.verified is true (takes precedence)
+  - `:pending` — at least one document has :pending status
+  - `:rejected` — all documents are rejected
+  - `:not_started` — no documents submitted
+  """
+  @spec verification_status_from_docs(boolean(), [map()]) :: atom()
+  def verification_status_from_docs(true, _docs), do: :verified
+
+  def verification_status_from_docs(_verified, []), do: :not_started
+
+  def verification_status_from_docs(_verified, docs) do
+    # Trigger: at least one document exists
+    # Why: pending docs mean review is in progress; all-rejected means action needed
+    # Outcome: :pending if any doc is pending, :rejected if all rejected
+    if Enum.any?(docs, &(&1.status == :pending)) do
+      :pending
+    else
+      :rejected
+    end
   end
 
   @doc """

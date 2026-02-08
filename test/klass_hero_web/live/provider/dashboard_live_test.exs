@@ -28,6 +28,65 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       # Verify business profile section exists with Edit Profile link
       assert has_element?(view, "a", "Edit Profile")
     end
+
+    test "displays business logo when logo_url is set", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+
+      # Factory sets logo_url by default, so real logo image should show
+      assert has_element?(view, "#business-logo")
+      refute has_element?(view, "#business-logo-placeholder")
+    end
+
+    test "displays initials placeholder when no logo_url", %{conn: conn, provider: provider} do
+      # Remove logo_url from the provider
+      provider
+      |> Ecto.Changeset.change(logo_url: nil)
+      |> KlassHero.Repo.update!()
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+
+      assert has_element?(view, "#business-logo-placeholder")
+      refute has_element?(view, "#business-logo")
+    end
+
+    test "shows 'Not Verified' status when no documents submitted", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+
+      assert has_element?(view, "#verification-status")
+      html = render(view)
+      assert html =~ "Not Verified"
+    end
+
+    test "shows 'Pending Review' status when documents are pending", %{
+      conn: conn,
+      provider: provider
+    } do
+      KlassHero.Factory.insert(:verification_document_schema,
+        provider_id: provider.id,
+        document_type: "business_registration",
+        status: "pending"
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+
+      assert has_element?(view, "#verification-status")
+      html = render(view)
+      assert html =~ "Pending Review"
+    end
+
+    test "shows 'Verified' status when provider is verified", %{conn: conn, provider: provider} do
+      provider
+      |> Ecto.Changeset.change(
+        verified: true,
+        verified_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+      |> KlassHero.Repo.update!()
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+
+      html = render(view)
+      assert html =~ "Verified"
+    end
   end
 
   describe "tab navigation" do

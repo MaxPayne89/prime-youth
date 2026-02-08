@@ -153,17 +153,30 @@ defmodule KlassHeroWeb.ProviderComponents do
       </div>
 
       <div class="flex items-center gap-4">
-        <div class={[
-          "w-20 h-20 flex items-center justify-center text-white text-2xl font-bold",
-          Theme.rounded(:full),
-          Theme.gradient(:primary)
-        ]}>
+        <%!-- Logo: real image or initials placeholder --%>
+        <img
+          :if={@business.logo_url}
+          src={@business.logo_url}
+          alt={@business.name}
+          id="business-logo"
+          class={["w-20 h-20 object-cover", Theme.rounded(:full)]}
+        />
+        <div
+          :if={!@business.logo_url}
+          id="business-logo-placeholder"
+          class={[
+            "w-20 h-20 flex items-center justify-center text-white text-2xl font-bold",
+            Theme.rounded(:full),
+            Theme.gradient(:primary)
+          ]}
+        >
           {@business.initials}
         </div>
         <div>
           <h3 class="text-xl font-semibold text-hero-charcoal">{@business.name}</h3>
           <p class="text-hero-grey-500 mb-2">{@business.tagline}</p>
           <div class="flex flex-wrap gap-2">
+            <.verification_status_badge status={@business.verification_status} />
             <.verification_badge
               :for={badge <- @business.verification_badges}
               icon={badge_icon(badge.key)}
@@ -172,6 +185,68 @@ defmodule KlassHeroWeb.ProviderComponents do
           </div>
         </div>
       </div>
+    </div>
+    """
+  end
+
+  attr :status, :atom, required: true
+
+  defp verification_status_badge(%{status: :verified} = assigns) do
+    ~H"""
+    <div
+      id="verification-status"
+      class={[
+        "flex items-center gap-1.5 px-3 py-1.5 bg-green-100 text-green-700 text-xs font-medium",
+        Theme.rounded(:full)
+      ]}
+    >
+      <.icon name="hero-check-badge-mini" class="w-4 h-4" />
+      <span class="uppercase tracking-wide">{gettext("Verified")}</span>
+    </div>
+    """
+  end
+
+  defp verification_status_badge(%{status: :pending} = assigns) do
+    ~H"""
+    <div
+      id="verification-status"
+      class={[
+        "flex items-center gap-1.5 px-3 py-1.5 bg-yellow-100 text-yellow-700 text-xs font-medium",
+        Theme.rounded(:full)
+      ]}
+    >
+      <.icon name="hero-clock-mini" class="w-4 h-4" />
+      <span class="uppercase tracking-wide">{gettext("Pending Review")}</span>
+    </div>
+    """
+  end
+
+  defp verification_status_badge(%{status: :rejected} = assigns) do
+    ~H"""
+    <div
+      id="verification-status"
+      class={[
+        "flex items-center gap-1.5 px-3 py-1.5 bg-red-100 text-red-700 text-xs font-medium",
+        Theme.rounded(:full)
+      ]}
+    >
+      <.icon name="hero-x-circle-mini" class="w-4 h-4" />
+      <span class="uppercase tracking-wide">{gettext("Action Required")}</span>
+    </div>
+    """
+  end
+
+  defp verification_status_badge(assigns) do
+    ~H"""
+    <div
+      id="verification-status"
+      class={[
+        "flex items-center gap-1.5 px-3 py-1.5 bg-hero-grey-100 text-hero-grey-500 text-xs font-medium",
+        Theme.rounded(:full)
+      ]}
+    >
+      <.icon name="hero-document-plus-mini" class="w-4 h-4" />
+      <span class="uppercase tracking-wide">{gettext("Not Verified")}</span>
     </div>
     """
   end

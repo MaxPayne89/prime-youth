@@ -97,6 +97,23 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   @impl true
+  def handle_params(_params, _uri, %{assigns: %{live_action: :overview}} = socket) do
+    provider = socket.assigns.current_scope.provider
+
+    # Trigger: overview tab needs verification status derived from documents
+    # Why: provider.verified alone is binary; documents give granular status
+    # Outcome: business map gets :verification_status (:verified/:pending/:rejected/:not_started)
+    {:ok, docs} = Identity.get_provider_verification_documents(provider.id)
+
+    verification_status =
+      ProviderPresenter.verification_status_from_docs(provider.verified, docs)
+
+    business = %{socket.assigns.business | verification_status: verification_status}
+
+    {:noreply, assign(socket, business: business)}
+  end
+
+  @impl true
   def handle_params(_params, _uri, socket) do
     {:noreply, socket}
   end
