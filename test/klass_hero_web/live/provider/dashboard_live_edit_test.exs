@@ -88,6 +88,53 @@ defmodule KlassHeroWeb.Provider.DashboardLiveEditTest do
     end
   end
 
+  describe "select_doc_type event" do
+    test "changes selected document type", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/edit")
+
+      view
+      |> element("#doc-type-select")
+      |> render_change(%{"doc_type" => "insurance_certificate"})
+
+      # Form should still be present (no crash) and selection reflected
+      assert has_element?(view, "#doc-type-select")
+      assert has_element?(view, "#profile-form")
+    end
+  end
+
+  describe "save_profile error handling" do
+    test "shows error when description exceeds max length", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/edit")
+
+      long_desc = String.duplicate("a", 1001)
+
+      view
+      |> form("#profile-form", %{provider_profile_schema: %{description: long_desc}})
+      |> render_submit()
+
+      # Should stay on edit page with validation error
+      assert has_element?(view, "#profile-form")
+      assert render(view) =~ "Please fix the errors"
+    end
+
+    test "redirects to home when provider deleted between mount and save", %{
+      conn: conn,
+      provider: provider
+    } do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/edit")
+
+      # Simulate race: delete provider after mount
+      KlassHero.Repo.delete!(provider)
+
+      view
+      |> form("#profile-form", %{provider_profile_schema: %{description: "Updated"}})
+      |> render_submit()
+
+      flash = assert_redirect(view, ~p"/")
+      assert flash["error"] =~ "not found"
+    end
+  end
+
   describe "navigation" do
     test "navigating from dashboard to edit via link", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard")

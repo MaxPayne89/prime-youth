@@ -52,9 +52,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
     test "shows 'Not Verified' status when no documents submitted", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
 
-      assert has_element?(view, "#verification-status")
-      html = render(view)
-      assert html =~ "Not Verified"
+      assert has_element?(view, "#verification-status", "Not Verified")
     end
 
     test "shows 'Pending Review' status when documents are pending", %{
@@ -69,9 +67,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
 
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
 
-      assert has_element?(view, "#verification-status")
-      html = render(view)
-      assert html =~ "Pending Review"
+      assert has_element?(view, "#verification-status", "Pending Review")
     end
 
     test "shows 'Verified' status when provider is verified", %{conn: conn, provider: provider} do
@@ -84,8 +80,8 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
 
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
 
-      html = render(view)
-      assert html =~ "Verified"
+      assert has_element?(view, "#verification-status", "Verified")
+      refute has_element?(view, "#verification-status", "Not Verified")
     end
   end
 
