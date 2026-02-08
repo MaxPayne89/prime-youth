@@ -63,9 +63,9 @@ defmodule KlassHeroWeb.HomeLive do
       <!-- Hero Section -->
       <.hero_section variant="landing" show_wave={false}>
         <:title>
-          <span class="text-hero-grey-600">Book Trusted Tutors, Camps & Activities</span>
+          <span class="text-hero-grey-600">Connecting Families with Trusted</span>
           <br />
-          <span class="text-hero-black">for Kids in Berlin</span>
+          <span class="text-hero-black">Heroes for Our Youth</span>
         </:title>
         <:subtitle>
           <p class="text-lg text-hero-grey-600 max-w-2xl mx-auto">
