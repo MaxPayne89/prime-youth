@@ -219,6 +219,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   @impl true
+  def handle_event("validate_upload", _params, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_event("select_doc_type", %{"doc_type" => doc_type}, socket) do
     {:noreply, assign(socket, doc_type: doc_type)}
   end

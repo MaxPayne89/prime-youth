@@ -750,7 +750,12 @@ defmodule KlassHeroWeb.ProviderComponents do
           {gettext("Upload New Document")}
         </h3>
 
-        <form id="doc-upload-form" phx-submit="upload_verification_doc" class="space-y-4">
+        <form
+          id="doc-upload-form"
+          phx-submit="upload_verification_doc"
+          phx-change="validate_upload"
+          class="space-y-4"
+        >
           <div>
             <label class="block text-sm font-medium text-hero-grey-700 mb-1">
               {gettext("Document Type")}
@@ -776,18 +781,38 @@ defmodule KlassHeroWeb.ProviderComponents do
           </div>
 
           <div>
-            <.live_file_input upload={@uploads.verification_doc} />
+            <.live_file_input upload={@uploads.verification_doc} class="hidden" />
+            <label
+              for={@uploads.verification_doc.ref}
+              class={[
+                "inline-flex items-center gap-2 px-4 py-2 border border-hero-grey-300",
+                "bg-white hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium cursor-pointer",
+                Theme.rounded(:lg),
+                Theme.transition(:normal)
+              ]}
+            >
+              <.icon name="hero-document-plus-mini" class="w-4 h-4" />
+              {gettext("Select File")}
+            </label>
+            <p class="text-xs text-hero-grey-400 mt-2">
+              {gettext("PDF, JPG or PNG. Max 10MB.")}
+            </p>
             <div
               :for={entry <- @uploads.verification_doc.entries}
-              class="flex items-center gap-2 mt-2"
+              class={[
+                "flex items-center gap-3 mt-3 px-3 py-2 border border-hero-grey-200",
+                "bg-hero-grey-50",
+                Theme.rounded(:lg)
+              ]}
             >
-              <span class="text-sm text-hero-grey-600">{entry.client_name}</span>
+              <.icon name="hero-document-text-mini" class="w-5 h-5 text-hero-grey-500 shrink-0" />
+              <span class="text-sm text-hero-charcoal truncate flex-1">{entry.client_name}</span>
               <button
                 type="button"
                 phx-click="cancel_upload"
                 phx-value-ref={entry.ref}
                 phx-value-upload="verification_doc"
-                class="text-xs text-red-500 hover:text-red-700"
+                class="text-xs text-red-500 hover:text-red-700 shrink-0"
               >
                 {gettext("Remove")}
               </button>
