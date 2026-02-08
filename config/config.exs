@@ -234,7 +234,8 @@ config :logger, :default_formatter,
     :retention_days,
     :sender_id,
     :note_id,
-    :stacktrace
+    :stacktrace,
+    :doc_type
   ]
 
 config :opentelemetry, :resource,
