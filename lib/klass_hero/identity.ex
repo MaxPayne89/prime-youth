@@ -42,8 +42,10 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Consents.GrantConsent
   alias KlassHero.Identity.Application.UseCases.Consents.WithdrawConsent
   alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
+  alias KlassHero.Identity.Application.UseCases.Providers.ChangeProviderProfile
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
   alias KlassHero.Identity.Application.UseCases.Providers.UnverifyProvider
+  alias KlassHero.Identity.Application.UseCases.Providers.UpdateProviderProfile
   alias KlassHero.Identity.Application.UseCases.Providers.VerifyProvider
   alias KlassHero.Identity.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Identity.Application.UseCases.Verification.GetVerificationDocumentPreview
@@ -51,6 +53,7 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Verification.SubmitVerificationDocument
   alias KlassHero.Identity.Domain.Events.IdentityEvents
   alias KlassHero.Identity.Domain.Models.Child
+  alias KlassHero.Identity.Domain.Models.ProviderProfile
   alias KlassHero.Identity.Domain.Models.VerificationDocument
   alias KlassHero.Identity.Domain.Ports.ForStoringVerificationDocuments
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
@@ -156,6 +159,29 @@ defmodule KlassHero.Identity do
   """
   def has_provider_profile?(identity_id) when is_binary(identity_id) do
     @provider_repository.has_profile?(identity_id)
+  end
+
+  @doc """
+  Returns a changeset for tracking provider profile form changes.
+
+  Used by LiveView forms for `to_form()` and `phx-change` validation.
+  Only tracks editable fields (description).
+  """
+  def change_provider_profile(%ProviderProfile{} = provider, attrs \\ %{}) do
+    ChangeProviderProfile.execute(provider, attrs)
+  end
+
+  @doc """
+  Updates an existing provider profile.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` on success
+  - `{:error, :not_found}` if provider doesn't exist
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  - `{:error, changeset}` for persistence validation failures
+  """
+  def update_provider_profile(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
+    UpdateProviderProfile.execute(provider_id, attrs)
   end
 
   # ============================================================================

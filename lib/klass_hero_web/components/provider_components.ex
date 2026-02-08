@@ -138,8 +138,8 @@ defmodule KlassHeroWeb.ProviderComponents do
             )}
           </p>
         </div>
-        <button
-          type="button"
+        <.link
+          navigate={~p"/provider/dashboard/edit"}
           class={[
             "flex items-center gap-2 px-4 py-2 border border-hero-grey-300 bg-white",
             "hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium",
@@ -149,7 +149,7 @@ defmodule KlassHeroWeb.ProviderComponents do
         >
           <.icon name="hero-pencil-square-mini" class="w-4 h-4" />
           {gettext("Edit Profile")}
-        </button>
+        </.link>
       </div>
 
       <div class="flex items-center gap-4">

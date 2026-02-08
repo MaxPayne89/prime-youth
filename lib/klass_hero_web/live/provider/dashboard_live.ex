@@ -6,12 +6,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   - Overview: Stats, business profile, verification badges
   - Team & Profiles: Team member management
   - My Programs: Program inventory and management
+  - Edit: Profile editing with logo/verification doc uploads
   """
   use KlassHeroWeb, :live_view
 
   import KlassHeroWeb.ProviderComponents
 
+  alias KlassHero.Identity
+  alias KlassHero.Identity.Domain.Models.VerificationDocument
   alias KlassHero.ProgramCatalog
+  alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Provider.MockData
@@ -44,6 +48,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         team = MockData.team()
         staff_options = MockData.staff_options()
 
+        # Trigger: uploads registered unconditionally in mount
+        # Why: allow_upload must happen once; registering in handle_params
+        #      would cause double-registration errors when patching between actions
+        # Outcome: upload channels are inert on non-edit tabs (no UI renders them)
         socket =
           socket
           |> assign(page_title: gettext("Provider Dashboard"))
@@ -55,15 +63,130 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(staff_options: staff_options)
           |> assign(search_query: "")
           |> assign(selected_staff: "all")
+          |> allow_upload(:logo,
+            accept: ~w(.jpg .jpeg .png .webp),
+            max_entries: 1,
+            max_file_size: 2_000_000
+          )
+          |> allow_upload(:verification_doc,
+            accept: ~w(.pdf .jpg .jpeg .png),
+            max_entries: 1,
+            max_file_size: 10_000_000
+          )
 
         {:ok, socket}
     end
   end
 
   @impl true
+  def handle_params(_params, _uri, %{assigns: %{live_action: :edit}} = socket) do
+    provider = socket.assigns.current_scope.provider
+
+    changeset = Identity.change_provider_profile(provider)
+
+    {:ok, docs} = Identity.get_provider_verification_documents(provider.id)
+
+    socket =
+      socket
+      |> assign(page_title: gettext("Edit Profile"))
+      |> assign(form: to_form(changeset))
+      |> assign(doc_type: "business_registration")
+      |> stream(:verification_docs, docs, reset: true, dom_id: &"vdoc-#{&1.id}")
+
+    {:noreply, socket}
+  end
+
+  @impl true
   def handle_params(_params, _uri, socket) do
     {:noreply, socket}
   end
+
+  # ============================================================================
+  # Edit Profile Events
+  # ============================================================================
+
+  @impl true
+  def handle_event("validate_profile", %{"provider_profile_schema" => params}, socket) do
+    provider = socket.assigns.current_scope.provider
+    changeset = Identity.change_provider_profile(provider, params)
+
+    {:noreply, assign(socket, form: to_form(Map.put(changeset, :action, :validate)))}
+  end
+
+  @impl true
+  def handle_event("save_profile", %{"provider_profile_schema" => params}, socket) do
+    provider = socket.assigns.current_scope.provider
+
+    # Trigger: logo upload entry may or may not exist
+    # Why: provider can save description-only changes without uploading a new logo
+    # Outcome: logo_url is either a new storage URL or nil (preserving the existing one)
+    logo_url = upload_logo(socket, provider.id)
+
+    attrs =
+      %{description: params["description"]}
+      |> maybe_put_logo_url(logo_url)
+
+    case Identity.update_provider_profile(provider.id, attrs) do
+      {:ok, _updated} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Profile updated successfully."))
+         |> push_navigate(to: ~p"/provider/dashboard")}
+
+      {:error, {:validation_error, _errors}} ->
+        {:noreply, put_flash(socket, :error, gettext("Please fix the errors below."))}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, form: to_form(changeset))}
+    end
+  end
+
+  @impl true
+  def handle_event("upload_verification_doc", _params, socket) do
+    provider = socket.assigns.current_scope.provider
+    doc_type = socket.assigns.doc_type
+
+    results =
+      consume_uploaded_entries(socket, :verification_doc, fn %{path: path}, entry ->
+        file_binary = File.read!(path)
+
+        case Identity.submit_verification_document(%{
+               provider_profile_id: provider.id,
+               document_type: doc_type,
+               file_binary: file_binary,
+               original_filename: entry.client_name,
+               content_type: entry.client_type
+             }) do
+          {:ok, doc} -> {:ok, doc}
+          {:error, reason} -> {:postpone, reason}
+        end
+      end)
+
+    case results do
+      [{:ok, doc}] ->
+        {:noreply,
+         socket
+         |> stream_insert(:verification_docs, doc, dom_id: &"vdoc-#{&1.id}")
+         |> put_flash(:info, gettext("Document uploaded successfully."))}
+
+      _ ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to upload document."))}
+    end
+  end
+
+  @impl true
+  def handle_event("select_doc_type", %{"doc_type" => doc_type}, socket) do
+    {:noreply, assign(socket, doc_type: doc_type)}
+  end
+
+  @impl true
+  def handle_event("cancel_upload", %{"ref" => ref, "upload" => upload_name}, socket) do
+    {:noreply, cancel_upload(socket, String.to_existing_atom(upload_name), ref)}
+  end
+
+  # ============================================================================
+  # Dashboard Tab Events
+  # ============================================================================
 
   @impl true
   def handle_event("search_programs", %{"search" => query}, socket) do
@@ -81,69 +204,288 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      |> reset_programs_stream()}
   end
 
-  defp reset_programs_stream(socket) do
-    provider_id = socket.assigns.current_scope.provider.id
-
-    programs =
-      ProgramCatalog.list_programs_for_provider(provider_id)
-      |> Enum.map(&ProgramPresenter.to_table_view/1)
-      |> filter_by_search(socket.assigns.search_query)
-      |> filter_by_staff(socket.assigns.selected_staff)
-
-    socket
-    |> stream(:programs, programs, reset: true)
-    |> assign(programs_count: length(programs))
-  end
-
-  defp filter_by_search(programs, ""), do: programs
-
-  defp filter_by_search(programs, query) do
-    query_lower = String.downcase(query)
-
-    Enum.filter(programs, fn program ->
-      String.contains?(String.downcase(program.name), query_lower)
-    end)
-  end
-
-  defp filter_by_staff(programs, "all"), do: programs
-
-  defp filter_by_staff(programs, staff_id) do
-    case Integer.parse(staff_id) do
-      {staff_id_int, ""} ->
-        Enum.filter(programs, fn program ->
-          program.assigned_staff && program.assigned_staff.id == staff_id_int
-        end)
-
-      _ ->
-        programs
-    end
-  end
+  # ============================================================================
+  # Render
+  # ============================================================================
 
   @impl true
   def render(assigns) do
     ~H"""
     <div class={["min-h-screen", Theme.bg(:muted)]}>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <.provider_dashboard_header business={@business} />
-        <.provider_nav_tabs live_action={@live_action} />
-
         <%= case @live_action do %>
-          <% :overview -> %>
-            <.overview_section stats={@stats} business={@business} />
-          <% :team -> %>
-            <.team_section team={@team} />
-          <% :programs -> %>
-            <.programs_section
-              programs={@streams.programs}
-              staff_options={@staff_options}
-              search_query={@search_query}
-              selected_staff={@selected_staff}
+          <% :edit -> %>
+            <.edit_profile_section
+              form={@form}
+              uploads={@uploads}
+              business={@business}
+              verification_docs={@streams.verification_docs}
+              doc_type={@doc_type}
             />
+          <% _ -> %>
+            <.provider_dashboard_header business={@business} />
+            <.provider_nav_tabs live_action={@live_action} />
+
+            <%= case @live_action do %>
+              <% :overview -> %>
+                <.overview_section stats={@stats} business={@business} />
+              <% :team -> %>
+                <.team_section team={@team} />
+              <% :programs -> %>
+                <.programs_section
+                  programs={@streams.programs}
+                  staff_options={@staff_options}
+                  search_query={@search_query}
+                  selected_staff={@selected_staff}
+                />
+            <% end %>
         <% end %>
       </div>
     </div>
     """
   end
+
+  # ============================================================================
+  # Edit Profile Template
+  # ============================================================================
+
+  defp edit_profile_section(assigns) do
+    ~H"""
+    <div class="space-y-6">
+      <div class="flex items-center gap-4 mb-6">
+        <.link
+          navigate={~p"/provider/dashboard"}
+          class="flex items-center gap-1 text-hero-grey-500 hover:text-hero-charcoal transition-colors"
+        >
+          <.icon name="hero-arrow-left-mini" class="w-5 h-5" />
+          {gettext("Back to Dashboard")}
+        </.link>
+      </div>
+
+      <h1 class="text-2xl font-bold text-hero-charcoal">{gettext("Edit Profile")}</h1>
+
+      <%!-- Profile Form --%>
+      <div class={["bg-white p-6 shadow-sm border border-hero-grey-200", Theme.rounded(:xl)]}>
+        <h2 class="text-lg font-semibold text-hero-charcoal mb-4">
+          {gettext("Business Information")}
+        </h2>
+
+        <.form
+          for={@form}
+          id="profile-form"
+          phx-change="validate_profile"
+          phx-submit="save_profile"
+          class="space-y-6"
+        >
+          <.input
+            field={@form[:description]}
+            type="textarea"
+            label={gettext("Business Description")}
+            placeholder={gettext("Tell parents about your organization...")}
+            rows="4"
+          />
+
+          <%!-- Logo Upload --%>
+          <div>
+            <label class="block text-sm font-semibold text-hero-charcoal mb-2">
+              {gettext("Business Logo")}
+            </label>
+
+            <div
+              id="logo-upload"
+              class={[
+                "border-2 border-dashed border-hero-grey-300 p-6 text-center",
+                Theme.rounded(:lg)
+              ]}
+              phx-drop-target={@uploads.logo.ref}
+            >
+              <%!-- Current logo preview --%>
+              <div :if={@business.initials} class="mb-4">
+                <div class={[
+                  "w-16 h-16 mx-auto flex items-center justify-center text-white text-xl font-bold",
+                  Theme.rounded(:full),
+                  Theme.gradient(:primary)
+                ]}>
+                  {@business.initials}
+                </div>
+              </div>
+
+              <%!-- Upload entries preview --%>
+              <div :for={entry <- @uploads.logo.entries} class="mb-4">
+                <.live_img_preview entry={entry} class="w-16 h-16 mx-auto rounded-full object-cover" />
+                <p class="text-sm text-hero-grey-500 mt-1">{entry.client_name}</p>
+                <button
+                  type="button"
+                  phx-click="cancel_upload"
+                  phx-value-ref={entry.ref}
+                  phx-value-upload="logo"
+                  class="text-xs text-red-500 hover:text-red-700 mt-1"
+                >
+                  {gettext("Remove")}
+                </button>
+                <div
+                  :for={err <- upload_errors(@uploads.logo, entry)}
+                  class="text-xs text-red-500 mt-1"
+                >
+                  {upload_error_to_string(err)}
+                </div>
+              </div>
+
+              <.live_file_input upload={@uploads.logo} class="hidden" />
+              <label
+                for={@uploads.logo.ref}
+                class={[
+                  "inline-flex items-center gap-2 px-4 py-2 border border-hero-grey-300",
+                  "bg-white hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium cursor-pointer",
+                  Theme.rounded(:lg),
+                  Theme.transition(:normal)
+                ]}
+              >
+                <.icon name="hero-photo-mini" class="w-4 h-4" />
+                {gettext("Choose Logo")}
+              </label>
+              <p class="text-xs text-hero-grey-400 mt-2">
+                {gettext("JPG, PNG or WebP. Max 2MB.")}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              type="submit"
+              id="save-profile-btn"
+              class={[
+                "flex items-center gap-2 px-6 py-2.5 bg-hero-yellow hover:bg-hero-yellow-dark",
+                "text-hero-charcoal font-semibold",
+                Theme.rounded(:lg),
+                Theme.transition(:normal)
+              ]}
+            >
+              <.icon name="hero-check-mini" class="w-5 h-5" />
+              {gettext("Save Changes")}
+            </button>
+          </div>
+        </.form>
+      </div>
+
+      <%!-- Verification Documents Section --%>
+      <div class={["bg-white p-6 shadow-sm border border-hero-grey-200", Theme.rounded(:xl)]}>
+        <h2 class="text-lg font-semibold text-hero-charcoal mb-4">
+          {gettext("Verification Documents")}
+        </h2>
+        <p class="text-sm text-hero-grey-500 mb-6">
+          {gettext("Upload documents to verify your business. Documents are reviewed by our team.")}
+        </p>
+
+        <%!-- Existing Documents --%>
+        <div id="verification-docs" phx-update="stream" class="space-y-3 mb-6">
+          <div id="vdoc-empty" class="hidden only:block text-sm text-hero-grey-400 italic py-4">
+            {gettext("No documents uploaded yet.")}
+          </div>
+          <div
+            :for={{id, doc} <- @verification_docs}
+            id={id}
+            class={[
+              "flex items-center justify-between p-4 border border-hero-grey-200",
+              Theme.rounded(:lg)
+            ]}
+          >
+            <div class="flex items-center gap-3">
+              <.icon name="hero-document-text-mini" class="w-5 h-5 text-hero-grey-400" />
+              <div>
+                <p class="text-sm font-medium text-hero-charcoal">
+                  {doc_type_label(doc.document_type)}
+                </p>
+                <p class="text-xs text-hero-grey-500">{doc.original_filename}</p>
+              </div>
+            </div>
+            <.doc_status_badge status={doc.status} />
+          </div>
+        </div>
+
+        <%!-- Upload New Document --%>
+        <div class={[
+          "border-t border-hero-grey-200 pt-6"
+        ]}>
+          <h3 class="text-sm font-semibold text-hero-charcoal mb-3">
+            {gettext("Upload New Document")}
+          </h3>
+
+          <form id="doc-upload-form" phx-submit="upload_verification_doc" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-hero-grey-700 mb-1">
+                {gettext("Document Type")}
+              </label>
+              <select
+                name="doc_type"
+                id="doc-type-select"
+                phx-change="select_doc_type"
+                class={[
+                  "w-full sm:w-64 px-3 py-2 border border-hero-grey-300 bg-white",
+                  "text-sm focus:border-hero-cyan focus:ring-1 focus:ring-hero-cyan",
+                  Theme.rounded(:lg)
+                ]}
+              >
+                <option
+                  :for={type <- VerificationDocument.valid_document_types()}
+                  value={type}
+                  selected={type == @doc_type}
+                >
+                  {doc_type_label(type)}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <.live_file_input upload={@uploads.verification_doc} />
+              <div
+                :for={entry <- @uploads.verification_doc.entries}
+                class="flex items-center gap-2 mt-2"
+              >
+                <span class="text-sm text-hero-grey-600">{entry.client_name}</span>
+                <button
+                  type="button"
+                  phx-click="cancel_upload"
+                  phx-value-ref={entry.ref}
+                  phx-value-upload="verification_doc"
+                  class="text-xs text-red-500 hover:text-red-700"
+                >
+                  {gettext("Remove")}
+                </button>
+                <div
+                  :for={err <- upload_errors(@uploads.verification_doc, entry)}
+                  class="text-xs text-red-500"
+                >
+                  {upload_error_to_string(err)}
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              id="upload-doc-btn"
+              disabled={@uploads.verification_doc.entries == []}
+              class={[
+                "flex items-center gap-2 px-4 py-2 border border-hero-grey-300",
+                "bg-white hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                Theme.rounded(:lg),
+                Theme.transition(:normal)
+              ]}
+            >
+              <.icon name="hero-arrow-up-tray-mini" class="w-4 h-4" />
+              {gettext("Upload Document")}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  # ============================================================================
+  # Dashboard Tab Templates
+  # ============================================================================
 
   defp overview_section(assigns) do
     ~H"""
@@ -231,6 +573,104 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       />
     </div>
     """
+  end
+
+  # ============================================================================
+  # Upload Helpers
+  # ============================================================================
+
+  # Trigger: logo upload entries may be empty (provider didn't pick a new logo)
+  # Why: consume_uploaded_entries returns [] when no entries exist
+  # Outcome: returns the storage URL of the uploaded logo, or nil
+  defp upload_logo(socket, provider_id) do
+    case consume_uploaded_entries(socket, :logo, fn %{path: path}, entry ->
+           file_binary = File.read!(path)
+           safe_name = String.replace(entry.client_name, ~r/[^a-zA-Z0-9._-]/, "_")
+           storage_path = "logos/providers/#{provider_id}/#{safe_name}"
+
+           Storage.upload(:public, storage_path, file_binary, content_type: entry.client_type)
+         end) do
+      [{:ok, url}] -> url
+      _ -> nil
+    end
+  end
+
+  defp maybe_put_logo_url(attrs, nil), do: attrs
+  defp maybe_put_logo_url(attrs, url), do: Map.put(attrs, :logo_url, url)
+
+  # ============================================================================
+  # Display Helpers
+  # ============================================================================
+
+  defp doc_status_badge(assigns) do
+    {bg_class, text_class, label} = doc_status_style(assigns.status)
+    assigns = assign(assigns, bg_class: bg_class, text_class: text_class, label: label)
+
+    ~H"""
+    <span class={[
+      "px-2.5 py-1 text-xs font-medium",
+      Theme.rounded(:full),
+      @bg_class,
+      @text_class
+    ]}>
+      {@label}
+    </span>
+    """
+  end
+
+  defp doc_status_style(:pending), do: {"bg-yellow-100", "text-yellow-800", gettext("Pending")}
+  defp doc_status_style(:approved), do: {"bg-green-100", "text-green-800", gettext("Approved")}
+  defp doc_status_style(:rejected), do: {"bg-red-100", "text-red-800", gettext("Rejected")}
+  defp doc_status_style(_), do: {"bg-hero-grey-100", "text-hero-grey-600", gettext("Unknown")}
+
+  defp doc_type_label("business_registration"), do: gettext("Business Registration")
+  defp doc_type_label("insurance_certificate"), do: gettext("Insurance Certificate")
+  defp doc_type_label("id_document"), do: gettext("ID Document")
+  defp doc_type_label("tax_certificate"), do: gettext("Tax Certificate")
+  defp doc_type_label("other"), do: gettext("Other")
+  defp doc_type_label(type), do: type
+
+  defp upload_error_to_string(:too_large), do: gettext("File is too large.")
+  defp upload_error_to_string(:too_many_files), do: gettext("Too many files.")
+  defp upload_error_to_string(:not_accepted), do: gettext("File type not accepted.")
+  defp upload_error_to_string(_), do: gettext("Upload error.")
+
+  defp reset_programs_stream(socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+
+    programs =
+      ProgramCatalog.list_programs_for_provider(provider_id)
+      |> Enum.map(&ProgramPresenter.to_table_view/1)
+      |> filter_by_search(socket.assigns.search_query)
+      |> filter_by_staff(socket.assigns.selected_staff)
+
+    socket
+    |> stream(:programs, programs, reset: true)
+    |> assign(programs_count: length(programs))
+  end
+
+  defp filter_by_search(programs, ""), do: programs
+
+  defp filter_by_search(programs, query) do
+    query_lower = String.downcase(query)
+
+    Enum.filter(programs, fn program ->
+      String.contains?(String.downcase(program.name), query_lower)
+    end)
+  end
+
+  defp filter_by_staff(programs, "all"), do: programs
+
+  defp filter_by_staff(programs, staff_id) do
+    case Integer.parse(staff_id) do
+      {staff_id_int, ""} ->
+        Enum.filter(programs, fn program ->
+          program.assigned_staff && program.assigned_staff.id == staff_id_int
+        end)
+
+      _ ->
+        programs
+    end
   end
 
   defp format_number(number) when is_integer(number) do

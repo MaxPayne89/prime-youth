@@ -25,8 +25,8 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
     test "displays business profile card", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
 
-      # Verify business profile section exists with Edit Profile button
-      assert has_element?(view, "button", "Edit Profile")
+      # Verify business profile section exists with Edit Profile link
+      assert has_element?(view, "a", "Edit Profile")
     end
   end
 

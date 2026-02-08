@@ -82,6 +82,18 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfile
     )
   end
 
+  @doc """
+  Form changeset for provider profile editing via LiveView.
+
+  Only casts `:description` — logo_url is set programmatically after upload,
+  and other fields (business_name, phone, etc.) are not editable in this form.
+  """
+  def edit_changeset(schema, attrs) do
+    schema
+    |> cast(attrs, [:description])
+    |> validate_length(:description, max: 1000)
+  end
+
   defp validate_website_protocol(changeset) do
     case get_change(changeset, :website) do
       nil ->
