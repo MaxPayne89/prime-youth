@@ -57,16 +57,15 @@ defmodule KlassHero.Identity.Application.UseCases.Verification.GetVerificationDo
       url
     else
       {:ok, false} ->
-        Logger.warning("Verification document file not found in storage",
-          file_url: file_url
+        Logger.warning(
+          "[GetVerificationDocumentPreview] File not found in storage: #{file_url}"
         )
 
         nil
 
       {:error, reason} ->
-        Logger.warning("Failed to generate verified preview URL",
-          file_url: file_url,
-          reason: inspect(reason)
+        Logger.warning(
+          "[GetVerificationDocumentPreview] Failed to generate preview URL for #{file_url}: #{inspect(reason)}"
         )
 
         nil
