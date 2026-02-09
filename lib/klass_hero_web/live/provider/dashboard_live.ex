@@ -17,6 +17,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.ProviderPresenter
+  alias KlassHeroWeb.Presenters.StaffMemberPresenter
   alias KlassHeroWeb.Provider.MockData
   alias KlassHeroWeb.Theme
 
@@ -42,10 +43,17 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         # Update business with actual program count
         business = %{business | program_slots_used: length(programs)}
 
-        # Mock data for stats/team until features are implemented
+        # Mock data for stats until features are implemented
         stats = MockData.stats()
-        team = MockData.team()
-        staff_options = MockData.staff_options()
+
+        # Load real staff members
+        {:ok, staff_members} = Identity.list_staff_members(provider_profile.id)
+        staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
+
+        # Build staff filter options from real data
+        staff_options =
+          [%{value: "all", label: gettext("All Staff")}] ++
+            Enum.map(staff_views, &%{value: &1.id, label: &1.full_name})
 
         # Trigger: uploads registered unconditionally in mount
         # Why: allow_upload must happen once; registering in handle_params
@@ -56,12 +64,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(page_title: gettext("Provider Dashboard"))
           |> assign(business: business)
           |> assign(stats: stats)
-          |> assign(team: team)
+          |> stream(:team_members, staff_views)
+          |> assign(staff_count: length(staff_views))
           |> stream(:programs, programs)
           |> assign(programs_count: length(programs))
           |> assign(staff_options: staff_options)
           |> assign(search_query: "")
           |> assign(selected_staff: "all")
+          |> assign(show_staff_form: false, editing_staff_id: nil)
+          |> assign(staff_form: to_form(Identity.new_staff_member_changeset()))
           |> allow_upload(:logo,
             accept: ~w(.jpg .jpeg .png .webp),
             max_entries: 1,
@@ -71,6 +82,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             accept: ~w(.pdf .jpg .jpeg .png),
             max_entries: 1,
             max_file_size: 10_000_000
+          )
+          |> allow_upload(:headshot,
+            accept: ~w(.jpg .jpeg .png .webp),
+            max_entries: 1,
+            max_file_size: 1_000_000
           )
 
         {:ok, socket}
@@ -121,8 +137,146 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   @impl true
+  def handle_params(_params, _uri, %{assigns: %{live_action: :team}} = socket) do
+    provider = socket.assigns.current_scope.provider
+
+    {:ok, staff_members} = Identity.list_staff_members(provider.id)
+    staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
+
+    {:noreply,
+     socket
+     |> stream(:team_members, staff_views, reset: true)
+     |> assign(staff_count: length(staff_members))}
+  end
+
+  @impl true
   def handle_params(_params, _uri, socket) do
     {:noreply, socket}
+  end
+
+  # ============================================================================
+  # Staff Member CRUD Events
+  # ============================================================================
+
+  @impl true
+  def handle_event("add_member", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(show_staff_form: true, editing_staff_id: nil)
+     |> assign(staff_form: to_form(Identity.new_staff_member_changeset()))}
+  end
+
+  @impl true
+  def handle_event("edit_member", %{"id" => staff_id}, socket) do
+    case Identity.get_staff_member(staff_id) do
+      {:ok, staff} ->
+        changeset = Identity.change_staff_member(staff)
+
+        {:noreply,
+         socket
+         |> assign(show_staff_form: true, editing_staff_id: staff_id)
+         |> assign(staff_form: to_form(changeset))}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Staff member not found."))}
+    end
+  end
+
+  @impl true
+  def handle_event("close_staff_form", _params, socket) do
+    {:noreply, assign(socket, show_staff_form: false)}
+  end
+
+  @impl true
+  def handle_event("validate_staff", %{"staff_member_schema" => params}, socket) do
+    changeset =
+      case socket.assigns.editing_staff_id do
+        nil ->
+          Identity.new_staff_member_changeset(params)
+
+        staff_id ->
+          {:ok, staff} = Identity.get_staff_member(staff_id)
+          Identity.change_staff_member(staff, params)
+      end
+
+    {:noreply, assign(socket, staff_form: to_form(Map.put(changeset, :action, :validate)))}
+  end
+
+  @impl true
+  def handle_event("save_staff", %{"staff_member_schema" => params}, socket) do
+    provider = socket.assigns.current_scope.provider
+
+    # Trigger: headshot upload may be present or absent
+    # Why: staff member can be saved without a headshot
+    # Outcome: include headshot_url in attrs if upload succeeded
+    headshot_result = upload_headshot(socket, provider.id)
+
+    case socket.assigns.editing_staff_id do
+      nil ->
+        attrs =
+          params
+          |> atomize_staff_params()
+          |> Map.put(:provider_id, provider.id)
+          |> maybe_add_headshot(headshot_result)
+
+        case Identity.create_staff_member(attrs) do
+          {:ok, staff} ->
+            view = StaffMemberPresenter.to_card_view(staff)
+
+            {:noreply,
+             socket
+             |> stream_insert(:team_members, view)
+             |> assign(
+               show_staff_form: false,
+               staff_count: socket.assigns.staff_count + 1
+             )
+             |> put_flash(:info, gettext("Team member added."))}
+
+          {:error, {:validation_error, _errors}} ->
+            {:noreply, put_flash(socket, :error, gettext("Please fix the errors below."))}
+
+          {:error, changeset} ->
+            {:noreply, assign(socket, staff_form: to_form(changeset))}
+        end
+
+      staff_id ->
+        attrs =
+          params
+          |> atomize_staff_params()
+          |> maybe_add_headshot(headshot_result)
+
+        case Identity.update_staff_member(staff_id, attrs) do
+          {:ok, staff} ->
+            view = StaffMemberPresenter.to_card_view(staff)
+
+            {:noreply,
+             socket
+             |> stream_insert(:team_members, view)
+             |> assign(show_staff_form: false)
+             |> put_flash(:info, gettext("Team member updated."))}
+
+          {:error, {:validation_error, _errors}} ->
+            {:noreply, put_flash(socket, :error, gettext("Please fix the errors below."))}
+
+          {:error, changeset} ->
+            {:noreply, assign(socket, staff_form: to_form(changeset))}
+        end
+    end
+  end
+
+  @impl true
+  def handle_event("delete_member", %{"id" => staff_id}, socket) do
+    case Identity.delete_staff_member(staff_id) do
+      :ok ->
+        {:noreply,
+         socket
+         |> stream_delete_by_dom_id(:team_members, "team_members-#{staff_id}")
+         |> assign(staff_count: max(0, socket.assigns.staff_count - 1))
+         |> put_flash(:info, gettext("Team member removed."))}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Staff member not found."))}
+    end
   end
 
   # ============================================================================
@@ -279,7 +433,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
               <% :overview -> %>
                 <.overview_section stats={@stats} business={@business} />
               <% :team -> %>
-                <.team_section team={@team} />
+                <.team_section
+                  team_members={@streams.team_members}
+                  show_staff_form={@show_staff_form}
+                  editing_staff_id={@editing_staff_id}
+                  staff_form={@staff_form}
+                  uploads={@uploads}
+                />
               <% :programs -> %>
                 <.programs_section
                   programs={@streams.programs}
@@ -485,6 +645,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         </div>
         <button
           type="button"
+          id="add-member-btn"
+          phx-click="add_member"
           class={[
             "flex items-center gap-2 px-4 py-2 bg-hero-yellow hover:bg-hero-yellow-dark",
             "text-hero-charcoal font-semibold",
@@ -497,9 +659,25 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <.team_member_card :for={member <- @team} member={member} />
-        <.add_card_button label={gettext("Add New Profile")} icon="hero-user-plus-mini" />
+      <%= if @show_staff_form do %>
+        <.staff_member_form
+          form={@staff_form}
+          editing={@editing_staff_id != nil}
+          uploads={@uploads}
+        />
+      <% end %>
+
+      <div id="team-members" phx-update="stream" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="team-members-empty" class="hidden only:block col-span-full">
+          <.empty_state
+            icon="hero-user-group"
+            title={gettext("No team members yet")}
+            description={gettext("Add your first staff member to get started!")}
+          />
+        </div>
+        <div :for={{id, member} <- @team_members} id={id}>
+          <.team_member_card member={member} />
+        </div>
       </div>
     </div>
     """
@@ -576,6 +754,53 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         programs
     end
   end
+
+  # Trigger: headshot upload entries may be empty (staff saved without headshot)
+  # Why: consume_uploaded_entries returns [] when no entries exist
+  # Outcome: {:ok, url} on success, :no_upload if no file selected, :upload_error on failure
+  defp upload_headshot(socket, provider_id) do
+    case consume_uploaded_entries(socket, :headshot, fn %{path: path}, entry ->
+           file_binary = File.read!(path)
+           safe_name = String.replace(entry.client_name, ~r/[^a-zA-Z0-9._-]/, "_")
+           storage_path = "headshots/providers/#{provider_id}/#{safe_name}"
+
+           Storage.upload(:public, storage_path, file_binary, content_type: entry.client_type)
+         end) do
+      [{:ok, url}] -> {:ok, url}
+      [] -> :no_upload
+      _other -> :upload_error
+    end
+  end
+
+  defp atomize_staff_params(params) do
+    # Trigger: form params arrive as string keys
+    # Why: use cases expect atom keys
+    # Outcome: safely convert known staff fields to atoms
+    %{
+      first_name: params["first_name"],
+      last_name: params["last_name"],
+      role: params["role"],
+      email: params["email"],
+      bio: params["bio"],
+      tags: params["tags"] || [],
+      qualifications: parse_qualifications(params["qualifications"])
+    }
+  end
+
+  defp parse_qualifications(nil), do: []
+  defp parse_qualifications(""), do: []
+
+  defp parse_qualifications(quals) when is_binary(quals) do
+    quals
+    |> String.split(",")
+    |> Enum.map(&String.trim/1)
+    |> Enum.reject(&(&1 == ""))
+  end
+
+  defp parse_qualifications(quals) when is_list(quals), do: quals
+
+  defp maybe_add_headshot(attrs, {:ok, url}), do: Map.put(attrs, :headshot_url, url)
+  defp maybe_add_headshot(attrs, _), do: attrs
 
   defp format_number(number) when is_integer(number) do
     number
