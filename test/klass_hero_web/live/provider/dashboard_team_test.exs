@@ -222,5 +222,90 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
       # Form should still be visible after validation
       assert has_element?(view, "#staff-member-form")
     end
+
+    test "shows inline validation errors on create submit", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view |> element("#add-member-btn") |> render_click()
+
+      view
+      |> form("#staff-form", %{
+        "staff_member_schema" => %{
+          "first_name" => "",
+          "last_name" => ""
+        }
+      })
+      |> render_submit()
+
+      # Form stays open with error flash
+      assert has_element?(view, "#staff-member-form")
+      assert render(view) =~ "Please fix the errors below."
+
+      # Inline errors render (phx-feedback-for removes hidden class when action is set)
+      assert render(view) =~ "can&#39;t be blank"
+    end
+
+    test "shows inline validation errors on update submit", %{conn: conn, provider: provider} do
+      staff =
+        IdentityFixtures.staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Alice",
+          last_name: "Smith"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view
+      |> element(~s(button[phx-click="edit_member"][phx-value-id="#{staff.id}"]))
+      |> render_click()
+
+      view
+      |> form("#staff-form", %{
+        "staff_member_schema" => %{
+          "first_name" => "",
+          "last_name" => ""
+        }
+      })
+      |> render_submit()
+
+      # Form stays open with error flash
+      assert has_element?(view, "#staff-member-form")
+      assert render(view) =~ "Please fix the errors below."
+
+      # Inline errors render
+      assert render(view) =~ "can&#39;t be blank"
+    end
+
+    test "error flash is cleared on successful create", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      # Trigger validation error first
+      view |> element("#add-member-btn") |> render_click()
+
+      view
+      |> form("#staff-form", %{
+        "staff_member_schema" => %{
+          "first_name" => "",
+          "last_name" => ""
+        }
+      })
+      |> render_submit()
+
+      assert render(view) =~ "Please fix the errors below."
+
+      # Now submit valid data
+      view
+      |> form("#staff-form", %{
+        "staff_member_schema" => %{
+          "first_name" => "Valid",
+          "last_name" => "Name"
+        }
+      })
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "Team member added."
+      refute html =~ "Please fix the errors below."
+    end
   end
 end

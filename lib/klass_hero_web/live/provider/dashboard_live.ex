@@ -150,6 +150,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   @impl true
+  def handle_params(_params, _uri, %{assigns: %{live_action: :programs}} = socket) do
+    {:noreply,
+     socket
+     |> refresh_staff_options()
+     |> reset_programs_stream()}
+  end
+
+  @impl true
   def handle_params(_params, _uri, socket) do
     {:noreply, socket}
   end
@@ -230,10 +238,18 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                show_staff_form: false,
                staff_count: socket.assigns.staff_count + 1
              )
+             |> clear_flash(:error)
              |> put_flash(:info, gettext("Team member added."))}
 
           {:error, {:validation_error, _errors}} ->
-            {:noreply, put_flash(socket, :error, gettext("Please fix the errors below."))}
+            changeset =
+              Identity.new_staff_member_changeset(params)
+              |> Map.put(:action, :validate)
+
+            {:noreply,
+             socket
+             |> assign(staff_form: to_form(changeset))
+             |> put_flash(:error, gettext("Please fix the errors below."))}
 
           {:error, changeset} ->
             {:noreply, assign(socket, staff_form: to_form(changeset))}
@@ -253,10 +269,20 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
              socket
              |> stream_insert(:team_members, view)
              |> assign(show_staff_form: false)
+             |> clear_flash(:error)
              |> put_flash(:info, gettext("Team member updated."))}
 
           {:error, {:validation_error, _errors}} ->
-            {:noreply, put_flash(socket, :error, gettext("Please fix the errors below."))}
+            {:ok, staff} = Identity.get_staff_member(staff_id)
+
+            changeset =
+              Identity.change_staff_member(staff, params)
+              |> Map.put(:action, :validate)
+
+            {:noreply,
+             socket
+             |> assign(staff_form: to_form(changeset))
+             |> put_flash(:error, gettext("Please fix the errors below."))}
 
           {:error, changeset} ->
             {:noreply, assign(socket, staff_form: to_form(changeset))}
@@ -272,6 +298,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          socket
          |> stream_delete_by_dom_id(:team_members, "team_members-#{staff_id}")
          |> assign(staff_count: max(0, socket.assigns.staff_count - 1))
+         |> clear_flash(:error)
          |> put_flash(:info, gettext("Team member removed."))}
 
       {:error, :not_found} ->
@@ -719,6 +746,18 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       [] -> :no_upload
       _other -> :upload_error
     end
+  end
+
+  defp refresh_staff_options(socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+    {:ok, staff_members} = Identity.list_staff_members(provider_id)
+    staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
+
+    staff_options =
+      [%{value: "all", label: gettext("All Staff")}] ++
+        Enum.map(staff_views, &%{value: &1.id, label: &1.full_name})
+
+    assign(socket, staff_options: staff_options)
   end
 
   defp reset_programs_stream(socket) do
