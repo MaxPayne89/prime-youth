@@ -46,7 +46,7 @@ defmodule KlassHero.IdentityFixtures do
 
     {:ok, schema} =
       %StaffMemberSchema{}
-      |> StaffMemberSchema.changeset(merged)
+      |> StaffMemberSchema.create_changeset(merged)
       |> Repo.insert()
 
     StaffMemberMapper.to_domain(schema)

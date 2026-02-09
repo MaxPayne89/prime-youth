@@ -748,15 +748,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp filter_by_staff(programs, "all"), do: programs
 
   defp filter_by_staff(programs, staff_id) do
-    case Integer.parse(staff_id) do
-      {staff_id_int, ""} ->
-        Enum.filter(programs, fn program ->
-          program.assigned_staff && program.assigned_staff.id == staff_id_int
-        end)
-
-      _ ->
-        programs
-    end
+    Enum.filter(programs, fn program ->
+      program.assigned_staff && to_string(program.assigned_staff.id) == staff_id
+    end)
   end
 
   # Trigger: headshot upload entries may be empty (staff saved without headshot)

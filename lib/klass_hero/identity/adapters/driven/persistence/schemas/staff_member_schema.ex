@@ -29,10 +29,20 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     timestamps()
   end
 
-  def changeset(schema, attrs) do
+  @doc """
+  Changeset for creating a new staff member.
+
+  provider_id is set programmatically via put_change, not cast from user input.
+
+  Validation constants intentionally mirror StaffMember domain model.
+  Domain validates on write; Ecto validates at persistence boundary.
+  Keep both in sync when changing constraints.
+  """
+  def create_changeset(schema, attrs) do
+    provider_id = attrs[:provider_id] || attrs["provider_id"]
+
     schema
     |> cast(attrs, [
-      :provider_id,
       :first_name,
       :last_name,
       :role,
@@ -43,6 +53,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.StaffMemberSche
       :qualifications,
       :active
     ])
+    |> put_change(:provider_id, provider_id)
     |> validate_required([:provider_id, :first_name, :last_name])
     |> validate_length(:first_name, min: 1, max: 100)
     |> validate_length(:last_name, min: 1, max: 100)
@@ -56,7 +67,11 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.StaffMemberSche
 
   @doc """
   Form changeset for editing staff members via LiveView.
-  Excludes provider_id (set programmatically, not editable).
+  Excludes provider_id (set programmatically) and headshot_url (set via upload pipeline).
+
+  Validation constants intentionally mirror StaffMember domain model.
+  Domain validates on write; Ecto validates at persistence boundary.
+  Keep both in sync when changing constraints.
   """
   def edit_changeset(schema, attrs) do
     schema

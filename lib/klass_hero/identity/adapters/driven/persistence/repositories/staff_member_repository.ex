@@ -18,7 +18,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.StaffMembe
   @impl true
   def create(attrs) when is_map(attrs) do
     %StaffMemberSchema{}
-    |> StaffMemberSchema.changeset(attrs)
+    |> StaffMemberSchema.create_changeset(attrs)
     |> Repo.insert()
     |> case do
       {:ok, schema} ->
@@ -66,7 +66,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.StaffMembe
 
         with {:ok, updated} <-
                schema
-               |> StaffMemberSchema.changeset(attrs)
+               |> StaffMemberSchema.edit_changeset(attrs)
                |> Repo.update() do
           {:ok, StaffMemberMapper.to_domain(updated)}
         end

@@ -5,6 +5,7 @@ defmodule KlassHeroWeb.Presenters.StaffMemberPresenter do
 
   alias KlassHero.Identity.Domain.Models.StaffMember
 
+  @spec to_card_view(StaffMember.t()) :: map()
   def to_card_view(%StaffMember{} = staff) do
     %{
       id: staff.id,
@@ -22,6 +23,7 @@ defmodule KlassHeroWeb.Presenters.StaffMemberPresenter do
     }
   end
 
+  @spec to_card_view_list([StaffMember.t()]) :: [map()]
   def to_card_view_list(staff_members) when is_list(staff_members) do
     Enum.map(staff_members, &to_card_view/1)
   end

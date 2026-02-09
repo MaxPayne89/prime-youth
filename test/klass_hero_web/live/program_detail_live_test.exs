@@ -2,6 +2,7 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
   use KlassHeroWeb.ConnCase, async: true
 
   import KlassHero.Factory
+  import KlassHero.IdentityFixtures
   import Phoenix.LiveViewTest
 
   describe "ProgramDetailLive mount validation" do
@@ -64,6 +65,56 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       |> render_click()
 
       assert_redirect(view, ~p"/programs/#{program.id}/booking")
+    end
+  end
+
+  describe "staff member display" do
+    test "program with staff shows team member names", %{conn: conn} do
+      provider = provider_profile_fixture()
+
+      program =
+        insert(:program_schema, provider_id: provider.id, title: "Soccer Academy")
+
+      staff_member_fixture(
+        provider_id: provider.id,
+        first_name: "Coach",
+        last_name: "Smith",
+        role: "Head Coach"
+      )
+
+      {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert html =~ "Coach Smith"
+      assert html =~ "Head Coach"
+    end
+
+    test "program without staff renders fallback instructor", %{conn: conn} do
+      program = insert(:program_schema, title: "Art Class")
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      # Trigger: no staff members for this provider (provider_id is nil)
+      # Why: fallback instructor section is rendered instead
+      # Outcome: sample instructor content is shown
+      assert has_element?(view, "h3", "Meet Your Instructor")
+    end
+
+    test "staff email is not shown on public page", %{conn: conn} do
+      provider = provider_profile_fixture()
+      program = insert(:program_schema, provider_id: provider.id)
+
+      staff_member_fixture(
+        provider_id: provider.id,
+        first_name: "Jane",
+        last_name: "Doe",
+        email: "jane.secret@example.com"
+      )
+
+      {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}")
+
+      # Trigger: staff email is included in presenter output
+      # Why: public program pages should not expose staff email addresses
+      # Outcome: email should NOT appear in rendered HTML
+      refute html =~ "jane.secret@example.com"
     end
   end
 end

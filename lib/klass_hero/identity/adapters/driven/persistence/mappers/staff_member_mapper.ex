@@ -9,6 +9,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
   alias KlassHero.Identity.Domain.Models.StaffMember
 
+  @spec to_domain(StaffMemberSchema.t()) :: StaffMember.t()
   def to_domain(%StaffMemberSchema{} = schema) do
     %StaffMember{
       id: to_string(schema.id),
@@ -27,6 +28,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
     }
   end
 
+  @spec to_schema(StaffMember.t()) :: map()
   def to_schema(%StaffMember{} = staff) do
     %{
       provider_id: staff.provider_id,
@@ -43,5 +45,6 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
     |> maybe_add_id(staff.id)
   end
 
+  @spec to_domain_list([StaffMemberSchema.t()]) :: [StaffMember.t()]
   def to_domain_list(schemas) when is_list(schemas), do: Enum.map(schemas, &to_domain/1)
 end

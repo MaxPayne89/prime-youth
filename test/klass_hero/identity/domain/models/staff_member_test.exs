@@ -66,6 +66,49 @@ defmodule KlassHero.Identity.Domain.Models.StaffMemberTest do
       assert {:error, errors} = StaffMember.new(%{@valid_attrs | first_name: long})
       assert "First name must be 100 characters or less" in errors
     end
+
+    test "rejects nil provider_id" do
+      attrs = Map.delete(@valid_attrs, :provider_id) |> Map.put(:provider_id, nil)
+      assert {:error, errors} = StaffMember.new(attrs)
+      assert "Provider ID must be a string" in errors
+    end
+
+    test "rejects email without @" do
+      attrs = Map.put(@valid_attrs, :email, "notanemail")
+      assert {:error, errors} = StaffMember.new(attrs)
+      assert "Email must contain @" in errors
+    end
+
+    test "accepts bio at exactly 2000 characters" do
+      bio = String.duplicate("a", 2000)
+      assert {:ok, staff} = StaffMember.new(Map.put(@valid_attrs, :bio, bio))
+      assert String.length(staff.bio) == 2000
+    end
+
+    test "rejects bio at 2001 characters" do
+      bio = String.duplicate("a", 2001)
+      assert {:error, errors} = StaffMember.new(Map.put(@valid_attrs, :bio, bio))
+      assert "Bio must be 2000 characters or less" in errors
+    end
+
+    test "rejects headshot_url over 500 characters" do
+      url = "https://example.com/" <> String.duplicate("a", 481)
+      assert {:error, errors} = StaffMember.new(Map.put(@valid_attrs, :headshot_url, url))
+      assert "Headshot URL must be 500 characters or less" in errors
+    end
+  end
+
+  describe "valid?/1" do
+    test "returns true for valid staff member" do
+      {:ok, staff} = StaffMember.new(@valid_attrs)
+      assert StaffMember.valid?(staff)
+    end
+
+    test "returns false for invalid staff member" do
+      {:ok, staff} = StaffMember.new(@valid_attrs)
+      invalid = %{staff | first_name: ""}
+      refute StaffMember.valid?(invalid)
+    end
   end
 
   describe "full_name/1" do
