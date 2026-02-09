@@ -667,7 +667,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         />
       <% end %>
 
-      <div id="team-members" phx-update="stream" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div
+        id="team-members"
+        phx-update="stream"
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+      >
         <div id="team-members-empty" class="hidden only:block col-span-full">
           <.empty_state
             icon="hero-user-group"

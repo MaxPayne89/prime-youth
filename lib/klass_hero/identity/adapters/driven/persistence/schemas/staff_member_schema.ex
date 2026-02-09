@@ -6,6 +6,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.StaffMemberSche
   """
 
   use Ecto.Schema
+
   import Ecto.Changeset
 
   alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories

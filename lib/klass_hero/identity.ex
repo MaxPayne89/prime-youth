@@ -45,12 +45,12 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Consents.WithdrawConsent
   alias KlassHero.Identity.Application.UseCases.Parents.CreateParentProfile
   alias KlassHero.Identity.Application.UseCases.Providers.CreateProviderProfile
-  alias KlassHero.Identity.Application.UseCases.StaffMembers.CreateStaffMember
-  alias KlassHero.Identity.Application.UseCases.StaffMembers.DeleteStaffMember
-  alias KlassHero.Identity.Application.UseCases.StaffMembers.UpdateStaffMember
   alias KlassHero.Identity.Application.UseCases.Providers.UnverifyProvider
   alias KlassHero.Identity.Application.UseCases.Providers.UpdateProviderProfile
   alias KlassHero.Identity.Application.UseCases.Providers.VerifyProvider
+  alias KlassHero.Identity.Application.UseCases.StaffMembers.CreateStaffMember
+  alias KlassHero.Identity.Application.UseCases.StaffMembers.DeleteStaffMember
+  alias KlassHero.Identity.Application.UseCases.StaffMembers.UpdateStaffMember
   alias KlassHero.Identity.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Identity.Application.UseCases.Verification.GetVerificationDocumentPreview
   alias KlassHero.Identity.Application.UseCases.Verification.RejectVerificationDocument
