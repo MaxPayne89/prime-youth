@@ -147,7 +147,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
 
       view
-      |> element("button[phx-click=\"edit_member\"][phx-value-id=\"#{staff.id}\"]")
+      |> element(~s(button[phx-click="edit_member"][phx-value-id="#{staff.id}"]))
       |> render_click()
 
       assert has_element?(view, "#staff-member-form")
@@ -167,7 +167,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
 
       view
-      |> element("button[phx-click=\"edit_member\"][phx-value-id=\"#{staff.id}\"]")
+      |> element(~s(button[phx-click="edit_member"][phx-value-id="#{staff.id}"]))
       |> render_click()
 
       view
@@ -197,7 +197,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
       assert html =~ "Alice Smith"
 
       view
-      |> element("button[phx-click=\"delete_member\"][phx-value-id=\"#{staff.id}\"]")
+      |> element(~s(button[phx-click="delete_member"][phx-value-id="#{staff.id}"]))
       |> render_click()
 
       assert render(view) =~ "Team member removed."

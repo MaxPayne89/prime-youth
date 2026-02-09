@@ -23,18 +23,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             gettext("Final exhibition showcase")
           ])
 
-        # Load real staff members for this program's provider
-        team_members =
-          case program.provider_id do
-            nil ->
-              []
-
-            provider_id ->
-              case Identity.list_staff_members(provider_id) do
-                {:ok, members} -> StaffMemberPresenter.to_card_view_list(members)
-                {:error, _} -> []
-              end
-          end
+        team_members = load_team_members(program.provider_id)
 
         socket =
           socket
@@ -81,6 +70,15 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   @impl true
   def handle_event("save_for_later", _params, socket) do
     {:noreply, socket}
+  end
+
+  defp load_team_members(nil), do: []
+
+  defp load_team_members(provider_id) do
+    case Identity.list_staff_members(provider_id) do
+      {:ok, members} -> StaffMemberPresenter.to_card_view_list(members)
+      {:error, _} -> []
+    end
   end
 
   @impl true
