@@ -3,6 +3,8 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias KlassHero.IdentityFixtures
+
   setup :register_and_log_in_provider
 
   describe "overview section" do
@@ -159,6 +161,44 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       assert has_element?(view, "input[name=\"search\"]")
       # Verify staff filter exists
       assert has_element?(view, "select[name=\"staff_filter\"]")
+    end
+
+    test "programs visible after navigating from team tab", %{conn: conn, provider: provider} do
+      KlassHero.Factory.insert(:program_schema,
+        title: "Soccer Academy",
+        category: "sports",
+        provider_id: provider.id
+      )
+
+      # Mount on team tab first
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      # Navigate to programs tab
+      view |> element("a", "My Programs") |> render_click()
+      assert_patch(view, ~p"/provider/dashboard/programs")
+
+      assert has_element?(view, "td", "Soccer Academy")
+    end
+
+    test "staff filter shows staff members after tab navigation", %{
+      conn: conn,
+      provider: provider
+    } do
+      IdentityFixtures.staff_member_fixture(
+        provider_id: provider.id,
+        first_name: "Alice",
+        last_name: "Smith"
+      )
+
+      # Mount on team tab first
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      # Navigate to programs tab
+      view |> element("a", "My Programs") |> render_click()
+      assert_patch(view, ~p"/provider/dashboard/programs")
+
+      # Staff filter dropdown should include the staff member
+      assert render(view) =~ "Alice Smith"
     end
 
     test "filters programs by search query", %{conn: conn, provider: provider} do

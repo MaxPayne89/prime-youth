@@ -20,6 +20,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   defstruct [
     :id,
+    :provider_id,
     :title,
     :description,
     :category,
@@ -37,6 +38,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   @type t :: %__MODULE__{
           id: String.t(),
+          provider_id: String.t() | nil,
           title: String.t(),
           description: String.t(),
           category: String.t(),

@@ -10,9 +10,11 @@ defmodule KlassHeroWeb.ProviderComponents do
     router: KlassHeroWeb.Router,
     statics: KlassHeroWeb.static_paths()
 
+  import KlassHeroWeb.CoreComponents, only: [input: 1]
   import KlassHeroWeb.UIComponents
 
   alias KlassHero.Identity.Domain.Models.VerificationDocument
+  alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
   alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Theme
 
@@ -401,47 +403,74 @@ defmodule KlassHeroWeb.ProviderComponents do
     ~H"""
     <div class={["bg-white shadow-sm border border-hero-grey-200 overflow-hidden", Theme.rounded(:xl)]}>
       <div class="relative h-24 bg-gradient-to-r from-hero-grey-200 to-hero-grey-300">
-        <div class={[
-          "absolute top-2 right-2 px-2 py-1 bg-white/90 text-xs font-medium text-hero-charcoal",
-          Theme.rounded(:md)
-        ]}>
+        <div
+          :if={@member.role}
+          class={[
+            "absolute top-2 right-2 px-2 py-1 bg-white/90 text-xs font-medium text-hero-charcoal",
+            Theme.rounded(:md)
+          ]}
+        >
           {@member.role}
         </div>
-        <div class={[
-          "absolute -bottom-8 left-4 w-16 h-16 flex items-center justify-center",
-          "text-white text-xl font-bold border-4 border-white",
-          Theme.rounded(:full),
-          Theme.gradient(:primary)
-        ]}>
+        <%!-- Headshot image or initials avatar --%>
+        <img
+          :if={@member.headshot_url}
+          src={@member.headshot_url}
+          alt={@member.full_name}
+          class={[
+            "absolute -bottom-8 left-4 w-16 h-16 object-cover border-4 border-white",
+            Theme.rounded(:full)
+          ]}
+        />
+        <div
+          :if={!@member.headshot_url}
+          class={[
+            "absolute -bottom-8 left-4 w-16 h-16 flex items-center justify-center",
+            "text-white text-xl font-bold border-4 border-white",
+            Theme.rounded(:full),
+            Theme.gradient(:primary)
+          ]}
+        >
           {@member.initials}
         </div>
       </div>
 
       <div class="pt-10 px-4 pb-4">
-        <h3 class="font-semibold text-hero-charcoal">{@member.name}</h3>
-        <p class="text-sm text-hero-grey-500 mb-2">{@member.email}</p>
-        <p class="text-sm text-hero-grey-600 mb-3 line-clamp-2">{@member.bio}</p>
+        <h3 class="font-semibold text-hero-charcoal">{@member.full_name}</h3>
+        <p :if={@member.email} class="text-sm text-hero-grey-500 mb-2">{@member.email}</p>
+        <p :if={@member.bio} class="text-sm text-hero-grey-600 mb-3 line-clamp-2">{@member.bio}</p>
 
-        <div class="flex flex-wrap gap-1.5 mb-3">
+        <%!-- Category tags as colored pills --%>
+        <div :if={@member.tags != []} class="flex flex-wrap gap-1.5 mb-3">
           <span
-            :for={cert <- @member.certifications}
+            :for={tag <- @member.tags}
+            class={[
+              "px-2 py-1 text-xs font-medium bg-hero-cyan-100 text-hero-cyan",
+              Theme.rounded(:full)
+            ]}
+          >
+            {tag}
+          </span>
+        </div>
+
+        <%!-- Qualifications as badge pills --%>
+        <div :if={@member.qualifications != []} class="flex flex-wrap gap-1.5 mb-3">
+          <span
+            :for={qual <- @member.qualifications}
             class={[
               "px-2 py-1 text-xs font-medium border border-hero-grey-300 text-hero-grey-600",
               Theme.rounded(:md)
             ]}
           >
-            {cert}
+            {qual}
           </span>
-        </div>
-
-        <div class="flex items-center gap-1 text-sm text-hero-grey-500 mb-4">
-          <.icon name="hero-currency-euro-mini" class="w-4 h-4" />
-          <span>{gettext("Rate")}: €{@member.hourly_rate}/hr</span>
         </div>
 
         <div class="flex items-center gap-2">
           <button
             type="button"
+            phx-click="edit_member"
+            phx-value-id={@member.id}
             class={[
               "flex-1 px-4 py-2 border border-hero-grey-300 bg-white",
               "hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium",
@@ -453,6 +482,9 @@ defmodule KlassHeroWeb.ProviderComponents do
           </button>
           <button
             type="button"
+            phx-click="delete_member"
+            phx-value-id={@member.id}
+            data-confirm={gettext("Are you sure you want to remove this team member?")}
             class={[
               "p-2 text-red-500 hover:bg-red-50",
               Theme.rounded(:lg),
@@ -466,6 +498,210 @@ defmodule KlassHeroWeb.ProviderComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders the staff member create/edit form.
+
+  ## Examples
+
+      <.staff_member_form form={@staff_form} editing={false} uploads={@uploads} />
+  """
+  attr :form, :any, required: true
+  attr :editing, :boolean, default: false
+  attr :uploads, :map, required: true
+
+  def staff_member_form(assigns) do
+    categories = ProgramCategories.program_categories()
+    assigns = assign(assigns, categories: categories)
+
+    ~H"""
+    <div
+      id="staff-member-form"
+      class={["bg-white p-6 shadow-sm border border-hero-grey-200", Theme.rounded(:xl)]}
+    >
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-hero-charcoal">
+          <%= if @editing do %>
+            {gettext("Edit Team Member")}
+          <% else %>
+            {gettext("Add Team Member")}
+          <% end %>
+        </h3>
+        <button
+          type="button"
+          phx-click="close_staff_form"
+          class={[
+            "p-2 text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100",
+            Theme.rounded(:lg)
+          ]}
+        >
+          <.icon name="hero-x-mark-mini" class="w-5 h-5" />
+        </button>
+      </div>
+
+      <.form
+        for={@form}
+        id="staff-form"
+        phx-change="validate_staff"
+        phx-submit="save_staff"
+        class="space-y-4"
+      >
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <.input
+            field={@form[:first_name]}
+            type="text"
+            label={gettext("First Name")}
+            placeholder={gettext("e.g. Mike")}
+          />
+          <.input
+            field={@form[:last_name]}
+            type="text"
+            label={gettext("Last Name")}
+            placeholder={gettext("e.g. Johnson")}
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <.input
+            field={@form[:role]}
+            type="text"
+            label={gettext("Role")}
+            placeholder={gettext("e.g. Head Coach")}
+          />
+          <.input
+            field={@form[:email]}
+            type="email"
+            label={gettext("Email")}
+            placeholder={gettext("e.g. mike@example.com")}
+          />
+        </div>
+
+        <.input
+          field={@form[:bio]}
+          type="textarea"
+          label={gettext("Bio")}
+          placeholder={gettext("Brief description of experience and specialties...")}
+        />
+
+        <%!-- Tags as checkboxes --%>
+        <div>
+          <label class="block text-sm font-semibold text-hero-charcoal mb-2">
+            {gettext("Specialties")}
+          </label>
+          <div class="flex flex-wrap gap-3">
+            <label :for={cat <- @categories} class="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                name="staff_member_schema[tags][]"
+                value={cat}
+                checked={cat in ((@form[:tags] && @form[:tags].value) || [])}
+                class="rounded border-hero-grey-300 text-hero-cyan focus:ring-hero-cyan"
+              />
+              {cat}
+            </label>
+          </div>
+          <%!-- Hidden input to ensure empty tags array is sent when nothing is checked --%>
+          <input type="hidden" name="staff_member_schema[tags][]" value="" />
+        </div>
+
+        <%!-- Qualifications as comma-separated text --%>
+        <.input
+          field={@form[:qualifications]}
+          type="text"
+          label={gettext("Qualifications")}
+          placeholder={gettext("First Aid, UEFA B License, Child Care Cert")}
+          value={qualifications_to_string(@form[:qualifications] && @form[:qualifications].value)}
+        />
+        <p class="text-xs text-hero-grey-400 -mt-2">
+          {gettext("Separate multiple qualifications with commas")}
+        </p>
+
+        <%!-- Headshot upload --%>
+        <div>
+          <label class="block text-sm font-semibold text-hero-charcoal mb-2">
+            {gettext("Headshot Photo")}
+          </label>
+          <div
+            id="headshot-upload"
+            class={[
+              "border-2 border-dashed border-hero-grey-300 p-4 text-center",
+              Theme.rounded(:lg)
+            ]}
+            phx-drop-target={@uploads.headshot.ref}
+          >
+            <div :for={entry <- @uploads.headshot.entries} class="mb-3">
+              <.live_img_preview
+                entry={entry}
+                class="w-16 h-16 mx-auto rounded-full object-cover"
+              />
+              <button
+                type="button"
+                phx-click="cancel_upload"
+                phx-value-ref={entry.ref}
+                phx-value-upload="headshot"
+                class="text-xs text-red-500 hover:text-red-700 mt-1"
+              >
+                {gettext("Remove")}
+              </button>
+            </div>
+
+            <.live_file_input upload={@uploads.headshot} class="hidden" />
+            <label
+              for={@uploads.headshot.ref}
+              class={[
+                "inline-flex items-center gap-2 px-4 py-2 border border-hero-grey-300",
+                "bg-white hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium cursor-pointer",
+                Theme.rounded(:lg)
+              ]}
+            >
+              <.icon name="hero-photo-mini" class="w-4 h-4" />
+              {gettext("Choose Photo")}
+            </label>
+            <p class="text-xs text-hero-grey-400 mt-2">
+              {gettext("JPG, PNG or WebP. Max 1MB.")}
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button
+            type="submit"
+            id="save-staff-btn"
+            class={[
+              "flex items-center gap-2 px-6 py-2.5 bg-hero-yellow hover:bg-hero-yellow-dark",
+              "text-hero-charcoal font-semibold",
+              Theme.rounded(:lg),
+              Theme.transition(:normal)
+            ]}
+          >
+            <.icon name="hero-check-mini" class="w-5 h-5" />
+            <%= if @editing do %>
+              {gettext("Save Changes")}
+            <% else %>
+              {gettext("Add Member")}
+            <% end %>
+          </button>
+          <button
+            type="button"
+            phx-click="close_staff_form"
+            class={[
+              "px-4 py-2.5 border border-hero-grey-300 bg-white",
+              "hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium",
+              Theme.rounded(:lg),
+              Theme.transition(:normal)
+            ]}
+          >
+            {gettext("Cancel")}
+          </button>
+        </div>
+      </.form>
+    </div>
+    """
+  end
+
+  defp qualifications_to_string(nil), do: ""
+  defp qualifications_to_string(quals) when is_list(quals), do: Enum.join(quals, ", ")
+  defp qualifications_to_string(quals) when is_binary(quals), do: quals
 
   @doc """
   Renders an "Add" card with dashed border.

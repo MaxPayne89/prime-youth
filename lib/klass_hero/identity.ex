@@ -37,6 +37,7 @@ defmodule KlassHero.Identity do
 
   alias KlassHero.Identity.Adapters.Driven.Persistence.ChangeChild
   alias KlassHero.Identity.Adapters.Driven.Persistence.ChangeProviderProfile
+  alias KlassHero.Identity.Adapters.Driven.Persistence.ChangeStaffMember
   alias KlassHero.Identity.Application.UseCases.Children.CreateChild
   alias KlassHero.Identity.Application.UseCases.Children.DeleteChild
   alias KlassHero.Identity.Application.UseCases.Children.UpdateChild
@@ -47,6 +48,9 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Application.UseCases.Providers.UnverifyProvider
   alias KlassHero.Identity.Application.UseCases.Providers.UpdateProviderProfile
   alias KlassHero.Identity.Application.UseCases.Providers.VerifyProvider
+  alias KlassHero.Identity.Application.UseCases.StaffMembers.CreateStaffMember
+  alias KlassHero.Identity.Application.UseCases.StaffMembers.DeleteStaffMember
+  alias KlassHero.Identity.Application.UseCases.StaffMembers.UpdateStaffMember
   alias KlassHero.Identity.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Identity.Application.UseCases.Verification.GetVerificationDocumentPreview
   alias KlassHero.Identity.Application.UseCases.Verification.RejectVerificationDocument
@@ -54,6 +58,7 @@ defmodule KlassHero.Identity do
   alias KlassHero.Identity.Domain.Events.IdentityEvents
   alias KlassHero.Identity.Domain.Models.Child
   alias KlassHero.Identity.Domain.Models.ProviderProfile
+  alias KlassHero.Identity.Domain.Models.StaffMember
   alias KlassHero.Identity.Domain.Models.VerificationDocument
   alias KlassHero.Identity.Domain.Ports.ForStoringVerificationDocuments
   alias KlassHero.Identity.Domain.Services.ReferralCodeGenerator
@@ -82,6 +87,10 @@ defmodule KlassHero.Identity do
                                       :identity,
                                       :for_storing_verification_documents
                                     ])
+  @staff_repository Application.compile_env!(:klass_hero, [
+                      :identity,
+                      :for_storing_staff_members
+                    ])
 
   # ============================================================================
   # Parent Profile Functions
@@ -747,5 +756,81 @@ defmodule KlassHero.Identity do
   """
   def list_verified_provider_ids do
     @provider_repository.list_verified_ids()
+  end
+
+  # ============================================================================
+  # Staff Members
+  # ============================================================================
+
+  @doc """
+  Creates a new staff member for a provider.
+
+  Returns:
+  - `{:ok, StaffMember.t()}` on success
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  - `{:error, changeset}` for persistence validation failures
+  """
+  def create_staff_member(attrs) when is_map(attrs) do
+    CreateStaffMember.execute(attrs)
+  end
+
+  @doc """
+  Updates an existing staff member.
+
+  Returns:
+  - `{:ok, StaffMember.t()}` on success
+  - `{:error, :not_found}` if staff member doesn't exist
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  """
+  def update_staff_member(staff_id, attrs) when is_binary(staff_id) and is_map(attrs) do
+    UpdateStaffMember.execute(staff_id, attrs)
+  end
+
+  @doc """
+  Deletes a staff member by ID.
+
+  Returns:
+  - `:ok` on success
+  - `{:error, :not_found}` if staff member doesn't exist
+  """
+  def delete_staff_member(staff_id) when is_binary(staff_id) do
+    DeleteStaffMember.execute(staff_id)
+  end
+
+  @doc """
+  Retrieves a single staff member by ID.
+
+  Returns:
+  - `{:ok, StaffMember.t()}` on success
+  - `{:error, :not_found}` if not found
+  """
+  def get_staff_member(staff_id) when is_binary(staff_id) do
+    @staff_repository.get(staff_id)
+  end
+
+  @doc """
+  Lists all staff members for a provider, ordered by insertion date.
+
+  Returns:
+  - `{:ok, [StaffMember.t()]}` (may be empty)
+  """
+  def list_staff_members(provider_id) when is_binary(provider_id) do
+    @staff_repository.list_by_provider(provider_id)
+  end
+
+  @doc """
+  Returns a changeset for tracking staff member form changes.
+
+  Used by LiveView forms for `to_form()` and `phx-change` validation.
+  """
+  def change_staff_member(%StaffMember{} = staff, attrs \\ %{}) do
+    ChangeStaffMember.execute(staff, attrs)
+  end
+
+  @doc """
+  Returns an empty changeset for a new staff member form.
+  """
+  def new_staff_member_changeset(attrs \\ %{}) do
+    ChangeStaffMember.new_changeset(attrs)
   end
 end

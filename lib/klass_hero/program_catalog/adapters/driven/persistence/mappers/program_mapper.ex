@@ -41,6 +41,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
   def to_domain(%ProgramSchema{} = schema) do
     %Program{
       id: to_string(schema.id),
+      provider_id: schema.provider_id && to_string(schema.provider_id),
       title: schema.title,
       description: schema.description,
       category: schema.category,

@@ -5,7 +5,9 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   import KlassHeroWeb.ReviewComponents
   import KlassHeroWeb.UIComponents
 
+  alias KlassHero.Identity
   alias KlassHero.ProgramCatalog
+  alias KlassHeroWeb.Presenters.StaffMemberPresenter
   alias KlassHeroWeb.Theme
 
   @impl true
@@ -21,10 +23,13 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             gettext("Final exhibition showcase")
           ])
 
+        team_members = load_team_members(program.provider_id)
+
         socket =
           socket
           |> assign(page_title: program.title)
           |> assign(program: program_with_items)
+          |> assign(team_members: team_members)
           |> assign(instructor: sample_instructor())
           |> assign(reviews: sample_reviews())
 
@@ -65,6 +70,15 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   @impl true
   def handle_event("save_for_later", _params, socket) do
     {:noreply, socket}
+  end
+
+  defp load_team_members(nil), do: []
+
+  defp load_team_members(provider_id) do
+    case Identity.list_staff_members(provider_id) do
+      {:ok, members} -> StaffMemberPresenter.to_card_view_list(members)
+      {:error, _} -> []
+    end
   end
 
   @impl true
@@ -259,7 +273,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           </div>
         </section>
 
-        <%!-- Meet Your Instructor Section --%>
+        <%!-- Meet the Team / Instructor Section --%>
         <section>
           <div class={[
             Theme.bg(:surface),
@@ -270,32 +284,99 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             <div class={["p-4 border-b", Theme.border_color(:light)]}>
               <h3 class={["font-semibold flex items-center gap-2", Theme.text_color(:heading)]}>
                 <.icon name="hero-user" class="w-5 h-5 text-hero-blue-500" />
-                {gettext("Meet Your Instructor")}
+                <%= if length(@team_members) > 1 do %>
+                  {gettext("Meet the Team")}
+                <% else %>
+                  {gettext("Meet Your Instructor")}
+                <% end %>
               </h3>
             </div>
             <div class="p-6">
-              <div class="flex items-start space-x-4">
-                <.user_avatar size="lg" />
-                <div class="flex-1">
-                  <h4 class={["font-semibold", Theme.text_color(:heading)]}>
-                    {@instructor.name}
-                  </h4>
-                  <p class={["text-sm mb-2", Theme.text_color(:muted)]}>
-                    {@instructor.credentials}
-                  </p>
-                  <p class={["text-sm leading-relaxed mb-3", Theme.text_color(:secondary)]}>
-                    {@instructor.bio}
-                  </p>
-                  <div class="flex items-center">
-                    <.star_rating
-                      rating={@instructor.rating}
-                      size={:medium}
-                      show_count
-                      count={@instructor.review_count}
+              <%= if @team_members != [] do %>
+                <div class="space-y-6">
+                  <div :for={member <- @team_members} class="flex items-start space-x-4">
+                    <img
+                      :if={member.headshot_url}
+                      src={member.headshot_url}
+                      alt={member.full_name}
+                      class={[
+                        "w-16 h-16 object-cover flex-shrink-0",
+                        Theme.rounded(:full)
+                      ]}
                     />
+                    <div
+                      :if={!member.headshot_url}
+                      class={[
+                        "w-16 h-16 flex items-center justify-center text-white text-xl font-bold flex-shrink-0",
+                        Theme.rounded(:full),
+                        Theme.gradient(:primary)
+                      ]}
+                    >
+                      {member.initials}
+                    </div>
+                    <div class="flex-1">
+                      <h4 class={["font-semibold", Theme.text_color(:heading)]}>
+                        {member.full_name}
+                      </h4>
+                      <p :if={member.role} class={["text-sm mb-2", Theme.text_color(:muted)]}>
+                        {member.role}
+                      </p>
+                      <p
+                        :if={member.bio}
+                        class={["text-sm leading-relaxed mb-3", Theme.text_color(:secondary)]}
+                      >
+                        {member.bio}
+                      </p>
+                      <div :if={member.tags != []} class="flex flex-wrap gap-1.5 mb-2">
+                        <span
+                          :for={tag <- member.tags}
+                          class={[
+                            "px-2 py-0.5 text-xs font-medium bg-hero-cyan-100 text-hero-cyan",
+                            Theme.rounded(:full)
+                          ]}
+                        >
+                          {tag}
+                        </span>
+                      </div>
+                      <div :if={member.qualifications != []} class="flex flex-wrap gap-1.5">
+                        <span
+                          :for={qual <- member.qualifications}
+                          class={[
+                            "px-2 py-0.5 text-xs font-medium border border-hero-grey-300 text-hero-grey-600",
+                            Theme.rounded(:md)
+                          ]}
+                        >
+                          {qual}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              <% else %>
+                <%!-- Fallback to sample instructor when no staff members exist --%>
+                <div class="flex items-start space-x-4">
+                  <.user_avatar size="lg" />
+                  <div class="flex-1">
+                    <h4 class={["font-semibold", Theme.text_color(:heading)]}>
+                      {@instructor.name}
+                    </h4>
+                    <p class={["text-sm mb-2", Theme.text_color(:muted)]}>
+                      {@instructor.credentials}
+                    </p>
+                    <p class={["text-sm leading-relaxed mb-3", Theme.text_color(:secondary)]}>
+                      {@instructor.bio}
+                    </p>
+                    <div class="flex items-center">
+                      <.star_rating
+                        rating={@instructor.rating}
+                        size={:medium}
+                        show_count
+                        count={@instructor.review_count}
+                      />
+                    </div>
+                  </div>
+                </div>
+              <% end %>
             </div>
           </div>
         </section>
