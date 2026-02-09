@@ -773,19 +773,24 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   defp atomize_staff_params(params) do
-    # Trigger: form params arrive as string keys
-    # Why: use cases expect atom keys
-    # Outcome: safely convert known staff fields to atoms
+    # Trigger: form params arrive as string keys with "" for unfilled optional fields
+    # Why: use cases and domain model expect atom keys; empty strings must become nil
+    #      for optional fields; hidden checkbox input sends [""] when unchecked
+    # Outcome: clean map ready for domain validation
     %{
       first_name: params["first_name"],
       last_name: params["last_name"],
-      role: params["role"],
-      email: params["email"],
-      bio: params["bio"],
-      tags: params["tags"] || [],
+      role: presence(params["role"]),
+      email: presence(params["email"]),
+      bio: presence(params["bio"]),
+      tags: (params["tags"] || []) |> Enum.reject(&(&1 == "")),
       qualifications: parse_qualifications(params["qualifications"])
     }
   end
+
+  defp presence(""), do: nil
+  defp presence(nil), do: nil
+  defp presence(value), do: value
 
   defp parse_qualifications(nil), do: []
   defp parse_qualifications(""), do: []
