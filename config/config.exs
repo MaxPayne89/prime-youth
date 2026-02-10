@@ -119,7 +119,9 @@ config :klass_hero, :participation,
 
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,
-  repository: KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+  repository: KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository,
+  creation_repository:
+    KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
 
 config :klass_hero, :scopes,
   user: [

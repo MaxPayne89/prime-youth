@@ -33,7 +33,10 @@ defmodule KlassHero.ProgramCatalog do
 
   """
 
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.ChangeProgram
+
   alias KlassHero.ProgramCatalog.Application.UseCases.{
+    CreateProgram,
     GetProgramById,
     ListAllPrograms,
     ListFeaturedPrograms,
@@ -246,4 +249,33 @@ defmodule KlassHero.ProgramCatalog do
   def trending_searches(limit \\ nil)
   def trending_searches(nil), do: TrendingSearches.list()
   def trending_searches(limit), do: TrendingSearches.list(limit)
+
+  # ============================================================================
+  # Program Creation
+  # ============================================================================
+
+  @doc """
+  Creates a new program.
+
+  ## Parameters
+
+  - `attrs` - Map with: title, description, category, price, provider_id.
+    Optional: location, cover_image_url, instructor_id, instructor_name, instructor_headshot_url.
+
+  ## Returns
+
+  - `{:ok, Program.t()}` on success
+  - `{:error, changeset}` on validation failure
+  """
+  @spec create_program(map()) :: {:ok, Program.t()} | {:error, term()}
+  def create_program(attrs) when is_map(attrs) do
+    CreateProgram.execute(attrs)
+  end
+
+  @doc """
+  Returns an empty changeset for the program creation form.
+  """
+  def new_program_changeset(attrs \\ %{}) do
+    ChangeProgram.new_changeset(attrs)
+  end
 end
