@@ -73,6 +73,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(selected_staff: "all")
           |> assign(show_staff_form: false, editing_staff_id: nil)
           |> assign(staff_form: to_form(Identity.new_staff_member_changeset()))
+          |> assign(show_program_form: false)
+          |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
+          |> assign(instructor_options: build_instructor_options(provider_profile.id))
           |> allow_upload(:logo,
             accept: ~w(.jpg .jpeg .png .webp),
             max_entries: 1,
@@ -87,6 +90,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             accept: ~w(.jpg .jpeg .png .webp),
             max_entries: 1,
             max_file_size: 1_000_000
+          )
+          |> allow_upload(:program_cover,
+            accept: ~w(.jpg .jpeg .png .webp),
+            max_entries: 1,
+            max_file_size: 2_000_000
           )
 
         {:ok, socket}
@@ -415,6 +423,78 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   # ============================================================================
+  # Program Creation Events
+  # ============================================================================
+
+  @impl true
+  def handle_event("add_program", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(show_program_form: true)
+     |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
+     |> assign(
+       instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id)
+     )}
+  end
+
+  @impl true
+  def handle_event("close_program_form", _params, socket) do
+    {:noreply, assign(socket, show_program_form: false)}
+  end
+
+  @impl true
+  def handle_event("validate_program", %{"program_schema" => params}, socket) do
+    changeset =
+      ProgramCatalog.new_program_changeset(params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, program_form: to_form(changeset))}
+  end
+
+  @impl true
+  def handle_event("save_program", %{"program_schema" => params}, socket) do
+    provider = socket.assigns.current_scope.provider
+
+    # Trigger: cover image upload may or may not be present
+    # Why: program can be saved without a cover image
+    # Outcome: include cover_image_url in attrs if upload succeeded
+    cover_result = upload_program_cover(socket, provider.id)
+
+    attrs =
+      %{
+        provider_id: provider.id,
+        title: params["title"],
+        description: params["description"],
+        category: params["category"],
+        price: params["price"],
+        location: presence(params["location"])
+      }
+      |> maybe_add_cover_image(cover_result)
+      |> maybe_add_instructor(params["instructor_id"], socket)
+
+    case ProgramCatalog.create_program(attrs) do
+      {:ok, program} ->
+        view = ProgramPresenter.to_table_view(program)
+
+        {:noreply,
+         socket
+         |> stream_insert(:programs, view)
+         |> assign(
+           show_program_form: false,
+           programs_count: socket.assigns.programs_count + 1
+         )
+         |> clear_flash(:error)
+         |> put_flash(:info, gettext("Program created successfully."))}
+
+      {:error, changeset} ->
+        {:noreply,
+         socket
+         |> assign(program_form: to_form(Map.put(changeset, :action, :validate)))
+         |> put_flash(:error, gettext("Please fix the errors below."))}
+    end
+  end
+
+  # ============================================================================
   # Dashboard Tab Events
   # ============================================================================
 
@@ -473,6 +553,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   staff_options={@staff_options}
                   search_query={@search_query}
                   selected_staff={@selected_staff}
+                  show_program_form={@show_program_form}
+                  program_form={@program_form}
+                  uploads={@uploads}
+                  instructor_options={@instructor_options}
                 />
             <% end %>
         <% end %>
@@ -714,9 +798,26 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     """
   end
 
+  attr :programs, :any, required: true
+  attr :staff_options, :list, required: true
+  attr :search_query, :string, required: true
+  attr :selected_staff, :string, required: true
+  attr :show_program_form, :boolean, required: true
+  attr :program_form, :any, required: true
+  attr :uploads, :map, required: true
+  attr :instructor_options, :list, required: true
+
   defp programs_section(assigns) do
     ~H"""
     <div class="space-y-6">
+      <%= if @show_program_form do %>
+        <.program_form
+          form={@program_form}
+          uploads={@uploads}
+          instructor_options={@instructor_options}
+        />
+      <% end %>
+
       <.programs_table
         programs={@programs}
         staff_options={@staff_options}
@@ -843,6 +944,65 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp maybe_add_headshot(attrs, {:ok, url}), do: Map.put(attrs, :headshot_url, url)
   defp maybe_add_headshot(attrs, _), do: attrs
+
+  # Trigger: program cover upload entries may be empty (provider didn't pick an image)
+  # Why: consume_uploaded_entries returns [] when no entries exist
+  # Outcome: {:ok, url} on success, :no_upload if no file selected, :upload_error on failure
+  defp upload_program_cover(socket, provider_id) do
+    case consume_uploaded_entries(socket, :program_cover, fn %{path: path}, entry ->
+           file_binary = File.read!(path)
+           safe_name = String.replace(entry.client_name, ~r/[^a-zA-Z0-9._-]/, "_")
+           storage_path = "program_covers/providers/#{provider_id}/#{safe_name}"
+
+           Storage.upload(:public, storage_path, file_binary, content_type: entry.client_type)
+         end) do
+      [{:ok, url}] -> {:ok, url}
+      [] -> :no_upload
+      _other -> :upload_error
+    end
+  end
+
+  defp maybe_add_cover_image(attrs, {:ok, url}), do: Map.put(attrs, :cover_image_url, url)
+  defp maybe_add_cover_image(attrs, _), do: attrs
+
+  # Trigger: instructor_id may be "" (none selected) or a valid UUID
+  # Why: instructor is optional; when selected, we resolve display data from Identity
+  # Outcome: attrs enriched with instructor_id/name/headshot_url, or unchanged if none
+  defp maybe_add_instructor(attrs, nil, _socket), do: attrs
+  defp maybe_add_instructor(attrs, "", _socket), do: attrs
+
+  defp maybe_add_instructor(attrs, instructor_id, socket) do
+    case Identity.get_staff_member(instructor_id) do
+      {:ok, staff} ->
+        attrs
+        |> Map.put(:instructor_id, staff.id)
+        |> Map.put(
+          :instructor_name,
+          KlassHero.Identity.Domain.Models.StaffMember.full_name(staff)
+        )
+        |> Map.put(:instructor_headshot_url, staff.headshot_url)
+
+      {:error, :not_found} ->
+        Logger.warning("Instructor not found during program creation",
+          instructor_id: instructor_id,
+          provider_id: socket.assigns.current_scope.provider.id
+        )
+
+        attrs
+    end
+  end
+
+  defp build_instructor_options(provider_id) do
+    case Identity.list_active_staff_members(provider_id) do
+      {:ok, members} ->
+        Enum.map(members, fn m ->
+          {KlassHero.Identity.Domain.Models.StaffMember.full_name(m), m.id}
+        end)
+
+      {:error, _} ->
+        []
+    end
+  end
 
   defp format_number(number) when is_integer(number) do
     number

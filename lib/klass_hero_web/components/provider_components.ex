@@ -357,6 +357,7 @@ defmodule KlassHeroWeb.ProviderComponents do
           <button
             type="button"
             id="new-program-btn"
+            phx-click="add_program"
             disabled={@business.verification_status != :verified}
             class={[
               "flex items-center gap-2 px-4 py-2 font-semibold",
