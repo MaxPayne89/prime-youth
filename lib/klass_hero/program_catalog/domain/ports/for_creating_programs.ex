@@ -6,6 +6,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForCreatingPrograms do
   the infrastructure layer.
   """
 
+  alias KlassHero.ProgramCatalog.Domain.Models.Program
+
   @callback create(attrs :: map()) ::
-              {:ok, term()} | {:error, term()}
+              {:ok, Program.t()} | {:error, Ecto.Changeset.t()}
 end

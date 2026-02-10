@@ -825,10 +825,7 @@ defmodule KlassHero.Identity do
   form to populate the instructor dropdown.
   """
   def list_active_staff_members(provider_id) when is_binary(provider_id) do
-    case @staff_repository.list_by_provider(provider_id) do
-      {:ok, members} -> {:ok, Enum.filter(members, & &1.active)}
-      error -> error
-    end
+    @staff_repository.list_active_by_provider(provider_id)
   end
 
   @doc """

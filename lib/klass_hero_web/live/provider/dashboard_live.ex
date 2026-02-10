@@ -858,14 +858,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # Upload Helpers
   # ============================================================================
 
-  # Trigger: logo upload entries may be empty (provider didn't pick a new logo)
+  # Trigger: upload entries may be empty (user didn't pick a file)
   # Why: consume_uploaded_entries returns [] when no entries exist
   # Outcome: {:ok, url} on success, :no_upload if no file selected, :upload_error on failure
-  defp upload_logo(socket, provider_id) do
-    case consume_uploaded_entries(socket, :logo, fn %{path: path}, entry ->
+  defp consume_single_upload(socket, upload_name, storage_prefix, provider_id) do
+    case consume_uploaded_entries(socket, upload_name, fn %{path: path}, entry ->
            file_binary = File.read!(path)
            safe_name = String.replace(entry.client_name, ~r/[^a-zA-Z0-9._-]/, "_")
-           storage_path = "logos/providers/#{provider_id}/#{safe_name}"
+           storage_path = "#{storage_prefix}/providers/#{provider_id}/#{safe_name}"
 
            Storage.upload(:public, storage_path, file_binary, content_type: entry.client_type)
          end) do
@@ -873,6 +873,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       [] -> :no_upload
       _other -> :upload_error
     end
+  end
+
+  defp upload_logo(socket, provider_id) do
+    consume_single_upload(socket, :logo, "logos", provider_id)
   end
 
   defp refresh_staff_options(socket) do
@@ -919,21 +923,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end)
   end
 
-  # Trigger: headshot upload entries may be empty (staff saved without headshot)
-  # Why: consume_uploaded_entries returns [] when no entries exist
-  # Outcome: {:ok, url} on success, :no_upload if no file selected, :upload_error on failure
   defp upload_headshot(socket, provider_id) do
-    case consume_uploaded_entries(socket, :headshot, fn %{path: path}, entry ->
-           file_binary = File.read!(path)
-           safe_name = String.replace(entry.client_name, ~r/[^a-zA-Z0-9._-]/, "_")
-           storage_path = "headshots/providers/#{provider_id}/#{safe_name}"
-
-           Storage.upload(:public, storage_path, file_binary, content_type: entry.client_type)
-         end) do
-      [{:ok, url}] -> {:ok, url}
-      [] -> :no_upload
-      _other -> :upload_error
-    end
+    consume_single_upload(socket, :headshot, "headshots", provider_id)
   end
 
   defp atomize_staff_params(params) do
@@ -971,21 +962,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp maybe_add_headshot(attrs, {:ok, url}), do: Map.put(attrs, :headshot_url, url)
   defp maybe_add_headshot(attrs, _), do: attrs
 
-  # Trigger: program cover upload entries may be empty (provider didn't pick an image)
-  # Why: consume_uploaded_entries returns [] when no entries exist
-  # Outcome: {:ok, url} on success, :no_upload if no file selected, :upload_error on failure
   defp upload_program_cover(socket, provider_id) do
-    case consume_uploaded_entries(socket, :program_cover, fn %{path: path}, entry ->
-           file_binary = File.read!(path)
-           safe_name = String.replace(entry.client_name, ~r/[^a-zA-Z0-9._-]/, "_")
-           storage_path = "program_covers/providers/#{provider_id}/#{safe_name}"
-
-           Storage.upload(:public, storage_path, file_binary, content_type: entry.client_type)
-         end) do
-      [{:ok, url}] -> {:ok, url}
-      [] -> :no_upload
-      _other -> :upload_error
-    end
+    consume_single_upload(socket, :program_cover, "program_covers", provider_id)
   end
 
   defp maybe_add_cover_image(attrs, {:ok, url}), do: Map.put(attrs, :cover_image_url, url)
@@ -1023,7 +1001,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           {Identity.staff_member_full_name(m), m.id}
         end)
 
-      {:error, _} ->
+      {:error, reason} ->
+        Logger.warning("Failed to load instructor options",
+          provider_id: provider_id,
+          reason: inspect(reason)
+        )
+
         []
     end
   end

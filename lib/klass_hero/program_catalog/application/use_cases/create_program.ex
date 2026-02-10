@@ -10,7 +10,9 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.CreateProgram do
   alias KlassHero.ProgramCatalog.Domain.Events.ProgramEvents
   alias KlassHero.Shared.DomainEventBus
 
-  @repository Application.compile_env!(:klass_hero, [:program_catalog, :creation_repository])
+  require Logger
+
+  @repository Application.compile_env!(:klass_hero, [:program_catalog, :repository])
 
   def execute(attrs) when is_map(attrs) do
     attrs_with_id = Map.put_new(attrs, :id, Ecto.UUID.generate())
@@ -27,7 +29,16 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.CreateProgram do
           instructor_id: program.instructor && program.instructor.id
         })
 
-      DomainEventBus.dispatch(KlassHero.ProgramCatalog, event)
+      case DomainEventBus.dispatch(KlassHero.ProgramCatalog, event) do
+        :ok ->
+          :ok
+
+        {:error, failures} ->
+          Logger.warning("[CreateProgram] Event dispatch had failures",
+            program_id: program.id,
+            errors: inspect(failures)
+          )
+      end
 
       {:ok, program}
     end

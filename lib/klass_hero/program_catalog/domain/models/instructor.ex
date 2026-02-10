@@ -30,11 +30,11 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Instructor do
   end
 
   @spec from_persistence(map()) :: {:ok, t()} | {:error, :invalid_persistence_data}
-  def from_persistence(attrs) when is_map(attrs) do
-    {:ok, struct!(__MODULE__, attrs)}
-  rescue
-    ArgumentError -> {:error, :invalid_persistence_data}
+  def from_persistence(%{id: id, name: name} = attrs) when is_binary(id) and is_binary(name) do
+    {:ok, struct!(__MODULE__, Map.put_new(attrs, :headshot_url, nil))}
   end
+
+  def from_persistence(_), do: {:error, :invalid_persistence_data}
 
   defp validate(attrs) do
     []

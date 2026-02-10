@@ -1,8 +1,11 @@
 defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapperTest do
   use KlassHero.DataCase, async: true
 
+  import ExUnit.CaptureLog
+
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapper
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.ProgramCatalog.Domain.Models.Instructor
   alias KlassHero.ProgramCatalog.Domain.Models.Program
 
   describe "to_domain/1" do
@@ -121,6 +124,60 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
 
       assert domain.price == Decimal.new("99.99")
       assert Decimal.equal?(domain.price, Decimal.new("99.99"))
+    end
+  end
+
+  describe "to_domain/1 instructor edge cases" do
+    test "maps valid instructor fields to Instructor value object" do
+      schema = %ProgramSchema{
+        id: Ecto.UUID.generate(),
+        title: "Coached Program",
+        description: "Has instructor",
+        schedule: "Mon-Fri",
+        age_range: "6-12",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 10,
+        icon_path: nil,
+        instructor_id: Ecto.UUID.generate(),
+        instructor_name: "Jane Coach",
+        instructor_headshot_url: "https://example.com/photo.jpg",
+        inserted_at: ~U[2024-01-01 10:00:00Z],
+        updated_at: ~U[2024-01-01 10:00:00Z]
+      }
+
+      domain = ProgramMapper.to_domain(schema)
+
+      assert %Instructor{} = domain.instructor
+      assert domain.instructor.name == "Jane Coach"
+      assert domain.instructor.headshot_url == "https://example.com/photo.jpg"
+    end
+
+    test "returns nil instructor and logs warning when instructor_name is nil" do
+      schema = %ProgramSchema{
+        id: Ecto.UUID.generate(),
+        title: "Bad Data Program",
+        description: "Instructor name missing",
+        schedule: "Mon-Fri",
+        age_range: "6-12",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 10,
+        icon_path: nil,
+        instructor_id: Ecto.UUID.generate(),
+        instructor_name: nil,
+        instructor_headshot_url: nil,
+        inserted_at: ~U[2024-01-01 10:00:00Z],
+        updated_at: ~U[2024-01-01 10:00:00Z]
+      }
+
+      log =
+        capture_log(fn ->
+          domain = ProgramMapper.to_domain(schema)
+          assert domain.instructor == nil
+        end)
+
+      assert log =~ "[ProgramMapper] Instructor data invalid, skipping"
     end
   end
 

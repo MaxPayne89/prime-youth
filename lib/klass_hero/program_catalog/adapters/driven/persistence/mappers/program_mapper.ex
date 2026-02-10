@@ -12,6 +12,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
   alias KlassHero.ProgramCatalog.Domain.Models.Instructor
   alias KlassHero.ProgramCatalog.Domain.Models.Program
 
+  require Logger
+
   @doc """
   Converts an Ecto ProgramSchema to a domain Program entity.
 
@@ -137,8 +139,16 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
            name: schema.instructor_name,
            headshot_url: schema.instructor_headshot_url
          }) do
-      {:ok, instructor} -> instructor
-      {:error, _} -> nil
+      {:ok, instructor} ->
+        instructor
+
+      {:error, _reason} ->
+        Logger.warning("[ProgramMapper] Instructor data invalid, skipping",
+          instructor_id: to_string(schema.instructor_id),
+          instructor_name: schema.instructor_name
+        )
+
+        nil
     end
   end
 
