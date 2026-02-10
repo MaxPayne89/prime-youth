@@ -21,7 +21,10 @@ defmodule KlassHero.ProgramCatalog.Domain.Events.ProgramEvents do
       :program_created,
       program_id,
       @aggregate_type,
-      Map.merge(base_payload, payload),
+      # Trigger: caller may pass a conflicting :program_id in payload
+      # Why: base_payload contains the canonical program_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
       opts
     )
   end

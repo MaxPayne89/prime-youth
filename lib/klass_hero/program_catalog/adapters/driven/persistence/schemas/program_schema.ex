@@ -129,14 +129,17 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :description,
       :category,
       :price,
-      :provider_id,
       :location,
-      :cover_image_url,
-      :instructor_id,
-      :instructor_name,
-      :instructor_headshot_url,
       :spots_available
     ])
+    # Trigger: provider_id, instructor fields arrive from trusted server-side code
+    # Why: including them in cast would allow form param injection
+    # Outcome: fields are set explicitly via put_change, not from user input
+    |> maybe_put_change(:provider_id, attrs)
+    |> maybe_put_change(:cover_image_url, attrs)
+    |> maybe_put_change(:instructor_id, attrs)
+    |> maybe_put_change(:instructor_name, attrs)
+    |> maybe_put_change(:instructor_headshot_url, attrs)
     |> validate_required([:title, :description, :category, :price, :provider_id])
     |> validate_length(:title, min: 1, max: 100)
     |> validate_length(:description, min: 1, max: 500)
@@ -197,5 +200,16 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_number(:spots_available, greater_than_or_equal_to: 0)
     |> optimistic_lock(:lock_version)
+  end
+
+  # Trigger: attrs may or may not contain the given key
+  # Why: programmatic fields must bypass cast but still appear as changes
+  # Outcome: put_change only when the key is present in the atom-keyed attrs map
+  defp maybe_put_change(changeset, key, attrs) when is_atom(key) do
+    if Map.has_key?(attrs, key) do
+      put_change(changeset, key, Map.get(attrs, key))
+    else
+      changeset
+    end
   end
 end

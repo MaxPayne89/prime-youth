@@ -841,6 +841,17 @@ defmodule KlassHero.Identity do
   end
 
   @doc """
+  Returns the full name of a staff member.
+
+  Delegates to `StaffMember.full_name/1` to keep domain model access
+  behind the facade boundary.
+  """
+  @spec staff_member_full_name(StaffMember.t()) :: String.t()
+  def staff_member_full_name(%StaffMember{} = staff) do
+    StaffMember.full_name(staff)
+  end
+
+  @doc """
   Returns an empty changeset for a new staff member form.
   """
   def new_staff_member_changeset(attrs \\ %{}) do

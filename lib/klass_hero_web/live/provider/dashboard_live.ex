@@ -466,42 +466,57 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_event("save_program", %{"program_schema" => params}, socket) do
     provider = socket.assigns.current_scope.provider
 
-    # Trigger: cover image upload may or may not be present
-    # Why: program can be saved without a cover image
-    # Outcome: include cover_image_url in attrs if upload succeeded
-    cover_result = upload_program_cover(socket, provider.id)
-
-    attrs =
-      %{
-        provider_id: provider.id,
-        title: params["title"],
-        description: params["description"],
-        category: params["category"],
-        price: params["price"],
-        location: presence(params["location"])
-      }
-      |> maybe_add_cover_image(cover_result)
-      |> maybe_add_instructor(params["instructor_id"], socket)
-
-    case ProgramCatalog.create_program(attrs) do
-      {:ok, program} ->
-        view = ProgramPresenter.to_table_view(program)
-
+    # Trigger: cover image upload may succeed, be absent, or fail
+    # Why: upload failures must not be silently ignored (mirrors save_profile pattern)
+    # Outcome: :upload_error aborts save; :no_upload proceeds without cover; {:ok, url} includes it
+    case upload_program_cover(socket, provider.id) do
+      :upload_error ->
         {:noreply,
-         socket
-         |> stream_insert(:programs, view)
-         |> assign(
-           show_program_form: false,
-           programs_count: socket.assigns.programs_count + 1
-         )
-         |> clear_flash(:error)
-         |> put_flash(:info, gettext("Program created successfully."))}
+         put_flash(socket, :error, gettext("Cover image upload failed. Please try again."))}
 
-      {:error, changeset} ->
-        {:noreply,
-         socket
-         |> assign(program_form: to_form(Map.put(changeset, :action, :validate)))
-         |> put_flash(:error, gettext("Please fix the errors below."))}
+      cover_result ->
+        attrs =
+          %{
+            provider_id: provider.id,
+            title: params["title"],
+            description: params["description"],
+            category: params["category"],
+            price: params["price"],
+            location: presence(params["location"])
+          }
+          |> maybe_add_cover_image(cover_result)
+
+        case maybe_add_instructor(attrs, params["instructor_id"], socket) do
+          {:error, :instructor_not_found} ->
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("Selected instructor could not be found. Please try again.")
+             )}
+
+          {:ok, attrs} ->
+            case ProgramCatalog.create_program(attrs) do
+              {:ok, program} ->
+                view = ProgramPresenter.to_table_view(program)
+
+                {:noreply,
+                 socket
+                 |> stream_insert(:programs, view)
+                 |> assign(
+                   show_program_form: false,
+                   programs_count: socket.assigns.programs_count + 1
+                 )
+                 |> clear_flash(:error)
+                 |> put_flash(:info, gettext("Program created successfully."))}
+
+              {:error, changeset} ->
+                {:noreply,
+                 socket
+                 |> assign(program_form: to_form(Map.put(changeset, :action, :validate)))
+                 |> put_flash(:error, gettext("Please fix the errors below."))}
+            end
+        end
     end
   end
 
@@ -976,30 +991,28 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp maybe_add_cover_image(attrs, {:ok, url}), do: Map.put(attrs, :cover_image_url, url)
   defp maybe_add_cover_image(attrs, _), do: attrs
 
-  # Trigger: instructor_id may be "" (none selected) or a valid UUID
+  # Trigger: instructor_id may be nil/"" (none selected) or a valid UUID
   # Why: instructor is optional; when selected, we resolve display data from Identity
-  # Outcome: attrs enriched with instructor_id/name/headshot_url, or unchanged if none
-  defp maybe_add_instructor(attrs, nil, _socket), do: attrs
-  defp maybe_add_instructor(attrs, "", _socket), do: attrs
+  # Outcome: {:ok, attrs} enriched with instructor data, or {:error, :instructor_not_found}
+  defp maybe_add_instructor(attrs, nil, _socket), do: {:ok, attrs}
+  defp maybe_add_instructor(attrs, "", _socket), do: {:ok, attrs}
 
   defp maybe_add_instructor(attrs, instructor_id, socket) do
     case Identity.get_staff_member(instructor_id) do
       {:ok, staff} ->
-        attrs
-        |> Map.put(:instructor_id, staff.id)
-        |> Map.put(
-          :instructor_name,
-          KlassHero.Identity.Domain.Models.StaffMember.full_name(staff)
-        )
-        |> Map.put(:instructor_headshot_url, staff.headshot_url)
+        {:ok,
+         attrs
+         |> Map.put(:instructor_id, staff.id)
+         |> Map.put(:instructor_name, Identity.staff_member_full_name(staff))
+         |> Map.put(:instructor_headshot_url, staff.headshot_url)}
 
-      {:error, :not_found} ->
+      {:error, _reason} ->
         Logger.warning("Instructor not found during program creation",
           instructor_id: instructor_id,
           provider_id: socket.assigns.current_scope.provider.id
         )
 
-        attrs
+        {:error, :instructor_not_found}
     end
   end
 
@@ -1007,7 +1020,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     case Identity.list_active_staff_members(provider_id) do
       {:ok, members} ->
         Enum.map(members, fn m ->
-          {KlassHero.Identity.Domain.Models.StaffMember.full_name(m), m.id}
+          {Identity.staff_member_full_name(m), m.id}
         end)
 
       {:error, _} ->
