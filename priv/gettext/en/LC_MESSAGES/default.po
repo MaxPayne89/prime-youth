@@ -282,7 +282,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:173
 #, elixir-autogen, elixir-format
-msgid "Every provider completes a 3-step verification: background screening, reference calls, and personal interviews. Your child's safety is non-negotiable"
+msgid "Every provider completes a 3-step verification: background screening, experience validation and personal interviews. Your child's safety is non-negotiable"
 msgstr ""
 
 #: lib/klass_hero_web/live/programs_live.ex:43
@@ -1679,17 +1679,17 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:371
 #, elixir-autogen, elixir-format
-msgid "1 free cancellation per month"
+msgid "Fully customizable Family Planner"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:367
 #, elixir-autogen, elixir-format
-msgid "AI Support Bot for recommendations"
+msgid "Unlimited bookings"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:385
 #, elixir-autogen, elixir-format
-msgid "Accept bookings"
+msgid "Automatic Invoicing"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:361
@@ -1699,7 +1699,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:400
 #, elixir-autogen, elixir-format
-msgid "Advanced analytics dashboard"
+msgid "Finance Dashboard with Expense Tracking & Analytics"
 msgstr ""
 
 #: lib/klass_hero_web/live/programs_live.ex:27
@@ -1709,7 +1709,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:70
 #, elixir-autogen, elixir-format
-msgid "All instructors are background-checked and verified"
+msgid "Every Provder passes a 3-step check — background screening, credential verification, and personal interview. Your child's safety is never compromised."
 msgstr ""
 
 #: lib/klass_hero_web/live/programs_live.ex:29
@@ -1725,12 +1725,12 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:386
 #, elixir-autogen, elixir-format
-msgid "Basic analytics"
+msgid "Platform Commission 18% per transaction"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:383
 #, elixir-autogen, elixir-format
-msgid "Basic profile page"
+msgid "Max 2 Active Program Listings"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:379
@@ -1740,17 +1740,17 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:352
 #, elixir-autogen, elixir-format
-msgid "Book up to 2 activities per month"
+msgid "Family Planner view of Klass Hero programs"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:351
 #, elixir-autogen, elixir-format, fuzzy
-msgid "Browse all programs"
+msgid "Unlimited bookings"
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:112
 #, elixir-autogen, elixir-format
-msgid "Building connections between families and local instructors"
+msgid "Find trusted providers in your neighbourhood, read verified reviews, and share recommendations with other parents."
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:38
@@ -1786,7 +1786,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:198
 #, elixir-autogen, elixir-format
-msgid "Certification and experience verification"
+msgid "Tutors must submit verifiable credentials — teaching certifications, coaching licences, university degrees, or equivalent professional experience"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:286
@@ -1842,7 +1842,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:129
 #, elixir-autogen, elixir-format
-msgid "Every instructor goes through rigorous screening to ensure the highest quality"
+msgid "Before any provider lists a programme on Klass Hero, they complete our 3-stage verification process so we can offer parents access to the best youth activities in Berlin."
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:435
@@ -1862,12 +1862,12 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:402
 #, elixir-autogen, elixir-format
-msgid "Featured placement opportunities"
+msgid "Platform Commission 12% per transaction"
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:287
 #, elixir-autogen, elixir-format
-msgid "Financial strategist focused on sustainable growth and value creation for all stakeholders."
+msgid "Brings startup finance and growth strategy experience, ensuring the platform can scale responsibly while supporting Berlin’s youth education ecosystem."
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:316
@@ -1893,7 +1893,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:251
 #, elixir-autogen, elixir-format
-msgid "Former education technology leader with a passion for making quality programs accessible to all families."
+msgid "Has 10+ years in scaling youth extra-curricular activities in Berlin. Dedicated to finding the best program providers for his daughter."
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:348
@@ -1909,7 +1909,8 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:46
 #, elixir-autogen, elixir-format
-msgid "From sports to arts, technology to languages, we make it easy to discover enriching activities that fit your family's schedule and budget."
+msgid "Need a certified English-speaking math tutor? A beginner piano teacher? or a summer English day camp? — we have vetted providers ready to book today.
+Every provider is verified. Every booking is protected. Every family deserves easy access to local kid's activities."
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:304
@@ -1949,7 +1950,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:220
 #, elixir-autogen, elixir-format
-msgid "In-depth conversation about values and approach"
+msgid "In-depth conversation to assess provider teaching philosophy, safeguarding awareness, and communication style."
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:453
@@ -2016,7 +2017,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:23
 #, elixir-autogen, elixir-format
-msgid "OUR MISSION"
+msgid "#1 for Discovering Berlin Kids' Activities, Tutoring & Summer Camps"
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:154
@@ -2026,7 +2027,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:126
 #, elixir-autogen, elixir-format
-msgid "Our 3-Step Vetting Process"
+msgid "How We Vet Every Activity Provider"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:347
@@ -2046,7 +2047,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:401
 #, elixir-autogen, elixir-format
-msgid "Priority customer support"
+msgid "Open Direct Chat with Parents"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:393
@@ -2071,7 +2072,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:298
 #, elixir-autogen, elixir-format
-msgid "Ready to join the movement?"
+msgid "Find or Lead Trusted Kids' Activities in Berlin!"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:80
@@ -2138,7 +2139,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:89
 #, elixir-autogen, elixir-format
-msgid "Supporting local programs and eco-conscious practices"
+msgid "We prioritise independent local educators — helping Berlin's freelance tutors, coaches, and creative instructors build sustainable small businesses."
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:86
@@ -2158,7 +2159,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:269
 #, elixir-autogen, elixir-format
-msgid "Technology innovator committed to building platforms that empower families and instructors."
+msgid "Technology innovator, full-stack engineer and father of two committed to building a platform that empower families and instructors."
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:231
@@ -2178,22 +2179,23 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:368
 #, elixir-autogen, elixir-format
-msgid "Unlimited bookings"
+msgid "Klass Hero late cancellation insurance (covers up to €50/month)"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:399
 #, elixir-autogen, elixir-format
-msgid "Unlimited program listings"
+msgid "Max 5 Active Program Listings"
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:41
 #, elixir-autogen, elixir-format
-msgid "We understand the unique needs of Berlin's diverse families. Our platform connects you with vetted, high-quality programs that match your values and your children's interests."
+msgid "Berlin has one of Europe's largest expat communities — and finding quality, English-friendly children's programmes can be overwhelming.
+Klass Hero was built specifically for families in Zehlendorf, Prenzlauer Berg, Charlottenburg, Kreuzberg, and beyond."
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:445
 #, elixir-autogen, elixir-format
-msgid "Yes. Every educator undergoes identity verification, reference calls, and enhanced background screening before approval"
+msgid "Yes. Every educator undergoes identity verification, experience validation and enhanced background screening before approval"
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:483
