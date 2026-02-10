@@ -36,6 +36,17 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       provider_profile ->
         business = ProviderPresenter.to_business_view(provider_profile)
 
+        # Trigger: to_business_view defaults verification_status to :not_started
+        # Why: full docs-based derivation happens in handle_params(:overview),
+        #      but other tabs need a baseline so the "New Program" button gating works
+        # Outcome: verified providers get :verified immediately; detail refinement on overview tab
+        business =
+          if provider_profile.verified do
+            %{business | verification_status: :verified}
+          else
+            business
+          end
+
         # Load real programs for this provider
         domain_programs = ProgramCatalog.list_programs_for_provider(provider_profile.id)
         programs = Enum.map(domain_programs, &ProgramPresenter.to_table_view/1)
