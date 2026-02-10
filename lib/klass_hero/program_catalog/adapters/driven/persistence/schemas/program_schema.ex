@@ -28,6 +28,11 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :icon_path, :string
     field :end_date, :utc_datetime
     field :provider_id, :binary_id
+    field :location, :string
+    field :cover_image_url, :string
+    field :instructor_id, :binary_id
+    field :instructor_name, :string
+    field :instructor_headshot_url, :string
 
     timestamps()
   end
@@ -46,6 +51,11 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           icon_path: String.t() | nil,
           end_date: DateTime.t() | nil,
           provider_id: Ecto.UUID.t() | nil,
+          location: String.t() | nil,
+          cover_image_url: String.t() | nil,
+          instructor_id: Ecto.UUID.t() | nil,
+          instructor_name: String.t() | nil,
+          instructor_headshot_url: String.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -79,7 +89,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :spots_available,
       :icon_path,
       :end_date,
-      :provider_id
+      :provider_id,
+      :location,
+      :cover_image_url,
+      :instructor_id,
+      :instructor_name,
+      :instructor_headshot_url
     ])
     |> validate_required([
       :title,
@@ -99,6 +114,40 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_number(:spots_available, greater_than_or_equal_to: 0)
+  end
+
+  @doc """
+  Creates a changeset for program creation.
+
+  Requires only the minimal fields needed to create a program.
+  Schedule, age_range, and pricing_period are optional at creation time.
+  """
+  def create_changeset(program_schema, attrs) do
+    program_schema
+    |> cast(attrs, [
+      :title,
+      :description,
+      :category,
+      :price,
+      :provider_id,
+      :location,
+      :cover_image_url,
+      :instructor_id,
+      :instructor_name,
+      :instructor_headshot_url,
+      :spots_available
+    ])
+    |> validate_required([:title, :description, :category, :price, :provider_id])
+    |> validate_length(:title, min: 1, max: 100)
+    |> validate_length(:description, min: 1, max: 500)
+    |> validate_length(:location, max: 255)
+    |> validate_length(:cover_image_url, max: 500)
+    |> validate_length(:instructor_name, max: 200)
+    |> validate_inclusion(:category, ProgramCategories.program_categories())
+    |> validate_number(:price, greater_than_or_equal_to: 0)
+    |> validate_number(:spots_available, greater_than_or_equal_to: 0)
+    |> foreign_key_constraint(:provider_id)
+    |> foreign_key_constraint(:instructor_id)
   end
 
   @doc """
@@ -122,7 +171,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :pricing_period,
       :spots_available,
       :icon_path,
-      :end_date
+      :end_date,
+      :location,
+      :cover_image_url,
+      :instructor_id,
+      :instructor_name,
+      :instructor_headshot_url
     ])
     |> validate_required([
       :title,

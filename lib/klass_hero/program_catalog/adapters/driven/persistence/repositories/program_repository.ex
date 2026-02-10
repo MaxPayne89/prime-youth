@@ -11,6 +11,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   are handled by the supervision tree.
   """
 
+  @behaviour KlassHero.ProgramCatalog.Domain.Ports.ForCreatingPrograms
   @behaviour KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms
   @behaviour KlassHero.ProgramCatalog.Domain.Ports.ForUpdatingPrograms
 
@@ -25,6 +26,35 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   alias KlassHeroWeb.ErrorIds
 
   require Logger
+
+  @impl true
+  def create(attrs) when is_map(attrs) do
+    Logger.info("[ProgramRepository] Creating new program",
+      provider_id: attrs[:provider_id],
+      title: attrs[:title]
+    )
+
+    case %ProgramSchema{}
+         |> ProgramSchema.create_changeset(attrs)
+         |> Repo.insert() do
+      {:ok, schema} ->
+        program = ProgramMapper.to_domain(schema)
+
+        Logger.info("[ProgramRepository] Successfully created program",
+          program_id: program.id,
+          title: program.title
+        )
+
+        {:ok, program}
+
+      {:error, changeset} ->
+        Logger.warning("[ProgramRepository] Program creation failed",
+          errors: inspect(changeset.errors)
+        )
+
+        {:error, changeset}
+    end
+  end
 
   @impl true
   @doc """

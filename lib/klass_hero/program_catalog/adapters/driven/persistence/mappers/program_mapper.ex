@@ -9,6 +9,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
   """
 
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.ProgramCatalog.Domain.Models.Instructor
   alias KlassHero.ProgramCatalog.Domain.Models.Program
 
   @doc """
@@ -49,10 +50,13 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       age_range: schema.age_range,
       price: schema.price,
       pricing_period: schema.pricing_period,
-      spots_available: schema.spots_available,
+      spots_available: schema.spots_available || 0,
       icon_path: schema.icon_path,
       end_date: schema.end_date,
       lock_version: schema.lock_version,
+      location: schema.location,
+      cover_image_url: schema.cover_image_url,
+      instructor: build_instructor(schema),
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -104,7 +108,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
 
   """
   def to_schema(%Program{} = program) do
-    %{
+    base = %{
       title: program.title,
       description: program.description,
       category: program.category,
@@ -114,7 +118,39 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       pricing_period: program.pricing_period,
       spots_available: program.spots_available,
       icon_path: program.icon_path,
-      end_date: program.end_date
+      end_date: program.end_date,
+      location: program.location,
+      cover_image_url: program.cover_image_url
     }
+
+    add_instructor_fields(base, program.instructor)
+  end
+
+  # Trigger: instructor columns may all be nil (no instructor assigned)
+  # Why: instructor is optional — don't create a VO from nil data
+  # Outcome: nil when no instructor, Instructor VO when data present
+  defp build_instructor(%ProgramSchema{instructor_id: nil}), do: nil
+
+  defp build_instructor(%ProgramSchema{} = schema) do
+    case Instructor.from_persistence(%{
+           id: to_string(schema.instructor_id),
+           name: schema.instructor_name,
+           headshot_url: schema.instructor_headshot_url
+         }) do
+      {:ok, instructor} -> instructor
+      {:error, _} -> nil
+    end
+  end
+
+  defp add_instructor_fields(attrs, nil) do
+    Map.merge(attrs, %{instructor_id: nil, instructor_name: nil, instructor_headshot_url: nil})
+  end
+
+  defp add_instructor_fields(attrs, %Instructor{} = instructor) do
+    Map.merge(attrs, %{
+      instructor_id: instructor.id,
+      instructor_name: instructor.name,
+      instructor_headshot_url: instructor.headshot_url
+    })
   end
 end
