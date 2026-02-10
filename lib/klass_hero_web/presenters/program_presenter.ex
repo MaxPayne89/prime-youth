@@ -42,8 +42,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       name: program.title,
       category: humanize_category(program.category),
       price: Decimal.to_integer(program.price),
-      # Placeholder: Staff assignment feature pending implementation
-      assigned_staff: nil,
+      assigned_staff: format_instructor(program.instructor),
       # Placeholder: Program status tracking pending implementation
       status: :active,
       # Placeholder: Enrollment count integration pending implementation
@@ -51,6 +50,28 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       capacity: program.spots_available
     }
   end
+
+  defp format_instructor(nil), do: nil
+
+  defp format_instructor(instructor) do
+    %{
+      id: instructor.id,
+      name: instructor.name,
+      initials: build_initials(instructor.name),
+      headshot_url: instructor.headshot_url
+    }
+  end
+
+  defp build_initials(name) when is_binary(name) do
+    name
+    |> String.split()
+    |> Enum.map(&String.first/1)
+    |> Enum.take(2)
+    |> Enum.join()
+    |> String.upcase()
+  end
+
+  defp build_initials(_), do: "?"
 
   @doc """
   Transforms a category code to a human-readable label.

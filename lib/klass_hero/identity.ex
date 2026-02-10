@@ -819,6 +819,19 @@ defmodule KlassHero.Identity do
   end
 
   @doc """
+  Lists active staff members for a provider.
+
+  Filters to only staff with `active: true`. Used by program creation
+  form to populate the instructor dropdown.
+  """
+  def list_active_staff_members(provider_id) when is_binary(provider_id) do
+    case @staff_repository.list_by_provider(provider_id) do
+      {:ok, members} -> {:ok, Enum.filter(members, & &1.active)}
+      error -> error
+    end
+  end
+
+  @doc """
   Returns a changeset for tracking staff member form changes.
 
   Used by LiveView forms for `to_form()` and `phx-change` validation.
