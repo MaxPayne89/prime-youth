@@ -486,7 +486,20 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           }
           |> maybe_add_cover_image(cover_result)
 
-        case maybe_add_instructor(attrs, params["instructor_id"], socket) do
+        with {:ok, attrs} <- maybe_add_instructor(attrs, params["instructor_id"], socket),
+             {:ok, program} <- ProgramCatalog.create_program(attrs) do
+          view = ProgramPresenter.to_table_view(program)
+
+          {:noreply,
+           socket
+           |> stream_insert(:programs, view)
+           |> assign(
+             show_program_form: false,
+             programs_count: socket.assigns.programs_count + 1
+           )
+           |> clear_flash(:error)
+           |> put_flash(:info, gettext("Program created successfully."))}
+        else
           {:error, :instructor_not_found} ->
             {:noreply,
              put_flash(
@@ -495,27 +508,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                gettext("Selected instructor could not be found. Please try again.")
              )}
 
-          {:ok, attrs} ->
-            case ProgramCatalog.create_program(attrs) do
-              {:ok, program} ->
-                view = ProgramPresenter.to_table_view(program)
-
-                {:noreply,
-                 socket
-                 |> stream_insert(:programs, view)
-                 |> assign(
-                   show_program_form: false,
-                   programs_count: socket.assigns.programs_count + 1
-                 )
-                 |> clear_flash(:error)
-                 |> put_flash(:info, gettext("Program created successfully."))}
-
-              {:error, changeset} ->
-                {:noreply,
-                 socket
-                 |> assign(program_form: to_form(Map.put(changeset, :action, :validate)))
-                 |> put_flash(:error, gettext("Please fix the errors below."))}
-            end
+          {:error, changeset} ->
+            {:noreply,
+             socket
+             |> assign(program_form: to_form(Map.put(changeset, :action, :validate)))
+             |> put_flash(:error, gettext("Please fix the errors below."))}
         end
     end
   end
