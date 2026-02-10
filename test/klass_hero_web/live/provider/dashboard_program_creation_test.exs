@@ -108,7 +108,7 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
   end
 
   describe "program form validation errors" do
-    test "shows errors on invalid submit", %{conn: conn} do
+    test "shows inline field errors on invalid submit", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
 
       view |> element("#new-program-btn") |> render_click()
@@ -126,6 +126,27 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
 
       assert has_element?(view, "#program-form")
       assert render(view) =~ "Please fix the errors below."
+      assert render(view) =~ "can&#39;t be blank"
+    end
+
+    test "rejects negative price with validation error", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#new-program-btn") |> render_click()
+
+      view
+      |> form("#program-form", %{
+        "program_schema" => %{
+          "title" => "Valid Title",
+          "description" => "Valid description for the program",
+          "category" => "arts",
+          "price" => "-5.00"
+        }
+      })
+      |> render_submit()
+
+      assert has_element?(view, "#program-form")
+      assert render(view) =~ "must be greater than or equal to 0"
     end
 
     test "error flash is cleared on successful create", %{conn: conn} do

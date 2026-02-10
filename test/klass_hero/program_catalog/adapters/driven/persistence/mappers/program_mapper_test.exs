@@ -153,6 +153,33 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert domain.instructor.headshot_url == "https://example.com/photo.jpg"
     end
 
+    test "returns nil instructor without warning when instructor_id is nil" do
+      log =
+        capture_log(fn ->
+          schema = %ProgramSchema{
+            id: Ecto.UUID.generate(),
+            title: "No Instructor Program",
+            description: "No instructor assigned",
+            schedule: "Mon-Fri",
+            age_range: "6-12",
+            price: Decimal.new("100.00"),
+            pricing_period: "per week",
+            spots_available: 10,
+            icon_path: nil,
+            instructor_id: nil,
+            instructor_name: nil,
+            instructor_headshot_url: nil,
+            inserted_at: ~U[2024-01-01 10:00:00Z],
+            updated_at: ~U[2024-01-01 10:00:00Z]
+          }
+
+          domain = ProgramMapper.to_domain(schema)
+          assert domain.instructor == nil
+        end)
+
+      refute log =~ "[ProgramMapper]"
+    end
+
     test "returns nil instructor and logs warning when instructor_name is nil" do
       schema = %ProgramSchema{
         id: Ecto.UUID.generate(),

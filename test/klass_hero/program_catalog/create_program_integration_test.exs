@@ -1,6 +1,8 @@
 defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
   use KlassHero.DataCase
 
+  import KlassHero.EventTestHelper
+
   alias KlassHero.IdentityFixtures
   alias KlassHero.ProgramCatalog
 
@@ -44,9 +46,31 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
       assert program.location == "Sports Park"
     end
 
-    test "rejects missing required fields" do
-      assert {:error, _changeset} =
+    test "rejects missing required fields with specific errors" do
+      assert {:error, changeset} =
                ProgramCatalog.create_program(%{title: "Incomplete"})
+
+      errors = errors_on(changeset)
+      assert Map.has_key?(errors, :description)
+      assert Map.has_key?(errors, :category)
+      assert Map.has_key?(errors, :price)
+      assert Map.has_key?(errors, :provider_id)
+    end
+
+    test "rejects negative price with specific error" do
+      provider = IdentityFixtures.provider_profile_fixture()
+
+      assert {:error, changeset} =
+               ProgramCatalog.create_program(%{
+                 provider_id: provider.id,
+                 title: "Bad Price Program",
+                 description: "Has negative price",
+                 category: "arts",
+                 price: Decimal.new("-5.00")
+               })
+
+      errors = errors_on(changeset)
+      assert "must be greater than or equal to 0" in errors[:price]
     end
 
     test "rejects invalid category" do
@@ -60,6 +84,44 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
                  category: "invalid_category",
                  price: Decimal.new("10.00")
                })
+    end
+
+    test "accepts all valid program categories" do
+      provider = IdentityFixtures.provider_profile_fixture()
+
+      categories = ["sports", "arts", "music", "education", "life-skills", "camps", "workshops"]
+
+      for category <- categories do
+        assert {:ok, program} =
+                 ProgramCatalog.create_program(%{
+                   provider_id: provider.id,
+                   title: "Program for #{category}",
+                   description: "Testing #{category} category",
+                   category: category,
+                   price: Decimal.new("25.00")
+                 })
+
+        assert program.category == category
+      end
+    end
+
+    test "dispatches program_created integration event on success" do
+      setup_test_integration_events()
+      provider = IdentityFixtures.provider_profile_fixture()
+
+      assert {:ok, program} =
+               ProgramCatalog.create_program(%{
+                 provider_id: provider.id,
+                 title: "Event Test Program",
+                 description: "Tests event dispatch",
+                 category: "arts",
+                 price: Decimal.new("30.00")
+               })
+
+      event = assert_integration_event_published(:program_created)
+      assert event.entity_id == program.id
+      assert event.payload.provider_id == program.provider_id
+      assert event.payload.title == "Event Test Program"
     end
   end
 end
