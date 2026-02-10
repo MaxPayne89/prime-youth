@@ -704,6 +704,191 @@ defmodule KlassHeroWeb.ProviderComponents do
   defp qualifications_to_string(quals) when is_binary(quals), do: quals
 
   @doc """
+  Renders the program create/edit form.
+
+  ## Examples
+
+      <.program_form form={@program_form} uploads={@uploads} instructor_options={@instructor_options} />
+  """
+  attr :form, :any, required: true
+  attr :editing, :boolean, default: false
+  attr :uploads, :map, required: true
+  attr :instructor_options, :list, default: []
+
+  def program_form(assigns) do
+    ~H"""
+    <div class={["bg-white p-6 shadow-sm border border-hero-grey-200", Theme.rounded(:xl)]}>
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-semibold text-hero-charcoal">
+          <%= if @editing do %>
+            {gettext("Edit Program")}
+          <% else %>
+            {gettext("New Program")}
+          <% end %>
+        </h3>
+        <button
+          type="button"
+          phx-click="close_program_form"
+          class="text-hero-grey-400 hover:text-hero-grey-600"
+        >
+          <.icon name="hero-x-mark-mini" class="w-5 h-5" />
+        </button>
+      </div>
+
+      <.form
+        for={@form}
+        id="program-form"
+        phx-change="validate_program"
+        phx-submit="save_program"
+        class="space-y-4"
+      >
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <.input
+            field={@form[:title]}
+            type="text"
+            label={gettext("Title")}
+            placeholder={gettext("e.g., Art Adventures")}
+            required
+          />
+          <.input
+            field={@form[:category]}
+            type="select"
+            label={gettext("Category")}
+            options={category_options()}
+            prompt={gettext("Choose a category")}
+            required
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <.input
+            field={@form[:price]}
+            type="number"
+            label={gettext("Price (EUR)")}
+            placeholder="0.00"
+            step="0.01"
+            min="0"
+            required
+          />
+          <.input
+            field={@form[:location]}
+            type="text"
+            label={gettext("Location")}
+            placeholder={gettext("e.g., Community Center, Main St")}
+          />
+        </div>
+
+        <.input
+          field={@form[:description]}
+          type="textarea"
+          label={gettext("Description")}
+          placeholder={gettext("Describe your program...")}
+          rows="3"
+          required
+        />
+
+        <%!-- Cover Image Upload --%>
+        <div>
+          <label class="block text-sm font-semibold text-hero-charcoal mb-2">
+            {gettext("Cover Image")}
+          </label>
+          <div
+            id="program-cover-upload"
+            class={[
+              "border-2 border-dashed border-hero-grey-300 p-4 text-center",
+              Theme.rounded(:lg)
+            ]}
+            phx-drop-target={@uploads.program_cover.ref}
+          >
+            <div :for={entry <- @uploads.program_cover.entries} class="mb-3">
+              <.live_img_preview
+                entry={entry}
+                class="w-full max-w-xs mx-auto rounded-lg object-cover"
+              />
+              <p class="text-sm text-hero-grey-500 mt-1">{entry.client_name}</p>
+              <button
+                type="button"
+                phx-click="cancel_upload"
+                phx-value-ref={entry.ref}
+                phx-value-upload="program_cover"
+                class="text-xs text-red-500 hover:text-red-700 mt-1"
+              >
+                {gettext("Remove")}
+              </button>
+              <div
+                :for={err <- upload_errors(@uploads.program_cover, entry)}
+                class="text-xs text-red-500 mt-1"
+              >
+                {upload_error_to_string(err)}
+              </div>
+            </div>
+
+            <.live_file_input upload={@uploads.program_cover} class="hidden" />
+            <label
+              for={@uploads.program_cover.ref}
+              class={[
+                "inline-flex items-center gap-2 px-4 py-2 border border-hero-grey-300",
+                "bg-white hover:bg-hero-grey-50 text-hero-charcoal text-sm font-medium cursor-pointer",
+                Theme.rounded(:lg),
+                Theme.transition(:normal)
+              ]}
+            >
+              <.icon name="hero-photo-mini" class="w-4 h-4" />
+              {gettext("Choose Image")}
+            </label>
+            <p class="text-xs text-hero-grey-400 mt-2">
+              {gettext("JPG, PNG or WebP. Max 2MB.")}
+            </p>
+          </div>
+        </div>
+
+        <%!-- Assign Instructor --%>
+        <.input
+          field={@form[:instructor_id]}
+          type="select"
+          label={gettext("Assign Instructor")}
+          options={@instructor_options}
+          prompt={gettext("None (optional)")}
+        />
+
+        <div class="flex justify-end gap-3 pt-2">
+          <button
+            type="button"
+            phx-click="close_program_form"
+            class={[
+              "px-4 py-2 border border-hero-grey-300 text-hero-charcoal",
+              Theme.rounded(:lg),
+              Theme.transition(:normal),
+              "hover:bg-hero-grey-50"
+            ]}
+          >
+            {gettext("Cancel")}
+          </button>
+          <button
+            type="submit"
+            id="save-program-btn"
+            class={[
+              "flex items-center gap-2 px-6 py-2.5 bg-hero-yellow hover:bg-hero-yellow-dark",
+              "text-hero-charcoal font-semibold",
+              Theme.rounded(:lg),
+              Theme.transition(:normal)
+            ]}
+          >
+            <.icon name="hero-check-mini" class="w-5 h-5" />
+            {gettext("Save Program")}
+          </button>
+        </div>
+      </.form>
+    </div>
+    """
+  end
+
+  defp category_options do
+    ProgramCategories.program_categories()
+    |> Enum.map(fn cat -> {String.capitalize(cat), cat} end)
+  end
+
+  @doc """
   Renders an "Add" card with dashed border.
 
   ## Examples
