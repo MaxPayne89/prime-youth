@@ -51,7 +51,7 @@ defmodule KlassHero.MixProject do
   defp deps do
     [
       {:error_tracker, "~> 0.7"},
-      {:usage_rules, "~> 0.1", only: [:dev]},
+      {:usage_rules, "~> 1.0", only: [:dev]},
       {:bcrypt_elixir, "~> 3.0"},
       {:live_debugger, "~> 0.4", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev, :test]},
