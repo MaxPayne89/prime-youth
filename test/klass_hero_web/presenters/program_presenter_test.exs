@@ -33,12 +33,20 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.assigned_staff.headshot_url == "https://example.com/photo.jpg"
     end
 
-    test "converts Decimal price to integer" do
+    test "formats integer Decimal price as string" do
       program = build_program(%{price: Decimal.new("99.00")})
 
       result = ProgramPresenter.to_table_view(program)
 
-      assert result.price == 99
+      assert result.price == "99.00"
+    end
+
+    test "formats fractional Decimal price as string" do
+      program = build_program(%{price: Decimal.new("29.99")})
+
+      result = ProgramPresenter.to_table_view(program)
+
+      assert result.price == "29.99"
     end
 
     test "builds two-letter initials from two-word name" do
