@@ -9,6 +9,9 @@ import Config
 
 config :error_tracker, repo: KlassHero.Repo, otp_app: :klass_hero, enabled: true
 
+# Use Req (via Finch/Mint) instead of hackney for ExAws HTTP requests
+config :ex_aws, http_client: ExAws.Request.Req
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",
