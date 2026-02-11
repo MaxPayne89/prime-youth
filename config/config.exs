@@ -62,8 +62,7 @@ config :klass_hero, Oban,
 
 # Configure Accounts bounded context
 config :klass_hero, :accounts,
-  for_storing_users:
-    KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
+  for_storing_users: KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
 
 # Configure Community bounded context
 config :klass_hero, :community,
