@@ -386,13 +386,7 @@ defmodule KlassHero.Accounts do
       {:error, :invalid_password}
 
   """
-  def delete_account(%User{} = user, password) when is_binary(password) do
-    with true <- sudo_mode?(user),
-         %User{} <- get_user_by_email_and_password(user.email, password) do
-      anonymize_user(user)
-    else
-      false -> {:error, :sudo_required}
-      nil -> {:error, :invalid_password}
-    end
+  def delete_account(user, password) do
+    KlassHero.Accounts.Application.UseCases.DeleteAccount.execute(user, password)
   end
 end
