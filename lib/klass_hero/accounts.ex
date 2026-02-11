@@ -5,10 +5,8 @@ defmodule KlassHero.Accounts do
 
   import Ecto.Query, warn: false
 
-  alias KlassHero.Accounts.Domain.Events.UserEvents
   alias KlassHero.Accounts.{TokenCleanup, User, UserNotifier, UserToken}
   alias KlassHero.Repo
-  alias KlassHero.Shared.DomainEventBus
 
   ## Database getters
 
@@ -357,31 +355,9 @@ defmodule KlassHero.Accounts do
       {:error, :user_not_found}
 
   """
-  def anonymize_user(%User{} = user) do
-    previous_email = user.email
-
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:anonymize_user, User.anonymize_changeset(user))
-    |> Ecto.Multi.delete_all(:delete_tokens, fn %{anonymize_user: anonymized_user} ->
-      from(t in UserToken, where: t.user_id == ^anonymized_user.id)
-    end)
-    |> Ecto.Multi.run(:publish_event, fn _repo, %{anonymize_user: anonymized_user} ->
-      DomainEventBus.dispatch(
-        KlassHero.Accounts,
-        UserEvents.user_anonymized(anonymized_user, %{previous_email: previous_email})
-      )
-
-      {:ok, anonymized_user}
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{publish_event: user}} -> {:ok, user}
-      {:error, :anonymize_user, changeset, _} -> {:error, changeset}
-      {:error, _step, reason, _} -> {:error, reason}
-    end
+  def anonymize_user(user) do
+    KlassHero.Accounts.Application.UseCases.AnonymizeUser.execute(user)
   end
-
-  def anonymize_user(nil), do: {:error, :user_not_found}
 
   @doc """
   Deletes (anonymizes) user account after password verification.
