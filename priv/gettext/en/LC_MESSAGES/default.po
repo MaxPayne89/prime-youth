@@ -1909,8 +1909,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:46
 #, elixir-autogen, elixir-format
-msgid "Need a certified English-speaking math tutor? A beginner piano teacher? or a summer English day camp? — we have vetted providers ready to book today.
-Every provider is verified. Every booking is protected. Every family deserves easy access to local kid's activities."
+msgid "Need a certified English-speaking math tutor? A beginner piano teacher? or a summer English day camp? — we have vetted providers ready for safe, protected bookings today."
 msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:304
