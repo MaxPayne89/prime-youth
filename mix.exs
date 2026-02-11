@@ -103,8 +103,7 @@ defmodule KlassHero.MixProject do
       # Object storage (S3-compatible)
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
-      {:sweet_xml, "~> 0.7"},
-
+      {:sweet_xml, "~> 0.7"}
     ]
   end
 
