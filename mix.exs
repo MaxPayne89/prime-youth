@@ -21,7 +21,8 @@ defmodule KlassHero.MixProject do
         "coveralls.post": :test,
         "coveralls.html": :test,
         "coveralls.json": :test
-      ]
+      ],
+      usage_rules: usage_rules()
     ]
   end
 
@@ -141,5 +142,16 @@ defmodule KlassHero.MixProject do
     else
       ["test.setup", "test.db.setup", "ecto.create --quiet", "ecto.migrate --quiet", "test"]
     end
+  end
+
+  defp usage_rules do
+    [
+      file: "CLAUDE.md",
+      usage_rules: [
+        {:igniter, link: :markdown},
+        {:usage_rules, link: :markdown},
+        {~r/^phoenix/, link: :markdown}
+      ]
+    ]
   end
 end
