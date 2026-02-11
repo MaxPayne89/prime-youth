@@ -292,4 +292,75 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       assert changeset.valid?
     end
   end
+
+  describe "create_changeset/2 security" do
+    test "ignores provider_id from string-keyed params (form injection)" do
+      # Simulate form params (string keys) — provider_id should NOT be cast
+      string_attrs = %{
+        "title" => "Injected Program",
+        "description" => "Trying to inject provider_id",
+        "category" => "education",
+        "price" => "50.00",
+        "provider_id" => Ecto.UUID.generate()
+      }
+
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, string_attrs)
+
+      # provider_id should not have been picked up from string-keyed params
+      refute Ecto.Changeset.get_change(changeset, :provider_id)
+    end
+
+    test "accepts provider_id from atom-keyed attrs (programmatic input)" do
+      provider_id = Ecto.UUID.generate()
+
+      attrs = %{
+        title: "Legit Program",
+        description: "Created by server code",
+        category: "education",
+        price: Decimal.new("50.00"),
+        provider_id: provider_id
+      }
+
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+
+      assert Ecto.Changeset.get_change(changeset, :provider_id) == provider_id
+    end
+
+    test "ignores instructor_id from string-keyed params" do
+      string_attrs = %{
+        "title" => "Program",
+        "description" => "Description",
+        "category" => "education",
+        "price" => "50.00",
+        "instructor_id" => Ecto.UUID.generate()
+      }
+
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, string_attrs)
+
+      refute Ecto.Changeset.get_change(changeset, :instructor_id)
+    end
+
+    test "accepts instructor fields from atom-keyed attrs" do
+      instructor_id = Ecto.UUID.generate()
+
+      attrs = %{
+        title: "Program",
+        description: "Description",
+        category: "education",
+        price: Decimal.new("50.00"),
+        provider_id: Ecto.UUID.generate(),
+        instructor_id: instructor_id,
+        instructor_name: "Jane Doe",
+        instructor_headshot_url: "https://example.com/photo.jpg"
+      }
+
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+
+      assert Ecto.Changeset.get_change(changeset, :instructor_id) == instructor_id
+      assert Ecto.Changeset.get_change(changeset, :instructor_name) == "Jane Doe"
+
+      assert Ecto.Changeset.get_change(changeset, :instructor_headshot_url) ==
+               "https://example.com/photo.jpg"
+    end
+  end
 end

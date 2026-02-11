@@ -9,7 +9,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
 
   use ExUnit.Case, async: true
 
-  alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Domain.Models.{Instructor, Program}
 
   # Helper to build valid program attrs
   defp valid_attrs(overrides \\ %{}) do
@@ -357,6 +357,75 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       }
 
       refute Program.free?(program)
+    end
+  end
+
+  describe "new/1 with relaxed enforce_keys" do
+    @minimal_attrs %{
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      provider_id: "660e8400-e29b-41d4-a716-446655440001",
+      title: "Art Adventures",
+      description: "Creative art program for kids",
+      category: "arts",
+      price: Decimal.new("50.00")
+    }
+
+    test "creates program with only required fields" do
+      assert {:ok, program} = Program.new(@minimal_attrs)
+      assert program.title == "Art Adventures"
+      assert program.schedule == nil
+      assert program.age_range == nil
+      assert program.spots_available == 0
+    end
+
+    test "creates program with location" do
+      attrs = Map.put(@minimal_attrs, :location, "Community Center, Main St")
+      assert {:ok, program} = Program.new(attrs)
+      assert program.location == "Community Center, Main St"
+    end
+
+    test "creates program with cover_image_url" do
+      attrs = Map.put(@minimal_attrs, :cover_image_url, "https://example.com/cover.jpg")
+      assert {:ok, program} = Program.new(attrs)
+      assert program.cover_image_url == "https://example.com/cover.jpg"
+    end
+
+    test "creates program with instructor" do
+      {:ok, instructor} = Instructor.new(%{id: "abc", name: "Mike J", headshot_url: nil})
+      attrs = Map.put(@minimal_attrs, :instructor, instructor)
+      assert {:ok, program} = Program.new(attrs)
+      assert program.instructor.name == "Mike J"
+    end
+  end
+
+  describe "valid?/1 with relaxed fields" do
+    test "valid with minimal fields" do
+      {:ok, program} =
+        Program.new(%{
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          provider_id: "660e8400-e29b-41d4-a716-446655440001",
+          title: "Art Adventures",
+          description: "Creative art program for kids",
+          category: "arts",
+          price: Decimal.new("50.00")
+        })
+
+      assert Program.valid?(program)
+    end
+
+    test "invalid with empty title" do
+      {:ok, program} =
+        Program.new(%{
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          provider_id: "660e8400-e29b-41d4-a716-446655440001",
+          title: "Art Adventures",
+          description: "Creative art program for kids",
+          category: "arts",
+          price: Decimal.new("50.00")
+        })
+
+      program = %{program | title: ""}
+      refute Program.valid?(program)
     end
   end
 end

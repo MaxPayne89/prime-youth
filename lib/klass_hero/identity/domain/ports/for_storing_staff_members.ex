@@ -17,6 +17,9 @@ defmodule KlassHero.Identity.Domain.Ports.ForStoringStaffMembers do
   @callback list_by_provider(provider_id :: binary()) ::
               {:ok, [StaffMember.t()]}
 
+  @callback list_active_by_provider(provider_id :: binary()) ::
+              {:ok, [StaffMember.t()]}
+
   @callback update(staff_member :: StaffMember.t()) ::
               {:ok, StaffMember.t()} | {:error, :not_found | term()}
 

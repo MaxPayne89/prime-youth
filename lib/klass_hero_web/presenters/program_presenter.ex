@@ -28,7 +28,6 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
 
   The following fields return placeholder values pending feature implementation:
 
-  - `assigned_staff: nil` - Staff assignment feature not yet implemented
   - `status: :active` - Program status tracking not yet implemented
   - `enrolled: 0` - Enrollment count integration not yet implemented
 
@@ -41,9 +40,11 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       id: program.id,
       name: program.title,
       category: humanize_category(program.category),
-      price: Decimal.to_integer(program.price),
-      # Placeholder: Staff assignment feature pending implementation
-      assigned_staff: nil,
+      # Trigger: price is a Decimal that may have fractional cents (e.g., 29.99)
+      # Why: Decimal.to_integer crashes on non-integer values; to_string preserves precision
+      # Outcome: price rendered as "29.99" in template's €{program.price} display
+      price: program.price |> Decimal.round(2) |> Decimal.to_string(),
+      assigned_staff: format_instructor(program.instructor),
       # Placeholder: Program status tracking pending implementation
       status: :active,
       # Placeholder: Enrollment count integration pending implementation
@@ -51,6 +52,28 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       capacity: program.spots_available
     }
   end
+
+  defp format_instructor(nil), do: nil
+
+  defp format_instructor(instructor) do
+    %{
+      id: instructor.id,
+      name: instructor.name,
+      initials: build_initials(instructor.name),
+      headshot_url: instructor.headshot_url
+    }
+  end
+
+  defp build_initials(name) when is_binary(name) do
+    name
+    |> String.split()
+    |> Enum.map(&String.first/1)
+    |> Enum.take(2)
+    |> Enum.join()
+    |> String.upcase()
+  end
+
+  defp build_initials(_), do: "?"
 
   @doc """
   Transforms a category code to a human-readable label.

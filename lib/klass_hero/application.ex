@@ -69,6 +69,16 @@ defmodule KlassHero.Application do
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.ProgramCatalog,
+         handlers: [
+           {:program_created,
+            {KlassHero.ProgramCatalog.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10}
+         ]},
+        id: :program_catalog_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
          context: KlassHero.Messaging,
          handlers: [
            {:user_data_anonymized,

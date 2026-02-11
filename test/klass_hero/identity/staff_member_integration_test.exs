@@ -54,6 +54,46 @@ defmodule KlassHero.Identity.StaffMemberIntegrationTest do
     end
   end
 
+  describe "list_active_staff_members/1" do
+    test "returns only active staff members" do
+      provider = IdentityFixtures.provider_profile_fixture()
+
+      _active =
+        IdentityFixtures.staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Active",
+          active: true
+        )
+
+      inactive =
+        IdentityFixtures.staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Inactive"
+        )
+
+      # Deactivate the second staff member
+      {:ok, _} = Identity.update_staff_member(inactive.id, %{active: false})
+
+      assert {:ok, members} = Identity.list_active_staff_members(provider.id)
+      assert length(members) == 1
+      assert hd(members).first_name == "Active"
+    end
+
+    test "returns empty list when no active staff" do
+      provider = IdentityFixtures.provider_profile_fixture()
+
+      staff =
+        IdentityFixtures.staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Inactive"
+        )
+
+      {:ok, _} = Identity.update_staff_member(staff.id, %{active: false})
+
+      assert {:ok, []} = Identity.list_active_staff_members(provider.id)
+    end
+  end
+
   describe "update_staff_member/2" do
     test "updates allowed fields" do
       staff = IdentityFixtures.staff_member_fixture(first_name: "Old", role: "Assistant")

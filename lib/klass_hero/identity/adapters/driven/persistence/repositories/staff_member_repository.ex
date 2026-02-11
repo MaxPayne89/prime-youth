@@ -56,6 +56,18 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.StaffMembe
   end
 
   @impl true
+  def list_active_by_provider(provider_id) when is_binary(provider_id) do
+    members =
+      StaffMemberSchema
+      |> where([s], s.provider_id == ^provider_id and s.active == true)
+      |> order_by([s], asc: s.inserted_at)
+      |> Repo.all()
+      |> StaffMemberMapper.to_domain_list()
+
+    {:ok, members}
+  end
+
+  @impl true
   def update(staff_member) do
     case Repo.get(StaffMemberSchema, staff_member.id) do
       nil ->

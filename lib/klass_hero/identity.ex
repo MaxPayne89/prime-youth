@@ -819,12 +819,33 @@ defmodule KlassHero.Identity do
   end
 
   @doc """
+  Lists active staff members for a provider.
+
+  Filters to only staff with `active: true`. Used by program creation
+  form to populate the instructor dropdown.
+  """
+  def list_active_staff_members(provider_id) when is_binary(provider_id) do
+    @staff_repository.list_active_by_provider(provider_id)
+  end
+
+  @doc """
   Returns a changeset for tracking staff member form changes.
 
   Used by LiveView forms for `to_form()` and `phx-change` validation.
   """
   def change_staff_member(%StaffMember{} = staff, attrs \\ %{}) do
     ChangeStaffMember.execute(staff, attrs)
+  end
+
+  @doc """
+  Returns the full name of a staff member.
+
+  Delegates to `StaffMember.full_name/1` to keep domain model access
+  behind the facade boundary.
+  """
+  @spec staff_member_full_name(StaffMember.t()) :: String.t()
+  def staff_member_full_name(%StaffMember{} = staff) do
+    StaffMember.full_name(staff)
   end
 
   @doc """

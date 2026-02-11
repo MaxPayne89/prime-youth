@@ -6,17 +6,9 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   Contains only business logic and validation rules, no database dependencies.
   """
 
-  @enforce_keys [
-    :id,
-    :title,
-    :description,
-    :category,
-    :schedule,
-    :age_range,
-    :price,
-    :pricing_period,
-    :spots_available
-  ]
+  alias KlassHero.ProgramCatalog.Domain.Models.Instructor
+
+  @enforce_keys [:id, :title, :description, :category, :price]
 
   defstruct [
     :id,
@@ -28,12 +20,15 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     :age_range,
     :price,
     :pricing_period,
-    :spots_available,
     :icon_path,
     :end_date,
     :lock_version,
+    :location,
+    :cover_image_url,
+    :instructor,
     :inserted_at,
-    :updated_at
+    :updated_at,
+    spots_available: 0
   ]
 
   @type t :: %__MODULE__{
@@ -42,14 +37,17 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
           title: String.t(),
           description: String.t(),
           category: String.t(),
-          schedule: String.t(),
-          age_range: String.t(),
+          schedule: String.t() | nil,
+          age_range: String.t() | nil,
           price: Decimal.t(),
-          pricing_period: String.t(),
+          pricing_period: String.t() | nil,
           spots_available: non_neg_integer(),
           icon_path: String.t() | nil,
           end_date: DateTime.t() | nil,
           lock_version: non_neg_integer() | nil,
+          location: String.t() | nil,
+          cover_image_url: String.t() | nil,
+          instructor: Instructor.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
