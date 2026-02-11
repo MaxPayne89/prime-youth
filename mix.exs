@@ -21,7 +21,8 @@ defmodule KlassHero.MixProject do
         "coveralls.post": :test,
         "coveralls.html": :test,
         "coveralls.json": :test
-      ]
+      ],
+      usage_rules: usage_rules()
     ]
   end
 
@@ -51,7 +52,7 @@ defmodule KlassHero.MixProject do
   defp deps do
     [
       {:error_tracker, "~> 0.7"},
-      {:usage_rules, "~> 0.1", only: [:dev]},
+      {:usage_rules, "~> 1.0", only: [:dev]},
       {:bcrypt_elixir, "~> 3.0"},
       {:live_debugger, "~> 0.4", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev, :test]},
@@ -102,8 +103,7 @@ defmodule KlassHero.MixProject do
       # Object storage (S3-compatible)
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
-      {:sweet_xml, "~> 0.7"},
-      {:hackney, "~> 1.20"}
+      {:sweet_xml, "~> 0.7"}
     ]
   end
 
@@ -141,5 +141,16 @@ defmodule KlassHero.MixProject do
     else
       ["test.setup", "test.db.setup", "ecto.create --quiet", "ecto.migrate --quiet", "test"]
     end
+  end
+
+  defp usage_rules do
+    [
+      file: "CLAUDE.md",
+      usage_rules: [
+        {:igniter, link: :markdown},
+        {:usage_rules, link: :markdown},
+        {~r/^phoenix/, link: :markdown}
+      ]
+    ]
   end
 end

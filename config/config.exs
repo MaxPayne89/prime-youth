@@ -19,6 +19,9 @@ config :esbuild,
     env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
+# Use Req (via Finch/Mint) instead of hackney for ExAws HTTP requests
+config :ex_aws, http_client: ExAws.Request.Req
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
@@ -37,9 +40,9 @@ config :klass_hero, KlassHeroWeb.Endpoint,
     layout: false
   ],
   pubsub_server: KlassHero.PubSub,
+  # Configure Gettext for internationalization
   live_view: [signing_salt: "JU2osypv"]
 
-# Configure Gettext for internationalization
 config :klass_hero, KlassHeroWeb.Gettext,
   default_locale: "en",
   locales: ~w(en de)

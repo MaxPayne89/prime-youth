@@ -77,9 +77,10 @@ defmodule KlassHero.Accounts do
 
   """
   def register_user(attrs) do
-    case %User{}
-         |> User.registration_changeset(attrs)
-         |> Repo.insert() do
+    %User{}
+    |> User.registration_changeset(attrs)
+    |> Repo.insert()
+    |> case do
       {:ok, user} ->
         DomainEventBus.dispatch(
           KlassHero.Accounts,
@@ -337,9 +338,10 @@ defmodule KlassHero.Accounts do
         """
 
       {%User{confirmed_at: nil} = user, _token} ->
-        case user
-             |> User.confirm_changeset()
-             |> update_user_and_delete_all_tokens() do
+        user
+        |> User.confirm_changeset()
+        |> update_user_and_delete_all_tokens()
+        |> case do
           {:ok, {confirmed_user, tokens}} ->
             DomainEventBus.dispatch(
               KlassHero.Accounts,
