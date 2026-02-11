@@ -34,9 +34,10 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       title: attrs[:title]
     )
 
-    case %ProgramSchema{}
-         |> ProgramSchema.create_changeset(attrs)
-         |> Repo.insert() do
+    %ProgramSchema{}
+    |> ProgramSchema.create_changeset(attrs)
+    |> Repo.insert()
+    |> case do
       {:ok, schema} ->
         program = ProgramMapper.to_domain(schema)
 

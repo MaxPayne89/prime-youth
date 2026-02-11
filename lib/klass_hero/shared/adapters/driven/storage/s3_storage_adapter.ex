@@ -23,8 +23,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
         :private -> [content_type: content_type]
       end
 
-    case ExAws.S3.put_object(bucket, path, binary, put_opts)
-         |> ExAws.request(ex_aws_config()) do
+    ExAws.S3.put_object(bucket, path, binary, put_opts)
+    |> ExAws.request(ex_aws_config())
+    |> case do
       {:ok, _response} ->
         case bucket_type do
           :public -> {:ok, public_url(bucket, path)}
@@ -73,7 +74,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   def file_exists?(_bucket_type, key, _opts) do
     bucket = get_bucket()
 
-    case ExAws.S3.head_object(bucket, key) |> ExAws.request(ex_aws_config()) do
+    ExAws.S3.head_object(bucket, key)
+    |> ExAws.request(ex_aws_config())
+    |> case do
       {:ok, _} ->
         {:ok, true}
 
@@ -95,7 +98,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   def delete(_bucket_type, key, _opts) do
     bucket = get_bucket()
 
-    case ExAws.S3.delete_object(bucket, key) |> ExAws.request(ex_aws_config()) do
+    ExAws.S3.delete_object(bucket, key)
+    |> ExAws.request(ex_aws_config())
+    |> case do
       {:ok, _response} ->
         :ok
 
