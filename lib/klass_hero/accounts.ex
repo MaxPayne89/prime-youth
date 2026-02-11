@@ -130,43 +130,7 @@ defmodule KlassHero.Accounts do
   If the token matches, the user email is updated and the token is deleted.
   """
   def update_user_email(user, token) do
-    context = "change:#{user.email}"
-    previous_email = user.email
-
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:verify_token, fn _repo, _ ->
-      UserToken.verify_change_email_token_query(token, context)
-    end)
-    |> Ecto.Multi.run(:fetch_token, fn repo, %{verify_token: query} ->
-      case repo.one(query) do
-        %UserToken{sent_to: email} = token -> {:ok, {token, email}}
-        nil -> {:error, :token_not_found}
-      end
-    end)
-    |> Ecto.Multi.run(:update_email, fn repo, %{fetch_token: {_token, email}} ->
-      user
-      |> User.email_changeset(%{email: email})
-      |> repo.update()
-    end)
-    |> Ecto.Multi.delete_all(:delete_tokens, fn %{update_email: updated_user} ->
-      from(UserToken, where: [user_id: ^updated_user.id, context: ^context])
-    end)
-    |> Ecto.Multi.run(:publish_event, fn _repo, %{update_email: updated_user} ->
-      DomainEventBus.dispatch(
-        KlassHero.Accounts,
-        UserEvents.user_email_changed(updated_user, %{previous_email: previous_email})
-      )
-
-      {:ok, updated_user}
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{publish_event: user}} -> {:ok, user}
-      {:error, :verify_token, _reason, _} -> {:error, :invalid_token}
-      {:error, :fetch_token, _reason, _} -> {:error, :invalid_token}
-      {:error, :update_email, changeset, _} -> {:error, changeset}
-      {:error, _step, reason, _} -> {:error, reason}
-    end
+    KlassHero.Accounts.Application.UseCases.ChangeEmail.execute(user, token)
   end
 
   @doc """
