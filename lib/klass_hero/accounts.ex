@@ -6,7 +6,7 @@ defmodule KlassHero.Accounts do
   import Ecto.Query, warn: false
 
   alias KlassHero.Accounts.Domain.Events.UserEvents
-  alias KlassHero.Accounts.{User, UserNotifier, UserToken}
+  alias KlassHero.Accounts.{TokenCleanup, User, UserNotifier, UserToken}
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
 
@@ -215,7 +215,7 @@ defmodule KlassHero.Accounts do
   def update_user_password(user, attrs) do
     user
     |> User.password_changeset(attrs)
-    |> update_user_and_delete_all_tokens()
+    |> TokenCleanup.update_user_and_delete_all_tokens()
   end
 
   @doc """
@@ -340,7 +340,7 @@ defmodule KlassHero.Accounts do
       {%User{confirmed_at: nil} = user, _token} ->
         user
         |> User.confirm_changeset()
-        |> update_user_and_delete_all_tokens()
+        |> TokenCleanup.update_user_and_delete_all_tokens()
         |> case do
           {:ok, {confirmed_user, tokens}} ->
             DomainEventBus.dispatch(
@@ -396,26 +396,6 @@ defmodule KlassHero.Accounts do
   def delete_user_session_token(token) do
     Repo.delete_all(from(UserToken, where: [token: ^token, context: "session"]))
     :ok
-  end
-
-  ## Token helper
-
-  defp update_user_and_delete_all_tokens(changeset) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:update_user, changeset)
-    |> Ecto.Multi.run(:fetch_tokens, fn repo, %{update_user: user} ->
-      tokens = repo.all_by(UserToken, user_id: user.id)
-      {:ok, tokens}
-    end)
-    |> Ecto.Multi.delete_all(:delete_tokens, fn %{fetch_tokens: tokens} ->
-      from(t in UserToken, where: t.id in ^Enum.map(tokens, & &1.id))
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{update_user: user, fetch_tokens: tokens}} -> {:ok, {user, tokens}}
-      {:error, :update_user, changeset, _} -> {:error, changeset}
-      {:error, _step, reason, _} -> {:error, reason}
-    end
   end
 
   ## GDPR Data Export
