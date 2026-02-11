@@ -77,21 +77,7 @@ defmodule KlassHero.Accounts do
 
   """
   def register_user(attrs) do
-    %User{}
-    |> User.registration_changeset(attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, user} ->
-        DomainEventBus.dispatch(
-          KlassHero.Accounts,
-          UserEvents.user_registered(user, %{registration_source: :web})
-        )
-
-        {:ok, user}
-
-      {:error, changeset} ->
-        {:error, changeset}
-    end
+    KlassHero.Accounts.Application.UseCases.RegisterUser.execute(attrs)
   end
 
   @doc """
