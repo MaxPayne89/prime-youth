@@ -52,6 +52,33 @@ defmodule KlassHero.Accounts.Domain.Models.UserTest do
       assert {:error, errors} = User.new(attrs)
       assert Enum.any?(errors, &String.contains?(&1, "Email"))
     end
+
+    test "returns error when id is nil" do
+      attrs = %{id: nil, email: "test@example.com", name: "Jane"}
+
+      assert {:error, errors} = User.new(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "ID"))
+    end
+
+    test "returns error when id is empty string" do
+      attrs = %{id: "", email: "test@example.com", name: "Jane"}
+
+      assert {:error, errors} = User.new(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "ID"))
+    end
+
+    test "returns error when id is zero" do
+      attrs = %{id: 0, email: "test@example.com", name: "Jane"}
+
+      assert {:error, errors} = User.new(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "ID"))
+    end
+
+    test "accepts positive integer id" do
+      attrs = %{id: 42, email: "test@example.com", name: "Jane"}
+
+      assert {:ok, %User{id: 42}} = User.new(attrs)
+    end
   end
 
   describe "from_persistence/1" do
@@ -84,20 +111,6 @@ defmodule KlassHero.Accounts.Domain.Models.UserTest do
       assert attrs.avatar == nil
       assert is_function(attrs.email_fn, 1)
       assert attrs.email_fn.("abc-123") == "deleted_abc-123@anonymized.local"
-    end
-  end
-
-  describe "valid?/1" do
-    test "returns true for valid user" do
-      {:ok, user} =
-        User.new(%{
-          id: Ecto.UUID.generate(),
-          email: "test@example.com",
-          name: "Jane",
-          intended_roles: [:parent]
-        })
-
-      assert User.valid?(user)
     end
   end
 end

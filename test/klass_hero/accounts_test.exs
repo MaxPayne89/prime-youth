@@ -449,6 +449,37 @@ defmodule KlassHero.AccountsTest do
     end
   end
 
+  describe "delete_account/2" do
+    import KlassHero.EventTestHelper
+
+    setup do
+      setup_test_integration_events()
+      user = user_fixture() |> set_password()
+      %{user: user}
+    end
+
+    test "returns :sudo_required when user has no recent authentication", %{user: user} do
+      # authenticated_at is nil (virtual field not loaded from session)
+      user = %{user | authenticated_at: nil}
+
+      assert {:error, :sudo_required} = Accounts.delete_account(user, valid_user_password())
+    end
+
+    test "returns :invalid_password when password is wrong", %{user: user} do
+      user = %{user | authenticated_at: DateTime.utc_now(:second)}
+
+      assert {:error, :invalid_password} = Accounts.delete_account(user, "wrongpassword123")
+    end
+
+    test "anonymizes user with valid sudo mode and correct password", %{user: user} do
+      user = %{user | authenticated_at: DateTime.utc_now(:second)}
+
+      assert {:ok, anonymized} = Accounts.delete_account(user, valid_user_password())
+      assert anonymized.email == "deleted_#{user.id}@anonymized.local"
+      assert anonymized.name == "Deleted User"
+    end
+  end
+
   describe "export_user_data/1" do
     test "exports user data in GDPR-compliant format" do
       user = user_fixture()

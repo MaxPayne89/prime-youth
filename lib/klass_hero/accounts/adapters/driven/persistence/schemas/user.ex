@@ -50,7 +50,7 @@ defmodule KlassHero.Accounts.User do
   @doc """
   A user changeset for registration.
 
-  Validates name, email, and intended_roles fields, sets a default avatar.
+  Validates name, email, and intended_roles fields, sets a default role.
 
   ## Options
 

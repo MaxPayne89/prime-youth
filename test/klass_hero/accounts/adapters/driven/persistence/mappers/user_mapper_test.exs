@@ -22,6 +22,14 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Mappers.UserMapperTest 
       assert domain_user.confirmed_at == schema.confirmed_at
     end
 
+    test "coalesces nil intended_roles to empty list" do
+      schema = %{user_fixture() | intended_roles: nil}
+
+      domain_user = UserMapper.to_domain(schema)
+
+      assert domain_user.intended_roles == []
+    end
+
     test "excludes auth infrastructure fields" do
       schema = user_fixture() |> set_password()
 

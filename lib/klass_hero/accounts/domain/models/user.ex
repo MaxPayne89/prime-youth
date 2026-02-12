@@ -59,6 +59,7 @@ defmodule KlassHero.Accounts.Domain.Models.User do
     # field-level errors instead of a generic ArgumentError
     errors =
       []
+      |> validate_id(attrs[:id])
       |> validate_email(attrs[:email])
       |> validate_name(attrs[:name])
 
@@ -70,6 +71,7 @@ defmodule KlassHero.Accounts.Domain.Models.User do
         {:error, errors}
     end
   rescue
+    # Safe: id, email, and name validated above; only missing @enforce_keys can trigger
     ArgumentError -> {:error, ["Missing required fields"]}
   end
 
@@ -81,7 +83,15 @@ defmodule KlassHero.Accounts.Domain.Models.User do
   def from_persistence(attrs) when is_map(attrs) do
     {:ok, struct!(__MODULE__, attrs)}
   rescue
-    ArgumentError -> {:error, :invalid_persistence_data}
+    e in ArgumentError ->
+      # Trigger: struct!/2 raises when @enforce_keys are missing
+      # Why: narrow catch prevents masking mapper bugs passing bad data types
+      # Outcome: missing-keys → tagged error; anything else → crash
+      if String.contains?(e.message, "the following keys must also be given") do
+        {:error, :invalid_persistence_data}
+      else
+        reraise e, __STACKTRACE__
+      end
   end
 
   @doc """
@@ -98,18 +108,12 @@ defmodule KlassHero.Accounts.Domain.Models.User do
     }
   end
 
-  @doc """
-  Validates that a user struct has valid business rules.
-  """
-  def valid?(%__MODULE__{} = user) do
-    validate(user) == []
+  defp validate_id(errors, id) when is_binary(id) do
+    if String.trim(id) == "", do: ["ID cannot be empty" | errors], else: errors
   end
 
-  defp validate(%__MODULE__{} = user) do
-    []
-    |> validate_email(user.email)
-    |> validate_name(user.name)
-  end
+  defp validate_id(errors, id) when is_integer(id) and id > 0, do: errors
+  defp validate_id(errors, _), do: ["ID must be a non-empty string or positive integer" | errors]
 
   defp validate_email(errors, email) when is_binary(email) do
     if String.trim(email) == "" do
