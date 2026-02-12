@@ -42,14 +42,12 @@ defmodule KlassHero.Shared.EventDispatchHelper do
   # Outcome: error-level log ensures alerting systems catch the failure
   defp log_dispatch_failure(%DomainEvent{} = event, failures) do
     if DomainEvent.critical?(event) do
-      Logger.error("Critical event dispatch failed",
-        event_type: event.event_type,
-        failures: inspect(failures)
+      Logger.error(
+        "Critical event dispatch failed: event_type=#{event.event_type} failures=#{inspect(failures)}"
       )
     else
-      Logger.warning("Event dispatch failed",
-        event_type: event.event_type,
-        failures: inspect(failures)
+      Logger.warning(
+        "Event dispatch failed: event_type=#{event.event_type} failures=#{inspect(failures)}"
       )
     end
   end

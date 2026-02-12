@@ -6,6 +6,15 @@ defmodule KlassHero.Accounts do
   import Ecto.Query, warn: false
 
   alias KlassHero.Accounts.Adapters.Driven.Persistence.TokenCleanup
+
+  alias KlassHero.Accounts.Application.UseCases.{
+    AnonymizeUser,
+    ChangeEmail,
+    ExportUserData,
+    LoginByMagicLink,
+    RegisterUser
+  }
+
   alias KlassHero.Accounts.{User, UserNotifier, UserToken}
   alias KlassHero.Repo
 
@@ -76,7 +85,7 @@ defmodule KlassHero.Accounts do
 
   """
   def register_user(attrs) do
-    KlassHero.Accounts.Application.UseCases.RegisterUser.execute(attrs)
+    RegisterUser.execute(attrs)
   end
 
   @doc """
@@ -129,7 +138,7 @@ defmodule KlassHero.Accounts do
   If the token matches, the user email is updated and the token is deleted.
   """
   def update_user_email(user, token) do
-    KlassHero.Accounts.Application.UseCases.ChangeEmail.execute(user, token)
+    ChangeEmail.execute(user, token)
   end
 
   @doc """
@@ -273,7 +282,7 @@ defmodule KlassHero.Accounts do
      `mix help phx.gen.auth`.
   """
   def login_user_by_magic_link(token) do
-    KlassHero.Accounts.Application.UseCases.LoginByMagicLink.execute(token)
+    LoginByMagicLink.execute(token)
   end
 
   @doc ~S"""
@@ -319,7 +328,7 @@ defmodule KlassHero.Accounts do
   Returns a map containing all user data that can be serialized to JSON.
   """
   def export_user_data(%User{} = user) do
-    KlassHero.Accounts.Application.UseCases.ExportUserData.execute(user)
+    ExportUserData.execute(user)
   end
 
   ## GDPR Account Anonymization
@@ -346,7 +355,7 @@ defmodule KlassHero.Accounts do
 
   """
   def anonymize_user(%User{} = user) do
-    KlassHero.Accounts.Application.UseCases.AnonymizeUser.execute(user)
+    AnonymizeUser.execute(user)
   end
 
   def anonymize_user(nil), do: {:error, :user_not_found}
@@ -381,7 +390,7 @@ defmodule KlassHero.Accounts do
   def delete_account(%User{} = user, password) when is_binary(password) do
     with :ok <- check_delete_sudo(user),
          :ok <- check_delete_password(user, password) do
-      KlassHero.Accounts.Application.UseCases.AnonymizeUser.execute(user)
+      AnonymizeUser.execute(user)
     end
   end
 

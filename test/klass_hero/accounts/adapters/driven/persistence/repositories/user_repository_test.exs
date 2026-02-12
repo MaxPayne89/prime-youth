@@ -5,6 +5,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
 
   alias KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
   alias KlassHero.Accounts.Domain.Models.User, as: DomainUser
+  alias KlassHero.Accounts.UserToken
 
   describe "get_by_id/1" do
     test "returns domain user when found" do
@@ -183,7 +184,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
   describe "delete_token/1" do
     test "deletes an existing token" do
       user = user_fixture()
-      {_encoded, user_token} = KlassHero.Accounts.UserToken.build_email_token(user, "login")
+      {_encoded, user_token} = UserToken.build_email_token(user, "login")
       {:ok, inserted_token} = KlassHero.Repo.insert(user_token)
 
       assert :ok = UserRepository.delete_token(inserted_token)

@@ -106,14 +106,14 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
       from(UserToken, where: [user_id: ^updated_user.id, context: ^context])
     end)
     |> Repo.transaction()
-    |> case do
-      {:ok, %{update_email: updated_user}} -> {:ok, updated_user}
-      {:error, :verify_token, _reason, _} -> {:error, :invalid_token}
-      {:error, :fetch_token, _reason, _} -> {:error, :invalid_token}
-      {:error, :update_email, changeset, _} -> {:error, changeset}
-      {:error, _step, reason, _} -> {:error, reason}
-    end
+    |> normalize_email_change_result()
   end
+
+  defp normalize_email_change_result({:ok, %{update_email: updated_user}}), do: {:ok, updated_user}
+  defp normalize_email_change_result({:error, :verify_token, _reason, _}), do: {:error, :invalid_token}
+  defp normalize_email_change_result({:error, :fetch_token, _reason, _}), do: {:error, :invalid_token}
+  defp normalize_email_change_result({:error, :update_email, changeset, _}), do: {:error, changeset}
+  defp normalize_email_change_result({:error, _step, reason, _}), do: {:error, reason}
 
   @impl true
   def resolve_magic_link(token) when is_binary(token) do
@@ -172,7 +172,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
       # Why: Repo.delete returns {:error, changeset} for constraint failures
       # Outcome: log for visibility but treat as success — token is invalidated either way
       {:error, changeset} ->
-        Logger.warning("Token deletion failed", changeset: inspect(changeset))
+        Logger.warning("Token deletion failed: #{inspect(changeset)}")
         :ok
     end
   rescue
