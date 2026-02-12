@@ -2,16 +2,22 @@ defmodule KlassHero.Accounts.Domain.Ports.ForStoringUsers do
   @moduledoc """
   Port for user persistence operations in the Accounts bounded context.
 
-  Defines the contract for user read and write operations without exposing
-  infrastructure details. Write callbacks use `term()` return types to keep
-  the port Ecto-free — the repository pragmatically returns Ecto schemas
-  that callers (LiveViews, auth plugs) already expect.
+  Defines the contract for user read and write operations. Read callbacks
+  return domain `User.t()` structs. Write callbacks are honest about their
+  Ecto coupling — LiveViews, auth plugs, and session infrastructure expect
+  Ecto schemas and changesets, so the types reflect that.
 
   Infrastructure errors (connection, query) are not caught — they crash and
   are handled by the supervision tree.
   """
 
   alias KlassHero.Accounts.Domain.Models.User
+
+  # Write operations return Ecto types because callers (LiveViews, auth plugs)
+  # depend on Ecto schemas for rendering and session management.
+  @type ecto_user :: KlassHero.Accounts.User.t()
+  @type ecto_changeset :: Ecto.Changeset.t()
+  @type ecto_token :: KlassHero.Accounts.UserToken.t()
 
   # ============================================================================
   # Read operations
@@ -48,19 +54,19 @@ defmodule KlassHero.Accounts.Domain.Ports.ForStoringUsers do
   Registers a new user from the given attributes.
 
   Returns:
-  - `{:ok, term()}` - User created (Ecto schema)
-  - `{:error, term()}` - Validation or persistence failure (Ecto changeset)
+  - `{:ok, ecto_user()}` - User created
+  - `{:error, ecto_changeset()}` - Validation or persistence failure
   """
-  @callback register(map()) :: {:ok, term()} | {:error, term()}
+  @callback register(map()) :: {:ok, ecto_user()} | {:error, ecto_changeset()}
 
   @doc """
   Anonymizes a user's PII and deletes all their tokens atomically.
 
   Returns:
-  - `{:ok, term()}` - Anonymized user (Ecto schema)
-  - `{:error, term()}` - Update failure
+  - `{:ok, ecto_user()}` - Anonymized user
+  - `{:error, ecto_changeset()}` - Update failure
   """
-  @callback anonymize(term()) :: {:ok, term()} | {:error, term()}
+  @callback anonymize(ecto_user()) :: {:ok, ecto_user()} | {:error, ecto_changeset()}
 
   @doc """
   Applies an email change using a confirmation token.
@@ -69,12 +75,12 @@ defmodule KlassHero.Accounts.Domain.Ports.ForStoringUsers do
   for the context atomically.
 
   Returns:
-  - `{:ok, term()}` - Updated user (Ecto schema)
+  - `{:ok, ecto_user()}` - Updated user
   - `{:error, :invalid_token}` - Token malformed, expired, or not found
-  - `{:error, term()}` - Update failure
+  - `{:error, ecto_changeset()}` - Update failure
   """
-  @callback apply_email_change(term(), binary()) ::
-              {:ok, term()} | {:error, :invalid_token | term()}
+  @callback apply_email_change(ecto_user(), binary()) ::
+              {:ok, ecto_user()} | {:error, :invalid_token | ecto_changeset()}
 
   @doc """
   Resolves a magic link token to a user and determines login scenario.
@@ -87,7 +93,7 @@ defmodule KlassHero.Accounts.Domain.Ports.ForStoringUsers do
   - `{:error, :security_violation}` - Unconfirmed user with password set
   """
   @callback resolve_magic_link(binary()) ::
-              {:ok, {:confirmed, term(), term()} | {:unconfirmed, term()}}
+              {:ok, {:confirmed, ecto_user(), ecto_token()} | {:unconfirmed, ecto_user()}}
               | {:error, :not_found | :invalid_token | :security_violation}
 
   @doc """
@@ -96,11 +102,11 @@ defmodule KlassHero.Accounts.Domain.Ports.ForStoringUsers do
   Used after resolving a magic link for an unconfirmed user.
 
   Returns:
-  - `{:ok, {term(), list()}}` - Confirmed user + deleted tokens
-  - `{:error, term()}` - Update failure
+  - `{:ok, {ecto_user(), [ecto_token()]}}` - Confirmed user + deleted tokens
+  - `{:error, ecto_changeset()}` - Update failure
   """
-  @callback confirm_and_cleanup_tokens(term()) ::
-              {:ok, {term(), list()}} | {:error, term()}
+  @callback confirm_and_cleanup_tokens(ecto_user()) ::
+              {:ok, {ecto_user(), [ecto_token()]}} | {:error, ecto_changeset()}
 
   @doc """
   Deletes a single token record.
@@ -109,7 +115,6 @@ defmodule KlassHero.Accounts.Domain.Ports.ForStoringUsers do
 
   Returns:
   - `:ok` - Token deleted (or already gone)
-  - `{:error, term()}` - Deletion failure
   """
-  @callback delete_token(term()) :: :ok | {:error, term()}
+  @callback delete_token(ecto_token()) :: :ok
 end

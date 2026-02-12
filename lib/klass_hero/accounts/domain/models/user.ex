@@ -27,10 +27,10 @@ defmodule KlassHero.Accounts.Domain.Models.User do
     :name,
     :avatar,
     :confirmed_at,
-    :is_admin,
     :locale,
     :inserted_at,
     :updated_at,
+    is_admin: false,
     intended_roles: []
   ]
 
@@ -40,7 +40,7 @@ defmodule KlassHero.Accounts.Domain.Models.User do
           name: String.t(),
           avatar: String.t() | nil,
           confirmed_at: DateTime.t() | nil,
-          is_admin: boolean() | nil,
+          is_admin: boolean(),
           locale: String.t() | nil,
           intended_roles: [atom()],
           inserted_at: DateTime.t() | nil,

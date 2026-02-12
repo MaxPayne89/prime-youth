@@ -18,8 +18,11 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
   import Ecto.Query
 
   alias KlassHero.Accounts.Adapters.Driven.Persistence.Mappers.UserMapper
-  alias KlassHero.Accounts.{TokenCleanup, User, UserToken}
+  alias KlassHero.Accounts.Adapters.Driven.Persistence.TokenCleanup
+  alias KlassHero.Accounts.{User, UserToken}
   alias KlassHero.Repo
+
+  require Logger
 
   # ============================================================================
   # Read operations
@@ -162,11 +165,20 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
   @impl true
   def delete_token(%UserToken{} = token) do
     case Repo.delete(token) do
-      {:ok, _} -> :ok
-      # Trigger: token already deleted (concurrent request)
-      # Why: Ecto.StaleEntryError wrapped as {:error, _} by Repo.delete
-      # Outcome: treat as success since the token is gone either way
-      {:error, _} -> :ok
+      {:ok, _} ->
+        :ok
+
+      # Trigger: constraint violation (e.g. foreign key)
+      # Why: Repo.delete returns {:error, changeset} for constraint failures
+      # Outcome: log for visibility but treat as success — token is invalidated either way
+      {:error, changeset} ->
+        Logger.warning("Token deletion failed", changeset: inspect(changeset))
+        :ok
     end
+  rescue
+    # Trigger: token already deleted by concurrent request
+    # Why: Repo.delete raises StaleEntryError when the row is gone
+    # Outcome: treat as success since the token is already gone
+    Ecto.StaleEntryError -> :ok
   end
 end

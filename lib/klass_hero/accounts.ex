@@ -5,7 +5,8 @@ defmodule KlassHero.Accounts do
 
   import Ecto.Query, warn: false
 
-  alias KlassHero.Accounts.{TokenCleanup, User, UserNotifier, UserToken}
+  alias KlassHero.Accounts.Adapters.Driven.Persistence.TokenCleanup
+  alias KlassHero.Accounts.{User, UserNotifier, UserToken}
   alias KlassHero.Repo
 
   ## Database getters

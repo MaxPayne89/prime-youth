@@ -1,4 +1,4 @@
-defmodule KlassHero.Accounts.TokenCleanup do
+defmodule KlassHero.Accounts.Adapters.Driven.Persistence.TokenCleanup do
   @moduledoc """
   Shared helper for updating a user and deleting all their tokens.
 
