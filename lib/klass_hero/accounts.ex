@@ -378,6 +378,20 @@ defmodule KlassHero.Accounts do
 
   """
   def delete_account(%User{} = user, password) when is_binary(password) do
-    KlassHero.Accounts.Application.UseCases.DeleteAccount.execute(user, password)
+    with :ok <- check_delete_sudo(user),
+         :ok <- check_delete_password(user, password) do
+      KlassHero.Accounts.Application.UseCases.AnonymizeUser.execute(user)
+    end
+  end
+
+  # Trigger: user's last authentication is older than sudo timeout
+  # Why: sudo mode prevents account deletion without recent auth
+  # Outcome: returns :ok or {:error, :sudo_required}
+  defp check_delete_sudo(user) do
+    if sudo_mode?(user), do: :ok, else: {:error, :sudo_required}
+  end
+
+  defp check_delete_password(user, password) do
+    if User.valid_password?(user, password), do: :ok, else: {:error, :invalid_password}
   end
 end

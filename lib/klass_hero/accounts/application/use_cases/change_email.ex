@@ -7,10 +7,7 @@ defmodule KlassHero.Accounts.Application.UseCases.ChangeEmail do
   """
 
   alias KlassHero.Accounts.Domain.Events.UserEvents
-  alias KlassHero.Accounts.User
-  alias KlassHero.Shared.DomainEventBus
-
-  require Logger
+  alias KlassHero.Shared.EventDispatchHelper
 
   @user_repository Application.compile_env!(
                      :klass_hero,
@@ -25,31 +22,18 @@ defmodule KlassHero.Accounts.Application.UseCases.ChangeEmail do
   - `{:error, :invalid_token}` if token is invalid or expired
   - `{:error, changeset}` if email update fails
   """
-  def execute(%User{} = user, token) when is_binary(token) do
+  def execute(%{email: _} = user, token) when is_binary(token) do
     previous_email = user.email
 
     case @user_repository.apply_email_change(user, token) do
       {:ok, updated_user} ->
         UserEvents.user_email_changed(updated_user, %{previous_email: previous_email})
-        |> dispatch_event(:user_email_changed)
+        |> EventDispatchHelper.dispatch(KlassHero.Accounts)
 
         {:ok, updated_user}
 
       {:error, reason} ->
         {:error, reason}
-    end
-  end
-
-  defp dispatch_event(event, event_type) do
-    case DomainEventBus.dispatch(KlassHero.Accounts, event) do
-      :ok ->
-        :ok
-
-      {:error, failures} ->
-        Logger.warning("Event dispatch failed",
-          event_type: event_type,
-          failures: inspect(failures)
-        )
     end
   end
 end

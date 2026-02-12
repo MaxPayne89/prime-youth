@@ -8,10 +8,7 @@ defmodule KlassHero.Accounts.Application.UseCases.AnonymizeUser do
   """
 
   alias KlassHero.Accounts.Domain.Events.UserEvents
-  alias KlassHero.Accounts.User
-  alias KlassHero.Shared.DomainEventBus
-
-  require Logger
+  alias KlassHero.Shared.EventDispatchHelper
 
   @user_repository Application.compile_env!(
                      :klass_hero,
@@ -26,7 +23,7 @@ defmodule KlassHero.Accounts.Application.UseCases.AnonymizeUser do
   - `{:error, :user_not_found}` if nil user
   - `{:error, changeset}` on update failure
   """
-  def execute(%User{} = user) do
+  def execute(%{email: _} = user) do
     previous_email = user.email
 
     case @user_repository.anonymize(user) do
@@ -35,7 +32,7 @@ defmodule KlassHero.Accounts.Application.UseCases.AnonymizeUser do
         # Why: anonymization events drive downstream data deletion
         # Outcome: primary operation still succeeds, but failure is escalated
         UserEvents.user_anonymized(anonymized_user, %{previous_email: previous_email})
-        |> dispatch_event(:user_anonymized)
+        |> EventDispatchHelper.dispatch(KlassHero.Accounts)
 
         {:ok, anonymized_user}
 
@@ -45,17 +42,4 @@ defmodule KlassHero.Accounts.Application.UseCases.AnonymizeUser do
   end
 
   def execute(nil), do: {:error, :user_not_found}
-
-  defp dispatch_event(event, event_type) do
-    case DomainEventBus.dispatch(KlassHero.Accounts, event) do
-      :ok ->
-        :ok
-
-      {:error, failures} ->
-        Logger.error("GDPR event dispatch failed",
-          event_type: event_type,
-          failures: inspect(failures)
-        )
-    end
-  end
 end

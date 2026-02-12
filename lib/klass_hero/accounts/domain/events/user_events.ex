@@ -34,12 +34,11 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
       event = UserEvents.user_confirmed(user, %{}, correlation_id: "abc-123")
 
       # Invalid - raises ArgumentError
-      user = %User{id: nil, email: "test@example.com", name: "Test"}
+      user = %{id: nil, email: "test@example.com", name: "Test"}
       UserEvents.user_registered(user)
       #=> ** (ArgumentError) User.id cannot be nil for user_registered event
   """
 
-  alias KlassHero.Accounts.User
   alias KlassHero.Shared.Domain.Events.DomainEvent
 
   @aggregate_type :user
@@ -74,20 +73,20 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
   ## Examples
 
-      iex> user = %User{id: 1, email: "test@example.com", name: "Test User"}
+      iex> user = %{id: 1, email: "test@example.com", name: "Test User"}
       iex> event = UserEvents.user_registered(user, %{source: :web})
       iex> event.event_type
       :user_registered
       iex> DomainEvent.critical?(event)
       true
   """
-  def user_registered(%User{} = user, payload \\ %{}, opts \\ []) do
+  def user_registered(%{id: _, email: _, name: _} = user, payload \\ %{}, opts \\ []) do
     validate_user_for_registration!(user)
 
     base_payload = %{
       email: user.email,
       name: user.name,
-      intended_roles: Enum.map(user.intended_roles || [], &Atom.to_string/1)
+      intended_roles: Enum.map(Map.get(user, :intended_roles) || [], &Atom.to_string/1)
     }
 
     opts = Keyword.put_new(opts, :criticality, :critical)
@@ -127,12 +126,12 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
   ## Examples
 
-      iex> user = %User{id: 1, email: "test@example.com", confirmed_at: ~U[2024-01-01 12:00:00Z]}
+      iex> user = %{id: 1, email: "test@example.com", confirmed_at: ~U[2024-01-01 12:00:00Z]}
       iex> event = UserEvents.user_confirmed(user)
       iex> event.event_type
       :user_confirmed
   """
-  def user_confirmed(%User{} = user, payload \\ %{}, opts \\ []) do
+  def user_confirmed(%{id: _, email: _, confirmed_at: _} = user, payload \\ %{}, opts \\ []) do
     validate_user_for_confirmation!(user)
 
     base_payload = %{
@@ -175,7 +174,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
   ## Examples
 
-      iex> user = %User{id: 1, email: "new@example.com"}
+      iex> user = %{id: 1, email: "new@example.com"}
       iex> event = UserEvents.user_email_changed(user, %{previous_email: "old@example.com"})
       iex> event.event_type
       :user_email_changed
@@ -184,7 +183,11 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
   """
   def user_email_changed(user, payload, opts \\ [])
 
-  def user_email_changed(%User{} = user, %{previous_email: previous_email} = payload, opts)
+  def user_email_changed(
+        %{id: _, email: _} = user,
+        %{previous_email: previous_email} = payload,
+        opts
+      )
       when is_binary(previous_email) and byte_size(previous_email) > 0 do
     validate_user_for_email_change!(user)
 
@@ -201,7 +204,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
     )
   end
 
-  def user_email_changed(%User{}, payload, _opts) do
+  def user_email_changed(%{id: _, email: _}, payload, _opts) do
     raise ArgumentError,
           "user_email_changed/3 requires :previous_email in payload, got keys: #{inspect(Map.keys(payload))}"
   end
@@ -210,8 +213,8 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
   @typep validation_rule :: :required | :non_empty_string | :non_nil | :list_or_nil
 
-  @spec validate_user!(User.t(), atom(), [{atom(), validation_rule()}]) :: User.t()
-  defp validate_user!(%User{} = user, event_name, rules) do
+  @spec validate_user!(map(), atom(), [{atom(), validation_rule()}]) :: map()
+  defp validate_user!(user, event_name, rules) when is_map(user) do
     Enum.each(rules, fn {field, rule} ->
       value = Map.get(user, field)
       validate_field!(field, value, rule, event_name)
@@ -298,7 +301,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
   ## Examples
 
-      iex> user = %User{id: 1, email: "deleted_1@anonymized.local"}
+      iex> user = %{id: 1, email: "deleted_1@anonymized.local"}
       iex> event = UserEvents.user_anonymized(user, %{previous_email: "old@example.com"})
       iex> event.event_type
       :user_anonymized
@@ -307,12 +310,12 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
   """
   def user_anonymized(user, payload, opts \\ [])
 
-  def user_anonymized(%User{} = user, %{previous_email: previous_email} = payload, opts)
+  def user_anonymized(%{id: _} = user, %{previous_email: previous_email} = payload, opts)
       when is_binary(previous_email) and byte_size(previous_email) > 0 do
     validate_user_for_anonymization!(user)
 
     base_payload = %{
-      anonymized_email: user.email,
+      anonymized_email: Map.get(user, :email),
       anonymized_at: DateTime.utc_now()
     }
 
@@ -327,7 +330,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
     )
   end
 
-  def user_anonymized(%User{}, payload, _opts) do
+  def user_anonymized(%{id: _}, payload, _opts) do
     raise ArgumentError,
           "user_anonymized/3 requires :previous_email in payload, got keys: #{inspect(Map.keys(payload))}"
   end

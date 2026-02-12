@@ -9,9 +9,7 @@ defmodule KlassHero.Accounts.Application.UseCases.LoginByMagicLink do
   """
 
   alias KlassHero.Accounts.Domain.Events.UserEvents
-  alias KlassHero.Shared.DomainEventBus
-
-  require Logger
+  alias KlassHero.Shared.EventDispatchHelper
 
   @user_repository Application.compile_env!(
                      :klass_hero,
@@ -47,7 +45,7 @@ defmodule KlassHero.Accounts.Application.UseCases.LoginByMagicLink do
     case @user_repository.confirm_and_cleanup_tokens(user) do
       {:ok, {confirmed_user, tokens}} ->
         UserEvents.user_confirmed(confirmed_user, %{confirmation_method: :magic_link})
-        |> dispatch_event(:user_confirmed)
+        |> EventDispatchHelper.dispatch(KlassHero.Accounts)
 
         {:ok, {confirmed_user, tokens}}
 
@@ -62,18 +60,5 @@ defmodule KlassHero.Accounts.Application.UseCases.LoginByMagicLink do
   defp handle_confirmed(user, token_record) do
     @user_repository.delete_token(token_record)
     {:ok, {user, []}}
-  end
-
-  defp dispatch_event(event, event_type) do
-    case DomainEventBus.dispatch(KlassHero.Accounts, event) do
-      :ok ->
-        :ok
-
-      {:error, failures} ->
-        Logger.warning("Event dispatch failed",
-          event_type: event_type,
-          failures: inspect(failures)
-        )
-    end
   end
 end
