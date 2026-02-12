@@ -5,10 +5,18 @@ defmodule KlassHero.Accounts do
 
   import Ecto.Query, warn: false
 
-  alias KlassHero.Accounts.Domain.Events.UserEvents
+  alias KlassHero.Accounts.Adapters.Driven.Persistence.TokenCleanup
+
+  alias KlassHero.Accounts.Application.UseCases.{
+    AnonymizeUser,
+    ChangeEmail,
+    ExportUserData,
+    LoginByMagicLink,
+    RegisterUser
+  }
+
   alias KlassHero.Accounts.{User, UserNotifier, UserToken}
   alias KlassHero.Repo
-  alias KlassHero.Shared.DomainEventBus
 
   ## Database getters
 
@@ -77,21 +85,7 @@ defmodule KlassHero.Accounts do
 
   """
   def register_user(attrs) do
-    %User{}
-    |> User.registration_changeset(attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, user} ->
-        DomainEventBus.dispatch(
-          KlassHero.Accounts,
-          UserEvents.user_registered(user, %{registration_source: :web})
-        )
-
-        {:ok, user}
-
-      {:error, changeset} ->
-        {:error, changeset}
-    end
+    RegisterUser.execute(attrs)
   end
 
   @doc """
@@ -144,43 +138,7 @@ defmodule KlassHero.Accounts do
   If the token matches, the user email is updated and the token is deleted.
   """
   def update_user_email(user, token) do
-    context = "change:#{user.email}"
-    previous_email = user.email
-
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:verify_token, fn _repo, _ ->
-      UserToken.verify_change_email_token_query(token, context)
-    end)
-    |> Ecto.Multi.run(:fetch_token, fn repo, %{verify_token: query} ->
-      case repo.one(query) do
-        %UserToken{sent_to: email} = token -> {:ok, {token, email}}
-        nil -> {:error, :token_not_found}
-      end
-    end)
-    |> Ecto.Multi.run(:update_email, fn repo, %{fetch_token: {_token, email}} ->
-      user
-      |> User.email_changeset(%{email: email})
-      |> repo.update()
-    end)
-    |> Ecto.Multi.delete_all(:delete_tokens, fn %{update_email: updated_user} ->
-      from(UserToken, where: [user_id: ^updated_user.id, context: ^context])
-    end)
-    |> Ecto.Multi.run(:publish_event, fn _repo, %{update_email: updated_user} ->
-      DomainEventBus.dispatch(
-        KlassHero.Accounts,
-        UserEvents.user_email_changed(updated_user, %{previous_email: previous_email})
-      )
-
-      {:ok, updated_user}
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{publish_event: user}} -> {:ok, user}
-      {:error, :verify_token, _reason, _} -> {:error, :invalid_token}
-      {:error, :fetch_token, _reason, _} -> {:error, :invalid_token}
-      {:error, :update_email, changeset, _} -> {:error, changeset}
-      {:error, _step, reason, _} -> {:error, reason}
-    end
+    ChangeEmail.execute(user, token)
   end
 
   @doc """
@@ -215,7 +173,7 @@ defmodule KlassHero.Accounts do
   def update_user_password(user, attrs) do
     user
     |> User.password_changeset(attrs)
-    |> update_user_and_delete_all_tokens()
+    |> TokenCleanup.update_user_and_delete_all_tokens()
   end
 
   @doc """
@@ -324,43 +282,7 @@ defmodule KlassHero.Accounts do
      `mix help phx.gen.auth`.
   """
   def login_user_by_magic_link(token) do
-    {:ok, query} = UserToken.verify_magic_link_token_query(token)
-
-    case Repo.one(query) do
-      # Prevent session fixation attacks by disallowing magic links for unconfirmed users with password
-      {%User{confirmed_at: nil, hashed_password: hash}, _token} when not is_nil(hash) ->
-        raise """
-        magic link log in is not allowed for unconfirmed users with a password set!
-
-        This cannot happen with the default implementation, which indicates that you
-        might have adapted the code to a different use case. Please make sure to read the
-        "Mixing magic link and password registration" section of `mix help phx.gen.auth`.
-        """
-
-      {%User{confirmed_at: nil} = user, _token} ->
-        user
-        |> User.confirm_changeset()
-        |> update_user_and_delete_all_tokens()
-        |> case do
-          {:ok, {confirmed_user, tokens}} ->
-            DomainEventBus.dispatch(
-              KlassHero.Accounts,
-              UserEvents.user_confirmed(confirmed_user, %{confirmation_method: :magic_link})
-            )
-
-            {:ok, {confirmed_user, tokens}}
-
-          error ->
-            error
-        end
-
-      {user, token} ->
-        Repo.delete!(token)
-        {:ok, {user, []}}
-
-      nil ->
-        {:error, :not_found}
-    end
+    LoginByMagicLink.execute(token)
   end
 
   @doc ~S"""
@@ -398,26 +320,6 @@ defmodule KlassHero.Accounts do
     :ok
   end
 
-  ## Token helper
-
-  defp update_user_and_delete_all_tokens(changeset) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:update_user, changeset)
-    |> Ecto.Multi.run(:fetch_tokens, fn repo, %{update_user: user} ->
-      tokens = repo.all_by(UserToken, user_id: user.id)
-      {:ok, tokens}
-    end)
-    |> Ecto.Multi.delete_all(:delete_tokens, fn %{fetch_tokens: tokens} ->
-      from(t in UserToken, where: t.id in ^Enum.map(tokens, & &1.id))
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{update_user: user, fetch_tokens: tokens}} -> {:ok, {user, tokens}}
-      {:error, :update_user, changeset, _} -> {:error, changeset}
-      {:error, _step, reason, _} -> {:error, reason}
-    end
-  end
-
   ## GDPR Data Export
 
   @doc """
@@ -426,18 +328,7 @@ defmodule KlassHero.Accounts do
   Returns a map containing all user data that can be serialized to JSON.
   """
   def export_user_data(%User{} = user) do
-    %{
-      exported_at: DateTime.utc_now() |> DateTime.to_iso8601(),
-      user: %{
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        avatar: user.avatar,
-        confirmed_at: user.confirmed_at && DateTime.to_iso8601(user.confirmed_at),
-        created_at: user.inserted_at && DateTime.to_iso8601(user.inserted_at),
-        updated_at: user.updated_at && DateTime.to_iso8601(user.updated_at)
-      }
-    }
+    ExportUserData.execute(user)
   end
 
   ## GDPR Account Anonymization
@@ -464,27 +355,7 @@ defmodule KlassHero.Accounts do
 
   """
   def anonymize_user(%User{} = user) do
-    previous_email = user.email
-
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:anonymize_user, User.anonymize_changeset(user))
-    |> Ecto.Multi.delete_all(:delete_tokens, fn %{anonymize_user: anonymized_user} ->
-      from(t in UserToken, where: t.user_id == ^anonymized_user.id)
-    end)
-    |> Ecto.Multi.run(:publish_event, fn _repo, %{anonymize_user: anonymized_user} ->
-      DomainEventBus.dispatch(
-        KlassHero.Accounts,
-        UserEvents.user_anonymized(anonymized_user, %{previous_email: previous_email})
-      )
-
-      {:ok, anonymized_user}
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{publish_event: user}} -> {:ok, user}
-      {:error, :anonymize_user, changeset, _} -> {:error, changeset}
-      {:error, _step, reason, _} -> {:error, reason}
-    end
+    AnonymizeUser.execute(user)
   end
 
   def anonymize_user(nil), do: {:error, :user_not_found}
@@ -517,12 +388,20 @@ defmodule KlassHero.Accounts do
 
   """
   def delete_account(%User{} = user, password) when is_binary(password) do
-    with true <- sudo_mode?(user),
-         %User{} <- get_user_by_email_and_password(user.email, password) do
-      anonymize_user(user)
-    else
-      false -> {:error, :sudo_required}
-      nil -> {:error, :invalid_password}
+    with :ok <- check_delete_sudo(user),
+         :ok <- check_delete_password(user, password) do
+      AnonymizeUser.execute(user)
     end
+  end
+
+  # Trigger: user's last authentication is older than sudo timeout
+  # Why: sudo mode prevents account deletion without recent auth
+  # Outcome: returns :ok or {:error, :sudo_required}
+  defp check_delete_sudo(user) do
+    if sudo_mode?(user), do: :ok, else: {:error, :sudo_required}
+  end
+
+  defp check_delete_password(user, password) do
+    if User.valid_password?(user, password), do: :ok, else: {:error, :invalid_password}
   end
 end

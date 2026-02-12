@@ -2,11 +2,10 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
   use ExUnit.Case, async: true
 
   alias KlassHero.Accounts.Domain.Events.UserEvents
-  alias KlassHero.Accounts.User
 
   describe "user_registered/3 validation" do
     test "raises when user.id is nil" do
-      user = %User{id: nil, email: "test@example.com", name: "Test User"}
+      user = %{id: nil, email: "test@example.com", name: "Test User"}
 
       assert_raise ArgumentError,
                    "User.id cannot be nil for user_registered event",
@@ -14,7 +13,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.email is nil" do
-      user = %User{id: 1, email: nil, name: "Test User"}
+      user = %{id: 1, email: nil, name: "Test User"}
 
       assert_raise ArgumentError,
                    "User.email cannot be nil or empty for user_registered event",
@@ -22,7 +21,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.email is empty string" do
-      user = %User{id: 1, email: "", name: "Test User"}
+      user = %{id: 1, email: "", name: "Test User"}
 
       assert_raise ArgumentError,
                    "User.email cannot be nil or empty for user_registered event",
@@ -30,7 +29,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.name is nil" do
-      user = %User{id: 1, email: "test@example.com", name: nil}
+      user = %{id: 1, email: "test@example.com", name: nil}
 
       assert_raise ArgumentError,
                    "User.name cannot be nil or empty for user_registered event",
@@ -38,7 +37,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.name is empty string" do
-      user = %User{id: 1, email: "test@example.com", name: ""}
+      user = %{id: 1, email: "test@example.com", name: ""}
 
       assert_raise ArgumentError,
                    "User.name cannot be nil or empty for user_registered event",
@@ -46,7 +45,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "succeeds with valid user" do
-      user = %User{id: 1, email: "test@example.com", name: "Test User"}
+      user = %{id: 1, email: "test@example.com", name: "Test User"}
 
       event = UserEvents.user_registered(user)
 
@@ -58,7 +57,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "succeeds with valid user and custom payload" do
-      user = %User{id: 1, email: "test@example.com", name: "Test User"}
+      user = %{id: 1, email: "test@example.com", name: "Test User"}
 
       event = UserEvents.user_registered(user, %{source: :web})
 
@@ -66,7 +65,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "sets criticality to critical by default" do
-      user = %User{id: 1, email: "test@example.com", name: "Test User"}
+      user = %{id: 1, email: "test@example.com", name: "Test User"}
 
       event = UserEvents.user_registered(user)
 
@@ -74,7 +73,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "includes intended_roles in payload when present" do
-      user = %User{
+      user = %{
         id: 1,
         email: "test@example.com",
         name: "Test User",
@@ -87,7 +86,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "includes empty list for intended_roles when nil" do
-      user = %User{id: 1, email: "test@example.com", name: "Test User", intended_roles: nil}
+      user = %{id: 1, email: "test@example.com", name: "Test User", intended_roles: nil}
 
       event = UserEvents.user_registered(user)
 
@@ -95,7 +94,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "includes empty intended_roles when empty list" do
-      user = %User{id: 1, email: "test@example.com", name: "Test User", intended_roles: []}
+      user = %{id: 1, email: "test@example.com", name: "Test User", intended_roles: []}
 
       event = UserEvents.user_registered(user)
 
@@ -103,7 +102,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "includes multiple roles in intended_roles" do
-      user = %User{
+      user = %{
         id: 1,
         email: "test@example.com",
         name: "Test User",
@@ -116,7 +115,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when intended_roles is not a list" do
-      user = %User{id: 1, email: "test@example.com", name: "Test User", intended_roles: "parent"}
+      user = %{id: 1, email: "test@example.com", name: "Test User", intended_roles: "parent"}
 
       assert_raise ArgumentError,
                    ~r/User.intended_roles must be a list/,
@@ -126,7 +125,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
 
   describe "user_confirmed/3 validation" do
     test "raises when user.id is nil" do
-      user = %User{id: nil, email: "test@example.com", confirmed_at: ~U[2024-01-01 12:00:00Z]}
+      user = %{id: nil, email: "test@example.com", confirmed_at: ~U[2024-01-01 12:00:00Z]}
 
       assert_raise ArgumentError,
                    "User.id cannot be nil for user_confirmed event",
@@ -134,7 +133,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.email is nil" do
-      user = %User{id: 1, email: nil, confirmed_at: ~U[2024-01-01 12:00:00Z]}
+      user = %{id: 1, email: nil, confirmed_at: ~U[2024-01-01 12:00:00Z]}
 
       assert_raise ArgumentError,
                    "User.email cannot be nil or empty for user_confirmed event",
@@ -142,7 +141,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.email is empty string" do
-      user = %User{id: 1, email: "", confirmed_at: ~U[2024-01-01 12:00:00Z]}
+      user = %{id: 1, email: "", confirmed_at: ~U[2024-01-01 12:00:00Z]}
 
       assert_raise ArgumentError,
                    "User.email cannot be nil or empty for user_confirmed event",
@@ -150,7 +149,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.confirmed_at is nil" do
-      user = %User{id: 1, email: "test@example.com", confirmed_at: nil}
+      user = %{id: 1, email: "test@example.com", confirmed_at: nil}
 
       assert_raise ArgumentError,
                    "User.confirmed_at cannot be nil for user_confirmed event",
@@ -159,7 +158,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
 
     test "succeeds with valid user" do
       confirmed_at = ~U[2024-01-01 12:00:00Z]
-      user = %User{id: 1, email: "test@example.com", confirmed_at: confirmed_at}
+      user = %{id: 1, email: "test@example.com", confirmed_at: confirmed_at}
 
       event = UserEvents.user_confirmed(user)
 
@@ -172,7 +171,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
 
     test "succeeds with valid user and custom payload" do
       confirmed_at = ~U[2024-01-01 12:00:00Z]
-      user = %User{id: 1, email: "test@example.com", confirmed_at: confirmed_at}
+      user = %{id: 1, email: "test@example.com", confirmed_at: confirmed_at}
 
       event = UserEvents.user_confirmed(user, %{confirmation_token: "abc123"})
 
@@ -182,7 +181,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
 
   describe "user_email_changed/3 validation" do
     test "raises when previous_email is missing from payload" do
-      user = %User{id: 1, email: "new@example.com"}
+      user = %{id: 1, email: "new@example.com"}
 
       assert_raise ArgumentError,
                    ~r/requires :previous_email in payload/,
@@ -190,7 +189,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when previous_email is nil" do
-      user = %User{id: 1, email: "new@example.com"}
+      user = %{id: 1, email: "new@example.com"}
 
       assert_raise ArgumentError,
                    ~r/requires :previous_email in payload/,
@@ -198,7 +197,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when previous_email is empty string via guard clause" do
-      user = %User{id: 1, email: "new@example.com"}
+      user = %{id: 1, email: "new@example.com"}
 
       assert_raise ArgumentError,
                    ~r/requires :previous_email in payload/,
@@ -208,7 +207,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.id is nil" do
-      user = %User{id: nil, email: "new@example.com"}
+      user = %{id: nil, email: "new@example.com"}
 
       assert_raise ArgumentError,
                    "User.id cannot be nil for user_email_changed event",
@@ -218,7 +217,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.email is nil" do
-      user = %User{id: 1, email: nil}
+      user = %{id: 1, email: nil}
 
       assert_raise ArgumentError,
                    "User.email cannot be nil or empty for user_email_changed event",
@@ -228,7 +227,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.email is empty string" do
-      user = %User{id: 1, email: ""}
+      user = %{id: 1, email: ""}
 
       assert_raise ArgumentError,
                    "User.email cannot be nil or empty for user_email_changed event",
@@ -238,7 +237,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "succeeds with valid user and previous_email" do
-      user = %User{id: 1, email: "new@example.com"}
+      user = %{id: 1, email: "new@example.com"}
 
       event = UserEvents.user_email_changed(user, %{previous_email: "old@example.com"})
 
@@ -250,7 +249,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "succeeds with valid user and additional payload fields" do
-      user = %User{id: 1, email: "new@example.com"}
+      user = %{id: 1, email: "new@example.com"}
 
       event =
         UserEvents.user_email_changed(user, %{
@@ -264,7 +263,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
 
   describe "user_anonymized/3 validation" do
     test "raises when previous_email is missing from payload" do
-      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+      user = %{id: 1, email: "deleted_1@anonymized.local"}
 
       assert_raise ArgumentError,
                    ~r/requires :previous_email in payload/,
@@ -272,7 +271,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when previous_email is nil" do
-      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+      user = %{id: 1, email: "deleted_1@anonymized.local"}
 
       assert_raise ArgumentError,
                    ~r/requires :previous_email in payload/,
@@ -280,7 +279,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when previous_email is empty string via guard clause" do
-      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+      user = %{id: 1, email: "deleted_1@anonymized.local"}
 
       assert_raise ArgumentError,
                    ~r/requires :previous_email in payload/,
@@ -288,7 +287,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "raises when user.id is nil" do
-      user = %User{id: nil, email: "deleted_nil@anonymized.local"}
+      user = %{id: nil, email: "deleted_nil@anonymized.local"}
 
       assert_raise ArgumentError,
                    "User.id cannot be nil for user_anonymized event",
@@ -298,7 +297,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "succeeds with valid user and previous_email" do
-      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+      user = %{id: 1, email: "deleted_1@anonymized.local"}
 
       event = UserEvents.user_anonymized(user, %{previous_email: "old@example.com"})
 
@@ -311,7 +310,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "sets criticality to critical by default" do
-      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+      user = %{id: 1, email: "deleted_1@anonymized.local"}
 
       event = UserEvents.user_anonymized(user, %{previous_email: "old@example.com"})
 
@@ -319,7 +318,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
     end
 
     test "succeeds with valid user and additional payload fields" do
-      user = %User{id: 1, email: "deleted_1@anonymized.local"}
+      user = %{id: 1, email: "deleted_1@anonymized.local"}
 
       event =
         UserEvents.user_anonymized(user, %{

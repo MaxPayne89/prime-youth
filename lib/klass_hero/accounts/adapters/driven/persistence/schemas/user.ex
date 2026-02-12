@@ -11,6 +11,7 @@ defmodule KlassHero.Accounts.User do
 
   import Ecto.Changeset
 
+  alias KlassHero.Accounts.Domain.Models.User, as: DomainUser
   alias KlassHero.Accounts.Types.{UserRole, UserRoles}
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -49,7 +50,7 @@ defmodule KlassHero.Accounts.User do
   @doc """
   A user changeset for registration.
 
-  Validates name, email, and intended_roles fields, sets a default avatar.
+  Validates name, email, and intended_roles fields, sets a default role.
 
   ## Options
 
@@ -191,13 +192,13 @@ defmodule KlassHero.Accounts.User do
   Timestamps and other non-PII data are preserved for data integrity.
   """
   def anonymize_changeset(%__MODULE__{id: id} = user) do
-    anonymized_email = "deleted_#{id}@anonymized.local"
+    # Trigger: domain model owns the definition of "anonymized"
+    # Why: single source of truth for GDPR anonymization values
+    # Outcome: schema changeset delegates field values to the domain model
+    attrs = DomainUser.anonymized_attrs()
+    anonymized_email = attrs.email_fn.(id)
 
-    change(user,
-      email: anonymized_email,
-      name: "Deleted User",
-      avatar: nil
-    )
+    change(user, email: anonymized_email, name: attrs.name, avatar: attrs.avatar)
   end
 
   @supported_locales ~w(en de)

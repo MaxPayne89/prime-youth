@@ -86,6 +86,7 @@ defmodule KlassHero.MixProject do
       {:tidewave, "~> 0.5", only: :dev},
       {:quokka, "~> 2.11", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       # Testing infrastructure
       {:excoveralls, "~> 0.18", only: :test},
       {:ex_machina, "~> 2.8", only: :test},

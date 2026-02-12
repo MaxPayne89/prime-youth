@@ -60,6 +60,10 @@ config :klass_hero, Oban,
   ],
   queues: [default: 10, messaging: 5, cleanup: 2]
 
+# Configure Accounts bounded context
+config :klass_hero, :accounts,
+  for_storing_users: KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
+
 # Configure Community bounded context
 config :klass_hero, :community,
   repository: KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository

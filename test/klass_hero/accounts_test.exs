@@ -351,14 +351,13 @@ defmodule KlassHero.AccountsTest do
       assert {:error, :not_found} = Accounts.login_user_by_magic_link(encoded_token)
     end
 
-    test "raises when unconfirmed user has password set" do
+    test "returns security_violation when unconfirmed user has password set" do
       user = unconfirmed_user_fixture()
       {1, nil} = Repo.update_all(User, set: [hashed_password: "hashed"])
       {encoded_token, _hashed_token} = generate_user_magic_link_token(user)
 
-      assert_raise RuntimeError, ~r/magic link log in is not allowed/, fn ->
-        Accounts.login_user_by_magic_link(encoded_token)
-      end
+      assert {:error, :security_violation} =
+               Accounts.login_user_by_magic_link(encoded_token)
     end
   end
 
@@ -447,6 +446,37 @@ defmodule KlassHero.AccountsTest do
 
     test "returns error for nil user" do
       assert {:error, :user_not_found} = Accounts.anonymize_user(nil)
+    end
+  end
+
+  describe "delete_account/2" do
+    import KlassHero.EventTestHelper
+
+    setup do
+      setup_test_integration_events()
+      user = user_fixture() |> set_password()
+      %{user: user}
+    end
+
+    test "returns :sudo_required when user has no recent authentication", %{user: user} do
+      # authenticated_at is nil (virtual field not loaded from session)
+      user = %{user | authenticated_at: nil}
+
+      assert {:error, :sudo_required} = Accounts.delete_account(user, valid_user_password())
+    end
+
+    test "returns :invalid_password when password is wrong", %{user: user} do
+      user = %{user | authenticated_at: DateTime.utc_now(:second)}
+
+      assert {:error, :invalid_password} = Accounts.delete_account(user, "wrongpassword123")
+    end
+
+    test "anonymizes user with valid sudo mode and correct password", %{user: user} do
+      user = %{user | authenticated_at: DateTime.utc_now(:second)}
+
+      assert {:ok, anonymized} = Accounts.delete_account(user, valid_user_password())
+      assert anonymized.email == "deleted_#{user.id}@anonymized.local"
+      assert anonymized.name == "Deleted User"
     end
   end
 
