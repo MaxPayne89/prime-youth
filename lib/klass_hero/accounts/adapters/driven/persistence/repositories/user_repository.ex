@@ -109,10 +109,18 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
     |> normalize_email_change_result()
   end
 
-  defp normalize_email_change_result({:ok, %{update_email: updated_user}}), do: {:ok, updated_user}
-  defp normalize_email_change_result({:error, :verify_token, _reason, _}), do: {:error, :invalid_token}
-  defp normalize_email_change_result({:error, :fetch_token, _reason, _}), do: {:error, :invalid_token}
-  defp normalize_email_change_result({:error, :update_email, changeset, _}), do: {:error, changeset}
+  defp normalize_email_change_result({:ok, %{update_email: updated_user}}),
+    do: {:ok, updated_user}
+
+  defp normalize_email_change_result({:error, :verify_token, _reason, _}),
+    do: {:error, :invalid_token}
+
+  defp normalize_email_change_result({:error, :fetch_token, _reason, _}),
+    do: {:error, :invalid_token}
+
+  defp normalize_email_change_result({:error, :update_email, changeset, _}),
+    do: {:error, changeset}
+
   defp normalize_email_change_result({:error, _step, reason, _}), do: {:error, reason}
 
   @impl true
