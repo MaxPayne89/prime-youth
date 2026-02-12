@@ -45,13 +45,8 @@ if config_env() == :prod do
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
 
-  # OpenTelemetry: Override service name from env if provided
-  if otel_service_name = System.get_env("OTEL_SERVICE_NAME") do
-    config :opentelemetry, :resource, service: [name: otel_service_name, namespace: "klass-hero"]
-  end
-
   # OpenTelemetry: Only configure Honeycomb exporter if credentials are present
-  # Note: Dataset is determined by OTEL_SERVICE_NAME (configured above), not x-honeycomb-dataset header
+  # Service name is hardcoded in config.exs; the API key alone determines which Honeycomb environment receives data
   honeycomb_api_key = System.get_env("HONEYCOMB_KLASS_HERO_API_KEY")
   otel_endpoint = System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT")
 
