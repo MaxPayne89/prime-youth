@@ -317,7 +317,7 @@ defmodule KlassHero.Accounts do
 
   Returns a map containing all user data that can be serialized to JSON.
   """
-  def export_user_data(user) do
+  def export_user_data(%User{} = user) do
     KlassHero.Accounts.Application.UseCases.ExportUserData.execute(user)
   end
 
@@ -344,9 +344,11 @@ defmodule KlassHero.Accounts do
       {:error, :user_not_found}
 
   """
-  def anonymize_user(user) do
+  def anonymize_user(%User{} = user) do
     KlassHero.Accounts.Application.UseCases.AnonymizeUser.execute(user)
   end
+
+  def anonymize_user(nil), do: {:error, :user_not_found}
 
   @doc """
   Deletes (anonymizes) user account after password verification.
@@ -375,7 +377,7 @@ defmodule KlassHero.Accounts do
       {:error, :invalid_password}
 
   """
-  def delete_account(user, password) do
+  def delete_account(%User{} = user, password) when is_binary(password) do
     KlassHero.Accounts.Application.UseCases.DeleteAccount.execute(user, password)
   end
 end

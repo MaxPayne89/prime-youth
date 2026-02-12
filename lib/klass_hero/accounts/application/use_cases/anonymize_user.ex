@@ -3,17 +3,20 @@ defmodule KlassHero.Accounts.Application.UseCases.AnonymizeUser do
   Use case for GDPR account anonymization.
 
   Orchestrates:
-  1. Anonymize user PII (email, name, avatar)
-  2. Delete all tokens (invalidate all sessions)
-  3. Publish user_anonymized event for downstream contexts
+  1. Anonymize user PII and delete all tokens (via repository)
+  2. Publish user_anonymized event for downstream contexts
   """
 
-  import Ecto.Query, warn: false
-
   alias KlassHero.Accounts.Domain.Events.UserEvents
-  alias KlassHero.Accounts.{User, UserToken}
-  alias KlassHero.Repo
+  alias KlassHero.Accounts.User
   alias KlassHero.Shared.DomainEventBus
+
+  require Logger
+
+  @user_repository Application.compile_env!(
+                     :klass_hero,
+                     [:accounts, :for_storing_users]
+                   )
 
   @doc """
   Anonymizes a user account.
@@ -26,26 +29,33 @@ defmodule KlassHero.Accounts.Application.UseCases.AnonymizeUser do
   def execute(%User{} = user) do
     previous_email = user.email
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.update(:anonymize_user, User.anonymize_changeset(user))
-    |> Ecto.Multi.delete_all(:delete_tokens, fn %{anonymize_user: anonymized_user} ->
-      from(t in UserToken, where: t.user_id == ^anonymized_user.id)
-    end)
-    |> Ecto.Multi.run(:publish_event, fn _repo, %{anonymize_user: anonymized_user} ->
-      DomainEventBus.dispatch(
-        KlassHero.Accounts,
+    case @user_repository.anonymize(user) do
+      {:ok, anonymized_user} ->
+        # Trigger: GDPR-critical event — log at error level if dispatch fails
+        # Why: anonymization events drive downstream data deletion
+        # Outcome: primary operation still succeeds, but failure is escalated
         UserEvents.user_anonymized(anonymized_user, %{previous_email: previous_email})
-      )
+        |> dispatch_event(:user_anonymized)
 
-      {:ok, anonymized_user}
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{publish_event: user}} -> {:ok, user}
-      {:error, :anonymize_user, changeset, _} -> {:error, changeset}
-      {:error, _step, reason, _} -> {:error, reason}
+        {:ok, anonymized_user}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
   def execute(nil), do: {:error, :user_not_found}
+
+  defp dispatch_event(event, event_type) do
+    case DomainEventBus.dispatch(KlassHero.Accounts, event) do
+      :ok ->
+        :ok
+
+      {:error, failures} ->
+        Logger.error("GDPR event dispatch failed",
+          event_type: event_type,
+          failures: inspect(failures)
+        )
+    end
+  end
 end

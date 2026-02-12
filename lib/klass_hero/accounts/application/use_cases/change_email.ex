@@ -2,20 +2,20 @@ defmodule KlassHero.Accounts.Application.UseCases.ChangeEmail do
   @moduledoc """
   Use case for updating a user's email via confirmation token.
 
-  Orchestrates the 5-step email change flow:
-  1. Verify the change token
-  2. Fetch the token + new email
-  3. Update the user's email
-  4. Delete all change tokens for this context
-  5. Publish user_email_changed event
+  Orchestrates the email change flow via the repository and
+  dispatches the user_email_changed domain event.
   """
 
-  import Ecto.Query, warn: false
-
   alias KlassHero.Accounts.Domain.Events.UserEvents
-  alias KlassHero.Accounts.{User, UserToken}
-  alias KlassHero.Repo
+  alias KlassHero.Accounts.User
   alias KlassHero.Shared.DomainEventBus
+
+  require Logger
+
+  @user_repository Application.compile_env!(
+                     :klass_hero,
+                     [:accounts, :for_storing_users]
+                   )
 
   @doc """
   Updates the user's email using the given confirmation token.
@@ -26,42 +26,30 @@ defmodule KlassHero.Accounts.Application.UseCases.ChangeEmail do
   - `{:error, changeset}` if email update fails
   """
   def execute(%User{} = user, token) when is_binary(token) do
-    context = "change:#{user.email}"
     previous_email = user.email
 
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:verify_token, fn _repo, _ ->
-      UserToken.verify_change_email_token_query(token, context)
-    end)
-    |> Ecto.Multi.run(:fetch_token, fn repo, %{verify_token: query} ->
-      case repo.one(query) do
-        %UserToken{sent_to: email} = token -> {:ok, {token, email}}
-        nil -> {:error, :token_not_found}
-      end
-    end)
-    |> Ecto.Multi.run(:update_email, fn repo, %{fetch_token: {_token, email}} ->
-      user
-      |> User.email_changeset(%{email: email})
-      |> repo.update()
-    end)
-    |> Ecto.Multi.delete_all(:delete_tokens, fn %{update_email: updated_user} ->
-      from(UserToken, where: [user_id: ^updated_user.id, context: ^context])
-    end)
-    |> Ecto.Multi.run(:publish_event, fn _repo, %{update_email: updated_user} ->
-      DomainEventBus.dispatch(
-        KlassHero.Accounts,
+    case @user_repository.apply_email_change(user, token) do
+      {:ok, updated_user} ->
         UserEvents.user_email_changed(updated_user, %{previous_email: previous_email})
-      )
+        |> dispatch_event(:user_email_changed)
 
-      {:ok, updated_user}
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{publish_event: user}} -> {:ok, user}
-      {:error, :verify_token, _reason, _} -> {:error, :invalid_token}
-      {:error, :fetch_token, _reason, _} -> {:error, :invalid_token}
-      {:error, :update_email, changeset, _} -> {:error, changeset}
-      {:error, _step, reason, _} -> {:error, reason}
+        {:ok, updated_user}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp dispatch_event(event, event_type) do
+    case DomainEventBus.dispatch(KlassHero.Accounts, event) do
+      :ok ->
+        :ok
+
+      {:error, failures} ->
+        Logger.warning("Event dispatch failed",
+          event_type: event_type,
+          failures: inspect(failures)
+        )
     end
   end
 end
