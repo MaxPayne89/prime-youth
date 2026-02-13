@@ -1,8 +1,7 @@
 defmodule KlassHeroWeb.ContactLive do
   use KlassHeroWeb, :live_view
 
-  alias KlassHero.Support.Application.UseCases.SubmitContactForm
-  alias KlassHero.Support.Domain.Models.ContactForm
+  alias KlassHeroWeb.Schemas.ContactForm
   alias KlassHeroWeb.{Theme, UIComponents}
 
   require Logger
@@ -33,25 +32,23 @@ defmodule KlassHeroWeb.ContactLive do
 
   @impl true
   def handle_event("submit", %{"contact" => contact_params}, socket) do
-    case SubmitContactForm.execute(contact_params) do
-      {:ok, _contact_request} ->
+    changeset = ContactForm.changeset(%ContactForm{}, contact_params)
+
+    case Ecto.Changeset.apply_action(changeset, :insert) do
+      {:ok, validated_form} ->
+        Logger.info("Contact form submitted",
+          name: validated_form.name,
+          email: validated_form.email,
+          subject: validated_form.subject
+        )
+
         {:noreply,
          socket
          |> assign(submission_status: :success)
          |> assign(form: to_form(ContactForm.changeset(%ContactForm{}, %{}), as: :contact))}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {:error, changeset} ->
         {:noreply, assign(socket, form: to_form(changeset, as: :contact))}
-
-      {:error, reason} ->
-        Logger.error("Contact form submission failed: #{inspect(reason)}")
-
-        {:noreply,
-         socket
-         |> put_flash(:error, gettext("Failed to submit contact form. Please try again."))
-         |> assign(
-           form: to_form(ContactForm.changeset(%ContactForm{}, contact_params), as: :contact)
-         )}
     end
   end
 

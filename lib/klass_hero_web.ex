@@ -26,8 +26,6 @@ defmodule KlassHeroWeb do
       KlassHero.Enrollment,
       KlassHero.Messaging,
       KlassHero.Participation,
-      KlassHero.Community,
-      KlassHero.Support,
       KlassHero.Entitlements,
       KlassHero.Shared
     ],

@@ -1,9 +1,6 @@
-defmodule KlassHero.Support.Domain.Models.ContactForm do
+defmodule KlassHeroWeb.Schemas.ContactForm do
   @moduledoc """
   Embedded schema for contact form validation.
-
-  Provides structured validation for contact form submissions with proper
-  error messages and type safety.
   """
 
   use Ecto.Schema
@@ -21,17 +18,6 @@ defmodule KlassHero.Support.Domain.Models.ContactForm do
     field :message, :string
   end
 
-  @doc """
-  Creates a changeset for contact form validation.
-
-  ## Validations
-
-  - All fields required
-  - Email must contain @ symbol
-  - Name: 2-100 characters
-  - Message: 10-1000 characters
-  - Subject: must be one of #{inspect(@valid_subjects)}
-  """
   def changeset(contact_form \\ %__MODULE__{}, attrs) do
     contact_form
     |> cast(attrs, @required_fields)

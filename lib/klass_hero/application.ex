@@ -12,8 +12,6 @@ defmodule KlassHero.Application do
       KlassHero.Enrollment,
       KlassHero.Messaging,
       KlassHero.Participation,
-      KlassHero.Community,
-      KlassHero.Support,
       KlassHero.Shared
     ]
 
@@ -149,28 +147,6 @@ defmodule KlassHero.Application do
          ]},
         id: :participation_domain_event_bus
       ),
-      Supervisor.child_spec(
-        {KlassHero.Shared.DomainEventBus,
-         context: KlassHero.Community,
-         handlers: [
-           {:comment_added,
-            {KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
-           {:post_liked,
-            {KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
-           {:post_unliked,
-            {KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
-         ]},
-        id: :community_domain_event_bus
-      ),
-      Supervisor.child_spec(
-        {KlassHero.Shared.DomainEventBus,
-         context: KlassHero.Support,
-         handlers: [
-           {:contact_request_submitted,
-            {KlassHero.Support.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
-         ]},
-        id: :support_domain_event_bus
-      )
     ]
   end
 
@@ -213,8 +189,6 @@ defmodule KlassHero.Application do
   end
 
   defp in_memory_repositories do
-    [
-      KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
-    ]
+    []
   end
 end

@@ -64,10 +64,6 @@ config :klass_hero, Oban,
 config :klass_hero, :accounts,
   for_storing_users: KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
 
-# Configure Community bounded context
-config :klass_hero, :community,
-  repository: KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
-
 # Configure Enrollment bounded context
 config :klass_hero, :enrollment,
   for_managing_enrollments:
@@ -145,10 +141,6 @@ config :klass_hero, :scopes,
 config :klass_hero, :storage,
   adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
   bucket: "klass-hero-dev"
-
-# Configure Support bounded context
-config :klass_hero, :support,
-  repository: KlassHero.Support.Adapters.Driven.Persistence.Repositories.ContactRequestRepository
 
 config :klass_hero,
   ecto_repos: [KlassHero.Repo],
