@@ -5,7 +5,7 @@ defmodule KlassHero.Accounts do
 
   use Boundary,
     top_level?: true,
-    deps: [KlassHero, KlassHero.Identity, KlassHero.Shared],
+    deps: [KlassHero, KlassHero.Family, KlassHero.Provider, KlassHero.Shared],
     exports: [Scope, User, UserNotifier]
 
   import Ecto.Query, warn: false

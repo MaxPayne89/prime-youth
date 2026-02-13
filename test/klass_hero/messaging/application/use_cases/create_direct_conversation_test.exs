@@ -5,7 +5,8 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversationTest 
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.AccountsFixtures
-  alias KlassHero.Identity.Domain.Models.{ParentProfile, ProviderProfile}
+  alias KlassHero.Family.Domain.Models.ParentProfile
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Messaging.Application.UseCases.CreateDirectConversation
   alias KlassHero.Messaging.Domain.Models.Conversation
 

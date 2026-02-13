@@ -7,14 +7,14 @@ defmodule KlassHeroWeb.UserDataExportController do
   use KlassHeroWeb, :controller
 
   alias KlassHero.Accounts
-  alias KlassHero.Identity
+  alias KlassHero.Family
 
   require Logger
 
   def export(conn, _params) do
     user = conn.assigns.current_scope.user
     account_data = Accounts.export_user_data(user)
-    identity_data = Identity.export_data_for_user(user.id)
+    identity_data = Family.export_data_for_user(user.id)
 
     data = Map.merge(account_data, identity_data)
 

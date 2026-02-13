@@ -21,7 +21,8 @@ defmodule KlassHeroWeb do
     deps: [
       KlassHero,
       KlassHero.Accounts,
-      KlassHero.Identity,
+      KlassHero.Family,
+      KlassHero.Provider,
       KlassHero.ProgramCatalog,
       KlassHero.Enrollment,
       KlassHero.Messaging,

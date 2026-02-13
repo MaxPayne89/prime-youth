@@ -2,7 +2,7 @@ defmodule KlassHeroWeb.BookingLive do
   use KlassHeroWeb, :live_view
 
   import KlassHeroWeb.BookingComponents
-  import KlassHeroWeb.Helpers.IdentityHelpers
+  import KlassHeroWeb.Helpers.FamilyHelpers
 
   alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog

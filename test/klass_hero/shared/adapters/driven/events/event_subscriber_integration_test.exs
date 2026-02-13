@@ -339,9 +339,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
 
   describe "production subscriber isolation" do
     test "test subscribers do not interfere with production subscriber" do
-      # The production IdentityEventHandler subscriber is started in application.ex
+      # The production ProviderEventHandler subscriber is started in application.ex
       production_subscriber =
-        Process.whereis(KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler)
+        Process.whereis(:provider_integration_event_subscriber)
 
       {:ok, test_subscriber} =
         start_test_subscriber(

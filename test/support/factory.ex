@@ -30,15 +30,15 @@ defmodule KlassHero.Factory do
   alias KlassHero.AccountsFixtures
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
   alias KlassHero.Enrollment.Domain.Models.Enrollment
-  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
-  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
-  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
-  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
-  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
-  alias KlassHero.Identity.Domain.Models.Child
-  alias KlassHero.Identity.Domain.Models.Consent
-  alias KlassHero.Identity.Domain.Models.ParentProfile
-  alias KlassHero.Identity.Domain.Models.ProviderProfile
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+  alias KlassHero.Family.Domain.Models.Child
+  alias KlassHero.Family.Domain.Models.Consent
+  alias KlassHero.Family.Domain.Models.ParentProfile
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.{
     ConversationSchema,
@@ -219,7 +219,7 @@ defmodule KlassHero.Factory do
   end
 
   # =============================================================================
-  # Identity Context - Parent Profile Factories
+  # Family Context - Parent Profile Factories
   # =============================================================================
 
   @doc """
@@ -279,7 +279,7 @@ defmodule KlassHero.Factory do
   def parent_schema_factory, do: parent_profile_schema_factory()
 
   # =============================================================================
-  # Identity Context - Provider Profile Factories
+  # Provider Context - Provider Profile Factories
   # =============================================================================
 
   @doc """
@@ -365,7 +365,7 @@ defmodule KlassHero.Factory do
   def verified_provider_factory, do: verified_provider_profile_factory()
 
   # =============================================================================
-  # Identity Context - Child Factories
+  # Family Context - Child Factories
   # =============================================================================
 
   @doc """
@@ -428,7 +428,7 @@ defmodule KlassHero.Factory do
   end
 
   # =============================================================================
-  # Identity Context - Consent Factories
+  # Family Context - Consent Factories
   # =============================================================================
 
   @doc """
@@ -491,7 +491,7 @@ defmodule KlassHero.Factory do
   end
 
   # =============================================================================
-  # Identity Context - Verification Document Factories
+  # Provider Context - Verification Document Factories
   # =============================================================================
 
   @doc """

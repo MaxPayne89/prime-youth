@@ -74,21 +74,25 @@ config :klass_hero, :event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher,
   pubsub: KlassHero.PubSub
 
-# Configure Identity bounded context
-config :klass_hero, :identity,
+# Configure Family bounded context
+config :klass_hero, :family,
   repo: KlassHero.Repo,
   for_storing_parent_profiles:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
-  for_storing_provider_profiles:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
+    KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
   for_storing_children:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository,
+    KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildRepository,
   for_storing_consents:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRepository,
+    KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepository
+
+# Configure Provider bounded context
+config :klass_hero, :provider,
+  repo: KlassHero.Repo,
+  for_storing_provider_profiles:
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
   for_storing_verification_documents:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository,
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository,
   for_storing_staff_members:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
 
 # Configure Integration Event Publisher (cross-context communication)
 config :klass_hero, :integration_event_publisher,
@@ -116,7 +120,7 @@ config :klass_hero, :participation,
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
   participation_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-  child_info_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResolver,
+  child_info_resolver: KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver,
   behavioral_note_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 

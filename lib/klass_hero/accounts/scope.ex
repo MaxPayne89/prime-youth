@@ -17,7 +17,8 @@ defmodule KlassHero.Accounts.Scope do
   """
 
   alias KlassHero.Accounts.User
-  alias KlassHero.Identity
+  alias KlassHero.Family
+  alias KlassHero.Provider
 
   defstruct user: nil,
             roles: [],
@@ -48,8 +49,8 @@ defmodule KlassHero.Accounts.Scope do
   def resolve_roles(%__MODULE__{user: nil} = scope), do: scope
 
   def resolve_roles(%__MODULE__{user: user} = scope) do
-    parent = extract_profile(Identity.get_parent_by_identity(user.id))
-    provider = extract_profile(Identity.get_provider_by_identity(user.id))
+    parent = extract_profile(Family.get_parent_by_identity(user.id))
+    provider = extract_profile(Provider.get_provider_by_identity(user.id))
 
     roles =
       []

@@ -5,7 +5,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   import KlassHeroWeb.ReviewComponents
   import KlassHeroWeb.UIComponents
 
-  alias KlassHero.Identity
+  alias KlassHero.Provider
   alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.StaffMemberPresenter
   alias KlassHeroWeb.Theme
@@ -75,7 +75,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   defp load_team_members(nil), do: []
 
   defp load_team_members(provider_id) do
-    case Identity.list_staff_members(provider_id) do
+    case Provider.list_staff_members(provider_id) do
       {:ok, members} -> StaffMemberPresenter.to_card_view_list(members)
       {:error, _} -> []
     end

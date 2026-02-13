@@ -1,7 +1,7 @@
 defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
   use KlassHeroWeb, :live_view
 
-  alias KlassHero.Identity
+  alias KlassHero.Family
   alias KlassHero.Participation
   alias KlassHeroWeb.Theme
 
@@ -171,7 +171,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
     parent_id = socket.assigns.parent_id
 
     if parent_id do
-      children = Identity.get_children(parent_id)
+      children = Family.get_children(parent_id)
       child_ids = Enum.map(children, & &1.id)
 
       case Participation.get_participation_history(%{child_ids: child_ids}) do
@@ -195,7 +195,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
         {child.id, %{first_name: child.first_name, last_name: child.last_name}}
       end)
 
-    children_ids = Identity.get_child_ids_for_parent(parent_id)
+    children_ids = Family.get_child_ids_for_parent(parent_id)
 
     enriched_records =
       Enum.map(participation_records, &enrich_history_record(&1, child_names_map))

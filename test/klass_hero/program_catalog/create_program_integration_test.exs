@@ -3,12 +3,12 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
 
   import KlassHero.EventTestHelper
 
-  alias KlassHero.IdentityFixtures
+  alias KlassHero.ProviderFixtures
   alias KlassHero.ProgramCatalog
 
   describe "create_program/1" do
     test "creates program with required fields" do
-      provider = IdentityFixtures.provider_profile_fixture()
+      provider = ProviderFixtures.provider_profile_fixture()
 
       assert {:ok, program} =
                ProgramCatalog.create_program(%{
@@ -25,8 +25,8 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
     end
 
     test "creates program with instructor" do
-      provider = IdentityFixtures.provider_profile_fixture()
-      staff = IdentityFixtures.staff_member_fixture(provider_id: provider.id)
+      provider = ProviderFixtures.provider_profile_fixture()
+      staff = ProviderFixtures.staff_member_fixture(provider_id: provider.id)
 
       assert {:ok, program} =
                ProgramCatalog.create_program(%{
@@ -58,7 +58,7 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
     end
 
     test "rejects negative price with specific error" do
-      provider = IdentityFixtures.provider_profile_fixture()
+      provider = ProviderFixtures.provider_profile_fixture()
 
       assert {:error, changeset} =
                ProgramCatalog.create_program(%{
@@ -74,7 +74,7 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
     end
 
     test "rejects invalid category" do
-      provider = IdentityFixtures.provider_profile_fixture()
+      provider = ProviderFixtures.provider_profile_fixture()
 
       assert {:error, _changeset} =
                ProgramCatalog.create_program(%{
@@ -87,7 +87,7 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
     end
 
     test "accepts all valid program categories" do
-      provider = IdentityFixtures.provider_profile_fixture()
+      provider = ProviderFixtures.provider_profile_fixture()
 
       categories = ["sports", "arts", "music", "education", "life-skills", "camps", "workshops"]
 
@@ -107,7 +107,7 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
 
     test "dispatches program_created integration event on success" do
       setup_test_integration_events()
-      provider = IdentityFixtures.provider_profile_fixture()
+      provider = ProviderFixtures.provider_profile_fixture()
 
       assert {:ok, program} =
                ProgramCatalog.create_program(%{

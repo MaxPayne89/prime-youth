@@ -19,7 +19,7 @@ defmodule KlassHeroWeb.Presenters.ChildPresenter do
 
   use Gettext, backend: KlassHeroWeb.Gettext
 
-  alias KlassHero.Identity.Domain.Models.Child
+  alias KlassHero.Family.Domain.Models.Child
 
   @doc """
   Transforms a Child domain model to a simple view format.

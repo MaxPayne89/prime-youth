@@ -5,7 +5,8 @@ defmodule KlassHeroWeb.UserAuthTest do
 
   alias KlassHero.Accounts
   alias KlassHero.Accounts.Scope
-  alias KlassHero.Identity
+  alias KlassHero.Family
+  alias KlassHero.Provider
   alias KlassHeroWeb.UserAuth
   alias Phoenix.LiveView
 
@@ -320,7 +321,7 @@ defmodule KlassHeroWeb.UserAuthTest do
       user = user_fixture()
 
       {:ok, _parent} =
-        Identity.create_parent_profile(%{
+        Family.create_parent_profile(%{
           identity_id: user.id,
           display_name: user.name
         })
@@ -376,7 +377,7 @@ defmodule KlassHeroWeb.UserAuthTest do
       user = user_fixture()
 
       {:ok, _provider} =
-        Identity.create_provider_profile(%{
+        Provider.create_provider_profile(%{
           identity_id: user.id,
           business_name: "Test Business"
         })
@@ -432,7 +433,7 @@ defmodule KlassHeroWeb.UserAuthTest do
       user = user_fixture()
 
       {:ok, _provider} =
-        Identity.create_provider_profile(%{
+        Provider.create_provider_profile(%{
           identity_id: user.id,
           business_name: "Test Business"
         })
@@ -472,7 +473,7 @@ defmodule KlassHeroWeb.UserAuthTest do
       user = user_fixture()
 
       {:ok, _parent} =
-        Identity.create_parent_profile(%{
+        Family.create_parent_profile(%{
           identity_id: user.id,
           display_name: user.name
         })

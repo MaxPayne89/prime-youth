@@ -2,7 +2,7 @@ defmodule KlassHeroWeb.UserLive.Settings do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Accounts
-  alias KlassHeroWeb.Helpers.IdentityHelpers
+  alias KlassHeroWeb.Helpers.FamilyHelpers
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
 
@@ -504,7 +504,7 @@ defmodule KlassHeroWeb.UserLive.Settings do
     email_changeset = Accounts.change_user_email(user, %{}, validate_unique: false)
     password_changeset = Accounts.change_user_password(user, %{}, hash_password: false)
     locale_changeset = Accounts.change_user_locale(user, %{})
-    children = IdentityHelpers.get_children_for_current_user(socket)
+    children = FamilyHelpers.get_children_for_current_user(socket)
 
     socket =
       socket

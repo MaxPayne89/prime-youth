@@ -33,7 +33,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
   alias KlassHero.Enrollment
   alias KlassHero.Enrollment.Domain.Models.Enrollment, as: EnrollmentModel
   alias KlassHero.Entitlements
-  alias KlassHero.Identity
+  alias KlassHero.Family
 
   require Logger
 
@@ -84,7 +84,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
   end
 
   defp validate_parent_profile(identity_id) do
-    case Identity.get_parent_by_identity(identity_id) do
+    case Family.get_parent_by_identity(identity_id) do
       {:ok, parent} -> {:ok, parent}
       {:error, :not_found} -> {:error, :no_parent_profile}
     end

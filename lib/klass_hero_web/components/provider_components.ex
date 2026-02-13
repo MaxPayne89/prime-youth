@@ -13,7 +13,7 @@ defmodule KlassHeroWeb.ProviderComponents do
   import KlassHeroWeb.CoreComponents, only: [input: 1]
   import KlassHeroWeb.UIComponents
 
-  alias KlassHero.Identity.Domain.Models.VerificationDocument
+  alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
   alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Theme

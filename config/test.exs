@@ -35,7 +35,7 @@ config :klass_hero, :participation,
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
   participation_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-  child_info_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResolver,
+  child_info_resolver: KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver,
   behavioral_note_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 

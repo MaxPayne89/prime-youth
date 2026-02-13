@@ -12,7 +12,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   import KlassHeroWeb.ProviderComponents
 
-  alias KlassHero.Identity
+  alias KlassHero.Provider
   alias KlassHero.ProgramCatalog
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Presenters.ProgramPresenter
@@ -58,7 +58,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         stats = MockData.stats()
 
         # Load real staff members
-        {:ok, staff_members} = Identity.list_staff_members(provider_profile.id)
+        {:ok, staff_members} = Provider.list_staff_members(provider_profile.id)
         staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
 
         # Build staff filter options from real data
@@ -83,7 +83,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(search_query: "")
           |> assign(selected_staff: "all")
           |> assign(show_staff_form: false, editing_staff_id: nil)
-          |> assign(staff_form: to_form(Identity.new_staff_member_changeset()))
+          |> assign(staff_form: to_form(Provider.new_staff_member_changeset()))
           |> assign(show_program_form: false)
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
           |> assign(instructor_options: build_instructor_options(provider_profile.id))
@@ -116,10 +116,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_params(_params, _uri, %{assigns: %{live_action: :edit}} = socket) do
     provider = socket.assigns.current_scope.provider
 
-    changeset = Identity.change_provider_profile(provider)
+    changeset = Provider.change_provider_profile(provider)
 
     docs =
-      case Identity.get_provider_verification_documents(provider.id) do
+      case Provider.get_provider_verification_documents(provider.id) do
         {:ok, docs} -> docs
         {:error, _reason} -> []
       end
@@ -142,7 +142,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     # Why: provider.verified alone is boolean; documents give granular status
     # Outcome: business map gets :verification_status (:verified/:pending/:rejected/:not_started)
     docs =
-      case Identity.get_provider_verification_documents(provider.id) do
+      case Provider.get_provider_verification_documents(provider.id) do
         {:ok, docs} -> docs
         {:error, _reason} -> []
       end
@@ -159,7 +159,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_params(_params, _uri, %{assigns: %{live_action: :team}} = socket) do
     provider = socket.assigns.current_scope.provider
 
-    {:ok, staff_members} = Identity.list_staff_members(provider.id)
+    {:ok, staff_members} = Provider.list_staff_members(provider.id)
     staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
 
     {:noreply,
@@ -190,14 +190,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     {:noreply,
      socket
      |> assign(show_staff_form: true, editing_staff_id: nil)
-     |> assign(staff_form: to_form(Identity.new_staff_member_changeset()))}
+     |> assign(staff_form: to_form(Provider.new_staff_member_changeset()))}
   end
 
   @impl true
   def handle_event("edit_member", %{"id" => staff_id}, socket) do
-    case Identity.get_staff_member(staff_id) do
+    case Provider.get_staff_member(staff_id) do
       {:ok, staff} ->
-        changeset = Identity.change_staff_member(staff)
+        changeset = Provider.change_staff_member(staff)
 
         {:noreply,
          socket
@@ -219,11 +219,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     changeset =
       case socket.assigns.editing_staff_id do
         nil ->
-          Identity.new_staff_member_changeset(params)
+          Provider.new_staff_member_changeset(params)
 
         staff_id ->
-          {:ok, staff} = Identity.get_staff_member(staff_id)
-          Identity.change_staff_member(staff, params)
+          {:ok, staff} = Provider.get_staff_member(staff_id)
+          Provider.change_staff_member(staff, params)
       end
 
     {:noreply, assign(socket, staff_form: to_form(Map.put(changeset, :action, :validate)))}
@@ -246,7 +246,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> Map.put(:provider_id, provider.id)
           |> maybe_add_headshot(headshot_result)
 
-        case Identity.create_staff_member(attrs) do
+        case Provider.create_staff_member(attrs) do
           {:ok, staff} ->
             view = StaffMemberPresenter.to_card_view(staff)
 
@@ -262,7 +262,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
           {:error, {:validation_error, _errors}} ->
             changeset =
-              Identity.new_staff_member_changeset(params)
+              Provider.new_staff_member_changeset(params)
               |> Map.put(:action, :validate)
 
             {:noreply,
@@ -280,7 +280,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> atomize_staff_params()
           |> maybe_add_headshot(headshot_result)
 
-        case Identity.update_staff_member(staff_id, attrs) do
+        case Provider.update_staff_member(staff_id, attrs) do
           {:ok, staff} ->
             view = StaffMemberPresenter.to_card_view(staff)
 
@@ -292,10 +292,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
              |> put_flash(:info, gettext("Team member updated."))}
 
           {:error, {:validation_error, _errors}} ->
-            {:ok, staff} = Identity.get_staff_member(staff_id)
+            {:ok, staff} = Provider.get_staff_member(staff_id)
 
             changeset =
-              Identity.change_staff_member(staff, params)
+              Provider.change_staff_member(staff, params)
               |> Map.put(:action, :validate)
 
             {:noreply,
@@ -311,7 +311,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("delete_member", %{"id" => staff_id}, socket) do
-    case Identity.delete_staff_member(staff_id) do
+    case Provider.delete_staff_member(staff_id) do
       :ok ->
         {:noreply,
          socket
@@ -332,7 +332,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   @impl true
   def handle_event("validate_profile", %{"provider_profile_schema" => params}, socket) do
     provider = socket.assigns.current_scope.provider
-    changeset = Identity.change_provider_profile(provider, params)
+    changeset = Provider.change_provider_profile(provider, params)
 
     {:noreply, assign(socket, form: to_form(Map.put(changeset, :action, :validate)))}
   end
@@ -357,7 +357,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             :no_upload -> attrs
           end
 
-        case Identity.update_provider_profile(provider.id, attrs) do
+        case Provider.update_provider_profile(provider.id, attrs) do
           {:ok, _updated} ->
             {:noreply,
              socket
@@ -388,7 +388,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       consume_uploaded_entries(socket, :verification_doc, fn %{path: path}, entry ->
         file_binary = File.read!(path)
 
-        case Identity.submit_verification_document(%{
+        case Provider.submit_verification_document(%{
                provider_profile_id: provider.id,
                document_type: doc_type,
                file_binary: file_binary,
@@ -878,7 +878,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp refresh_staff_options(socket) do
     provider_id = socket.assigns.current_scope.provider.id
-    {:ok, staff_members} = Identity.list_staff_members(provider_id)
+    {:ok, staff_members} = Provider.list_staff_members(provider_id)
     staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
 
     staff_options =
@@ -967,18 +967,18 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp maybe_add_cover_image(attrs, _), do: attrs
 
   # Trigger: instructor_id may be nil/"" (none selected) or a valid UUID
-  # Why: instructor is optional; when selected, we resolve display data from Identity
+  # Why: instructor is optional; when selected, we resolve display data from Provider
   # Outcome: {:ok, attrs} enriched with instructor data, or {:error, :instructor_not_found}
   defp maybe_add_instructor(attrs, nil, _socket), do: {:ok, attrs}
   defp maybe_add_instructor(attrs, "", _socket), do: {:ok, attrs}
 
   defp maybe_add_instructor(attrs, instructor_id, socket) do
-    case Identity.get_staff_member(instructor_id) do
+    case Provider.get_staff_member(instructor_id) do
       {:ok, staff} ->
         {:ok,
          attrs
          |> Map.put(:instructor_id, staff.id)
-         |> Map.put(:instructor_name, Identity.staff_member_full_name(staff))
+         |> Map.put(:instructor_name, Provider.staff_member_full_name(staff))
          |> Map.put(:instructor_headshot_url, staff.headshot_url)}
 
       {:error, _reason} ->
@@ -992,10 +992,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   defp build_instructor_options(provider_id) do
-    case Identity.list_active_staff_members(provider_id) do
+    case Provider.list_active_staff_members(provider_id) do
       {:ok, members} ->
         Enum.map(members, fn m ->
-          {Identity.staff_member_full_name(m), m.id}
+          {Provider.staff_member_full_name(m), m.id}
         end)
 
       {:error, reason} ->

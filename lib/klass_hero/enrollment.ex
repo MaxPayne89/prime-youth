@@ -39,7 +39,7 @@ defmodule KlassHero.Enrollment do
 
   use Boundary,
     top_level?: true,
-    deps: [KlassHero, KlassHero.Entitlements, KlassHero.Identity, KlassHero.Shared],
+    deps: [KlassHero, KlassHero.Entitlements, KlassHero.Family, KlassHero.Shared],
     exports: []
 
   alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees

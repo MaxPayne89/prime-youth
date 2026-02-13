@@ -2,7 +2,7 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
   use KlassHeroWeb.ConnCase, async: true
 
   import KlassHero.Factory
-  import KlassHero.IdentityFixtures
+  import KlassHero.ProviderFixtures
   import Phoenix.LiveViewTest
 
   describe "ProgramDetailLive mount validation" do

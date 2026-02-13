@@ -13,7 +13,7 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
 
   import KlassHeroWeb.ProviderComponents
 
-  alias KlassHero.Identity
+  alias KlassHero.Provider
   alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Theme
 
@@ -34,7 +34,7 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   defp apply_action(socket, :index, params) do
     status = parse_status_filter(params)
 
-    case Identity.list_verification_documents_for_admin(status) do
+    case Provider.list_verification_documents_for_admin(status) do
       {:ok, results} ->
         socket
         |> assign(:page_title, gettext("Verifications"))
@@ -74,7 +74,7 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
   end
 
   defp apply_show_action(socket, id) do
-    case Identity.get_verification_document_preview(id) do
+    case Provider.get_verification_document_preview(id) do
       {:ok, result} ->
         socket
         |> assign(
@@ -109,7 +109,7 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     document = socket.assigns.document
     reviewer_id = socket.assigns.current_scope.user.id
 
-    case Identity.approve_verification_document(document.id, reviewer_id) do
+    case Provider.approve_verification_document(document.id, reviewer_id) do
       {:ok, updated} ->
         {:noreply,
          socket
@@ -145,7 +145,7 @@ defmodule KlassHeroWeb.Admin.VerificationsLive do
     document = socket.assigns.document
     reviewer_id = socket.assigns.current_scope.user.id
 
-    case Identity.reject_verification_document(document.id, reviewer_id, reason) do
+    case Provider.reject_verification_document(document.id, reviewer_id, reason) do
       {:ok, updated} ->
         {:noreply,
          socket

@@ -35,7 +35,7 @@ defmodule KlassHero.ProgramCatalog do
 
   use Boundary,
     top_level?: true,
-    deps: [KlassHero, KlassHero.Identity, KlassHero.Shared],
+    deps: [KlassHero, KlassHero.Provider, KlassHero.Shared],
     exports: [
       Domain.Models.Program,
       Domain.Services.ProgramCategories

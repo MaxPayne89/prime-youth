@@ -2,8 +2,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   use KlassHero.DataCase, async: false
 
   alias KlassHero.AccountsFixtures
-  alias KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
-  alias KlassHero.Identity.Domain.Models.ProviderProfile
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
@@ -24,13 +24,13 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
     test "returns true after receiving provider_verified event" do
       provider_id = Ecto.UUID.generate()
 
-      # Trigger: Simulate the integration event published by Identity context
+      # Trigger: Simulate the integration event published by Provider context
       # Why: VerifiedProviders projection should react to verification events
       # Outcome: Provider ID is added to the in-memory MapSet
       event =
         IntegrationEvent.new(
           :provider_verified,
-          :identity,
+          :provider,
           :provider,
           provider_id,
           %{provider_id: provider_id, business_name: "Test Business"}
@@ -38,7 +38,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 
       Phoenix.PubSub.broadcast(
         KlassHero.PubSub,
-        "integration:identity:provider_verified",
+        "integration:provider:provider_verified",
         {:integration_event, event}
       )
 
@@ -57,7 +57,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
       verify_event =
         IntegrationEvent.new(
           :provider_verified,
-          :identity,
+          :provider,
           :provider,
           provider_id,
           %{provider_id: provider_id, business_name: "Test Business"}
@@ -65,7 +65,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 
       Phoenix.PubSub.broadcast(
         KlassHero.PubSub,
-        "integration:identity:provider_verified",
+        "integration:provider:provider_verified",
         {:integration_event, verify_event}
       )
 
@@ -78,7 +78,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
       unverify_event =
         IntegrationEvent.new(
           :provider_unverified,
-          :identity,
+          :provider,
           :provider,
           provider_id,
           %{provider_id: provider_id, business_name: "Test Business"}
@@ -86,7 +86,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 
       Phoenix.PubSub.broadcast(
         KlassHero.PubSub,
-        "integration:identity:provider_unverified",
+        "integration:provider:provider_unverified",
         {:integration_event, unverify_event}
       )
 
@@ -103,7 +103,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
         event =
           IntegrationEvent.new(
             :provider_verified,
-            :identity,
+            :provider,
             :provider,
             provider_id,
             %{provider_id: provider_id}
@@ -111,7 +111,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 
         Phoenix.PubSub.broadcast(
           KlassHero.PubSub,
-          "integration:identity:provider_verified",
+          "integration:provider:provider_verified",
           {:integration_event, event}
         )
       end
@@ -124,7 +124,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
       unverify_event =
         IntegrationEvent.new(
           :provider_unverified,
-          :identity,
+          :provider,
           :provider,
           provider_1,
           %{provider_id: provider_1}
@@ -132,7 +132,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 
       Phoenix.PubSub.broadcast(
         KlassHero.PubSub,
-        "integration:identity:provider_unverified",
+        "integration:provider:provider_unverified",
         {:integration_event, unverify_event}
       )
 
@@ -142,7 +142,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
     end
   end
 
-  describe "bootstrap from Identity context" do
+  describe "bootstrap from Provider context" do
     test "bootstraps verified providers from database on startup" do
       admin = AccountsFixtures.user_fixture(%{is_admin: true})
 
@@ -167,7 +167,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
       bootstrap_name = :"bootstrap_test_#{System.unique_integer([:positive])}"
       bootstrap_pid = start_supervised!({VerifiedProviders, name: bootstrap_name}, id: :bootstrap)
 
-      # Trigger: New GenServer bootstraps from Identity.list_verified_provider_ids/0
+      # Trigger: New GenServer bootstraps from Provider.list_verified_provider_ids/0
       # Why: On cold start, cache must be hydrated from the authoritative source
       # Outcome: Already-verified providers are immediately queryable
       _ = :sys.get_state(bootstrap_pid)
@@ -185,7 +185,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
       event =
         IntegrationEvent.new(
           :provider_verified,
-          :identity,
+          :provider,
           :provider,
           provider_id,
           %{provider_id: provider_id}
@@ -193,13 +193,13 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 
       Phoenix.PubSub.broadcast(
         KlassHero.PubSub,
-        "integration:identity:provider_verified",
+        "integration:provider:provider_verified",
         {:integration_event, event}
       )
 
       Phoenix.PubSub.broadcast(
         KlassHero.PubSub,
-        "integration:identity:provider_verified",
+        "integration:provider:provider_verified",
         {:integration_event, event}
       )
 
@@ -220,7 +220,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
       event =
         IntegrationEvent.new(
           :provider_unverified,
-          :identity,
+          :provider,
           :provider,
           provider_id,
           %{provider_id: provider_id}
@@ -228,7 +228,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 
       Phoenix.PubSub.broadcast(
         KlassHero.PubSub,
-        "integration:identity:provider_unverified",
+        "integration:provider:provider_unverified",
         {:integration_event, event}
       )
 

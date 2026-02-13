@@ -3,10 +3,10 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Instructor do
   Value object representing an instructor assigned to a program.
 
   This is ProgramCatalog's own representation of who runs a program — an
-  Anti-Corruption Layer (ACL) that prevents Identity's StaffMember from
+  Anti-Corruption Layer (ACL) that prevents Provider's StaffMember from
   leaking into this bounded context.
 
-  Populated at creation time from Identity data via the web layer.
+  Populated at creation time from Provider data via the web layer.
   """
 
   @enforce_keys [:id, :name]

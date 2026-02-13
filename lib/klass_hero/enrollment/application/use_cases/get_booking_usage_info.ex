@@ -17,7 +17,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo do
 
   alias KlassHero.Enrollment
   alias KlassHero.Entitlements
-  alias KlassHero.Identity
+  alias KlassHero.Family
 
   require Logger
 
@@ -35,7 +35,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo do
   """
   @spec execute(String.t()) :: {:ok, map()} | {:error, :no_parent_profile}
   def execute(identity_id) when is_binary(identity_id) do
-    case Identity.get_parent_by_identity(identity_id) do
+    case Family.get_parent_by_identity(identity_id) do
       {:ok, parent} ->
         {:ok, build_usage_info(parent)}
 
