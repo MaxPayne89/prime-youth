@@ -39,8 +39,39 @@ This separation enables:
 - ✅ Clear boundaries between business logic and technical concerns
 - ✅ Better version control of changes (business vs technical)
 
+## Living Documentation
+
+Auto-generated documentation that stays in sync with the codebase. Use `/doc` to generate or update.
+
+### [Context Map](./context-map.md)
+High-level Mermaid diagram showing all bounded contexts and their relationships.
+
+### [Context Docs](./contexts/)
+Per-context canvases documenting purpose, owned data, features, communication, and glossary.
+
+| Context | Doc |
+|---|---|
+| [Accounts](./contexts/accounts/README.md) | Auth, registration, tokens |
+| [Family](./contexts/family/README.md) | Parents, children, consents |
+| [Provider](./contexts/provider/README.md) | Provider profiles, staff, verification |
+| [Program Catalog](./contexts/program-catalog/README.md) | Programs, categories, pricing |
+| [Enrollment](./contexts/enrollment/README.md) | Bookings, fees, subscriptions |
+| [Messaging](./contexts/messaging/README.md) | Conversations, messages |
+| [Participation](./contexts/participation/README.md) | Sessions, attendance, check-in |
+| [Shared](./contexts/shared/README.md) | Event bus, helpers |
+
+### [Cross-Context Flows](./flows/)
+End-to-end flows that span multiple bounded contexts.
+
+### Templates
+- [`feature.md`](./templates/feature.md) — Feature capability doc
+- [`context-canvas.md`](./templates/context-canvas.md) — Bounded context canvas
+- [`cross-context-flow.md`](./templates/cross-context-flow.md) — Cross-context flow doc
+
 ## Getting Started
 
 - **New to the project?** Start with `domain-stories.md` to understand the business domain
-- **Ready to implement?** Move to `technical-architecture.md` for code patterns and architecture
+- **Want the big picture?** See the [Context Map](./context-map.md) for how contexts relate
+- **Looking for a specific feature?** Browse the [context docs](./contexts/)
+- **Ready to implement?** Check the relevant context doc, then read the code
 - **Contributing business insights?** Focus on `domain-stories.md` and let the technical team handle implementation details
