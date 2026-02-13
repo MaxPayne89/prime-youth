@@ -83,9 +83,7 @@ defmodule KlassHero.Application do
         id: :family_domain_event_bus
       ),
       Supervisor.child_spec(
-        {KlassHero.Shared.DomainEventBus,
-         context: KlassHero.Provider,
-         handlers: []},
+        {KlassHero.Shared.DomainEventBus, context: KlassHero.Provider, handlers: []},
         id: :provider_domain_event_bus
       ),
       Supervisor.child_spec(
@@ -153,7 +151,7 @@ defmodule KlassHero.Application do
              :handle}}
          ]},
         id: :participation_domain_event_bus
-      ),
+      )
     ]
   end
 

@@ -3,8 +3,8 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
 
   import KlassHero.EventTestHelper
 
-  alias KlassHero.ProviderFixtures
   alias KlassHero.ProgramCatalog
+  alias KlassHero.ProviderFixtures
 
   describe "create_program/1" do
     test "creates program with required fields" do

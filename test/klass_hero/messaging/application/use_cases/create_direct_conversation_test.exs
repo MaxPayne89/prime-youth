@@ -6,9 +6,9 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversationTest 
   alias KlassHero.Accounts.Scope
   alias KlassHero.AccountsFixtures
   alias KlassHero.Family.Domain.Models.ParentProfile
-  alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Messaging.Application.UseCases.CreateDirectConversation
   alias KlassHero.Messaging.Domain.Models.Conversation
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
 
   describe "execute/3" do
     test "creates new conversation with participants" do

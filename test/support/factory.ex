@@ -36,9 +36,6 @@ defmodule KlassHero.Factory do
   alias KlassHero.Family.Domain.Models.Child
   alias KlassHero.Family.Domain.Models.Consent
   alias KlassHero.Family.Domain.Models.ParentProfile
-  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
-  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
-  alias KlassHero.Provider.Domain.Models.ProviderProfile
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.{
     ConversationSchema,
@@ -55,6 +52,9 @@ defmodule KlassHero.Factory do
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
 
   @doc """
   Factory for creating Program domain entities (pure Elixir structs).

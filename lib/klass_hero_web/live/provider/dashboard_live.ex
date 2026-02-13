@@ -12,8 +12,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   import KlassHeroWeb.ProviderComponents
 
-  alias KlassHero.Provider
   alias KlassHero.ProgramCatalog
+  alias KlassHero.Provider
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.ProviderPresenter

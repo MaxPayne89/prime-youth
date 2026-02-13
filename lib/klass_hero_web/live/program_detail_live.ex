@@ -5,8 +5,8 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   import KlassHeroWeb.ReviewComponents
   import KlassHeroWeb.UIComponents
 
-  alias KlassHero.Provider
   alias KlassHero.ProgramCatalog
+  alias KlassHero.Provider
   alias KlassHeroWeb.Presenters.StaffMemberPresenter
   alias KlassHeroWeb.Theme
 

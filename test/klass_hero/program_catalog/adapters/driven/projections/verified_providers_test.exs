@@ -2,9 +2,9 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   use KlassHero.DataCase, async: false
 
   alias KlassHero.AccountsFixtures
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
   alias KlassHero.Provider.Domain.Models.ProviderProfile
-  alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   # Use a unique name for each test to avoid conflicts with the supervision tree

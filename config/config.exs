@@ -79,20 +79,9 @@ config :klass_hero, :family,
   repo: KlassHero.Repo,
   for_storing_parent_profiles:
     KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
-  for_storing_children:
-    KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildRepository,
+  for_storing_children: KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildRepository,
   for_storing_consents:
     KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepository
-
-# Configure Provider bounded context
-config :klass_hero, :provider,
-  repo: KlassHero.Repo,
-  for_storing_provider_profiles:
-    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
-  for_storing_verification_documents:
-    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository,
-  for_storing_staff_members:
-    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
 
 # Configure Integration Event Publisher (cross-context communication)
 config :klass_hero, :integration_event_publisher,
@@ -127,6 +116,16 @@ config :klass_hero, :participation,
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,
   repository: KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+
+# Configure Provider bounded context
+config :klass_hero, :provider,
+  repo: KlassHero.Repo,
+  for_storing_provider_profiles:
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
+  for_storing_verification_documents:
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository,
+  for_storing_staff_members:
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
 
 config :klass_hero, :scopes,
   user: [
