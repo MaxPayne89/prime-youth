@@ -5,9 +5,9 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgramTest do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.AccountsFixtures
-  alias KlassHero.Identity.Domain.Models.ProviderProfile
   alias KlassHero.Messaging.Application.UseCases.BroadcastToProgram
   alias KlassHero.Messaging.Domain.Models.{Conversation, Message}
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
 
   describe "execute/4" do
     test "creates broadcast conversation and message with enrolled parents" do

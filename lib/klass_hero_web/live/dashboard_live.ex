@@ -3,10 +3,10 @@ defmodule KlassHeroWeb.DashboardLive do
 
   import KlassHeroWeb.BookingComponents, only: [info_box: 1]
   import KlassHeroWeb.CompositeComponents
-  import KlassHeroWeb.Helpers.IdentityHelpers
+  import KlassHeroWeb.Helpers.FamilyHelpers
 
   alias KlassHero.Enrollment
-  alias KlassHero.Identity
+  alias KlassHero.Family
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
 
@@ -35,7 +35,7 @@ defmodule KlassHeroWeb.DashboardLive do
   end
 
   defp calculate_activity_goal(children) do
-    goal = Identity.calculate_activity_goal(children)
+    goal = Family.calculate_activity_goal(children)
     Map.put(goal, :message, goal_message(goal.status))
   end
 
@@ -106,7 +106,7 @@ defmodule KlassHeroWeb.DashboardLive do
   end
 
   defp generate_referral_code(user) do
-    Identity.generate_referral_code(user.name)
+    Family.generate_referral_code(user.name)
   end
 
   defp assign_booking_usage_info(socket) do

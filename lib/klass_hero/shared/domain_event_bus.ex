@@ -17,12 +17,12 @@ defmodule KlassHero.Shared.DomainEventBus do
 
   Add to your application's supervision tree:
 
-      {KlassHero.Shared.DomainEventBus, context: KlassHero.Identity}
+      {KlassHero.Shared.DomainEventBus, context: KlassHero.Family}
 
   With init-time handler registration:
 
       {KlassHero.Shared.DomainEventBus,
-       context: KlassHero.Identity,
+       context: KlassHero.Family,
        handlers: [
          {:child_updated, {MyHandler, :handle_child_updated}},
          {:user_deleted, {MyHandler, :handle_user_deleted}, priority: 10}
@@ -30,17 +30,17 @@ defmodule KlassHero.Shared.DomainEventBus do
 
   ## Subscribing
 
-      DomainEventBus.subscribe(KlassHero.Identity, :child_updated, fn event ->
+      DomainEventBus.subscribe(KlassHero.Family, :child_updated, fn event ->
         # handle event
         :ok
       end)
 
       # With priority (lower number runs first, default 100)
-      DomainEventBus.subscribe(KlassHero.Identity, :child_updated, handler_fn, priority: 10)
+      DomainEventBus.subscribe(KlassHero.Family, :child_updated, handler_fn, priority: 10)
 
   ## Dispatching
 
-      DomainEventBus.dispatch(KlassHero.Identity, %DomainEvent{event_type: :child_updated, ...})
+      DomainEventBus.dispatch(KlassHero.Family, %DomainEvent{event_type: :child_updated, ...})
   """
 
   use GenServer
@@ -62,7 +62,7 @@ defmodule KlassHero.Shared.DomainEventBus do
 
   ## Options
 
-  - `:context` - (required) The bounded context module (e.g., `KlassHero.Identity`)
+  - `:context` - (required) The bounded context module (e.g., `KlassHero.Family`)
   - `:handlers` - (optional) List of init-time handler specs:
     - `{event_type, {Module, :function}}` — registers with default priority
     - `{event_type, {Module, :function}, opts}` — registers with given opts (e.g. `priority: 10`)

@@ -3,21 +3,21 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   In-memory projection of verified provider IDs.
 
   This GenServer maintains a MapSet of provider IDs that are verified, enabling
-  fast O(1) lookups without database queries. It bootstraps from the Identity
+  fast O(1) lookups without database queries. It bootstraps from the Provider
   context on startup and stays in sync via integration events.
 
   ## Architecture
 
   This is a "driven adapter" in the Ports & Adapters architecture - it's driven
-  by integration events from the Identity context. The Program Catalog context
+  by integration events from the Provider context. The Program Catalog context
   uses this projection to enrich program data with provider verification status.
 
   ## Startup Behavior
 
   On init, the GenServer:
-  1. Subscribes to `integration:identity:provider_verified` topic
-  2. Subscribes to `integration:identity:provider_unverified` topic
-  3. Calls `Identity.list_verified_provider_ids/0` to bootstrap the MapSet
+  1. Subscribes to `integration:provider:provider_verified` topic
+  2. Subscribes to `integration:provider:provider_unverified` topic
+  3. Calls `Provider.list_verified_provider_ids/0` to bootstrap the MapSet
 
   ## Event Handling
 
@@ -27,13 +27,13 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 
   use GenServer
 
-  alias KlassHero.Identity
+  alias KlassHero.Provider
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   require Logger
 
-  @verified_topic "integration:identity:provider_verified"
-  @unverified_topic "integration:identity:provider_unverified"
+  @verified_topic "integration:provider:provider_verified"
+  @unverified_topic "integration:provider:provider_unverified"
 
   # Client API
 
@@ -90,7 +90,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   @impl true
   def handle_continue(:bootstrap, state) do
     # Trigger: GenServer initialization complete
-    # Why: Bootstrap from Identity context to hydrate in-memory cache
+    # Why: Bootstrap from Provider context to hydrate in-memory cache
     # Outcome: MapSet populated with all currently verified provider IDs
     verified_ids = bootstrap_verified_ids()
 
@@ -108,7 +108,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   end
 
   # Trigger: Received a provider_verified integration event
-  # Why: Identity context notifies other contexts when a provider is verified
+  # Why: Provider context notifies other contexts when a provider is verified
   # Outcome: Provider ID added to the in-memory MapSet
   @impl true
   def handle_info(
@@ -127,7 +127,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   end
 
   # Trigger: Received a provider_unverified integration event
-  # Why: Identity context notifies other contexts when a provider loses verification
+  # Why: Provider context notifies other contexts when a provider loses verification
   # Outcome: Provider ID removed from the in-memory MapSet
   @impl true
   def handle_info(
@@ -155,11 +155,11 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
     {:noreply, state}
   end
 
-  # Trigger: GenServer needs initial state from Identity context
+  # Trigger: GenServer needs initial state from Provider context
   # Why: Cold start recovery - populate cache from authoritative source
   # Outcome: Returns MapSet of verified provider IDs, or crashes to let supervisor retry
   defp bootstrap_verified_ids do
-    case Identity.list_verified_provider_ids() do
+    case Provider.list_verified_provider_ids() do
       {:ok, ids} ->
         MapSet.new(ids)
 

@@ -3,7 +3,7 @@ defmodule KlassHeroWeb.Presenters.StaffMemberPresenter do
   Transforms StaffMember domain models to view-ready formats.
   """
 
-  alias KlassHero.Identity.Domain.Models.StaffMember
+  alias KlassHero.Provider.Domain.Models.StaffMember
 
   @spec to_card_view(StaffMember.t()) :: map()
   def to_card_view(%StaffMember{} = staff) do

@@ -7,13 +7,12 @@ defmodule KlassHero.Application do
       KlassHero,
       KlassHeroWeb,
       KlassHero.Accounts,
-      KlassHero.Identity,
+      KlassHero.Family,
+      KlassHero.Provider,
       KlassHero.ProgramCatalog,
       KlassHero.Enrollment,
       KlassHero.Messaging,
       KlassHero.Participation,
-      KlassHero.Community,
-      KlassHero.Support,
       KlassHero.Shared
     ]
 
@@ -75,13 +74,17 @@ defmodule KlassHero.Application do
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.DomainEventBus,
-         context: KlassHero.Identity,
+         context: KlassHero.Family,
          handlers: [
            {:child_data_anonymized,
-            {KlassHero.Identity.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Family.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}
          ]},
-        id: :identity_domain_event_bus
+        id: :family_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus, context: KlassHero.Provider, handlers: []},
+        id: :provider_domain_event_bus
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.DomainEventBus,
@@ -148,28 +151,6 @@ defmodule KlassHero.Application do
              :handle}}
          ]},
         id: :participation_domain_event_bus
-      ),
-      Supervisor.child_spec(
-        {KlassHero.Shared.DomainEventBus,
-         context: KlassHero.Community,
-         handlers: [
-           {:comment_added,
-            {KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
-           {:post_liked,
-            {KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
-           {:post_unliked,
-            {KlassHero.Community.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
-         ]},
-        id: :community_domain_event_bus
-      ),
-      Supervisor.child_spec(
-        {KlassHero.Shared.DomainEventBus,
-         context: KlassHero.Support,
-         handlers: [
-           {:contact_request_submitted,
-            {KlassHero.Support.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
-         ]},
-        id: :support_domain_event_bus
       )
     ]
   end
@@ -178,14 +159,25 @@ defmodule KlassHero.Application do
     [
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: KlassHero.Identity.Adapters.Driven.Events.IdentityEventHandler,
+         handler: KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler,
          topics: [
            "integration:accounts:user_registered",
            "integration:accounts:user_anonymized"
          ],
          message_tag: :integration_event,
          event_label: "Integration event"},
-        id: :identity_integration_event_subscriber
+        id: :family_integration_event_subscriber
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler,
+         topics: [
+           "integration:accounts:user_registered",
+           "integration:accounts:user_anonymized"
+         ],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :provider_integration_event_subscriber
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
@@ -198,7 +190,7 @@ defmodule KlassHero.Application do
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
          handler: KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandler,
-         topics: ["integration:identity:child_data_anonymized"],
+         topics: ["integration:family:child_data_anonymized"],
          message_tag: :integration_event,
          event_label: "Integration event"},
         id: :participation_integration_event_subscriber
@@ -213,8 +205,6 @@ defmodule KlassHero.Application do
   end
 
   defp in_memory_repositories do
-    [
-      KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
-    ]
+    []
   end
 end

@@ -1,8 +1,8 @@
 defmodule KlassHeroWeb.Settings.ChildrenLive do
   use KlassHeroWeb, :live_view
 
-  alias KlassHero.Identity
-  alias KlassHeroWeb.Helpers.IdentityHelpers
+  alias KlassHero.Family
+  alias KlassHeroWeb.Helpers.FamilyHelpers
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
 
@@ -12,9 +12,9 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    case IdentityHelpers.get_parent_for_current_user(socket) do
+    case FamilyHelpers.get_parent_for_current_user(socket) do
       {:ok, parent} ->
-        children = Identity.get_children(parent.id)
+        children = Family.get_children(parent.id)
 
         children_count = length(children)
 
@@ -52,7 +52,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
   end
 
   defp apply_action(socket, :new, _params) do
-    changeset = Identity.change_child()
+    changeset = Family.change_child()
 
     socket
     |> assign(show_modal: true)
@@ -62,14 +62,14 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
   end
 
   defp apply_action(socket, :edit, %{"child_id" => child_id}) do
-    case Identity.get_child_by_id(child_id) do
+    case Family.get_child_by_id(child_id) do
       {:ok, child} ->
         # Trigger: verify child belongs to the current parent
         # Why: prevent editing another parent's children
         # Outcome: redirect unauthorized users back to index
         if child.parent_id == socket.assigns.parent_id do
-          changeset = Identity.change_child(child, %{})
-          consent = Identity.child_has_active_consent?(child.id, @consent_type)
+          changeset = Family.change_child(child, %{})
+          consent = Family.child_has_active_consent?(child.id, @consent_type)
 
           socket
           |> assign(show_modal: true)
@@ -93,9 +93,9 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
   def handle_event("validate_child", %{"child" => child_params}, socket) do
     changeset =
       if socket.assigns.child do
-        Identity.change_child(socket.assigns.child, child_params)
+        Family.change_child(socket.assigns.child, child_params)
       else
-        Identity.change_child(child_params)
+        Family.change_child(child_params)
       end
       |> Map.put(:action, :validate)
 
@@ -118,8 +118,8 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     # Trigger: verify child belongs to current parent before deleting
     # Why: prevent unauthorized deletion
     # Outcome: only delete if ownership confirmed
-    if Identity.child_belongs_to_parent?(child_id, socket.assigns.parent_id) do
-      case Identity.delete_child(child_id) do
+    if Family.child_belongs_to_parent?(child_id, socket.assigns.parent_id) do
+      case Family.delete_child(child_id) do
         :ok ->
           new_count = socket.assigns.children_count - 1
 
@@ -175,8 +175,8 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     end
   end
 
-  defp build_changeset(:new, _child, params), do: Identity.change_child(params)
-  defp build_changeset(:edit, child, params), do: Identity.change_child(child, params)
+  defp build_changeset(:new, _child, params), do: Family.change_child(params)
+  defp build_changeset(:edit, child, params), do: Family.change_child(child, params)
 
   defp build_attrs(:new, params, parent_id) do
     params |> atomize_keys() |> Map.put(:parent_id, parent_id)
@@ -184,8 +184,8 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
 
   defp build_attrs(:edit, params, _parent_id), do: atomize_keys(params)
 
-  defp persist_child(:new, attrs, _child), do: Identity.create_child(attrs)
-  defp persist_child(:edit, attrs, child), do: Identity.update_child(child.id, attrs)
+  defp persist_child(:new, attrs, _child), do: Family.create_child(attrs)
+  defp persist_child(:edit, attrs, child), do: Family.update_child(child.id, attrs)
 
   defp handle_save_success(socket, mode, child) do
     consent_result =
@@ -222,18 +222,18 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
   end
 
   defp resolve_consent_action(child_id, parent_id, consent_checked) do
-    current_consent = Identity.child_has_active_consent?(child_id, @consent_type)
+    current_consent = Family.child_has_active_consent?(child_id, @consent_type)
 
     cond do
       consent_checked and not current_consent ->
-        Identity.grant_consent(%{
+        Family.grant_consent(%{
           parent_id: parent_id,
           child_id: child_id,
           consent_type: @consent_type
         })
 
       not consent_checked and current_consent ->
-        Identity.withdraw_consent(child_id, @consent_type)
+        Family.withdraw_consent(child_id, @consent_type)
 
       true ->
         :noop
@@ -264,7 +264,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
 
   defp child_view_data(child) do
     simple = ChildPresenter.to_simple_view(child)
-    consent = Identity.child_has_active_consent?(child.id, @consent_type)
+    consent = Family.child_has_active_consent?(child.id, @consent_type)
 
     Map.merge(simple, %{
       date_of_birth: child.date_of_birth,

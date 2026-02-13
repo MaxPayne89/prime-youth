@@ -3,7 +3,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
   Use case for retrieving a session with its complete roster.
 
   Returns session details along with all registered children and their
-  participation status. Child info is resolved via the Identity context.
+  participation status. Child info is resolved via the Family context.
   """
 
   alias KlassHero.Participation.Domain.Models.BehavioralNote

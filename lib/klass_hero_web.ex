@@ -21,13 +21,12 @@ defmodule KlassHeroWeb do
     deps: [
       KlassHero,
       KlassHero.Accounts,
-      KlassHero.Identity,
+      KlassHero.Family,
+      KlassHero.Provider,
       KlassHero.ProgramCatalog,
       KlassHero.Enrollment,
       KlassHero.Messaging,
       KlassHero.Participation,
-      KlassHero.Community,
-      KlassHero.Support,
       KlassHero.Entitlements,
       KlassHero.Shared
     ],

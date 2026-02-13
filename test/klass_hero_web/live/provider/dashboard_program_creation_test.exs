@@ -3,7 +3,7 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
 
   import Phoenix.LiveViewTest
 
-  alias KlassHero.IdentityFixtures
+  alias KlassHero.ProviderFixtures
   alias KlassHero.Repo
 
   setup :register_and_log_in_provider
@@ -69,7 +69,7 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
 
     test "creates program with instructor assigned", %{conn: conn, provider: provider} do
       staff =
-        IdentityFixtures.staff_member_fixture(
+        ProviderFixtures.staff_member_fixture(
           provider_id: provider.id,
           first_name: "Mike",
           last_name: "Johnson"

@@ -5,8 +5,9 @@ defmodule KlassHero.Messaging.MessagingIntegrationTest do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.AccountsFixtures
-  alias KlassHero.Identity.Domain.Models.{ParentProfile, ProviderProfile}
+  alias KlassHero.Family.Domain.Models.ParentProfile
   alias KlassHero.Messaging
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
 
   describe "complete direct messaging flow" do
     test "provider initiates conversation with parent, both exchange messages" do

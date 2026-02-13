@@ -64,10 +64,6 @@ config :klass_hero, Oban,
 config :klass_hero, :accounts,
   for_storing_users: KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
 
-# Configure Community bounded context
-config :klass_hero, :community,
-  repository: KlassHero.Community.Adapters.Driven.Persistence.Repositories.InMemoryPostRepository
-
 # Configure Enrollment bounded context
 config :klass_hero, :enrollment,
   for_managing_enrollments:
@@ -78,21 +74,14 @@ config :klass_hero, :event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher,
   pubsub: KlassHero.PubSub
 
-# Configure Identity bounded context
-config :klass_hero, :identity,
+# Configure Family bounded context
+config :klass_hero, :family,
   repo: KlassHero.Repo,
   for_storing_parent_profiles:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
-  for_storing_provider_profiles:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
-  for_storing_children:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepository,
+    KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
+  for_storing_children: KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildRepository,
   for_storing_consents:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ConsentRepository,
-  for_storing_verification_documents:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository,
-  for_storing_staff_members:
-    KlassHero.Identity.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
+    KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepository
 
 # Configure Integration Event Publisher (cross-context communication)
 config :klass_hero, :integration_event_publisher,
@@ -120,13 +109,23 @@ config :klass_hero, :participation,
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
   participation_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-  child_info_resolver: KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResolver,
+  child_info_resolver: KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver,
   behavioral_note_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,
   repository: KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+
+# Configure Provider bounded context
+config :klass_hero, :provider,
+  repo: KlassHero.Repo,
+  for_storing_provider_profiles:
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
+  for_storing_verification_documents:
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository,
+  for_storing_staff_members:
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
 
 config :klass_hero, :scopes,
   user: [
@@ -145,10 +144,6 @@ config :klass_hero, :scopes,
 config :klass_hero, :storage,
   adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
   bucket: "klass-hero-dev"
-
-# Configure Support bounded context
-config :klass_hero, :support,
-  repository: KlassHero.Support.Adapters.Driven.Persistence.Repositories.ContactRequestRepository
 
 config :klass_hero,
   ecto_repos: [KlassHero.Repo],

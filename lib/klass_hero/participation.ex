@@ -39,7 +39,7 @@ defmodule KlassHero.Participation do
 
   use Boundary,
     top_level?: true,
-    deps: [KlassHero, KlassHero.Identity, KlassHero.Shared],
+    deps: [KlassHero, KlassHero.Family, KlassHero.Shared],
     exports: [Domain.Services.ParticipationCollection]
 
   alias KlassHero.Participation.Application.UseCases.AnonymizeBehavioralNotesForChild

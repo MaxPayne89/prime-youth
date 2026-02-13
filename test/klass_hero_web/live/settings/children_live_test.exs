@@ -3,7 +3,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias KlassHero.Identity
+  alias KlassHero.Family
 
   describe "page access" do
     setup :register_and_log_in_user
@@ -91,7 +91,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
       assert html =~ "Alice"
 
       # Verify child was created in the database
-      children = Identity.get_children(parent.id)
+      children = Family.get_children(parent.id)
       assert length(children) == 1
       assert hd(children).first_name == "Alice"
       assert hd(children).last_name == "Wonder"
@@ -155,7 +155,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
       html = render(view)
       assert html =~ "Updated"
 
-      {:ok, updated} = Identity.get_child_by_id(child.id)
+      {:ok, updated} = Family.get_child_by_id(child.id)
       assert updated.first_name == "Updated"
     end
 
@@ -182,7 +182,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
       |> render_click()
 
       refute render(view) =~ child.first_name
-      assert {:error, :not_found} = Identity.get_child_by_id(child.id)
+      assert {:error, :not_found} = Family.get_child_by_id(child.id)
     end
 
     test "cannot delete child belonging to another parent", %{conn: conn} do
@@ -195,7 +195,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
       render_click(view, "delete_child", %{"id" => other_child.id})
 
       # Child should still exist
-      assert {:ok, _} = Identity.get_child_by_id(other_child.id)
+      assert {:ok, _} = Family.get_child_by_id(other_child.id)
     end
   end
 
@@ -222,10 +222,10 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
       render(view)
 
       # Find the newly created child
-      children = Identity.get_children(parent.id)
+      children = Family.get_children(parent.id)
       new_child = Enum.find(children, &(&1.first_name == "Consent"))
       assert new_child
-      assert Identity.child_has_active_consent?(new_child.id, "provider_data_sharing")
+      assert Family.child_has_active_consent?(new_child.id, "provider_data_sharing")
     end
 
     test "unchecking consent box on edit withdraws consent", %{
@@ -234,13 +234,13 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
       parent: parent
     } do
       # Grant consent first
-      Identity.grant_consent(%{
+      Family.grant_consent(%{
         parent_id: parent.id,
         child_id: child.id,
         consent_type: "provider_data_sharing"
       })
 
-      assert Identity.child_has_active_consent?(child.id, "provider_data_sharing")
+      assert Family.child_has_active_consent?(child.id, "provider_data_sharing")
 
       {:ok, view, _html} = live(conn, ~p"/settings/children/#{child.id}/edit")
 
@@ -260,7 +260,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
       # After update, view patches to index
       render(view)
 
-      refute Identity.child_has_active_consent?(child.id, "provider_data_sharing")
+      refute Family.child_has_active_consent?(child.id, "provider_data_sharing")
     end
   end
 

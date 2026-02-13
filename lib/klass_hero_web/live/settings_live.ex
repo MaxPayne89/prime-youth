@@ -3,13 +3,13 @@ defmodule KlassHeroWeb.SettingsLive do
 
   import KlassHeroWeb.CompositeComponents
 
-  alias KlassHeroWeb.Helpers.IdentityHelpers
+  alias KlassHeroWeb.Helpers.FamilyHelpers
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
 
   @impl true
   def mount(_params, _session, socket) do
-    children = IdentityHelpers.get_children_for_current_user(socket)
+    children = FamilyHelpers.get_children_for_current_user(socket)
     summary = ChildPresenter.children_summary(children)
 
     socket =

@@ -16,7 +16,7 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
   use Gettext, backend: KlassHeroWeb.Gettext
 
   alias KlassHero.Entitlements
-  alias KlassHero.Identity.Domain.Models.ProviderProfile
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
 
   @doc """
   Transforms a Provider domain model to business view format.

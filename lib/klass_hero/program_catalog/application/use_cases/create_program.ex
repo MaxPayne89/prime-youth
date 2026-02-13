@@ -3,7 +3,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.CreateProgram do
   Use case for creating a new program.
 
   Orchestrates persistence and domain event publishing.
-  Does NOT call Identity — the web layer is responsible for
+  Does NOT call Provider — the web layer is responsible for
   resolving instructor data before calling this use case.
   """
 

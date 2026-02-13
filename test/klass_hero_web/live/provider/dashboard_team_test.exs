@@ -3,7 +3,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
 
   import Phoenix.LiveViewTest
 
-  alias KlassHero.IdentityFixtures
+  alias KlassHero.ProviderFixtures
 
   setup :register_and_log_in_provider
 
@@ -23,7 +23,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
 
   describe "member cards" do
     test "displays staff member card when members exist", %{conn: conn, provider: provider} do
-      IdentityFixtures.staff_member_fixture(
+      ProviderFixtures.staff_member_fixture(
         provider_id: provider.id,
         first_name: "Alice",
         last_name: "Smith",
@@ -38,13 +38,13 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
     end
 
     test "displays multiple staff member cards", %{conn: conn, provider: provider} do
-      IdentityFixtures.staff_member_fixture(
+      ProviderFixtures.staff_member_fixture(
         provider_id: provider.id,
         first_name: "Alice",
         last_name: "Smith"
       )
 
-      IdentityFixtures.staff_member_fixture(
+      ProviderFixtures.staff_member_fixture(
         provider_id: provider.id,
         first_name: "Bob",
         last_name: "Jones"
@@ -58,7 +58,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
     end
 
     test "shows tags as pills on member card", %{conn: conn, provider: provider} do
-      IdentityFixtures.staff_member_fixture(
+      ProviderFixtures.staff_member_fixture(
         provider_id: provider.id,
         first_name: "Alice",
         last_name: "Smith",
@@ -73,7 +73,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
     end
 
     test "shows qualifications on member card", %{conn: conn, provider: provider} do
-      IdentityFixtures.staff_member_fixture(
+      ProviderFixtures.staff_member_fixture(
         provider_id: provider.id,
         first_name: "Alice",
         last_name: "Smith",
@@ -137,7 +137,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
   describe "edit member flow" do
     test "clicking Edit opens pre-filled form", %{conn: conn, provider: provider} do
       staff =
-        IdentityFixtures.staff_member_fixture(
+        ProviderFixtures.staff_member_fixture(
           provider_id: provider.id,
           first_name: "Alice",
           last_name: "Smith",
@@ -157,7 +157,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
 
     test "saving edits updates the member", %{conn: conn, provider: provider} do
       staff =
-        IdentityFixtures.staff_member_fixture(
+        ProviderFixtures.staff_member_fixture(
           provider_id: provider.id,
           first_name: "Alice",
           last_name: "Smith",
@@ -185,7 +185,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
   describe "delete member" do
     test "deleting a member shows success flash", %{conn: conn, provider: provider} do
       staff =
-        IdentityFixtures.staff_member_fixture(
+        ProviderFixtures.staff_member_fixture(
           provider_id: provider.id,
           first_name: "Alice",
           last_name: "Smith"
@@ -247,7 +247,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
 
     test "shows inline validation errors on update submit", %{conn: conn, provider: provider} do
       staff =
-        IdentityFixtures.staff_member_fixture(
+        ProviderFixtures.staff_member_fixture(
           provider_id: provider.id,
           first_name: "Alice",
           last_name: "Smith"

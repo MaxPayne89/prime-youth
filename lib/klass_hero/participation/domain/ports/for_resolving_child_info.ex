@@ -1,11 +1,11 @@
 defmodule KlassHero.Participation.Domain.Ports.ForResolvingChildInfo do
   @moduledoc """
-  Port for resolving child information from Identity context.
+  Port for resolving child information from Family context.
 
   ## Anti-Corruption Layer
 
   This port defines the contract for an anti-corruption layer between the
-  Participation bounded context and the Identity bounded context.
+  Participation bounded context and the Family bounded context.
 
   The Participation context needs child names and consent-gated safety
   information for session rosters and participation history. This unified
@@ -23,7 +23,7 @@ defmodule KlassHero.Participation.Domain.Ports.ForResolvingChildInfo do
 
   - `resolve_child_info/1` - Returns `{:ok, child_info}` or `{:error, :child_not_found}`
 
-  The error `:child_not_found` is translated from Identity context's `:not_found`
+  The error `:child_not_found` is translated from Family context's `:not_found`
   to maintain semantic clarity within Participation context.
   """
 
@@ -37,7 +37,7 @@ defmodule KlassHero.Participation.Domain.Ports.ForResolvingChildInfo do
         }
 
   @doc """
-  Resolves a child's display info and consent-gated safety data from the Identity context.
+  Resolves a child's display info and consent-gated safety data from the Family context.
 
   Returns `{:ok, child_info}` with name fields always populated and safety
   fields populated only when consent is active, or `{:error, :child_not_found}`

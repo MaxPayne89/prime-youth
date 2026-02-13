@@ -3,7 +3,8 @@ defmodule KlassHero.EntitlementsTest do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Entitlements
-  alias KlassHero.Identity.Domain.Models.{ParentProfile, ProviderProfile}
+  alias KlassHero.Family.Domain.Models.ParentProfile
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
 
   # Helper to create a parent with a specific tier
   defp parent_with_tier(tier) do

@@ -2,7 +2,8 @@ defmodule KlassHero.Accounts.ScopeTest do
   use KlassHero.DataCase, async: true
 
   alias KlassHero.Accounts.Scope
-  alias KlassHero.Identity
+  alias KlassHero.Family
+  alias KlassHero.Provider
 
   describe "for_user/1" do
     test "creates scope with user" do
@@ -46,7 +47,7 @@ defmodule KlassHero.Accounts.ScopeTest do
       user = user_fixture()
 
       {:ok, parent} =
-        Identity.create_parent_profile(%{
+        Family.create_parent_profile(%{
           identity_id: user.id,
           display_name: "Test Parent"
         })
@@ -64,7 +65,7 @@ defmodule KlassHero.Accounts.ScopeTest do
       user = user_fixture()
 
       {:ok, provider} =
-        Identity.create_provider_profile(%{
+        Provider.create_provider_profile(%{
           identity_id: user.id,
           business_name: "Test Provider"
         })
@@ -82,13 +83,13 @@ defmodule KlassHero.Accounts.ScopeTest do
       user = user_fixture()
 
       {:ok, parent} =
-        Identity.create_parent_profile(%{
+        Family.create_parent_profile(%{
           identity_id: user.id,
           display_name: "Test Parent"
         })
 
       {:ok, provider} =
-        Identity.create_provider_profile(%{
+        Provider.create_provider_profile(%{
           identity_id: user.id,
           business_name: "Test Provider"
         })
@@ -130,7 +131,7 @@ defmodule KlassHero.Accounts.ScopeTest do
       user = user_fixture()
 
       {:ok, parent} =
-        Identity.create_parent_profile(%{
+        Family.create_parent_profile(%{
           identity_id: user.id,
           display_name: "Test Parent"
         })
@@ -152,7 +153,7 @@ defmodule KlassHero.Accounts.ScopeTest do
       user = user_fixture()
 
       {:ok, provider} =
-        Identity.create_provider_profile(%{
+        Provider.create_provider_profile(%{
           identity_id: user.id,
           business_name: "Test Provider"
         })
