@@ -9,7 +9,7 @@ defmodule KlassHero.Identity.Domain.Models.ParentProfile do
   not foreign key, maintaining bounded context independence.
   """
 
-  alias KlassHero.Entitlements
+  alias KlassHero.Shared.SubscriptionTiers
 
   @enforce_keys [:id, :identity_id]
 
@@ -140,10 +140,10 @@ defmodule KlassHero.Identity.Domain.Models.ParentProfile do
   defp validate_subscription_tier(errors, nil), do: errors
 
   defp validate_subscription_tier(errors, tier) do
-    if Entitlements.valid_parent_tier?(tier) do
+    if SubscriptionTiers.valid_parent_tier?(tier) do
       errors
     else
-      valid = Entitlements.parent_tiers() |> Enum.join(", ")
+      valid = SubscriptionTiers.parent_tiers() |> Enum.join(", ")
       ["Subscription tier must be one of: #{valid}" | errors]
     end
   end

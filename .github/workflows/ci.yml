@@ -7,7 +7,6 @@ on:
     branches: [ '**' ]
 
 env:
-  MIX_ENV: test
   ELIXIR_VERSION: '1.20.0-rc.1'
   OTP_VERSION: '28.3'
 
@@ -65,9 +64,15 @@ jobs:
 
       - name: Create database
         run: mix ecto.create
+        env:
+          MIX_ENV: test
 
       - name: Run migrations
         run: mix ecto.migrate
+        env:
+          MIX_ENV: test
 
       - name: Run tests
         run: mix test
+        env:
+          MIX_ENV: test

@@ -4,7 +4,7 @@ defmodule KlassHeroWeb.ProgramsLive do
   import KlassHeroWeb.ProgramComponents
 
   alias KlassHero.ProgramCatalog
-  alias KlassHeroWeb.ErrorIds
+  alias KlassHero.Shared.ErrorIds
   alias KlassHeroWeb.Theme
 
   require Logger

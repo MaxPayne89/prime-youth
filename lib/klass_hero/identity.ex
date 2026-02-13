@@ -35,6 +35,22 @@ defmodule KlassHero.Identity do
   - Repository implementations (adapter layer) → implement persistence
   """
 
+  use Boundary,
+    top_level?: true,
+    deps: [KlassHero, KlassHero.Shared],
+    exports: [
+      Domain.Models.Child,
+      Domain.Models.ParentProfile,
+      Domain.Models.ProviderProfile,
+      Domain.Models.StaffMember,
+      Domain.Models.VerificationDocument,
+      Adapters.Driven.Persistence.ChangeChild,
+      Adapters.Driven.Persistence.ChangeProviderProfile,
+      Adapters.Driven.Persistence.ChangeStaffMember,
+      # Schema exported for Enrollment's enrollment→parent_profile join
+      Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+    ]
+
   alias KlassHero.Identity.Adapters.Driven.Persistence.ChangeChild
   alias KlassHero.Identity.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Identity.Adapters.Driven.Persistence.ChangeStaffMember

@@ -13,7 +13,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.Repo
-  alias KlassHeroWeb.ErrorIds
+  alias KlassHero.Shared.ErrorIds
 
   @impl true
   def create(%ProgramSession{} = session) do

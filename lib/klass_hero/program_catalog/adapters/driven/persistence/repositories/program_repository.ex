@@ -23,7 +23,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   alias KlassHero.ProgramCatalog.Domain.Models.Program
   alias KlassHero.Repo
   alias KlassHero.Shared.Domain.Types.Pagination.PageResult
-  alias KlassHeroWeb.ErrorIds
+  alias KlassHero.Shared.ErrorIds
 
   require Logger
 
@@ -357,6 +357,15 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     |> apply_cursor_filter(cursor_data)
     |> ProgramQueries.order_by_creation(:desc)
     |> ProgramQueries.limit_results(limit + 1)
+    |> Repo.all()
+  end
+
+  @impl true
+  def list_ended_program_ids(cutoff_date) do
+    ProgramSchema
+    |> where([p], not is_nil(p.end_date))
+    |> where([p], p.end_date < ^cutoff_date)
+    |> select([p], p.id)
     |> Repo.all()
   end
 

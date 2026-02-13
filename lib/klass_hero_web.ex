@@ -17,6 +17,22 @@ defmodule KlassHeroWeb do
   those modules here.
   """
 
+  use Boundary,
+    deps: [
+      KlassHero,
+      KlassHero.Accounts,
+      KlassHero.Identity,
+      KlassHero.ProgramCatalog,
+      KlassHero.Enrollment,
+      KlassHero.Messaging,
+      KlassHero.Participation,
+      KlassHero.Community,
+      KlassHero.Support,
+      KlassHero.Entitlements,
+      KlassHero.Shared
+    ],
+    exports: :all
+
   def static_paths, do: ~w(assets fonts images favicon.ico robots.txt)
 
   def router do

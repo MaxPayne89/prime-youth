@@ -6,16 +6,9 @@ defmodule KlassHero.ProgramCatalog.Domain.Services.ProgramCategories do
   for the Program Catalog context.
   """
 
-  @valid_categories [
-    "all",
-    "sports",
-    "arts",
-    "music",
-    "education",
-    "life-skills",
-    "camps",
-    "workshops"
-  ]
+  alias KlassHero.Shared.Categories
+
+  @valid_categories ["all" | Categories.categories()]
 
   @default_category "all"
 
@@ -80,9 +73,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Services.ProgramCategories do
       ["sports", "arts", "music", "education", "life-skills", "camps", "workshops"]
   """
   @spec program_categories() :: [String.t()]
-  def program_categories do
-    Enum.reject(@valid_categories, &(&1 == "all"))
-  end
+  def program_categories, do: Categories.categories()
 
   @doc """
   Checks if a category is valid for assignment to a program.

@@ -1,4 +1,4 @@
-defmodule KlassHeroWeb.Forms.ContactForm do
+defmodule KlassHero.Support.Domain.Models.ContactForm do
   @moduledoc """
   Embedded schema for contact form validation.
 

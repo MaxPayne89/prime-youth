@@ -37,11 +37,18 @@ defmodule KlassHero.Enrollment do
   - Repository implementations (adapter layer) → implement persistence
   """
 
+  use Boundary,
+    top_level?: true,
+    deps: [KlassHero, KlassHero.Entitlements, KlassHero.Identity, KlassHero.Shared],
+    exports: []
+
   alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
+  alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
   alias KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings
   alias KlassHero.Enrollment.Application.UseCases.CreateEnrollment
   alias KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo
   alias KlassHero.Enrollment.Application.UseCases.GetEnrollment
+  alias KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIds
   alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
 
   # ============================================================================
@@ -152,5 +159,32 @@ defmodule KlassHero.Enrollment do
   """
   def calculate_fees(params) when is_map(params) do
     CalculateEnrollmentFees.execute(params)
+  end
+
+  # ============================================================================
+  # Cross-Context Query Functions
+  # ============================================================================
+
+  @doc """
+  Returns identity IDs of parents with active enrollments in a program.
+
+  Active enrollments are those with status "pending" or "confirmed".
+  Used by the Messaging context for program broadcast recipient resolution.
+
+  Returns a distinct list of identity_ids (user IDs).
+  """
+  @spec list_enrolled_identity_ids(String.t()) :: [String.t()]
+  def list_enrolled_identity_ids(program_id) when is_binary(program_id) do
+    ListEnrolledIdentityIds.execute(program_id)
+  end
+
+  @doc """
+  Checks if a parent (identified by identity_id) is actively enrolled in a program.
+
+  Returns true if at least one active enrollment (pending or confirmed) exists.
+  """
+  @spec enrolled?(String.t(), String.t()) :: boolean()
+  def enrolled?(program_id, identity_id) when is_binary(program_id) and is_binary(identity_id) do
+    CheckEnrollment.execute(program_id, identity_id)
   end
 end

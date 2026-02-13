@@ -16,7 +16,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Repo
-  alias KlassHeroWeb.ErrorIds
+  alias KlassHero.Shared.ErrorIds
 
   @impl true
   def create(%ParticipationRecord{} = record) do

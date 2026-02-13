@@ -17,7 +17,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ChildRepos
   alias KlassHero.Identity.Adapters.Driven.Persistence.Mappers.ChildMapper
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Repo
-  alias KlassHeroWeb.ErrorIds
+  alias KlassHero.Shared.ErrorIds
 
   require Logger
 

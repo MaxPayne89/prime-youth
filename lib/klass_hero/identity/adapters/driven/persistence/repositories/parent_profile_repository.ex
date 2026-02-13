@@ -22,7 +22,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Repositories.ParentProf
   alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
-  alias KlassHeroWeb.ErrorIds
+  alias KlassHero.Shared.ErrorIds
 
   require Logger
 

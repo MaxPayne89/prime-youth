@@ -37,6 +37,11 @@ defmodule KlassHero.Participation do
   - Repository implementations (adapter layer) → implement persistence
   """
 
+  use Boundary,
+    top_level?: true,
+    deps: [KlassHero, KlassHero.Identity, KlassHero.Shared],
+    exports: [Domain.Services.ParticipationCollection]
+
   alias KlassHero.Participation.Application.UseCases.AnonymizeBehavioralNotesForChild
   alias KlassHero.Participation.Application.UseCases.BulkCheckIn
   alias KlassHero.Participation.Application.UseCases.CompleteSession

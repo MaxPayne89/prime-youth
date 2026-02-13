@@ -1,4 +1,4 @@
-defmodule KlassHeroWeb.ErrorIds do
+defmodule KlassHero.Shared.ErrorIds do
   @moduledoc """
   Centralized error IDs for tracking, logging, and support correlation.
 
