@@ -38,7 +38,7 @@ defmodule KlassHero.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test]
+      preferred_envs: []
     ]
   end
 
@@ -131,7 +131,12 @@ defmodule KlassHero.MixProject do
       ],
       "test.clean": ["test.teardown --remove-volumes", "test.setup --force-recreate"],
       "test.watch": ["test.setup", "test.watch.continuous"],
-      precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: [
+        "compile --warning-as-errors",
+        "deps.unlock --unused",
+        "format",
+        "cmd env MIX_ENV=test mix test"
+      ]
     ]
   end
 
