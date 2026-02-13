@@ -13,6 +13,7 @@ defmodule Mix.Tasks.Test.Teardown do
       mix test.teardown --remove-volumes
 
   """
+  use Boundary, classify_to: KlassHero.Application
   use Mix.Task
 
   @impl Mix.Task

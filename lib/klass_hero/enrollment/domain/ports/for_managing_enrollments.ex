@@ -66,4 +66,21 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForManagingEnrollments do
               start_date :: Date.t(),
               end_date :: Date.t()
             ) :: non_neg_integer()
+
+  @doc """
+  Returns the identity IDs of parents with active enrollments for a program.
+
+  Active enrollments are those with status "pending" or "confirmed".
+  Returns a distinct list of identity_ids (user IDs).
+  """
+  @callback list_enrolled_identity_ids(program_id :: binary()) :: [String.t()]
+
+  @doc """
+  Checks if a parent (identified by identity_id) has an active enrollment
+  in a program.
+
+  Returns true if at least one active enrollment exists for the given
+  program and parent identity.
+  """
+  @callback enrolled?(program_id :: binary(), identity_id :: binary()) :: boolean()
 end

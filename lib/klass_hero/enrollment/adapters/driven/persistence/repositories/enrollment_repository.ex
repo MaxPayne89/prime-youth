@@ -18,9 +18,12 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
   @behaviour KlassHero.Enrollment.Domain.Ports.ForManagingEnrollments
 
+  import Ecto.Query
+
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMapper
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Queries.EnrollmentQueries
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
+  alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
 
@@ -115,5 +118,26 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     |> EnrollmentQueries.by_date_range(start_date, end_date)
     |> EnrollmentQueries.count()
     |> Repo.one()
+  end
+
+  @impl true
+  def list_enrolled_identity_ids(program_id) when is_binary(program_id) do
+    EnrollmentQueries.base()
+    |> EnrollmentQueries.by_program(program_id)
+    |> EnrollmentQueries.active_only()
+    |> join(:inner, [e], p in ParentProfileSchema, on: e.parent_id == p.id)
+    |> select([e, p], p.identity_id)
+    |> distinct(true)
+    |> Repo.all()
+  end
+
+  @impl true
+  def enrolled?(program_id, identity_id) when is_binary(program_id) and is_binary(identity_id) do
+    EnrollmentQueries.base()
+    |> EnrollmentQueries.by_program(program_id)
+    |> EnrollmentQueries.active_only()
+    |> join(:inner, [e], p in ParentProfileSchema, on: e.parent_id == p.id)
+    |> where([e, p], p.identity_id == ^identity_id)
+    |> Repo.exists?()
   end
 end

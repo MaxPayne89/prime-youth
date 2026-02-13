@@ -11,7 +11,7 @@ defmodule KlassHero.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
-      compilers: [:phoenix_live_view] ++ Mix.compilers(),
+      compilers: [:boundary, :phoenix_live_view] ++ Mix.compilers(),
       listeners: [Phoenix.CodeReloader],
       # Test coverage configuration
       test_coverage: [tool: ExCoveralls],
@@ -104,7 +104,9 @@ defmodule KlassHero.MixProject do
       # Object storage (S3-compatible)
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},
-      {:sweet_xml, "~> 0.7"}
+      {:sweet_xml, "~> 0.7"},
+      # Fitness Functions
+      {:boundary, "~> 0.10", runtime: false}
     ]
   end
 

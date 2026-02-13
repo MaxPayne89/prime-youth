@@ -33,6 +33,14 @@ defmodule KlassHero.ProgramCatalog do
 
   """
 
+  use Boundary,
+    top_level?: true,
+    deps: [KlassHero, KlassHero.Identity, KlassHero.Shared],
+    exports: [
+      Domain.Models.Program,
+      Domain.Services.ProgramCategories
+    ]
+
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
 
   alias KlassHero.ProgramCatalog.Application.UseCases.{
@@ -52,6 +60,8 @@ defmodule KlassHero.ProgramCatalog do
     ProgramPricing,
     TrendingSearches
   }
+
+  @repository Application.compile_env!(:klass_hero, [:program_catalog, :repository])
 
   # ============================================================================
   # Program Queries
@@ -277,5 +287,20 @@ defmodule KlassHero.ProgramCatalog do
   """
   def new_program_changeset(attrs \\ %{}) do
     ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+  end
+
+  # ============================================================================
+  # Cross-Context Query Functions
+  # ============================================================================
+
+  @doc """
+  Returns IDs of programs whose end_date is before the given cutoff date.
+
+  Used by the Messaging context's retention policy to archive broadcast
+  conversations for ended programs.
+  """
+  @spec list_ended_program_ids(Date.t()) :: [String.t()]
+  def list_ended_program_ids(cutoff_date) do
+    @repository.list_ended_program_ids(cutoff_date)
   end
 end

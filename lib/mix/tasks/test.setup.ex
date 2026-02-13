@@ -13,6 +13,7 @@ defmodule Mix.Tasks.Test.Setup do
       mix test.setup --force-recreate
 
   """
+  use Boundary, classify_to: KlassHero.Application
   use Mix.Task
 
   @container_name "klass_hero_postgres"

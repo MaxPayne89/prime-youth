@@ -9,7 +9,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.StaffMemberSche
 
   import Ecto.Changeset
 
-  alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
+  alias KlassHero.Shared.Categories
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]
@@ -100,7 +100,7 @@ defmodule KlassHero.Identity.Adapters.Driven.Persistence.Schemas.StaffMemberSche
         changeset
 
       tags ->
-        valid = ProgramCategories.program_categories()
+        valid = Categories.categories()
         invalid = Enum.reject(tags, &(&1 in valid))
 
         if invalid == [] do

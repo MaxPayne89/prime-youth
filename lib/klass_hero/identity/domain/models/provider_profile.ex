@@ -9,7 +9,7 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
   not foreign key, maintaining bounded context independence.
   """
 
-  alias KlassHero.Entitlements
+  alias KlassHero.Shared.SubscriptionTiers
 
   @enforce_keys [:id, :identity_id, :business_name]
 
@@ -82,7 +82,7 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
     attrs
     |> Map.put_new(:verified, false)
     |> Map.put_new(:categories, [])
-    |> Map.put_new(:subscription_tier, Entitlements.default_provider_tier())
+    |> Map.put_new(:subscription_tier, SubscriptionTiers.default_provider_tier())
   end
 
   @doc """
@@ -262,10 +262,10 @@ defmodule KlassHero.Identity.Domain.Models.ProviderProfile do
   defp validate_subscription_tier(errors, nil), do: errors
 
   defp validate_subscription_tier(errors, tier) do
-    if Entitlements.valid_provider_tier?(tier) do
+    if SubscriptionTiers.valid_provider_tier?(tier) do
       errors
     else
-      valid = Entitlements.provider_tiers() |> Enum.join(", ")
+      valid = SubscriptionTiers.provider_tiers() |> Enum.join(", ")
       ["Subscription tier must be one of: #{valid}" | errors]
     end
   end

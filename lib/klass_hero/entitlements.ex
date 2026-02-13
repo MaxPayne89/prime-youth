@@ -22,17 +22,24 @@ defmodule KlassHero.Entitlements do
 
   ## Usage
 
-  The module accepts either domain entities or Scope structs:
+  The module accepts any map with a `:subscription_tier` key, or a scope map
+  with `:parent` and/or `:provider` keys:
 
-      # With domain entity
+      # With domain entity (struct or map)
       Entitlements.can_create_booking?(parent_profile, current_booking_count)
 
       # With scope
       Entitlements.can_initiate_messaging?(scope)
   """
 
-  alias KlassHero.Accounts.Scope
-  alias KlassHero.Identity.Domain.Models.{ParentProfile, ProviderProfile}
+  use Boundary,
+    top_level?: true,
+    deps: [KlassHero.Shared],
+    exports: []
+
+  alias KlassHero.Shared.SubscriptionTiers
+
+  @type tier_holder :: %{subscription_tier: atom()}
 
   @parent_tier_limits %{
     explorer: %{
@@ -80,20 +87,17 @@ defmodule KlassHero.Entitlements do
 
   ## Examples
 
-      iex> parent = %ParentProfile{subscription_tier: :explorer}
-      iex> Entitlements.can_create_booking?(parent, 1)
+      iex> Entitlements.can_create_booking?(%{subscription_tier: :explorer}, 1)
       true
 
-      iex> parent = %ParentProfile{subscription_tier: :explorer}
-      iex> Entitlements.can_create_booking?(parent, 2)
+      iex> Entitlements.can_create_booking?(%{subscription_tier: :explorer}, 2)
       false
 
-      iex> parent = %ParentProfile{subscription_tier: :active}
-      iex> Entitlements.can_create_booking?(parent, 100)
+      iex> Entitlements.can_create_booking?(%{subscription_tier: :active}, 100)
       true
   """
-  @spec can_create_booking?(ParentProfile.t(), non_neg_integer()) :: boolean()
-  def can_create_booking?(%ParentProfile{subscription_tier: tier}, current_count) do
+  @spec can_create_booking?(tier_holder(), non_neg_integer()) :: boolean()
+  def can_create_booking?(%{subscription_tier: tier}, current_count) do
     tier
     |> get_parent_limit(:monthly_booking_cap)
     |> within_limit?(current_count)
@@ -106,16 +110,14 @@ defmodule KlassHero.Entitlements do
 
   ## Examples
 
-      iex> parent = %ParentProfile{subscription_tier: :explorer}
-      iex> Entitlements.monthly_booking_cap(parent)
+      iex> Entitlements.monthly_booking_cap(%{subscription_tier: :explorer})
       2
 
-      iex> parent = %ParentProfile{subscription_tier: :active}
-      iex> Entitlements.monthly_booking_cap(parent)
+      iex> Entitlements.monthly_booking_cap(%{subscription_tier: :active})
       :unlimited
   """
-  @spec monthly_booking_cap(ParentProfile.t()) :: non_neg_integer() | :unlimited
-  def monthly_booking_cap(%ParentProfile{subscription_tier: tier}) do
+  @spec monthly_booking_cap(tier_holder()) :: non_neg_integer() | :unlimited
+  def monthly_booking_cap(%{subscription_tier: tier}) do
     get_parent_limit(tier, :monthly_booking_cap)
   end
 
@@ -124,16 +126,14 @@ defmodule KlassHero.Entitlements do
 
   ## Examples
 
-      iex> parent = %ParentProfile{subscription_tier: :explorer}
-      iex> Entitlements.free_cancellations_per_month(parent)
+      iex> Entitlements.free_cancellations_per_month(%{subscription_tier: :explorer})
       0
 
-      iex> parent = %ParentProfile{subscription_tier: :active}
-      iex> Entitlements.free_cancellations_per_month(parent)
+      iex> Entitlements.free_cancellations_per_month(%{subscription_tier: :active})
       1
   """
-  @spec free_cancellations_per_month(ParentProfile.t()) :: non_neg_integer()
-  def free_cancellations_per_month(%ParentProfile{subscription_tier: tier}) do
+  @spec free_cancellations_per_month(tier_holder()) :: non_neg_integer()
+  def free_cancellations_per_month(%{subscription_tier: tier}) do
     get_parent_limit(tier, :free_cancellations)
   end
 
@@ -142,16 +142,14 @@ defmodule KlassHero.Entitlements do
 
   ## Examples
 
-      iex> parent = %ParentProfile{subscription_tier: :explorer}
-      iex> Entitlements.progress_detail_level(parent)
+      iex> Entitlements.progress_detail_level(%{subscription_tier: :explorer})
       :basic
 
-      iex> parent = %ParentProfile{subscription_tier: :active}
-      iex> Entitlements.progress_detail_level(parent)
+      iex> Entitlements.progress_detail_level(%{subscription_tier: :active})
       :detailed
   """
-  @spec progress_detail_level(ParentProfile.t()) :: :basic | :detailed
-  def progress_detail_level(%ParentProfile{subscription_tier: tier}) do
+  @spec progress_detail_level(tier_holder()) :: :basic | :detailed
+  def progress_detail_level(%{subscription_tier: tier}) do
     get_parent_limit(tier, :progress_level)
   end
 
@@ -162,20 +160,17 @@ defmodule KlassHero.Entitlements do
 
   ## Examples
 
-      iex> provider = %ProviderProfile{subscription_tier: :starter}
-      iex> Entitlements.can_create_program?(provider, 1)
+      iex> Entitlements.can_create_program?(%{subscription_tier: :starter}, 1)
       true
 
-      iex> provider = %ProviderProfile{subscription_tier: :starter}
-      iex> Entitlements.can_create_program?(provider, 2)
+      iex> Entitlements.can_create_program?(%{subscription_tier: :starter}, 2)
       false
 
-      iex> provider = %ProviderProfile{subscription_tier: :business_plus}
-      iex> Entitlements.can_create_program?(provider, 100)
+      iex> Entitlements.can_create_program?(%{subscription_tier: :business_plus}, 100)
       true
   """
-  @spec can_create_program?(ProviderProfile.t(), non_neg_integer()) :: boolean()
-  def can_create_program?(%ProviderProfile{subscription_tier: tier}, current_count) do
+  @spec can_create_program?(tier_holder(), non_neg_integer()) :: boolean()
+  def can_create_program?(%{subscription_tier: tier}, current_count) do
     tier
     |> get_provider_limit(:max_programs)
     |> within_limit?(current_count)
@@ -186,20 +181,17 @@ defmodule KlassHero.Entitlements do
 
   ## Examples
 
-      iex> provider = %ProviderProfile{subscription_tier: :starter}
-      iex> Entitlements.commission_rate(provider)
+      iex> Entitlements.commission_rate(%{subscription_tier: :starter})
       0.18
 
-      iex> provider = %ProviderProfile{subscription_tier: :professional}
-      iex> Entitlements.commission_rate(provider)
+      iex> Entitlements.commission_rate(%{subscription_tier: :professional})
       0.12
 
-      iex> provider = %ProviderProfile{subscription_tier: :business_plus}
-      iex> Entitlements.commission_rate(provider)
+      iex> Entitlements.commission_rate(%{subscription_tier: :business_plus})
       0.08
   """
-  @spec commission_rate(ProviderProfile.t()) :: float()
-  def commission_rate(%ProviderProfile{subscription_tier: tier}) do
+  @spec commission_rate(tier_holder()) :: float()
+  def commission_rate(%{subscription_tier: tier}) do
     get_provider_limit(tier, :commission_rate)
   end
 
@@ -208,20 +200,17 @@ defmodule KlassHero.Entitlements do
 
   ## Examples
 
-      iex> provider = %ProviderProfile{subscription_tier: :starter}
-      iex> Entitlements.media_entitlements(provider)
+      iex> Entitlements.media_entitlements(%{subscription_tier: :starter})
       [:avatar]
 
-      iex> provider = %ProviderProfile{subscription_tier: :professional}
-      iex> Entitlements.media_entitlements(provider)
+      iex> Entitlements.media_entitlements(%{subscription_tier: :professional})
       [:avatar, :gallery, :video]
 
-      iex> provider = %ProviderProfile{subscription_tier: :business_plus}
-      iex> Entitlements.media_entitlements(provider)
+      iex> Entitlements.media_entitlements(%{subscription_tier: :business_plus})
       [:avatar, :gallery, :video, :promotional]
   """
-  @spec media_entitlements(ProviderProfile.t()) :: [atom()]
-  def media_entitlements(%ProviderProfile{subscription_tier: tier}) do
+  @spec media_entitlements(tier_holder()) :: [atom()]
+  def media_entitlements(%{subscription_tier: tier}) do
     get_provider_limit(tier, :media)
   end
 
@@ -232,20 +221,17 @@ defmodule KlassHero.Entitlements do
 
   ## Examples
 
-      iex> provider = %ProviderProfile{subscription_tier: :starter}
-      iex> Entitlements.max_programs(provider)
+      iex> Entitlements.max_programs(%{subscription_tier: :starter})
       2
 
-      iex> provider = %ProviderProfile{subscription_tier: :professional}
-      iex> Entitlements.max_programs(provider)
+      iex> Entitlements.max_programs(%{subscription_tier: :professional})
       5
 
-      iex> provider = %ProviderProfile{subscription_tier: :business_plus}
-      iex> Entitlements.max_programs(provider)
+      iex> Entitlements.max_programs(%{subscription_tier: :business_plus})
       :unlimited
   """
-  @spec max_programs(ProviderProfile.t()) :: non_neg_integer() | :unlimited
-  def max_programs(%ProviderProfile{subscription_tier: tier}) do
+  @spec max_programs(tier_holder()) :: non_neg_integer() | :unlimited
+  def max_programs(%{subscription_tier: tier}) do
     get_provider_limit(tier, :max_programs)
   end
 
@@ -254,20 +240,17 @@ defmodule KlassHero.Entitlements do
 
   ## Examples
 
-      iex> provider = %ProviderProfile{subscription_tier: :starter}
-      iex> Entitlements.team_seats_allowed(provider)
+      iex> Entitlements.team_seats_allowed(%{subscription_tier: :starter})
       1
 
-      iex> provider = %ProviderProfile{subscription_tier: :professional}
-      iex> Entitlements.team_seats_allowed(provider)
+      iex> Entitlements.team_seats_allowed(%{subscription_tier: :professional})
       1
 
-      iex> provider = %ProviderProfile{subscription_tier: :business_plus}
-      iex> Entitlements.team_seats_allowed(provider)
+      iex> Entitlements.team_seats_allowed(%{subscription_tier: :business_plus})
       3
   """
-  @spec team_seats_allowed(ProviderProfile.t()) :: non_neg_integer()
-  def team_seats_allowed(%ProviderProfile{subscription_tier: tier}) do
+  @spec team_seats_allowed(tier_holder()) :: non_neg_integer()
+  def team_seats_allowed(%{subscription_tier: tier}) do
     get_provider_limit(tier, :team_seats)
   end
 
@@ -281,24 +264,24 @@ defmodule KlassHero.Entitlements do
 
   ## Examples
 
-      iex> scope = %Scope{parent: %ParentProfile{subscription_tier: :explorer}}
-      iex> Entitlements.can_initiate_messaging?(scope)
+      iex> Entitlements.can_initiate_messaging?(%{parent: %{subscription_tier: :explorer}})
       false
 
-      iex> scope = %Scope{parent: %ParentProfile{subscription_tier: :active}}
-      iex> Entitlements.can_initiate_messaging?(scope)
+      iex> Entitlements.can_initiate_messaging?(%{parent: %{subscription_tier: :active}})
       true
 
-      iex> scope = %Scope{provider: %ProviderProfile{subscription_tier: :professional}}
-      iex> Entitlements.can_initiate_messaging?(scope)
+      iex> Entitlements.can_initiate_messaging?(%{provider: %{subscription_tier: :professional}})
       true
   """
-  @spec can_initiate_messaging?(Scope.t()) :: boolean()
-  def can_initiate_messaging?(%Scope{parent: parent, provider: provider}) do
+  @spec can_initiate_messaging?(map()) :: boolean()
+  def can_initiate_messaging?(%{parent: parent, provider: provider}) do
     parent_can_message?(parent) or provider_can_message?(provider)
   end
 
-  # Tier validation functions (replacing separate type modules)
+  def can_initiate_messaging?(%{parent: parent}), do: parent_can_message?(parent)
+  def can_initiate_messaging?(%{provider: provider}), do: provider_can_message?(provider)
+
+  # Tier validation — delegates to Shared.SubscriptionTiers
 
   @doc """
   Returns the list of valid parent subscription tier atoms.
@@ -309,7 +292,7 @@ defmodule KlassHero.Entitlements do
       [:explorer, :active]
   """
   @spec parent_tiers() :: [atom()]
-  def parent_tiers, do: Map.keys(@parent_tier_limits)
+  defdelegate parent_tiers, to: SubscriptionTiers
 
   @doc """
   Returns the list of valid provider subscription tier atoms.
@@ -320,7 +303,7 @@ defmodule KlassHero.Entitlements do
       [:starter, :professional, :business_plus]
   """
   @spec provider_tiers() :: [atom()]
-  def provider_tiers, do: Map.keys(@provider_tier_limits)
+  defdelegate provider_tiers, to: SubscriptionTiers
 
   @doc """
   Checks if the given tier is a valid parent subscription tier.
@@ -334,8 +317,7 @@ defmodule KlassHero.Entitlements do
       false
   """
   @spec valid_parent_tier?(term()) :: boolean()
-  def valid_parent_tier?(tier) when is_atom(tier), do: Map.has_key?(@parent_tier_limits, tier)
-  def valid_parent_tier?(_), do: false
+  defdelegate valid_parent_tier?(tier), to: SubscriptionTiers
 
   @doc """
   Checks if the given tier is a valid provider subscription tier.
@@ -349,8 +331,7 @@ defmodule KlassHero.Entitlements do
       false
   """
   @spec valid_provider_tier?(term()) :: boolean()
-  def valid_provider_tier?(tier) when is_atom(tier), do: Map.has_key?(@provider_tier_limits, tier)
-  def valid_provider_tier?(_), do: false
+  defdelegate valid_provider_tier?(tier), to: SubscriptionTiers
 
   @doc """
   Returns the default subscription tier for parents.
@@ -361,7 +342,7 @@ defmodule KlassHero.Entitlements do
       :explorer
   """
   @spec default_parent_tier() :: atom()
-  def default_parent_tier, do: :explorer
+  defdelegate default_parent_tier, to: SubscriptionTiers
 
   @doc """
   Returns the default subscription tier for providers.
@@ -372,7 +353,7 @@ defmodule KlassHero.Entitlements do
       :starter
   """
   @spec default_provider_tier() :: atom()
-  def default_provider_tier, do: :starter
+  defdelegate default_provider_tier, to: SubscriptionTiers
 
   # Tier info functions (for UI)
 

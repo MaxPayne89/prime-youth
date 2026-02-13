@@ -9,7 +9,7 @@ defmodule KlassHero.Identity.Domain.Models.StaffMember do
   Qualifications are freeform text entries (e.g., "First Aid", "UEFA B License").
   """
 
-  alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
+  alias KlassHero.Shared.Categories
 
   @enforce_keys [:id, :provider_id, :first_name, :last_name]
 
@@ -184,7 +184,7 @@ defmodule KlassHero.Identity.Domain.Models.StaffMember do
   defp validate_headshot_url(errors, _), do: ["Headshot URL must be a string" | errors]
 
   defp validate_tags(errors, tags) when is_list(tags) do
-    valid = ProgramCategories.program_categories()
+    valid = Categories.categories()
     invalid = Enum.reject(tags, &(&1 in valid))
 
     if invalid == [],

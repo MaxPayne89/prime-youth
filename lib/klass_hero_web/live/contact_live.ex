@@ -2,7 +2,7 @@ defmodule KlassHeroWeb.ContactLive do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Support.Application.UseCases.SubmitContactForm
-  alias KlassHeroWeb.Forms.ContactForm
+  alias KlassHero.Support.Domain.Models.ContactForm
   alias KlassHeroWeb.{Theme, UIComponents}
 
   require Logger

@@ -51,8 +51,8 @@ defmodule KlassHero.Support.Application.UseCases.SubmitContactForm do
 
   alias KlassHero.Shared.DomainEventBus
   alias KlassHero.Support.Domain.Events.SupportEvents
+  alias KlassHero.Support.Domain.Models.ContactForm
   alias KlassHero.Support.Domain.Models.ContactRequest
-  alias KlassHeroWeb.Forms.ContactForm
 
   @context KlassHero.Support
 

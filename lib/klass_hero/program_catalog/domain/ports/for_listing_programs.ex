@@ -89,4 +89,13 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms do
   Returns a list of Program structs (may be empty if provider has no programs).
   """
   @callback list_programs_for_provider(provider_id :: String.t()) :: [Program.t()]
+
+  @doc """
+  Returns IDs of programs whose end_date is before the given cutoff date.
+
+  Only programs with a non-nil end_date that falls before cutoff_date
+  are included. Used by the Messaging context for retention policy
+  (archiving broadcast conversations for ended programs).
+  """
+  @callback list_ended_program_ids(cutoff_date :: Date.t()) :: [String.t()]
 end
