@@ -232,6 +232,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("validate_staff", %{"staff_member_schema" => params}, socket) do
+    params = normalize_staff_form_params(params)
+
     changeset =
       case socket.assigns.editing_staff_id do
         nil ->
@@ -1039,6 +1041,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   defp parse_qualifications(quals) when is_list(quals), do: quals
+
+  # Trigger: validate_staff sends raw form params with qualifications as a comma-separated string
+  # Why: Ecto's cast rejects a plain string for {:array, :string} — must pre-parse before changeset
+  # Outcome: changeset receives a list, matching what atomize_staff_params does on the save path
+  defp normalize_staff_form_params(params) do
+    Map.put(params, "qualifications", parse_qualifications(params["qualifications"]))
+  end
 
   defp maybe_add_headshot(attrs, {:ok, url}), do: {:ok, Map.put(attrs, :headshot_url, url)}
   defp maybe_add_headshot(attrs, :no_upload), do: {:ok, attrs}
