@@ -28,10 +28,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   require Logger
 
   @impl true
-  def create(attrs) when is_map(attrs) do
+  def create(%Program{} = program) do
+    attrs = ProgramMapper.to_schema(program)
+
     Logger.info("[ProgramRepository] Creating new program",
-      provider_id: attrs[:provider_id],
-      title: attrs[:title]
+      provider_id: program.provider_id,
+      title: program.title
     )
 
     %ProgramSchema{}
@@ -39,14 +41,14 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     |> Repo.insert()
     |> case do
       {:ok, schema} ->
-        program = ProgramMapper.to_domain(schema)
+        persisted = ProgramMapper.to_domain(schema)
 
         Logger.info("[ProgramRepository] Successfully created program",
-          program_id: program.id,
-          title: program.title
+          program_id: persisted.id,
+          title: persisted.title
         )
 
-        {:ok, program}
+        {:ok, persisted}
 
       {:error, changeset} ->
         Logger.warning("[ProgramRepository] Program creation failed",
