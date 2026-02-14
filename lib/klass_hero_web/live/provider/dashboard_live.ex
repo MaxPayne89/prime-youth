@@ -301,11 +301,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   @impl true
   def handle_event("save_profile", %{"provider_profile_schema" => params}, socket) do
     provider = socket.assigns.current_scope.provider
+    Logger.info("save_profile: starting", provider_id: provider.id)
 
     # Trigger: logo upload may succeed, be absent, or fail
     # Why: provider can save without a new logo, but upload failures must not be silently ignored
     # Outcome: :upload_error aborts save; :no_upload proceeds without logo; {:ok, url} includes logo
-    case upload_logo(socket, provider.id) do
+    logo_result = upload_logo(socket, provider.id)
+    Logger.info("save_profile: logo upload result", provider_id: provider.id, result: logo_result)
+
+    case logo_result do
       :upload_error ->
         {:noreply, put_flash(socket, :error, gettext("Logo upload failed. Please try again."))}
 
@@ -347,22 +351,35 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     results =
       consume_uploaded_entries(socket, :verification_doc, fn %{path: path}, entry ->
-        file_binary = File.read!(path)
+        try do
+          file_binary = File.read!(path)
 
-        case Provider.submit_verification_document(%{
-               provider_profile_id: provider.id,
-               document_type: doc_type,
-               file_binary: file_binary,
-               original_filename: entry.client_name,
-               content_type: entry.client_type
-             }) do
-          {:ok, doc} -> {:ok, doc}
-          {:error, reason} -> {:postpone, reason}
+          case Provider.submit_verification_document(%{
+                 provider_profile_id: provider.id,
+                 document_type: doc_type,
+                 file_binary: file_binary,
+                 original_filename: entry.client_name,
+                 content_type: entry.client_type
+               }) do
+            {:ok, doc} -> {:ok, doc}
+            {:error, reason} -> {:postpone, reason}
+          end
+        catch
+          kind, reason ->
+            Logger.error("Verification doc upload failed",
+              provider_id: provider.id,
+              doc_type: doc_type,
+              kind: kind,
+              error: inspect(reason)
+            )
+
+            {:error, :upload_exception}
         end
       end)
 
+    # consume_uploaded_entries unwraps {:ok, value} → value
     case results do
-      [{:ok, doc}] ->
+      [%{} = doc] ->
         {:noreply,
          socket
          |> stream_insert(:verification_docs, doc, dom_id: &"vdoc-#{&1.id}")
@@ -925,13 +942,31 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # Outcome: {:ok, url} on success, :no_upload if no file selected, :upload_error on failure
   defp consume_single_upload(socket, upload_name, storage_prefix, provider_id) do
     case consume_uploaded_entries(socket, upload_name, fn %{path: path}, entry ->
-           file_binary = File.read!(path)
-           safe_name = String.replace(entry.client_name, ~r/[^a-zA-Z0-9._-]/, "_")
-           storage_path = "#{storage_prefix}/providers/#{provider_id}/#{safe_name}"
+           try do
+             file_binary = File.read!(path)
+             safe_name = String.replace(entry.client_name, ~r/[^a-zA-Z0-9._-]/, "_")
+             storage_path = "#{storage_prefix}/providers/#{provider_id}/#{safe_name}"
 
-           Storage.upload(:public, storage_path, file_binary, content_type: entry.client_type)
+             Storage.upload(:public, storage_path, file_binary, content_type: entry.client_type)
+           catch
+             # Trigger: storage adapter raises (rescue) or process is dead (exit)
+             # Why: ExAws.request can raise; dead GenServer causes :exit
+             # Outcome: return error tuple so consume_uploaded_entries doesn't crash
+             kind, reason ->
+               Logger.error("File upload failed",
+                 upload: upload_name,
+                 provider_id: provider_id,
+                 kind: kind,
+                 error: inspect(reason)
+               )
+
+               {:error, :upload_exception}
+           end
          end) do
-      [{:ok, url}] -> {:ok, url}
+      # Trigger: consume_uploaded_entries unwraps {:ok, value} tuples
+      # Why: the callback returns {:ok, url}, but the list contains only the url string
+      # Outcome: match on a single-element list with a string URL
+      [url] when is_binary(url) -> {:ok, url}
       [] -> :no_upload
       _other -> :upload_error
     end
