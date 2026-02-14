@@ -41,8 +41,6 @@ defmodule KlassHero.ProgramCatalog do
       Domain.Services.ProgramCategories
     ]
 
-  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
-
   alias KlassHero.ProgramCatalog.Application.UseCases.{
     CreateProgram,
     GetProgramById,
@@ -310,7 +308,7 @@ defmodule KlassHero.ProgramCatalog do
   Returns an empty changeset for the program creation form.
   """
   def new_program_changeset(attrs \\ %{}) do
-    ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+    @repository.new_changeset(attrs)
   end
 
   # ============================================================================

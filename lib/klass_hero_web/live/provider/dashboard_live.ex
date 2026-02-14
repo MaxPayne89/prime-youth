@@ -264,7 +264,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     case socket.assigns.editing_staff_id do
       nil ->
-        attrs =
+        {headshot_status, attrs} =
           params
           |> atomize_staff_params()
           |> Map.put(:provider_id, provider.id)
@@ -274,6 +274,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           {:ok, staff} ->
             view = StaffMemberPresenter.to_card_view(staff)
 
+            flash_msg =
+              if headshot_status == :headshot_failed,
+                do: gettext("Team member added, but headshot upload failed."),
+                else: gettext("Team member added.")
+
             {:noreply,
              socket
              |> stream_insert(:team_members, view)
@@ -282,7 +287,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                staff_count: socket.assigns.staff_count + 1
              )
              |> clear_flash(:error)
-             |> put_flash(:info, gettext("Team member added."))}
+             |> put_flash(:info, flash_msg)}
 
           {:error, {:validation_error, _errors}} ->
             changeset =
@@ -299,7 +304,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         end
 
       staff_id ->
-        attrs =
+        {headshot_status, attrs} =
           params
           |> atomize_staff_params()
           |> maybe_add_headshot(headshot_result)
@@ -308,12 +313,17 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           {:ok, staff} ->
             view = StaffMemberPresenter.to_card_view(staff)
 
+            flash_msg =
+              if headshot_status == :headshot_failed,
+                do: gettext("Team member updated, but headshot upload failed."),
+                else: gettext("Team member updated.")
+
             {:noreply,
              socket
              |> stream_insert(:team_members, view)
              |> assign(show_staff_form: false)
              |> clear_flash(:error)
-             |> put_flash(:info, gettext("Team member updated."))}
+             |> put_flash(:info, flash_msg)}
 
           {:error, {:validation_error, _errors}} ->
             case Provider.get_staff_member(staff_id) do
@@ -1017,8 +1027,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp parse_qualifications(quals) when is_list(quals), do: quals
 
-  defp maybe_add_headshot(attrs, {:ok, url}), do: Map.put(attrs, :headshot_url, url)
-  defp maybe_add_headshot(attrs, _), do: attrs
+  defp maybe_add_headshot(attrs, {:ok, url}), do: {:ok, Map.put(attrs, :headshot_url, url)}
+  defp maybe_add_headshot(attrs, :no_upload), do: {:ok, attrs}
+  defp maybe_add_headshot(attrs, :upload_error), do: {:headshot_failed, attrs}
 
   defp upload_program_cover(socket, provider_id) do
     consume_single_upload(socket, :program_cover, "program_covers", provider_id)

@@ -143,10 +143,11 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       {:ok, instructor} ->
         instructor
 
-      {:error, _reason} ->
+      {:error, reason} ->
         Logger.warning("[ProgramMapper] Instructor data invalid, skipping",
           instructor_id: to_string(schema.instructor_id),
-          instructor_name: schema.instructor_name
+          instructor_name: schema.instructor_name,
+          reason: inspect(reason)
         )
 
         nil

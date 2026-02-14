@@ -363,4 +363,209 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
                "https://example.com/photo.jpg"
     end
   end
+
+  describe "create_changeset/2 validation" do
+    defp valid_create_attrs(overrides \\ %{}) do
+      Map.merge(
+        %{
+          title: "Summer Soccer Camp",
+          description: "Fun soccer activities for kids",
+          category: "sports",
+          price: Decimal.new("150.00"),
+          provider_id: Ecto.UUID.generate()
+        },
+        overrides
+      )
+    end
+
+    test "valid with all required fields" do
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, valid_create_attrs())
+      assert changeset.valid?
+    end
+
+    test "requires title" do
+      changeset =
+        ProgramSchema.create_changeset(%ProgramSchema{}, Map.delete(valid_create_attrs(), :title))
+
+      refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).title
+    end
+
+    test "requires description" do
+      changeset =
+        ProgramSchema.create_changeset(
+          %ProgramSchema{},
+          Map.delete(valid_create_attrs(), :description)
+        )
+
+      refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).description
+    end
+
+    test "requires category" do
+      changeset =
+        ProgramSchema.create_changeset(
+          %ProgramSchema{},
+          Map.delete(valid_create_attrs(), :category)
+        )
+
+      refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).category
+    end
+
+    test "requires price" do
+      changeset =
+        ProgramSchema.create_changeset(%ProgramSchema{}, Map.delete(valid_create_attrs(), :price))
+
+      refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).price
+    end
+
+    test "requires provider_id" do
+      changeset =
+        ProgramSchema.create_changeset(
+          %ProgramSchema{},
+          Map.delete(valid_create_attrs(), :provider_id)
+        )
+
+      refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).provider_id
+    end
+
+    test "rejects title exceeding 100 characters" do
+      attrs = valid_create_attrs(%{title: String.duplicate("a", 101)})
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+      assert "should be at most 100 character(s)" in errors_on(changeset).title
+    end
+
+    test "rejects description exceeding 500 characters" do
+      attrs = valid_create_attrs(%{description: String.duplicate("a", 501)})
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+      assert "should be at most 500 character(s)" in errors_on(changeset).description
+    end
+
+    test "rejects invalid category" do
+      attrs = valid_create_attrs(%{category: "invalid_category"})
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+      assert "is invalid" in errors_on(changeset).category
+    end
+
+    test "rejects negative price" do
+      attrs = valid_create_attrs(%{price: Decimal.new("-1.00")})
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+      assert "must be greater than or equal to 0" in errors_on(changeset).price
+    end
+
+    test "accepts price of zero" do
+      attrs = valid_create_attrs(%{price: Decimal.new("0")})
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+    end
+  end
+
+  describe "update_changeset/2" do
+    defp valid_update_attrs(overrides \\ %{}) do
+      Map.merge(
+        %{
+          title: "Updated Program",
+          description: "Updated description",
+          category: "sports",
+          price: Decimal.new("200.00"),
+          spots_available: 15
+        },
+        overrides
+      )
+    end
+
+    defp existing_schema do
+      %ProgramSchema{
+        id: Ecto.UUID.generate(),
+        title: "Original",
+        description: "Original description",
+        category: "sports",
+        price: Decimal.new("100.00"),
+        spots_available: 20,
+        lock_version: 1
+      }
+    end
+
+    test "valid with all required fields" do
+      changeset = ProgramSchema.update_changeset(existing_schema(), valid_update_attrs())
+      assert changeset.valid?
+    end
+
+    test "requires title" do
+      attrs = valid_update_attrs(%{title: nil})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).title
+    end
+
+    test "requires description" do
+      attrs = valid_update_attrs(%{description: nil})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).description
+    end
+
+    test "requires category" do
+      attrs = valid_update_attrs(%{category: nil})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).category
+    end
+
+    test "requires price" do
+      attrs = valid_update_attrs(%{price: nil})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).price
+    end
+
+    test "requires spots_available" do
+      attrs = valid_update_attrs(%{spots_available: nil})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).spots_available
+    end
+
+    test "applies optimistic locking" do
+      changeset = ProgramSchema.update_changeset(existing_schema(), valid_update_attrs())
+      assert changeset.valid?
+      # optimistic_lock registers a filter and incrementer; lock_version is in the changeset
+      assert Map.has_key?(changeset.filters, :lock_version)
+    end
+
+    test "rejects title exceeding 100 characters" do
+      attrs = valid_update_attrs(%{title: String.duplicate("a", 101)})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+      assert "should be at most 100 character(s)" in errors_on(changeset).title
+    end
+
+    test "rejects description exceeding 500 characters" do
+      attrs = valid_update_attrs(%{description: String.duplicate("a", 501)})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+      assert "should be at most 500 character(s)" in errors_on(changeset).description
+    end
+
+    test "rejects invalid category" do
+      attrs = valid_update_attrs(%{category: "invalid_category"})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+      assert "is invalid" in errors_on(changeset).category
+    end
+
+    test "rejects negative price" do
+      attrs = valid_update_attrs(%{price: Decimal.new("-5.00")})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+      assert "must be greater than or equal to 0" in errors_on(changeset).price
+    end
+  end
 end

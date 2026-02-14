@@ -705,6 +705,26 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       assert Enum.any?(errors, &String.contains?(&1, "category"))
     end
 
+    test "returns unchanged program with empty changes map" do
+      program = existing_program()
+      assert {:ok, updated} = Program.apply_changes(program, %{})
+      assert updated.title == program.title
+      assert updated.description == program.description
+      assert updated.category == program.category
+      assert updated.price == program.price
+      assert updated.spots_available == program.spots_available
+      assert updated.instructor == program.instructor
+    end
+
+    test "rejects invalid instructor data in changes" do
+      program = existing_program()
+
+      assert {:error, errors} =
+               Program.apply_changes(program, %{instructor: %{id: "", name: ""}})
+
+      assert Enum.any?(errors, &String.contains?(&1, "nstructor"))
+    end
+
     test "ignores provider_id in changes (immutable field)" do
       program = existing_program()
       original_provider_id = program.provider_id

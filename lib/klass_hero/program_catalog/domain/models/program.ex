@@ -33,8 +33,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   ]
 
   @type t :: %__MODULE__{
-          id: String.t(),
-          provider_id: String.t() | nil,
+          id: String.t() | nil,
+          provider_id: String.t(),
           title: String.t(),
           description: String.t(),
           category: String.t(),
@@ -265,17 +265,11 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   end
 
   defp validate_mutation_invariants(program) do
+    struct_fields = Map.from_struct(program)
+
     []
-    |> then(fn errors ->
-      if is_binary(program.title) and String.trim(program.title) != "",
-        do: errors,
-        else: ["title is required" | errors]
-    end)
-    |> then(fn errors ->
-      if is_binary(program.description) and String.trim(program.description) != "",
-        do: errors,
-        else: ["description is required" | errors]
-    end)
+    |> validate_required_string(struct_fields, :title, "title is required")
+    |> validate_required_string(struct_fields, :description, "description is required")
     |> validate_category(program.category)
     |> validate_price(program.price)
     |> validate_spots(program.spots_available)

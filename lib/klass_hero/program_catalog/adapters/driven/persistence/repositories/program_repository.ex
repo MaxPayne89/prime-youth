@@ -1,8 +1,8 @@
 defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository do
   @moduledoc """
-  Repository implementation for listing and updating programs.
+  Repository implementation for creating, listing, and updating programs.
 
-  Implements the ForListingPrograms and ForUpdatingPrograms ports with:
+  Implements the ForCreatingPrograms, ForListingPrograms, and ForUpdatingPrograms ports with:
   - Domain entity mapping via ProgramMapper
   - Idiomatic "let it crash" error handling
 
@@ -26,6 +26,16 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   alias KlassHero.Shared.ErrorIds
 
   require Logger
+
+  @doc """
+  Returns a new changeset for the program creation form.
+
+  This is an Ecto-specific concern exposed for the web layer's form rendering.
+  Not part of any port — changesets are an adapter detail.
+  """
+  def new_changeset(attrs \\ %{}) do
+    ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+  end
 
   @impl true
   def create(%Program{} = program) do
@@ -205,6 +215,14 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
       {:ok, page_result}
     else
+      {:error, :invalid_limit} = error ->
+        Logger.warning(
+          "[ProgramRepository] Invalid pagination limit",
+          limit: inspect(limit)
+        )
+
+        error
+
       {:error, :invalid_cursor} = error ->
         Logger.warning(
           "[ProgramRepository] Invalid pagination cursor",
@@ -249,21 +267,20 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       current_schema ->
         do_update(current_schema, program)
     end
-  rescue
-    Ecto.StaleEntryError ->
-      Logger.warning(
-        "[ProgramRepository] Optimistic lock conflict during program update",
-        error_id: ErrorIds.program_update_stale_entry_error(),
-        program_id: program.id
-      )
-
-      {:error, :stale_data}
   end
 
   defp do_update(current_schema, program) do
+    # Trigger: lock_version nil means program was not loaded from DB
+    # Why: optimistic locking requires the version the client saw at load time
+    # Outcome: crash early with clear message rather than silently defaulting
+    if is_nil(program.lock_version) do
+      raise ArgumentError,
+            "Program lock_version must not be nil — program must be loaded from the database before updating"
+    end
+
     # Build a schema with the original lock_version from the domain model
     # This is what the client saw when they loaded the program
-    schema_with_client_version = %{current_schema | lock_version: program.lock_version || 1}
+    schema_with_client_version = %{current_schema | lock_version: program.lock_version}
 
     # Convert domain Program to update attributes
     attrs = ProgramMapper.to_schema(program)
@@ -293,6 +310,15 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
         {:error, changeset}
     end
+  rescue
+    Ecto.StaleEntryError ->
+      Logger.warning(
+        "[ProgramRepository] Optimistic lock conflict during program update",
+        error_id: ErrorIds.program_update_stale_entry_error(),
+        program_id: program.id
+      )
+
+      {:error, :stale_data}
   end
 
   # Private helper functions
@@ -309,7 +335,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     {:ok, 100}
   end
 
-  defp validate_limit(_), do: {:ok, 20}
+  defp validate_limit(_), do: {:error, :invalid_limit}
 
   defp decode_cursor(nil), do: {:ok, nil}
 
