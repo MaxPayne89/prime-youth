@@ -16,37 +16,37 @@ defmodule KlassHeroWeb.AboutLive do
     [
       %{
         number: 1,
-        number_bg: "bg-blue-200",
-        number_color: "text-blue-700",
+        number_bg: "bg-hero-blue-100",
+        number_color: "text-hero-blue-700",
         icon: "hero-identification",
-        icon_gradient: "bg-blue-500",
+        icon_gradient: "bg-hero-blue-400",
         title: gettext("Identity Verification"),
         description: gettext("Official ID and credentials check")
       },
       %{
         number: 2,
-        number_bg: "bg-purple-200",
-        number_color: "text-purple-700",
+        number_bg: "bg-hero-blue-100",
+        number_color: "text-hero-blue-700",
         icon: "hero-magnifying-glass-circle",
-        icon_gradient: "bg-purple-500",
+        icon_gradient: "bg-hero-blue-400",
         title: gettext("Background Check"),
         description: gettext("Comprehensive criminal record screening")
       },
       %{
         number: 3,
-        number_bg: "bg-pink-200",
-        number_color: "text-pink-700",
+        number_bg: "bg-hero-blue-100",
+        number_color: "text-hero-blue-700",
         icon: "hero-academic-cap",
-        icon_gradient: "bg-pink-500",
+        icon_gradient: "bg-hero-blue-400",
         title: gettext("Qualifications"),
         description: gettext("Certification and experience verification")
       },
       %{
         number: 4,
-        number_bg: "bg-green-200",
-        number_color: "text-green-700",
+        number_bg: "bg-hero-blue-100",
+        number_color: "text-hero-blue-700",
         icon: "hero-video-camera",
-        icon_gradient: "bg-green-500",
+        icon_gradient: "bg-hero-blue-400",
         title: gettext("Personal Interview"),
         description: gettext("In-depth conversation about values and approach")
       }
@@ -96,12 +96,12 @@ defmodule KlassHeroWeb.AboutLive do
     ~H"""
     <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
       <%!-- Hero Section --%>
-      <div class="bg-hero-black py-16 lg:py-24">
+      <div class="bg-hero-pink-50 py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 class="font-display text-4xl md:text-5xl lg:text-6xl text-white mb-6">
+          <h1 class="font-display text-4xl md:text-5xl lg:text-6xl text-hero-black mb-6">
             {gettext("OUR MISSION")}
           </h1>
-          <p class="text-xl text-white/80 max-w-3xl mx-auto">
+          <p class="text-xl text-hero-grey-600 max-w-3xl mx-auto">
             {gettext(
               "To modernize how families discover and engage with children's programs in Berlin"
             )}
@@ -130,7 +130,7 @@ defmodule KlassHeroWeb.AboutLive do
 
           <div class="space-y-4">
             <%!-- Safety First --%>
-            <div class="border-2 border-hero-blue-400 rounded-lg p-6 bg-white">
+            <div class="border-2 border-hero-yellow-400 rounded-lg p-6 bg-white">
               <div class="flex items-start gap-4">
                 <div class="flex-shrink-0">
                   <UIComponents.gradient_icon
@@ -153,10 +153,14 @@ defmodule KlassHeroWeb.AboutLive do
             </div>
 
             <%!-- Sustainability --%>
-            <div class="border-2 border-green-500 rounded-lg p-6 bg-white">
+            <div class="border-2 border-hero-yellow-400 rounded-lg p-6 bg-white">
               <div class="flex items-start gap-4">
                 <div class="flex-shrink-0">
-                  <UIComponents.gradient_icon gradient_class="bg-green-500" size="md" shape="circle">
+                  <UIComponents.gradient_icon
+                    gradient_class="bg-hero-blue-400"
+                    size="md"
+                    shape="circle"
+                  >
                     <.icon name="hero-globe-alt" class="w-6 h-6 text-white" />
                   </UIComponents.gradient_icon>
                 </div>
@@ -176,7 +180,7 @@ defmodule KlassHeroWeb.AboutLive do
               <div class="flex items-start gap-4">
                 <div class="flex-shrink-0">
                   <UIComponents.gradient_icon
-                    gradient_class="bg-hero-yellow-400"
+                    gradient_class="bg-hero-blue-400"
                     size="md"
                     shape="circle"
                   >
