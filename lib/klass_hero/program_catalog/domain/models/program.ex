@@ -53,42 +53,16 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
           updated_at: DateTime.t() | nil
         }
 
-  @doc """
-  Creates a new Program from validated attributes.
-
-  Assumes data has passed Ecto schema validation. Use this when creating
-  a Program from data that has already been validated by the persistence layer.
-
-  ## Examples
-
-      iex> Program.new(%{
-      ...>   id: "1",
-      ...>   title: "Art Adventures",
-      ...>   description: "Creative art program",
-      ...>   category: "arts",
-      ...>   schedule: "Mon-Fri 3-5pm",
-      ...>   age_range: "6-10 years",
-      ...>   price: Decimal.new("50.00"),
-      ...>   pricing_period: "week",
-      ...>   spots_available: 10
-      ...> })
-      {:ok, %Program{...}}
-  """
+  # Internal: constructs from trusted persistence data (post-Ecto validation).
+  # External callers must use create/1 (untrusted) or apply_changes/2 (mutation).
+  @doc false
   @spec new(map()) :: {:ok, t()}
   def new(attrs) when is_map(attrs) do
     {:ok, struct!(__MODULE__, attrs)}
   end
 
-  @doc """
-  Creates a new Program, raising on missing required keys.
-
-  Use when data source is trusted (e.g., from mapper after Ecto validation).
-
-  ## Examples
-
-      iex> Program.new!(%{id: "1", title: "Art", ...})
-      %Program{...}
-  """
+  # Internal: bang variant for mapper reconstruction from trusted data.
+  @doc false
   @spec new!(map()) :: t()
   def new!(attrs) when is_map(attrs) do
     struct!(__MODULE__, attrs)
@@ -118,6 +92,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   """
   @spec create(map()) :: {:ok, t()} | {:error, [String.t()]}
   def create(attrs) when is_map(attrs) do
+    attrs = normalize_keys(attrs)
+
     with {:ok, instructor} <- build_instructor_from_attrs(attrs) do
       build_base(attrs, instructor)
     end
@@ -158,6 +134,19 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   # ============================================================================
   # create/1 helpers
   # ============================================================================
+
+  # Trigger: attrs may arrive with string keys (e.g. from form params)
+  # Why: domain model expects atom keys; String.to_existing_atom/1 prevents
+  #      atom table exhaustion since struct fields are already defined
+  # Outcome: unknown string keys raise ArgumentError (correct — unknown field)
+  defp normalize_keys(%{__struct__: _} = attrs), do: Map.from_struct(attrs)
+
+  defp normalize_keys(attrs) do
+    Map.new(attrs, fn
+      {k, v} when is_binary(k) -> {String.to_existing_atom(k), v}
+      {k, v} when is_atom(k) -> {k, v}
+    end)
+  end
 
   defp build_instructor_from_attrs(%{instructor: instructor_attrs})
        when is_map(instructor_attrs) do

@@ -704,6 +704,20 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       assert {:error, errors} = Program.apply_changes(program, %{category: "invalid"})
       assert Enum.any?(errors, &String.contains?(&1, "category"))
     end
+
+    test "ignores provider_id in changes (immutable field)" do
+      program = existing_program()
+      original_provider_id = program.provider_id
+
+      assert {:ok, updated} =
+               Program.apply_changes(program, %{
+                 provider_id: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                 title: "Updated Title"
+               })
+
+      assert updated.provider_id == original_provider_id
+      assert updated.title == "Updated Title"
+    end
   end
 
   describe "valid?/1 with relaxed fields" do

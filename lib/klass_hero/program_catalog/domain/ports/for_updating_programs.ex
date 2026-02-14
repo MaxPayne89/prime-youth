@@ -13,7 +13,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForUpdatingPrograms do
   - `update/1` - Returns `{:ok, Program.t()}` or domain errors:
     - `{:error, :stale_data}` - Optimistic lock conflict
     - `{:error, :not_found}` - Program doesn't exist
-    - `{:error, changeset}` - Validation failure
+    - `{:error, validation_errors}` - Validation failure
 
   Infrastructure errors (connection, query) are not caught - they crash and
   are handled by the supervision tree.
@@ -34,8 +34,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForUpdatingPrograms do
   - `{:ok, Program.t()}` - Successfully updated program
   - `{:error, :stale_data}` - Program was modified by another process
   - `{:error, :not_found}` - Program ID does not exist
-  - `{:error, changeset}` - Validation failure
+  - `{:error, validation_errors}` - Validation failure
   """
   @callback update(program :: Program.t()) ::
-              {:ok, Program.t()} | {:error, :stale_data | :not_found | Ecto.Changeset.t()}
+              {:ok, Program.t()} | {:error, :stale_data | :not_found | term()}
 end

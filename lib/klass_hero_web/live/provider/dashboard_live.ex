@@ -58,7 +58,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         stats = MockData.stats()
 
         # Load real staff members
-        {:ok, staff_members} = Provider.list_staff_members(provider_profile.id)
+        staff_members = fetch_staff_members(provider_profile.id)
         staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
 
         # Build staff filter options from real data
@@ -120,8 +120,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     docs =
       case Provider.get_provider_verification_documents(provider.id) do
-        {:ok, docs} -> docs
-        {:error, _reason} -> []
+        {:ok, docs} ->
+          docs
+
+        {:error, reason} ->
+          Logger.warning("[DashboardLive] Failed to load verification documents",
+            provider_id: provider.id,
+            reason: inspect(reason)
+          )
+
+          []
       end
 
     socket =
@@ -143,8 +151,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     # Outcome: business map gets :verification_status (:verified/:pending/:rejected/:not_started)
     docs =
       case Provider.get_provider_verification_documents(provider.id) do
-        {:ok, docs} -> docs
-        {:error, _reason} -> []
+        {:ok, docs} ->
+          docs
+
+        {:error, reason} ->
+          Logger.warning("[DashboardLive] Failed to load verification documents",
+            provider_id: provider.id,
+            reason: inspect(reason)
+          )
+
+          []
       end
 
     verification_status =
@@ -159,7 +175,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_params(_params, _uri, %{assigns: %{live_action: :team}} = socket) do
     provider = socket.assigns.current_scope.provider
 
-    {:ok, staff_members} = Provider.list_staff_members(provider.id)
+    staff_members = fetch_staff_members(provider.id)
     staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
 
     {:noreply,
@@ -222,8 +238,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           Provider.new_staff_member_changeset(params)
 
         staff_id ->
-          {:ok, staff} = Provider.get_staff_member(staff_id)
-          Provider.change_staff_member(staff, params)
+          # Trigger: staff member may have been deleted between form open and keystroke
+          # Why: bare match on {:ok, _} would crash if member no longer exists
+          # Outcome: fall back to new changeset, preserving user's typed data
+          case Provider.get_staff_member(staff_id) do
+            {:ok, staff} ->
+              Provider.change_staff_member(staff, params)
+
+            {:error, :not_found} ->
+              Provider.new_staff_member_changeset(params)
+          end
       end
 
     {:noreply, assign(socket, staff_form: to_form(Map.put(changeset, :action, :validate)))}
@@ -292,16 +316,23 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
              |> put_flash(:info, gettext("Team member updated."))}
 
           {:error, {:validation_error, _errors}} ->
-            {:ok, staff} = Provider.get_staff_member(staff_id)
+            case Provider.get_staff_member(staff_id) do
+              {:ok, staff} ->
+                changeset =
+                  Provider.change_staff_member(staff, params)
+                  |> Map.put(:action, :validate)
 
-            changeset =
-              Provider.change_staff_member(staff, params)
-              |> Map.put(:action, :validate)
+                {:noreply,
+                 socket
+                 |> assign(staff_form: to_form(changeset))
+                 |> put_flash(:error, gettext("Please fix the errors below."))}
 
-            {:noreply,
-             socket
-             |> assign(staff_form: to_form(changeset))
-             |> put_flash(:error, gettext("Please fix the errors below."))}
+              {:error, :not_found} ->
+                {:noreply,
+                 socket
+                 |> assign(show_staff_form: false, editing_staff_id: nil)
+                 |> put_flash(:error, gettext("Staff member no longer exists."))}
+            end
 
           {:error, changeset} ->
             {:noreply, assign(socket, staff_form: to_form(changeset))}
@@ -885,9 +916,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     consume_single_upload(socket, :logo, "logos", provider_id)
   end
 
+  defp fetch_staff_members(provider_id) do
+    case Provider.list_staff_members(provider_id) do
+      {:ok, members} -> members
+      {:error, _reason} -> []
+    end
+  end
+
   defp refresh_staff_options(socket) do
     provider_id = socket.assigns.current_scope.provider.id
-    {:ok, staff_members} = Provider.list_staff_members(provider_id)
+    staff_members = fetch_staff_members(provider_id)
     staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
 
     staff_options =
@@ -956,7 +994,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp parse_decimal(nil), do: nil
   defp parse_decimal(""), do: nil
   defp parse_decimal(%Decimal{} = d), do: d
-  defp parse_decimal(value) when is_binary(value), do: Decimal.new(value)
+
+  defp parse_decimal(value) when is_binary(value) do
+    # Trigger: user typed a non-numeric string in the price field
+    # Why: Decimal.new/1 raises on invalid input — must use parse/1 to avoid crash
+    # Outcome: nil lets downstream domain validation catch "price is required"
+    case Decimal.parse(value) do
+      {decimal, ""} -> decimal
+      _other -> nil
+    end
+  end
 
   defp parse_qualifications(nil), do: []
   defp parse_qualifications(""), do: []

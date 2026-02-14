@@ -53,5 +53,22 @@ defmodule KlassHero.ProgramCatalog.UpdateProgramIntegrationTest do
       assert {:error, :not_found} =
                ProgramCatalog.update_program(Ecto.UUID.generate(), %{title: "New"})
     end
+
+    test "repository returns stale_data on lock version conflict", %{program: program} do
+      alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+      alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+      alias KlassHero.Repo
+
+      # Simulate concurrent edit: bump lock_version in DB directly
+      Repo.get!(ProgramSchema, program.id)
+      |> Ecto.Changeset.change(%{})
+      |> Ecto.Changeset.force_change(:lock_version, 99)
+      |> Repo.update!()
+
+      # The program struct still holds lock_version from creation (1).
+      # Repository.update/1 sets lock_version=1 on the schema, but DB has 99.
+      stale_program = %{program | title: "Stale Edit"}
+      assert {:error, :stale_data} = ProgramRepository.update(stale_program)
+    end
   end
 end
