@@ -8,7 +8,9 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   alias KlassHero.ProgramCatalog.Domain.Models.Instructor
 
-  @enforce_keys [:id, :title, :description, :category, :price]
+  alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
+
+  @enforce_keys [:title, :description, :category, :price]
 
   defstruct [
     :id,
@@ -108,6 +110,42 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   end
 
   @doc """
+  Creates a new Program from untrusted input, validating business invariants.
+
+  Unlike `new/1` (which assumes trusted data from persistence), this function
+  validates all business rules before constructing the struct.
+
+  Returns `{:ok, Program.t()}` with `id: nil` — the persistence layer assigns the ID.
+  """
+  @spec create(map()) :: {:ok, t()} | {:error, [String.t()]}
+  def create(attrs) when is_map(attrs) do
+    with {:ok, instructor} <- build_instructor_from_attrs(attrs),
+         {:ok, base} <- build_base(attrs, instructor) do
+      {:ok, base}
+    end
+  end
+
+  @doc """
+  Applies changes to an existing Program, re-validating all business invariants.
+
+  Takes the current program and a map of changes. Only keys present in the
+  changes map are updated; all others are preserved.
+  """
+  @spec apply_changes(t(), map()) :: {:ok, t()} | {:error, [String.t()]}
+  def apply_changes(%__MODULE__{} = program, changes) when is_map(changes) do
+    with {:ok, instructor} <- resolve_instructor(program, changes) do
+      updated = merge_fields(program, changes, instructor)
+      errors = validate_mutation_invariants(updated)
+
+      if errors == [] do
+        {:ok, updated}
+      else
+        {:error, errors}
+      end
+    end
+  end
+
+  @doc """
   Checks if the program is sold out (no spots available).
   """
   @spec sold_out?(t()) :: boolean()
@@ -118,4 +156,138 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   """
   @spec free?(t()) :: boolean()
   def free?(%__MODULE__{price: price}), do: Decimal.equal?(price, Decimal.new(0))
+
+  # ============================================================================
+  # create/1 helpers
+  # ============================================================================
+
+  defp build_instructor_from_attrs(%{instructor: instructor_attrs}) when is_map(instructor_attrs) do
+    case Instructor.new(instructor_attrs) do
+      {:ok, instructor} -> {:ok, instructor}
+      {:error, reasons} -> {:error, Enum.map(reasons, &"Instructor: #{&1}")}
+    end
+  end
+
+  defp build_instructor_from_attrs(_), do: {:ok, nil}
+
+  defp build_base(attrs, instructor) do
+    errors = validate_creation_invariants(attrs)
+
+    if errors == [] do
+      {:ok,
+       %__MODULE__{
+         title: attrs[:title],
+         description: attrs[:description],
+         category: attrs[:category],
+         price: attrs[:price],
+         provider_id: attrs[:provider_id],
+         schedule: attrs[:schedule],
+         age_range: attrs[:age_range],
+         pricing_period: attrs[:pricing_period],
+         spots_available: attrs[:spots_available] || 0,
+         icon_path: attrs[:icon_path],
+         end_date: attrs[:end_date],
+         location: attrs[:location],
+         cover_image_url: attrs[:cover_image_url],
+         instructor: instructor
+       }}
+    else
+      {:error, errors}
+    end
+  end
+
+  defp validate_creation_invariants(attrs) do
+    []
+    |> validate_required_string(attrs, :title, "title is required")
+    |> validate_required_string(attrs, :description, "description is required")
+    |> validate_category(attrs[:category])
+    |> validate_price(attrs[:price])
+    |> validate_spots(attrs[:spots_available])
+    |> validate_provider_id(attrs[:provider_id])
+  end
+
+  defp validate_required_string(errors, attrs, key, message) do
+    value = attrs[key]
+
+    if is_binary(value) and String.trim(value) != "" do
+      errors
+    else
+      [message | errors]
+    end
+  end
+
+  defp validate_category(errors, category) when is_binary(category) do
+    if ProgramCategories.valid_program_category?(category) do
+      errors
+    else
+      ["category is invalid" | errors]
+    end
+  end
+
+  defp validate_category(errors, _), do: ["category is required" | errors]
+
+  defp validate_price(errors, %Decimal{} = price) do
+    if Decimal.compare(price, Decimal.new(0)) != :lt do
+      errors
+    else
+      ["price must be greater than or equal to 0" | errors]
+    end
+  end
+
+  defp validate_price(errors, _), do: ["price is required" | errors]
+
+  defp validate_spots(errors, nil), do: errors
+  defp validate_spots(errors, spots) when is_integer(spots) and spots >= 0, do: errors
+  defp validate_spots(errors, _), do: ["spots available must be greater than or equal to 0" | errors]
+
+  defp validate_provider_id(errors, id) when is_binary(id) and byte_size(id) > 0, do: errors
+  defp validate_provider_id(errors, _), do: ["provider ID is required" | errors]
+
+  # ============================================================================
+  # apply_changes/2 helpers
+  # ============================================================================
+
+  defp resolve_instructor(_program, %{instructor: nil}), do: {:ok, nil}
+
+  defp resolve_instructor(_program, %{instructor: attrs}) when is_map(attrs) do
+    case Instructor.new(attrs) do
+      {:ok, instructor} -> {:ok, instructor}
+      {:error, reasons} -> {:error, Enum.map(reasons, &"Instructor: #{&1}")}
+    end
+  end
+
+  defp resolve_instructor(program, _changes), do: {:ok, program.instructor}
+
+  @updatable_fields ~w(title description category price spots_available schedule
+                       age_range pricing_period icon_path end_date location cover_image_url)a
+
+  defp merge_fields(program, changes, instructor) do
+    merged =
+      Enum.reduce(@updatable_fields, program, fn field, acc ->
+        if Map.has_key?(changes, field) do
+          Map.put(acc, field, Map.get(changes, field))
+        else
+          acc
+        end
+      end)
+
+    %{merged | instructor: instructor}
+  end
+
+  defp validate_mutation_invariants(program) do
+    []
+    |> then(fn errors ->
+      if is_binary(program.title) and String.trim(program.title) != "",
+        do: errors,
+        else: ["title is required" | errors]
+    end)
+    |> then(fn errors ->
+      if is_binary(program.description) and String.trim(program.description) != "",
+        do: errors,
+        else: ["description is required" | errors]
+    end)
+    |> validate_category(program.category)
+    |> validate_price(program.price)
+    |> validate_spots(program.spots_available)
+  end
 end
