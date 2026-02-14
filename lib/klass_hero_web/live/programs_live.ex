@@ -356,7 +356,7 @@ defmodule KlassHeroWeb.ProgramsLive do
     ~H"""
     <div class="min-h-screen bg-hero-grey-50">
       <!-- Hero Section -->
-      <.page_header variant={:dark} size={:large} centered container_class="max-w-7xl mx-auto">
+      <.page_header variant={:peach} size={:large} centered container_class="max-w-7xl mx-auto">
         <:title>{gettext("Explore Programs")}</:title>
         <:subtitle>{gettext("Discover activities, camps, and classes for your child")}</:subtitle>
 
