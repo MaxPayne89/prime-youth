@@ -1571,14 +1571,18 @@ defmodule KlassHeroWeb.UIComponents do
 
       <.messages_indicator unread_count={5} />
       <.messages_indicator unread_count={0} />
+      <.messages_indicator unread_count={3} href={~p"/provider/messages"} />
 
   """
   attr :unread_count, :integer, default: 0
+  attr :href, :string, default: nil
   attr :class, :string, default: ""
 
   def messages_indicator(assigns) do
+    assigns = assign(assigns, :href, assigns[:href] || ~p"/messages")
+
     ~H"""
-    <.link navigate={~p"/messages"} class={["relative btn btn-ghost btn-circle", @class]}>
+    <.link navigate={@href} class={["relative btn btn-ghost btn-circle", @class]}>
       <.icon name="hero-chat-bubble-left-right" class="w-6 h-6 text-hero-grey-600" />
       <span
         :if={@unread_count > 0}
