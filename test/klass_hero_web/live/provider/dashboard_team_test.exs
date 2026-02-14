@@ -307,5 +307,26 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
       assert html =~ "Team member added."
       refute html =~ "Please fix the errors below."
     end
+
+    test "validates qualifications as comma-separated string without cast error", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view |> element("#add-member-btn") |> render_click()
+
+      html =
+        view
+        |> form("#staff-form", %{
+          "staff_member_schema" => %{
+            "first_name" => "Alice",
+            "last_name" => "Smith",
+            "qualifications" => "First Aid, CPR"
+          }
+        })
+        |> render_change()
+
+      # No cast error on qualifications — the comma string was parsed to a list
+      refute html =~ "is invalid"
+      assert has_element?(view, "#staff-member-form")
+    end
   end
 end
