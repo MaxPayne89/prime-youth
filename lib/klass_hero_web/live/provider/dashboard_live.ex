@@ -481,7 +481,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             title: params["title"],
             description: params["description"],
             category: params["category"],
-            price: params["price"],
+            price: parse_decimal(params["price"]),
             location: presence(params["location"])
           }
           |> maybe_add_cover_image(cover_result)
@@ -508,6 +508,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                gettext("Selected instructor could not be found. Please try again.")
              )}
 
+          # Trigger: domain validation returns a list of error strings
+          # Why: Program.create/1 validates invariants before persistence
+          # Outcome: show errors as flash message, form stays open
+          {:error, errors} when is_list(errors) ->
+            {:noreply, put_flash(socket, :error, Enum.join(errors, ", "))}
+
+          # Trigger: Ecto changeset validation failed at persistence layer
+          # Why: defense-in-depth — schema catches anything domain missed
+          # Outcome: show inline field errors via changeset-backed form
           {:error, changeset} ->
             {:noreply,
              socket
@@ -944,6 +953,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp presence(nil), do: nil
   defp presence(value), do: value
 
+  defp parse_decimal(nil), do: nil
+  defp parse_decimal(""), do: nil
+  defp parse_decimal(%Decimal{} = d), do: d
+  defp parse_decimal(value) when is_binary(value), do: Decimal.new(value)
+
   defp parse_qualifications(nil), do: []
   defp parse_qualifications(""), do: []
 
@@ -976,10 +990,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     case Provider.get_staff_member(instructor_id) do
       {:ok, staff} ->
         {:ok,
-         attrs
-         |> Map.put(:instructor_id, staff.id)
-         |> Map.put(:instructor_name, Provider.staff_member_full_name(staff))
-         |> Map.put(:instructor_headshot_url, staff.headshot_url)}
+         Map.put(attrs, :instructor, %{
+           id: staff.id,
+           name: Provider.staff_member_full_name(staff),
+           headshot_url: staff.headshot_url
+         })}
 
       {:error, _reason} ->
         Logger.warning("Instructor not found during program creation",

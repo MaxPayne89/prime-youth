@@ -7,7 +7,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   """
 
   alias KlassHero.ProgramCatalog.Domain.Models.Instructor
-
   alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
 
   @enforce_keys [:title, :description, :category, :price]
@@ -119,9 +118,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   """
   @spec create(map()) :: {:ok, t()} | {:error, [String.t()]}
   def create(attrs) when is_map(attrs) do
-    with {:ok, instructor} <- build_instructor_from_attrs(attrs),
-         {:ok, base} <- build_base(attrs, instructor) do
-      {:ok, base}
+    with {:ok, instructor} <- build_instructor_from_attrs(attrs) do
+      build_base(attrs, instructor)
     end
   end
 
@@ -161,7 +159,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   # create/1 helpers
   # ============================================================================
 
-  defp build_instructor_from_attrs(%{instructor: instructor_attrs}) when is_map(instructor_attrs) do
+  defp build_instructor_from_attrs(%{instructor: instructor_attrs})
+       when is_map(instructor_attrs) do
     case Instructor.new(instructor_attrs) do
       {:ok, instructor} -> {:ok, instructor}
       {:error, reasons} -> {:error, Enum.map(reasons, &"Instructor: #{&1}")}
@@ -227,10 +226,10 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   defp validate_category(errors, _), do: ["category is required" | errors]
 
   defp validate_price(errors, %Decimal{} = price) do
-    if Decimal.compare(price, Decimal.new(0)) != :lt do
-      errors
-    else
+    if Decimal.compare(price, Decimal.new(0)) == :lt do
       ["price must be greater than or equal to 0" | errors]
+    else
+      errors
     end
   end
 
@@ -238,7 +237,9 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   defp validate_spots(errors, nil), do: errors
   defp validate_spots(errors, spots) when is_integer(spots) and spots >= 0, do: errors
-  defp validate_spots(errors, _), do: ["spots available must be greater than or equal to 0" | errors]
+
+  defp validate_spots(errors, _),
+    do: ["spots available must be greater than or equal to 0" | errors]
 
   defp validate_provider_id(errors, id) when is_binary(id) and byte_size(id) > 0, do: errors
   defp validate_provider_id(errors, _), do: ["provider ID is required" | errors]

@@ -185,17 +185,14 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :title,
       :description,
       :category,
-      :schedule,
-      :age_range,
       :price,
-      :pricing_period,
       :spots_available
     ])
     |> validate_length(:title, min: 1, max: 100)
     |> validate_length(:description, min: 1, max: 500)
-    |> validate_length(:schedule, min: 1, max: 255)
-    |> validate_length(:age_range, min: 1, max: 100)
-    |> validate_length(:pricing_period, min: 1, max: 100)
+    |> validate_length(:schedule, max: 255)
+    |> validate_length(:age_range, max: 100)
+    |> validate_length(:pricing_period, max: 100)
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_number(:spots_available, greater_than_or_equal_to: 0)
