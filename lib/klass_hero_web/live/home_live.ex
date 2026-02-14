@@ -76,6 +76,9 @@ defmodule KlassHeroWeb.HomeLive do
           </p>
         </:subtitle>
         <:search_bar>
+          <p class="text-lg text-hero-black mb-6 max-w-2xl mx-auto">
+            {gettext("Berlin's leading network for tutors, coaches, and camp providers!")}
+          </p>
           <form id="home-search-form" phx-submit="search" class="max-w-3xl mx-auto mb-8">
             <div class="flex items-center gap-2 bg-white rounded-full shadow-sm p-2">
               <div class="flex-1 flex items-center px-4">
@@ -201,7 +204,7 @@ defmodule KlassHeroWeb.HomeLive do
             />
             <.feature_card
               gradient_class={Theme.gradient(:primary)}
-              icon_path="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              icon="hero-calendar-days"
               title={gettext("Easy Scheduling")}
               description={
                 gettext(
@@ -211,7 +214,7 @@ defmodule KlassHeroWeb.HomeLive do
             />
             <.feature_card
               gradient_class={Theme.gradient(:primary)}
-              icon_path="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              icon="hero-user-group"
               title={gettext("Community Focused")}
               description={
                 gettext(
@@ -253,7 +256,7 @@ defmodule KlassHeroWeb.HomeLive do
                   "Set up your teaching profile and list your programs in minutes. Share your expertise with families who need it."
                 )
               }
-              icon="hero-clipboard-document-list"
+              icon="hero-pencil-square"
             />
             <.provider_step_card
               step_number={2}
@@ -263,7 +266,7 @@ defmodule KlassHeroWeb.HomeLive do
                   "Teach your passion with our tools for scheduling, communication, and progress tracking."
                 )
               }
-              icon="hero-chat-bubble-left-right"
+              icon="hero-trophy"
             />
             <.provider_step_card
               step_number={3}

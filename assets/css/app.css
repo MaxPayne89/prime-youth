@@ -129,6 +129,9 @@
   --color-hero-black-800: oklch(90% 0 0);
   --color-hero-black-900: oklch(95% 0 0);
 
+  /* Display font (Plus Jakarta Sans replaces Bangers) */
+  --font-display: "Plus Jakarta Sans", sans-serif;
+
   /* Hero Cream #F5F1E8 */
   --color-hero-cream-50: oklch(99% 0.01 75);
   --color-hero-cream-100: oklch(96% 0.02 75); /* Primary #F5F1E8 */

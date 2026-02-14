@@ -515,7 +515,8 @@ defmodule KlassHeroWeb.UIComponents do
       />
   """
   attr :gradient_class, :string, required: true
-  attr :icon_path, :string, required: true
+  attr :icon_path, :string, default: nil, doc: "SVG path data for the icon"
+  attr :icon, :string, default: nil, doc: "Heroicon name (e.g., 'hero-shield-check')"
   attr :title, :string, required: true
   attr :description, :string, required: true
   attr :class, :string, default: ""
@@ -534,9 +535,14 @@ defmodule KlassHeroWeb.UIComponents do
         Theme.transition(:normal),
         @gradient_class
       ]}>
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}></path>
-        </svg>
+        <%= if @icon do %>
+          <.icon name={@icon} class="w-8 h-8 text-white" />
+        <% else %>
+          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}>
+            </path>
+          </svg>
+        <% end %>
       </div>
       <h3 class={[Theme.typography(:card_title), "mb-3", Theme.text_color(:heading)]}>{@title}</h3>
       <p class={Theme.text_color(:secondary)}>{@description}</p>
