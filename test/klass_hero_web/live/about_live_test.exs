@@ -52,26 +52,24 @@ defmodule KlassHeroWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify section heading and background
-      assert html =~ "Our 4-Step Vetting Process"
+      assert html =~ "Our 3-Step Vetting Process"
       assert html =~ "bg-hero-pink-50"
       assert html =~ "rigorous screening to ensure the highest quality"
     end
 
-    test "displays all four vetting process steps", %{conn: conn} do
+    test "displays all three vetting process steps", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify all four steps are present with numbered circles
       assert html =~ "Identity Verification"
       assert html =~ "Official ID and credentials check"
-
-      assert html =~ "Background Check"
-      assert html =~ "Comprehensive criminal record screening"
 
       assert html =~ "Qualifications"
       assert html =~ "Certification and experience verification"
 
       assert html =~ "Personal Interview"
       assert html =~ "In-depth conversation about values and approach"
+
+      refute html =~ "Background Check"
     end
 
     test "vetting steps have KH blue numbered circles", %{conn: conn} do
@@ -146,7 +144,7 @@ defmodule KlassHeroWeb.AboutLiveTest do
 
       # Verify responsive grid classes
       assert html =~ "md:grid-cols-2"
-      assert html =~ "lg:grid-cols-4"
+      assert html =~ "lg:grid-cols-3"
       assert html =~ "md:grid-cols-3"
     end
 

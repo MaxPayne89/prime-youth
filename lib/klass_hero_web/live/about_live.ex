@@ -27,22 +27,13 @@ defmodule KlassHeroWeb.AboutLive do
         number: 2,
         number_bg: "bg-hero-blue-100",
         number_color: "text-hero-blue-700",
-        icon: "hero-magnifying-glass-circle",
-        icon_gradient: "bg-hero-blue-400",
-        title: gettext("Background Check"),
-        description: gettext("Comprehensive criminal record screening")
-      },
-      %{
-        number: 3,
-        number_bg: "bg-hero-blue-100",
-        number_color: "text-hero-blue-700",
         icon: "hero-academic-cap",
         icon_gradient: "bg-hero-blue-400",
         title: gettext("Qualifications"),
         description: gettext("Certification and experience verification")
       },
       %{
-        number: 4,
+        number: 3,
         number_bg: "bg-hero-blue-100",
         number_color: "text-hero-blue-700",
         icon: "hero-video-camera",
@@ -201,12 +192,12 @@ defmodule KlassHeroWeb.AboutLive do
         </div>
       </div>
 
-      <%!-- 4-Step Vetting Process --%>
+      <%!-- 3-Step Vetting Process --%>
       <div class="bg-hero-pink-50 py-12 md:py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="text-center mb-12">
             <h2 class="font-display text-3xl md:text-4xl lg:text-5xl text-hero-black mb-4">
-              {gettext("Our 4-Step Vetting Process")}
+              {gettext("Our 3-Step Vetting Process")}
             </h2>
             <p class="text-lg text-hero-grey-700 max-w-3xl mx-auto">
               {gettext(
@@ -215,7 +206,7 @@ defmodule KlassHeroWeb.AboutLive do
             </p>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <div :for={step <- vetting_steps()} class="bg-white rounded-xl p-6 text-center">
               <div class={[
                 "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center",
