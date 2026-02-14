@@ -10,13 +10,12 @@ defmodule KlassHeroWeb.AboutLiveTest do
       assert has_element?(view, "h1", "OUR MISSION")
     end
 
-    test "displays hero section with black background", %{conn: conn} do
+    test "displays hero section with peach background", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify hero section content and styling
       assert html =~ "OUR MISSION"
       assert html =~ "To modernize how families discover and engage"
-      assert html =~ "bg-hero-black"
+      assert html =~ "bg-hero-pink-50"
     end
 
     test "displays Built for Berlin Families section", %{conn: conn} do
@@ -42,13 +41,11 @@ defmodule KlassHeroWeb.AboutLiveTest do
       assert html =~ "Building connections between families and local instructors"
     end
 
-    test "value cards have colored borders", %{conn: conn} do
+    test "value cards have yellow borders and blue icons", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify colored borders on value cards
-      assert html =~ "border-hero-blue-400"
-      assert html =~ "border-green-500"
       assert html =~ "border-hero-yellow-400"
+      assert html =~ "bg-hero-blue-400"
     end
 
     test "displays 4-Step Vetting Process section with beige background", %{conn: conn} do
@@ -77,14 +74,11 @@ defmodule KlassHeroWeb.AboutLiveTest do
       assert html =~ "In-depth conversation about values and approach"
     end
 
-    test "vetting steps have colored numbered circles", %{conn: conn} do
+    test "vetting steps have KH blue numbered circles", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify numbered circles with pastel backgrounds
-      assert html =~ "bg-blue-200"
-      assert html =~ "bg-purple-200"
-      assert html =~ "bg-pink-200"
-      assert html =~ "bg-green-200"
+      assert html =~ "bg-hero-blue-100"
+      assert html =~ "text-hero-blue-700"
     end
 
     test "displays Founding Team section", %{conn: conn} do
