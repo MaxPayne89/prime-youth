@@ -41,15 +41,14 @@ defmodule KlassHero.ProgramCatalog do
       Domain.Services.ProgramCategories
     ]
 
-  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
-
   alias KlassHero.ProgramCatalog.Application.UseCases.{
     CreateProgram,
     GetProgramById,
     ListAllPrograms,
     ListFeaturedPrograms,
     ListProgramsPaginated,
-    ListProviderPrograms
+    ListProviderPrograms,
+    UpdateProgram
   }
 
   alias KlassHero.ProgramCatalog.Domain.Models.Program
@@ -283,10 +282,33 @@ defmodule KlassHero.ProgramCatalog do
   end
 
   @doc """
+  Updates an existing program.
+
+  Loads the current program, applies changes through the domain model,
+  and persists with optimistic locking.
+
+  ## Parameters
+
+  - `id` - Program UUID
+  - `changes` - Map of fields to update
+
+  ## Returns
+
+  - `{:ok, Program.t()}` on success
+  - `{:error, :not_found}` if program doesn't exist
+  - `{:error, :stale_data}` if concurrent modification detected
+  - `{:error, errors}` on validation failure
+  """
+  @spec update_program(String.t(), map()) :: {:ok, Program.t()} | {:error, term()}
+  def update_program(id, changes) when is_binary(id) and is_map(changes) do
+    UpdateProgram.execute(id, changes)
+  end
+
+  @doc """
   Returns an empty changeset for the program creation form.
   """
   def new_program_changeset(attrs \\ %{}) do
-    ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+    @repository.new_changeset(attrs)
   end
 
   # ============================================================================

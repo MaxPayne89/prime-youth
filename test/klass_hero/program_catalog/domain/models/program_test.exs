@@ -398,6 +398,348 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
     end
   end
 
+  describe "create/1" do
+    test "creates program from valid attrs" do
+      attrs = %{
+        title: "Summer Soccer Camp",
+        description: "Fun soccer activities for kids",
+        category: "sports",
+        price: Decimal.new("150.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001",
+        spots_available: 20
+      }
+
+      assert {:ok, program} = Program.create(attrs)
+      assert program.title == "Summer Soccer Camp"
+      assert program.category == "sports"
+      assert program.id == nil
+      assert program.spots_available == 20
+    end
+
+    test "creates program with optional fields" do
+      attrs = %{
+        title: "Art Adventures",
+        description: "Creative art program",
+        category: "arts",
+        price: Decimal.new("50.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001",
+        schedule: "Mon-Fri 3-5pm",
+        age_range: "6-10 years",
+        pricing_period: "per week",
+        location: "Community Center"
+      }
+
+      assert {:ok, program} = Program.create(attrs)
+      assert program.schedule == "Mon-Fri 3-5pm"
+      assert program.location == "Community Center"
+    end
+
+    test "creates program with valid instructor data" do
+      attrs = %{
+        title: "Coached Program",
+        description: "Has instructor",
+        category: "sports",
+        price: Decimal.new("100.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001",
+        instructor: %{
+          id: "abc-123",
+          name: "Jane Coach",
+          headshot_url: "https://example.com/photo.jpg"
+        }
+      }
+
+      assert {:ok, program} = Program.create(attrs)
+      assert %Instructor{} = program.instructor
+      assert program.instructor.name == "Jane Coach"
+    end
+
+    test "creates program without instructor" do
+      attrs = %{
+        title: "No Coach",
+        description: "Self-directed program",
+        category: "arts",
+        price: Decimal.new("50.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
+      }
+
+      assert {:ok, program} = Program.create(attrs)
+      assert program.instructor == nil
+    end
+
+    test "defaults spots_available to 0" do
+      attrs = %{
+        title: "Default Spots",
+        description: "No spots specified",
+        category: "arts",
+        price: Decimal.new("50.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
+      }
+
+      assert {:ok, program} = Program.create(attrs)
+      assert program.spots_available == 0
+    end
+
+    test "rejects empty title" do
+      attrs = %{
+        title: "",
+        description: "Valid description",
+        category: "sports",
+        price: Decimal.new("100.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
+      }
+
+      assert {:error, errors} = Program.create(attrs)
+      assert is_list(errors)
+      assert Enum.any?(errors, &String.contains?(&1, "title"))
+    end
+
+    test "rejects whitespace-only title" do
+      attrs = %{
+        title: "   ",
+        description: "Valid",
+        category: "sports",
+        price: Decimal.new("100.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
+      }
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "title"))
+    end
+
+    test "rejects missing title" do
+      attrs = %{
+        description: "Valid",
+        category: "sports",
+        price: Decimal.new("100.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
+      }
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "title"))
+    end
+
+    test "rejects empty description" do
+      attrs = %{
+        title: "Valid Title",
+        description: "",
+        category: "sports",
+        price: Decimal.new("100.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
+      }
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "description"))
+    end
+
+    test "rejects invalid category" do
+      attrs = %{
+        title: "Valid Title",
+        description: "Valid description",
+        category: "invalid_category",
+        price: Decimal.new("100.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
+      }
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "category"))
+    end
+
+    test "rejects missing category" do
+      attrs = %{
+        title: "Valid Title",
+        description: "Valid description",
+        price: Decimal.new("100.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
+      }
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "category"))
+    end
+
+    test "rejects negative price" do
+      attrs = %{
+        title: "Valid Title",
+        description: "Valid description",
+        category: "sports",
+        price: Decimal.new("-10.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
+      }
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "price"))
+    end
+
+    test "rejects missing provider_id" do
+      attrs = %{
+        title: "Valid Title",
+        description: "Valid description",
+        category: "sports",
+        price: Decimal.new("100.00")
+      }
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "rovider"))
+    end
+
+    test "rejects negative spots_available" do
+      attrs = %{
+        title: "Valid",
+        description: "Valid",
+        category: "sports",
+        price: Decimal.new("100.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001",
+        spots_available: -1
+      }
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "spots"))
+    end
+
+    test "rejects invalid instructor data" do
+      attrs = %{
+        title: "Valid",
+        description: "Valid",
+        category: "sports",
+        price: Decimal.new("100.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001",
+        instructor: %{id: "", name: "Jane"}
+      }
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "nstructor"))
+    end
+
+    test "accepts price of zero (free programs)" do
+      attrs = %{
+        title: "Free Event",
+        description: "A free community event",
+        category: "education",
+        price: Decimal.new("0"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
+      }
+
+      assert {:ok, program} = Program.create(attrs)
+      assert Program.free?(program)
+    end
+  end
+
+  describe "apply_changes/2" do
+    defp existing_program do
+      %Program{
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        title: "Original Title",
+        description: "Original description",
+        category: "sports",
+        price: Decimal.new("150.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001",
+        spots_available: 20,
+        lock_version: 1
+      }
+    end
+
+    test "updates title" do
+      program = existing_program()
+      assert {:ok, updated} = Program.apply_changes(program, %{title: "New Title"})
+      assert updated.title == "New Title"
+      assert updated.description == "Original description"
+    end
+
+    test "updates multiple fields" do
+      program = existing_program()
+
+      assert {:ok, updated} =
+               Program.apply_changes(program, %{
+                 title: "Updated",
+                 price: Decimal.new("200.00"),
+                 spots_available: 15
+               })
+
+      assert updated.title == "Updated"
+      assert updated.price == Decimal.new("200.00")
+      assert updated.spots_available == 15
+    end
+
+    test "preserves fields not in changes" do
+      program = existing_program()
+      assert {:ok, updated} = Program.apply_changes(program, %{title: "New"})
+      assert updated.category == "sports"
+      assert updated.provider_id == "660e8400-e29b-41d4-a716-446655440001"
+      assert updated.lock_version == 1
+    end
+
+    test "adds instructor to program without one" do
+      program = existing_program()
+
+      assert {:ok, updated} =
+               Program.apply_changes(program, %{
+                 instructor: %{id: "abc-123", name: "Jane Coach"}
+               })
+
+      assert %Instructor{} = updated.instructor
+      assert updated.instructor.name == "Jane Coach"
+    end
+
+    test "removes instructor when set to nil" do
+      {:ok, instructor} = Instructor.new(%{id: "abc-123", name: "Jane"})
+      program = %{existing_program() | instructor: instructor}
+
+      assert {:ok, updated} = Program.apply_changes(program, %{instructor: nil})
+      assert updated.instructor == nil
+    end
+
+    test "rejects invalid changes (empty title)" do
+      program = existing_program()
+      assert {:error, errors} = Program.apply_changes(program, %{title: ""})
+      assert Enum.any?(errors, &String.contains?(&1, "title"))
+    end
+
+    test "rejects invalid changes (negative price)" do
+      program = existing_program()
+      assert {:error, errors} = Program.apply_changes(program, %{price: Decimal.new("-5.00")})
+      assert Enum.any?(errors, &String.contains?(&1, "price"))
+    end
+
+    test "rejects invalid category change" do
+      program = existing_program()
+      assert {:error, errors} = Program.apply_changes(program, %{category: "invalid"})
+      assert Enum.any?(errors, &String.contains?(&1, "category"))
+    end
+
+    test "returns unchanged program with empty changes map" do
+      program = existing_program()
+      assert {:ok, updated} = Program.apply_changes(program, %{})
+      assert updated.title == program.title
+      assert updated.description == program.description
+      assert updated.category == program.category
+      assert updated.price == program.price
+      assert updated.spots_available == program.spots_available
+      assert updated.instructor == program.instructor
+    end
+
+    test "rejects invalid instructor data in changes" do
+      program = existing_program()
+
+      assert {:error, errors} =
+               Program.apply_changes(program, %{instructor: %{id: "", name: ""}})
+
+      assert Enum.any?(errors, &String.contains?(&1, "nstructor"))
+    end
+
+    test "ignores provider_id in changes (immutable field)" do
+      program = existing_program()
+      original_provider_id = program.provider_id
+
+      assert {:ok, updated} =
+               Program.apply_changes(program, %{
+                 provider_id: "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+                 title: "Updated Title"
+               })
+
+      assert updated.provider_id == original_provider_id
+      assert updated.title == "Updated Title"
+    end
+  end
+
   describe "valid?/1 with relaxed fields" do
     test "valid with minimal fields" do
       {:ok, program} =

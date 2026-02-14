@@ -36,9 +36,11 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
                  category: "sports",
                  price: Decimal.new("75.00"),
                  location: "Sports Park",
-                 instructor_id: staff.id,
-                 instructor_name: "#{staff.first_name} #{staff.last_name}",
-                 instructor_headshot_url: staff.headshot_url
+                 instructor: %{
+                   id: staff.id,
+                   name: "#{staff.first_name} #{staff.last_name}",
+                   headshot_url: staff.headshot_url
+                 }
                })
 
       assert program.instructor != nil
@@ -46,21 +48,21 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
       assert program.location == "Sports Park"
     end
 
-    test "rejects missing required fields with specific errors" do
-      assert {:error, changeset} =
+    test "rejects missing required fields" do
+      assert {:error, errors} =
                ProgramCatalog.create_program(%{title: "Incomplete"})
 
-      errors = errors_on(changeset)
-      assert Map.has_key?(errors, :description)
-      assert Map.has_key?(errors, :category)
-      assert Map.has_key?(errors, :price)
-      assert Map.has_key?(errors, :provider_id)
+      assert is_list(errors)
+      assert Enum.any?(errors, &String.contains?(&1, "description"))
+      assert Enum.any?(errors, &String.contains?(&1, "category"))
+      assert Enum.any?(errors, &String.contains?(&1, "price"))
+      assert Enum.any?(errors, &String.contains?(&1, "rovider"))
     end
 
-    test "rejects negative price with specific error" do
+    test "rejects negative price" do
       provider = ProviderFixtures.provider_profile_fixture()
 
-      assert {:error, changeset} =
+      assert {:error, errors} =
                ProgramCatalog.create_program(%{
                  provider_id: provider.id,
                  title: "Bad Price Program",
@@ -69,14 +71,14 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
                  price: Decimal.new("-5.00")
                })
 
-      errors = errors_on(changeset)
-      assert "must be greater than or equal to 0" in errors[:price]
+      assert is_list(errors)
+      assert Enum.any?(errors, &String.contains?(&1, "rice"))
     end
 
     test "rejects invalid category" do
       provider = ProviderFixtures.provider_profile_fixture()
 
-      assert {:error, _changeset} =
+      assert {:error, errors} =
                ProgramCatalog.create_program(%{
                  provider_id: provider.id,
                  title: "Test",
@@ -84,6 +86,9 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
                  category: "invalid_category",
                  price: Decimal.new("10.00")
                })
+
+      assert is_list(errors)
+      assert Enum.any?(errors, &String.contains?(&1, "ategory"))
     end
 
     test "accepts all valid program categories" do

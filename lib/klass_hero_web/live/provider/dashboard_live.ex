@@ -58,7 +58,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         stats = MockData.stats()
 
         # Load real staff members
-        {:ok, staff_members} = Provider.list_staff_members(provider_profile.id)
+        staff_members = fetch_staff_members(provider_profile.id)
         staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
 
         # Build staff filter options from real data
@@ -120,8 +120,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     docs =
       case Provider.get_provider_verification_documents(provider.id) do
-        {:ok, docs} -> docs
-        {:error, _reason} -> []
+        {:ok, docs} ->
+          docs
+
+        {:error, reason} ->
+          Logger.warning("[DashboardLive] Failed to load verification documents",
+            provider_id: provider.id,
+            reason: inspect(reason)
+          )
+
+          []
       end
 
     socket =
@@ -143,8 +151,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     # Outcome: business map gets :verification_status (:verified/:pending/:rejected/:not_started)
     docs =
       case Provider.get_provider_verification_documents(provider.id) do
-        {:ok, docs} -> docs
-        {:error, _reason} -> []
+        {:ok, docs} ->
+          docs
+
+        {:error, reason} ->
+          Logger.warning("[DashboardLive] Failed to load verification documents",
+            provider_id: provider.id,
+            reason: inspect(reason)
+          )
+
+          []
       end
 
     verification_status =
@@ -159,7 +175,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_params(_params, _uri, %{assigns: %{live_action: :team}} = socket) do
     provider = socket.assigns.current_scope.provider
 
-    {:ok, staff_members} = Provider.list_staff_members(provider.id)
+    staff_members = fetch_staff_members(provider.id)
     staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
 
     {:noreply,
@@ -222,8 +238,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           Provider.new_staff_member_changeset(params)
 
         staff_id ->
-          {:ok, staff} = Provider.get_staff_member(staff_id)
-          Provider.change_staff_member(staff, params)
+          # Trigger: staff member may have been deleted between form open and keystroke
+          # Why: bare match on {:ok, _} would crash if member no longer exists
+          # Outcome: fall back to new changeset, preserving user's typed data
+          case Provider.get_staff_member(staff_id) do
+            {:ok, staff} ->
+              Provider.change_staff_member(staff, params)
+
+            {:error, :not_found} ->
+              Provider.new_staff_member_changeset(params)
+          end
       end
 
     {:noreply, assign(socket, staff_form: to_form(Map.put(changeset, :action, :validate)))}
@@ -239,73 +263,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     headshot_result = upload_headshot(socket, provider.id)
 
     case socket.assigns.editing_staff_id do
-      nil ->
-        attrs =
-          params
-          |> atomize_staff_params()
-          |> Map.put(:provider_id, provider.id)
-          |> maybe_add_headshot(headshot_result)
-
-        case Provider.create_staff_member(attrs) do
-          {:ok, staff} ->
-            view = StaffMemberPresenter.to_card_view(staff)
-
-            {:noreply,
-             socket
-             |> stream_insert(:team_members, view)
-             |> assign(
-               show_staff_form: false,
-               staff_count: socket.assigns.staff_count + 1
-             )
-             |> clear_flash(:error)
-             |> put_flash(:info, gettext("Team member added."))}
-
-          {:error, {:validation_error, _errors}} ->
-            changeset =
-              Provider.new_staff_member_changeset(params)
-              |> Map.put(:action, :validate)
-
-            {:noreply,
-             socket
-             |> assign(staff_form: to_form(changeset))
-             |> put_flash(:error, gettext("Please fix the errors below."))}
-
-          {:error, changeset} ->
-            {:noreply, assign(socket, staff_form: to_form(changeset))}
-        end
-
-      staff_id ->
-        attrs =
-          params
-          |> atomize_staff_params()
-          |> maybe_add_headshot(headshot_result)
-
-        case Provider.update_staff_member(staff_id, attrs) do
-          {:ok, staff} ->
-            view = StaffMemberPresenter.to_card_view(staff)
-
-            {:noreply,
-             socket
-             |> stream_insert(:team_members, view)
-             |> assign(show_staff_form: false)
-             |> clear_flash(:error)
-             |> put_flash(:info, gettext("Team member updated."))}
-
-          {:error, {:validation_error, _errors}} ->
-            {:ok, staff} = Provider.get_staff_member(staff_id)
-
-            changeset =
-              Provider.change_staff_member(staff, params)
-              |> Map.put(:action, :validate)
-
-            {:noreply,
-             socket
-             |> assign(staff_form: to_form(changeset))
-             |> put_flash(:error, gettext("Please fix the errors below."))}
-
-          {:error, changeset} ->
-            {:noreply, assign(socket, staff_form: to_form(changeset))}
-        end
+      nil -> save_new_staff(socket, params, provider, headshot_result)
+      staff_id -> save_existing_staff(socket, params, staff_id, headshot_result)
     end
   end
 
@@ -481,7 +440,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             title: params["title"],
             description: params["description"],
             category: params["category"],
-            price: params["price"],
+            price: parse_decimal(params["price"]),
             location: presence(params["location"])
           }
           |> maybe_add_cover_image(cover_result)
@@ -508,6 +467,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                gettext("Selected instructor could not be found. Please try again.")
              )}
 
+          # Trigger: domain validation returns a list of error strings
+          # Why: Program.create/1 validates invariants before persistence
+          # Outcome: show errors as flash message, form stays open
+          {:error, errors} when is_list(errors) ->
+            {:noreply, put_flash(socket, :error, Enum.join(errors, ", "))}
+
+          # Trigger: Ecto changeset validation failed at persistence layer
+          # Why: defense-in-depth — schema catches anything domain missed
+          # Outcome: show inline field errors via changeset-backed form
           {:error, changeset} ->
             {:noreply,
              socket
@@ -535,6 +503,101 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      socket
      |> assign(selected_staff: staff_id)
      |> reset_programs_stream()}
+  end
+
+  # ============================================================================
+  # Staff Save Helpers
+  # ============================================================================
+
+  defp save_new_staff(socket, params, provider, headshot_result) do
+    {headshot_status, attrs} =
+      params
+      |> atomize_staff_params()
+      |> Map.put(:provider_id, provider.id)
+      |> maybe_add_headshot(headshot_result)
+
+    case Provider.create_staff_member(attrs) do
+      {:ok, staff} ->
+        view = StaffMemberPresenter.to_card_view(staff)
+
+        flash_msg =
+          if headshot_status == :headshot_failed,
+            do: gettext("Team member added, but headshot upload failed."),
+            else: gettext("Team member added.")
+
+        {:noreply,
+         socket
+         |> stream_insert(:team_members, view)
+         |> assign(
+           show_staff_form: false,
+           staff_count: socket.assigns.staff_count + 1
+         )
+         |> clear_flash(:error)
+         |> put_flash(:info, flash_msg)}
+
+      {:error, {:validation_error, _errors}} ->
+        changeset =
+          Provider.new_staff_member_changeset(params)
+          |> Map.put(:action, :validate)
+
+        {:noreply,
+         socket
+         |> assign(staff_form: to_form(changeset))
+         |> put_flash(:error, gettext("Please fix the errors below."))}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, staff_form: to_form(changeset))}
+    end
+  end
+
+  defp save_existing_staff(socket, params, staff_id, headshot_result) do
+    {headshot_status, attrs} =
+      params
+      |> atomize_staff_params()
+      |> maybe_add_headshot(headshot_result)
+
+    case Provider.update_staff_member(staff_id, attrs) do
+      {:ok, staff} ->
+        view = StaffMemberPresenter.to_card_view(staff)
+
+        flash_msg =
+          if headshot_status == :headshot_failed,
+            do: gettext("Team member updated, but headshot upload failed."),
+            else: gettext("Team member updated.")
+
+        {:noreply,
+         socket
+         |> stream_insert(:team_members, view)
+         |> assign(show_staff_form: false)
+         |> clear_flash(:error)
+         |> put_flash(:info, flash_msg)}
+
+      {:error, {:validation_error, _errors}} ->
+        handle_staff_validation_error(socket, staff_id, params)
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, staff_form: to_form(changeset))}
+    end
+  end
+
+  defp handle_staff_validation_error(socket, staff_id, params) do
+    case Provider.get_staff_member(staff_id) do
+      {:ok, staff} ->
+        changeset =
+          Provider.change_staff_member(staff, params)
+          |> Map.put(:action, :validate)
+
+        {:noreply,
+         socket
+         |> assign(staff_form: to_form(changeset))
+         |> put_flash(:error, gettext("Please fix the errors below."))}
+
+      {:error, :not_found} ->
+        {:noreply,
+         socket
+         |> assign(show_staff_form: false, editing_staff_id: nil)
+         |> put_flash(:error, gettext("Staff member no longer exists."))}
+    end
   end
 
   # ============================================================================
@@ -876,9 +939,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     consume_single_upload(socket, :logo, "logos", provider_id)
   end
 
+  defp fetch_staff_members(provider_id) do
+    case Provider.list_staff_members(provider_id) do
+      {:ok, members} -> members
+      {:error, _reason} -> []
+    end
+  end
+
   defp refresh_staff_options(socket) do
     provider_id = socket.assigns.current_scope.provider.id
-    {:ok, staff_members} = Provider.list_staff_members(provider_id)
+    staff_members = fetch_staff_members(provider_id)
     staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
 
     staff_options =
@@ -944,6 +1014,20 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp presence(nil), do: nil
   defp presence(value), do: value
 
+  defp parse_decimal(nil), do: nil
+  defp parse_decimal(""), do: nil
+  defp parse_decimal(%Decimal{} = d), do: d
+
+  defp parse_decimal(value) when is_binary(value) do
+    # Trigger: user typed a non-numeric string in the price field
+    # Why: Decimal.new/1 raises on invalid input — must use parse/1 to avoid crash
+    # Outcome: nil lets downstream domain validation catch "price is required"
+    case Decimal.parse(value) do
+      {decimal, ""} -> decimal
+      _other -> nil
+    end
+  end
+
   defp parse_qualifications(nil), do: []
   defp parse_qualifications(""), do: []
 
@@ -956,8 +1040,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp parse_qualifications(quals) when is_list(quals), do: quals
 
-  defp maybe_add_headshot(attrs, {:ok, url}), do: Map.put(attrs, :headshot_url, url)
-  defp maybe_add_headshot(attrs, _), do: attrs
+  defp maybe_add_headshot(attrs, {:ok, url}), do: {:ok, Map.put(attrs, :headshot_url, url)}
+  defp maybe_add_headshot(attrs, :no_upload), do: {:ok, attrs}
+  defp maybe_add_headshot(attrs, :upload_error), do: {:headshot_failed, attrs}
 
   defp upload_program_cover(socket, provider_id) do
     consume_single_upload(socket, :program_cover, "program_covers", provider_id)
@@ -976,10 +1061,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     case Provider.get_staff_member(instructor_id) do
       {:ok, staff} ->
         {:ok,
-         attrs
-         |> Map.put(:instructor_id, staff.id)
-         |> Map.put(:instructor_name, Provider.staff_member_full_name(staff))
-         |> Map.put(:instructor_headshot_url, staff.headshot_url)}
+         Map.put(attrs, :instructor, %{
+           id: staff.id,
+           name: Provider.staff_member_full_name(staff),
+           headshot_url: staff.headshot_url
+         })}
 
       {:error, _reason} ->
         Logger.warning("Instructor not found during program creation",

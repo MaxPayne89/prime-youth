@@ -108,7 +108,7 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
   end
 
   describe "program form validation errors" do
-    test "shows inline field errors on invalid submit", %{conn: conn} do
+    test "shows error flash on invalid submit", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
 
       view |> element("#new-program-btn") |> render_click()
@@ -124,9 +124,12 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
       })
       |> render_submit()
 
-      assert has_element?(view, "#program-form")
-      assert render(view) =~ "Please fix the errors below."
-      assert render(view) =~ "can&#39;t be blank"
+      # Trigger: domain validation catches missing fields before Ecto
+      # Why: Program.create/1 validates invariants, returns error string list
+      # Outcome: errors shown as flash message
+      html = render(view)
+      assert html =~ "title is required"
+      assert html =~ "description is required"
     end
 
     test "rejects negative price with validation error", %{conn: conn} do
@@ -166,7 +169,7 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
       })
       |> render_submit()
 
-      assert render(view) =~ "Please fix the errors below."
+      assert render(view) =~ "title is required"
 
       # Submit valid data
       view
@@ -182,7 +185,7 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
 
       html = render(view)
       assert html =~ "Program created successfully."
-      refute html =~ "Please fix the errors below."
+      refute html =~ "title is required"
     end
   end
 end

@@ -370,4 +370,45 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert without_optional.icon_path == nil
     end
   end
+
+  describe "to_schema/1" do
+    test "includes provider_id in output" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        title: "Test",
+        description: "Desc",
+        category: "arts",
+        price: Decimal.new("50.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001",
+        spots_available: 10
+      }
+
+      attrs = ProgramMapper.to_schema(program)
+      assert attrs.provider_id == "660e8400-e29b-41d4-a716-446655440001"
+    end
+
+    test "includes all fields needed for create_changeset" do
+      {:ok, instructor} = Instructor.new(%{id: "abc", name: "Jane"})
+
+      program = %Program{
+        id: nil,
+        title: "Test",
+        description: "Desc",
+        category: "arts",
+        price: Decimal.new("50.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001",
+        spots_available: 10,
+        location: "Park",
+        cover_image_url: "https://example.com/img.jpg",
+        instructor: instructor
+      }
+
+      attrs = ProgramMapper.to_schema(program)
+      assert attrs.provider_id == "660e8400-e29b-41d4-a716-446655440001"
+      assert attrs.location == "Park"
+      assert attrs.cover_image_url == "https://example.com/img.jpg"
+      assert attrs.instructor_id == "abc"
+      assert attrs.instructor_name == "Jane"
+    end
+  end
 end
