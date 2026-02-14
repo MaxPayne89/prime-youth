@@ -7,7 +7,7 @@ defmodule KlassHeroWeb.Theme do
 
   ## Design Tokens
 
-  - **Colors**: Primary (teal), Secondary (pink), Accent (yellow)
+  - **Colors**: Primary (hero-blue), Secondary (pink), Accent (yellow)
   - **Gradients**: 15+ pre-defined gradients for various use cases
   - **Icon Styles**: Paired background + text colors for icons
   - **Status**: Color combinations for availability states
@@ -54,17 +54,17 @@ defmodule KlassHeroWeb.Theme do
 
   ## Available Gradients
 
-  - `:primary` - Teal horizontal gradient (teal-500 to teal-600)
-  - `:hero` - Teal diagonal gradient (teal-400 via teal-500 to teal-600)
+  - `:primary` - Hero blue horizontal gradient (hero-blue-500 to hero-blue-600)
+  - `:hero` - Hero blue/yellow diagonal gradient
   - `:safety` - Green horizontal gradient (green-500 to emerald-600)
 
   ## Examples
 
       iex> Theme.gradient(:primary)
-      "bg-gradient-to-r from-teal-500 to-teal-600"
+      "bg-gradient-to-r from-hero-blue-500 to-hero-blue-600"
 
       iex> Theme.gradient(:hero)
-      "bg-gradient-to-br from-teal-400 via-teal-500 to-teal-600"
+      "bg-gradient-to-br from-hero-blue-400 via-hero-yellow-400 to-hero-yellow-500"
 
       iex> Theme.gradient(:safety)
       "bg-gradient-to-r from-green-500 to-emerald-600"
@@ -150,9 +150,9 @@ defmodule KlassHeroWeb.Theme do
   ## Available Colors
 
   ### Primary Colors
-  - `:primary` - Main brand color (teal-600)
-  - `:primary_hover` - Hover state (teal-700)
-  - `:primary_light` - Light background (teal-50)
+  - `:primary` - Main brand color (hero-blue-600)
+  - `:primary_hover` - Hover state (hero-blue-700)
+  - `:primary_light` - Light background (hero-blue-50)
 
   ### Accent Colors
   - `:accent` - Accent highlights (pink-500)
@@ -178,7 +178,7 @@ defmodule KlassHeroWeb.Theme do
   ## Examples
 
       iex> Theme.brand_color(:primary)
-      "teal-600"
+      "hero-blue-600"
 
       iex> Theme.brand_color(:accent)
       "pink-500"
