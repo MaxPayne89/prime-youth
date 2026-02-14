@@ -79,9 +79,9 @@ defmodule KlassHeroWeb.ContactLive do
   end
 
   @contact_colors %{
-    email: %{border: "rgb(102 204 255)", gradient: "bg-hero-blue-400"},
-    phone: %{border: "rgb(34 197 94)", gradient: "bg-green-500"},
-    address: %{border: "rgb(255 255 54)", gradient: "bg-hero-yellow-500"}
+    email: %{border: "border-hero-yellow-400", gradient: "bg-hero-blue-400"},
+    phone: %{border: "border-hero-yellow-400", gradient: "bg-hero-blue-400"},
+    address: %{border: "border-hero-yellow-400", gradient: "bg-hero-blue-400"}
   }
 
   defp contact_color(type, key), do: @contact_colors[type][key]
@@ -98,13 +98,13 @@ defmodule KlassHeroWeb.ContactLive do
   def render(assigns) do
     ~H"""
     <div class="min-h-screen pb-20 md:pb-6">
-      <%!-- Dark Hero Section --%>
-      <div class="bg-hero-black py-16 lg:py-24">
+      <%!-- Hero Section --%>
+      <div class="bg-hero-pink-50 py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 class="font-display text-4xl md:text-5xl lg:text-6xl text-white mb-6">
+          <h1 class="font-display text-4xl md:text-5xl lg:text-6xl text-hero-black mb-6">
             {gettext("Contact Us")}
           </h1>
-          <p class="text-xl text-white/80 max-w-3xl mx-auto">
+          <p class="text-xl text-hero-grey-600 max-w-3xl mx-auto">
             {gettext("We're here to help with any questions you may have")}
           </p>
         </div>
@@ -190,8 +190,10 @@ defmodule KlassHeroWeb.ContactLive do
                   <div class="space-y-4">
                     <div
                       :for={method <- contact_methods()}
-                      class="border-2 rounded-lg p-6 bg-white flex items-start gap-4"
-                      style={"border-color: #{contact_color(method.type, :border)}"}
+                      class={[
+                        "border-2 rounded-lg p-6 bg-white flex items-start gap-4",
+                        contact_color(method.type, :border)
+                      ]}
                     >
                       <div class="flex-shrink-0">
                         <UIComponents.gradient_icon
