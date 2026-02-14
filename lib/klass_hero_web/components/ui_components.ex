@@ -1113,7 +1113,7 @@ defmodule KlassHeroWeb.UIComponents do
         </:actions>
       </.page_header>
   """
-  attr :variant, :atom, default: :white, values: [:white, :gradient, :dark]
+  attr :variant, :atom, default: :white, values: [:white, :gradient, :dark, :peach]
 
   attr :gradient_class, :string, default: Theme.gradient(:primary)
 
@@ -1146,6 +1146,7 @@ defmodule KlassHeroWeb.UIComponents do
       @size == :large && "py-16 lg:py-24 px-4 sm:px-6 lg:px-8",
       @variant == :gradient && [@gradient_class, "text-white"],
       @variant == :dark && "bg-hero-black text-white",
+      @variant == :peach && "bg-hero-pink-50",
       @variant == :white && "#{Theme.bg(:surface)} shadow-sm",
       @rounded && "rounded-b-3xl",
       @class
@@ -1177,7 +1178,7 @@ defmodule KlassHeroWeb.UIComponents do
                 <h1 class={[
                   @centered && Theme.typography(:page_title),
                   !@centered && Theme.typography(:section_title),
-                  @variant == :white && Theme.text_color(:heading),
+                  @variant in [:white, :peach] && Theme.text_color(:heading),
                   @variant in [:gradient, :dark] && "text-white"
                 ]}>
                   {render_slot(@title)}
@@ -1188,7 +1189,7 @@ defmodule KlassHeroWeb.UIComponents do
                     "mt-1",
                     @centered && "text-xl max-w-3xl mx-auto",
                     !@centered && "text-sm",
-                    @variant == :white && Theme.text_color(:secondary),
+                    @variant in [:white, :peach] && Theme.text_color(:secondary),
                     @variant in [:gradient, :dark] && "text-white/80"
                   ]}
                 >
