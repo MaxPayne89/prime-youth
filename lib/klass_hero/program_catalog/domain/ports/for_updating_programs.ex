@@ -19,6 +19,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForUpdatingPrograms do
   are handled by the supervision tree.
   """
 
+  alias KlassHero.ProgramCatalog.Domain.Models.Program
+
   @doc """
   Updates an existing program with optimistic locking.
 
@@ -34,6 +36,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForUpdatingPrograms do
   - `{:error, :not_found}` - Program ID does not exist
   - `{:error, changeset}` - Validation failure
   """
-  @callback update(program :: term()) ::
-              {:ok, term()} | {:error, :stale_data | :not_found | term()}
+  @callback update(program :: Program.t()) ::
+              {:ok, Program.t()} | {:error, :stale_data | :not_found | Ecto.Changeset.t()}
 end

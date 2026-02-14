@@ -8,6 +8,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForCreatingPrograms do
 
   alias KlassHero.ProgramCatalog.Domain.Models.Program
 
-  @callback create(attrs :: map()) ::
+  @callback create(program :: Program.t()) ::
               {:ok, Program.t()} | {:error, Ecto.Changeset.t()}
 end

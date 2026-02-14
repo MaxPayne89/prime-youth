@@ -122,7 +122,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       icon_path: program.icon_path,
       end_date: program.end_date,
       location: program.location,
-      cover_image_url: program.cover_image_url
+      cover_image_url: program.cover_image_url,
+      provider_id: program.provider_id
     }
 
     add_instructor_fields(base, program.instructor)
