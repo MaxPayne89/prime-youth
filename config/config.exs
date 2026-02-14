@@ -241,7 +241,10 @@ config :logger, :default_formatter,
     :sender_id,
     :note_id,
     :stacktrace,
-    :doc_type
+    :doc_type,
+    :kind,
+    :result,
+    :upload
   ]
 
 config :opentelemetry, :resource,

@@ -15,13 +15,18 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
   end
 
   @impl true
+  # Trigger: Agent may not be started in LiveView integration tests
+  # Why: LiveView tests can't pass custom storage_opts; matches signed_url/file_exists? pattern
+  # Outcome: stores file if agent alive, returns stub URL regardless
   def upload(bucket_type, path, binary, opts) do
     agent = Keyword.get(opts, :agent, __MODULE__)
     key = make_key(bucket_type, path)
 
-    Agent.update(agent, fn state ->
-      Map.put(state, key, binary)
-    end)
+    if agent_alive?(agent) do
+      Agent.update(agent, fn state ->
+        Map.put(state, key, binary)
+      end)
+    end
 
     case bucket_type do
       :public -> {:ok, "stub://public/#{path}"}

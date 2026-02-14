@@ -135,6 +135,32 @@ defmodule KlassHeroWeb.Provider.DashboardLiveEditTest do
     end
   end
 
+  describe "logo upload" do
+    test "submitting profile with logo file succeeds and redirects", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/edit")
+
+      logo =
+        file_input(view, "#profile-form", :logo, [
+          %{
+            name: "test_logo.png",
+            content: <<137, 80, 78, 71, 13, 10, 26, 10>>,
+            type: "image/png"
+          }
+        ])
+
+      render_upload(logo, "test_logo.png")
+
+      view
+      |> form("#profile-form", %{provider_profile_schema: %{description: "With logo"}})
+      |> render_submit()
+
+      # Trigger: upload succeeded via StubStorageAdapter
+      # Why: previously this crashed the LiveView process; now it should complete
+      # Outcome: redirects to dashboard on success
+      assert_redirect(view, ~p"/provider/dashboard")
+    end
+  end
+
   describe "navigation" do
     test "navigating from dashboard to edit via link", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
