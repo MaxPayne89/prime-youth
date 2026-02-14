@@ -284,97 +284,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end
   end
 
-  defp save_new_staff(socket, params, provider, headshot_result) do
-    {headshot_status, attrs} =
-      params
-      |> atomize_staff_params()
-      |> Map.put(:provider_id, provider.id)
-      |> maybe_add_headshot(headshot_result)
-
-    case Provider.create_staff_member(attrs) do
-      {:ok, staff} ->
-        view = StaffMemberPresenter.to_card_view(staff)
-
-        flash_msg =
-          if headshot_status == :headshot_failed,
-            do: gettext("Team member added, but headshot upload failed."),
-            else: gettext("Team member added.")
-
-        {:noreply,
-         socket
-         |> stream_insert(:team_members, view)
-         |> assign(
-           show_staff_form: false,
-           staff_count: socket.assigns.staff_count + 1
-         )
-         |> clear_flash(:error)
-         |> put_flash(:info, flash_msg)}
-
-      {:error, {:validation_error, _errors}} ->
-        changeset =
-          Provider.new_staff_member_changeset(params)
-          |> Map.put(:action, :validate)
-
-        {:noreply,
-         socket
-         |> assign(staff_form: to_form(changeset))
-         |> put_flash(:error, gettext("Please fix the errors below."))}
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, staff_form: to_form(changeset))}
-    end
-  end
-
-  defp save_existing_staff(socket, params, staff_id, headshot_result) do
-    {headshot_status, attrs} =
-      params
-      |> atomize_staff_params()
-      |> maybe_add_headshot(headshot_result)
-
-    case Provider.update_staff_member(staff_id, attrs) do
-      {:ok, staff} ->
-        view = StaffMemberPresenter.to_card_view(staff)
-
-        flash_msg =
-          if headshot_status == :headshot_failed,
-            do: gettext("Team member updated, but headshot upload failed."),
-            else: gettext("Team member updated.")
-
-        {:noreply,
-         socket
-         |> stream_insert(:team_members, view)
-         |> assign(show_staff_form: false)
-         |> clear_flash(:error)
-         |> put_flash(:info, flash_msg)}
-
-      {:error, {:validation_error, _errors}} ->
-        handle_staff_validation_error(socket, staff_id, params)
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, staff_form: to_form(changeset))}
-    end
-  end
-
-  defp handle_staff_validation_error(socket, staff_id, params) do
-    case Provider.get_staff_member(staff_id) do
-      {:ok, staff} ->
-        changeset =
-          Provider.change_staff_member(staff, params)
-          |> Map.put(:action, :validate)
-
-        {:noreply,
-         socket
-         |> assign(staff_form: to_form(changeset))
-         |> put_flash(:error, gettext("Please fix the errors below."))}
-
-      {:error, :not_found} ->
-        {:noreply,
-         socket
-         |> assign(show_staff_form: false, editing_staff_id: nil)
-         |> put_flash(:error, gettext("Staff member no longer exists."))}
-    end
-  end
-
   # ============================================================================
   # Edit Profile Events
   # ============================================================================
@@ -594,6 +503,101 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      socket
      |> assign(selected_staff: staff_id)
      |> reset_programs_stream()}
+  end
+
+  # ============================================================================
+  # Staff Save Helpers
+  # ============================================================================
+
+  defp save_new_staff(socket, params, provider, headshot_result) do
+    {headshot_status, attrs} =
+      params
+      |> atomize_staff_params()
+      |> Map.put(:provider_id, provider.id)
+      |> maybe_add_headshot(headshot_result)
+
+    case Provider.create_staff_member(attrs) do
+      {:ok, staff} ->
+        view = StaffMemberPresenter.to_card_view(staff)
+
+        flash_msg =
+          if headshot_status == :headshot_failed,
+            do: gettext("Team member added, but headshot upload failed."),
+            else: gettext("Team member added.")
+
+        {:noreply,
+         socket
+         |> stream_insert(:team_members, view)
+         |> assign(
+           show_staff_form: false,
+           staff_count: socket.assigns.staff_count + 1
+         )
+         |> clear_flash(:error)
+         |> put_flash(:info, flash_msg)}
+
+      {:error, {:validation_error, _errors}} ->
+        changeset =
+          Provider.new_staff_member_changeset(params)
+          |> Map.put(:action, :validate)
+
+        {:noreply,
+         socket
+         |> assign(staff_form: to_form(changeset))
+         |> put_flash(:error, gettext("Please fix the errors below."))}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, staff_form: to_form(changeset))}
+    end
+  end
+
+  defp save_existing_staff(socket, params, staff_id, headshot_result) do
+    {headshot_status, attrs} =
+      params
+      |> atomize_staff_params()
+      |> maybe_add_headshot(headshot_result)
+
+    case Provider.update_staff_member(staff_id, attrs) do
+      {:ok, staff} ->
+        view = StaffMemberPresenter.to_card_view(staff)
+
+        flash_msg =
+          if headshot_status == :headshot_failed,
+            do: gettext("Team member updated, but headshot upload failed."),
+            else: gettext("Team member updated.")
+
+        {:noreply,
+         socket
+         |> stream_insert(:team_members, view)
+         |> assign(show_staff_form: false)
+         |> clear_flash(:error)
+         |> put_flash(:info, flash_msg)}
+
+      {:error, {:validation_error, _errors}} ->
+        handle_staff_validation_error(socket, staff_id, params)
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, staff_form: to_form(changeset))}
+    end
+  end
+
+  defp handle_staff_validation_error(socket, staff_id, params) do
+    case Provider.get_staff_member(staff_id) do
+      {:ok, staff} ->
+        changeset =
+          Provider.change_staff_member(staff, params)
+          |> Map.put(:action, :validate)
+
+        {:noreply,
+         socket
+         |> assign(staff_form: to_form(changeset))
+         |> put_flash(:error, gettext("Please fix the errors below."))}
+
+      {:error, :not_found} ->
+        {:noreply,
+         socket
+         |> assign(show_staff_form: false, editing_staff_id: nil)
+         |> put_flash(:error, gettext("Staff member no longer exists."))}
+    end
   end
 
   # ============================================================================
