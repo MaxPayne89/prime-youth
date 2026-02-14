@@ -235,7 +235,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
           <button
             type="submit"
             class={[
-              "flex-1 px-4 py-3 bg-hero-blue-600 text-white font-medium hover:bg-hero-blue-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
+              "flex-1 px-4 py-3 bg-hero-blue-600 text-white font-medium hover:bg-hero-blue-700 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
               Theme.rounded(:lg),
               Theme.transition(:normal)
             ]}
@@ -608,8 +608,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
             <button
               type="submit"
               class={[
-                "flex-1 px-3 py-1.5 bg-teal-600 text-white text-sm font-medium hover:bg-teal-700",
-                "focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
+                "flex-1 px-3 py-1.5 bg-hero-blue-600 text-white text-sm font-medium hover:bg-hero-blue-700",
+                "focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
                 Theme.rounded(:md),
                 Theme.transition(:normal)
               ]}
@@ -622,7 +622,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
               phx-value-id={@entity_id}
               class={[
                 "px-3 py-1.5 bg-white text-hero-black-100 text-sm font-medium border border-hero-grey-300",
-                "hover:bg-hero-grey-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2",
+                "hover:bg-hero-grey-50 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
                 Theme.rounded(:md),
                 Theme.transition(:normal)
               ]}

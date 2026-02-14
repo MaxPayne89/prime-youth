@@ -1325,7 +1325,7 @@ defmodule KlassHeroWeb.UIComponents do
         name={@name}
         value={format_date_value(@value)}
         class={[
-          "px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent",
+          "px-4 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:border-transparent",
           Theme.rounded(:lg),
           Theme.transition(:normal)
         ]}
