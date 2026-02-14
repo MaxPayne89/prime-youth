@@ -85,7 +85,7 @@ module.exports = {
         }
       },
       fontFamily: {
-        'display': ['Bangers', 'Impact', 'Arial Black', 'sans-serif'],
+        'display': ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
         'sans': ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       animation: {

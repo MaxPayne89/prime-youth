@@ -435,7 +435,7 @@ defmodule KlassHeroWeb.Theme do
 
   ## Styles
 
-  ### Display Font (Bangers)
+  ### Display Font (Plus Jakarta Sans)
   - `:hero` - Page hero text (largest)
   - `:page_title` - Main page titles
   - `:section_title` - Section headings
@@ -450,21 +450,20 @@ defmodule KlassHeroWeb.Theme do
   ## Examples
 
       iex> Theme.typography(:hero)
-      "font-display text-4xl md:text-5xl lg:text-6xl font-normal tracking-wide"
+      "font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
 
       iex> Theme.typography(:body)
       "font-sans text-base"
   """
-  # Display font (Bangers) for hero/heading text
+  # Display font (Plus Jakarta Sans) for hero/heading text
   def typography(:hero),
-    do: "font-display text-4xl md:text-5xl lg:text-6xl font-normal tracking-wide"
+    do: "font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
 
-  def typography(:page_title), do: "font-display text-3xl md:text-4xl font-normal tracking-wide"
+  def typography(:page_title), do: "font-display text-3xl md:text-4xl font-bold tracking-tight"
 
-  def typography(:section_title),
-    do: "font-display text-2xl md:text-3xl font-normal tracking-wide"
+  def typography(:section_title), do: "font-display text-2xl md:text-3xl font-bold tracking-tight"
 
-  def typography(:cta), do: "font-display text-lg md:text-xl font-normal tracking-wide"
+  def typography(:cta), do: "font-display text-lg md:text-xl font-bold tracking-tight"
 
   # Sans font (Inter) for functional text
   def typography(:card_title), do: "font-sans text-lg font-semibold"
