@@ -441,7 +441,11 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "sports",
         price: Decimal.new("100.00"),
         provider_id: "660e8400-e29b-41d4-a716-446655440001",
-        instructor: %{id: "abc-123", name: "Jane Coach", headshot_url: "https://example.com/photo.jpg"}
+        instructor: %{
+          id: "abc-123",
+          name: "Jane Coach",
+          headshot_url: "https://example.com/photo.jpg"
+        }
       }
 
       assert {:ok, program} = Program.create(attrs)
