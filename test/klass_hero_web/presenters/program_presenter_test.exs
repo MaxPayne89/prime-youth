@@ -201,6 +201,28 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result == ""
     end
 
+    test "formats midnight time correctly" do
+      program = %{
+        meeting_start_time: ~T[00:00:00],
+        meeting_end_time: ~T[01:00:00]
+      }
+
+      result = ProgramPresenter.format_schedule_brief(program)
+      # Midnight renders as "12:00" (12-hour format), not "0:00"
+      assert result == "12:00 - 1:00 AM"
+    end
+
+    test "formats noon time correctly" do
+      program = %{
+        meeting_start_time: ~T[12:00:00],
+        meeting_end_time: ~T[13:30:00]
+      }
+
+      result = ProgramPresenter.format_schedule_brief(program)
+      # Noon renders as "12:00" (12-hour format), with PM suffix
+      assert result == "12:00 - 1:30 PM"
+    end
+
     test "works with domain struct" do
       program =
         build_program(%{
