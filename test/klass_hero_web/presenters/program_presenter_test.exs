@@ -107,6 +107,67 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
     end
   end
 
+  describe "format_schedule/1" do
+    test "formats full schedule with days, times, and dates" do
+      program =
+        build_program(%{
+          meeting_days: ["Monday", "Wednesday"],
+          meeting_start_time: ~T[16:00:00],
+          meeting_end_time: ~T[17:30:00],
+          start_date: ~D[2026-03-01],
+          end_date: ~U[2026-06-30 00:00:00Z]
+        })
+
+      result = ProgramPresenter.format_schedule(program)
+      assert result.days == "Mon & Wed"
+      assert result.times == "4:00 - 5:30 PM"
+      assert result.date_range =~ "Mar 1"
+      assert result.date_range =~ "Jun 30"
+    end
+
+    test "returns nil when no scheduling data" do
+      program = build_program(%{meeting_days: [], meeting_start_time: nil})
+      assert ProgramPresenter.format_schedule(program) == nil
+    end
+
+    test "formats single day" do
+      program = build_program(%{meeting_days: ["Saturday"]})
+      result = ProgramPresenter.format_schedule(program)
+      assert result.days == "Sat"
+    end
+
+    test "formats three days with ampersand" do
+      program = build_program(%{meeting_days: ["Monday", "Wednesday", "Friday"]})
+      result = ProgramPresenter.format_schedule(program)
+      assert result.days == "Mon, Wed & Fri"
+    end
+
+    test "formats days only when no times set" do
+      program =
+        build_program(%{
+          meeting_days: ["Monday", "Wednesday"],
+          meeting_start_time: nil,
+          meeting_end_time: nil
+        })
+
+      result = ProgramPresenter.format_schedule(program)
+      assert result.days == "Mon & Wed"
+      assert result.times == nil
+    end
+
+    test "formats times crossing AM/PM" do
+      program =
+        build_program(%{
+          meeting_days: ["Saturday"],
+          meeting_start_time: ~T[11:00:00],
+          meeting_end_time: ~T[13:30:00]
+        })
+
+      result = ProgramPresenter.format_schedule(program)
+      assert result.times == "11:00 AM - 1:30 PM"
+    end
+  end
+
   defp build_program(overrides) do
     defaults = %{
       id: "test-id",
@@ -115,7 +176,12 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       category: "arts",
       price: Decimal.new("50.00"),
       spots_available: 10,
-      instructor: nil
+      instructor: nil,
+      meeting_days: [],
+      meeting_start_time: nil,
+      meeting_end_time: nil,
+      start_date: nil,
+      end_date: nil
     }
 
     struct!(Program, Map.merge(defaults, overrides))
