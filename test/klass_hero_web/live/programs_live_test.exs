@@ -112,7 +112,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           insert_program(%{
             title: "Program #{i}",
             description: "Description for program #{i}",
-              age_range: "6-12 years",
+            age_range: "6-12 years",
             price: Decimal.new("#{i}.00"),
             pricing_period: "per month",
             spots_available: 10,

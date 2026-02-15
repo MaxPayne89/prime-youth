@@ -215,7 +215,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
             %{
               title: "Program #{String.pad_leading(Integer.to_string(i), 2, "0")}",
               description: "Description #{i}",
-                  age_range: "6-12",
+              age_range: "6-12",
               price: Decimal.new("#{100 + i}.00"),
               pricing_period: "per week",
               spots_available: 10
@@ -410,7 +410,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           %{
             title: "Program #{i}",
             description: "Description",
-              age_range: "6-12",
+            age_range: "6-12",
             price: Decimal.new("100.00"),
             pricing_period: "per week",
             spots_available: 10
@@ -439,7 +439,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           %{
             title: "Program #{i}",
             description: "Description",
-              age_range: "6-12",
+            age_range: "6-12",
             price: Decimal.new("100.00"),
             pricing_period: "per week",
             spots_available: 10
