@@ -460,7 +460,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             description: params["description"],
             category: params["category"],
             price: parse_decimal(params["price"]),
-            location: presence(params["location"])
+            location: presence(params["location"]),
+            meeting_days: parse_meeting_days(params["meeting_days"]),
+            meeting_start_time: parse_time(params["meeting_start_time"]),
+            meeting_end_time: parse_time(params["meeting_end_time"]),
+            start_date: parse_date(params["start_date"]),
+            end_date: parse_date(params["end_date"])
           }
           |> maybe_add_cover_image(cover_result)
 
@@ -1062,6 +1067,30 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     case Decimal.parse(value) do
       {decimal, ""} -> decimal
       _other -> nil
+    end
+  end
+
+  defp parse_meeting_days(nil), do: []
+  defp parse_meeting_days(days) when is_list(days), do: Enum.reject(days, &(&1 == ""))
+  defp parse_meeting_days(_), do: []
+
+  defp parse_time(nil), do: nil
+  defp parse_time(""), do: nil
+
+  defp parse_time(value) when is_binary(value) do
+    case Time.from_iso8601(value <> ":00") do
+      {:ok, time} -> time
+      _ -> nil
+    end
+  end
+
+  defp parse_date(nil), do: nil
+  defp parse_date(""), do: nil
+
+  defp parse_date(value) when is_binary(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} -> date
+      _ -> nil
     end
   end
 
