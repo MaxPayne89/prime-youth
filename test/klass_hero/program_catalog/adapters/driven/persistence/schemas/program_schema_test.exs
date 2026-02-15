@@ -234,7 +234,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs =
         valid_changeset_attrs(%{
           start_date: ~D[2026-01-01],
-          end_date: ~U[2026-06-30 23:59:59Z]
+          end_date: ~D[2026-06-30]
         })
 
       changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
@@ -245,7 +245,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       attrs =
         valid_changeset_attrs(%{
           start_date: ~D[2026-07-01],
-          end_date: ~U[2026-06-30 23:59:59Z]
+          end_date: ~D[2026-06-30]
         })
 
       changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
@@ -451,6 +451,18 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
       refute changeset.valid?
       assert "contains invalid days: Funday" in errors_on(changeset).meeting_days
+    end
+
+    test "accepts end_date at creation" do
+      attrs =
+        valid_create_attrs(%{
+          start_date: ~D[2026-03-01],
+          end_date: ~D[2026-06-30]
+        })
+
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :end_date) == ~D[2026-06-30]
     end
   end
 

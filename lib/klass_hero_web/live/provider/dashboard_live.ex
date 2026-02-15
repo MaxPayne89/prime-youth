@@ -983,8 +983,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp fetch_staff_members(provider_id) do
     case Provider.list_staff_members(provider_id) do
-      {:ok, members} -> members
-      {:error, _reason} -> []
+      {:ok, members} ->
+        members
+
+      {:error, reason} ->
+        Logger.warning("[DashboardLive] Failed to load staff members",
+          provider_id: provider_id,
+          reason: inspect(reason)
+        )
+
+        []
     end
   end
 

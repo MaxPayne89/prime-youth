@@ -817,6 +817,13 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       assert {:error, errors} = Program.create(attrs)
       assert Enum.any?(errors, &String.contains?(&1, "date"))
     end
+
+    test "rejects invalid date types" do
+      attrs = scheduling_attrs(%{start_date: "2026-03-01", end_date: "2026-06-30"})
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "invalid type"))
+    end
   end
 
   describe "apply_changes/2 scheduling" do

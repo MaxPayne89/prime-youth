@@ -115,7 +115,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
           meeting_start_time: ~T[16:00:00],
           meeting_end_time: ~T[17:30:00],
           start_date: ~D[2026-03-01],
-          end_date: ~U[2026-06-30 00:00:00Z]
+          end_date: ~D[2026-06-30]
         })
 
       result = ProgramPresenter.format_schedule(program)
@@ -165,6 +165,52 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
 
       result = ProgramPresenter.format_schedule(program)
       assert result.times == "11:00 AM - 1:30 PM"
+    end
+  end
+
+  describe "format_schedule_brief/1" do
+    test "formats days and times from a map" do
+      program = %{
+        meeting_days: ["Monday", "Wednesday"],
+        meeting_start_time: ~T[16:00:00],
+        meeting_end_time: ~T[17:30:00]
+      }
+
+      result = ProgramPresenter.format_schedule_brief(program)
+      assert result == "Mon & Wed 4:00 - 5:30 PM"
+    end
+
+    test "formats days only when no times" do
+      program = %{meeting_days: ["Saturday"]}
+      result = ProgramPresenter.format_schedule_brief(program)
+      assert result == "Sat"
+    end
+
+    test "formats times only when no days" do
+      program = %{
+        meeting_start_time: ~T[09:00:00],
+        meeting_end_time: ~T[11:00:00]
+      }
+
+      result = ProgramPresenter.format_schedule_brief(program)
+      assert result == "9:00 - 11:00 AM"
+    end
+
+    test "returns empty string when no scheduling data" do
+      result = ProgramPresenter.format_schedule_brief(%{})
+      assert result == ""
+    end
+
+    test "works with domain struct" do
+      program =
+        build_program(%{
+          meeting_days: ["Tuesday", "Thursday"],
+          meeting_start_time: ~T[14:00:00],
+          meeting_end_time: ~T[15:00:00]
+        })
+
+      result = ProgramPresenter.format_schedule_brief(program)
+      assert result == "Tue & Thu 2:00 - 3:00 PM"
     end
   end
 

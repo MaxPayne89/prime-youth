@@ -46,7 +46,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
           pricing_period: String.t() | nil,
           spots_available: non_neg_integer(),
           icon_path: String.t() | nil,
-          end_date: DateTime.t() | nil,
+          end_date: Date.t() | nil,
           lock_version: non_neg_integer() | nil,
           location: String.t() | nil,
           cover_image_url: String.t() | nil,
@@ -338,12 +338,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     end
   end
 
-  # Trigger: end_date may be DateTime (existing data) rather than Date
-  # Why: end_date column is :utc_datetime — comparison still valid
-  # Outcome: convert DateTime to Date for comparison
-  defp validate_date_range(errors, %Date{} = start_date, %DateTime{} = end_dt) do
-    validate_date_range(errors, start_date, DateTime.to_date(end_dt))
+  defp validate_date_range(errors, _, _) do
+    ["start_date or end_date has an invalid type" | errors]
   end
-
-  defp validate_date_range(errors, _, _), do: errors
 end

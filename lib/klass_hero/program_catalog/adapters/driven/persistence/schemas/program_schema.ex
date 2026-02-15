@@ -29,7 +29,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :spots_available, :integer, default: 0
     field :lock_version, :integer, default: 1
     field :icon_path, :string
-    field :end_date, :utc_datetime
+    field :end_date, :date
     field :provider_id, :binary_id
     field :location, :string
     field :cover_image_url, :string
@@ -55,7 +55,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           spots_available: integer() | nil,
           lock_version: integer() | nil,
           icon_path: String.t() | nil,
-          end_date: DateTime.t() | nil,
+          end_date: Date.t() | nil,
           provider_id: Ecto.UUID.t() | nil,
           location: String.t() | nil,
           cover_image_url: String.t() | nil,
@@ -146,7 +146,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :meeting_days,
       :meeting_start_time,
       :meeting_end_time,
-      :start_date
+      :start_date,
+      :end_date
     ])
     # Trigger: provider_id, instructor fields arrive from trusted server-side code
     # Why: including them in cast would allow form param injection
@@ -264,7 +265,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
 
   # Trigger: start_date is on or after end_date
   # Why: a program's start must precede its end for a valid date range
-  # Outcome: changeset error on start_date; handles end_date as DateTime (utc_datetime column)
+  # Outcome: changeset error on start_date
   defp validate_date_range(changeset) do
     start_date = get_field(changeset, :start_date)
     end_date = get_field(changeset, :end_date)
@@ -272,13 +273,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     if is_nil(start_date) or is_nil(end_date) do
       changeset
     else
-      # Trigger: end_date column is :utc_datetime, so get_field returns a DateTime
-      # Why: Date.compare/2 requires Date structs on both sides
-      # Outcome: convert DateTime to Date before comparing
-      comparable_end =
-        if match?(%DateTime{}, end_date), do: DateTime.to_date(end_date), else: end_date
-
-      if Date.before?(start_date, comparable_end) do
+      if Date.before?(start_date, end_date) do
         changeset
       else
         add_error(changeset, :start_date, "must be before end date")

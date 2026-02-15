@@ -136,17 +136,33 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   defp format_date_range(nil, _), do: nil
   defp format_date_range(_, nil), do: nil
 
-  defp format_date_range(%Date{} = start_date, end_date) do
-    # Trigger: end_date may be a DateTime (from :utc_datetime column) or a Date
-    # Why: domain model stores end_date as DateTime; presenter needs just the date portion
-    # Outcome: consistent date formatting regardless of input type
-    end_date = if match?(%DateTime{}, end_date), do: DateTime.to_date(end_date), else: end_date
+  defp format_date_range(%Date{} = start_date, %Date{} = end_date) do
     "#{format_short_date(start_date)} - #{format_short_date(end_date)}, #{end_date.year}"
   end
 
   defp format_short_date(%Date{} = date) do
     month = Enum.at(~w(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec), date.month - 1)
     "#{month} #{date.day}"
+  end
+
+  @doc """
+  Formats a brief one-line schedule string from any map with scheduling keys.
+
+  Accepts raw maps (e.g. sample fixtures, component assigns) in addition to
+  domain structs. Returns a string like "Mon & Wed 4:00 - 5:30 PM".
+  """
+  @spec format_schedule_brief(map()) :: String.t()
+  def format_schedule_brief(program) when is_map(program) do
+    days = Map.get(program, :meeting_days, [])
+    start_time = Map.get(program, :meeting_start_time)
+    end_time = Map.get(program, :meeting_end_time)
+
+    day_str = if days != [], do: format_days(days)
+    time_str = format_times(start_time, end_time)
+
+    [day_str, time_str]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" ")
   end
 
   defp format_instructor(nil), do: nil
