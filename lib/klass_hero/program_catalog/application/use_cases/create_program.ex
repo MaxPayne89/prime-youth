@@ -34,7 +34,12 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.CreateProgram do
         provider_id: program.provider_id,
         title: program.title,
         category: program.category,
-        instructor_id: program.instructor && program.instructor.id
+        instructor_id: program.instructor && program.instructor.id,
+        meeting_days: program.meeting_days,
+        meeting_start_time: program.meeting_start_time,
+        meeting_end_time: program.meeting_end_time,
+        start_date: program.start_date,
+        end_date: program.end_date
       })
 
     case DomainEventBus.dispatch(KlassHero.ProgramCatalog, event) do
