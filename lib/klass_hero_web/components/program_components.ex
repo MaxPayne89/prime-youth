@@ -407,7 +407,7 @@ defmodule KlassHeroWeb.ProgramComponents do
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            {@program.schedule}
+            {format_schedule_brief(@program)}
           </div>
           <div class="flex items-center text-sm text-hero-grey-500">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -495,5 +495,64 @@ defmodule KlassHeroWeb.ProgramComponents do
       </div>
     </div>
     """
+  end
+
+  # Schedule Formatting Helpers
+  # These work with raw maps (sample fixtures) rather than domain structs.
+
+  @day_abbreviations %{
+    "Monday" => "Mon",
+    "Tuesday" => "Tue",
+    "Wednesday" => "Wed",
+    "Thursday" => "Thu",
+    "Friday" => "Fri",
+    "Saturday" => "Sat",
+    "Sunday" => "Sun"
+  }
+
+  defp format_schedule_brief(program) do
+    days = Map.get(program, :meeting_days, [])
+    start_time = Map.get(program, :meeting_start_time)
+    end_time = Map.get(program, :meeting_end_time)
+
+    day_str = if days != [], do: format_day_list(days)
+    time_str = format_time_range(start_time, end_time)
+
+    [day_str, time_str]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" ")
+  end
+
+  defp format_day_list([day]), do: Map.get(@day_abbreviations, day, day)
+
+  defp format_day_list(days) when is_list(days) do
+    Enum.map_join(days, ", ", &Map.get(@day_abbreviations, &1, &1))
+  end
+
+  defp format_time_range(%Time{} = start_time, %Time{} = end_time) do
+    # Trigger: both times in the same AM/PM period
+    # Why: "4:00 - 5:30 PM" reads cleaner than "4:00 PM - 5:30 PM"
+    # Outcome: omit period from start time when both share the same period
+    same_period? = start_time.hour >= 12 == end_time.hour >= 12
+
+    if same_period? do
+      "#{format_time_12h(start_time, false)} - #{format_time_12h(end_time, true)}"
+    else
+      "#{format_time_12h(start_time, true)} - #{format_time_12h(end_time, true)}"
+    end
+  end
+
+  defp format_time_range(_, _), do: nil
+
+  defp format_time_12h(%Time{hour: hour, minute: minute}, show_period) do
+    {h12, period} = if hour >= 12, do: {rem(hour, 12), "PM"}, else: {hour, "AM"}
+    h12 = if h12 == 0, do: 12, else: h12
+    minutes_str = String.pad_leading("#{minute}", 2, "0")
+
+    if show_period do
+      "#{h12}:#{minutes_str} #{period}"
+    else
+      "#{h12}:#{minutes_str}"
+    end
   end
 end

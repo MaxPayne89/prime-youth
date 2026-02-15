@@ -70,14 +70,11 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   """
   @spec format_schedule(Program.t()) ::
           %{days: String.t() | nil, times: String.t() | nil, date_range: String.t() | nil} | nil
-  def format_schedule(%Program{meeting_days: days} = program)
-      when days == [] or is_nil(days) do
+  def format_schedule(%Program{meeting_days: days} = program) when days == [] or is_nil(days) do
     # Trigger: no meeting days provided
     # Why: if there's also no start time and no date range, there's nothing to display
     # Outcome: returns nil so UI can hide the schedule section entirely
-    if is_nil(program.meeting_start_time) and is_nil(program.start_date) do
-      nil
-    else
+    if !(is_nil(program.meeting_start_time) and is_nil(program.start_date)) do
       %{
         days: nil,
         times: format_times(program.meeting_start_time, program.meeting_end_time),
@@ -113,7 +110,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
     # Trigger: both times in the same AM/PM period
     # Why: "4:00 - 5:30 PM" reads cleaner than "4:00 PM - 5:30 PM"
     # Outcome: omit period from start time when both share the same period
-    same_period? = start_time.hour >= 12 == (end_time.hour >= 12)
+    same_period? = start_time.hour >= 12 == end_time.hour >= 12
 
     if same_period? do
       "#{format_time_12h(start_time, show_period: false)} - #{format_time_12h(end_time)}"
