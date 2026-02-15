@@ -19,7 +19,10 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :title, :string
     field :description, :string
     field :category, :string
-    field :schedule, :string
+    field :meeting_days, {:array, :string}, default: []
+    field :meeting_start_time, :time
+    field :meeting_end_time, :time
+    field :start_date, :date
     field :age_range, :string
     field :price, :decimal
     field :pricing_period, :string
@@ -42,7 +45,10 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           title: String.t() | nil,
           description: String.t() | nil,
           category: String.t() | nil,
-          schedule: String.t() | nil,
+          meeting_days: [String.t()],
+          meeting_start_time: Time.t() | nil,
+          meeting_end_time: Time.t() | nil,
+          start_date: Date.t() | nil,
           age_range: String.t() | nil,
           price: Decimal.t() | nil,
           pricing_period: String.t() | nil,
@@ -64,16 +70,18 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
   Creates a changeset for validation.
 
   Required fields:
-  - title (1-255 characters)
-  - description (non-empty)
-  - schedule (non-empty)
+  - title (1-100 characters)
+  - description (1-500 characters)
+  - category (valid program category)
   - age_range (non-empty)
   - price (>= 0)
   - pricing_period (non-empty)
   - spots_available (>= 0)
 
-  Optional fields:
-  - icon_path
+  Optional scheduling fields:
+  - meeting_days (list of valid weekday names)
+  - meeting_start_time / meeting_end_time (must be set together, end > start)
+  - start_date (must be before end_date when both present)
   """
   @spec changeset(t(), map()) :: Ecto.Changeset.t()
   def changeset(program_schema, attrs) do
@@ -82,7 +90,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :title,
       :description,
       :category,
-      :schedule,
       :age_range,
       :price,
       :pricing_period,
@@ -94,13 +101,16 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :cover_image_url,
       :instructor_id,
       :instructor_name,
-      :instructor_headshot_url
+      :instructor_headshot_url,
+      :meeting_days,
+      :meeting_start_time,
+      :meeting_end_time,
+      :start_date
     ])
     |> validate_required([
       :title,
       :description,
       :category,
-      :schedule,
       :age_range,
       :price,
       :pricing_period,
@@ -108,12 +118,14 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     ])
     |> validate_length(:title, min: 1, max: 100)
     |> validate_length(:description, min: 1, max: 500)
-    |> validate_length(:schedule, min: 1, max: 255)
     |> validate_length(:age_range, min: 1, max: 100)
     |> validate_length(:pricing_period, min: 1, max: 100)
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_number(:spots_available, greater_than_or_equal_to: 0)
+    |> validate_meeting_days()
+    |> validate_time_pairing()
+    |> validate_date_range()
   end
 
   @doc """
@@ -130,7 +142,11 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :category,
       :price,
       :location,
-      :spots_available
+      :spots_available,
+      :meeting_days,
+      :meeting_start_time,
+      :meeting_end_time,
+      :start_date
     ])
     # Trigger: provider_id, instructor fields arrive from trusted server-side code
     # Why: including them in cast would allow form param injection
@@ -149,6 +165,9 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_number(:spots_available, greater_than_or_equal_to: 0)
+    |> validate_meeting_days()
+    |> validate_time_pairing()
+    |> validate_date_range()
     |> foreign_key_constraint(:provider_id)
     |> foreign_key_constraint(:instructor_id)
   end
@@ -168,7 +187,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :title,
       :description,
       :category,
-      :schedule,
       :age_range,
       :price,
       :pricing_period,
@@ -179,7 +197,11 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :cover_image_url,
       :instructor_id,
       :instructor_name,
-      :instructor_headshot_url
+      :instructor_headshot_url,
+      :meeting_days,
+      :meeting_start_time,
+      :meeting_end_time,
+      :start_date
     ])
     |> validate_required([
       :title,
@@ -190,13 +212,78 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     ])
     |> validate_length(:title, min: 1, max: 100)
     |> validate_length(:description, min: 1, max: 500)
-    |> validate_length(:schedule, max: 255)
     |> validate_length(:age_range, max: 100)
     |> validate_length(:pricing_period, max: 100)
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_number(:spots_available, greater_than_or_equal_to: 0)
+    |> validate_meeting_days()
+    |> validate_time_pairing()
+    |> validate_date_range()
     |> optimistic_lock(:lock_version)
+  end
+
+  @valid_weekdays ~w(Monday Tuesday Wednesday Thursday Friday Saturday Sunday)
+
+  # Trigger: meeting_days contains values not in the valid weekday list
+  # Why: prevent typos or invalid day names from corrupting schedule data
+  # Outcome: changeset error listing the invalid day names
+  defp validate_meeting_days(changeset) do
+    validate_change(changeset, :meeting_days, fn :meeting_days, days ->
+      invalid = Enum.reject(days, &(&1 in @valid_weekdays))
+
+      if invalid == [] do
+        []
+      else
+        [{:meeting_days, "contains invalid days: #{Enum.join(invalid, ", ")}"}]
+      end
+    end)
+  end
+
+  # Trigger: only one of start_time/end_time is set, or end_time <= start_time
+  # Why: a half-specified time range is ambiguous; end must follow start chronologically
+  # Outcome: changeset error on the appropriate time field
+  defp validate_time_pairing(changeset) do
+    start_time = get_field(changeset, :meeting_start_time)
+    end_time = get_field(changeset, :meeting_end_time)
+
+    cond do
+      is_nil(start_time) and is_nil(end_time) ->
+        changeset
+
+      is_nil(start_time) or is_nil(end_time) ->
+        add_error(changeset, :meeting_start_time, "both start and end times must be set together")
+
+      Time.compare(end_time, start_time) != :gt ->
+        add_error(changeset, :meeting_end_time, "must be after start time")
+
+      true ->
+        changeset
+    end
+  end
+
+  # Trigger: start_date is on or after end_date
+  # Why: a program's start must precede its end for a valid date range
+  # Outcome: changeset error on start_date; handles end_date as DateTime (utc_datetime column)
+  defp validate_date_range(changeset) do
+    start_date = get_field(changeset, :start_date)
+    end_date = get_field(changeset, :end_date)
+
+    if is_nil(start_date) or is_nil(end_date) do
+      changeset
+    else
+      # Trigger: end_date column is :utc_datetime, so get_field returns a DateTime
+      # Why: Date.compare/2 requires Date structs on both sides
+      # Outcome: convert DateTime to Date before comparing
+      comparable_end =
+        if match?(%DateTime{}, end_date), do: DateTime.to_date(end_date), else: end_date
+
+      if Date.before?(start_date, comparable_end) do
+        changeset
+      else
+        add_error(changeset, :start_date, "must be before end date")
+      end
+    end
   end
 
   # Trigger: attrs may or may not contain the given key
