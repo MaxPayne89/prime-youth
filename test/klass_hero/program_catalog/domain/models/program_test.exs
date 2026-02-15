@@ -19,11 +19,11 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Summer Soccer Camp",
         description: "Fun soccer activities for kids",
         category: "sports",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("150.00"),
         pricing_period: "per week",
-        spots_available: 20
+        spots_available: 20,
+        meeting_days: []
       },
       overrides
     )
@@ -37,7 +37,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       assert program.id == "550e8400-e29b-41d4-a716-446655440000"
       assert program.title == "Summer Soccer Camp"
       assert program.description == "Fun soccer activities for kids"
-      assert program.schedule == "Mon-Fri 9am-12pm"
+      assert program.meeting_days == []
       assert program.age_range == "6-10 years"
       assert Decimal.equal?(program.price, Decimal.new("150.00"))
       assert program.pricing_period == "per week"
@@ -105,7 +105,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Summer Soccer Camp",
         description: "Fun soccer activities for kids",
         category: "sports",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("150.00"),
         pricing_period: "per week",
@@ -121,7 +120,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Community Sports Day",
         description: "Free sports activities for all",
         category: "education",
-        schedule: "Sunday 2pm-5pm",
         age_range: "5-15 years",
         price: Decimal.new("0"),
         pricing_period: "free event",
@@ -137,7 +135,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Popular Dance Class",
         description: "High-demand dance instruction",
         category: "education",
-        schedule: "Tuesdays 4pm-5pm",
         age_range: "7-9 years",
         price: Decimal.new("120.00"),
         pricing_period: "per month",
@@ -153,7 +150,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "",
         description: "Valid description",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -169,7 +165,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "   ",
         description: "Valid description",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -185,7 +180,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Valid Title",
         description: "",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -201,7 +195,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Valid Title",
         description: "   ",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -217,7 +210,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Valid Title",
         description: "Valid description",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("-10.00"),
         pricing_period: "per week",
@@ -233,7 +225,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Valid Title",
         description: "Valid description",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -251,7 +242,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Sold Out Program",
         description: "This program is sold out",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -267,7 +257,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Available Program",
         description: "This program has spots",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -283,7 +272,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Popular Program",
         description: "Many spots available",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -301,7 +289,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Free Program",
         description: "This program is free",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("0"),
         pricing_period: "free",
@@ -317,7 +304,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Free Event",
         description: "Free community event",
         category: "education",
-        schedule: "Saturday 10am-2pm",
         age_range: "5-15 years",
         price: Decimal.new("0.00"),
         pricing_period: "free",
@@ -333,7 +319,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Paid Program",
         description: "This program has a fee",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("0.01"),
         pricing_period: "per session",
@@ -349,7 +334,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         title: "Premium Program",
         description: "Premium activities",
         category: "education",
-        schedule: "Mon-Fri 9am-12pm",
         age_range: "6-10 years",
         price: Decimal.new("150.00"),
         pricing_period: "per week",
@@ -373,7 +357,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
     test "creates program with only required fields" do
       assert {:ok, program} = Program.new(@minimal_attrs)
       assert program.title == "Art Adventures"
-      assert program.schedule == nil
+      assert program.meeting_days == []
       assert program.age_range == nil
       assert program.spots_available == 0
     end
@@ -423,14 +407,17 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "arts",
         price: Decimal.new("50.00"),
         provider_id: "660e8400-e29b-41d4-a716-446655440001",
-        schedule: "Mon-Fri 3-5pm",
+        meeting_days: ["Monday", "Wednesday"],
+        meeting_start_time: ~T[15:00:00],
+        meeting_end_time: ~T[17:00:00],
         age_range: "6-10 years",
         pricing_period: "per week",
         location: "Community Center"
       }
 
       assert {:ok, program} = Program.create(attrs)
-      assert program.schedule == "Mon-Fri 3-5pm"
+      assert program.meeting_days == ["Monday", "Wednesday"]
+      assert program.meeting_start_time == ~T[15:00:00]
       assert program.location == "Community Center"
     end
 
@@ -737,6 +724,127 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
 
       assert updated.provider_id == original_provider_id
       assert updated.title == "Updated Title"
+    end
+  end
+
+  describe "scheduling validation in create/1" do
+    defp scheduling_attrs(overrides \\ %{}) do
+      Map.merge(
+        %{
+          title: "Scheduled Program",
+          description: "Has a schedule",
+          category: "sports",
+          price: Decimal.new("100.00"),
+          provider_id: "660e8400-e29b-41d4-a716-446655440001"
+        },
+        overrides
+      )
+    end
+
+    test "accepts valid scheduling fields" do
+      attrs =
+        scheduling_attrs(%{
+          meeting_days: ["Monday", "Wednesday"],
+          meeting_start_time: ~T[16:00:00],
+          meeting_end_time: ~T[17:30:00],
+          start_date: ~D[2026-03-01],
+          end_date: ~D[2026-06-30]
+        })
+
+      assert {:ok, program} = Program.create(attrs)
+      assert program.meeting_days == ["Monday", "Wednesday"]
+      assert program.meeting_start_time == ~T[16:00:00]
+      assert program.meeting_end_time == ~T[17:30:00]
+      assert program.start_date == ~D[2026-03-01]
+    end
+
+    test "accepts empty scheduling fields" do
+      attrs = scheduling_attrs()
+      assert {:ok, program} = Program.create(attrs)
+      assert program.meeting_days == []
+      assert program.meeting_start_time == nil
+      assert program.meeting_end_time == nil
+      assert program.start_date == nil
+    end
+
+    test "rejects invalid weekday names" do
+      attrs = scheduling_attrs(%{meeting_days: ["Monday", "Funday"]})
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "meeting_days"))
+    end
+
+    test "rejects start_time without end_time" do
+      attrs = scheduling_attrs(%{meeting_start_time: ~T[16:00:00]})
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "time"))
+    end
+
+    test "rejects end_time without start_time" do
+      attrs = scheduling_attrs(%{meeting_end_time: ~T[17:00:00]})
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "time"))
+    end
+
+    test "rejects end_time not after start_time" do
+      attrs =
+        scheduling_attrs(%{
+          meeting_start_time: ~T[17:00:00],
+          meeting_end_time: ~T[16:00:00]
+        })
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "time"))
+    end
+
+    test "rejects equal start and end times" do
+      attrs =
+        scheduling_attrs(%{
+          meeting_start_time: ~T[16:00:00],
+          meeting_end_time: ~T[16:00:00]
+        })
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "time"))
+    end
+
+    test "rejects start_date after end_date" do
+      attrs =
+        scheduling_attrs(%{
+          start_date: ~D[2026-06-30],
+          end_date: ~D[2026-03-01]
+        })
+
+      assert {:error, errors} = Program.create(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "date"))
+    end
+  end
+
+  describe "apply_changes/2 scheduling" do
+    test "updates scheduling fields" do
+      program = existing_program()
+
+      changes = %{
+        meeting_days: ["Tuesday", "Thursday"],
+        meeting_start_time: ~T[15:00:00],
+        meeting_end_time: ~T[16:30:00],
+        start_date: ~D[2026-04-01]
+      }
+
+      assert {:ok, updated} = Program.apply_changes(program, changes)
+      assert updated.meeting_days == ["Tuesday", "Thursday"]
+      assert updated.meeting_start_time == ~T[15:00:00]
+    end
+
+    test "rejects invalid scheduling changes" do
+      program = existing_program()
+
+      changes = %{
+        meeting_start_time: ~T[17:00:00],
+        meeting_end_time: ~T[16:00:00]
+      }
+
+      assert {:error, errors} = Program.apply_changes(program, changes)
+      assert Enum.any?(errors, &String.contains?(&1, "time"))
     end
   end
 

@@ -585,7 +585,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         title: "Non-existent",
         description: "Description",
         category: "education",
-        schedule: "Mon-Fri",
+        meeting_days: ["Monday"],
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",

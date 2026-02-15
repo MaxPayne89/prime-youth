@@ -17,7 +17,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     :title,
     :description,
     :category,
-    :schedule,
     :age_range,
     :price,
     :pricing_period,
@@ -29,6 +28,10 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     :instructor,
     :inserted_at,
     :updated_at,
+    :meeting_start_time,
+    :meeting_end_time,
+    :start_date,
+    meeting_days: [],
     spots_available: 0
   ]
 
@@ -38,7 +41,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
           title: String.t(),
           description: String.t(),
           category: String.t(),
-          schedule: String.t() | nil,
           age_range: String.t() | nil,
           price: Decimal.t(),
           pricing_period: String.t() | nil,
@@ -50,7 +52,11 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
           cover_image_url: String.t() | nil,
           instructor: Instructor.t() | nil,
           inserted_at: DateTime.t() | nil,
-          updated_at: DateTime.t() | nil
+          updated_at: DateTime.t() | nil,
+          meeting_days: [String.t()],
+          meeting_start_time: Time.t() | nil,
+          meeting_end_time: Time.t() | nil,
+          start_date: Date.t() | nil
         }
 
   # Internal: constructs from trusted persistence data (post-Ecto validation).
@@ -169,7 +175,10 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
          category: attrs[:category],
          price: attrs[:price],
          provider_id: attrs[:provider_id],
-         schedule: attrs[:schedule],
+         meeting_days: attrs[:meeting_days] || [],
+         meeting_start_time: attrs[:meeting_start_time],
+         meeting_end_time: attrs[:meeting_end_time],
+         start_date: attrs[:start_date],
          age_range: attrs[:age_range],
          pricing_period: attrs[:pricing_period],
          spots_available: attrs[:spots_available] || 0,
@@ -192,6 +201,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     |> validate_price(attrs[:price])
     |> validate_spots(attrs[:spots_available])
     |> validate_provider_id(attrs[:provider_id])
+    |> validate_scheduling(attrs)
   end
 
   defp validate_required_string(errors, attrs, key, message) do
@@ -248,7 +258,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   defp resolve_instructor(program, _changes), do: {:ok, program.instructor}
 
-  @updatable_fields ~w(title description category price spots_available schedule
+  @updatable_fields ~w(title description category price spots_available
+                       meeting_days meeting_start_time meeting_end_time start_date
                        age_range pricing_period icon_path end_date location cover_image_url)a
 
   defp merge_fields(program, changes, instructor) do
@@ -273,5 +284,66 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     |> validate_category(program.category)
     |> validate_price(program.price)
     |> validate_spots(program.spots_available)
+    |> validate_scheduling(struct_fields)
   end
+
+  # ============================================================================
+  # Scheduling validation
+  # ============================================================================
+
+  @valid_weekdays ~w(Monday Tuesday Wednesday Thursday Friday Saturday Sunday)
+
+  defp validate_scheduling(errors, attrs) do
+    errors
+    |> validate_meeting_days(attrs[:meeting_days])
+    |> validate_time_pairing(attrs[:meeting_start_time], attrs[:meeting_end_time])
+    |> validate_date_range(attrs[:start_date], attrs[:end_date])
+  end
+
+  defp validate_meeting_days(errors, nil), do: errors
+  defp validate_meeting_days(errors, []), do: errors
+
+  defp validate_meeting_days(errors, days) when is_list(days) do
+    if Enum.all?(days, &(&1 in @valid_weekdays)) do
+      errors
+    else
+      ["meeting_days contains invalid weekday names" | errors]
+    end
+  end
+
+  defp validate_meeting_days(errors, _), do: ["meeting_days must be a list" | errors]
+
+  defp validate_time_pairing(errors, nil, nil), do: errors
+
+  defp validate_time_pairing(errors, %Time{} = start_time, %Time{} = end_time) do
+    if Time.after?(end_time, start_time) do
+      errors
+    else
+      ["meeting_end_time must be after meeting_start_time" | errors]
+    end
+  end
+
+  defp validate_time_pairing(errors, _, _) do
+    ["both meeting_start_time and meeting_end_time must be set together" | errors]
+  end
+
+  defp validate_date_range(errors, nil, _), do: errors
+  defp validate_date_range(errors, _, nil), do: errors
+
+  defp validate_date_range(errors, %Date{} = start_date, %Date{} = end_date) do
+    if Date.before?(start_date, end_date) do
+      errors
+    else
+      ["start_date must be before end_date" | errors]
+    end
+  end
+
+  # Trigger: end_date may be DateTime (existing data) rather than Date
+  # Why: end_date column is :utc_datetime — comparison still valid
+  # Outcome: convert DateTime to Date for comparison
+  defp validate_date_range(errors, %Date{} = start_date, %DateTime{} = end_dt) do
+    validate_date_range(errors, start_date, DateTime.to_date(end_dt))
+  end
+
+  defp validate_date_range(errors, _, _), do: errors
 end

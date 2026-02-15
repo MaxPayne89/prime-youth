@@ -109,7 +109,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       title: program.title,
       description: program.description,
       category: format_category_for_display(program.category),
-      schedule: program.schedule,
+      schedule: nil,
       age_range: program.age_range,
       price: safe_decimal_to_float(program.price),
       period: program.pricing_period,
