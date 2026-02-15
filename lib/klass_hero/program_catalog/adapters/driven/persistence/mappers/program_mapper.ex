@@ -26,7 +26,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       ...>   id: "550e8400-e29b-41d4-a716-446655440000",
       ...>   title: "Art Adventures",
       ...>   description: "Creative art exploration",
-      ...>   schedule: "Mon & Wed, 3:30-5:00 PM",
+
       ...>   age_range: "6-8 years",
       ...>   price: Decimal.new("120.00"),
       ...>   pricing_period: "per month",
@@ -48,7 +48,10 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       title: schema.title,
       description: schema.description,
       category: schema.category,
-      schedule: schema.schedule,
+      meeting_days: schema.meeting_days || [],
+      meeting_start_time: schema.meeting_start_time,
+      meeting_end_time: schema.meeting_end_time,
+      start_date: schema.start_date,
       age_range: schema.age_range,
       price: schema.price,
       pricing_period: schema.pricing_period,
@@ -97,7 +100,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       ...>   id: "550e8400-e29b-41d4-a716-446655440000",
       ...>   title: "Updated Art Adventures",
       ...>   description: "New description",
-      ...>   schedule: "Mon & Wed, 3:30-5:00 PM",
+
       ...>   age_range: "6-8 years",
       ...>   price: Decimal.new("150.00"),
       ...>   pricing_period: "per month",
@@ -114,7 +117,10 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       title: program.title,
       description: program.description,
       category: program.category,
-      schedule: program.schedule,
+      meeting_days: program.meeting_days,
+      meeting_start_time: program.meeting_start_time,
+      meeting_end_time: program.meeting_end_time,
+      start_date: program.start_date,
       age_range: program.age_range,
       price: program.price,
       pricing_period: program.pricing_period,
@@ -144,7 +150,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         instructor
 
       {:error, reason} ->
-        Logger.warning("[ProgramMapper] Instructor data invalid, skipping",
+        Logger.error("[ProgramMapper] Instructor data invalid, skipping",
           instructor_id: to_string(schema.instructor_id),
           instructor_name: schema.instructor_name,
           reason: inspect(reason)

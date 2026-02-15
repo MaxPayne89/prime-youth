@@ -124,7 +124,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           docs
 
         {:error, reason} ->
-          Logger.warning("[DashboardLive] Failed to load verification documents",
+          Logger.error("[DashboardLive] Failed to load verification documents",
             provider_id: provider.id,
             reason: inspect(reason)
           )
@@ -155,7 +155,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           docs
 
         {:error, reason} ->
-          Logger.warning("[DashboardLive] Failed to load verification documents",
+          Logger.error("[DashboardLive] Failed to load verification documents",
             provider_id: provider.id,
             reason: inspect(reason)
           )
@@ -460,7 +460,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             description: params["description"],
             category: params["category"],
             price: parse_decimal(params["price"]),
-            location: presence(params["location"])
+            location: presence(params["location"]),
+            meeting_days: parse_meeting_days(params["meeting_days"]),
+            meeting_start_time: parse_time(params["meeting_start_time"]),
+            meeting_end_time: parse_time(params["meeting_end_time"]),
+            start_date: parse_date(params["start_date"]),
+            end_date: parse_date(params["end_date"])
           }
           |> maybe_add_cover_image(cover_result)
 
@@ -978,8 +983,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp fetch_staff_members(provider_id) do
     case Provider.list_staff_members(provider_id) do
-      {:ok, members} -> members
-      {:error, _reason} -> []
+      {:ok, members} ->
+        members
+
+      {:error, reason} ->
+        Logger.error("[DashboardLive] Failed to load staff members",
+          provider_id: provider_id,
+          reason: inspect(reason)
+        )
+
+        []
     end
   end
 
@@ -1059,9 +1072,36 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     # Trigger: user typed a non-numeric string in the price field
     # Why: Decimal.new/1 raises on invalid input — must use parse/1 to avoid crash
     # Outcome: nil lets downstream domain validation catch "price is required"
-    case Decimal.parse(value) do
+    value
+    |> String.trim()
+    |> Decimal.parse()
+    |> case do
       {decimal, ""} -> decimal
       _other -> nil
+    end
+  end
+
+  defp parse_meeting_days(nil), do: []
+  defp parse_meeting_days(days) when is_list(days), do: Enum.reject(days, &(&1 == ""))
+  defp parse_meeting_days(_), do: []
+
+  defp parse_time(nil), do: nil
+  defp parse_time(""), do: nil
+
+  defp parse_time(value) when is_binary(value) do
+    case Time.from_iso8601(value <> ":00") do
+      {:ok, time} -> time
+      {:error, _reason} -> nil
+    end
+  end
+
+  defp parse_date(nil), do: nil
+  defp parse_date(""), do: nil
+
+  defp parse_date(value) when is_binary(value) do
+    case Date.from_iso8601(value) do
+      {:ok, date} -> date
+      {:error, _reason} -> nil
     end
   end
 
@@ -1093,7 +1133,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   defp maybe_add_cover_image(attrs, {:ok, url}), do: Map.put(attrs, :cover_image_url, url)
-  defp maybe_add_cover_image(attrs, _), do: attrs
+  defp maybe_add_cover_image(attrs, :no_upload), do: attrs
+
+  defp maybe_add_cover_image(attrs, :upload_error) do
+    Logger.warning("[DashboardLive] Cover image upload failed")
+    attrs
+  end
 
   # Trigger: instructor_id may be nil/"" (none selected) or a valid UUID
   # Why: instructor is optional; when selected, we resolve display data from Provider
@@ -1129,7 +1174,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         end)
 
       {:error, reason} ->
-        Logger.warning("Failed to load instructor options",
+        Logger.error("Failed to load instructor options",
           provider_id: provider_id,
           reason: inspect(reason)
         )

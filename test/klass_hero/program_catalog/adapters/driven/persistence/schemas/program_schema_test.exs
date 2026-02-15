@@ -4,37 +4,31 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
 
   describe "changeset/2" do
-    test "valid changeset with all required fields" do
-      attrs = %{
-        title: "Summer Soccer Camp",
-        description: "Fun soccer activities for kids",
-        category: "education",
-        schedule: "Mon-Fri 9AM-12PM",
-        age_range: "6-12",
-        price: Decimal.new("150.00"),
-        pricing_period: "per week",
-        spots_available: 20,
-        icon_path: "/images/soccer.svg"
-      }
+    defp valid_attrs(overrides \\ %{}) do
+      Map.merge(
+        %{
+          title: "Summer Soccer Camp",
+          description: "Fun soccer activities for kids",
+          category: "education",
+          age_range: "6-12",
+          price: Decimal.new("150.00"),
+          pricing_period: "per week",
+          spots_available: 20,
+          icon_path: "/images/soccer.svg"
+        },
+        overrides
+      )
+    end
 
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+    test "valid changeset with all required fields" do
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, valid_attrs())
 
       assert changeset.valid?
       assert changeset.errors == []
     end
 
-    test "valid changeset with minimum required fields (no gradient or icon)" do
-      attrs = %{
-        title: "Art Class",
-        description: "Creative art activities",
-        category: "education",
-        schedule: "Saturdays 10AM-12PM",
-        age_range: "8-14",
-        price: Decimal.new("75.00"),
-        pricing_period: "per month",
-        spots_available: 15
-      }
-
+    test "valid changeset with minimum required fields (no icon)" do
+      attrs = valid_attrs() |> Map.delete(:icon_path)
       changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
 
       assert changeset.valid?
@@ -42,36 +36,15 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     end
 
     test "valid changeset with price = 0 (free program)" do
-      attrs = %{
-        title: "Community Day",
-        description: "Free community event",
-        category: "education",
-        schedule: "Sunday 2PM-5PM",
-        age_range: "All ages",
-        price: Decimal.new("0.00"),
-        pricing_period: "per session",
-        spots_available: 100
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset =
+        ProgramSchema.changeset(%ProgramSchema{}, valid_attrs(%{price: Decimal.new("0.00")}))
 
       assert changeset.valid?
       assert get_change(changeset, :price) == Decimal.new("0.00")
     end
 
     test "valid changeset with spots_available = 0 (sold out)" do
-      attrs = %{
-        title: "Popular Camp",
-        description: "Sold out camp",
-        category: "education",
-        schedule: "All week",
-        age_range: "10-15",
-        price: Decimal.new("200.00"),
-        pricing_period: "per week",
-        spots_available: 0
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, valid_attrs(%{spots_available: 0}))
 
       assert changeset.valid?
       # Use get_field instead of get_change since 0 is the default value
@@ -79,216 +52,210 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     end
 
     test "invalid changeset when title is missing" do
-      attrs = %{
-        description: "Description without title",
-        category: "education",
-        schedule: "Mon-Fri",
-        age_range: "6-12",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, Map.delete(valid_attrs(), :title))
 
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).title
     end
 
     test "invalid changeset when description is missing" do
-      attrs = %{
-        title: "Title without description",
-        schedule: "Mon-Fri",
-        age_range: "6-12",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset =
+        ProgramSchema.changeset(%ProgramSchema{}, Map.delete(valid_attrs(), :description))
 
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).description
     end
 
-    test "invalid changeset when schedule is missing" do
-      attrs = %{
-        title: "Program",
-        description: "Description",
-        category: "education",
-        age_range: "6-12",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
-
-      refute changeset.valid?
-      assert "can't be blank" in errors_on(changeset).schedule
-    end
-
     test "invalid changeset when age_range is missing" do
-      attrs = %{
-        title: "Program",
-        description: "Description",
-        category: "education",
-        schedule: "Mon-Fri",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, Map.delete(valid_attrs(), :age_range))
 
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).age_range
     end
 
     test "invalid changeset when price is missing" do
-      attrs = %{
-        title: "Program",
-        description: "Description",
-        category: "education",
-        schedule: "Mon-Fri",
-        age_range: "6-12",
-        pricing_period: "per week",
-        spots_available: 10
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, Map.delete(valid_attrs(), :price))
 
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).price
     end
 
     test "invalid changeset when pricing_period is missing" do
-      attrs = %{
-        title: "Program",
-        description: "Description",
-        category: "education",
-        schedule: "Mon-Fri",
-        age_range: "6-12",
-        price: Decimal.new("100.00"),
-        spots_available: 10
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset =
+        ProgramSchema.changeset(%ProgramSchema{}, Map.delete(valid_attrs(), :pricing_period))
 
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).pricing_period
     end
 
     test "invalid changeset when title exceeds 100 characters" do
-      long_title = String.duplicate("a", 101)
-
-      attrs = %{
-        title: long_title,
-        description: "Description",
-        category: "education",
-        schedule: "Mon-Fri",
-        age_range: "6-12",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset =
+        ProgramSchema.changeset(
+          %ProgramSchema{},
+          valid_attrs(%{title: String.duplicate("a", 101)})
+        )
 
       refute changeset.valid?
       assert "should be at most 100 character(s)" in errors_on(changeset).title
     end
 
     test "invalid changeset when description exceeds 500 characters" do
-      long_description = String.duplicate("a", 501)
-
-      attrs = %{
-        title: "Program",
-        description: long_description,
-        schedule: "Mon-Fri",
-        age_range: "6-12",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset =
+        ProgramSchema.changeset(
+          %ProgramSchema{},
+          valid_attrs(%{description: String.duplicate("a", 501)})
+        )
 
       refute changeset.valid?
       assert "should be at most 500 character(s)" in errors_on(changeset).description
     end
 
     test "invalid changeset when price is negative" do
-      attrs = %{
-        title: "Program",
-        description: "Description",
-        category: "education",
-        schedule: "Mon-Fri",
-        age_range: "6-12",
-        price: Decimal.new("-10.00"),
-        pricing_period: "per week",
-        spots_available: 10
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset =
+        ProgramSchema.changeset(%ProgramSchema{}, valid_attrs(%{price: Decimal.new("-10.00")}))
 
       refute changeset.valid?
       assert "must be greater than or equal to 0" in errors_on(changeset).price
     end
 
     test "invalid changeset when spots_available is negative" do
-      attrs = %{
-        title: "Program",
-        description: "Description",
-        category: "education",
-        schedule: "Mon-Fri",
-        age_range: "6-12",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: -5
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset =
+        ProgramSchema.changeset(%ProgramSchema{}, valid_attrs(%{spots_available: -5}))
 
       refute changeset.valid?
       assert "must be greater than or equal to 0" in errors_on(changeset).spots_available
     end
 
     test "title at exactly 100 characters is valid" do
-      title_100 = String.duplicate("a", 100)
-
-      attrs = %{
-        title: title_100,
-        description: "Description",
-        category: "education",
-        schedule: "Mon-Fri",
-        age_range: "6-12",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
-      }
-
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      changeset =
+        ProgramSchema.changeset(
+          %ProgramSchema{},
+          valid_attrs(%{title: String.duplicate("a", 100)})
+        )
 
       assert changeset.valid?
     end
 
     test "description at exactly 500 characters is valid" do
-      description_500 = String.duplicate("a", 500)
+      changeset =
+        ProgramSchema.changeset(
+          %ProgramSchema{},
+          valid_attrs(%{description: String.duplicate("a", 500)})
+        )
 
-      attrs = %{
-        title: "Program",
-        description: description_500,
-        category: "education",
-        schedule: "Mon-Fri",
-        age_range: "6-12",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
-      }
+      assert changeset.valid?
+    end
+  end
+
+  describe "changeset/2 scheduling validations" do
+    defp valid_changeset_attrs(overrides) do
+      Map.merge(
+        %{
+          title: "Test Program",
+          description: "A test program",
+          category: "education",
+          age_range: "6-12",
+          price: Decimal.new("100.00"),
+          pricing_period: "per week",
+          spots_available: 10
+        },
+        overrides
+      )
+    end
+
+    test "accepts valid meeting days" do
+      attrs = valid_changeset_attrs(%{meeting_days: ["Monday", "Wednesday"]})
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+    end
+
+    test "accepts empty meeting days" do
+      attrs = valid_changeset_attrs(%{meeting_days: []})
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+    end
+
+    test "rejects invalid meeting days" do
+      attrs = valid_changeset_attrs(%{meeting_days: ["Monday", "Funday"]})
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+      assert "contains invalid days: Funday" in errors_on(changeset).meeting_days
+    end
+
+    test "accepts valid time pairing" do
+      attrs =
+        valid_changeset_attrs(%{meeting_start_time: ~T[16:00:00], meeting_end_time: ~T[17:30:00]})
 
       changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+    end
 
+    test "accepts both times nil" do
+      attrs = valid_changeset_attrs(%{meeting_start_time: nil, meeting_end_time: nil})
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+    end
+
+    test "rejects start_time without end_time" do
+      attrs = valid_changeset_attrs(%{meeting_start_time: ~T[16:00:00]})
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+
+      assert "both start and end times must be set together" in errors_on(changeset).meeting_start_time
+    end
+
+    test "rejects end_time without start_time" do
+      attrs = valid_changeset_attrs(%{meeting_end_time: ~T[17:00:00]})
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+
+      assert "both start and end times must be set together" in errors_on(changeset).meeting_start_time
+    end
+
+    test "rejects end_time before start_time" do
+      attrs =
+        valid_changeset_attrs(%{meeting_start_time: ~T[17:00:00], meeting_end_time: ~T[16:00:00]})
+
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+      assert "must be after start time" in errors_on(changeset).meeting_end_time
+    end
+
+    test "rejects end_time equal to start_time" do
+      attrs =
+        valid_changeset_attrs(%{meeting_start_time: ~T[16:00:00], meeting_end_time: ~T[16:00:00]})
+
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+      assert "must be after start time" in errors_on(changeset).meeting_end_time
+    end
+
+    test "validates start_date before end_date" do
+      attrs =
+        valid_changeset_attrs(%{
+          start_date: ~D[2026-01-01],
+          end_date: ~D[2026-06-30]
+        })
+
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+    end
+
+    test "rejects start_date on or after end_date" do
+      attrs =
+        valid_changeset_attrs(%{
+          start_date: ~D[2026-07-01],
+          end_date: ~D[2026-06-30]
+        })
+
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+      assert "must be before end date" in errors_on(changeset).start_date
+    end
+
+    test "allows start_date without end_date" do
+      attrs = valid_changeset_attrs(%{start_date: ~D[2026-01-01]})
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
       assert changeset.valid?
     end
   end
@@ -465,6 +432,38 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
       assert changeset.valid?
     end
+
+    test "accepts scheduling fields at creation" do
+      attrs =
+        valid_create_attrs(%{
+          meeting_days: ["Monday", "Wednesday"],
+          meeting_start_time: ~T[15:00:00],
+          meeting_end_time: ~T[17:00:00],
+          start_date: ~D[2026-03-01]
+        })
+
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+    end
+
+    test "rejects invalid meeting days at creation" do
+      attrs = valid_create_attrs(%{meeting_days: ["Funday"]})
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+      assert "contains invalid days: Funday" in errors_on(changeset).meeting_days
+    end
+
+    test "accepts end_date at creation" do
+      attrs =
+        valid_create_attrs(%{
+          start_date: ~D[2026-03-01],
+          end_date: ~D[2026-06-30]
+        })
+
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :end_date) == ~D[2026-06-30]
+    end
   end
 
   describe "update_changeset/2" do
@@ -566,6 +565,34 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
       refute changeset.valid?
       assert "must be greater than or equal to 0" in errors_on(changeset).price
+    end
+
+    test "accepts scheduling fields on update" do
+      attrs =
+        valid_update_attrs(%{
+          meeting_days: ["Tuesday", "Thursday"],
+          meeting_start_time: ~T[14:00:00],
+          meeting_end_time: ~T[16:00:00],
+          start_date: ~D[2026-03-01]
+        })
+
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      assert changeset.valid?
+    end
+
+    test "rejects invalid meeting days on update" do
+      attrs = valid_update_attrs(%{meeting_days: ["Notaday"]})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+      assert "contains invalid days: Notaday" in errors_on(changeset).meeting_days
+    end
+
+    test "rejects unpaired times on update" do
+      attrs = valid_update_attrs(%{meeting_start_time: ~T[14:00:00]})
+      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
+      refute changeset.valid?
+
+      assert "both start and end times must be set together" in errors_on(changeset).meeting_start_time
     end
   end
 end

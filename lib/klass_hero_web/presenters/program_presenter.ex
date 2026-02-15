@@ -53,6 +53,131 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
     }
   end
 
+  @day_abbreviations %{
+    "Monday" => "Mon",
+    "Tuesday" => "Tue",
+    "Wednesday" => "Wed",
+    "Thursday" => "Thu",
+    "Friday" => "Fri",
+    "Saturday" => "Sat",
+    "Sunday" => "Sun"
+  }
+
+  @doc """
+  Formats a program's scheduling fields for display.
+
+  Returns a map with :days, :times, :date_range keys, or nil if no scheduling data.
+  """
+  @spec format_schedule(Program.t()) ::
+          %{days: String.t() | nil, times: String.t() | nil, date_range: String.t() | nil} | nil
+  def format_schedule(%Program{meeting_days: days} = program) when days == [] or is_nil(days) do
+    # Trigger: no meeting days provided
+    # Why: if there's also no start time and no date range, there's nothing to display
+    # Outcome: returns nil so UI can hide the schedule section entirely
+    if !(is_nil(program.meeting_start_time) and is_nil(program.start_date)) do
+      %{
+        days: nil,
+        times: format_times(program.meeting_start_time, program.meeting_end_time),
+        date_range: format_date_range(program.start_date, program.end_date)
+      }
+    end
+  end
+
+  def format_schedule(%Program{} = program) do
+    %{
+      days: format_days(program.meeting_days),
+      times: format_times(program.meeting_start_time, program.meeting_end_time),
+      date_range: format_date_range(program.start_date, program.end_date)
+    }
+  end
+
+  defp format_days([day]), do: Map.get(@day_abbreviations, day, day)
+
+  defp format_days([d1, d2]) do
+    "#{Map.get(@day_abbreviations, d1, d1)} & #{Map.get(@day_abbreviations, d2, d2)}"
+  end
+
+  defp format_days(days) when is_list(days) do
+    {last, rest} = List.pop_at(days, -1)
+    abbreviated = Enum.map(rest, &Map.get(@day_abbreviations, &1, &1))
+    "#{Enum.join(abbreviated, ", ")} & #{Map.get(@day_abbreviations, last, last)}"
+  end
+
+  defp format_times(nil, _), do: nil
+  defp format_times(_, nil), do: nil
+
+  defp format_times(%Time{} = start_time, %Time{} = end_time) do
+    # Trigger: both times in the same AM/PM period
+    # Why: "4:00 - 5:30 PM" reads cleaner than "4:00 PM - 5:30 PM"
+    # Outcome: omit period from start time when both share the same period
+    same_period? = start_time.hour >= 12 == end_time.hour >= 12
+
+    if same_period? do
+      "#{format_time_12h(start_time, show_period: false)} - #{format_time_12h(end_time)}"
+    else
+      "#{format_time_12h(start_time)} - #{format_time_12h(end_time)}"
+    end
+  end
+
+  defp format_time_12h(time, opts \\ [])
+
+  defp format_time_12h(%Time{hour: hour, minute: minute}, opts) do
+    {h12, period} = if hour >= 12, do: {rem(hour, 12), "PM"}, else: {hour, "AM"}
+    h12 = if h12 == 0, do: 12, else: h12
+    minutes_str = String.pad_leading("#{minute}", 2, "0")
+
+    if Keyword.get(opts, :show_period, true) do
+      "#{h12}:#{minutes_str} #{period}"
+    else
+      "#{h12}:#{minutes_str}"
+    end
+  end
+
+  defp format_date_range(nil, _), do: nil
+
+  # Trigger: end_date is nil but start_date exists
+  # Why: open-ended programs still benefit from showing when they begin
+  # Outcome: displays "From Sep 1, 2026" instead of nil
+  defp format_date_range(%Date{} = start_date, nil) do
+    "From #{format_short_date(start_date)}, #{start_date.year}"
+  end
+
+  defp format_date_range(%Date{} = start_date, %Date{} = end_date) do
+    # Trigger: start and end years differ (e.g. Nov 2026 - Mar 2027)
+    # Why: omitting start year is ambiguous for cross-year ranges
+    # Outcome: "Nov 1, 2026 - Mar 15, 2027" vs "Mar 1 - Jun 30, 2026"
+    if start_date.year == end_date.year do
+      "#{format_short_date(start_date)} - #{format_short_date(end_date)}, #{end_date.year}"
+    else
+      "#{format_short_date(start_date)}, #{start_date.year} - #{format_short_date(end_date)}, #{end_date.year}"
+    end
+  end
+
+  defp format_short_date(%Date{} = date) do
+    month = Enum.at(~w(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec), date.month - 1)
+    "#{month} #{date.day}"
+  end
+
+  @doc """
+  Formats a brief one-line schedule string from any map with scheduling keys.
+
+  Accepts raw maps (e.g. sample fixtures, component assigns) in addition to
+  domain structs. Returns a string like "Mon & Wed 4:00 - 5:30 PM".
+  """
+  @spec format_schedule_brief(map()) :: String.t()
+  def format_schedule_brief(program) when is_map(program) do
+    days = Map.get(program, :meeting_days, [])
+    start_time = Map.get(program, :meeting_start_time)
+    end_time = Map.get(program, :meeting_end_time)
+
+    day_str = if days != [], do: format_days(days)
+    time_str = format_times(start_time, end_time)
+
+    [day_str, time_str]
+    |> Enum.reject(&is_nil/1)
+    |> Enum.join(" ")
+  end
+
   defp format_instructor(nil), do: nil
 
   defp format_instructor(instructor) do

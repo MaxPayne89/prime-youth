@@ -8,6 +8,7 @@ defmodule KlassHeroWeb.DashboardLive do
   alias KlassHero.Enrollment
   alias KlassHero.Family
   alias KlassHeroWeb.Presenters.ChildPresenter
+  alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
 
   @impl true
@@ -64,7 +65,9 @@ defmodule KlassHeroWeb.DashboardLive do
           title: gettext("Creative Art Workshop"),
           category: gettext("Arts & Crafts"),
           age_range: "6-12",
-          schedule: gettext("Saturdays 10:00 AM"),
+          meeting_days: ["Saturday"],
+          meeting_start_time: ~T[10:00:00],
+          meeting_end_time: ~T[11:30:00],
           price: "€15",
           image_url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400"
         },
@@ -73,7 +76,9 @@ defmodule KlassHeroWeb.DashboardLive do
           title: gettext("Junior Soccer Academy"),
           category: gettext("Sports"),
           age_range: "5-10",
-          schedule: gettext("Tuesdays & Thursdays 4:00 PM"),
+          meeting_days: ["Tuesday", "Thursday"],
+          meeting_start_time: ~T[16:00:00],
+          meeting_end_time: ~T[17:00:00],
           price: "€20",
           image_url: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400"
         },
@@ -82,7 +87,9 @@ defmodule KlassHeroWeb.DashboardLive do
           title: gettext("Coding for Kids"),
           category: gettext("Technology"),
           age_range: "8-14",
-          schedule: gettext("Wednesdays 3:30 PM"),
+          meeting_days: ["Wednesday"],
+          meeting_start_time: ~T[15:30:00],
+          meeting_end_time: ~T[16:30:00],
           price: "€25",
           image_url: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400"
         }
@@ -232,7 +239,7 @@ defmodule KlassHeroWeb.DashboardLive do
                 <h3 class="font-semibold text-hero-charcoal mb-1">{program.title}</h3>
                 <p class="text-sm text-hero-grey-500 mb-2">
                   <.icon name="hero-clock-mini" class="w-4 h-4 inline mr-1" />
-                  {program.schedule}
+                  {ProgramPresenter.format_schedule_brief(program)}
                 </p>
                 <div class="flex justify-between items-center">
                   <span class="text-sm text-hero-grey-400">

@@ -779,6 +779,67 @@ defmodule KlassHeroWeb.ProviderComponents do
           />
         </div>
 
+        <%!-- Schedule Section --%>
+        <div class="space-y-3">
+          <p class="text-sm font-semibold text-hero-charcoal">{gettext("Schedule (optional)")}</p>
+
+          <%!-- Meeting Days Checkboxes --%>
+          <fieldset id="meeting-days-fieldset">
+            <legend class="text-sm text-hero-grey-600 mb-2">{gettext("Meeting Days")}</legend>
+            <div class="flex flex-wrap gap-2">
+              <label
+                :for={day <- ~w(Monday Tuesday Wednesday Thursday Friday Saturday Sunday)}
+                class={[
+                  "inline-flex items-center gap-1.5 px-3 py-1.5 border text-sm cursor-pointer",
+                  Theme.rounded(:lg),
+                  Theme.transition(:normal),
+                  "has-[:checked]:bg-hero-yellow has-[:checked]:border-hero-yellow-dark has-[:checked]:font-semibold",
+                  "border-hero-grey-300 hover:border-hero-grey-400"
+                ]}
+              >
+                <input
+                  type="checkbox"
+                  name="program_schema[meeting_days][]"
+                  value={day}
+                  checked={day in (Phoenix.HTML.Form.input_value(@form, :meeting_days) || [])}
+                  class="sr-only"
+                />
+                {String.slice(day, 0, 3)}
+              </label>
+            </div>
+            <%!-- Hidden input ensures empty array submitted when no days checked --%>
+            <input type="hidden" name="program_schema[meeting_days][]" value="" />
+          </fieldset>
+
+          <%!-- Time Inputs --%>
+          <div class="grid grid-cols-2 gap-4">
+            <.input
+              field={@form[:meeting_start_time]}
+              type="time"
+              label={gettext("Start Time")}
+            />
+            <.input
+              field={@form[:meeting_end_time]}
+              type="time"
+              label={gettext("End Time")}
+            />
+          </div>
+
+          <%!-- Date Inputs --%>
+          <div class="grid grid-cols-2 gap-4">
+            <.input
+              field={@form[:start_date]}
+              type="date"
+              label={gettext("Start Date")}
+            />
+            <.input
+              field={@form[:end_date]}
+              type="date"
+              label={gettext("End Date")}
+            />
+          </div>
+        </div>
+
         <.input
           field={@form[:description]}
           type="textarea"

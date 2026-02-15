@@ -10,6 +10,7 @@ defmodule KlassHeroWeb.ProgramComponents do
   import KlassHeroWeb.UIComponents
 
   alias KlassHero.ProgramCatalog
+  alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
 
   @doc """
@@ -407,7 +408,7 @@ defmodule KlassHeroWeb.ProgramComponents do
                 d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            {@program.schedule}
+            {ProgramPresenter.format_schedule_brief(@program)}
           </div>
           <div class="flex items-center text-sm text-hero-grey-500">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

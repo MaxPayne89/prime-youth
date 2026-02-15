@@ -7,6 +7,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+  alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.StaffMemberPresenter
   alias KlassHeroWeb.Theme
 
@@ -133,10 +134,25 @@ defmodule KlassHeroWeb.ProgramDetailLive do
               {@program.title}
             </h1>
             <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-white/90 mb-4">
-              <span class="flex items-center">
-                <.icon name="hero-clock" class="w-4 h-4 mr-1" />
-                {@program.schedule}
-              </span>
+              <%= if schedule = ProgramPresenter.format_schedule(@program) do %>
+                <span class="flex items-center">
+                  <.icon name="hero-clock" class="w-4 h-4 mr-1" />
+                  <%= if schedule.days do %>
+                    {schedule.days}
+                    <%= if schedule.times do %>
+                      <span class="mx-1">&middot;</span>
+                      {schedule.times}
+                    <% end %>
+                  <% else %>
+                    {schedule.times}
+                  <% end %>
+                </span>
+              <% else %>
+                <span class="flex items-center">
+                  <.icon name="hero-clock" class="w-4 h-4 mr-1" />
+                  {gettext("Schedule TBD")}
+                </span>
+              <% end %>
               <span class="flex items-center">
                 <.icon name="hero-user-group" class="w-4 h-4 mr-1" />
                 {gettext("Ages %{range}", range: @program.age_range)}

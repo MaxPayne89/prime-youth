@@ -14,7 +14,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         id: Ecto.UUID.generate(),
         title: "Summer Soccer Camp",
         description: "Fun soccer activities for kids of all skill levels",
-        schedule: "Mon-Fri 9AM-12PM",
         age_range: "6-12",
         price: Decimal.new("150.00"),
         pricing_period: "per week",
@@ -30,12 +29,15 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert domain.id == schema.id
       assert domain.title == "Summer Soccer Camp"
       assert domain.description == "Fun soccer activities for kids of all skill levels"
-      assert domain.schedule == "Mon-Fri 9AM-12PM"
       assert domain.age_range == "6-12"
       assert domain.price == Decimal.new("150.00")
       assert domain.pricing_period == "per week"
       assert domain.spots_available == 20
       assert domain.icon_path == "/images/soccer.svg"
+      assert domain.meeting_days == []
+      assert domain.meeting_start_time == nil
+      assert domain.meeting_end_time == nil
+      assert domain.start_date == nil
     end
 
     test "converts schema to domain model without optional fields" do
@@ -43,7 +45,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         id: Ecto.UUID.generate(),
         title: "Art Class",
         description: "Creative art activities",
-        schedule: "Saturdays 10AM-12PM",
         age_range: "8-14",
         price: Decimal.new("75.00"),
         pricing_period: "per month",
@@ -66,7 +67,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         id: Ecto.UUID.generate(),
         title: "Community Day",
         description: "Free community event",
-        schedule: "Sunday 2PM-5PM",
         age_range: "All ages",
         price: Decimal.new("0.00"),
         pricing_period: "per session",
@@ -88,7 +88,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         id: Ecto.UUID.generate(),
         title: "Popular Camp",
         description: "Sold out camp",
-        schedule: "All week",
         age_range: "10-15",
         price: Decimal.new("200.00"),
         pricing_period: "per week",
@@ -110,7 +109,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         id: Ecto.UUID.generate(),
         title: "Program",
         description: "Description",
-        schedule: "Schedule",
         age_range: "6-12",
         price: Decimal.new("99.99"),
         pricing_period: "per session",
@@ -125,6 +123,31 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert domain.price == Decimal.new("99.99")
       assert Decimal.equal?(domain.price, Decimal.new("99.99"))
     end
+
+    test "maps scheduling fields from schema to domain" do
+      schema = %ProgramSchema{
+        id: Ecto.UUID.generate(),
+        title: "Scheduled Program",
+        description: "Has schedule data",
+        age_range: "6-12",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 10,
+        meeting_days: ["Monday", "Wednesday"],
+        meeting_start_time: ~T[16:00:00],
+        meeting_end_time: ~T[17:30:00],
+        start_date: ~D[2026-03-01],
+        inserted_at: ~U[2024-01-01 10:00:00Z],
+        updated_at: ~U[2024-01-01 10:00:00Z]
+      }
+
+      domain = ProgramMapper.to_domain(schema)
+
+      assert domain.meeting_days == ["Monday", "Wednesday"]
+      assert domain.meeting_start_time == ~T[16:00:00]
+      assert domain.meeting_end_time == ~T[17:30:00]
+      assert domain.start_date == ~D[2026-03-01]
+    end
   end
 
   describe "to_domain/1 instructor edge cases" do
@@ -133,7 +156,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         id: Ecto.UUID.generate(),
         title: "Coached Program",
         description: "Has instructor",
-        schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -160,7 +182,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
             id: Ecto.UUID.generate(),
             title: "No Instructor Program",
             description: "No instructor assigned",
-            schedule: "Mon-Fri",
             age_range: "6-12",
             price: Decimal.new("100.00"),
             pricing_period: "per week",
@@ -185,7 +206,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         id: Ecto.UUID.generate(),
         title: "Bad Data Program",
         description: "Instructor name missing",
-        schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -215,7 +235,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           id: Ecto.UUID.generate(),
           title: "Program A",
           description: "Description A",
-          schedule: "Mon-Fri",
           age_range: "6-10",
           price: Decimal.new("100.00"),
           pricing_period: "per week",
@@ -228,7 +247,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           id: Ecto.UUID.generate(),
           title: "Program B",
           description: "Description B",
-          schedule: "Saturdays",
           age_range: "8-12",
           price: Decimal.new("75.00"),
           pricing_period: "per month",
@@ -241,7 +259,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           id: Ecto.UUID.generate(),
           title: "Program C",
           description: "Description C",
-          schedule: "Sundays",
           age_range: "10-14",
           price: Decimal.new("0.00"),
           pricing_period: "per session",
@@ -283,7 +300,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         id: Ecto.UUID.generate(),
         title: "First",
         description: "Desc",
-        schedule: "Mon",
         age_range: "6-10",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -297,7 +313,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         id: Ecto.UUID.generate(),
         title: "Second",
         description: "Desc",
-        schedule: "Tue",
         age_range: "6-10",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -311,7 +326,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         id: Ecto.UUID.generate(),
         title: "Third",
         description: "Desc",
-        schedule: "Wed",
         age_range: "6-10",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -336,7 +350,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           id: Ecto.UUID.generate(),
           title: "With Optional",
           description: "Has icon",
-          schedule: "Mon",
           age_range: "6-10",
           price: Decimal.new("100.00"),
           pricing_period: "per week",
@@ -349,7 +362,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           id: Ecto.UUID.generate(),
           title: "Without Optional",
           description: "No icon",
-          schedule: "Tue",
           age_range: "8-12",
           price: Decimal.new("75.00"),
           pricing_period: "per month",
@@ -409,6 +421,28 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert attrs.cover_image_url == "https://example.com/img.jpg"
       assert attrs.instructor_id == "abc"
       assert attrs.instructor_name == "Jane"
+    end
+
+    test "includes scheduling fields in output" do
+      program = %Program{
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        title: "Test",
+        description: "Desc",
+        category: "arts",
+        price: Decimal.new("50.00"),
+        provider_id: "660e8400-e29b-41d4-a716-446655440001",
+        spots_available: 10,
+        meeting_days: ["Tuesday", "Thursday"],
+        meeting_start_time: ~T[15:00:00],
+        meeting_end_time: ~T[16:30:00],
+        start_date: ~D[2026-04-01]
+      }
+
+      attrs = ProgramMapper.to_schema(program)
+      assert attrs.meeting_days == ["Tuesday", "Thursday"]
+      assert attrs.meeting_start_time == ~T[15:00:00]
+      assert attrs.meeting_end_time == ~T[16:30:00]
+      assert attrs.start_date == ~D[2026-04-01]
     end
   end
 end

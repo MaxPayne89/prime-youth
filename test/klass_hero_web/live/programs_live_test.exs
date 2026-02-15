@@ -13,7 +13,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
         insert_program(%{
           title: "Art Adventures",
           description: "Explore creativity through painting and sculpture",
-          schedule: "Mon-Fri, 3:00-5:00 PM",
           age_range: "6-8 years",
           price: Decimal.new("120.00"),
           pricing_period: "per month",
@@ -24,7 +23,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
         insert_program(%{
           title: "Soccer Stars",
           description: "Learn soccer fundamentals and teamwork",
-          schedule: "Tue, Thu, 4:00-5:30 PM",
           age_range: "8-12 years",
           price: Decimal.new("85.00"),
           pricing_period: "per month",
@@ -35,7 +33,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
         insert_program(%{
           title: "Chess Club",
           description: "Develop strategic thinking through chess",
-          schedule: "Wed, 3:30-5:00 PM",
           age_range: "7-14 years",
           price: Decimal.new("60.00"),
           pricing_period: "per month",
@@ -80,7 +77,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
         insert_program(%{
           title: "Community Library Hour",
           description: "Free reading and learning time at the library",
-          schedule: "Sat, 10:00-11:00 AM",
           age_range: "5-10 years",
           price: Decimal.new("0"),
           pricing_period: "free",
@@ -91,7 +87,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
         insert_program(%{
           title: "Piano Lessons",
           description: "Learn to play piano with expert instruction",
-          schedule: "Mon, Wed, 4:00-5:00 PM",
           age_range: "6-16 years",
           price: Decimal.new("150.00"),
           pricing_period: "per month",
@@ -117,7 +112,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           insert_program(%{
             title: "Program #{i}",
             description: "Description for program #{i}",
-            schedule: "Mon-Fri, 3:00-5:00 PM",
             age_range: "6-12 years",
             price: Decimal.new("#{i}.00"),
             pricing_period: "per month",
@@ -1267,7 +1261,9 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       title: "Default Program",
       description: "Default description",
       category: "education",
-      schedule: "Mon-Fri, 3:00-5:00 PM",
+      meeting_days: ["Monday", "Wednesday", "Friday"],
+      meeting_start_time: ~T[15:00:00],
+      meeting_end_time: ~T[17:00:00],
       age_range: "6-12 years",
       price: Decimal.new("100.00"),
       pricing_period: "per month",

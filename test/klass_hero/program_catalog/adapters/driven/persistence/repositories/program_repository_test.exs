@@ -18,7 +18,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Soccer Camp",
           description: "Fun soccer for kids",
-          schedule: "Mon-Fri 9AM-12PM",
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
@@ -29,7 +28,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Art Class",
           description: "Creative art activities",
-          schedule: "Saturdays 10AM-12PM",
           age_range: "8-14",
           price: Decimal.new("75.00"),
           pricing_period: "per month",
@@ -40,7 +38,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Dance Workshop",
           description: "Learn various dance styles",
-          schedule: "Wednesdays 4PM-6PM",
           age_range: "10-16",
           price: Decimal.new("100.00"),
           pricing_period: "per session",
@@ -63,7 +60,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       insert_program(%{
         title: "Zebra Camp",
         description: "Description",
-        schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -73,7 +69,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       insert_program(%{
         title: "Art Class",
         description: "Description",
-        schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -83,7 +78,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       insert_program(%{
         title: "Music Lessons",
         description: "Description",
-        schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -107,7 +101,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Free Community Day",
           description: "Free event for everyone",
-          schedule: "Sunday 2PM-5PM",
           age_range: "All ages",
           price: Decimal.new("0.00"),
           pricing_period: "per session",
@@ -118,7 +111,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Paid Workshop",
           description: "Premium workshop",
-          schedule: "Mon-Fri",
           age_range: "10-15",
           price: Decimal.new("200.00"),
           pricing_period: "per week",
@@ -143,7 +135,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Sold Out Camp",
           description: "No spots left",
-          schedule: "All week",
           age_range: "10-15",
           price: Decimal.new("200.00"),
           pricing_period: "per week",
@@ -154,7 +145,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Available Program",
           description: "Has spots",
-          schedule: "Mon-Fri",
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
@@ -199,7 +189,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       insert_program(%{
         title: "Test Program",
         description: "Description",
-        schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -226,7 +215,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
             %{
               title: "Program #{String.pad_leading(Integer.to_string(i), 2, "0")}",
               description: "Description #{i}",
-              schedule: "Mon-Fri 9AM-12PM",
               age_range: "6-12",
               price: Decimal.new("#{100 + i}.00"),
               pricing_period: "per week",
@@ -422,7 +410,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           %{
             title: "Program #{i}",
             description: "Description",
-            schedule: "Mon-Fri",
             age_range: "6-12",
             price: Decimal.new("100.00"),
             pricing_period: "per week",
@@ -452,7 +439,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           %{
             title: "Program #{i}",
             description: "Description",
-            schedule: "Mon-Fri",
             age_range: "6-12",
             price: Decimal.new("100.00"),
             pricing_period: "per week",
@@ -486,7 +472,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Original Title",
           description: "Original description",
-          schedule: "Mon-Fri 9AM-12PM",
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
@@ -519,7 +504,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Original Title",
           description: "Description",
-          schedule: "Mon-Fri 9AM-12PM",
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
@@ -550,7 +534,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Version 1",
           description: "Description",
-          schedule: "Mon-Fri 9AM-12PM",
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
@@ -585,7 +568,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         title: "Non-existent",
         description: "Description",
         category: "education",
-        schedule: "Mon-Fri",
+        meeting_days: ["Monday"],
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -604,7 +587,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Valid Program",
           description: "Description",
-          schedule: "Mon-Fri 9AM-12PM",
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
@@ -631,7 +613,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Valid Program",
           description: "Description",
-          schedule: "Mon-Fri 9AM-12PM",
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
@@ -657,7 +638,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Original",
           description: "Original description",
-          schedule: "Mon-Fri 9AM-12PM",
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
@@ -672,7 +652,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         domain_program
         | title: "New Title",
           description: "New description",
-          schedule: "Tue-Thu 10AM-2PM",
+          meeting_days: ["Tuesday", "Thursday"],
           age_range: "8-14",
           price: Decimal.new("200.00"),
           pricing_period: "per month",
@@ -685,7 +665,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       # Verify all fields updated
       assert result.title == "New Title"
       assert result.description == "New description"
-      assert result.schedule == "Tue-Thu 10AM-2PM"
+      assert result.meeting_days == ["Tuesday", "Thursday"]
       assert result.age_range == "8-14"
       assert result.price == Decimal.new("200.00")
       assert result.pricing_period == "per month"
@@ -704,7 +684,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Concurrent Test",
           description: "Description",
-          schedule: "Mon-Fri 9AM-12PM",
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
@@ -747,7 +726,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Soccer Camp",
           description: "Fun soccer",
-          schedule: "Mon-Fri",
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
@@ -759,7 +737,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Art Class",
           description: "Creative arts",
-          schedule: "Sat 10AM",
           age_range: "8-14",
           price: Decimal.new("75.00"),
           pricing_period: "per month",
@@ -772,7 +749,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Music Lessons",
           description: "Learn music",
-          schedule: "Tue-Thu",
           age_range: "10-16",
           price: Decimal.new("100.00"),
           pricing_period: "per session",
@@ -797,7 +773,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       insert_program(%{
         title: "Zebra Camp",
         description: "Description",
-        schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -808,7 +783,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       insert_program(%{
         title: "Art Class",
         description: "Description",
-        schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -819,7 +793,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       insert_program(%{
         title: "Music Lessons",
         description: "Description",
-        schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -850,7 +823,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       insert_program(%{
         title: "Some Program",
         description: "Description",
-        schedule: "Mon-Fri",
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
@@ -870,7 +842,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Free Community Day",
           description: "Free event",
-          schedule: "Sunday 2PM",
           age_range: "All ages",
           price: Decimal.new("0.00"),
           pricing_period: "per session",
@@ -882,7 +853,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         insert_program(%{
           title: "Popular Camp",
           description: "Fully booked",
-          schedule: "Mon-Fri",
           age_range: "10-15",
           price: Decimal.new("200.00"),
           pricing_period: "per week",
