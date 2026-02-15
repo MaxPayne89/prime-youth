@@ -134,10 +134,23 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   end
 
   defp format_date_range(nil, _), do: nil
-  defp format_date_range(_, nil), do: nil
+
+  # Trigger: end_date is nil but start_date exists
+  # Why: open-ended programs still benefit from showing when they begin
+  # Outcome: displays "From Sep 1, 2026" instead of nil
+  defp format_date_range(%Date{} = start_date, nil) do
+    "From #{format_short_date(start_date)}, #{start_date.year}"
+  end
 
   defp format_date_range(%Date{} = start_date, %Date{} = end_date) do
-    "#{format_short_date(start_date)} - #{format_short_date(end_date)}, #{end_date.year}"
+    # Trigger: start and end years differ (e.g. Nov 2026 - Mar 2027)
+    # Why: omitting start year is ambiguous for cross-year ranges
+    # Outcome: "Nov 1, 2026 - Mar 15, 2027" vs "Mar 1 - Jun 30, 2026"
+    if start_date.year == end_date.year do
+      "#{format_short_date(start_date)} - #{format_short_date(end_date)}, #{end_date.year}"
+    else
+      "#{format_short_date(start_date)}, #{start_date.year} - #{format_short_date(end_date)}, #{end_date.year}"
+    end
   end
 
   defp format_short_date(%Date{} = date) do

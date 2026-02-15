@@ -107,6 +107,28 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
     end
   end
 
+  describe "whitespace handling in price" do
+    test "creates program with whitespace-padded price", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#new-program-btn") |> render_click()
+
+      view
+      |> form("#program-form", %{
+        "program_schema" => %{
+          "title" => "Trimmed Price Program",
+          "description" => "Tests whitespace trimming in price",
+          "category" => "arts",
+          "price" => " 75.00 "
+        }
+      })
+      |> render_submit()
+
+      refute has_element?(view, "#program-form")
+      assert render(view) =~ "Program created successfully."
+    end
+  end
+
   describe "program form validation errors" do
     test "shows error flash on invalid submit", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")

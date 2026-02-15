@@ -1072,7 +1072,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     # Trigger: user typed a non-numeric string in the price field
     # Why: Decimal.new/1 raises on invalid input — must use parse/1 to avoid crash
     # Outcome: nil lets downstream domain validation catch "price is required"
-    case Decimal.parse(value) do
+    value
+    |> String.trim()
+    |> Decimal.parse()
+    |> case do
       {decimal, ""} -> decimal
       _other -> nil
     end

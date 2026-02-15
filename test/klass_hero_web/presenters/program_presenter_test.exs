@@ -155,6 +155,42 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.times == nil
     end
 
+    test "shows both years for cross-year date range" do
+      program =
+        build_program(%{
+          meeting_days: ["Monday"],
+          start_date: ~D[2026-11-01],
+          end_date: ~D[2027-03-15]
+        })
+
+      result = ProgramPresenter.format_schedule(program)
+      assert result.date_range == "Nov 1, 2026 - Mar 15, 2027"
+    end
+
+    test "shows only end year for same-year date range" do
+      program =
+        build_program(%{
+          meeting_days: ["Monday"],
+          start_date: ~D[2026-03-01],
+          end_date: ~D[2026-06-30]
+        })
+
+      result = ProgramPresenter.format_schedule(program)
+      assert result.date_range == "Mar 1 - Jun 30, 2026"
+    end
+
+    test "shows start date when end date is nil" do
+      program =
+        build_program(%{
+          meeting_days: ["Monday"],
+          start_date: ~D[2026-09-01],
+          end_date: nil
+        })
+
+      result = ProgramPresenter.format_schedule(program)
+      assert result.date_range == "From Sep 1, 2026"
+    end
+
     test "formats times crossing AM/PM" do
       program =
         build_program(%{
