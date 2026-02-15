@@ -124,7 +124,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           docs
 
         {:error, reason} ->
-          Logger.warning("[DashboardLive] Failed to load verification documents",
+          Logger.error("[DashboardLive] Failed to load verification documents",
             provider_id: provider.id,
             reason: inspect(reason)
           )
@@ -155,7 +155,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           docs
 
         {:error, reason} ->
-          Logger.warning("[DashboardLive] Failed to load verification documents",
+          Logger.error("[DashboardLive] Failed to load verification documents",
             provider_id: provider.id,
             reason: inspect(reason)
           )
@@ -987,7 +987,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         members
 
       {:error, reason} ->
-        Logger.warning("[DashboardLive] Failed to load staff members",
+        Logger.error("[DashboardLive] Failed to load staff members",
           provider_id: provider_id,
           reason: inspect(reason)
         )
@@ -1091,7 +1091,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp parse_time(value) when is_binary(value) do
     case Time.from_iso8601(value <> ":00") do
       {:ok, time} -> time
-      _ -> nil
+      {:error, _reason} -> nil
     end
   end
 
@@ -1101,7 +1101,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp parse_date(value) when is_binary(value) do
     case Date.from_iso8601(value) do
       {:ok, date} -> date
-      _ -> nil
+      {:error, _reason} -> nil
     end
   end
 
@@ -1133,7 +1133,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   defp maybe_add_cover_image(attrs, {:ok, url}), do: Map.put(attrs, :cover_image_url, url)
-  defp maybe_add_cover_image(attrs, _), do: attrs
+  defp maybe_add_cover_image(attrs, :no_upload), do: attrs
+
+  defp maybe_add_cover_image(attrs, :upload_error) do
+    Logger.warning("[DashboardLive] Cover image upload failed")
+    attrs
+  end
 
   # Trigger: instructor_id may be nil/"" (none selected) or a valid UUID
   # Why: instructor is optional; when selected, we resolve display data from Provider
@@ -1169,7 +1174,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         end)
 
       {:error, reason} ->
-        Logger.warning("Failed to load instructor options",
+        Logger.error("Failed to load instructor options",
           provider_id: provider_id,
           reason: inspect(reason)
         )

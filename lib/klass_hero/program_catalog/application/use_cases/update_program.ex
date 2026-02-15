@@ -73,7 +73,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.UpdateProgram do
           :ok
 
         {:error, failures} ->
-          Logger.warning("[UpdateProgram] Schedule event dispatch had failures",
+          Logger.error("[UpdateProgram] Schedule event dispatch had failures",
             program_id: updated.id,
             errors: inspect(failures)
           )

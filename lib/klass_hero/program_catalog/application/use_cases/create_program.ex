@@ -47,7 +47,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.CreateProgram do
         :ok
 
       {:error, failures} ->
-        Logger.warning("[CreateProgram] Event dispatch had failures",
+        Logger.error("[CreateProgram] Event dispatch had failures",
           program_id: program.id,
           errors: inspect(failures)
         )
