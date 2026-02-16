@@ -30,6 +30,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :lock_version, :integer, default: 1
     field :icon_path, :string
     field :end_date, :date
+    field :registration_start_date, :date
+    field :registration_end_date, :date
     field :provider_id, :binary_id
     field :location, :string
     field :cover_image_url, :string
@@ -56,6 +58,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           lock_version: integer() | nil,
           icon_path: String.t() | nil,
           end_date: Date.t() | nil,
+          registration_start_date: Date.t() | nil,
+          registration_end_date: Date.t() | nil,
           provider_id: Ecto.UUID.t() | nil,
           location: String.t() | nil,
           cover_image_url: String.t() | nil,
@@ -105,7 +109,9 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :meeting_days,
       :meeting_start_time,
       :meeting_end_time,
-      :start_date
+      :start_date,
+      :registration_start_date,
+      :registration_end_date
     ])
     |> validate_required([
       :title,
@@ -126,6 +132,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_meeting_days()
     |> validate_time_pairing()
     |> validate_date_range()
+    |> validate_registration_date_range()
   end
 
   @doc """
@@ -147,7 +154,9 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :meeting_start_time,
       :meeting_end_time,
       :start_date,
-      :end_date
+      :end_date,
+      :registration_start_date,
+      :registration_end_date
     ])
     # Trigger: provider_id, instructor fields arrive from trusted server-side code
     # Why: including them in cast would allow form param injection
@@ -169,6 +178,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_meeting_days()
     |> validate_time_pairing()
     |> validate_date_range()
+    |> validate_registration_date_range()
     |> foreign_key_constraint(:provider_id)
     |> foreign_key_constraint(:instructor_id)
   end
@@ -202,7 +212,9 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :meeting_days,
       :meeting_start_time,
       :meeting_end_time,
-      :start_date
+      :start_date,
+      :registration_start_date,
+      :registration_end_date
     ])
     |> validate_required([
       :title,
@@ -221,6 +233,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_meeting_days()
     |> validate_time_pairing()
     |> validate_date_range()
+    |> validate_registration_date_range()
     |> optimistic_lock(:lock_version)
   end
 
@@ -277,6 +290,24 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
         changeset
       else
         add_error(changeset, :start_date, "must be before end date")
+      end
+    end
+  end
+
+  # Trigger: registration_start_date is on or after registration_end_date
+  # Why: registration window must have start before end for a valid period
+  # Outcome: changeset error on registration_start_date
+  defp validate_registration_date_range(changeset) do
+    start_date = get_field(changeset, :registration_start_date)
+    end_date = get_field(changeset, :registration_end_date)
+
+    if is_nil(start_date) or is_nil(end_date) do
+      changeset
+    else
+      if Date.before?(start_date, end_date) do
+        changeset
+      else
+        add_error(changeset, :registration_start_date, "must be before registration end date")
       end
     end
   end

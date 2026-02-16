@@ -47,6 +47,9 @@ npm-debug.log
 # specify
 .specify/results/
 
+# Beads internal files
+.beads/.migration-hint-ts
+
 # Git worktrees
 .worktrees/
 

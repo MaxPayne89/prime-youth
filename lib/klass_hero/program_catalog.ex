@@ -243,6 +243,22 @@ defmodule KlassHero.ProgramCatalog do
   defdelegate format_total_price(weekly_price), to: ProgramPricing
 
   # ============================================================================
+  # Registration Period
+  # ============================================================================
+
+  @doc """
+  Checks if the program's registration is currently open.
+  """
+  @spec registration_open?(Program.t()) :: boolean()
+  defdelegate registration_open?(program), to: Program
+
+  @doc """
+  Returns the current registration status of the program.
+  """
+  @spec registration_status(Program.t()) :: atom()
+  defdelegate registration_status(program), to: Program
+
+  # ============================================================================
   # Trending Searches
   # ============================================================================
 

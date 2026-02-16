@@ -33,6 +33,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           |> assign(team_members: team_members)
           |> assign(instructor: sample_instructor())
           |> assign(reviews: sample_reviews())
+          |> assign(registration_status: ProgramCatalog.registration_status(program))
 
         {:ok, socket}
 
@@ -65,7 +66,14 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   @impl true
   def handle_event("enroll_now", _params, socket) do
-    {:noreply, push_navigate(socket, to: ~p"/programs/#{socket.assigns.program.id}/booking")}
+    # Trigger: registration period is open (or always_open)
+    # Why: prevent enrollment when registration is upcoming or closed
+    # Outcome: navigates to booking page or shows error flash
+    if ProgramCatalog.registration_open?(socket.assigns.program) do
+      {:noreply, push_navigate(socket, to: ~p"/programs/#{socket.assigns.program.id}/booking")}
+    else
+      {:noreply, put_flash(socket, :error, gettext("Registration is not open for this program."))}
+    end
   end
 
   @impl true
@@ -80,6 +88,47 @@ defmodule KlassHeroWeb.ProgramDetailLive do
       {:ok, members} -> StaffMemberPresenter.to_card_view_list(members)
       {:error, _} -> []
     end
+  end
+
+  defp registration_status_title(:upcoming, %{registration_period: %{start_date: start_date}}) do
+    gettext("Registration opens %{date}", date: Calendar.strftime(start_date, "%B %d, %Y"))
+  end
+
+  defp registration_status_title(:closed, _program) do
+    gettext("Registration is closed")
+  end
+
+  attr :id, :string, required: true
+  attr :class, :string, default: ""
+  attr :registration_status, :atom, required: true
+  attr :label, :string, required: true
+
+  defp enroll_button(assigns) do
+    ~H"""
+    <button
+      id={@id}
+      phx-click="enroll_now"
+      disabled={@registration_status in [:upcoming, :closed]}
+      class={[
+        @class,
+        @registration_status in [:upcoming, :closed] &&
+          "bg-hero-grey-400 cursor-not-allowed opacity-60",
+        @registration_status not in [:upcoming, :closed] &&
+          "hover:shadow-lg transform hover:scale-[1.02]",
+        @registration_status not in [:upcoming, :closed] && Theme.transition(:normal),
+        @registration_status not in [:upcoming, :closed] && Theme.gradient(:primary)
+      ]}
+    >
+      <%= cond do %>
+        <% @registration_status == :upcoming -> %>
+          {gettext("Registration Not Open Yet")}
+        <% @registration_status == :closed -> %>
+          {gettext("Registration Closed")}
+        <% true -> %>
+          {@label}
+      <% end %>
+    </button>
+    """
   end
 
   @impl true
@@ -187,6 +236,32 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         </div>
       </div>
 
+      <%!-- Registration Status Banner --%>
+      <div
+        :if={@registration_status in [:upcoming, :closed]}
+        class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-3 relative z-10 mb-3"
+      >
+        <div class={[
+          "p-4 shadow-sm border flex items-center gap-3",
+          Theme.rounded(:xl),
+          if(@registration_status == :upcoming,
+            do: "bg-blue-50 border-blue-200 text-blue-800",
+            else: "bg-hero-grey-100 border-hero-grey-300 text-hero-grey-700"
+          )
+        ]}>
+          <span class="text-xl">
+            <%= if @registration_status == :upcoming do %>
+              📅
+            <% else %>
+              🔒
+            <% end %>
+          </span>
+          <p class="text-sm font-medium">
+            {registration_status_title(@registration_status, @program)}
+          </p>
+        </div>
+      </div>
+
       <%!-- Pricing Card (Overlapping Hero) --%>
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
         <div class={[
@@ -213,20 +288,12 @@ defmodule KlassHeroWeb.ProgramDetailLive do
               </p>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
-              <button
+              <.enroll_button
                 id="book-now-button"
-                phx-click="enroll_now"
-                class={[
-                  "text-white py-3 px-6",
-                  Theme.typography(:card_title),
-                  Theme.rounded(:lg),
-                  "hover:shadow-lg transform hover:scale-[1.02]",
-                  Theme.transition(:normal),
-                  Theme.gradient(:primary)
-                ]}
-              >
-                {gettext("Book Now")}
-              </button>
+                class={"text-white py-3 px-6 #{Theme.typography(:card_title)} #{Theme.rounded(:lg)}"}
+                registration_status={@registration_status}
+                label={gettext("Book Now")}
+              />
               <button
                 phx-click="save_for_later"
                 class={[
@@ -438,21 +505,16 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
         <%!-- Bottom CTA (Hidden on Mobile - Mobile has sticky footer) --%>
         <div class="hidden md:block mt-8">
-          <button
-            phx-click="enroll_now"
-            class={[
-              "w-full text-white py-4 px-6",
-              Theme.typography(:card_title),
-              Theme.rounded(:lg),
-              "hover:shadow-lg transform hover:scale-[1.02]",
-              Theme.transition(:normal),
-              Theme.gradient(:primary)
-            ]}
-          >
-            {gettext("Enroll Now - %{price}",
-              price: ProgramCatalog.format_total_price(@program.price)
-            )}
-          </button>
+          <.enroll_button
+            id="enroll-bottom-cta"
+            class={"w-full text-white py-4 px-6 #{Theme.typography(:card_title)} #{Theme.rounded(:lg)}"}
+            registration_status={@registration_status}
+            label={
+              gettext("Enroll Now - %{price}",
+                price: ProgramCatalog.format_total_price(@program.price)
+              )
+            }
+          />
         </div>
       </div>
 
@@ -471,17 +533,12 @@ defmodule KlassHeroWeb.ProgramDetailLive do
               {gettext("%{price}/week", price: ProgramCatalog.format_price(@program.price))}
             </p>
           </div>
-          <button
-            phx-click="enroll_now"
-            class={[
-              "flex-1 text-white py-3 px-4 max-w-xs",
-              Theme.typography(:card_title),
-              Theme.rounded(:lg),
-              Theme.gradient(:primary)
-            ]}
-          >
-            {gettext("Book Now")}
-          </button>
+          <.enroll_button
+            id="enroll-mobile-cta"
+            class={"flex-1 text-white py-3 px-4 max-w-xs #{Theme.typography(:card_title)} #{Theme.rounded(:lg)}"}
+            registration_status={@registration_status}
+            label={gettext("Book Now")}
+          />
         </div>
       </div>
     </div>

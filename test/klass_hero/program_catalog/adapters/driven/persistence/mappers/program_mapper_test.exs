@@ -7,6 +7,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProgramCatalog.Domain.Models.Instructor
   alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Domain.Models.RegistrationPeriod
 
   describe "to_domain/1" do
     test "converts schema to domain model with all fields" do
@@ -147,6 +148,46 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert domain.meeting_start_time == ~T[16:00:00]
       assert domain.meeting_end_time == ~T[17:30:00]
       assert domain.start_date == ~D[2026-03-01]
+    end
+
+    test "assembles RegistrationPeriod from flat schema columns" do
+      schema = %ProgramSchema{
+        id: Ecto.UUID.generate(),
+        title: "Test",
+        description: "Desc",
+        age_range: "6-12",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 10,
+        registration_start_date: ~D[2026-03-01],
+        registration_end_date: ~D[2026-04-01],
+        inserted_at: ~U[2024-01-01 10:00:00Z],
+        updated_at: ~U[2024-01-01 10:00:00Z]
+      }
+
+      domain = ProgramMapper.to_domain(schema)
+
+      assert %RegistrationPeriod{} = domain.registration_period
+      assert domain.registration_period.start_date == ~D[2026-03-01]
+      assert domain.registration_period.end_date == ~D[2026-04-01]
+    end
+
+    test "assembles empty RegistrationPeriod when dates are nil" do
+      schema = %ProgramSchema{
+        id: Ecto.UUID.generate(),
+        title: "Test",
+        description: "Desc",
+        age_range: "6-12",
+        price: Decimal.new("100.00"),
+        pricing_period: "per week",
+        spots_available: 10,
+        inserted_at: ~U[2024-01-01 10:00:00Z],
+        updated_at: ~U[2024-01-01 10:00:00Z]
+      }
+
+      domain = ProgramMapper.to_domain(schema)
+
+      assert %RegistrationPeriod{start_date: nil, end_date: nil} = domain.registration_period
     end
   end
 
@@ -443,6 +484,42 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert attrs.meeting_start_time == ~T[15:00:00]
       assert attrs.meeting_end_time == ~T[16:30:00]
       assert attrs.start_date == ~D[2026-04-01]
+    end
+
+    test "destructures RegistrationPeriod to flat columns" do
+      rp = %RegistrationPeriod{start_date: ~D[2026-03-01], end_date: ~D[2026-04-01]}
+
+      program = %Program{
+        id: "abc",
+        title: "Test",
+        description: "Desc",
+        category: "arts",
+        price: Decimal.new("50.00"),
+        provider_id: "xyz",
+        spots_available: 10,
+        registration_period: rp
+      }
+
+      attrs = ProgramMapper.to_schema(program)
+      assert attrs.registration_start_date == ~D[2026-03-01]
+      assert attrs.registration_end_date == ~D[2026-04-01]
+    end
+
+    test "destructures nil RegistrationPeriod to nil columns" do
+      program = %Program{
+        id: "abc",
+        title: "Test",
+        description: "Desc",
+        category: "arts",
+        price: Decimal.new("50.00"),
+        provider_id: "xyz",
+        spots_available: 10,
+        registration_period: %RegistrationPeriod{}
+      }
+
+      attrs = ProgramMapper.to_schema(program)
+      assert attrs.registration_start_date == nil
+      assert attrs.registration_end_date == nil
     end
   end
 end
