@@ -20,7 +20,8 @@ defmodule KlassHeroWeb.BookingLive do
     current_user = socket.assigns.current_scope.user
 
     with {:ok, program} <- fetch_program(program_id),
-         :ok <- validate_registration_open(program) do
+         :ok <- validate_registration_open(program),
+         :ok <- validate_program_capacity(program) do
       children = get_children_for_current_user(socket)
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
       children_by_id = Map.new(children, &{&1.id, &1})
@@ -53,7 +54,7 @@ defmodule KlassHeroWeb.BookingLive do
          |> put_flash(:error, gettext("Program not found"))
          |> redirect(to: ~p"/programs")}
 
-      {:error, :no_spots} ->
+      {:error, :program_full} ->
         program_for_redirect = fetch_program_unsafe(program_id)
 
         {:ok,
@@ -122,7 +123,7 @@ defmodule KlassHeroWeb.BookingLive do
        )
        |> push_navigate(to: ~p"/dashboard")}
     else
-      {:error, :no_spots} ->
+      {:error, :program_full} ->
         {:noreply,
          socket
          |> put_flash(
@@ -211,6 +212,14 @@ defmodule KlassHeroWeb.BookingLive do
       :ok
     else
       {:error, :registration_not_open}
+    end
+  end
+
+  defp validate_program_capacity(program) do
+    case Enrollment.remaining_capacity(program.id) do
+      {:ok, :unlimited} -> :ok
+      {:ok, remaining} when remaining > 0 -> :ok
+      {:ok, 0} -> {:error, :program_full}
     end
   end
 
