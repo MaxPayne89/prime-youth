@@ -6,6 +6,7 @@ defmodule KlassHeroWeb.BookingLive do
 
   alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
+  alias KlassHero.ProgramCatalog.Domain.Models.RegistrationPeriod
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
 
@@ -20,6 +21,7 @@ defmodule KlassHeroWeb.BookingLive do
     current_user = socket.assigns.current_scope.user
 
     with {:ok, program} <- fetch_program(program_id),
+         :ok <- validate_registration_open(program),
          :ok <- validate_program_availability(program) do
       children = get_children_for_current_user(socket)
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
@@ -64,6 +66,14 @@ defmodule KlassHeroWeb.BookingLive do
          )
          |> redirect(to: ~p"/programs/#{program_for_redirect.id}")}
 
+      {:error, :registration_not_open} ->
+        program_for_redirect = fetch_program_unsafe(program_id)
+
+        {:ok,
+         socket
+         |> put_flash(:error, gettext("Registration is not currently open for this program."))
+         |> redirect(to: ~p"/programs/#{program_for_redirect.id}")}
+
       {:error, _error} ->
         {:ok,
          socket
@@ -104,6 +114,7 @@ defmodule KlassHeroWeb.BookingLive do
   def handle_event("complete_enrollment", params, socket) do
     with :ok <- validate_enrollment_data(socket, params),
          :ok <- validate_payment_method(socket),
+         :ok <- validate_registration_open(socket.assigns.program),
          :ok <- validate_program_availability(socket.assigns.program),
          {:ok, _enrollment} <- create_enrollment(socket, params) do
       {:noreply,
@@ -122,6 +133,12 @@ defmodule KlassHeroWeb.BookingLive do
            gettext("Sorry, this program is now full. Please choose another program.")
          )
          |> push_navigate(to: ~p"/programs")}
+
+      {:error, :registration_not_open} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("Registration has closed for this program."))
+         |> push_navigate(to: ~p"/programs/#{socket.assigns.program.id}")}
 
       {:error, :invalid_payment} ->
         {:noreply,
@@ -187,6 +204,17 @@ defmodule KlassHeroWeb.BookingLive do
       card_fee_amount: fees.card_fee_amount,
       total: fees.total
     )
+  end
+
+  defp validate_registration_open(program) do
+    # Trigger: program has a registration_period field
+    # Why: prevent bookings outside the configured registration window
+    # Outcome: blocks mount and enrollment if registration is closed
+    if RegistrationPeriod.open?(program.registration_period) do
+      :ok
+    else
+      {:error, :registration_not_open}
+    end
   end
 
   defp validate_program_availability(%{spots_available: spots_available})
