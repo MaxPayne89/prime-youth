@@ -862,6 +862,30 @@ defmodule KlassHeroWeb.ProviderComponents do
           </div>
         </div>
 
+        <%!-- Enrollment Capacity Section --%>
+        <div class="space-y-3">
+          <p class="text-sm font-semibold text-hero-charcoal">
+            {gettext("Enrollment Capacity (optional)")}
+          </p>
+          <p class="text-xs text-hero-grey-500">
+            {gettext("Set minimum and maximum enrollment for this program.")}
+          </p>
+          <div class="grid grid-cols-2 gap-4">
+            <.input
+              field={@form[:min_enrollment]}
+              type="number"
+              label={gettext("Minimum Enrollment")}
+              min="1"
+            />
+            <.input
+              field={@form[:max_enrollment]}
+              type="number"
+              label={gettext("Maximum Enrollment")}
+              min="1"
+            />
+          </div>
+        </div>
+
         <.input
           field={@form[:description]}
           type="textarea"

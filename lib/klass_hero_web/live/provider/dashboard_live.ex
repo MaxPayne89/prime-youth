@@ -12,6 +12,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   import KlassHeroWeb.ProviderComponents
 
+  alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
   alias KlassHero.Shared.Storage
@@ -472,7 +473,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> maybe_add_cover_image(cover_result)
 
         with {:ok, attrs} <- maybe_add_instructor(attrs, params["instructor_id"], socket),
-             {:ok, program} <- ProgramCatalog.create_program(attrs) do
+             {:ok, program} <- ProgramCatalog.create_program(attrs),
+             :ok <- maybe_set_enrollment_policy(program.id, params) do
           view = ProgramPresenter.to_table_view(program)
 
           {:noreply,
@@ -1192,4 +1194,37 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   defp format_currency(amount), do: format_number(amount)
+
+  # Trigger: both capacity fields are blank
+  # Why: no policy needed when provider doesn't set capacity constraints
+  # Outcome: skip policy creation, return :ok
+  defp maybe_set_enrollment_policy(program_id, params) do
+    min = parse_integer(params["min_enrollment"])
+    max = parse_integer(params["max_enrollment"])
+
+    if is_nil(min) and is_nil(max) do
+      :ok
+    else
+      case Enrollment.set_enrollment_policy(%{
+             program_id: program_id,
+             min_enrollment: min,
+             max_enrollment: max
+           }) do
+        {:ok, _policy} -> :ok
+        {:error, _} -> :ok
+      end
+    end
+  end
+
+  defp parse_integer(nil), do: nil
+  defp parse_integer(""), do: nil
+
+  defp parse_integer(val) when is_binary(val) do
+    case Integer.parse(val) do
+      {int, _} when int >= 1 -> int
+      _ -> nil
+    end
+  end
+
+  defp parse_integer(val) when is_integer(val), do: val
 end
