@@ -11,6 +11,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProgramCatalog.Domain.Models.Instructor
   alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Domain.Models.RegistrationPeriod
 
   require Logger
 
@@ -62,6 +63,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       location: schema.location,
       cover_image_url: schema.cover_image_url,
       instructor: build_instructor(schema),
+      registration_period: build_registration_period(schema),
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -129,10 +131,22 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       end_date: program.end_date,
       location: program.location,
       cover_image_url: program.cover_image_url,
-      provider_id: program.provider_id
+      provider_id: program.provider_id,
+      registration_start_date: program.registration_period && program.registration_period.start_date,
+      registration_end_date: program.registration_period && program.registration_period.end_date
     }
 
     add_instructor_fields(base, program.instructor)
+  end
+
+  # Trigger: registration date columns present on schema
+  # Why: RegistrationPeriod is a value object assembled from flat columns
+  # Outcome: always returns a RegistrationPeriod struct (dates may be nil)
+  defp build_registration_period(%ProgramSchema{} = schema) do
+    %RegistrationPeriod{
+      start_date: schema.registration_start_date,
+      end_date: schema.registration_end_date
+    }
   end
 
   # Trigger: instructor columns may all be nil (no instructor assigned)
