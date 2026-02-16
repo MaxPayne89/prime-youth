@@ -595,4 +595,99 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       assert "both start and end times must be set together" in errors_on(changeset).meeting_start_time
     end
   end
+
+  describe "registration period validation" do
+    defp valid_registration_create_attrs(overrides) do
+      Map.merge(
+        %{
+          title: "Summer Soccer Camp",
+          description: "Fun soccer activities for kids",
+          category: "sports",
+          price: Decimal.new("150.00"),
+          provider_id: Ecto.UUID.generate()
+        },
+        overrides
+      )
+    end
+
+    defp existing_registration_schema do
+      %ProgramSchema{
+        id: Ecto.UUID.generate(),
+        title: "Original",
+        description: "Original description",
+        category: "sports",
+        price: Decimal.new("100.00"),
+        spots_available: 20,
+        lock_version: 1
+      }
+    end
+
+    test "accepts valid registration dates in create_changeset" do
+      attrs =
+        valid_registration_create_attrs(%{
+          registration_start_date: ~D[2026-02-01],
+          registration_end_date: ~D[2026-03-01]
+        })
+
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :registration_start_date) == ~D[2026-02-01]
+      assert Ecto.Changeset.get_change(changeset, :registration_end_date) == ~D[2026-03-01]
+    end
+
+    test "accepts valid registration dates in update_changeset" do
+      attrs = %{
+        title: "Updated",
+        description: "Updated description",
+        category: "sports",
+        price: Decimal.new("200.00"),
+        spots_available: 15,
+        registration_start_date: ~D[2026-02-01],
+        registration_end_date: ~D[2026-03-01]
+      }
+
+      changeset = ProgramSchema.update_changeset(existing_registration_schema(), attrs)
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :registration_start_date) == ~D[2026-02-01]
+      assert Ecto.Changeset.get_change(changeset, :registration_end_date) == ~D[2026-03-01]
+    end
+
+    test "rejects registration_start_date on or after registration_end_date" do
+      attrs =
+        valid_registration_create_attrs(%{
+          registration_start_date: ~D[2026-03-15],
+          registration_end_date: ~D[2026-03-01]
+        })
+
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+
+      assert "must be before registration end date" in errors_on(changeset).registration_start_date
+    end
+
+    test "rejects registration_start_date equal to registration_end_date" do
+      attrs =
+        valid_registration_create_attrs(%{
+          registration_start_date: ~D[2026-03-01],
+          registration_end_date: ~D[2026-03-01]
+        })
+
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      refute changeset.valid?
+
+      assert "must be before registration end date" in errors_on(changeset).registration_start_date
+    end
+
+    test "allows registration_start_date without registration_end_date" do
+      attrs = valid_registration_create_attrs(%{registration_start_date: ~D[2026-02-01]})
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+    end
+
+    test "allows registration_end_date without registration_start_date" do
+      attrs = valid_registration_create_attrs(%{registration_end_date: ~D[2026-03-01]})
+      changeset = ProgramSchema.create_changeset(%ProgramSchema{}, attrs)
+      assert changeset.valid?
+    end
+  end
 end
