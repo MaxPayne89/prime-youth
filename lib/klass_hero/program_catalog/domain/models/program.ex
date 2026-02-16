@@ -7,6 +7,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   """
 
   alias KlassHero.ProgramCatalog.Domain.Models.Instructor
+  alias KlassHero.ProgramCatalog.Domain.Models.RegistrationPeriod
   alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
 
   @enforce_keys [:title, :description, :category, :price]
@@ -32,7 +33,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     :meeting_end_time,
     :start_date,
     meeting_days: [],
-    spots_available: 0
+    spots_available: 0,
+    registration_period: %RegistrationPeriod{}
   ]
 
   @type t :: %__MODULE__{
@@ -56,7 +58,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
           meeting_days: [String.t()],
           meeting_start_time: Time.t() | nil,
           meeting_end_time: Time.t() | nil,
-          start_date: Date.t() | nil
+          start_date: Date.t() | nil,
+          registration_period: RegistrationPeriod.t()
         }
 
   # Internal: constructs from trusted persistence data (post-Ecto validation).
@@ -186,7 +189,11 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
          end_date: attrs[:end_date],
          location: attrs[:location],
          cover_image_url: attrs[:cover_image_url],
-         instructor: instructor
+         instructor: instructor,
+         registration_period: %RegistrationPeriod{
+           start_date: attrs[:registration_start_date],
+           end_date: attrs[:registration_end_date]
+         }
        }}
     else
       {:error, errors}
@@ -202,6 +209,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     |> validate_spots(attrs[:spots_available])
     |> validate_provider_id(attrs[:provider_id])
     |> validate_scheduling(attrs)
+    |> validate_registration_period(attrs[:registration_start_date], attrs[:registration_end_date])
   end
 
   defp validate_required_string(errors, attrs, key, message) do
@@ -243,6 +251,18 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   defp validate_provider_id(errors, id) when is_binary(id) and byte_size(id) > 0, do: errors
   defp validate_provider_id(errors, _), do: ["provider ID is required" | errors]
 
+  # Trigger: registration dates provided as flat attrs during creation
+  # Why: delegates to RegistrationPeriod.new/1 to validate date ordering invariants
+  # Outcome: collects any registration period errors into the error accumulator
+  defp validate_registration_period(errors, nil, nil), do: errors
+
+  defp validate_registration_period(errors, start_date, end_date) do
+    case RegistrationPeriod.new(%{start_date: start_date, end_date: end_date}) do
+      {:ok, _} -> errors
+      {:error, rp_errors} -> rp_errors ++ errors
+    end
+  end
+
   # ============================================================================
   # apply_changes/2 helpers
   # ============================================================================
@@ -260,7 +280,8 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   @updatable_fields ~w(title description category price spots_available
                        meeting_days meeting_start_time meeting_end_time start_date
-                       age_range pricing_period icon_path end_date location cover_image_url)a
+                       age_range pricing_period icon_path end_date location cover_image_url
+                       registration_period)a
 
   defp merge_fields(program, changes, instructor) do
     merged =
