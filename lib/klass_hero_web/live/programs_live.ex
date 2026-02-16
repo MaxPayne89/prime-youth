@@ -115,8 +115,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       age_range: program.age_range,
       price: safe_decimal_to_float(program.price),
       period: program.pricing_period,
-      # Placeholder: Capacity now owned by EnrollmentPolicy (Enrollment context)
-      spots_left: 0,
+      spots_left: get_remaining_capacity(program.id),
       # Default UI properties (these will come from the database in the future)
       gradient_class: default_gradient_class(),
       icon_path: program.icon_path || default_icon_path()
@@ -133,6 +132,13 @@ defmodule KlassHeroWeb.ProgramsLive do
   end
 
   defp format_category_for_display(_), do: "Education"
+
+  defp get_remaining_capacity(program_id) do
+    case ProgramCatalog.remaining_capacity(program_id) do
+      {:ok, :unlimited} -> nil
+      {:ok, count} -> count
+    end
+  end
 
   # Enrich program with mock data for UI elements
   # This is temporary until these fields are added to the database

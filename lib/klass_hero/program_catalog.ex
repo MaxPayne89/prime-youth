@@ -35,7 +35,7 @@ defmodule KlassHero.ProgramCatalog do
 
   use Boundary,
     top_level?: true,
-    deps: [KlassHero, KlassHero.Provider, KlassHero.Shared],
+    deps: [KlassHero, KlassHero.Provider, KlassHero.Shared, KlassHero.Enrollment],
     exports: [
       Domain.Models.Program,
       Domain.Services.ProgramCategories
@@ -341,4 +341,15 @@ defmodule KlassHero.ProgramCatalog do
   def list_ended_program_ids(cutoff_date) do
     @repository.list_ended_program_ids(cutoff_date)
   end
+
+  # ============================================================================
+  # Enrollment Capacity (via ACL)
+  # ============================================================================
+
+  @doc """
+  Returns remaining enrollment capacity for a program via ACL.
+  Delegates to the Enrollment context.
+  """
+  defdelegate remaining_capacity(program_id),
+    to: KlassHero.ProgramCatalog.Domain.Services.EnrollmentCapacityACL
 end
