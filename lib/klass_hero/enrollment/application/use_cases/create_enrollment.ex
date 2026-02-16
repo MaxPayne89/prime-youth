@@ -58,7 +58,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
 
   defp create_enrollment_with_validation(identity_id, params) do
     with {:ok, parent} <- validate_parent_profile(identity_id),
-         :ok <- validate_booking_entitlement(parent) do
+         :ok <- validate_booking_entitlement(parent),
+         :ok <- validate_program_capacity(params[:program_id]) do
       attrs = build_enrollment_attrs(params, parent.id)
 
       Logger.info("[Enrollment.CreateEnrollment] Creating enrollment with validation",
@@ -72,15 +73,17 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
   end
 
   defp create_enrollment_direct(params) do
-    attrs = build_enrollment_attrs(params, params[:parent_id])
+    with :ok <- validate_program_capacity(params[:program_id]) do
+      attrs = build_enrollment_attrs(params, params[:parent_id])
 
-    Logger.info("[Enrollment.CreateEnrollment] Creating enrollment (direct)",
-      program_id: attrs[:program_id],
-      child_id: attrs[:child_id],
-      parent_id: attrs[:parent_id]
-    )
+      Logger.info("[Enrollment.CreateEnrollment] Creating enrollment (direct)",
+        program_id: attrs[:program_id],
+        child_id: attrs[:child_id],
+        parent_id: attrs[:parent_id]
+      )
 
-    repository().create(attrs)
+      repository().create(attrs)
+    end
   end
 
   defp validate_parent_profile(identity_id) do
@@ -122,7 +125,33 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
     }
   end
 
+  # Trigger: program_id is nil (missing required field)
+  # Why: let downstream changeset validation handle missing fields
+  # Outcome: skip capacity check, changeset will reject the enrollment
+  defp validate_program_capacity(nil), do: :ok
+
+  defp validate_program_capacity(program_id) do
+    case policy_repo().get_remaining_capacity(program_id) do
+      {:ok, :unlimited} ->
+        :ok
+
+      {:ok, remaining} when remaining > 0 ->
+        :ok
+
+      {:ok, 0} ->
+        Logger.info("[Enrollment.CreateEnrollment] Program full",
+          program_id: program_id
+        )
+
+        {:error, :program_full}
+    end
+  end
+
   defp repository do
     Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollments]
+  end
+
+  defp policy_repo do
+    Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollment_policies]
   end
 end

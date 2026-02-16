@@ -176,4 +176,54 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
       assert enrollment.status == :confirmed
     end
   end
+
+  describe "capacity enforcement" do
+    test "rejects enrollment when program is at max capacity" do
+      program = insert(:program_schema)
+      child1 = insert(:child_schema)
+      child2 = insert(:child_schema)
+
+      KlassHero.Enrollment.set_enrollment_policy(%{program_id: program.id, max_enrollment: 1})
+
+      {:ok, _} =
+        CreateEnrollment.execute(%{
+          program_id: program.id,
+          child_id: child1.id,
+          parent_id: child1.parent_id
+        })
+
+      assert {:error, :program_full} =
+               CreateEnrollment.execute(%{
+                 program_id: program.id,
+                 child_id: child2.id,
+                 parent_id: child2.parent_id
+               })
+    end
+
+    test "allows enrollment when no policy exists (unlimited)" do
+      program = insert(:program_schema)
+      child = insert(:child_schema)
+
+      assert {:ok, _} =
+               CreateEnrollment.execute(%{
+                 program_id: program.id,
+                 child_id: child.id,
+                 parent_id: child.parent_id
+               })
+    end
+
+    test "allows enrollment when under max capacity" do
+      program = insert(:program_schema)
+      child = insert(:child_schema)
+
+      KlassHero.Enrollment.set_enrollment_policy(%{program_id: program.id, max_enrollment: 10})
+
+      assert {:ok, _} =
+               CreateEnrollment.execute(%{
+                 program_id: program.id,
+                 child_id: child.id,
+                 parent_id: child.parent_id
+               })
+    end
+  end
 end
