@@ -345,6 +345,80 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
     end
   end
 
+  describe "registration_open?/1" do
+    test "returns true for always-open registration (both dates nil)" do
+      {:ok, program} = Program.new(valid_attrs())
+      assert Program.registration_open?(program)
+    end
+
+    test "returns true when today is within the registration window" do
+      rp = %RegistrationPeriod{
+        start_date: Date.add(Date.utc_today(), -5),
+        end_date: Date.add(Date.utc_today(), 5)
+      }
+
+      {:ok, program} = Program.new(valid_attrs(%{registration_period: rp}))
+      assert Program.registration_open?(program)
+    end
+
+    test "returns false for upcoming registration" do
+      rp = %RegistrationPeriod{
+        start_date: Date.add(Date.utc_today(), 10),
+        end_date: Date.add(Date.utc_today(), 20)
+      }
+
+      {:ok, program} = Program.new(valid_attrs(%{registration_period: rp}))
+      refute Program.registration_open?(program)
+    end
+
+    test "returns false for closed registration" do
+      rp = %RegistrationPeriod{
+        start_date: Date.add(Date.utc_today(), -20),
+        end_date: Date.add(Date.utc_today(), -5)
+      }
+
+      {:ok, program} = Program.new(valid_attrs(%{registration_period: rp}))
+      refute Program.registration_open?(program)
+    end
+  end
+
+  describe "registration_status/1" do
+    test "returns :always_open when both dates nil" do
+      {:ok, program} = Program.new(valid_attrs())
+      assert Program.registration_status(program) == :always_open
+    end
+
+    test "returns :open when within window" do
+      rp = %RegistrationPeriod{
+        start_date: Date.add(Date.utc_today(), -5),
+        end_date: Date.add(Date.utc_today(), 5)
+      }
+
+      {:ok, program} = Program.new(valid_attrs(%{registration_period: rp}))
+      assert Program.registration_status(program) == :open
+    end
+
+    test "returns :upcoming when before start" do
+      rp = %RegistrationPeriod{
+        start_date: Date.add(Date.utc_today(), 10),
+        end_date: Date.add(Date.utc_today(), 20)
+      }
+
+      {:ok, program} = Program.new(valid_attrs(%{registration_period: rp}))
+      assert Program.registration_status(program) == :upcoming
+    end
+
+    test "returns :closed when after end" do
+      rp = %RegistrationPeriod{
+        start_date: Date.add(Date.utc_today(), -20),
+        end_date: Date.add(Date.utc_today(), -5)
+      }
+
+      {:ok, program} = Program.new(valid_attrs(%{registration_period: rp}))
+      assert Program.registration_status(program) == :closed
+    end
+  end
+
   describe "new/1 with relaxed enforce_keys" do
     @minimal_attrs %{
       id: "550e8400-e29b-41d4-a716-446655440000",
@@ -764,6 +838,32 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
 
       assert {:ok, updated} = Program.apply_changes(program, %{registration_period: new_rp})
       assert updated.registration_period == new_rp
+    end
+
+    test "rejects invalid registration_period (start after end)" do
+      program = existing_program()
+
+      invalid_rp = %RegistrationPeriod{
+        start_date: ~D[2026-04-01],
+        end_date: ~D[2026-03-01]
+      }
+
+      assert {:error, errors} =
+               Program.apply_changes(program, %{registration_period: invalid_rp})
+
+      assert Enum.any?(errors, &String.contains?(&1, "registration"))
+    end
+
+    test "accepts valid registration_period update" do
+      program = existing_program()
+
+      valid_rp = %RegistrationPeriod{
+        start_date: ~D[2026-03-01],
+        end_date: ~D[2026-04-01]
+      }
+
+      assert {:ok, updated} = Program.apply_changes(program, %{registration_period: valid_rp})
+      assert updated.registration_period == valid_rp
     end
 
     test "ignores provider_id in changes (immutable field)" do

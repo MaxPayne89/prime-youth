@@ -103,8 +103,9 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   def create(attrs) when is_map(attrs) do
     attrs = normalize_keys(attrs)
 
-    with {:ok, instructor} <- build_instructor_from_attrs(attrs) do
-      build_base(attrs, instructor)
+    with {:ok, instructor} <- build_instructor_from_attrs(attrs),
+         {:ok, registration_period} <- build_registration_period(attrs) do
+      build_base(attrs, instructor, registration_period)
     end
   end
 
@@ -140,6 +141,18 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   @spec free?(t()) :: boolean()
   def free?(%__MODULE__{price: price}), do: Decimal.equal?(price, Decimal.new(0))
 
+  @doc """
+  Checks if the program's registration is currently open.
+  """
+  @spec registration_open?(t()) :: boolean()
+  def registration_open?(%__MODULE__{registration_period: rp}), do: RegistrationPeriod.open?(rp)
+
+  @doc """
+  Returns the current registration status of the program.
+  """
+  @spec registration_status(t()) :: RegistrationPeriod.status()
+  def registration_status(%__MODULE__{registration_period: rp}), do: RegistrationPeriod.status(rp)
+
   # ============================================================================
   # create/1 helpers
   # ============================================================================
@@ -167,7 +180,14 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   defp build_instructor_from_attrs(_), do: {:ok, nil}
 
-  defp build_base(attrs, instructor) do
+  defp build_registration_period(attrs) do
+    RegistrationPeriod.new(%{
+      start_date: attrs[:registration_start_date],
+      end_date: attrs[:registration_end_date]
+    })
+  end
+
+  defp build_base(attrs, instructor, registration_period) do
     errors = validate_creation_invariants(attrs)
 
     if errors == [] do
@@ -190,10 +210,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
          location: attrs[:location],
          cover_image_url: attrs[:cover_image_url],
          instructor: instructor,
-         registration_period: %RegistrationPeriod{
-           start_date: attrs[:registration_start_date],
-           end_date: attrs[:registration_end_date]
-         }
+         registration_period: registration_period
        }}
     else
       {:error, errors}
@@ -209,7 +226,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     |> validate_spots(attrs[:spots_available])
     |> validate_provider_id(attrs[:provider_id])
     |> validate_scheduling(attrs)
-    |> validate_registration_period(attrs[:registration_start_date], attrs[:registration_end_date])
   end
 
   defp validate_required_string(errors, attrs, key, message) do
@@ -250,18 +266,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   defp validate_provider_id(errors, id) when is_binary(id) and byte_size(id) > 0, do: errors
   defp validate_provider_id(errors, _), do: ["provider ID is required" | errors]
-
-  # Trigger: registration dates provided as flat attrs during creation
-  # Why: delegates to RegistrationPeriod.new/1 to validate date ordering invariants
-  # Outcome: collects any registration period errors into the error accumulator
-  defp validate_registration_period(errors, nil, nil), do: errors
-
-  defp validate_registration_period(errors, start_date, end_date) do
-    case RegistrationPeriod.new(%{start_date: start_date, end_date: end_date}) do
-      {:ok, _} -> errors
-      {:error, rp_errors} -> rp_errors ++ errors
-    end
-  end
 
   # ============================================================================
   # apply_changes/2 helpers
@@ -306,6 +310,22 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     |> validate_price(program.price)
     |> validate_spots(program.spots_available)
     |> validate_scheduling(struct_fields)
+    |> validate_registration_period_struct(program.registration_period)
+  end
+
+  # Trigger: registration_period struct already constructed (mutation path)
+  # Why: ensure date ordering is valid even when updating an existing program
+  # Outcome: rejects updates where start_date >= end_date
+  defp validate_registration_period_struct(errors, %RegistrationPeriod{
+         start_date: nil,
+         end_date: nil
+       }), do: errors
+
+  defp validate_registration_period_struct(errors, %RegistrationPeriod{} = rp) do
+    case RegistrationPeriod.new(%{start_date: rp.start_date, end_date: rp.end_date}) do
+      {:ok, _} -> errors
+      {:error, rp_errors} -> rp_errors ++ errors
+    end
   end
 
   # ============================================================================

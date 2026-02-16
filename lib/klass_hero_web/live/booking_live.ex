@@ -6,7 +6,6 @@ defmodule KlassHeroWeb.BookingLive do
 
   alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
-  alias KlassHero.ProgramCatalog.Domain.Models.RegistrationPeriod
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
 
@@ -210,7 +209,7 @@ defmodule KlassHeroWeb.BookingLive do
     # Trigger: program has a registration_period field
     # Why: prevent bookings outside the configured registration window
     # Outcome: blocks mount and enrollment if registration is closed
-    if RegistrationPeriod.open?(program.registration_period) do
+    if ProgramCatalog.registration_open?(program) do
       :ok
     else
       {:error, :registration_not_open}

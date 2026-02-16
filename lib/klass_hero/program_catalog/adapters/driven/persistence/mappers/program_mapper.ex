@@ -132,7 +132,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       location: program.location,
       cover_image_url: program.cover_image_url,
       provider_id: program.provider_id,
-      registration_start_date: program.registration_period && program.registration_period.start_date,
+      registration_start_date:
+        program.registration_period && program.registration_period.start_date,
       registration_end_date: program.registration_period && program.registration_period.end_date
     }
 
