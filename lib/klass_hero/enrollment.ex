@@ -187,4 +187,50 @@ defmodule KlassHero.Enrollment do
   def enrolled?(program_id, identity_id) when is_binary(program_id) and is_binary(identity_id) do
     CheckEnrollment.execute(program_id, identity_id)
   end
+
+  # ============================================================================
+  # Enrollment Policy Functions
+  # ============================================================================
+
+  @doc """
+  Creates or updates enrollment capacity policy for a program.
+
+  ## Parameters
+  - attrs: Map with :program_id (required), :min_enrollment, :max_enrollment (at least one required)
+
+  ## Returns
+  - `{:ok, EnrollmentPolicy.t()}` on success
+  - `{:error, term()}` on validation failure
+  """
+  def set_enrollment_policy(attrs) when is_map(attrs) do
+    policy_repo().upsert(attrs)
+  end
+
+  @doc """
+  Returns the enrollment policy for a program.
+  """
+  def get_enrollment_policy(program_id) when is_binary(program_id) do
+    policy_repo().get_by_program_id(program_id)
+  end
+
+  @doc """
+  Returns remaining enrollment capacity for a program.
+
+  - `{:ok, non_neg_integer()}` — remaining spots
+  - `{:ok, :unlimited}` — no maximum configured
+  """
+  def remaining_capacity(program_id) when is_binary(program_id) do
+    policy_repo().get_remaining_capacity(program_id)
+  end
+
+  @doc """
+  Returns the count of active (pending/confirmed) enrollments for a program.
+  """
+  def count_active_enrollments(program_id) when is_binary(program_id) do
+    policy_repo().count_active_enrollments(program_id)
+  end
+
+  defp policy_repo do
+    Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollment_policies]
+  end
 end

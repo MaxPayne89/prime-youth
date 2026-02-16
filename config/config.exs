@@ -67,7 +67,9 @@ config :klass_hero, :accounts,
 # Configure Enrollment bounded context
 config :klass_hero, :enrollment,
   for_managing_enrollments:
-    KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentRepository
+    KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentRepository,
+  for_managing_enrollment_policies:
+    KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentPolicyRepository
 
 # Configure Event Publisher (domain events — internal context communication)
 config :klass_hero, :event_publisher,
