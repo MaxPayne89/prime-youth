@@ -840,6 +840,28 @@ defmodule KlassHeroWeb.ProviderComponents do
           </div>
         </div>
 
+        <%!-- Registration Period Section --%>
+        <div class="space-y-3">
+          <p class="text-sm font-semibold text-hero-charcoal">
+            {gettext("Registration Period (optional)")}
+          </p>
+          <p class="text-xs text-hero-grey-500">
+            {gettext("Leave blank for open registration at any time.")}
+          </p>
+          <div class="grid grid-cols-2 gap-4">
+            <.input
+              field={@form[:registration_start_date]}
+              type="date"
+              label={gettext("Registration Opens")}
+            />
+            <.input
+              field={@form[:registration_end_date]}
+              type="date"
+              label={gettext("Registration Closes")}
+            />
+          </div>
+        </div>
+
         <.input
           field={@form[:description]}
           type="textarea"

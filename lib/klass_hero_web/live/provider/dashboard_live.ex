@@ -465,7 +465,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             meeting_start_time: parse_time(params["meeting_start_time"]),
             meeting_end_time: parse_time(params["meeting_end_time"]),
             start_date: parse_date(params["start_date"]),
-            end_date: parse_date(params["end_date"])
+            end_date: parse_date(params["end_date"]),
+            registration_start_date: parse_date(params["registration_start_date"]),
+            registration_end_date: parse_date(params["registration_end_date"])
           }
           |> maybe_add_cover_image(cover_result)
 
