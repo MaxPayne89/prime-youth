@@ -38,6 +38,7 @@ defmodule KlassHero.ProgramCatalog do
     deps: [KlassHero, KlassHero.Provider, KlassHero.Shared],
     exports: [
       Domain.Models.Program,
+      Domain.Models.RegistrationPeriod,
       Domain.Services.ProgramCategories
     ]
 
