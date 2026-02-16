@@ -20,8 +20,7 @@ defmodule KlassHeroWeb.BookingLive do
     current_user = socket.assigns.current_scope.user
 
     with {:ok, program} <- fetch_program(program_id),
-         :ok <- validate_registration_open(program),
-         :ok <- validate_program_availability(program) do
+         :ok <- validate_registration_open(program) do
       children = get_children_for_current_user(socket)
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
       children_by_id = Map.new(children, &{&1.id, &1})
@@ -114,7 +113,6 @@ defmodule KlassHeroWeb.BookingLive do
     with :ok <- validate_enrollment_data(socket, params),
          :ok <- validate_payment_method(socket),
          :ok <- validate_registration_open(socket.assigns.program),
-         :ok <- validate_program_availability(socket.assigns.program),
          {:ok, _enrollment} <- create_enrollment(socket, params) do
       {:noreply,
        socket
@@ -215,11 +213,6 @@ defmodule KlassHeroWeb.BookingLive do
       {:error, :registration_not_open}
     end
   end
-
-  defp validate_program_availability(%{spots_available: spots_available})
-       when spots_available > 0, do: :ok
-
-  defp validate_program_availability(_program), do: {:error, :no_spots}
 
   defp validate_enrollment_data(_socket, %{"child_id" => child_id})
        when is_binary(child_id) and byte_size(child_id) > 0, do: :ok

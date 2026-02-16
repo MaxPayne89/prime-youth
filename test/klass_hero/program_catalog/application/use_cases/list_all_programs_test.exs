@@ -86,7 +86,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         age_range: "6-10 years",
         price: Decimal.new("150.00"),
         pricing_period: "per month",
-        spots_available: 12,
         icon_path: "/images/icons/soccer.svg",
         inserted_at: ~U[2025-01-01 12:00:00Z],
         updated_at: ~U[2025-01-01 12:00:00Z]
@@ -101,7 +100,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         age_range: "7-12 years",
         price: Decimal.new("120.00"),
         pricing_period: "per month",
-        spots_available: 8,
         icon_path: "/images/icons/art.svg",
         inserted_at: ~U[2025-01-02 10:00:00Z],
         updated_at: ~U[2025-01-02 10:00:00Z]
@@ -135,7 +133,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         age_range: "5-8 years",
         price: Decimal.new("100.00"),
         pricing_period: "per session",
-        spots_available: 15,
         icon_path: nil,
         inserted_at: ~U[2025-01-03 09:00:00Z],
         updated_at: ~U[2025-01-03 09:00:00Z]
@@ -150,7 +147,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         age_range: "6-9 years",
         price: Decimal.new("80.00"),
         pricing_period: "per session",
-        spots_available: 10,
         icon_path: "/images/icons/paint.svg",
         inserted_at: ~U[2025-01-04 11:00:00Z],
         updated_at: ~U[2025-01-04 11:00:00Z]
@@ -175,7 +171,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         age_range: "12-18 years",
         price: Decimal.new("0.00"),
         pricing_period: "free",
-        spots_available: 20,
         icon_path: nil,
         inserted_at: ~U[2025-01-05 08:00:00Z],
         updated_at: ~U[2025-01-05 08:00:00Z]
@@ -190,7 +185,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         age_range: "8-14 years",
         price: Decimal.new("500.00"),
         pricing_period: "per week",
-        spots_available: 0,
         icon_path: "/images/icons/camp.svg",
         inserted_at: ~U[2025-01-06 14:00:00Z],
         updated_at: ~U[2025-01-06 14:00:00Z]
@@ -204,11 +198,9 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
 
       free = Enum.find(programs, &(&1.title == "Community Service"))
       assert free.price == Decimal.new("0.00")
-      assert free.spots_available == 20
 
       sold_out = Enum.find(programs, &(&1.title == "Popular Camp"))
       assert sold_out.price == Decimal.new("500.00")
-      assert sold_out.spots_available == 0
     end
   end
 end

@@ -20,8 +20,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Fun soccer for kids",
           age_range: "6-12",
           price: Decimal.new("150.00"),
-          pricing_period: "per week",
-          spots_available: 20
+          pricing_period: "per week"
         })
 
       _program_2 =
@@ -30,8 +29,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Creative art activities",
           age_range: "8-14",
           price: Decimal.new("75.00"),
-          pricing_period: "per month",
-          spots_available: 15
+          pricing_period: "per month"
         })
 
       _program_3 =
@@ -40,8 +38,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Learn various dance styles",
           age_range: "10-16",
           price: Decimal.new("100.00"),
-          pricing_period: "per session",
-          spots_available: 12
+          pricing_period: "per session"
         })
 
       programs = ProgramRepository.list_all_programs()
@@ -62,8 +59,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         description: "Description",
         age_range: "6-12",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
+        pricing_period: "per week"
       })
 
       insert_program(%{
@@ -71,8 +67,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         description: "Description",
         age_range: "6-12",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
+        pricing_period: "per week"
       })
 
       insert_program(%{
@@ -80,8 +75,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         description: "Description",
         age_range: "6-12",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
+        pricing_period: "per week"
       })
 
       programs = ProgramRepository.list_all_programs()
@@ -103,8 +97,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Free event for everyone",
           age_range: "All ages",
           price: Decimal.new("0.00"),
-          pricing_period: "per session",
-          spots_available: 100
+          pricing_period: "per session"
         })
 
       _paid_program =
@@ -113,8 +106,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Premium workshop",
           age_range: "10-15",
           price: Decimal.new("200.00"),
-          pricing_period: "per week",
-          spots_available: 15
+          pricing_period: "per week"
         })
 
       programs = ProgramRepository.list_all_programs()
@@ -128,40 +120,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       paid = Enum.find(programs, &(&1.title == "Paid Workshop"))
       assert paid.price == Decimal.new("200.00")
       refute Program.free?(paid)
-    end
-
-    test "includes programs with spots_available = 0 (sold out)" do
-      _sold_out_program =
-        insert_program(%{
-          title: "Sold Out Camp",
-          description: "No spots left",
-          age_range: "10-15",
-          price: Decimal.new("200.00"),
-          pricing_period: "per week",
-          spots_available: 0
-        })
-
-      _available_program =
-        insert_program(%{
-          title: "Available Program",
-          description: "Has spots",
-          age_range: "6-12",
-          price: Decimal.new("150.00"),
-          pricing_period: "per week",
-          spots_available: 20
-        })
-
-      programs = ProgramRepository.list_all_programs()
-
-      assert length(programs) == 2
-
-      sold_out = Enum.find(programs, &(&1.title == "Sold Out Camp"))
-      assert sold_out.spots_available == 0
-      assert Program.sold_out?(sold_out)
-
-      available = Enum.find(programs, &(&1.title == "Available Program"))
-      assert available.spots_available == 20
-      refute Program.sold_out?(available)
     end
 
     # Note: Testing actual database connection failures with retry logic
@@ -191,8 +149,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         description: "Description",
         age_range: "6-12",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
+        pricing_period: "per week"
       })
 
       programs = ProgramRepository.list_all_programs()
@@ -217,8 +174,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
               description: "Description #{i}",
               age_range: "6-12",
               price: Decimal.new("#{100 + i}.00"),
-              pricing_period: "per week",
-              spots_available: 10
+              pricing_period: "per week"
             },
             DateTime.add(base_time, i * 3600, :second)
           )
@@ -412,8 +368,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
             description: "Description",
             age_range: "6-12",
             price: Decimal.new("100.00"),
-            pricing_period: "per week",
-            spots_available: 10
+            pricing_period: "per week"
           },
           DateTime.add(base_time, i * 3600, :second)
         )
@@ -441,8 +396,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
             description: "Description",
             age_range: "6-12",
             price: Decimal.new("100.00"),
-            pricing_period: "per week",
-            spots_available: 10
+            pricing_period: "per week"
           },
           DateTime.add(base_time, i * 3600, :second)
         )
@@ -474,28 +428,25 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Original description",
           age_range: "6-12",
           price: Decimal.new("150.00"),
-          pricing_period: "per week",
-          spots_available: 20
+          pricing_period: "per week"
         })
 
       assert program_schema.lock_version == 1
 
       # Convert to domain and update
       domain_program = ProgramMapper.to_domain(program_schema)
-      updated_program = %{domain_program | title: "Updated Title", spots_available: 15}
+      updated_program = %{domain_program | title: "Updated Title"}
 
       # Execute update
       assert {:ok, result} = ProgramRepository.update(updated_program)
 
       # Verify changes persisted
       assert result.title == "Updated Title"
-      assert result.spots_available == 15
 
       # Verify lock_version incremented
       updated_schema = Repo.get(ProgramSchema, program_schema.id)
       assert updated_schema.lock_version == 2
       assert updated_schema.title == "Updated Title"
-      assert updated_schema.spots_available == 15
     end
 
     test "detects concurrent modification with stale_data error" do
@@ -506,8 +457,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Description",
           age_range: "6-12",
           price: Decimal.new("150.00"),
-          pricing_period: "per week",
-          spots_available: 20
+          pricing_period: "per week"
         })
 
       # Simulate two processes fetching the same program
@@ -536,8 +486,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Description",
           age_range: "6-12",
           price: Decimal.new("150.00"),
-          pricing_period: "per week",
-          spots_available: 20
+          pricing_period: "per week"
         })
 
       assert program_schema.lock_version == 1
@@ -572,7 +521,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         icon_path: "/images/icon.svg",
         inserted_at: DateTime.utc_now(),
         updated_at: DateTime.utc_now()
@@ -589,8 +537,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Description",
           age_range: "6-12",
           price: Decimal.new("150.00"),
-          pricing_period: "per week",
-          spots_available: 20
+          pricing_period: "per week"
         })
 
       # Attempt update with invalid data (negative price violates constraint)
@@ -615,8 +562,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Description",
           age_range: "6-12",
           price: Decimal.new("150.00"),
-          pricing_period: "per week",
-          spots_available: 20
+          pricing_period: "per week"
         })
 
       # Attempt update with empty title (required field)
@@ -641,7 +587,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
-          spots_available: 20,
           icon_path: "/images/original.svg"
         })
 
@@ -656,7 +601,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           age_range: "8-14",
           price: Decimal.new("200.00"),
           pricing_period: "per month",
-          spots_available: 15,
           icon_path: "/images/new.svg"
       }
 
@@ -669,7 +613,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       assert result.age_range == "8-14"
       assert result.price == Decimal.new("200.00")
       assert result.pricing_period == "per month"
-      assert result.spots_available == 15
       assert result.icon_path == "/images/new.svg"
 
       # Verify in database
@@ -686,15 +629,14 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Description",
           age_range: "6-12",
           price: Decimal.new("150.00"),
-          pricing_period: "per week",
-          spots_available: 20
+          pricing_period: "per week"
         })
 
       # Simulate 5 concurrent processes attempting to update
       domain_programs =
         for i <- 1..5 do
           domain = ProgramMapper.to_domain(program_schema)
-          %{domain | spots_available: 20 - i}
+          %{domain | title: "Concurrent Update #{i}"}
         end
 
       # Execute all updates concurrently
@@ -729,7 +671,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
-          spots_available: 20,
           provider_id: provider.id
         })
 
@@ -740,7 +681,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           age_range: "8-14",
           price: Decimal.new("75.00"),
           pricing_period: "per month",
-          spots_available: 15,
           provider_id: provider.id
         })
 
@@ -752,7 +692,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           age_range: "10-16",
           price: Decimal.new("100.00"),
           pricing_period: "per session",
-          spots_available: 12,
           provider_id: other_provider.id
         })
 
@@ -776,7 +715,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         provider_id: provider.id
       })
 
@@ -786,7 +724,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         provider_id: provider.id
       })
 
@@ -796,7 +733,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         provider_id: provider.id
       })
 
@@ -826,7 +762,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         provider_id: provider.id
       })
 
@@ -845,7 +780,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           age_range: "All ages",
           price: Decimal.new("0.00"),
           pricing_period: "per session",
-          spots_available: 100,
           provider_id: provider.id
         })
 
@@ -856,7 +790,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           age_range: "10-15",
           price: Decimal.new("200.00"),
           pricing_period: "per week",
-          spots_available: 0,
           provider_id: provider.id
         })
 
@@ -868,9 +801,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       assert free.price == Decimal.new("0.00")
       assert Program.free?(free)
 
-      sold_out = Enum.find(programs, &(&1.title == "Popular Camp"))
-      assert sold_out.spots_available == 0
-      assert Program.sold_out?(sold_out)
+      _popular = Enum.find(programs, &(&1.title == "Popular Camp"))
     end
   end
 

@@ -4,7 +4,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
 
   Note: Full field validation (length limits, category whitelist, etc.) is handled
   by the Ecto schema layer. The domain model provides simplified runtime invariant
-  checks via valid?/1 and business logic helpers like sold_out?/1 and free?/1.
+  checks via valid?/1 and business logic helpers like free?/1.
   """
 
   use ExUnit.Case, async: true
@@ -22,7 +22,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         age_range: "6-10 years",
         price: Decimal.new("150.00"),
         pricing_period: "per week",
-        spots_available: 20,
         meeting_days: [],
         registration_period: %RegistrationPeriod{}
       },
@@ -42,7 +41,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       assert program.age_range == "6-10 years"
       assert Decimal.equal?(program.price, Decimal.new("150.00"))
       assert program.pricing_period == "per week"
-      assert program.spots_available == 20
     end
 
     test "creates a free program (price = 0)" do
@@ -51,14 +49,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       assert {:ok, program} = Program.new(attrs)
       assert Decimal.equal?(program.price, Decimal.new("0"))
       assert Program.free?(program)
-    end
-
-    test "creates a sold-out program (spots = 0)" do
-      attrs = valid_attrs(%{spots_available: 0})
-
-      assert {:ok, program} = Program.new(attrs)
-      assert program.spots_available == 0
-      assert Program.sold_out?(program)
     end
 
     test "includes optional fields when present" do
@@ -108,8 +98,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "sports",
         age_range: "6-10 years",
         price: Decimal.new("150.00"),
-        pricing_period: "per week",
-        spots_available: 20
+        pricing_period: "per week"
       }
 
       assert Program.valid?(program)
@@ -123,23 +112,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "education",
         age_range: "5-15 years",
         price: Decimal.new("0"),
-        pricing_period: "free event",
-        spots_available: 50
-      }
-
-      assert Program.valid?(program)
-    end
-
-    test "returns true for a sold-out program (spots_available = 0)" do
-      program = %Program{
-        id: "550e8400-e29b-41d4-a716-446655440003",
-        title: "Popular Dance Class",
-        description: "High-demand dance instruction",
-        category: "education",
-        age_range: "7-9 years",
-        price: Decimal.new("120.00"),
-        pricing_period: "per month",
-        spots_available: 0
+        pricing_period: "free event"
       }
 
       assert Program.valid?(program)
@@ -153,8 +126,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "education",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 20
+        pricing_period: "per week"
       }
 
       refute Program.valid?(program)
@@ -168,8 +140,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "education",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 20
+        pricing_period: "per week"
       }
 
       refute Program.valid?(program)
@@ -183,8 +154,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "education",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 20
+        pricing_period: "per week"
       }
 
       refute Program.valid?(program)
@@ -198,8 +168,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "education",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 20
+        pricing_period: "per week"
       }
 
       refute Program.valid?(program)
@@ -213,73 +182,10 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "education",
         age_range: "6-10 years",
         price: Decimal.new("-10.00"),
-        pricing_period: "per week",
-        spots_available: 20
+        pricing_period: "per week"
       }
 
       refute Program.valid?(program)
-    end
-
-    test "returns false when spots_available is negative" do
-      program = %Program{
-        id: "550e8400-e29b-41d4-a716-446655440015",
-        title: "Valid Title",
-        description: "Valid description",
-        category: "education",
-        age_range: "6-10 years",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: -1
-      }
-
-      refute Program.valid?(program)
-    end
-  end
-
-  describe "sold_out?/1" do
-    test "returns true when spots_available is 0" do
-      program = %Program{
-        id: "550e8400-e29b-41d4-a716-446655440018",
-        title: "Sold Out Program",
-        description: "This program is sold out",
-        category: "education",
-        age_range: "6-10 years",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 0
-      }
-
-      assert Program.sold_out?(program)
-    end
-
-    test "returns false when spots_available is greater than 0" do
-      program = %Program{
-        id: "550e8400-e29b-41d4-a716-446655440019",
-        title: "Available Program",
-        description: "This program has spots",
-        category: "education",
-        age_range: "6-10 years",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 1
-      }
-
-      refute Program.sold_out?(program)
-    end
-
-    test "returns false when spots_available is large" do
-      program = %Program{
-        id: "550e8400-e29b-41d4-a716-446655440020",
-        title: "Popular Program",
-        description: "Many spots available",
-        category: "education",
-        age_range: "6-10 years",
-        price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 100
-      }
-
-      refute Program.sold_out?(program)
     end
   end
 
@@ -292,8 +198,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "education",
         age_range: "6-10 years",
         price: Decimal.new("0"),
-        pricing_period: "free",
-        spots_available: 50
+        pricing_period: "free"
       }
 
       assert Program.free?(program)
@@ -307,8 +212,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "education",
         age_range: "5-15 years",
         price: Decimal.new("0.00"),
-        pricing_period: "free",
-        spots_available: 100
+        pricing_period: "free"
       }
 
       assert Program.free?(program)
@@ -322,8 +226,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "education",
         age_range: "6-10 years",
         price: Decimal.new("0.01"),
-        pricing_period: "per session",
-        spots_available: 20
+        pricing_period: "per session"
       }
 
       refute Program.free?(program)
@@ -337,8 +240,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "education",
         age_range: "6-10 years",
         price: Decimal.new("150.00"),
-        pricing_period: "per week",
-        spots_available: 15
+        pricing_period: "per week"
       }
 
       refute Program.free?(program)
@@ -434,7 +336,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       assert program.title == "Art Adventures"
       assert program.meeting_days == []
       assert program.age_range == nil
-      assert program.spots_available == 0
     end
 
     test "creates program with location" do
@@ -464,15 +365,13 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         description: "Fun soccer activities for kids",
         category: "sports",
         price: Decimal.new("150.00"),
-        provider_id: "660e8400-e29b-41d4-a716-446655440001",
-        spots_available: 20
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
       }
 
       assert {:ok, program} = Program.create(attrs)
       assert program.title == "Summer Soccer Camp"
       assert program.category == "sports"
       assert program.id == nil
-      assert program.spots_available == 20
     end
 
     test "creates program with optional fields" do
@@ -526,19 +425,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
 
       assert {:ok, program} = Program.create(attrs)
       assert program.instructor == nil
-    end
-
-    test "defaults spots_available to 0" do
-      attrs = %{
-        title: "Default Spots",
-        description: "No spots specified",
-        category: "arts",
-        price: Decimal.new("50.00"),
-        provider_id: "660e8400-e29b-41d4-a716-446655440001"
-      }
-
-      assert {:ok, program} = Program.create(attrs)
-      assert program.spots_available == 0
     end
 
     test "rejects empty title" do
@@ -643,20 +529,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       assert Enum.any?(errors, &String.contains?(&1, "rovider"))
     end
 
-    test "rejects negative spots_available" do
-      attrs = %{
-        title: "Valid",
-        description: "Valid",
-        category: "sports",
-        price: Decimal.new("100.00"),
-        provider_id: "660e8400-e29b-41d4-a716-446655440001",
-        spots_available: -1
-      }
-
-      assert {:error, errors} = Program.create(attrs)
-      assert Enum.any?(errors, &String.contains?(&1, "spots"))
-    end
-
     test "rejects invalid instructor data" do
       attrs = %{
         title: "Valid",
@@ -739,7 +611,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
         category: "sports",
         price: Decimal.new("150.00"),
         provider_id: "660e8400-e29b-41d4-a716-446655440001",
-        spots_available: 20,
         lock_version: 1
       }
     end
@@ -757,13 +628,11 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       assert {:ok, updated} =
                Program.apply_changes(program, %{
                  title: "Updated",
-                 price: Decimal.new("200.00"),
-                 spots_available: 15
+                 price: Decimal.new("200.00")
                })
 
       assert updated.title == "Updated"
       assert updated.price == Decimal.new("200.00")
-      assert updated.spots_available == 15
     end
 
     test "preserves fields not in changes" do
@@ -819,7 +688,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
       assert updated.description == program.description
       assert updated.category == program.category
       assert updated.price == program.price
-      assert updated.spots_available == program.spots_available
       assert updated.instructor == program.instructor
     end
 

@@ -75,8 +75,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
         build_program(%{
           id: "prog-1",
           title: "Summer Camp",
-          category: "sports",
-          spots_available: 25
+          category: "sports"
         })
 
       result = ProgramPresenter.to_table_view(program)
@@ -84,7 +83,8 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.id == "prog-1"
       assert result.name == "Summer Camp"
       assert result.category == "Sports"
-      assert result.capacity == 25
+      # capacity is a placeholder (0) until EnrollmentPolicy integration (Task 8)
+      assert result.capacity == 0
     end
   end
 
@@ -279,7 +279,6 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       description: "A test program",
       category: "arts",
       price: Decimal.new("50.00"),
-      spots_available: 10,
       instructor: nil,
       meeting_days: [],
       meeting_start_time: nil,

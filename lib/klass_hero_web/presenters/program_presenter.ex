@@ -49,7 +49,8 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       status: :active,
       # Placeholder: Enrollment count integration pending implementation
       enrolled: 0,
-      capacity: program.spots_available
+      # Placeholder: Capacity now owned by EnrollmentPolicy (Enrollment context)
+      capacity: 0
     }
   end
 

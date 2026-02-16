@@ -115,7 +115,8 @@ defmodule KlassHeroWeb.ProgramsLive do
       age_range: program.age_range,
       price: safe_decimal_to_float(program.price),
       period: program.pricing_period,
-      spots_left: program.spots_available,
+      # Placeholder: Capacity now owned by EnrollmentPolicy (Enrollment context)
+      spots_left: 0,
       # Default UI properties (these will come from the database in the future)
       gradient_class: default_gradient_class(),
       icon_path: program.icon_path || default_icon_path()

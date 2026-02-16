@@ -64,7 +64,7 @@ defmodule KlassHero.Factory do
   ## Examples
 
       program = build(:program)
-      program = build(:program, title: "Soccer Camp", spots_available: 15)
+      program = build(:program, title: "Soccer Camp")
   """
   def program_factory do
     %Program{
@@ -82,7 +82,6 @@ defmodule KlassHero.Factory do
       age_range: "6-10 years",
       price: Decimal.new("100.00"),
       pricing_period: "per month",
-      spots_available: 10,
       icon_path: "/images/icons/default.svg",
       end_date: nil,
       inserted_at: ~U[2025-01-01 12:00:00Z],
@@ -113,7 +112,6 @@ defmodule KlassHero.Factory do
       age_range: "6-10 years",
       price: Decimal.new("100.00"),
       pricing_period: "per month",
-      spots_available: 10,
       icon_path: "/images/icons/default.svg",
       end_date: nil
     }
@@ -134,7 +132,6 @@ defmodule KlassHero.Factory do
       meeting_days: ["Monday", "Wednesday"],
       age_range: "6-10 years",
       price: Decimal.new("150.00"),
-      spots_available: 12,
       icon_path: "/images/icons/soccer.svg"
     })
   end
@@ -150,7 +147,6 @@ defmodule KlassHero.Factory do
       meeting_days: ["Tuesday", "Thursday"],
       age_range: "7-12 years",
       price: Decimal.new("120.00"),
-      spots_available: 8,
       icon_path: "/images/icons/dance.svg"
     })
   end
@@ -166,7 +162,6 @@ defmodule KlassHero.Factory do
       meeting_days: ["Saturday"],
       age_range: "5-8 years",
       price: Decimal.new("80.00"),
-      spots_available: 15,
       icon_path: "/images/icons/yoga.svg"
     })
   end
@@ -182,7 +177,6 @@ defmodule KlassHero.Factory do
       meeting_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
       age_range: "8-14 years",
       price: Decimal.new("200.00"),
-      spots_available: 16,
       icon_path: "/images/icons/basketball.svg"
     })
   end
@@ -198,7 +192,6 @@ defmodule KlassHero.Factory do
       meeting_days: ["Wednesday"],
       age_range: "5-10 years",
       price: Decimal.new("90.00"),
-      spots_available: 12,
       icon_path: "/images/icons/art.svg"
     })
   end

@@ -18,7 +18,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "6-12",
         price: Decimal.new("150.00"),
         pricing_period: "per week",
-        spots_available: 20,
         icon_path: "/images/soccer.svg",
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -33,7 +32,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert domain.age_range == "6-12"
       assert domain.price == Decimal.new("150.00")
       assert domain.pricing_period == "per week"
-      assert domain.spots_available == 20
+
       assert domain.icon_path == "/images/soccer.svg"
       assert domain.meeting_days == []
       assert domain.meeting_start_time == nil
@@ -49,7 +48,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "8-14",
         price: Decimal.new("75.00"),
         pricing_period: "per month",
-        spots_available: 15,
         icon_path: nil,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -71,7 +69,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "All ages",
         price: Decimal.new("0.00"),
         pricing_period: "per session",
-        spots_available: 100,
         icon_path: "/images/community.svg",
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -84,27 +81,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       assert Program.free?(domain)
     end
 
-    test "converts schema with spots_available = 0 (sold out)" do
-      schema = %ProgramSchema{
-        id: Ecto.UUID.generate(),
-        title: "Popular Camp",
-        description: "Sold out camp",
-        age_range: "10-15",
-        price: Decimal.new("200.00"),
-        pricing_period: "per week",
-        spots_available: 0,
-        icon_path: "/images/camp.svg",
-        inserted_at: ~U[2024-01-01 10:00:00Z],
-        updated_at: ~U[2024-01-01 10:00:00Z]
-      }
-
-      domain = ProgramMapper.to_domain(schema)
-
-      assert %Program{} = domain
-      assert domain.spots_available == 0
-      assert Program.sold_out?(domain)
-    end
-
     test "preserves Decimal precision for price" do
       schema = %ProgramSchema{
         id: Ecto.UUID.generate(),
@@ -113,7 +89,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "6-12",
         price: Decimal.new("99.99"),
         pricing_period: "per session",
-        spots_available: 10,
         icon_path: nil,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -133,7 +108,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         meeting_days: ["Monday", "Wednesday"],
         meeting_start_time: ~T[16:00:00],
         meeting_end_time: ~T[17:30:00],
@@ -158,7 +132,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         registration_start_date: ~D[2026-03-01],
         registration_end_date: ~D[2026-04-01],
         inserted_at: ~U[2024-01-01 10:00:00Z],
@@ -180,7 +153,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
       }
@@ -200,7 +172,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         icon_path: nil,
         instructor_id: Ecto.UUID.generate(),
         instructor_name: "Jane Coach",
@@ -226,7 +197,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
             age_range: "6-12",
             price: Decimal.new("100.00"),
             pricing_period: "per week",
-            spots_available: 10,
             icon_path: nil,
             instructor_id: nil,
             instructor_name: nil,
@@ -250,7 +220,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         icon_path: nil,
         instructor_id: Ecto.UUID.generate(),
         instructor_name: nil,
@@ -279,7 +248,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           age_range: "6-10",
           price: Decimal.new("100.00"),
           pricing_period: "per week",
-          spots_available: 15,
           icon_path: "/images/a.svg",
           inserted_at: ~U[2024-01-01 10:00:00Z],
           updated_at: ~U[2024-01-01 10:00:00Z]
@@ -291,7 +259,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           age_range: "8-12",
           price: Decimal.new("75.00"),
           pricing_period: "per month",
-          spots_available: 20,
           icon_path: "/images/b.svg",
           inserted_at: ~U[2024-01-01 10:00:00Z],
           updated_at: ~U[2024-01-01 10:00:00Z]
@@ -303,7 +270,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           age_range: "10-14",
           price: Decimal.new("0.00"),
           pricing_period: "per session",
-          spots_available: 0,
           icon_path: nil,
           inserted_at: ~U[2024-01-01 10:00:00Z],
           updated_at: ~U[2024-01-01 10:00:00Z]
@@ -319,17 +285,13 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
 
       assert program_a.title == "Program A"
       assert program_a.price == Decimal.new("100.00")
-      assert program_a.spots_available == 15
 
       assert program_b.title == "Program B"
       assert program_b.price == Decimal.new("75.00")
-      assert program_b.spots_available == 20
 
       assert program_c.title == "Program C"
       assert program_c.price == Decimal.new("0.00")
-      assert program_c.spots_available == 0
       assert Program.free?(program_c)
-      assert Program.sold_out?(program_c)
     end
 
     test "converts empty list to empty list" do
@@ -344,7 +306,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "6-10",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         icon_path: nil,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -357,7 +318,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "6-10",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         icon_path: nil,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -370,7 +330,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         age_range: "6-10",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         icon_path: nil,
         inserted_at: ~U[2024-01-01 10:00:00Z],
         updated_at: ~U[2024-01-01 10:00:00Z]
@@ -394,7 +353,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           age_range: "6-10",
           price: Decimal.new("100.00"),
           pricing_period: "per week",
-          spots_available: 10,
           icon_path: "/images/icon.svg",
           inserted_at: ~U[2024-01-01 10:00:00Z],
           updated_at: ~U[2024-01-01 10:00:00Z]
@@ -406,7 +364,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
           age_range: "8-12",
           price: Decimal.new("75.00"),
           pricing_period: "per month",
-          spots_available: 15,
           icon_path: nil,
           inserted_at: ~U[2024-01-01 10:00:00Z],
           updated_at: ~U[2024-01-01 10:00:00Z]
@@ -432,8 +389,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         description: "Desc",
         category: "arts",
         price: Decimal.new("50.00"),
-        provider_id: "660e8400-e29b-41d4-a716-446655440001",
-        spots_available: 10
+        provider_id: "660e8400-e29b-41d4-a716-446655440001"
       }
 
       attrs = ProgramMapper.to_schema(program)
@@ -450,7 +406,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         category: "arts",
         price: Decimal.new("50.00"),
         provider_id: "660e8400-e29b-41d4-a716-446655440001",
-        spots_available: 10,
         location: "Park",
         cover_image_url: "https://example.com/img.jpg",
         instructor: instructor
@@ -472,7 +427,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         category: "arts",
         price: Decimal.new("50.00"),
         provider_id: "660e8400-e29b-41d4-a716-446655440001",
-        spots_available: 10,
         meeting_days: ["Tuesday", "Thursday"],
         meeting_start_time: ~T[15:00:00],
         meeting_end_time: ~T[16:30:00],
@@ -496,7 +450,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         category: "arts",
         price: Decimal.new("50.00"),
         provider_id: "xyz",
-        spots_available: 10,
         registration_period: rp
       }
 
@@ -513,7 +466,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
         category: "arts",
         price: Decimal.new("50.00"),
         provider_id: "xyz",
-        spots_available: 10,
         registration_period: %RegistrationPeriod{}
       }
 

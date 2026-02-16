@@ -15,8 +15,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           description: "Explore creativity through painting and sculpture",
           age_range: "6-8 years",
           price: Decimal.new("120.00"),
-          pricing_period: "per month",
-          spots_available: 12
+          pricing_period: "per month"
         })
 
       program2 =
@@ -25,8 +24,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           description: "Learn soccer fundamentals and teamwork",
           age_range: "8-12 years",
           price: Decimal.new("85.00"),
-          pricing_period: "per month",
-          spots_available: 20
+          pricing_period: "per month"
         })
 
       program3 =
@@ -35,8 +33,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           description: "Develop strategic thinking through chess",
           age_range: "7-14 years",
           price: Decimal.new("60.00"),
-          pricing_period: "per month",
-          spots_available: 15
+          pricing_period: "per month"
         })
 
       {:ok, view, _html} = live(conn, ~p"/programs")
@@ -79,8 +76,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           description: "Free reading and learning time at the library",
           age_range: "5-10 years",
           price: Decimal.new("0"),
-          pricing_period: "free",
-          spots_available: 30
+          pricing_period: "free"
         })
 
       paid_program =
@@ -89,8 +85,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           description: "Learn to play piano with expert instruction",
           age_range: "6-16 years",
           price: Decimal.new("150.00"),
-          pricing_period: "per month",
-          spots_available: 8
+          pricing_period: "per month"
         })
 
       {:ok, view, _html} = live(conn, ~p"/programs")
@@ -115,7 +110,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
             age_range: "6-12 years",
             price: Decimal.new("#{i}.00"),
             pricing_period: "per month",
-            spots_available: 10,
             inserted_at: DateTime.add(base_time, i * 1000, :second)
           })
         end
@@ -154,14 +148,12 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
     test "available filter excludes sold-out programs", %{conn: conn} do
       sold_out =
         insert_program(%{
-          title: "Sold Out Soccer",
-          spots_available: 0
+          title: "Sold Out Soccer"
         })
 
       available =
         insert_program(%{
-          title: "Available Art Class",
-          spots_available: 5
+          title: "Available Art Class"
         })
 
       {:ok, view, _html} = live(conn, ~p"/programs?filter=available")
@@ -312,20 +304,17 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
     test "combining search with available filter", %{conn: conn} do
       sold_out_soccer =
         insert_program(%{
-          title: "Sold Out Soccer Camp",
-          spots_available: 0
+          title: "Sold Out Soccer Camp"
         })
 
       available_soccer =
         insert_program(%{
-          title: "Available Soccer Training",
-          spots_available: 10
+          title: "Available Soccer Training"
         })
 
       available_art =
         insert_program(%{
-          title: "Available Art Class",
-          spots_available: 5
+          title: "Available Art Class"
         })
 
       {:ok, view, _html} = live(conn, ~p"/programs?q=soccer&filter=available")
@@ -398,7 +387,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           title: "Soccer Camp",
           description: "Fun soccer activities for kids",
           age_range: "6-10 years",
-          spots_available: 10,
           price: Decimal.new("150.00")
         })
 
@@ -407,7 +395,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           title: "Art Class",
           description: "Creative painting workshop",
           age_range: "8-12 years",
-          spots_available: 0,
           price: Decimal.new("120.00")
         })
 
@@ -416,7 +403,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           title: "Chess Club",
           description: "Strategic thinking through chess",
           age_range: "7-14 years",
-          spots_available: 15,
           price: Decimal.new("80.00")
         })
 
@@ -467,14 +453,12 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Given: Database has programs
       available =
         insert_program(%{
-          title: "Available Program",
-          spots_available: 10
+          title: "Available Program"
         })
 
       sold_out =
         insert_program(%{
-          title: "Sold Out Program",
-          spots_available: 0
+          title: "Sold Out Program"
         })
 
       # When: User navigates directly to URL with filter parameter
@@ -500,22 +484,19 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       available_soccer =
         insert_program(%{
           title: "Available Soccer",
-          description: "Soccer training",
-          spots_available: 10
+          description: "Soccer training"
         })
 
       _sold_out_soccer =
         insert_program(%{
           title: "Sold Out Soccer Camp",
-          description: "Soccer camp",
-          spots_available: 0
+          description: "Soccer camp"
         })
 
       _available_art =
         insert_program(%{
           title: "Available Art",
-          description: "Art workshop",
-          spots_available: 5
+          description: "Art workshop"
         })
 
       # Scenario 1: Apply filter first, then search
@@ -565,14 +546,12 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Given: Database has only sold-out programs
       _sold_out1 =
         insert_program(%{
-          title: "Sold Out Program 1",
-          spots_available: 0
+          title: "Sold Out Program 1"
         })
 
       _sold_out2 =
         insert_program(%{
-          title: "Sold Out Program 2",
-          spots_available: 0
+          title: "Sold Out Program 2"
         })
 
       # When: User filters by "available"
@@ -608,14 +587,12 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Given: Database has both available and sold-out programs
       available =
         insert_program(%{
-          title: "Available Program",
-          spots_available: 10
+          title: "Available Program"
         })
 
       _sold_out =
         insert_program(%{
-          title: "Sold Out Program",
-          spots_available: 0
+          title: "Sold Out Program"
         })
 
       # When: User filters by "available"
@@ -634,8 +611,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Given: Database has only sold-out programs
       sold_out =
         insert_program(%{
-          title: "Sold Out Soccer",
-          spots_available: 0
+          title: "Sold Out Soccer"
         })
 
       # When: User starts with "all" filter (programs shown)
@@ -664,8 +640,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       _art =
         insert_program(%{
           title: "Art Class",
-          description: "Painting workshop",
-          spots_available: 10
+          description: "Painting workshop"
         })
 
       # When: User searches for "soccer" with "available" filter
@@ -684,8 +659,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Given: Database has programs
       program =
         insert_program(%{
-          title: "Test Program",
-          spots_available: 10
+          title: "Test Program"
         })
 
       # When: User navigates with invalid filter parameter
@@ -781,14 +755,12 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Given: Database has programs
       soccer =
         insert_program(%{
-          title: "Soccer Training",
-          spots_available: 10
+          title: "Soccer Training"
         })
 
       art =
         insert_program(%{
-          title: "Art Class",
-          spots_available: 5
+          title: "Art Class"
         })
 
       # When: User uses invalid filter with valid search
@@ -824,14 +796,12 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Given: Database has programs with different availability
       available =
         insert_program(%{
-          title: "Available",
-          spots_available: 10
+          title: "Available"
         })
 
       sold_out =
         insert_program(%{
-          title: "Sold Out",
-          spots_available: 0
+          title: "Sold Out"
         })
 
       # When: User rapidly changes filters
@@ -862,20 +832,17 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       available_soccer =
         insert_program(%{
           title: "Available Soccer",
-          description: "Soccer training",
-          spots_available: 10
+          description: "Soccer training"
         })
 
       sold_out_soccer =
         insert_program(%{
-          title: "Sold Out Soccer",
-          spots_available: 0
+          title: "Sold Out Soccer"
         })
 
       available_art =
         insert_program(%{
-          title: "Available Art",
-          spots_available: 5
+          title: "Available Art"
         })
 
       # When: User navigates with both filter and search in URL
@@ -1066,7 +1033,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       for i <- 1..15 do
         insert_program(%{
           title: "Available Program #{i}",
-          spots_available: 5,
           inserted_at: DateTime.add(base_time, i * 1000, :second)
         })
       end
@@ -1074,7 +1040,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       for i <- 16..30 do
         insert_program(%{
           title: "Sold Out Program #{i}",
-          spots_available: 0,
           inserted_at: DateTime.add(base_time, i * 1000, :second)
         })
       end
@@ -1210,7 +1175,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       for i <- 1..5 do
         insert_program(%{
           title: "Available Soccer #{15 - i + 1}",
-          spots_available: 5,
           inserted_at: DateTime.add(base_time, (15 - i + 1) * 1000, :second)
         })
       end
@@ -1219,7 +1183,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       for i <- 6..10 do
         insert_program(%{
           title: "Sold Out Soccer #{15 - i + 1}",
-          spots_available: 0,
           inserted_at: DateTime.add(base_time, (15 - i + 1) * 1000, :second)
         })
       end
@@ -1228,7 +1191,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       for i <- 11..15 do
         insert_program(%{
           title: "Available Art #{15 - i + 1}",
-          spots_available: 5,
           inserted_at: DateTime.add(base_time, (15 - i + 1) * 1000, :second)
         })
       end
@@ -1267,7 +1229,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       age_range: "6-12 years",
       price: Decimal.new("100.00"),
       pricing_period: "per month",
-      spots_available: 10,
       icon_path: "/images/icons/default.svg"
     }
 

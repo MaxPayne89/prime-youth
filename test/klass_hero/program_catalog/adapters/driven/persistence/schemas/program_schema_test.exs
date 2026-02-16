@@ -13,7 +13,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           age_range: "6-12",
           price: Decimal.new("150.00"),
           pricing_period: "per week",
-          spots_available: 20,
           icon_path: "/images/soccer.svg"
         },
         overrides
@@ -41,14 +40,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
 
       assert changeset.valid?
       assert get_change(changeset, :price) == Decimal.new("0.00")
-    end
-
-    test "valid changeset with spots_available = 0 (sold out)" do
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, valid_attrs(%{spots_available: 0}))
-
-      assert changeset.valid?
-      # Use get_field instead of get_change since 0 is the default value
-      assert get_field(changeset, :spots_available) == 0
     end
 
     test "invalid changeset when title is missing" do
@@ -118,14 +109,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       assert "must be greater than or equal to 0" in errors_on(changeset).price
     end
 
-    test "invalid changeset when spots_available is negative" do
-      changeset =
-        ProgramSchema.changeset(%ProgramSchema{}, valid_attrs(%{spots_available: -5}))
-
-      refute changeset.valid?
-      assert "must be greater than or equal to 0" in errors_on(changeset).spots_available
-    end
-
     test "title at exactly 100 characters is valid" do
       changeset =
         ProgramSchema.changeset(
@@ -156,8 +139,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           category: "education",
           age_range: "6-12",
           price: Decimal.new("100.00"),
-          pricing_period: "per week",
-          spots_available: 10
+          pricing_period: "per week"
         },
         overrides
       )
@@ -473,8 +455,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           title: "Updated Program",
           description: "Updated description",
           category: "sports",
-          price: Decimal.new("200.00"),
-          spots_available: 15
+          price: Decimal.new("200.00")
         },
         overrides
       )
@@ -487,7 +468,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
         description: "Original description",
         category: "sports",
         price: Decimal.new("100.00"),
-        spots_available: 20,
         lock_version: 1
       }
     end
@@ -523,13 +503,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
       refute changeset.valid?
       assert "can't be blank" in errors_on(changeset).price
-    end
-
-    test "requires spots_available" do
-      attrs = valid_update_attrs(%{spots_available: nil})
-      changeset = ProgramSchema.update_changeset(existing_schema(), attrs)
-      refute changeset.valid?
-      assert "can't be blank" in errors_on(changeset).spots_available
     end
 
     test "applies optimistic locking" do
@@ -617,7 +590,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
         description: "Original description",
         category: "sports",
         price: Decimal.new("100.00"),
-        spots_available: 20,
         lock_version: 1
       }
     end
@@ -641,7 +613,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
         description: "Updated description",
         category: "sports",
         price: Decimal.new("200.00"),
-        spots_available: 15,
         registration_start_date: ~D[2026-02-01],
         registration_end_date: ~D[2026-03-01]
       }

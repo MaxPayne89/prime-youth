@@ -72,8 +72,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "Fun soccer for kids",
         age_range: "6-12 years",
         price: Decimal.new("150.00"),
-        pricing_period: "per week",
-        spots_available: 20
+        pricing_period: "per week"
       })
 
       insert_program(%{
@@ -81,8 +80,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "Creative art activities",
         age_range: "8-14 years",
         price: Decimal.new("75.00"),
-        pricing_period: "per month",
-        spots_available: 15
+        pricing_period: "per month"
       })
 
       programs = ListAllPrograms.execute()
@@ -98,8 +96,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
                  is_list(program.meeting_days) &&
                  is_binary(program.age_range) && program.age_range != "" &&
                  match?(%Decimal{}, program.price) &&
-                 is_binary(program.pricing_period) && program.pricing_period != "" &&
-                 is_integer(program.spots_available) && program.spots_available >= 0
+                 is_binary(program.pricing_period) && program.pricing_period != ""
              end)
 
       soccer_camp = Enum.find(programs, &(&1.title == "Soccer Camp"))
@@ -108,7 +105,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
       assert soccer_camp.age_range == "6-12 years"
       assert Decimal.equal?(soccer_camp.price, Decimal.new("150.00"))
       assert soccer_camp.pricing_period == "per week"
-      assert soccer_camp.spots_available == 20
 
       art_class = Enum.find(programs, &(&1.title == "Art Class"))
       assert art_class.description == "Creative art activities"
@@ -134,8 +130,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "Wildlife education",
         age_range: "6-12 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
+        pricing_period: "per week"
       })
 
       insert_program(%{
@@ -143,8 +138,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "Creative activities",
         age_range: "6-12 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
+        pricing_period: "per week"
       })
 
       insert_program(%{
@@ -152,8 +146,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "Learn instruments",
         age_range: "6-12 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
+        pricing_period: "per week"
       })
 
       programs = ListAllPrograms.execute()
@@ -175,8 +168,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "Description",
         age_range: "6-12 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
+        pricing_period: "per week"
       })
 
       programs = ListAllPrograms.execute()
@@ -192,8 +184,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "Give back to the community",
         age_range: "12-18 years",
         price: Decimal.new("0.00"),
-        pricing_period: "free",
-        spots_available: 20
+        pricing_period: "free"
       })
 
       insert_program(%{
@@ -201,8 +192,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "High-demand summer camp",
         age_range: "8-14 years",
         price: Decimal.new("500.00"),
-        pricing_period: "per week",
-        spots_available: 0
+        pricing_period: "per week"
       })
 
       programs = ListAllPrograms.execute()
@@ -211,14 +201,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
 
       free_program = Enum.find(programs, &(&1.title == "Free Community Service"))
       assert Decimal.equal?(free_program.price, Decimal.new("0.00"))
-      assert free_program.spots_available == 20
       assert Program.free?(free_program)
-      refute Program.sold_out?(free_program)
 
       sold_out_program = Enum.find(programs, &(&1.title == "Sold Out Camp"))
       assert Decimal.equal?(sold_out_program.price, Decimal.new("500.00"))
-      assert sold_out_program.spots_available == 0
-      assert Program.sold_out?(sold_out_program)
       refute Program.free?(sold_out_program)
     end
 
@@ -230,7 +216,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         icon_path: "/custom/icon.svg"
       })
 
@@ -239,8 +224,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "Description B",
         age_range: "8-12 years",
         price: Decimal.new("0.00"),
-        pricing_period: "free",
-        spots_available: 0
+        pricing_period: "free"
       })
 
       programs = ListAllPrograms.execute()
@@ -255,7 +239,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         assert is_binary(program.age_range) && program.age_range != ""
         assert match?(%Decimal{}, program.price)
         assert is_binary(program.pricing_period) && program.pricing_period != ""
-        assert is_integer(program.spots_available) && program.spots_available >= 0
 
         if program.icon_path, do: assert(is_binary(program.icon_path))
 
@@ -271,7 +254,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         age_range: "6-12 years",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        spots_available: 10,
         icon_path: "/icon1.svg"
       })
 
@@ -280,8 +262,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "With no optional fields",
         age_range: "6-12 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        spots_available: 10
+        pricing_period: "per week"
       })
 
       programs = ListAllPrograms.execute()

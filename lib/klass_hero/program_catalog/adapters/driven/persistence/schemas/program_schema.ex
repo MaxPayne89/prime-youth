@@ -26,7 +26,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :age_range, :string
     field :price, :decimal
     field :pricing_period, :string
-    field :spots_available, :integer, default: 0
     field :lock_version, :integer, default: 1
     field :icon_path, :string
     field :end_date, :date
@@ -54,7 +53,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           age_range: String.t() | nil,
           price: Decimal.t() | nil,
           pricing_period: String.t() | nil,
-          spots_available: integer() | nil,
           lock_version: integer() | nil,
           icon_path: String.t() | nil,
           end_date: Date.t() | nil,
@@ -80,7 +78,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
   - age_range (non-empty)
   - price (>= 0)
   - pricing_period (non-empty)
-  - spots_available (>= 0)
 
   Optional scheduling fields:
   - meeting_days (list of valid weekday names)
@@ -97,7 +94,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :age_range,
       :price,
       :pricing_period,
-      :spots_available,
       :icon_path,
       :end_date,
       :provider_id,
@@ -119,8 +115,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :category,
       :age_range,
       :price,
-      :pricing_period,
-      :spots_available
+      :pricing_period
     ])
     |> validate_length(:title, min: 1, max: 100)
     |> validate_length(:description, min: 1, max: 500)
@@ -128,7 +123,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_length(:pricing_period, min: 1, max: 100)
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
-    |> validate_number(:spots_available, greater_than_or_equal_to: 0)
     |> validate_meeting_days()
     |> validate_time_pairing()
     |> validate_date_range()
@@ -149,7 +143,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :category,
       :price,
       :location,
-      :spots_available,
       :meeting_days,
       :meeting_start_time,
       :meeting_end_time,
@@ -174,7 +167,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_length(:instructor_name, max: 200)
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
-    |> validate_number(:spots_available, greater_than_or_equal_to: 0)
     |> validate_meeting_days()
     |> validate_time_pairing()
     |> validate_date_range()
@@ -201,7 +193,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :age_range,
       :price,
       :pricing_period,
-      :spots_available,
       :icon_path,
       :end_date,
       :location,
@@ -220,8 +211,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :title,
       :description,
       :category,
-      :price,
-      :spots_available
+      :price
     ])
     |> validate_length(:title, min: 1, max: 100)
     |> validate_length(:description, min: 1, max: 500)
@@ -229,7 +219,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_length(:pricing_period, max: 100)
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
-    |> validate_number(:spots_available, greater_than_or_equal_to: 0)
     |> validate_meeting_days()
     |> validate_time_pairing()
     |> validate_date_range()
