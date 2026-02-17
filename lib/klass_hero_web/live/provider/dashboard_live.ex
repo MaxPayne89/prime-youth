@@ -473,19 +473,37 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> maybe_add_cover_image(cover_result)
 
         with {:ok, attrs} <- maybe_add_instructor(attrs, params["instructor_id"], socket),
-             {:ok, program} <- ProgramCatalog.create_program(attrs),
-             :ok <- maybe_set_enrollment_policy(program.id, params) do
+             {:ok, program} <- ProgramCatalog.create_program(attrs) do
+          policy_result = maybe_set_enrollment_policy(program.id, params)
           view = ProgramPresenter.to_table_view(program)
 
+          # Trigger: program created, but enrollment policy may have failed
+          # Why: program is already persisted — don't roll back, just adjust flash
+          # Outcome: success flash if policy ok, warning flash if policy failed
+          flash_socket =
+            case policy_result do
+              :ok ->
+                socket
+                |> clear_flash(:error)
+                |> put_flash(:info, gettext("Program created successfully."))
+
+              {:error, :enrollment_policy_failed} ->
+                socket
+                |> put_flash(
+                  :error,
+                  gettext(
+                    "Program created, but enrollment capacity could not be saved. Edit the program to retry."
+                  )
+                )
+            end
+
           {:noreply,
-           socket
+           flash_socket
            |> stream_insert(:programs, view)
            |> assign(
              show_program_form: false,
              programs_count: socket.assigns.programs_count + 1
-           )
-           |> clear_flash(:error)
-           |> put_flash(:info, gettext("Program created successfully."))}
+           )}
         else
           {:error, :instructor_not_found} ->
             {:noreply,
@@ -1210,8 +1228,19 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
              min_enrollment: min,
              max_enrollment: max
            }) do
-        {:ok, _policy} -> :ok
-        {:error, _} -> :ok
+        {:ok, _policy} ->
+          :ok
+
+        # Trigger: policy save failed (e.g. min > max validation)
+        # Why: program already created — don't roll back, but warn provider
+        # Outcome: propagate error so with chain shows a warning flash
+        {:error, reason} ->
+          Logger.warning("[Provider.DashboardLive] Failed to save enrollment policy",
+            program_id: program_id,
+            reason: inspect(reason)
+          )
+
+          {:error, :enrollment_policy_failed}
       end
     end
   end

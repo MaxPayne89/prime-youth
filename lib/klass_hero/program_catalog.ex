@@ -351,5 +351,5 @@ defmodule KlassHero.ProgramCatalog do
   Delegates to the Enrollment context.
   """
   defdelegate remaining_capacity(program_id),
-    to: KlassHero.ProgramCatalog.Domain.Services.EnrollmentCapacityACL
+    to: KlassHero.ProgramCatalog.Adapters.Driven.ACL.EnrollmentCapacityACL
 end

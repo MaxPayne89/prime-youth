@@ -22,12 +22,15 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMapper
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Queries.EnrollmentQueries
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentPolicySchema
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
 
   require Logger
+
+  @active_statuses ~w(pending confirmed)
 
   @impl true
   @doc """
@@ -71,6 +74,69 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
           {:error, changeset}
         end
     end
+  end
+
+  @impl true
+  @doc """
+  Creates an enrollment with atomic capacity check.
+
+  Uses Ecto.Multi to lock the enrollment policy row (SELECT FOR UPDATE),
+  verify remaining capacity, and create the enrollment in a single transaction.
+  Prevents TOCTOU race conditions where concurrent requests could both pass
+  the capacity check and exceed max enrollment.
+  """
+  # Trigger: program_id is nil (missing required field)
+  # Why: let downstream changeset validation handle missing fields
+  # Outcome: skip capacity check, changeset will reject the enrollment
+  def create_with_capacity_check(attrs, nil), do: create(attrs)
+
+  def create_with_capacity_check(attrs, program_id)
+      when is_map(attrs) and is_binary(program_id) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.run(:lock_and_check, fn repo, _changes ->
+      # Trigger: lock the policy row to prevent concurrent capacity checks
+      # Why: SELECT FOR UPDATE serializes concurrent enrollment attempts
+      # Outcome: only one request proceeds at a time per program
+      query =
+        from(p in EnrollmentPolicySchema,
+          where: p.program_id == ^program_id,
+          lock: "FOR UPDATE"
+        )
+
+      case repo.one(query) do
+        nil ->
+          {:ok, :unlimited}
+
+        %{max_enrollment: nil} ->
+          {:ok, :unlimited}
+
+        %{max_enrollment: max} ->
+          active = count_active_enrollments_in_tx(repo, program_id)
+
+          if active < max do
+            {:ok, max - active}
+          else
+            {:error, :program_full}
+          end
+      end
+    end)
+    |> Ecto.Multi.run(:create, fn _repo, _changes ->
+      create(attrs)
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{create: enrollment}} -> {:ok, enrollment}
+      {:error, :lock_and_check, :program_full, _} -> {:error, :program_full}
+      {:error, :create, reason, _} -> {:error, reason}
+    end
+  end
+
+  defp count_active_enrollments_in_tx(repo, program_id) do
+    from(e in EnrollmentSchema,
+      where: e.program_id == ^program_id and e.status in ^@active_statuses,
+      select: count(e.id)
+    )
+    |> repo.one()
   end
 
   @impl true

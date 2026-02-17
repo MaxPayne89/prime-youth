@@ -210,4 +210,55 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
       refute html =~ "title is required"
     end
   end
+
+  describe "enrollment capacity errors" do
+    test "shows warning flash when enrollment policy fails (min > max)", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#new-program-btn") |> render_click()
+
+      # Trigger: submit valid program data with invalid capacity (min > max)
+      # Why: enrollment policy changeset rejects min > max
+      # Outcome: program created but warning flash shown about capacity
+      view
+      |> form("#program-form", %{
+        "program_schema" => %{
+          "title" => "Capacity Test Program",
+          "description" => "Testing invalid capacity handling",
+          "category" => "sports",
+          "price" => "30.00",
+          "min_enrollment" => "20",
+          "max_enrollment" => "5"
+        }
+      })
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "enrollment capacity could not be saved"
+      refute has_element?(view, "#program-form")
+    end
+
+    test "creates program successfully with valid capacity", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#new-program-btn") |> render_click()
+
+      view
+      |> form("#program-form", %{
+        "program_schema" => %{
+          "title" => "Valid Capacity Program",
+          "description" => "Testing valid capacity handling",
+          "category" => "sports",
+          "price" => "30.00",
+          "min_enrollment" => "5",
+          "max_enrollment" => "20"
+        }
+      })
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "Program created successfully."
+      refute html =~ "enrollment capacity could not be saved"
+    end
+  end
 end
