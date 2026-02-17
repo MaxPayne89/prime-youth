@@ -499,10 +499,18 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         with {:ok, attrs} <- maybe_add_instructor(attrs, params["instructor_id"], socket),
              {:ok, program} <- ProgramCatalog.create_program(attrs) do
           policy_result = maybe_set_enrollment_policy(program.id, enrollment_params)
-          max = parse_integer(enrollment_params["max_enrollment"])
+
+          # Trigger: policy save may have failed (e.g. min > max)
+          # Why: only show capacity in table if the policy was actually persisted
+          # Outcome: failed policies show "—/—" instead of phantom capacity
+          capacity =
+            case policy_result do
+              :ok -> parse_integer(enrollment_params["max_enrollment"])
+              {:error, _} -> nil
+            end
 
           new_enrollment_data = %{
-            program.id => %{enrolled: 0, capacity: max}
+            program.id => %{enrolled: 0, capacity: capacity}
           }
 
           view = ProgramPresenter.to_table_view(program, new_enrollment_data)
