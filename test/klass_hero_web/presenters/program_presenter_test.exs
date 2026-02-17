@@ -6,14 +6,25 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
   alias KlassHeroWeb.Presenters.ProgramPresenter
 
   describe "to_table_view/1" do
-    test "program without instructor returns nil assigned_staff and placeholder fields" do
+    test "program without instructor returns nil assigned_staff and nil enrollment fields" do
       program = build_program(%{instructor: nil})
 
       result = ProgramPresenter.to_table_view(program)
 
       assert result.assigned_staff == nil
       assert result.status == :active
-      assert result.enrolled == 0
+      assert result.enrolled == nil
+      assert result.capacity == nil
+    end
+
+    test "populates enrolled/capacity from enrollment_data" do
+      program = build_program(%{id: "prog-1"})
+      enrollment_data = %{"prog-1" => %{enrolled: 5, capacity: 20}}
+
+      result = ProgramPresenter.to_table_view(program, enrollment_data)
+
+      assert result.enrolled == 5
+      assert result.capacity == 20
     end
 
     test "program with instructor populates assigned_staff" do
@@ -75,8 +86,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
         build_program(%{
           id: "prog-1",
           title: "Summer Camp",
-          category: "sports",
-          spots_available: 25
+          category: "sports"
         })
 
       result = ProgramPresenter.to_table_view(program)
@@ -84,7 +94,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.id == "prog-1"
       assert result.name == "Summer Camp"
       assert result.category == "Sports"
-      assert result.capacity == 25
+      assert result.capacity == nil
     end
   end
 
@@ -279,7 +289,6 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       description: "A test program",
       category: "arts",
       price: Decimal.new("50.00"),
-      spots_available: 10,
       instructor: nil,
       meeting_days: [],
       meeting_start_time: nil,

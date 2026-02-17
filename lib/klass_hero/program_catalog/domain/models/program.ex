@@ -33,7 +33,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     :meeting_end_time,
     :start_date,
     meeting_days: [],
-    spots_available: 0,
     registration_period: %RegistrationPeriod{}
   ]
 
@@ -46,7 +45,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
           age_range: String.t() | nil,
           price: Decimal.t(),
           pricing_period: String.t() | nil,
-          spots_available: non_neg_integer(),
           icon_path: String.t() | nil,
           end_date: Date.t() | nil,
           lock_version: non_neg_integer() | nil,
@@ -87,8 +85,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   def valid?(%__MODULE__{} = program) do
     is_binary(program.title) and String.trim(program.title) != "" and
       is_binary(program.description) and String.trim(program.description) != "" and
-      match?(%Decimal{}, program.price) and Decimal.compare(program.price, Decimal.new(0)) != :lt and
-      is_integer(program.spots_available) and program.spots_available >= 0
+      match?(%Decimal{}, program.price) and Decimal.compare(program.price, Decimal.new(0)) != :lt
   end
 
   @doc """
@@ -128,12 +125,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
       end
     end
   end
-
-  @doc """
-  Checks if the program is sold out (no spots available).
-  """
-  @spec sold_out?(t()) :: boolean()
-  def sold_out?(%__MODULE__{spots_available: spots}), do: spots == 0
 
   @doc """
   Checks if the program is free (price is $0).
@@ -204,7 +195,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
          start_date: attrs[:start_date],
          age_range: attrs[:age_range],
          pricing_period: attrs[:pricing_period],
-         spots_available: attrs[:spots_available] || 0,
          icon_path: attrs[:icon_path],
          end_date: attrs[:end_date],
          location: attrs[:location],
@@ -223,7 +213,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     |> validate_required_string(attrs, :description, "description is required")
     |> validate_category(attrs[:category])
     |> validate_price(attrs[:price])
-    |> validate_spots(attrs[:spots_available])
     |> validate_provider_id(attrs[:provider_id])
     |> validate_scheduling(attrs)
   end
@@ -258,12 +247,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   defp validate_price(errors, _), do: ["price is required" | errors]
 
-  defp validate_spots(errors, nil), do: errors
-  defp validate_spots(errors, spots) when is_integer(spots) and spots >= 0, do: errors
-
-  defp validate_spots(errors, _),
-    do: ["spots available must be greater than or equal to 0" | errors]
-
   defp validate_provider_id(errors, id) when is_binary(id) and byte_size(id) > 0, do: errors
   defp validate_provider_id(errors, _), do: ["provider ID is required" | errors]
 
@@ -282,7 +265,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   defp resolve_instructor(program, _changes), do: {:ok, program.instructor}
 
-  @updatable_fields ~w(title description category price spots_available
+  @updatable_fields ~w(title description category price
                        meeting_days meeting_start_time meeting_end_time start_date
                        age_range pricing_period icon_path end_date location cover_image_url
                        registration_period)a
@@ -308,7 +291,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     |> validate_required_string(struct_fields, :description, "description is required")
     |> validate_category(program.category)
     |> validate_price(program.price)
-    |> validate_spots(program.spots_available)
     |> validate_scheduling(struct_fields)
     |> validate_registration_period_struct(program.registration_period)
   end

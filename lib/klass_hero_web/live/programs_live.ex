@@ -63,8 +63,11 @@ defmodule KlassHeroWeb.ProgramsLive do
     start_time = System.monotonic_time(:millisecond)
     # Apply search filter to domain programs BEFORE converting to maps
     filtered_domain = ProgramCatalog.filter_programs(page_result.items, search_query)
+    # Batch-fetch remaining capacities to avoid N+1 queries
+    program_ids = Enum.map(filtered_domain, & &1.id)
+    capacities = ProgramCatalog.remaining_capacities(program_ids)
     # Convert to maps for UI
-    programs = Enum.map(filtered_domain, &program_to_map/1)
+    programs = Enum.map(filtered_domain, &program_to_map(&1, capacities))
     duration_ms = System.monotonic_time(:millisecond) - start_time
 
     Logger.info(
@@ -103,7 +106,10 @@ defmodule KlassHeroWeb.ProgramsLive do
   end
 
   # Private helper - Domain to UI conversion
-  defp program_to_map(%KlassHero.ProgramCatalog.Domain.Models.Program{} = program) do
+  defp program_to_map(%KlassHero.ProgramCatalog.Domain.Models.Program{} = program, capacities) do
+    remaining = Map.get(capacities, program.id)
+    spots_left = if remaining != :unlimited, do: remaining
+
     base_map = %{
       id: program.id,
       title: program.title,
@@ -115,7 +121,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       age_range: program.age_range,
       price: safe_decimal_to_float(program.price),
       period: program.pricing_period,
-      spots_left: program.spots_available,
+      spots_left: spots_left,
       # Default UI properties (these will come from the database in the future)
       gradient_class: default_gradient_class(),
       icon_path: program.icon_path || default_icon_path()
@@ -274,7 +280,9 @@ defmodule KlassHeroWeb.ProgramsLive do
         filtered_domain =
           ProgramCatalog.filter_programs(page_result.items, socket.assigns.search_query)
 
-        programs = Enum.map(filtered_domain, &program_to_map/1)
+        program_ids = Enum.map(filtered_domain, & &1.id)
+        capacities = ProgramCatalog.remaining_capacities(program_ids)
+        programs = Enum.map(filtered_domain, &program_to_map(&1, capacities))
 
         Logger.info(
           "[ProgramsLive.load_more] Successfully loaded next page",

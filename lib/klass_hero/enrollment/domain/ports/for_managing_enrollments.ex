@@ -68,6 +68,21 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForManagingEnrollments do
             ) :: non_neg_integer()
 
   @doc """
+  Creates an enrollment with atomic capacity check.
+
+  Locks the enrollment policy row (SELECT FOR UPDATE), verifies remaining
+  capacity, and creates the enrollment — all within a single transaction.
+
+  Returns:
+  - `{:ok, Enrollment.t()}` - Enrollment created successfully
+  - `{:error, :program_full}` - Max enrollment capacity reached
+  - `{:error, :duplicate_resource}` - Active enrollment already exists for this child/program
+  - `{:error, term()}` - Other validation or persistence failure
+  """
+  @callback create_with_capacity_check(attrs :: map(), program_id :: binary()) ::
+              {:ok, Enrollment.t()} | {:error, :program_full | :duplicate_resource | term()}
+
+  @doc """
   Returns the identity IDs of parents with active enrollments for a program.
 
   Active enrollments are those with status "pending" or "confirmed".

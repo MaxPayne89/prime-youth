@@ -187,4 +187,104 @@ defmodule KlassHero.Enrollment do
   def enrolled?(program_id, identity_id) when is_binary(program_id) and is_binary(identity_id) do
     CheckEnrollment.execute(program_id, identity_id)
   end
+
+  # ============================================================================
+  # Enrollment Policy Functions
+  # ============================================================================
+
+  @doc """
+  Creates or updates enrollment capacity policy for a program.
+
+  ## Parameters
+  - attrs: Map with :program_id (required), :min_enrollment, :max_enrollment (at least one required)
+
+  ## Returns
+  - `{:ok, EnrollmentPolicy.t()}` on success
+  - `{:error, term()}` on validation failure
+  """
+  def set_enrollment_policy(attrs) when is_map(attrs) do
+    policy_repo().upsert(attrs)
+  end
+
+  @doc """
+  Returns the enrollment policy for a program.
+  """
+  def get_enrollment_policy(program_id) when is_binary(program_id) do
+    policy_repo().get_by_program_id(program_id)
+  end
+
+  @doc """
+  Returns remaining enrollment capacity for a program.
+
+  Fetches the policy and active count, then delegates calculation to the
+  domain model (`EnrollmentPolicy.remaining_capacity/2`).
+
+  - `{:ok, non_neg_integer()}` — remaining spots
+  - `{:ok, :unlimited}` — no maximum configured
+  """
+  def remaining_capacity(program_id) when is_binary(program_id) do
+    alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
+
+    case policy_repo().get_by_program_id(program_id) do
+      {:error, :not_found} ->
+        {:ok, :unlimited}
+
+      {:ok, policy} ->
+        count = policy_repo().count_active_enrollments(program_id)
+        {:ok, EnrollmentPolicy.remaining_capacity(policy, count)}
+    end
+  end
+
+  @doc """
+  Returns remaining capacity for multiple programs in a single batch query.
+  Returns a map of `program_id => remaining_count | :unlimited`.
+  """
+  def get_remaining_capacities(program_ids) when is_list(program_ids) do
+    alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
+
+    policies = policy_repo().get_policies_by_program_ids(program_ids)
+    active_counts = policy_repo().count_active_enrollments_batch(program_ids)
+
+    Map.new(program_ids, fn id ->
+      case Map.get(policies, id) do
+        nil ->
+          {id, :unlimited}
+
+        policy ->
+          count = Map.get(active_counts, id, 0)
+          {id, EnrollmentPolicy.remaining_capacity(policy, count)}
+      end
+    end)
+  end
+
+  @doc """
+  Returns the count of active (pending/confirmed) enrollments for a program.
+  """
+  def count_active_enrollments(program_id) when is_binary(program_id) do
+    policy_repo().count_active_enrollments(program_id)
+  end
+
+  @doc """
+  Returns counts of active enrollments for multiple programs in a single batch query.
+  Returns a map of `program_id => count`.
+  """
+  def count_active_enrollments_batch(program_ids) when is_list(program_ids) do
+    policy_repo().count_active_enrollments_batch(program_ids)
+  end
+
+  @doc """
+  Returns a changeset for enrollment policy form validation.
+
+  Used by the provider dashboard to validate capacity fields inline
+  before the program is created.
+  """
+  def new_policy_changeset(attrs \\ %{}) do
+    alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentPolicySchema
+
+    EnrollmentPolicySchema.changeset(%EnrollmentPolicySchema{}, attrs)
+  end
+
+  defp policy_repo do
+    Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollment_policies]
+  end
 end

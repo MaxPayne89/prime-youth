@@ -15,8 +15,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           description: "Explore creativity through painting and sculpture",
           age_range: "6-8 years",
           price: Decimal.new("120.00"),
-          pricing_period: "per month",
-          spots_available: 12
+          pricing_period: "per month"
         })
 
       program2 =
@@ -25,8 +24,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           description: "Learn soccer fundamentals and teamwork",
           age_range: "8-12 years",
           price: Decimal.new("85.00"),
-          pricing_period: "per month",
-          spots_available: 20
+          pricing_period: "per month"
         })
 
       program3 =
@@ -35,8 +33,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           description: "Develop strategic thinking through chess",
           age_range: "7-14 years",
           price: Decimal.new("60.00"),
-          pricing_period: "per month",
-          spots_available: 15
+          pricing_period: "per month"
         })
 
       {:ok, view, _html} = live(conn, ~p"/programs")
@@ -79,8 +76,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           description: "Free reading and learning time at the library",
           age_range: "5-10 years",
           price: Decimal.new("0"),
-          pricing_period: "free",
-          spots_available: 30
+          pricing_period: "free"
         })
 
       paid_program =
@@ -89,8 +85,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
           description: "Learn to play piano with expert instruction",
           age_range: "6-16 years",
           price: Decimal.new("150.00"),
-          pricing_period: "per month",
-          spots_available: 8
+          pricing_period: "per month"
         })
 
       {:ok, view, _html} = live(conn, ~p"/programs")
@@ -115,7 +110,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
             age_range: "6-12 years",
             price: Decimal.new("#{i}.00"),
             pricing_period: "per month",
-            spots_available: 10,
             inserted_at: DateTime.add(base_time, i * 1000, :second)
           })
         end
@@ -149,31 +143,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
 
   # T057: Filter behavior validation tests
   describe "ProgramsLive - Filter Behaviors" do
-    # T058: Test available filter excludes sold-out programs
-    @tag :skip
-    test "available filter excludes sold-out programs", %{conn: conn} do
-      sold_out =
-        insert_program(%{
-          title: "Sold Out Soccer",
-          spots_available: 0
-        })
-
-      available =
-        insert_program(%{
-          title: "Available Art Class",
-          spots_available: 5
-        })
-
-      {:ok, view, _html} = live(conn, ~p"/programs?filter=available")
-
-      # Verify available program is visible, sold out is not
-      assert_program_visible(view, available)
-      refute_program_visible(view, sold_out)
-
-      # Verify filter UI state
-      assert has_element?(view, "[data-filter-id='sports'][data-active='true']")
-    end
-
     # T059: Test price filter sorts programs by price (lowest first)
     @tag :skip
     test "price filter sorts programs by price lowest first", %{conn: conn} do
@@ -306,35 +275,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Verify search input reflects query
       assert has_element?(view2, "input[name='search'][value='art']")
     end
-
-    # T063: Test combining search with filters
-    @tag :skip
-    test "combining search with available filter", %{conn: conn} do
-      sold_out_soccer =
-        insert_program(%{
-          title: "Sold Out Soccer Camp",
-          spots_available: 0
-        })
-
-      available_soccer =
-        insert_program(%{
-          title: "Available Soccer Training",
-          spots_available: 10
-        })
-
-      available_art =
-        insert_program(%{
-          title: "Available Art Class",
-          spots_available: 5
-        })
-
-      {:ok, view, _html} = live(conn, ~p"/programs?q=soccer&filter=available")
-
-      # Only available soccer program should be visible
-      assert_program_visible(view, available_soccer)
-      refute_program_visible(view, sold_out_soccer)
-      refute_program_visible(view, available_art)
-    end
   end
 
   # T032-T034: User Story 1 specific integration tests
@@ -388,161 +328,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
     end
   end
 
-  # T064: End-to-end user journey test
-  describe "ProgramsLive - End-to-End User Journey" do
-    # T065: Complete user flow from browse to detail page navigation
-    @tag :skip
-    test "complete user journey: browse, filter, search, navigate to detail", %{conn: conn} do
-      soccer =
-        insert_program(%{
-          title: "Soccer Camp",
-          description: "Fun soccer activities for kids",
-          age_range: "6-10 years",
-          spots_available: 10,
-          price: Decimal.new("150.00")
-        })
-
-      art_sold_out =
-        insert_program(%{
-          title: "Art Class",
-          description: "Creative painting workshop",
-          age_range: "8-12 years",
-          spots_available: 0,
-          price: Decimal.new("120.00")
-        })
-
-      chess =
-        insert_program(%{
-          title: "Chess Club",
-          description: "Strategic thinking through chess",
-          age_range: "7-14 years",
-          spots_available: 15,
-          price: Decimal.new("80.00")
-        })
-
-      {:ok, view, _html} = live(conn, ~p"/programs")
-
-      # Verify all programs initially visible
-      assert_program_visible(view, soccer)
-      assert_program_visible(view, art_sold_out)
-      assert_program_visible(view, chess)
-
-      # Click available filter
-      view
-      |> element("[data-filter-id='sports']")
-      |> render_click()
-
-      # Verify only available programs visible
-      assert_program_visible(view, soccer)
-      refute_program_visible(view, art_sold_out)
-      assert_program_visible(view, chess)
-
-      assert_patch(view, ~p"/programs?filter=available")
-
-      # Search for "soccer"
-      view
-      |> element("input[name='search']")
-      |> render_change(%{"search" => "soccer"})
-
-      # Verify only soccer program visible
-      assert_program_visible(view, soccer)
-      refute_program_visible(view, chess)
-      refute_program_visible(view, art_sold_out)
-
-      assert_patch(view, ~p"/programs?filter=available&q=soccer")
-
-      result =
-        view
-        |> element("[phx-click='program_click'][phx-value-program-id='#{soccer.id}']")
-        |> render_click()
-
-      assert {:error, {:live_redirect, %{to: redirect_path}}} = result
-
-      assert redirect_path == "/programs/#{soccer.id}"
-    end
-
-    # T066: Test URL parameter handling persistence across LiveView lifecycle
-    @tag :skip
-    test "URL parameters persist across mount and handle_params", %{conn: conn} do
-      # Given: Database has programs
-      available =
-        insert_program(%{
-          title: "Available Program",
-          spots_available: 10
-        })
-
-      sold_out =
-        insert_program(%{
-          title: "Sold Out Program",
-          spots_available: 0
-        })
-
-      # When: User navigates directly to URL with filter parameter
-      {:ok, view, _html} = live(conn, ~p"/programs?filter=available")
-
-      # Then: Filter is correctly applied on mount
-      assert_program_visible(view, available)
-      refute_program_visible(view, sold_out)
-      assert has_element?(view, "[data-filter-id='sports'][data-active='true']")
-
-      # When: User navigates to URL with search parameter
-      {:ok, view2, _html} = live(conn, ~p"/programs?q=available")
-
-      # Then: Search is correctly applied on mount
-      assert_program_visible(view2, available)
-      refute_program_visible(view2, sold_out)
-    end
-
-    # T067: Test filter + search combination with various orderings
-    @tag :skip
-    test "filter and search combination works regardless of application order", %{conn: conn} do
-      # Given: Database has soccer and art programs, some sold out
-      available_soccer =
-        insert_program(%{
-          title: "Available Soccer",
-          description: "Soccer training",
-          spots_available: 10
-        })
-
-      _sold_out_soccer =
-        insert_program(%{
-          title: "Sold Out Soccer Camp",
-          description: "Soccer camp",
-          spots_available: 0
-        })
-
-      _available_art =
-        insert_program(%{
-          title: "Available Art",
-          description: "Art workshop",
-          spots_available: 5
-        })
-
-      # Scenario 1: Apply filter first, then search
-      {:ok, view, _html} = live(conn, ~p"/programs?filter=available")
-
-      # When: User searches for "soccer"
-      view |> element("input[name='search']") |> render_change(%{"search" => "soccer"})
-
-      # Then: Only available soccer program is shown
-      assert_program_visible(view, available_soccer)
-      refute has_element?(view, "[data-program-id]", "Sold Out Soccer")
-      refute has_element?(view, "[data-program-id]", "Art")
-
-      # Scenario 2: Apply search first, then filter (start fresh)
-      {:ok, view, _html} = live(conn, ~p"/programs?q=soccer")
-
-      # When: User clicks available filter
-      view
-      |> element("[data-filter-id='sports']")
-      |> render_click()
-
-      # Then: Same result - only available soccer program
-      assert_program_visible(view, available_soccer)
-      refute has_element?(view, "[data-program-id]", "Sold Out Soccer")
-    end
-  end
-
   # T077: Empty state behavioral differentiation tests
   describe "ProgramsLive - Empty State Differentiation" do
     # T078: Empty state when no programs exist in database
@@ -557,32 +342,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
 
       # Note: Current implementation shows generic message
       # Future enhancement: differentiate "No programs available" vs "No matches"
-    end
-
-    # T079: Empty state when all programs are filtered out
-    @tag :skip
-    test "shows context-aware message when programs exist but are filtered out", %{conn: conn} do
-      # Given: Database has only sold-out programs
-      _sold_out1 =
-        insert_program(%{
-          title: "Sold Out Program 1",
-          spots_available: 0
-        })
-
-      _sold_out2 =
-        insert_program(%{
-          title: "Sold Out Program 2",
-          spots_available: 0
-        })
-
-      # When: User filters by "available"
-      {:ok, _view, html} = live(conn, ~p"/programs?filter=available")
-
-      # Then: Empty state is shown
-      assert html =~ "No programs found"
-
-      # And: Helpful message suggests adjusting filters
-      assert html =~ "Try adjusting your search or filter criteria"
     end
 
     # T080: Empty state when search yields no results
@@ -601,80 +360,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       assert html =~ "No programs found"
       assert html =~ "Try adjusting your search or filter criteria"
     end
-
-    # T081: No empty state when programs match filters
-    @tag :skip
-    test "hides empty state when programs match current filters", %{conn: conn} do
-      # Given: Database has both available and sold-out programs
-      available =
-        insert_program(%{
-          title: "Available Program",
-          spots_available: 10
-        })
-
-      _sold_out =
-        insert_program(%{
-          title: "Sold Out Program",
-          spots_available: 0
-        })
-
-      # When: User filters by "available"
-      {:ok, view, _html} = live(conn, ~p"/programs?filter=available")
-
-      # Then: Programs are shown, no empty state
-      assert_program_visible(view, available)
-
-      # And: Empty state component is not rendered
-      refute has_element?(view, "[data-testid='empty-state']")
-    end
-
-    # T082: Empty state transitions correctly when filters change
-    @tag :skip
-    test "empty state appears/disappears correctly when filters change", %{conn: conn} do
-      # Given: Database has only sold-out programs
-      sold_out =
-        insert_program(%{
-          title: "Sold Out Soccer",
-          spots_available: 0
-        })
-
-      # When: User starts with "all" filter (programs shown)
-      {:ok, view, _html} = live(conn, ~p"/programs")
-
-      # Then: Programs are displayed, no empty state
-      assert_program_visible(view, sold_out)
-      refute has_element?(view, "[data-testid='empty-state']")
-
-      # When: User switches to "available" filter
-      view
-      |> element("[data-filter-id='sports']")
-      |> render_click()
-
-      # Then: Empty state appears (all programs filtered out)
-      assert has_element?(view, "[data-testid='empty-state']")
-      refute_program_visible(view, sold_out)
-    end
-
-    # T083: Empty state with combined filter + search
-    @tag :skip
-    test "shows appropriate message when filter + search combination yields no results", %{
-      conn: conn
-    } do
-      # Given: Database has available art programs but no soccer
-      _art =
-        insert_program(%{
-          title: "Art Class",
-          description: "Painting workshop",
-          spots_available: 10
-        })
-
-      # When: User searches for "soccer" with "available" filter
-      {:ok, _view, html} = live(conn, ~p"/programs?filter=available&q=soccer")
-
-      # Then: Empty state is shown with helpful context
-      assert html =~ "No programs found"
-      assert html =~ "Try adjusting your search or filter criteria"
-    end
   end
 
   # T084: Negative interaction tests for error handling
@@ -684,8 +369,7 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Given: Database has programs
       program =
         insert_program(%{
-          title: "Test Program",
-          spots_available: 10
+          title: "Test Program"
         })
 
       # When: User navigates with invalid filter parameter
@@ -781,14 +465,12 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Given: Database has programs
       soccer =
         insert_program(%{
-          title: "Soccer Training",
-          spots_available: 10
+          title: "Soccer Training"
         })
 
       art =
         insert_program(%{
-          title: "Art Class",
-          spots_available: 5
+          title: "Art Class"
         })
 
       # When: User uses invalid filter with valid search
@@ -816,78 +498,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Then: All programs are shown
       assert_program_visible(view, program1)
       assert_program_visible(view, program2)
-    end
-
-    # T091: Rapid filter changes don't cause race conditions
-    @tag :skip
-    test "rapid filter changes are handled correctly", %{conn: conn} do
-      # Given: Database has programs with different availability
-      available =
-        insert_program(%{
-          title: "Available",
-          spots_available: 10
-        })
-
-      sold_out =
-        insert_program(%{
-          title: "Sold Out",
-          spots_available: 0
-        })
-
-      # When: User rapidly changes filters
-      {:ok, view, _html} = live(conn, ~p"/programs")
-
-      # Switch to available
-      view
-      |> element("[data-filter-id='sports']")
-      |> render_click()
-
-      assert_program_visible(view, available)
-      refute_program_visible(view, sold_out)
-
-      # Switch back to all
-      view
-      |> element("[data-filter-id='all']")
-      |> render_click()
-
-      # Then: Both programs are shown
-      assert_program_visible(view, available)
-      assert_program_visible(view, sold_out)
-    end
-
-    # T092: URL with both filter and search parameters works correctly
-    @tag :skip
-    test "URL with multiple query parameters is parsed correctly", %{conn: conn} do
-      # Given: Database has programs
-      available_soccer =
-        insert_program(%{
-          title: "Available Soccer",
-          description: "Soccer training",
-          spots_available: 10
-        })
-
-      sold_out_soccer =
-        insert_program(%{
-          title: "Sold Out Soccer",
-          spots_available: 0
-        })
-
-      available_art =
-        insert_program(%{
-          title: "Available Art",
-          spots_available: 5
-        })
-
-      # When: User navigates with both filter and search in URL
-      {:ok, view, _html} = live(conn, ~p"/programs?filter=available&q=soccer")
-
-      # Then: Both parameters are applied correctly
-      assert_program_visible(view, available_soccer)
-      refute_program_visible(view, sold_out_soccer)
-      refute_program_visible(view, available_art)
-
-      # And: UI shows available filter is active
-      assert has_element?(view, "[data-filter-id='sports'][data-active='true']")
     end
   end
 
@@ -1057,59 +667,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # The button allows loading more pages to apply the same client-side filter to additional data.
     end
 
-    # T098: "filter change resets to page 1 and clears pagination"
-    @tag :skip
-    test "filter change resets to page 1 and clears pagination", %{conn: conn} do
-      # Given: 30 programs, some available
-      base_time = DateTime.utc_now()
-
-      for i <- 1..15 do
-        insert_program(%{
-          title: "Available Program #{i}",
-          spots_available: 5,
-          inserted_at: DateTime.add(base_time, i * 1000, :second)
-        })
-      end
-
-      for i <- 16..30 do
-        insert_program(%{
-          title: "Sold Out Program #{i}",
-          spots_available: 0,
-          inserted_at: DateTime.add(base_time, i * 1000, :second)
-        })
-      end
-
-      # Look up programs by title (before any LiveView operations)
-      available_15 = Repo.get_by!(ProgramSchema, title: "Available Program 15")
-      available_11 = Repo.get_by!(ProgramSchema, title: "Available Program 11")
-      sold_out_30 = Repo.get_by!(ProgramSchema, title: "Sold Out Program 30")
-
-      # When: User loads page and clicks Load More
-      {:ok, view, _html} = live(conn, ~p"/programs")
-      view |> element("button[phx-click='load_more']") |> render_click()
-
-      # Then: All 30 programs are visible
-      assert_program_visible(view, available_15)
-      assert_program_visible(view, sold_out_30)
-
-      # When: User clicks "Available" filter
-      view
-      |> element("[data-filter-id='sports']")
-      |> render_click()
-
-      # Then: Only available programs from page 1 are shown (stream was reset)
-      # Page 1 has programs 30-11 (DESC order), so only Available 11-15 are visible
-      assert_program_visible(view, available_11)
-      assert_program_visible(view, available_15)
-      refute has_element?(view, "[data-program-id]", "Sold Out Program")
-
-      # And: Filter is active
-      assert has_element?(view, "[data-filter-id='sports'][data-active='true']")
-
-      # Note: Load More button may still be visible because has_more is based on DB pagination state,
-      # not client-side filtered results. This is expected behavior with client-side filtering.
-    end
-
     # T099: "program click navigates with ID without database call"
     test "program click navigates with ID without database call", %{conn: conn} do
       # Given: A program exists
@@ -1198,61 +755,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Error handling is already comprehensively tested in the LiveView implementation
       assert has_element?(view, "button[phx-click='load_more']")
     end
-
-    # T102: "pagination works with combined search and filter"
-    @tag :skip
-    test "pagination works with combined search and filter", %{conn: conn} do
-      # Given: 15 programs - mix of available/sold out and Soccer/Art
-      # Using reverse order so most recent (high numbers) come first in DESC ordering
-      base_time = DateTime.utc_now()
-
-      # Available Soccer programs (most recent, will be in first page)
-      for i <- 1..5 do
-        insert_program(%{
-          title: "Available Soccer #{15 - i + 1}",
-          spots_available: 5,
-          inserted_at: DateTime.add(base_time, (15 - i + 1) * 1000, :second)
-        })
-      end
-
-      # Sold Out Soccer programs
-      for i <- 6..10 do
-        insert_program(%{
-          title: "Sold Out Soccer #{15 - i + 1}",
-          spots_available: 0,
-          inserted_at: DateTime.add(base_time, (15 - i + 1) * 1000, :second)
-        })
-      end
-
-      # Available Art programs
-      for i <- 11..15 do
-        insert_program(%{
-          title: "Available Art #{15 - i + 1}",
-          spots_available: 5,
-          inserted_at: DateTime.add(base_time, (15 - i + 1) * 1000, :second)
-        })
-      end
-
-      # When: User navigates with both search and filter
-      {:ok, view, _html} = live(conn, ~p"/programs?filter=available&q=Soccer")
-
-      # Look up programs by title
-      available_soccer_11 = Repo.get_by!(ProgramSchema, title: "Available Soccer 11")
-      available_soccer_15 = Repo.get_by!(ProgramSchema, title: "Available Soccer 15")
-
-      # Then: Only available Soccer programs from first page are shown (5 total)
-      # Programs are ordered DESC, so Soccer 11-15 come first, but we filter for available
-      # Available Soccer: 11, 12, 13, 14, 15 (5 programs)
-      assert_program_visible(view, available_soccer_11)
-      assert_program_visible(view, available_soccer_15)
-      refute has_element?(view, "[data-program-id]", "Sold Out Soccer")
-      refute has_element?(view, "[data-program-id]", "Art")
-
-      # And: Both filter and search are active
-      assert has_element?(view, "[data-filter-id='sports'][data-active='true']")
-
-      # Note: Load More button visibility depends on DB pagination state, not filtered results
-    end
   end
 
   # Helper function to insert programs into the test database
@@ -1267,7 +769,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       age_range: "6-12 years",
       price: Decimal.new("100.00"),
       pricing_period: "per month",
-      spots_available: 10,
       icon_path: "/images/icons/default.svg"
     }
 

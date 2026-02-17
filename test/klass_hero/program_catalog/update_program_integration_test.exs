@@ -33,13 +33,11 @@ defmodule KlassHero.ProgramCatalog.UpdateProgramIntegrationTest do
       assert {:ok, updated} =
                ProgramCatalog.update_program(program.id, %{
                  title: "Updated",
-                 price: Decimal.new("200.00"),
-                 spots_available: 15
+                 price: Decimal.new("200.00")
                })
 
       assert updated.title == "Updated"
       assert updated.price == Decimal.new("200.00")
-      assert updated.spots_available == 15
     end
 
     test "rejects invalid changes (empty title)", %{program: program} do

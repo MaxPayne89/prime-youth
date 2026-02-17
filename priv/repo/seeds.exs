@@ -529,7 +529,6 @@ starter_programs = [
     age_range: "6-10 years",
     price: Decimal.new("80.00"),
     pricing_period: "per month",
-    spots_available: 10,
     icon_path: "/images/icons/sports.svg",
     provider_id: shane_starter_profile.id
   },
@@ -541,7 +540,6 @@ starter_programs = [
     age_range: "7-12 years",
     price: Decimal.new("100.00"),
     pricing_period: "per month",
-    spots_available: 12,
     icon_path: "/images/icons/sports.svg",
     provider_id: shane_starter_profile.id
   }
@@ -557,7 +555,6 @@ professional_programs = [
     age_range: "7-14 years",
     price: Decimal.new("200.00"),
     pricing_period: "per week",
-    spots_available: 20,
     icon_path: "/images/icons/sports.svg",
     provider_id: shane_professional_profile.id
   },
@@ -569,7 +566,6 @@ professional_programs = [
     age_range: "8-14 years",
     price: Decimal.new("120.00"),
     pricing_period: "per month",
-    spots_available: 15,
     icon_path: "/images/icons/sports.svg",
     provider_id: shane_professional_profile.id
   },
@@ -581,7 +577,6 @@ professional_programs = [
     age_range: "9-15 years",
     price: Decimal.new("110.00"),
     pricing_period: "per month",
-    spots_available: 12,
     icon_path: "/images/icons/sports.svg",
     provider_id: shane_professional_profile.id
   }
@@ -597,7 +592,6 @@ business_plus_programs = [
     age_range: "12-18 years",
     price: Decimal.new("300.00"),
     pricing_period: "per month",
-    spots_available: 8,
     icon_path: "/images/icons/sports.svg",
     provider_id: shane_business_plus_profile.id
   },
@@ -609,7 +603,6 @@ business_plus_programs = [
     age_range: "6-16 years",
     price: Decimal.new("450.00"),
     pricing_period: "per week",
-    spots_available: 40,
     icon_path: "/images/icons/sports.svg",
     provider_id: shane_business_plus_profile.id
   },
@@ -621,7 +614,6 @@ business_plus_programs = [
     age_range: "8-14 years",
     price: Decimal.new("150.00"),
     pricing_period: "per season",
-    spots_available: 30,
     icon_path: "/images/icons/sports.svg",
     provider_id: shane_business_plus_profile.id
   }
@@ -637,7 +629,6 @@ public_programs = [
     age_range: "6-8 years",
     price: Decimal.new("120.00"),
     pricing_period: "per month",
-    spots_available: 12,
     icon_path: "/images/icons/art.svg"
   },
   %{
@@ -648,7 +639,6 @@ public_programs = [
     age_range: "9-12 years",
     price: Decimal.new("150.00"),
     pricing_period: "per month",
-    spots_available: 8,
     icon_path: "/images/icons/tech.svg"
   },
   %{
@@ -659,7 +649,6 @@ public_programs = [
     age_range: "8-11 years",
     price: Decimal.new("100.00"),
     pricing_period: "per month",
-    spots_available: 0,
     icon_path: "/images/icons/science.svg"
   },
   %{
@@ -670,7 +659,6 @@ public_programs = [
     age_range: "6-10 years",
     price: Decimal.new("130.00"),
     pricing_period: "per month",
-    spots_available: 6,
     icon_path: "/images/icons/music.svg"
   },
   %{
@@ -681,7 +669,6 @@ public_programs = [
     age_range: "8-13 years",
     price: Decimal.new("0.00"),
     pricing_period: "free",
-    spots_available: 15,
     icon_path: "/images/icons/drama.svg"
   }
 ]

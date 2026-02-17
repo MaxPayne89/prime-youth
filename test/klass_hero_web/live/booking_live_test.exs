@@ -47,15 +47,34 @@ defmodule KlassHeroWeb.BookingLiveTest do
       assert flash["error"] == "Program not found"
     end
 
-    test "redirects with error flash when program has no spots left", %{conn: _conn} do
-      # Note: This test assumes we can mock a program with 0 spots
-      # In a real implementation, you might need to modify sample_programs
-      # or add a way to set spots_left to 0 for testing
+    test "redirects with error flash when program is full", %{conn: conn} do
+      program = insert(:program_schema)
 
-      # For now, we'll skip this test and add it when we have database support
-      # {:error, {:redirect, %{to: path, flash: flash}}} = live(conn, ~p"/programs/4/booking")
-      # assert path =~ ~r/\/programs\/\d+/
-      # assert flash["error"] =~ "currently full"
+      # Set enrollment policy with max=1
+      {:ok, _policy} =
+        KlassHero.Enrollment.set_enrollment_policy(%{
+          program_id: program.id,
+          max_enrollment: 1
+        })
+
+      # Fill the single spot with an enrollment
+      insert(:enrollment_schema, program_id: program.id, status: "pending")
+
+      assert {:error, {:redirect, %{to: path, flash: flash}}} =
+               live(conn, ~p"/programs/#{program.id}/booking")
+
+      assert path == ~p"/programs/#{program.id}"
+      assert flash["error"] =~ "currently full"
+    end
+
+    test "renders normally when program has unlimited capacity", %{conn: conn} do
+      program = insert(:program_schema, title: "Unlimited Spots Program")
+
+      # No enrollment policy set — default is unlimited
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}/booking")
+
+      assert has_element?(view, "h1", "Enrollment")
+      assert render(view) =~ "Unlimited Spots Program"
     end
   end
 

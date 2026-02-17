@@ -67,7 +67,10 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
         parent_id: attrs[:parent_id]
       )
 
-      repository().create(attrs)
+      # Trigger: capacity check and enrollment creation happen atomically
+      # Why: prevents TOCTOU race where concurrent requests both pass check
+      # Outcome: SELECT FOR UPDATE on policy row serializes concurrent attempts
+      repository().create_with_capacity_check(attrs, params[:program_id])
     end
   end
 
@@ -80,7 +83,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
       parent_id: attrs[:parent_id]
     )
 
-    repository().create(attrs)
+    repository().create_with_capacity_check(attrs, params[:program_id])
   end
 
   defp validate_parent_profile(identity_id) do

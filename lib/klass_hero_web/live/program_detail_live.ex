@@ -212,19 +212,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             </div>
             <%!-- Badges --%>
             <div class="flex flex-wrap justify-center gap-2">
-              <span
-                :if={@program.spots_available <= 5}
-                class={[
-                  "px-3 py-1 text-xs font-medium bg-white/90 backdrop-blur-sm",
-                  Theme.rounded(:full),
-                  if(@program.spots_available <= 2,
-                    do: "text-orange-700",
-                    else: "text-hero-yellow-700"
-                  )
-                ]}
-              >
-                {gettext("Only %{count} spots left!", count: @program.spots_available)}
-              </span>
               <span class={[
                 "px-3 py-1 text-xs font-medium bg-white/90 backdrop-blur-sm text-green-700",
                 Theme.rounded(:full)

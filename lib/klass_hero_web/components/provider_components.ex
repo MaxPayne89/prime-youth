@@ -712,6 +712,7 @@ defmodule KlassHeroWeb.ProviderComponents do
       <.program_form form={@program_form} uploads={@uploads} instructor_options={@instructor_options} />
   """
   attr :form, :any, required: true
+  attr :enrollment_form, :any, required: true
   attr :editing, :boolean, default: false
   attr :uploads, :map, required: true
   attr :instructor_options, :list, default: []
@@ -858,6 +859,30 @@ defmodule KlassHeroWeb.ProviderComponents do
               field={@form[:registration_end_date]}
               type="date"
               label={gettext("Registration Closes")}
+            />
+          </div>
+        </div>
+
+        <%!-- Enrollment Capacity Section --%>
+        <div class="space-y-3">
+          <p class="text-sm font-semibold text-hero-charcoal">
+            {gettext("Enrollment Capacity (optional)")}
+          </p>
+          <p class="text-xs text-hero-grey-500">
+            {gettext("Set minimum and maximum enrollment for this program.")}
+          </p>
+          <div class="grid grid-cols-2 gap-4">
+            <.input
+              field={@enrollment_form[:min_enrollment]}
+              type="number"
+              label={gettext("Minimum Enrollment")}
+              min="1"
+            />
+            <.input
+              field={@enrollment_form[:max_enrollment]}
+              type="number"
+              label={gettext("Maximum Enrollment")}
+              min="1"
             />
           </div>
         </div>
@@ -1135,7 +1160,9 @@ defmodule KlassHeroWeb.ProviderComponents do
                     </div>
                   </div>
                   <span class="text-sm text-hero-grey-600">
-                    {program.enrolled}/{program.capacity}
+                    {format_enrollment_count(program.enrolled)}/{format_enrollment_count(
+                      program.capacity
+                    )}
                   </span>
                 </div>
               </td>
@@ -1165,13 +1192,15 @@ defmodule KlassHeroWeb.ProviderComponents do
   defp status_label(:inactive), do: gettext("Inactive")
   defp status_label(_), do: gettext("Unknown")
 
-  defp enrollment_percentage(program) do
-    if program.capacity > 0 do
-      min(100, div(program.enrolled * 100, program.capacity))
-    else
-      0
-    end
+  defp enrollment_percentage(%{enrolled: e, capacity: c})
+       when is_integer(e) and is_integer(c) and c > 0 do
+    min(100, div(e * 100, c))
   end
+
+  defp enrollment_percentage(_), do: 0
+
+  defp format_enrollment_count(nil), do: "\u2014"
+  defp format_enrollment_count(count), do: to_string(count)
 
   attr :icon, :string, required: true
   attr :title, :string, required: true

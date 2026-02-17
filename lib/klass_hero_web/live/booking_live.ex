@@ -21,7 +21,7 @@ defmodule KlassHeroWeb.BookingLive do
 
     with {:ok, program} <- fetch_program(program_id),
          :ok <- validate_registration_open(program),
-         :ok <- validate_program_availability(program) do
+         :ok <- validate_program_capacity(program) do
       children = get_children_for_current_user(socket)
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
       children_by_id = Map.new(children, &{&1.id, &1})
@@ -54,7 +54,7 @@ defmodule KlassHeroWeb.BookingLive do
          |> put_flash(:error, gettext("Program not found"))
          |> redirect(to: ~p"/programs")}
 
-      {:error, :no_spots} ->
+      {:error, :program_full} ->
         program_for_redirect = fetch_program_unsafe(program_id)
 
         {:ok,
@@ -114,7 +114,6 @@ defmodule KlassHeroWeb.BookingLive do
     with :ok <- validate_enrollment_data(socket, params),
          :ok <- validate_payment_method(socket),
          :ok <- validate_registration_open(socket.assigns.program),
-         :ok <- validate_program_availability(socket.assigns.program),
          {:ok, _enrollment} <- create_enrollment(socket, params) do
       {:noreply,
        socket
@@ -124,7 +123,7 @@ defmodule KlassHeroWeb.BookingLive do
        )
        |> push_navigate(to: ~p"/dashboard")}
     else
-      {:error, :no_spots} ->
+      {:error, :program_full} ->
         {:noreply,
          socket
          |> put_flash(
@@ -216,10 +215,21 @@ defmodule KlassHeroWeb.BookingLive do
     end
   end
 
-  defp validate_program_availability(%{spots_available: spots_available})
-       when spots_available > 0, do: :ok
+  defp validate_program_capacity(program) do
+    case Enrollment.remaining_capacity(program.id) do
+      {:ok, :unlimited} ->
+        :ok
 
-  defp validate_program_availability(_program), do: {:error, :no_spots}
+      {:ok, remaining} when remaining > 0 ->
+        :ok
+
+      # Trigger: remaining is 0 or negative (covers any non-positive value)
+      # Why: exhaustive match — atomic create_with_capacity_check enforces at create time
+      # Outcome: program shown as full for 0 or any unexpected non-positive value
+      {:ok, _} ->
+        {:error, :program_full}
+    end
+  end
 
   defp validate_enrollment_data(_socket, %{"child_id" => child_id})
        when is_binary(child_id) and byte_size(child_id) > 0, do: :ok

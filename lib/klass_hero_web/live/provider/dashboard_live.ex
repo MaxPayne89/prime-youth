@@ -12,6 +12,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   import KlassHeroWeb.ProviderComponents
 
+  alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
   alias KlassHero.Shared.Storage
@@ -49,7 +50,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
         # Load real programs for this provider
         domain_programs = ProgramCatalog.list_programs_for_provider(provider_profile.id)
-        programs = Enum.map(domain_programs, &ProgramPresenter.to_table_view/1)
+        enrollment_data = build_enrollment_data(domain_programs)
+        programs = Enum.map(domain_programs, &ProgramPresenter.to_table_view(&1, enrollment_data))
 
         # Update business with actual program count
         business = %{business | program_slots_used: length(programs)}
@@ -86,6 +88,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(staff_form: to_form(Provider.new_staff_member_changeset()))
           |> assign(show_program_form: false)
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
+          |> assign(
+            enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
+          )
           |> assign(instructor_options: build_instructor_options(provider_profile.id))
           |> allow_upload(:logo,
             accept: ~w(.jpg .jpeg .png .webp),
@@ -422,26 +427,44 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      |> assign(show_program_form: true)
      |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
      |> assign(
+       enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
+     )
+     |> assign(
        instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id)
      )}
   end
 
   @impl true
   def handle_event("close_program_form", _params, socket) do
-    {:noreply, assign(socket, show_program_form: false)}
+    {:noreply,
+     assign(socket,
+       show_program_form: false,
+       enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
+     )}
   end
 
   @impl true
-  def handle_event("validate_program", %{"program_schema" => params}, socket) do
+  def handle_event("validate_program", params, socket) do
+    program_params = params["program_schema"] || %{}
+
     changeset =
-      ProgramCatalog.new_program_changeset(params)
+      ProgramCatalog.new_program_changeset(program_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, program_form: to_form(changeset))}
+    enrollment_params = params["enrollment_policy"] || %{}
+
+    enrollment_changeset =
+      Enrollment.new_policy_changeset(enrollment_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply,
+     socket
+     |> assign(program_form: to_form(changeset))
+     |> assign(enrollment_form: to_form(enrollment_changeset, as: "enrollment_policy"))}
   end
 
   @impl true
-  def handle_event("save_program", %{"program_schema" => params}, socket) do
+  def handle_event("save_program", %{"program_schema" => params} = all_params, socket) do
     provider = socket.assigns.current_scope.provider
 
     # Trigger: cover image upload may succeed, be absent, or fail
@@ -471,19 +494,55 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           }
           |> maybe_add_cover_image(cover_result)
 
+        enrollment_params = all_params["enrollment_policy"] || %{}
+
         with {:ok, attrs} <- maybe_add_instructor(attrs, params["instructor_id"], socket),
              {:ok, program} <- ProgramCatalog.create_program(attrs) do
-          view = ProgramPresenter.to_table_view(program)
+          policy_result = maybe_set_enrollment_policy(program.id, enrollment_params)
+
+          # Trigger: policy save may have failed (e.g. min > max)
+          # Why: only show capacity in table if the policy was actually persisted
+          # Outcome: failed policies show "—/—" instead of phantom capacity
+          capacity =
+            case policy_result do
+              :ok -> parse_integer(enrollment_params["max_enrollment"])
+              {:error, _} -> nil
+            end
+
+          new_enrollment_data = %{
+            program.id => %{enrolled: 0, capacity: capacity}
+          }
+
+          view = ProgramPresenter.to_table_view(program, new_enrollment_data)
+
+          # Trigger: program created, but enrollment policy may have failed
+          # Why: program is already persisted — don't roll back, just adjust flash
+          # Outcome: success flash if policy ok, warning flash if policy failed
+          flash_socket =
+            case policy_result do
+              :ok ->
+                socket
+                |> clear_flash(:error)
+                |> put_flash(:info, gettext("Program created successfully."))
+
+              {:error, :enrollment_policy_failed} ->
+                socket
+                |> put_flash(
+                  :error,
+                  gettext(
+                    "Program created, but enrollment capacity could not be saved. Edit the program to retry."
+                  )
+                )
+            end
 
           {:noreply,
-           socket
+           flash_socket
            |> stream_insert(:programs, view)
            |> assign(
              show_program_form: false,
-             programs_count: socket.assigns.programs_count + 1
-           )
-           |> clear_flash(:error)
-           |> put_flash(:info, gettext("Program created successfully."))}
+             programs_count: socket.assigns.programs_count + 1,
+             enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
+           )}
         else
           {:error, :instructor_not_found} ->
             {:noreply,
@@ -667,6 +726,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   selected_staff={@selected_staff}
                   show_program_form={@show_program_form}
                   program_form={@program_form}
+                  enrollment_form={@enrollment_form}
                   uploads={@uploads}
                   instructor_options={@instructor_options}
                 />
@@ -916,6 +976,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :selected_staff, :string, required: true
   attr :show_program_form, :boolean, required: true
   attr :program_form, :any, required: true
+  attr :enrollment_form, :any, required: true
   attr :uploads, :map, required: true
   attr :instructor_options, :list, required: true
 
@@ -925,6 +986,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       <%= if @show_program_form do %>
         <.program_form
           form={@program_form}
+          enrollment_form={@enrollment_form}
           uploads={@uploads}
           instructor_options={@instructor_options}
         />
@@ -1012,16 +1074,37 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp reset_programs_stream(socket) do
     provider_id = socket.assigns.current_scope.provider.id
+    domain_programs = ProgramCatalog.list_programs_for_provider(provider_id)
+    enrollment_data = build_enrollment_data(domain_programs)
 
     programs =
-      ProgramCatalog.list_programs_for_provider(provider_id)
-      |> Enum.map(&ProgramPresenter.to_table_view/1)
+      domain_programs
+      |> Enum.map(&ProgramPresenter.to_table_view(&1, enrollment_data))
       |> filter_by_search(socket.assigns.search_query)
       |> filter_by_staff(socket.assigns.selected_staff)
 
     socket
     |> stream(:programs, programs, reset: true)
     |> assign(programs_count: length(programs))
+  end
+
+  defp build_enrollment_data(domain_programs) do
+    program_ids = Enum.map(domain_programs, & &1.id)
+    capacities = Enrollment.get_remaining_capacities(program_ids)
+    active_counts = Enrollment.count_active_enrollments_batch(program_ids)
+
+    Map.new(program_ids, fn id ->
+      active = Map.get(active_counts, id, 0)
+      remaining = Map.get(capacities, id, :unlimited)
+
+      capacity =
+        case remaining do
+          :unlimited -> nil
+          rem -> active + rem
+        end
+
+      {id, %{enrolled: active, capacity: capacity}}
+    end)
   end
 
   defp filter_by_search(programs, ""), do: programs
@@ -1192,4 +1275,48 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   defp format_currency(amount), do: format_number(amount)
+
+  # Trigger: both capacity fields are blank
+  # Why: no policy needed when provider doesn't set capacity constraints
+  # Outcome: skip policy creation, return :ok
+  defp maybe_set_enrollment_policy(program_id, params) do
+    min = parse_integer(params["min_enrollment"])
+    max = parse_integer(params["max_enrollment"])
+
+    if is_nil(min) and is_nil(max) do
+      :ok
+    else
+      case Enrollment.set_enrollment_policy(%{
+             program_id: program_id,
+             min_enrollment: min,
+             max_enrollment: max
+           }) do
+        {:ok, _policy} ->
+          :ok
+
+        # Trigger: policy save failed (e.g. min > max validation)
+        # Why: program already created — don't roll back, but warn provider
+        # Outcome: propagate error so with chain shows a warning flash
+        {:error, reason} ->
+          Logger.warning("[Provider.DashboardLive] Failed to save enrollment policy",
+            program_id: program_id,
+            reason: inspect(reason)
+          )
+
+          {:error, :enrollment_policy_failed}
+      end
+    end
+  end
+
+  defp parse_integer(nil), do: nil
+  defp parse_integer(""), do: nil
+
+  defp parse_integer(val) when is_binary(val) do
+    case Integer.parse(val) do
+      {int, ""} when int >= 1 -> int
+      _ -> nil
+    end
+  end
+
+  defp parse_integer(val) when is_integer(val), do: val
 end
