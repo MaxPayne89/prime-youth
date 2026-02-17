@@ -88,6 +88,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(staff_form: to_form(Provider.new_staff_member_changeset()))
           |> assign(show_program_form: false)
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
+          |> assign(
+            enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
+          )
           |> assign(instructor_options: build_instructor_options(provider_profile.id))
           |> allow_upload(:logo,
             accept: ~w(.jpg .jpeg .png .webp),
@@ -424,26 +427,44 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      |> assign(show_program_form: true)
      |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
      |> assign(
+       enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
+     )
+     |> assign(
        instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id)
      )}
   end
 
   @impl true
   def handle_event("close_program_form", _params, socket) do
-    {:noreply, assign(socket, show_program_form: false)}
+    {:noreply,
+     assign(socket,
+       show_program_form: false,
+       enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
+     )}
   end
 
   @impl true
-  def handle_event("validate_program", %{"program_schema" => params}, socket) do
+  def handle_event("validate_program", params, socket) do
+    program_params = params["program_schema"] || %{}
+
     changeset =
-      ProgramCatalog.new_program_changeset(params)
+      ProgramCatalog.new_program_changeset(program_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, program_form: to_form(changeset))}
+    enrollment_params = params["enrollment_policy"] || %{}
+
+    enrollment_changeset =
+      Enrollment.new_policy_changeset(enrollment_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply,
+     socket
+     |> assign(program_form: to_form(changeset))
+     |> assign(enrollment_form: to_form(enrollment_changeset, as: "enrollment_policy"))}
   end
 
   @impl true
-  def handle_event("save_program", %{"program_schema" => params}, socket) do
+  def handle_event("save_program", %{"program_schema" => params} = all_params, socket) do
     provider = socket.assigns.current_scope.provider
 
     # Trigger: cover image upload may succeed, be absent, or fail
@@ -473,10 +494,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           }
           |> maybe_add_cover_image(cover_result)
 
+        enrollment_params = all_params["enrollment_policy"] || %{}
+
         with {:ok, attrs} <- maybe_add_instructor(attrs, params["instructor_id"], socket),
              {:ok, program} <- ProgramCatalog.create_program(attrs) do
-          policy_result = maybe_set_enrollment_policy(program.id, params)
-          max = parse_integer(params["max_enrollment"])
+          policy_result = maybe_set_enrollment_policy(program.id, enrollment_params)
+          max = parse_integer(enrollment_params["max_enrollment"])
 
           new_enrollment_data = %{
             program.id => %{enrolled: 0, capacity: max}
@@ -509,7 +532,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
            |> stream_insert(:programs, view)
            |> assign(
              show_program_form: false,
-             programs_count: socket.assigns.programs_count + 1
+             programs_count: socket.assigns.programs_count + 1,
+             enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
            )}
         else
           {:error, :instructor_not_found} ->
@@ -694,6 +718,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   selected_staff={@selected_staff}
                   show_program_form={@show_program_form}
                   program_form={@program_form}
+                  enrollment_form={@enrollment_form}
                   uploads={@uploads}
                   instructor_options={@instructor_options}
                 />
@@ -943,6 +968,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :selected_staff, :string, required: true
   attr :show_program_form, :boolean, required: true
   attr :program_form, :any, required: true
+  attr :enrollment_form, :any, required: true
   attr :uploads, :map, required: true
   attr :instructor_options, :list, required: true
 
@@ -952,6 +978,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       <%= if @show_program_form do %>
         <.program_form
           form={@program_form}
+          enrollment_form={@enrollment_form}
           uploads={@uploads}
           instructor_options={@instructor_options}
         />

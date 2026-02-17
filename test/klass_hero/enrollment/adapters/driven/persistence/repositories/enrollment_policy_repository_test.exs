@@ -64,56 +64,53 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     end
   end
 
-  describe "get_remaining_capacity/1" do
-    test "returns :unlimited when no policy exists" do
-      assert {:ok, :unlimited} =
-               EnrollmentPolicyRepository.get_remaining_capacity(Ecto.UUID.generate())
+  describe "get_policies_by_program_ids/1" do
+    test "returns empty map for empty list" do
+      assert EnrollmentPolicyRepository.get_policies_by_program_ids([]) == %{}
     end
 
-    test "returns :unlimited when max is nil" do
-      program = insert(:program_schema)
-      {:ok, _} = EnrollmentPolicyRepository.upsert(%{program_id: program.id, min_enrollment: 5})
+    test "returns policies keyed by program_id" do
+      program1 = insert(:program_schema)
+      program2 = insert(:program_schema)
 
-      assert {:ok, :unlimited} =
-               EnrollmentPolicyRepository.get_remaining_capacity(program.id)
+      {:ok, _} =
+        EnrollmentPolicyRepository.upsert(%{program_id: program1.id, max_enrollment: 20})
+
+      {:ok, _} =
+        EnrollmentPolicyRepository.upsert(%{
+          program_id: program2.id,
+          min_enrollment: 5,
+          max_enrollment: 30
+        })
+
+      result =
+        EnrollmentPolicyRepository.get_policies_by_program_ids([
+          to_string(program1.id),
+          to_string(program2.id)
+        ])
+
+      assert map_size(result) == 2
+      assert result[to_string(program1.id)].max_enrollment == 20
+      assert result[to_string(program2.id)].min_enrollment == 5
+      assert result[to_string(program2.id)].max_enrollment == 30
     end
 
-    test "returns remaining spots" do
+    test "omits programs without policies" do
       program = insert(:program_schema)
-      child1 = insert(:child_schema)
-      child2 = insert(:child_schema)
-      child3 = insert(:child_schema)
+      missing_id = Ecto.UUID.generate()
 
-      {:ok, _} = EnrollmentPolicyRepository.upsert(%{program_id: program.id, max_enrollment: 10})
+      {:ok, _} =
+        EnrollmentPolicyRepository.upsert(%{program_id: program.id, max_enrollment: 10})
 
-      insert(:enrollment_schema, program_id: program.id, child_id: child1.id, status: "pending")
-      insert(:enrollment_schema, program_id: program.id, child_id: child2.id, status: "confirmed")
-      insert(:enrollment_schema, program_id: program.id, child_id: child3.id, status: "confirmed")
+      result =
+        EnrollmentPolicyRepository.get_policies_by_program_ids([
+          to_string(program.id),
+          missing_id
+        ])
 
-      assert {:ok, 7} = EnrollmentPolicyRepository.get_remaining_capacity(program.id)
-    end
-
-    test "does not count cancelled enrollments" do
-      program = insert(:program_schema)
-      child = insert(:child_schema)
-
-      {:ok, _} = EnrollmentPolicyRepository.upsert(%{program_id: program.id, max_enrollment: 10})
-      insert(:enrollment_schema, program_id: program.id, child_id: child.id, status: "cancelled")
-
-      assert {:ok, 10} = EnrollmentPolicyRepository.get_remaining_capacity(program.id)
-    end
-
-    test "returns 0 when at capacity (never negative)" do
-      program = insert(:program_schema)
-      child1 = insert(:child_schema)
-      child2 = insert(:child_schema)
-
-      {:ok, _} = EnrollmentPolicyRepository.upsert(%{program_id: program.id, max_enrollment: 1})
-
-      insert(:enrollment_schema, program_id: program.id, child_id: child1.id, status: "pending")
-      insert(:enrollment_schema, program_id: program.id, child_id: child2.id, status: "confirmed")
-
-      assert {:ok, 0} = EnrollmentPolicyRepository.get_remaining_capacity(program.id)
+      assert map_size(result) == 1
+      assert Map.has_key?(result, to_string(program.id))
+      refute Map.has_key?(result, missing_id)
     end
   end
 

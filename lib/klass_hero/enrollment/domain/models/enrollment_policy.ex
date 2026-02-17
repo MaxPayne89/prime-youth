@@ -84,6 +84,16 @@ defmodule KlassHero.Enrollment.Domain.Models.EnrollmentPolicy do
   def meets_minimum?(%__MODULE__{min_enrollment: nil}, _count), do: true
   def meets_minimum?(%__MODULE__{min_enrollment: min}, count), do: count >= min
 
+  @doc """
+  Returns the remaining enrollment capacity given the current active count.
+
+  Returns `:unlimited` when no `max_enrollment` is set.
+  Never returns a negative number — floors at 0.
+  """
+  @spec remaining_capacity(t(), non_neg_integer()) :: non_neg_integer() | :unlimited
+  def remaining_capacity(%__MODULE__{max_enrollment: nil}, _count), do: :unlimited
+  def remaining_capacity(%__MODULE__{max_enrollment: max}, count), do: max(max - count, 0)
+
   # --- Validation helpers ---
 
   defp validate_program_id(errors, id) when is_binary(id) and byte_size(id) > 0, do: errors

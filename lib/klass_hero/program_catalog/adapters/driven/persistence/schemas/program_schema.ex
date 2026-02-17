@@ -38,10 +38,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :instructor_name, :string
     field :instructor_headshot_url, :string
 
-    # Virtual fields for enrollment capacity form (not persisted to programs table)
-    field :min_enrollment, :integer, virtual: true
-    field :max_enrollment, :integer, virtual: true
-
     timestamps()
   end
 
@@ -111,9 +107,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :meeting_end_time,
       :start_date,
       :registration_start_date,
-      :registration_end_date,
-      :min_enrollment,
-      :max_enrollment
+      :registration_end_date
     ])
     |> validate_required([
       :title,

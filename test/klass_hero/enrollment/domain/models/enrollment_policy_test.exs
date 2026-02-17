@@ -86,6 +86,24 @@ defmodule KlassHero.Enrollment.Domain.Models.EnrollmentPolicyTest do
     end
   end
 
+  describe "remaining_capacity/2" do
+    test "returns remaining spots when count < max" do
+      {:ok, policy} = EnrollmentPolicy.new(%{program_id: "p", max_enrollment: 10})
+      assert EnrollmentPolicy.remaining_capacity(policy, 3) == 7
+    end
+
+    test "returns 0 when count >= max (never negative)" do
+      {:ok, policy} = EnrollmentPolicy.new(%{program_id: "p", max_enrollment: 5})
+      assert EnrollmentPolicy.remaining_capacity(policy, 5) == 0
+      assert EnrollmentPolicy.remaining_capacity(policy, 8) == 0
+    end
+
+    test "returns :unlimited when no max set (min only)" do
+      {:ok, policy} = EnrollmentPolicy.new(%{program_id: "p", min_enrollment: 5})
+      assert EnrollmentPolicy.remaining_capacity(policy, 999) == :unlimited
+    end
+  end
+
   describe "meets_minimum?/2" do
     test "returns true when count >= min" do
       {:ok, policy} = EnrollmentPolicy.new(%{program_id: "p", min_enrollment: 5})

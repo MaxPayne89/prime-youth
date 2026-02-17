@@ -22,22 +22,13 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForManagingEnrollmentPolicies do
               {:ok, EnrollmentPolicy.t()} | {:error, :not_found}
 
   @doc """
-  Returns the remaining enrollment capacity for a program.
+  Retrieves enrollment policies for multiple programs in a single batch query.
 
-  Calculates: max_enrollment - count(active enrollments).
-  Returns :unlimited when no max_enrollment is configured.
+  Returns a map of `program_id => EnrollmentPolicy.t()`.
+  Programs without a policy are not included in the result.
   """
-  @callback get_remaining_capacity(program_id :: binary()) ::
-              {:ok, non_neg_integer() | :unlimited}
-
-  @doc """
-  Returns remaining capacity for multiple programs in a single batch query.
-
-  Returns a map of `program_id => remaining_count | :unlimited`.
-  Programs without a policy are mapped to `:unlimited`.
-  """
-  @callback get_remaining_capacities(program_ids :: [binary()]) ::
-              %{binary() => non_neg_integer() | :unlimited}
+  @callback get_policies_by_program_ids(program_ids :: [binary()]) ::
+              %{binary() => EnrollmentPolicy.t()}
 
   @doc """
   Returns the count of active enrollments for a program.

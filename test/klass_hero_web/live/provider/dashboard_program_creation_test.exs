@@ -226,7 +226,9 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
           "title" => "Capacity Test Program",
           "description" => "Testing invalid capacity handling",
           "category" => "sports",
-          "price" => "30.00",
+          "price" => "30.00"
+        },
+        "enrollment_policy" => %{
           "min_enrollment" => "20",
           "max_enrollment" => "5"
         }
@@ -249,7 +251,9 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
           "title" => "Valid Capacity Program",
           "description" => "Testing valid capacity handling",
           "category" => "sports",
-          "price" => "30.00",
+          "price" => "30.00"
+        },
+        "enrollment_policy" => %{
           "min_enrollment" => "5",
           "max_enrollment" => "20"
         }
@@ -272,7 +276,9 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
           "title" => "Max Only Program",
           "description" => "Testing max-only capacity",
           "category" => "sports",
-          "price" => "30.00",
+          "price" => "30.00"
+        },
+        "enrollment_policy" => %{
           "max_enrollment" => "20"
         }
       })
@@ -294,7 +300,9 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
           "title" => "Min Only Program",
           "description" => "Testing min-only capacity",
           "category" => "sports",
-          "price" => "30.00",
+          "price" => "30.00"
+        },
+        "enrollment_policy" => %{
           "min_enrollment" => "5"
         }
       })

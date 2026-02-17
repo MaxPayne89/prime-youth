@@ -712,6 +712,7 @@ defmodule KlassHeroWeb.ProviderComponents do
       <.program_form form={@program_form} uploads={@uploads} instructor_options={@instructor_options} />
   """
   attr :form, :any, required: true
+  attr :enrollment_form, :any, required: true
   attr :editing, :boolean, default: false
   attr :uploads, :map, required: true
   attr :instructor_options, :list, default: []
@@ -872,13 +873,13 @@ defmodule KlassHeroWeb.ProviderComponents do
           </p>
           <div class="grid grid-cols-2 gap-4">
             <.input
-              field={@form[:min_enrollment]}
+              field={@enrollment_form[:min_enrollment]}
               type="number"
               label={gettext("Minimum Enrollment")}
               min="1"
             />
             <.input
-              field={@form[:max_enrollment]}
+              field={@enrollment_form[:max_enrollment]}
               type="number"
               label={gettext("Maximum Enrollment")}
               min="1"

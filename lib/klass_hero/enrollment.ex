@@ -216,11 +216,23 @@ defmodule KlassHero.Enrollment do
   @doc """
   Returns remaining enrollment capacity for a program.
 
+  Fetches the policy and active count, then delegates calculation to the
+  domain model (`EnrollmentPolicy.remaining_capacity/2`).
+
   - `{:ok, non_neg_integer()}` — remaining spots
   - `{:ok, :unlimited}` — no maximum configured
   """
   def remaining_capacity(program_id) when is_binary(program_id) do
-    policy_repo().get_remaining_capacity(program_id)
+    alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
+
+    case policy_repo().get_by_program_id(program_id) do
+      {:error, :not_found} ->
+        {:ok, :unlimited}
+
+      {:ok, policy} ->
+        count = policy_repo().count_active_enrollments(program_id)
+        {:ok, EnrollmentPolicy.remaining_capacity(policy, count)}
+    end
   end
 
   @doc """
@@ -228,7 +240,21 @@ defmodule KlassHero.Enrollment do
   Returns a map of `program_id => remaining_count | :unlimited`.
   """
   def get_remaining_capacities(program_ids) when is_list(program_ids) do
-    policy_repo().get_remaining_capacities(program_ids)
+    alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
+
+    policies = policy_repo().get_policies_by_program_ids(program_ids)
+    active_counts = policy_repo().count_active_enrollments_batch(program_ids)
+
+    Map.new(program_ids, fn id ->
+      case Map.get(policies, id) do
+        nil ->
+          {id, :unlimited}
+
+        policy ->
+          count = Map.get(active_counts, id, 0)
+          {id, EnrollmentPolicy.remaining_capacity(policy, count)}
+      end
+    end)
   end
 
   @doc """
@@ -244,6 +270,18 @@ defmodule KlassHero.Enrollment do
   """
   def count_active_enrollments_batch(program_ids) when is_list(program_ids) do
     policy_repo().count_active_enrollments_batch(program_ids)
+  end
+
+  @doc """
+  Returns a changeset for enrollment policy form validation.
+
+  Used by the provider dashboard to validate capacity fields inline
+  before the program is created.
+  """
+  def new_policy_changeset(attrs \\ %{}) do
+    alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentPolicySchema
+
+    EnrollmentPolicySchema.changeset(%EnrollmentPolicySchema{}, attrs)
   end
 
   defp policy_repo do

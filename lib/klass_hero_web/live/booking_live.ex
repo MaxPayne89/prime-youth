@@ -9,8 +9,6 @@ defmodule KlassHeroWeb.BookingLive do
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Theme
 
-  require Logger
-
   @default_weekly_fee 45.00
   @default_weeks_count 8
   @default_registration_fee 25.00
@@ -230,14 +228,6 @@ defmodule KlassHeroWeb.BookingLive do
       # Outcome: program shown as full for 0 or any unexpected non-positive value
       {:ok, _} ->
         {:error, :program_full}
-
-      {:error, reason} ->
-        Logger.warning("[BookingLive] Capacity check failed",
-          program_id: program.id,
-          reason: inspect(reason)
-        )
-
-        :ok
     end
   end
 
