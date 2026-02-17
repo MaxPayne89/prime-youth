@@ -34,8 +34,10 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   These placeholders ensure the UI can render properly while the underlying
   features are developed in future iterations.
   """
-  @spec to_table_view(Program.t()) :: map()
-  def to_table_view(%Program{} = program) do
+  @spec to_table_view(Program.t(), map()) :: map()
+  def to_table_view(%Program{} = program, enrollment_data \\ %{}) do
+    data = Map.get(enrollment_data, program.id, %{})
+
     %{
       id: program.id,
       name: program.title,
@@ -47,10 +49,8 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       assigned_staff: format_instructor(program.instructor),
       # Placeholder: Program status tracking pending implementation
       status: :active,
-      # Placeholder: Enrollment count integration pending implementation
-      enrolled: 0,
-      # Placeholder: Capacity now owned by EnrollmentPolicy (Enrollment context)
-      capacity: 0
+      enrolled: Map.get(data, :enrolled),
+      capacity: Map.get(data, :capacity)
     }
   end
 

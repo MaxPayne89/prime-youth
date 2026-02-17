@@ -6,14 +6,25 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
   alias KlassHeroWeb.Presenters.ProgramPresenter
 
   describe "to_table_view/1" do
-    test "program without instructor returns nil assigned_staff and placeholder fields" do
+    test "program without instructor returns nil assigned_staff and nil enrollment fields" do
       program = build_program(%{instructor: nil})
 
       result = ProgramPresenter.to_table_view(program)
 
       assert result.assigned_staff == nil
       assert result.status == :active
-      assert result.enrolled == 0
+      assert result.enrolled == nil
+      assert result.capacity == nil
+    end
+
+    test "populates enrolled/capacity from enrollment_data" do
+      program = build_program(%{id: "prog-1"})
+      enrollment_data = %{"prog-1" => %{enrolled: 5, capacity: 20}}
+
+      result = ProgramPresenter.to_table_view(program, enrollment_data)
+
+      assert result.enrolled == 5
+      assert result.capacity == 20
     end
 
     test "program with instructor populates assigned_staff" do
@@ -83,8 +94,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.id == "prog-1"
       assert result.name == "Summer Camp"
       assert result.category == "Sports"
-      # capacity is a placeholder (0) until EnrollmentPolicy integration (Task 8)
-      assert result.capacity == 0
+      assert result.capacity == nil
     end
   end
 

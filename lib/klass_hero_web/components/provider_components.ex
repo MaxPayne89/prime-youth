@@ -1159,7 +1159,9 @@ defmodule KlassHeroWeb.ProviderComponents do
                     </div>
                   </div>
                   <span class="text-sm text-hero-grey-600">
-                    {program.enrolled}/{program.capacity}
+                    {format_enrollment_count(program.enrolled)}/{format_enrollment_count(
+                      program.capacity
+                    )}
                   </span>
                 </div>
               </td>
@@ -1189,13 +1191,15 @@ defmodule KlassHeroWeb.ProviderComponents do
   defp status_label(:inactive), do: gettext("Inactive")
   defp status_label(_), do: gettext("Unknown")
 
-  defp enrollment_percentage(program) do
-    if program.capacity > 0 do
-      min(100, div(program.enrolled * 100, program.capacity))
-    else
-      0
-    end
+  defp enrollment_percentage(%{enrolled: e, capacity: c})
+       when is_integer(e) and is_integer(c) and c > 0 do
+    min(100, div(e * 100, c))
   end
+
+  defp enrollment_percentage(_), do: 0
+
+  defp format_enrollment_count(nil), do: "\u2014"
+  defp format_enrollment_count(count), do: to_string(count)
 
   attr :icon, :string, required: true
   attr :title, :string, required: true

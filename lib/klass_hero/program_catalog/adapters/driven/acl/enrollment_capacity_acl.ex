@@ -21,4 +21,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.ACL.EnrollmentCapacityACL do
   def remaining_capacity(program_id) do
     Enrollment.remaining_capacity(program_id)
   end
+
+  @doc """
+  Returns remaining capacity for multiple programs in a single batch query.
+  """
+  @spec remaining_capacities([String.t()]) :: %{String.t() => non_neg_integer() | :unlimited}
+  def remaining_capacities(program_ids) do
+    Enrollment.get_remaining_capacities(program_ids)
+  end
 end

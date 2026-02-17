@@ -21,9 +21,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   import Ecto.Query
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMapper
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentPolicyMapper
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Queries.EnrollmentQueries
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentPolicySchema
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
+  alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
@@ -107,14 +109,20 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
         nil ->
           {:ok, :unlimited}
 
-        %{max_enrollment: nil} ->
-          {:ok, :unlimited}
-
-        %{max_enrollment: max} ->
+        # Trigger: policy row exists — use domain model to check capacity
+        # Why: avoids duplicating EnrollmentPolicy.has_capacity?/2 logic inline
+        # Outcome: single source of truth for capacity rules
+        %EnrollmentPolicySchema{} = schema ->
+          policy = EnrollmentPolicyMapper.to_domain(schema)
           active = count_active_enrollments_in_tx(repo, program_id)
 
-          if active < max do
-            {:ok, max - active}
+          if EnrollmentPolicy.has_capacity?(policy, active) do
+            remaining =
+              if policy.max_enrollment,
+                do: policy.max_enrollment - active,
+                else: :unlimited
+
+            {:ok, remaining}
           else
             {:error, :program_full}
           end

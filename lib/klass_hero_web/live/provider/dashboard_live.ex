@@ -50,7 +50,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
         # Load real programs for this provider
         domain_programs = ProgramCatalog.list_programs_for_provider(provider_profile.id)
-        programs = Enum.map(domain_programs, &ProgramPresenter.to_table_view/1)
+        enrollment_data = build_enrollment_data(domain_programs)
+        programs = Enum.map(domain_programs, &ProgramPresenter.to_table_view(&1, enrollment_data))
 
         # Update business with actual program count
         business = %{business | program_slots_used: length(programs)}
@@ -475,7 +476,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         with {:ok, attrs} <- maybe_add_instructor(attrs, params["instructor_id"], socket),
              {:ok, program} <- ProgramCatalog.create_program(attrs) do
           policy_result = maybe_set_enrollment_policy(program.id, params)
-          view = ProgramPresenter.to_table_view(program)
+          max = parse_integer(params["max_enrollment"])
+
+          new_enrollment_data = %{
+            program.id => %{enrolled: 0, capacity: max}
+          }
+
+          view = ProgramPresenter.to_table_view(program, new_enrollment_data)
 
           # Trigger: program created, but enrollment policy may have failed
           # Why: program is already persisted — don't roll back, just adjust flash
@@ -1032,16 +1039,37 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp reset_programs_stream(socket) do
     provider_id = socket.assigns.current_scope.provider.id
+    domain_programs = ProgramCatalog.list_programs_for_provider(provider_id)
+    enrollment_data = build_enrollment_data(domain_programs)
 
     programs =
-      ProgramCatalog.list_programs_for_provider(provider_id)
-      |> Enum.map(&ProgramPresenter.to_table_view/1)
+      domain_programs
+      |> Enum.map(&ProgramPresenter.to_table_view(&1, enrollment_data))
       |> filter_by_search(socket.assigns.search_query)
       |> filter_by_staff(socket.assigns.selected_staff)
 
     socket
     |> stream(:programs, programs, reset: true)
     |> assign(programs_count: length(programs))
+  end
+
+  defp build_enrollment_data(domain_programs) do
+    program_ids = Enum.map(domain_programs, & &1.id)
+    capacities = Enrollment.get_remaining_capacities(program_ids)
+    active_counts = Enrollment.count_active_enrollments_batch(program_ids)
+
+    Map.new(program_ids, fn id ->
+      active = Map.get(active_counts, id, 0)
+      remaining = Map.get(capacities, id, :unlimited)
+
+      capacity =
+        case remaining do
+          :unlimited -> nil
+          rem -> active + rem
+        end
+
+      {id, %{enrolled: active, capacity: capacity}}
+    end)
   end
 
   defp filter_by_search(programs, ""), do: programs
@@ -1250,7 +1278,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp parse_integer(val) when is_binary(val) do
     case Integer.parse(val) do
-      {int, _} when int >= 1 -> int
+      {int, ""} when int >= 1 -> int
       _ -> nil
     end
   end

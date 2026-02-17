@@ -224,10 +224,26 @@ defmodule KlassHero.Enrollment do
   end
 
   @doc """
+  Returns remaining capacity for multiple programs in a single batch query.
+  Returns a map of `program_id => remaining_count | :unlimited`.
+  """
+  def get_remaining_capacities(program_ids) when is_list(program_ids) do
+    policy_repo().get_remaining_capacities(program_ids)
+  end
+
+  @doc """
   Returns the count of active (pending/confirmed) enrollments for a program.
   """
   def count_active_enrollments(program_id) when is_binary(program_id) do
     policy_repo().count_active_enrollments(program_id)
+  end
+
+  @doc """
+  Returns counts of active enrollments for multiple programs in a single batch query.
+  Returns a map of `program_id => count`.
+  """
+  def count_active_enrollments_batch(program_ids) when is_list(program_ids) do
+    policy_repo().count_active_enrollments_batch(program_ids)
   end
 
   defp policy_repo do

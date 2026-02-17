@@ -31,8 +31,26 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForManagingEnrollmentPolicies do
               {:ok, non_neg_integer() | :unlimited}
 
   @doc """
+  Returns remaining capacity for multiple programs in a single batch query.
+
+  Returns a map of `program_id => remaining_count | :unlimited`.
+  Programs without a policy are mapped to `:unlimited`.
+  """
+  @callback get_remaining_capacities(program_ids :: [binary()]) ::
+              %{binary() => non_neg_integer() | :unlimited}
+
+  @doc """
   Returns the count of active enrollments for a program.
   Active means status is 'pending' or 'confirmed'.
   """
   @callback count_active_enrollments(program_id :: binary()) :: non_neg_integer()
+
+  @doc """
+  Returns counts of active enrollments for multiple programs in a single batch query.
+
+  Returns a map of `program_id => count`.
+  Programs with no enrollments will have count 0.
+  """
+  @callback count_active_enrollments_batch(program_ids :: [binary()]) ::
+              %{binary() => non_neg_integer()}
 end

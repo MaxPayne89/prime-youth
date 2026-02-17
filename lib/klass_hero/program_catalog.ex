@@ -352,4 +352,11 @@ defmodule KlassHero.ProgramCatalog do
   """
   defdelegate remaining_capacity(program_id),
     to: KlassHero.ProgramCatalog.Adapters.Driven.ACL.EnrollmentCapacityACL
+
+  @doc """
+  Returns remaining enrollment capacity for multiple programs via ACL.
+  Returns a map of `program_id => remaining_count | :unlimited`.
+  """
+  defdelegate remaining_capacities(program_ids),
+    to: KlassHero.ProgramCatalog.Adapters.Driven.ACL.EnrollmentCapacityACL
 end
