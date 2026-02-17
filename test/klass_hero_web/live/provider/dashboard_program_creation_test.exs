@@ -260,5 +260,70 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
       assert html =~ "Program created successfully."
       refute html =~ "enrollment capacity could not be saved"
     end
+
+    test "creates policy with only max_enrollment set", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#new-program-btn") |> render_click()
+
+      view
+      |> form("#program-form", %{
+        "program_schema" => %{
+          "title" => "Max Only Program",
+          "description" => "Testing max-only capacity",
+          "category" => "sports",
+          "price" => "30.00",
+          "max_enrollment" => "20"
+        }
+      })
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "Program created successfully."
+      refute html =~ "enrollment capacity could not be saved"
+    end
+
+    test "creates policy with only min_enrollment set", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#new-program-btn") |> render_click()
+
+      view
+      |> form("#program-form", %{
+        "program_schema" => %{
+          "title" => "Min Only Program",
+          "description" => "Testing min-only capacity",
+          "category" => "sports",
+          "price" => "30.00",
+          "min_enrollment" => "5"
+        }
+      })
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "Program created successfully."
+      refute html =~ "enrollment capacity could not be saved"
+    end
+
+    test "creates program without capacity fields (no policy created)", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#new-program-btn") |> render_click()
+
+      view
+      |> form("#program-form", %{
+        "program_schema" => %{
+          "title" => "No Capacity Program",
+          "description" => "Testing no capacity fields",
+          "category" => "arts",
+          "price" => "25.00"
+        }
+      })
+      |> render_submit()
+
+      html = render(view)
+      assert html =~ "Program created successfully."
+      refute html =~ "enrollment capacity could not be saved"
+    end
   end
 end
