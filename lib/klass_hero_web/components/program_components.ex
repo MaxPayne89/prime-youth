@@ -6,6 +6,7 @@ defmodule KlassHeroWeb.ProgramComponents do
   activities, and the program catalog.
   """
   use Phoenix.Component
+  use Gettext, backend: KlassHeroWeb.Gettext
 
   import KlassHeroWeb.UIComponents
 
@@ -496,5 +497,131 @@ defmodule KlassHeroWeb.ProgramComponents do
       </div>
     </div>
     """
+  end
+
+  @doc """
+  Renders a read-only card displaying participant restrictions for a program.
+
+  Shows age, gender, and grade restrictions when configured on the policy.
+
+  ## Examples
+
+      <.restriction_info policy={@participant_policy} />
+  """
+  attr :policy, :map, required: true
+
+  def restriction_info(assigns) do
+    ~H"""
+    <div class={[
+      Theme.bg(:surface),
+      Theme.rounded(:xl),
+      "shadow-sm border overflow-hidden",
+      Theme.border_color(:light)
+    ]}>
+      <div class={["p-4 border-b", Theme.border_color(:light)]}>
+        <h3 class={["font-semibold flex items-center gap-2", Theme.text_color(:heading)]}>
+          <.icon name="hero-shield-check" class="w-5 h-5 text-hero-blue-500" />
+          {gettext("Participant Requirements")}
+        </h3>
+      </div>
+      <div class="p-6">
+        <ul class={["space-y-2 text-sm", Theme.text_color(:secondary)]}>
+          <%!-- Age restriction --%>
+          <li :if={@policy.min_age_months || @policy.max_age_months} class="flex items-start">
+            <.icon name="hero-cake" class="w-5 h-5 text-hero-blue-500 mr-2 flex-shrink-0" />
+            <span>{format_age_restriction(@policy)}</span>
+          </li>
+          <%!-- Gender restriction --%>
+          <li :if={@policy.allowed_genders != []} class="flex items-start">
+            <.icon name="hero-users" class="w-5 h-5 text-hero-blue-500 mr-2 flex-shrink-0" />
+            <span>{format_gender_restriction(@policy.allowed_genders)}</span>
+          </li>
+          <%!-- Grade restriction --%>
+          <li :if={@policy.min_grade || @policy.max_grade} class="flex items-start">
+            <.icon name="hero-academic-cap" class="w-5 h-5 text-hero-blue-500 mr-2 flex-shrink-0" />
+            <span>{format_grade_restriction(@policy)}</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+    """
+  end
+
+  @doc false
+  defp format_age_restriction(%{min_age_months: min, max_age_months: max})
+       when not is_nil(min) and not is_nil(max) do
+    gettext("Ages %{min} to %{max}", min: format_months(min), max: format_months(max))
+  end
+
+  defp format_age_restriction(%{min_age_months: min, max_age_months: nil})
+       when not is_nil(min) do
+    gettext("Ages %{min}+", min: format_months(min))
+  end
+
+  defp format_age_restriction(%{min_age_months: nil, max_age_months: max})
+       when not is_nil(max) do
+    gettext("Up to %{max}", max: format_months(max))
+  end
+
+  # Trigger: months divide evenly into years with no remainder
+  # Why: display "5 years" instead of "5 years 0 months" for cleaner UX
+  # Outcome: returns human-readable age string
+  defp format_months(months) when rem(months, 12) == 0 do
+    years = div(months, 12)
+    ngettext("%{count} year", "%{count} years", years)
+  end
+
+  defp format_months(months) when months < 12 do
+    ngettext("%{count} month", "%{count} months", months)
+  end
+
+  defp format_months(months) do
+    years = div(months, 12)
+    remaining = rem(months, 12)
+
+    years_str = ngettext("%{count} year", "%{count} years", years)
+    months_str = ngettext("%{count} month", "%{count} months", remaining)
+
+    "#{years_str} #{months_str}"
+  end
+
+  @doc false
+  defp format_gender_restriction(genders) when is_list(genders) do
+    labels = Enum.map(genders, &humanize_gender/1)
+
+    # Trigger: only one gender allowed
+    # Why: display "Female only" for single-gender programs
+    # Outcome: appends "only" suffix for single-value lists
+    case labels do
+      [single] -> gettext("%{gender} only", gender: single)
+      multiple -> Enum.join(multiple, ", ")
+    end
+  end
+
+  defp humanize_gender("female"), do: gettext("Female")
+  defp humanize_gender("male"), do: gettext("Male")
+  defp humanize_gender("diverse"), do: gettext("Diverse")
+  defp humanize_gender("not_specified"), do: gettext("Not specified")
+  defp humanize_gender(other), do: other
+
+  @doc false
+  defp format_grade_restriction(%{min_grade: min, max_grade: max})
+       when not is_nil(min) and not is_nil(max) and min == max do
+    gettext("Grade %{grade}", grade: min)
+  end
+
+  defp format_grade_restriction(%{min_grade: min, max_grade: max})
+       when not is_nil(min) and not is_nil(max) do
+    gettext("Grades %{min} – %{max}", min: min, max: max)
+  end
+
+  defp format_grade_restriction(%{min_grade: min, max_grade: nil})
+       when not is_nil(min) do
+    gettext("Grade %{min}+", min: min)
+  end
+
+  defp format_grade_restriction(%{min_grade: nil, max_grade: max})
+       when not is_nil(max) do
+    gettext("Up to Grade %{max}", max: max)
   end
 end

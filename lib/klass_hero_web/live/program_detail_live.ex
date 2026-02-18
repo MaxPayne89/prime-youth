@@ -2,9 +2,11 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   use KlassHeroWeb, :live_view
 
   import KlassHeroWeb.Live.SampleFixtures
+  import KlassHeroWeb.ProgramComponents
   import KlassHeroWeb.ReviewComponents
   import KlassHeroWeb.UIComponents
 
+  alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
   alias KlassHeroWeb.Presenters.ProgramPresenter
@@ -26,6 +28,12 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
         team_members = load_team_members(program.provider_id)
 
+        participant_policy =
+          case Enrollment.get_participant_policy(program.id) do
+            {:ok, policy} -> policy
+            {:error, :not_found} -> nil
+          end
+
         socket =
           socket
           |> assign(page_title: program.title)
@@ -34,6 +42,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           |> assign(instructor: sample_instructor())
           |> assign(reviews: sample_reviews())
           |> assign(registration_status: ProgramCatalog.registration_status(program))
+          |> assign(participant_policy: participant_policy)
 
         {:ok, socket}
 
@@ -342,6 +351,9 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             </div>
           </div>
         </section>
+
+        <%!-- Participant Requirements Section --%>
+        <.restriction_info :if={@participant_policy} policy={@participant_policy} />
 
         <%!-- Meet the Team / Instructor Section --%>
         <section>
