@@ -18,6 +18,16 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   def mount(%{"id" => program_id}, _session, socket) do
     case ProgramCatalog.get_program_by_id(program_id) do
       {:ok, program} ->
+        # Trigger: LiveView connected to server
+        # Why: receive real-time updates when provider changes participant restrictions
+        # Outcome: handle_info callback re-fetches policy on change
+        if connected?(socket) do
+          Phoenix.PubSub.subscribe(
+            KlassHero.PubSub,
+            "enrollment:participant_policy_set"
+          )
+        end
+
         # Add temporary included_items field (fixture data until proper implementation)
         program_with_items =
           Map.put(program, :included_items, [
@@ -89,6 +99,27 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   @impl true
   def handle_event("save_for_later", _params, socket) do
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(
+        {:domain_event, %{event_type: :participant_policy_set, payload: payload}},
+        socket
+      ) do
+    # Trigger: provider changed participant restrictions for a program
+    # Why: only re-fetch if the event is for the program this LiveView is displaying
+    # Outcome: participant_policy assign is refreshed, template re-renders
+    if payload.program_id == socket.assigns.program.id do
+      participant_policy =
+        case Enrollment.get_participant_policy(payload.program_id) do
+          {:ok, policy} -> ParticipantPolicyPresenter.to_view(policy)
+          {:error, :not_found} -> nil
+        end
+
+      {:noreply, assign(socket, participant_policy: participant_policy)}
+    else
+      {:noreply, socket}
+    end
   end
 
   defp load_team_members(nil), do: []

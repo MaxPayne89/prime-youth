@@ -51,6 +51,7 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.GetEnrollment
   alias KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIds
   alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
+  alias KlassHero.Enrollment.Application.UseCases.SetParticipantPolicy
 
   # ============================================================================
   # Enrollment Management Functions
@@ -311,7 +312,7 @@ defmodule KlassHero.Enrollment do
   Uses upsert semantics -- if a policy already exists for the program_id, it is updated.
   """
   def set_participant_policy(attrs) when is_map(attrs) do
-    participant_policy_repo().upsert(attrs)
+    SetParticipantPolicy.execute(attrs)
   end
 
   @doc """

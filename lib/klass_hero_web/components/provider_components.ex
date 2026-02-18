@@ -511,7 +511,6 @@ defmodule KlassHeroWeb.ProviderComponents do
   attr :categories, :list, required: true, doc: "List of valid program categories"
 
   def staff_member_form(assigns) do
-
     ~H"""
     <div
       id="staff-member-form"
