@@ -17,8 +17,6 @@ defmodule KlassHeroWeb.BookingLive do
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
-    current_user = socket.assigns.current_scope.user
-
     with {:ok, program} <- fetch_program(program_id),
          :ok <- validate_registration_open(program),
          :ok <- validate_program_capacity(program) do
@@ -30,7 +28,6 @@ defmodule KlassHeroWeb.BookingLive do
         socket
         |> assign(
           page_title: gettext("Enrollment - %{title}", title: program.title),
-          current_user: current_user,
           program: program,
           children: children_for_view,
           children_by_id: children_by_id,
