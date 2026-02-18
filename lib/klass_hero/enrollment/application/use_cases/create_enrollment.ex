@@ -5,7 +5,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
   This use case orchestrates:
   1. Validation of parent profile existence
   2. Validation of booking entitlement (tier-based limits)
-  3. Persistence via the repository port
+  3. Validation of participant eligibility (age, gender, grade restrictions)
+  4. Persistence via the repository port
 
   ## Required Parameters
 
@@ -44,10 +45,13 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
   - `{:ok, Enrollment.t()}` on success
   - `{:error, :no_parent_profile}` if no parent profile exists for identity
   - `{:error, :booking_limit_exceeded}` if monthly booking cap reached
+  - `{:error, :ineligible, [String.t()]}` if child fails participant restrictions
+  - `{:error, :processing_failed}` if eligibility check fails unexpectedly
   - `{:error, :duplicate_resource}` if active enrollment exists for child/program
   - `{:error, term()}` on validation or persistence failure
   """
-  @spec execute(map()) :: {:ok, EnrollmentModel.t()} | {:error, term()}
+  @spec execute(map()) ::
+          {:ok, EnrollmentModel.t()} | {:error, :ineligible, [String.t()]} | {:error, term()}
   def execute(%{identity_id: identity_id} = params) when is_binary(identity_id) do
     create_enrollment_with_validation(identity_id, params)
   end
@@ -58,7 +62,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
 
   defp create_enrollment_with_validation(identity_id, params) do
     with {:ok, parent} <- validate_parent_profile(identity_id),
-         :ok <- validate_booking_entitlement(parent) do
+         :ok <- validate_booking_entitlement(parent),
+         :ok <- validate_participant_eligibility(params[:program_id], params[:child_id]) do
       attrs = build_enrollment_attrs(params, parent.id)
 
       Logger.info("[Enrollment.CreateEnrollment] Creating enrollment with validation",
@@ -106,6 +111,33 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
       )
 
       {:error, :booking_limit_exceeded}
+    end
+  end
+
+  # Trigger: child may not meet program's age/gender/grade restrictions
+  # Why: enforce provider-configured eligibility rules before accepting enrollment
+  # Outcome: blocks ineligible children with human-readable reasons
+  defp validate_participant_eligibility(program_id, child_id) do
+    alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
+
+    case CheckParticipantEligibility.execute(program_id, child_id) do
+      {:ok, :eligible} ->
+        :ok
+
+      {:error, :ineligible, reasons} ->
+        {:error, :ineligible, reasons}
+
+      {:error, reason} ->
+        Logger.warning("[Enrollment.CreateEnrollment] Eligibility check failed unexpectedly",
+          program_id: program_id,
+          child_id: child_id,
+          reason: inspect(reason)
+        )
+
+        # Trigger: ACL failure (child not found, etc.)
+        # Why: fail closed — deny enrollment if we can't verify eligibility
+        # Outcome: return processing_failed so UI shows generic error
+        {:error, :processing_failed}
     end
   end
 
