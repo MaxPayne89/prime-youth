@@ -31,6 +31,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapper do
       first_name: schema.first_name,
       last_name: schema.last_name,
       date_of_birth: schema.date_of_birth,
+      gender: schema.gender,
+      school_grade: schema.school_grade,
       emergency_contact: schema.emergency_contact,
       support_needs: schema.support_needs,
       allergies: schema.allergies,
@@ -64,6 +66,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapper do
       first_name: child.first_name,
       last_name: child.last_name,
       date_of_birth: child.date_of_birth,
+      gender: child.gender,
+      school_grade: child.school_grade,
       emergency_contact: child.emergency_contact,
       support_needs: child.support_needs,
       allergies: child.allergies
