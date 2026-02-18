@@ -49,6 +49,7 @@ npm-debug.log
 
 # Beads internal files
 .beads/.migration-hint-ts
+.beads/dolt/
 
 # Git worktrees
 .worktrees/
