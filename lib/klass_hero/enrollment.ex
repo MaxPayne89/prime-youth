@@ -44,6 +44,7 @@ defmodule KlassHero.Enrollment do
 
   alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
   alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
+  alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
   alias KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings
   alias KlassHero.Enrollment.Application.UseCases.CreateEnrollment
   alias KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo
@@ -286,5 +287,53 @@ defmodule KlassHero.Enrollment do
 
   defp policy_repo do
     Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollment_policies]
+  end
+
+  # ============================================================================
+  # Participant Policy Functions
+  # ============================================================================
+
+  @doc """
+  Checks whether a child is eligible for a program based on participant restrictions.
+
+  Returns `{:ok, :eligible}` when eligible or no policy exists.
+  Returns `{:error, :ineligible, reasons}` with human-readable reason list.
+  Returns `{:error, :not_found}` when the child does not exist.
+  """
+  def check_participant_eligibility(program_id, child_id)
+      when is_binary(program_id) and is_binary(child_id) do
+    CheckParticipantEligibility.execute(program_id, child_id)
+  end
+
+  @doc """
+  Creates or updates a participant eligibility policy for a program.
+
+  Uses upsert semantics -- if a policy already exists for the program_id, it is updated.
+  """
+  def set_participant_policy(attrs) when is_map(attrs) do
+    participant_policy_repo().upsert(attrs)
+  end
+
+  @doc """
+  Returns the participant policy for a program.
+  """
+  def get_participant_policy(program_id) when is_binary(program_id) do
+    participant_policy_repo().get_by_program_id(program_id)
+  end
+
+  @doc """
+  Returns a changeset for participant policy form validation.
+
+  Used by the provider dashboard to validate eligibility restriction fields
+  inline before the program is created.
+  """
+  def new_participant_policy_changeset(attrs \\ %{}) do
+    alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.ParticipantPolicySchema
+
+    ParticipantPolicySchema.changeset(%ParticipantPolicySchema{}, attrs)
+  end
+
+  defp participant_policy_repo do
+    Application.get_env(:klass_hero, :enrollment)[:for_managing_participant_policies]
   end
 end
