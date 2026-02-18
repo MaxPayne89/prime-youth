@@ -30,7 +30,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility 
   defp check_eligibility(policy, program_id, child_id) do
     with {:ok, details} <- participant_details_adapter().get_participant_details(child_id),
          {:ok, reference_date} <- resolve_reference_date(policy, program_id) do
-      age_months = compute_age_months(details.date_of_birth, reference_date)
+      age_months = ParticipantPolicy.age_in_months(details.date_of_birth, reference_date)
 
       participant = %{
         age_months: age_months,
@@ -76,15 +76,6 @@ defmodule KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility 
 
   defp resolve_reference_date(%ParticipantPolicy{}, _program_id) do
     {:ok, Date.utc_today()}
-  end
-
-  # Computes age in complete months between date_of_birth and reference_date.
-  # Subtracts one month if the day-of-month hasn't been reached yet.
-  defp compute_age_months(date_of_birth, reference_date) do
-    year_months = (reference_date.year - date_of_birth.year) * 12
-    month_diff = reference_date.month - date_of_birth.month
-    day_adjustment = if reference_date.day < date_of_birth.day, do: -1, else: 0
-    max(year_months + month_diff + day_adjustment, 0)
   end
 
   defp policy_repo do

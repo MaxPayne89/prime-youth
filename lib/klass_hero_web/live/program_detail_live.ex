@@ -9,6 +9,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+  alias KlassHeroWeb.Presenters.ParticipantPolicyPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.StaffMemberPresenter
   alias KlassHeroWeb.Theme
@@ -30,7 +31,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
         participant_policy =
           case Enrollment.get_participant_policy(program.id) do
-            {:ok, policy} -> policy
+            {:ok, policy} -> ParticipantPolicyPresenter.to_view(policy)
             {:error, :not_found} -> nil
           end
 

@@ -137,7 +137,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibilityT
       program = insert(:program_schema, start_date: future_start)
 
       # Child is currently 59 months old, but will be ~71 months at program start
-      birth_date = Date.add(Date.utc_today(), -(59 * 30))
+      birth_date = Date.shift(Date.utc_today(), month: -59)
 
       child =
         insert(:child_schema,

@@ -157,6 +157,25 @@ defmodule KlassHero.Enrollment.Domain.Models.ParticipantPolicy do
     ]
   end
 
+  @doc """
+  Computes age in complete months between date_of_birth and reference_date.
+
+  Subtracts one month if the day-of-month hasn't been reached yet,
+  ensuring accurate whole-month age calculation.
+  """
+  @spec age_in_months(Date.t(), Date.t()) :: non_neg_integer()
+  def age_in_months(date_of_birth, reference_date) do
+    year_months = (reference_date.year - date_of_birth.year) * 12
+    month_diff = reference_date.month - date_of_birth.month
+
+    # Trigger: child hasn't had their birthday this month yet
+    # Why: if reference day < birth day, they haven't completed the current month
+    # Outcome: subtract one month to avoid rounding up
+    day_adjustment = if reference_date.day < date_of_birth.day, do: -1, else: 0
+
+    max(year_months + month_diff + day_adjustment, 0)
+  end
+
   # --- Eligibility check helpers ---
 
   # Trigger: policy has a minimum age and child is below it

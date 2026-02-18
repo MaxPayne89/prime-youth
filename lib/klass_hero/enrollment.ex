@@ -328,9 +328,9 @@ defmodule KlassHero.Enrollment do
   inline before the program is created.
   """
   def new_participant_policy_changeset(attrs \\ %{}) do
-    alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.ParticipantPolicySchema
+    alias KlassHero.Enrollment.Application.ParticipantPolicyForm
 
-    ParticipantPolicySchema.changeset(%ParticipantPolicySchema{}, attrs)
+    ParticipantPolicyForm.changeset(%ParticipantPolicyForm{}, attrs)
   end
 
   defp participant_policy_repo do

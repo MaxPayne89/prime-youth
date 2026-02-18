@@ -96,6 +96,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
               to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
           )
           |> assign(instructor_options: build_instructor_options(provider_profile.id))
+          |> assign(categories: ProgramCatalog.program_categories())
+          |> assign(document_types: Provider.valid_document_types())
           |> allow_upload(:logo,
             accept: ~w(.jpg .jpeg .png .webp),
             max_entries: 1,
@@ -738,6 +740,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
               business={@business}
               verification_docs={@streams.verification_docs}
               doc_type={@doc_type}
+              document_types={@document_types}
             />
           <% _ -> %>
             <.provider_dashboard_header business={@business} />
@@ -753,6 +756,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   editing_staff_id={@editing_staff_id}
                   staff_form={@staff_form}
                   uploads={@uploads}
+                  categories={@categories}
                 />
               <% :programs -> %>
                 <.programs_section
@@ -766,6 +770,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   participant_policy_form={@participant_policy_form}
                   uploads={@uploads}
                   instructor_options={@instructor_options}
+                  categories={@categories}
                 />
             <% end %>
         <% end %>
@@ -901,6 +906,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         verification_docs={@verification_docs}
         uploads={@uploads}
         doc_type={@doc_type}
+        document_types={@document_types}
       />
     </div>
     """
@@ -984,6 +990,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           form={@staff_form}
           editing={@editing_staff_id != nil}
           uploads={@uploads}
+          categories={@categories}
         />
       <% end %>
 
@@ -1017,6 +1024,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :participant_policy_form, :any, required: true
   attr :uploads, :map, required: true
   attr :instructor_options, :list, required: true
+  attr :categories, :list, required: true
 
   defp programs_section(assigns) do
     ~H"""
@@ -1028,6 +1036,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           participant_policy_form={@participant_policy_form}
           uploads={@uploads}
           instructor_options={@instructor_options}
+          categories={@categories}
         />
       <% end %>
 

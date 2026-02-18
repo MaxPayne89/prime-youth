@@ -13,8 +13,6 @@ defmodule KlassHeroWeb.ProviderComponents do
   import KlassHeroWeb.CoreComponents, only: [input: 1]
   import KlassHeroWeb.UIComponents
 
-  alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
-  alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Theme
 
@@ -510,10 +508,9 @@ defmodule KlassHeroWeb.ProviderComponents do
   attr :form, :any, required: true
   attr :editing, :boolean, default: false
   attr :uploads, :map, required: true
+  attr :categories, :list, required: true, doc: "List of valid program categories"
 
   def staff_member_form(assigns) do
-    categories = ProgramCategories.program_categories()
-    assigns = assign(assigns, categories: categories)
 
     ~H"""
     <div
@@ -717,6 +714,7 @@ defmodule KlassHeroWeb.ProviderComponents do
   attr :editing, :boolean, default: false
   attr :uploads, :map, required: true
   attr :instructor_options, :list, default: []
+  attr :categories, :list, required: true, doc: "List of valid program categories"
 
   def program_form(assigns) do
     ~H"""
@@ -757,7 +755,7 @@ defmodule KlassHeroWeb.ProviderComponents do
             field={@form[:category]}
             type="select"
             label={gettext("Category")}
-            options={category_options()}
+            options={category_options(@categories)}
             prompt={gettext("Choose a category")}
             required
           />
@@ -1116,9 +1114,8 @@ defmodule KlassHeroWeb.ProviderComponents do
     """
   end
 
-  defp category_options do
-    ProgramCategories.program_categories()
-    |> Enum.map(fn cat -> {String.capitalize(cat), cat} end)
+  defp category_options(categories) do
+    Enum.map(categories, fn cat -> {String.capitalize(cat), cat} end)
   end
 
   defp grade_options do
@@ -1367,6 +1364,7 @@ defmodule KlassHeroWeb.ProviderComponents do
   attr :verification_docs, :any, required: true, doc: "LiveView stream of verification documents"
   attr :uploads, :map, required: true, doc: "The @uploads assign from the parent LiveView"
   attr :doc_type, :string, required: true, doc: "Currently selected document type"
+  attr :document_types, :list, required: true, doc: "List of valid document types"
 
   def verification_documents_panel(assigns) do
     ~H"""
@@ -1433,7 +1431,7 @@ defmodule KlassHeroWeb.ProviderComponents do
               ]}
             >
               <option
-                :for={type <- VerificationDocument.valid_document_types()}
+                :for={type <- @document_types}
                 value={type}
                 selected={type == @doc_type}
               >
