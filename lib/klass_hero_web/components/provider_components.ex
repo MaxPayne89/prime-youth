@@ -713,6 +713,7 @@ defmodule KlassHeroWeb.ProviderComponents do
   """
   attr :form, :any, required: true
   attr :enrollment_form, :any, required: true
+  attr :participant_policy_form, :any, required: true
   attr :editing, :boolean, default: false
   attr :uploads, :map, required: true
   attr :instructor_options, :list, default: []
@@ -887,6 +888,127 @@ defmodule KlassHeroWeb.ProviderComponents do
           </div>
         </div>
 
+        <%!-- Participant Restrictions Section --%>
+        <div class="space-y-4">
+          <div>
+            <p class="text-sm font-semibold text-hero-charcoal">
+              {gettext("Participant Restrictions (optional)")}
+            </p>
+            <p class="text-xs text-hero-grey-500">
+              {gettext("Define age, gender, or grade restrictions for eligible participants.")}
+            </p>
+          </div>
+
+          <%!-- Eligibility Timing --%>
+          <fieldset id="eligibility-at-fieldset">
+            <legend class="text-sm text-hero-grey-600 mb-2">
+              {gettext("Check eligibility at")}
+            </legend>
+            <div class="flex gap-4">
+              <label class="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="participant_policy[eligibility_at]"
+                  value="registration"
+                  checked={
+                    Phoenix.HTML.Form.input_value(@participant_policy_form, :eligibility_at) in [
+                      "registration",
+                      nil
+                    ]
+                  }
+                  class="border-hero-grey-300 text-hero-cyan focus:ring-hero-cyan"
+                />
+                {gettext("Registration")}
+              </label>
+              <label class="flex items-center gap-2 text-sm">
+                <input
+                  type="radio"
+                  name="participant_policy[eligibility_at]"
+                  value="program_start"
+                  checked={
+                    Phoenix.HTML.Form.input_value(@participant_policy_form, :eligibility_at) ==
+                      "program_start"
+                  }
+                  class="border-hero-grey-300 text-hero-cyan focus:ring-hero-cyan"
+                />
+                {gettext("Program Start")}
+              </label>
+            </div>
+          </fieldset>
+
+          <%!-- Age Restriction --%>
+          <div class="grid grid-cols-2 gap-4">
+            <.input
+              field={@participant_policy_form[:min_age_months]}
+              type="number"
+              label={gettext("Minimum Age (months)")}
+              min="0"
+            />
+            <.input
+              field={@participant_policy_form[:max_age_months]}
+              type="number"
+              label={gettext("Maximum Age (months)")}
+              min="0"
+            />
+          </div>
+
+          <%!-- Gender Restriction --%>
+          <fieldset id="allowed-genders-fieldset">
+            <legend class="text-sm text-hero-grey-600 mb-2">
+              {gettext("Allowed Genders")}
+            </legend>
+            <p class="text-xs text-hero-grey-400 mb-2">
+              {gettext("Leave unchecked to allow all genders.")}
+            </p>
+            <div class="flex flex-wrap gap-3">
+              <label
+                :for={
+                  {value, label} <- [
+                    {"male", gettext("Male")},
+                    {"female", gettext("Female")},
+                    {"diverse", gettext("Diverse")},
+                    {"not_specified", gettext("Not specified")}
+                  ]
+                }
+                class="flex items-center gap-2 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  name="participant_policy[allowed_genders][]"
+                  value={value}
+                  checked={
+                    value in
+                      (Phoenix.HTML.Form.input_value(@participant_policy_form, :allowed_genders) ||
+                         [])
+                  }
+                  class="rounded border-hero-grey-300 text-hero-cyan focus:ring-hero-cyan"
+                />
+                {label}
+              </label>
+            </div>
+            <%!-- Hidden input ensures empty array submitted when no genders checked --%>
+            <input type="hidden" name="participant_policy[allowed_genders][]" value="" />
+          </fieldset>
+
+          <%!-- Grade Restriction --%>
+          <div class="grid grid-cols-2 gap-4">
+            <.input
+              field={@participant_policy_form[:min_grade]}
+              type="select"
+              label={gettext("Minimum Grade")}
+              options={grade_options()}
+              prompt={gettext("No minimum")}
+            />
+            <.input
+              field={@participant_policy_form[:max_grade]}
+              type="select"
+              label={gettext("Maximum Grade")}
+              options={grade_options()}
+              prompt={gettext("No maximum")}
+            />
+          </div>
+        </div>
+
         <.input
           field={@form[:description]}
           type="textarea"
@@ -995,6 +1117,10 @@ defmodule KlassHeroWeb.ProviderComponents do
   defp category_options do
     ProgramCategories.program_categories()
     |> Enum.map(fn cat -> {String.capitalize(cat), cat} end)
+  end
+
+  defp grade_options do
+    Enum.map(1..13, fn grade -> {"Klasse #{grade}", to_string(grade)} end)
   end
 
   @doc """
