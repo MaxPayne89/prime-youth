@@ -478,8 +478,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      |> assign(program_form: to_form(changeset))
      |> assign(enrollment_form: to_form(enrollment_changeset, as: "enrollment_policy"))
      |> assign(
-       participant_policy_form:
-         to_form(participant_policy_changeset, as: "participant_policy")
+       participant_policy_form: to_form(participant_policy_changeset, as: "participant_policy")
      )}
   end
 

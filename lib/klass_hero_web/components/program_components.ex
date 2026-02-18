@@ -553,13 +553,11 @@ defmodule KlassHeroWeb.ProgramComponents do
     gettext("Ages %{min} to %{max}", min: format_months(min), max: format_months(max))
   end
 
-  defp format_age_restriction(%{min_age_months: min, max_age_months: nil})
-       when not is_nil(min) do
+  defp format_age_restriction(%{min_age_months: min, max_age_months: nil}) when not is_nil(min) do
     gettext("Ages %{min}+", min: format_months(min))
   end
 
-  defp format_age_restriction(%{min_age_months: nil, max_age_months: max})
-       when not is_nil(max) do
+  defp format_age_restriction(%{min_age_months: nil, max_age_months: max}) when not is_nil(max) do
     gettext("Up to %{max}", max: format_months(max))
   end
 
@@ -615,13 +613,11 @@ defmodule KlassHeroWeb.ProgramComponents do
     gettext("Grades %{min} – %{max}", min: min, max: max)
   end
 
-  defp format_grade_restriction(%{min_grade: min, max_grade: nil})
-       when not is_nil(min) do
+  defp format_grade_restriction(%{min_grade: min, max_grade: nil}) when not is_nil(min) do
     gettext("Grade %{min}+", min: min)
   end
 
-  defp format_grade_restriction(%{min_grade: nil, max_grade: max})
-       when not is_nil(max) do
+  defp format_grade_restriction(%{min_grade: nil, max_grade: max}) when not is_nil(max) do
     gettext("Up to Grade %{max}", max: max)
   end
 end

@@ -977,9 +977,11 @@ defmodule KlassHeroWeb.ProviderComponents do
                   name="participant_policy[allowed_genders][]"
                   value={value}
                   checked={
-                    value in
-                      (Phoenix.HTML.Form.input_value(@participant_policy_form, :allowed_genders) ||
-                         [])
+                    value in (Phoenix.HTML.Form.input_value(
+                                @participant_policy_form,
+                                :allowed_genders
+                              ) ||
+                                [])
                   }
                   class="rounded border-hero-grey-300 text-hero-cyan focus:ring-hero-cyan"
                 />
