@@ -9,6 +9,9 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments do
 
   require Logger
 
+  @enrollment_repository Application.compile_env!(:klass_hero, [:enrollment, :for_managing_enrollments])
+  @child_info_adapter Application.compile_env!(:klass_hero, [:enrollment, :for_resolving_child_info])
+
   @type roster_entry :: %{
           enrollment_id: String.t(),
           child_id: String.t(),
@@ -27,7 +30,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments do
   def execute(program_id) when is_binary(program_id) do
     Logger.info("[Enrollment.ListProgramEnrollments] Listing roster", program_id: program_id)
 
-    enrollments = repository().list_by_program(program_id)
+    enrollments = @enrollment_repository.list_by_program(program_id)
 
     # Trigger: no enrollments exist for this program
     # Why: skip the ACL call entirely when there's nothing to enrich
@@ -36,7 +39,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments do
       []
     else
       child_ids = enrollments |> Enum.map(& &1.child_id) |> Enum.uniq()
-      children = child_info_adapter().get_children_by_ids(child_ids)
+      children = @child_info_adapter.get_children_by_ids(child_ids)
       child_map = Map.new(children, fn c -> {c.id, c} end)
 
       Enum.map(enrollments, fn enrollment ->
@@ -58,11 +61,4 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments do
     end
   end
 
-  defp repository do
-    Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollments]
-  end
-
-  defp child_info_adapter do
-    Application.get_env(:klass_hero, :enrollment)[:for_resolving_child_info]
-  end
 end
