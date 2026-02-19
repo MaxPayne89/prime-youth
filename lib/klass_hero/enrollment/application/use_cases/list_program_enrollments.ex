@@ -9,8 +9,14 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments do
 
   require Logger
 
-  @enrollment_repository Application.compile_env!(:klass_hero, [:enrollment, :for_managing_enrollments])
-  @child_info_adapter Application.compile_env!(:klass_hero, [:enrollment, :for_resolving_child_info])
+  @enrollment_repository Application.compile_env!(:klass_hero, [
+                           :enrollment,
+                           :for_managing_enrollments
+                         ])
+  @child_info_adapter Application.compile_env!(:klass_hero, [
+                        :enrollment,
+                        :for_resolving_child_info
+                      ])
 
   @type roster_entry :: %{
           enrollment_id: String.t(),
