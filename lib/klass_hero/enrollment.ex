@@ -51,6 +51,7 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.GetEnrollment
   alias KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIds
   alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
+  alias KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments
   alias KlassHero.Enrollment.Application.UseCases.SetParticipantPolicy
 
   # ============================================================================
@@ -100,6 +101,16 @@ defmodule KlassHero.Enrollment do
   """
   def list_parent_enrollments(parent_id) when is_binary(parent_id) do
     ListParentEnrollments.execute(parent_id)
+  end
+
+  @doc """
+  Lists enriched enrollment roster entries for a program.
+
+  Returns a list of maps with child_name, enrollment status, and enrolled_at.
+  Used by the provider dashboard to display the program roster.
+  """
+  def list_program_enrollments(program_id) when is_binary(program_id) do
+    ListProgramEnrollments.execute(program_id)
   end
 
   @doc """

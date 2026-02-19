@@ -288,4 +288,117 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
       assert count == 0
     end
   end
+
+  describe "list_by_program/1" do
+    test "returns active enrollments for a program" do
+      program = insert(:program_schema)
+      child = insert(:child_schema)
+
+      enrollment =
+        insert(:enrollment_schema,
+          program_id: program.id,
+          child_id: child.id,
+          parent_id: child.parent_id,
+          status: "pending"
+        )
+
+      result = EnrollmentRepository.list_by_program(program.id)
+
+      assert length(result) == 1
+      assert hd(result).id == to_string(enrollment.id)
+      assert hd(result).child_id == to_string(child.id)
+    end
+
+    test "returns both pending and confirmed enrollments" do
+      program = insert(:program_schema)
+      child1 = insert(:child_schema)
+      child2 = insert(:child_schema)
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child1.id,
+        parent_id: child1.parent_id,
+        status: "pending"
+      )
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child2.id,
+        parent_id: child2.parent_id,
+        status: "confirmed"
+      )
+
+      result = EnrollmentRepository.list_by_program(program.id)
+      assert length(result) == 2
+    end
+
+    test "excludes cancelled and completed enrollments" do
+      program = insert(:program_schema)
+      child1 = insert(:child_schema)
+      child2 = insert(:child_schema)
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child1.id,
+        parent_id: child1.parent_id,
+        status: "cancelled"
+      )
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child2.id,
+        parent_id: child2.parent_id,
+        status: "completed"
+      )
+
+      assert EnrollmentRepository.list_by_program(program.id) == []
+    end
+
+    test "returns empty list for non-existent program" do
+      assert EnrollmentRepository.list_by_program(Ecto.UUID.generate()) == []
+    end
+
+    test "returns domain entities ordered by enrolled_at descending" do
+      program = insert(:program_schema)
+      child1 = insert(:child_schema)
+      child2 = insert(:child_schema)
+
+      old =
+        insert(:enrollment_schema,
+          program_id: program.id,
+          child_id: child1.id,
+          parent_id: child1.parent_id,
+          enrolled_at: ~U[2025-01-10 10:00:00Z]
+        )
+
+      recent =
+        insert(:enrollment_schema,
+          program_id: program.id,
+          child_id: child2.id,
+          parent_id: child2.parent_id,
+          enrolled_at: ~U[2025-01-20 10:00:00Z],
+          status: "confirmed"
+        )
+
+      result = EnrollmentRepository.list_by_program(program.id)
+
+      ids = Enum.map(result, & &1.id)
+      assert ids == [to_string(recent.id), to_string(old.id)]
+      assert Enum.all?(result, &(%Enrollment{} = &1))
+    end
+
+    test "does not return enrollments from other programs" do
+      program1 = insert(:program_schema)
+      program2 = insert(:program_schema)
+      child = insert(:child_schema)
+
+      insert(:enrollment_schema,
+        program_id: program1.id,
+        child_id: child.id,
+        parent_id: child.parent_id
+      )
+
+      assert EnrollmentRepository.list_by_program(program2.id) == []
+    end
+  end
 end
