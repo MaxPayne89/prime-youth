@@ -217,4 +217,20 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     |> where([e, p], p.identity_id == ^identity_id)
     |> Repo.exists?()
   end
+
+  @impl true
+  @doc """
+  Lists active enrollments for a program from the database.
+
+  Returns list of Enrollment.t(), ordered by enrolled_at descending.
+  Returns empty list if no active enrollments found.
+  """
+  def list_by_program(program_id) when is_binary(program_id) do
+    EnrollmentQueries.base()
+    |> EnrollmentQueries.by_program(program_id)
+    |> EnrollmentQueries.active_only()
+    |> EnrollmentQueries.order_by_enrolled_at_desc()
+    |> Repo.all()
+    |> EnrollmentMapper.to_domain_list()
+  end
 end

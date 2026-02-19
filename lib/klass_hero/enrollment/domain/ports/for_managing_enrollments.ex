@@ -98,4 +98,12 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForManagingEnrollments do
   program and parent identity.
   """
   @callback enrolled?(program_id :: binary(), identity_id :: binary()) :: boolean()
+
+  @doc """
+  Lists active enrollments for a program.
+
+  Active enrollments are those with status "pending" or "confirmed".
+  Returns list of Enrollment.t(), ordered by enrolled_at descending.
+  """
+  @callback list_by_program(program_id :: binary()) :: [Enrollment.t()]
 end
