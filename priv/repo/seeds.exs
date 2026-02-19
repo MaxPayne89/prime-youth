@@ -11,15 +11,15 @@
 # and so on) as they will fail if something goes wrong.
 
 alias KlassHero.Accounts.User
-alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ChildSchema
-alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ConsentSchema
-alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
-alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
-alias KlassHero.Identity.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
+alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
+alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema
+alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
 alias KlassHero.Repo
 alias KlassHero.Shared.Storage
 
