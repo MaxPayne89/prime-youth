@@ -74,7 +74,8 @@ config :klass_hero, :enrollment,
     KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.ParticipantPolicyRepository,
   for_resolving_participant_details:
     KlassHero.Enrollment.Adapters.Driven.ACL.ParticipantDetailsACL,
-  for_resolving_program_schedule: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramScheduleACL
+  for_resolving_program_schedule: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramScheduleACL,
+  for_resolving_child_info: KlassHero.Enrollment.Adapters.Driven.ACL.ChildInfoACL
 
 # Configure Event Publisher (domain events — internal context communication)
 config :klass_hero, :event_publisher,

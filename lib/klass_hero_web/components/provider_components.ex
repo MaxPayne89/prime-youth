@@ -1292,10 +1292,21 @@ defmodule KlassHeroWeb.ProviderComponents do
               </td>
               <td class="px-4 py-4">
                 <div class="flex items-center justify-end gap-1">
-                  <.action_button icon="hero-eye-mini" title={gettext("Preview")} />
-                  <.action_button icon="hero-user-group-mini" title={gettext("View Roster")} />
-                  <.action_button icon="hero-pencil-square-mini" title={gettext("Edit")} />
-                  <.action_button icon="hero-document-duplicate-mini" title={gettext("Duplicate")} />
+                  <.link navigate={~p"/programs/#{program.id}"} class="inline-block">
+                    <.action_button icon="hero-eye-mini" title={gettext("Preview")} />
+                  </.link>
+                  <.action_button
+                    icon="hero-user-group-mini"
+                    title={gettext("View Roster")}
+                    phx-click="view_roster"
+                    phx-value-id={program.id}
+                  />
+                  <.action_button
+                    icon="hero-pencil-square-mini"
+                    title={gettext("Edit")}
+                    phx-click="edit_program"
+                    phx-value-id={program.id}
+                  />
                 </div>
               </td>
             </tr>
@@ -1346,6 +1357,99 @@ defmodule KlassHeroWeb.ProviderComponents do
     </button>
     """
   end
+
+  @doc """
+  Renders a modal displaying the enrollment roster for a program.
+  Shows child name, enrollment status, and enrollment date.
+  """
+  attr :program_name, :string, required: true
+  attr :entries, :list, required: true
+
+  def roster_modal(assigns) do
+    ~H"""
+    <div
+      id="roster-modal"
+      class="fixed inset-0 z-50 overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+      phx-window-keydown="close_roster"
+      phx-key="Escape"
+    >
+      <div class="flex min-h-screen items-center justify-center p-4">
+        <div class="fixed inset-0 bg-black/50" phx-click="close_roster"></div>
+        <div class={[
+          "relative bg-white w-full max-w-lg shadow-xl",
+          Theme.rounded(:xl)
+        ]}>
+          <div class="flex items-center justify-between p-4 border-b border-hero-grey-200">
+            <h3 class="text-lg font-semibold text-hero-charcoal">
+              {gettext("Roster: %{name}", name: @program_name)}
+            </h3>
+            <button
+              type="button"
+              phx-click="close_roster"
+              class="text-hero-grey-400 hover:text-hero-grey-600"
+            >
+              <.icon name="hero-x-mark-mini" class="w-5 h-5" />
+            </button>
+          </div>
+
+          <div class="p-4">
+            <div :if={@entries == []} id="roster-empty" class="text-center py-8">
+              <.icon name="hero-user-group" class="w-12 h-12 mx-auto text-hero-grey-300 mb-3" />
+              <p class="text-hero-grey-500">{gettext("No enrollments yet.")}</p>
+            </div>
+
+            <table :if={@entries != []} id="roster-table" class="w-full">
+              <thead class="bg-hero-grey-50 border-b border-hero-grey-200">
+                <tr>
+                  <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+                    {gettext("Child Name")}
+                  </th>
+                  <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+                    {gettext("Status")}
+                  </th>
+                  <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+                    {gettext("Enrolled")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-hero-grey-200">
+                <tr :for={entry <- @entries} class="hover:bg-hero-grey-50">
+                  <td class="px-3 py-3 text-sm text-hero-charcoal font-medium">
+                    {entry.child_name}
+                  </td>
+                  <td class="px-3 py-3">
+                    <.status_pill color={enrollment_status_color(entry.status)}>
+                      {enrollment_status_label(entry.status)}
+                    </.status_pill>
+                  </td>
+                  <td class="px-3 py-3 text-sm text-hero-grey-500">
+                    {format_enrollment_date(entry.enrolled_at)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp enrollment_status_color(:pending), do: "warning"
+  defp enrollment_status_color(:confirmed), do: "success"
+  defp enrollment_status_color(_), do: "info"
+
+  defp enrollment_status_label(:pending), do: gettext("Pending")
+  defp enrollment_status_label(:confirmed), do: gettext("Confirmed")
+  defp enrollment_status_label(status), do: status |> to_string() |> String.capitalize()
+
+  defp format_enrollment_date(%DateTime{} = dt) do
+    Calendar.strftime(dt, "%b %d, %Y")
+  end
+
+  defp format_enrollment_date(_), do: "\u2014"
 
   @doc """
   Converts a Phoenix upload error atom to a human-readable string.
