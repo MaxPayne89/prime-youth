@@ -86,7 +86,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(selected_staff: "all")
           |> assign(show_staff_form: false, editing_staff_id: nil)
           |> assign(staff_form: to_form(Provider.new_staff_member_changeset()))
-          |> assign(show_program_form: false)
+          |> assign(show_program_form: false, editing_program_id: nil)
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
           |> assign(
             enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
@@ -430,7 +430,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_event("add_program", _params, socket) do
     {:noreply,
      socket
-     |> assign(show_program_form: true)
+     |> assign(show_program_form: true, editing_program_id: nil)
      |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
      |> assign(
        enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
@@ -445,10 +445,60 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   @impl true
+  def handle_event("edit_program", %{"id" => program_id}, socket) do
+    case ProgramCatalog.get_program_by_id(program_id) do
+      {:ok, program} ->
+        # Trigger: pre-populate the form with existing program data
+        # Why: reuse the same program_form component for both create and edit
+        # Outcome: form opens with current values, submit handler checks editing_program_id
+        program_params = %{
+          "title" => program.title,
+          "description" => program.description,
+          "category" => program.category,
+          "price" => program.price && Decimal.to_string(program.price),
+          "location" => program.location,
+          "instructor_id" => program.instructor && program.instructor.id,
+          "meeting_days" => program.meeting_days || [],
+          "meeting_start_time" =>
+            program.meeting_start_time && Time.to_iso8601(program.meeting_start_time),
+          "meeting_end_time" =>
+            program.meeting_end_time && Time.to_iso8601(program.meeting_end_time),
+          "start_date" => program.start_date && Date.to_iso8601(program.start_date),
+          "end_date" => program.end_date && Date.to_iso8601(program.end_date),
+          "registration_start_date" =>
+            program.registration_start_date && Date.to_iso8601(program.registration_start_date),
+          "registration_end_date" =>
+            program.registration_end_date && Date.to_iso8601(program.registration_end_date)
+        }
+
+        changeset = ProgramCatalog.new_program_changeset(program_params)
+
+        enrollment_form = load_enrollment_policy_form(program_id)
+        participant_policy_form = load_participant_policy_form(program_id)
+
+        {:noreply,
+         socket
+         |> assign(
+           show_program_form: true,
+           editing_program_id: program_id,
+           program_form: to_form(changeset),
+           enrollment_form: enrollment_form,
+           participant_policy_form: participant_policy_form,
+           instructor_options:
+             build_instructor_options(socket.assigns.current_scope.provider.id)
+         )}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Program not found."))}
+    end
+  end
+
+  @impl true
   def handle_event("close_program_form", _params, socket) do
     {:noreply,
      assign(socket,
        show_program_form: false,
+       editing_program_id: nil,
        enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"),
        participant_policy_form:
          to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
@@ -515,64 +565,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           }
           |> maybe_add_cover_image(cover_result)
 
-        enrollment_params = all_params["enrollment_policy"] || %{}
+        # Trigger: editing_program_id is nil for new programs, a UUID for edits
+        # Why: reuse the same form and submit handler for both create and edit
+        # Outcome: dispatch to create_new_program or update_existing_program
+        case socket.assigns.editing_program_id do
+          nil ->
+            create_new_program(socket, attrs, all_params)
 
-        participant_policy_params = all_params["participant_policy"] || %{}
-
-        with {:ok, attrs} <- maybe_add_instructor(attrs, params["instructor_id"], socket),
-             {:ok, program} <- ProgramCatalog.create_program(attrs) do
-          policy_result = maybe_set_enrollment_policy(program.id, enrollment_params)
-
-          # Trigger: participant policy save is non-fatal
-          # Why: program is already persisted — restrictions are optional enhancement
-          # Outcome: save_participant_policy logs its own warning on failure
-          maybe_set_participant_policy(program.id, participant_policy_params)
-
-          # Trigger: policy save may have failed (e.g. min > max)
-          # Why: only show capacity in table if the policy was actually persisted
-          # Outcome: failed policies show "—/—" instead of phantom capacity
-          capacity = resolve_capacity(policy_result, enrollment_params)
-
-          new_enrollment_data = %{
-            program.id => %{enrolled: 0, capacity: capacity}
-          }
-
-          view = ProgramPresenter.to_table_view(program, new_enrollment_data)
-
-          {:noreply,
-           socket
-           |> flash_for_policy_result(policy_result)
-           |> stream_insert(:programs, view)
-           |> assign(
-             show_program_form: false,
-             programs_count: socket.assigns.programs_count + 1,
-             enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"),
-             participant_policy_form:
-               to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
-           )}
-        else
-          {:error, :instructor_not_found} ->
-            {:noreply,
-             put_flash(
-               socket,
-               :error,
-               gettext("Selected instructor could not be found. Please try again.")
-             )}
-
-          # Trigger: domain validation returns a list of error strings
-          # Why: Program.create/1 validates invariants before persistence
-          # Outcome: show errors as flash message, form stays open
-          {:error, errors} when is_list(errors) ->
-            {:noreply, put_flash(socket, :error, Enum.join(errors, ", "))}
-
-          # Trigger: Ecto changeset validation failed at persistence layer
-          # Why: defense-in-depth — schema catches anything domain missed
-          # Outcome: show inline field errors via changeset-backed form
-          {:error, changeset} ->
-            {:noreply,
-             socket
-             |> assign(program_form: to_form(Map.put(changeset, :action, :validate)))
-             |> put_flash(:error, gettext("Please fix the errors below."))}
+          program_id ->
+            update_existing_program(socket, program_id, attrs, all_params)
         end
     end
   end
@@ -595,6 +596,120 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      socket
      |> assign(selected_staff: staff_id)
      |> reset_programs_stream()}
+  end
+
+  # ============================================================================
+  # Program Save Helpers
+  # ============================================================================
+
+  defp create_new_program(socket, attrs, all_params) do
+    program_params = all_params["program_schema"] || %{}
+    enrollment_params = all_params["enrollment_policy"] || %{}
+    participant_policy_params = all_params["participant_policy"] || %{}
+
+    with {:ok, attrs} <- maybe_add_instructor(attrs, program_params["instructor_id"], socket),
+         {:ok, program} <- ProgramCatalog.create_program(attrs) do
+      policy_result = maybe_set_enrollment_policy(program.id, enrollment_params)
+      maybe_set_participant_policy(program.id, participant_policy_params)
+      capacity = resolve_capacity(policy_result, enrollment_params)
+
+      new_enrollment_data = %{
+        program.id => %{enrolled: 0, capacity: capacity}
+      }
+
+      view = ProgramPresenter.to_table_view(program, new_enrollment_data)
+
+      {:noreply,
+       socket
+       |> flash_for_policy_result(policy_result)
+       |> stream_insert(:programs, view)
+       |> assign(
+         show_program_form: false,
+         editing_program_id: nil,
+         programs_count: socket.assigns.programs_count + 1,
+         enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"),
+         participant_policy_form:
+           to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
+       )}
+    else
+      {:error, :instructor_not_found} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Selected instructor could not be found. Please try again.")
+         )}
+
+      {:error, errors} when is_list(errors) ->
+        {:noreply, put_flash(socket, :error, Enum.join(errors, ", "))}
+
+      {:error, changeset} ->
+        {:noreply,
+         socket
+         |> assign(program_form: to_form(Map.put(changeset, :action, :validate)))
+         |> put_flash(:error, gettext("Please fix the errors below."))}
+    end
+  end
+
+  defp update_existing_program(socket, program_id, attrs, all_params) do
+    program_params = all_params["program_schema"] || %{}
+    enrollment_params = all_params["enrollment_policy"] || %{}
+    participant_policy_params = all_params["participant_policy"] || %{}
+
+    with {:ok, attrs} <- maybe_add_instructor(attrs, program_params["instructor_id"], socket),
+         {:ok, updated} <- ProgramCatalog.update_program(program_id, attrs) do
+      policy_result = maybe_set_enrollment_policy(program_id, enrollment_params)
+      maybe_set_participant_policy(program_id, participant_policy_params)
+
+      # Trigger: need enrollment data for the table view
+      # Why: preserve existing enrollment count, update capacity from policy
+      # Outcome: table row reflects updated program + current enrollment data
+      capacity = resolve_capacity(policy_result, enrollment_params)
+      enrollment_data = %{program_id => %{enrolled: nil, capacity: capacity}}
+      view = ProgramPresenter.to_table_view(updated, enrollment_data)
+
+      {:noreply,
+       socket
+       |> put_flash(:info, gettext("Program updated successfully."))
+       |> stream_insert(:programs, view)
+       |> assign(
+         show_program_form: false,
+         editing_program_id: nil,
+         enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"),
+         participant_policy_form:
+           to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
+       )}
+    else
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Program not found."))}
+
+      {:error, :stale_data} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext(
+             "This program was modified by someone else. Please close and try again."
+           )
+         )}
+
+      {:error, :instructor_not_found} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Selected instructor could not be found. Please try again.")
+         )}
+
+      {:error, errors} when is_list(errors) ->
+        {:noreply, put_flash(socket, :error, Enum.join(errors, ", "))}
+
+      {:error, changeset} ->
+        {:noreply,
+         socket
+         |> assign(program_form: to_form(Map.put(changeset, :action, :validate)))
+         |> put_flash(:error, gettext("Please fix the errors below."))}
+    end
   end
 
   # ============================================================================
@@ -740,6 +855,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   uploads={@uploads}
                   instructor_options={@instructor_options}
                   categories={@categories}
+                  editing_program_id={@editing_program_id}
                 />
             <% end %>
         <% end %>
@@ -994,6 +1110,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :uploads, :map, required: true
   attr :instructor_options, :list, required: true
   attr :categories, :list, required: true
+  attr :editing_program_id, :string, default: nil
 
   defp programs_section(assigns) do
     ~H"""
@@ -1006,6 +1123,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           uploads={@uploads}
           instructor_options={@instructor_options}
           categories={@categories}
+          editing={@editing_program_id != nil}
         />
       <% end %>
 
@@ -1420,4 +1538,40 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   defp parse_integer(val) when is_integer(val), do: val
+
+  defp load_enrollment_policy_form(program_id) do
+    case Enrollment.get_enrollment_policy(program_id) do
+      {:ok, policy} ->
+        to_form(
+          Enrollment.new_policy_changeset(%{
+            "min_enrollment" => policy.min_enrollment && to_string(policy.min_enrollment),
+            "max_enrollment" => policy.max_enrollment && to_string(policy.max_enrollment)
+          }),
+          as: "enrollment_policy"
+        )
+
+      {:error, :not_found} ->
+        to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
+    end
+  end
+
+  defp load_participant_policy_form(program_id) do
+    case Enrollment.get_participant_policy(program_id) do
+      {:ok, policy} ->
+        to_form(
+          Enrollment.new_participant_policy_changeset(%{
+            "min_age_months" => policy.min_age_months && to_string(policy.min_age_months),
+            "max_age_months" => policy.max_age_months && to_string(policy.max_age_months),
+            "min_grade" => policy.min_grade && to_string(policy.min_grade),
+            "max_grade" => policy.max_grade && to_string(policy.max_grade),
+            "allowed_genders" => policy.allowed_genders || [],
+            "eligibility_at" => policy.eligibility_at
+          }),
+          as: "participant_policy"
+        )
+
+      {:error, :not_found} ->
+        to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
+    end
+  end
 end
