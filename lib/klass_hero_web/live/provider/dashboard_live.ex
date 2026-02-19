@@ -525,25 +525,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
           # Trigger: participant policy save is non-fatal
           # Why: program is already persisted — restrictions are optional enhancement
-          # Outcome: log warning if it fails, but don't affect program creation flash
-          participant_result =
-            maybe_set_participant_policy(program.id, participant_policy_params)
-
-          if participant_result != :ok do
-            Logger.warning(
-              "[Provider.DashboardLive] Participant policy save failed, program created without restrictions",
-              program_id: program.id
-            )
-          end
+          # Outcome: save_participant_policy logs its own warning on failure
+          maybe_set_participant_policy(program.id, participant_policy_params)
 
           # Trigger: policy save may have failed (e.g. min > max)
           # Why: only show capacity in table if the policy was actually persisted
           # Outcome: failed policies show "—/—" instead of phantom capacity
-          capacity =
-            case policy_result do
-              :ok -> parse_integer(enrollment_params["max_enrollment"])
-              {:error, _} -> nil
-            end
+          capacity = resolve_capacity(policy_result, enrollment_params)
 
           new_enrollment_data = %{
             program.id => %{enrolled: 0, capacity: capacity}
@@ -551,28 +539,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
           view = ProgramPresenter.to_table_view(program, new_enrollment_data)
 
-          # Trigger: program created, but enrollment policy may have failed
-          # Why: program is already persisted — don't roll back, just adjust flash
-          # Outcome: success flash if policy ok, warning flash if policy failed
-          flash_socket =
-            case policy_result do
-              :ok ->
-                socket
-                |> clear_flash(:error)
-                |> put_flash(:info, gettext("Program created successfully."))
-
-              {:error, :enrollment_policy_failed} ->
-                socket
-                |> put_flash(
-                  :error,
-                  gettext(
-                    "Program created, but enrollment capacity could not be saved. Edit the program to retry."
-                  )
-                )
-            end
-
           {:noreply,
-           flash_socket
+           socket
+           |> flash_for_policy_result(policy_result)
            |> stream_insert(:programs, view)
            |> assign(
              show_program_form: false,
@@ -1360,6 +1329,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # Why: no policy needed when provider doesn't set any participant restrictions
   # Outcome: skip policy creation, return :ok
   defp maybe_set_participant_policy(program_id, params) do
+    case build_participant_policy_attrs(program_id, params) do
+      nil -> :ok
+      attrs -> save_participant_policy(attrs, program_id)
+    end
+  end
+
+  defp build_participant_policy_attrs(program_id, params) do
     min_age = parse_integer(params["min_age_months"])
     max_age = parse_integer(params["max_age_months"])
     min_grade = parse_integer(params["min_grade"])
@@ -1378,30 +1354,56 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         !is_nil(max_grade) or allowed_genders != []
 
     if has_any_restriction do
-      attrs =
-        %{program_id: program_id}
-        |> maybe_put(:eligibility_at, eligibility_at)
-        |> maybe_put(:min_age_months, min_age)
-        |> maybe_put(:max_age_months, max_age)
-        |> maybe_put(:allowed_genders, if(allowed_genders != [], do: allowed_genders))
-        |> maybe_put(:min_grade, min_grade)
-        |> maybe_put(:max_grade, max_grade)
-
-      case Enrollment.set_participant_policy(attrs) do
-        {:ok, _policy} ->
-          :ok
-
-        {:error, reason} ->
-          Logger.warning("[Provider.DashboardLive] Failed to save participant policy",
-            program_id: program_id,
-            reason: inspect(reason)
-          )
-
-          {:error, :participant_policy_failed}
-      end
-    else
-      :ok
+      %{program_id: program_id}
+      |> maybe_put(:eligibility_at, eligibility_at)
+      |> maybe_put(:min_age_months, min_age)
+      |> maybe_put(:max_age_months, max_age)
+      |> maybe_put(:allowed_genders, if(allowed_genders != [], do: allowed_genders))
+      |> maybe_put(:min_grade, min_grade)
+      |> maybe_put(:max_grade, max_grade)
     end
+  end
+
+  defp save_participant_policy(attrs, program_id) do
+    case Enrollment.set_participant_policy(attrs) do
+      {:ok, _policy} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("[Provider.DashboardLive] Failed to save participant policy",
+          program_id: program_id,
+          reason: inspect(reason)
+        )
+
+        {:error, :participant_policy_failed}
+    end
+  end
+
+  # Trigger: program created, but enrollment policy may have failed
+  # Why: program is already persisted — don't roll back, just adjust flash
+  # Outcome: success flash if policy ok, warning flash if policy failed
+  defp resolve_capacity(:ok, enrollment_params),
+    do: parse_integer(enrollment_params["max_enrollment"])
+
+  defp resolve_capacity({:error, _}, _enrollment_params), do: nil
+
+  # Trigger: program created, but enrollment policy may have failed
+  # Why: program is already persisted — don't roll back, just adjust flash
+  # Outcome: success flash if policy ok, warning flash if policy failed
+  defp flash_for_policy_result(socket, :ok) do
+    socket
+    |> clear_flash(:error)
+    |> put_flash(:info, gettext("Program created successfully."))
+  end
+
+  defp flash_for_policy_result(socket, {:error, :enrollment_policy_failed}) do
+    socket
+    |> put_flash(
+      :error,
+      gettext(
+        "Program created, but enrollment capacity could not be saved. Edit the program to retry."
+      )
+    )
   end
 
   defp maybe_put(map, _key, nil), do: map

@@ -115,17 +115,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
         %EnrollmentPolicySchema{} = schema ->
           policy = EnrollmentPolicyMapper.to_domain(schema)
           active = count_active_enrollments_in_tx(repo, program_id)
-
-          if EnrollmentPolicy.has_capacity?(policy, active) do
-            remaining =
-              if policy.max_enrollment,
-                do: policy.max_enrollment - active,
-                else: :unlimited
-
-            {:ok, remaining}
-          else
-            {:error, :program_full}
-          end
+          check_capacity(policy, active)
       end
     end)
     |> Ecto.Multi.run(:create, fn _repo, _changes ->
@@ -136,6 +126,19 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
       {:ok, %{create: enrollment}} -> {:ok, enrollment}
       {:error, :lock_and_check, :program_full, _} -> {:error, :program_full}
       {:error, :create, reason, _} -> {:error, reason}
+    end
+  end
+
+  defp check_capacity(policy, active) do
+    if EnrollmentPolicy.has_capacity?(policy, active) do
+      remaining =
+        if policy.max_enrollment,
+          do: policy.max_enrollment - active,
+          else: :unlimited
+
+      {:ok, remaining}
+    else
+      {:error, :program_full}
     end
   end
 
