@@ -467,9 +467,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           "start_date" => program.start_date && Date.to_iso8601(program.start_date),
           "end_date" => program.end_date && Date.to_iso8601(program.end_date),
           "registration_start_date" =>
-            program.registration_start_date && Date.to_iso8601(program.registration_start_date),
+            program.registration_period.start_date &&
+              Date.to_iso8601(program.registration_period.start_date),
           "registration_end_date" =>
-            program.registration_end_date && Date.to_iso8601(program.registration_end_date)
+            program.registration_period.end_date &&
+              Date.to_iso8601(program.registration_period.end_date)
         }
 
         changeset = ProgramCatalog.new_program_changeset(program_params)
@@ -485,8 +487,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
            program_form: to_form(changeset),
            enrollment_form: enrollment_form,
            participant_policy_form: participant_policy_form,
-           instructor_options:
-             build_instructor_options(socket.assigns.current_scope.provider.id)
+           instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id)
          )}
 
       {:error, :not_found} ->
@@ -715,9 +716,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          put_flash(
            socket,
            :error,
-           gettext(
-             "This program was modified by someone else. Please close and try again."
-           )
+           gettext("This program was modified by someone else. Please close and try again.")
          )}
 
       {:error, :instructor_not_found} ->
