@@ -452,32 +452,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         # Trigger: pre-populate the form with existing program data
         # Why: reuse the same program_form component for both create and edit
         # Outcome: form opens with current values, submit handler checks editing_program_id
-        program_params = %{
-          "title" => program.title,
-          "description" => program.description,
-          "category" => program.category,
-          "price" => program.price && Decimal.to_string(program.price),
-          "location" => program.location,
-          "instructor_id" => program.instructor && program.instructor.id,
-          "meeting_days" => program.meeting_days || [],
-          "meeting_start_time" =>
-            program.meeting_start_time && Time.to_iso8601(program.meeting_start_time),
-          "meeting_end_time" =>
-            program.meeting_end_time && Time.to_iso8601(program.meeting_end_time),
-          "start_date" => program.start_date && Date.to_iso8601(program.start_date),
-          "end_date" => program.end_date && Date.to_iso8601(program.end_date),
-          "registration_start_date" =>
-            program.registration_period.start_date &&
-              Date.to_iso8601(program.registration_period.start_date),
-          "registration_end_date" =>
-            program.registration_period.end_date &&
-              Date.to_iso8601(program.registration_period.end_date)
-        }
-
-        changeset = ProgramCatalog.new_program_changeset(program_params)
-
-        enrollment_form = load_enrollment_policy_form(program_id)
-        participant_policy_form = load_participant_policy_form(program_id)
+        changeset = ProgramCatalog.new_program_changeset(program_to_form_params(program))
 
         {:noreply,
          socket
@@ -485,8 +460,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
            show_program_form: true,
            editing_program_id: program_id,
            program_form: to_form(changeset),
-           enrollment_form: enrollment_form,
-           participant_policy_form: participant_policy_form,
+           enrollment_form: load_enrollment_policy_form(program_id),
+           participant_policy_form: load_participant_policy_form(program_id),
            instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id)
          )}
 
@@ -1576,6 +1551,29 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   defp parse_integer(val) when is_integer(val), do: val
+
+  defp program_to_form_params(program) do
+    %{
+      "title" => program.title,
+      "description" => program.description,
+      "category" => program.category,
+      "price" => nil_safe(program.price, &Decimal.to_string/1),
+      "location" => program.location,
+      "instructor_id" => nil_safe(program.instructor, & &1.id),
+      "meeting_days" => program.meeting_days || [],
+      "meeting_start_time" => nil_safe(program.meeting_start_time, &Time.to_iso8601/1),
+      "meeting_end_time" => nil_safe(program.meeting_end_time, &Time.to_iso8601/1),
+      "start_date" => nil_safe(program.start_date, &Date.to_iso8601/1),
+      "end_date" => nil_safe(program.end_date, &Date.to_iso8601/1),
+      "registration_start_date" =>
+        nil_safe(program.registration_period.start_date, &Date.to_iso8601/1),
+      "registration_end_date" =>
+        nil_safe(program.registration_period.end_date, &Date.to_iso8601/1)
+    }
+  end
+
+  defp nil_safe(nil, _fun), do: nil
+  defp nil_safe(value, fun), do: fun.(value)
 
   defp load_enrollment_policy_form(program_id) do
     case Enrollment.get_enrollment_policy(program_id) do

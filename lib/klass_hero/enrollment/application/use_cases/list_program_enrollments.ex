@@ -42,23 +42,23 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments do
       children = @child_info_adapter.get_children_by_ids(child_ids)
       child_map = Map.new(children, fn c -> {c.id, c} end)
 
-      Enum.map(enrollments, fn enrollment ->
-        child = Map.get(child_map, enrollment.child_id)
-
-        child_name =
-          if child,
-            do: "#{child.first_name} #{child.last_name}",
-            else: "Unknown"
-
-        %{
-          enrollment_id: enrollment.id,
-          child_id: enrollment.child_id,
-          child_name: child_name,
-          status: enrollment.status,
-          enrolled_at: enrollment.enrolled_at
-        }
-      end)
+      Enum.map(enrollments, &build_roster_entry(&1, child_map))
     end
   end
 
+  defp build_roster_entry(enrollment, child_map) do
+    child_name =
+      case Map.get(child_map, enrollment.child_id) do
+        nil -> "Unknown"
+        child -> "#{child.first_name} #{child.last_name}"
+      end
+
+    %{
+      enrollment_id: enrollment.id,
+      child_id: enrollment.child_id,
+      child_name: child_name,
+      status: enrollment.status,
+      enrolled_at: enrollment.enrolled_at
+    }
+  end
 end
