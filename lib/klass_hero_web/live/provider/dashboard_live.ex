@@ -668,7 +668,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       # Why: preserve existing enrollment count, update capacity from policy
       # Outcome: table row reflects updated program + current enrollment data
       capacity = resolve_capacity(policy_result, enrollment_params)
-      enrollment_data = %{program_id => %{enrolled: nil, capacity: capacity}}
+      active_counts = Enrollment.count_active_enrollments_batch([program_id])
+      enrolled = Map.get(active_counts, program_id, 0)
+      enrollment_data = %{program_id => %{enrolled: enrolled, capacity: capacity}}
       view = ProgramPresenter.to_table_view(updated, enrollment_data)
 
       {:noreply,
