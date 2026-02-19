@@ -61,6 +61,7 @@ context/
 - **Provider** (`provider/`) - Provider profiles, staff members, verification documents
 - **Program Catalog** (`program_catalog/`) - Program discovery, filtering, pricing, categories
 - **Enrollment** (`enrollment/`) - Bookings, fee calculations, subscription tiers
+- **Entitlements** (`entitlements.ex`) - Pure domain service for subscription tier authorization (cross-context, no DB)
 - **Messaging** (`messaging/`) - Conversations, messages, participants, retention policies
 - **Participation** (`participation/`) - Session tracking, check-in/out, attendance rosters
 - **Shared** (`shared/`) - Event publishing, Ecto helpers, pagination, domain events
@@ -78,137 +79,25 @@ Router defines 5 `live_session` scopes with role-based access:
 
 - `:public` - Optional auth (home, programs, about, contact, legal pages)
 - `:authenticated` - Auth required (dashboard, settings, booking, messages)
-- `:require_provider` - Provider role (`/provider/*` routes: sessions, participation, broadcast)
-- `:require_parent` - Parent role (`/parent/*` routes: participation history)
+- `:require_provider` - Provider role (`/provider/*` routes)
+- `:require_parent` - Parent role (`/parent/*` routes)
 - `:require_authenticated_user` - Auth pages (user settings, email confirmation)
 
 ### Web Layer Patterns
 
-**Components** organized by domain in `lib/klass_hero_web/components/`:
-`ui_components.ex`, `composite_components.ex`, `program_components.ex`, `booking_components.ex`, `provider_components.ex`, `participation_components.ex`, `messaging_components.ex`, `review_components.ex`, `theme.ex`
+**Components** organized by domain in `lib/klass_hero_web/components/` (ui, composite, program, booking, provider, participation, messaging, review, theme).
 
-**Presenters** in `lib/klass_hero_web/presenters/` transform domain models for templates (child, program, provider).
+**Presenters** in `lib/klass_hero_web/presenters/` transform domain models for templates.
 
 **Internationalization:** Gettext with English (`en`) and German (`de`) in `priv/gettext/`.
 
-## Critical Patterns
-
-### LiveView Forms (Most Common Source of Errors)
-
-```elixir
-# LiveView: ALWAYS assign form via to_form/2
-def mount(_params, _session, socket) do
-  changeset = MySchema.changeset(%MySchema{}, %{})
-  {:ok, assign(socket, form: to_form(changeset))}
-end
-```
-
-```heex
-<%!-- Template: ALWAYS use @form, NEVER @changeset --%>
-<.form for={@form} id="my-form" phx-submit="save">
-  <.input field={@form[:name]} type="text" />
-</.form>
-```
-
-### LiveView Streams (Required for Collections)
-
-```elixir
-# Mount: initialize stream
-{:ok, stream(socket, :items, list_items())}
-
-# Filter/reset: refetch and reset
-socket |> stream(:items, list_items(filter), reset: true)
-```
-
-```heex
-<%!-- Template: require phx-update="stream" and id on both parent and children --%>
-<div id="items" phx-update="stream">
-  <div :for={{id, item} <- @streams.items} id={id}>{item.name}</div>
-</div>
-```
-
-### HEEx Template Syntax
-
-```heex
-<%!-- Attributes: use {...} --%>
-<div id={@id} class={["base", @active && "active"]}>
-
-<%!-- Values in body: use {...} --%>
-{@user.name}
-
-<%!-- Block constructs (if/for/cond): use <%= %> --%>
-<%= if @show do %>content<% end %>
-<%= for item <- @items do %>{item}<% end %>
-
-<%!-- Conditional classes: MUST use list syntax --%>
-<div class={["px-2", @flag && "py-5", if(@cond, do: "red", else: "blue")]}>
-```
-
-### Elixir Gotchas
-
-```elixir
-# Variable rebinding: MUST capture block result
-socket = if connected?(socket), do: assign(socket, :foo, bar), else: socket
-
-# List access: NO bracket syntax - use Enum.at/2
-Enum.at(list, 0)  # NOT list[0]
-
-# Struct access: NO bracket syntax - use dot notation
-my_struct.field   # NOT my_struct[:field]
-
-# Changeset field access: use get_field/2
-Ecto.Changeset.get_field(changeset, :field)
-
-# Multiple conditionals: NO else if - use cond
-cond do
-  condition1 -> result1
-  condition2 -> result2
-  true -> default
-end
-```
-
-### Ecto Guidelines
-
-```elixir
-# Always preload associations accessed in templates
-Repo.all(Message) |> Repo.preload(:user)
-
-# Schema fields: use :string even for text columns
-field :description, :string  # NOT :text
-
-# Programmatic fields (user_id): NEVER in cast - set explicitly
-|> put_assoc(:user, user)  # NOT cast(attrs, [:user_id])
-
-# validate_number does NOT support :allow_nil (it's the default behavior)
-|> validate_number(:price, greater_than: 0)
-```
-
-### Router Scope Aliases
-
-```elixir
-# The scope provides the alias - DON'T add your own
-scope "/admin", KlassHeroWeb.Admin do
-  live "/users", UserLive  # Points to KlassHeroWeb.Admin.UserLive
-end
-```
-
 ## MCP Integration
 
-**Tidewave MCP** (ALWAYS prefer over bash for Phoenix work):
-
-- `project_eval` - Evaluate Elixir code in running app
-- `get_docs` - Get module/function documentation
-- `execute_sql_query` - Run SQL queries
-- `get_logs` - Check application logs
-- `get_source_location` - Find code locations
-- `get_ecto_schemas` - Inspect schemas
+**Tidewave MCP** (ALWAYS prefer over bash for Phoenix work): `project_eval`, `get_docs`, `execute_sql_query`, `get_logs`, `get_source_location`, `get_ecto_schemas`.
 
 If Tidewave unavailable: Alert user immediately - indicates Phoenix server not running or MCP issue.
 
-**Playwright MCP** (for UI testing):
-
-- Test LiveView interactions and flows
-- Verify mobile-responsive designs
+**Playwright MCP** for UI testing: test LiveView interactions, verify mobile-responsive designs.
 
 ## Project Constraints
 
@@ -219,19 +108,7 @@ If Tidewave unavailable: Alert user immediately - indicates Phoenix server not r
 
 ## Detailed Rules
 
-For comprehensive guidelines, see `.claude/rules/`:
-
-- `liveview.md` - Streams, forms, testing patterns
-- `elixir-style.md` - Elixir idioms, OTP patterns
-- `phoenix.md` - HEEx templates, router patterns
-- `authentication.md` - Scope pattern, layouts
-- `testing.md` - Test patterns, Docker setup
-- `database.md` - Ecto patterns, documentation lookup
-- `mcp-integration.md` - Tidewave and Playwright usage
-- `domain-architecture.md` - DDD, Ports & Adapters patterns
-- `frontend.md` - Component organization, mobile-first design
-- `workflow.md` - GitHub branching, pre-commit checklist
-- `skills.md` - Available specialized skills
+Comprehensive guidelines live in `.claude/rules/` (auto-loaded into context). These cover LiveView, Elixir style, HEEx templates, authentication, testing, database/Ecto, MCP integration, DDD architecture, frontend, workflow, and available skills. **Do not duplicate those rules here.**
 
 <!-- usage-rules-start -->
 <!-- igniter-start -->
