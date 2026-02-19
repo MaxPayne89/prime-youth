@@ -87,6 +87,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(show_staff_form: false, editing_staff_id: nil)
           |> assign(staff_form: to_form(Provider.new_staff_member_changeset()))
           |> assign(show_program_form: false, editing_program_id: nil)
+          |> assign(show_roster: false, roster_program_name: nil, roster_entries: [])
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
           |> assign(
             enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
@@ -494,6 +495,32 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   @impl true
+  def handle_event("view_roster", %{"id" => program_id}, socket) do
+    roster = Enrollment.list_program_enrollments(program_id)
+
+    # Trigger: need the program name for the modal title
+    # Why: roster modal should display "Roster for [Program Name]"
+    # Outcome: find the program name from a fresh fetch
+    program_name =
+      case ProgramCatalog.get_program_by_id(program_id) do
+        {:ok, program} -> program.title
+        {:error, _} -> gettext("Program")
+      end
+
+    {:noreply,
+     assign(socket,
+       show_roster: true,
+       roster_program_name: program_name,
+       roster_entries: roster
+     )}
+  end
+
+  @impl true
+  def handle_event("close_roster", _params, socket) do
+    {:noreply, assign(socket, show_roster: false, roster_entries: [])}
+  end
+
+  @impl true
   def handle_event("close_program_form", _params, socket) do
     {:noreply,
      assign(socket,
@@ -856,6 +883,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   instructor_options={@instructor_options}
                   categories={@categories}
                   editing_program_id={@editing_program_id}
+                  show_roster={@show_roster}
+                  roster_program_name={@roster_program_name}
+                  roster_entries={@roster_entries}
                 />
             <% end %>
         <% end %>
@@ -1111,6 +1141,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :instructor_options, :list, required: true
   attr :categories, :list, required: true
   attr :editing_program_id, :string, default: nil
+  attr :show_roster, :boolean, required: true
+  attr :roster_program_name, :string, default: nil
+  attr :roster_entries, :list, default: []
 
   defp programs_section(assigns) do
     ~H"""
@@ -1132,6 +1165,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         staff_options={@staff_options}
         search_query={@search_query}
         selected_staff={@selected_staff}
+      />
+
+      <.roster_modal
+        :if={@show_roster}
+        program_name={@roster_program_name}
+        entries={@roster_entries}
       />
     </div>
     """
