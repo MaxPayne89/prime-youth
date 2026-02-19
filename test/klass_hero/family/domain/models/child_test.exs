@@ -172,6 +172,153 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
     end
   end
 
+  describe "new/1 gender validation" do
+    setup do
+      %{
+        base_attrs: %{
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          parent_id: "660e8400-e29b-41d4-a716-446655440001",
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        }
+      }
+    end
+
+    test "accepts all valid gender values", %{base_attrs: base} do
+      for gender <- ~w(male female diverse not_specified) do
+        assert {:ok, child} = Child.new(Map.put(base, :gender, gender))
+        assert child.gender == gender
+      end
+    end
+
+    test "rejects invalid gender", %{base_attrs: base} do
+      assert {:error, errors} = Child.new(Map.put(base, :gender, "other"))
+      assert Enum.any?(errors, &String.contains?(&1, "Gender must be one of"))
+    end
+
+    test "defaults gender to not_specified when nil", %{base_attrs: base} do
+      assert {:ok, child} = Child.new(Map.put(base, :gender, nil))
+      assert child.gender == "not_specified"
+    end
+
+    test "defaults gender to not_specified when not provided", %{base_attrs: base} do
+      assert {:ok, child} = Child.new(base)
+      assert child.gender == "not_specified"
+    end
+  end
+
+  describe "new/1 school_grade validation" do
+    setup do
+      %{
+        base_attrs: %{
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          parent_id: "660e8400-e29b-41d4-a716-446655440001",
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        }
+      }
+    end
+
+    test "accepts nil school_grade", %{base_attrs: base} do
+      assert {:ok, child} = Child.new(base)
+      assert is_nil(child.school_grade)
+    end
+
+    test "accepts valid school_grade values 1 through 13", %{base_attrs: base} do
+      for grade <- 1..13 do
+        assert {:ok, child} = Child.new(Map.put(base, :school_grade, grade))
+        assert child.school_grade == grade
+      end
+    end
+
+    test "rejects school_grade of 0", %{base_attrs: base} do
+      assert {:error, errors} = Child.new(Map.put(base, :school_grade, 0))
+      assert "School grade must be between 1 and 13" in errors
+    end
+
+    test "rejects school_grade of 14", %{base_attrs: base} do
+      assert {:error, errors} = Child.new(Map.put(base, :school_grade, 14))
+      assert "School grade must be between 1 and 13" in errors
+    end
+
+    test "rejects non-integer school_grade", %{base_attrs: base} do
+      assert {:error, errors} = Child.new(Map.put(base, :school_grade, "5th"))
+      assert "School grade must be between 1 and 13" in errors
+    end
+  end
+
+  describe "age_in_months/2" do
+    test "computes age in months for a basic case" do
+      {:ok, child} =
+        Child.new(%{
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          parent_id: "uuid-123",
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        })
+
+      # 2 years and 6 months later on the same day
+      assert Child.age_in_months(child, ~D[2017-12-15]) == 30
+    end
+
+    test "subtracts a month when reference day is before birth day" do
+      {:ok, child} =
+        Child.new(%{
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          parent_id: "uuid-123",
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-20]
+        })
+
+      # Reference date is June 10 — hasn't reached the 20th yet
+      assert Child.age_in_months(child, ~D[2016-06-10]) == 11
+    end
+
+    test "does not subtract when reference day is on or after birth day" do
+      {:ok, child} =
+        Child.new(%{
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          parent_id: "uuid-123",
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        })
+
+      assert Child.age_in_months(child, ~D[2016-06-15]) == 12
+      assert Child.age_in_months(child, ~D[2016-06-20]) == 12
+    end
+
+    test "returns 0 when reference date equals date of birth" do
+      {:ok, child} =
+        Child.new(%{
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          parent_id: "uuid-123",
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        })
+
+      assert Child.age_in_months(child, ~D[2015-06-15]) == 0
+    end
+
+    test "returns 0 when reference date is before date of birth" do
+      {:ok, child} =
+        Child.new(%{
+          id: "550e8400-e29b-41d4-a716-446655440000",
+          parent_id: "uuid-123",
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        })
+
+      assert Child.age_in_months(child, ~D[2015-01-01]) == 0
+    end
+  end
+
   describe "valid?/1" do
     test "returns true for valid child" do
       {:ok, child} =

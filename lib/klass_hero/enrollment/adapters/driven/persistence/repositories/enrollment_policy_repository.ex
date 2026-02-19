@@ -33,10 +33,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     )
     |> case do
       {:ok, schema} ->
-        Logger.info("[Enrollment.PolicyRepository] Upserted enrollment policy",
-          program_id: schema.program_id,
-          min: schema.min_enrollment,
-          max: schema.max_enrollment
+        Logger.info(
+          "[Enrollment.PolicyRepository] Upserted enrollment policy " <>
+            "program_id=#{schema.program_id} min=#{schema.min_enrollment} max=#{schema.max_enrollment}"
         )
 
         {:ok, EnrollmentPolicyMapper.to_domain(schema)}

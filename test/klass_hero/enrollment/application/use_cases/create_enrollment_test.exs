@@ -177,6 +177,108 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
     end
   end
 
+  describe "participant eligibility enforcement" do
+    test "rejects enrollment when child is ineligible (too young)" do
+      program = insert(:program_schema)
+      parent = insert(:parent_profile_schema, subscription_tier: "active")
+
+      # Born 30 days ago — far too young for min_age 60 months
+      child =
+        insert(:child_schema,
+          parent_id: parent.id,
+          date_of_birth: Date.add(Date.utc_today(), -30),
+          gender: "male"
+        )
+
+      {:ok, _policy} =
+        KlassHero.Enrollment.set_participant_policy(%{
+          program_id: program.id,
+          min_age_months: 60,
+          eligibility_at: "registration"
+        })
+
+      result =
+        CreateEnrollment.execute(%{
+          identity_id: parent.identity_id,
+          program_id: program.id,
+          child_id: child.id,
+          payment_method: "card"
+        })
+
+      assert {:error, :ineligible, reasons} = result
+      refute Enum.empty?(reasons)
+      assert Enum.any?(reasons, &String.contains?(&1, "too young"))
+    end
+
+    test "allows enrollment when child meets all restrictions" do
+      program = insert(:program_schema)
+      parent = insert(:parent_profile_schema, subscription_tier: "active")
+
+      child =
+        insert(:child_schema,
+          parent_id: parent.id,
+          date_of_birth: ~D[2018-06-15],
+          gender: "female"
+        )
+
+      {:ok, _policy} =
+        KlassHero.Enrollment.set_participant_policy(%{
+          program_id: program.id,
+          min_age_months: 60,
+          max_age_months: 180,
+          allowed_genders: ["female", "male"],
+          eligibility_at: "registration"
+        })
+
+      assert {:ok, enrollment} =
+               CreateEnrollment.execute(%{
+                 identity_id: parent.identity_id,
+                 program_id: program.id,
+                 child_id: child.id,
+                 payment_method: "card"
+               })
+
+      assert enrollment.program_id == program.id
+      assert enrollment.child_id == child.id
+    end
+
+    test "allows enrollment when no participant policy exists" do
+      program = insert(:program_schema)
+      parent = insert(:parent_profile_schema, subscription_tier: "active")
+      child = insert(:child_schema, parent_id: parent.id)
+
+      assert {:ok, _enrollment} =
+               CreateEnrollment.execute(%{
+                 identity_id: parent.identity_id,
+                 program_id: program.id,
+                 child_id: child.id,
+                 payment_method: "card"
+               })
+    end
+
+    test "returns processing_failed when child does not exist" do
+      program = insert(:program_schema)
+      parent = insert(:parent_profile_schema, subscription_tier: "active")
+
+      {:ok, _policy} =
+        KlassHero.Enrollment.set_participant_policy(%{
+          program_id: program.id,
+          min_age_months: 60,
+          eligibility_at: "registration"
+        })
+
+      result =
+        CreateEnrollment.execute(%{
+          identity_id: parent.identity_id,
+          program_id: program.id,
+          child_id: Ecto.UUID.generate(),
+          payment_method: "card"
+        })
+
+      assert {:error, :processing_failed} = result
+    end
+  end
+
   describe "capacity enforcement" do
     test "rejects enrollment when program is at max capacity" do
       program = insert(:program_schema)

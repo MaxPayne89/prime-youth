@@ -275,7 +275,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     })
   end
 
-  @allowed_keys ~w(first_name last_name date_of_birth emergency_contact support_needs allergies)a
+  @allowed_keys ~w(first_name last_name date_of_birth emergency_contact support_needs allergies gender school_grade)a
 
   defp atomize_keys(params) when is_map(params) do
     for key <- @allowed_keys,
@@ -292,6 +292,18 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     case Date.from_iso8601(value) do
       {:ok, date} -> date
       {:error, _} -> nil
+    end
+  end
+
+  # Trigger: form sends school_grade as string
+  # Why: domain model expects integer or nil
+  # Outcome: parse string to integer before passing to domain layer
+  defp coerce_value(:school_grade, ""), do: nil
+
+  defp coerce_value(:school_grade, value) when is_binary(value) do
+    case Integer.parse(value) do
+      {int, ""} -> int
+      _ -> nil
     end
   end
 
@@ -537,6 +549,28 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
                 label={gettext("Date of birth")}
                 required
               />
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <.input
+                  field={@form[:gender]}
+                  type="select"
+                  label={gettext("Gender")}
+                  options={[
+                    {gettext("Not specified"), "not_specified"},
+                    {gettext("Male"), "male"},
+                    {gettext("Female"), "female"},
+                    {gettext("Diverse"), "diverse"}
+                  ]}
+                />
+
+                <.input
+                  field={@form[:school_grade]}
+                  type="select"
+                  label={gettext("School Grade (optional)")}
+                  prompt={gettext("No grade")}
+                  options={Enum.map(1..13, &{gettext("Klasse %{n}", n: &1), &1})}
+                />
+              </div>
 
               <.input
                 field={@form[:emergency_contact]}

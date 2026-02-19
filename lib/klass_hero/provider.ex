@@ -316,4 +316,10 @@ defmodule KlassHero.Provider do
   def new_staff_member_changeset(attrs \\ %{}) do
     ChangeStaffMember.new_changeset(attrs)
   end
+
+  @doc """
+  Returns the list of valid verification document types.
+  """
+  defdelegate valid_document_types,
+    to: KlassHero.Provider.Domain.Models.VerificationDocument
 end

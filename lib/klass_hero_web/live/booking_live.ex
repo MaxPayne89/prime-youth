@@ -17,8 +17,6 @@ defmodule KlassHeroWeb.BookingLive do
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
-    current_user = socket.assigns.current_scope.user
-
     with {:ok, program} <- fetch_program(program_id),
          :ok <- validate_registration_open(program),
          :ok <- validate_program_capacity(program) do
@@ -30,11 +28,11 @@ defmodule KlassHeroWeb.BookingLive do
         socket
         |> assign(
           page_title: gettext("Enrollment - %{title}", title: program.title),
-          current_user: current_user,
           program: program,
           children: children_for_view,
           children_by_id: children_by_id,
           selected_child_id: nil,
+          eligibility_status: nil,
           special_requirements: "",
           payment_method: "card",
           weekly_fee: @default_weekly_fee,
@@ -102,76 +100,116 @@ defmodule KlassHeroWeb.BookingLive do
     # Why: pre-fill special requirements from stored medical/support data
     # Outcome: textarea shows child's known needs, parent can edit before submitting
     child = Map.get(socket.assigns.children_by_id, child_id)
-
     special_requirements = build_special_requirements(child)
 
+    # Trigger: child selected for a program with participant restrictions
+    # Why: give immediate feedback on whether the child qualifies
+    # Outcome: UI shows green/red eligibility banner; submit button disabled if ineligible
+    eligibility =
+      case Enrollment.check_participant_eligibility(socket.assigns.program.id, child_id) do
+        {:ok, :eligible} -> :eligible
+        {:error, :ineligible, reasons} -> {:ineligible, reasons}
+        _ -> :eligible
+      end
+
     {:noreply,
-     assign(socket, selected_child_id: child_id, special_requirements: special_requirements)}
+     assign(socket,
+       selected_child_id: child_id,
+       special_requirements: special_requirements,
+       eligibility_status: eligibility
+     )}
   end
 
   @impl true
   def handle_event("complete_enrollment", params, socket) do
-    with :ok <- validate_enrollment_data(socket, params),
-         :ok <- validate_payment_method(socket),
-         :ok <- validate_registration_open(socket.assigns.program),
-         {:ok, _enrollment} <- create_enrollment(socket, params) do
-      {:noreply,
-       socket
-       |> put_flash(
-         :info,
-         gettext("Enrollment successful! You'll receive a confirmation email shortly.")
-       )
-       |> push_navigate(to: ~p"/dashboard")}
-    else
-      {:error, :program_full} ->
-        {:noreply,
-         socket
-         |> put_flash(
-           :error,
-           gettext("Sorry, this program is now full. Please choose another program.")
-         )
-         |> push_navigate(to: ~p"/programs")}
-
-      {:error, :registration_not_open} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, gettext("Registration has closed for this program."))
-         |> push_navigate(to: ~p"/programs/#{socket.assigns.program.id}")}
-
-      {:error, :invalid_payment} ->
+    # Trigger: client-side eligibility state is {:ineligible, _}
+    # Why: prevent form submission for ineligible children (server enforces too)
+    # Outcome: flash error, no enrollment attempt
+    case socket.assigns.eligibility_status do
+      {:ineligible, _reasons} ->
         {:noreply,
          put_flash(
            socket,
            :error,
-           gettext("Payment information is invalid. Please check your details.")
+           gettext("Selected child does not meet the program requirements.")
          )}
 
-      {:error, :child_not_selected} ->
-        {:noreply, put_flash(socket, :error, gettext("Please select a child for enrollment."))}
-
-      {:error, :booking_limit_exceeded} ->
-        {:noreply,
-         put_flash(
-           socket,
-           :error,
-           gettext(
-             "You've reached your monthly booking limit. Upgrade to Active tier for unlimited bookings."
+      _ ->
+        with :ok <- validate_enrollment_data(socket, params),
+             :ok <- validate_payment_method(socket),
+             :ok <- validate_registration_open(socket.assigns.program),
+             {:ok, _enrollment} <- create_enrollment(socket, params) do
+          {:noreply,
+           socket
+           |> put_flash(
+             :info,
+             gettext("Enrollment successful! You'll receive a confirmation email shortly.")
            )
-         )}
+           |> push_navigate(to: ~p"/dashboard")}
+        else
+          {:error, :program_full} ->
+            {:noreply,
+             socket
+             |> put_flash(
+               :error,
+               gettext("Sorry, this program is now full. Please choose another program.")
+             )
+             |> push_navigate(to: ~p"/programs")}
 
-      {:error, :no_parent_profile} ->
-        {:noreply,
-         socket
-         |> put_flash(:error, gettext("Please complete your profile before making a booking."))
-         |> push_navigate(to: ~p"/settings")}
+          {:error, :registration_not_open} ->
+            {:noreply,
+             socket
+             |> put_flash(:error, gettext("Registration has closed for this program."))
+             |> push_navigate(to: ~p"/programs/#{socket.assigns.program.id}")}
 
-      {:error, :processing_failed} ->
-        {:noreply,
-         put_flash(
-           socket,
-           :error,
-           gettext("Enrollment failed. Please try again or contact support.")
-         )}
+          {:error, :invalid_payment} ->
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("Payment information is invalid. Please check your details.")
+             )}
+
+          {:error, :child_not_selected} ->
+            {:noreply,
+             put_flash(socket, :error, gettext("Please select a child for enrollment."))}
+
+          {:error, :booking_limit_exceeded} ->
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext(
+                 "You've reached your monthly booking limit. Upgrade to Active tier for unlimited bookings."
+               )
+             )}
+
+          {:error, :no_parent_profile} ->
+            {:noreply,
+             socket
+             |> put_flash(
+               :error,
+               gettext("Please complete your profile before making a booking.")
+             )
+             |> push_navigate(to: ~p"/settings")}
+
+          {:error, :ineligible, reasons} ->
+            {:noreply,
+             socket
+             |> assign(eligibility_status: {:ineligible, reasons})
+             |> put_flash(
+               :error,
+               gettext("Selected child does not meet the program requirements.")
+             )}
+
+          {:error, :processing_failed} ->
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("Enrollment failed. Please try again or contact support.")
+             )}
+        end
     end
   end
 
@@ -399,6 +437,7 @@ defmodule KlassHeroWeb.BookingLive do
                 {gettext("%{name} (Age %{age})", name: child.name, age: child.age)}
               </option>
             </select>
+            <.eligibility_status :if={@selected_child_id} status={@eligibility_status} />
             <div class="mt-2">
               <a
                 href="#"
@@ -546,13 +585,15 @@ defmodule KlassHeroWeb.BookingLive do
 
           <button
             type="submit"
+            disabled={match?({:ineligible, _}, @eligibility_status)}
             class={[
               "w-full py-4 text-white",
               Theme.typography(:card_title),
               Theme.rounded(:lg),
               "hover:shadow-lg transform hover:scale-[1.02]",
               Theme.transition(:normal),
-              Theme.gradient(:primary)
+              Theme.gradient(:primary),
+              match?({:ineligible, _}, @eligibility_status) && "opacity-50 cursor-not-allowed"
             ]}
           >
             {gettext("Complete Enrollment")}

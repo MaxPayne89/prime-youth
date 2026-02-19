@@ -6,6 +6,9 @@ defmodule KlassHeroWeb.BookingComponents do
   payment information, and enrollment confirmations.
   """
   use Phoenix.Component
+  use Gettext, backend: KlassHeroWeb.Gettext
+
+  import KlassHeroWeb.UIComponents
 
   alias KlassHeroWeb.Theme
 
@@ -169,6 +172,52 @@ defmodule KlassHeroWeb.BookingComponents do
           <span class={Theme.text_color(:primary)}>{total[:value]}</span>
         </div>
       </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders eligibility feedback after a child is selected in the booking flow.
+
+  Shows a green confirmation when the child is eligible, or a red warning with
+  specific reasons when the child does not meet program requirements.
+
+  ## Attributes
+
+    * `status` - Eligibility state: `nil` (no child selected), `:eligible`, or
+      `{:ineligible, [String.t()]}` with human-readable reasons.
+
+  ## Examples
+
+      <.eligibility_status status={:eligible} />
+      <.eligibility_status status={{:ineligible, ["Child must be at least 6 years old"]}} />
+  """
+  attr :status, :any, required: true
+
+  def eligibility_status(assigns) do
+    ~H"""
+    <div
+      :if={@status == :eligible}
+      class="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg mt-3"
+    >
+      <.icon name="hero-check-circle-mini" class="w-5 h-5 text-green-600" />
+      <span class="text-sm text-green-700">
+        {gettext("Child meets all program requirements")}
+      </span>
+    </div>
+    <div
+      :if={match?({:ineligible, _}, @status)}
+      class="p-3 bg-red-50 border border-red-200 rounded-lg mt-3"
+    >
+      <div class="flex items-center gap-2 mb-2">
+        <.icon name="hero-exclamation-triangle-mini" class="w-5 h-5 text-red-600" />
+        <span class="text-sm font-semibold text-red-700">
+          {gettext("Child does not meet program requirements")}
+        </span>
+      </div>
+      <ul class="list-disc list-inside text-sm text-red-600 space-y-1">
+        <li :for={reason <- elem(@status, 1)}>{reason}</li>
+      </ul>
     </div>
     """
   end

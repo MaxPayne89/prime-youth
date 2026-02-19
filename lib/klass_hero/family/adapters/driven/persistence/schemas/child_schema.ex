@@ -23,6 +23,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
 
   import Ecto.Changeset
 
+  alias KlassHero.Family.Domain.Models.Child
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @timestamps_opts [type: :utc_datetime]
@@ -32,6 +34,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
     field :first_name, :string
     field :last_name, :string
     field :date_of_birth, :date
+    field :gender, :string, default: "not_specified"
+    field :school_grade, :integer
     field :emergency_contact, :string
     field :support_needs, :string
     field :allergies, :string
@@ -68,12 +72,16 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
       :first_name,
       :last_name,
       :date_of_birth,
+      :gender,
+      :school_grade,
       :emergency_contact,
       :support_needs,
       :allergies
     ])
     |> validate_required([:parent_id, :first_name, :last_name, :date_of_birth])
     |> shared_validations()
+    |> check_constraint(:gender, name: :valid_gender)
+    |> check_constraint(:school_grade, name: :valid_school_grade)
     |> foreign_key_constraint(:parent_id)
   end
 
@@ -89,12 +97,16 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
       :first_name,
       :last_name,
       :date_of_birth,
+      :gender,
+      :school_grade,
       :emergency_contact,
       :support_needs,
       :allergies
     ])
     |> validate_required([:first_name, :last_name, :date_of_birth])
     |> shared_validations()
+    |> check_constraint(:gender, name: :valid_gender)
+    |> check_constraint(:school_grade, name: :valid_school_grade)
   end
 
   defp shared_validations(changeset) do
@@ -103,6 +115,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
     |> validate_length(:last_name, min: 1, max: 100)
     |> validate_length(:emergency_contact, max: 255)
     |> validate_date_in_past(:date_of_birth)
+    |> validate_inclusion(:gender, Child.valid_genders())
+    |> validate_number(:school_grade, greater_than_or_equal_to: 1, less_than_or_equal_to: 13)
   end
 
   defp validate_date_in_past(changeset, field) do

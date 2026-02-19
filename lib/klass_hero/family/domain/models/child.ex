@@ -12,12 +12,16 @@ defmodule KlassHero.Family.Domain.Models.Child do
   - `first_name` - Child's first name
   - `last_name` - Child's last name
   - `date_of_birth` - Child's birth date
+  - `gender` - Child's gender ("male", "female", "diverse", "not_specified")
+  - `school_grade` - Current school grade (1-13), nil if not applicable
   - `emergency_contact` - Optional emergency contact info
   - `support_needs` - Optional support needs or accommodations
   - `allergies` - Optional allergy information
   - `inserted_at` - When the record was created
   - `updated_at` - When the record was last updated
   """
+
+  @valid_genders ~w(male female diverse not_specified)
 
   @enforce_keys [:id, :parent_id, :first_name, :last_name, :date_of_birth]
   defstruct [
@@ -30,7 +34,9 @@ defmodule KlassHero.Family.Domain.Models.Child do
     :support_needs,
     :allergies,
     :inserted_at,
-    :updated_at
+    :updated_at,
+    gender: "not_specified",
+    school_grade: nil
   ]
 
   @type t :: %__MODULE__{
@@ -39,12 +45,18 @@ defmodule KlassHero.Family.Domain.Models.Child do
           first_name: String.t(),
           last_name: String.t(),
           date_of_birth: Date.t(),
+          gender: String.t(),
+          school_grade: non_neg_integer() | nil,
           emergency_contact: String.t() | nil,
           support_needs: String.t() | nil,
           allergies: String.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
+
+  @doc "Returns the list of valid gender values."
+  @spec valid_genders() :: [String.t()]
+  def valid_genders, do: @valid_genders
 
   @doc """
   Reconstructs a Child from persistence data.
@@ -108,10 +120,29 @@ defmodule KlassHero.Family.Domain.Models.Child do
   def new(attrs) do
     child = struct!(__MODULE__, attrs)
 
+    # Trigger: gender is nil (e.g. caller passed gender: nil explicitly)
+    # Why: nil overrides the struct default, so we normalize back to "not_specified"
+    # Outcome: downstream validation and persistence always see a valid gender string
+    child = %{child | gender: child.gender || "not_specified"}
+
     case validate(child) do
       [] -> {:ok, child}
       errors -> {:error, errors}
     end
+  end
+
+  @doc "Computes age in whole months from date_of_birth to reference_date."
+  @spec age_in_months(t(), Date.t()) :: non_neg_integer()
+  def age_in_months(%__MODULE__{date_of_birth: dob}, reference_date) do
+    year_months = (reference_date.year - dob.year) * 12
+    month_diff = reference_date.month - dob.month
+
+    # Trigger: child hasn't had their birthday this month yet
+    # Why: if reference day < birth day, they haven't completed the current month
+    # Outcome: subtract one month to avoid rounding up
+    day_adjustment = if reference_date.day < dob.day, do: -1, else: 0
+
+    max(year_months + month_diff + day_adjustment, 0)
   end
 
   @doc """
@@ -127,6 +158,8 @@ defmodule KlassHero.Family.Domain.Models.Child do
     |> validate_first_name(child.first_name)
     |> validate_last_name(child.last_name)
     |> validate_date_of_birth(child.date_of_birth)
+    |> validate_gender(child.gender)
+    |> validate_school_grade(child.school_grade)
   end
 
   defp validate_parent_id(errors, parent_id) when is_binary(parent_id) do
@@ -174,4 +207,16 @@ defmodule KlassHero.Family.Domain.Models.Child do
   end
 
   defp validate_date_of_birth(errors, _), do: ["Date of birth must be a date" | errors]
+
+  defp validate_gender(errors, gender) when gender in @valid_genders, do: errors
+
+  defp validate_gender(errors, _),
+    do: ["Gender must be one of: #{Enum.join(@valid_genders, ", ")}" | errors]
+
+  defp validate_school_grade(errors, nil), do: errors
+
+  defp validate_school_grade(errors, grade) when is_integer(grade) and grade >= 1 and grade <= 13,
+    do: errors
+
+  defp validate_school_grade(errors, _), do: ["School grade must be between 1 and 13" | errors]
 end

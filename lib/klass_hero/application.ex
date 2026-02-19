@@ -98,6 +98,18 @@ defmodule KlassHero.Application do
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Enrollment,
+         handlers: [
+           {:participant_policy_set,
+            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:participant_policy_set,
+            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10}
+         ]},
+        id: :enrollment_domain_event_bus
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.DomainEventBus,
          context: KlassHero.Messaging,
          handlers: [
            {:user_data_anonymized,
@@ -194,6 +206,14 @@ defmodule KlassHero.Application do
          message_tag: :integration_event,
          event_label: "Integration event"},
         id: :participation_integration_event_subscriber
+      ),
+      Supervisor.child_spec(
+        {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: KlassHero.ProgramCatalog.Adapters.Driven.Events.EnrollmentEventHandler,
+         topics: ["integration:enrollment:participant_policy_set"],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :program_catalog_enrollment_integration_event_subscriber
       )
     ]
   end
