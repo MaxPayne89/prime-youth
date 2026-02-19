@@ -1292,10 +1292,21 @@ defmodule KlassHeroWeb.ProviderComponents do
               </td>
               <td class="px-4 py-4">
                 <div class="flex items-center justify-end gap-1">
-                  <.action_button icon="hero-eye-mini" title={gettext("Preview")} />
-                  <.action_button icon="hero-user-group-mini" title={gettext("View Roster")} />
-                  <.action_button icon="hero-pencil-square-mini" title={gettext("Edit")} />
-                  <.action_button icon="hero-document-duplicate-mini" title={gettext("Duplicate")} />
+                  <.link navigate={~p"/programs/#{program.id}"} class="inline-block">
+                    <.action_button icon="hero-eye-mini" title={gettext("Preview")} />
+                  </.link>
+                  <.action_button
+                    icon="hero-user-group-mini"
+                    title={gettext("View Roster")}
+                    phx-click="view_roster"
+                    phx-value-id={program.id}
+                  />
+                  <.action_button
+                    icon="hero-pencil-square-mini"
+                    title={gettext("Edit")}
+                    phx-click="edit_program"
+                    phx-value-id={program.id}
+                  />
                 </div>
               </td>
             </tr>
