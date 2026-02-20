@@ -295,8 +295,8 @@ defmodule KlassHeroWeb.HomeLive do
           </div>
         </div>
       </div>
-      
-    <%!-- HIDDEN: Pricing section hidden until transactions are live (#178). Uncomment to re-enable.
+
+      <%!-- HIDDEN: Pricing section hidden until transactions are live (#178). Uncomment to re-enable.
 
     <!-- Simple, Transparent Pricing Section -->
       <div id="pricing-section" class={[Theme.bg(:surface), "py-16 lg:py-24"]}>
