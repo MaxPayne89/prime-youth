@@ -15,6 +15,7 @@ defmodule KlassHeroWeb.HomeLive do
       socket
       |> assign(
         page_title: gettext("Klass Hero - Connecting Families with Trusted Youth Educators"),
+        # Retained for pricing section re-enablement (#178)
         pricing_tab: :families,
         trending_tags: trending_tags
       )
@@ -29,6 +30,7 @@ defmodule KlassHeroWeb.HomeLive do
     {:noreply, push_navigate(socket, to: ~p"/programs")}
   end
 
+  # Retained for pricing section re-enablement (#178)
   @impl true
   def handle_event("switch_pricing_tab", %{"tab" => tab}, socket) do
     pricing_tab = String.to_existing_atom(tab)
@@ -293,7 +295,9 @@ defmodule KlassHeroWeb.HomeLive do
           </div>
         </div>
       </div>
-      
+
+      <%!-- HIDDEN: Pricing section hidden until transactions are live (#178). Uncomment to re-enable.
+
     <!-- Simple, Transparent Pricing Section -->
       <div id="pricing-section" class={[Theme.bg(:surface), "py-16 lg:py-24"]}>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -306,7 +310,7 @@ defmodule KlassHeroWeb.HomeLive do
               {gettext("Choose the plan that fits your needs")}
             </p>
           </div>
-          
+
     <!-- Tab Toggle -->
           <div class="flex justify-center mb-12">
             <div class={[
@@ -357,7 +361,7 @@ defmodule KlassHeroWeb.HomeLive do
               </button>
             </div>
           </div>
-          
+
     <!-- Pricing Cards Grid -->
           <div class="grid md:grid-cols-2 gap-8 lg:gap-12 mb-8">
             <%= if @pricing_tab == :families do %>
@@ -375,7 +379,7 @@ defmodule KlassHeroWeb.HomeLive do
                 ]}
                 cta_text={gettext("Start Exploring")}
               />
-              
+
     <!-- Active Family Plan (Popular) -->
               <.pricing_card
                 title={gettext("Active Family")}
@@ -407,7 +411,7 @@ defmodule KlassHeroWeb.HomeLive do
                 ]}
                 cta_text={gettext("Start Teaching")}
               />
-              
+
     <!-- Pro Provider Plan (Popular) -->
               <.pricing_card
                 title={gettext("Pro Provider")}
@@ -425,7 +429,7 @@ defmodule KlassHeroWeb.HomeLive do
               />
             <% end %>
           </div>
-          
+
     <!-- Footer Link -->
           <div class="text-center">
             <a
@@ -442,6 +446,8 @@ defmodule KlassHeroWeb.HomeLive do
           </div>
         </div>
       </div>
+
+    --%>
       
     <!-- Frequently Asked Questions Section -->
       <div id="faq-section" class={[Theme.bg(:muted), "py-16 lg:py-24"]}>
