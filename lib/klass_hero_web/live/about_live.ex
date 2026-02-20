@@ -44,44 +44,6 @@ defmodule KlassHeroWeb.AboutLive do
     ]
   end
 
-  defp team_members do
-    [
-      %{
-        initials: "SO",
-        bg_color: "bg-hero-blue-400",
-        name: gettext("Shane Ogilvie"),
-        role: gettext("CEO & Co-Founder"),
-        role_color: "text-hero-blue-500",
-        bio:
-          gettext(
-            "Former education technology leader with a passion for making quality programs accessible to all families."
-          )
-      },
-      %{
-        initials: "MP",
-        bg_color: "bg-pink-500",
-        name: gettext("Max Pergl"),
-        role: gettext("CTO & Co-Founder"),
-        role_color: "text-pink-500",
-        bio:
-          gettext(
-            "Technology innovator committed to building platforms that empower families and instructors."
-          )
-      },
-      %{
-        initials: "KP",
-        bg_color: "bg-orange-500",
-        name: gettext("Konstantin Pergl"),
-        role: gettext("CFO & Co-Founder"),
-        role_color: "text-orange-500",
-        bio:
-          gettext(
-            "Financial strategist focused on sustainable growth and value creation for all stakeholders."
-          )
-      }
-    ]
-  end
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -115,6 +77,11 @@ defmodule KlassHeroWeb.AboutLive do
             <p class="text-lg text-hero-grey-700 leading-relaxed">
               {gettext(
                 "From sports to arts, technology to languages, we make it easy to discover enriching activities that fit your family's schedule and budget."
+              )}
+            </p>
+            <p class="text-lg text-hero-grey-700 leading-relaxed font-medium">
+              {gettext(
+                "We are Klass Hero — parents, brothers, and partners of educators — building the infrastructure that helps every child learn and thrive."
               )}
             </p>
           </div>
@@ -230,29 +197,43 @@ defmodule KlassHeroWeb.AboutLive do
         </div>
       </div>
 
-      <%!-- Founding Team Section --%>
+      <%!-- The Klass Hero Story Section --%>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
         <div class="text-center mb-12">
           <h2 class="font-display text-3xl md:text-4xl lg:text-5xl text-hero-black mb-4">
-            {gettext("The Founding Team")}
+            {gettext("The Klass Hero Story")}
           </h2>
           <p class="text-lg text-hero-grey-700 max-w-3xl mx-auto">
-            {gettext("Meet the team building the future of children's programs in Berlin")}
+            {gettext("Built by Parents and Educators for More Learning Opportunities")}
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          <div :for={member <- team_members()} class="text-center">
-            <div class={[
-              "w-32 h-32 mx-auto mb-6 rounded-full flex items-center justify-center",
-              member.bg_color
-            ]}>
-              <span class="text-4xl font-bold text-white">{member.initials}</span>
-            </div>
-            <h3 class="font-semibold text-xl text-hero-black mb-1">{member.name}</h3>
-            <p class={["font-medium mb-4", member.role_color]}>{member.role}</p>
-            <p class="text-hero-grey-700">{member.bio}</p>
-          </div>
+        <div class="max-w-3xl mx-auto space-y-6">
+          <p class="text-lg text-hero-grey-700 leading-relaxed">
+            {gettext(
+              "Shane spent over a decade as a coach and youth activity provider in Berlin, building Prime Youth, a community of providers, schools, and parents dedicated to giving children the best possible experiences. But one pattern kept emerging: the administrative burden of managing bookings, payments, and compliance was getting in everyone's way. Shane saw the problem from every angle. That experience became the foundation for Klass Hero."
+            )}
+          </p>
+          <p class="text-lg text-hero-grey-700 leading-relaxed">
+            {gettext(
+              "In 2025, Shane connected with his friend Max Pergl, a full-stack developer who shared a unique perspective. Both Shane and Max are partners of teachers who wanted to extend their expertise beyond the classroom, offering more to the community, but without the time to manage bookings, payments, and compliance on their own."
+            )}
+          </p>
+          <p class="text-lg text-hero-grey-700 leading-relaxed">
+            {gettext(
+              "Klass Hero was built to solve exactly that. A comprehensive operational platform that empowers educators to spend less time on paperwork and more time inspiring children."
+            )}
+          </p>
+          <p class="text-lg text-hero-grey-700 leading-relaxed">
+            {gettext(
+              "Konstantin Pergl, Max's brother, joined as CFO, bringing the financial rigour and strategic planning needed to navigate the German market and ensure long-term stability for every provider on the platform."
+            )}
+          </p>
+          <p class="text-lg text-hero-grey-700 leading-relaxed">
+            {gettext(
+              "To lead trust and quality, Laurie Camargo, a mother with over a decade of experience in child safety and quality assurance, will join to architect our Safety-First Verification engine, ensuring every Hero meets the highest standards before working with families."
+            )}
+          </p>
         </div>
       </div>
 
