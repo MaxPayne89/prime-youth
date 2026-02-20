@@ -15,6 +15,7 @@ defmodule KlassHeroWeb.HomeLive do
       socket
       |> assign(
         page_title: gettext("Klass Hero - Connecting Families with Trusted Youth Educators"),
+        # Retained for pricing section re-enablement (#178)
         pricing_tab: :families,
         trending_tags: trending_tags
       )
@@ -29,6 +30,7 @@ defmodule KlassHeroWeb.HomeLive do
     {:noreply, push_navigate(socket, to: ~p"/programs")}
   end
 
+  # Retained for pricing section re-enablement (#178)
   @impl true
   def handle_event("switch_pricing_tab", %{"tab" => tab}, socket) do
     pricing_tab = String.to_existing_atom(tab)

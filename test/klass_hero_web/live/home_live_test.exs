@@ -129,7 +129,7 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "h3", "Get Paid & Grow")
     end
 
-    @tag :skip
+    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
     test "renders pricing section with family plans by default", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
@@ -141,7 +141,7 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "h3", "Active Family")
     end
 
-    @tag :skip
+    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
     test "switches to provider pricing tab", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
@@ -155,7 +155,7 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "h3", "Pro Provider")
     end
 
-    @tag :skip
+    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
     test "switches back to family pricing tab", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
@@ -209,7 +209,7 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "#faq-5-chevron")
     end
 
-    @tag :skip
+    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
     test "family pricing cards show all expected features", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
@@ -227,7 +227,7 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "li", "1 free cancellation per month")
     end
 
-    @tag :skip
+    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
     test "provider pricing cards show all expected features", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
@@ -249,7 +249,7 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "li", "Featured placement opportunities")
     end
 
-    @tag :skip
+    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
     test "pricing tab defaults to families on mount", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
@@ -261,7 +261,7 @@ defmodule KlassHeroWeb.HomeLiveTest do
       refute has_element?(view, "h3", "Pro Provider")
     end
 
-    @tag :skip
+    @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
     test "pricing tab assign updates when switching tabs", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
