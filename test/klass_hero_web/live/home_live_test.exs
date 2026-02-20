@@ -174,6 +174,14 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "h3", "Active Family")
     end
 
+    test "renders founder section", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/")
+
+      assert has_element?(view, "#founder-section")
+      assert has_element?(view, "h2", "Built by Parents to Empower Educators.")
+      assert has_element?(view, "#founder-section a[href='/about']", "Read our founding story")
+    end
+
     test "renders faq section", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 

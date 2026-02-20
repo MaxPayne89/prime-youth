@@ -449,6 +449,35 @@ defmodule KlassHeroWeb.HomeLive do
 
     --%>
       
+    <!-- Founder Section - trust signal for parents (#179) -->
+      <div id="founder-section" class={[Theme.bg(:surface), "py-16 lg:py-24"]}>
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div class="mb-12">
+            <.section_label>{gettext("Our Story")}</.section_label>
+            <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
+              {gettext("Built by Parents to Empower Educators.")}
+            </h2>
+            <p class={["text-lg leading-relaxed", Theme.text_color(:secondary)]}>
+              {gettext(
+                "As fathers and partners of teachers in Berlin, we saw and heard firsthand how hard it is to find, book, and manage quality youth activities outside the classroom. Klass Hero is the complete platform connecting Berlin families and schools with trusted, vetted activity providers — offering safe, supervised, and enriching experiences across sports, arts, tutoring, and more. We verify every provider, structure every booking, and support every step — so parents know their child is in good hands, and providers can focus on what they do best: inspiring kids."
+              )}
+            </p>
+          </div>
+          <.link
+            navigate={~p"/about"}
+            class={[
+              Theme.gradient(:primary),
+              "inline-block px-8 py-3 text-white hover:shadow-lg transform hover:scale-105",
+              Theme.typography(:cta),
+              Theme.transition(:normal),
+              Theme.rounded(:lg)
+            ]}
+          >
+            {gettext("Read our founding story →")}
+          </.link>
+        </div>
+      </div>
+      
     <!-- Frequently Asked Questions Section -->
       <div id="faq-section" class={[Theme.bg(:muted), "py-16 lg:py-24"]}>
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
