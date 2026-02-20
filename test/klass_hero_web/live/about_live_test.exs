@@ -79,40 +79,22 @@ defmodule KlassHeroWeb.AboutLiveTest do
       assert html =~ "text-hero-blue-700"
     end
 
-    test "displays Founding Team section", %{conn: conn} do
+    test "displays The Klass Hero Story section", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify section heading
-      assert html =~ "The Founding Team"
-      assert html =~ "Meet the team building the future"
+      assert html =~ "The Klass Hero Story"
+      assert html =~ "Built by Parents and Educators for More Learning Opportunities"
     end
 
-    test "displays all three founding team members", %{conn: conn} do
+    test "displays founding story paragraphs", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Shane Ogilvie
-      assert html =~ "Shane Ogilvie"
-      assert html =~ "CEO &amp; Co-Founder"
-      assert html =~ "Former education technology leader"
-
-      # Max Pergl
-      assert html =~ "Max Pergl"
-      assert html =~ "CTO &amp; Co-Founder"
-      assert html =~ "Technology innovator"
-
-      # Konstantin Pergl
+      # Trigger: verify all four founding story paragraphs are present
+      # Why: each paragraph covers a different founder's contribution
+      assert html =~ "Shane spent over a decade as a coach"
+      assert html =~ "Max Pergl, a full-stack developer"
       assert html =~ "Konstantin Pergl"
-      assert html =~ "CFO &amp; Co-Founder"
-      assert html =~ "Financial strategist"
-    end
-
-    test "team member avatars have colored backgrounds", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify colored avatar backgrounds
-      assert html =~ "bg-hero-blue-400"
-      assert html =~ "bg-pink-500"
-      assert html =~ "bg-orange-500"
+      assert html =~ "Laurie Camargo"
     end
 
     test "displays CTA section with beige background", %{conn: conn} do
@@ -145,7 +127,6 @@ defmodule KlassHeroWeb.AboutLiveTest do
       # Verify responsive grid classes
       assert html =~ "md:grid-cols-2"
       assert html =~ "lg:grid-cols-3"
-      assert html =~ "md:grid-cols-3"
     end
 
     test "sections use consistent spacing", %{conn: conn} do
