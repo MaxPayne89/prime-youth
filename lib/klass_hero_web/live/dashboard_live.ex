@@ -49,11 +49,10 @@ defmodule KlassHeroWeb.DashboardLive do
         achievements: get_achievements(socket),
         recommended_programs: get_recommended_programs(socket),
         referral_stats: get_referral_stats(user),
-        family_programs_active: active_programs,
-        family_programs_expired: expired_programs,
         family_programs_empty?: active_programs == [] and expired_programs == []
       )
       |> stream(:children, children_for_view)
+      |> stream(:family_programs, build_family_program_items(active_programs, expired_programs))
       |> assign_booking_usage_info()
 
     {:ok, socket}
@@ -203,6 +202,23 @@ defmodule KlassHeroWeb.DashboardLive do
     Enrollment.classify_family_programs(enrollment_programs, Date.utc_today())
   end
 
+  # Trigger: streams require items with an :id field
+  # Why: active and expired programs merge into one stream with an expired flag per item
+  # Outcome: single stream preserving active-first ordering with expired metadata
+  defp build_family_program_items(active, expired) do
+    active_items =
+      Enum.map(active, fn {e, p} ->
+        %{id: e.id, enrollment: e, program: p, expired: false}
+      end)
+
+    expired_items =
+      Enum.map(expired, fn {e, p} ->
+        %{id: e.id, enrollment: e, program: p, expired: true}
+      end)
+
+    active_items ++ expired_items
+  end
+
   @impl true
   def handle_event("program_click", %{"program-id" => program_id}, socket) do
     {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
@@ -311,26 +327,21 @@ defmodule KlassHeroWeb.DashboardLive do
               </.link>
             </div>
           <% else %>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              id="family-programs-list"
+              phx-update="stream"
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
               <.program_card
-                :for={{enrollment, program} <- @family_programs_active}
-                id={"family-program-#{enrollment.id}"}
-                program={ProgramPresenter.to_card_view(program)}
+                :for={{dom_id, item} <- @streams.family_programs}
+                id={dom_id}
+                program={ProgramPresenter.to_card_view(item.program)}
                 variant={:detailed}
                 show_favorite={false}
-                contact_url={~p"/messages"}
+                expired={item.expired}
+                contact_url={if(!item.expired, do: ~p"/messages")}
                 phx-click="program_click"
-                phx-value-program-id={program.id}
-              />
-              <.program_card
-                :for={{enrollment, program} <- @family_programs_expired}
-                id={"family-program-#{enrollment.id}"}
-                program={ProgramPresenter.to_card_view(program)}
-                variant={:detailed}
-                show_favorite={false}
-                expired={true}
-                phx-click="program_click"
-                phx-value-program-id={program.id}
+                phx-value-program-id={item.program.id}
               />
             </div>
           <% end %>

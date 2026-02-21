@@ -33,7 +33,7 @@ defmodule KlassHeroWeb.DashboardLive.FamilyProgramsTest do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
       refute has_element?(view, "#family-programs-empty")
-      assert has_element?(view, "#family-program-#{enrollment.id}")
+      assert has_element?(view, "#family_programs-#{enrollment.id}")
     end
 
     test "active card has contact button", %{conn: conn, parent: parent, child: child} do
@@ -66,7 +66,7 @@ defmodule KlassHeroWeb.DashboardLive.FamilyProgramsTest do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
       refute has_element?(view, "#family-programs-empty")
-      assert has_element?(view, "#family-program-#{enrollment.id}")
+      assert has_element?(view, "#family_programs-#{enrollment.id}")
     end
 
     test "expired enrollment by past end_date renders", %{conn: conn, parent: parent, child: child} do
@@ -83,7 +83,7 @@ defmodule KlassHeroWeb.DashboardLive.FamilyProgramsTest do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
       refute has_element?(view, "#family-programs-empty")
-      assert has_element?(view, "#family-program-#{enrollment.id}")
+      assert has_element?(view, "#family_programs-#{enrollment.id}")
     end
 
     test "active programs appear before expired programs", %{
@@ -113,8 +113,8 @@ defmodule KlassHeroWeb.DashboardLive.FamilyProgramsTest do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
       html = render(view)
 
-      active_pos = :binary.match(html, "family-program-#{active_enrollment.id}") |> elem(0)
-      expired_pos = :binary.match(html, "family-program-#{expired_enrollment.id}") |> elem(0)
+      active_pos = :binary.match(html, "family_programs-#{active_enrollment.id}") |> elem(0)
+      expired_pos = :binary.match(html, "family_programs-#{expired_enrollment.id}") |> elem(0)
 
       assert active_pos < expired_pos, "Active program card should appear before expired program card"
     end
