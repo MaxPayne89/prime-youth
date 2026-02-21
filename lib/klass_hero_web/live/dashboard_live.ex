@@ -26,7 +26,13 @@ defmodule KlassHeroWeb.DashboardLive do
     # Outcome: gracefully degrade to empty state if load fails
     {active_programs, expired_programs} =
       try do
-        load_family_programs(user.id)
+        # Trigger: enrollments are stored with parent_id (Family context), not identity_id (Accounts)
+        # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
+        # Outcome: resolve parent profile first, then query enrollments by parent.id
+        case Family.get_parent_by_identity(user.id) do
+          {:ok, parent} -> load_family_programs(parent.id)
+          {:error, _} -> {[], []}
+        end
       rescue
         e ->
           Logger.error("[DashboardLive] Failed to load family programs: #{Exception.message(e)}")
@@ -158,6 +164,9 @@ defmodule KlassHeroWeb.DashboardLive do
     # Trigger: each enrollment references a program_id
     # Why: we need full program data for card rendering (title, schedule, etc.)
     # Outcome: list of {enrollment, program} tuples, dropping any where program is not found
+    # Note: This is N+1 (1 query for enrollments + N for programs). Acceptable because
+    # enrollment count per parent is bounded (typically <20). Future optimization:
+    # add ProgramCatalog.get_programs_by_ids/1 batch function.
     enrollment_programs =
       enrollments
       |> Enum.map(fn enrollment ->
