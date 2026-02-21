@@ -145,6 +145,86 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
     end
   end
 
+  describe "create_with_guardian/2" do
+    test "creates child and guardian link atomically" do
+      parent = create_parent()
+
+      attrs = %{
+        first_name: "Emma",
+        last_name: "Smith",
+        date_of_birth: ~D[2015-06-15]
+      }
+
+      assert {:ok, %Child{} = child} = ChildRepository.create_with_guardian(attrs, parent.id)
+      assert child.first_name == "Emma"
+
+      # Verify guardian link was created
+      link = Repo.get_by!(ChildGuardianSchema, child_id: child.id, guardian_id: parent.id)
+      assert link.relationship == "parent"
+      assert link.is_primary == true
+    end
+
+    test "returns changeset error for invalid child data" do
+      parent = create_parent()
+
+      attrs = %{
+        first_name: "",
+        last_name: "Smith",
+        date_of_birth: ~D[2015-06-15]
+      }
+
+      assert {:error, %Ecto.Changeset{}} = ChildRepository.create_with_guardian(attrs, parent.id)
+    end
+
+    test "rolls back child if guardian link fails" do
+      # Use a non-existent guardian_id to trigger FK violation
+      non_existent_guardian = Ecto.UUID.generate()
+
+      attrs = %{
+        first_name: "Emma",
+        last_name: "Smith",
+        date_of_birth: ~D[2015-06-15]
+      }
+
+      assert {:error, _changeset} = ChildRepository.create_with_guardian(attrs, non_existent_guardian)
+
+      # Verify child was NOT persisted (transaction rolled back)
+      assert [] == Repo.all(KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema)
+    end
+  end
+
+  describe "child_belongs_to_guardian?/2" do
+    test "returns true when guardian link exists" do
+      parent = create_parent()
+      child = create_child_with_guardian(parent, %{
+        first_name: "Emma",
+        last_name: "Smith",
+        date_of_birth: ~D[2015-06-15]
+      })
+
+      assert ChildRepository.child_belongs_to_guardian?(child.id, parent.id)
+    end
+
+    test "returns false when no guardian link exists" do
+      {:ok, child} = ChildRepository.create(%{
+        first_name: "Emma",
+        last_name: "Smith",
+        date_of_birth: ~D[2015-06-15]
+      })
+
+      non_existent_guardian = Ecto.UUID.generate()
+
+      refute ChildRepository.child_belongs_to_guardian?(child.id, non_existent_guardian)
+    end
+
+    test "returns false for non-existent child" do
+      parent = create_parent()
+      non_existent_child = Ecto.UUID.generate()
+
+      refute ChildRepository.child_belongs_to_guardian?(non_existent_child, parent.id)
+    end
+  end
+
   describe "update/2" do
     test "updates child fields and returns domain entity" do
       {:ok, created} =

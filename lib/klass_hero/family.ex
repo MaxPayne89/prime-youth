@@ -205,19 +205,7 @@ defmodule KlassHero.Family do
   """
   def child_belongs_to_parent?(child_id, parent_id)
       when is_binary(child_id) and is_binary(parent_id) do
-    import Ecto.Query
-
-    alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSchema
-
-    # Trigger: checking authorization for child access
-    # Why: query the join table directly — pragmatic choice since this function
-    #      already reaches into infrastructure
-    # Outcome: returns true only if a guardian link exists
-    KlassHero.Repo.exists?(
-      from(cg in ChildGuardianSchema,
-        where: cg.child_id == ^child_id and cg.guardian_id == ^parent_id
-      )
-    )
+    @child_repository.child_belongs_to_guardian?(child_id, parent_id)
   end
 
   # ============================================================================

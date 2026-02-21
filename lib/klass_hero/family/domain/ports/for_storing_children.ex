@@ -57,7 +57,27 @@ defmodule KlassHero.Family.Domain.Ports.ForStoringChildren do
   @callback delete(binary()) :: :ok | {:error, :not_found} | {:error, Ecto.Changeset.t()}
 
   @doc """
-  Lists all children for a given guardian, queried through the children_guardians join table.
+  Creates a new child and links it to a guardian atomically.
+
+  Both the child record and the guardian link are created in a single
+  transaction. If either fails, both are rolled back.
+
+  Returns:
+  - `{:ok, Child.t()}` - Child created and linked successfully
+  - `{:error, changeset}` - Validation failed
+  """
+  @callback create_with_guardian(map(), binary()) ::
+              {:ok, Child.t()} | {:error, Ecto.Changeset.t()}
+
+  @doc """
+  Checks if a guardian link exists between a child and a guardian.
+
+  Returns `true` if the link exists, `false` otherwise.
+  """
+  @callback child_belongs_to_guardian?(binary(), binary()) :: boolean()
+
+  @doc """
+  Lists all children for a given guardian.
 
   Returns list of children (may be empty).
   """
