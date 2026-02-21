@@ -286,6 +286,22 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
     end
   end
 
+  describe "format_date_range_brief/1" do
+    test "formats date range from map" do
+      program = %{start_date: ~D[2026-03-01], end_date: ~D[2026-06-30]}
+      assert ProgramPresenter.format_date_range_brief(program) == "Mar 1 - Jun 30, 2026"
+    end
+
+    test "formats open-ended range" do
+      program = %{start_date: ~D[2026-03-01], end_date: nil}
+      assert ProgramPresenter.format_date_range_brief(program) == "From Mar 1, 2026"
+    end
+
+    test "returns nil when no start_date" do
+      assert ProgramPresenter.format_date_range_brief(%{start_date: nil, end_date: nil}) == nil
+    end
+  end
+
   describe "format_schedule_brief/1" do
     test "formats days and times from a map" do
       program = %{

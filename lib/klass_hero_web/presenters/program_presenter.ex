@@ -223,6 +223,18 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
     |> Enum.join(" ")
   end
 
+  @doc """
+  Formats a brief date range string from any map with :start_date and :end_date keys.
+
+  Returns a string like "Mar 1 - Jun 30, 2026" or nil if no start_date.
+  """
+  @spec format_date_range_brief(map()) :: String.t() | nil
+  def format_date_range_brief(program) when is_map(program) do
+    start_date = Map.get(program, :start_date)
+    end_date = Map.get(program, :end_date)
+    format_date_range(start_date, end_date)
+  end
+
   defp format_instructor(nil), do: nil
 
   defp format_instructor(instructor) do
