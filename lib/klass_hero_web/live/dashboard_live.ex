@@ -4,9 +4,11 @@ defmodule KlassHeroWeb.DashboardLive do
   import KlassHeroWeb.BookingComponents, only: [info_box: 1]
   import KlassHeroWeb.CompositeComponents
   import KlassHeroWeb.Helpers.FamilyHelpers
+  import KlassHeroWeb.ProgramComponents, only: [program_card: 1]
 
   alias KlassHero.Enrollment
   alias KlassHero.Family
+  alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
@@ -17,6 +19,7 @@ defmodule KlassHeroWeb.DashboardLive do
     children = get_children_for_current_user(socket)
     children_for_view = Enum.map(children, &ChildPresenter.to_profile_view/1)
     children_extended = Enum.map(children, &ChildPresenter.to_extended_view/1)
+    {active_programs, expired_programs} = load_family_programs(user.id)
 
     socket =
       socket
@@ -27,7 +30,10 @@ defmodule KlassHeroWeb.DashboardLive do
         activity_goal: calculate_activity_goal(children_extended),
         achievements: get_achievements(socket),
         recommended_programs: get_recommended_programs(socket),
-        referral_stats: get_referral_stats(user)
+        referral_stats: get_referral_stats(user),
+        family_programs_active: active_programs,
+        family_programs_expired: expired_programs,
+        family_programs_empty?: active_programs == [] and expired_programs == []
       )
       |> stream(:children, children_for_view)
       |> assign_booking_usage_info()
@@ -134,6 +140,53 @@ defmodule KlassHeroWeb.DashboardLive do
     end
   end
 
+  defp load_family_programs(identity_id) do
+    enrollments = Enrollment.list_parent_enrollments(identity_id)
+
+    # Trigger: each enrollment references a program_id
+    # Why: we need full program data for card rendering (title, schedule, etc.)
+    # Outcome: list of {enrollment, program} tuples, dropping any where program is not found
+    enrollment_programs =
+      enrollments
+      |> Enum.map(fn enrollment ->
+        case ProgramCatalog.get_program_by_id(enrollment.program_id) do
+          {:ok, program} -> {enrollment, program}
+          {:error, _} -> nil
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    today = Date.utc_today()
+
+    {active, expired} =
+      Enum.split_with(enrollment_programs, fn {enrollment, program} ->
+        not program_expired?(enrollment, program, today)
+      end)
+
+    # Trigger: active sorted by soonest upcoming session; expired by most recent end date
+    # Why: parents want to see what's coming next first
+    # Outcome: active ascending by start_date, expired descending by end_date
+    active_sorted = Enum.sort_by(active, fn {_e, p} -> p.start_date || ~D[9999-12-31] end, Date)
+
+    expired_sorted =
+      Enum.sort_by(expired, fn {_e, p} -> p.end_date || ~D[0001-01-01] end, {:desc, Date})
+
+    {active_sorted, expired_sorted}
+  end
+
+  # Trigger: enrollment completed/cancelled OR program end date passed
+  # Why: both conditions indicate the program is no longer active for this family
+  # Outcome: returns true if the enrollment should appear in the expired section
+  defp program_expired?(%{status: status}, _program, _today)
+       when status in [:completed, :cancelled],
+       do: true
+
+  defp program_expired?(_enrollment, %{end_date: end_date}, today)
+       when not is_nil(end_date),
+       do: Date.compare(end_date, today) == :lt
+
+  defp program_expired?(_enrollment, _program, _today), do: false
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -208,6 +261,58 @@ defmodule KlassHeroWeb.DashboardLive do
         <%!-- Family Achievements --%>
         <section class="mb-8">
           <.family_achievements achievements={@achievements} />
+        </section>
+        <%!-- Family Programs --%>
+        <section id="family-programs" class="mb-8">
+          <div class="flex items-center gap-2 mb-4">
+            <.icon name="hero-academic-cap-mini" class="w-6 h-6 text-hero-cyan" />
+            <h2 class="text-xl font-semibold text-hero-charcoal">
+              {gettext("Family Programs")}
+            </h2>
+          </div>
+
+          <%= if @family_programs_empty? do %>
+            <div id="family-programs-empty" class="text-center py-12 bg-white rounded-2xl shadow-sm">
+              <.icon name="hero-book-open" class="w-12 h-12 text-hero-grey-300 mx-auto mb-4" />
+              <p class="text-hero-grey-500 mb-4">
+                {gettext("No programs booked yet")}
+              </p>
+              <.link
+                navigate={~p"/programs"}
+                class={[
+                  "inline-flex items-center px-6 py-3 text-white font-medium",
+                  "bg-hero-blue-600 hover:bg-hero-blue-700",
+                  Theme.rounded(:lg),
+                  Theme.transition(:normal)
+                ]}
+              >
+                {gettext("Book a Program")}
+              </.link>
+            </div>
+          <% else %>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <.program_card
+                :for={{enrollment, program} <- @family_programs_active}
+                id={"family-program-#{enrollment.id}"}
+                program={ProgramPresenter.to_card_view(program)}
+                variant={:detailed}
+                show_favorite={false}
+                contact_url={~p"/messages"}
+                phx-click="program_click"
+                phx-value-program-id={program.id}
+              />
+              <.program_card
+                :for={{enrollment, program} <- @family_programs_expired}
+                id={"family-program-#{enrollment.id}"}
+                program={ProgramPresenter.to_card_view(program)}
+                variant={:detailed}
+                show_favorite={false}
+                expired={true}
+                phx-click="program_click"
+                phx-value-program-id={program.id}
+              />
+            </div>
+          <% end %>
         </section>
         <%!-- Recommended Programs --%>
         <section class="mb-8">
