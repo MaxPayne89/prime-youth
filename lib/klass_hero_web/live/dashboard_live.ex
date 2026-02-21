@@ -200,34 +200,8 @@ defmodule KlassHeroWeb.DashboardLive do
       end)
       |> Enum.reject(&is_nil/1)
 
-    today = Date.utc_today()
-
-    {active, expired} =
-      Enum.split_with(enrollment_programs, fn {enrollment, program} ->
-        not program_expired?(enrollment, program, today)
-      end)
-
-    # Trigger: active sorted by soonest upcoming session; expired by most recent end date
-    # Why: parents want to see what's coming next first
-    # Outcome: active ascending by start_date, expired descending by end_date
-    active_sorted = Enum.sort_by(active, fn {_e, p} -> p.start_date || ~D[9999-12-31] end, Date)
-
-    expired_sorted =
-      Enum.sort_by(expired, fn {_e, p} -> p.end_date || ~D[0001-01-01] end, {:desc, Date})
-
-    {active_sorted, expired_sorted}
+    Enrollment.classify_family_programs(enrollment_programs, Date.utc_today())
   end
-
-  # Trigger: enrollment completed/cancelled OR program end date passed
-  # Why: both conditions indicate the program is no longer active for this family
-  # Outcome: returns true if the enrollment should appear in the expired section
-  defp program_expired?(%{status: status}, _program, _today)
-       when status in [:completed, :cancelled], do: true
-
-  defp program_expired?(_enrollment, %{end_date: end_date}, today) when not is_nil(end_date),
-    do: Date.before?(end_date, today)
-
-  defp program_expired?(_enrollment, _program, _today), do: false
 
   @impl true
   def handle_event("program_click", %{"program-id" => program_id}, socket) do

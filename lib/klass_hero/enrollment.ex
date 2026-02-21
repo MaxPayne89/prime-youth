@@ -42,6 +42,8 @@ defmodule KlassHero.Enrollment do
     deps: [KlassHero, KlassHero.Entitlements, KlassHero.Family, KlassHero.Shared],
     exports: []
 
+  alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
+
   alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
   alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
   alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
@@ -101,6 +103,18 @@ defmodule KlassHero.Enrollment do
   """
   def list_parent_enrollments(parent_id) when is_binary(parent_id) do
     ListParentEnrollments.execute(parent_id)
+  end
+
+  @doc """
+  Classifies enrollment+program pairs into active and expired groups.
+
+  Pure domain logic — splits by enrollment status and program end date,
+  then sorts active by upcoming start_date and expired by most recent end_date.
+
+  Returns `{active, expired}` where each is a list of `{Enrollment.t(), Program.t()}` tuples.
+  """
+  def classify_family_programs(enrollment_programs, today) do
+    EnrollmentClassifier.classify(enrollment_programs, today)
   end
 
   @doc """
