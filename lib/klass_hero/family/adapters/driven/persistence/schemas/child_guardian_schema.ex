@@ -34,6 +34,11 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSche
     |> unique_constraint([:child_id, :guardian_id],
       name: :children_guardians_child_id_guardian_id_index
     )
+    |> unique_constraint(:child_id,
+      name: :children_guardians_one_primary_per_child,
+      message: "child already has a primary guardian"
+    )
+    |> check_constraint(:relationship, name: :valid_relationship)
     |> foreign_key_constraint(:child_id)
     |> foreign_key_constraint(:guardian_id)
   end

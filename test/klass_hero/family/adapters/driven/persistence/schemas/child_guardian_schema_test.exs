@@ -1,6 +1,8 @@
 defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSchemaTest do
   use KlassHero.DataCase, async: true
 
+  import KlassHero.Factory
+
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSchema
 
   describe "changeset/2" do
@@ -52,6 +54,64 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSche
       changeset = ChildGuardianSchema.changeset(%ChildGuardianSchema{}, attrs)
       assert Ecto.Changeset.get_field(changeset, :relationship) == "parent"
       assert Ecto.Changeset.get_field(changeset, :is_primary) == false
+    end
+  end
+
+  describe "database constraints" do
+    test "enforces one primary guardian per child at database level" do
+      parent1 = insert(:parent_profile_schema)
+      parent2 = insert(:parent_profile_schema)
+      child = insert(:child_schema)
+
+      # First primary guardian succeeds
+      {:ok, _} =
+        Repo.insert(
+          ChildGuardianSchema.changeset(%ChildGuardianSchema{}, %{
+            child_id: child.id,
+            guardian_id: parent1.id,
+            relationship: "parent",
+            is_primary: true
+          })
+        )
+
+      # Second primary guardian for same child fails
+      {:error, changeset} =
+        Repo.insert(
+          ChildGuardianSchema.changeset(%ChildGuardianSchema{}, %{
+            child_id: child.id,
+            guardian_id: parent2.id,
+            relationship: "guardian",
+            is_primary: true
+          })
+        )
+
+      assert "child already has a primary guardian" in errors_on(changeset).child_id
+    end
+
+    test "allows multiple non-primary guardians per child" do
+      parent1 = insert(:parent_profile_schema)
+      parent2 = insert(:parent_profile_schema)
+      child = insert(:child_schema)
+
+      {:ok, _} =
+        Repo.insert(
+          ChildGuardianSchema.changeset(%ChildGuardianSchema{}, %{
+            child_id: child.id,
+            guardian_id: parent1.id,
+            relationship: "parent",
+            is_primary: false
+          })
+        )
+
+      {:ok, _} =
+        Repo.insert(
+          ChildGuardianSchema.changeset(%ChildGuardianSchema{}, %{
+            child_id: child.id,
+            guardian_id: parent2.id,
+            relationship: "guardian",
+            is_primary: false
+          })
+        )
     end
   end
 end
