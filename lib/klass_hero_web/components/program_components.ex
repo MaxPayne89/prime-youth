@@ -233,6 +233,8 @@ defmodule KlassHeroWeb.ProgramComponents do
   attr :show_favorite, :boolean, default: true
   attr :favorited, :boolean, default: false
   attr :class, :string, default: ""
+  attr :expired, :boolean, default: false, doc: "Greyed-out styling for expired programs"
+  attr :contact_url, :string, default: nil, doc: "URL for contact button (e.g. /messages)"
   attr :rest, :global, include: ~w(phx-click phx-value-*)
 
   def program_card(assigns) do
@@ -241,7 +243,10 @@ defmodule KlassHeroWeb.ProgramComponents do
       class={[
         "bg-white shadow-sm border border-hero-grey-100",
         Theme.rounded(:xl),
-        "hover:shadow-lg hover:scale-[1.02]",
+        if(@expired,
+          do: "opacity-60 grayscale",
+          else: "hover:shadow-lg hover:scale-[1.02]"
+        ),
         Theme.transition(:slow),
         "overflow-hidden cursor-pointer",
         @class
@@ -308,7 +313,10 @@ defmodule KlassHeroWeb.ProgramComponents do
         </div>
         
     <!-- Spots Left Badge (bottom-left) -->
-        <.spots_badge :if={@program.spots_left <= 5} spots_left={@program.spots_left} />
+        <.spots_badge
+          :if={@program.spots_left && @program.spots_left <= 5}
+          spots_left={@program.spots_left}
+        />
         
     <!-- Program Icon -->
         <div class="absolute inset-0 flex items-center justify-center">
@@ -411,6 +419,20 @@ defmodule KlassHeroWeb.ProgramComponents do
             </svg>
             {ProgramPresenter.format_schedule_brief(@program)}
           </div>
+          <div
+            :if={Map.get(@program, :start_date)}
+            class="flex items-center text-sm text-hero-black-100"
+          >
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+              />
+            </svg>
+            {ProgramPresenter.format_date_range_brief(@program)}
+          </div>
           <div class="flex items-center text-sm text-hero-grey-500">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -431,6 +453,22 @@ defmodule KlassHeroWeb.ProgramComponents do
           </div>
           <div class="text-sm text-hero-grey-500">{@program.period}</div>
         </div>
+      </div>
+      <%!-- Contact Button --%>
+      <div :if={@contact_url} class="px-6 pb-6">
+        <.link
+          navigate={@contact_url}
+          class={[
+            "block w-full text-center px-4 py-2 text-sm font-medium",
+            Theme.rounded(:lg),
+            "bg-hero-blue-50 text-hero-blue-600 hover:bg-hero-blue-100",
+            Theme.transition(:normal)
+          ]}
+          onclick="event.stopPropagation();"
+        >
+          <.icon name="hero-chat-bubble-left-right-mini" class="w-4 h-4 inline mr-1" />
+          {gettext("Contact Provider")}
+        </.link>
       </div>
     </div>
     """

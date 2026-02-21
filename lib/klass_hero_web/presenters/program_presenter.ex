@@ -54,6 +54,53 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
     }
   end
 
+  @doc """
+  Transforms a Program domain model to card view format.
+
+  Used for the parent dashboard's Family Programs section and anywhere
+  `<.program_card>` is rendered from real domain data.
+
+  Returns a map matching the attrs expected by `ProgramComponents.program_card/1`.
+  """
+  @spec to_card_view(Program.t()) :: map()
+  def to_card_view(%Program{} = program) do
+    %{
+      id: program.id,
+      title: program.title,
+      description: program.description,
+      category: humanize_category(program.category),
+      age_range: program.age_range,
+      # Trigger: program_card calls ProgramCatalog.format_price/1 which expects Decimal.t()
+      # Why: converting to string would cause FunctionClauseError at runtime
+      # Outcome: price stays as Decimal for safe downstream formatting
+      price: if(program.price, do: Decimal.round(program.price, 2), else: Decimal.new(0)),
+      period: program.pricing_period,
+      icon_path: program.icon_path || default_icon_path(),
+      gradient_class: default_gradient_class(),
+      meeting_days: program.meeting_days || [],
+      meeting_start_time: program.meeting_start_time,
+      meeting_end_time: program.meeting_end_time,
+      start_date: program.start_date,
+      end_date: program.end_date,
+      spots_left: nil
+    }
+  end
+
+  # Trigger: program has no icon_path set
+  # Why: UI components require an SVG path for rendering; a book icon is a safe default
+  # Outcome: card always renders an icon even when provider hasn't configured one
+  defp default_icon_path do
+    "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+  end
+
+  # Trigger: no category-specific gradient mapping exists yet
+  # Why: a single default gradient keeps the card visually consistent until
+  #      category-based theming is implemented
+  # Outcome: all cards share the same blue gradient background
+  defp default_gradient_class do
+    "bg-gradient-to-br from-hero-blue-400 to-hero-blue-600"
+  end
+
   @day_abbreviations %{
     "Monday" => "Mon",
     "Tuesday" => "Tue",
@@ -177,6 +224,18 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
     [day_str, time_str]
     |> Enum.reject(&is_nil/1)
     |> Enum.join(" ")
+  end
+
+  @doc """
+  Formats a brief date range string from any map with :start_date and :end_date keys.
+
+  Returns a string like "Mar 1 - Jun 30, 2026" or nil if no start_date.
+  """
+  @spec format_date_range_brief(map()) :: String.t() | nil
+  def format_date_range_brief(program) when is_map(program) do
+    start_date = Map.get(program, :start_date)
+    end_date = Map.get(program, :end_date)
+    format_date_range(start_date, end_date)
   end
 
   defp format_instructor(nil), do: nil

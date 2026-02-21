@@ -11,6 +11,7 @@
 # and so on) as they will fail if something goes wrong.
 
 alias KlassHero.Accounts.User
+alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
 alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
 alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema
 alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
@@ -50,6 +51,10 @@ Logger.info("Cleared existing children")
 
 Repo.delete_all(ParentProfileSchema)
 Logger.info("Cleared existing parent profiles")
+
+# Enrollments reference programs, children, parents via FK
+Repo.delete_all(EnrollmentSchema)
+Logger.info("Cleared existing enrollments")
 
 # Programs reference providers via FK, so clear programs before providers
 Repo.delete_all(ProgramSchema)
@@ -530,7 +535,12 @@ starter_programs = [
     price: Decimal.new("80.00"),
     pricing_period: "per month",
     icon_path: "/images/icons/sports.svg",
-    provider_id: shane_starter_profile.id
+    provider_id: shane_starter_profile.id,
+    meeting_days: ["Monday", "Wednesday"],
+    meeting_start_time: ~T[16:00:00],
+    meeting_end_time: ~T[17:00:00],
+    start_date: ~D[2025-09-01],
+    end_date: ~D[2025-12-20]
   },
   %{
     title: "Soccer Fundamentals",
@@ -541,7 +551,12 @@ starter_programs = [
     price: Decimal.new("100.00"),
     pricing_period: "per month",
     icon_path: "/images/icons/sports.svg",
-    provider_id: shane_starter_profile.id
+    provider_id: shane_starter_profile.id,
+    meeting_days: ["Tuesday", "Thursday"],
+    meeting_start_time: ~T[16:00:00],
+    meeting_end_time: ~T[17:30:00],
+    start_date: ~D[2026-03-01],
+    end_date: ~D[2026-07-31]
   }
 ]
 
@@ -629,7 +644,12 @@ public_programs = [
     age_range: "6-8 years",
     price: Decimal.new("120.00"),
     pricing_period: "per month",
-    icon_path: "/images/icons/art.svg"
+    icon_path: "/images/icons/art.svg",
+    meeting_days: ["Monday", "Wednesday", "Friday"],
+    meeting_start_time: ~T[15:00:00],
+    meeting_end_time: ~T[17:00:00],
+    start_date: ~D[2026-02-01],
+    end_date: ~D[2026-06-30]
   },
   %{
     title: "Tech Explorers",
@@ -676,17 +696,81 @@ public_programs = [
 all_programs =
   starter_programs ++ professional_programs ++ business_plus_programs ++ public_programs
 
-Enum.each(all_programs, fn program_attrs ->
-  %ProgramSchema{}
-  |> ProgramSchema.changeset(program_attrs)
-  |> Repo.insert!()
-end)
+inserted_programs =
+  Enum.map(all_programs, fn program_attrs ->
+    %ProgramSchema{}
+    |> ProgramSchema.changeset(program_attrs)
+    |> Repo.insert!()
+  end)
+
+# Build lookup by title for enrollment references
+program_by_title =
+  Map.new(inserted_programs, fn p -> {p.title, p} end)
 
 Logger.info("Seeded #{length(all_programs)} programs successfully")
 Logger.info("  - #{length(starter_programs)} programs for Shane's Starter Academy")
 Logger.info("  - #{length(professional_programs)} programs for Shane's Pro Academy")
 Logger.info("  - #{length(business_plus_programs)} programs for Shane's Elite Academy")
 Logger.info("  - #{length(public_programs)} public/community programs")
+
+# ==============================================================================
+# CREATE ENROLLMENTS (for Max Explorer's children)
+# ==============================================================================
+
+Logger.info("Creating enrollments...")
+
+enrollment_data = [
+  # Active: Rafael enrolled in Soccer Fundamentals (confirmed, future end_date)
+  %{
+    program_id: program_by_title["Soccer Fundamentals"].id,
+    child_id: rafael_1.id,
+    parent_id: max_explorer_profile.id,
+    status: "confirmed",
+    enrolled_at: DateTime.add(now, -30, :day),
+    confirmed_at: DateTime.add(now, -29, :day),
+    subtotal: Decimal.new("100.00"),
+    vat_amount: Decimal.new("19.00"),
+    total_amount: Decimal.new("119.00"),
+    payment_method: "card"
+  },
+  # Active: TJ enrolled in Art Adventures (pending, future end_date)
+  %{
+    program_id: program_by_title["Art Adventures"].id,
+    child_id: tj_1.id,
+    parent_id: max_explorer_profile.id,
+    status: "pending",
+    enrolled_at: DateTime.add(now, -5, :day),
+    subtotal: Decimal.new("120.00"),
+    vat_amount: Decimal.new("22.80"),
+    total_amount: Decimal.new("142.80"),
+    payment_method: "card"
+  },
+  # Expired: Rafael was in Youth Fitness Basics (completed, past end_date)
+  %{
+    program_id: program_by_title["Youth Fitness Basics"].id,
+    child_id: rafael_1.id,
+    parent_id: max_explorer_profile.id,
+    status: "completed",
+    enrolled_at: DateTime.add(now, -180, :day),
+    confirmed_at: DateTime.add(now, -179, :day),
+    completed_at: DateTime.add(now, -30, :day),
+    subtotal: Decimal.new("80.00"),
+    vat_amount: Decimal.new("15.20"),
+    total_amount: Decimal.new("95.20"),
+    payment_method: "card"
+  }
+]
+
+Enum.each(enrollment_data, fn attrs ->
+  %EnrollmentSchema{}
+  |> EnrollmentSchema.create_changeset(attrs)
+  |> Repo.insert!()
+end)
+
+Logger.info("Created #{length(enrollment_data)} enrollments for Max Explorer's family")
+Logger.info("  - Rafael → Soccer Fundamentals (confirmed, active)")
+Logger.info("  - TJ → Art Adventures (pending, active)")
+Logger.info("  - Rafael → Youth Fitness Basics (completed, expired)")
 
 # ==============================================================================
 # SUMMARY
@@ -714,3 +798,5 @@ Logger.info(
 Logger.info(
   "  - #{length(all_programs)} programs created (#{length(starter_programs)} starter, #{length(professional_programs)} professional, #{length(business_plus_programs)} business_plus, #{length(public_programs)} public)"
 )
+
+Logger.info("  - #{length(enrollment_data)} enrollments created (2 active, 1 expired)")

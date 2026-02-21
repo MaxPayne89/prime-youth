@@ -4,12 +4,16 @@ defmodule KlassHeroWeb.DashboardLive do
   import KlassHeroWeb.BookingComponents, only: [info_box: 1]
   import KlassHeroWeb.CompositeComponents
   import KlassHeroWeb.Helpers.FamilyHelpers
+  import KlassHeroWeb.ProgramComponents, only: [program_card: 1]
 
   alias KlassHero.Enrollment
   alias KlassHero.Family
+  alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
+
+  require Logger
 
   @impl true
   def mount(_params, _session, socket) do
@@ -17,6 +21,23 @@ defmodule KlassHeroWeb.DashboardLive do
     children = get_children_for_current_user(socket)
     children_for_view = Enum.map(children, &ChildPresenter.to_profile_view/1)
     children_extended = Enum.map(children, &ChildPresenter.to_extended_view/1)
+    # Trigger: database failure during program loading
+    # Why: a failing section should not crash the entire dashboard
+    # Outcome: gracefully degrade to empty state if load fails
+    {active_programs, expired_programs} =
+      try do
+        # Trigger: enrollments are stored with parent_id (Family context), not identity_id (Accounts)
+        # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
+        # Outcome: resolve parent profile first, then query enrollments by parent.id
+        case Family.get_parent_by_identity(user.id) do
+          {:ok, parent} -> load_family_programs(parent.id)
+          {:error, _} -> {[], []}
+        end
+      rescue
+        e ->
+          Logger.error("[DashboardLive] Failed to load family programs: #{Exception.message(e)}")
+          {[], []}
+      end
 
     socket =
       socket
@@ -27,9 +48,11 @@ defmodule KlassHeroWeb.DashboardLive do
         activity_goal: calculate_activity_goal(children_extended),
         achievements: get_achievements(socket),
         recommended_programs: get_recommended_programs(socket),
-        referral_stats: get_referral_stats(user)
+        referral_stats: get_referral_stats(user),
+        family_programs_empty?: active_programs == [] and expired_programs == []
       )
       |> stream(:children, children_for_view)
+      |> stream(:family_programs, build_family_program_items(active_programs, expired_programs))
       |> assign_booking_usage_info()
 
     {:ok, socket}
@@ -134,6 +157,73 @@ defmodule KlassHeroWeb.DashboardLive do
     end
   end
 
+  defp load_family_programs(identity_id) do
+    enrollments = Enrollment.list_parent_enrollments(identity_id)
+
+    # Trigger: each enrollment references a program_id
+    # Why: we need full program data for card rendering (title, schedule, etc.)
+    # Outcome: list of {enrollment, program} tuples, dropping any where program is not found
+    # Note: This is N+1 (1 query for enrollments + N for programs). Acceptable because
+    # enrollment count per parent is bounded (typically <20). Future optimization:
+    # add ProgramCatalog.get_programs_by_ids/1 batch function.
+    enrollment_programs =
+      enrollments
+      |> Enum.map(fn enrollment ->
+        case ProgramCatalog.get_program_by_id(enrollment.program_id) do
+          {:ok, program} ->
+            {enrollment, program}
+
+          {:error, :not_found} ->
+            # Trigger: enrollment references a program that no longer exists
+            # Why: program may have been deleted; orphaned enrollment is a data issue
+            # Outcome: skip this enrollment but log for data hygiene monitoring
+            Logger.warning("[DashboardLive] Enrollment references missing program",
+              enrollment_id: enrollment.id,
+              program_id: enrollment.program_id
+            )
+
+            nil
+
+          {:error, reason} ->
+            # Trigger: infrastructure error fetching program data
+            # Why: DB connection/query failures should not silently hide enrollments
+            # Outcome: log error for observability, skip this enrollment
+            Logger.error("[DashboardLive] Failed to load program",
+              enrollment_id: enrollment.id,
+              program_id: enrollment.program_id,
+              reason: inspect(reason)
+            )
+
+            nil
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    Enrollment.classify_family_programs(enrollment_programs, Date.utc_today())
+  end
+
+  # Trigger: streams require items with an :id field
+  # Why: active and expired programs merge into one stream with an expired flag per item
+  # Outcome: single stream preserving active-first ordering with expired metadata
+  defp build_family_program_items(active, expired) do
+    active_items =
+      Enum.map(active, fn {e, p} ->
+        %{id: e.id, enrollment: e, program: p, expired: false}
+      end)
+
+    expired_items =
+      Enum.map(expired, fn {e, p} ->
+        %{id: e.id, enrollment: e, program: p, expired: true}
+      end)
+
+    active_items ++ expired_items
+  end
+
+  @impl true
+  def handle_event("program_click", %{"program-id" => program_id}, socket) do
+    {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -208,6 +298,53 @@ defmodule KlassHeroWeb.DashboardLive do
         <%!-- Family Achievements --%>
         <section class="mb-8">
           <.family_achievements achievements={@achievements} />
+        </section>
+        <%!-- Family Programs --%>
+        <section id="family-programs" class="mb-8">
+          <div class="flex items-center gap-2 mb-4">
+            <.icon name="hero-academic-cap-mini" class="w-6 h-6 text-hero-cyan" />
+            <h2 class="text-xl font-semibold text-hero-charcoal">
+              {gettext("Family Programs")}
+            </h2>
+          </div>
+
+          <%= if @family_programs_empty? do %>
+            <div id="family-programs-empty" class="text-center py-12 bg-white rounded-2xl shadow-sm">
+              <.icon name="hero-book-open" class="w-12 h-12 text-hero-grey-300 mx-auto mb-4" />
+              <p class="text-hero-grey-500 mb-4">
+                {gettext("No programs booked yet")}
+              </p>
+              <.link
+                navigate={~p"/programs"}
+                class={[
+                  "inline-flex items-center px-6 py-3 text-white font-medium",
+                  "bg-hero-blue-600 hover:bg-hero-blue-700",
+                  Theme.rounded(:lg),
+                  Theme.transition(:normal)
+                ]}
+              >
+                {gettext("Book a Program")}
+              </.link>
+            </div>
+          <% else %>
+            <div
+              id="family-programs-list"
+              phx-update="stream"
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              <.program_card
+                :for={{dom_id, item} <- @streams.family_programs}
+                id={dom_id}
+                program={ProgramPresenter.to_card_view(item.program)}
+                variant={:detailed}
+                show_favorite={false}
+                expired={item.expired}
+                contact_url={if(!item.expired, do: ~p"/messages")}
+                phx-click="program_click"
+                phx-value-program-id={item.program.id}
+              />
+            </div>
+          <% end %>
         </section>
         <%!-- Recommended Programs --%>
         <section class="mb-8">

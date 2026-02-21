@@ -214,6 +214,102 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
     end
   end
 
+  describe "to_card_view/1" do
+    test "transforms program domain model to card-ready map" do
+      program =
+        build_program(%{
+          id: "prog-1",
+          title: "Art Adventures",
+          description: "Creative art for kids",
+          category: "arts",
+          age_range: "6-12",
+          price: Decimal.new("15.00"),
+          pricing_period: "session",
+          icon_path: "M12 6v6m0 0v6m0-6h6m-6 0H6",
+          meeting_days: ["Monday", "Wednesday"],
+          meeting_start_time: ~T[15:00:00],
+          meeting_end_time: ~T[16:30:00],
+          start_date: ~D[2026-03-01],
+          end_date: ~D[2026-06-30]
+        })
+
+      result = ProgramPresenter.to_card_view(program)
+
+      assert result.id == "prog-1"
+      assert result.title == "Art Adventures"
+      assert result.description == "Creative art for kids"
+      assert result.category == "Arts"
+      assert result.age_range == "6-12"
+      assert Decimal.equal?(result.price, Decimal.new("15.00"))
+      assert result.period == "session"
+      assert result.icon_path == "M12 6v6m0 0v6m0-6h6m-6 0H6"
+      assert result.meeting_days == ["Monday", "Wednesday"]
+      assert result.meeting_start_time == ~T[15:00:00]
+      assert result.meeting_end_time == ~T[16:30:00]
+      assert result.start_date == ~D[2026-03-01]
+      assert result.end_date == ~D[2026-06-30]
+      assert is_binary(result.gradient_class)
+      assert is_nil(result.spots_left)
+    end
+
+    test "uses default icon_path when program has none" do
+      program = build_program(%{icon_path: nil})
+
+      result = ProgramPresenter.to_card_view(program)
+
+      assert is_binary(result.icon_path)
+      assert String.length(result.icon_path) > 0
+    end
+
+    test "defaults meeting_days to empty list when nil" do
+      program = build_program(%{meeting_days: nil})
+
+      result = ProgramPresenter.to_card_view(program)
+
+      assert result.meeting_days == []
+    end
+
+    test "humanizes category" do
+      program = build_program(%{category: "sports"})
+
+      result = ProgramPresenter.to_card_view(program)
+
+      assert result.category == "Sports"
+    end
+
+    test "keeps price as Decimal" do
+      program = build_program(%{price: Decimal.new("29.99")})
+
+      result = ProgramPresenter.to_card_view(program)
+
+      assert Decimal.equal?(result.price, Decimal.new("29.99"))
+    end
+
+    test "defaults nil price to zero" do
+      program = build_program(%{price: nil})
+
+      result = ProgramPresenter.to_card_view(program)
+
+      assert Decimal.equal?(result.price, Decimal.new(0))
+    end
+  end
+
+  describe "format_date_range_brief/1" do
+    test "formats date range from map" do
+      program = %{start_date: ~D[2026-03-01], end_date: ~D[2026-06-30]}
+      assert ProgramPresenter.format_date_range_brief(program) == "Mar 1 - Jun 30, 2026"
+    end
+
+    test "formats open-ended range" do
+      program = %{start_date: ~D[2026-03-01], end_date: nil}
+      assert ProgramPresenter.format_date_range_brief(program) == "From Mar 1, 2026"
+    end
+
+    test "returns nil when no start_date" do
+      assert ProgramPresenter.format_date_range_brief(%{start_date: nil, end_date: nil}) == nil
+    end
+  end
+
   describe "format_schedule_brief/1" do
     test "formats days and times from a map" do
       program = %{
