@@ -13,14 +13,14 @@ defmodule KlassHero.Family.Domain.Models.Consent do
   - `id` - Unique identifier for the consent record
   - `parent_id` - Reference to the parent who granted consent
   - `child_id` - Reference to the child the consent applies to
-  - `consent_type` - Type of consent (e.g. "photo", "medical", "participation", "provider_data_sharing")
+  - `consent_type` - Type of consent (e.g. "photo_marketing", "photo_social_media", "medical", "participation", "provider_data_sharing")
   - `granted_at` - When consent was granted
   - `withdrawn_at` - When consent was withdrawn (nil if still active)
   - `inserted_at` - When the record was created
   - `updated_at` - When the record was last updated
   """
 
-  @valid_consent_types ~w(provider_data_sharing photo medical participation)
+  @valid_consent_types ~w(provider_data_sharing photo_marketing photo_social_media medical participation)
 
   @doc """
   Returns the list of valid consent types.

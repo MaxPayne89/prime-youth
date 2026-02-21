@@ -37,7 +37,7 @@ defmodule KlassHero.Family.ExportDataForUserTest do
       insert(:consent_schema,
         parent_id: parent.id,
         child_id: child.id,
-        consent_type: "photo"
+        consent_type: "photo_marketing"
       )
 
       result = Family.export_data_for_user(user.id)
@@ -56,7 +56,7 @@ defmodule KlassHero.Family.ExportDataForUserTest do
       assert length(exported_child.consents) == 2
       consent_types = Enum.map(exported_child.consents, & &1.consent_type)
       assert "provider_data_sharing" in consent_types
-      assert "photo" in consent_types
+      assert "photo_marketing" in consent_types
 
       first_consent = Enum.at(exported_child.consents, 0)
       assert is_binary(first_consent.id)
@@ -82,7 +82,7 @@ defmodule KlassHero.Family.ExportDataForUserTest do
         insert(:consent_schema,
           parent_id: parent.id,
           child_id: child.id,
-          consent_type: "photo",
+          consent_type: "photo_marketing",
           withdrawn_at: DateTime.utc_now() |> DateTime.truncate(:second)
         )
 
@@ -94,7 +94,7 @@ defmodule KlassHero.Family.ExportDataForUserTest do
       assert length(exported_child.consents) == 2
 
       withdrawn =
-        Enum.find(exported_child.consents, &(&1.consent_type == "photo"))
+        Enum.find(exported_child.consents, &(&1.consent_type == "photo_marketing"))
 
       assert is_binary(withdrawn.withdrawn_at)
 
@@ -153,7 +153,7 @@ defmodule KlassHero.Family.ExportDataForUserTest do
       insert(:consent_schema,
         parent_id: parent.id,
         child_id: child_a.id,
-        consent_type: "photo"
+        consent_type: "photo_marketing"
       )
 
       insert(:consent_schema,
@@ -171,7 +171,7 @@ defmodule KlassHero.Family.ExportDataForUserTest do
       bob = Enum.find(children, &(&1.first_name == "Bob"))
 
       assert length(alice.consents) == 1
-      assert Enum.at(alice.consents, 0).consent_type == "photo"
+      assert Enum.at(alice.consents, 0).consent_type == "photo_marketing"
 
       assert length(bob.consents) == 1
       assert Enum.at(bob.consents, 0).consent_type == "provider_data_sharing"

@@ -441,7 +441,7 @@ defmodule KlassHero.Factory do
   ## Examples
 
       consent = build(:consent)
-      consent = build(:consent, consent_type: "photo")
+      consent = build(:consent, consent_type: "photo_marketing")
   """
   def consent_factory do
     %Consent{
@@ -477,7 +477,7 @@ defmodule KlassHero.Factory do
   ## Examples
 
       schema = build(:consent_schema)
-      schema = insert(:consent_schema, consent_type: "photo")
+      schema = insert(:consent_schema, consent_type: "photo_marketing")
   """
   def consent_schema_factory do
     child_schema = insert(:child_schema)

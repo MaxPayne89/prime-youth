@@ -78,7 +78,7 @@ defmodule KlassHero.Family.AnonymizeDataForUserTest do
       insert(:consent_schema,
         parent_id: parent.id,
         child_id: child.id,
-        consent_type: "photo",
+        consent_type: "photo_marketing",
         withdrawn_at: DateTime.utc_now() |> DateTime.truncate(:second)
       )
 
@@ -127,7 +127,7 @@ defmodule KlassHero.Family.AnonymizeDataForUserTest do
       insert(:consent_schema,
         parent_id: parent.id,
         child_id: child_b.id,
-        consent_type: "photo"
+        consent_type: "photo_marketing"
       )
 
       {:ok, summary} = Family.anonymize_data_for_user(user.id)
