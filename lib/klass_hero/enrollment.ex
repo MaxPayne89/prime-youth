@@ -52,6 +52,7 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIds
   alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
   alias KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments
+  alias KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv
   alias KlassHero.Enrollment.Application.UseCases.SetParticipantPolicy
   alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
 
@@ -360,5 +361,26 @@ defmodule KlassHero.Enrollment do
 
   defp participant_policy_repo do
     Application.get_env(:klass_hero, :enrollment)[:for_managing_participant_policies]
+  end
+
+  # ============================================================================
+  # Bulk Enrollment Import
+  # ============================================================================
+
+  @doc """
+  Imports enrollment invites from a CSV file for a provider.
+
+  Parses the CSV, validates each row, checks for duplicates, and persists
+  all valid rows as BulkEnrollmentInvite records with status "pending".
+
+  All-or-nothing: if any row fails validation, nothing is persisted.
+
+  Returns:
+  - `{:ok, %{created: count}}` on success
+  - `{:error, error_report}` with parse_errors, validation_errors, or duplicate_errors
+  """
+  def import_enrollment_csv(provider_id, csv_binary)
+      when is_binary(provider_id) and is_binary(csv_binary) do
+    ImportEnrollmentCsv.execute(provider_id, csv_binary)
   end
 end
