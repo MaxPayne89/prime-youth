@@ -240,7 +240,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.description == "Creative art for kids"
       assert result.category == "Arts"
       assert result.age_range == "6-12"
-      assert result.price == "15.00"
+      assert Decimal.equal?(result.price, Decimal.new("15.00"))
       assert result.period == "session"
       assert result.icon_path == "M12 6v6m0 0v6m0-6h6m-6 0H6"
       assert result.meeting_days == ["Monday", "Wednesday"]
@@ -249,7 +249,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.start_date == ~D[2026-03-01]
       assert result.end_date == ~D[2026-06-30]
       assert is_binary(result.gradient_class)
-      assert result.spots_left == nil
+      assert is_nil(result.spots_left)
     end
 
     test "uses default icon_path when program has none" do
@@ -277,12 +277,20 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.category == "Sports"
     end
 
-    test "formats price as rounded string" do
+    test "keeps price as Decimal" do
       program = build_program(%{price: Decimal.new("29.99")})
 
       result = ProgramPresenter.to_card_view(program)
 
-      assert result.price == "29.99"
+      assert Decimal.equal?(result.price, Decimal.new("29.99"))
+    end
+
+    test "defaults nil price to zero" do
+      program = build_program(%{price: nil})
+
+      result = ProgramPresenter.to_card_view(program)
+
+      assert Decimal.equal?(result.price, Decimal.new(0))
     end
   end
 

@@ -13,13 +13,25 @@ defmodule KlassHeroWeb.DashboardLive do
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
 
+  require Logger
+
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
     children = get_children_for_current_user(socket)
     children_for_view = Enum.map(children, &ChildPresenter.to_profile_view/1)
     children_extended = Enum.map(children, &ChildPresenter.to_extended_view/1)
-    {active_programs, expired_programs} = load_family_programs(user.id)
+    # Trigger: database failure during program loading
+    # Why: a failing section should not crash the entire dashboard
+    # Outcome: gracefully degrade to empty state if load fails
+    {active_programs, expired_programs} =
+      try do
+        load_family_programs(user.id)
+      rescue
+        e ->
+          Logger.error("[DashboardLive] Failed to load family programs: #{Exception.message(e)}")
+          {[], []}
+      end
 
     socket =
       socket
@@ -150,8 +162,31 @@ defmodule KlassHeroWeb.DashboardLive do
       enrollments
       |> Enum.map(fn enrollment ->
         case ProgramCatalog.get_program_by_id(enrollment.program_id) do
-          {:ok, program} -> {enrollment, program}
-          {:error, _} -> nil
+          {:ok, program} ->
+            {enrollment, program}
+
+          {:error, :not_found} ->
+            # Trigger: enrollment references a program that no longer exists
+            # Why: program may have been deleted; orphaned enrollment is a data issue
+            # Outcome: skip this enrollment but log for data hygiene monitoring
+            Logger.warning("[DashboardLive] Enrollment references missing program",
+              enrollment_id: enrollment.id,
+              program_id: enrollment.program_id
+            )
+
+            nil
+
+          {:error, reason} ->
+            # Trigger: infrastructure error fetching program data
+            # Why: DB connection/query failures should not silently hide enrollments
+            # Outcome: log error for observability, skip this enrollment
+            Logger.error("[DashboardLive] Failed to load program",
+              enrollment_id: enrollment.id,
+              program_id: enrollment.program_id,
+              reason: inspect(reason)
+            )
+
+            nil
         end
       end)
       |> Enum.reject(&is_nil/1)
@@ -184,6 +219,11 @@ defmodule KlassHeroWeb.DashboardLive do
     do: Date.before?(end_date, today)
 
   defp program_expired?(_enrollment, _program, _today), do: false
+
+  @impl true
+  def handle_event("program_click", %{"program-id" => program_id}, socket) do
+    {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
+  end
 
   @impl true
   def render(assigns) do

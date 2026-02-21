@@ -70,7 +70,10 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       description: program.description,
       category: humanize_category(program.category),
       age_range: program.age_range,
-      price: program.price |> Decimal.round(2) |> Decimal.to_string(),
+      # Trigger: program_card calls ProgramCatalog.format_price/1 which expects Decimal.t()
+      # Why: converting to string would cause FunctionClauseError at runtime
+      # Outcome: price stays as Decimal for safe downstream formatting
+      price: if(program.price, do: Decimal.round(program.price, 2), else: Decimal.new(0)),
       period: program.pricing_period,
       icon_path: program.icon_path || default_icon_path(),
       gradient_class: default_gradient_class(),
