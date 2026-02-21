@@ -37,6 +37,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :instructor_id, :binary_id
     field :instructor_name, :string
     field :instructor_headshot_url, :string
+    # Free-text label for academic season grouping (e.g. "School Name 24/25: Semester 2")
     field :season, :string
 
     timestamps()

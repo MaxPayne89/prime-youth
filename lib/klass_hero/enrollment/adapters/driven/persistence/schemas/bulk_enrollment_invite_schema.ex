@@ -96,6 +96,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     |> validate_length(:guardian2_last_name, max: 100)
     |> validate_length(:school_name, max: 255)
     |> validate_number(:school_grade, greater_than_or_equal_to: 1, less_than_or_equal_to: 13)
+    |> validate_date_in_past(:child_date_of_birth)
     |> validate_inclusion(:status, @valid_statuses)
     |> unique_constraint([:program_id, :guardian_email, :child_first_name, :child_last_name],
       name: :bulk_invites_program_guardian_child_unique
@@ -136,6 +137,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     |> validate_length(:guardian2_last_name, max: 100)
     |> validate_length(:school_name, max: 255)
     |> validate_number(:school_grade, greater_than_or_equal_to: 1, less_than_or_equal_to: 13)
+    |> validate_date_in_past(:child_date_of_birth)
     |> unique_constraint([:program_id, :guardian_email, :child_first_name, :child_last_name],
       name: :bulk_invites_program_guardian_child_unique
     )
@@ -177,6 +179,16 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
           message: "must be a valid email"
         )
     end
+  end
+
+  defp validate_date_in_past(changeset, field) do
+    validate_change(changeset, field, fn ^field, date ->
+      if Date.compare(date, Date.utc_today()) == :lt do
+        []
+      else
+        [{field, "must be in the past"}]
+      end
+    end)
   end
 
   # Trigger: status is being changed

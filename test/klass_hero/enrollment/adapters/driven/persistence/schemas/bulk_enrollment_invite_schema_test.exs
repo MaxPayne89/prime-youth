@@ -87,6 +87,18 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
       assert changeset.valid?
     end
 
+    test "rejects future child_date_of_birth" do
+      future_date = Date.add(Date.utc_today(), 30)
+
+      changeset =
+        %BulkEnrollmentInviteSchema{}
+        |> BulkEnrollmentInviteSchema.changeset(Map.put(@valid_attrs, :child_date_of_birth, future_date))
+        |> Map.put(:action, :validate)
+
+      refute changeset.valid?
+      assert "must be in the past" in errors_on(changeset).child_date_of_birth
+    end
+
     test "validates school_grade range" do
       changeset =
         %BulkEnrollmentInviteSchema{}

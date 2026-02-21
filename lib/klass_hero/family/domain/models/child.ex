@@ -103,7 +103,9 @@ defmodule KlassHero.Family.Domain.Models.Child do
       date_of_birth: nil,
       emergency_contact: nil,
       support_needs: nil,
-      allergies: nil
+      allergies: nil,
+      school_name: nil,
+      school_grade: nil
     }
   end
 
