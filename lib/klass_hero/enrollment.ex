@@ -42,8 +42,6 @@ defmodule KlassHero.Enrollment do
     deps: [KlassHero, KlassHero.Entitlements, KlassHero.Family, KlassHero.Shared],
     exports: []
 
-  alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
-
   alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
   alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
   alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
@@ -55,6 +53,7 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
   alias KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments
   alias KlassHero.Enrollment.Application.UseCases.SetParticipantPolicy
+  alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
 
   # ============================================================================
   # Enrollment Management Functions

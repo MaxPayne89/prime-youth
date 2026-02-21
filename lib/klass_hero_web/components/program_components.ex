@@ -313,7 +313,10 @@ defmodule KlassHeroWeb.ProgramComponents do
         </div>
         
     <!-- Spots Left Badge (bottom-left) -->
-        <.spots_badge :if={@program.spots_left && @program.spots_left <= 5} spots_left={@program.spots_left} />
+        <.spots_badge
+          :if={@program.spots_left && @program.spots_left <= 5}
+          spots_left={@program.spots_left}
+        />
         
     <!-- Program Icon -->
         <div class="absolute inset-0 flex items-center justify-center">

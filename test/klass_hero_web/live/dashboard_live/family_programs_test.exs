@@ -69,7 +69,11 @@ defmodule KlassHeroWeb.DashboardLive.FamilyProgramsTest do
       assert has_element?(view, "#family_programs-#{enrollment.id}")
     end
 
-    test "expired enrollment by past end_date renders", %{conn: conn, parent: parent, child: child} do
+    test "expired enrollment by past end_date renders", %{
+      conn: conn,
+      parent: parent,
+      child: child
+    } do
       program = insert(:program_schema, end_date: ~D[2020-01-01])
 
       enrollment =
@@ -116,7 +120,8 @@ defmodule KlassHeroWeb.DashboardLive.FamilyProgramsTest do
       active_pos = :binary.match(html, "family_programs-#{active_enrollment.id}") |> elem(0)
       expired_pos = :binary.match(html, "family_programs-#{expired_enrollment.id}") |> elem(0)
 
-      assert active_pos < expired_pos, "Active program card should appear before expired program card"
+      assert active_pos < expired_pos,
+             "Active program card should appear before expired program card"
     end
   end
 end

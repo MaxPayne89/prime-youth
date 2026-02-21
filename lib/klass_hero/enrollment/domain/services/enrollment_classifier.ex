@@ -46,9 +46,8 @@ defmodule KlassHero.Enrollment.Domain.Services.EnrollmentClassifier do
   # Trigger: enrollment completed/cancelled OR program end date passed
   # Why: both conditions indicate the program is no longer active for this family
   # Outcome: returns true if the enrollment should appear in the expired section
-  defp expired?(%{status: status}, _program, _today)
-       when status in [:completed, :cancelled],
-       do: true
+  defp expired?(%{status: status}, _program, _today) when status in [:completed, :cancelled],
+    do: true
 
   defp expired?(_enrollment, %{end_date: end_date}, today) when not is_nil(end_date),
     do: Date.before?(end_date, today)
