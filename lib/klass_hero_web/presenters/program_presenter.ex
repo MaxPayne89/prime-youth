@@ -54,6 +54,50 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
     }
   end
 
+  @doc """
+  Transforms a Program domain model to card view format.
+
+  Used for the parent dashboard's Family Programs section and anywhere
+  `<.program_card>` is rendered from real domain data.
+
+  Returns a map matching the attrs expected by `ProgramComponents.program_card/1`.
+  """
+  @spec to_card_view(Program.t()) :: map()
+  def to_card_view(%Program{} = program) do
+    %{
+      id: program.id,
+      title: program.title,
+      description: program.description,
+      category: humanize_category(program.category),
+      age_range: program.age_range,
+      price: program.price |> Decimal.round(2) |> Decimal.to_string(),
+      period: program.pricing_period,
+      icon_path: program.icon_path || default_icon_path(),
+      gradient_class: default_gradient_class(),
+      meeting_days: program.meeting_days || [],
+      meeting_start_time: program.meeting_start_time,
+      meeting_end_time: program.meeting_end_time,
+      start_date: program.start_date,
+      end_date: program.end_date,
+      spots_left: nil
+    }
+  end
+
+  # Trigger: program has no icon_path set
+  # Why: UI components require an SVG path for rendering; a book icon is a safe default
+  # Outcome: card always renders an icon even when provider hasn't configured one
+  defp default_icon_path do
+    "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+  end
+
+  # Trigger: no category-specific gradient mapping exists yet
+  # Why: a single default gradient keeps the card visually consistent until
+  #      category-based theming is implemented
+  # Outcome: all cards share the same blue gradient background
+  defp default_gradient_class do
+    "bg-gradient-to-br from-hero-blue-400 to-hero-blue-600"
+  end
+
   @day_abbreviations %{
     "Monday" => "Mon",
     "Tuesday" => "Tue",
