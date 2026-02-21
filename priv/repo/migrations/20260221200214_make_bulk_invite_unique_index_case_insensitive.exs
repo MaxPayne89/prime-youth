@@ -2,7 +2,8 @@ defmodule KlassHero.Repo.Migrations.MakeBulkInviteUniqueIndexCaseInsensitive do
   use Ecto.Migration
 
   def up do
-    drop unique_index(:bulk_enrollment_invites,
+    drop unique_index(
+           :bulk_enrollment_invites,
            [:program_id, :guardian_email, :child_first_name, :child_last_name],
            name: :bulk_invites_program_guardian_child_unique
          )
@@ -24,7 +25,8 @@ defmodule KlassHero.Repo.Migrations.MakeBulkInviteUniqueIndexCaseInsensitive do
   def down do
     execute "DROP INDEX bulk_invites_program_guardian_child_unique"
 
-    create unique_index(:bulk_enrollment_invites,
+    create unique_index(
+             :bulk_enrollment_invites,
              [:program_id, :guardian_email, :child_first_name, :child_last_name],
              name: :bulk_invites_program_guardian_child_unique
            )

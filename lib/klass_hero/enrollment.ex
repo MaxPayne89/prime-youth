@@ -49,10 +49,10 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.CreateEnrollment
   alias KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo
   alias KlassHero.Enrollment.Application.UseCases.GetEnrollment
+  alias KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv
   alias KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIds
   alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
   alias KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments
-  alias KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv
   alias KlassHero.Enrollment.Application.UseCases.SetParticipantPolicy
   alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
 
