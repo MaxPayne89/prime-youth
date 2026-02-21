@@ -132,8 +132,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   end
 
   @impl true
-  def create_with_guardian(attrs, guardian_id)
-      when is_map(attrs) and is_binary(guardian_id) do
+  def create_with_guardian(attrs, guardian_id) when is_map(attrs) and is_binary(guardian_id) do
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:child, ChildSchema.changeset(%ChildSchema{}, attrs))
     |> Ecto.Multi.insert(:guardian_link, fn %{child: child} ->

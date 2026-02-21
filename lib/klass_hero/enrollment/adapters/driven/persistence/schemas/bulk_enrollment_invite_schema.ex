@@ -128,7 +128,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     |> validate_length(:child_first_name, min: 1, max: 100)
     |> validate_length(:child_last_name, min: 1, max: 100)
     |> validate_length(:guardian_email, max: 160)
-    |> validate_format(:guardian_email, ~r/^[^@,;\s]+@[^@,;\s]+$/, message: "must be a valid email")
+    |> validate_format(:guardian_email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
+      message: "must be a valid email"
+    )
     |> validate_length(:guardian_first_name, max: 100)
     |> validate_length(:guardian_last_name, max: 100)
     |> validate_length(:guardian2_email, max: 160)
@@ -183,7 +185,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
 
   defp validate_date_in_past(changeset, field) do
     validate_change(changeset, field, fn ^field, date ->
-      if Date.compare(date, Date.utc_today()) == :lt do
+      if Date.before?(date, Date.utc_today()) do
         []
       else
         [{field, "must be in the past"}]

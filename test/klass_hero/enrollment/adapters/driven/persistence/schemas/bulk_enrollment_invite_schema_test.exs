@@ -92,7 +92,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
 
       changeset =
         %BulkEnrollmentInviteSchema{}
-        |> BulkEnrollmentInviteSchema.changeset(Map.put(@valid_attrs, :child_date_of_birth, future_date))
+        |> BulkEnrollmentInviteSchema.changeset(
+          Map.put(@valid_attrs, :child_date_of_birth, future_date)
+        )
         |> Map.put(:action, :validate)
 
       refute changeset.valid?

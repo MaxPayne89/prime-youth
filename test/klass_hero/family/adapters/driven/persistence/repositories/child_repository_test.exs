@@ -186,7 +186,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
         date_of_birth: ~D[2015-06-15]
       }
 
-      assert {:error, _changeset} = ChildRepository.create_with_guardian(attrs, non_existent_guardian)
+      assert {:error, _changeset} =
+               ChildRepository.create_with_guardian(attrs, non_existent_guardian)
 
       # Verify child was NOT persisted (transaction rolled back)
       assert [] == Repo.all(KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema)
@@ -196,21 +197,24 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   describe "child_belongs_to_guardian?/2" do
     test "returns true when guardian link exists" do
       parent = create_parent()
-      child = create_child_with_guardian(parent, %{
-        first_name: "Emma",
-        last_name: "Smith",
-        date_of_birth: ~D[2015-06-15]
-      })
+
+      child =
+        create_child_with_guardian(parent, %{
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        })
 
       assert ChildRepository.child_belongs_to_guardian?(child.id, parent.id)
     end
 
     test "returns false when no guardian link exists" do
-      {:ok, child} = ChildRepository.create(%{
-        first_name: "Emma",
-        last_name: "Smith",
-        date_of_birth: ~D[2015-06-15]
-      })
+      {:ok, child} =
+        ChildRepository.create(%{
+          first_name: "Emma",
+          last_name: "Smith",
+          date_of_birth: ~D[2015-06-15]
+        })
 
       non_existent_guardian = Ecto.UUID.generate()
 
