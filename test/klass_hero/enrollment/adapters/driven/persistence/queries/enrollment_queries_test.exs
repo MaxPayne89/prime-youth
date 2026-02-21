@@ -186,8 +186,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Queries.EnrollmentQue
     test "returns count of matching enrollments" do
       parent_schema = insert(:parent_profile_schema)
       program_schema = insert(:program_schema)
-      child_schema1 = insert(:child_schema, parent_id: parent_schema.id)
-      child_schema2 = insert(:child_schema, parent_id: parent_schema.id)
+      {child_schema1, _parent} = insert_child_with_guardian(parent: parent_schema)
+      {child_schema2, _parent} = insert_child_with_guardian(parent: parent_schema)
 
       insert(:enrollment_schema,
         parent_id: parent_schema.id,
@@ -227,7 +227,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Queries.EnrollmentQue
     test "composes multiple filters correctly" do
       parent_schema = insert(:parent_profile_schema)
       program_schema = insert(:program_schema)
-      child_schema = insert(:child_schema, parent_id: parent_schema.id)
+      {child_schema, _parent} = insert_child_with_guardian(parent: parent_schema)
 
       target =
         insert(:enrollment_schema,

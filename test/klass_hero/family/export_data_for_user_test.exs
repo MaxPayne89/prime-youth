@@ -18,9 +18,9 @@ defmodule KlassHero.Family.ExportDataForUserTest do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           first_name: "Emma",
           last_name: "Smith",
           allergies: "Peanuts",
@@ -69,7 +69,7 @@ defmodule KlassHero.Family.ExportDataForUserTest do
     test "includes withdrawn consents in export for audit history" do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       active_consent =
         insert(:consent_schema,
@@ -107,7 +107,7 @@ defmodule KlassHero.Family.ExportDataForUserTest do
     test "returns children with empty consents list when no consents exist" do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
-      insert(:child_schema, parent_id: parent.id)
+      {_child, _parent} = insert_child_with_guardian(parent: parent)
 
       result = Family.export_data_for_user(user.id)
 
@@ -136,16 +136,16 @@ defmodule KlassHero.Family.ExportDataForUserTest do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
 
-      child_a =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child_a, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           first_name: "Alice",
           last_name: "Doe"
         )
 
-      child_b =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child_b, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           first_name: "Bob",
           last_name: "Doe"
         )

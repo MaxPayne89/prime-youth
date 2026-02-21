@@ -8,7 +8,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CountMonthlyBookingsTest do
   describe "execute/2" do
     test "returns count for current month by default" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
       program = insert(:program_schema)
 
       insert(:enrollment_schema,
@@ -30,7 +30,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CountMonthlyBookingsTest do
 
     test "accepts optional month parameter" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
       program = insert(:program_schema)
 
       # Enrollment from previous month
@@ -53,7 +53,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CountMonthlyBookingsTest do
 
     test "only counts active enrollments (pending, confirmed)" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       program1 = insert(:program_schema)
       program2 = insert(:program_schema)
@@ -98,8 +98,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.CountMonthlyBookingsTest do
 
     test "counts multiple children's enrollments for same parent" do
       parent = insert(:parent_profile_schema)
-      child1 = insert(:child_schema, parent_id: parent.id)
-      child2 = insert(:child_schema, parent_id: parent.id)
+      {child1, _parent} = insert_child_with_guardian(parent: parent)
+      {child2, _parent} = insert_child_with_guardian(parent: parent)
 
       program1 = insert(:program_schema)
       program2 = insert(:program_schema)
@@ -127,8 +127,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.CountMonthlyBookingsTest do
       parent1 = insert(:parent_profile_schema)
       parent2 = insert(:parent_profile_schema)
 
-      child1 = insert(:child_schema, parent_id: parent1.id)
-      child2 = insert(:child_schema, parent_id: parent2.id)
+      {child1, _parent1} = insert_child_with_guardian(parent: parent1)
+      {child2, _parent2} = insert_child_with_guardian(parent: parent2)
 
       program = insert(:program_schema)
 
@@ -154,7 +154,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CountMonthlyBookingsTest do
 
     test "correctly handles month boundaries" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
       program1 = insert(:program_schema)
       program2 = insert(:program_schema)
 

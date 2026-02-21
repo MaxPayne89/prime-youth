@@ -37,9 +37,9 @@ defmodule KlassHeroWeb.UserDataExportControllerTest do
     test "export includes children and consents", %{conn: conn, user: user} do
       parent = insert(:parent_profile_schema, identity_id: user.id)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           first_name: "Emma",
           last_name: "Smith"
         )

@@ -11,7 +11,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
     test "creates child with all fields" do
       attrs = %{
         id: "550e8400-e29b-41d4-a716-446655440000",
-        parent_id: "660e8400-e29b-41d4-a716-446655440001",
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15],
@@ -22,7 +21,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
 
       assert {:ok, child} = Child.new(attrs)
       assert child.id == attrs.id
-      assert child.parent_id == attrs.parent_id
       assert child.first_name == "Emma"
       assert child.last_name == "Smith"
       assert child.date_of_birth == ~D[2015-06-15]
@@ -34,7 +32,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
     test "creates child with only required fields" do
       attrs = %{
         id: "550e8400-e29b-41d4-a716-446655440000",
-        parent_id: "660e8400-e29b-41d4-a716-446655440001",
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15]
@@ -48,23 +45,9 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
   end
 
   describe "new/1 validation errors" do
-    test "returns error when parent_id is empty" do
-      attrs = %{
-        id: "550e8400-e29b-41d4-a716-446655440000",
-        parent_id: "",
-        first_name: "Emma",
-        last_name: "Smith",
-        date_of_birth: ~D[2015-06-15]
-      }
-
-      assert {:error, errors} = Child.new(attrs)
-      assert "Parent ID cannot be empty" in errors
-    end
-
     test "returns error when first_name is empty" do
       attrs = %{
         id: "550e8400-e29b-41d4-a716-446655440000",
-        parent_id: "uuid-123",
         first_name: "",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15]
@@ -77,7 +60,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
     test "returns error when last_name is empty" do
       attrs = %{
         id: "550e8400-e29b-41d4-a716-446655440000",
-        parent_id: "uuid-123",
         first_name: "Emma",
         last_name: "",
         date_of_birth: ~D[2015-06-15]
@@ -92,7 +74,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
 
       attrs = %{
         id: "550e8400-e29b-41d4-a716-446655440000",
-        parent_id: "uuid-123",
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: future_date
@@ -107,7 +88,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
     test "reconstructs child from valid persistence data" do
       attrs = %{
         id: "550e8400-e29b-41d4-a716-446655440000",
-        parent_id: "660e8400-e29b-41d4-a716-446655440001",
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15],
@@ -128,7 +108,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
       # Missing :date_of_birth which is in @enforce_keys
       attrs = %{
         id: "550e8400-e29b-41d4-a716-446655440000",
-        parent_id: "660e8400-e29b-41d4-a716-446655440001",
         first_name: "Emma",
         last_name: "Smith"
       }
@@ -142,7 +121,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
       {:ok, child} =
         Child.new(%{
           id: "550e8400-e29b-41d4-a716-446655440000",
-          parent_id: "uuid-123",
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
@@ -177,7 +155,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
       %{
         base_attrs: %{
           id: "550e8400-e29b-41d4-a716-446655440000",
-          parent_id: "660e8400-e29b-41d4-a716-446655440001",
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
@@ -213,7 +190,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
       %{
         base_attrs: %{
           id: "550e8400-e29b-41d4-a716-446655440000",
-          parent_id: "660e8400-e29b-41d4-a716-446655440001",
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
@@ -253,7 +229,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
     test "accepts school_name in new/1" do
       attrs = %{
         id: Ecto.UUID.generate(),
-        parent_id: Ecto.UUID.generate(),
         first_name: "Alice",
         last_name: "Smith",
         date_of_birth: ~D[2017-03-15],
@@ -267,7 +242,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
     test "defaults school_name to nil" do
       attrs = %{
         id: Ecto.UUID.generate(),
-        parent_id: Ecto.UUID.generate(),
         first_name: "Alice",
         last_name: "Smith",
         date_of_birth: ~D[2017-03-15]
@@ -283,7 +257,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
       {:ok, child} =
         Child.new(%{
           id: "550e8400-e29b-41d4-a716-446655440000",
-          parent_id: "uuid-123",
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
@@ -297,7 +270,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
       {:ok, child} =
         Child.new(%{
           id: "550e8400-e29b-41d4-a716-446655440000",
-          parent_id: "uuid-123",
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-20]
@@ -311,7 +283,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
       {:ok, child} =
         Child.new(%{
           id: "550e8400-e29b-41d4-a716-446655440000",
-          parent_id: "uuid-123",
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
@@ -325,7 +296,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
       {:ok, child} =
         Child.new(%{
           id: "550e8400-e29b-41d4-a716-446655440000",
-          parent_id: "uuid-123",
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
@@ -338,7 +308,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
       {:ok, child} =
         Child.new(%{
           id: "550e8400-e29b-41d4-a716-446655440000",
-          parent_id: "uuid-123",
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
@@ -353,7 +322,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
       {:ok, child} =
         Child.new(%{
           id: "550e8400-e29b-41d4-a716-446655440000",
-          parent_id: "uuid-123",
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
@@ -365,7 +333,6 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
     test "returns false for child with empty first_name" do
       child = %Child{
         id: "550e8400-e29b-41d4-a716-446655440000",
-        parent_id: "uuid-123",
         first_name: "",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15]

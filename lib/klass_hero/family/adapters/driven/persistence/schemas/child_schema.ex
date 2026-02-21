@@ -5,10 +5,11 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
   Maps the children database table to an Elixir struct with comprehensive
   validation. Use ChildMapper for domain entity conversion.
 
+  Guardian relationships are managed through the children_guardians join table.
+
   ## Fields
 
   - `id` - Binary UUID primary key
-  - `parent_id` - Foreign key to parents table
   - `first_name` - Child's first name (1-100 characters)
   - `last_name` - Child's last name (1-100 characters)
   - `date_of_birth` - Child's birth date (must be in the past)
@@ -31,7 +32,6 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
   @timestamps_opts [type: :utc_datetime]
 
   schema "children" do
-    field :parent_id, :binary_id
     field :first_name, :string
     field :last_name, :string
     field :date_of_birth, :date
@@ -49,8 +49,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
   Changeset for anonymizing a child record during GDPR account deletion.
 
   Receives pre-defined anonymized values from the domain model and applies
-  them mechanically. Preserves `parent_id` for referential integrity with
-  participation records.
+  them mechanically.
   """
   def anonymize_changeset(%__MODULE__{} = child, anonymized_attrs)
       when is_map(anonymized_attrs) do
@@ -62,15 +61,13 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
 
   ## Validations
 
-  - Required: parent_id, first_name, last_name, date_of_birth
+  - Required: first_name, last_name, date_of_birth
   - first_name and last_name: 1-100 characters
   - date_of_birth: must be in the past (before today)
-  - Foreign key constraint on parent_id
   """
   def changeset(schema, attrs) do
     schema
     |> cast(attrs, [
-      :parent_id,
       :first_name,
       :last_name,
       :date_of_birth,
@@ -81,18 +78,16 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
       :allergies,
       :school_name
     ])
-    |> validate_required([:parent_id, :first_name, :last_name, :date_of_birth])
+    |> validate_required([:first_name, :last_name, :date_of_birth])
     |> shared_validations()
     |> check_constraint(:gender, name: :valid_gender)
     |> check_constraint(:school_grade, name: :valid_school_grade)
-    |> foreign_key_constraint(:parent_id)
   end
 
   @doc """
   Form changeset for LiveView forms.
 
-  Excludes `parent_id` from cast and validate_required since it is set
-  programmatically by the use case layer, not via user input.
+  Used by LiveView to track form changes and validate user input.
   """
   def form_changeset(schema, attrs) do
     schema

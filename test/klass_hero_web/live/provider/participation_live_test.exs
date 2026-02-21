@@ -10,9 +10,9 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
     session = insert(:program_session_schema, status: "in_progress")
     parent = insert(:parent_profile_schema)
 
-    child =
-      insert(:child_schema,
-        parent_id: parent.id,
+    {child, _parent} =
+      insert_child_with_guardian(
+        parent: parent,
         first_name: "Emma",
         last_name: "Mueller",
         allergies: "Peanuts",
@@ -101,9 +101,9 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
     } do
       parent = insert(:parent_profile_schema)
 
-      child_no_allergies =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child_no_allergies, _parent2} =
+        insert_child_with_guardian(
+          parent: parent,
           first_name: "Liam",
           last_name: "Schmidt",
           allergies: nil,

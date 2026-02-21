@@ -108,7 +108,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
   describe "list_pending_by_parent/1" do
     test "returns pending notes for parent" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       record =
         insert(:participation_record_schema,

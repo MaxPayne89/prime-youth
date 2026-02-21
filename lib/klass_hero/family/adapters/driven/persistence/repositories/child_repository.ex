@@ -15,6 +15,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   import Ecto.Query
 
   alias KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapper
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSchema
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.ErrorIds
@@ -131,9 +132,10 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   end
 
   @impl true
-  def list_by_parent(parent_id) when is_binary(parent_id) do
+  def list_by_guardian(guardian_id) when is_binary(guardian_id) do
     ChildSchema
-    |> where([c], c.parent_id == ^parent_id)
+    |> join(:inner, [c], cg in ChildGuardianSchema, on: c.id == cg.child_id)
+    |> where([_c, cg], cg.guardian_id == ^guardian_id)
     |> order_by([c], asc: c.first_name, asc: c.last_name)
     |> Repo.all()
     |> ChildMapper.to_domain_list()

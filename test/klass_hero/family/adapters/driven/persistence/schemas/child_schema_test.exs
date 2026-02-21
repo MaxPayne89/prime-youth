@@ -4,18 +4,6 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchemaTest d
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
 
   describe "form_changeset/2" do
-    test "excludes parent_id from cast" do
-      changeset =
-        ChildSchema.form_changeset(%ChildSchema{}, %{
-          parent_id: Ecto.UUID.generate(),
-          first_name: "Alice",
-          last_name: "Wonder",
-          date_of_birth: ~D[2017-03-15]
-        })
-
-      refute Ecto.Changeset.get_change(changeset, :parent_id)
-    end
-
     test "validates required fields" do
       changeset =
         %ChildSchema{}

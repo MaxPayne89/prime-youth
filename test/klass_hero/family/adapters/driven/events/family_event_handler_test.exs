@@ -24,9 +24,9 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandlerTest do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           first_name: "Emma",
           last_name: "Smith",
           emergency_contact: "+49123",
@@ -64,7 +64,7 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandlerTest do
     test "publishes child_data_anonymized event per child" do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       event =
         AccountsIntegrationEvents.user_anonymized(

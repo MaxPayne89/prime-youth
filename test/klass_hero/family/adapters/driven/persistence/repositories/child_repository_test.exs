@@ -7,6 +7,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
 
   alias KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
   alias KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfileRepository
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSchema
   alias KlassHero.Family.Domain.Models.Child
 
   defp create_parent do
@@ -15,12 +16,22 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
     parent
   end
 
+  defp create_child_with_guardian(parent, child_attrs) do
+    {:ok, child} = ChildRepository.create(child_attrs)
+
+    Repo.insert!(%ChildGuardianSchema{
+      child_id: child.id,
+      guardian_id: parent.id,
+      relationship: "parent",
+      is_primary: true
+    })
+
+    child
+  end
+
   describe "create/1" do
     test "creates child and returns domain entity" do
-      parent = create_parent()
-
       attrs = %{
-        parent_id: parent.id,
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15],
@@ -31,7 +42,6 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
 
       assert {:ok, %Child{} = child} = ChildRepository.create(attrs)
       assert is_binary(child.id)
-      assert child.parent_id == parent.id
       assert child.first_name == "Emma"
       assert child.last_name == "Smith"
       assert child.date_of_birth == ~D[2015-06-15]
@@ -42,10 +52,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
     end
 
     test "creates child with minimal fields" do
-      parent = create_parent()
-
       attrs = %{
-        parent_id: parent.id,
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15]
@@ -60,10 +67,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
 
   describe "get_by_id/1" do
     test "retrieves existing child" do
-      parent = create_parent()
-
       attrs = %{
-        parent_id: parent.id,
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15]
@@ -87,62 +91,54 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
     end
   end
 
-  describe "list_by_parent/1" do
-    test "returns children for parent ordered by name" do
+  describe "list_by_guardian/1" do
+    test "returns children for guardian ordered by name" do
       parent = create_parent()
 
-      {:ok, _} =
-        ChildRepository.create(%{
-          parent_id: parent.id,
-          first_name: "Zoe",
-          last_name: "Smith",
-          date_of_birth: ~D[2017-01-01]
-        })
+      create_child_with_guardian(parent, %{
+        first_name: "Zoe",
+        last_name: "Smith",
+        date_of_birth: ~D[2017-01-01]
+      })
 
-      {:ok, _} =
-        ChildRepository.create(%{
-          parent_id: parent.id,
-          first_name: "Alice",
-          last_name: "Smith",
-          date_of_birth: ~D[2015-06-15]
-        })
+      create_child_with_guardian(parent, %{
+        first_name: "Alice",
+        last_name: "Smith",
+        date_of_birth: ~D[2015-06-15]
+      })
 
-      children = ChildRepository.list_by_parent(parent.id)
+      children = ChildRepository.list_by_guardian(parent.id)
 
       assert length(children) == 2
       assert Enum.at(children, 0).first_name == "Alice"
       assert Enum.at(children, 1).first_name == "Zoe"
     end
 
-    test "returns empty list when parent has no children" do
+    test "returns empty list when guardian has no children" do
       parent = create_parent()
 
-      children = ChildRepository.list_by_parent(parent.id)
+      children = ChildRepository.list_by_guardian(parent.id)
 
       assert children == []
     end
 
-    test "only returns children for specified parent" do
+    test "only returns children for specified guardian" do
       parent1 = create_parent()
       parent2 = create_parent()
 
-      {:ok, _} =
-        ChildRepository.create(%{
-          parent_id: parent1.id,
-          first_name: "Emma",
-          last_name: "Smith",
-          date_of_birth: ~D[2015-06-15]
-        })
+      create_child_with_guardian(parent1, %{
+        first_name: "Emma",
+        last_name: "Smith",
+        date_of_birth: ~D[2015-06-15]
+      })
 
-      {:ok, _} =
-        ChildRepository.create(%{
-          parent_id: parent2.id,
-          first_name: "Other",
-          last_name: "Child",
-          date_of_birth: ~D[2016-01-01]
-        })
+      create_child_with_guardian(parent2, %{
+        first_name: "Other",
+        last_name: "Child",
+        date_of_birth: ~D[2016-01-01]
+      })
 
-      children = ChildRepository.list_by_parent(parent1.id)
+      children = ChildRepository.list_by_guardian(parent1.id)
 
       assert length(children) == 1
       assert Enum.at(children, 0).first_name == "Emma"
@@ -151,11 +147,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
 
   describe "update/2" do
     test "updates child fields and returns domain entity" do
-      parent = create_parent()
-
       {:ok, created} =
         ChildRepository.create(%{
-          parent_id: parent.id,
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
@@ -180,11 +173,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
     end
 
     test "returns changeset error for invalid data" do
-      parent = create_parent()
-
       {:ok, created} =
         ChildRepository.create(%{
-          parent_id: parent.id,
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
@@ -197,11 +187,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
 
   describe "delete/1" do
     test "deletes existing child" do
-      parent = create_parent()
-
       {:ok, created} =
         ChildRepository.create(%{
-          parent_id: parent.id,
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]

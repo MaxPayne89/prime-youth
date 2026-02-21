@@ -161,7 +161,9 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
 
     test "cannot edit child belonging to another parent", %{conn: conn} do
       other_parent = KlassHero.Factory.insert(:parent_schema)
-      other_child = KlassHero.Factory.insert(:child_schema, parent_id: other_parent.id)
+
+      {other_child, _other_parent} =
+        KlassHero.Factory.insert_child_with_guardian(parent: other_parent)
 
       # Should redirect back to index with error flash
       assert {:error, {:live_redirect, %{to: "/settings/children", flash: flash}}} =
@@ -187,7 +189,9 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
 
     test "cannot delete child belonging to another parent", %{conn: conn} do
       other_parent = KlassHero.Factory.insert(:parent_schema)
-      other_child = KlassHero.Factory.insert(:child_schema, parent_id: other_parent.id)
+
+      {other_child, _other_parent} =
+        KlassHero.Factory.insert_child_with_guardian(parent: other_parent)
 
       {:ok, view, _html} = live(conn, ~p"/settings/children")
 

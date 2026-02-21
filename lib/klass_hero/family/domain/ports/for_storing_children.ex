@@ -9,7 +9,7 @@ defmodule KlassHero.Family.Domain.Ports.ForStoringChildren do
 
   - `get_by_id/1` - Returns `{:ok, Child.t()}` or `{:error, :not_found}`
   - `create/1` - Returns `{:ok, Child.t()}` or `{:error, changeset}`
-  - `list_by_parent/1` - Returns list of children directly
+  - `list_by_guardian/1` - Returns list of children for a guardian
 
   Infrastructure errors (connection, query) are not caught - they crash and
   are handled by the supervision tree.
@@ -57,11 +57,11 @@ defmodule KlassHero.Family.Domain.Ports.ForStoringChildren do
   @callback delete(binary()) :: :ok | {:error, :not_found} | {:error, Ecto.Changeset.t()}
 
   @doc """
-  Lists all children for a given parent.
+  Lists all children for a given guardian, queried through the children_guardians join table.
 
   Returns list of children (may be empty).
   """
-  @callback list_by_parent(binary()) :: [Child.t()]
+  @callback list_by_guardian(binary()) :: [Child.t()]
 
   @doc """
   Retrieves multiple children by their IDs.
