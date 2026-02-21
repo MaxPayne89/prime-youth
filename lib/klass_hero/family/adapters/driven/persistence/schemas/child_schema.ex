@@ -15,6 +15,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
   - `emergency_contact` - Optional emergency contact info (max 255 characters)
   - `support_needs` - Optional support needs or accommodations
   - `allergies` - Optional allergy information
+  - `school_name` - Name of the child's school (max 255 characters)
   - `inserted_at` - Timestamp when record was created
   - `updated_at` - Timestamp when record was last updated
   """
@@ -39,6 +40,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
     field :emergency_contact, :string
     field :support_needs, :string
     field :allergies, :string
+    field :school_name, :string
 
     timestamps()
   end
@@ -76,7 +78,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
       :school_grade,
       :emergency_contact,
       :support_needs,
-      :allergies
+      :allergies,
+      :school_name
     ])
     |> validate_required([:parent_id, :first_name, :last_name, :date_of_birth])
     |> shared_validations()
@@ -101,7 +104,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
       :school_grade,
       :emergency_contact,
       :support_needs,
-      :allergies
+      :allergies,
+      :school_name
     ])
     |> validate_required([:first_name, :last_name, :date_of_birth])
     |> shared_validations()
@@ -114,6 +118,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
     |> validate_length(:first_name, min: 1, max: 100)
     |> validate_length(:last_name, min: 1, max: 100)
     |> validate_length(:emergency_contact, max: 255)
+    |> validate_length(:school_name, max: 255)
     |> validate_date_in_past(:date_of_birth)
     |> validate_inclusion(:gender, Child.valid_genders())
     |> validate_number(:school_grade, greater_than_or_equal_to: 1, less_than_or_equal_to: 13)

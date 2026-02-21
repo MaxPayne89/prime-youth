@@ -39,7 +39,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.ChangeChild do
       date_of_birth: child.date_of_birth,
       emergency_contact: child.emergency_contact,
       support_needs: child.support_needs,
-      allergies: child.allergies
+      allergies: child.allergies,
+      school_name: child.school_name
     }
   end
 end

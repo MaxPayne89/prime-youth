@@ -249,6 +249,35 @@ defmodule KlassHero.Family.Domain.Models.ChildTest do
     end
   end
 
+  describe "school_name" do
+    test "accepts school_name in new/1" do
+      attrs = %{
+        id: Ecto.UUID.generate(),
+        parent_id: Ecto.UUID.generate(),
+        first_name: "Alice",
+        last_name: "Smith",
+        date_of_birth: ~D[2017-03-15],
+        school_name: "Berlin International School"
+      }
+
+      assert {:ok, child} = Child.new(attrs)
+      assert child.school_name == "Berlin International School"
+    end
+
+    test "defaults school_name to nil" do
+      attrs = %{
+        id: Ecto.UUID.generate(),
+        parent_id: Ecto.UUID.generate(),
+        first_name: "Alice",
+        last_name: "Smith",
+        date_of_birth: ~D[2017-03-15]
+      }
+
+      assert {:ok, child} = Child.new(attrs)
+      assert is_nil(child.school_name)
+    end
+  end
+
   describe "age_in_months/2" do
     test "computes age in months for a basic case" do
       {:ok, child} =

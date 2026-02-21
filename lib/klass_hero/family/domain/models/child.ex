@@ -17,6 +17,7 @@ defmodule KlassHero.Family.Domain.Models.Child do
   - `emergency_contact` - Optional emergency contact info
   - `support_needs` - Optional support needs or accommodations
   - `allergies` - Optional allergy information
+  - `school_name` - Name of the child's school (optional)
   - `inserted_at` - When the record was created
   - `updated_at` - When the record was last updated
   """
@@ -36,7 +37,8 @@ defmodule KlassHero.Family.Domain.Models.Child do
     :inserted_at,
     :updated_at,
     gender: "not_specified",
-    school_grade: nil
+    school_grade: nil,
+    school_name: nil
   ]
 
   @type t :: %__MODULE__{
@@ -50,6 +52,7 @@ defmodule KlassHero.Family.Domain.Models.Child do
           emergency_contact: String.t() | nil,
           support_needs: String.t() | nil,
           allergies: String.t() | nil,
+          school_name: String.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }

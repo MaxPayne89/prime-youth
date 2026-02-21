@@ -78,6 +78,36 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchemaTest d
       assert "should be at most 255 character(s)" in errors_on(changeset).emergency_contact
     end
 
+    test "accepts school_name in form_changeset" do
+      changeset =
+        ChildSchema.form_changeset(%ChildSchema{}, %{
+          first_name: "Alice",
+          last_name: "Wonder",
+          date_of_birth: ~D[2017-03-15],
+          school_name: "Berlin International School"
+        })
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :school_name) == "Berlin International School"
+    end
+
+    test "validates school_name max length" do
+      long_name = String.duplicate("a", 256)
+
+      changeset =
+        %ChildSchema{}
+        |> ChildSchema.form_changeset(%{
+          first_name: "Alice",
+          last_name: "Wonder",
+          date_of_birth: ~D[2017-03-15],
+          school_name: long_name
+        })
+        |> Map.put(:action, :validate)
+
+      refute changeset.valid?
+      assert "should be at most 255 character(s)" in errors_on(changeset).school_name
+    end
+
     test "accepts valid attributes" do
       changeset =
         ChildSchema.form_changeset(%ChildSchema{}, %{
