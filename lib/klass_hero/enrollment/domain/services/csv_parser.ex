@@ -84,9 +84,21 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParser do
     # Trigger: need to extract headers and data rows from the same CSV
     # Why: NimbleCSV handles quoting/escaping correctly for both headers and data
     # Outcome: first row becomes header mapping, remaining rows become structured maps
-    all_rows = __MODULE__.Parser.parse_string(csv, skip_headers: false)
+    all_rows =
+      try do
+        __MODULE__.Parser.parse_string(csv, skip_headers: false)
+      rescue
+        # Trigger: malformed CSV input (mismatched quotes, stray escapes)
+        # Why: NimbleCSV raises on structural errors; callers expect {:error, _} tuples
+        # Outcome: surface a descriptive error instead of crashing
+        e in NimbleCSV.ParseError ->
+          {:error, [{1, "CSV file is malformed: #{Exception.message(e)}"}]}
+      end
 
     case all_rows do
+      {:error, _} = error ->
+        error
+
       [] ->
         {:error, :empty_csv}
 
@@ -229,8 +241,14 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParser do
   # -- boolean parsing -------------------------------------------------------
 
   defp parse_boolean(raw) do
-    case String.trim(raw) do
-      "Yes" -> true
+    # Trigger: CSV exports may use varying boolean representations
+    # Why: case-insensitive matching avoids silent data loss from "yes" vs "Yes"
+    # Outcome: "yes", "true", "1" (any case) → true; everything else → false
+    raw
+    |> String.trim()
+    |> String.downcase()
+    |> case do
+      v when v in ["yes", "true", "1"] -> true
       _ -> false
     end
   end

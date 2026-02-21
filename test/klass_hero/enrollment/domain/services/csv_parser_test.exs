@@ -240,6 +240,30 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParserTest do
       assert row.nut_allergy == false
       assert row.consent_photo_marketing == false
     end
+
+    test "handles case-insensitive truthy values" do
+      for truthy <- ["yes", "YES", "Yes", "True", "true", "1"] do
+        csv = build_csv([row_with_overrides(nut_allergy: truthy)])
+
+        assert {:ok, [row]} = CsvParser.parse(csv),
+               "expected #{inspect(truthy)} to parse successfully"
+
+        assert row.nut_allergy == true,
+               "expected #{inspect(truthy)} to map to true, got #{inspect(row.nut_allergy)}"
+      end
+    end
+
+    test "handles case-insensitive falsy values" do
+      for falsy <- ["No", "no", "NO", ""] do
+        csv = build_csv([row_with_overrides(nut_allergy: falsy)])
+
+        assert {:ok, [row]} = CsvParser.parse(csv),
+               "expected #{inspect(falsy)} to parse successfully"
+
+        assert row.nut_allergy == false,
+               "expected #{inspect(falsy)} to map to false, got #{inspect(row.nut_allergy)}"
+      end
+    end
   end
 
   describe "grade parsing" do
@@ -306,6 +330,11 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParserTest do
 
       assert {:error, {:invalid_headers, missing}} = CsvParser.parse(csv)
       assert :child_first_name in missing
+    end
+
+    test "returns error for malformed CSV with mismatched quotes" do
+      csv = "\"unclosed quote,value\n"
+      assert {:error, [{1, "CSV file is malformed:" <> _}]} = CsvParser.parse(csv)
     end
   end
 
