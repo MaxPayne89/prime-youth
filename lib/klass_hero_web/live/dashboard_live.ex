@@ -178,12 +178,10 @@ defmodule KlassHeroWeb.DashboardLive do
   # Why: both conditions indicate the program is no longer active for this family
   # Outcome: returns true if the enrollment should appear in the expired section
   defp program_expired?(%{status: status}, _program, _today)
-       when status in [:completed, :cancelled],
-       do: true
+       when status in [:completed, :cancelled], do: true
 
-  defp program_expired?(_enrollment, %{end_date: end_date}, today)
-       when not is_nil(end_date),
-       do: Date.compare(end_date, today) == :lt
+  defp program_expired?(_enrollment, %{end_date: end_date}, today) when not is_nil(end_date),
+    do: Date.before?(end_date, today)
 
   defp program_expired?(_enrollment, _program, _today), do: false
 
