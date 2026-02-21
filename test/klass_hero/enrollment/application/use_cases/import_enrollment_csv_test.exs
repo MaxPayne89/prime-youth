@@ -153,6 +153,24 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsvTest do
     end
   end
 
+  # -- no programs -----------------------------------------------------------
+
+  describe "execute/2 no programs" do
+    test "returns error when provider has no programs" do
+      provider = insert(:provider_profile_schema)
+
+      csv =
+        build_csv([
+          %{first: "Alice", last: "Smith", email: "parent@test.com", program: "Any Program"}
+        ])
+
+      assert {:error, %{parse_errors: [{0, msg}]}} =
+               ImportEnrollmentCsv.execute(provider.id, csv)
+
+      assert msg =~ "No programs found"
+    end
+  end
+
   # -- parse errors ----------------------------------------------------------
 
   describe "execute/2 parse errors" do

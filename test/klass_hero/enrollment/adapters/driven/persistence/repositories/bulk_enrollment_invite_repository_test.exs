@@ -55,7 +55,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
         valid_invite_attrs(program, provider, %{child_last_name: nil, guardian_email: "b@x.com"})
       ]
 
-      assert {:error, %Ecto.Changeset{}} = BulkEnrollmentInviteRepository.create_batch(rows)
+      assert {:error, {_index, %Ecto.Changeset{}}} =
+               BulkEnrollmentInviteRepository.create_batch(rows)
 
       # Trigger: transaction rolled back
       # Why: atomicity guarantee — no partial batch inserts

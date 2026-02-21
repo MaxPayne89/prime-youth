@@ -25,11 +25,11 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv do
           | {:error, %{duplicate_errors: list()}}
   def execute(provider_id, csv_binary) when is_binary(provider_id) and is_binary(csv_binary) do
     with {:ok, rows} <- parse_csv(csv_binary),
-         context = build_context(provider_id),
+         {:ok, context} <- build_context(provider_id),
          {:ok, validated_rows} <- validate_all_rows(rows, context),
          {:ok, validated_rows} <- check_batch_duplicates(validated_rows),
          {:ok, validated_rows} <- check_existing_duplicates(validated_rows),
-         {:ok, count} <- @invite_repository.create_batch(validated_rows) do
+         {:ok, count} <- persist_batch(validated_rows) do
       {:ok, %{created: count}}
     end
   end
@@ -52,7 +52,21 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv do
 
   defp build_context(provider_id) do
     programs_by_title = @program_catalog_acl.list_program_titles_for_provider(provider_id)
-    %{provider_id: provider_id, programs_by_title: programs_by_title}
+
+    # Trigger: provider has no programs in the catalog
+    # Why: every CSV row requires a valid program reference; importing with
+    #      zero programs would fail on every row with a confusing per-row error
+    # Outcome: single clear error telling the provider to create programs first
+    if programs_by_title == %{} do
+      {:error,
+       %{
+         parse_errors: [
+           {0, "No programs found for this provider. Create programs before importing."}
+         ]
+       }}
+    else
+      {:ok, %{provider_id: provider_id, programs_by_title: programs_by_title}}
+    end
   end
 
   defp validate_all_rows(rows, context) do
@@ -126,6 +140,26 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv do
       {:ok, rows}
     else
       {:error, %{duplicate_errors: Enum.reverse(duplicates)}}
+    end
+  end
+
+  # Trigger: create_batch returns {index, changeset} on failure
+  # Why: callers expect structured error maps, not raw changesets
+  # Outcome: changeset errors formatted into the standard error report shape
+  defp persist_batch(validated_rows) do
+    case @invite_repository.create_batch(validated_rows) do
+      {:ok, count} ->
+        {:ok, count}
+
+      {:error, {index, %Ecto.Changeset{} = changeset}} ->
+        errors = Ecto.Changeset.traverse_errors(changeset, fn {msg, _opts} -> msg end)
+
+        formatted =
+          Enum.map(errors, fn {field, messages} ->
+            {field, Enum.join(messages, ", ")}
+          end)
+
+        {:error, %{validation_errors: [{index + 1, formatted}]}}
     end
   end
 

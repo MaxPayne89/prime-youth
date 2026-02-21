@@ -28,7 +28,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   Returns:
   - `{:ok, non_neg_integer()}` — count of created records
-  - `{:error, changeset}` — first failing changeset (entire batch rolled back)
+  - `{:error, {index, changeset}}` — 0-based row index and first failing changeset (entire batch rolled back)
   """
   def create_batch([]), do: {:ok, 0}
 
@@ -52,12 +52,14 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
         {:ok, count}
 
-      {:error, {:invite, _index}, changeset, _changes} ->
-        Logger.warning("[BulkEnrollmentInvite.Repository] Batch insert failed",
+      {:error, {:invite, index}, changeset, _changes} ->
+        Logger.error("[BulkEnrollmentInvite.Repository] Batch insert failed",
+          row_index: index,
+          batch_size: length(rows),
           errors: inspect(changeset.errors)
         )
 
-        {:error, changeset}
+        {:error, {index, changeset}}
     end
   end
 
