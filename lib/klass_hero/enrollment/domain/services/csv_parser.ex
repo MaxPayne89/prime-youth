@@ -256,7 +256,10 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParser do
   # -- grade parsing ---------------------------------------------------------
 
   defp parse_grade(raw, _row_number) do
-    case raw |> String.trim() |> Integer.parse() do
+    raw
+    |> String.trim()
+    |> Integer.parse()
+    |> case do
       {grade, ""} -> {:ok, grade}
       _ -> {:ok, nil}
     end
