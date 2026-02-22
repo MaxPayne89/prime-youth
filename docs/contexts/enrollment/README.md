@@ -5,8 +5,8 @@
 ## What This Context Owns
 
 - **Domain Concepts:** Enrollment (aggregate root), EnrollmentPolicy (capacity constraints), ParticipantPolicy (eligibility restrictions), FeeCalculation (value object), enrollment statuses, payment methods
-- **Data:** `enrollments` table (program/child/parent linkage, status lifecycle, fee amounts, special requirements), `enrollment_policies` table (per-program min/max capacity), `participant_policies` table (per-program age/gender/grade restrictions)
-- **Processes:** Enrollment creation with entitlement + capacity + eligibility validation, fee calculation, booking usage tracking, enrollment status lifecycle (pending -> confirmed -> completed / cancelled), enrollment policy management (set/query capacity per program), participant policy management (set/query eligibility per program)
+- **Data:** `enrollments` table (program/child/parent linkage, status lifecycle, fee amounts, special requirements), `enrollment_policies` table (per-program min/max capacity), `participant_policies` table (per-program age/gender/grade restrictions), `bulk_enrollment_invites` table (CSV-imported invites with guardian/child/program data and invite lifecycle)
+- **Processes:** Enrollment creation with entitlement + capacity + eligibility validation, fee calculation, booking usage tracking, enrollment status lifecycle (pending -> confirmed -> completed / cancelled), enrollment policy management (set/query capacity per program), participant policy management (set/query eligibility per program), bulk CSV import of enrollment invites
 
 ## Key Features
 
@@ -18,6 +18,7 @@
 | Fee Calculation | Active | - |
 | Booking Usage Tracking | Active | - |
 | Enrollment Status Lifecycle | Active | - |
+| CSV Bulk Import | Active | [import-enrollment-csv](features/import-enrollment-csv.md) |
 | Cross-Context Enrollment Queries | Active | - |
 
 ## Inbound Communication
@@ -36,6 +37,7 @@
 | Provider (Web) | `Enrollment.get_participant_policy/1` | Retrieves current eligibility restrictions for a program |
 | Provider (Web) | `Enrollment.new_participant_policy_changeset/1` | Form validation for participant restriction fields |
 | Booking (Web) | `Enrollment.check_participant_eligibility/2` | Validates child meets program restrictions before enrollment |
+| Provider (Web) | `Enrollment.import_enrollment_csv/2` | Bulk CSV import of enrollment invites for a provider |
 | ProgramCatalog | Subscribes to `integration:enrollment:participant_policy_set` | Caches participant restrictions for program detail display |
 
 ## Outbound Communication
@@ -47,6 +49,7 @@
 | Entitlements | `Entitlements.can_create_booking?/2` | Validates booking against subscription tier cap |
 | Entitlements | `Entitlements.monthly_booking_cap/1` | Retrieves monthly booking cap for a parent's tier |
 | ProgramCatalog | Direct DB query (via ProgramScheduleACL) | Resolves program start_date for "at program start" eligibility checks |
+| ProgramCatalog | Direct DB query (via ProgramCatalogACL) | Resolves provider's program titles to IDs for CSV import |
 | ProgramCatalog | `participant_policy_set` integration event | Notifies ProgramCatalog when restrictions change (for cache invalidation / display) |
 
 ## Ubiquitous Language
@@ -65,6 +68,8 @@
 | Payment Method | How the parent pays: `card` (incurs card fee) or `transfer` (no card fee). |
 | Special Requirements | Free-text parent notes attached to an enrollment (max 500 chars). |
 | Cancellation Reason | Free-text explanation when an enrollment is cancelled (max 1000 chars). |
+| Bulk Enrollment Invite | A pending invite created via CSV import, linking a child to a program before the parent registers. Has its own status lifecycle: pending → invite_sent → registered → enrolled (or failed). |
+| CSV Import | Provider-initiated bulk upload of enrollment invites. Parses, validates, deduplicates, and atomically inserts all rows in a single transaction. |
 
 ## Business Decisions
 
@@ -86,6 +91,12 @@
 - **Monthly booking count uses calendar months.** Counted by `enrolled_at` timestamp, from the 1st to the last day of the month, active enrollments only.
 - **Infrastructure errors crash.** Repository doesn't catch DB connection failures. The supervision tree handles recovery. Only domain errors (duplicate, not found, validation) are returned as tagged tuples.
 - **Integration events notify other contexts.** `participant_policy_set` is published as an integration event so ProgramCatalog can update its display of requirements.
+- **CSV import is atomic.** All rows are inserted in a single transaction via `Ecto.Multi`. If any row fails, the entire import is rolled back.
+- **CSV import validates all rows before persisting.** Parse errors, validation errors, and duplicates are all collected and returned as structured error maps. No partial writes.
+- **Duplicate detection at two levels.** Within-CSV batch (same email + child name + program) and against existing DB records (same composite key in `bulk_enrollment_invites`).
+- **CSV upload capped at 2MB.** The controller enforces a file size limit before parsing.
+- **Bulk invite deduplication key.** `(program_id, guardian_email, child_first_name, child_last_name)` — case-insensitive comparison via downcased values.
+- **Bulk invite status lifecycle.** `pending → invite_sent → registered → enrolled` (or `failed` from any state). Transitions are validated in the schema changeset.
 
 ## Assumptions & Open Questions
 
@@ -96,6 +107,9 @@
 - [NEEDS INPUT] Should reaching min_enrollment trigger a notification to the provider? Currently `meets_minimum?/2` exists as a domain check but nothing consumes it.
 - [NEEDS INPUT] Should existing enrollments be re-validated when a participant policy is changed? Currently, policy changes only affect future eligibility checks.
 - [NEEDS INPUT] Should the "not_specified" gender be treated as "matches all policies" or "matches only when explicitly allowed"?
+- [NEEDS INPUT] Should bulk enrollment invites trigger actual invitation emails? The `invite_sent` status exists but no email sending is implemented.
+- [NEEDS INPUT] What happens after a parent registers from a bulk invite? The `registered → enrolled` transition exists but no automation connects registration to enrollment creation.
+- [NEEDS INPUT] Should large CSV imports (e.g., 10k+ rows) use chunked transactions instead of a single transaction?
 
 ---
 
