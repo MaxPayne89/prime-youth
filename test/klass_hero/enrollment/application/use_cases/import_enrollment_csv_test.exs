@@ -18,55 +18,61 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsvTest do
 
   # -- CSV builder -----------------------------------------------------------
 
+  @csv_defaults %{
+    first: "Alice",
+    last: "Smith",
+    dob: "1/1/2016",
+    parent_first: "Bob",
+    parent_last: "Smith",
+    email: "parent@example.com",
+    parent2_first: "",
+    parent2_last: "",
+    parent2_email: "",
+    grade: "",
+    school: "",
+    has_medical: "",
+    medical: "",
+    nut_allergy: "",
+    photo_marketing: "",
+    photo_social: "",
+    program: "Ballsports & Parkour",
+    instructor: "",
+    season: "Test Season"
+  }
+
+  @csv_field_order ~w(first last dob parent_first parent_last email
+    parent2_first parent2_last parent2_email grade school has_medical
+    medical nut_allergy photo_marketing photo_social program instructor season)a
+
+  @csv_header_row [
+    "Participant information: First name",
+    "Participant information: Last name",
+    "Participant information: Date of birth",
+    "Parent/guardian information: First name",
+    "Parent/guardian information: Last name",
+    "Parent/guardian information: Email address",
+    "Parent/guardian 2 information: First name",
+    "Parent/guardian 2 information: Last name",
+    "Parent/guardian 2 information: Email address",
+    "School information: Grade",
+    "School information: Name",
+    "Medical/allergy information: Do you have medical conditions and special needs?",
+    "Medical/allergy information: Medical conditions and special needs",
+    "Medical/allergy information: Nut allergy",
+    ~s|Photography/video release permission: I agree that photos showing my child at camp may appear in marketing materials (e.g. posters, website) free of charge. this agreement is valid for unlimited time for all types of existing media and those that may be created.|,
+    ~s|Photography/video release permission: I agree that photos and films showing my child participating in activities may appear for marketing purposes on prime youth's social media channels (e.g. facebook, instagram, youtube) free of charge, valid for unlimited time and without revealing my children's identity.|,
+    "Program",
+    "Instructor",
+    "Season"
+  ]
+
   defp build_csv(rows) do
-    headers =
-      [
-        "Participant information: First name",
-        "Participant information: Last name",
-        "Participant information: Date of birth",
-        "Parent/guardian information: First name",
-        "Parent/guardian information: Last name",
-        "Parent/guardian information: Email address",
-        "Parent/guardian 2 information: First name",
-        "Parent/guardian 2 information: Last name",
-        "Parent/guardian 2 information: Email address",
-        "School information: Grade",
-        "School information: Name",
-        "Medical/allergy information: Do you have medical conditions and special needs?",
-        "Medical/allergy information: Medical conditions and special needs",
-        "Medical/allergy information: Nut allergy",
-        ~s|Photography/video release permission: I agree that photos showing my child at camp may appear in marketing materials (e.g. posters, website) free of charge. this agreement is valid for unlimited time for all types of existing media and those that may be created.|,
-        ~s|Photography/video release permission: I agree that photos and films showing my child participating in activities may appear for marketing purposes on prime youth's social media channels (e.g. facebook, instagram, youtube) free of charge, valid for unlimited time and without revealing my children's identity.|,
-        "Program",
-        "Instructor",
-        "Season"
-      ]
-      |> Enum.map_join(",", &csv_escape/1)
+    headers = Enum.map_join(@csv_header_row, ",", &csv_escape/1)
 
     data_rows =
       Enum.map(rows, fn row ->
-        [
-          row[:first] || "Alice",
-          row[:last] || "Smith",
-          row[:dob] || "1/1/2016",
-          row[:parent_first] || "Bob",
-          row[:parent_last] || "Smith",
-          row[:email] || "parent@example.com",
-          row[:parent2_first] || "",
-          row[:parent2_last] || "",
-          row[:parent2_email] || "",
-          row[:grade] || "",
-          row[:school] || "",
-          row[:has_medical] || "",
-          row[:medical] || "",
-          row[:nut_allergy] || "",
-          row[:photo_marketing] || "",
-          row[:photo_social] || "",
-          row[:program] || "Ballsports & Parkour",
-          row[:instructor] || "",
-          row[:season] || "Test Season"
-        ]
-        |> Enum.map_join(",", &csv_escape/1)
+        merged = Map.merge(@csv_defaults, row)
+        Enum.map_join(@csv_field_order, ",", &csv_escape(merged[&1]))
       end)
 
     [headers | data_rows] |> Enum.join("\n")

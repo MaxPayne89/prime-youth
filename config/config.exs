@@ -255,7 +255,9 @@ config :logger, :default_formatter,
     :doc_type,
     :kind,
     :result,
-    :upload
+    :upload,
+    :row_index,
+    :batch_size
   ]
 
 config :opentelemetry, :resource,

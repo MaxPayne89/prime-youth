@@ -125,7 +125,7 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParser do
         find_mapping(trimmed)
       end)
 
-    found_keys = mapped |> Enum.reject(&is_nil/1) |> Enum.reject(&(&1 == :skip)) |> MapSet.new()
+    found_keys = mapped |> Enum.reject(&(&1 in [nil, :skip])) |> MapSet.new()
     missing = Enum.reject(@required_keys, &MapSet.member?(found_keys, &1))
 
     if missing == [] do
