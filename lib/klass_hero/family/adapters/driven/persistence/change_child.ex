@@ -33,13 +33,13 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.ChangeChild do
   defp child_to_schema(%Child{} = child) do
     %ChildSchema{
       id: child.id,
-      parent_id: child.parent_id,
       first_name: child.first_name,
       last_name: child.last_name,
       date_of_birth: child.date_of_birth,
       emergency_contact: child.emergency_contact,
       support_needs: child.support_needs,
-      allergies: child.allergies
+      allergies: child.allergies,
+      school_name: child.school_name
     }
   end
 end

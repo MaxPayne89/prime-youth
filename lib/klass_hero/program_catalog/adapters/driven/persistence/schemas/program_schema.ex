@@ -37,6 +37,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :instructor_id, :binary_id
     field :instructor_name, :string
     field :instructor_headshot_url, :string
+    # Free-text label for academic season grouping (e.g. "School Name 24/25: Semester 2")
+    field :season, :string
 
     timestamps()
   end
@@ -64,6 +66,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           instructor_id: Ecto.UUID.t() | nil,
           instructor_name: String.t() | nil,
           instructor_headshot_url: String.t() | nil,
+          season: String.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -107,7 +110,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :meeting_end_time,
       :start_date,
       :registration_start_date,
-      :registration_end_date
+      :registration_end_date,
+      :season
     ])
     |> validate_required([
       :title,
@@ -121,6 +125,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_length(:description, min: 1, max: 500)
     |> validate_length(:age_range, min: 1, max: 100)
     |> validate_length(:pricing_period, min: 1, max: 100)
+    |> validate_length(:season, max: 255)
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_meeting_days()
@@ -149,7 +154,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :start_date,
       :end_date,
       :registration_start_date,
-      :registration_end_date
+      :registration_end_date,
+      :season
     ])
     # Trigger: provider_id, instructor fields arrive from trusted server-side code
     # Why: including them in cast would allow form param injection
@@ -165,6 +171,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_length(:location, max: 255)
     |> validate_length(:cover_image_url, max: 500)
     |> validate_length(:instructor_name, max: 200)
+    |> validate_length(:season, max: 255)
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_meeting_days()
@@ -205,7 +212,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :meeting_end_time,
       :start_date,
       :registration_start_date,
-      :registration_end_date
+      :registration_end_date,
+      :season
     ])
     |> validate_required([
       :title,
@@ -217,6 +225,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> validate_length(:description, min: 1, max: 500)
     |> validate_length(:age_range, max: 100)
     |> validate_length(:pricing_period, max: 100)
+    |> validate_length(:season, max: 255)
     |> validate_inclusion(:category, ProgramCategories.program_categories())
     |> validate_number(:price, greater_than_or_equal_to: 0)
     |> validate_meeting_days()

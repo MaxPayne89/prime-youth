@@ -38,7 +38,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfoTest do
 
     test "correctly calculates remaining bookings for explorer tier" do
       parent = insert(:parent_profile_schema, subscription_tier: "explorer")
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
       program = insert(:program_schema)
 
       insert(:enrollment_schema,
@@ -58,7 +58,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfoTest do
 
     test "handles edge case when explorer tier is at booking limit" do
       parent = insert(:parent_profile_schema, subscription_tier: "explorer")
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
       program1 = insert(:program_schema)
       program2 = insert(:program_schema)
 
@@ -87,7 +87,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfoTest do
 
     test "active tier always shows unlimited remaining regardless of bookings" do
       parent = insert(:parent_profile_schema, subscription_tier: "active")
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       for _ <- 1..5 do
         program = insert(:program_schema)
@@ -111,7 +111,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfoTest do
 
     test "only counts active enrollments (pending, confirmed) not cancelled" do
       parent = insert(:parent_profile_schema, subscription_tier: "explorer")
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
       program1 = insert(:program_schema)
       program2 = insert(:program_schema)
 

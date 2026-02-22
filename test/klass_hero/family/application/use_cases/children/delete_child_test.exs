@@ -15,11 +15,11 @@ defmodule KlassHero.Family.Application.UseCases.Children.DeleteChildTest do
     end
 
     test "deletes child with associated consent records" do
-      child_schema = insert(:child_schema)
+      {child_schema, parent_schema} = insert_child_with_guardian()
 
       insert(:consent_schema,
         child_id: child_schema.id,
-        parent_id: child_schema.parent_id
+        parent_id: parent_schema.id
       )
 
       assert :ok = DeleteChild.execute(child_schema.id)

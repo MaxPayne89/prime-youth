@@ -101,7 +101,7 @@ defmodule KlassHero.Family do
   Lists all children for a parent, ordered by first name then last name.
   """
   def get_children(parent_id) when is_binary(parent_id) do
-    @child_repository.list_by_parent(parent_id)
+    @child_repository.list_by_guardian(parent_id)
   end
 
   @doc """
@@ -205,24 +205,7 @@ defmodule KlassHero.Family do
   """
   def child_belongs_to_parent?(child_id, parent_id)
       when is_binary(child_id) and is_binary(parent_id) do
-    case get_child_by_id(child_id) do
-      {:ok, child} ->
-        child.parent_id == parent_id
-
-      {:error, :not_found} ->
-        false
-
-      # Trigger: unexpected error from repository (e.g. database issue)
-      # Why: authorization check must fail closed — never grant access on error
-      {:error, reason} ->
-        Logger.warning("[Family] child_belongs_to_parent? failed",
-          child_id: child_id,
-          parent_id: parent_id,
-          reason: inspect(reason)
-        )
-
-        false
-    end
+    @child_repository.child_belongs_to_guardian?(child_id, parent_id)
   end
 
   # ============================================================================
@@ -290,7 +273,7 @@ defmodule KlassHero.Family do
   def anonymize_data_for_user(identity_id) when is_binary(identity_id) do
     case @parent_repository.get_by_identity_id(identity_id) do
       {:ok, parent} ->
-        children = @child_repository.list_by_parent(parent.id)
+        children = @child_repository.list_by_guardian(parent.id)
         anonymize_children_data(children)
 
       {:error, :not_found} ->
@@ -358,7 +341,7 @@ defmodule KlassHero.Family do
   def export_data_for_user(identity_id) when is_binary(identity_id) do
     case @parent_repository.get_by_identity_id(identity_id) do
       {:ok, parent} ->
-        children = @child_repository.list_by_parent(parent.id)
+        children = @child_repository.list_by_guardian(parent.id)
 
         children_data =
           Enum.map(children, fn child ->

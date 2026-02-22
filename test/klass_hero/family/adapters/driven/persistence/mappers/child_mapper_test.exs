@@ -12,7 +12,6 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapperTest d
     test "converts a valid schema to a domain entity" do
       schema = %ChildSchema{
         id: Ecto.UUID.generate(),
-        parent_id: Ecto.UUID.generate(),
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15],

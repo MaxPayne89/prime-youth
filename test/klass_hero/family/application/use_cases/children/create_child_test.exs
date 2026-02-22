@@ -3,11 +3,12 @@ defmodule KlassHero.Family.Application.UseCases.Children.CreateChildTest do
 
   import KlassHero.Factory
 
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSchema
   alias KlassHero.Family.Application.UseCases.Children.CreateChild
   alias KlassHero.Family.Domain.Models.Child
 
   describe "execute/1" do
-    test "creates child with valid params" do
+    test "creates child with valid params and guardian link" do
       parent = insert(:parent_profile_schema)
 
       attrs = %{
@@ -18,10 +19,14 @@ defmodule KlassHero.Family.Application.UseCases.Children.CreateChildTest do
       }
 
       assert {:ok, %Child{} = child} = CreateChild.execute(attrs)
-      assert child.parent_id == parent.id
       assert child.first_name == "Emma"
       assert child.last_name == "Smith"
       assert child.date_of_birth == ~D[2015-06-15]
+
+      # Verify guardian link was created
+      link = Repo.get_by!(ChildGuardianSchema, child_id: child.id, guardian_id: parent.id)
+      assert link.relationship == "parent"
+      assert link.is_primary == true
     end
 
     test "generates UUID when not provided" do

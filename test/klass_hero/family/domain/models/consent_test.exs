@@ -11,7 +11,7 @@ defmodule KlassHero.Family.Domain.Models.ConsentTest do
     id: "550e8400-e29b-41d4-a716-446655440000",
     parent_id: "660e8400-e29b-41d4-a716-446655440001",
     child_id: "770e8400-e29b-41d4-a716-446655440002",
-    consent_type: "photo",
+    consent_type: "photo_marketing",
     granted_at: ~U[2025-06-15 10:00:00Z]
   }
 
@@ -21,9 +21,11 @@ defmodule KlassHero.Family.Domain.Models.ConsentTest do
 
       assert is_list(types)
       assert "provider_data_sharing" in types
-      assert "photo" in types
+      assert "photo_marketing" in types
+      assert "photo_social_media" in types
       assert "medical" in types
       assert "participation" in types
+      refute "photo" in types
     end
   end
 
@@ -43,7 +45,7 @@ defmodule KlassHero.Family.Domain.Models.ConsentTest do
       assert consent.id == attrs.id
       assert consent.parent_id == attrs.parent_id
       assert consent.child_id == attrs.child_id
-      assert consent.consent_type == "photo"
+      assert consent.consent_type == "photo_marketing"
       assert consent.granted_at == ~U[2025-06-15 10:00:00Z]
       assert consent.withdrawn_at == ~U[2025-07-01 12:00:00Z]
     end
@@ -99,7 +101,7 @@ defmodule KlassHero.Family.Domain.Models.ConsentTest do
         id: "550e8400-e29b-41d4-a716-446655440000",
         parent_id: "660e8400-e29b-41d4-a716-446655440001",
         child_id: "770e8400-e29b-41d4-a716-446655440002",
-        consent_type: "photo",
+        consent_type: "photo_marketing",
         granted_at: ~U[2025-06-15 10:00:00Z],
         withdrawn_at: nil,
         inserted_at: ~U[2025-06-15 10:00:00Z],
@@ -108,7 +110,7 @@ defmodule KlassHero.Family.Domain.Models.ConsentTest do
 
       assert {:ok, consent} = Consent.from_persistence(attrs)
       assert consent.id == attrs.id
-      assert consent.consent_type == "photo"
+      assert consent.consent_type == "photo_marketing"
     end
 
     test "returns error when required key is missing" do
@@ -117,7 +119,7 @@ defmodule KlassHero.Family.Domain.Models.ConsentTest do
         id: "550e8400-e29b-41d4-a716-446655440000",
         parent_id: "660e8400-e29b-41d4-a716-446655440001",
         child_id: "770e8400-e29b-41d4-a716-446655440002",
-        consent_type: "photo"
+        consent_type: "photo_marketing"
       }
 
       assert {:error, :invalid_persistence_data} = Consent.from_persistence(attrs)

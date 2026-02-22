@@ -30,6 +30,7 @@ defmodule KlassHero.Factory do
   alias KlassHero.AccountsFixtures
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
   alias KlassHero.Enrollment.Domain.Models.Enrollment
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSchema
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
@@ -383,11 +384,6 @@ defmodule KlassHero.Factory do
           :child_id,
           &"550e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
         ),
-      parent_id:
-        sequence(
-          :child_parent_id,
-          &"660e8400-e29b-41d4-a716-66665544#{String.pad_leading("#{&1}", 4, "0")}"
-        ),
       first_name: sequence(:child_first_name, &"Child#{&1}"),
       last_name: "Smith",
       date_of_birth: ~D[2018-06-15],
@@ -405,19 +401,17 @@ defmodule KlassHero.Factory do
   Factory for creating ChildSchema Ecto schemas.
 
   Used in repository and integration tests where we need database persistence.
-  Automatically creates a parent when inserted to avoid foreign key violations.
+  Does NOT automatically create a parent or guardian link.
+
+  For tests that need a child with a guardian link, use `insert_child_with_guardian/1`.
 
   ## Examples
 
-      schema = build(:child_schema)
-      schema = insert(:child_schema, first_name: "Bob")
+      schema = insert(:child_schema)
   """
   def child_schema_factory do
-    parent_schema = insert(:parent_profile_schema)
-
     %ChildSchema{
       id: Ecto.UUID.generate(),
-      parent_id: parent_schema.id,
       first_name: sequence(:child_schema_first_name, &"Child#{&1}"),
       last_name: "Smith",
       date_of_birth: ~D[2018-06-15],
@@ -426,6 +420,49 @@ defmodule KlassHero.Factory do
       emergency_contact: nil,
       support_needs: nil,
       allergies: nil
+    }
+  end
+
+  @doc """
+  Inserts a child with a parent profile and guardian link.
+
+  Returns `{child_schema, parent_schema}` so tests can access both.
+  Accepts optional overrides for the child schema fields.
+
+  ## Examples
+
+      {child, parent} = insert_child_with_guardian()
+      {child, parent} = insert_child_with_guardian(first_name: "Alice")
+      {child, parent} = insert_child_with_guardian(parent: existing_parent)
+  """
+  def insert_child_with_guardian(overrides \\ []) do
+    {parent_override, child_overrides} = Keyword.pop(overrides, :parent)
+
+    parent_schema = parent_override || insert(:parent_profile_schema)
+    child_schema = insert(:child_schema, child_overrides)
+
+    insert(:child_guardian_schema,
+      child_id: child_schema.id,
+      guardian_id: parent_schema.id
+    )
+
+    {child_schema, parent_schema}
+  end
+
+  @doc """
+  Factory for creating ChildGuardianSchema Ecto schemas (children_guardians join rows).
+
+  ## Examples
+
+      insert(:child_guardian_schema, child_id: child.id, guardian_id: parent.id)
+  """
+  def child_guardian_schema_factory do
+    %ChildGuardianSchema{
+      id: Ecto.UUID.generate(),
+      child_id: Ecto.UUID.generate(),
+      guardian_id: Ecto.UUID.generate(),
+      relationship: "parent",
+      is_primary: true
     }
   end
 
@@ -441,7 +478,7 @@ defmodule KlassHero.Factory do
   ## Examples
 
       consent = build(:consent)
-      consent = build(:consent, consent_type: "photo")
+      consent = build(:consent, consent_type: "photo_marketing")
   """
   def consent_factory do
     %Consent{
@@ -477,14 +514,14 @@ defmodule KlassHero.Factory do
   ## Examples
 
       schema = build(:consent_schema)
-      schema = insert(:consent_schema, consent_type: "photo")
+      schema = insert(:consent_schema, consent_type: "photo_marketing")
   """
   def consent_schema_factory do
-    child_schema = insert(:child_schema)
+    {child_schema, parent_schema} = insert_child_with_guardian()
 
     %ConsentSchema{
       id: Ecto.UUID.generate(),
-      parent_id: child_schema.parent_id,
+      parent_id: parent_schema.id,
       child_id: child_schema.id,
       consent_type: "provider_data_sharing",
       granted_at: DateTime.utc_now() |> DateTime.truncate(:second),
@@ -671,13 +708,13 @@ defmodule KlassHero.Factory do
   """
   def participation_record_schema_factory do
     session_schema = insert(:program_session_schema)
-    child_schema = insert(:child_schema)
+    {child_schema, parent_schema} = insert_child_with_guardian()
 
     %ParticipationRecordSchema{
       id: Ecto.UUID.generate(),
       session_id: session_schema.id,
       child_id: child_schema.id,
-      parent_id: child_schema.parent_id,
+      parent_id: parent_schema.id,
       provider_id: nil,
       status: :registered,
       check_in_at: nil,
@@ -892,13 +929,13 @@ defmodule KlassHero.Factory do
   """
   def enrollment_schema_factory do
     program_schema = insert(:program_schema)
-    child_schema = insert(:child_schema)
+    {child_schema, parent_schema} = insert_child_with_guardian()
 
     %EnrollmentSchema{
       id: Ecto.UUID.generate(),
       program_id: program_schema.id,
       child_id: child_schema.id,
-      parent_id: child_schema.parent_id,
+      parent_id: parent_schema.id,
       status: "pending",
       enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second),
       confirmed_at: nil,

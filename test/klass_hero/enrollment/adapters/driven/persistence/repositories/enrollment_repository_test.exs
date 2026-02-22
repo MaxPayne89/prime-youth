@@ -9,12 +9,12 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   describe "create/1" do
     test "creates enrollment with valid attributes" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       attrs = %{
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id,
+        parent_id: parent.id,
         status: "pending",
         enrolled_at: DateTime.utc_now(),
         subtotal: Decimal.new("100.00"),
@@ -28,18 +28,18 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
       assert %Enrollment{} = enrollment
       assert enrollment.program_id == program.id
       assert enrollment.child_id == child.id
-      assert enrollment.parent_id == child.parent_id
+      assert enrollment.parent_id == parent.id
       assert enrollment.status == :pending
     end
 
     test "returns domain entity with string IDs" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       attrs = %{
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id,
+        parent_id: parent.id,
         status: "pending",
         enrolled_at: DateTime.utc_now()
       }
@@ -128,8 +128,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   describe "list_by_parent/1" do
     test "returns all enrollments for parent" do
       parent = insert(:parent_profile_schema)
-      child1 = insert(:child_schema, parent_id: parent.id)
-      child2 = insert(:child_schema, parent_id: parent.id)
+      {child1, _parent} = insert_child_with_guardian(parent: parent)
+      {child2, _parent} = insert_child_with_guardian(parent: parent)
 
       enrollment1 = insert(:enrollment_schema, parent_id: parent.id, child_id: child1.id)
       enrollment2 = insert(:enrollment_schema, parent_id: parent.id, child_id: child2.id)
@@ -145,7 +145,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
     test "returns enrollments ordered by enrolled_at descending" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       old =
         insert(:enrollment_schema,
@@ -193,7 +193,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   describe "count_monthly_bookings/3" do
     test "counts active enrollments in date range" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       insert(:enrollment_schema,
         parent_id: parent.id,
@@ -217,7 +217,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
     test "excludes completed and cancelled enrollments" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       insert(:enrollment_schema,
         parent_id: parent.id,
@@ -248,7 +248,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
     test "excludes enrollments outside date range" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       insert(:enrollment_schema,
         parent_id: parent.id,
@@ -292,13 +292,13 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   describe "list_by_program/1" do
     test "returns active enrollments for a program" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       enrollment =
         insert(:enrollment_schema,
           program_id: program.id,
           child_id: child.id,
-          parent_id: child.parent_id,
+          parent_id: parent.id,
           status: "pending"
         )
 
@@ -311,20 +311,20 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
     test "returns both pending and confirmed enrollments" do
       program = insert(:program_schema)
-      child1 = insert(:child_schema)
-      child2 = insert(:child_schema)
+      {child1, parent1} = insert_child_with_guardian()
+      {child2, parent2} = insert_child_with_guardian()
 
       insert(:enrollment_schema,
         program_id: program.id,
         child_id: child1.id,
-        parent_id: child1.parent_id,
+        parent_id: parent1.id,
         status: "pending"
       )
 
       insert(:enrollment_schema,
         program_id: program.id,
         child_id: child2.id,
-        parent_id: child2.parent_id,
+        parent_id: parent2.id,
         status: "confirmed"
       )
 
@@ -334,20 +334,20 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
     test "excludes cancelled and completed enrollments" do
       program = insert(:program_schema)
-      child1 = insert(:child_schema)
-      child2 = insert(:child_schema)
+      {child1, parent1} = insert_child_with_guardian()
+      {child2, parent2} = insert_child_with_guardian()
 
       insert(:enrollment_schema,
         program_id: program.id,
         child_id: child1.id,
-        parent_id: child1.parent_id,
+        parent_id: parent1.id,
         status: "cancelled"
       )
 
       insert(:enrollment_schema,
         program_id: program.id,
         child_id: child2.id,
-        parent_id: child2.parent_id,
+        parent_id: parent2.id,
         status: "completed"
       )
 
@@ -360,14 +360,14 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
     test "returns domain entities ordered by enrolled_at descending" do
       program = insert(:program_schema)
-      child1 = insert(:child_schema)
-      child2 = insert(:child_schema)
+      {child1, parent1} = insert_child_with_guardian()
+      {child2, parent2} = insert_child_with_guardian()
 
       old =
         insert(:enrollment_schema,
           program_id: program.id,
           child_id: child1.id,
-          parent_id: child1.parent_id,
+          parent_id: parent1.id,
           enrolled_at: ~U[2025-01-10 10:00:00Z]
         )
 
@@ -375,7 +375,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
         insert(:enrollment_schema,
           program_id: program.id,
           child_id: child2.id,
-          parent_id: child2.parent_id,
+          parent_id: parent2.id,
           enrolled_at: ~U[2025-01-20 10:00:00Z],
           status: "confirmed"
         )
@@ -390,12 +390,12 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     test "does not return enrollments from other programs" do
       program1 = insert(:program_schema)
       program2 = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       insert(:enrollment_schema,
         program_id: program1.id,
         child_id: child.id,
-        parent_id: child.parent_id
+        parent_id: parent.id
       )
 
       assert EnrollmentRepository.list_by_program(program2.id) == []

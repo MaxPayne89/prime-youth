@@ -5,10 +5,12 @@ defmodule KlassHero.Family.Domain.Models.Child do
   This is a pure domain model with no persistence or infrastructure concerns.
   Validation happens at the use case boundary via Ecto changesets.
 
+  Guardian relationships are managed through the children_guardians join table,
+  not through a direct parent_id reference on the child.
+
   ## Fields
 
   - `id` - Unique identifier for the child
-  - `parent_id` - Reference to the parent (correlation ID, not FK)
   - `first_name` - Child's first name
   - `last_name` - Child's last name
   - `date_of_birth` - Child's birth date
@@ -17,16 +19,16 @@ defmodule KlassHero.Family.Domain.Models.Child do
   - `emergency_contact` - Optional emergency contact info
   - `support_needs` - Optional support needs or accommodations
   - `allergies` - Optional allergy information
+  - `school_name` - Name of the child's school (optional)
   - `inserted_at` - When the record was created
   - `updated_at` - When the record was last updated
   """
 
   @valid_genders ~w(male female diverse not_specified)
 
-  @enforce_keys [:id, :parent_id, :first_name, :last_name, :date_of_birth]
+  @enforce_keys [:id, :first_name, :last_name, :date_of_birth]
   defstruct [
     :id,
-    :parent_id,
     :first_name,
     :last_name,
     :date_of_birth,
@@ -36,12 +38,12 @@ defmodule KlassHero.Family.Domain.Models.Child do
     :inserted_at,
     :updated_at,
     gender: "not_specified",
-    school_grade: nil
+    school_grade: nil,
+    school_name: nil
   ]
 
   @type t :: %__MODULE__{
           id: String.t(),
-          parent_id: String.t(),
           first_name: String.t(),
           last_name: String.t(),
           date_of_birth: Date.t(),
@@ -50,6 +52,7 @@ defmodule KlassHero.Family.Domain.Models.Child do
           emergency_contact: String.t() | nil,
           support_needs: String.t() | nil,
           allergies: String.t() | nil,
+          school_name: String.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -100,7 +103,9 @@ defmodule KlassHero.Family.Domain.Models.Child do
       date_of_birth: nil,
       emergency_contact: nil,
       support_needs: nil,
-      allergies: nil
+      allergies: nil,
+      school_name: nil,
+      school_grade: nil
     }
   end
 
@@ -108,7 +113,6 @@ defmodule KlassHero.Family.Domain.Models.Child do
   Creates a new Child with validation.
 
   Business Rules:
-  - parent_id must be present and non-empty
   - first_name must be present and non-empty
   - last_name must be present and non-empty
   - date_of_birth must be present and not in the future
@@ -154,25 +158,12 @@ defmodule KlassHero.Family.Domain.Models.Child do
 
   defp validate(%__MODULE__{} = child) do
     []
-    |> validate_parent_id(child.parent_id)
     |> validate_first_name(child.first_name)
     |> validate_last_name(child.last_name)
     |> validate_date_of_birth(child.date_of_birth)
     |> validate_gender(child.gender)
     |> validate_school_grade(child.school_grade)
   end
-
-  defp validate_parent_id(errors, parent_id) when is_binary(parent_id) do
-    trimmed = String.trim(parent_id)
-
-    if trimmed == "" do
-      ["Parent ID cannot be empty" | errors]
-    else
-      errors
-    end
-  end
-
-  defp validate_parent_id(errors, _), do: ["Parent ID must be a string" | errors]
 
   defp validate_first_name(errors, first_name) when is_binary(first_name) do
     trimmed = String.trim(first_name)

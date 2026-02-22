@@ -218,10 +218,16 @@ defmodule KlassHero.Application do
     ]
   end
 
+  # Trigger: start_projections is false in test config
+  # Why: VerifiedProviders bootstraps a DB query outside the Ecto sandbox,
+  #      poisoning the connection pool and causing sandbox leaks across async tests
+  # Outcome: projections skipped in test env, started normally elsewhere
   defp in_memory_projections do
-    [
-      KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
-    ]
+    if Application.get_env(:klass_hero, :start_projections, true) do
+      [KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders]
+    else
+      []
+    end
   end
 
   defp in_memory_repositories do

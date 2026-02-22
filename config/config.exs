@@ -75,7 +75,10 @@ config :klass_hero, :enrollment,
   for_resolving_participant_details:
     KlassHero.Enrollment.Adapters.Driven.ACL.ParticipantDetailsACL,
   for_resolving_program_schedule: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramScheduleACL,
-  for_resolving_child_info: KlassHero.Enrollment.Adapters.Driven.ACL.ChildInfoACL
+  for_resolving_child_info: KlassHero.Enrollment.Adapters.Driven.ACL.ChildInfoACL,
+  for_storing_bulk_enrollment_invites:
+    KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository,
+  for_resolving_program_catalog: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramCatalogACL
 
 # Configure Event Publisher (domain events — internal context communication)
 config :klass_hero, :event_publisher,
@@ -252,7 +255,9 @@ config :logger, :default_formatter,
     :doc_type,
     :kind,
     :result,
-    :upload
+    :upload,
+    :row_index,
+    :batch_size
   ]
 
 config :opentelemetry, :resource,

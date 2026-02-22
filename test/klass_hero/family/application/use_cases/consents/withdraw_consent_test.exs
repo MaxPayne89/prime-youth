@@ -9,11 +9,11 @@ defmodule KlassHero.Family.Application.UseCases.Consents.WithdrawConsentTest do
 
   describe "execute/2" do
     test "withdraws active consent" do
-      child_schema = insert(:child_schema)
+      {child_schema, parent_schema} = insert_child_with_guardian()
 
       {:ok, granted} =
         GrantConsent.execute(%{
-          parent_id: child_schema.parent_id,
+          parent_id: parent_schema.id,
           child_id: child_schema.id,
           consent_type: "provider_data_sharing"
         })
@@ -31,11 +31,11 @@ defmodule KlassHero.Family.Application.UseCases.Consents.WithdrawConsentTest do
     end
 
     test "returns :not_found when consent was already withdrawn" do
-      child_schema = insert(:child_schema)
+      {child_schema, parent_schema} = insert_child_with_guardian()
 
       {:ok, _} =
         GrantConsent.execute(%{
-          parent_id: child_schema.parent_id,
+          parent_id: parent_schema.id,
           child_id: child_schema.id,
           consent_type: "provider_data_sharing"
         })

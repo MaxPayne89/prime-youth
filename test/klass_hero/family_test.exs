@@ -9,6 +9,7 @@ defmodule KlassHero.FamilyTest do
 
   alias KlassHero.Family
   alias KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSchema
   alias KlassHero.Family.Domain.Models.Child
   alias KlassHero.Family.Domain.Models.ParentProfile
 
@@ -81,17 +82,28 @@ defmodule KlassHero.FamilyTest do
     parent
   end
 
+  defp create_child_linked_to_parent(parent, child_attrs) do
+    {:ok, child} = ChildRepository.create(child_attrs)
+
+    Repo.insert!(%ChildGuardianSchema{
+      child_id: child.id,
+      guardian_id: parent.id,
+      relationship: "parent",
+      is_primary: true
+    })
+
+    child
+  end
+
   describe "get_children/1" do
     test "returns children for parent" do
       parent = create_parent_for_children()
 
-      {:ok, _} =
-        ChildRepository.create(%{
-          parent_id: parent.id,
-          first_name: "Emma",
-          last_name: "Smith",
-          date_of_birth: ~D[2015-06-15]
-        })
+      create_child_linked_to_parent(parent, %{
+        first_name: "Emma",
+        last_name: "Smith",
+        date_of_birth: ~D[2015-06-15]
+      })
 
       children = Family.get_children(parent.id)
 
@@ -127,7 +139,6 @@ defmodule KlassHero.FamilyTest do
     test "returns changeset pre-filled from domain struct" do
       child = %Child{
         id: Ecto.UUID.generate(),
-        parent_id: Ecto.UUID.generate(),
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15],
@@ -146,7 +157,6 @@ defmodule KlassHero.FamilyTest do
     test "returns changeset with updated attrs from domain struct" do
       child = %Child{
         id: Ecto.UUID.generate(),
-        parent_id: Ecto.UUID.generate(),
         first_name: "Emma",
         last_name: "Smith",
         date_of_birth: ~D[2015-06-15],
@@ -166,16 +176,15 @@ defmodule KlassHero.FamilyTest do
     test "retrieves existing child" do
       parent = create_parent_for_children()
 
-      {:ok, created} =
-        ChildRepository.create(%{
-          parent_id: parent.id,
+      child =
+        create_child_linked_to_parent(parent, %{
           first_name: "Emma",
           last_name: "Smith",
           date_of_birth: ~D[2015-06-15]
         })
 
-      assert {:ok, %Child{} = retrieved} = Family.get_child_by_id(created.id)
-      assert retrieved.id == created.id
+      assert {:ok, %Child{} = retrieved} = Family.get_child_by_id(child.id)
+      assert retrieved.id == child.id
       assert retrieved.first_name == "Emma"
     end
 
