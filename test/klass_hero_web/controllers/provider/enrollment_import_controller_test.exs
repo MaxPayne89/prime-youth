@@ -156,6 +156,17 @@ defmodule KlassHeroWeb.Provider.EnrollmentImportControllerTest do
       assert Map.has_key?(error, "errors")
     end
 
+    test "file exceeding 2MB returns 413" do
+      %{conn: conn} = register_and_log_in_provider(%{conn: build_conn()})
+
+      content = String.duplicate("x", 2_000_001)
+      path = write_tmp_csv(content)
+
+      conn = post(conn, ~p"/provider/enrollment/import", %{"file" => upload(path)})
+
+      assert json_response(conn, 413) == %{"error" => "File too large (max 2MB)"}
+    end
+
     test "parse errors return 422 with structured error details" do
       %{conn: conn} = register_and_log_in_provider(%{conn: build_conn()})
 
