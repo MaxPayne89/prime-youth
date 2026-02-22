@@ -20,20 +20,20 @@ defmodule KlassHero.Enrollment.Adapters.Driven.ACL.ProgramCatalogACL do
 
   @impl true
   def list_program_titles_for_provider(provider_id) when is_binary(provider_id) do
-    # Trigger: schemaless query on "programs" table
-    # Why: ProgramCatalog depends on Enrollment (cycle), so we query directly.
-    #      Ecto doesn't know field types without a schema, so we must cast
-    #      provider_id to :binary_id for the UUID column comparison, and
-    #      cast p.id in the select to get string UUIDs back (not raw bytes).
-    # Outcome: returns %{"title" => "uuid"} map for the provider's programs
-    query =
-      from(p in "programs",
-        where: p.provider_id == type(^provider_id, :binary_id),
-        select: {p.title, type(p.id, :binary_id)}
-      )
+    # Trigger: provider_id may not be a valid UUID
+    # Why: type(^provider_id, :binary_id) raises Ecto.Query.CastError on invalid format
+    # Outcome: invalid UUID returns empty map; build_context handles the empty-map case
+    case Ecto.UUID.cast(provider_id) do
+      {:ok, _} ->
+        from(p in "programs",
+          where: p.provider_id == type(^provider_id, :binary_id),
+          select: {p.title, type(p.id, :binary_id)}
+        )
+        |> Repo.all()
+        |> Map.new()
 
-    query
-    |> Repo.all()
-    |> Map.new()
+      :error ->
+        %{}
+    end
   end
 end

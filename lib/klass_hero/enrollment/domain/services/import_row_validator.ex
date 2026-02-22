@@ -170,7 +170,7 @@ defmodule KlassHero.Enrollment.Domain.Services.ImportRowValidator do
   # Outcome: row gains :program_id and :provider_id, loses transient lookup fields
 
   defp enrich_row(row, context) do
-    program_id = Map.fetch!(context.programs_by_title, row.program_name)
+    {:ok, program_id} = Map.fetch(context.programs_by_title, row.program_name)
 
     row
     |> Map.put(:program_id, program_id)

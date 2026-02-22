@@ -205,8 +205,8 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParser do
     {:ok, parse_boolean(raw)}
   end
 
-  defp convert_value(:school_grade, raw, _row_number) do
-    {:ok, parse_grade(raw)}
+  defp convert_value(:school_grade, raw, row_number) do
+    parse_grade(raw, row_number)
   end
 
   defp convert_value(_key, raw, _row_number) do
@@ -255,13 +255,10 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParser do
 
   # -- grade parsing ---------------------------------------------------------
 
-  defp parse_grade(raw) do
-    raw
-    |> String.trim()
-    |> Integer.parse()
-    |> case do
-      {grade, ""} -> grade
-      _ -> nil
+  defp parse_grade(raw, _row_number) do
+    case raw |> String.trim() |> Integer.parse() do
+      {grade, ""} -> {:ok, grade}
+      _ -> {:ok, nil}
     end
   end
 
