@@ -54,5 +54,5 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   Validates that the transition is legal per `transition_changeset/2`.
   Returns `{:ok, updated_invite}` or `{:error, changeset}`.
   """
-  @callback transition_status(struct(), map()) :: {:ok, struct()} | {:error, Ecto.Changeset.t()}
+  @callback transition_status(struct(), map()) :: {:ok, struct()} | {:error, term()}
 end
