@@ -216,4 +216,31 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       assert BulkEnrollmentInviteRepository.list_pending_without_token([]) == []
     end
   end
+
+  describe "bulk_assign_tokens/1" do
+    setup :setup_program
+
+    test "assigns tokens to invites", %{program: program, provider: provider} do
+      rows = [
+        valid_invite_attrs(program, provider),
+        valid_invite_attrs(program, provider, %{
+          child_first_name: "Liam",
+          guardian_email: "b@test.com"
+        })
+      ]
+
+      {:ok, 2} = BulkEnrollmentInviteRepository.create_batch(rows)
+      invites = Repo.all(BulkEnrollmentInviteSchema)
+      pairs = Enum.map(invites, fn inv -> {inv.id, "token-#{inv.id}"} end)
+
+      assert {:ok, 2} = BulkEnrollmentInviteRepository.bulk_assign_tokens(pairs)
+
+      updated = Repo.all(BulkEnrollmentInviteSchema)
+      assert Enum.all?(updated, fn inv -> inv.invite_token != nil end)
+    end
+
+    test "returns {:ok, 0} for empty list" do
+      assert {:ok, 0} = BulkEnrollmentInviteRepository.bulk_assign_tokens([])
+    end
+  end
 end

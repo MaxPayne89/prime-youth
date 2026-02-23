@@ -111,4 +111,30 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     |> where([i], is_nil(i.invite_token))
     |> Repo.all()
   end
+
+  @impl true
+  @doc """
+  Assigns invite tokens to multiple invites in bulk.
+
+  Accepts a list of `{invite_id, token}` tuples. Each invite is updated
+  individually within a reduce. Returns `{:ok, count}` with the total
+  number of rows updated.
+  """
+  def bulk_assign_tokens([]), do: {:ok, 0}
+
+  def bulk_assign_tokens(id_token_pairs) when is_list(id_token_pairs) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    count =
+      Enum.reduce(id_token_pairs, 0, fn {id, token}, acc ->
+        {rows_updated, _} =
+          BulkEnrollmentInviteSchema
+          |> where([i], i.id == ^id)
+          |> Repo.update_all(set: [invite_token: token, updated_at: now])
+
+        acc + rows_updated
+      end)
+
+    {:ok, count}
+  end
 end

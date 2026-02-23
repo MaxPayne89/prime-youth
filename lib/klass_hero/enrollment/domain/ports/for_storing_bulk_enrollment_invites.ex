@@ -39,4 +39,12 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   Returns an empty list when given an empty list of program IDs.
   """
   @callback list_pending_without_token([binary()]) :: [struct()]
+
+  @doc """
+  Assigns invite tokens to multiple invites in bulk.
+
+  Accepts a list of `{invite_id, token}` tuples. Returns `{:ok, count}`
+  with the number of rows updated.
+  """
+  @callback bulk_assign_tokens([{binary(), String.t()}]) :: {:ok, non_neg_integer()}
 end
