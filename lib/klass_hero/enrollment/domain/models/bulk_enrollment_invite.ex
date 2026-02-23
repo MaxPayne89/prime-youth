@@ -100,4 +100,10 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite do
   @spec invite_sent?(t()) :: boolean()
   def invite_sent?(%__MODULE__{status: "invite_sent"}), do: true
   def invite_sent?(%__MODULE__{}), do: false
+
+  @doc "Generates a cryptographically secure URL-safe token for invite links."
+  @spec generate_token() :: String.t()
+  def generate_token do
+    :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
+  end
 end
