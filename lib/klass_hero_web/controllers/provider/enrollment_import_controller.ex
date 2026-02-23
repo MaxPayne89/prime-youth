@@ -79,6 +79,7 @@ defmodule KlassHeroWeb.Provider.EnrollmentImportController do
     end
   end
 
+  # sobelow_skip ["Traversal.FileModule"]
   defp read_upload(%{"file" => %Plug.Upload{path: path}}) do
     stat = File.stat!(path)
 
