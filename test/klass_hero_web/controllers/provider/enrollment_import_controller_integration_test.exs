@@ -1,11 +1,11 @@
 defmodule KlassHeroWeb.Provider.EnrollmentImportControllerIntegrationTest do
   use KlassHeroWeb.ConnCase, async: true
 
-  @moduletag :integration
-
   import KlassHero.Factory
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmentInviteSchema
+
+  @moduletag :integration
 
   # -- CSV builder -----------------------------------------------------------
 
