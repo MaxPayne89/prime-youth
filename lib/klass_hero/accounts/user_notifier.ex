@@ -11,11 +11,13 @@ defmodule KlassHero.Accounts.UserNotifier do
   alias KlassHero.Accounts.User
   alias KlassHero.Mailer
 
+  @from Application.compile_env!(:klass_hero, [:mailer_defaults, :from])
+
   defp deliver(recipient, subject, body) do
     email =
       new()
       |> to(recipient)
-      |> from({"KlassHero", "contact@example.com"})
+      |> from(@from)
       |> subject(subject)
       |> text_body(body)
 
