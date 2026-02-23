@@ -94,4 +94,21 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   def get_by_id(id) when is_binary(id) do
     Repo.get(BulkEnrollmentInviteSchema, id)
   end
+
+  @impl true
+  @doc """
+  Returns pending invites that have not yet been assigned an invite token.
+
+  Filters by program IDs, status "pending", and nil invite_token.
+  Returns an empty list when given an empty list of program IDs.
+  """
+  def list_pending_without_token([]), do: []
+
+  def list_pending_without_token(program_ids) when is_list(program_ids) do
+    BulkEnrollmentInviteSchema
+    |> where([i], i.program_id in ^program_ids)
+    |> where([i], i.status == "pending")
+    |> where([i], is_nil(i.invite_token))
+    |> Repo.all()
+  end
 end

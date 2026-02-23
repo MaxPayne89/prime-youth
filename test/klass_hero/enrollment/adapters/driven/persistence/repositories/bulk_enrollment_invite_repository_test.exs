@@ -175,4 +175,45 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       assert BulkEnrollmentInviteRepository.get_by_id(Ecto.UUID.generate()) == nil
     end
   end
+
+  describe "list_pending_without_token/1" do
+    setup :setup_program
+
+    test "returns pending invites with no token", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      result = BulkEnrollmentInviteRepository.list_pending_without_token([program.id])
+      assert length(result) == 1
+      assert hd(result).status == "pending"
+      assert hd(result).invite_token == nil
+    end
+
+    test "excludes invites that already have tokens", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+      invite |> Ecto.Changeset.change(%{invite_token: "existing-token"}) |> Repo.update!()
+
+      assert BulkEnrollmentInviteRepository.list_pending_without_token([program.id]) == []
+    end
+
+    test "excludes non-pending invites", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+
+      invite
+      |> BulkEnrollmentInviteSchema.transition_changeset(%{status: "failed", error_details: "test"})
+      |> Repo.update!()
+
+      assert BulkEnrollmentInviteRepository.list_pending_without_token([program.id]) == []
+    end
+
+    test "returns empty list for empty program_ids" do
+      assert BulkEnrollmentInviteRepository.list_pending_without_token([]) == []
+    end
+  end
 end
