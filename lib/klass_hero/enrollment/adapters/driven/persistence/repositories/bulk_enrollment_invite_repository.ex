@@ -14,6 +14,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   import Ecto.Query
 
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.BulkEnrollmentInviteMapper,
+    as: Mapper
+
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmentInviteSchema
   alias KlassHero.Repo
 
@@ -92,7 +95,10 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   Returns the invite struct or nil if not found.
   """
   def get_by_id(id) when is_binary(id) do
-    Repo.get(BulkEnrollmentInviteSchema, id)
+    case Repo.get(BulkEnrollmentInviteSchema, id) do
+      nil -> nil
+      schema -> Mapper.to_domain(schema)
+    end
   end
 
   @impl true
@@ -110,6 +116,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     |> where([i], i.status == "pending")
     |> where([i], is_nil(i.invite_token))
     |> Repo.all()
+    |> Mapper.to_domain_list()
   end
 
   @impl true
@@ -145,9 +152,22 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   Delegates to `BulkEnrollmentInviteSchema.transition_changeset/2` for
   validation, then persists the update.
   """
-  def transition_status(%BulkEnrollmentInviteSchema{} = invite, attrs) when is_map(attrs) do
-    invite
-    |> BulkEnrollmentInviteSchema.transition_changeset(attrs)
-    |> Repo.update()
+  def transition_status(%{id: id}, attrs) when is_map(attrs) do
+    # Trigger: domain model passed in — must refetch schema for Ecto changeset
+    # Why: domain models are pure structs without Ecto metadata
+    # Outcome: load schema by ID, apply transition changeset, map result back
+    case Repo.get(BulkEnrollmentInviteSchema, id) do
+      nil ->
+        {:error, :not_found}
+
+      schema ->
+        schema
+        |> BulkEnrollmentInviteSchema.transition_changeset(attrs)
+        |> Repo.update()
+        |> case do
+          {:ok, updated_schema} -> {:ok, Mapper.to_domain(updated_schema)}
+          {:error, changeset} -> {:error, changeset}
+        end
+    end
   end
 end
