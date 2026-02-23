@@ -6,7 +6,7 @@
 
 - **Domain Concepts:** Enrollment (aggregate root), EnrollmentPolicy (capacity constraints), ParticipantPolicy (eligibility restrictions), FeeCalculation (value object), enrollment statuses, payment methods
 - **Data:** `enrollments` table (program/child/parent linkage, status lifecycle, fee amounts, special requirements), `enrollment_policies` table (per-program min/max capacity), `participant_policies` table (per-program age/gender/grade restrictions), `bulk_enrollment_invites` table (CSV-imported invites with guardian/child/program data and invite lifecycle)
-- **Processes:** Enrollment creation with entitlement + capacity + eligibility validation, fee calculation, booking usage tracking, enrollment status lifecycle (pending -> confirmed -> completed / cancelled), enrollment policy management (set/query capacity per program), participant policy management (set/query eligibility per program), bulk CSV import of enrollment invites
+- **Processes:** Enrollment creation with entitlement + capacity + eligibility validation, fee calculation, booking usage tracking, enrollment status lifecycle (pending -> confirmed -> completed / cancelled), enrollment policy management (set/query capacity per program), participant policy management (set/query eligibility per program), bulk CSV import of enrollment invites, invite email pipeline (token generation → Oban job enqueueing → email delivery → status transitions)
 
 ## Key Features
 
@@ -19,6 +19,7 @@
 | Booking Usage Tracking | Active | - |
 | Enrollment Status Lifecycle | Active | - |
 | CSV Bulk Import | Active | [import-enrollment-csv](features/import-enrollment-csv.md) |
+| Invite Email Pipeline | Active | [invite-email-pipeline](features/invite-email-pipeline.md) |
 | Cross-Context Enrollment Queries | Active | - |
 
 ## Inbound Communication
@@ -51,6 +52,7 @@
 | ProgramCatalog | Direct DB query (via ProgramScheduleACL) | Resolves program start_date for "at program start" eligibility checks |
 | ProgramCatalog | Direct DB query (via ProgramCatalogACL) | Resolves provider's program titles to IDs for CSV import |
 | ProgramCatalog | `participant_policy_set` integration event | Notifies ProgramCatalog when restrictions change (for cache invalidation / display) |
+| Guardian (Email) | `SendInviteEmailWorker` via Resend | Sends enrollment invitation email with registration link to guardian |
 
 ## Ubiquitous Language
 
@@ -69,6 +71,8 @@
 | Special Requirements | Free-text parent notes attached to an enrollment (max 500 chars). |
 | Cancellation Reason | Free-text explanation when an enrollment is cancelled (max 1000 chars). |
 | Bulk Enrollment Invite | A pending invite created via CSV import, linking a child to a program before the parent registers. Has its own status lifecycle: pending → invite_sent → registered → enrolled (or failed). |
+| Invite Token | A cryptographically secure URL-safe token assigned to a pending invite. Used to build the registration link sent via email. Generated from 32 random bytes, Base64-encoded. |
+| Invite Email Pipeline | The async flow triggered after CSV import: generate tokens → enqueue Oban jobs → deliver emails → transition invites to `invite_sent`. |
 | CSV Import | Provider-initiated bulk upload of enrollment invites. Parses, validates, deduplicates, and atomically inserts all rows in a single transaction. |
 
 ## Business Decisions
@@ -96,7 +100,11 @@
 - **Duplicate detection at two levels.** Within-CSV batch (same email + child name + program) and against existing DB records (same composite key in `bulk_enrollment_invites`).
 - **CSV upload capped at 2MB.** The controller enforces a file size limit before parsing.
 - **Bulk invite deduplication key.** `(program_id, guardian_email, child_first_name, child_last_name)` — case-insensitive comparison via downcased values.
-- **Bulk invite status lifecycle.** `pending → invite_sent → registered → enrolled` (or `failed` from any state). Transitions are validated in the schema changeset.
+- **Bulk invite status lifecycle.** `pending → invite_sent → registered → enrolled` (or `failed` from any state, `failed → pending` for retries). Transitions are validated in the schema changeset.
+- **Invite email sending is event-driven.** CSV import publishes `bulk_invites_imported`, which triggers token generation and Oban job creation. The event handler is a thin adapter; domain logic lives in the `EnqueueInviteEmails` use case.
+- **Token generation is idempotent.** `list_pending_without_token` only returns invites with `status = "pending" AND invite_token IS NULL`. Re-dispatching the event won't duplicate emails.
+- **Email delivery retries up to 3 times.** `SendInviteEmailWorker` uses Oban's built-in retry (max 3 attempts). On permanent failure, the invite transitions to `failed` with error details.
+- **Non-pending invites are skipped.** The worker checks status before sending. If an invite was already processed (retried by Oban, or event re-dispatched), it returns `:skipped` without sending.
 
 ## Assumptions & Open Questions
 
@@ -107,7 +115,7 @@
 - [NEEDS INPUT] Should reaching min_enrollment trigger a notification to the provider? Currently `meets_minimum?/2` exists as a domain check but nothing consumes it.
 - [NEEDS INPUT] Should existing enrollments be re-validated when a participant policy is changed? Currently, policy changes only affect future eligibility checks.
 - [NEEDS INPUT] Should the "not_specified" gender be treated as "matches all policies" or "matches only when explicitly allowed"?
-- [NEEDS INPUT] Should bulk enrollment invites trigger actual invitation emails? The `invite_sent` status exists but no email sending is implemented.
+- ~~Should bulk enrollment invites trigger actual invitation emails?~~ **Resolved.** Invite emails are now sent via Resend after CSV import. The `bulk_invites_imported` event triggers token generation and Oban job enqueueing.
 - [NEEDS INPUT] What happens after a parent registers from a bulk invite? The `registered → enrolled` transition exists but no automation connects registration to enrollment creation.
 - [NEEDS INPUT] Should large CSV imports (e.g., 10k+ rows) use chunked transactions instead of a single transaction?
 
