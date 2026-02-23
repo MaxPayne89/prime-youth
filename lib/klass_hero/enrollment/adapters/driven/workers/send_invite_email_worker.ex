@@ -47,7 +47,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorker do
   end
 
   defp send_and_transition(invite, program_name) do
-    invite_url = "#{KlassHeroWeb.Endpoint.url()}/invites/#{invite.invite_token}"
+    invite_url = "#{base_url()}/invites/#{invite.invite_token}"
 
     case @invite_notifier.send_invite(invite, program_name, invite_url) do
       {:ok, _email} ->
@@ -70,6 +70,24 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorker do
         })
 
         {:error, reason}
+    end
+  end
+
+  # Trigger: worker needs to build full invite URLs
+  # Why: referencing KlassHeroWeb.Endpoint directly violates boundary rules
+  # Outcome: reads URL config from application env at runtime instead
+  defp base_url do
+    endpoint_config = Application.get_env(:klass_hero, KlassHeroWeb.Endpoint, [])
+    url_config = Keyword.get(endpoint_config, :url, [])
+    scheme = Keyword.get(url_config, :scheme, "http")
+    host = Keyword.get(url_config, :host, "localhost")
+    port = Keyword.get(url_config, :port)
+
+    case port do
+      nil -> "#{scheme}://#{host}"
+      443 -> "https://#{host}"
+      80 -> "http://#{host}"
+      port -> "#{scheme}://#{host}:#{port}"
     end
   end
 end
