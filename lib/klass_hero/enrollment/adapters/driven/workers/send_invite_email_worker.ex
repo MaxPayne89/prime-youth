@@ -8,6 +8,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorker do
 
   use Oban.Worker, queue: :email, max_attempts: 3
 
+  alias KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite
+
   require Logger
 
   @invite_repository Application.compile_env!(:klass_hero, [
@@ -29,7 +31,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorker do
       # Trigger: invite already processed (not pending)
       # Why: Oban may retry, or event re-dispatched — skip to avoid duplicate emails
       # Outcome: return :skipped without sending
-      %{status: status} when status != "pending" ->
+      %BulkEnrollmentInvite{status: status} when status != "pending" ->
         Logger.info("[SendInviteEmailWorker] Skipping non-pending invite",
           invite_id: invite_id,
           status: status
@@ -37,11 +39,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorker do
 
         {:ok, :skipped}
 
-      %{invite_token: nil} ->
+      %BulkEnrollmentInvite{invite_token: nil} ->
         Logger.warning("[SendInviteEmailWorker] Invite has no token", invite_id: invite_id)
         {:error, "invite has no token"}
 
-      invite ->
+      %BulkEnrollmentInvite{} = invite ->
         send_and_transition(invite, program_name)
     end
   end
