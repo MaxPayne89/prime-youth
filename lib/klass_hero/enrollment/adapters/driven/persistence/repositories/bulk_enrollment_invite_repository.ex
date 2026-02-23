@@ -137,4 +137,17 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
     {:ok, count}
   end
+
+  @impl true
+  @doc """
+  Transitions an invite's status using the schema's state machine.
+
+  Delegates to `BulkEnrollmentInviteSchema.transition_changeset/2` for
+  validation, then persists the update.
+  """
+  def transition_status(%BulkEnrollmentInviteSchema{} = invite, attrs) when is_map(attrs) do
+    invite
+    |> BulkEnrollmentInviteSchema.transition_changeset(attrs)
+    |> Repo.update()
+  end
 end

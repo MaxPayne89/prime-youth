@@ -47,4 +47,12 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   with the number of rows updated.
   """
   @callback bulk_assign_tokens([{binary(), String.t()}]) :: {:ok, non_neg_integer()}
+
+  @doc """
+  Transitions an invite's status using the schema's state machine.
+
+  Validates that the transition is legal per `transition_changeset/2`.
+  Returns `{:ok, updated_invite}` or `{:error, changeset}`.
+  """
+  @callback transition_status(struct(), map()) :: {:ok, struct()} | {:error, Ecto.Changeset.t()}
 end

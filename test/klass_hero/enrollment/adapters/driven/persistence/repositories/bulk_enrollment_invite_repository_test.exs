@@ -243,4 +243,52 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       assert {:ok, 0} = BulkEnrollmentInviteRepository.bulk_assign_tokens([])
     end
   end
+
+  describe "transition_status/2" do
+    setup :setup_program
+
+    test "transitions pending to invite_sent", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+
+      assert {:ok, updated} =
+               BulkEnrollmentInviteRepository.transition_status(invite, %{
+                 status: "invite_sent",
+                 invite_token: "test-token",
+                 invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
+               })
+
+      assert updated.status == "invite_sent"
+      assert updated.invite_token == "test-token"
+      assert updated.invite_sent_at != nil
+    end
+
+    test "transitions pending to failed", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+
+      assert {:ok, updated} =
+               BulkEnrollmentInviteRepository.transition_status(invite, %{
+                 status: "failed",
+                 error_details: "delivery failed"
+               })
+
+      assert updated.status == "failed"
+      assert updated.error_details == "delivery failed"
+    end
+
+    test "rejects invalid transition", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+
+      assert {:error, %Ecto.Changeset{}} =
+               BulkEnrollmentInviteRepository.transition_status(invite, %{status: "enrolled"})
+    end
+  end
 end
