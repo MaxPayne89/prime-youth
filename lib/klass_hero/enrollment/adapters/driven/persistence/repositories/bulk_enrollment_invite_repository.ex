@@ -84,4 +84,14 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       {pid, String.downcase(email), String.downcase(first), String.downcase(last)}
     end)
   end
+
+  @impl true
+  @doc """
+  Retrieves a single invite by its ID.
+
+  Returns the invite struct or nil if not found.
+  """
+  def get_by_id(id) when is_binary(id) do
+    Repo.get(BulkEnrollmentInviteSchema, id)
+  end
 end

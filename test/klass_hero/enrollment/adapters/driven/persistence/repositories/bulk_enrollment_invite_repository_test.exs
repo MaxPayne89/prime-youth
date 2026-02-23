@@ -158,4 +158,21 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       assert MapSet.member?(result, {program_b.id, "b@test.com", "ben", "schmidt"})
     end
   end
+
+  describe "get_by_id/1" do
+    setup :setup_program
+
+    test "returns invite when found", %{program: program, provider: provider} do
+      {:ok, 1} = BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+
+      result = BulkEnrollmentInviteRepository.get_by_id(invite.id)
+      assert result.id == invite.id
+      assert result.guardian_email == "parent@example.com"
+    end
+
+    test "returns nil when not found" do
+      assert BulkEnrollmentInviteRepository.get_by_id(Ecto.UUID.generate()) == nil
+    end
+  end
 end

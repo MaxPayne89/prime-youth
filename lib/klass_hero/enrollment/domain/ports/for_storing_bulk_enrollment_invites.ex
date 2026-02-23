@@ -24,4 +24,11 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   of `{program_id, guardian_email, child_first_name, child_last_name}` tuples.
   """
   @callback list_existing_keys_for_programs([binary()]) :: MapSet.t()
+
+  @doc """
+  Retrieves a single invite by its ID.
+
+  Returns the invite struct or nil if not found.
+  """
+  @callback get_by_id(binary()) :: struct() | nil
 end
