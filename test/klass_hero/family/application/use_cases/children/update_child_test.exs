@@ -11,7 +11,6 @@ defmodule KlassHero.Family.Application.UseCases.Children.UpdateChildTest do
 
     %{
       id: child_schema.id,
-      parent_id: child_schema.parent_id,
       first_name: child_schema.first_name,
       last_name: child_schema.last_name,
       date_of_birth: child_schema.date_of_birth

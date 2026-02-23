@@ -165,6 +165,12 @@ defmodule KlassHeroWeb.Router do
     get "/users/export-data", UserDataExportController, :export
   end
 
+  scope "/provider", KlassHeroWeb.Provider do
+    pipe_through [:browser, :require_authenticated_user]
+
+    post "/enrollment/import", EnrollmentImportController, :create
+  end
+
   scope "/", KlassHeroWeb do
     pipe_through [:browser]
 

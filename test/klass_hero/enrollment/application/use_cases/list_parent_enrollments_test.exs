@@ -9,8 +9,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListParentEnrollmentsTest do
   describe "execute/1" do
     test "returns all enrollments for parent" do
       parent = insert(:parent_profile_schema)
-      child1 = insert(:child_schema, parent_id: parent.id)
-      child2 = insert(:child_schema, parent_id: parent.id)
+      {child1, _parent} = insert_child_with_guardian(parent: parent)
+      {child2, _parent} = insert_child_with_guardian(parent: parent)
 
       enrollment1 = insert(:enrollment_schema, parent_id: parent.id, child_id: child1.id)
 
@@ -39,7 +39,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListParentEnrollmentsTest do
 
     test "returns enrollments ordered by enrolled_at descending" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       old =
         insert(:enrollment_schema,
@@ -82,7 +82,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListParentEnrollmentsTest do
 
     test "includes all enrollment statuses" do
       parent = insert(:parent_profile_schema)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       insert(:enrollment_schema, parent_id: parent.id, child_id: child.id, status: "pending")
       insert(:enrollment_schema, parent_id: parent.id, child_id: child.id, status: "confirmed")

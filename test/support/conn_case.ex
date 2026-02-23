@@ -133,8 +133,9 @@ defmodule KlassHeroWeb.ConnCase do
     # Create parent profile linked to the user
     parent = KlassHero.Factory.insert(:parent_schema, identity_id: result.user.id)
 
-    # Create a child for the parent
-    child = KlassHero.Factory.insert(:child_schema, parent_id: parent.id, first_name: "Emma")
+    # Create a child linked to the parent via guardian join table
+    {child, _parent} =
+      KlassHero.Factory.insert_child_with_guardian(parent: parent, first_name: "Emma")
 
     Map.merge(result, %{parent: parent, child: child})
   end

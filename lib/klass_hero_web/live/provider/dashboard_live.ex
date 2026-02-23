@@ -364,6 +364,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     results =
       consume_uploaded_entries(socket, :verification_doc, fn %{path: path}, entry ->
         try do
+          # sobelow_skip ["Traversal.FileModule"]
           file_binary = File.read!(path)
 
           case Provider.submit_verification_document(%{
@@ -1162,6 +1163,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp consume_single_upload(socket, upload_name, storage_prefix, provider_id) do
     case consume_uploaded_entries(socket, upload_name, fn %{path: path}, entry ->
            try do
+             # sobelow_skip ["Traversal.FileModule"]
              file_binary = File.read!(path)
              safe_name = String.replace(entry.client_name, ~r/[^a-zA-Z0-9._-]/, "_")
              storage_path = "#{storage_prefix}/providers/#{provider_id}/#{safe_name}"

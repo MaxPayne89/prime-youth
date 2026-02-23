@@ -9,30 +9,30 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
   describe "execute/1" do
     test "creates enrollment with valid params" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       params = %{
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id
+        parent_id: parent.id
       }
 
       assert {:ok, enrollment} = CreateEnrollment.execute(params)
       assert %Enrollment{} = enrollment
       assert enrollment.program_id == program.id
       assert enrollment.child_id == child.id
-      assert enrollment.parent_id == child.parent_id
+      assert enrollment.parent_id == parent.id
       assert enrollment.status == :pending
     end
 
     test "defaults status to pending" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       params = %{
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id
+        parent_id: parent.id
       }
 
       {:ok, enrollment} = CreateEnrollment.execute(params)
@@ -42,12 +42,12 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
 
     test "defaults enrolled_at to current time" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       params = %{
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id
+        parent_id: parent.id
       }
 
       before = DateTime.utc_now() |> DateTime.truncate(:second)
@@ -60,12 +60,12 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
 
     test "accepts optional fee amounts" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       params = %{
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id,
+        parent_id: parent.id,
         subtotal: Decimal.new("100.00"),
         vat_amount: Decimal.new("19.00"),
         card_fee_amount: Decimal.new("2.00"),
@@ -82,12 +82,12 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
 
     test "accepts payment_method" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       params = %{
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id,
+        parent_id: parent.id,
         payment_method: "transfer"
       }
 
@@ -98,12 +98,12 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
 
     test "accepts special_requirements" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       params = %{
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id,
+        parent_id: parent.id,
         special_requirements: "Allergic to peanuts"
       }
 
@@ -145,13 +145,13 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
 
     test "accepts custom enrolled_at" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
       enrolled_at = ~U[2025-01-15 10:00:00Z]
 
       params = %{
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id,
+        parent_id: parent.id,
         enrolled_at: enrolled_at
       }
 
@@ -162,12 +162,12 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
 
     test "accepts custom status" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       params = %{
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id,
+        parent_id: parent.id,
         status: "confirmed"
       }
 
@@ -183,9 +183,9 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
       parent = insert(:parent_profile_schema, subscription_tier: "active")
 
       # Born 30 days ago — far too young for min_age 60 months
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           date_of_birth: Date.add(Date.utc_today(), -30),
           gender: "male"
         )
@@ -214,9 +214,9 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
       program = insert(:program_schema)
       parent = insert(:parent_profile_schema, subscription_tier: "active")
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           date_of_birth: ~D[2018-06-15],
           gender: "female"
         )
@@ -245,7 +245,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
     test "allows enrollment when no participant policy exists" do
       program = insert(:program_schema)
       parent = insert(:parent_profile_schema, subscription_tier: "active")
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       assert {:ok, _enrollment} =
                CreateEnrollment.execute(%{
@@ -282,8 +282,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
   describe "capacity enforcement" do
     test "rejects enrollment when program is at max capacity" do
       program = insert(:program_schema)
-      child1 = insert(:child_schema)
-      child2 = insert(:child_schema)
+      {child1, parent1} = insert_child_with_guardian()
+      {child2, parent2} = insert_child_with_guardian()
 
       KlassHero.Enrollment.set_enrollment_policy(%{program_id: program.id, max_enrollment: 1})
 
@@ -291,32 +291,32 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
         CreateEnrollment.execute(%{
           program_id: program.id,
           child_id: child1.id,
-          parent_id: child1.parent_id
+          parent_id: parent1.id
         })
 
       assert {:error, :program_full} =
                CreateEnrollment.execute(%{
                  program_id: program.id,
                  child_id: child2.id,
-                 parent_id: child2.parent_id
+                 parent_id: parent2.id
                })
     end
 
     test "allows enrollment when no policy exists (unlimited)" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       assert {:ok, _} =
                CreateEnrollment.execute(%{
                  program_id: program.id,
                  child_id: child.id,
-                 parent_id: child.parent_id
+                 parent_id: parent.id
                })
     end
 
     test "allows enrollment when under max capacity" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       KlassHero.Enrollment.set_enrollment_policy(%{program_id: program.id, max_enrollment: 10})
 
@@ -324,7 +324,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollmentTest do
                CreateEnrollment.execute(%{
                  program_id: program.id,
                  child_id: child.id,
-                 parent_id: child.parent_id
+                 parent_id: parent.id
                })
     end
   end

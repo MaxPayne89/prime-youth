@@ -11,7 +11,8 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLiveTest do
   setup :register_and_log_in_parent
 
   defp create_child_with_note(%{parent: parent}) do
-    child = insert(:child_schema, parent_id: parent.id, first_name: "Emma", last_name: "Mueller")
+    {child, _parent} =
+      insert_child_with_guardian(parent: parent, first_name: "Emma", last_name: "Mueller")
 
     session = insert(:program_session_schema, status: "in_progress")
 

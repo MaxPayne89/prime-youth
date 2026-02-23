@@ -8,16 +8,16 @@ defmodule KlassHero.Family.Application.UseCases.Consents.GrantConsentTest do
 
   describe "execute/1" do
     test "grants consent with valid params" do
-      child_schema = insert(:child_schema)
+      {child_schema, parent_schema} = insert_child_with_guardian()
 
       attrs = %{
-        parent_id: child_schema.parent_id,
+        parent_id: parent_schema.id,
         child_id: child_schema.id,
         consent_type: "provider_data_sharing"
       }
 
       assert {:ok, %Consent{} = consent} = GrantConsent.execute(attrs)
-      assert consent.parent_id == child_schema.parent_id
+      assert consent.parent_id == parent_schema.id
       assert consent.child_id == child_schema.id
       assert consent.consent_type == "provider_data_sharing"
       assert %DateTime{} = consent.granted_at
@@ -25,10 +25,10 @@ defmodule KlassHero.Family.Application.UseCases.Consents.GrantConsentTest do
     end
 
     test "auto-generates id and granted_at" do
-      child_schema = insert(:child_schema)
+      {child_schema, parent_schema} = insert_child_with_guardian()
 
       attrs = %{
-        parent_id: child_schema.parent_id,
+        parent_id: parent_schema.id,
         child_id: child_schema.id,
         consent_type: "provider_data_sharing"
       }
@@ -40,10 +40,10 @@ defmodule KlassHero.Family.Application.UseCases.Consents.GrantConsentTest do
     end
 
     test "returns validation error for empty consent_type" do
-      child_schema = insert(:child_schema)
+      {child_schema, parent_schema} = insert_child_with_guardian()
 
       attrs = %{
-        parent_id: child_schema.parent_id,
+        parent_id: parent_schema.id,
         child_id: child_schema.id,
         consent_type: ""
       }

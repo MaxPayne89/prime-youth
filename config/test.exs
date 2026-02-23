@@ -44,6 +44,11 @@ config :klass_hero, :storage,
   adapter: KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter,
   bucket: "klass-hero-test"
 
+# Trigger: VerifiedProviders GenServer bootstraps a DB query at app startup
+# Why: that query runs outside the Ecto test sandbox, poisoning the connection pool
+# Outcome: disabling projections prevents sandbox leaks across async tests
+config :klass_hero, start_projections: false
+
 # Print only warnings and errors during test
 config :logger, level: :warning
 

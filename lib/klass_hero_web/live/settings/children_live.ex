@@ -65,9 +65,9 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     case Family.get_child_by_id(child_id) do
       {:ok, child} ->
         # Trigger: verify child belongs to the current parent
-        # Why: prevent editing another parent's children
+        # Why: prevent editing another parent's children via join table lookup
         # Outcome: redirect unauthorized users back to index
-        if child.parent_id == socket.assigns.parent_id do
+        if Family.child_belongs_to_parent?(child.id, socket.assigns.parent_id) do
           changeset = Family.change_child(child, %{})
           consent = Family.child_has_active_consent?(child.id, @consent_type)
 

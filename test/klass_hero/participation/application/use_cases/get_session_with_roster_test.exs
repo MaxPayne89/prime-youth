@@ -130,9 +130,9 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
     test "enriched records include safety info when child has active consent" do
       parent = insert(:parent_profile_schema)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           allergies: "Peanuts",
           support_needs: "Wheelchair access",
           emergency_contact: "+49 123 456789"
@@ -181,9 +181,9 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
       # Child with consent
       parent1 = insert(:parent_profile_schema)
 
-      child_with_consent =
-        insert(:child_schema,
-          parent_id: parent1.id,
+      {child_with_consent, _parent1} =
+        insert_child_with_guardian(
+          parent: parent1,
           allergies: "Dairy"
         )
 
@@ -229,9 +229,9 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
     test "roster entries include safety fields when child has consent" do
       parent = insert(:parent_profile_schema)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           allergies: "Nuts",
           emergency_contact: "Mom: +49 111"
         )
@@ -280,9 +280,9 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
     test "enriched records include approved behavioral notes when consented" do
       parent = insert(:parent_profile_schema)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           allergies: "Peanuts"
         )
 
@@ -346,9 +346,9 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
     test "roster entries include approved behavioral notes when consented" do
       parent = insert(:parent_profile_schema)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           allergies: "Nuts"
         )
 
@@ -407,10 +407,8 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
     test "only approved notes appear in enriched records (pending excluded)" do
       parent = insert(:parent_profile_schema)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id
-        )
+      {child, _parent} =
+        insert_child_with_guardian(parent: parent)
 
       insert(:consent_schema,
         parent_id: parent.id,

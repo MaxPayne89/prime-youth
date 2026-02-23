@@ -150,7 +150,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
         ConsentRepository.grant(%{
           parent_id: parent.id,
           child_id: child.id,
-          consent_type: "photo",
+          consent_type: "photo_marketing",
           granted_at: now
         })
 
@@ -158,7 +158,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
 
       assert length(consents) == 2
       types = Enum.map(consents, & &1.consent_type)
-      assert "photo" in types
+      assert "photo_marketing" in types
       assert "provider_data_sharing" in types
     end
 
@@ -179,7 +179,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
         ConsentRepository.grant(%{
           parent_id: parent.id,
           child_id: child.id,
-          consent_type: "photo",
+          consent_type: "photo_marketing",
           granted_at: now
         })
 
@@ -188,7 +188,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
       consents = ConsentRepository.list_active_by_child(child.id)
 
       assert length(consents) == 1
-      assert Enum.at(consents, 0).consent_type == "photo"
+      assert Enum.at(consents, 0).consent_type == "photo_marketing"
     end
 
     test "returns empty list when child has no consents" do
@@ -214,7 +214,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
         ConsentRepository.grant(%{
           parent_id: parent.id,
           child_id: child.id,
-          consent_type: "photo",
+          consent_type: "photo_marketing",
           granted_at: now
         })
 
@@ -244,12 +244,12 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
           granted_at: earlier
         })
 
-      # Grant first photo consent, then withdraw it to allow a second
+      # Grant first photo_marketing consent, then withdraw it to allow a second
       {:ok, first_photo} =
         ConsentRepository.grant(%{
           parent_id: parent.id,
           child_id: child.id,
-          consent_type: "photo",
+          consent_type: "photo_marketing",
           granted_at: earlier
         })
 
@@ -259,17 +259,17 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
         ConsentRepository.grant(%{
           parent_id: parent.id,
           child_id: child.id,
-          consent_type: "photo",
+          consent_type: "photo_marketing",
           granted_at: later
         })
 
       consents = ConsentRepository.list_all_by_child(child.id)
 
       types = Enum.map(consents, & &1.consent_type)
-      # Trigger: "photo" sorts before "provider_data_sharing" alphabetically
-      assert types == ["photo", "photo", "provider_data_sharing"]
+      # Trigger: "photo_marketing" sorts before "provider_data_sharing" alphabetically
+      assert types == ["photo_marketing", "photo_marketing", "provider_data_sharing"]
 
-      # Within "photo" type, later granted_at comes first (desc)
+      # Within "photo_marketing" type, later granted_at comes first (desc)
       [photo1, photo2 | _] = consents
       assert DateTime.after?(photo1.granted_at, photo2.granted_at)
     end
@@ -297,7 +297,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
         ConsentRepository.grant(%{
           parent_id: parent.id,
           child_id: child.id,
-          consent_type: "photo",
+          consent_type: "photo_marketing",
           granted_at: now
         })
 

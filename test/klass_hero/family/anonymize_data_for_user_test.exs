@@ -27,9 +27,9 @@ defmodule KlassHero.Family.AnonymizeDataForUserTest do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           first_name: "Emma",
           last_name: "Smith",
           emergency_contact: "+49123456",
@@ -47,13 +47,13 @@ defmodule KlassHero.Family.AnonymizeDataForUserTest do
       assert is_nil(reloaded.allergies)
     end
 
-    test "anonymizes date_of_birth and preserves parent_id after anonymization" do
+    test "anonymizes date_of_birth after anonymization" do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           date_of_birth: ~D[2018-03-15]
         )
 
@@ -61,13 +61,12 @@ defmodule KlassHero.Family.AnonymizeDataForUserTest do
 
       reloaded = Repo.get!(ChildSchema, child.id)
       assert is_nil(reloaded.date_of_birth)
-      assert reloaded.parent_id == parent.id
     end
 
     test "deletes all consents for each child" do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       insert(:consent_schema,
         parent_id: parent.id,
@@ -78,7 +77,7 @@ defmodule KlassHero.Family.AnonymizeDataForUserTest do
       insert(:consent_schema,
         parent_id: parent.id,
         child_id: child.id,
-        consent_type: "photo",
+        consent_type: "photo_marketing",
         withdrawn_at: DateTime.utc_now() |> DateTime.truncate(:second)
       )
 
@@ -101,7 +100,7 @@ defmodule KlassHero.Family.AnonymizeDataForUserTest do
     test "publishes child_data_anonymized integration event per child" do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
-      child = insert(:child_schema, parent_id: parent.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
 
       {:ok, _summary} = Family.anonymize_data_for_user(user.id)
 
@@ -115,8 +114,8 @@ defmodule KlassHero.Family.AnonymizeDataForUserTest do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
 
-      child_a = insert(:child_schema, parent_id: parent.id, first_name: "Alice")
-      child_b = insert(:child_schema, parent_id: parent.id, first_name: "Bob")
+      {child_a, _parent} = insert_child_with_guardian(parent: parent, first_name: "Alice")
+      {child_b, _parent} = insert_child_with_guardian(parent: parent, first_name: "Bob")
 
       insert(:consent_schema,
         parent_id: parent.id,
@@ -127,7 +126,7 @@ defmodule KlassHero.Family.AnonymizeDataForUserTest do
       insert(:consent_schema,
         parent_id: parent.id,
         child_id: child_b.id,
-        consent_type: "photo"
+        consent_type: "photo_marketing"
       )
 
       {:ok, summary} = Family.anonymize_data_for_user(user.id)
@@ -164,9 +163,9 @@ defmodule KlassHero.Family.AnonymizeDataForUserTest do
       user = AccountsFixtures.user_fixture()
       parent = insert(:parent_profile_schema, identity_id: user.id)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        insert_child_with_guardian(
+          parent: parent,
           first_name: "Emma",
           last_name: "Smith"
         )

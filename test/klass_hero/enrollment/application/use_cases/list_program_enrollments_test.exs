@@ -8,12 +8,12 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollmentsTest d
   describe "execute/1" do
     test "returns enriched roster entries with child names" do
       program = insert(:program_schema)
-      child = insert(:child_schema, first_name: "Emma", last_name: "Smith")
+      {child, parent} = insert_child_with_guardian(first_name: "Emma", last_name: "Smith")
 
       insert(:enrollment_schema,
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id,
+        parent_id: parent.id,
         status: "pending",
         enrolled_at: ~U[2025-06-15 10:00:00Z]
       )
@@ -31,20 +31,20 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollmentsTest d
 
     test "returns multiple entries for program with multiple enrollments" do
       program = insert(:program_schema)
-      child1 = insert(:child_schema, first_name: "Emma", last_name: "Smith")
-      child2 = insert(:child_schema, first_name: "Liam", last_name: "Jones")
+      {child1, parent1} = insert_child_with_guardian(first_name: "Emma", last_name: "Smith")
+      {child2, parent2} = insert_child_with_guardian(first_name: "Liam", last_name: "Jones")
 
       insert(:enrollment_schema,
         program_id: program.id,
         child_id: child1.id,
-        parent_id: child1.parent_id,
+        parent_id: parent1.id,
         status: "pending"
       )
 
       insert(:enrollment_schema,
         program_id: program.id,
         child_id: child2.id,
-        parent_id: child2.parent_id,
+        parent_id: parent2.id,
         status: "confirmed"
       )
 
@@ -57,12 +57,12 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollmentsTest d
 
     test "excludes cancelled enrollments" do
       program = insert(:program_schema)
-      child = insert(:child_schema)
+      {child, parent} = insert_child_with_guardian()
 
       insert(:enrollment_schema,
         program_id: program.id,
         child_id: child.id,
-        parent_id: child.parent_id,
+        parent_id: parent.id,
         status: "cancelled"
       )
 

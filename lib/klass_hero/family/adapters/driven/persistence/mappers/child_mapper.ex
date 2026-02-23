@@ -27,7 +27,6 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapper do
   def to_domain(%ChildSchema{} = schema) do
     attrs = %{
       id: Ecto.UUID.cast!(schema.id),
-      parent_id: Ecto.UUID.cast!(schema.parent_id),
       first_name: schema.first_name,
       last_name: schema.last_name,
       date_of_birth: schema.date_of_birth,
@@ -36,6 +35,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapper do
       emergency_contact: schema.emergency_contact,
       support_needs: schema.support_needs,
       allergies: schema.allergies,
+      school_name: schema.school_name,
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -62,7 +62,6 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapper do
   """
   def to_schema(%Child{} = child) do
     %{
-      parent_id: parse_uuid(child.parent_id),
       first_name: child.first_name,
       last_name: child.last_name,
       date_of_birth: child.date_of_birth,
@@ -70,7 +69,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapper do
       school_grade: child.school_grade,
       emergency_contact: child.emergency_contact,
       support_needs: child.support_needs,
-      allergies: child.allergies
+      allergies: child.allergies,
+      school_name: child.school_name
     }
   end
 
@@ -80,13 +80,4 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapper do
   def to_domain_list(schemas) when is_list(schemas) do
     Enum.map(schemas, &to_domain/1)
   end
-
-  defp parse_uuid(uuid_string) when is_binary(uuid_string) do
-    case Ecto.UUID.dump(uuid_string) do
-      {:ok, binary} -> binary
-      :error -> uuid_string
-    end
-  end
-
-  defp parse_uuid(other), do: other
 end

@@ -5,11 +5,11 @@ defmodule KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolve
 
   describe "resolve_child_info/1" do
     test "returns name and safety info when child has active provider_data_sharing consent" do
-      parent = insert(:parent_profile_schema)
+      parent = factory_insert(:parent_profile_schema)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        KlassHero.Factory.insert_child_with_guardian(
+          parent: parent,
           first_name: "Jane",
           last_name: "Smith",
           allergies: "Peanuts",
@@ -17,7 +17,7 @@ defmodule KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolve
           emergency_contact: "+49 123 456789"
         )
 
-      insert(:consent_schema,
+      factory_insert(:consent_schema,
         parent_id: parent.id,
         child_id: child.id,
         consent_type: "provider_data_sharing"
@@ -33,7 +33,7 @@ defmodule KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolve
 
     test "returns name but nil safety fields when child has no active consent" do
       child =
-        insert(:child_schema,
+        factory_insert(:child_schema,
           first_name: "Alice",
           last_name: "Jones",
           allergies: "Peanuts",
@@ -49,17 +49,17 @@ defmodule KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolve
     end
 
     test "returns nil safety fields when child has consent but nil optional fields" do
-      parent = insert(:parent_profile_schema)
+      parent = factory_insert(:parent_profile_schema)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        KlassHero.Factory.insert_child_with_guardian(
+          parent: parent,
           allergies: nil,
           support_needs: nil,
           emergency_contact: nil
         )
 
-      insert(:consent_schema,
+      factory_insert(:consent_schema,
         parent_id: parent.id,
         child_id: child.id,
         consent_type: "provider_data_sharing"
@@ -72,17 +72,17 @@ defmodule KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolve
     end
 
     test "returns nil safety fields when consent has been withdrawn" do
-      parent = insert(:parent_profile_schema)
+      parent = factory_insert(:parent_profile_schema)
 
-      child =
-        insert(:child_schema,
-          parent_id: parent.id,
+      {child, _parent} =
+        KlassHero.Factory.insert_child_with_guardian(
+          parent: parent,
           first_name: "Bob",
           last_name: "Brown",
           allergies: "Gluten"
         )
 
-      insert(:consent_schema,
+      factory_insert(:consent_schema,
         parent_id: parent.id,
         child_id: child.id,
         consent_type: "provider_data_sharing",
@@ -108,7 +108,7 @@ defmodule KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolve
     end
   end
 
-  defp insert(factory, attrs \\ []) do
+  defp factory_insert(factory, attrs \\ []) do
     KlassHero.Factory.insert(factory, attrs)
   end
 end
