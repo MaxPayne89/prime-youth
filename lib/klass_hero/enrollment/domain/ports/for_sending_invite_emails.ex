@@ -18,6 +18,10 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForSendingInviteEmails do
 
   Returns `{:ok, email}` on success or `{:error, reason}` on failure.
   """
-  @callback send_invite(invite :: struct() | map(), program_name :: String.t(), invite_url :: String.t()) ::
+  @callback send_invite(
+              invite :: struct() | map(),
+              program_name :: String.t(),
+              invite_url :: String.t()
+            ) ::
               {:ok, term()} | {:error, term()}
 end

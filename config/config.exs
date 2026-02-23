@@ -32,9 +32,6 @@ config :ex_aws, http_client: ExAws.Request.Req
 # Configures the endpoint
 config :klass_hero, KlassHero.Mailer, adapter: Swoosh.Adapters.Local
 
-config :klass_hero, :mailer_defaults,
-  from: {"KlassHero", "noreply@mail.klasshero.com"}
-
 config :klass_hero, KlassHeroWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
@@ -103,6 +100,8 @@ config :klass_hero, :family,
 config :klass_hero, :integration_event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher,
   pubsub: KlassHero.PubSub
+
+config :klass_hero, :mailer_defaults, from: {"KlassHero", "noreply@mail.klasshero.com"}
 
 # Configure Messaging bounded context
 config :klass_hero, :messaging,

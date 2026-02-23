@@ -4,7 +4,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.EnqueueInvit
   import KlassHero.Factory
 
   alias KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.EnqueueInviteEmails
+
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
+
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmentInviteSchema
   alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
   alias KlassHero.Repo

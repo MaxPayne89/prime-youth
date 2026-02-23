@@ -163,7 +163,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     setup :setup_program
 
     test "returns invite when found", %{program: program, provider: provider} do
-      {:ok, 1} = BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
       invite = Repo.one!(BulkEnrollmentInviteSchema)
 
       result = BulkEnrollmentInviteRepository.get_by_id(invite.id)
@@ -206,7 +208,10 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       invite = Repo.one!(BulkEnrollmentInviteSchema)
 
       invite
-      |> BulkEnrollmentInviteSchema.transition_changeset(%{status: "failed", error_details: "test"})
+      |> BulkEnrollmentInviteSchema.transition_changeset(%{
+        status: "failed",
+        error_details: "test"
+      })
       |> Repo.update!()
 
       assert BulkEnrollmentInviteRepository.list_pending_without_token([program.id]) == []

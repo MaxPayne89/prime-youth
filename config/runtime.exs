@@ -59,6 +59,10 @@ if config_env() == :prod do
       ]
   end
 
+  config :klass_hero, KlassHero.Mailer,
+    adapter: Swoosh.Adapters.Resend,
+    api_key: System.get_env("RESEND_API_KEY") || raise("RESEND_API_KEY not set")
+
   config :klass_hero, KlassHero.Repo,
     # ssl: true,
     url: database_url,
@@ -123,8 +127,4 @@ if config_env() == :prod do
     access_key_id: System.get_env("AWS_ACCESS_KEY_ID") || raise("AWS_ACCESS_KEY_ID not set"),
     secret_access_key:
       System.get_env("AWS_SECRET_ACCESS_KEY") || raise("AWS_SECRET_ACCESS_KEY not set")
-
-  config :klass_hero, KlassHero.Mailer,
-    adapter: Swoosh.Adapters.Resend,
-    api_key: System.get_env("RESEND_API_KEY") || raise("RESEND_API_KEY not set")
 end
