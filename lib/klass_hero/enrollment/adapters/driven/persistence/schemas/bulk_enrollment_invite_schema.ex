@@ -199,7 +199,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
   defp validate_status_transition(changeset) do
     case {changeset.data.status, get_change(changeset, :status)} do
       {_current, nil} ->
-        changeset
+        add_error(changeset, :status, "status change is required for transitions")
 
       {current, target} ->
         allowed = Map.get(@valid_transitions, current, [])
