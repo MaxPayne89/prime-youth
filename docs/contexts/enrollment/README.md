@@ -18,8 +18,11 @@
 | Fee Calculation | Active | - |
 | Booking Usage Tracking | Active | - |
 | Enrollment Status Lifecycle | Active | - |
+| Enrollment Classification (Active/Expired) | Active | [enrollment-classification](features/enrollment-classification.md) |
+| Provider Enrollment Roster | Active | [provider-enrollment-roster](features/provider-enrollment-roster.md) |
 | CSV Bulk Import | Active | [import-enrollment-csv](features/import-enrollment-csv.md) |
 | Invite Email Pipeline | Active | [invite-email-pipeline](features/invite-email-pipeline.md) |
+| Invite Management (list, resend, delete) | Active | [invite-management](features/invite-management.md) |
 | Invite Claim Saga | Active | - |
 | Cross-Context Enrollment Queries | Active | - |
 
@@ -39,8 +42,17 @@
 | Provider (Web) | `Enrollment.get_participant_policy/1` | Retrieves current eligibility restrictions for a program |
 | Provider (Web) | `Enrollment.new_participant_policy_changeset/1` | Form validation for participant restriction fields |
 | Booking (Web) | `Enrollment.check_participant_eligibility/2` | Validates child meets program restrictions before enrollment |
+| Provider (Web) | `Enrollment.list_program_enrollments/1` | Returns enriched roster (child names, status, enrolled_at) for a program |
 | Provider (Web) | `Enrollment.import_enrollment_csv/2` | Bulk CSV import of enrollment invites for a provider |
+| Provider (Web) | `Enrollment.list_program_invites/1` | Lists all invites for a program, ordered by child name |
+| Provider (Web) | `Enrollment.count_program_invites/1` | Returns count of invites for a program |
+| Provider (Web) | `Enrollment.resend_invite/1` | Resets invite to pending and re-dispatches email pipeline |
+| Provider (Web) | `Enrollment.delete_invite/1` | Hard-deletes an invite by ID |
 | Guardian (Web) | `Enrollment.claim_invite/1` | Claims an invite by token, creates user account, triggers registration saga |
+| Parent (Web) | `Enrollment.classify_family_programs/2` | Classifies enrollment+program pairs into active/expired groups for dashboard |
+| Parent (Web) | `Enrollment.get_booking_usage_info/1` | Returns booking usage map (tier, cap, used, remaining) for UI display |
+| Provider (Web) | `Enrollment.count_active_enrollments_batch/1` | Batch active enrollment counts for program listings |
+| Family (Integration) | `invite_family_ready` event | Triggers enrollment creation from invite after parent/child are created |
 | ProgramCatalog | Subscribes to `integration:enrollment:participant_policy_set` | Caches participant restrictions for program detail display |
 
 ## Outbound Communication
@@ -76,6 +88,8 @@
 | Payment Method | How the parent pays: `card` (incurs card fee) or `transfer` (no card fee). |
 | Special Requirements | Free-text parent notes attached to an enrollment (max 500 chars). |
 | Cancellation Reason | Free-text explanation when an enrollment is cancelled (max 1000 chars). |
+| Enrollment Classification | Pure domain logic that splits enrollment+program pairs into "active" (pending/confirmed AND not past end date) and "expired" (completed/cancelled OR past end date). Active sorted by upcoming start date, expired by most recent end date. |
+| Provider Enrollment Roster | Enriched view of a program's enrollments with child names resolved via the Family ACL. Shows status and enrollment date per entry. |
 | Bulk Enrollment Invite | A pending invite created via CSV import, linking a child to a program before the parent registers. Has its own status lifecycle: pending → invite_sent → registered → enrolled (or failed). |
 | Invite Token | A cryptographically secure URL-safe token assigned to a pending invite. Used to build the registration link sent via email. Generated from 32 random bytes, Base64-encoded. |
 | Invite Email Pipeline | The async flow triggered after CSV import: generate tokens → enqueue Oban jobs → deliver emails → transition invites to `invite_sent`. |
