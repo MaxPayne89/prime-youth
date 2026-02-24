@@ -42,6 +42,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Notifications.InviteEmailNotifier
 
     You've been invited to enroll #{invite.child_first_name} #{invite.child_last_name} in #{program_name}.
 
+    After clicking the link below, your account will be created automatically.
+    You can set a password in your account settings at any time.
+
     Complete your registration here:
     #{invite_url}
 
@@ -68,6 +71,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Notifications.InviteEmailNotifier
       <div style="padding: 30px 0;">
         <p>Hi #{greeting},</p>
         <p>You've been invited to enroll <strong>#{child_name}</strong> in <strong>#{safe_program_name}</strong>.</p>
+        <p style="color: #666; font-size: 14px;">After clicking the link below, your account will be created automatically. You can set a password in your account settings at any time.</p>
         <div style="text-align: center; padding: 20px 0;">
           <a href="#{safe_url}" style="background-color: #4F46E5; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">Complete Registration</a>
         </div>
