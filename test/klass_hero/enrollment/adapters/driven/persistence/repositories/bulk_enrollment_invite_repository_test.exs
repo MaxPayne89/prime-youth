@@ -275,6 +275,68 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     end
   end
 
+  describe "list_by_program/1" do
+    setup :setup_program
+
+    test "returns invites for a program ordered by child_last_name", %{
+      program: program,
+      provider: provider
+    } do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Zebra",
+            child_first_name: "Alice",
+            guardian_email: "alice@test.com"
+          }),
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Adams",
+            child_first_name: "Bob",
+            guardian_email: "bob@test.com"
+          })
+        ])
+
+      invites = BulkEnrollmentInviteRepository.list_by_program(program.id)
+
+      assert length(invites) == 2
+      assert [first, second] = invites
+      assert first.child_last_name == "Adams"
+      assert second.child_last_name == "Zebra"
+    end
+
+    test "returns empty list for program with no invites" do
+      assert BulkEnrollmentInviteRepository.list_by_program(Ecto.UUID.generate()) == []
+    end
+
+    test "does not return invites from other programs", %{provider: provider} do
+      program_a = insert(:program_schema, provider_id: provider.id)
+      program_b = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program_a, provider, %{
+            child_last_name: "Smith",
+            child_first_name: "Jane",
+            guardian_email: "jane@test.com"
+          })
+        ])
+
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program_b, provider, %{
+            child_last_name: "Jones",
+            child_first_name: "Tom",
+            guardian_email: "tom@test.com"
+          })
+        ])
+
+      invites = BulkEnrollmentInviteRepository.list_by_program(program_a.id)
+
+      assert length(invites) == 1
+      assert hd(invites).child_last_name == "Smith"
+    end
+  end
+
   describe "transition_status/2" do
     setup :setup_program
 

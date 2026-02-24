@@ -56,6 +56,12 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   @callback bulk_assign_tokens([{binary(), String.t()}]) :: {:ok, non_neg_integer()}
 
   @doc """
+  Returns all invites for a given program, ordered alphabetically
+  by child last name then first name.
+  """
+  @callback list_by_program(binary()) :: [struct()]
+
+  @doc """
   Transitions an invite's status using the schema's state machine.
 
   Validates that the transition is legal per `transition_changeset/2`.

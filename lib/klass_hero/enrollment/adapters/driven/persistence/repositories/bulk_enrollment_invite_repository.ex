@@ -140,6 +140,19 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   @impl true
   @doc """
+  Returns all invites for a given program, ordered alphabetically
+  by child last name then first name.
+  """
+  def list_by_program(program_id) when is_binary(program_id) do
+    BulkEnrollmentInviteSchema
+    |> where([i], i.program_id == ^program_id)
+    |> order_by([i], asc: i.child_last_name, asc: i.child_first_name)
+    |> Repo.all()
+    |> Mapper.to_domain_list()
+  end
+
+  @impl true
+  @doc """
   Assigns invite tokens to multiple invites in bulk.
 
   Accepts a list of `{invite_id, token}` tuples. Each invite is updated
