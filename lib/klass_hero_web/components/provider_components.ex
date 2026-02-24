@@ -1296,6 +1296,7 @@ defmodule KlassHeroWeb.ProviderComponents do
                     <.action_button icon="hero-eye-mini" title={gettext("Preview")} />
                   </.link>
                   <.action_button
+                    id={"view-roster-#{program.id}"}
                     icon="hero-user-group-mini"
                     title={gettext("View Roster")}
                     phx-click="view_roster"
@@ -1339,7 +1340,7 @@ defmodule KlassHeroWeb.ProviderComponents do
 
   attr :icon, :string, required: true
   attr :title, :string, required: true
-  attr :rest, :global, include: ~w(phx-click phx-value-id)
+  attr :rest, :global, include: ~w(id phx-click phx-value-id)
 
   defp action_button(assigns) do
     ~H"""
@@ -1359,11 +1360,18 @@ defmodule KlassHeroWeb.ProviderComponents do
   end
 
   @doc """
-  Renders a modal displaying the enrollment roster for a program.
-  Shows child name, enrollment status, and enrollment date.
+  Renders a tabbed modal displaying the enrollment roster and invites for a program.
+  Shows enrolled tab (child name, status, date) and invites tab (invites table, CSV upload).
   """
   attr :program_name, :string, required: true
+  attr :program_id, :string, required: true
   attr :entries, :list, required: true
+  attr :invites, :list, required: true
+  attr :active_tab, :string, default: "enrolled"
+  attr :enrolled_count, :integer, default: 0
+  attr :invite_count, :integer, default: 0
+  attr :uploads, :map, required: true
+  attr :import_errors, :any, default: nil
 
   def roster_modal(assigns) do
     ~H"""
@@ -1378,9 +1386,10 @@ defmodule KlassHeroWeb.ProviderComponents do
       <div class="flex min-h-screen items-center justify-center p-4">
         <div class="fixed inset-0 bg-black/50" phx-click="close_roster"></div>
         <div class={[
-          "relative bg-white w-full max-w-lg shadow-xl",
+          "relative bg-white w-full max-w-2xl shadow-xl",
           Theme.rounded(:xl)
         ]}>
+          <%!-- Header --%>
           <div class="flex items-center justify-between p-4 border-b border-hero-grey-200">
             <h3 class="text-lg font-semibold text-hero-charcoal">
               {gettext("Roster: %{name}", name: @program_name)}
@@ -1394,45 +1403,258 @@ defmodule KlassHeroWeb.ProviderComponents do
             </button>
           </div>
 
-          <div class="p-4">
-            <div :if={@entries == []} id="roster-empty" class="text-center py-8">
-              <.icon name="hero-user-group" class="w-12 h-12 mx-auto text-hero-grey-300 mb-3" />
-              <p class="text-hero-grey-500">{gettext("No enrollments yet.")}</p>
-            </div>
+          <%!-- Tabs --%>
+          <div class="flex border-b border-hero-grey-200" role="tablist">
+            <button
+              id="roster-tab-enrolled"
+              type="button"
+              role="tab"
+              aria-selected={to_string(@active_tab == "enrolled")}
+              phx-click="switch_roster_tab"
+              phx-value-tab="enrolled"
+              class={[
+                "px-4 py-3 text-sm font-medium border-b-2 -mb-px",
+                if(@active_tab == "enrolled",
+                  do: "border-hero-primary text-hero-primary",
+                  else: "border-transparent text-hero-grey-500 hover:text-hero-charcoal"
+                )
+              ]}
+            >
+              {gettext("Enrolled (%{count})", count: @enrolled_count)}
+            </button>
+            <button
+              id="roster-tab-invites"
+              type="button"
+              role="tab"
+              aria-selected={to_string(@active_tab == "invites")}
+              phx-click="switch_roster_tab"
+              phx-value-tab="invites"
+              class={[
+                "px-4 py-3 text-sm font-medium border-b-2 -mb-px",
+                if(@active_tab == "invites",
+                  do: "border-hero-primary text-hero-primary",
+                  else: "border-transparent text-hero-grey-500 hover:text-hero-charcoal"
+                )
+              ]}
+            >
+              {gettext("Invites (%{count})", count: @invite_count)}
+            </button>
+          </div>
 
-            <table :if={@entries != []} id="roster-table" class="w-full">
-              <thead class="bg-hero-grey-50 border-b border-hero-grey-200">
-                <tr>
-                  <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
-                    {gettext("Child Name")}
-                  </th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
-                    {gettext("Status")}
-                  </th>
-                  <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
-                    {gettext("Enrolled")}
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-hero-grey-200">
-                <tr :for={entry <- @entries} class="hover:bg-hero-grey-50">
-                  <td class="px-3 py-3 text-sm text-hero-charcoal font-medium">
-                    {entry.child_name}
-                  </td>
-                  <td class="px-3 py-3">
-                    <.status_pill color={enrollment_status_color(entry.status)}>
-                      {enrollment_status_label(entry.status)}
-                    </.status_pill>
-                  </td>
-                  <td class="px-3 py-3 text-sm text-hero-grey-500">
-                    {format_enrollment_date(entry.enrolled_at)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <%!-- Tab Content --%>
+          <div class="p-4">
+            <%= if @active_tab == "enrolled" do %>
+              <div id="enrolled-tab-content">
+                <.enrolled_tab entries={@entries} />
+              </div>
+            <% else %>
+              <div id="invites-tab-content">
+                <.invites_tab
+                  invites={@invites}
+                  program_id={@program_id}
+                  uploads={@uploads}
+                  import_errors={@import_errors}
+                />
+              </div>
+            <% end %>
           </div>
         </div>
       </div>
+    </div>
+    """
+  end
+
+  attr :entries, :list, required: true
+
+  defp enrolled_tab(assigns) do
+    ~H"""
+    <div :if={@entries == []} id="roster-empty" class="text-center py-8">
+      <.icon name="hero-user-group" class="w-12 h-12 mx-auto text-hero-grey-300 mb-3" />
+      <p class="text-hero-grey-500">{gettext("No enrollments yet.")}</p>
+    </div>
+
+    <table :if={@entries != []} id="roster-table" class="w-full">
+      <thead class="bg-hero-grey-50 border-b border-hero-grey-200">
+        <tr>
+          <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+            {gettext("Child Name")}
+          </th>
+          <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+            {gettext("Status")}
+          </th>
+          <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+            {gettext("Enrolled")}
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-hero-grey-200">
+        <tr :for={entry <- @entries} class="hover:bg-hero-grey-50">
+          <td class="px-3 py-3 text-sm text-hero-charcoal font-medium">
+            {entry.child_name}
+          </td>
+          <td class="px-3 py-3">
+            <.status_pill color={enrollment_status_color(entry.status)}>
+              {enrollment_status_label(entry.status)}
+            </.status_pill>
+          </td>
+          <td class="px-3 py-3 text-sm text-hero-grey-500">
+            {format_enrollment_date(entry.enrolled_at)}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    """
+  end
+
+  attr :invites, :list, required: true
+  attr :program_id, :string, required: true
+  attr :uploads, :map, required: true
+  attr :import_errors, :any, default: nil
+
+  defp invites_tab(assigns) do
+    ~H"""
+    <div>
+      <%!-- Upload + Template buttons --%>
+      <div class="flex items-center gap-3 mb-4">
+        <form
+          id="csv-upload-form"
+          phx-change="validate_csv_upload"
+          phx-submit="import_csv"
+          class="inline"
+        >
+          <label
+            for={@uploads.csv_file.ref}
+            class={[
+              "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white cursor-pointer",
+              Theme.rounded(:lg),
+              Theme.gradient(:primary)
+            ]}
+          >
+            <.icon name="hero-arrow-up-tray-mini" class="w-4 h-4" />
+            {gettext("Upload CSV")}
+          </label>
+          <.live_file_input upload={@uploads.csv_file} class="hidden" />
+
+          <%!-- Show selected file + import button --%>
+          <div :for={entry <- @uploads.csv_file.entries} class="mt-3 flex items-center gap-3">
+            <span class="text-sm text-hero-charcoal">{entry.client_name}</span>
+            <button
+              type="submit"
+              class={[
+                "px-3 py-1.5 text-sm font-medium text-white",
+                Theme.rounded(:lg),
+                Theme.gradient(:primary)
+              ]}
+            >
+              {gettext("Import")}
+            </button>
+            <button
+              type="button"
+              phx-click="cancel_csv_upload"
+              phx-value-ref={entry.ref}
+              class="text-sm text-hero-grey-500 hover:text-hero-charcoal"
+            >
+              {gettext("Cancel")}
+            </button>
+          </div>
+
+          <%!-- Upload errors --%>
+          <div :for={err <- upload_errors(@uploads.csv_file)} class="mt-2 text-sm text-red-600">
+            {upload_error_to_string(err)}
+          </div>
+        </form>
+
+        <a
+          href="/downloads/enrollment-import-template.csv"
+          download="enrollment-import-template.csv"
+          class={[
+            "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-hero-grey-600",
+            "border border-hero-grey-300 hover:bg-hero-grey-50",
+            Theme.rounded(:lg)
+          ]}
+        >
+          <.icon name="hero-arrow-down-tray-mini" class="w-4 h-4" />
+          {gettext("Download Template")}
+        </a>
+      </div>
+
+      <%!-- Import errors --%>
+      <div
+        :if={@import_errors}
+        id="import-errors"
+        class={[
+          "mt-3 p-3 bg-red-50 border border-red-200 text-sm text-red-700",
+          Theme.rounded(:lg)
+        ]}
+      >
+        <p class="font-semibold mb-2">{gettext("Import failed")}</p>
+        <ul class="list-disc pl-5 space-y-1">
+          <li :for={msg <- format_import_errors(@import_errors)}>
+            {msg}
+          </li>
+        </ul>
+      </div>
+
+      <%!-- Empty state --%>
+      <div :if={@invites == []} id="invites-empty" class="text-center py-8">
+        <.icon name="hero-envelope" class="w-12 h-12 mx-auto text-hero-grey-300 mb-3" />
+        <p class="text-hero-grey-500">
+          {gettext("No invites yet. Upload a CSV to invite families.")}
+        </p>
+      </div>
+
+      <%!-- Invites table --%>
+      <table :if={@invites != []} id="invites-table" class="w-full">
+        <thead class="bg-hero-grey-50 border-b border-hero-grey-200">
+          <tr>
+            <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+              {gettext("Child Name")}
+            </th>
+            <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+              {gettext("Guardian Email")}
+            </th>
+            <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+              {gettext("Status")}
+            </th>
+            <th class="px-3 py-2 text-right text-xs font-semibold text-hero-grey-500 uppercase">
+              {gettext("Actions")}
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-hero-grey-200">
+          <tr :for={invite <- @invites} id={"invite-#{invite.id}"} class="hover:bg-hero-grey-50">
+            <td class="px-3 py-3 text-sm text-hero-charcoal font-medium">
+              {invite.child_first_name} {invite.child_last_name}
+            </td>
+            <td class="px-3 py-3 text-sm text-hero-grey-500">
+              {invite.guardian_email}
+            </td>
+            <td class="px-3 py-3">
+              <.status_pill color={invite_status_color(invite.status)}>
+                {invite_status_label(invite.status)}
+              </.status_pill>
+            </td>
+            <td class="px-3 py-3 text-right">
+              <div class="flex items-center justify-end gap-1">
+                <.action_button
+                  :if={invite.status in ~w(pending invite_sent failed)}
+                  icon="hero-arrow-path-mini"
+                  title={gettext("Resend Invite")}
+                  phx-click="resend_invite"
+                  phx-value-id={invite.id}
+                />
+                <.action_button
+                  :if={invite.status in ~w(pending invite_sent failed)}
+                  icon="hero-trash-mini"
+                  title={gettext("Remove")}
+                  phx-click="delete_invite"
+                  phx-value-id={invite.id}
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
     """
   end
@@ -1450,6 +1672,57 @@ defmodule KlassHeroWeb.ProviderComponents do
   end
 
   defp format_enrollment_date(_), do: "\u2014"
+
+  # Trigger: invite status values differ from enrollment status values
+  # Why: invites follow their own lifecycle (pending → invite_sent → registered → enrolled)
+  # Outcome: map each invite status to the correct status_pill color
+  defp invite_status_color("pending"), do: "warning"
+  defp invite_status_color("invite_sent"), do: "info"
+  defp invite_status_color("registered"), do: "info"
+  defp invite_status_color("enrolled"), do: "success"
+  defp invite_status_color("failed"), do: "error"
+  defp invite_status_color(_), do: "info"
+
+  defp invite_status_label("pending"), do: gettext("Pending")
+  defp invite_status_label("invite_sent"), do: gettext("Sent")
+  defp invite_status_label("registered"), do: gettext("Registered")
+  defp invite_status_label("enrolled"), do: gettext("Enrolled")
+  defp invite_status_label("failed"), do: gettext("Failed")
+  defp invite_status_label(status), do: status |> to_string() |> String.capitalize()
+
+  defp format_import_errors(errors) when is_map(errors) do
+    parse_msgs =
+      case Map.get(errors, :parse_errors) do
+        errs when is_list(errs) ->
+          Enum.map(errs, fn {row, msg} ->
+            gettext("Row %{row}: %{msg}", row: row, msg: msg)
+          end)
+
+        _ ->
+          []
+      end
+
+    validation_msgs =
+      case Map.get(errors, :validation_errors) do
+        errs when is_list(errs) ->
+          Enum.map(errs, fn {row, msg} ->
+            gettext("Row %{row}: %{msg}", row: row, msg: msg)
+          end)
+
+        _ ->
+          []
+      end
+
+    duplicate_msgs =
+      case Map.get(errors, :duplicate_errors) do
+        errs when is_list(errs) -> Enum.map(errs, &to_string/1)
+        _ -> []
+      end
+
+    parse_msgs ++ validation_msgs ++ duplicate_msgs
+  end
+
+  defp format_import_errors(_), do: []
 
   @doc """
   Converts a Phoenix upload error atom to a human-readable string.

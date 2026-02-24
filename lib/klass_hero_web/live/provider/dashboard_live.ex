@@ -87,7 +87,17 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(show_staff_form: false, editing_staff_id: nil)
           |> assign(staff_form: to_form(Provider.new_staff_member_changeset()))
           |> assign(show_program_form: false, editing_program_id: nil)
-          |> assign(show_roster: false, roster_program_name: nil, roster_entries: [])
+          |> assign(
+            show_roster: false,
+            roster_program_name: nil,
+            roster_program_id: nil,
+            roster_entries: [],
+            roster_tab: "enrolled",
+            roster_invites: [],
+            roster_enrolled_count: 0,
+            roster_invite_count: 0,
+            import_errors: nil
+          )
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
           |> assign(
             enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
@@ -116,6 +126,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           )
           |> allow_upload(:program_cover,
             accept: ~w(.jpg .jpeg .png .webp),
+            max_entries: 1,
+            max_file_size: 2_000_000
+          )
+          |> allow_upload(:csv_file,
+            accept: ~w(.csv),
             max_entries: 1,
             max_file_size: 2_000_000
           )
@@ -474,9 +489,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   @impl true
   def handle_event("view_roster", %{"id" => program_id}, socket) do
     roster = Enrollment.list_program_enrollments(program_id)
+    invite_count = Enrollment.count_program_invites(program_id)
 
     # Trigger: need the program name for the modal title
-    # Why: roster modal should display "Roster for [Program Name]"
+    # Why: roster modal should display "Roster: [Program Name]"
     # Outcome: find the program name from a fresh fetch
     program_name =
       case ProgramCatalog.get_program_by_id(program_id) do
@@ -488,13 +504,123 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      assign(socket,
        show_roster: true,
        roster_program_name: program_name,
-       roster_entries: roster
+       roster_program_id: program_id,
+       roster_entries: roster,
+       roster_tab: "enrolled",
+       roster_invites: [],
+       roster_enrolled_count: length(roster),
+       roster_invite_count: invite_count,
+       import_errors: nil
      )}
   end
 
   @impl true
   def handle_event("close_roster", _params, socket) do
-    {:noreply, assign(socket, show_roster: false, roster_entries: [])}
+    {:noreply,
+     assign(socket,
+       show_roster: false,
+       roster_entries: [],
+       roster_tab: "enrolled",
+       roster_invites: [],
+       roster_program_id: nil,
+       roster_invite_count: 0,
+       roster_enrolled_count: 0,
+       import_errors: nil
+     )}
+  end
+
+  @impl true
+  def handle_event("switch_roster_tab", %{"tab" => "invites"}, socket) do
+    program_id = socket.assigns.roster_program_id
+
+    {:ok, invites} = Enrollment.list_program_invites(program_id)
+
+    {:noreply,
+     assign(socket,
+       roster_tab: "invites",
+       roster_invites: invites
+     )}
+  end
+
+  @impl true
+  def handle_event("switch_roster_tab", %{"tab" => "enrolled"}, socket) do
+    {:noreply, assign(socket, roster_tab: "enrolled")}
+  end
+
+  @impl true
+  def handle_event("resend_invite", %{"id" => invite_id}, socket) do
+    case Enrollment.resend_invite(invite_id) do
+      {:ok, _} ->
+        {:ok, invites} = Enrollment.list_program_invites(socket.assigns.roster_program_id)
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Invite resent successfully."))
+         |> assign(roster_invites: invites)}
+
+      {:error, :not_resendable} ->
+        {:noreply, put_flash(socket, :error, gettext("This invite cannot be resent."))}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to resend invite."))}
+    end
+  end
+
+  @impl true
+  def handle_event("delete_invite", %{"id" => invite_id}, socket) do
+    case Enrollment.delete_invite(invite_id) do
+      :ok ->
+        program_id = socket.assigns.roster_program_id
+        {:ok, invites} = Enrollment.list_program_invites(program_id)
+        invite_count = Enrollment.count_program_invites(program_id)
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Invite removed."))
+         |> assign(roster_invites: invites, roster_invite_count: invite_count)}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Invite not found."))}
+    end
+  end
+
+  @impl true
+  def handle_event("validate_csv_upload", _params, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("cancel_csv_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :csv_file, ref)}
+  end
+
+  @impl true
+  def handle_event("import_csv", _params, socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+    program_id = socket.assigns.roster_program_id
+
+    [csv_binary] =
+      consume_uploaded_entries(socket, :csv_file, fn %{path: path}, _entry ->
+        {:ok, File.read!(path)}
+      end)
+
+    case Enrollment.import_enrollment_csv(provider_id, csv_binary) do
+      {:ok, %{created: count}} ->
+        {:ok, invites} = Enrollment.list_program_invites(program_id)
+        invite_count = Enrollment.count_program_invites(program_id)
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Imported %{count} families.", count: count))
+         |> assign(
+           roster_invites: invites,
+           roster_invite_count: invite_count,
+           import_errors: nil
+         )}
+
+      {:error, error_report} ->
+        {:noreply, assign(socket, import_errors: error_report)}
+    end
   end
 
   @impl true
@@ -862,7 +988,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   editing_program_id={@editing_program_id}
                   show_roster={@show_roster}
                   roster_program_name={@roster_program_name}
+                  roster_program_id={@roster_program_id}
                   roster_entries={@roster_entries}
+                  roster_tab={@roster_tab}
+                  roster_invites={@roster_invites}
+                  roster_enrolled_count={@roster_enrolled_count}
+                  roster_invite_count={@roster_invite_count}
+                  import_errors={@import_errors}
                 />
             <% end %>
         <% end %>
@@ -1120,7 +1252,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :editing_program_id, :string, default: nil
   attr :show_roster, :boolean, required: true
   attr :roster_program_name, :string, default: nil
+  attr :roster_program_id, :string, default: nil
   attr :roster_entries, :list, default: []
+  attr :roster_tab, :string, default: "enrolled"
+  attr :roster_invites, :list, default: []
+  attr :roster_enrolled_count, :integer, default: 0
+  attr :roster_invite_count, :integer, default: 0
+  attr :import_errors, :any, default: nil
 
   defp programs_section(assigns) do
     ~H"""
@@ -1147,7 +1285,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       <.roster_modal
         :if={@show_roster}
         program_name={@roster_program_name}
+        program_id={@roster_program_id}
         entries={@roster_entries}
+        invites={@roster_invites}
+        active_tab={@roster_tab}
+        enrolled_count={@roster_enrolled_count}
+        invite_count={@roster_invite_count}
+        uploads={@uploads}
+        import_errors={@import_errors}
       />
     </div>
     """

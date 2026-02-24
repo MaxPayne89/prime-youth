@@ -3,8 +3,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramInvitesTest do
 
   import KlassHero.Factory
 
-  alias KlassHero.Enrollment.Application.UseCases.ListProgramInvites
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
+  alias KlassHero.Enrollment.Application.UseCases.ListProgramInvites
 
   describe "execute/1" do
     test "returns invites for a program" do

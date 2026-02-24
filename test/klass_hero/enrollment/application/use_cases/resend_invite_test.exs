@@ -3,9 +3,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.ResendInviteTest do
 
   import KlassHero.Factory
 
-  alias KlassHero.Enrollment.Application.UseCases.ResendInvite
-
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
+  alias KlassHero.Enrollment.Application.UseCases.ResendInvite
 
   setup do
     provider = insert(:provider_profile_schema)

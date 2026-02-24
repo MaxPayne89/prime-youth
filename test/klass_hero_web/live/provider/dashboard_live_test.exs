@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
   alias KlassHero.ProviderFixtures
 
   setup :register_and_log_in_provider
@@ -232,6 +233,158 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       # The provider was just created and has no programs
       # Table should exist but be empty (header row only)
       assert has_element?(view, "table")
+    end
+  end
+
+  describe "roster modal with tabs" do
+    setup %{provider: provider} do
+      program =
+        KlassHero.Factory.insert(:program_schema,
+          provider_id: provider.id,
+          title: "Test Program"
+        )
+
+      %{program: program}
+    end
+
+    test "shows enrolled and invites tabs when roster opened", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#roster-modal")
+      assert has_element?(view, "#roster-tab-enrolled")
+      assert has_element?(view, "#roster-tab-invites")
+    end
+
+    test "enrolled tab is active by default", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#roster-tab-enrolled[aria-selected=true]")
+    end
+
+    test "switches to invites tab", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "#roster-tab-invites[aria-selected=true]")
+      assert has_element?(view, "#invites-tab-content")
+    end
+
+    test "invites tab shows empty state when no invites", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "#invites-empty")
+    end
+  end
+
+  describe "invites tab content" do
+    setup %{provider: provider} do
+      program =
+        KlassHero.Factory.insert(:program_schema,
+          provider_id: provider.id,
+          title: "Test Program"
+        )
+
+      {:ok, _count} =
+        BulkEnrollmentInviteRepository.create_batch([
+          %{
+            program_id: program.id,
+            provider_id: provider.id,
+            child_first_name: "Jane",
+            child_last_name: "Smith",
+            child_date_of_birth: ~D[2015-06-15],
+            guardian_email: "parent@test.com"
+          }
+        ])
+
+      %{program: program}
+    end
+
+    test "shows invite rows with child name, email, status", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "#invites-table")
+      html = render(view)
+      assert html =~ "Jane"
+      assert html =~ "Smith"
+      assert html =~ "parent@test.com"
+    end
+
+    test "shows resend button for pending invite", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "[phx-click=resend_invite]")
+    end
+
+    test "shows remove button for pending invite", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "[phx-click=delete_invite]")
+    end
+  end
+
+  describe "invite actions" do
+    setup %{provider: provider} do
+      program =
+        KlassHero.Factory.insert(:program_schema,
+          provider_id: provider.id,
+          title: "Test Program"
+        )
+
+      {:ok, _count} =
+        BulkEnrollmentInviteRepository.create_batch([
+          %{
+            program_id: program.id,
+            provider_id: provider.id,
+            child_first_name: "Jane",
+            child_last_name: "Smith",
+            child_date_of_birth: ~D[2015-06-15],
+            guardian_email: "parent@test.com"
+          }
+        ])
+
+      %{program: program}
+    end
+
+    test "resend invite shows success flash", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      html = view |> element("[phx-click=resend_invite]") |> render_click()
+
+      assert html =~ "Invite resent"
+    end
+
+    test "delete invite removes row from table", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "#invites-table")
+
+      view |> element("[phx-click=delete_invite]") |> render_click()
+
+      assert has_element?(view, "#invites-empty")
     end
   end
 end
