@@ -54,12 +54,15 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.ClaimInvite
   alias KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings
   alias KlassHero.Enrollment.Application.UseCases.CreateEnrollment
+  alias KlassHero.Enrollment.Application.UseCases.DeleteInvite
   alias KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo
   alias KlassHero.Enrollment.Application.UseCases.GetEnrollment
   alias KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv
   alias KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIds
   alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
   alias KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments
+  alias KlassHero.Enrollment.Application.UseCases.ListProgramInvites
+  alias KlassHero.Enrollment.Application.UseCases.ResendInvite
   alias KlassHero.Enrollment.Application.UseCases.SetParticipantPolicy
   alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
 
@@ -389,6 +392,44 @@ defmodule KlassHero.Enrollment do
   def import_enrollment_csv(provider_id, csv_binary)
       when is_binary(provider_id) and is_binary(csv_binary) do
     ImportEnrollmentCsv.execute(provider_id, csv_binary)
+  end
+
+  @doc """
+  Lists all bulk enrollment invites for a program, ordered by child last name.
+
+  Returns `{:ok, [invite]}` or `{:ok, []}` if no invites exist.
+  """
+  def list_program_invites(program_id) when is_binary(program_id) do
+    ListProgramInvites.execute(program_id)
+  end
+
+  @doc """
+  Returns the count of bulk enrollment invites for a program.
+  """
+  def count_program_invites(program_id) when is_binary(program_id) do
+    invite_repository().count_by_program(program_id)
+  end
+
+  @doc """
+  Resets an invite to pending and re-dispatches the email pipeline.
+
+  Returns `{:ok, invite}` on success, `{:error, :not_found}` or `{:error, :not_resendable}`.
+  """
+  def resend_invite(invite_id) when is_binary(invite_id) do
+    ResendInvite.execute(invite_id)
+  end
+
+  @doc """
+  Deletes a bulk enrollment invite by ID.
+
+  Returns `:ok` on success or `{:error, :not_found}`.
+  """
+  def delete_invite(invite_id) when is_binary(invite_id) do
+    DeleteInvite.execute(invite_id)
+  end
+
+  defp invite_repository do
+    Application.get_env(:klass_hero, :enrollment)[:for_storing_bulk_enrollment_invites]
   end
 
   # ============================================================================
