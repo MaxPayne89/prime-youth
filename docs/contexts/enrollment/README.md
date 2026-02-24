@@ -20,6 +20,7 @@
 | Enrollment Status Lifecycle | Active | - |
 | CSV Bulk Import | Active | [import-enrollment-csv](features/import-enrollment-csv.md) |
 | Invite Email Pipeline | Active | [invite-email-pipeline](features/invite-email-pipeline.md) |
+| Invite Claim Saga | Active | - |
 | Cross-Context Enrollment Queries | Active | - |
 
 ## Inbound Communication
@@ -39,6 +40,7 @@
 | Provider (Web) | `Enrollment.new_participant_policy_changeset/1` | Form validation for participant restriction fields |
 | Booking (Web) | `Enrollment.check_participant_eligibility/2` | Validates child meets program restrictions before enrollment |
 | Provider (Web) | `Enrollment.import_enrollment_csv/2` | Bulk CSV import of enrollment invites for a provider |
+| Guardian (Web) | `Enrollment.claim_invite/1` | Claims an invite by token, creates user account, triggers registration saga |
 | ProgramCatalog | Subscribes to `integration:enrollment:participant_policy_set` | Caches participant restrictions for program detail display |
 
 ## Outbound Communication
@@ -52,6 +54,10 @@
 | ProgramCatalog | Direct DB query (via ProgramScheduleACL) | Resolves program start_date for "at program start" eligibility checks |
 | ProgramCatalog | Direct DB query (via ProgramCatalogACL) | Resolves provider's program titles to IDs for CSV import |
 | ProgramCatalog | `participant_policy_set` integration event | Notifies ProgramCatalog when restrictions change (for cache invalidation / display) |
+| Family | `invite_claimed` integration event | Triggers parent profile + child creation from invite data |
+| Family | `invite_family_ready` integration event (received) | Triggers enrollment creation and transitions invite to `enrolled` |
+| Accounts | `Accounts.get_user_by_email/1`, `Accounts.register_user/1` | Resolves or creates user during invite claim |
+| Accounts | `Accounts.generate_magic_link_token/1` | Generates passwordless login token for new users |
 | Guardian (Email) | `SendInviteEmailWorker` via Resend | Sends enrollment invitation email with registration link to guardian |
 
 ## Ubiquitous Language
@@ -73,6 +79,8 @@
 | Bulk Enrollment Invite | A pending invite created via CSV import, linking a child to a program before the parent registers. Has its own status lifecycle: pending → invite_sent → registered → enrolled (or failed). |
 | Invite Token | A cryptographically secure URL-safe token assigned to a pending invite. Used to build the registration link sent via email. Generated from 32 random bytes, Base64-encoded. |
 | Invite Email Pipeline | The async flow triggered after CSV import: generate tokens → enqueue Oban jobs → deliver emails → transition invites to `invite_sent`. |
+| Invite Claim Saga | The event-driven choreography triggered when a guardian clicks the invite link: `claim_invite` → `invite_claimed` event → Family creates parent/child → `invite_family_ready` event → Enrollment creates enrollment → invite transitions to `enrolled`. |
+| Magic Link Token | A short-lived login token generated for newly created users during invite claiming. Allows passwordless first login; user can set a password later in settings. |
 | CSV Import | Provider-initiated bulk upload of enrollment invites. Parses, validates, deduplicates, and atomically inserts all rows in a single transaction. |
 
 ## Business Decisions
@@ -116,7 +124,7 @@
 - [NEEDS INPUT] Should existing enrollments be re-validated when a participant policy is changed? Currently, policy changes only affect future eligibility checks.
 - [NEEDS INPUT] Should the "not_specified" gender be treated as "matches all policies" or "matches only when explicitly allowed"?
 - ~~Should bulk enrollment invites trigger actual invitation emails?~~ **Resolved.** Invite emails are now sent via Resend after CSV import. The `bulk_invites_imported` event triggers token generation and Oban job enqueueing.
-- [NEEDS INPUT] What happens after a parent registers from a bulk invite? The `registered → enrolled` transition exists but no automation connects registration to enrollment creation.
+- ~~What happens after a parent registers from a bulk invite?~~ **Resolved.** The Invite Claim Saga handles this: `GET /invites/:token` triggers `claim_invite/1`, which creates/resolves the user and publishes `invite_claimed`. Family creates parent+child, then publishes `invite_family_ready`. Enrollment creates the enrollment and transitions the invite to `enrolled`. New users are auto-logged-in via magic link token.
 - [NEEDS INPUT] Should large CSV imports (e.g., 10k+ rows) use chunked transactions instead of a single transaction?
 
 ---

@@ -24,8 +24,8 @@ After a provider imports enrollment invites via CSV, the system automatically ge
 | Out of Scope | Handled By |
 |---|---|
 | Parsing and validating CSV data | Enrollment / [CSV Bulk Import](import-enrollment-csv.md) |
-| Handling the registration link when a guardian clicks it | [NEEDS INPUT] — no landing page or registration flow exists yet |
-| Creating real User/Child/Enrollment records from invite data | [NEEDS INPUT] — `registered → enrolled` transitions are defined but not automated |
+| Handling the registration link when a guardian clicks it | Enrollment / [Invite Claim Saga](#) — `GET /invites/:token` triggers auto-registration |
+| Creating real User/Child/Enrollment records from invite data | Enrollment / [Invite Claim Saga](#) — event-driven saga: `invite_claimed → family created → enrolled` |
 | Sending reminder emails for unopened invites | [NEEDS INPUT] — no reminder mechanism exists |
 | Email template customization per provider | Not implemented — all invites use the same template |
 

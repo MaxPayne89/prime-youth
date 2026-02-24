@@ -22,8 +22,8 @@ CSV bulk import lets providers upload a spreadsheet of children and guardians to
 
 | Out of Scope | Handled By |
 |---|---|
-| Sending invitation emails to guardians | Not implemented — `invite_sent` status exists but no email logic |
-| Converting invites into real enrollments after parent registration | Not implemented — `registered → enrolled` transition exists but no automation |
+| Sending invitation emails to guardians | Enrollment / [Invite Email Pipeline](invite-email-pipeline.md) — event-driven via `bulk_invites_imported` |
+| Converting invites into real enrollments after parent registration | Enrollment / Invite Claim Saga — event-driven: `invite_claimed → family → enrolled` |
 | Chunked/streaming import for very large files (10k+ rows) | Not implemented — single transaction for all rows |
 | Editing or deleting individual invites after import | Not implemented |
 | Mapping CSV rows to existing children/parents in the system | Not implemented — invites are denormalized staging records |
