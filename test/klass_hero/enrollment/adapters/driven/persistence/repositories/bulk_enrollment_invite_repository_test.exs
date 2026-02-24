@@ -158,4 +158,142 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       assert MapSet.member?(result, {program_b.id, "b@test.com", "ben", "schmidt"})
     end
   end
+
+  describe "get_by_id/1" do
+    setup :setup_program
+
+    test "returns invite when found", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+
+      result = BulkEnrollmentInviteRepository.get_by_id(invite.id)
+      assert result.id == invite.id
+      assert result.guardian_email == "parent@example.com"
+    end
+
+    test "returns nil when not found" do
+      assert BulkEnrollmentInviteRepository.get_by_id(Ecto.UUID.generate()) == nil
+    end
+  end
+
+  describe "list_pending_without_token/1" do
+    setup :setup_program
+
+    test "returns pending invites with no token", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      result = BulkEnrollmentInviteRepository.list_pending_without_token([program.id])
+      assert length(result) == 1
+      assert hd(result).status == "pending"
+      assert hd(result).invite_token == nil
+    end
+
+    test "excludes invites that already have tokens", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+      invite |> Ecto.Changeset.change(%{invite_token: "existing-token"}) |> Repo.update!()
+
+      assert BulkEnrollmentInviteRepository.list_pending_without_token([program.id]) == []
+    end
+
+    test "excludes non-pending invites", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+
+      invite
+      |> BulkEnrollmentInviteSchema.transition_changeset(%{
+        status: "failed",
+        error_details: "test"
+      })
+      |> Repo.update!()
+
+      assert BulkEnrollmentInviteRepository.list_pending_without_token([program.id]) == []
+    end
+
+    test "returns empty list for empty program_ids" do
+      assert BulkEnrollmentInviteRepository.list_pending_without_token([]) == []
+    end
+  end
+
+  describe "bulk_assign_tokens/1" do
+    setup :setup_program
+
+    test "assigns tokens to invites", %{program: program, provider: provider} do
+      rows = [
+        valid_invite_attrs(program, provider),
+        valid_invite_attrs(program, provider, %{
+          child_first_name: "Liam",
+          guardian_email: "b@test.com"
+        })
+      ]
+
+      {:ok, 2} = BulkEnrollmentInviteRepository.create_batch(rows)
+      invites = Repo.all(BulkEnrollmentInviteSchema)
+      pairs = Enum.map(invites, fn inv -> {inv.id, "token-#{inv.id}"} end)
+
+      assert {:ok, 2} = BulkEnrollmentInviteRepository.bulk_assign_tokens(pairs)
+
+      updated = Repo.all(BulkEnrollmentInviteSchema)
+      assert Enum.all?(updated, fn inv -> inv.invite_token != nil end)
+    end
+
+    test "returns {:ok, 0} for empty list" do
+      assert {:ok, 0} = BulkEnrollmentInviteRepository.bulk_assign_tokens([])
+    end
+  end
+
+  describe "transition_status/2" do
+    setup :setup_program
+
+    test "transitions pending to invite_sent", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+
+      assert {:ok, updated} =
+               BulkEnrollmentInviteRepository.transition_status(invite, %{
+                 status: "invite_sent",
+                 invite_token: "test-token",
+                 invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
+               })
+
+      assert updated.status == "invite_sent"
+      assert updated.invite_token == "test-token"
+      assert updated.invite_sent_at != nil
+    end
+
+    test "transitions pending to failed", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+
+      assert {:ok, updated} =
+               BulkEnrollmentInviteRepository.transition_status(invite, %{
+                 status: "failed",
+                 error_details: "delivery failed"
+               })
+
+      assert updated.status == "failed"
+      assert updated.error_details == "delivery failed"
+    end
+
+    test "rejects invalid transition", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+
+      assert {:error, %Ecto.Changeset{}} =
+               BulkEnrollmentInviteRepository.transition_status(invite, %{status: "enrolled"})
+    end
+  end
 end

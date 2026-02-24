@@ -58,7 +58,7 @@ config :klass_hero, Oban,
        {"0 4 * * *", KlassHero.Messaging.Workers.RetentionPolicyWorker}
      ]}
   ],
-  queues: [default: 10, messaging: 5, cleanup: 2]
+  queues: [default: 10, messaging: 5, cleanup: 2, email: 5]
 
 # Configure Accounts bounded context
 config :klass_hero, :accounts,
@@ -78,7 +78,9 @@ config :klass_hero, :enrollment,
   for_resolving_child_info: KlassHero.Enrollment.Adapters.Driven.ACL.ChildInfoACL,
   for_storing_bulk_enrollment_invites:
     KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository,
-  for_resolving_program_catalog: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramCatalogACL
+  for_resolving_program_catalog: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramCatalogACL,
+  for_sending_invite_emails:
+    KlassHero.Enrollment.Adapters.Driven.Notifications.InviteEmailNotifier
 
 # Configure Event Publisher (domain events — internal context communication)
 config :klass_hero, :event_publisher,
@@ -98,6 +100,8 @@ config :klass_hero, :family,
 config :klass_hero, :integration_event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher,
   pubsub: KlassHero.PubSub
+
+config :klass_hero, :mailer_defaults, from: {"KlassHero", "noreply@mail.klasshero.com"}
 
 # Configure Messaging bounded context
 config :klass_hero, :messaging,

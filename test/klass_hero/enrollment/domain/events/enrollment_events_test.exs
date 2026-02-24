@@ -6,6 +6,7 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEventsTest do
   use ExUnit.Case, async: true
 
   alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
+  alias KlassHero.Shared.Domain.Events.DomainEvent
 
   describe "participant_policy_set/3" do
     test "creates event with correct type and aggregate" do
@@ -38,6 +39,55 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEventsTest do
       assert_raise ArgumentError,
                    ~r/requires a non-empty program_id string/,
                    fn -> EnrollmentEvents.participant_policy_set("") end
+    end
+  end
+
+  describe "bulk_invites_imported/3" do
+    test "creates event with correct type and payload" do
+      event = EnrollmentEvents.bulk_invites_imported("provider-1", ["prog-1", "prog-2"], 5)
+
+      assert %DomainEvent{} = event
+      assert event.event_type == :bulk_invites_imported
+      assert event.aggregate_type == :enrollment
+      assert event.aggregate_id == "provider-1"
+      assert event.payload.provider_id == "provider-1"
+      assert event.payload.program_ids == ["prog-1", "prog-2"]
+      assert event.payload.count == 5
+    end
+
+    test "forwards opts to DomainEvent.new/5" do
+      correlation_id = Ecto.UUID.generate()
+
+      event =
+        EnrollmentEvents.bulk_invites_imported("provider-1", ["prog-1"], 3,
+          correlation_id: correlation_id
+        )
+
+      assert DomainEvent.correlation_id(event) == correlation_id
+    end
+
+    test "raises for nil provider_id" do
+      assert_raise ArgumentError,
+                   ~r/requires a non-empty provider_id string/,
+                   fn -> EnrollmentEvents.bulk_invites_imported(nil, ["prog-1"], 1) end
+    end
+
+    test "raises for empty string provider_id" do
+      assert_raise ArgumentError,
+                   ~r/requires a non-empty provider_id string/,
+                   fn -> EnrollmentEvents.bulk_invites_imported("", ["prog-1"], 1) end
+    end
+
+    test "raises for non-list program_ids" do
+      assert_raise ArgumentError,
+                   ~r/requires a non-empty provider_id string/,
+                   fn -> EnrollmentEvents.bulk_invites_imported("provider-1", "not-a-list", 1) end
+    end
+
+    test "raises for non-integer count" do
+      assert_raise ArgumentError,
+                   ~r/requires a non-empty provider_id string/,
+                   fn -> EnrollmentEvents.bulk_invites_imported("provider-1", ["prog-1"], "5") end
     end
   end
 end

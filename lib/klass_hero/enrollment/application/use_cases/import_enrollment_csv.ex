@@ -6,8 +6,10 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv do
   All-or-nothing: if any row fails, nothing is persisted.
   """
 
+  alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
   alias KlassHero.Enrollment.Domain.Services.CsvParser
   alias KlassHero.Enrollment.Domain.Services.ImportRowValidator
+  alias KlassHero.Shared.EventDispatchHelper
 
   @invite_repository Application.compile_env!(:klass_hero, [
                        :enrollment,
@@ -30,6 +32,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv do
          {:ok, validated_rows} <- check_batch_duplicates(validated_rows),
          {:ok, validated_rows} <- check_existing_duplicates(validated_rows),
          {:ok, count} <- persist_batch(validated_rows) do
+      program_ids = validated_rows |> Enum.map(& &1.program_id) |> Enum.uniq()
+      publish_event(provider_id, program_ids, count)
       {:ok, %{created: count}}
     end
   end
@@ -161,6 +165,15 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv do
 
         {:error, %{validation_errors: [{index + 1, formatted}]}}
     end
+  end
+
+  # Trigger: CSV import persisted successfully
+  # Why: downstream handlers (e.g. invite email sending) need to know
+  #      that new invites exist and should be processed
+  # Outcome: DomainEventBus delivers to registered handlers (fire-and-forget)
+  defp publish_event(provider_id, program_ids, count) do
+    EnrollmentEvents.bulk_invites_imported(provider_id, program_ids, count)
+    |> EventDispatchHelper.dispatch(KlassHero.Enrollment)
   end
 
   defp duplicate_key(row) do

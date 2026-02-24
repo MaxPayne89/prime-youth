@@ -108,6 +108,28 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsvTest do
       assert Repo.aggregate(BulkEnrollmentInviteSchema, :count) == 2
     end
 
+    test "assigns invite tokens after successful import", %{provider: provider} do
+      csv =
+        build_csv([
+          %{
+            first: "Alice",
+            last: "Smith",
+            email: "alice@test.com",
+            program: "Ballsports & Parkour"
+          },
+          %{first: "Bob", last: "Jones", email: "bob@test.com", program: "Organic Arts"}
+        ])
+
+      assert {:ok, %{created: 2}} = ImportEnrollmentCsv.execute(provider.id, csv)
+
+      # Trigger: EnqueueInviteEmails handler runs via DomainEventBus
+      # Why: the bulk_invites_imported event should fire after persist,
+      #      causing the handler to assign tokens synchronously
+      # Outcome: every invite has a non-nil invite_token
+      invites = Repo.all(BulkEnrollmentInviteSchema)
+      assert Enum.all?(invites, fn inv -> inv.invite_token != nil end)
+    end
+
     test "persists correct data for each row", %{
       provider: provider,
       program1: program1,
@@ -151,7 +173,11 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsvTest do
       assert alice_invite.guardian_email == "alice@test.com"
       assert alice_invite.school_grade == 2
       assert alice_invite.school_name == "BIS"
-      assert alice_invite.status == "pending"
+      # Trigger: event handler + Oban inline worker run synchronously in test
+      # Why: bulk_invites_imported event fires after persist, handler assigns
+      #      tokens, and Oban inline worker sends email + transitions status
+      # Outcome: status is "invite_sent" (not "pending") by the time we read
+      assert alice_invite.status == "invite_sent"
 
       assert bob_invite.program_id == program2.id
       assert bob_invite.nut_allergy == true

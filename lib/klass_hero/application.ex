@@ -104,7 +104,10 @@ defmodule KlassHero.Application do
             {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
            {:participant_policy_set,
             {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
-             :handle}, priority: 10}
+             :handle}, priority: 10},
+           {:bulk_invites_imported,
+            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.EnqueueInviteEmails,
+             :handle}}
          ]},
         id: :enrollment_domain_event_bus
       ),
