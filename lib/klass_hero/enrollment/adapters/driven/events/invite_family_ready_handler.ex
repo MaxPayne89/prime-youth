@@ -20,9 +20,10 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler d
   - Duplicate enrollment -> transitions invite to enrolled without enrollment_id
   """
 
-  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingEvents
+  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingIntegrationEvents
 
   alias KlassHero.Enrollment
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   require Logger
 
@@ -35,7 +36,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler d
   def subscribed_events, do: [:invite_family_ready]
 
   @impl true
-  def handle_event(%{event_type: :invite_family_ready} = event) do
+  def handle_event(%IntegrationEvent{event_type: :invite_family_ready} = event) do
     %{invite_id: invite_id, child_id: child_id, parent_id: parent_id, program_id: program_id} =
       event.payload
 

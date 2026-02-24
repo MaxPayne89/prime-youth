@@ -105,7 +105,7 @@ defmodule KlassHero.Family.Domain.Events.FamilyEvents do
     DomainEvent.new(
       :invite_family_ready,
       invite_id,
-      @aggregate_type,
+      :invite,
       # Trigger: caller may pass a conflicting :invite_id in payload
       # Why: base_payload contains the canonical invite_id from the function argument
       # Outcome: base_payload keys always win, preventing accidental overwrite

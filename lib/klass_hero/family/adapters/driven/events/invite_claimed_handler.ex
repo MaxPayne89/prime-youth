@@ -14,10 +14,11 @@ defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler do
   - Child creation failure → logged with rich context, returns error
   """
 
-  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingEvents
+  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingIntegrationEvents
 
   alias KlassHero.Family
   alias KlassHero.Family.Domain.Events.FamilyEvents
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
@@ -26,7 +27,7 @@ defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler do
   def subscribed_events, do: [:invite_claimed]
 
   @impl true
-  def handle_event(%{event_type: :invite_claimed, entity_id: invite_id, payload: payload}) do
+  def handle_event(%IntegrationEvent{event_type: :invite_claimed, entity_id: invite_id, payload: payload}) do
     user_id = Map.fetch!(payload, :user_id)
     program_id = Map.fetch!(payload, :program_id)
 

@@ -113,7 +113,7 @@ defmodule KlassHero.Application do
              :handle}},
            {:invite_claimed,
             {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.MarkInviteRegistered,
-             :handle}},
+             :handle}, priority: 5},
            {:invite_claimed,
             {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}

@@ -25,6 +25,7 @@ defmodule KlassHero.Family.Domain.Events.FamilyEventsInviteFamilyReadyTest do
       assert %DomainEvent{} = event
       assert event.event_type == :invite_family_ready
       assert event.aggregate_id == invite_id
+      assert event.aggregate_type == :invite
       assert event.payload.invite_id == invite_id
       assert event.payload.user_id == payload.user_id
       assert event.payload.child_id == payload.child_id
