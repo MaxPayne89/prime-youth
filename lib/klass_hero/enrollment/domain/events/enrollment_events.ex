@@ -8,6 +8,8 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
     participant eligibility restrictions for a program (upsert semantics).
   - `:bulk_invites_imported` - Emitted after a CSV/bulk import creates
     enrollment invite records for one or more programs.
+  - `:invite_claimed` - Emitted when a guardian clicks an invite link and
+    claims the enrollment invitation.
   """
 
   alias KlassHero.Shared.Domain.Events.DomainEvent
@@ -65,5 +67,37 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
     raise ArgumentError,
           "bulk_invites_imported/4 requires a non-empty provider_id string, " <>
             "a list of program_ids, and an integer count, got: #{inspect(provider_id)}"
+  end
+
+  @doc """
+  Creates an `:invite_claimed` event when a guardian clicks an invite link.
+
+  ## Parameters
+
+  - `invite_id` - the invite being claimed
+  - `payload` - invite data including user_id, child info, guardian info
+  - `opts` - forwarded to `DomainEvent.new/5` (e.g. `:correlation_id`)
+  """
+  def invite_claimed(invite_id, payload \\ %{}, opts \\ [])
+
+  def invite_claimed(invite_id, payload, opts)
+      when is_binary(invite_id) and byte_size(invite_id) > 0 do
+    base_payload = %{invite_id: invite_id}
+
+    DomainEvent.new(
+      :invite_claimed,
+      invite_id,
+      @aggregate_type,
+      # Trigger: caller may pass a conflicting :invite_id in payload
+      # Why: base_payload contains the canonical invite_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def invite_claimed(invite_id, _payload, _opts) do
+    raise ArgumentError,
+          "invite_claimed/3 requires a non-empty invite_id string, got: #{inspect(invite_id)}"
   end
 end
