@@ -11,7 +11,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.DeleteInvite do
                        :for_storing_bulk_enrollment_invites
                      ])
 
-  @spec execute(binary()) :: :ok | {:error, :not_found}
+  @spec execute(binary()) :: :ok | {:error, :not_found | :delete_failed}
   def execute(invite_id) when is_binary(invite_id) do
     @invite_repository.delete(invite_id)
   end

@@ -69,9 +69,9 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   @doc """
   Deletes an invite by its ID.
 
-  Returns `:ok` on success or `{:error, :not_found}` if the invite does not exist.
+  Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
   """
-  @callback delete(binary()) :: :ok | {:error, :not_found}
+  @callback delete(binary()) :: :ok | {:error, :not_found | :delete_failed}
 
   @doc """
   Transitions an invite's status using the schema's state machine.

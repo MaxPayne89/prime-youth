@@ -422,7 +422,7 @@ defmodule KlassHero.Enrollment do
   @doc """
   Deletes a bulk enrollment invite by ID.
 
-  Returns `:ok` on success or `{:error, :not_found}`.
+  Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
   """
   def delete_invite(invite_id) when is_binary(invite_id) do
     DeleteInvite.execute(invite_id)

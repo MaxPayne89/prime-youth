@@ -531,15 +531,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("switch_roster_tab", %{"tab" => "invites"}, socket) do
-    program_id = socket.assigns.roster_program_id
-
-    {:ok, invites} = Enrollment.list_program_invites(program_id)
-
-    {:noreply,
-     assign(socket,
-       roster_tab: "invites",
-       roster_invites: invites
-     )}
+    case refresh_invites(socket, socket.assigns.roster_program_id) do
+      {:ok, socket} -> {:noreply, assign(socket, roster_tab: "invites")}
+      {:error, :no_program} -> {:noreply, socket}
+    end
   end
 
   @impl true
@@ -551,12 +546,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_event("resend_invite", %{"id" => invite_id}, socket) do
     case Enrollment.resend_invite(invite_id) do
       {:ok, _} ->
-        {:ok, invites} = Enrollment.list_program_invites(socket.assigns.roster_program_id)
+        socket =
+          case refresh_invites(socket, socket.assigns.roster_program_id) do
+            {:ok, socket} -> socket
+            {:error, :no_program} -> socket
+          end
 
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Invite resent successfully."))
-         |> assign(roster_invites: invites)}
+        {:noreply, put_flash(socket, :info, gettext("Invite resent successfully."))}
 
       {:error, :not_resendable} ->
         {:noreply, put_flash(socket, :error, gettext("This invite cannot be resent."))}
@@ -570,17 +566,19 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_event("delete_invite", %{"id" => invite_id}, socket) do
     case Enrollment.delete_invite(invite_id) do
       :ok ->
-        program_id = socket.assigns.roster_program_id
-        {:ok, invites} = Enrollment.list_program_invites(program_id)
-        invite_count = Enrollment.count_program_invites(program_id)
+        socket =
+          case refresh_invites(socket, socket.assigns.roster_program_id) do
+            {:ok, socket} -> socket
+            {:error, :no_program} -> socket
+          end
 
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Invite removed."))
-         |> assign(roster_invites: invites, roster_invite_count: invite_count)}
+        {:noreply, put_flash(socket, :info, gettext("Invite removed."))}
 
       {:error, :not_found} ->
         {:noreply, put_flash(socket, :error, gettext("Invite not found."))}
+
+      {:error, :delete_failed} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not remove invite."))}
     end
   end
 
@@ -599,27 +597,39 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     provider_id = socket.assigns.current_scope.provider.id
     program_id = socket.assigns.roster_program_id
 
-    [csv_binary] =
+    # Trigger: consume_uploaded_entries returns a list — may be empty if upload was cancelled
+    # Why: bare [csv_binary] = ... match crashes on [] with MatchError
+    # Outcome: empty list or I/O failure produces user-facing flash error
+    entries =
       consume_uploaded_entries(socket, :csv_file, fn %{path: path}, _entry ->
-        {:ok, File.read!(path)}
+        File.read(path)
       end)
 
-    case Enrollment.import_enrollment_csv(provider_id, csv_binary) do
-      {:ok, %{created: count}} ->
-        {:ok, invites} = Enrollment.list_program_invites(program_id)
-        invite_count = Enrollment.count_program_invites(program_id)
+    case entries do
+      [] ->
+        {:noreply, put_flash(socket, :error, gettext("No file selected."))}
 
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Imported %{count} families.", count: count))
-         |> assign(
-           roster_invites: invites,
-           roster_invite_count: invite_count,
-           import_errors: nil
-         )}
+      [{:error, reason}] ->
+        Logger.warning("[DashboardLive] CSV file read failed: #{inspect(reason)}")
+        {:noreply, put_flash(socket, :error, gettext("Could not read the uploaded file."))}
 
-      {:error, error_report} ->
-        {:noreply, assign(socket, import_errors: error_report)}
+      [{:ok, csv_binary}] ->
+        case Enrollment.import_enrollment_csv(provider_id, csv_binary) do
+          {:ok, %{created: count}} ->
+            socket =
+              case refresh_invites(socket, program_id) do
+                {:ok, socket} -> socket
+                {:error, :no_program} -> socket
+              end
+
+            {:noreply,
+             socket
+             |> put_flash(:info, gettext("Imported %{count} families.", count: count))
+             |> assign(import_errors: nil)}
+
+          {:error, error_report} ->
+            {:noreply, assign(socket, import_errors: error_report)}
+        end
     end
   end
 
@@ -1340,6 +1350,17 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp upload_logo(socket, provider_id) do
     consume_single_upload(socket, :logo, "logos", provider_id)
+  end
+
+  # Trigger: roster_program_id can be nil after close_roster fires
+  # Why: list_program_invites/1 guard requires binary — nil raises FunctionClauseError
+  # Outcome: nil program_id returns :no_program; valid id refreshes assigns
+  defp refresh_invites(_socket, nil), do: {:error, :no_program}
+
+  defp refresh_invites(socket, program_id) when is_binary(program_id) do
+    {:ok, invites} = Enrollment.list_program_invites(program_id)
+    invite_count = Enrollment.count_program_invites(program_id)
+    {:ok, assign(socket, roster_invites: invites, roster_invite_count: invite_count)}
   end
 
   defp fetch_staff_members(provider_id) do

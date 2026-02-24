@@ -167,7 +167,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   @doc """
   Deletes an invite by its ID.
 
-  Returns `:ok` on success or `{:error, :not_found}` if the invite does not exist.
+  Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
   """
   def delete(id) when is_binary(id) do
     case Repo.get(BulkEnrollmentInviteSchema, id) do
@@ -175,8 +175,20 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
         {:error, :not_found}
 
       schema ->
-        {:ok, _} = Repo.delete(schema)
-        :ok
+        # Trigger: Repo.delete can return {:error, changeset} on FK constraint violations
+        # Why: bare match raises MatchError and crashes the caller
+        # Outcome: log warning and surface :delete_failed to callers
+        case Repo.delete(schema) do
+          {:ok, _deleted} ->
+            :ok
+
+          {:error, changeset} ->
+            Logger.warning(
+              "[BulkEnrollmentInvite] Delete failed for #{id}: #{inspect(changeset.errors)}"
+            )
+
+            {:error, :delete_failed}
+        end
     end
   end
 
