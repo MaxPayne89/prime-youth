@@ -153,6 +153,33 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   @impl true
   @doc """
+  Returns the count of invites for a given program.
+  """
+  def count_by_program(program_id) when is_binary(program_id) do
+    BulkEnrollmentInviteSchema
+    |> where([i], i.program_id == ^program_id)
+    |> Repo.aggregate(:count)
+  end
+
+  @impl true
+  @doc """
+  Deletes an invite by its ID.
+
+  Returns `:ok` on success or `{:error, :not_found}` if the invite does not exist.
+  """
+  def delete(id) when is_binary(id) do
+    case Repo.get(BulkEnrollmentInviteSchema, id) do
+      nil ->
+        {:error, :not_found}
+
+      schema ->
+        {:ok, _} = Repo.delete(schema)
+        :ok
+    end
+  end
+
+  @impl true
+  @doc """
   Assigns invite tokens to multiple invites in bulk.
 
   Accepts a list of `{invite_id, token}` tuples. Each invite is updated

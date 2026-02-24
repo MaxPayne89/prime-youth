@@ -62,6 +62,18 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   @callback list_by_program(binary()) :: [struct()]
 
   @doc """
+  Returns the count of invites for a given program.
+  """
+  @callback count_by_program(binary()) :: non_neg_integer()
+
+  @doc """
+  Deletes an invite by its ID.
+
+  Returns `:ok` on success or `{:error, :not_found}` if the invite does not exist.
+  """
+  @callback delete(binary()) :: :ok | {:error, :not_found}
+
+  @doc """
   Transitions an invite's status using the schema's state machine.
 
   Validates that the transition is legal per `transition_changeset/2`.

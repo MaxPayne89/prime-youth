@@ -337,6 +337,50 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     end
   end
 
+  describe "count_by_program/1" do
+    setup :setup_program
+
+    test "returns count of invites for a program", %{program: program, provider: provider} do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Smith",
+            child_first_name: "Jane",
+            guardian_email: "jane@test.com"
+          }),
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Jones",
+            child_first_name: "Tom",
+            guardian_email: "tom@test.com"
+          })
+        ])
+
+      assert BulkEnrollmentInviteRepository.count_by_program(program.id) == 2
+    end
+
+    test "returns 0 for program with no invites" do
+      assert BulkEnrollmentInviteRepository.count_by_program(Ecto.UUID.generate()) == 0
+    end
+  end
+
+  describe "delete/1" do
+    setup :setup_program
+
+    test "deletes an invite by id", %{program: program, provider: provider} do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      [invite] = BulkEnrollmentInviteRepository.list_by_program(program.id)
+
+      assert :ok = BulkEnrollmentInviteRepository.delete(invite.id)
+      assert BulkEnrollmentInviteRepository.list_by_program(program.id) == []
+    end
+
+    test "returns error for non-existent invite" do
+      assert {:error, :not_found} = BulkEnrollmentInviteRepository.delete(Ecto.UUID.generate())
+    end
+  end
+
   describe "transition_status/2" do
     setup :setup_program
 
