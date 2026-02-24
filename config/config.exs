@@ -265,7 +265,12 @@ config :logger, :default_formatter,
     :result,
     :upload,
     :row_index,
-    :batch_size
+    :batch_size,
+    :invite_id,
+    :program_count,
+    :status,
+    :step,
+    :user_type
   ]
 
 config :opentelemetry, :resource,

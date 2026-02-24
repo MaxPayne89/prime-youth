@@ -159,7 +159,7 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
       # Verify family was created
       assert {:ok, parent} = Family.get_parent_by_identity(user.id)
       children = Family.get_children(parent.id)
-      assert length(children) >= 1
+      assert [_ | _] = children
       assert Enum.any?(children, &(&1.first_name == "Emma"))
     end
   end
