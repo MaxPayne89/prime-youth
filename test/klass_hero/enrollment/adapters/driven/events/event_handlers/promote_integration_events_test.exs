@@ -42,4 +42,44 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteInteg
       assert {:error, :pubsub_down} = PromoteIntegrationEvents.handle(domain_event)
     end
   end
+
+  describe "handle/1 — :invite_claimed" do
+    test "promotes to invite_claimed integration event" do
+      invite_id = Ecto.UUID.generate()
+      user_id = Ecto.UUID.generate()
+      program_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:invite_claimed, invite_id, :enrollment, %{
+          invite_id: invite_id,
+          user_id: user_id,
+          program_id: program_id,
+          is_new_user: true,
+          child: %{first_name: "Emma", last_name: "Schmidt"},
+          guardian: %{email: "parent@example.com"}
+        })
+
+      assert :ok = PromoteIntegrationEvents.handle(domain_event)
+
+      event = assert_integration_event_published(:invite_claimed)
+      assert event.entity_id == invite_id
+      assert event.source_context == :enrollment
+      assert event.entity_type == :invite
+      assert event.payload.invite_id == invite_id
+      assert event.payload.user_id == user_id
+    end
+
+    test "propagates publish failures as {:error, reason}" do
+      invite_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:invite_claimed, invite_id, :enrollment, %{
+          invite_id: invite_id
+        })
+
+      TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)
+
+      assert {:error, :pubsub_down} = PromoteIntegrationEvents.handle(domain_event)
+    end
+  end
 end
