@@ -21,7 +21,10 @@ defmodule KlassHeroWeb.InviteClaimController do
         # Why: the user has no password yet; a magic-link login lets them
         #      access the app immediately and set a password in settings
         # Outcome: redirect to magic-link login URL
-        magic_token = Accounts.generate_magic_link_token(user)
+        # Note: ClaimInvite returns a lightweight map to avoid cross-context
+        # type coupling; re-fetch the full %User{} struct for Accounts API
+        full_user = Accounts.get_user!(user.id)
+        magic_token = Accounts.generate_magic_link_token(full_user)
 
         conn
         |> put_flash(:info, "Your account has been created! Set up your password in settings.")

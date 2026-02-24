@@ -21,7 +21,7 @@ defmodule KlassHero.Enrollment.Domain.Services.EnrollmentClassifierTest do
     )
   end
 
-  defp build_program(overrides \\ []) do
+  defp build_program(overrides) do
     struct!(
       %Program{
         id: "prog-#{System.unique_integer([:positive])}",

@@ -50,6 +50,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
       # This mock is not used in these tests, but required by the behavior
       []
     end
+
+    def list_ended_program_ids(_cutoff_date) do
+      []
+    end
   end
 
   setup do
