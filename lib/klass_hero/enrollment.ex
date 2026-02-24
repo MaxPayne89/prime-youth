@@ -51,9 +51,9 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
   alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
   alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
+  alias KlassHero.Enrollment.Application.UseCases.ClaimInvite
   alias KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings
   alias KlassHero.Enrollment.Application.UseCases.CreateEnrollment
-  alias KlassHero.Enrollment.Application.UseCases.ClaimInvite
   alias KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo
   alias KlassHero.Enrollment.Application.UseCases.GetEnrollment
   alias KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv
