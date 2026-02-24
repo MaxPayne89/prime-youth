@@ -78,6 +78,9 @@ defmodule KlassHero.Application do
          handlers: [
            {:child_data_anonymized,
             {KlassHero.Family.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           {:invite_family_ready,
+            {KlassHero.Family.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}
          ]},
         id: :family_domain_event_bus
@@ -107,7 +110,13 @@ defmodule KlassHero.Application do
              :handle}, priority: 10},
            {:bulk_invites_imported,
             {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.EnqueueInviteEmails,
-             :handle}}
+             :handle}},
+           {:invite_claimed,
+            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.MarkInviteRegistered,
+             :handle}},
+           {:invite_claimed,
+            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10}
          ]},
         id: :enrollment_domain_event_bus
       ),
@@ -217,6 +226,24 @@ defmodule KlassHero.Application do
          message_tag: :integration_event,
          event_label: "Integration event"},
         id: :program_catalog_enrollment_integration_event_subscriber
+      ),
+      # Family listens for invite_claimed from Enrollment
+      Supervisor.child_spec(
+        {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler,
+         topics: ["integration:enrollment:invite_claimed"],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :family_enrollment_invite_subscriber
+      ),
+      # Enrollment listens for invite_family_ready from Family
+      Supervisor.child_spec(
+        {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler,
+         topics: ["integration:family:invite_family_ready"],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :enrollment_family_invite_subscriber
       )
     ]
   end
