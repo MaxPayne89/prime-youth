@@ -70,6 +70,36 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
   end
 
   @doc """
+  Creates an `:invite_resend_requested` event when a provider resends an invite.
+
+  ## Parameters
+
+  - `provider_id` — the provider who requested the resend
+  - `invite_id` — the invite being resent
+  - `program_id` — the program the invite belongs to
+  - `opts` — forwarded to `DomainEvent.new/5` (e.g. `:correlation_id`)
+  """
+  def invite_resend_requested(provider_id, invite_id, program_id, opts \\ [])
+
+  def invite_resend_requested(provider_id, invite_id, program_id, opts)
+      when is_binary(provider_id) and byte_size(provider_id) > 0 and is_binary(invite_id) and
+             byte_size(invite_id) > 0 and is_binary(program_id) and byte_size(program_id) > 0 do
+    DomainEvent.new(
+      :invite_resend_requested,
+      invite_id,
+      @aggregate_type,
+      %{provider_id: provider_id, invite_id: invite_id, program_id: program_id},
+      opts
+    )
+  end
+
+  def invite_resend_requested(provider_id, invite_id, program_id, _opts) do
+    raise ArgumentError,
+          "invite_resend_requested/4 requires non-empty provider_id, invite_id, and program_id strings, " <>
+            "got: #{inspect({provider_id, invite_id, program_id})}"
+  end
+
+  @doc """
   Creates an `:invite_claimed` event when a guardian clicks an invite link.
 
   ## Parameters

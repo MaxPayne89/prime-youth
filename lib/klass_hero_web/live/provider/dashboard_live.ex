@@ -557,7 +557,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       {:error, :not_resendable} ->
         {:noreply, put_flash(socket, :error, gettext("This invite cannot be resent."))}
 
-      {:error, _} ->
+      {:error, reason} ->
+        Logger.warning("[DashboardLive] Resend invite failed unexpectedly",
+          invite_id: invite_id,
+          reason: inspect(reason)
+        )
+
         {:noreply, put_flash(socket, :error, gettext("Failed to resend invite."))}
     end
   end
@@ -578,6 +583,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         {:noreply, put_flash(socket, :error, gettext("Invite not found."))}
 
       {:error, :delete_failed} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not remove invite."))}
+
+      {:error, reason} ->
+        Logger.warning("[DashboardLive] Delete invite failed unexpectedly",
+          invite_id: invite_id,
+          reason: inspect(reason)
+        )
+
         {:noreply, put_flash(socket, :error, gettext("Could not remove invite."))}
     end
   end

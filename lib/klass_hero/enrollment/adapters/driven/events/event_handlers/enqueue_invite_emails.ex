@@ -37,4 +37,30 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.EnqueueInvit
 
     :ok
   end
+
+  @spec handle(DomainEvent.t()) :: :ok
+  def handle(%DomainEvent{event_type: :invite_resend_requested} = event) do
+    %{provider_id: provider_id, invite_id: invite_id, program_id: program_id} = event.payload
+
+    Logger.info("[EnqueueInviteEmails] Processing resend request",
+      provider_id: provider_id,
+      invite_id: invite_id,
+      program_id: program_id
+    )
+
+    {:ok, pairs} = UseCase.execute([program_id], provider_id)
+
+    if pairs != [] do
+      jobs =
+        Enum.map(pairs, fn {id, program_name} ->
+          SendInviteEmailWorker.new(%{invite_id: id, program_name: program_name})
+        end)
+
+      Oban.insert_all(jobs)
+
+      Logger.info("[EnqueueInviteEmails] Enqueued resend emails", count: length(jobs))
+    end
+
+    :ok
+  end
 end

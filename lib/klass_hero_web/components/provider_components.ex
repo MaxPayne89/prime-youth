@@ -1722,7 +1722,7 @@ defmodule KlassHeroWeb.ProviderComponents do
     parse_msgs ++ validation_msgs ++ duplicate_msgs
   end
 
-  defp format_import_errors(_), do: []
+  defp format_import_errors(_), do: [gettext("An unexpected error occurred during import.")]
 
   @doc """
   Converts a Phoenix upload error atom to a human-readable string.

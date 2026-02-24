@@ -90,4 +90,72 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEventsTest do
                    fn -> EnrollmentEvents.bulk_invites_imported("provider-1", ["prog-1"], "5") end
     end
   end
+
+  describe "invite_resend_requested/4" do
+    test "creates event with correct type and payload" do
+      provider_id = Ecto.UUID.generate()
+      invite_id = Ecto.UUID.generate()
+      program_id = Ecto.UUID.generate()
+
+      event = EnrollmentEvents.invite_resend_requested(provider_id, invite_id, program_id)
+
+      assert %DomainEvent{} = event
+      assert event.event_type == :invite_resend_requested
+      assert event.aggregate_type == :enrollment
+      assert event.aggregate_id == invite_id
+      assert event.payload.provider_id == provider_id
+      assert event.payload.invite_id == invite_id
+      assert event.payload.program_id == program_id
+    end
+
+    test "forwards opts to DomainEvent.new/5" do
+      correlation_id = Ecto.UUID.generate()
+
+      event =
+        EnrollmentEvents.invite_resend_requested(
+          Ecto.UUID.generate(),
+          Ecto.UUID.generate(),
+          Ecto.UUID.generate(),
+          correlation_id: correlation_id
+        )
+
+      assert DomainEvent.correlation_id(event) == correlation_id
+    end
+
+    test "raises for empty provider_id" do
+      assert_raise ArgumentError,
+                   ~r/invite_resend_requested/,
+                   fn ->
+                     EnrollmentEvents.invite_resend_requested(
+                       "",
+                       Ecto.UUID.generate(),
+                       Ecto.UUID.generate()
+                     )
+                   end
+    end
+
+    test "raises for empty invite_id" do
+      assert_raise ArgumentError,
+                   ~r/invite_resend_requested/,
+                   fn ->
+                     EnrollmentEvents.invite_resend_requested(
+                       Ecto.UUID.generate(),
+                       "",
+                       Ecto.UUID.generate()
+                     )
+                   end
+    end
+
+    test "raises for empty program_id" do
+      assert_raise ArgumentError,
+                   ~r/invite_resend_requested/,
+                   fn ->
+                     EnrollmentEvents.invite_resend_requested(
+                       Ecto.UUID.generate(),
+                       Ecto.UUID.generate(),
+                       ""
+                     )
+                   end
+    end
+  end
 end

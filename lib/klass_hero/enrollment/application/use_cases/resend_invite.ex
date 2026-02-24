@@ -3,14 +3,16 @@ defmodule KlassHero.Enrollment.Application.UseCases.ResendInvite do
   Resets an invite to pending and dispatches the email pipeline.
 
   1. Fetch invite by ID
-  2. Reset status to pending, clear token + invite_sent_at
-  3. Dispatch bulk_invites_imported event for the invite's program
+  2. Check resendable? domain predicate
+  3. Reset status to pending, clear token + invite_sent_at
+  4. Dispatch invite_resend_requested event for the invite's program
 
   The existing EnqueueInviteEmails event handler picks up the reset
   invite and re-sends the email with a fresh token.
   """
 
   alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
+  alias KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite
   alias KlassHero.Shared.EventDispatchHelper
 
   require Logger
@@ -20,16 +22,21 @@ defmodule KlassHero.Enrollment.Application.UseCases.ResendInvite do
                        [:enrollment, :for_storing_bulk_enrollment_invites]
                      )
 
-  @spec execute(binary()) :: {:ok, struct()} | {:error, :not_found | :not_resendable}
+  @spec execute(binary()) :: {:ok, struct()} | {:error, :not_found | :not_resendable | term()}
   def execute(invite_id) when is_binary(invite_id) do
     with invite when not is_nil(invite) <- @invite_repository.get_by_id(invite_id),
-         {:ok, reset} <- @invite_repository.reset_for_resend(invite) do
-      # Trigger: invite reset to pending without token
-      # Why: existing email pipeline processes pending invites without tokens
-      # Outcome: EnqueueInviteEmails assigns new token + enqueues Oban job
-      EnrollmentEvents.bulk_invites_imported(reset.provider_id, [reset.program_id], 1)
-      |> EventDispatchHelper.dispatch(KlassHero.Enrollment)
-
+         true <- BulkEnrollmentInvite.resendable?(invite),
+         {:ok, reset} <- @invite_repository.reset_for_resend(invite),
+         # Trigger: invite reset to pending without token
+         # Why: dedicated event distinguishes single resend from bulk import
+         # Outcome: EnqueueInviteEmails assigns new token + enqueues Oban job
+         :ok <-
+           EnrollmentEvents.invite_resend_requested(
+             reset.provider_id,
+             reset.id,
+             reset.program_id
+           )
+           |> EventDispatchHelper.dispatch_or_error(KlassHero.Enrollment) do
       Logger.info("[ResendInvite] Invite reset and event dispatched",
         invite_id: invite_id,
         program_id: reset.program_id
@@ -38,6 +45,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.ResendInvite do
       {:ok, reset}
     else
       nil -> {:error, :not_found}
+      false -> {:error, :not_resendable}
       {:error, reason} -> {:error, reason}
     end
   end

@@ -66,6 +66,21 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.SetParticipantPolicy
   alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
 
+  @policy_repo Application.compile_env!(
+                 :klass_hero,
+                 [:enrollment, :for_managing_enrollment_policies]
+               )
+
+  @participant_policy_repo Application.compile_env!(
+                             :klass_hero,
+                             [:enrollment, :for_managing_participant_policies]
+                           )
+
+  @invite_repository Application.compile_env!(
+                       :klass_hero,
+                       [:enrollment, :for_storing_bulk_enrollment_invites]
+                     )
+
   # ============================================================================
   # Enrollment Management Functions
   # ============================================================================
@@ -240,14 +255,14 @@ defmodule KlassHero.Enrollment do
   - `{:error, term()}` on validation failure
   """
   def set_enrollment_policy(attrs) when is_map(attrs) do
-    policy_repo().upsert(attrs)
+    @policy_repo.upsert(attrs)
   end
 
   @doc """
   Returns the enrollment policy for a program.
   """
   def get_enrollment_policy(program_id) when is_binary(program_id) do
-    policy_repo().get_by_program_id(program_id)
+    @policy_repo.get_by_program_id(program_id)
   end
 
   @doc """
@@ -262,12 +277,12 @@ defmodule KlassHero.Enrollment do
   def remaining_capacity(program_id) when is_binary(program_id) do
     alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
 
-    case policy_repo().get_by_program_id(program_id) do
+    case @policy_repo.get_by_program_id(program_id) do
       {:error, :not_found} ->
         {:ok, :unlimited}
 
       {:ok, policy} ->
-        count = policy_repo().count_active_enrollments(program_id)
+        count = @policy_repo.count_active_enrollments(program_id)
         {:ok, EnrollmentPolicy.remaining_capacity(policy, count)}
     end
   end
@@ -279,8 +294,8 @@ defmodule KlassHero.Enrollment do
   def get_remaining_capacities(program_ids) when is_list(program_ids) do
     alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
 
-    policies = policy_repo().get_policies_by_program_ids(program_ids)
-    active_counts = policy_repo().count_active_enrollments_batch(program_ids)
+    policies = @policy_repo.get_policies_by_program_ids(program_ids)
+    active_counts = @policy_repo.count_active_enrollments_batch(program_ids)
 
     Map.new(program_ids, fn id ->
       case Map.get(policies, id) do
@@ -298,7 +313,7 @@ defmodule KlassHero.Enrollment do
   Returns the count of active (pending/confirmed) enrollments for a program.
   """
   def count_active_enrollments(program_id) when is_binary(program_id) do
-    policy_repo().count_active_enrollments(program_id)
+    @policy_repo.count_active_enrollments(program_id)
   end
 
   @doc """
@@ -306,7 +321,7 @@ defmodule KlassHero.Enrollment do
   Returns a map of `program_id => count`.
   """
   def count_active_enrollments_batch(program_ids) when is_list(program_ids) do
-    policy_repo().count_active_enrollments_batch(program_ids)
+    @policy_repo.count_active_enrollments_batch(program_ids)
   end
 
   @doc """
@@ -319,10 +334,6 @@ defmodule KlassHero.Enrollment do
     alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentPolicySchema
 
     EnrollmentPolicySchema.changeset(%EnrollmentPolicySchema{}, attrs)
-  end
-
-  defp policy_repo do
-    Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollment_policies]
   end
 
   # ============================================================================
@@ -354,7 +365,7 @@ defmodule KlassHero.Enrollment do
   Returns the participant policy for a program.
   """
   def get_participant_policy(program_id) when is_binary(program_id) do
-    participant_policy_repo().get_by_program_id(program_id)
+    @participant_policy_repo.get_by_program_id(program_id)
   end
 
   @doc """
@@ -367,10 +378,6 @@ defmodule KlassHero.Enrollment do
     alias KlassHero.Enrollment.Application.ParticipantPolicyForm
 
     ParticipantPolicyForm.changeset(%ParticipantPolicyForm{}, attrs)
-  end
-
-  defp participant_policy_repo do
-    Application.get_env(:klass_hero, :enrollment)[:for_managing_participant_policies]
   end
 
   # ============================================================================
@@ -407,7 +414,7 @@ defmodule KlassHero.Enrollment do
   Returns the count of bulk enrollment invites for a program.
   """
   def count_program_invites(program_id) when is_binary(program_id) do
-    invite_repository().count_by_program(program_id)
+    @invite_repository.count_by_program(program_id)
   end
 
   @doc """
@@ -426,10 +433,6 @@ defmodule KlassHero.Enrollment do
   """
   def delete_invite(invite_id) when is_binary(invite_id) do
     DeleteInvite.execute(invite_id)
-  end
-
-  defp invite_repository do
-    Application.get_env(:klass_hero, :enrollment)[:for_storing_bulk_enrollment_invites]
   end
 
   # ============================================================================
