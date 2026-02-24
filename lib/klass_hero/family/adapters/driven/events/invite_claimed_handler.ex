@@ -86,34 +86,66 @@ defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler do
 
   # Trigger: invite payload contains child data that needs to be mapped to domain fields
   # Why: invite fields use different names than the Child domain model
-  # Outcome: child created and linked to parent via guardian relationship
+  # Outcome: child found (idempotent) or created and linked to parent via guardian relationship
   defp create_child_from_invite(parent_id, payload, invite_id, user_id) do
-    child_attrs = %{
-      parent_id: parent_id,
-      first_name: Map.get(payload, :child_first_name),
-      last_name: Map.get(payload, :child_last_name),
-      date_of_birth: Map.get(payload, :child_date_of_birth),
-      school_grade: Map.get(payload, :school_grade),
-      school_name: Map.get(payload, :school_name),
-      support_needs: Map.get(payload, :medical_conditions),
-      allergies: map_nut_allergy(Map.get(payload, :nut_allergy, false))
-    }
+    first_name = Map.get(payload, :child_first_name)
+    last_name = Map.get(payload, :child_last_name)
+    date_of_birth = Map.get(payload, :child_date_of_birth)
 
-    case Family.create_child(child_attrs) do
-      {:ok, child} ->
-        {:ok, child}
-
-      {:error, reason} ->
-        Logger.error("[InviteClaimedHandler] Failed to create child",
+    # Trigger: event may replay after a crash or redelivery
+    # Why: children table has no uniqueness constraint; unconditional create produces duplicates
+    # Outcome: find existing child by (first_name, last_name, date_of_birth) for this parent
+    case find_existing_child(parent_id, first_name, last_name, date_of_birth) do
+      %{} = child ->
+        Logger.info("[InviteClaimedHandler] Child already exists, skipping creation",
           invite_id: invite_id,
-          user_id: user_id,
-          parent_id: parent_id,
-          step: :create_child,
-          reason: inspect(reason)
+          child_id: child.id,
+          parent_id: parent_id
         )
 
-        {:error, reason}
+        {:ok, child}
+
+      nil ->
+        child_attrs = %{
+          parent_id: parent_id,
+          first_name: first_name,
+          last_name: last_name,
+          date_of_birth: date_of_birth,
+          school_grade: Map.get(payload, :school_grade),
+          school_name: Map.get(payload, :school_name),
+          support_needs: Map.get(payload, :medical_conditions),
+          allergies: map_nut_allergy(Map.get(payload, :nut_allergy, false))
+        }
+
+        case Family.create_child(child_attrs) do
+          {:ok, child} ->
+            {:ok, child}
+
+          {:error, reason} ->
+            Logger.error("[InviteClaimedHandler] Failed to create child",
+              invite_id: invite_id,
+              user_id: user_id,
+              parent_id: parent_id,
+              step: :create_child,
+              reason: inspect(reason)
+            )
+
+            {:error, reason}
+        end
     end
+  end
+
+  # Trigger: need to check for duplicate child before creating
+  # Why: uses public Family API (not direct repository access) to respect context boundaries
+  # Outcome: returns matching child or nil
+  defp find_existing_child(parent_id, first_name, last_name, date_of_birth) do
+    parent_id
+    |> Family.get_children()
+    |> Enum.find(fn child ->
+      child.first_name == first_name &&
+        child.last_name == last_name &&
+        child.date_of_birth == date_of_birth
+    end)
   end
 
   # Trigger: nut_allergy boolean from invite needs to become a human-readable string

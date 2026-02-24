@@ -33,9 +33,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.ClaimInvite do
   def execute(token) when is_binary(token) do
     with {:ok, invite} <- find_invite(token),
          {:ok, invite} <- validate_claimable(invite),
-         {:ok, user_type, user} <- resolve_user(invite) do
-      publish_invite_claimed(invite, user)
-
+         {:ok, user_type, user} <- resolve_user(invite),
+         :ok <- publish_invite_claimed(invite, user) do
       Logger.info("[ClaimInvite] Claimed invite",
         invite_id: invite.id,
         user_type: user_type,
@@ -116,6 +115,6 @@ defmodule KlassHero.Enrollment.Application.UseCases.ClaimInvite do
       consent_photo_marketing: invite.consent_photo_marketing,
       consent_photo_social_media: invite.consent_photo_social_media
     })
-    |> EventDispatchHelper.dispatch(KlassHero.Enrollment)
+    |> EventDispatchHelper.dispatch_or_error(KlassHero.Enrollment)
   end
 end

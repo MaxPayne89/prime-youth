@@ -797,12 +797,23 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     |> Repo.insert!()
   end
 
-  # Follows pagination until has_more is false, returning the final page
-  defp paginate_to_end(%{has_more: false} = page, _limit), do: page
+  # Follows pagination until has_more is false, returning the final page.
+  # Max iterations guard prevents infinite loops from broken pagination.
+  defp paginate_to_end(page, limit), do: paginate_to_end(page, limit, _remaining = 100)
 
-  defp paginate_to_end(%{next_cursor: cursor}, limit) do
+  defp paginate_to_end(%{has_more: false} = page, _limit, _remaining), do: page
+
+  defp paginate_to_end(%{has_more: true, next_cursor: nil}, _limit, _remaining) do
+    raise "Pagination bug: has_more is true but next_cursor is nil"
+  end
+
+  defp paginate_to_end(_page, _limit, 0) do
+    raise "Exceeded max pagination iterations (100)"
+  end
+
+  defp paginate_to_end(%{next_cursor: cursor}, limit, remaining) do
     {:ok, next_page} = ProgramRepository.list_programs_paginated(limit, cursor)
-    paginate_to_end(next_page, limit)
+    paginate_to_end(next_page, limit, remaining - 1)
   end
 
   # Helper to create a cursor pointing after a given program

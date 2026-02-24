@@ -16,7 +16,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.MarkInviteRe
                        [:enrollment, :for_storing_bulk_enrollment_invites]
                      )
 
-  @spec handle(DomainEvent.t()) :: :ok
+  @spec handle(DomainEvent.t()) :: :ok | {:error, term()}
   def handle(%DomainEvent{event_type: :invite_claimed} = event) do
     %{invite_id: invite_id} = event.payload
 
@@ -37,7 +37,10 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.MarkInviteRe
     :ok
   end
 
-  defp maybe_transition(invite) do
+  # Trigger: invite is in "invite_sent" status (the only valid source for this transition)
+  # Why: state machine allows invite_sent → registered; other statuses must not regress
+  # Outcome: transitions to registered, or returns error if persistence fails
+  defp maybe_transition(%{status: "invite_sent"} = invite) do
     case @invite_repository.transition_status(invite, %{
            status: "registered",
            registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
@@ -57,5 +60,17 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.MarkInviteRe
 
         {:error, reason}
     end
+  end
+
+  # Trigger: invite is in an unexpected status (not registered/enrolled, not invite_sent)
+  # Why: statuses like "pending" or "failed" are not valid sources for this transition
+  # Outcome: log warning and return :ok (idempotent no-op)
+  defp maybe_transition(%{status: status} = invite) do
+    Logger.warning("[MarkInviteRegistered] Unexpected status, skipping",
+      invite_id: invite.id,
+      status: status
+    )
+
+    :ok
   end
 end

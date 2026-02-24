@@ -116,14 +116,28 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler d
 
   # Trigger: enrollment already exists (duplicate_resource from repository)
   # Why: must still mark invite as enrolled for consistency
-  # Outcome: transitions invite without enrollment_id since we cannot look it up
+  # Outcome: transitions invite without enrollment_id; logs result but always returns :ok
+  #          since enrollment exists and invite status is secondary
   defp handle_existing_enrollment(invite_id) do
     case @invite_repository.get_by_id(invite_id) do
       %{status: "registered"} = invite ->
-        @invite_repository.transition_status(invite, %{
-          status: "enrolled",
-          enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second)
-        })
+        case @invite_repository.transition_status(invite, %{
+               status: "enrolled",
+               enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second)
+             }) do
+          {:ok, _} ->
+            Logger.info(
+              "[InviteFamilyReadyHandler] Transitioned existing-enrollment invite to enrolled",
+              invite_id: invite_id
+            )
+
+          {:error, reason} ->
+            Logger.warning(
+              "[InviteFamilyReadyHandler] Failed to transition existing-enrollment invite",
+              invite_id: invite_id,
+              reason: inspect(reason)
+            )
+        end
 
         :ok
 
