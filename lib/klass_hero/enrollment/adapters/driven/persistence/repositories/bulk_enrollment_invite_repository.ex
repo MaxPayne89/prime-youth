@@ -132,17 +132,32 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   def bulk_assign_tokens(id_token_pairs) when is_list(id_token_pairs) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-    count =
-      Enum.reduce(id_token_pairs, 0, fn {id, token}, acc ->
-        {rows_updated, _} =
-          BulkEnrollmentInviteSchema
-          |> where([i], i.id == ^id)
-          |> Repo.update_all(set: [invite_token: token, updated_at: now])
+    # Trigger: N pairs would cause N individual UPDATE queries (N+1 problem)
+    # Why: single UPDATE...FROM (VALUES ...) batches all token assignments into one round-trip
+    # Outcome: exactly 1 SQL statement regardless of batch size
+    {values_clause, params} = build_values_clause(id_token_pairs, now)
 
-        acc + rows_updated
+    sql = """
+    UPDATE bulk_enrollment_invites AS b
+    SET invite_token = v.token, updated_at = v.updated_at
+    FROM (VALUES #{values_clause}) AS v(id, token, updated_at)
+    WHERE b.id = v.id::uuid
+    """
+
+    case Repo.query(sql, params) do
+      {:ok, %{num_rows: count}} -> {:ok, count}
+      {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp build_values_clause(pairs, now) do
+    {fragments, params, _idx} =
+      Enum.reduce(pairs, {[], [], 1}, fn {id, token}, {frags, params, idx} ->
+        frag = "($#{idx}, $#{idx + 1}, $#{idx + 2}::timestamp)"
+        {[frag | frags], params ++ [id, token, now], idx + 3}
       end)
 
-    {:ok, count}
+    {fragments |> Enum.reverse() |> Enum.join(", "), params}
   end
 
   @impl true

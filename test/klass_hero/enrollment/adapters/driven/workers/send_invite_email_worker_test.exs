@@ -35,7 +35,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorkerTest
     setup :create_pending_invite
 
     test "sends email and transitions to invite_sent", %{invite: invite, program: program} do
-      assert {:ok, _} =
+      assert :ok =
                SendInviteEmailWorker.perform(%Oban.Job{
                  args: %{"invite_id" => invite.id, "program_name" => program.title}
                })
@@ -53,14 +53,14 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorkerTest
       })
       |> Repo.update!()
 
-      assert {:ok, :skipped} =
+      assert :ok =
                SendInviteEmailWorker.perform(%Oban.Job{
                  args: %{"invite_id" => invite.id, "program_name" => program.title}
                })
     end
 
     test "returns :not_found for missing invite" do
-      assert {:ok, :not_found} =
+      assert :ok =
                SendInviteEmailWorker.perform(%Oban.Job{
                  args: %{"invite_id" => Ecto.UUID.generate(), "program_name" => "Dance"}
                })

@@ -65,5 +65,29 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEventsTest do
 
       assert DomainEvent.correlation_id(event) == correlation_id
     end
+
+    test "raises for nil provider_id" do
+      assert_raise ArgumentError,
+                   ~r/requires a non-empty provider_id string/,
+                   fn -> EnrollmentEvents.bulk_invites_imported(nil, ["prog-1"], 1) end
+    end
+
+    test "raises for empty string provider_id" do
+      assert_raise ArgumentError,
+                   ~r/requires a non-empty provider_id string/,
+                   fn -> EnrollmentEvents.bulk_invites_imported("", ["prog-1"], 1) end
+    end
+
+    test "raises for non-list program_ids" do
+      assert_raise ArgumentError,
+                   ~r/requires a non-empty provider_id string/,
+                   fn -> EnrollmentEvents.bulk_invites_imported("provider-1", "not-a-list", 1) end
+    end
+
+    test "raises for non-integer count" do
+      assert_raise ArgumentError,
+                   ~r/requires a non-empty provider_id string/,
+                   fn -> EnrollmentEvents.bulk_invites_imported("provider-1", ["prog-1"], "5") end
+    end
   end
 end

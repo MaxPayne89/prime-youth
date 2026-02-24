@@ -26,18 +26,18 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorker do
     case @invite_repository.get_by_id(invite_id) do
       nil ->
         Logger.warning("[SendInviteEmailWorker] Invite not found", invite_id: invite_id)
-        {:ok, :not_found}
+        :ok
 
       # Trigger: invite already processed (not pending)
       # Why: Oban may retry, or event re-dispatched — skip to avoid duplicate emails
-      # Outcome: return :skipped without sending
+      # Outcome: return :ok without sending
       %BulkEnrollmentInvite{status: status} when status != "pending" ->
         Logger.info("[SendInviteEmailWorker] Skipping non-pending invite",
           invite_id: invite_id,
           status: status
         )
 
-        {:ok, :skipped}
+        :ok
 
       %BulkEnrollmentInvite{invite_token: nil} ->
         Logger.warning("[SendInviteEmailWorker] Invite has no token", invite_id: invite_id)
@@ -55,10 +55,25 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorker do
       {:ok, _email} ->
         now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-        @invite_repository.transition_status(invite, %{
-          status: "invite_sent",
-          invite_sent_at: now
-        })
+        # Trigger: transition_status may fail (e.g. DB error after email sent)
+        # Why: email already delivered — retrying the job would send duplicates
+        # Outcome: log critical if transition fails, but return :ok to prevent Oban retry
+        case @invite_repository.transition_status(invite, %{
+               status: "invite_sent",
+               invite_sent_at: now
+             }) do
+          {:ok, _} ->
+            :ok
+
+          {:error, reason} ->
+            Logger.critical(
+              "[SendInviteEmailWorker] Email sent but status transition failed",
+              invite_id: invite.id,
+              reason: inspect(reason)
+            )
+
+            :ok
+        end
 
       {:error, reason} ->
         Logger.error("[SendInviteEmailWorker] Email delivery failed",
@@ -85,11 +100,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorker do
     host = Keyword.get(url_config, :host, "localhost")
     port = Keyword.get(url_config, :port)
 
-    case port do
-      nil -> "#{scheme}://#{host}"
-      443 -> "https://#{host}"
-      80 -> "http://#{host}"
-      port -> "#{scheme}://#{host}:#{port}"
+    case {scheme, port} do
+      {_, nil} -> "#{scheme}://#{host}"
+      {"https", 443} -> "https://#{host}"
+      {"http", 80} -> "http://#{host}"
+      {_, port} -> "#{scheme}://#{host}:#{port}"
     end
   end
 end

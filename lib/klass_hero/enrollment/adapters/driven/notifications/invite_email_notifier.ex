@@ -26,15 +26,15 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Notifications.InviteEmailNotifier
       |> to({recipient_name, invite.guardian_email})
       |> from(@from)
       |> subject("You're invited to enroll #{invite.child_first_name} in #{program_name}")
-      |> text_body(build_text_body(invite, program_name, invite_url))
-      |> html_body(build_html_body(invite, program_name, invite_url))
+      |> text_body(build_text_content(invite, program_name, invite_url))
+      |> html_body(build_html_content(invite, program_name, invite_url))
 
     with {:ok, _metadata} <- Mailer.deliver(email) do
       {:ok, email}
     end
   end
 
-  defp build_text_body(invite, program_name, invite_url) do
+  defp build_text_content(invite, program_name, invite_url) do
     greeting = invite.guardian_first_name || "there"
 
     """
@@ -51,8 +51,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Notifications.InviteEmailNotifier
     """
   end
 
-  defp build_html_body(invite, program_name, invite_url) do
-    greeting = invite.guardian_first_name || "there"
+  defp build_html_content(invite, program_name, invite_url) do
+    greeting = esc(invite.guardian_first_name || "there")
+    child_name = "#{esc(invite.child_first_name)} #{esc(invite.child_last_name)}"
+    safe_program_name = esc(program_name)
+    safe_url = esc(invite_url)
 
     """
     <!DOCTYPE html>
@@ -64,11 +67,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Notifications.InviteEmailNotifier
       </div>
       <div style="padding: 30px 0;">
         <p>Hi #{greeting},</p>
-        <p>You've been invited to enroll <strong>#{invite.child_first_name} #{invite.child_last_name}</strong> in <strong>#{program_name}</strong>.</p>
+        <p>You've been invited to enroll <strong>#{child_name}</strong> in <strong>#{safe_program_name}</strong>.</p>
         <div style="text-align: center; padding: 20px 0;">
-          <a href="#{invite_url}" style="background-color: #4F46E5; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">Complete Registration</a>
+          <a href="#{safe_url}" style="background-color: #4F46E5; color: white; padding: 12px 30px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">Complete Registration</a>
         </div>
-        <p style="color: #666; font-size: 14px;">Or copy this link: #{invite_url}</p>
+        <p style="color: #666; font-size: 14px;">Or copy this link: #{safe_url}</p>
       </div>
       <div style="border-top: 1px solid #eee; padding-top: 15px; color: #999; font-size: 12px;">
         <p>If you didn't expect this email, you can safely ignore it.</p>
@@ -77,4 +80,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Notifications.InviteEmailNotifier
     </html>
     """
   end
+
+  defp esc(text), do: Plug.HTML.html_escape(to_string(text))
 end

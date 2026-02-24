@@ -50,7 +50,8 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
   def bulk_invites_imported(provider_id, program_ids, count, opts \\ [])
 
   def bulk_invites_imported(provider_id, program_ids, count, opts)
-      when is_binary(provider_id) and is_list(program_ids) and is_integer(count) do
+      when is_binary(provider_id) and byte_size(provider_id) > 0 and is_list(program_ids) and
+             is_integer(count) do
     DomainEvent.new(
       :bulk_invites_imported,
       provider_id,
@@ -58,5 +59,11 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
       %{provider_id: provider_id, program_ids: program_ids, count: count},
       opts
     )
+  end
+
+  def bulk_invites_imported(provider_id, _program_ids, _count, _opts) do
+    raise ArgumentError,
+          "bulk_invites_imported/4 requires a non-empty provider_id string, " <>
+            "a list of program_ids, and an integer count, got: #{inspect(provider_id)}"
   end
 end
