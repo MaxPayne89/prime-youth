@@ -22,6 +22,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   require Logger
 
+  @resendable_statuses ~w(pending invite_sent failed)
+
   @impl true
   @doc """
   Inserts all invite records atomically in a single transaction.
@@ -237,4 +239,38 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
         end
     end
   end
+
+  @impl true
+  @doc """
+  Resets a resendable invite back to pending status, clearing its token and metadata.
+
+  Bypasses the normal state machine (`transition_changeset`) intentionally —
+  this is a dedicated reset operation with its own guard on `@resendable_statuses`,
+  using a plain `change/2` since it clears fields rather than transitioning forward.
+  """
+  def reset_for_resend(%{id: id, status: status}) when status in @resendable_statuses do
+    case Repo.get(BulkEnrollmentInviteSchema, id) do
+      nil ->
+        {:error, :not_found}
+
+      schema ->
+        # Trigger: invite needs to re-enter the email pipeline
+        # Why: clearing token + invite_sent_at makes it eligible for list_pending_without_token
+        # Outcome: existing EnqueueInviteEmails picks it up on next dispatch
+        changeset =
+          Ecto.Changeset.change(schema, %{
+            status: "pending",
+            invite_token: nil,
+            invite_sent_at: nil,
+            error_details: nil
+          })
+
+        case Repo.update(changeset) do
+          {:ok, updated} -> {:ok, Mapper.to_domain(updated)}
+          {:error, changeset} -> {:error, changeset}
+        end
+    end
+  end
+
+  def reset_for_resend(%{id: _id}), do: {:error, :not_resendable}
 end

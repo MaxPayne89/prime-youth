@@ -80,4 +80,13 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   Returns `{:ok, updated_invite}` or `{:error, changeset}`.
   """
   @callback transition_status(struct(), map()) :: {:ok, struct()} | {:error, term()}
+
+  @doc """
+  Resets a resendable invite back to pending status, clearing its token and metadata.
+
+  Only invites in `pending`, `invite_sent`, or `failed` status can be reset.
+  Returns `{:error, :not_resendable}` for terminal statuses like `enrolled`.
+  Returns `{:error, :not_found}` if the invite does not exist in the database.
+  """
+  @callback reset_for_resend(struct()) :: {:ok, struct()} | {:error, :not_found | :not_resendable}
 end
