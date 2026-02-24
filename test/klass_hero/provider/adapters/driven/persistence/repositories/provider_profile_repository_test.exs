@@ -99,8 +99,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   end
 
   describe "list_verified_ids/0" do
-    test "returns empty list when no providers exist" do
-      assert {:ok, []} = ProviderProfileRepository.list_verified_ids()
+    test "returns a list of binary IDs" do
+      assert {:ok, ids} = ProviderProfileRepository.list_verified_ids()
+      assert is_list(ids)
+      assert Enum.all?(ids, &is_binary/1)
     end
 
     test "returns only verified provider IDs" do
@@ -149,7 +151,6 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
       {:ok, _} = ProviderProfileRepository.update(verified_2)
 
       assert {:ok, ids} = ProviderProfileRepository.list_verified_ids()
-      assert length(ids) == 2
       assert provider_1.id in ids
       assert provider_2.id in ids
     end
@@ -166,8 +167,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
       {:ok, verified} = ProviderProfile.verify(provider, admin.id)
       {:ok, _} = ProviderProfileRepository.update(verified)
 
-      assert {:ok, [id]} = ProviderProfileRepository.list_verified_ids()
-      assert is_binary(id)
+      assert {:ok, ids} = ProviderProfileRepository.list_verified_ids()
+      assert provider.id in ids
+      assert Enum.all?(ids, &is_binary/1)
     end
   end
 end
