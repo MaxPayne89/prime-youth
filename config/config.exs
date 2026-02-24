@@ -79,6 +79,7 @@ config :klass_hero, :enrollment,
   for_storing_bulk_enrollment_invites:
     KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository,
   for_resolving_program_catalog: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramCatalogACL,
+  for_resolving_user_accounts: KlassHero.Enrollment.Adapters.Driven.Accounts.UserAccountResolver,
   for_sending_invite_emails:
     KlassHero.Enrollment.Adapters.Driven.Notifications.InviteEmailNotifier
 

@@ -19,7 +19,7 @@ defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler do
   alias KlassHero.Family
   alias KlassHero.Family.Domain.Events.FamilyEvents
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
-  alias KlassHero.Shared.DomainEventBus
+  alias KlassHero.Shared.EventDispatchHelper
 
   require Logger
 
@@ -27,7 +27,11 @@ defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler do
   def subscribed_events, do: [:invite_claimed]
 
   @impl true
-  def handle_event(%IntegrationEvent{event_type: :invite_claimed, entity_id: invite_id, payload: payload}) do
+  def handle_event(%IntegrationEvent{
+        event_type: :invite_claimed,
+        entity_id: invite_id,
+        payload: payload
+      }) do
     user_id = Map.fetch!(payload, :user_id)
     program_id = Map.fetch!(payload, :program_id)
 
@@ -119,18 +123,13 @@ defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler do
   defp map_nut_allergy(_), do: nil
 
   defp publish_family_ready(invite_id, user_id, child_id, parent_id, program_id) do
-    event =
-      FamilyEvents.invite_family_ready(invite_id, %{
-        invite_id: invite_id,
-        user_id: user_id,
-        child_id: child_id,
-        parent_id: parent_id,
-        program_id: program_id
-      })
-
-    case DomainEventBus.dispatch(KlassHero.Family, event) do
-      :ok -> :ok
-      {:error, [{:error, reason} | _]} -> {:error, reason}
-    end
+    FamilyEvents.invite_family_ready(invite_id, %{
+      invite_id: invite_id,
+      user_id: user_id,
+      child_id: child_id,
+      parent_id: parent_id,
+      program_id: program_id
+    })
+    |> EventDispatchHelper.dispatch_or_error(KlassHero.Family)
   end
 end

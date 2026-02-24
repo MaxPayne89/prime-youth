@@ -41,7 +41,7 @@ defmodule KlassHero.Family do
   alias KlassHero.Family.Domain.Models.Child
   alias KlassHero.Family.Domain.Services.ReferralCodeGenerator
   alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
-  alias KlassHero.Shared.DomainEventBus
+  alias KlassHero.Shared.EventDispatchHelper
 
   require Logger
 
@@ -315,17 +315,9 @@ defmodule KlassHero.Family do
     )
   end
 
-  # Trigger: DomainEventBus.dispatch returns {:error, [{:error, reason} | _]}
-  # Why: the `with` chain and tests expect a flat {:error, reason} shape
-  # Outcome: unwraps the first handler failure from the bus error list
   defp dispatch_child_anonymized(child_id) do
-    case DomainEventBus.dispatch(
-           KlassHero.Family,
-           FamilyEvents.child_data_anonymized(child_id)
-         ) do
-      :ok -> :ok
-      {:error, [{:error, reason} | _]} -> {:error, reason}
-    end
+    FamilyEvents.child_data_anonymized(child_id)
+    |> EventDispatchHelper.dispatch_or_error(KlassHero.Family)
   end
 
   # ============================================================================

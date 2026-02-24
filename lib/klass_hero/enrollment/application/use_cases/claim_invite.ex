@@ -7,7 +7,6 @@ defmodule KlassHero.Enrollment.Application.UseCases.ClaimInvite do
   enrollment).
   """
 
-  alias KlassHero.Accounts
   alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
   alias KlassHero.Shared.EventDispatchHelper
 
@@ -17,6 +16,10 @@ defmodule KlassHero.Enrollment.Application.UseCases.ClaimInvite do
                        :klass_hero,
                        [:enrollment, :for_storing_bulk_enrollment_invites]
                      )
+  @user_accounts Application.compile_env!(
+                   :klass_hero,
+                   [:enrollment, :for_resolving_user_accounts]
+                 )
 
   @doc """
   Claims an invite by its token.
@@ -63,7 +66,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.ClaimInvite do
   # Outcome: returns :existing_user so the caller (and downstream saga) can
   #          skip the onboarding flow
   defp resolve_user(invite) do
-    case Accounts.get_user_by_email(invite.guardian_email) do
+    case @user_accounts.get_user_by_email(invite.guardian_email) do
       %{} = user ->
         {:ok, :existing_user, user}
 
@@ -79,7 +82,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.ClaimInvite do
       intended_roles: [:parent]
     }
 
-    case Accounts.register_user(attrs) do
+    case @user_accounts.register_user(attrs) do
       {:ok, user} -> {:ok, :new_user, user}
       {:error, reason} -> {:error, reason}
     end

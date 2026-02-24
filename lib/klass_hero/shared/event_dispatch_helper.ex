@@ -37,6 +37,24 @@ defmodule KlassHero.Shared.EventDispatchHelper do
     end
   end
 
+  @doc """
+  Dispatches a domain event and propagates the first handler failure.
+
+  Unlike `dispatch/2` (fire-and-forget), this variant returns `{:error, reason}`
+  when any handler fails — useful in `with` chains where dispatch failure must
+  halt the pipeline.
+
+      FamilyEvents.invite_family_ready(invite_id, payload)
+      |> EventDispatchHelper.dispatch_or_error(KlassHero.Family)
+  """
+  @spec dispatch_or_error(DomainEvent.t(), module()) :: :ok | {:error, term()}
+  def dispatch_or_error(%DomainEvent{} = event, context) do
+    case DomainEventBus.dispatch(context, event) do
+      :ok -> :ok
+      {:error, [first_failure | _]} -> normalize_failure(first_failure)
+    end
+  end
+
   # Trigger: critical events (e.g. GDPR anonymization) fail to dispatch
   # Why: critical events represent business-critical data that must not be silently lost
   # Outcome: error-level log ensures alerting systems catch the failure
@@ -51,4 +69,10 @@ defmodule KlassHero.Shared.EventDispatchHelper do
       )
     end
   end
+
+  # Trigger: DomainEventBus returns error tuples in various shapes
+  # Why: bus can produce {:error, reason}, {:error, {:handler_crashed, e}}, or bare terms
+  # Outcome: normalizes all shapes to a flat {:error, reason}
+  defp normalize_failure({:error, reason}), do: {:error, reason}
+  defp normalize_failure(other), do: {:error, other}
 end
