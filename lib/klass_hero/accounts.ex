@@ -318,6 +318,20 @@ defmodule KlassHero.Accounts do
   end
 
   @doc """
+  Generates a magic link login token for a user without sending an email.
+
+  Used by the invite claim flow where the redirect URL is built directly
+  rather than delivered via email.
+
+  Returns the URL-safe encoded token string.
+  """
+  def generate_magic_link_token(%User{} = user) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "login")
+    Repo.insert!(user_token)
+    encoded_token
+  end
+
+  @doc """
   Deletes the signed token with the given context.
   """
   def delete_user_session_token(token) do
