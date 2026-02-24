@@ -34,4 +34,27 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteInteg
         error
     end
   end
+
+  def handle(%DomainEvent{event_type: :invite_claimed} = event) do
+    # Trigger: invite_claimed domain event dispatched when a guardian claims an invite link
+    # Why: downstream contexts (Family, Accounts) need to react — create profiles, link users
+    # Outcome: publish integration event on topic integration:enrollment:invite_claimed
+    result =
+      event.payload.invite_id
+      |> EnrollmentIntegrationEvents.invite_claimed(event.payload)
+      |> IntegrationEventPublishing.publish()
+
+    case result do
+      :ok ->
+        :ok
+
+      {:error, reason} = error ->
+        Logger.warning("[PromoteIntegrationEvents] Failed to publish invite_claimed",
+          invite_id: event.payload.invite_id,
+          reason: inspect(reason)
+        )
+
+        error
+    end
+  end
 end

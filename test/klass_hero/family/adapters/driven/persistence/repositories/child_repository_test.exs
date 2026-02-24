@@ -8,6 +8,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   alias KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
   alias KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfileRepository
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSchema
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Family.Domain.Models.Child
 
   defp create_parent do
@@ -186,11 +187,13 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
         date_of_birth: ~D[2015-06-15]
       }
 
+      count_before = Repo.aggregate(ChildSchema, :count)
+
       assert {:error, _changeset} =
                ChildRepository.create_with_guardian(attrs, non_existent_guardian)
 
       # Verify child was NOT persisted (transaction rolled back)
-      assert [] == Repo.all(KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema)
+      assert Repo.aggregate(ChildSchema, :count) == count_before
     end
   end
 

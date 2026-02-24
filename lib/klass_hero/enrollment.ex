@@ -39,12 +39,19 @@ defmodule KlassHero.Enrollment do
 
   use Boundary,
     top_level?: true,
-    deps: [KlassHero, KlassHero.Entitlements, KlassHero.Family, KlassHero.Shared],
+    deps: [
+      KlassHero,
+      KlassHero.Accounts,
+      KlassHero.Entitlements,
+      KlassHero.Family,
+      KlassHero.Shared
+    ],
     exports: []
 
   alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
   alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
   alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
+  alias KlassHero.Enrollment.Application.UseCases.ClaimInvite
   alias KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings
   alias KlassHero.Enrollment.Application.UseCases.CreateEnrollment
   alias KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo
@@ -382,5 +389,25 @@ defmodule KlassHero.Enrollment do
   def import_enrollment_csv(provider_id, csv_binary)
       when is_binary(provider_id) and is_binary(csv_binary) do
     ImportEnrollmentCsv.execute(provider_id, csv_binary)
+  end
+
+  # ============================================================================
+  # Invite Claim Functions
+  # ============================================================================
+
+  @doc """
+  Claims a bulk enrollment invite by token.
+
+  Validates the token, resolves or creates the user account, and publishes
+  the :invite_claimed event to trigger the async saga (child creation → enrollment).
+
+  Returns:
+  - `{:ok, :new_user, user, invite}` — new account created
+  - `{:ok, :existing_user, user, invite}` — existing account found
+  - `{:error, :not_found}` — invalid or expired token
+  - `{:error, :already_claimed}` — invite already processed
+  """
+  def claim_invite(token) when is_binary(token) do
+    ClaimInvite.execute(token)
   end
 end

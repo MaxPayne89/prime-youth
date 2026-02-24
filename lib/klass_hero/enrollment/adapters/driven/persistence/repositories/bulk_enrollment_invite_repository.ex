@@ -103,6 +103,25 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   @impl true
   @doc """
+  Retrieves a single invite by its invite token.
+
+  Returns the invite domain struct or nil if not found.
+  Returns nil immediately for nil input to avoid unnecessary queries.
+  """
+  def get_by_token(nil), do: nil
+
+  def get_by_token(token) when is_binary(token) do
+    BulkEnrollmentInviteSchema
+    |> where([i], i.invite_token == ^token)
+    |> Repo.one()
+    |> case do
+      nil -> nil
+      schema -> Mapper.to_domain(schema)
+    end
+  end
+
+  @impl true
+  @doc """
   Returns pending invites that have not yet been assigned an invite token.
 
   Filters by program IDs, status "pending", and nil invite_token.

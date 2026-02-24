@@ -47,6 +47,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListProviderProgramsTest
         programs_by_provider -> Map.get(programs_by_provider, provider_id, [])
       end
     end
+
+    def list_ended_program_ids(_cutoff_date) do
+      []
+    end
   end
 
   setup do
@@ -256,7 +260,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListProviderProgramsTest
       assert free.price == Decimal.new("0.00")
       assert Program.free?(free)
 
-      sold_out = Enum.find(programs, &(&1.title == "Popular Camp"))
+      _sold_out = Enum.find(programs, &(&1.title == "Popular Camp"))
     end
   end
 end

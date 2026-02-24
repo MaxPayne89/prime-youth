@@ -174,6 +174,8 @@ defmodule KlassHeroWeb.Router do
   scope "/", KlassHeroWeb do
     pipe_through [:browser]
 
+    get "/invites/:token", InviteClaimController, :show
+
     live_session :current_user,
       on_mount: [
         {KlassHeroWeb.UserAuth, :mount_current_scope},

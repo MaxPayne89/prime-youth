@@ -33,6 +33,13 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   @callback get_by_id(binary()) :: struct() | nil
 
   @doc """
+  Retrieves a single invite by its invite token.
+
+  Returns the invite domain struct or nil if not found.
+  """
+  @callback get_by_token(binary() | nil) :: struct() | nil
+
+  @doc """
   Returns pending invites that have not yet been assigned an invite token.
 
   Filters by program IDs, status "pending", and nil invite_token.

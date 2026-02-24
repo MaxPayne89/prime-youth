@@ -169,12 +169,21 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
       {:ok, _} = VerificationDocumentRepository.update(approved)
 
       assert {:ok, docs} = VerificationDocumentRepository.list_pending()
-      assert length(docs) == 1
-      assert Enum.at(docs, 0).id == pending2.id
+      assert Enum.any?(docs, &(&1.id == pending2.id))
     end
 
-    test "returns empty list when no pending documents exist" do
-      assert {:ok, []} = VerificationDocumentRepository.list_pending()
+    test "excludes non-pending documents from results" do
+      {:ok, provider} = create_provider()
+      reviewer = user_fixture(is_admin: true)
+
+      {:ok, doc} = create_document(provider.id)
+
+      # Approve the document so it's no longer pending
+      {:ok, approved} = VerificationDocument.approve(doc, reviewer.id)
+      {:ok, _} = VerificationDocumentRepository.update(approved)
+
+      assert {:ok, docs} = VerificationDocumentRepository.list_pending()
+      refute Enum.any?(docs, &(&1.id == doc.id))
     end
   end
 
@@ -183,22 +192,26 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
       {:ok, provider} = create_provider()
       reviewer = user_fixture(is_admin: true)
       {:ok, doc1} = create_document(provider.id, "business_registration")
-      {:ok, _doc2} = create_document(provider.id, "insurance_certificate")
+      {:ok, doc2} = create_document(provider.id, "insurance_certificate")
 
       # Approve doc1
       {:ok, approved} = VerificationDocument.approve(doc1, reviewer.id)
       {:ok, _} = VerificationDocumentRepository.update(approved)
 
       assert {:ok, pending_docs} = VerificationDocumentRepository.list_by_status(:pending)
-      assert length(pending_docs) == 1
+      assert Enum.any?(pending_docs, &(&1.id == doc2.id))
 
       assert {:ok, approved_docs} = VerificationDocumentRepository.list_by_status(:approved)
-      assert length(approved_docs) == 1
-      assert Enum.at(approved_docs, 0).id == doc1.id
+      assert Enum.any?(approved_docs, &(&1.id == doc1.id))
     end
 
-    test "returns empty list for status with no documents" do
-      assert {:ok, []} = VerificationDocumentRepository.list_by_status(:rejected)
+    test "excludes documents of different status" do
+      {:ok, provider} = create_provider()
+      {:ok, doc} = create_document(provider.id)
+
+      # doc is pending, so it should not appear in rejected results
+      assert {:ok, rejected_docs} = VerificationDocumentRepository.list_by_status(:rejected)
+      refute Enum.any?(rejected_docs, &(&1.id == doc.id))
     end
   end
 

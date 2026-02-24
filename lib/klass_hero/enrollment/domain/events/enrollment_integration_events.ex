@@ -8,6 +8,9 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
 
   - `:participant_policy_set` - Emitted when participant eligibility restrictions
     are created or updated. Downstream contexts can react (e.g., search indexing).
+  - `:invite_claimed` - Emitted when a guardian claims an enrollment invite.
+    Downstream contexts (e.g. Family, Accounts) react to create profiles or
+    link existing users.
   """
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
@@ -37,5 +40,46 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
   def participant_policy_set(program_id, _payload, _opts) do
     raise ArgumentError,
           "participant_policy_set/3 requires a non-empty program_id string, got: #{inspect(program_id)}"
+  end
+
+  @doc """
+  Creates an `:invite_claimed` integration event when a guardian claims an invite.
+
+  ## Parameters
+
+  - `invite_id` - the invite being claimed
+  - `payload` - invite data including user_id, child info, guardian info
+  - `opts` - metadata options (correlation_id, causation_id)
+
+  ## Raises
+
+  - `ArgumentError` if `invite_id` is nil or empty
+  """
+  def invite_claimed(invite_id, payload \\ %{}, opts \\ [])
+
+  def invite_claimed(invite_id, payload, opts)
+      when is_binary(invite_id) and byte_size(invite_id) > 0 do
+    base_payload = %{invite_id: invite_id}
+
+    IntegrationEvent.new(
+      :invite_claimed,
+      @source_context,
+      # Trigger: invite_claimed uses a different entity type than the module default
+      # Why: @entity_type is :participant_policy for the existing function; invites
+      #   are a separate entity type in the enrollment context
+      # Outcome: hardcoded :invite ensures correct entity classification
+      :invite,
+      invite_id,
+      # Trigger: caller may pass a conflicting :invite_id in payload
+      # Why: base_payload contains the canonical invite_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def invite_claimed(invite_id, _payload, _opts) do
+    raise ArgumentError,
+          "invite_claimed/3 requires a non-empty invite_id string, got: #{inspect(invite_id)}"
   end
 end

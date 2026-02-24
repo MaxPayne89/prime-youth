@@ -249,6 +249,32 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     end
   end
 
+  describe "get_by_token/1" do
+    setup :setup_program
+
+    test "returns invite when token matches", %{program: program, provider: provider} do
+      {:ok, 1} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      invite = Repo.one!(BulkEnrollmentInviteSchema)
+      token = "test-token-#{System.unique_integer()}"
+      invite |> Ecto.Changeset.change(%{invite_token: token}) |> Repo.update!()
+
+      result = BulkEnrollmentInviteRepository.get_by_token(token)
+      assert result != nil
+      assert result.id == invite.id
+      assert result.invite_token == token
+    end
+
+    test "returns nil when token not found" do
+      assert BulkEnrollmentInviteRepository.get_by_token("nonexistent") == nil
+    end
+
+    test "returns nil for nil token" do
+      assert BulkEnrollmentInviteRepository.get_by_token(nil) == nil
+    end
+  end
+
   describe "transition_status/2" do
     setup :setup_program
 
