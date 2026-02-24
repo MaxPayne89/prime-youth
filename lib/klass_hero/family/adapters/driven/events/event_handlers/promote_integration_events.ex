@@ -31,4 +31,13 @@ defmodule KlassHero.Family.Adapters.Driven.Events.EventHandlers.PromoteIntegrati
     |> FamilyIntegrationEvents.child_data_anonymized()
     |> IntegrationEventPublishing.publish()
   end
+
+  def handle(%DomainEvent{event_type: :invite_family_ready} = event) do
+    # Trigger: family unit (parent + child) created from invite claim
+    # Why: downstream contexts (e.g. Enrollment) need to auto-enroll the child
+    # Outcome: publish integration event on topic integration:family:invite_family_ready
+    event.payload.invite_id
+    |> FamilyIntegrationEvents.invite_family_ready(event.payload)
+    |> IntegrationEventPublishing.publish()
+  end
 end
