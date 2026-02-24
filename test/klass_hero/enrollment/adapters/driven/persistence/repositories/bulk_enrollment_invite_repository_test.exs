@@ -471,6 +471,42 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
                BulkEnrollmentInviteRepository.reset_for_resend(registered)
     end
 
+    test "rejects reset for enrolled invite", %{program: program, provider: provider} do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Smith",
+            child_first_name: "Jane",
+            guardian_email: "jane@test.com"
+          })
+        ])
+
+      [invite] = BulkEnrollmentInviteRepository.list_by_program(program.id)
+
+      # Walk through the state machine: pending → invite_sent → registered → enrolled
+      {:ok, sent} =
+        BulkEnrollmentInviteRepository.transition_status(invite, %{
+          status: "invite_sent",
+          invite_token: "tok",
+          invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      {:ok, registered} =
+        BulkEnrollmentInviteRepository.transition_status(sent, %{
+          status: "registered",
+          registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      {:ok, enrolled} =
+        BulkEnrollmentInviteRepository.transition_status(registered, %{
+          status: "enrolled",
+          enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      assert {:error, :not_resendable} =
+               BulkEnrollmentInviteRepository.reset_for_resend(enrolled)
+    end
+
     test "returns error for non-existent invite" do
       fake = %{id: Ecto.UUID.generate(), status: "pending"}
       assert {:error, :not_found} = BulkEnrollmentInviteRepository.reset_for_resend(fake)

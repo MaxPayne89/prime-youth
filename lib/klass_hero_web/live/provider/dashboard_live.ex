@@ -611,11 +611,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     program_id = socket.assigns.roster_program_id
 
     # Trigger: consume_uploaded_entries returns a list — may be empty if upload was cancelled
-    # Why: bare [csv_binary] = ... match crashes on [] with MatchError
+    # Why: consume_uploaded_entries unwraps the outer {:ok, _} from the callback,
+    #      so we wrap File.read/1's result to preserve the inner {:ok, binary}/{:error, reason}
     # Outcome: empty list or I/O failure produces user-facing flash error
     entries =
       consume_uploaded_entries(socket, :csv_file, fn %{path: path}, _entry ->
-        File.read(path)
+        {:ok, File.read(path)}
       end)
 
     case entries do

@@ -1705,7 +1705,15 @@ defmodule KlassHeroWeb.ProviderComponents do
     validation_msgs =
       case Map.get(errors, :validation_errors) do
         errs when is_list(errs) ->
-          Enum.map(errs, fn {row, msg} ->
+          Enum.map(errs, fn {row, field_errors} ->
+            # Trigger: field_errors is a keyword list like [{:guardian_email, "is required"}, ...]
+            # Why: gettext interpolation requires a string, not a keyword list
+            # Outcome: format each field error as "field: message" joined by commas
+            msg =
+              Enum.map_join(field_errors, ", ", fn {field, detail} ->
+                "#{field}: #{detail}"
+              end)
+
             gettext("Row %{row}: %{msg}", row: row, msg: msg)
           end)
 
