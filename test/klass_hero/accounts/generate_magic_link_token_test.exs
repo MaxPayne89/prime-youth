@@ -1,9 +1,9 @@
 defmodule KlassHero.Accounts.GenerateMagicLinkTokenTest do
   use KlassHero.DataCase, async: true
 
-  alias KlassHero.Accounts
-
   import KlassHero.AccountsFixtures
+
+  alias KlassHero.Accounts
 
   describe "generate_magic_link_token/1" do
     test "returns an encoded token string" do
