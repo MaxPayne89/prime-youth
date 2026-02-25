@@ -30,7 +30,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.DeleteInviteTest do
     end
 
     test "returns error for non-existent invite" do
-      assert {:error, :not_found} = DeleteInvite.execute(Ecto.UUID.generate(), Ecto.UUID.generate())
+      assert {:error, :not_found} =
+               DeleteInvite.execute(Ecto.UUID.generate(), Ecto.UUID.generate())
     end
 
     test "returns error when provider does not own the invite" do

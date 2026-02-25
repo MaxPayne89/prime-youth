@@ -12,8 +12,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.DeleteInvite do
                      ])
 
   @spec execute(binary(), binary()) :: :ok | {:error, :not_found | :delete_failed}
-  def execute(invite_id, provider_id)
-      when is_binary(invite_id) and is_binary(provider_id) do
+  def execute(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
     # Trigger: invite_id comes from untrusted client params
     # Why: without ownership check, any provider could delete another's invite
     # Outcome: verify provider_id matches before deleting; return :not_found on mismatch
