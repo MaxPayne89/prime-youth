@@ -1603,58 +1603,60 @@ defmodule KlassHeroWeb.ProviderComponents do
         </p>
       </div>
 
-      <%!-- Invites table --%>
-      <table :if={@invites != []} id="invites-table" class="w-full">
-        <thead class="bg-hero-grey-50 border-b border-hero-grey-200">
-          <tr>
-            <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
-              {gettext("Child Name")}
-            </th>
-            <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
-              {gettext("Guardian Email")}
-            </th>
-            <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
-              {gettext("Status")}
-            </th>
-            <th class="px-3 py-2 text-right text-xs font-semibold text-hero-grey-500 uppercase">
-              {gettext("Actions")}
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-hero-grey-200">
-          <tr :for={invite <- @invites} id={"invite-#{invite.id}"} class="hover:bg-hero-grey-50">
-            <td class="px-3 py-3 text-sm text-hero-charcoal font-medium">
-              {invite.child_first_name} {invite.child_last_name}
-            </td>
-            <td class="px-3 py-3 text-sm text-hero-grey-500">
-              {invite.guardian_email}
-            </td>
-            <td class="px-3 py-3">
-              <.status_pill color={invite_status_color(invite.status)}>
-                {invite_status_label(invite.status)}
-              </.status_pill>
-            </td>
-            <td class="px-3 py-3 text-right">
-              <div class="flex items-center justify-end gap-1">
-                <.action_button
-                  :if={invite.status in ~w(pending invite_sent failed)}
-                  icon="hero-arrow-path-mini"
-                  title={gettext("Resend Invite")}
-                  phx-click="resend_invite"
-                  phx-value-id={invite.id}
-                />
-                <.action_button
-                  :if={invite.status in ~w(pending invite_sent failed)}
-                  icon="hero-trash-mini"
-                  title={gettext("Remove")}
-                  phx-click="delete_invite"
-                  phx-value-id={invite.id}
-                />
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <%!-- Invites table — scrollable container for mobile viewports --%>
+      <div :if={@invites != []} class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <table id="invites-table" class="w-full min-w-[500px]">
+          <thead class="bg-hero-grey-50 border-b border-hero-grey-200">
+            <tr>
+              <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+                {gettext("Child Name")}
+              </th>
+              <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+                {gettext("Guardian Email")}
+              </th>
+              <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
+                {gettext("Status")}
+              </th>
+              <th class="px-3 py-2 text-right text-xs font-semibold text-hero-grey-500 uppercase">
+                {gettext("Actions")}
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-hero-grey-200">
+            <tr :for={invite <- @invites} id={"invite-#{invite.id}"} class="hover:bg-hero-grey-50">
+              <td class="px-3 py-3 text-sm text-hero-charcoal font-medium">
+                {invite.child_first_name} {invite.child_last_name}
+              </td>
+              <td class="px-3 py-3 text-sm text-hero-grey-500">
+                {invite.guardian_email}
+              </td>
+              <td class="px-3 py-3">
+                <.status_pill color={invite_status_color(invite.status)}>
+                  {invite_status_label(invite.status)}
+                </.status_pill>
+              </td>
+              <td class="px-3 py-3 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <.action_button
+                    :if={invite.status in ~w(pending invite_sent failed)}
+                    icon="hero-arrow-path-mini"
+                    title={gettext("Resend Invite")}
+                    phx-click="resend_invite"
+                    phx-value-id={invite.id}
+                  />
+                  <.action_button
+                    :if={invite.status in ~w(pending invite_sent failed)}
+                    icon="hero-trash-mini"
+                    title={gettext("Remove")}
+                    phx-click="delete_invite"
+                    phx-value-id={invite.id}
+                  />
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
     """
   end

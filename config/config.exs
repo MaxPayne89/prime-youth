@@ -33,7 +33,7 @@ config :ex_aws, http_client: ExAws.Request.Req
 config :klass_hero, KlassHero.Mailer, adapter: Swoosh.Adapters.Local
 
 config :klass_hero, KlassHeroWeb.Endpoint,
-  url: [host: "localhost"],
+  url: [host: "localhost", port: 4000],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: KlassHeroWeb.ErrorHTML, json: KlassHeroWeb.ErrorJSON],
