@@ -488,30 +488,40 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("view_roster", %{"id" => program_id}, socket) do
-    roster = Enrollment.list_program_enrollments(program_id)
-    invite_count = Enrollment.count_program_invites(program_id)
+    provider_id = socket.assigns.current_scope.provider.id
 
-    # Trigger: need the program name for the modal title
-    # Why: roster modal should display "Roster: [Program Name]"
-    # Outcome: find the program name from a fresh fetch
-    program_name =
-      case ProgramCatalog.get_program_by_id(program_id) do
-        {:ok, program} -> program.title
-        {:error, _} -> gettext("Program")
-      end
+    # Trigger: program_id comes from client params (untrusted)
+    # Why: without ownership check, any provider could view another's roster (IDOR)
+    # Outcome: verify program belongs to logged-in provider before loading data
+    with {:ok, program} <- ProgramCatalog.get_program_by_id(program_id),
+         true <- program.provider_id == provider_id do
+      roster = Enrollment.list_program_enrollments(program_id)
+      invite_count = Enrollment.count_program_invites(program_id)
 
-    {:noreply,
-     assign(socket,
-       show_roster: true,
-       roster_program_name: program_name,
-       roster_program_id: program_id,
-       roster_entries: roster,
-       roster_tab: "enrolled",
-       roster_invites: [],
-       roster_enrolled_count: length(roster),
-       roster_invite_count: invite_count,
-       import_errors: nil
-     )}
+      {:noreply,
+       assign(socket,
+         show_roster: true,
+         roster_program_name: program.title,
+         roster_program_id: program_id,
+         roster_entries: roster,
+         roster_tab: "enrolled",
+         roster_invites: [],
+         roster_enrolled_count: length(roster),
+         roster_invite_count: invite_count,
+         import_errors: nil
+       )}
+    else
+      false ->
+        Logger.warning("[DashboardLive] Unauthorized roster access attempt",
+          program_id: program_id,
+          provider_id: provider_id
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Program not found."))}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Program not found."))}
+    end
   end
 
   @impl true
@@ -544,7 +554,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("resend_invite", %{"id" => invite_id}, socket) do
-    case Enrollment.resend_invite(invite_id) do
+    provider_id = socket.assigns.current_scope.provider.id
+
+    case Enrollment.resend_invite(invite_id, provider_id) do
       {:ok, _} ->
         socket =
           case refresh_invites(socket, socket.assigns.roster_program_id) do
@@ -569,7 +581,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("delete_invite", %{"id" => invite_id}, socket) do
-    case Enrollment.delete_invite(invite_id) do
+    provider_id = socket.assigns.current_scope.provider.id
+
+    case Enrollment.delete_invite(invite_id, provider_id) do
       :ok ->
         socket =
           case refresh_invites(socket, socket.assigns.roster_program_id) do

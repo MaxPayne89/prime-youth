@@ -35,18 +35,19 @@ defmodule KlassHero.Enrollment.Application.UseCases.ResendInviteTest do
     %{invite: sent, program: program, provider: provider}
   end
 
-  describe "execute/1" do
-    test "resets invite and dispatches event", %{invite: invite} do
-      assert {:ok, reset} = ResendInvite.execute(invite.id)
+  describe "execute/2" do
+    test "resets invite and dispatches event", %{invite: invite, provider: provider} do
+      assert {:ok, reset} = ResendInvite.execute(invite.id, provider.id)
       assert reset.status == "pending"
       assert is_nil(reset.invite_token)
     end
 
     test "returns error for non-existent invite" do
-      assert {:error, :not_found} = ResendInvite.execute(Ecto.UUID.generate())
+      assert {:error, :not_found} =
+               ResendInvite.execute(Ecto.UUID.generate(), Ecto.UUID.generate())
     end
 
-    test "returns error for enrolled invite", %{invite: invite} do
+    test "returns error for enrolled invite", %{invite: invite, provider: provider} do
       # Walk to registered (not enrolled, to avoid FK constraints)
       {:ok, reg} =
         BulkEnrollmentInviteRepository.transition_status(invite, %{
@@ -55,7 +56,12 @@ defmodule KlassHero.Enrollment.Application.UseCases.ResendInviteTest do
         })
 
       # registered is not in @resendable_statuses
-      assert {:error, :not_resendable} = ResendInvite.execute(reg.id)
+      assert {:error, :not_resendable} = ResendInvite.execute(reg.id, provider.id)
+    end
+
+    test "returns error when provider does not own the invite", %{invite: invite} do
+      other_provider = insert(:provider_profile_schema)
+      assert {:error, :not_found} = ResendInvite.execute(invite.id, other_provider.id)
     end
   end
 end

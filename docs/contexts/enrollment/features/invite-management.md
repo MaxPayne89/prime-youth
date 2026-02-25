@@ -14,7 +14,7 @@ After a provider uploads a CSV of enrollment invites, they need to see what was 
 - **Resend an invite.** Resets a failed, pending, or already-sent invite back to `pending` status, clears its token and sent timestamp, and dispatches the email pipeline to generate a fresh token and send a new email.
 - **Delete an invite.** Hard-deletes the invite record. If an email was already sent, the invite link becomes invalid (returns "not found" when clicked).
 - **Display invite status.** Each invite shows a color-coded status badge: pending (yellow), sent (blue), registered (blue), enrolled (green), failed (red).
-- **Guard against invalid actions.** Resend is only available for invites in `pending`, `invite_sent`, or `failed` status. Delete is available for all statuses. Both buttons are hidden for `registered` and `enrolled` invites.
+- **Guard against invalid actions.** Resend is only available for invites in `pending`, `invite_sent`, or `failed` status. Delete is only available for invites in `pending`, `invite_sent`, or `failed` status. Both buttons are hidden for `registered` and `enrolled` invites.
 
 ## What It Does NOT Do
 

@@ -420,19 +420,25 @@ defmodule KlassHero.Enrollment do
   @doc """
   Resets an invite to pending and re-dispatches the email pipeline.
 
+  Verifies the invite belongs to the given provider before resending.
+
   Returns `{:ok, invite}` on success, `{:error, :not_found}` or `{:error, :not_resendable}`.
   """
-  def resend_invite(invite_id) when is_binary(invite_id) do
-    ResendInvite.execute(invite_id)
+  def resend_invite(invite_id, provider_id)
+      when is_binary(invite_id) and is_binary(provider_id) do
+    ResendInvite.execute(invite_id, provider_id)
   end
 
   @doc """
   Deletes a bulk enrollment invite by ID.
 
+  Verifies the invite belongs to the given provider before deleting.
+
   Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
   """
-  def delete_invite(invite_id) when is_binary(invite_id) do
-    DeleteInvite.execute(invite_id)
+  def delete_invite(invite_id, provider_id)
+      when is_binary(invite_id) and is_binary(provider_id) do
+    DeleteInvite.execute(invite_id, provider_id)
   end
 
   # ============================================================================

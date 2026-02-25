@@ -105,4 +105,95 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.EnqueueInvit
       end)
     end
   end
+
+  describe "handle/1 :invite_resend_requested" do
+    setup :create_pending_invites
+
+    test "enqueues Oban job only for the resent invite", %{
+      provider: provider,
+      program: program
+    } do
+      invites = Repo.all(BulkEnrollmentInviteSchema)
+      target = hd(invites)
+
+      Oban.Testing.with_testing_mode(:manual, fn ->
+        event =
+          EnrollmentEvents.invite_resend_requested(provider.id, target.id, program.id)
+
+        assert :ok = EnqueueInviteEmails.handle(event)
+
+        assert_enqueued(
+          worker: SendInviteEmailWorker,
+          args: %{invite_id: target.id, program_name: "Dance Class"}
+        )
+
+        # Other pending invites in the same program should NOT get an email
+        other = Enum.find(invites, fn inv -> inv.id != target.id end)
+        refute_enqueued(worker: SendInviteEmailWorker, args: %{invite_id: other.id})
+      end)
+    end
+
+    test "generates a fresh token for the resent invite", %{
+      provider: provider,
+      program: program
+    } do
+      target = Repo.all(BulkEnrollmentInviteSchema) |> hd()
+
+      Oban.Testing.with_testing_mode(:manual, fn ->
+        event =
+          EnrollmentEvents.invite_resend_requested(provider.id, target.id, program.id)
+
+        assert :ok = EnqueueInviteEmails.handle(event)
+
+        updated = Repo.get!(BulkEnrollmentInviteSchema, target.id)
+        assert updated.invite_token != nil
+      end)
+    end
+
+    test "returns :ok when no pending invites match", %{
+      provider: provider,
+      program: program
+    } do
+      # Mark each invite with a unique token so UseCase returns empty pairs
+      Repo.all(BulkEnrollmentInviteSchema)
+      |> Enum.each(fn inv ->
+        inv
+        |> Ecto.Changeset.change(%{invite_token: "token-#{inv.id}"})
+        |> Repo.update!()
+      end)
+
+      target_id = Repo.all(BulkEnrollmentInviteSchema) |> hd() |> Map.get(:id)
+
+      Oban.Testing.with_testing_mode(:manual, fn ->
+        event =
+          EnrollmentEvents.invite_resend_requested(provider.id, target_id, program.id)
+
+        assert :ok = EnqueueInviteEmails.handle(event)
+        refute_enqueued(worker: SendInviteEmailWorker)
+      end)
+    end
+
+    test "does not enqueue for other pending invites in the same program", %{
+      provider: provider,
+      program: program
+    } do
+      invites = Repo.all(BulkEnrollmentInviteSchema)
+      target = hd(invites)
+      other = List.last(invites)
+
+      Oban.Testing.with_testing_mode(:manual, fn ->
+        event =
+          EnrollmentEvents.invite_resend_requested(provider.id, target.id, program.id)
+
+        assert :ok = EnqueueInviteEmails.handle(event)
+
+        all_jobs = all_enqueued(worker: SendInviteEmailWorker)
+        assert length(all_jobs) == 1
+
+        enqueued_ids = Enum.map(all_jobs, fn %{args: %{"invite_id" => id}} -> id end)
+        assert target.id in enqueued_ids
+        refute other.id in enqueued_ids
+      end)
+    end
+  end
 end
