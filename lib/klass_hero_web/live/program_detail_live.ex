@@ -80,11 +80,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   end
 
   @impl true
-  def handle_event("toggle_favorite", _params, socket) do
-    {:noreply, socket}
-  end
-
-  @impl true
   def handle_event("enroll_now", _params, socket) do
     # Trigger: registration period is open (or always_open)
     # Why: prevent enrollment when registration is upcoming or closed
@@ -184,18 +179,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
           <div class="flex items-center justify-between">
             <.back_button phx-click="back_to_programs" />
-            <button
-              phx-click="toggle_favorite"
-              class={[
-                "p-2 bg-white/80 backdrop-blur-sm hover:bg-white",
-                Theme.transition(:normal),
-                Theme.rounded(:full)
-              ]}
-            >
-              <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-            </button>
           </div>
         </div>
 

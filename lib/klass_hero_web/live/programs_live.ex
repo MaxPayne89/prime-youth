@@ -319,12 +319,6 @@ defmodule KlassHeroWeb.ProgramsLive do
   end
 
   @impl true
-  def handle_event("toggle_favorite", %{"program" => _program_title}, socket) do
-    # TODO: Implement favorite toggle functionality
-    {:noreply, socket}
-  end
-
-  @impl true
   def handle_event("program_click", %{"program-id" => program_id}, socket) do
     # Navigate directly using program ID (no database call needed)
     Logger.info(

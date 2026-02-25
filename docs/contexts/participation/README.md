@@ -66,7 +66,6 @@
 
 ## Assumptions & Open Questions
 
-- [NEEDS INPUT] Provider filtering for `list_by_provider_and_date` is simplified (TODO in code). How should provider-to-program association work?
 - [NEEDS INPUT] Can a session be rescheduled or its time changed after creation? Currently only status, location, notes, and max_capacity can be updated.
 - [NEEDS INPUT] Is there a maximum number of behavioral notes a provider can submit across all children in a session?
 - [NEEDS INPUT] Should parents receive a notification when a behavioral note is submitted for their child? Events are published but no notification handling exists yet.

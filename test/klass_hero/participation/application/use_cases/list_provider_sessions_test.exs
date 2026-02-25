@@ -14,8 +14,8 @@ defmodule KlassHero.Participation.Application.UseCases.ListProviderSessionsTest 
 
   describe "execute/1" do
     test "returns sessions for a date ordered by start time" do
-      program = insert(:program_schema)
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
       target_date = ~D[2025-02-15]
 
       insert(:program_session_schema,
@@ -38,7 +38,7 @@ defmodule KlassHero.Participation.Application.UseCases.ListProviderSessionsTest 
       )
 
       assert {:ok, sessions} =
-               ListProviderSessions.execute(%{provider_id: provider_id, date: target_date})
+               ListProviderSessions.execute(%{provider_id: provider.id, date: target_date})
 
       assert length(sessions) == 2
       assert Enum.all?(sessions, &match?(%ProgramSession{}, &1))
@@ -49,19 +49,19 @@ defmodule KlassHero.Participation.Application.UseCases.ListProviderSessionsTest 
     end
 
     test "returns empty list when no sessions for date" do
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_profile_schema)
       target_date = ~D[2025-02-15]
 
       assert {:ok, sessions} =
-               ListProviderSessions.execute(%{provider_id: provider_id, date: target_date})
+               ListProviderSessions.execute(%{provider_id: provider.id, date: target_date})
 
       assert sessions == []
     end
 
     test "returns sessions from multiple programs on same date" do
-      program1 = insert(:program_schema)
-      program2 = insert(:program_schema)
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_profile_schema)
+      program1 = insert(:program_schema, provider_id: provider.id)
+      program2 = insert(:program_schema, provider_id: provider.id)
       target_date = ~D[2025-02-15]
 
       insert(:program_session_schema,
@@ -78,15 +78,15 @@ defmodule KlassHero.Participation.Application.UseCases.ListProviderSessionsTest 
       )
 
       assert {:ok, sessions} =
-               ListProviderSessions.execute(%{provider_id: provider_id, date: target_date})
+               ListProviderSessions.execute(%{provider_id: provider.id, date: target_date})
 
       assert length(sessions) == 2
     end
 
     test "defaults to today when date not provided" do
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_profile_schema)
 
-      assert {:ok, sessions} = ListProviderSessions.execute(%{provider_id: provider_id})
+      assert {:ok, sessions} = ListProviderSessions.execute(%{provider_id: provider.id})
       assert is_list(sessions)
     end
   end
