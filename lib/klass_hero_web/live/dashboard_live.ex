@@ -337,7 +337,6 @@ defmodule KlassHeroWeb.DashboardLive do
                 id={dom_id}
                 program={ProgramPresenter.to_card_view(item.program)}
                 variant={:detailed}
-                show_favorite={false}
                 expired={item.expired}
                 contact_url={if(!item.expired, do: ~p"/messages")}
                 phx-click="program_click"

@@ -275,23 +275,40 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   end
 
   describe "list_by_provider_and_date/2" do
-    test "returns sessions for specified date" do
-      program = insert(:program_schema)
-      provider_id = Ecto.UUID.generate()
+    test "returns sessions for the provider's programs on specified date" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
       target_date = ~D[2025-02-15]
 
       insert(:program_session_schema, program_id: program.id, session_date: target_date)
       insert(:program_session_schema, program_id: program.id, session_date: ~D[2025-02-16])
 
-      sessions = SessionRepository.list_by_provider_and_date(provider_id, target_date)
+      sessions = SessionRepository.list_by_provider_and_date(provider.id, target_date)
 
       assert length(sessions) == 1
       assert Enum.all?(sessions, &(&1.session_date == target_date))
     end
 
+    test "does not return sessions from other providers" do
+      provider = insert(:provider_profile_schema)
+      other_provider = insert(:provider_profile_schema)
+      target_date = ~D[2025-02-15]
+
+      own_program = insert(:program_schema, provider_id: provider.id)
+      other_program = insert(:program_schema, provider_id: other_provider.id)
+
+      insert(:program_session_schema, program_id: own_program.id, session_date: target_date)
+      insert(:program_session_schema, program_id: other_program.id, session_date: target_date)
+
+      sessions = SessionRepository.list_by_provider_and_date(provider.id, target_date)
+
+      assert length(sessions) == 1
+      assert Enum.all?(sessions, &(&1.program_id == own_program.id))
+    end
+
     test "returns sessions ordered by start time" do
-      program = insert(:program_schema)
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
       target_date = ~D[2025-02-15]
 
       insert(:program_session_schema,
@@ -307,17 +324,17 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
         start_time: ~T[10:00:00]
       )
 
-      sessions = SessionRepository.list_by_provider_and_date(provider_id, target_date)
+      sessions = SessionRepository.list_by_provider_and_date(provider.id, target_date)
 
       times = Enum.map(sessions, & &1.start_time)
       assert times == [~T[10:00:00], ~T[16:00:00]]
     end
 
     test "returns empty list when no sessions for date" do
-      provider_id = Ecto.UUID.generate()
+      provider = insert(:provider_profile_schema)
       target_date = ~D[2025-02-15]
 
-      assert [] = SessionRepository.list_by_provider_and_date(provider_id, target_date)
+      assert [] = SessionRepository.list_by_provider_and_date(provider.id, target_date)
     end
   end
 end

@@ -12,6 +12,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   alias KlassHero.Participation.Adapters.Driven.Persistence.Mappers.ProgramSessionMapper
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.Participation.Domain.Models.ProgramSession
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.ErrorIds
 
@@ -71,13 +72,10 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
 
   @impl true
   def list_by_provider_and_date(provider_id, date) when is_binary(provider_id) do
-    # Note: Full provider filtering requires provider-program relationship in schema.
-    # Currently returns all sessions for date as a simplified implementation.
-    # TODO: Add provider_id to sessions or join through programs table.
-    _ = provider_id
-
     from(s in ProgramSessionSchema,
-      where: s.session_date == ^date,
+      join: p in ProgramSchema,
+      on: p.id == s.program_id,
+      where: p.provider_id == ^provider_id and s.session_date == ^date,
       order_by: [asc: s.start_time]
     )
     |> Repo.all()

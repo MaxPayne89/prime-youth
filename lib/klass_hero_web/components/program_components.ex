@@ -230,8 +230,6 @@ defmodule KlassHeroWeb.ProgramComponents do
   """
   attr :program, :map, required: true
   attr :variant, :atom, default: :detailed, values: [:compact, :detailed]
-  attr :show_favorite, :boolean, default: true
-  attr :favorited, :boolean, default: false
   attr :class, :string, default: ""
   attr :expired, :boolean, default: false, doc: "Greyed-out styling for expired programs"
   attr :contact_url, :string, default: nil, doc: "URL for contact button (e.g. /messages)"
@@ -275,41 +273,6 @@ defmodule KlassHeroWeb.ProgramComponents do
           ]}>
             ONLINE
           </span>
-        </div>
-        
-    <!-- Favorite Button (top-right) -->
-        <div :if={@show_favorite} class="absolute top-4 right-4 z-10">
-          <button
-            phx-click="toggle_favorite"
-            phx-value-program={@program.title}
-            class={[
-              "p-2 bg-white shadow-sm hover:bg-hero-grey-50",
-              Theme.transition(:normal),
-              Theme.rounded(:full)
-            ]}
-            onclick="event.stopPropagation();"
-          >
-            <svg
-              class={[
-                "w-5 h-5",
-                Theme.transition(:normal),
-                if(@favorited,
-                  do: "text-red-500 fill-red-500",
-                  else: "text-hero-black-100 hover:text-red-500"
-                )
-              ]}
-              fill={if @favorited, do: "currentColor", else: "none"}
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-              />
-            </svg>
-          </button>
         </div>
         
     <!-- Spots Left Badge (bottom-left) -->
