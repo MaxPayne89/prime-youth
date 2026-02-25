@@ -1,0 +1,47 @@
+# Automated release management via release-please
+# Creates/updates a Release PR on each push to main.
+# When the Release PR is merged, creates a GitHub Release and dispatches production deploy.
+
+name: Release Please
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  release-please:
+    name: Manage Release
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      # googleapis/release-please-action@v4.2.0
+      - name: Run release-please
+        id: release
+        uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Trigger: release-please created a new release (Release PR was merged)
+      # Why: GITHUB_TOKEN events don't trigger other workflows, so we bridge
+      #      via workflow_dispatch to keep workflows cleanly separated
+      # Outcome: deploy-production.yml runs against the release tag
+      - name: Dispatch production deploy
+        if: steps.release.outputs.release_created == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'deploy-production.yml',
+              ref: '${{ steps.release.outputs.tag_name }}',
+            });
+            console.log(`Dispatched production deploy for ${context.payload.repository.full_name}@${{ steps.release.outputs.tag_name }}`);
