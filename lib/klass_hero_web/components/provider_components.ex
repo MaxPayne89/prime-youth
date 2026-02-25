@@ -1706,14 +1706,7 @@ defmodule KlassHeroWeb.ProviderComponents do
       case Map.get(errors, :validation_errors) do
         errs when is_list(errs) ->
           Enum.map(errs, fn {row, field_errors} ->
-            # Trigger: field_errors is a keyword list like [{:guardian_email, "is required"}, ...]
-            # Why: gettext interpolation requires a string, not a keyword list
-            # Outcome: format each field error as "field: message" joined by commas
-            msg =
-              Enum.map_join(field_errors, ", ", fn {field, detail} ->
-                "#{field}: #{detail}"
-              end)
-
+            msg = format_field_errors(field_errors)
             gettext("Row %{row}: %{msg}", row: row, msg: msg)
           end)
 
@@ -1731,6 +1724,13 @@ defmodule KlassHeroWeb.ProviderComponents do
   end
 
   defp format_import_errors(_), do: [gettext("An unexpected error occurred during import.")]
+
+  # Trigger: field_errors is a keyword list like [{:guardian_email, "is required"}, ...]
+  # Why: gettext interpolation requires a string, not a keyword list
+  # Outcome: formats each field error as "field: message" joined by commas
+  defp format_field_errors(field_errors) do
+    Enum.map_join(field_errors, ", ", fn {field, detail} -> "#{field}: #{detail}" end)
+  end
 
   @doc """
   Converts a Phoenix upload error atom to a human-readable string.

@@ -558,11 +558,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     case Enrollment.resend_invite(invite_id, provider_id) do
       {:ok, _} ->
-        socket =
-          case refresh_invites(socket, socket.assigns.roster_program_id) do
-            {:ok, socket} -> socket
-            {:error, :no_program} -> socket
-          end
+        socket = refresh_invites_silent(socket, socket.assigns.roster_program_id)
 
         {:noreply, put_flash(socket, :info, gettext("Invite resent successfully."))}
 
@@ -585,11 +581,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     case Enrollment.delete_invite(invite_id, provider_id) do
       :ok ->
-        socket =
-          case refresh_invites(socket, socket.assigns.roster_program_id) do
-            {:ok, socket} -> socket
-            {:error, :no_program} -> socket
-          end
+        socket = refresh_invites_silent(socket, socket.assigns.roster_program_id)
 
         {:noreply, put_flash(socket, :info, gettext("Invite removed."))}
 
@@ -644,11 +636,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       [{:ok, csv_binary}] ->
         case Enrollment.import_enrollment_csv(provider_id, csv_binary) do
           {:ok, %{created: count}} ->
-            socket =
-              case refresh_invites(socket, program_id) do
-                {:ok, socket} -> socket
-                {:error, :no_program} -> socket
-              end
+            socket = refresh_invites_silent(socket, program_id)
 
             {:noreply,
              socket
@@ -1389,6 +1377,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     {:ok, invites} = Enrollment.list_program_invites(program_id)
     invite_count = Enrollment.count_program_invites(program_id)
     {:ok, assign(socket, roster_invites: invites, roster_invite_count: invite_count)}
+  end
+
+  # Trigger: caller doesn't need to distinguish success from no-program
+  # Why: avoids nesting a case inside an already-deep handler
+  # Outcome: returns the (possibly refreshed) socket unchanged on error
+  defp refresh_invites_silent(socket, program_id) do
+    case refresh_invites(socket, program_id) do
+      {:ok, socket} -> socket
+      {:error, :no_program} -> socket
+    end
   end
 
   defp fetch_staff_members(provider_id) do
