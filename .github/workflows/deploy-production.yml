@@ -1,0 +1,32 @@
+# Deploy to production (klass-hero-live) on Fly.io
+# Primary trigger: workflow_dispatch from release-please after Release PR merge
+# Fallback trigger: manually publishing a GitHub Release
+
+name: Deploy Production
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    concurrency: deploy-klass-hero-live
+    environment:
+      name: live
+      url: https://klass-hero-live.fly.dev
+    steps:
+      # actions/checkout@v6.0.2
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      # superfly/flyctl-actions/setup-flyctl@v1.5
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be
+
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only --config fly.production.toml
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN_PROD }}
