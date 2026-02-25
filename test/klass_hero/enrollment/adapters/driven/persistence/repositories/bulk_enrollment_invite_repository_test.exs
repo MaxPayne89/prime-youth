@@ -275,6 +275,244 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     end
   end
 
+  describe "list_by_program/1" do
+    setup :setup_program
+
+    test "returns invites for a program ordered by child_last_name", %{
+      program: program,
+      provider: provider
+    } do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Zebra",
+            child_first_name: "Alice",
+            guardian_email: "alice@test.com"
+          }),
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Adams",
+            child_first_name: "Bob",
+            guardian_email: "bob@test.com"
+          })
+        ])
+
+      invites = BulkEnrollmentInviteRepository.list_by_program(program.id)
+
+      assert length(invites) == 2
+      assert [first, second] = invites
+      assert first.child_last_name == "Adams"
+      assert second.child_last_name == "Zebra"
+    end
+
+    test "returns empty list for program with no invites" do
+      assert BulkEnrollmentInviteRepository.list_by_program(Ecto.UUID.generate()) == []
+    end
+
+    test "does not return invites from other programs", %{provider: provider} do
+      program_a = insert(:program_schema, provider_id: provider.id)
+      program_b = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program_a, provider, %{
+            child_last_name: "Smith",
+            child_first_name: "Jane",
+            guardian_email: "jane@test.com"
+          })
+        ])
+
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program_b, provider, %{
+            child_last_name: "Jones",
+            child_first_name: "Tom",
+            guardian_email: "tom@test.com"
+          })
+        ])
+
+      invites = BulkEnrollmentInviteRepository.list_by_program(program_a.id)
+
+      assert length(invites) == 1
+      assert hd(invites).child_last_name == "Smith"
+    end
+  end
+
+  describe "count_by_program/1" do
+    setup :setup_program
+
+    test "returns count of invites for a program", %{program: program, provider: provider} do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Smith",
+            child_first_name: "Jane",
+            guardian_email: "jane@test.com"
+          }),
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Jones",
+            child_first_name: "Tom",
+            guardian_email: "tom@test.com"
+          })
+        ])
+
+      assert BulkEnrollmentInviteRepository.count_by_program(program.id) == 2
+    end
+
+    test "returns 0 for program with no invites" do
+      assert BulkEnrollmentInviteRepository.count_by_program(Ecto.UUID.generate()) == 0
+    end
+  end
+
+  describe "delete/1" do
+    setup :setup_program
+
+    test "deletes an invite by id", %{program: program, provider: provider} do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
+
+      [invite] = BulkEnrollmentInviteRepository.list_by_program(program.id)
+
+      assert :ok = BulkEnrollmentInviteRepository.delete(invite.id)
+      assert BulkEnrollmentInviteRepository.list_by_program(program.id) == []
+    end
+
+    test "returns error for non-existent invite" do
+      assert {:error, :not_found} = BulkEnrollmentInviteRepository.delete(Ecto.UUID.generate())
+    end
+  end
+
+  describe "reset_for_resend/1" do
+    setup :setup_program
+
+    test "resets invite_sent invite to pending with cleared token", %{
+      program: program,
+      provider: provider
+    } do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Smith",
+            child_first_name: "Jane",
+            guardian_email: "jane@test.com"
+          })
+        ])
+
+      [invite] = BulkEnrollmentInviteRepository.list_by_program(program.id)
+
+      # Transition to invite_sent with a token
+      {:ok, sent} =
+        BulkEnrollmentInviteRepository.transition_status(invite, %{
+          status: "invite_sent",
+          invite_token: "test-token-123",
+          invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      assert sent.status == "invite_sent"
+
+      {:ok, reset} = BulkEnrollmentInviteRepository.reset_for_resend(sent)
+
+      assert reset.status == "pending"
+      assert is_nil(reset.invite_token)
+      assert is_nil(reset.invite_sent_at)
+    end
+
+    test "resets failed invite to pending", %{program: program, provider: provider} do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Smith",
+            child_first_name: "Jane",
+            guardian_email: "jane@test.com"
+          })
+        ])
+
+      [invite] = BulkEnrollmentInviteRepository.list_by_program(program.id)
+
+      {:ok, failed} =
+        BulkEnrollmentInviteRepository.transition_status(invite, %{
+          status: "failed",
+          error_details: "delivery error"
+        })
+
+      {:ok, reset} = BulkEnrollmentInviteRepository.reset_for_resend(failed)
+
+      assert reset.status == "pending"
+      assert is_nil(reset.invite_token)
+      assert is_nil(reset.error_details)
+    end
+
+    test "rejects reset for registered invite", %{program: program, provider: provider} do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Smith",
+            child_first_name: "Jane",
+            guardian_email: "jane@test.com"
+          })
+        ])
+
+      [invite] = BulkEnrollmentInviteRepository.list_by_program(program.id)
+
+      # Walk through the state machine to registered (a non-resendable status)
+      {:ok, sent} =
+        BulkEnrollmentInviteRepository.transition_status(invite, %{
+          status: "invite_sent",
+          invite_token: "tok",
+          invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      {:ok, registered} =
+        BulkEnrollmentInviteRepository.transition_status(sent, %{
+          status: "registered",
+          registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      assert {:error, :not_resendable} =
+               BulkEnrollmentInviteRepository.reset_for_resend(registered)
+    end
+
+    test "rejects reset for enrolled invite", %{program: program, provider: provider} do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          valid_invite_attrs(program, provider, %{
+            child_last_name: "Smith",
+            child_first_name: "Jane",
+            guardian_email: "jane@test.com"
+          })
+        ])
+
+      [invite] = BulkEnrollmentInviteRepository.list_by_program(program.id)
+
+      # Walk through the state machine: pending → invite_sent → registered → enrolled
+      {:ok, sent} =
+        BulkEnrollmentInviteRepository.transition_status(invite, %{
+          status: "invite_sent",
+          invite_token: "tok",
+          invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      {:ok, registered} =
+        BulkEnrollmentInviteRepository.transition_status(sent, %{
+          status: "registered",
+          registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      {:ok, enrolled} =
+        BulkEnrollmentInviteRepository.transition_status(registered, %{
+          status: "enrolled",
+          enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      assert {:error, :not_resendable} =
+               BulkEnrollmentInviteRepository.reset_for_resend(enrolled)
+    end
+
+    test "returns error for non-existent invite" do
+      fake = %{id: Ecto.UUID.generate(), status: "pending"}
+      assert {:error, :not_found} = BulkEnrollmentInviteRepository.reset_for_resend(fake)
+    end
+  end
+
   describe "transition_status/2" do
     setup :setup_program
 

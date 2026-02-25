@@ -22,6 +22,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   require Logger
 
+  @resendable_statuses ~w(pending invite_sent failed)
+
   @impl true
   @doc """
   Inserts all invite records atomically in a single transaction.
@@ -140,6 +142,58 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   @impl true
   @doc """
+  Returns all invites for a given program, ordered alphabetically
+  by child last name then first name.
+  """
+  def list_by_program(program_id) when is_binary(program_id) do
+    BulkEnrollmentInviteSchema
+    |> where([i], i.program_id == ^program_id)
+    |> order_by([i], asc: i.child_last_name, asc: i.child_first_name)
+    |> Repo.all()
+    |> Mapper.to_domain_list()
+  end
+
+  @impl true
+  @doc """
+  Returns the count of invites for a given program.
+  """
+  def count_by_program(program_id) when is_binary(program_id) do
+    BulkEnrollmentInviteSchema
+    |> where([i], i.program_id == ^program_id)
+    |> Repo.aggregate(:count)
+  end
+
+  @impl true
+  @doc """
+  Deletes an invite by its ID.
+
+  Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
+  """
+  def delete(id) when is_binary(id) do
+    case Repo.get(BulkEnrollmentInviteSchema, id) do
+      nil ->
+        {:error, :not_found}
+
+      schema ->
+        # Trigger: Repo.delete can return {:error, changeset} on FK constraint violations
+        # Why: bare match raises MatchError and crashes the caller
+        # Outcome: log warning and surface :delete_failed to callers
+        case Repo.delete(schema) do
+          {:ok, _deleted} ->
+            :ok
+
+          {:error, changeset} ->
+            Logger.warning(
+              "[BulkEnrollmentInvite] Delete failed for #{id}: #{inspect(changeset.errors)}"
+            )
+
+            {:error, :delete_failed}
+        end
+    end
+  end
+
+  @impl true
+  @doc """
   Assigns invite tokens to multiple invites in bulk.
 
   Accepts a list of `{invite_id, token}` tuples. Each invite is updated
@@ -197,4 +251,38 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
         end
     end
   end
+
+  @impl true
+  @doc """
+  Resets a resendable invite back to pending status, clearing its token and metadata.
+
+  Bypasses the normal state machine (`transition_changeset`) intentionally —
+  this is a dedicated reset operation with its own guard on `@resendable_statuses`,
+  using a plain `change/2` since it clears fields rather than transitioning forward.
+  """
+  def reset_for_resend(%{id: id, status: status}) when status in @resendable_statuses do
+    case Repo.get(BulkEnrollmentInviteSchema, id) do
+      nil ->
+        {:error, :not_found}
+
+      schema ->
+        # Trigger: invite needs to re-enter the email pipeline
+        # Why: clearing token + invite_sent_at makes it eligible for list_pending_without_token
+        # Outcome: existing EnqueueInviteEmails picks it up on next dispatch
+        changeset =
+          Ecto.Changeset.change(schema, %{
+            status: "pending",
+            invite_token: nil,
+            invite_sent_at: nil,
+            error_details: nil
+          })
+
+        case Repo.update(changeset) do
+          {:ok, updated} -> {:ok, Mapper.to_domain(updated)}
+          {:error, changeset} -> {:error, changeset}
+        end
+    end
+  end
+
+  def reset_for_resend(%{id: _id}), do: {:error, :not_resendable}
 end

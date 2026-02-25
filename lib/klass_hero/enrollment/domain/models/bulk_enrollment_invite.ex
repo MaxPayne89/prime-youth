@@ -101,6 +101,13 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite do
   def invite_sent?(%__MODULE__{status: "invite_sent"}), do: true
   def invite_sent?(%__MODULE__{}), do: false
 
+  @resendable_statuses ~w(pending invite_sent failed)
+
+  @doc "Returns true if the invite status allows resending."
+  @spec resendable?(t()) :: boolean()
+  def resendable?(%__MODULE__{status: status}) when status in @resendable_statuses, do: true
+  def resendable?(%__MODULE__{}), do: false
+
   @doc "Generates a cryptographically secure URL-safe token for invite links."
   @spec generate_token() :: String.t()
   def generate_token do

@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
   alias KlassHero.ProviderFixtures
 
   setup :register_and_log_in_provider
@@ -232,6 +233,488 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       # The provider was just created and has no programs
       # Table should exist but be empty (header row only)
       assert has_element?(view, "table")
+    end
+  end
+
+  describe "roster modal with tabs" do
+    setup %{provider: provider} do
+      program =
+        KlassHero.Factory.insert(:program_schema,
+          provider_id: provider.id,
+          title: "Test Program"
+        )
+
+      %{program: program}
+    end
+
+    test "shows enrolled and invites tabs when roster opened", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#roster-modal")
+      assert has_element?(view, "#roster-tab-enrolled")
+      assert has_element?(view, "#roster-tab-invites")
+    end
+
+    test "enrolled tab is active by default", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#roster-tab-enrolled[aria-selected=true]")
+    end
+
+    test "switches to invites tab", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "#roster-tab-invites[aria-selected=true]")
+      assert has_element?(view, "#invites-tab-content")
+    end
+
+    test "invites tab shows empty state when no invites", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "#invites-empty")
+    end
+  end
+
+  describe "invites tab content" do
+    setup %{provider: provider} do
+      program =
+        KlassHero.Factory.insert(:program_schema,
+          provider_id: provider.id,
+          title: "Test Program"
+        )
+
+      {:ok, _count} =
+        BulkEnrollmentInviteRepository.create_batch([
+          %{
+            program_id: program.id,
+            provider_id: provider.id,
+            child_first_name: "Jane",
+            child_last_name: "Smith",
+            child_date_of_birth: ~D[2015-06-15],
+            guardian_email: "parent@test.com"
+          }
+        ])
+
+      %{program: program}
+    end
+
+    test "shows invite rows with child name, email, status", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "#invites-table")
+      html = render(view)
+      assert html =~ "Jane"
+      assert html =~ "Smith"
+      assert html =~ "parent@test.com"
+    end
+
+    test "shows resend button for pending invite", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "[phx-click=resend_invite]")
+    end
+
+    test "shows remove button for pending invite", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "[phx-click=delete_invite]")
+    end
+  end
+
+  describe "invite actions" do
+    setup %{provider: provider} do
+      program =
+        KlassHero.Factory.insert(:program_schema,
+          provider_id: provider.id,
+          title: "Test Program"
+        )
+
+      {:ok, _count} =
+        BulkEnrollmentInviteRepository.create_batch([
+          %{
+            program_id: program.id,
+            provider_id: provider.id,
+            child_first_name: "Jane",
+            child_last_name: "Smith",
+            child_date_of_birth: ~D[2015-06-15],
+            guardian_email: "parent@test.com"
+          }
+        ])
+
+      %{program: program}
+    end
+
+    test "resend invite shows success flash", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      html = view |> element("[phx-click=resend_invite]") |> render_click()
+
+      assert html =~ "Invite resent"
+    end
+
+    test "delete invite removes row from table", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      assert has_element?(view, "#invites-table")
+
+      view |> element("[phx-click=delete_invite]") |> render_click()
+
+      assert has_element?(view, "#invites-empty")
+    end
+  end
+
+  # ===========================================================================
+  # T3: close_roster handler
+  # ===========================================================================
+
+  describe "close roster" do
+    setup %{provider: provider} do
+      program =
+        KlassHero.Factory.insert(:program_schema,
+          provider_id: provider.id,
+          title: "Test Program"
+        )
+
+      %{program: program}
+    end
+
+    test "closing roster hides modal", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      assert has_element?(view, "#roster-modal")
+
+      view |> element("button[phx-click=close_roster]") |> render_click()
+      refute has_element?(view, "#roster-modal")
+    end
+  end
+
+  # ===========================================================================
+  # T4/T6: invite error paths
+  # ===========================================================================
+
+  describe "invite error paths" do
+    setup %{provider: provider} do
+      program =
+        KlassHero.Factory.insert(:program_schema,
+          provider_id: provider.id,
+          title: "Test Program"
+        )
+
+      %{program: program}
+    end
+
+    test "enrolled invite does not show action buttons", %{
+      conn: conn,
+      provider: provider,
+      program: program
+    } do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          %{
+            program_id: program.id,
+            provider_id: provider.id,
+            child_first_name: "Jane",
+            child_last_name: "Smith",
+            child_date_of_birth: ~D[2015-06-15],
+            guardian_email: "enrolled@test.com"
+          }
+        ])
+
+      # Walk through the state machine to enrolled
+      [invite] = BulkEnrollmentInviteRepository.list_by_program(program.id)
+
+      {:ok, sent} =
+        BulkEnrollmentInviteRepository.transition_status(invite, %{
+          status: "invite_sent",
+          invite_token: "tok",
+          invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      {:ok, registered} =
+        BulkEnrollmentInviteRepository.transition_status(sent, %{
+          status: "registered",
+          registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      {:ok, _enrolled} =
+        BulkEnrollmentInviteRepository.transition_status(registered, %{
+          status: "enrolled",
+          enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second)
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      refute has_element?(view, "[phx-click=resend_invite]")
+      refute has_element?(view, "[phx-click=delete_invite]")
+    end
+
+    test "resend shows error when invite deleted concurrently", %{
+      conn: conn,
+      provider: provider,
+      program: program
+    } do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          %{
+            program_id: program.id,
+            provider_id: provider.id,
+            child_first_name: "Jane",
+            child_last_name: "Smith",
+            child_date_of_birth: ~D[2015-06-15],
+            guardian_email: "concurrent@test.com"
+          }
+        ])
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      # Delete the invite from the DB while the DOM still has the button
+      [invite] = BulkEnrollmentInviteRepository.list_by_program(program.id)
+      :ok = BulkEnrollmentInviteRepository.delete(invite.id)
+
+      view |> element("[phx-click=resend_invite]") |> render_click()
+
+      assert_flash(view, :error, "Failed to resend invite.")
+    end
+
+    test "delete shows error when invite already removed", %{
+      conn: conn,
+      provider: provider,
+      program: program
+    } do
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          %{
+            program_id: program.id,
+            provider_id: provider.id,
+            child_first_name: "Jane",
+            child_last_name: "Smith",
+            child_date_of_birth: ~D[2015-06-15],
+            guardian_email: "removed@test.com"
+          }
+        ])
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+
+      # Delete the invite from DB while the DOM still shows it
+      [invite] = BulkEnrollmentInviteRepository.list_by_program(program.id)
+      :ok = BulkEnrollmentInviteRepository.delete(invite.id)
+
+      view |> element("[phx-click=delete_invite]") |> render_click()
+
+      assert_flash(view, :error, "Invite not found.")
+    end
+  end
+
+  # ===========================================================================
+  # T1/T2: CSV import handler + error rendering
+  # ===========================================================================
+
+  describe "CSV import" do
+    @csv_defaults %{
+      first: "Alice",
+      last: "Smith",
+      dob: "1/1/2016",
+      parent_first: "Bob",
+      parent_last: "Smith",
+      email: "parent@example.com",
+      parent2_first: "",
+      parent2_last: "",
+      parent2_email: "",
+      grade: "",
+      school: "",
+      has_medical: "",
+      medical: "",
+      nut_allergy: "",
+      photo_marketing: "",
+      photo_social: "",
+      program: "Ballsports & Parkour",
+      instructor: "",
+      season: "Test Season"
+    }
+
+    @csv_field_order ~w(first last dob parent_first parent_last email
+      parent2_first parent2_last parent2_email grade school has_medical
+      medical nut_allergy photo_marketing photo_social program instructor season)a
+
+    @csv_header_row [
+      "Participant information: First name",
+      "Participant information: Last name",
+      "Participant information: Date of birth",
+      "Parent/guardian information: First name",
+      "Parent/guardian information: Last name",
+      "Parent/guardian information: Email address",
+      "Parent/guardian 2 information: First name",
+      "Parent/guardian 2 information: Last name",
+      "Parent/guardian 2 information: Email address",
+      "School information: Grade",
+      "School information: Name",
+      "Medical/allergy information: Do you have medical conditions and special needs?",
+      "Medical/allergy information: Medical conditions and special needs",
+      "Medical/allergy information: Nut allergy",
+      ~s|Photography/video release permission: I agree that photos showing my child at camp may appear in marketing materials (e.g. posters, website) free of charge. this agreement is valid for unlimited time for all types of existing media and those that may be created.|,
+      ~s|Photography/video release permission: I agree that photos and films showing my child participating in activities may appear for marketing purposes on prime youth's social media channels (e.g. facebook, instagram, youtube) free of charge, valid for unlimited time and without revealing my children's identity.|,
+      "Program",
+      "Instructor",
+      "Season"
+    ]
+
+    setup %{provider: provider} do
+      program =
+        KlassHero.Factory.insert(:program_schema,
+          provider_id: provider.id,
+          title: "Ballsports & Parkour"
+        )
+
+      %{program: program}
+    end
+
+    defp build_csv(rows) do
+      headers = Enum.map_join(@csv_header_row, ",", &csv_escape/1)
+
+      data_rows =
+        Enum.map(rows, fn row ->
+          merged = Map.merge(@csv_defaults, row)
+          Enum.map_join(@csv_field_order, ",", &csv_escape(merged[&1]))
+        end)
+
+      [headers | data_rows] |> Enum.join("\n")
+    end
+
+    defp csv_escape(value) when is_binary(value) do
+      if String.contains?(value, [",", "\"", "\n"]) do
+        "\"" <> String.replace(value, "\"", "\"\"") <> "\""
+      else
+        value
+      end
+    end
+
+    defp csv_escape(value), do: to_string(value)
+
+    defp navigate_to_invites_tab(view, program) do
+      view |> element("#view-roster-#{program.id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+    end
+
+    test "successful import shows flash and refreshes invites", %{
+      conn: conn,
+      program: program
+    } do
+      csv_content = build_csv([%{first: "Emma", last: "Schmidt", email: "emma@test.com"}])
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      navigate_to_invites_tab(view, program)
+
+      csv_file =
+        file_input(view, "#csv-upload-form", :csv_file, [
+          %{
+            name: "import.csv",
+            content: csv_content,
+            type: "text/csv"
+          }
+        ])
+
+      render_upload(csv_file, "import.csv")
+      render_submit(view, "import_csv", %{})
+
+      assert_flash(view, :info, "Imported 1 families.")
+      assert has_element?(view, "#invites-table")
+      refute has_element?(view, "#import-errors")
+    end
+
+    test "import with validation errors shows import-errors div", %{
+      conn: conn,
+      program: program
+    } do
+      csv_content = build_csv([%{email: ""}])
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      navigate_to_invites_tab(view, program)
+
+      csv_file =
+        file_input(view, "#csv-upload-form", :csv_file, [
+          %{
+            name: "bad.csv",
+            content: csv_content,
+            type: "text/csv"
+          }
+        ])
+
+      render_upload(csv_file, "bad.csv")
+      render_submit(view, "import_csv", %{})
+
+      assert has_element?(view, "#import-errors")
+      html = render(view)
+      assert html =~ "Import failed"
+    end
+
+    test "import with parse errors shows import-errors div", %{
+      conn: conn,
+      program: program
+    } do
+      csv_content = "Wrong,Headers\nval1,val2\n"
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      navigate_to_invites_tab(view, program)
+
+      csv_file =
+        file_input(view, "#csv-upload-form", :csv_file, [
+          %{
+            name: "bad_headers.csv",
+            content: csv_content,
+            type: "text/csv"
+          }
+        ])
+
+      render_upload(csv_file, "bad_headers.csv")
+      render_submit(view, "import_csv", %{})
+
+      assert has_element?(view, "#import-errors")
+      html = render(view)
+      assert html =~ "Import failed"
+    end
+
+    test "submitting without file shows no-file flash", %{
+      conn: conn,
+      program: program
+    } do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      navigate_to_invites_tab(view, program)
+
+      render_submit(view, "import_csv", %{})
+
+      assert_flash(view, :error, "No file selected.")
     end
   end
 end

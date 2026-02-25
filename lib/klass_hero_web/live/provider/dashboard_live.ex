@@ -87,7 +87,17 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(show_staff_form: false, editing_staff_id: nil)
           |> assign(staff_form: to_form(Provider.new_staff_member_changeset()))
           |> assign(show_program_form: false, editing_program_id: nil)
-          |> assign(show_roster: false, roster_program_name: nil, roster_entries: [])
+          |> assign(
+            show_roster: false,
+            roster_program_name: nil,
+            roster_program_id: nil,
+            roster_entries: [],
+            roster_tab: "enrolled",
+            roster_invites: [],
+            roster_enrolled_count: 0,
+            roster_invite_count: 0,
+            import_errors: nil
+          )
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
           |> assign(
             enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
@@ -116,6 +126,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           )
           |> allow_upload(:program_cover,
             accept: ~w(.jpg .jpeg .png .webp),
+            max_entries: 1,
+            max_file_size: 2_000_000
+          )
+          |> allow_upload(:csv_file,
+            accept: ~w(.csv),
             max_entries: 1,
             max_file_size: 2_000_000
           )
@@ -473,28 +488,165 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("view_roster", %{"id" => program_id}, socket) do
-    roster = Enrollment.list_program_enrollments(program_id)
+    provider_id = socket.assigns.current_scope.provider.id
 
-    # Trigger: need the program name for the modal title
-    # Why: roster modal should display "Roster for [Program Name]"
-    # Outcome: find the program name from a fresh fetch
-    program_name =
-      case ProgramCatalog.get_program_by_id(program_id) do
-        {:ok, program} -> program.title
-        {:error, _} -> gettext("Program")
-      end
+    # Trigger: program_id comes from client params (untrusted)
+    # Why: without ownership check, any provider could view another's roster (IDOR)
+    # Outcome: verify program belongs to logged-in provider before loading data
+    with {:ok, program} <- ProgramCatalog.get_program_by_id(program_id),
+         true <- program.provider_id == provider_id do
+      roster = Enrollment.list_program_enrollments(program_id)
+      invite_count = Enrollment.count_program_invites(program_id)
 
-    {:noreply,
-     assign(socket,
-       show_roster: true,
-       roster_program_name: program_name,
-       roster_entries: roster
-     )}
+      {:noreply,
+       assign(socket,
+         show_roster: true,
+         roster_program_name: program.title,
+         roster_program_id: program_id,
+         roster_entries: roster,
+         roster_tab: "enrolled",
+         roster_invites: [],
+         roster_enrolled_count: length(roster),
+         roster_invite_count: invite_count,
+         import_errors: nil
+       )}
+    else
+      false ->
+        Logger.warning("[DashboardLive] Unauthorized roster access attempt",
+          program_id: program_id,
+          provider_id: provider_id
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Program not found."))}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Program not found."))}
+    end
   end
 
   @impl true
   def handle_event("close_roster", _params, socket) do
-    {:noreply, assign(socket, show_roster: false, roster_entries: [])}
+    {:noreply,
+     assign(socket,
+       show_roster: false,
+       roster_entries: [],
+       roster_tab: "enrolled",
+       roster_invites: [],
+       roster_program_id: nil,
+       roster_invite_count: 0,
+       roster_enrolled_count: 0,
+       import_errors: nil
+     )}
+  end
+
+  @impl true
+  def handle_event("switch_roster_tab", %{"tab" => "invites"}, socket) do
+    case refresh_invites(socket, socket.assigns.roster_program_id) do
+      {:ok, socket} -> {:noreply, assign(socket, roster_tab: "invites")}
+      {:error, :no_program} -> {:noreply, socket}
+    end
+  end
+
+  @impl true
+  def handle_event("switch_roster_tab", %{"tab" => "enrolled"}, socket) do
+    {:noreply, assign(socket, roster_tab: "enrolled")}
+  end
+
+  @impl true
+  def handle_event("resend_invite", %{"id" => invite_id}, socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+
+    case Enrollment.resend_invite(invite_id, provider_id) do
+      {:ok, _} ->
+        socket = refresh_invites_silent(socket, socket.assigns.roster_program_id)
+
+        {:noreply, put_flash(socket, :info, gettext("Invite resent successfully."))}
+
+      {:error, :not_resendable} ->
+        {:noreply, put_flash(socket, :error, gettext("This invite cannot be resent."))}
+
+      {:error, reason} ->
+        Logger.warning("[DashboardLive] Resend invite failed unexpectedly",
+          invite_id: invite_id,
+          reason: inspect(reason)
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Failed to resend invite."))}
+    end
+  end
+
+  @impl true
+  def handle_event("delete_invite", %{"id" => invite_id}, socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+
+    case Enrollment.delete_invite(invite_id, provider_id) do
+      :ok ->
+        socket = refresh_invites_silent(socket, socket.assigns.roster_program_id)
+
+        {:noreply, put_flash(socket, :info, gettext("Invite removed."))}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Invite not found."))}
+
+      {:error, :delete_failed} ->
+        {:noreply, put_flash(socket, :error, gettext("Could not remove invite."))}
+
+      {:error, reason} ->
+        Logger.warning("[DashboardLive] Delete invite failed unexpectedly",
+          invite_id: invite_id,
+          reason: inspect(reason)
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Could not remove invite."))}
+    end
+  end
+
+  @impl true
+  def handle_event("validate_csv_upload", _params, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("cancel_csv_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :csv_file, ref)}
+  end
+
+  @impl true
+  def handle_event("import_csv", _params, socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+    program_id = socket.assigns.roster_program_id
+
+    # Trigger: consume_uploaded_entries returns a list — may be empty if upload was cancelled
+    # Why: consume_uploaded_entries unwraps the outer {:ok, _} from the callback,
+    #      so we wrap File.read/1's result to preserve the inner {:ok, binary}/{:error, reason}
+    # Outcome: empty list or I/O failure produces user-facing flash error
+    entries =
+      consume_uploaded_entries(socket, :csv_file, fn %{path: path}, _entry ->
+        {:ok, File.read(path)}
+      end)
+
+    case entries do
+      [] ->
+        {:noreply, put_flash(socket, :error, gettext("No file selected."))}
+
+      [{:error, reason}] ->
+        Logger.warning("[DashboardLive] CSV file read failed: #{inspect(reason)}")
+        {:noreply, put_flash(socket, :error, gettext("Could not read the uploaded file."))}
+
+      [{:ok, csv_binary}] ->
+        case Enrollment.import_enrollment_csv(provider_id, csv_binary) do
+          {:ok, %{created: count}} ->
+            socket = refresh_invites_silent(socket, program_id)
+
+            {:noreply,
+             socket
+             |> put_flash(:info, gettext("Imported %{count} families.", count: count))
+             |> assign(import_errors: nil)}
+
+          {:error, error_report} ->
+            {:noreply, assign(socket, import_errors: error_report)}
+        end
+    end
   end
 
   @impl true
@@ -862,7 +1014,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   editing_program_id={@editing_program_id}
                   show_roster={@show_roster}
                   roster_program_name={@roster_program_name}
+                  roster_program_id={@roster_program_id}
                   roster_entries={@roster_entries}
+                  roster_tab={@roster_tab}
+                  roster_invites={@roster_invites}
+                  roster_enrolled_count={@roster_enrolled_count}
+                  roster_invite_count={@roster_invite_count}
+                  import_errors={@import_errors}
                 />
             <% end %>
         <% end %>
@@ -1120,7 +1278,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :editing_program_id, :string, default: nil
   attr :show_roster, :boolean, required: true
   attr :roster_program_name, :string, default: nil
+  attr :roster_program_id, :string, default: nil
   attr :roster_entries, :list, default: []
+  attr :roster_tab, :string, default: "enrolled"
+  attr :roster_invites, :list, default: []
+  attr :roster_enrolled_count, :integer, default: 0
+  attr :roster_invite_count, :integer, default: 0
+  attr :import_errors, :any, default: nil
 
   defp programs_section(assigns) do
     ~H"""
@@ -1147,7 +1311,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       <.roster_modal
         :if={@show_roster}
         program_name={@roster_program_name}
+        program_id={@roster_program_id}
         entries={@roster_entries}
+        invites={@roster_invites}
+        active_tab={@roster_tab}
+        enrolled_count={@roster_enrolled_count}
+        invite_count={@roster_invite_count}
+        uploads={@uploads}
+        import_errors={@import_errors}
       />
     </div>
     """
@@ -1195,6 +1366,27 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp upload_logo(socket, provider_id) do
     consume_single_upload(socket, :logo, "logos", provider_id)
+  end
+
+  # Trigger: roster_program_id can be nil after close_roster fires
+  # Why: list_program_invites/1 guard requires binary — nil raises FunctionClauseError
+  # Outcome: nil program_id returns :no_program; valid id refreshes assigns
+  defp refresh_invites(_socket, nil), do: {:error, :no_program}
+
+  defp refresh_invites(socket, program_id) when is_binary(program_id) do
+    {:ok, invites} = Enrollment.list_program_invites(program_id)
+    invite_count = Enrollment.count_program_invites(program_id)
+    {:ok, assign(socket, roster_invites: invites, roster_invite_count: invite_count)}
+  end
+
+  # Trigger: caller doesn't need to distinguish success from no-program
+  # Why: avoids nesting a case inside an already-deep handler
+  # Outcome: returns the (possibly refreshed) socket unchanged on error
+  defp refresh_invites_silent(socket, program_id) do
+    case refresh_invites(socket, program_id) do
+      {:ok, socket} -> socket
+      {:error, :no_program} -> socket
+    end
   end
 
   defp fetch_staff_members(provider_id) do
