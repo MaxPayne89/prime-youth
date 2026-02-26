@@ -286,7 +286,8 @@ defmodule KlassHero.Application do
     if Application.get_env(:klass_hero, :start_projections, true) do
       [
         KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders,
-        KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings
+        KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings,
+        KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries
       ]
     else
       []
