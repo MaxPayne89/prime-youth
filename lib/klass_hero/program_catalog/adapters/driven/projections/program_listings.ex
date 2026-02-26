@@ -1,0 +1,346 @@
+defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings do
+  @moduledoc """
+  Event-driven projection maintaining the `program_listings` read table.
+
+  This GenServer subscribes to integration events and keeps the denormalized
+  `program_listings` table in sync with the write model. On startup it
+  bootstraps from the `programs` write table, then incrementally applies
+  changes as events arrive.
+
+  ## Architecture
+
+  This is a "driven adapter" in the Ports & Adapters architecture — it's driven
+  by integration events from ProgramCatalog and Provider contexts. The read-side
+  repository (`ProgramListingsRepository`) queries the table this projection writes.
+
+  ## Startup Behavior
+
+  On init, the GenServer:
+  1. Subscribes to program_created, program_updated, provider_verified, provider_unverified topics
+  2. Uses `handle_continue(:bootstrap)` to project all existing programs into the read table
+
+  ## Event Handling
+
+  - `:program_created` — inserts a new row into program_listings
+  - `:program_updated` — updates the existing row with changed fields
+  - `:provider_verified` — sets `provider_verified = true` for all listings of that provider
+  - `:provider_unverified` — sets `provider_verified = false` for all listings of that provider
+  """
+
+  use GenServer
+
+  import Ecto.Query
+
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.Repo
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
+
+  require Logger
+
+  @program_created_topic "integration:program_catalog:program_created"
+  @program_updated_topic "integration:program_catalog:program_updated"
+  @provider_verified_topic "integration:provider:provider_verified"
+  @provider_unverified_topic "integration:provider:provider_unverified"
+
+  # Fields shared between ProgramSchema and ProgramListingSchema
+  @shared_fields [
+    :title,
+    :description,
+    :category,
+    :age_range,
+    :price,
+    :pricing_period,
+    :location,
+    :cover_image_url,
+    :icon_path,
+    :instructor_name,
+    :instructor_headshot_url,
+    :start_date,
+    :end_date,
+    :meeting_days,
+    :meeting_start_time,
+    :meeting_end_time,
+    :season,
+    :registration_start_date,
+    :registration_end_date,
+    :provider_id
+  ]
+
+  # Client API
+
+  @doc """
+  Starts the ProgramListings projection GenServer.
+
+  ## Options
+
+  - `:name` - Process name (defaults to `__MODULE__`)
+  """
+  def start_link(opts) do
+    name = Keyword.get(opts, :name, __MODULE__)
+    GenServer.start_link(__MODULE__, opts, name: name)
+  end
+
+  # Server Callbacks
+
+  @impl true
+  def init(_opts) do
+    # Trigger: GenServer is starting
+    # Why: subscribe to events before bootstrapping to avoid missing events
+    #      that arrive between bootstrap completion and subscription
+    # Outcome: subscribed to all four relevant topics
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, @program_created_topic)
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, @program_updated_topic)
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, @provider_verified_topic)
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, @provider_unverified_topic)
+
+    {:ok, %{bootstrapped: false}, {:continue, :bootstrap}}
+  end
+
+  @impl true
+  def handle_continue(:bootstrap, state) do
+    # Trigger: GenServer initialization complete
+    # Why: project all existing programs from write table into read table
+    # Outcome: program_listings table populated with current program data
+    count = bootstrap_from_write_table()
+
+    Logger.info("ProgramListings projection started", count: count)
+
+    {:noreply, %{state | bootstrapped: true}}
+  end
+
+  # Trigger: Received a program_created integration event
+  # Why: a new program was created in the write model, the read table needs a corresponding row
+  # Outcome: new row inserted into program_listings
+  @impl true
+  def handle_info(
+        {:integration_event, %IntegrationEvent{event_type: :program_created} = event},
+        state
+      ) do
+    Logger.debug("ProgramListings projecting program_created",
+      program_id: event.entity_id,
+      event_id: event.event_id
+    )
+
+    upsert_listing_from_event(event)
+    {:noreply, state}
+  end
+
+  # Trigger: Received a program_updated integration event
+  # Why: program fields changed in the write model, the read table must reflect them
+  # Outcome: existing row in program_listings updated with new field values
+  @impl true
+  def handle_info(
+        {:integration_event, %IntegrationEvent{event_type: :program_updated} = event},
+        state
+      ) do
+    Logger.debug("ProgramListings projecting program_updated",
+      program_id: event.entity_id,
+      event_id: event.event_id
+    )
+
+    update_listing_from_event(event)
+    {:noreply, state}
+  end
+
+  # Trigger: Received a provider_verified integration event
+  # Why: provider gained verification status, all their listings should reflect this
+  # Outcome: provider_verified set to true for all listings belonging to that provider
+  @impl true
+  def handle_info(
+        {:integration_event, %IntegrationEvent{event_type: :provider_verified} = event},
+        state
+      ) do
+    provider_id = event.payload.provider_id
+
+    Logger.debug("ProgramListings setting provider_verified=true",
+      provider_id: provider_id,
+      event_id: event.event_id
+    )
+
+    set_provider_verification(provider_id, true)
+    {:noreply, state}
+  end
+
+  # Trigger: Received a provider_unverified integration event
+  # Why: provider lost verification status, all their listings should reflect this
+  # Outcome: provider_verified set to false for all listings belonging to that provider
+  @impl true
+  def handle_info(
+        {:integration_event, %IntegrationEvent{event_type: :provider_unverified} = event},
+        state
+      ) do
+    provider_id = event.payload.provider_id
+
+    Logger.debug("ProgramListings setting provider_verified=false",
+      provider_id: provider_id,
+      event_id: event.event_id
+    )
+
+    set_provider_verification(provider_id, false)
+    {:noreply, state}
+  end
+
+  # Catch-all for unhandled messages — logged so misrouted events are traceable
+  @impl true
+  def handle_info(msg, state) do
+    Logger.debug("ProgramListings received unexpected message",
+      message: inspect(msg, limit: 200)
+    )
+
+    {:noreply, state}
+  end
+
+  # Private Functions
+
+  # Trigger: bootstrap phase — read table may be empty or stale
+  # Why: cold start recovery — populate read table from authoritative write table
+  # Outcome: program_listings contains one row per program, with provider_verified defaulting to false
+  defp bootstrap_from_write_table do
+    programs = Repo.all(ProgramSchema)
+
+    if programs == [] do
+      0
+    else
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      entries =
+        Enum.map(programs, fn program ->
+          program
+          |> Map.take(@shared_fields)
+          |> Map.put(:id, program.id)
+          |> Map.put(:provider_verified, false)
+          |> Map.put(:inserted_at, now)
+          |> Map.put(:updated_at, now)
+        end)
+
+      # Trigger: programs may already have rows in program_listings from a previous run
+      # Why: upsert avoids duplicate key errors while keeping data fresh
+      # Outcome: all programs projected, preserving original inserted_at on conflicts
+      {count, _} =
+        Repo.insert_all(ProgramListingSchema, entries,
+          on_conflict: {:replace_all_except, [:id, :inserted_at]},
+          conflict_target: :id
+        )
+
+      count
+    end
+  end
+
+  # Trigger: program_created event received
+  # Why: new program needs a listing row; uses upsert for idempotency
+  # Outcome: row inserted (or replaced if duplicate event)
+  defp upsert_listing_from_event(event) do
+    payload = event.payload
+
+    attrs = %{
+      id: event.entity_id,
+      title: Map.get(payload, :title),
+      description: Map.get(payload, :description),
+      category: Map.get(payload, :category),
+      age_range: Map.get(payload, :age_range),
+      price: Map.get(payload, :price),
+      pricing_period: Map.get(payload, :pricing_period),
+      location: Map.get(payload, :location),
+      cover_image_url: Map.get(payload, :cover_image_url),
+      icon_path: Map.get(payload, :icon_path),
+      instructor_name: extract_instructor_name(payload),
+      instructor_headshot_url: extract_instructor_headshot_url(payload),
+      start_date: Map.get(payload, :start_date),
+      end_date: Map.get(payload, :end_date),
+      meeting_days: Map.get(payload, :meeting_days, []),
+      meeting_start_time: Map.get(payload, :meeting_start_time),
+      meeting_end_time: Map.get(payload, :meeting_end_time),
+      season: Map.get(payload, :season),
+      registration_start_date: Map.get(payload, :registration_start_date),
+      registration_end_date: Map.get(payload, :registration_end_date),
+      provider_id: Map.get(payload, :provider_id),
+      provider_verified: false
+    }
+
+    %ProgramListingSchema{}
+    |> Ecto.Changeset.change(attrs)
+    |> Repo.insert!(
+      on_conflict: {:replace_all_except, [:id, :inserted_at]},
+      conflict_target: :id
+    )
+  end
+
+  # Trigger: program_updated event received
+  # Why: existing listing must reflect changed fields from the write model
+  # Outcome: listing row updated with new values, or no-op if listing not found
+  defp update_listing_from_event(event) do
+    program_id = event.entity_id
+    payload = event.payload
+
+    case Repo.get(ProgramListingSchema, program_id) do
+      nil ->
+        Logger.warning("ProgramListings: program_updated for unknown listing",
+          program_id: program_id
+        )
+
+      listing ->
+        changes = %{
+          title: Map.get(payload, :title),
+          description: Map.get(payload, :description),
+          category: Map.get(payload, :category),
+          age_range: Map.get(payload, :age_range),
+          price: Map.get(payload, :price),
+          pricing_period: Map.get(payload, :pricing_period),
+          location: Map.get(payload, :location),
+          cover_image_url: Map.get(payload, :cover_image_url),
+          icon_path: Map.get(payload, :icon_path),
+          instructor_name: extract_instructor_name(payload),
+          instructor_headshot_url: extract_instructor_headshot_url(payload),
+          start_date: Map.get(payload, :start_date),
+          end_date: Map.get(payload, :end_date),
+          meeting_days: Map.get(payload, :meeting_days, []),
+          meeting_start_time: Map.get(payload, :meeting_start_time),
+          meeting_end_time: Map.get(payload, :meeting_end_time),
+          season: Map.get(payload, :season),
+          registration_start_date: Map.get(payload, :registration_start_date),
+          registration_end_date: Map.get(payload, :registration_end_date),
+          provider_id: Map.get(payload, :provider_id)
+        }
+
+        listing
+        |> Ecto.Changeset.change(changes)
+        |> Repo.update!()
+    end
+  end
+
+  # Trigger: provider verification status changed
+  # Why: all listings for this provider need their provider_verified flag updated
+  # Outcome: bulk update of provider_verified for all matching rows
+  defp set_provider_verification(provider_id, verified) do
+    from(pl in ProgramListingSchema, where: pl.provider_id == ^provider_id)
+    |> Repo.update_all(
+      set: [
+        provider_verified: verified,
+        updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      ]
+    )
+  end
+
+  # Trigger: payload may have instructor data in nested or flat format
+  # Why: program_created has flat fields, program_updated has nested instructor map
+  # Outcome: extract instructor name from whichever format is present
+  defp extract_instructor_name(payload) do
+    case Map.get(payload, :instructor) do
+      %{name: name} -> name
+      nil -> Map.get(payload, :instructor_name)
+      _ -> nil
+    end
+  end
+
+  # Trigger: same as extract_instructor_name but for headshot URL
+  # Why: consistent extraction logic for both instructor fields
+  # Outcome: extract instructor headshot URL from whichever format is present
+  defp extract_instructor_headshot_url(payload) do
+    case Map.get(payload, :instructor) do
+      %{headshot_url: url} -> url
+      nil -> Map.get(payload, :instructor_headshot_url)
+      _ -> nil
+    end
+  end
+end
