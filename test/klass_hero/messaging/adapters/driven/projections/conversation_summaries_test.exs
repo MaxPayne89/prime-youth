@@ -120,8 +120,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummariesT
 
       assert summary_2 != nil
       assert summary_2.other_participant_name == "Alice Smith"
-      # user_2 has last_read_at = nil, so all messages are unread
-      assert summary_2.unread_count == 2
+      # user_2 has last_read_at = nil, but both messages were sent by user_2
+      # themselves — own messages never count as unread
+      assert summary_2.unread_count == 0
     end
   end
 

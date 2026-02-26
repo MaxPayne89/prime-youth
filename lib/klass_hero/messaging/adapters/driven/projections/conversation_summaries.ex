@@ -250,7 +250,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
                 user_names
               )
 
-            unread_count = compute_unread_count(conversation.messages, participant.last_read_at)
+            unread_count =
+              compute_unread_count(conversation.messages, participant.last_read_at, participant.user_id)
 
             %{
               id: Ecto.UUID.generate(),
@@ -518,13 +519,16 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   end
 
   # Trigger: computing how many messages are unread for a participant
-  # Why: unread_count = messages after last_read_at (or all messages if nil)
-  # Outcome: integer count of unread messages
-  defp compute_unread_count(messages, nil), do: length(messages)
+  # Why: unread_count = messages from OTHER users after last_read_at.
+  #      A user's own messages should never count as unread.
+  # Outcome: integer count of unread messages (excluding own messages)
+  defp compute_unread_count(messages, nil, user_id) do
+    Enum.count(messages, fn msg -> msg.sender_id != user_id end)
+  end
 
-  defp compute_unread_count(messages, last_read_at) do
+  defp compute_unread_count(messages, last_read_at, user_id) do
     Enum.count(messages, fn msg ->
-      DateTime.after?(msg.inserted_at, last_read_at)
+      msg.sender_id != user_id and DateTime.after?(msg.inserted_at, last_read_at)
     end)
   end
 end
