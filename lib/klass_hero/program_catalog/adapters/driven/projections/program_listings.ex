@@ -33,6 +33,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
 
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   alias KlassHero.Repo
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
@@ -195,7 +196,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
 
   # Trigger: bootstrap phase — read table may be empty or stale
   # Why: cold start recovery — populate read table from authoritative write table
-  # Outcome: program_listings contains one row per program, with provider_verified defaulting to false
+  # Outcome: program_listings contains one row per program with correct provider_verified status
   defp bootstrap_from_write_table do
     programs = Repo.all(ProgramSchema)
 
@@ -209,7 +210,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
           program
           |> Map.take(@shared_fields)
           |> Map.put(:id, program.id)
-          |> Map.put(:provider_verified, false)
+          |> Map.put(:provider_verified, lookup_provider_verified(program.provider_id))
           |> Map.put(:inserted_at, now)
           |> Map.put(:updated_at, now)
         end)
@@ -226,6 +227,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
       count
     end
   end
+
+  # NOTE: Event handlers use bang functions (Repo.insert!, Repo.update!) intentionally.
+  # If a DB write fails, the GenServer crashes and the supervisor restarts it,
+  # triggering a full re-bootstrap from the write table. This is the correct recovery
+  # strategy for a projection — transient failures resolve via restart, and persistent
+  # failures surface as repeated crashes (hitting max_restarts).
 
   # Trigger: program_created event received
   # Why: new program needs a listing row; uses upsert for idempotency
@@ -320,6 +327,16 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
         updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
       ]
     )
+  end
+
+  # Trigger: bootstrap needs to know if a provider is currently verified
+  # Why: VerifiedProviders projection starts before ProgramListings in the supervision tree,
+  #      so it should be available. If not (e.g., test env), default to false.
+  # Outcome: returns true/false based on VerifiedProviders state, or false if unavailable
+  defp lookup_provider_verified(provider_id) do
+    VerifiedProviders.verified?(provider_id)
+  catch
+    :exit, _ -> false
   end
 
   # Trigger: payload may have instructor data in nested or flat format
