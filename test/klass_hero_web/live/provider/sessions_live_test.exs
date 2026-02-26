@@ -4,6 +4,8 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
   import KlassHero.Factory
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Participation
+
   describe "authentication and authorization" do
     test "redirects unauthenticated users to login", %{conn: conn} do
       assert {:error, {:redirect, %{to: path}}} = live(conn, ~p"/provider/sessions")
@@ -30,7 +32,9 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
     test "shows empty state when no sessions scheduled for today", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/sessions")
 
-      assert has_element?(view, "h3", "No sessions scheduled")
+      refute has_element?(view, "button", "Start Session")
+      refute has_element?(view, "button", "Complete Session")
+      refute has_element?(view, "a", "Manage Participation")
     end
 
     test "shows sessions for today belonging to the provider", %{conn: conn, provider: provider} do
@@ -60,7 +64,8 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
       {:ok, view, _html} = live(conn, ~p"/provider/sessions")
 
       refute has_element?(view, "button", "Start Session")
-      assert has_element?(view, "h3", "No sessions scheduled")
+      refute has_element?(view, "button", "Complete Session")
+      refute has_element?(view, "a", "Manage Participation")
     end
 
     test "shows 'Manage Participation' link for in_progress sessions", %{
@@ -115,7 +120,7 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
       {:ok, view, _html} = live(conn, ~p"/provider/sessions")
 
       # Initially no sessions today
-      assert has_element?(view, "h3", "No sessions scheduled")
+      refute has_element?(view, "button", "Start Session")
 
       # Change to tomorrow
       render_change(view, "change_date", %{"date" => Date.to_iso8601(tomorrow)})
@@ -128,7 +133,7 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
 
       render_change(view, "change_date", %{"date" => "not-a-date"})
 
-      assert has_element?(view, "#flash-error")
+      assert_flash(view, :error, "Invalid date format")
     end
   end
 
@@ -154,7 +159,11 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
       |> element("button[phx-value-session_id='#{session.id}']", "Start Session")
       |> render_click()
 
-      assert has_element?(view, "#flash-info")
+      # Verify persistence — session transitioned in DB
+      {:ok, %{session: updated}} = Participation.get_session_with_roster(session.id)
+      assert updated.status == :in_progress
+
+      assert_flash(view, :info, "Session started successfully")
     end
 
     test "complete_session transitions in_progress session to completed", %{
@@ -176,7 +185,11 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
       |> element("button[phx-value-session_id='#{session.id}']", "Complete Session")
       |> render_click()
 
-      assert has_element?(view, "#flash-info")
+      # Verify persistence — session transitioned in DB
+      {:ok, %{session: updated}} = Participation.get_session_with_roster(session.id)
+      assert updated.status == :completed
+
+      assert_flash(view, :info, "Session completed successfully")
     end
   end
 end

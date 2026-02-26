@@ -79,8 +79,8 @@
       </.participation_card>
     </div>
 
-    <%!-- Empty state --%>
-    <div class="hidden only:block">
+    <%!-- Empty state — needs id since it's a child of phx-update="stream" --%>
+    <div id="sessions-empty" class="hidden only:block">
       <div class={[
         "p-8 text-center bg-white border border-gray-200",
         Theme.rounded(:lg),
