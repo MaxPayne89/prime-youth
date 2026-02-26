@@ -2,8 +2,9 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
   @moduledoc """
   Use case for listing a user's conversations.
 
-  Returns conversations ordered by most recent message,
-  with unread message counts for each conversation.
+  Reads from the denormalized conversation_summaries read model (CQRS read side).
+  Returns conversations ordered by most recent message, with unread counts
+  and other participant info pre-computed in the read model.
   """
 
   alias KlassHero.Messaging.Repositories
@@ -16,16 +17,16 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
   ## Parameters
   - user_id: The user to list conversations for
   - opts: Optional parameters
-    - limit: Number of conversations to return (default 50)
+    - limit: Number of conversations to return (default 25)
     - cursor: Pagination cursor
 
   ## Returns
   - `{:ok, conversations, has_more}` - List of conversations with unread counts
 
   Each conversation map includes:
-  - `:conversation` - The conversation entity
+  - `:conversation` - Map with id, type, provider_id, program_id, subject
   - `:unread_count` - Number of unread messages
-  - `:latest_message` - The most recent message
+  - `:latest_message` - The most recent message (map or nil)
   - `:last_read_at` - When user last read
   - `:other_participant_name` - Display name of other participant (for direct) or subject (for broadcast)
   """
@@ -33,88 +34,44 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
           {:ok, [map()], boolean()}
   def execute(user_id, opts \\ []) do
     repos = Repositories.all()
+    {:ok, summaries, has_more} = repos.conversation_summaries.list_for_user(user_id, opts)
 
-    {:ok, conversations, has_more} = repos.conversations.list_for_user(user_id, opts)
-
-    other_user_ids = collect_other_participant_ids(conversations, user_id)
-    {:ok, user_names} = repos.users.get_display_names(other_user_ids)
-
-    enriched_conversations =
-      Enum.map(conversations, fn conversation ->
-        enrich_conversation(conversation, user_id, user_names, repos)
-      end)
+    enriched = Enum.map(summaries, &to_enriched_map/1)
 
     Logger.debug("Listed conversations",
       user_id: user_id,
-      count: length(enriched_conversations)
+      count: length(enriched)
     )
 
-    {:ok, enriched_conversations, has_more}
+    {:ok, enriched, has_more}
   end
 
-  defp collect_other_participant_ids(conversations, current_user_id) do
-    conversations
-    |> Enum.flat_map(fn conversation ->
-      conversation.participants
-      |> Enum.map(& &1.user_id)
-      |> Enum.reject(&(&1 == current_user_id))
-    end)
-    |> Enum.uniq()
-  end
-
-  defp enrich_conversation(conversation, user_id, user_names, repos) do
-    {last_read_at, unread_count} =
-      case repos.participants.get(conversation.id, user_id) do
-        {:ok, participant} ->
-          count = repos.messages.count_unread(conversation.id, participant.last_read_at)
-          {participant.last_read_at, count}
-
-        {:error, :not_found} ->
-          Logger.warning("Participant not found for conversation",
-            conversation_id: conversation.id,
-            user_id: user_id
-          )
-
-          {nil, 0}
-      end
-
-    latest_message =
-      case repos.messages.get_latest(conversation.id) do
-        {:ok, message} -> message
-        {:error, :not_found} -> nil
-      end
-
-    other_participant_name = get_other_participant_name(conversation, user_id, user_names)
-
+  # Trigger: ConversationSummary DTO needs to be mapped to the enriched map shape
+  # Why: LiveView templates expect the old enriched map structure with .conversation, .latest_message
+  # Outcome: backward-compatible map that works with existing templates
+  defp to_enriched_map(summary) do
     %{
-      conversation: conversation,
-      unread_count: unread_count,
-      latest_message: latest_message,
-      last_read_at: last_read_at,
-      other_participant_name: other_participant_name
+      conversation: %{
+        id: summary.conversation_id,
+        type: String.to_existing_atom(summary.conversation_type),
+        provider_id: summary.provider_id,
+        program_id: summary.program_id,
+        subject: summary.subject
+      },
+      unread_count: summary.unread_count,
+      latest_message: build_latest_message(summary),
+      last_read_at: summary.last_read_at,
+      other_participant_name: summary.other_participant_name
     }
   end
 
-  defp get_other_participant_name(
-         %{type: :program_broadcast, subject: subject},
-         _user_id,
-         _user_names
-       )
-       when not is_nil(subject) do
-    subject
-  end
+  defp build_latest_message(%{latest_message_content: nil}), do: nil
 
-  defp get_other_participant_name(%{type: :program_broadcast}, _user_id, _user_names) do
-    "Program Broadcast"
-  end
-
-  defp get_other_participant_name(conversation, user_id, user_names) do
-    other_participant =
-      Enum.find(conversation.participants, fn p -> p.user_id != user_id end)
-
-    case other_participant do
-      nil -> "Unknown"
-      p -> Map.get(user_names, p.user_id, "Unknown")
-    end
+  defp build_latest_message(summary) do
+    %{
+      content: summary.latest_message_content,
+      sender_id: summary.latest_message_sender_id,
+      inserted_at: summary.latest_message_at
+    }
   end
 end

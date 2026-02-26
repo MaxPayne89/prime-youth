@@ -1,29 +1,53 @@
 defmodule KlassHero.Messaging.Application.UseCases.ListConversationsTest do
   use KlassHero.DataCase, async: true
 
-  import KlassHero.Factory
-
   alias KlassHero.AccountsFixtures
-  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
   alias KlassHero.Messaging.Application.UseCases.ListConversations
-  alias KlassHero.Messaging.Domain.Models.Conversation
+  alias KlassHero.Repo
+
+  defp insert_summary(attrs) do
+    defaults = %{
+      id: Ecto.UUID.generate(),
+      conversation_id: Ecto.UUID.generate(),
+      user_id: Ecto.UUID.generate(),
+      conversation_type: "direct",
+      provider_id: Ecto.UUID.generate(),
+      program_id: nil,
+      subject: nil,
+      other_participant_name: "Other User",
+      participant_count: 2,
+      latest_message_content: nil,
+      latest_message_sender_id: nil,
+      latest_message_at: nil,
+      unread_count: 0,
+      last_read_at: nil,
+      archived_at: nil,
+      inserted_at: DateTime.utc_now() |> DateTime.truncate(:second),
+      updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
+    }
+
+    merged = Map.merge(defaults, attrs)
+
+    %ConversationSummarySchema{}
+    |> Ecto.Changeset.change(merged)
+    |> Repo.insert!()
+  end
 
   describe "execute/2" do
     test "returns enriched conversations for user" do
       user = AccountsFixtures.user_fixture()
-      conversation = insert(:conversation_schema)
+      conversation_id = Ecto.UUID.generate()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: user.id
-      )
-
-      {:ok, _msg} =
-        MessageRepository.create(%{
-          conversation_id: conversation.id,
-          sender_id: user.id,
-          content: "Hello!"
-        })
+      insert_summary(%{
+        user_id: user.id,
+        conversation_id: conversation_id,
+        latest_message_content: "Hello!",
+        latest_message_sender_id: user.id,
+        latest_message_at: now,
+        unread_count: 0
+      })
 
       assert {:ok, conversations, has_more} = ListConversations.execute(user.id)
 
@@ -31,8 +55,8 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversationsTest do
       refute has_more
 
       enriched = hd(conversations)
-      assert %Conversation{} = enriched.conversation
-      assert enriched.conversation.id == conversation.id
+      assert enriched.conversation.id == conversation_id
+      assert enriched.conversation.type == :direct
       assert is_integer(enriched.unread_count)
       assert enriched.latest_message != nil
       assert enriched.latest_message.content == "Hello!"
@@ -40,27 +64,17 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversationsTest do
 
     test "returns unread_count correctly" do
       user = AccountsFixtures.user_fixture()
-      other_user = AccountsFixtures.user_fixture()
-      conversation = insert(:conversation_schema)
+      other_user_id = Ecto.UUID.generate()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
+      insert_summary(%{
         user_id: user.id,
+        latest_message_content: "Message",
+        latest_message_sender_id: other_user_id,
+        latest_message_at: now,
+        unread_count: 3,
         last_read_at: nil
-      )
-
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: other_user.id
-      )
-
-      for _i <- 1..3 do
-        MessageRepository.create(%{
-          conversation_id: conversation.id,
-          sender_id: other_user.id,
-          content: "Message"
-        })
-      end
+      })
 
       {:ok, conversations, _has_more} = ListConversations.execute(user.id)
 
@@ -70,12 +84,13 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversationsTest do
 
     test "returns nil latest_message when no messages" do
       user = AccountsFixtures.user_fixture()
-      conversation = insert(:conversation_schema)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: user.id
-      )
+      insert_summary(%{
+        user_id: user.id,
+        latest_message_content: nil,
+        latest_message_sender_id: nil,
+        latest_message_at: nil
+      })
 
       {:ok, conversations, _has_more} = ListConversations.execute(user.id)
 
@@ -85,35 +100,27 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversationsTest do
 
     test "includes other_participant_name for direct conversations" do
       user = AccountsFixtures.user_fixture()
-      other_user = AccountsFixtures.user_fixture()
-      conversation = insert(:conversation_schema)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: user.id
-      )
-
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: other_user.id
-      )
+      insert_summary(%{
+        user_id: user.id,
+        other_participant_name: "Jane Smith"
+      })
 
       {:ok, conversations, _has_more} = ListConversations.execute(user.id)
 
       enriched = hd(conversations)
-      assert enriched.other_participant_name != nil
+      assert enriched.other_participant_name == "Jane Smith"
     end
 
     test "respects pagination limit" do
       user = AccountsFixtures.user_fixture()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      for _i <- 1..5 do
-        conversation = insert(:conversation_schema)
-
-        insert(:participant_schema,
-          conversation_id: conversation.id,
-          user_id: user.id
-        )
+      for i <- 1..5 do
+        insert_summary(%{
+          user_id: user.id,
+          latest_message_at: DateTime.add(now, i, :second)
+        })
       end
 
       {:ok, conversations, has_more} = ListConversations.execute(user.id, limit: 3)
@@ -133,25 +140,25 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversationsTest do
 
     test "excludes archived conversations" do
       user = AccountsFixtures.user_fixture()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+      active_conv_id = Ecto.UUID.generate()
 
-      archived = insert(:conversation_schema, archived_at: DateTime.utc_now())
+      insert_summary(%{
+        user_id: user.id,
+        archived_at: now,
+        latest_message_at: now
+      })
 
-      insert(:participant_schema,
-        conversation_id: archived.id,
-        user_id: user.id
-      )
-
-      active = insert(:conversation_schema)
-
-      insert(:participant_schema,
-        conversation_id: active.id,
-        user_id: user.id
-      )
+      insert_summary(%{
+        user_id: user.id,
+        conversation_id: active_conv_id,
+        latest_message_at: DateTime.add(now, 1, :second)
+      })
 
       {:ok, conversations, _has_more} = ListConversations.execute(user.id)
 
       assert length(conversations) == 1
-      assert hd(conversations).conversation.id == active.id
+      assert hd(conversations).conversation.id == active_conv_id
     end
   end
 end

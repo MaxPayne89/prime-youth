@@ -11,48 +11,36 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
   - T046: Returns empty list when no programs exist
   """
 
-  # async: false because setup mutates global Application config (:program_catalog repository),
+  # async: false because setup mutates global Application config (:program_catalog),
   # which would race with concurrent tests that use the real repository
   use ExUnit.Case, async: false
 
   alias KlassHero.ProgramCatalog.Application.UseCases.ListAllPrograms
-  alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
+  alias KlassHero.Shared.Domain.Types.Pagination.PageResult
 
-  # Mock repository for testing
+  # Mock repository implementing the read port
   defmodule MockRepository do
     @moduledoc false
-    @behaviour KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms
+    @behaviour KlassHero.ProgramCatalog.Domain.Ports.ForListingProgramSummaries
 
-    def list_all_programs do
-      # This will be overridden by setting process dictionary in tests
+    def list_all do
       case Process.get(:mock_repository_response) do
         nil -> []
         response -> response
       end
     end
 
+    def list_paginated(_limit, _cursor, _category) do
+      {:ok, %PageResult{items: [], next_cursor: nil, has_more: false}}
+    end
+
+    def list_for_provider(_provider_id) do
+      []
+    end
+
     def get_by_id(_id) do
-      # This mock is not used in these tests, but required by the behavior
-      {:error, :not_implemented}
-    end
-
-    def list_programs_paginated(_limit, _cursor) do
-      # This mock is not used in these tests, but required by the behavior
-      {:error, :not_implemented}
-    end
-
-    def list_programs_paginated(_limit, _cursor, _category) do
-      # This mock is not used in these tests, but required by the behavior
-      {:error, :not_implemented}
-    end
-
-    def list_programs_for_provider(_provider_id) do
-      # This mock is not used in these tests, but required by the behavior
-      []
-    end
-
-    def list_ended_program_ids(_cutoff_date) do
-      []
+      {:error, :not_found}
     end
   end
 
@@ -61,7 +49,9 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
     original_config = Application.get_env(:klass_hero, :program_catalog)
 
     # Configure use case to use mock repository
-    Application.put_env(:klass_hero, :program_catalog, repository: __MODULE__.MockRepository)
+    Application.put_env(:klass_hero, :program_catalog,
+      for_listing_program_summaries: __MODULE__.MockRepository
+    )
 
     on_exit(fn ->
       # Restore original config
@@ -80,8 +70,8 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
 
   describe "execute/0" do
     # T045: Returns list of programs when repository succeeds
-    test "returns list of programs when repository succeeds with valid programs" do
-      program1 = %Program{
+    test "returns list of program listings when repository succeeds" do
+      listing1 = %ProgramListing{
         id: "550e8400-e29b-41d4-a716-446655440001",
         title: "Soccer Stars",
         description: "Learn soccer fundamentals in a fun environment",
@@ -91,11 +81,12 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("150.00"),
         pricing_period: "per month",
         icon_path: "/images/icons/soccer.svg",
+        provider_id: "provider-1",
         inserted_at: ~U[2025-01-01 12:00:00Z],
         updated_at: ~U[2025-01-01 12:00:00Z]
       }
 
-      program2 = %Program{
+      listing2 = %ProgramListing{
         id: "550e8400-e29b-41d4-a716-446655440002",
         title: "Art Adventure",
         description: "Explore creativity through painting and sculpture",
@@ -105,17 +96,18 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("120.00"),
         pricing_period: "per month",
         icon_path: "/images/icons/art.svg",
+        provider_id: "provider-1",
         inserted_at: ~U[2025-01-02 10:00:00Z],
         updated_at: ~U[2025-01-02 10:00:00Z]
       }
 
-      Process.put(:mock_repository_response, [program1, program2])
+      Process.put(:mock_repository_response, [listing1, listing2])
 
       programs = ListAllPrograms.execute()
 
       assert length(programs) == 2
-      assert Enum.at(programs, 0) == program1
-      assert Enum.at(programs, 1) == program2
+      assert Enum.at(programs, 0) == listing1
+      assert Enum.at(programs, 1) == listing2
     end
 
     # T046: Returns empty list when no programs exist
@@ -128,7 +120,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
     end
 
     test "handles repository returning multiple valid programs in correct order" do
-      program1 = %Program{
+      listing1 = %ProgramListing{
         id: "550e8400-e29b-41d4-a716-446655440003",
         title: "Zebra Zone",
         description: "Wildlife education program",
@@ -138,11 +130,12 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("100.00"),
         pricing_period: "per session",
         icon_path: nil,
+        provider_id: "provider-1",
         inserted_at: ~U[2025-01-03 09:00:00Z],
         updated_at: ~U[2025-01-03 09:00:00Z]
       }
 
-      program2 = %Program{
+      listing2 = %ProgramListing{
         id: "550e8400-e29b-41d4-a716-446655440004",
         title: "Art Club",
         description: "Creative arts exploration",
@@ -152,11 +145,12 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("80.00"),
         pricing_period: "per session",
         icon_path: "/images/icons/paint.svg",
+        provider_id: "provider-1",
         inserted_at: ~U[2025-01-04 11:00:00Z],
         updated_at: ~U[2025-01-04 11:00:00Z]
       }
 
-      Process.put(:mock_repository_response, [program2, program1])
+      Process.put(:mock_repository_response, [listing2, listing1])
 
       programs = ListAllPrograms.execute()
 
@@ -166,7 +160,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
     end
 
     test "handles programs with edge case values (free program, sold out)" do
-      free_program = %Program{
+      free_listing = %ProgramListing{
         id: "550e8400-e29b-41d4-a716-446655440005",
         title: "Community Service",
         description: "Give back to the community",
@@ -176,11 +170,12 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("0.00"),
         pricing_period: "free",
         icon_path: nil,
+        provider_id: "provider-1",
         inserted_at: ~U[2025-01-05 08:00:00Z],
         updated_at: ~U[2025-01-05 08:00:00Z]
       }
 
-      sold_out_program = %Program{
+      sold_out_listing = %ProgramListing{
         id: "550e8400-e29b-41d4-a716-446655440006",
         title: "Popular Camp",
         description: "High-demand summer camp",
@@ -190,11 +185,12 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsTest do
         price: Decimal.new("500.00"),
         pricing_period: "per week",
         icon_path: "/images/icons/camp.svg",
+        provider_id: "provider-1",
         inserted_at: ~U[2025-01-06 14:00:00Z],
         updated_at: ~U[2025-01-06 14:00:00Z]
       }
 
-      Process.put(:mock_repository_response, [free_program, sold_out_program])
+      Process.put(:mock_repository_response, [free_listing, sold_out_listing])
 
       programs = ListAllPrograms.execute()
 

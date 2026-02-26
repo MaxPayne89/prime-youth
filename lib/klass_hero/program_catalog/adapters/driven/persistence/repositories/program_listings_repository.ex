@@ -59,6 +59,24 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   end
 
   @impl true
+  def list_all do
+    Logger.info("[ProgramListingsRepository] Listing all program listings")
+
+    schemas =
+      ProgramListingSchema
+      |> order_by(asc: :title)
+      |> Repo.all()
+
+    dtos = Enum.map(schemas, &to_dto/1)
+
+    Logger.info("[ProgramListingsRepository] Retrieved all listings",
+      count: length(dtos)
+    )
+
+    dtos
+  end
+
+  @impl true
   def list_for_provider(provider_id) when is_binary(provider_id) do
     Logger.info("[ProgramListingsRepository] Listing programs for provider",
       provider_id: provider_id
@@ -112,6 +130,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   end
 
   defp apply_category_filter(query, nil), do: query
+  defp apply_category_filter(query, "all"), do: query
 
   defp apply_category_filter(query, category) when is_binary(category) do
     where(query, [l], l.category == ^category)

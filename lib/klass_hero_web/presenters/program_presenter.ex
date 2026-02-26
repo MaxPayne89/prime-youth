@@ -16,6 +16,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   use Gettext, backend: KlassHeroWeb.Gettext
 
   alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
 
   @doc """
   Transforms a Program domain model to table view format.
@@ -34,8 +35,10 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   These placeholders ensure the UI can render properly while the underlying
   features are developed in future iterations.
   """
-  @spec to_table_view(Program.t(), map()) :: map()
-  def to_table_view(%Program{} = program, enrollment_data \\ %{}) do
+  @spec to_table_view(Program.t() | ProgramListing.t(), map()) :: map()
+  def to_table_view(program, enrollment_data \\ %{})
+
+  def to_table_view(%Program{} = program, enrollment_data) do
     data = Map.get(enrollment_data, program.id, %{})
 
     %{
@@ -48,6 +51,24 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       price: program.price |> Decimal.round(2) |> Decimal.to_string(),
       assigned_staff: format_instructor(program.instructor),
       # Placeholder: Program status tracking pending implementation
+      status: :active,
+      enrolled: Map.get(data, :enrolled),
+      capacity: Map.get(data, :capacity)
+    }
+  end
+
+  # Trigger: CQRS read model now returns ProgramListing DTOs instead of Program entities
+  # Why: read side uses flat instructor_name field, not a nested instructor struct
+  # Outcome: same table view shape for UI rendering
+  def to_table_view(%ProgramListing{} = listing, enrollment_data) do
+    data = Map.get(enrollment_data, listing.id, %{})
+
+    %{
+      id: listing.id,
+      name: listing.title,
+      category: humanize_category(listing.category),
+      price: listing.price |> Decimal.round(2) |> Decimal.to_string(),
+      assigned_staff: format_listing_instructor(listing),
       status: :active,
       enrolled: Map.get(data, :enrolled),
       capacity: Map.get(data, :capacity)
@@ -246,6 +267,20 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       name: instructor.name,
       initials: build_initials(instructor.name),
       headshot_url: instructor.headshot_url
+    }
+  end
+
+  # Trigger: ProgramListing stores instructor as flat fields, not a nested struct
+  # Why: read model denormalizes data for display, no need for separate entity
+  # Outcome: builds same shape map for UI rendering from flat fields
+  defp format_listing_instructor(%ProgramListing{instructor_name: nil}), do: nil
+
+  defp format_listing_instructor(%ProgramListing{} = listing) do
+    %{
+      id: nil,
+      name: listing.instructor_name,
+      initials: build_initials(listing.instructor_name),
+      headshot_url: listing.instructor_headshot_url
     }
   end
 

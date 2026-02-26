@@ -38,6 +38,7 @@ defmodule KlassHero.ProgramCatalog do
     deps: [KlassHero, KlassHero.Provider, KlassHero.Shared, KlassHero.Enrollment],
     exports: [
       Domain.Models.Program,
+      Domain.ReadModels.ProgramListing,
       Domain.Services.ProgramCategories
     ]
 
@@ -52,6 +53,7 @@ defmodule KlassHero.ProgramCatalog do
   }
 
   alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
 
   alias KlassHero.ProgramCatalog.Domain.Services.{
     ProgramCategories,
@@ -75,7 +77,7 @@ defmodule KlassHero.ProgramCatalog do
 
       programs = ProgramCatalog.list_all_programs()
   """
-  @spec list_all_programs() :: [Program.t()]
+  @spec list_all_programs() :: [ProgramListing.t()]
   defdelegate list_all_programs, to: ListAllPrograms, as: :execute
 
   @doc """
@@ -98,7 +100,7 @@ defmodule KlassHero.ProgramCatalog do
 
       featured = ProgramCatalog.list_featured_programs()
   """
-  @spec list_featured_programs() :: [Program.t()]
+  @spec list_featured_programs() :: [ProgramListing.t()]
   defdelegate list_featured_programs, to: ListFeaturedPrograms, as: :execute
 
   @doc """
@@ -130,7 +132,7 @@ defmodule KlassHero.ProgramCatalog do
 
       programs = ProgramCatalog.list_programs_for_provider(provider_id)
   """
-  @spec list_programs_for_provider(String.t()) :: [Program.t()]
+  @spec list_programs_for_provider(String.t()) :: [ProgramListing.t()]
   defdelegate list_programs_for_provider(provider_id), to: ListProviderPrograms, as: :execute
 
   # ============================================================================
@@ -146,7 +148,9 @@ defmodule KlassHero.ProgramCatalog do
 
       filtered = ProgramCatalog.filter_programs(programs, "art")
   """
-  @spec filter_programs([Program.t()], String.t()) :: [Program.t()]
+  @spec filter_programs([Program.t() | ProgramListing.t()], String.t()) :: [
+          Program.t() | ProgramListing.t()
+        ]
   defdelegate filter_programs(programs, query), to: ProgramFilter, as: :execute
 
   @doc """

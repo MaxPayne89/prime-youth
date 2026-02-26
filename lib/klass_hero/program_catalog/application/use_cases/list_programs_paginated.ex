@@ -2,8 +2,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListProgramsPaginated do
   @moduledoc """
   Use case for listing programs with cursor-based pagination.
 
-  This use case provides paginated access to the program catalog,
-  returning a page of results with a cursor for retrieving subsequent pages.
+  Reads from the denormalized program_listings read model (CQRS read side).
   Supports optional category filtering at the database level.
 
   ## Example
@@ -21,7 +20,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListProgramsPaginated do
   are handled by the supervision tree.
   """
 
-  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
   alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
 
   @doc """
@@ -59,6 +57,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListProgramsPaginated do
   """
   def execute(limit, cursor, category) do
     validated_category = ProgramCategories.validate_filter(category)
-    ProgramRepository.list_programs_paginated(limit, cursor, validated_category)
+    read_repository().list_paginated(limit, cursor, validated_category)
+  end
+
+  defp read_repository do
+    Application.get_env(:klass_hero, :program_catalog)[:for_listing_program_summaries]
   end
 end

@@ -1,10 +1,38 @@
 defmodule KlassHero.Messaging.Application.UseCases.GetTotalUnreadCountTest do
   use KlassHero.DataCase, async: true
 
-  import KlassHero.Factory
-
   alias KlassHero.AccountsFixtures
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
   alias KlassHero.Messaging.Application.UseCases.GetTotalUnreadCount
+  alias KlassHero.Repo
+
+  defp insert_summary(attrs) do
+    defaults = %{
+      id: Ecto.UUID.generate(),
+      conversation_id: Ecto.UUID.generate(),
+      user_id: Ecto.UUID.generate(),
+      conversation_type: "direct",
+      provider_id: Ecto.UUID.generate(),
+      program_id: nil,
+      subject: nil,
+      other_participant_name: "Other User",
+      participant_count: 2,
+      latest_message_content: nil,
+      latest_message_sender_id: nil,
+      latest_message_at: nil,
+      unread_count: 0,
+      last_read_at: nil,
+      archived_at: nil,
+      inserted_at: DateTime.utc_now() |> DateTime.truncate(:second),
+      updated_at: DateTime.utc_now() |> DateTime.truncate(:second)
+    }
+
+    merged = Map.merge(defaults, attrs)
+
+    %ConversationSummarySchema{}
+    |> Ecto.Changeset.change(merged)
+    |> Repo.insert!()
+  end
 
   describe "execute/1" do
     test "returns 0 for user with no conversations" do
@@ -15,224 +43,77 @@ defmodule KlassHero.Messaging.Application.UseCases.GetTotalUnreadCountTest do
 
     test "returns 0 for user with all messages read" do
       user = AccountsFixtures.user_fixture()
-      other_user = AccountsFixtures.user_fixture()
-      conversation = insert(:conversation_schema)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
+      insert_summary(%{
         user_id: user.id,
-        last_read_at: DateTime.utc_now()
-      )
-
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: other_user.id
-      )
-
-      # Message sent before last_read_at
-      insert(:message_schema,
-        conversation_id: conversation.id,
-        sender_id: other_user.id,
-        inserted_at: DateTime.utc_now() |> DateTime.add(-1, :hour)
-      )
+        unread_count: 0,
+        last_read_at: now
+      })
 
       assert GetTotalUnreadCount.execute(user.id) == 0
     end
 
     test "returns correct count of unread messages" do
       user = AccountsFixtures.user_fixture()
-      other_user = AccountsFixtures.user_fixture()
-      conversation = insert(:conversation_schema)
 
-      last_read = DateTime.utc_now() |> DateTime.add(-1, :hour)
-
-      insert(:participant_schema,
-        conversation_id: conversation.id,
+      insert_summary(%{
         user_id: user.id,
-        last_read_at: last_read
-      )
-
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: other_user.id
-      )
-
-      # Unread messages (after last_read_at)
-      for _ <- 1..3 do
-        insert(:message_schema,
-          conversation_id: conversation.id,
-          sender_id: other_user.id,
-          inserted_at: DateTime.utc_now()
-        )
-      end
+        unread_count: 3
+      })
 
       assert GetTotalUnreadCount.execute(user.id) == 3
     end
 
     test "returns correct count across multiple conversations" do
       user = AccountsFixtures.user_fixture()
-      other_user = AccountsFixtures.user_fixture()
-
-      last_read = DateTime.utc_now() |> DateTime.add(-1, :hour)
 
       # First conversation with 2 unread
-      conv1 = insert(:conversation_schema)
-
-      insert(:participant_schema,
-        conversation_id: conv1.id,
+      insert_summary(%{
         user_id: user.id,
-        last_read_at: last_read
-      )
-
-      insert(:participant_schema,
-        conversation_id: conv1.id,
-        user_id: other_user.id
-      )
-
-      for _ <- 1..2 do
-        insert(:message_schema,
-          conversation_id: conv1.id,
-          sender_id: other_user.id,
-          inserted_at: DateTime.utc_now()
-        )
-      end
+        unread_count: 2
+      })
 
       # Second conversation with 3 unread
-      conv2 = insert(:conversation_schema)
-
-      insert(:participant_schema,
-        conversation_id: conv2.id,
+      insert_summary(%{
         user_id: user.id,
-        last_read_at: last_read
-      )
-
-      insert(:participant_schema,
-        conversation_id: conv2.id,
-        user_id: other_user.id
-      )
-
-      for _ <- 1..3 do
-        insert(:message_schema,
-          conversation_id: conv2.id,
-          sender_id: other_user.id,
-          inserted_at: DateTime.utc_now()
-        )
-      end
+        unread_count: 3
+      })
 
       assert GetTotalUnreadCount.execute(user.id) == 5
     end
 
     test "excludes archived conversations" do
       user = AccountsFixtures.user_fixture()
-      other_user = AccountsFixtures.user_fixture()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      archived_conversation =
-        insert(:conversation_schema,
-          archived_at: DateTime.utc_now()
-        )
-
-      insert(:participant_schema,
-        conversation_id: archived_conversation.id,
+      insert_summary(%{
         user_id: user.id,
-        last_read_at: nil
-      )
-
-      insert(:participant_schema,
-        conversation_id: archived_conversation.id,
-        user_id: other_user.id
-      )
-
-      insert(:message_schema,
-        conversation_id: archived_conversation.id,
-        sender_id: other_user.id,
-        inserted_at: DateTime.utc_now()
-      )
+        unread_count: 5,
+        archived_at: now
+      })
 
       assert GetTotalUnreadCount.execute(user.id) == 0
     end
 
-    test "excludes messages from conversations user has left" do
+    test "counts unread across mix of read and unread conversations" do
       user = AccountsFixtures.user_fixture()
-      other_user = AccountsFixtures.user_fixture()
-      conversation = insert(:conversation_schema)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
+      # Fully read conversation
+      insert_summary(%{
         user_id: user.id,
-        last_read_at: nil,
-        left_at: DateTime.utc_now() |> DateTime.add(-1, :day)
-      )
+        unread_count: 0,
+        last_read_at: now
+      })
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: other_user.id
-      )
-
-      insert(:message_schema,
-        conversation_id: conversation.id,
-        sender_id: other_user.id,
-        inserted_at: DateTime.utc_now()
-      )
-
-      assert GetTotalUnreadCount.execute(user.id) == 0
-    end
-
-    test "counts all messages when last_read_at is nil" do
-      user = AccountsFixtures.user_fixture()
-      other_user = AccountsFixtures.user_fixture()
-      conversation = insert(:conversation_schema)
-
-      insert(:participant_schema,
-        conversation_id: conversation.id,
+      # Conversation with unread messages
+      insert_summary(%{
         user_id: user.id,
-        last_read_at: nil
-      )
-
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: other_user.id
-      )
-
-      for _ <- 1..4 do
-        insert(:message_schema,
-          conversation_id: conversation.id,
-          sender_id: other_user.id
-        )
-      end
+        unread_count: 4
+      })
 
       assert GetTotalUnreadCount.execute(user.id) == 4
-    end
-
-    test "excludes deleted messages" do
-      user = AccountsFixtures.user_fixture()
-      other_user = AccountsFixtures.user_fixture()
-      conversation = insert(:conversation_schema)
-
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: user.id,
-        last_read_at: nil
-      )
-
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: other_user.id
-      )
-
-      # Deleted message
-      insert(:message_schema,
-        conversation_id: conversation.id,
-        sender_id: other_user.id,
-        deleted_at: DateTime.utc_now()
-      )
-
-      # Active message
-      insert(:message_schema,
-        conversation_id: conversation.id,
-        sender_id: other_user.id
-      )
-
-      assert GetTotalUnreadCount.execute(user.id) == 1
     end
   end
 end

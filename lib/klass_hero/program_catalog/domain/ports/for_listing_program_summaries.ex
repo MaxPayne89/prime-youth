@@ -50,4 +50,12 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingProgramSummaries do
   - `{:error, :not_found}` - No listing exists with the given ID
   """
   @callback get_by_id(id :: binary()) :: {:ok, ProgramListing.t()} | {:error, :not_found}
+
+  @doc """
+  Lists all program listings ordered by title.
+
+  Returns all non-archived program listings in ascending title order.
+  Returns an empty list if no listings exist.
+  """
+  @callback list_all() :: [ProgramListing.t()]
 end

@@ -4,6 +4,7 @@ defmodule KlassHeroWeb.ProgramsLive do
   import KlassHeroWeb.ProgramComponents
 
   alias KlassHero.ProgramCatalog
+  alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
   alias KlassHero.Shared.ErrorIds
   alias KlassHeroWeb.Theme
 
@@ -105,8 +106,8 @@ defmodule KlassHeroWeb.ProgramsLive do
     {:noreply, socket}
   end
 
-  # Private helper - Domain to UI conversion
-  defp program_to_map(%KlassHero.ProgramCatalog.Domain.Models.Program{} = program, capacities) do
+  # Private helper - Read model DTO to UI conversion
+  defp program_to_map(%ProgramListing{} = program, capacities) do
     remaining = Map.get(capacities, program.id)
     spots_left = if remaining != :unlimited, do: remaining
 
