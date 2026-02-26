@@ -114,10 +114,10 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
 
       {:ok, view, _html} = live(conn, ~p"/provider/sessions")
 
-      # Initially no sessions today
-      assert has_element?(view, "h3", "No sessions scheduled")
+      # Initially no session cards for today
+      refute has_element?(view, "button", "Start Session")
 
-      # Change to tomorrow
+      # Change to tomorrow - session card should now appear
       render_change(view, "change_date", %{"date" => Date.to_iso8601(tomorrow)})
 
       assert has_element?(view, "button", "Start Session")
