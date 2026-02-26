@@ -1,0 +1,44 @@
+{
+  "last_updated": "2026-02-26T13:04:11Z",
+  "commands": {
+    "test": "mix test",
+    "test_specific": "mix test path/to/test.exs",
+    "test_failed": "mix test --failed",
+    "coverage": "mix coveralls.html",
+    "lint": "mix credo --strict",
+    "format": "mix format",
+    "precommit": "mix precommit",
+    "build": "mix compile --warnings-as-errors",
+    "ci_test": "mix ecto.create --quiet && mix ecto.migrate --quiet && mix test"
+  },
+  "test_frameworks": ["ExUnit", "ex_machina", "stream_data", "faker", "mimic", "phoenix_test", "lazy_html", "ExCoveralls"],
+  "test_patterns": {
+    "auth_provider": "setup :register_and_log_in_provider",
+    "auth_user": "setup :register_and_log_in_user",
+    "auth_admin": "setup :register_and_log_in_admin",
+    "flash_info_id": "#flash-info",
+    "flash_error_id": "#flash-error",
+    "date_event": "render_change(view, \"change_date\", %{\"date\" => iso_date})",
+    "provider_session_setup": "insert program with provider_id, then program_session with program_id and date"
+  },
+  "backlog": [
+    {"item": "settings_live.ex - navigation section tests", "priority": "low", "reason": "mostly static menu, low business logic"},
+    {"item": "program_detail_live integration tests - booking flow", "priority": "medium"},
+    {"item": "enrollment CSV import edge cases", "priority": "medium"},
+    {"item": "entitlements domain service property tests", "priority": "high", "reason": "pure domain logic, ideal for stream_data"},
+    {"item": "messaging retention policy worker tests", "priority": "medium"}
+  ],
+  "tasks_last_run": {
+    "task1_commands": "2026-02-26",
+    "task2_opportunities": "2026-02-26",
+    "task3_implement": "2026-02-26",
+    "task7_monthly_summary": "2026-02-26"
+  },
+  "completed_work": [
+    {
+      "run": "2026-02-26",
+      "work": "Created PR for SessionsLive tests (sessions_live_test.exs)",
+      "notes": "Mix not available in runner env - CI validates"
+    }
+  ]
+}
