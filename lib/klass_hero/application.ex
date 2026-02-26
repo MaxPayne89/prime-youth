@@ -95,6 +95,9 @@ defmodule KlassHero.Application do
          handlers: [
            {:program_created,
             {KlassHero.ProgramCatalog.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           {:program_updated,
+            {KlassHero.ProgramCatalog.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}
          ]},
         id: :program_catalog_domain_event_bus
