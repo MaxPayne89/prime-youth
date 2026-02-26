@@ -9,6 +9,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
 
   import KlassHero.Factory
 
+  alias KlassHero.AccountsFixtures
   alias KlassHero.Participation.Application.UseCases.RecordCheckIn
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
@@ -16,7 +17,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
     test "successfully checks in a registered record" do
       session = insert(:program_session_schema, status: :in_progress)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
 
       record_schema =
         insert(:participation_record_schema,
@@ -43,7 +44,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
     test "checks in with nil notes when not provided" do
       session = insert(:program_session_schema, status: :in_progress)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
 
       record_schema =
         insert(:participation_record_schema,
@@ -64,7 +65,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
 
     test "returns error when record not found" do
       non_existent_id = Ecto.UUID.generate()
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
 
       assert {:error, :not_found} =
                RecordCheckIn.execute(%{
@@ -76,7 +77,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
     test "returns error when record is already checked in" do
       session = insert(:program_session_schema, status: :in_progress)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
 
       record_schema =
         insert(:participation_record_schema,
@@ -84,7 +85,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
           child_id: child.id,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       assert {:error, :invalid_status_transition} =
@@ -97,7 +98,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
     test "returns error when record is already checked out" do
       session = insert(:program_session_schema, status: :in_progress)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
       check_in_time = DateTime.add(DateTime.utc_now(), -3600, :second)
 
       record_schema =
@@ -106,9 +107,9 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
           child_id: child.id,
           status: :checked_out,
           check_in_at: check_in_time,
-          check_in_by: Ecto.UUID.generate(),
+          check_in_by: AccountsFixtures.unconfirmed_user_fixture().id,
           check_out_at: DateTime.utc_now(),
-          check_out_by: Ecto.UUID.generate()
+          check_out_by: AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       assert {:error, :invalid_status_transition} =
@@ -121,7 +122,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
     test "persists check-in to database" do
       session = insert(:program_session_schema, status: :in_progress)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
 
       record_schema =
         insert(:participation_record_schema,

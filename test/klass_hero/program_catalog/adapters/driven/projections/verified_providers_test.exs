@@ -147,9 +147,11 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
       admin = AccountsFixtures.user_fixture(%{is_admin: true})
 
       # Create a provider and verify it directly in the database
+      verified_user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
       {:ok, provider} =
         ProviderProfileRepository.create_provider_profile(%{
-          identity_id: Ecto.UUID.generate(),
+          identity_id: verified_user.id,
           business_name: "Verified Business"
         })
 
@@ -157,9 +159,11 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
       {:ok, _} = ProviderProfileRepository.update(verified)
 
       # Also create an unverified provider
+      unverified_user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
       {:ok, unverified_provider} =
         ProviderProfileRepository.create_provider_profile(%{
-          identity_id: Ecto.UUID.generate(),
+          identity_id: unverified_user.id,
           business_name: "Unverified Business"
         })
 

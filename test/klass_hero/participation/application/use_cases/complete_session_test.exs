@@ -67,12 +67,14 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSessionTest do
       child2 = insert(:child_schema)
       child3 = insert(:child_schema)
 
+      staff_user = KlassHero.AccountsFixtures.unconfirmed_user_fixture()
+
       insert(:participation_record_schema,
         session_id: session_schema.id,
         child_id: child1.id,
         status: :checked_in,
         check_in_at: DateTime.utc_now(),
-        check_in_by: Ecto.UUID.generate()
+        check_in_by: staff_user.id
       )
 
       insert(:participation_record_schema,
@@ -80,9 +82,9 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSessionTest do
         child_id: child2.id,
         status: :checked_out,
         check_in_at: DateTime.utc_now(),
-        check_in_by: Ecto.UUID.generate(),
+        check_in_by: staff_user.id,
         check_out_at: DateTime.utc_now(),
-        check_out_by: Ecto.UUID.generate()
+        check_out_by: staff_user.id
       )
 
       insert(:participation_record_schema,

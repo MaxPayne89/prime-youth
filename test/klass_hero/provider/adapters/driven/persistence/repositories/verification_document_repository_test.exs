@@ -218,9 +218,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   # Helper functions
 
   defp create_provider do
+    user = unconfirmed_user_fixture(intended_roles: [:provider])
+
     ProviderProfileRepository.create_provider_profile(%{
-      identity_id: Ecto.UUID.generate(),
-      business_name: "Test Provider #{System.unique_integer()}"
+      identity_id: user.id,
+      business_name: "Test Provider #{System.unique_integer([:positive])}"
     })
   end
 

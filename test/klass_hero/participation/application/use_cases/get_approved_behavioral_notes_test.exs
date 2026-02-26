@@ -21,11 +21,13 @@ defmodule KlassHero.Participation.Application.UseCases.GetApprovedBehavioralNote
 
     test "filters out pending and rejected notes" do
       # Create a shared child + record so all notes reference the same child_id
+      staff_user = KlassHero.AccountsFixtures.unconfirmed_user_fixture()
+
       record =
         insert(:participation_record_schema,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: staff_user.id
         )
 
       child_id = record.child_id
@@ -45,7 +47,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetApprovedBehavioralNote
           parent_id: record.parent_id,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: staff_user.id
         )
 
       insert(:behavioral_note_schema,
@@ -61,7 +63,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetApprovedBehavioralNote
           parent_id: record.parent_id,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: staff_user.id
         )
 
       insert(:behavioral_note_schema,

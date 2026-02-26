@@ -18,10 +18,10 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
         insert(:participation_record_schema,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
         )
 
-      provider_id = Ecto.UUID.generate()
+      provider_id = KlassHero.Factory.insert(:provider_profile_schema).id
 
       {:ok, note} =
         BehavioralNote.new(%{
@@ -44,10 +44,10 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
         insert(:participation_record_schema,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
         )
 
-      provider_id = Ecto.UUID.generate()
+      provider_id = KlassHero.Factory.insert(:provider_profile_schema).id
 
       {:ok, note1} =
         BehavioralNote.new(%{
@@ -116,7 +116,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
           parent_id: parent.id,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       insert(:behavioral_note_schema,
@@ -172,20 +172,20 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
 
   describe "list_by_records_and_provider/2" do
     test "returns notes matching record IDs and provider" do
-      provider_id = Ecto.UUID.generate()
+      provider_id = KlassHero.Factory.insert(:provider_profile_schema).id
 
       record1 =
         insert(:participation_record_schema,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       record2 =
         insert(:participation_record_schema,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       insert(:behavioral_note_schema,
@@ -201,10 +201,12 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
       )
 
       # Note from a different provider — should not appear
+      other_provider_id = KlassHero.Factory.insert(:provider_profile_schema).id
+
       insert(:behavioral_note_schema,
         participation_record_id: record1.id,
         child_id: record1.child_id,
-        provider_id: Ecto.UUID.generate()
+        provider_id: other_provider_id
       )
 
       notes =

@@ -10,12 +10,15 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLiveTest do
 
   setup :register_and_log_in_parent
 
-  defp create_child_with_note(%{parent: parent}) do
+  defp create_child_with_note(%{parent: parent, user: user}) do
     {child, _parent} =
       insert_child_with_guardian(parent: parent, first_name: "Emma", last_name: "Mueller")
 
     session = insert(:program_session_schema, status: "in_progress")
 
+    # Trigger: check_in_by references users table via FK constraint
+    # Why: consolidated migrations enforce referential integrity
+    # Outcome: use the logged-in user's ID instead of a random UUID
     record =
       insert(:participation_record_schema,
         session_id: session.id,
@@ -23,7 +26,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLiveTest do
         parent_id: parent.id,
         status: :checked_in,
         check_in_at: DateTime.utc_now(),
-        check_in_by: Ecto.UUID.generate()
+        check_in_by: user.id
       )
 
     note =
