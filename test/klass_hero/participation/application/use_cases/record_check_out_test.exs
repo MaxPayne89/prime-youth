@@ -9,6 +9,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
 
   import KlassHero.Factory
 
+  alias KlassHero.AccountsFixtures
   alias KlassHero.Participation.Application.UseCases.RecordCheckOut
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
@@ -16,7 +17,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
     test "successfully checks out a checked-in record" do
       session = insert(:program_session_schema, status: :in_progress)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
       check_in_time = DateTime.add(DateTime.utc_now(), -3600, :second)
 
       record_schema =
@@ -25,7 +26,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
           child_id: child.id,
           status: :checked_in,
           check_in_at: check_in_time,
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       assert {:ok, record} =
@@ -46,7 +47,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
     test "checks out with nil notes when not provided" do
       session = insert(:program_session_schema, status: :in_progress)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
       check_in_time = DateTime.add(DateTime.utc_now(), -3600, :second)
 
       record_schema =
@@ -55,7 +56,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
           child_id: child.id,
           status: :checked_in,
           check_in_at: check_in_time,
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       assert {:ok, record} =
@@ -70,7 +71,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
 
     test "returns error when record not found" do
       non_existent_id = Ecto.UUID.generate()
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
 
       assert {:error, :not_found} =
                RecordCheckOut.execute(%{
@@ -82,7 +83,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
     test "returns error when record is in registered status" do
       session = insert(:program_session_schema, status: :in_progress)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
 
       record_schema =
         insert(:participation_record_schema,
@@ -101,7 +102,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
     test "returns error when record is already checked out" do
       session = insert(:program_session_schema, status: :in_progress)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
       check_in_time = DateTime.add(DateTime.utc_now(), -3600, :second)
 
       record_schema =
@@ -110,9 +111,9 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
           child_id: child.id,
           status: :checked_out,
           check_in_at: check_in_time,
-          check_in_by: Ecto.UUID.generate(),
+          check_in_by: AccountsFixtures.unconfirmed_user_fixture().id,
           check_out_at: DateTime.utc_now(),
-          check_out_by: Ecto.UUID.generate()
+          check_out_by: AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       assert {:error, :invalid_status_transition} =
@@ -125,7 +126,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
     test "persists check-out to database" do
       session = insert(:program_session_schema, status: :in_progress)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = AccountsFixtures.unconfirmed_user_fixture().id
       check_in_time = DateTime.add(DateTime.utc_now(), -3600, :second)
 
       record_schema =
@@ -134,7 +135,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckOutTest do
           child_id: child.id,
           status: :checked_in,
           check_in_at: check_in_time,
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       {:ok, record} =

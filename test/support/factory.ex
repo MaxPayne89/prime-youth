@@ -263,9 +263,14 @@ defmodule KlassHero.Factory do
       schema = insert(:parent_profile_schema, display_name: "John Parent")
   """
   def parent_profile_schema_factory do
+    # Trigger: identity_id references users table via FK
+    # Why: consolidated migrations enforce referential integrity
+    # Outcome: every parent profile is linked to a real user record
+    user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:parent])
+
     %ParentProfileSchema{
       id: Ecto.UUID.generate(),
-      identity_id: Ecto.UUID.generate(),
+      identity_id: user.id,
       display_name: sequence(:parent_schema_display_name, &"Test Parent #{&1}"),
       phone: "+1234567890",
       location: "New York, NY",
@@ -328,9 +333,14 @@ defmodule KlassHero.Factory do
       schema = insert(:provider_profile_schema, business_name: "Youth Arts Center")
   """
   def provider_profile_schema_factory do
+    # Trigger: identity_id references users table via FK
+    # Why: consolidated migrations enforce referential integrity
+    # Outcome: every provider profile is linked to a real user record
+    user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
     %ProviderProfileSchema{
       id: Ecto.UUID.generate(),
-      identity_id: Ecto.UUID.generate(),
+      identity_id: user.id,
       business_name: sequence(:provider_schema_business_name, &"Test Provider #{&1}"),
       description: "A great provider of youth activities and programs",
       phone: "+1234567890",
@@ -785,11 +795,17 @@ defmodule KlassHero.Factory do
       schema = insert(:behavioral_note_schema, content: "Custom observation")
   """
   def behavioral_note_schema_factory do
+    # Trigger: check_in_by references users, provider_id references providers
+    # Why: consolidated migrations enforce referential integrity
+    # Outcome: all FK fields point to real records
+    user = AccountsFixtures.unconfirmed_user_fixture()
+    provider = insert(:provider_profile_schema)
+
     record =
       insert(:participation_record_schema,
         status: :checked_in,
         check_in_at: DateTime.utc_now(),
-        check_in_by: Ecto.UUID.generate()
+        check_in_by: user.id
       )
 
     %BehavioralNoteSchema{
@@ -797,7 +813,7 @@ defmodule KlassHero.Factory do
       participation_record_id: record.id,
       child_id: record.child_id,
       parent_id: record.parent_id,
-      provider_id: Ecto.UUID.generate(),
+      provider_id: provider.id,
       content: "Child was very engaged and cooperative during the session",
       status: :pending_approval,
       rejection_reason: nil,

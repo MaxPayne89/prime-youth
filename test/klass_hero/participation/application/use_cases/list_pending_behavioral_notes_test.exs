@@ -20,7 +20,8 @@ defmodule KlassHero.Participation.Application.UseCases.ListPendingBehavioralNote
     end
 
     test "filters out approved and rejected notes" do
-      parent_id = Ecto.UUID.generate()
+      # parent_id references parents table via FK
+      parent_id = insert(:parent_profile_schema).id
 
       insert(:behavioral_note_schema,
         parent_id: parent_id,

@@ -11,8 +11,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
 
   describe "create_provider_profile/1" do
     test "creates provider profile and returns domain entity" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
       attrs = %{
-        identity_id: Ecto.UUID.generate(),
+        identity_id: user.id,
         business_name: "Kids Sports Academy",
         description: "Premier youth sports training",
         phone: "+1234567890",
@@ -32,8 +34,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
     end
 
     test "creates provider profile with minimal fields" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
       attrs = %{
-        identity_id: Ecto.UUID.generate(),
+        identity_id: user.id,
         business_name: "My Business"
       }
 
@@ -45,7 +49,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
     end
 
     test "returns :duplicate_resource error when profile exists" do
-      identity_id = Ecto.UUID.generate()
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+      identity_id = user.id
       attrs = %{identity_id: identity_id, business_name: "First Business"}
 
       assert {:ok, _} = ProviderProfileRepository.create_provider_profile(attrs)
@@ -59,7 +64,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
 
   describe "get_by_identity_id/1" do
     test "retrieves existing provider profile" do
-      identity_id = Ecto.UUID.generate()
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+      identity_id = user.id
       attrs = %{identity_id: identity_id, business_name: "My Business"}
 
       {:ok, created} = ProviderProfileRepository.create_provider_profile(attrs)
@@ -80,7 +86,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
 
   describe "has_profile?/1" do
     test "returns true when profile exists" do
-      identity_id = Ecto.UUID.generate()
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+      identity_id = user.id
 
       {:ok, _} =
         ProviderProfileRepository.create_provider_profile(%{
@@ -107,16 +114,18 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
 
     test "returns only verified provider IDs" do
       admin = AccountsFixtures.user_fixture(%{is_admin: true})
+      user_1 = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+      user_2 = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       {:ok, provider_1} =
         ProviderProfileRepository.create_provider_profile(%{
-          identity_id: Ecto.UUID.generate(),
+          identity_id: user_1.id,
           business_name: "Verified Business"
         })
 
       {:ok, provider_2} =
         ProviderProfileRepository.create_provider_profile(%{
-          identity_id: Ecto.UUID.generate(),
+          identity_id: user_2.id,
           business_name: "Unverified Business"
         })
 
@@ -131,16 +140,18 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
 
     test "returns all verified provider IDs" do
       admin = AccountsFixtures.user_fixture(%{is_admin: true})
+      user_1 = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+      user_2 = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       {:ok, provider_1} =
         ProviderProfileRepository.create_provider_profile(%{
-          identity_id: Ecto.UUID.generate(),
+          identity_id: user_1.id,
           business_name: "Business One"
         })
 
       {:ok, provider_2} =
         ProviderProfileRepository.create_provider_profile(%{
-          identity_id: Ecto.UUID.generate(),
+          identity_id: user_2.id,
           business_name: "Business Two"
         })
 
@@ -157,10 +168,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
 
     test "returns IDs as strings" do
       admin = AccountsFixtures.user_fixture(%{is_admin: true})
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       {:ok, provider} =
         ProviderProfileRepository.create_provider_profile(%{
-          identity_id: Ecto.UUID.generate(),
+          identity_id: user.id,
           business_name: "String ID Business"
         })
 

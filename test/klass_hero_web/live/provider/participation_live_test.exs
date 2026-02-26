@@ -136,11 +136,14 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
   describe "behavioral notes" do
     setup [:create_session_with_child]
 
-    defp check_in_record(%{record: record, provider: provider}) do
+    # Trigger: check_in_by references users table via FK constraint
+    # Why: consolidated migrations enforce referential integrity
+    # Outcome: use the logged-in user's ID (not provider profile ID) for checked_in_by
+    defp check_in_record(%{record: record, user: user}) do
       {:ok, updated} =
         KlassHero.Participation.record_check_in(%{
           record_id: record.id,
-          checked_in_by: provider.id
+          checked_in_by: user.id
         })
 
       %{record: updated}
@@ -150,9 +153,9 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       conn: conn,
       session: session,
       record: record,
-      provider: provider
+      user: user
     } do
-      check_in_record(%{record: record, provider: provider})
+      check_in_record(%{record: record, user: user})
 
       {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
 
@@ -173,9 +176,9 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       conn: conn,
       session: session,
       record: record,
-      provider: provider
+      user: user
     } do
-      check_in_record(%{record: record, provider: provider})
+      check_in_record(%{record: record, user: user})
 
       {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
 
@@ -199,9 +202,10 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       conn: conn,
       session: session,
       record: record,
-      provider: provider
+      provider: provider,
+      user: user
     } do
-      check_in_record(%{record: record, provider: provider})
+      check_in_record(%{record: record, user: user})
 
       # Submit a note first
       {:ok, _note} =
@@ -222,9 +226,10 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       session: session,
       record: record,
       parent: parent,
-      provider: provider
+      provider: provider,
+      user: user
     } do
-      check_in_record(%{record: record, provider: provider})
+      check_in_record(%{record: record, user: user})
 
       # Submit and reject a note
       {:ok, note} =
@@ -252,9 +257,10 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       session: session,
       record: record,
       parent: parent,
-      provider: provider
+      provider: provider,
+      user: user
     } do
-      check_in_record(%{record: record, provider: provider})
+      check_in_record(%{record: record, user: user})
 
       {:ok, note} =
         KlassHero.Participation.submit_behavioral_note(%{
@@ -282,9 +288,9 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       parent: parent,
       child: child,
       record: record,
-      provider: provider
+      user: user
     } do
-      check_in_record(%{record: record, provider: provider})
+      check_in_record(%{record: record, user: user})
 
       insert(:consent_schema,
         parent_id: parent.id,
@@ -311,9 +317,9 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       conn: conn,
       session: session,
       record: record,
-      provider: provider
+      user: user
     } do
-      check_in_record(%{record: record, provider: provider})
+      check_in_record(%{record: record, user: user})
 
       {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
 
@@ -325,9 +331,10 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       session: session,
       record: record,
       parent: parent,
-      provider: provider
+      provider: provider,
+      user: user
     } do
-      check_in_record(%{record: record, provider: provider})
+      check_in_record(%{record: record, user: user})
 
       # Submit and reject a note
       {:ok, note} =
@@ -369,9 +376,9 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       conn: conn,
       session: session,
       record: record,
-      provider: provider
+      user: user
     } do
-      check_in_record(%{record: record, provider: provider})
+      check_in_record(%{record: record, user: user})
 
       {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
 
@@ -392,9 +399,10 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       conn: conn,
       session: session,
       record: record,
-      provider: provider
+      provider: provider,
+      user: user
     } do
-      check_in_record(%{record: record, provider: provider})
+      check_in_record(%{record: record, user: user})
 
       # Submit a note first via the API
       {:ok, _note} =

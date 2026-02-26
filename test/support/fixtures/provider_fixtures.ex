@@ -15,12 +15,21 @@ defmodule KlassHero.ProviderFixtures do
   Uses the schema directly to insert into database, then maps to domain model.
   """
   def provider_profile_fixture(attrs \\ %{}) do
+    attrs_map = Map.new(attrs)
+
+    # Trigger: identity_id references users table via FK
+    # Why: consolidated migrations enforce referential integrity
+    # Outcome: every provider profile is linked to a real user record
+    identity_id =
+      attrs_map[:identity_id] ||
+        KlassHero.AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider]).id
+
     defaults = %{
-      identity_id: Ecto.UUID.generate(),
+      identity_id: identity_id,
       business_name: "Test Provider #{System.unique_integer([:positive])}"
     }
 
-    merged = Map.merge(defaults, Map.new(attrs))
+    merged = Map.merge(defaults, attrs_map)
 
     {:ok, schema} =
       %ProviderProfileSchema{}

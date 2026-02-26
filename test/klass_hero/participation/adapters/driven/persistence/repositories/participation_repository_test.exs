@@ -67,8 +67,9 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
     test "successfully updates record status" do
       record_schema = insert(:participation_record_schema, status: :registered)
       domain_record = ParticipationRecordMapper.to_domain(record_schema)
+      user = KlassHero.AccountsFixtures.unconfirmed_user_fixture()
 
-      {:ok, checked_in} = ParticipationRecord.check_in(domain_record, Ecto.UUID.generate())
+      {:ok, checked_in} = ParticipationRecord.check_in(domain_record, user.id)
 
       assert {:ok, result} = ParticipationRepository.update(checked_in)
       assert result.status == :checked_in
@@ -83,35 +84,37 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
     test "updates check-in information" do
       record_schema = insert(:participation_record_schema, status: :registered)
       domain_record = ParticipationRecordMapper.to_domain(record_schema)
-      provider_id = Ecto.UUID.generate()
+      user = KlassHero.AccountsFixtures.unconfirmed_user_fixture()
 
       {:ok, checked_in} =
-        ParticipationRecord.check_in(domain_record, provider_id, "Arrived on time")
+        ParticipationRecord.check_in(domain_record, user.id, "Arrived on time")
 
       assert {:ok, result} = ParticipationRepository.update(checked_in)
       assert result.status == :checked_in
       assert result.check_in_notes == "Arrived on time"
-      assert result.check_in_by == provider_id
+      assert result.check_in_by == user.id
     end
 
     test "updates check-out information" do
+      check_in_user = KlassHero.AccountsFixtures.unconfirmed_user_fixture()
+
       record_schema =
         insert(:participation_record_schema,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: check_in_user.id
         )
 
       domain_record = ParticipationRecordMapper.to_domain(record_schema)
-      provider_id = Ecto.UUID.generate()
+      check_out_user = KlassHero.AccountsFixtures.unconfirmed_user_fixture()
 
       {:ok, checked_out} =
-        ParticipationRecord.check_out(domain_record, provider_id, "Picked up by parent")
+        ParticipationRecord.check_out(domain_record, check_out_user.id, "Picked up by parent")
 
       assert {:ok, result} = ParticipationRepository.update(checked_out)
       assert result.status == :checked_out
       assert result.check_out_notes == "Picked up by parent"
-      assert result.check_out_by == provider_id
+      assert result.check_out_by == check_out_user.id
     end
 
     test "handles optimistic locking conflict" do
@@ -122,7 +125,8 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
       domain_v1_b = ParticipationRecordMapper.to_domain(record_schema)
 
       # First update succeeds
-      {:ok, updated_a} = ParticipationRecord.check_in(domain_v1_a, Ecto.UUID.generate())
+      user = KlassHero.AccountsFixtures.unconfirmed_user_fixture()
+      {:ok, updated_a} = ParticipationRecord.check_in(domain_v1_a, user.id)
       assert {:ok, _} = ParticipationRepository.update(updated_a)
 
       # Second update fails with stale data
@@ -136,14 +140,15 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
 
     test "sequential updates with version increments succeed" do
       record_schema = insert(:participation_record_schema)
+      user = KlassHero.AccountsFixtures.unconfirmed_user_fixture()
 
       # First update
       domain_v1 = ParticipationRecordMapper.to_domain(record_schema)
-      {:ok, checked_in} = ParticipationRecord.check_in(domain_v1, Ecto.UUID.generate())
+      {:ok, checked_in} = ParticipationRecord.check_in(domain_v1, user.id)
       assert {:ok, result_v2} = ParticipationRepository.update(checked_in)
 
       # Second update using fresh result
-      {:ok, checked_out} = ParticipationRecord.check_out(result_v2, Ecto.UUID.generate())
+      {:ok, checked_out} = ParticipationRecord.check_out(result_v2, user.id)
       assert {:ok, result_v3} = ParticipationRepository.update(checked_out)
 
       assert result_v3.status == :checked_out

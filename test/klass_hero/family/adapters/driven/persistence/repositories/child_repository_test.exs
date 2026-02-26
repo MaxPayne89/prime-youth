@@ -12,8 +12,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   alias KlassHero.Family.Domain.Models.Child
 
   defp create_parent do
-    identity_id = Ecto.UUID.generate()
-    {:ok, parent} = ParentProfileRepository.create_parent_profile(%{identity_id: identity_id})
+    user = KlassHero.AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:parent])
+    {:ok, parent} = ParentProfileRepository.create_parent_profile(%{identity_id: user.id})
     parent
   end
 

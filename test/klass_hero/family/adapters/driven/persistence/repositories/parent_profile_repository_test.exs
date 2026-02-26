@@ -5,13 +5,17 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
 
   use KlassHero.DataCase, async: true
 
+  import KlassHero.AccountsFixtures
+
   alias KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfileRepository
   alias KlassHero.Family.Domain.Models.ParentProfile
 
   describe "create_parent_profile/1" do
     test "creates parent profile and returns domain entity" do
+      user = unconfirmed_user_fixture(intended_roles: [:parent])
+
       attrs = %{
-        identity_id: Ecto.UUID.generate(),
+        identity_id: user.id,
         display_name: "John Doe",
         phone: "+1234567890",
         location: "New York, NY",
@@ -29,7 +33,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
     end
 
     test "creates parent profile with minimal fields" do
-      attrs = %{identity_id: Ecto.UUID.generate()}
+      user = unconfirmed_user_fixture(intended_roles: [:parent])
+      attrs = %{identity_id: user.id}
 
       assert {:ok, %ParentProfile{} = profile} =
                ParentProfileRepository.create_parent_profile(attrs)
@@ -39,7 +44,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
     end
 
     test "returns :duplicate_resource error when profile exists" do
-      identity_id = Ecto.UUID.generate()
+      user = unconfirmed_user_fixture(intended_roles: [:parent])
+      identity_id = user.id
       attrs = %{identity_id: identity_id}
 
       assert {:ok, _} = ParentProfileRepository.create_parent_profile(attrs)
@@ -49,7 +55,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
 
   describe "get_by_identity_id/1" do
     test "retrieves existing parent profile" do
-      identity_id = Ecto.UUID.generate()
+      user = unconfirmed_user_fixture(intended_roles: [:parent])
+      identity_id = user.id
       attrs = %{identity_id: identity_id, display_name: "Jane Doe"}
 
       {:ok, created} = ParentProfileRepository.create_parent_profile(attrs)
@@ -70,7 +77,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
 
   describe "has_profile?/1" do
     test "returns true when profile exists" do
-      identity_id = Ecto.UUID.generate()
+      user = unconfirmed_user_fixture(intended_roles: [:parent])
+      identity_id = user.id
       {:ok, _} = ParentProfileRepository.create_parent_profile(%{identity_id: identity_id})
 
       assert ParentProfileRepository.has_profile?(identity_id) == true

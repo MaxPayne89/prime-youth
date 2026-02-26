@@ -30,7 +30,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetParticipationRecordTes
     test "includes all record details" do
       session = insert(:program_session_schema)
       child = insert(:child_schema)
-      staff_id = Ecto.UUID.generate()
+      staff_id = KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
       check_in_time = DateTime.add(DateTime.utc_now(), -3600, :second)
       check_out_time = DateTime.utc_now()
 

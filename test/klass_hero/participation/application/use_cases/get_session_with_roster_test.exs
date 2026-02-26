@@ -30,7 +30,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
         child_id: child2.id,
         status: :checked_in,
         check_in_at: DateTime.utc_now(),
-        check_in_by: Ecto.UUID.generate()
+        check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
       )
 
       assert {:ok, result} = GetSessionWithRoster.execute(session_schema.id)
@@ -66,7 +66,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
         child_id: child.id,
         status: :checked_in,
         check_in_at: check_in_time,
-        check_in_by: Ecto.UUID.generate(),
+        check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id,
         check_in_notes: "Arrived on time"
       )
 
@@ -94,7 +94,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
         child_id: child.id,
         status: :checked_in,
         check_in_at: DateTime.utc_now(),
-        check_in_by: Ecto.UUID.generate()
+        check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
       )
 
       assert {:ok, result} = GetSessionWithRoster.execute(session1.id)
@@ -301,7 +301,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
           parent_id: parent.id,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       insert(:behavioral_note_schema,
@@ -328,7 +328,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
           child_id: child.id,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       insert(:behavioral_note_schema,
@@ -425,7 +425,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRosterTest 
           parent_id: parent.id,
           status: :checked_in,
           check_in_at: DateTime.utc_now(),
-          check_in_by: Ecto.UUID.generate()
+          check_in_by: KlassHero.AccountsFixtures.unconfirmed_user_fixture().id
         )
 
       # Approved note — should appear

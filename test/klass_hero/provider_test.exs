@@ -23,8 +23,10 @@ defmodule KlassHero.ProviderTest do
 
   describe "create_provider_profile/1" do
     test "creates provider profile through public API" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
       attrs = %{
-        identity_id: Ecto.UUID.generate(),
+        identity_id: user.id,
         business_name: "Kids Sports Academy"
       }
 
@@ -34,15 +36,16 @@ defmodule KlassHero.ProviderTest do
     end
 
     test "returns validation error for invalid attrs" do
-      attrs = %{identity_id: Ecto.UUID.generate(), business_name: ""}
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+      attrs = %{identity_id: user.id, business_name: ""}
 
       assert {:error, {:validation_error, errors}} = Provider.create_provider_profile(attrs)
       assert "Business name cannot be empty" in errors
     end
 
     test "returns duplicate error when profile exists" do
-      identity_id = Ecto.UUID.generate()
-      attrs = %{identity_id: identity_id, business_name: "My Business"}
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+      attrs = %{identity_id: user.id, business_name: "My Business"}
 
       assert {:ok, _} = Provider.create_provider_profile(attrs)
       assert {:error, :duplicate_resource} = Provider.create_provider_profile(attrs)
@@ -51,16 +54,16 @@ defmodule KlassHero.ProviderTest do
 
   describe "get_provider_by_identity/1" do
     test "retrieves existing provider profile" do
-      identity_id = Ecto.UUID.generate()
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       {:ok, created} =
         Provider.create_provider_profile(%{
-          identity_id: identity_id,
+          identity_id: user.id,
           business_name: "My Business"
         })
 
       assert {:ok, %ProviderProfile{} = retrieved} =
-               Provider.get_provider_by_identity(identity_id)
+               Provider.get_provider_by_identity(user.id)
 
       assert retrieved.id == created.id
     end
@@ -72,15 +75,15 @@ defmodule KlassHero.ProviderTest do
 
   describe "has_provider_profile?/1" do
     test "returns true when profile exists" do
-      identity_id = Ecto.UUID.generate()
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       {:ok, _} =
         Provider.create_provider_profile(%{
-          identity_id: identity_id,
+          identity_id: user.id,
           business_name: "My Business"
         })
 
-      assert Provider.has_provider_profile?(identity_id) == true
+      assert Provider.has_provider_profile?(user.id) == true
     end
 
     test "returns false when profile does not exist" do

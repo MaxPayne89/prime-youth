@@ -19,8 +19,10 @@ defmodule KlassHero.FamilyTest do
 
   describe "create_parent_profile/1" do
     test "creates parent profile through public API" do
+      user = KlassHero.AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:parent])
+
       attrs = %{
-        identity_id: Ecto.UUID.generate(),
+        identity_id: user.id,
         display_name: "John Doe"
       }
 
@@ -37,8 +39,8 @@ defmodule KlassHero.FamilyTest do
     end
 
     test "returns duplicate error when profile exists" do
-      identity_id = Ecto.UUID.generate()
-      attrs = %{identity_id: identity_id}
+      user = KlassHero.AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:parent])
+      attrs = %{identity_id: user.id}
 
       assert {:ok, _} = Family.create_parent_profile(attrs)
       assert {:error, :duplicate_resource} = Family.create_parent_profile(attrs)
@@ -47,10 +49,10 @@ defmodule KlassHero.FamilyTest do
 
   describe "get_parent_by_identity/1" do
     test "retrieves existing parent profile" do
-      identity_id = Ecto.UUID.generate()
-      {:ok, created} = Family.create_parent_profile(%{identity_id: identity_id})
+      user = KlassHero.AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:parent])
+      {:ok, created} = Family.create_parent_profile(%{identity_id: user.id})
 
-      assert {:ok, %ParentProfile{} = retrieved} = Family.get_parent_by_identity(identity_id)
+      assert {:ok, %ParentProfile{} = retrieved} = Family.get_parent_by_identity(user.id)
       assert retrieved.id == created.id
     end
 
@@ -61,10 +63,10 @@ defmodule KlassHero.FamilyTest do
 
   describe "has_parent_profile?/1" do
     test "returns true when profile exists" do
-      identity_id = Ecto.UUID.generate()
-      {:ok, _} = Family.create_parent_profile(%{identity_id: identity_id})
+      user = KlassHero.AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:parent])
+      {:ok, _} = Family.create_parent_profile(%{identity_id: user.id})
 
-      assert Family.has_parent_profile?(identity_id) == true
+      assert Family.has_parent_profile?(user.id) == true
     end
 
     test "returns false when profile does not exist" do
@@ -77,8 +79,8 @@ defmodule KlassHero.FamilyTest do
   # ============================================================================
 
   defp create_parent_for_children do
-    identity_id = Ecto.UUID.generate()
-    {:ok, parent} = Family.create_parent_profile(%{identity_id: identity_id})
+    user = KlassHero.AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:parent])
+    {:ok, parent} = Family.create_parent_profile(%{identity_id: user.id})
     parent
   end
 

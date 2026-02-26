@@ -28,6 +28,9 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
   # which is not process-safe and can interfere with parallel tests
   use KlassHero.DataCase, async: false
 
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProgramCatalog.Application.UseCases.ListAllPrograms
@@ -37,8 +40,11 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
   # Ensure we're using the real repository for integration tests
   setup do
     # Clean database first (async: false tests share state)
-    # Delete sessions first due to FK constraint with on_delete: :restrict
+    # Delete in full dependency order to avoid RESTRICT violations
+    Repo.delete_all(ParticipationRecordSchema)
     Repo.delete_all(ProgramSessionSchema)
+    Repo.delete_all(EnrollmentSchema)
+    Repo.delete_all(ConversationSchema)
     Repo.delete_all(ProgramSchema)
 
     # Store original config
