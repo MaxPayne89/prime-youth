@@ -102,6 +102,29 @@ defmodule KlassHero.ProgramCatalog.Domain.Events.ProgramEventsTest do
       assert event.payload.title == "Updated Title"
     end
 
+    test "creates event with default empty payload" do
+      event = ProgramEvents.program_updated("program-123")
+
+      assert event.event_type == :program_updated
+      assert event.payload.program_id == "program-123"
+    end
+
+    test "base_payload program_id wins over caller-supplied program_id" do
+      real_id = Ecto.UUID.generate()
+      conflicting_payload = %{program_id: "should-be-overridden", extra: "data"}
+
+      event = ProgramEvents.program_updated(real_id, conflicting_payload)
+
+      assert event.payload.program_id == real_id
+      assert event.payload.extra == "data"
+    end
+
+    test "raises for nil program_id" do
+      assert_raise ArgumentError, fn ->
+        ProgramEvents.program_updated(nil)
+      end
+    end
+
     test "raises on empty program_id" do
       assert_raise ArgumentError, fn ->
         ProgramEvents.program_updated("", %{})
