@@ -27,7 +27,11 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingProgramSummaries do
   - `{:ok, %PageResult{}}` - Page of program listings with pagination metadata
   - `{:error, :invalid_cursor}` - Cursor decoding/validation failure
   """
-  @callback list_paginated(limit :: pos_integer(), cursor :: binary() | nil, category :: String.t() | nil) ::
+  @callback list_paginated(
+              limit :: pos_integer(),
+              cursor :: binary() | nil,
+              category :: String.t() | nil
+            ) ::
               {:ok, %PageResult{}} | {:error, :invalid_cursor}
 
   @doc """
