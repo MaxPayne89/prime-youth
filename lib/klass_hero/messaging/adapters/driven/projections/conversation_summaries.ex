@@ -251,7 +251,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
               )
 
             unread_count =
-              compute_unread_count(conversation.messages, participant.last_read_at, participant.user_id)
+              compute_unread_count(
+                conversation.messages,
+                participant.last_read_at,
+                participant.user_id
+              )
 
             %{
               id: Ecto.UUID.generate(),
