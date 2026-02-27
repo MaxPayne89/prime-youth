@@ -41,6 +41,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   alias KlassHero.Accounts.User
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
@@ -90,11 +91,12 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     # Trigger: GenServer initialization complete
     # Why: project all existing conversations from write tables into read table
     # Outcome: conversation_summaries table populated with current data
-    count = bootstrap_from_write_tables()
+    attempt_bootstrap(state)
+  end
 
-    Logger.info("ConversationSummaries projection started", count: count)
-
-    {:noreply, %{state | bootstrapped: true}}
+  @impl true
+  def handle_info(:retry_bootstrap, state) do
+    {:noreply, state, {:continue, :bootstrap}}
   end
 
   # Trigger: Received a conversation_created integration event
@@ -210,14 +212,39 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
   # Private Functions — Bootstrap
 
+  # Trigger: bootstrap attempt with retry logic
+  # Why: transient DB failures shouldn't crash the GenServer immediately
+  # Outcome: successful bootstrap or scheduled retry (up to 3 times before crashing)
+  defp attempt_bootstrap(state) do
+    count = bootstrap_from_write_tables()
+    Logger.info("ConversationSummaries projection started", count: count)
+    {:noreply, %{state | bootstrapped: true}}
+  rescue
+    error ->
+      retry_count = Map.get(state, :retry_count, 0) + 1
+
+      if retry_count > 3 do
+        # Trigger: exhausted retries
+        # Why: persistent failure indicates real infrastructure issue
+        # Outcome: crash to let supervisor handle with its own restart strategy
+        reraise error, __STACKTRACE__
+      else
+        Logger.error("ConversationSummaries: bootstrap failed, scheduling retry",
+          error: Exception.message(error),
+          retry_count: retry_count
+        )
+
+        Process.send_after(self(), :retry_bootstrap, 5_000 * retry_count)
+        {:noreply, Map.put(state, :retry_count, retry_count)}
+      end
+  end
+
   # Trigger: bootstrap phase — read table may be empty or stale
   # Why: cold start recovery — populate read table from authoritative write tables
   # Outcome: conversation_summaries contains one row per (conversation, participant)
   defp bootstrap_from_write_tables do
     conversations =
-      from(c in ConversationSchema,
-        preload: [:participants, :messages]
-      )
+      from(c in ConversationSchema, preload: [:participants])
       |> Repo.all()
 
     if conversations == [] do
@@ -233,11 +260,22 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
       user_names = fetch_user_names(all_user_ids)
 
+      # Trigger: need latest message per conversation without loading all messages
+      # Why: preloading :messages loads N×M rows; this fetches N rows (one per conversation)
+      # Outcome: efficient lookup map of conversation_id -> latest message fields
+      conversation_ids = Enum.map(conversations, & &1.id)
+      latest_messages = fetch_latest_messages(conversation_ids)
+
+      # Trigger: need unread counts per (conversation, participant) without loading all messages
+      # Why: counting in the DB is far cheaper than loading all messages into memory
+      # Outcome: {conversation_id, user_id} -> unread_count lookup map
+      unread_counts = fetch_unread_counts(conversations)
+
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       entries =
         Enum.flat_map(conversations, fn conversation ->
-          build_conversation_entries(conversation, user_names, now)
+          build_conversation_entries(conversation, user_names, latest_messages, unread_counts, now)
         end)
 
       if entries == [] do
@@ -257,10 +295,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     end
   end
 
-  defp build_conversation_entries(conversation, user_names, now) do
+  defp build_conversation_entries(conversation, user_names, latest_messages, unread_counts, now) do
     active_participants = Enum.filter(conversation.participants, &is_nil(&1.left_at))
     participant_count = length(active_participants)
-    latest_message = find_latest_message(conversation.messages)
+    latest_message = Map.get(latest_messages, conversation.id)
 
     Enum.map(active_participants, fn participant ->
       build_summary_entry(
@@ -269,6 +307,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
         active_participants,
         user_names,
         latest_message,
+        unread_counts,
         participant_count,
         now
       )
@@ -281,6 +320,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
          active_participants,
          user_names,
          latest_message,
+         unread_counts,
          participant_count,
          now
        ) do
@@ -292,12 +332,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
         user_names
       )
 
-    unread_count =
-      compute_unread_count(
-        conversation.messages,
-        participant.last_read_at,
-        participant.user_id
-      )
+    unread_count = Map.get(unread_counts, {conversation.id, participant.user_id}, 0)
 
     %{
       id: Ecto.UUID.generate(),
@@ -537,26 +572,93 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
   defp resolve_other_name_from_ids(_type, _user_id, _participant_ids, _user_names), do: nil
 
-  # Trigger: finding the most recent message for a conversation during bootstrap
-  # Why: summary row needs the latest message content, sender, and timestamp
-  # Outcome: the most recent MessageSchema or nil if no messages
-  defp find_latest_message([]), do: nil
+  # Trigger: bootstrap needs latest message per conversation without loading all messages
+  # Why: preloading :messages loads N×M rows; this fetches N rows (one per conversation)
+  # Outcome: map of conversation_id -> %{content, sender_id, inserted_at}
+  defp fetch_latest_messages(conversation_ids) when conversation_ids != [] do
+    # Subquery finds the max inserted_at per conversation
+    latest_times =
+      from(m in MessageSchema,
+        where: m.conversation_id in ^conversation_ids,
+        group_by: m.conversation_id,
+        select: %{conversation_id: m.conversation_id, max_at: max(m.inserted_at)}
+      )
 
-  defp find_latest_message(messages) do
-    Enum.max_by(messages, & &1.inserted_at, DateTime)
+    from(m in MessageSchema,
+      join: lt in subquery(latest_times),
+      on: m.conversation_id == lt.conversation_id and m.inserted_at == lt.max_at,
+      select: %{
+        conversation_id: m.conversation_id,
+        content: m.content,
+        sender_id: m.sender_id,
+        inserted_at: m.inserted_at
+      }
+    )
+    |> Repo.all()
+    |> Map.new(&{&1.conversation_id, &1})
   end
 
-  # Trigger: computing how many messages are unread for a participant
-  # Why: unread_count = messages from OTHER users after last_read_at.
-  #      A user's own messages should never count as unread.
-  # Outcome: integer count of unread messages (excluding own messages)
-  defp compute_unread_count(messages, nil, user_id) do
-    Enum.count(messages, fn msg -> msg.sender_id != user_id end)
+  defp fetch_latest_messages(_), do: %{}
+
+  # Trigger: bootstrap needs unread counts per (conversation, participant) without loading messages
+  # Why: counting in DB is far cheaper than loading all messages into memory
+  # Outcome: map of {conversation_id, user_id} -> unread_count
+  defp fetch_unread_counts(conversations) do
+    # Build a list of {conversation_id, user_id, last_read_at} for each active participant
+    participant_info =
+      Enum.flat_map(conversations, fn conv ->
+        conv.participants
+        |> Enum.filter(&is_nil(&1.left_at))
+        |> Enum.map(&{conv.id, &1.user_id, &1.last_read_at})
+      end)
+
+    # Group by last_read_at to batch queries efficiently
+    # Most common case: nil (never read) or a few distinct timestamps
+    {nil_readers, dated_readers} = Enum.split_with(participant_info, fn {_, _, lr} -> is_nil(lr) end)
+
+    nil_counts = fetch_unread_counts_nil(nil_readers)
+    dated_counts = fetch_unread_counts_dated(dated_readers)
+
+    Map.merge(nil_counts, dated_counts)
   end
 
-  defp compute_unread_count(messages, last_read_at, user_id) do
-    Enum.count(messages, fn msg ->
-      msg.sender_id != user_id and DateTime.after?(msg.inserted_at, last_read_at)
+  # Trigger: participants who have never read — all messages from others are unread
+  # Why: no last_read_at means every message from other senders counts
+  # Outcome: count of messages per (conversation, user) where sender != user
+  defp fetch_unread_counts_nil([]), do: %{}
+
+  defp fetch_unread_counts_nil(readers) do
+    # For nil last_read_at: count all messages from other senders
+    Enum.reduce(readers, %{}, fn {conv_id, user_id, _}, acc ->
+      count =
+        from(m in MessageSchema,
+          where: m.conversation_id == ^conv_id and m.sender_id != ^user_id,
+          select: count(m.id)
+        )
+        |> Repo.one()
+
+      Map.put(acc, {conv_id, user_id}, count)
+    end)
+  end
+
+  # Trigger: participants with a last_read_at — only messages after that timestamp are unread
+  # Why: messages before last_read_at have already been seen
+  # Outcome: count of messages per (conversation, user) where sender != user and after last_read_at
+  defp fetch_unread_counts_dated([]), do: %{}
+
+  defp fetch_unread_counts_dated(readers) do
+    Enum.reduce(readers, %{}, fn {conv_id, user_id, last_read_at}, acc ->
+      count =
+        from(m in MessageSchema,
+          where:
+            m.conversation_id == ^conv_id and
+              m.sender_id != ^user_id and
+              m.inserted_at > ^last_read_at,
+          select: count(m.id)
+        )
+        |> Repo.one()
+
+      Map.put(acc, {conv_id, user_id}, count)
     end)
   end
 end

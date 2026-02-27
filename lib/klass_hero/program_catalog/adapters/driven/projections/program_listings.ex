@@ -103,11 +103,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
     # Trigger: GenServer initialization complete
     # Why: project all existing programs from write table into read table
     # Outcome: program_listings table populated with current program data
-    count = bootstrap_from_write_table()
+    attempt_bootstrap(state)
+  end
 
-    Logger.info("ProgramListings projection started", count: count)
-
-    {:noreply, %{state | bootstrapped: true}}
+  @impl true
+  def handle_info(:retry_bootstrap, state) do
+    {:noreply, state, {:continue, :bootstrap}}
   end
 
   # Trigger: Received a program_created integration event
@@ -193,6 +194,33 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
   end
 
   # Private Functions
+
+  # Trigger: bootstrap attempt with retry logic
+  # Why: transient DB failures shouldn't crash the GenServer immediately
+  # Outcome: successful bootstrap or scheduled retry (up to 3 times before crashing)
+  defp attempt_bootstrap(state) do
+    count = bootstrap_from_write_table()
+    Logger.info("ProgramListings projection started", count: count)
+    {:noreply, %{state | bootstrapped: true}}
+  rescue
+    error ->
+      retry_count = Map.get(state, :retry_count, 0) + 1
+
+      if retry_count > 3 do
+        # Trigger: exhausted retries
+        # Why: persistent failure indicates real infrastructure issue
+        # Outcome: crash to let supervisor handle with its own restart strategy
+        reraise error, __STACKTRACE__
+      else
+        Logger.error("ProgramListings: bootstrap failed, scheduling retry",
+          error: Exception.message(error),
+          retry_count: retry_count
+        )
+
+        Process.send_after(self(), :retry_bootstrap, 5_000 * retry_count)
+        {:noreply, Map.put(state, :retry_count, retry_count)}
+      end
+  end
 
   # Trigger: bootstrap phase — read table may be empty or stale
   # Why: cold start recovery — populate read table from authoritative write table
@@ -287,6 +315,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
         )
 
       listing ->
+        # season excluded — not in domain model, only set during bootstrap from ProgramSchema
         changes = %{
           title: Map.get(payload, :title),
           description: Map.get(payload, :description),
@@ -304,7 +333,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
           meeting_days: Map.get(payload, :meeting_days, []),
           meeting_start_time: Map.get(payload, :meeting_start_time),
           meeting_end_time: Map.get(payload, :meeting_end_time),
-          season: Map.get(payload, :season),
           registration_start_date: Map.get(payload, :registration_start_date),
           registration_end_date: Map.get(payload, :registration_end_date),
           provider_id: Map.get(payload, :provider_id)

@@ -53,7 +53,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
     %{
       conversation: %{
         id: summary.conversation_id,
-        type: String.to_existing_atom(summary.conversation_type),
+        type: parse_conversation_type(summary.conversation_type),
         provider_id: summary.provider_id,
         program_id: summary.program_id,
         subject: summary.subject
@@ -63,6 +63,17 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
       last_read_at: summary.last_read_at,
       other_participant_name: summary.other_participant_name
     }
+  end
+
+  defp parse_conversation_type("direct"), do: :direct
+  defp parse_conversation_type("program_broadcast"), do: :program_broadcast
+
+  defp parse_conversation_type(unknown) do
+    Logger.warning("[ListConversations] Unknown conversation_type in read model",
+      conversation_type: unknown
+    )
+
+    :direct
   end
 
   defp build_latest_message(%{latest_message_content: nil}), do: nil

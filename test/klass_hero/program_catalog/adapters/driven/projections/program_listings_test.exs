@@ -127,11 +127,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListingsTe
       program_id = Ecto.UUID.generate()
       provider_id = Ecto.UUID.generate()
 
-      # Insert an existing listing first
+      # Insert an existing listing with season pre-set (from bootstrap)
       Repo.insert!(%ProgramListingSchema{
         id: program_id,
         title: "Old Title",
         category: "sports",
+        season: "Spring 2026",
         provider_id: provider_id,
         provider_verified: false
       })

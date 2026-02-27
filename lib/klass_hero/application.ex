@@ -284,11 +284,7 @@ defmodule KlassHero.Application do
   # Outcome: projections skipped in test env, started normally elsewhere
   defp in_memory_projections do
     if Application.get_env(:klass_hero, :start_projections, true) do
-      [
-        KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders,
-        KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings,
-        KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries
-      ]
+      [{KlassHero.ProjectionSupervisor, []}]
     else
       []
     end

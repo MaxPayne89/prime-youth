@@ -45,10 +45,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       id: program.id,
       name: program.title,
       category: humanize_category(program.category),
-      # Trigger: price is a Decimal that may have fractional cents (e.g., 29.99)
-      # Why: Decimal.to_integer crashes on non-integer values; to_string preserves precision
-      # Outcome: price rendered as "29.99" in template's €{program.price} display
-      price: program.price |> Decimal.round(2) |> Decimal.to_string(),
+      price: format_price(program.price),
       assigned_staff: format_instructor(program.instructor),
       # Placeholder: Program status tracking pending implementation
       status: :active,
@@ -67,7 +64,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       id: listing.id,
       name: listing.title,
       category: humanize_category(listing.category),
-      price: listing.price |> Decimal.round(2) |> Decimal.to_string(),
+      price: format_price(listing.price),
       assigned_staff: format_listing_instructor(listing),
       status: :active,
       enrolled: Map.get(data, :enrolled),
@@ -258,6 +255,9 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
     end_date = Map.get(program, :end_date)
     format_date_range(start_date, end_date)
   end
+
+  defp format_price(nil), do: "0.00"
+  defp format_price(price), do: price |> Decimal.round(2) |> Decimal.to_string()
 
   defp format_instructor(nil), do: nil
 
