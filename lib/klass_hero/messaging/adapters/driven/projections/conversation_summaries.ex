@@ -371,7 +371,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     payload = event.payload
     conversation_id = payload.conversation_id
     participant_ids = Map.get(payload, :participant_ids, [])
-    conversation_type = Map.get(payload, :type, "direct")
+    conversation_type = payload |> Map.get(:type, "direct") |> to_string()
     provider_id = Map.get(payload, :provider_id)
     program_id = Map.get(payload, :program_id)
     subject = Map.get(payload, :subject)
@@ -427,8 +427,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     conversation_id = payload.conversation_id
     sender_id = payload.sender_id
     content = Map.get(payload, :content)
-    sent_at = Map.get(payload, :sent_at)
     now = DateTime.utc_now() |> DateTime.truncate(:second)
+    sent_at = Map.get(payload, :sent_at) || now
 
     Repo.transaction(fn ->
       # Update latest_message fields for all participants of this conversation

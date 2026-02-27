@@ -239,8 +239,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
           |> Map.take(@shared_fields)
           |> Map.put(:id, program.id)
           |> Map.put(:provider_verified, lookup_provider_verified(program.provider_id))
-          |> Map.put(:inserted_at, now)
-          |> Map.put(:updated_at, now)
+          |> Map.put(:inserted_at, program.inserted_at || now)
+          |> Map.put(:updated_at, program.updated_at || now)
         end)
 
       # Trigger: programs may already have rows in program_listings from a previous run

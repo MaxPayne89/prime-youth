@@ -18,7 +18,6 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
   - user_id: The user to list conversations for
   - opts: Optional parameters
     - limit: Number of conversations to return (default 25)
-    - cursor: Pagination cursor
 
   ## Returns
   - `{:ok, conversations, has_more}` - List of conversations with unread counts
