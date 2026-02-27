@@ -17,6 +17,18 @@ defmodule KlassHero.Family.Domain.Events.FamilyIntegrationEvents do
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
+  @typedoc "Payload for `:child_data_anonymized` events."
+  @type child_data_anonymized_payload :: %{
+          required(:child_id) => String.t(),
+          optional(atom()) => term()
+        }
+
+  @typedoc "Payload for `:invite_family_ready` events."
+  @type invite_family_ready_payload :: %{
+          required(:invite_id) => String.t(),
+          optional(atom()) => term()
+        }
+
   @source_context :family
   @entity_type :child
 

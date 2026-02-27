@@ -1,10 +1,10 @@
 defmodule KlassHeroWeb.Provider.MessagesLive.IndexTest do
   use KlassHeroWeb.ConnCase, async: true
 
-  import KlassHero.Factory
   import Phoenix.LiveViewTest
 
-  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
+  alias KlassHero.Repo
 
   describe "authentication and authorization" do
     test "requires authentication", %{conn: conn} do
@@ -37,19 +37,15 @@ defmodule KlassHeroWeb.Provider.MessagesLive.IndexTest do
     setup :register_and_log_in_provider
 
     test "renders conversation list", %{conn: conn, user: user} do
-      conversation = insert(:conversation_schema)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: user.id
-      )
-
-      {:ok, _msg} =
-        MessageRepository.create(%{
-          conversation_id: conversation.id,
-          sender_id: user.id,
-          content: "Hello there!"
-        })
+      insert_summary(%{
+        user_id: user.id,
+        latest_message_content: "Hello there!",
+        latest_message_sender_id: user.id,
+        latest_message_at: now,
+        other_participant_name: "Test Parent"
+      })
 
       {:ok, view, _html} = live(conn, ~p"/provider/messages")
 
@@ -58,17 +54,20 @@ defmodule KlassHeroWeb.Provider.MessagesLive.IndexTest do
     end
 
     test "clicking conversation navigates to provider show page", %{conn: conn, user: user} do
-      conversation = insert(:conversation_schema)
+      conversation_id = Ecto.UUID.generate()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: user.id
-      )
+      insert_summary(%{
+        conversation_id: conversation_id,
+        user_id: user.id,
+        latest_message_at: now,
+        other_participant_name: "Test Parent"
+      })
 
       {:ok, view, _html} = live(conn, ~p"/provider/messages")
 
       html = render(view)
-      assert html =~ "/provider/messages/#{conversation.id}"
+      assert html =~ "/provider/messages/#{conversation_id}"
     end
   end
 
@@ -80,5 +79,35 @@ defmodule KlassHeroWeb.Provider.MessagesLive.IndexTest do
 
       assert has_element?(view, "h1", "Messages")
     end
+  end
+
+  defp insert_summary(attrs) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    defaults = %{
+      id: Ecto.UUID.generate(),
+      conversation_id: Ecto.UUID.generate(),
+      user_id: Ecto.UUID.generate(),
+      conversation_type: "direct",
+      provider_id: Ecto.UUID.generate(),
+      program_id: nil,
+      subject: nil,
+      other_participant_name: "Other User",
+      participant_count: 2,
+      latest_message_content: nil,
+      latest_message_sender_id: nil,
+      latest_message_at: nil,
+      unread_count: 0,
+      last_read_at: nil,
+      archived_at: nil,
+      inserted_at: now,
+      updated_at: now
+    }
+
+    merged = Map.merge(defaults, attrs)
+
+    %ConversationSummarySchema{}
+    |> Ecto.Changeset.change(merged)
+    |> Repo.insert!()
   end
 end

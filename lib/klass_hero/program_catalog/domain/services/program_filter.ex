@@ -9,6 +9,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Services.ProgramFilter do
   """
 
   alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
 
   @max_query_length 100
 
@@ -55,7 +56,9 @@ defmodule KlassHero.ProgramCatalog.Domain.Services.ProgramFilter do
       iex> ProgramFilter.execute(programs, "")
       [%Program{id: "1", title: "After School Soccer"}, %Program{id: "2", title: "Summer Dance Camp"}]
   """
-  @spec execute([Program.t()], String.t()) :: [Program.t()]
+  @spec execute([Program.t() | ProgramListing.t()], String.t()) :: [
+          Program.t() | ProgramListing.t()
+        ]
   def execute(programs, query) when is_list(programs) and is_binary(query) do
     normalized_query = normalize(query)
 

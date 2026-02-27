@@ -1,11 +1,10 @@
 defmodule KlassHeroWeb.MessagesLive.IndexTest do
   use KlassHeroWeb.ConnCase, async: true
 
-  import KlassHero.Factory
   import Phoenix.LiveViewTest
 
-  alias KlassHero.AccountsFixtures
-  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
+  alias KlassHero.Repo
 
   describe "authentication" do
     test "requires authentication", %{conn: conn} do
@@ -30,19 +29,15 @@ defmodule KlassHeroWeb.MessagesLive.IndexTest do
     setup :register_and_log_in_user
 
     test "renders conversation list", %{conn: conn, user: user} do
-      conversation = insert(:conversation_schema)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: user.id
-      )
-
-      {:ok, _msg} =
-        MessageRepository.create(%{
-          conversation_id: conversation.id,
-          sender_id: user.id,
-          content: "Hello there!"
-        })
+      insert_summary(%{
+        user_id: user.id,
+        latest_message_content: "Hello there!",
+        latest_message_sender_id: user.id,
+        latest_message_at: now,
+        other_participant_name: "Test Provider"
+      })
 
       {:ok, view, _html} = live(conn, ~p"/messages")
 
@@ -51,27 +46,17 @@ defmodule KlassHeroWeb.MessagesLive.IndexTest do
     end
 
     test "renders conversation with unread count", %{conn: conn, user: user} do
-      other_user = AccountsFixtures.user_fixture()
-      conversation = insert(:conversation_schema)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
+      insert_summary(%{
         user_id: user.id,
-        last_read_at: nil
-      )
-
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: other_user.id
-      )
-
-      for _ <- 1..3 do
-        MessageRepository.create(%{
-          conversation_id: conversation.id,
-          sender_id: other_user.id,
-          content: "Message"
-        })
-      end
+        latest_message_content: "Message",
+        latest_message_sender_id: Ecto.UUID.generate(),
+        latest_message_at: now,
+        unread_count: 3,
+        last_read_at: nil,
+        other_participant_name: "Other User"
+      })
 
       {:ok, view, _html} = live(conn, ~p"/messages")
 
@@ -79,31 +64,22 @@ defmodule KlassHeroWeb.MessagesLive.IndexTest do
     end
 
     test "orders conversations by most recent", %{conn: conn, user: user} do
-      old_conversation = insert(:conversation_schema)
-      new_conversation = insert(:conversation_schema)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      insert(:participant_schema,
-        conversation_id: old_conversation.id,
-        user_id: user.id
-      )
-
-      insert(:participant_schema,
-        conversation_id: new_conversation.id,
-        user_id: user.id
-      )
-
-      MessageRepository.create(%{
-        conversation_id: old_conversation.id,
-        sender_id: user.id,
-        content: "Old message"
+      insert_summary(%{
+        user_id: user.id,
+        latest_message_content: "Old message",
+        latest_message_sender_id: user.id,
+        latest_message_at: DateTime.add(now, -60, :second),
+        other_participant_name: "Old Contact"
       })
 
-      Process.sleep(10)
-
-      MessageRepository.create(%{
-        conversation_id: new_conversation.id,
-        sender_id: user.id,
-        content: "New message"
+      insert_summary(%{
+        user_id: user.id,
+        latest_message_content: "New message",
+        latest_message_sender_id: user.id,
+        latest_message_at: now,
+        other_participant_name: "New Contact"
       })
 
       {:ok, view, _html} = live(conn, ~p"/messages")
@@ -112,17 +88,20 @@ defmodule KlassHeroWeb.MessagesLive.IndexTest do
     end
 
     test "clicking conversation navigates to show page", %{conn: conn, user: user} do
-      conversation = insert(:conversation_schema)
+      conversation_id = Ecto.UUID.generate()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-      insert(:participant_schema,
-        conversation_id: conversation.id,
-        user_id: user.id
-      )
+      insert_summary(%{
+        conversation_id: conversation_id,
+        user_id: user.id,
+        latest_message_at: now,
+        other_participant_name: "Test Provider"
+      })
 
       {:ok, view, _html} = live(conn, ~p"/messages")
 
       html = render(view)
-      assert html =~ "/messages/#{conversation.id}"
+      assert html =~ "/messages/#{conversation_id}"
     end
   end
 
@@ -134,5 +113,35 @@ defmodule KlassHeroWeb.MessagesLive.IndexTest do
 
       assert has_element?(view, "h1", "Messages")
     end
+  end
+
+  defp insert_summary(attrs) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    defaults = %{
+      id: Ecto.UUID.generate(),
+      conversation_id: Ecto.UUID.generate(),
+      user_id: Ecto.UUID.generate(),
+      conversation_type: "direct",
+      provider_id: Ecto.UUID.generate(),
+      program_id: nil,
+      subject: nil,
+      other_participant_name: "Other User",
+      participant_count: 2,
+      latest_message_content: nil,
+      latest_message_sender_id: nil,
+      latest_message_at: nil,
+      unread_count: 0,
+      last_read_at: nil,
+      archived_at: nil,
+      inserted_at: now,
+      updated_at: now
+    }
+
+    merged = Map.merge(defaults, attrs)
+
+    %ConversationSummarySchema{}
+    |> Ecto.Changeset.change(merged)
+    |> Repo.insert!()
   end
 end

@@ -16,6 +16,12 @@ defmodule KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents do
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
+  @typedoc "Payload for `:user_registered` events."
+  @type user_registered_payload :: %{required(:user_id) => String.t(), optional(atom()) => term()}
+
+  @typedoc "Payload for `:user_anonymized` events."
+  @type user_anonymized_payload :: %{required(:user_id) => String.t(), optional(atom()) => term()}
+
   @source_context :accounts
   @entity_type :user
 
