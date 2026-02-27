@@ -22,7 +22,10 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
         }
 
   @typedoc "Payload for `:invite_claimed` events."
-  @type invite_claimed_payload :: %{required(:invite_id) => String.t(), optional(atom()) => term()}
+  @type invite_claimed_payload :: %{
+          required(:invite_id) => String.t(),
+          optional(atom()) => term()
+        }
 
   @source_context :enrollment
   @entity_type :participant_policy

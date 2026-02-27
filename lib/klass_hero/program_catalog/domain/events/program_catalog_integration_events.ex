@@ -15,10 +15,16 @@ defmodule KlassHero.ProgramCatalog.Domain.Events.ProgramCatalogIntegrationEvents
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   @typedoc "Payload for `:program_created` events."
-  @type program_created_payload :: %{required(:program_id) => String.t(), optional(atom()) => term()}
+  @type program_created_payload :: %{
+          required(:program_id) => String.t(),
+          optional(atom()) => term()
+        }
 
   @typedoc "Payload for `:program_updated` events."
-  @type program_updated_payload :: %{required(:program_id) => String.t(), optional(atom()) => term()}
+  @type program_updated_payload :: %{
+          required(:program_id) => String.t(),
+          optional(atom()) => term()
+        }
 
   @source_context :program_catalog
   @entity_type :program
