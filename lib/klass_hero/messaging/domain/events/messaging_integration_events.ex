@@ -108,7 +108,7 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
   """
   def conversation_created(conversation_id, payload \\ %{}, opts \\ [])
 
-  def conversation_created(conversation_id, payload, opts)
+  def conversation_created(conversation_id, %{participant_ids: _, provider_id: _} = payload, opts)
       when is_binary(conversation_id) and byte_size(conversation_id) > 0 do
     base_payload = %{conversation_id: conversation_id}
 
@@ -120,6 +120,14 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
       Map.merge(payload, base_payload),
       opts
     )
+  end
+
+  def conversation_created(conversation_id, payload, _opts)
+      when is_binary(conversation_id) and byte_size(conversation_id) > 0 do
+    missing = [:participant_ids, :provider_id] -- Map.keys(payload)
+
+    raise ArgumentError,
+          "conversation_created missing required payload keys: #{inspect(missing)}"
   end
 
   def conversation_created(conversation_id, _payload, _opts) do
@@ -149,7 +157,7 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
   """
   def message_sent(conversation_id, payload \\ %{}, opts \\ [])
 
-  def message_sent(conversation_id, payload, opts)
+  def message_sent(conversation_id, %{sender_id: _, content: _} = payload, opts)
       when is_binary(conversation_id) and byte_size(conversation_id) > 0 do
     base_payload = %{conversation_id: conversation_id}
 
@@ -161,6 +169,14 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
       Map.merge(payload, base_payload),
       opts
     )
+  end
+
+  def message_sent(conversation_id, payload, _opts)
+      when is_binary(conversation_id) and byte_size(conversation_id) > 0 do
+    missing = [:sender_id, :content] -- Map.keys(payload)
+
+    raise ArgumentError,
+          "message_sent missing required payload keys: #{inspect(missing)}"
   end
 
   def message_sent(conversation_id, _payload, _opts) do
@@ -190,7 +206,7 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
   """
   def messages_read(conversation_id, payload \\ %{}, opts \\ [])
 
-  def messages_read(conversation_id, payload, opts)
+  def messages_read(conversation_id, %{user_id: _} = payload, opts)
       when is_binary(conversation_id) and byte_size(conversation_id) > 0 do
     base_payload = %{conversation_id: conversation_id}
 
@@ -202,6 +218,14 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
       Map.merge(payload, base_payload),
       opts
     )
+  end
+
+  def messages_read(conversation_id, payload, _opts)
+      when is_binary(conversation_id) and byte_size(conversation_id) > 0 do
+    missing = [:user_id] -- Map.keys(payload)
+
+    raise ArgumentError,
+          "messages_read missing required payload keys: #{inspect(missing)}"
   end
 
   def messages_read(conversation_id, _payload, _opts) do
@@ -272,7 +296,7 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
   """
   def conversations_archived(aggregate_id, payload \\ %{}, opts \\ [])
 
-  def conversations_archived(aggregate_id, payload, opts)
+  def conversations_archived(aggregate_id, %{conversation_ids: _} = payload, opts)
       when is_binary(aggregate_id) and byte_size(aggregate_id) > 0 do
     IntegrationEvent.new(
       :conversations_archived,
@@ -282,6 +306,14 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
       payload,
       opts
     )
+  end
+
+  def conversations_archived(aggregate_id, payload, _opts)
+      when is_binary(aggregate_id) and byte_size(aggregate_id) > 0 do
+    missing = [:conversation_ids] -- Map.keys(payload)
+
+    raise ArgumentError,
+          "conversations_archived missing required payload keys: #{inspect(missing)}"
   end
 
   def conversations_archived(aggregate_id, _payload, _opts) do

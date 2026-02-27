@@ -38,7 +38,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
   import Ecto.Query
 
-  alias KlassHero.Accounts.User
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
@@ -46,6 +45,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   require Logger
+
+  @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
 
   @conversation_created_topic "integration:messaging:conversation_created"
   @message_sent_topic "integration:messaging:message_sent"
@@ -275,7 +276,13 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
       entries =
         Enum.flat_map(conversations, fn conversation ->
-          build_conversation_entries(conversation, user_names, latest_messages, unread_counts, now)
+          build_conversation_entries(
+            conversation,
+            user_names,
+            latest_messages,
+            unread_counts,
+            now
+          )
         end)
 
       if entries == [] do
@@ -405,8 +412,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
   # Trigger: message_sent event received
   # Why: all participants need updated latest_message fields;
-  #      non-sender participants need incremented unread_count
-  # Outcome: bulk update for latest_message fields + selective unread increment
+  #      non-sender participants need incremented unread_count.
+  #      Both updates wrapped in a transaction for atomicity — without it,
+  #      a crash between the two updates leaves inconsistent read state.
+  # Outcome: atomic bulk update for latest_message fields + selective unread increment
   defp project_message_sent(event) do
     payload = event.payload
     conversation_id = payload.conversation_id
@@ -415,24 +424,26 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     sent_at = Map.get(payload, :sent_at)
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-    # Update latest_message fields for all participants of this conversation
-    from(s in ConversationSummarySchema,
-      where: s.conversation_id == ^conversation_id
-    )
-    |> Repo.update_all(
-      set: [
-        latest_message_content: content,
-        latest_message_sender_id: sender_id,
-        latest_message_at: sent_at,
-        updated_at: now
-      ]
-    )
+    Repo.transaction(fn ->
+      # Update latest_message fields for all participants of this conversation
+      from(s in ConversationSummarySchema,
+        where: s.conversation_id == ^conversation_id
+      )
+      |> Repo.update_all(
+        set: [
+          latest_message_content: content,
+          latest_message_sender_id: sender_id,
+          latest_message_at: sent_at,
+          updated_at: now
+        ]
+      )
 
-    # Increment unread_count only for non-sender participants
-    from(s in ConversationSummarySchema,
-      where: s.conversation_id == ^conversation_id and s.user_id != ^sender_id
-    )
-    |> Repo.update_all(inc: [unread_count: 1])
+      # Increment unread_count only for non-sender participants
+      from(s in ConversationSummarySchema,
+        where: s.conversation_id == ^conversation_id and s.user_id != ^sender_id
+      )
+      |> Repo.update_all(inc: [unread_count: 1])
+    end)
   end
 
   # Trigger: messages_read event received
@@ -538,12 +549,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   # Why: conversation summaries show the other participant's name
   # Outcome: map of user_id -> display name (name or email fallback)
   defp fetch_user_names(user_ids) when is_list(user_ids) and user_ids != [] do
-    from(u in User,
-      where: u.id in ^user_ids,
-      select: {u.id, u.name, u.email}
-    )
-    |> Repo.all()
-    |> Map.new(fn {id, name, email} -> {id, name || email} end)
+    {:ok, names} = @user_resolver.get_display_names(user_ids)
+    names
   end
 
   defp fetch_user_names(_), do: %{}
@@ -614,7 +621,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
     # Group by last_read_at to batch queries efficiently
     # Most common case: nil (never read) or a few distinct timestamps
-    {nil_readers, dated_readers} = Enum.split_with(participant_info, fn {_, _, lr} -> is_nil(lr) end)
+    {nil_readers, dated_readers} =
+      Enum.split_with(participant_info, fn {_, _, lr} -> is_nil(lr) end)
 
     nil_counts = fetch_unread_counts_nil(nil_readers)
     dated_counts = fetch_unread_counts_dated(dated_readers)

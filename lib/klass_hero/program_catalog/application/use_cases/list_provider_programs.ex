@@ -27,6 +27,11 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListProviderPrograms do
 
   alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
 
+  @read_repository Application.compile_env!(
+                     :klass_hero,
+                     [:program_catalog, :for_listing_program_summaries]
+                   )
+
   @doc """
   Executes the use case to list programs for a specific provider.
 
@@ -49,10 +54,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListProviderPrograms do
   """
   @spec execute(String.t()) :: [ProgramListing.t()]
   def execute(provider_id) when is_binary(provider_id) do
-    read_repository().list_for_provider(provider_id)
-  end
-
-  defp read_repository do
-    Application.get_env(:klass_hero, :program_catalog)[:for_listing_program_summaries]
+    @read_repository.list_for_provider(provider_id)
   end
 end

@@ -21,10 +21,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver do
     names_map =
       from(u in User,
         where: u.id in ^user_ids,
-        select: {u.id, u.name}
+        select: {u.id, u.name, u.email}
       )
       |> Repo.all()
-      |> Map.new()
+      |> Map.new(fn {id, name, email} -> {id, name || email} end)
 
     {:ok, names_map}
   end
@@ -32,9 +32,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver do
   @impl true
   @spec get_display_name(String.t()) :: {:ok, String.t()} | {:error, :not_found}
   def get_display_name(user_id) do
-    case Repo.one(from(u in User, where: u.id == ^user_id, select: u.name)) do
+    case Repo.one(from(u in User, where: u.id == ^user_id, select: {u.name, u.email})) do
       nil -> {:error, :not_found}
-      name -> {:ok, name}
+      {name, email} -> {:ok, name || email}
     end
   end
 end

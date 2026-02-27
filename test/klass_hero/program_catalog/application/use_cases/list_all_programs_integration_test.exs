@@ -11,7 +11,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
 
   - Repository returns invalid DTOs (mapper bugs)
   - Repository returns nil instead of empty list
-  - Configuration injection fails
+  - Compile-time configuration resolves repository correctly
   - Type mismatches between layers
   - Database constraints and migrations
 
@@ -33,31 +33,9 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
   alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
   alias KlassHero.Repo
 
-  # Ensure we're using the real read repository for integration tests
   setup do
     # Clean database first (async: false tests share state)
     Repo.delete_all(ProgramListingSchema)
-
-    # Store original config
-    original_config = Application.get_env(:klass_hero, :program_catalog)
-
-    # Ensure use case is configured to use the REAL read repository
-    Application.put_env(
-      :klass_hero,
-      :program_catalog,
-      for_listing_program_summaries:
-        KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
-    )
-
-    on_exit(fn ->
-      # Restore original config
-      if original_config do
-        Application.put_env(:klass_hero, :program_catalog, original_config)
-      else
-        Application.delete_env(:klass_hero, :program_catalog)
-      end
-    end)
-
     :ok
   end
 

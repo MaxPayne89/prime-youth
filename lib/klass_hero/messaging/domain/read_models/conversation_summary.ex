@@ -26,6 +26,8 @@ defmodule KlassHero.Messaging.Domain.ReadModels.ConversationSummary do
           updated_at: DateTime.t() | nil
         }
 
+  @enforce_keys [:id, :conversation_id, :user_id, :conversation_type, :provider_id]
+
   defstruct [
     :id,
     :conversation_id,

@@ -22,6 +22,11 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListProgramsPaginated do
 
   alias KlassHero.ProgramCatalog.Domain.Services.ProgramCategories
 
+  @read_repository Application.compile_env!(
+                     :klass_hero,
+                     [:program_catalog, :for_listing_program_summaries]
+                   )
+
   @doc """
   Lists programs with pagination.
 
@@ -57,10 +62,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListProgramsPaginated do
   """
   def execute(limit, cursor, category) do
     validated_category = ProgramCategories.validate_filter(category)
-    read_repository().list_paginated(limit, cursor, validated_category)
-  end
-
-  defp read_repository do
-    Application.get_env(:klass_hero, :program_catalog)[:for_listing_program_summaries]
+    @read_repository.list_paginated(limit, cursor, validated_category)
   end
 end

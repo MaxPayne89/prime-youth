@@ -33,6 +33,8 @@ defmodule KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing do
           updated_at: DateTime.t() | nil
         }
 
+  @enforce_keys [:id, :title, :provider_id]
+
   defstruct [
     :id,
     :title,

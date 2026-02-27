@@ -301,47 +301,72 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
     )
   end
 
+  # Fields that program_updated events may change; excludes season and provider_verified
+  # which are only set during bootstrap or by provider verification events respectively.
+  @update_fields [
+    :title,
+    :description,
+    :category,
+    :age_range,
+    :price,
+    :pricing_period,
+    :location,
+    :cover_image_url,
+    :icon_path,
+    :instructor_name,
+    :instructor_headshot_url,
+    :start_date,
+    :end_date,
+    :meeting_days,
+    :meeting_start_time,
+    :meeting_end_time,
+    :registration_start_date,
+    :registration_end_date,
+    :provider_id,
+    :updated_at
+  ]
+
   # Trigger: program_updated event received
-  # Why: existing listing must reflect changed fields from the write model
-  # Outcome: listing row updated with new values, or no-op if listing not found
+  # Why: upsert instead of get-then-update so events for listings missing from the read
+  #      table (race with bootstrap) still project instead of being silently dropped.
+  #      season and provider_verified are NOT in @update_fields — on conflict they are
+  #      preserved; on fresh insert they default to nil/false (next bootstrap corrects).
+  # Outcome: listing row updated or inserted with event data
   defp update_listing_from_event(event) do
     program_id = event.entity_id
     payload = event.payload
 
-    case Repo.get(ProgramListingSchema, program_id) do
-      nil ->
-        Logger.warning("ProgramListings: program_updated for unknown listing",
-          program_id: program_id
-        )
+    attrs = %{
+      id: program_id,
+      title: Map.get(payload, :title),
+      description: Map.get(payload, :description),
+      category: Map.get(payload, :category),
+      age_range: Map.get(payload, :age_range),
+      price: Map.get(payload, :price),
+      pricing_period: Map.get(payload, :pricing_period),
+      location: Map.get(payload, :location),
+      cover_image_url: Map.get(payload, :cover_image_url),
+      icon_path: Map.get(payload, :icon_path),
+      instructor_name: extract_instructor_name(payload),
+      instructor_headshot_url: extract_instructor_headshot_url(payload),
+      start_date: Map.get(payload, :start_date),
+      end_date: Map.get(payload, :end_date),
+      meeting_days: Map.get(payload, :meeting_days, []),
+      meeting_start_time: Map.get(payload, :meeting_start_time),
+      meeting_end_time: Map.get(payload, :meeting_end_time),
+      registration_start_date: Map.get(payload, :registration_start_date),
+      registration_end_date: Map.get(payload, :registration_end_date),
+      provider_id: Map.get(payload, :provider_id),
+      provider_verified: false,
+      season: nil
+    }
 
-      listing ->
-        # season excluded — not in domain model, only set during bootstrap from ProgramSchema
-        changes = %{
-          title: Map.get(payload, :title),
-          description: Map.get(payload, :description),
-          category: Map.get(payload, :category),
-          age_range: Map.get(payload, :age_range),
-          price: Map.get(payload, :price),
-          pricing_period: Map.get(payload, :pricing_period),
-          location: Map.get(payload, :location),
-          cover_image_url: Map.get(payload, :cover_image_url),
-          icon_path: Map.get(payload, :icon_path),
-          instructor_name: extract_instructor_name(payload),
-          instructor_headshot_url: extract_instructor_headshot_url(payload),
-          start_date: Map.get(payload, :start_date),
-          end_date: Map.get(payload, :end_date),
-          meeting_days: Map.get(payload, :meeting_days, []),
-          meeting_start_time: Map.get(payload, :meeting_start_time),
-          meeting_end_time: Map.get(payload, :meeting_end_time),
-          registration_start_date: Map.get(payload, :registration_start_date),
-          registration_end_date: Map.get(payload, :registration_end_date),
-          provider_id: Map.get(payload, :provider_id)
-        }
-
-        listing
-        |> Ecto.Changeset.change(changes)
-        |> Repo.update!()
-    end
+    %ProgramListingSchema{}
+    |> Ecto.Changeset.change(attrs)
+    |> Repo.insert!(
+      on_conflict: {:replace, @update_fields},
+      conflict_target: :id
+    )
   end
 
   # Trigger: provider verification status changed
@@ -364,7 +389,13 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
   defp lookup_provider_verified(provider_id) do
     VerifiedProviders.verified?(provider_id)
   catch
-    :exit, _ -> false
+    :exit, reason ->
+      Logger.warning("ProgramListings: VerifiedProviders unavailable, defaulting to unverified",
+        provider_id: provider_id,
+        reason: inspect(reason)
+      )
+
+      false
   end
 
   # Trigger: payload may have instructor data in nested or flat format

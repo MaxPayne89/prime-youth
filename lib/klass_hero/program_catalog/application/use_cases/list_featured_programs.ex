@@ -32,6 +32,11 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListFeaturedPrograms do
 
   alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
 
+  @read_repository Application.compile_env!(
+                     :klass_hero,
+                     [:program_catalog, :for_listing_program_summaries]
+                   )
+
   @featured_count 2
 
   @doc """
@@ -57,11 +62,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListFeaturedPrograms do
   """
   @spec execute() :: [ProgramListing.t()]
   def execute do
-    read_repository().list_all()
+    @read_repository.list_all()
     |> Enum.take(@featured_count)
-  end
-
-  defp read_repository do
-    Application.get_env(:klass_hero, :program_catalog)[:for_listing_program_summaries]
   end
 end

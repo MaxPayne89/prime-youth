@@ -245,12 +245,9 @@ defmodule KlassHeroWeb.ProgramsLive do
   defp default_icon_path,
     do: "M12 14l9-5-9-5-9 5 9 5zm0 7l-9-5 9-5 9 5-9 5zM3 12l9-5 9 5-9 5-9-5z"
 
-  # Safe conversion helper to prevent crashes on invalid Decimal values
-  defp safe_decimal_to_float(price) do
-    Decimal.to_float(price)
-  rescue
-    _ -> 0.0
-  end
+  defp safe_decimal_to_float(nil), do: 0.0
+  defp safe_decimal_to_float(%Decimal{} = price), do: Decimal.to_float(price)
+  defp safe_decimal_to_float(_other), do: 0.0
 
   @impl true
   def handle_event("search", %{"search" => query}, socket) do
