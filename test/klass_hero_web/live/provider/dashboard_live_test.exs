@@ -4,9 +4,49 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
   import Phoenix.LiveViewTest
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema
   alias KlassHero.ProviderFixtures
 
   setup :register_and_log_in_provider
+
+  # Trigger: dashboard reads programs from program_listings (CQRS read model)
+  # Why: write-side program_schema alone won't appear in the programs tab
+  # Outcome: inserts into both programs (for FK constraints) and program_listings (for display)
+  defp insert_program_with_listing(attrs) do
+    program = KlassHero.Factory.insert(:program_schema, attrs)
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    %ProgramListingSchema{}
+    |> Ecto.Changeset.change(%{
+      id: program.id,
+      title: program.title,
+      description: program.description,
+      category: program.category,
+      age_range: program.age_range,
+      price: program.price,
+      pricing_period: program.pricing_period,
+      location: program.location,
+      cover_image_url: program.cover_image_url,
+      icon_path: program.icon_path,
+      instructor_name: program.instructor_name,
+      instructor_headshot_url: program.instructor_headshot_url,
+      start_date: program.start_date,
+      end_date: program.end_date,
+      meeting_days: program.meeting_days || [],
+      meeting_start_time: program.meeting_start_time,
+      meeting_end_time: program.meeting_end_time,
+      season: program.season,
+      registration_start_date: program.registration_start_date,
+      registration_end_date: program.registration_end_date,
+      provider_id: program.provider_id,
+      provider_verified: false,
+      inserted_at: program.inserted_at || now,
+      updated_at: program.updated_at || now
+    })
+    |> KlassHero.Repo.insert!()
+
+    program
+  end
 
   describe "overview section" do
     test "renders dashboard with business name", %{conn: conn} do
@@ -165,7 +205,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
     end
 
     test "programs visible after navigating from team tab", %{conn: conn, provider: provider} do
-      KlassHero.Factory.insert(:program_schema,
+      insert_program_with_listing(
         title: "Soccer Academy",
         category: "sports",
         provider_id: provider.id
@@ -204,13 +244,13 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
 
     test "filters programs by search query", %{conn: conn, provider: provider} do
       # Create programs for this provider
-      KlassHero.Factory.insert(:program_schema,
+      insert_program_with_listing(
         title: "Soccer Academy",
         category: "sports",
         provider_id: provider.id
       )
 
-      KlassHero.Factory.insert(:program_schema,
+      insert_program_with_listing(
         title: "Art Class",
         category: "arts",
         provider_id: provider.id
@@ -239,7 +279,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
   describe "roster modal with tabs" do
     setup %{provider: provider} do
       program =
-        KlassHero.Factory.insert(:program_schema,
+        insert_program_with_listing(
           provider_id: provider.id,
           title: "Test Program"
         )
@@ -288,7 +328,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
   describe "invites tab content" do
     setup %{provider: provider} do
       program =
-        KlassHero.Factory.insert(:program_schema,
+        insert_program_with_listing(
           provider_id: provider.id,
           title: "Test Program"
         )
@@ -343,7 +383,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
   describe "invite actions" do
     setup %{provider: provider} do
       program =
-        KlassHero.Factory.insert(:program_schema,
+        insert_program_with_listing(
           provider_id: provider.id,
           title: "Test Program"
         )
@@ -395,7 +435,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
   describe "close roster" do
     setup %{provider: provider} do
       program =
-        KlassHero.Factory.insert(:program_schema,
+        insert_program_with_listing(
           provider_id: provider.id,
           title: "Test Program"
         )
@@ -421,7 +461,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
   describe "invite error paths" do
     setup %{provider: provider} do
       program =
-        KlassHero.Factory.insert(:program_schema,
+        insert_program_with_listing(
           provider_id: provider.id,
           title: "Test Program"
         )
@@ -592,7 +632,7 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
 
     setup %{provider: provider} do
       program =
-        KlassHero.Factory.insert(:program_schema,
+        insert_program_with_listing(
           provider_id: provider.id,
           title: "Ballsports & Parkour"
         )

@@ -95,6 +95,9 @@ defmodule KlassHero.Application do
          handlers: [
            {:program_created,
             {KlassHero.ProgramCatalog.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           {:program_updated,
+            {KlassHero.ProgramCatalog.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}
          ]},
         id: :program_catalog_domain_event_bus
@@ -130,15 +133,39 @@ defmodule KlassHero.Application do
            {:user_data_anonymized,
             {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
-           {:message_sent,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
-           {:messages_read,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
-           {:broadcast_sent,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           # conversation_created: promote to integration event for CQRS projections,
+           # then notify LiveViews for real-time UI updates
+           {:conversation_created,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
            {:conversation_created,
             {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           # message_sent: promote to integration event for CQRS projections,
+           # then notify LiveViews for real-time UI updates
+           {:message_sent,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           {:message_sent,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           # messages_read: promote to integration event for CQRS projections,
+           # then notify LiveViews for real-time UI updates
+           {:messages_read,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           {:messages_read,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           # conversation_archived: promote to integration event for CQRS projections
+           {:conversation_archived,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           # conversations_archived: promote to integration event for CQRS projections,
+           # then notify LiveViews for real-time UI updates
            {:conversations_archived,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           {:conversations_archived,
+            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+           {:broadcast_sent,
             {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
            {:retention_enforced,
             {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
@@ -257,7 +284,7 @@ defmodule KlassHero.Application do
   # Outcome: projections skipped in test env, started normally elsewhere
   defp in_memory_projections do
     if Application.get_env(:klass_hero, :start_projections, true) do
-      [KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders]
+      [{KlassHero.ProjectionSupervisor, []}]
     else
       []
     end

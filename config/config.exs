@@ -114,6 +114,8 @@ config :klass_hero, :messaging,
     KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository,
   for_resolving_users: KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver,
   for_querying_enrollments: KlassHero.Messaging.Adapters.Driven.Enrollment.EnrollmentResolver,
+  for_listing_conversation_summaries:
+    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository,
   retention: [
     days_after_program_end: 30,
     retention_period_days: 30
@@ -131,7 +133,9 @@ config :klass_hero, :participation,
 
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,
-  repository: KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+  repository: KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository,
+  for_listing_program_summaries:
+    KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
 
 # Configure Provider bounded context
 config :klass_hero, :provider,
@@ -263,9 +267,11 @@ config :logger, :default_formatter,
     :doc_type,
     :kind,
     :result,
+    :retry_count,
     :upload,
     :row_index,
     :batch_size,
+    :conversation_type,
     :invite_id,
     :program_count,
     :status,

@@ -319,18 +319,36 @@ defmodule KlassHeroWeb.HomeLiveTest do
     end
 
     test "clicking featured program card navigates to program detail", %{conn: conn} do
-      # Insert a program into the database
-      program = insert(:program_schema)
+      # Insert a program listing into the read model (featured programs read from program_listings)
+      now = DateTime.truncate(DateTime.utc_now(), :second)
+      program_id = Ecto.UUID.generate()
+
+      %KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema{}
+      |> Ecto.Changeset.change(%{
+        id: program_id,
+        title: "Featured Test Program",
+        description: "A test program for featured display",
+        category: "education",
+        meeting_days: [],
+        age_range: "6-12 years",
+        price: Decimal.new("100.00"),
+        pricing_period: "per month",
+        provider_id: Ecto.UUID.generate(),
+        provider_verified: false,
+        inserted_at: now,
+        updated_at: now
+      })
+      |> KlassHero.Repo.insert!()
 
       {:ok, view, _html} = live(conn, ~p"/")
 
       # Click the program card with the program-id attribute
       view
-      |> element("[phx-click='view_program'][phx-value-program-id='#{program.id}']")
+      |> element("[phx-click='view_program'][phx-value-program-id='#{program_id}']")
       |> render_click()
 
       # Should redirect to program detail page
-      assert_redirect(view, ~p"/programs/#{program.id}")
+      assert_redirect(view, ~p"/programs/#{program_id}")
     end
   end
 end

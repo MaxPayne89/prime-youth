@@ -2,40 +2,43 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllPrograms do
   @moduledoc """
   Use case for listing all available programs from the Program Catalog.
 
-  This use case orchestrates the retrieval of all valid programs from the repository.
-  It delegates to the repository port and returns the result without additional processing.
+  Reads from the denormalized program_listings read model (CQRS read side),
+  returning lightweight ProgramListing DTOs instead of full domain entities.
 
   ## Architecture
 
   This use case follows the Application Layer pattern in DDD/Ports & Adapters:
-  - Coordinates domain operations (via repository port)
+  - Coordinates domain operations (via read repository port)
   - No business logic (that belongs in domain layer)
   - No logging (that belongs in adapter layer)
-  - Returns domain entities (Program structs)
+  - Returns read model DTOs (ProgramListing structs)
 
   ## Dependency Injection
 
   The repository implementation is configured via Application config:
 
       config :klass_hero, :program_catalog,
-        repository: KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+        for_listing_program_summaries: KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
 
   ## Usage
 
       programs = ListAllPrograms.execute()
   """
 
-  alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
+
+  @read_repository Application.compile_env!(
+                     :klass_hero,
+                     [:program_catalog, :for_listing_program_summaries]
+                   )
 
   @doc """
   Executes the use case to list all available programs.
 
-  Retrieves all programs from the repository that have complete data
-  (all required fields populated). Programs are returned in ascending
-  order by title.
+  Retrieves all program listings from the read model, ordered by title.
 
   Returns:
-  - `[Program.t()]` - List of valid programs (may be empty)
+  - `[ProgramListing.t()]` - List of program listings (may be empty)
 
   ## Examples
 
@@ -48,13 +51,8 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllPrograms do
       # Empty database
       [] = ListAllPrograms.execute()
   """
-  @spec execute() :: [Program.t()]
+  @spec execute() :: [ProgramListing.t()]
   def execute do
-    repository_module().list_all_programs()
-  end
-
-  # Private helper to get the configured repository module
-  defp repository_module do
-    Application.get_env(:klass_hero, :program_catalog)[:repository]
+    @read_repository.list_all()
   end
 end

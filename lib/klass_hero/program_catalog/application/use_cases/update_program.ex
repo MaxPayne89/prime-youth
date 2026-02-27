@@ -20,6 +20,11 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.UpdateProgram do
     with {:ok, program} <- @repository.get_by_id(id),
          {:ok, updated} <- Program.apply_changes(program, changes),
          {:ok, persisted} <- @repository.update(updated) do
+      # Trigger: any program field may have changed
+      # Why: CQRS projections need to know about all updates to rebuild read models
+      # Outcome: fire-and-forget event with full program state as payload
+      dispatch_update_event(persisted)
+
       # Trigger: scheduling fields may have changed
       # Why: downstream consumers need to know about schedule changes
       # Outcome: fire-and-forget event dispatch, failures logged
@@ -47,6 +52,56 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.UpdateProgram do
         Logger.warning("[UpdateProgram] Persistence validation failed", program_id: id)
         error
     end
+  end
+
+  defp dispatch_update_event(program) do
+    instructor_payload = build_instructor_payload(program.instructor)
+
+    payload =
+      %{
+        provider_id: program.provider_id,
+        title: program.title,
+        description: program.description,
+        category: program.category,
+        age_range: program.age_range,
+        price: program.price,
+        pricing_period: program.pricing_period,
+        location: program.location,
+        cover_image_url: program.cover_image_url,
+        icon_path: program.icon_path,
+        start_date: program.start_date,
+        end_date: program.end_date,
+        meeting_days: program.meeting_days,
+        meeting_start_time: program.meeting_start_time,
+        meeting_end_time: program.meeting_end_time,
+        registration_start_date: program.registration_period.start_date,
+        registration_end_date: program.registration_period.end_date
+      }
+      |> Map.merge(instructor_payload)
+
+    event = ProgramEvents.program_updated(program.id, payload)
+
+    case DomainEventBus.dispatch(KlassHero.ProgramCatalog, event) do
+      :ok ->
+        :ok
+
+      {:error, failures} ->
+        Logger.error("[UpdateProgram] Update event dispatch had failures",
+          program_id: program.id,
+          errors: inspect(failures)
+        )
+    end
+  end
+
+  defp build_instructor_payload(nil), do: %{instructor: nil}
+
+  defp build_instructor_payload(instructor) do
+    %{
+      instructor: %{
+        name: instructor.name,
+        headshot_url: instructor.headshot_url
+      }
+    }
   end
 
   @scheduling_fields ~w(meeting_days meeting_start_time meeting_end_time start_date end_date)a

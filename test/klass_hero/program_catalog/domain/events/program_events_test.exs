@@ -6,6 +6,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Events.ProgramEventsTest do
   use ExUnit.Case, async: true
 
   alias KlassHero.ProgramCatalog.Domain.Events.ProgramEvents
+  alias KlassHero.Shared.Domain.Events.DomainEvent
 
   describe "program_created/3" do
     test "base_payload program_id wins over caller-supplied program_id" do
@@ -82,6 +83,51 @@ defmodule KlassHero.ProgramCatalog.Domain.Events.ProgramEventsTest do
     test "raises for empty string program_id" do
       assert_raise ArgumentError, fn ->
         ProgramEvents.program_schedule_updated("")
+      end
+    end
+  end
+
+  describe "program_updated/3" do
+    test "creates a program_updated domain event with payload" do
+      program_id = Ecto.UUID.generate()
+      payload = %{title: "Updated Title", price: Decimal.new("200.00")}
+
+      event = ProgramEvents.program_updated(program_id, payload)
+
+      assert %DomainEvent{} = event
+      assert event.event_type == :program_updated
+      assert event.aggregate_id == program_id
+      assert event.aggregate_type == :program
+      assert event.payload.program_id == program_id
+      assert event.payload.title == "Updated Title"
+    end
+
+    test "creates event with default empty payload" do
+      event = ProgramEvents.program_updated("program-123")
+
+      assert event.event_type == :program_updated
+      assert event.payload.program_id == "program-123"
+    end
+
+    test "base_payload program_id wins over caller-supplied program_id" do
+      real_id = Ecto.UUID.generate()
+      conflicting_payload = %{program_id: "should-be-overridden", extra: "data"}
+
+      event = ProgramEvents.program_updated(real_id, conflicting_payload)
+
+      assert event.payload.program_id == real_id
+      assert event.payload.extra == "data"
+    end
+
+    test "raises for nil program_id" do
+      assert_raise ArgumentError, fn ->
+        ProgramEvents.program_updated(nil)
+      end
+    end
+
+    test "raises on empty program_id" do
+      assert_raise ArgumentError, fn ->
+        ProgramEvents.program_updated("", %{})
       end
     end
   end

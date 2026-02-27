@@ -34,4 +34,27 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Events.EventHandlers.PromoteI
         error
     end
   end
+
+  def handle(%DomainEvent{event_type: :program_updated} = event) do
+    # Trigger: program_updated domain event dispatched from UpdateProgram use case
+    # Why: other contexts may need to react to program changes (e.g., refresh read models)
+    # Outcome: publish integration event on PubSub topic integration:program_catalog:program_updated
+    result =
+      event.aggregate_id
+      |> ProgramCatalogIntegrationEvents.program_updated(event.payload)
+      |> IntegrationEventPublishing.publish()
+
+    case result do
+      :ok ->
+        :ok
+
+      {:error, reason} = error ->
+        Logger.warning("[PromoteIntegrationEvents] Failed to publish program_updated",
+          program_id: event.aggregate_id,
+          reason: inspect(reason)
+        )
+
+        error
+    end
+  end
 end

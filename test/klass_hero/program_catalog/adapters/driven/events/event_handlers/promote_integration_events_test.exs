@@ -46,4 +46,24 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Events.EventHandlers.PromoteI
       assert {:error, :pubsub_down} = PromoteIntegrationEvents.handle(domain_event)
     end
   end
+
+  describe "handle/1 — :program_updated" do
+    test "promotes to program_updated integration event" do
+      program_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:program_updated, program_id, :program, %{
+          provider_id: Ecto.UUID.generate(),
+          title: "Updated Title",
+          price: "200.00"
+        })
+
+      assert :ok = PromoteIntegrationEvents.handle(domain_event)
+
+      event = assert_integration_event_published(:program_updated)
+      assert event.entity_id == program_id
+      assert event.source_context == :program_catalog
+      assert event.payload.title == "Updated Title"
+    end
+  end
 end

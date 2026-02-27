@@ -40,6 +40,7 @@ defmodule KlassHero.Factory do
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.{
     ConversationSchema,
+    ConversationSummarySchema,
     MessageSchema,
     ParticipantSchema
   }
@@ -51,6 +52,7 @@ defmodule KlassHero.Factory do
   alias KlassHero.Participation.Domain.Models.BehavioralNote
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.Domain.Models.ProgramSession
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProgramCatalog.Domain.Models.Program
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
@@ -115,6 +117,44 @@ defmodule KlassHero.Factory do
       pricing_period: "per month",
       icon_path: "/images/icons/default.svg",
       end_date: nil
+    }
+  end
+
+  @doc """
+  Factory for creating ProgramListingSchema Ecto schemas (CQRS read model).
+
+  Used in tests that interact with the denormalized program_listings read table.
+  No FK constraints — provider_id is a plain UUID.
+
+  ## Examples
+
+      schema = build(:program_listing_schema)
+      schema = insert(:program_listing_schema, title: "Soccer Camp", category: "sports")
+  """
+  def program_listing_schema_factory do
+    %ProgramListingSchema{
+      id: Ecto.UUID.generate(),
+      title: sequence(:program_listing_title, &"Test Program #{&1}"),
+      description: "A great program for kids to learn and have fun",
+      category: "education",
+      age_range: "6-10 years",
+      price: Decimal.new("100.00"),
+      pricing_period: "per month",
+      location: nil,
+      cover_image_url: nil,
+      icon_path: "/images/icons/default.svg",
+      instructor_name: nil,
+      instructor_headshot_url: nil,
+      start_date: nil,
+      end_date: nil,
+      meeting_days: ["Monday", "Wednesday", "Friday"],
+      meeting_start_time: ~T[15:00:00],
+      meeting_end_time: ~T[17:00:00],
+      season: nil,
+      registration_start_date: nil,
+      registration_end_date: nil,
+      provider_id: Ecto.UUID.generate(),
+      provider_verified: false
     }
   end
 
@@ -1048,6 +1088,37 @@ defmodule KlassHero.Factory do
       archived_at: nil,
       retention_until: nil,
       lock_version: 1
+    }
+  end
+
+  @doc """
+  Factory for creating ConversationSummarySchema Ecto schemas (CQRS read model).
+
+  Used in tests that interact with the denormalized conversation_summaries read table.
+  No FK constraints — all IDs are plain UUIDs.
+
+  ## Examples
+
+      schema = build(:conversation_summary_schema)
+      schema = insert(:conversation_summary_schema, unread_count: 3)
+  """
+  def conversation_summary_schema_factory do
+    %ConversationSummarySchema{
+      id: Ecto.UUID.generate(),
+      conversation_id: Ecto.UUID.generate(),
+      user_id: Ecto.UUID.generate(),
+      conversation_type: "direct",
+      provider_id: Ecto.UUID.generate(),
+      program_id: nil,
+      subject: nil,
+      other_participant_name: sequence(:summary_other_name, &"Other User #{&1}"),
+      participant_count: 2,
+      latest_message_content: "Hello there",
+      latest_message_sender_id: Ecto.UUID.generate(),
+      latest_message_at: DateTime.utc_now() |> DateTime.truncate(:second),
+      unread_count: 0,
+      last_read_at: nil,
+      archived_at: nil
     }
   end
 
