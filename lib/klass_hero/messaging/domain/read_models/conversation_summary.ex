@@ -6,6 +6,7 @@ defmodule KlassHero.Messaging.Domain.ReadModels.ConversationSummary do
   Populated from the denormalized conversation_summaries read table.
   """
 
+  @typedoc "A denormalized conversation summary for inbox display."
   @type t :: %__MODULE__{
           id: String.t(),
           conversation_id: String.t(),

@@ -22,7 +22,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
   @impl true
   def list_paginated(limit, cursor, category) do
-    Logger.info("[ProgramListingsRepository] Listing paginated program listings",
+    Logger.debug("[ProgramListingsRepository] Listing paginated program listings",
       limit: limit,
       has_cursor: !is_nil(cursor),
       category: category
@@ -49,7 +49,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       dtos = Enum.map(items, &to_dto/1)
       page_result = PageResult.new(dtos, next_cursor, has_more)
 
-      Logger.info("[ProgramListingsRepository] Retrieved paginated listings",
+      Logger.debug("[ProgramListingsRepository] Retrieved paginated listings",
         returned_count: length(dtos),
         has_more: has_more
       )
@@ -60,7 +60,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
   @impl true
   def list_all do
-    Logger.info("[ProgramListingsRepository] Listing all program listings")
+    Logger.debug("[ProgramListingsRepository] Listing all program listings")
 
     schemas =
       ProgramListingSchema
@@ -69,7 +69,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
     dtos = Enum.map(schemas, &to_dto/1)
 
-    Logger.info("[ProgramListingsRepository] Retrieved all listings",
+    Logger.debug("[ProgramListingsRepository] Retrieved all listings",
       count: length(dtos)
     )
 
@@ -78,7 +78,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
   @impl true
   def list_for_provider(provider_id) when is_binary(provider_id) do
-    Logger.info("[ProgramListingsRepository] Listing programs for provider",
+    Logger.debug("[ProgramListingsRepository] Listing programs for provider",
       provider_id: provider_id
     )
 
@@ -90,7 +90,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
     dtos = Enum.map(schemas, &to_dto/1)
 
-    Logger.info("[ProgramListingsRepository] Retrieved provider listings",
+    Logger.debug("[ProgramListingsRepository] Retrieved provider listings",
       provider_id: provider_id,
       count: length(dtos)
     )
@@ -105,7 +105,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       {:ok, _binary} ->
         case Repo.get(ProgramListingSchema, id) do
           nil ->
-            Logger.info("[ProgramListingsRepository] Listing not found", entity_id: id)
+            Logger.debug("[ProgramListingsRepository] Listing not found", entity_id: id)
             {:error, :not_found}
 
           schema ->
@@ -113,7 +113,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         end
 
       :error ->
-        Logger.info("[ProgramListingsRepository] Invalid UUID format", entity_id: id)
+        Logger.debug("[ProgramListingsRepository] Invalid UUID format", entity_id: id)
         {:error, :not_found}
     end
   end

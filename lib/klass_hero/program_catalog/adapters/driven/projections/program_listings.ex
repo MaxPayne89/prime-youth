@@ -186,7 +186,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
   # Catch-all for unhandled messages — logged so misrouted events are traceable
   @impl true
   def handle_info(msg, state) do
-    Logger.debug("ProgramListings received unexpected message",
+    Logger.warning("ProgramListings received unexpected message",
       message: inspect(msg, limit: 200)
     )
 

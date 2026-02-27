@@ -6,6 +6,7 @@ defmodule KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing do
   Populated from the denormalized program_listings read table.
   """
 
+  @typedoc "A denormalized program listing for display in search results and catalogs."
   @type t :: %__MODULE__{
           id: String.t(),
           title: String.t(),

@@ -22,7 +22,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
   def list_for_user(user_id, opts) do
     limit = Keyword.get(opts, :limit, @default_limit)
 
-    Logger.info("[ConversationSummariesRepository] Listing summaries for user",
+    Logger.debug("[ConversationSummariesRepository] Listing summaries for user",
       user_id: user_id,
       limit: limit
     )
@@ -47,7 +47,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
 
     summaries = Enum.map(items, &to_dto/1)
 
-    Logger.info("[ConversationSummariesRepository] Retrieved summaries",
+    Logger.debug("[ConversationSummariesRepository] Retrieved summaries",
       user_id: user_id,
       returned_count: length(summaries),
       has_more: has_more
@@ -58,7 +58,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
 
   @impl true
   def get_total_unread_count(user_id) do
-    Logger.info("[ConversationSummariesRepository] Getting total unread count",
+    Logger.debug("[ConversationSummariesRepository] Getting total unread count",
       user_id: user_id
     )
 
@@ -69,7 +69,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
       )
       |> Repo.one()
 
-    Logger.info("[ConversationSummariesRepository] Total unread count",
+    Logger.debug("[ConversationSummariesRepository] Total unread count",
       user_id: user_id,
       count: count
     )

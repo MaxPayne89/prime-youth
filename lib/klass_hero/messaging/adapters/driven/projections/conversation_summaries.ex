@@ -204,7 +204,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   # Catch-all for unhandled messages — logged so misrouted events are traceable
   @impl true
   def handle_info(msg, state) do
-    Logger.debug("ConversationSummaries received unexpected message",
+    Logger.warning("ConversationSummaries received unexpected message",
       message: inspect(msg, limit: 200)
     )
 
@@ -379,34 +379,40 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
     user_names = fetch_user_names(participant_ids)
 
-    Enum.each(participant_ids, fn user_id ->
-      other_name =
-        resolve_other_name_from_ids(
-          conversation_type,
-          user_id,
-          participant_ids,
-          user_names
+    # Trigger: multiple participant rows must be inserted atomically
+    # Why: a mid-loop crash without a transaction leaves partial rows,
+    #      resulting in some participants having summaries and others not
+    # Outcome: all-or-nothing insert — either every participant gets a row or none do
+    Repo.transaction(fn ->
+      Enum.each(participant_ids, fn user_id ->
+        other_name =
+          resolve_other_name_from_ids(
+            conversation_type,
+            user_id,
+            participant_ids,
+            user_names
+          )
+
+        attrs = %{
+          id: Ecto.UUID.generate(),
+          conversation_id: conversation_id,
+          user_id: user_id,
+          conversation_type: conversation_type,
+          provider_id: provider_id,
+          program_id: program_id,
+          subject: subject,
+          other_participant_name: other_name,
+          participant_count: participant_count,
+          unread_count: 0
+        }
+
+        %ConversationSummarySchema{}
+        |> Ecto.Changeset.change(attrs)
+        |> Repo.insert!(
+          on_conflict: {:replace_all_except, [:id, :inserted_at]},
+          conflict_target: [:conversation_id, :user_id]
         )
-
-      attrs = %{
-        id: Ecto.UUID.generate(),
-        conversation_id: conversation_id,
-        user_id: user_id,
-        conversation_type: conversation_type,
-        provider_id: provider_id,
-        program_id: program_id,
-        subject: subject,
-        other_participant_name: other_name,
-        participant_count: participant_count,
-        unread_count: 0
-      }
-
-      %ConversationSummarySchema{}
-      |> Ecto.Changeset.change(attrs)
-      |> Repo.insert!(
-        on_conflict: {:replace_all_except, [:id, :inserted_at]},
-        conflict_target: [:conversation_id, :user_id]
-      )
+      end)
     end)
   end
 

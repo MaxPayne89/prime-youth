@@ -23,6 +23,57 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
+  @typedoc "Payload for `:message_data_anonymized` events."
+  @type message_data_anonymized_payload :: %{
+          required(:user_id) => String.t(),
+          optional(atom()) => term()
+        }
+
+  @typedoc "Payload for `:conversation_created` events."
+  @type conversation_created_payload :: %{
+          required(:conversation_id) => String.t(),
+          required(:participant_ids) => [String.t()],
+          required(:provider_id) => String.t(),
+          optional(:type) => String.t(),
+          optional(:program_id) => String.t() | nil,
+          optional(:subject) => String.t() | nil,
+          optional(atom()) => term()
+        }
+
+  @typedoc "Payload for `:message_sent` events."
+  @type message_sent_payload :: %{
+          required(:conversation_id) => String.t(),
+          required(:sender_id) => String.t(),
+          required(:content) => String.t(),
+          optional(:message_type) => String.t() | nil,
+          optional(:sent_at) => DateTime.t() | nil,
+          optional(atom()) => term()
+        }
+
+  @typedoc "Payload for `:messages_read` events."
+  @type messages_read_payload :: %{
+          required(:conversation_id) => String.t(),
+          required(:user_id) => String.t(),
+          optional(:read_at) => DateTime.t() | nil,
+          optional(atom()) => term()
+        }
+
+  @typedoc "Payload for `:conversation_archived` events."
+  @type conversation_archived_payload :: %{
+          required(:conversation_id) => String.t(),
+          optional(:reason) => String.t() | nil,
+          optional(:archived_at) => DateTime.t() | nil,
+          optional(atom()) => term()
+        }
+
+  @typedoc "Payload for `:conversations_archived` events (bulk)."
+  @type conversations_archived_payload :: %{
+          required(:conversation_ids) => [String.t()],
+          optional(:reason) => String.t() | nil,
+          optional(:count) => non_neg_integer(),
+          optional(atom()) => term()
+        }
+
   @source_context :messaging
 
   # ---------------------------------------------------------------------------

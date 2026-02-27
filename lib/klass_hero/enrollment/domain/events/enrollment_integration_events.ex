@@ -15,6 +15,15 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
+  @typedoc "Payload for `:participant_policy_set` events."
+  @type participant_policy_set_payload :: %{
+          required(:program_id) => String.t(),
+          optional(atom()) => term()
+        }
+
+  @typedoc "Payload for `:invite_claimed` events."
+  @type invite_claimed_payload :: %{required(:invite_id) => String.t(), optional(atom()) => term()}
+
   @source_context :enrollment
   @entity_type :participant_policy
 

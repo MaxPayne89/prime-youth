@@ -33,6 +33,12 @@ defmodule KlassHero.Shared.Domain.Types.Pagination do
     @min_limit 1
     @max_limit 100
 
+    @typedoc "Input parameters for a paginated query."
+    @type t :: %__MODULE__{
+            limit: pos_integer(),
+            cursor: String.t() | nil
+          }
+
     defstruct limit: @default_limit, cursor: nil
 
     @doc """
@@ -105,6 +111,14 @@ defmodule KlassHero.Shared.Domain.Types.Pagination do
     - `has_more`: Boolean indicating if more pages are available
     - `metadata`: Map with additional information (e.g., returned_count)
     """
+
+    @typedoc "Output of a paginated query."
+    @type t :: %__MODULE__{
+            items: list(),
+            next_cursor: String.t() | nil,
+            has_more: boolean(),
+            metadata: map()
+          }
 
     defstruct items: [], next_cursor: nil, has_more: false, metadata: %{}
 
