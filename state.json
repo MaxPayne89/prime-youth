@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-02-26T13:04:11Z",
+  "last_updated": "2026-02-27T13:03:29Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -16,29 +16,34 @@
     "auth_provider": "setup :register_and_log_in_provider",
     "auth_user": "setup :register_and_log_in_user",
     "auth_admin": "setup :register_and_log_in_admin",
-    "flash_info_id": "#flash-info",
-    "flash_error_id": "#flash-error",
+    "flash_assert": "assert_flash(view, :error, \"message\") - use ConnCase helper, not DOM queries",
     "date_event": "render_change(view, \"change_date\", %{\"date\" => iso_date})",
-    "provider_session_setup": "insert program with provider_id, then program_session with program_id and date"
+    "provider_session_setup": "insert program with provider_id, then program_session with program_id and date",
+    "closed_registration": "insert(:program_schema, registration_start_date: Date.add(Date.utc_today(), -30), registration_end_date: Date.add(Date.utc_today(), -1))",
+    "insert_child": "insert_child_with_guardian(parent: parent_schema, first_name: \"Alice\") - parent must be ecto schema"
   },
   "backlog": [
-    {"item": "settings_live.ex - navigation section tests", "priority": "low", "reason": "mostly static menu, low business logic"},
-    {"item": "program_detail_live integration tests - booking flow", "priority": "medium"},
+    {"item": "program_detail_live integration tests - booking flow when registration upcoming", "priority": "low", "reason": "upcoming status (start in future) also blocks enrollment - similar pattern already tested for closed"},
     {"item": "enrollment CSV import edge cases", "priority": "medium"},
-    {"item": "entitlements domain service property tests", "priority": "high", "reason": "pure domain logic, ideal for stream_data"},
+    {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"},
     {"item": "messaging retention policy worker tests", "priority": "medium"}
   ],
   "tasks_last_run": {
     "task1_commands": "2026-02-26",
     "task2_opportunities": "2026-02-26",
-    "task3_implement": "2026-02-26",
-    "task7_monthly_summary": "2026-02-26"
+    "task3_implement": "2026-02-27",
+    "task7_monthly_summary": "2026-02-27"
   },
   "completed_work": [
     {
       "run": "2026-02-26",
-      "work": "Created PR for SessionsLive tests (sessions_live_test.exs)",
-      "notes": "Mix not available in runner env - CI validates"
+      "work": "Created PR #207 for SessionsLive tests - MERGED",
+      "notes": "PR was merged into main"
+    },
+    {
+      "run": "2026-02-27",
+      "work": "Created PR for program_detail_live registration guard + settings_live smoke tests",
+      "notes": "2 new tests for program_detail (enroll_now closed + back_to_programs), 6 new smoke tests for settings_live"
     }
   ]
 }
