@@ -237,46 +237,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
       entries =
         Enum.flat_map(conversations, fn conversation ->
-          active_participants = Enum.filter(conversation.participants, &is_nil(&1.left_at))
-          participant_count = length(active_participants)
-          latest_message = find_latest_message(conversation.messages)
-
-          Enum.map(active_participants, fn participant ->
-            other_name =
-              resolve_other_participant_name(
-                conversation.type,
-                participant.user_id,
-                active_participants,
-                user_names
-              )
-
-            unread_count =
-              compute_unread_count(
-                conversation.messages,
-                participant.last_read_at,
-                participant.user_id
-              )
-
-            %{
-              id: Ecto.UUID.generate(),
-              conversation_id: conversation.id,
-              user_id: participant.user_id,
-              conversation_type: conversation.type,
-              provider_id: conversation.provider_id,
-              program_id: conversation.program_id,
-              subject: conversation.subject,
-              other_participant_name: other_name,
-              participant_count: participant_count,
-              latest_message_content: latest_message && latest_message.content,
-              latest_message_sender_id: latest_message && latest_message.sender_id,
-              latest_message_at: latest_message && latest_message.inserted_at,
-              unread_count: unread_count,
-              last_read_at: participant.last_read_at,
-              archived_at: conversation.archived_at,
-              inserted_at: now,
-              updated_at: now
-            }
-          end)
+          build_conversation_entries(conversation, user_names, now)
         end)
 
       if entries == [] do
@@ -294,6 +255,69 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
         count
       end
     end
+  end
+
+  defp build_conversation_entries(conversation, user_names, now) do
+    active_participants = Enum.filter(conversation.participants, &is_nil(&1.left_at))
+    participant_count = length(active_participants)
+    latest_message = find_latest_message(conversation.messages)
+
+    Enum.map(active_participants, fn participant ->
+      build_summary_entry(
+        conversation,
+        participant,
+        active_participants,
+        user_names,
+        latest_message,
+        participant_count,
+        now
+      )
+    end)
+  end
+
+  defp build_summary_entry(
+         conversation,
+         participant,
+         active_participants,
+         user_names,
+         latest_message,
+         participant_count,
+         now
+       ) do
+    other_name =
+      resolve_other_participant_name(
+        conversation.type,
+        participant.user_id,
+        active_participants,
+        user_names
+      )
+
+    unread_count =
+      compute_unread_count(
+        conversation.messages,
+        participant.last_read_at,
+        participant.user_id
+      )
+
+    %{
+      id: Ecto.UUID.generate(),
+      conversation_id: conversation.id,
+      user_id: participant.user_id,
+      conversation_type: conversation.type,
+      provider_id: conversation.provider_id,
+      program_id: conversation.program_id,
+      subject: conversation.subject,
+      other_participant_name: other_name,
+      participant_count: participant_count,
+      latest_message_content: latest_message && latest_message.content,
+      latest_message_sender_id: latest_message && latest_message.sender_id,
+      latest_message_at: latest_message && latest_message.inserted_at,
+      unread_count: unread_count,
+      last_read_at: participant.last_read_at,
+      archived_at: conversation.archived_at,
+      inserted_at: now,
+      updated_at: now
+    }
   end
 
   # Private Functions — Event Projections

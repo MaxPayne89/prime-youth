@@ -29,7 +29,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
       {:ok, page} = ProgramListingsRepository.list_paginated(10, nil, nil)
 
-      assert length(page.items) >= 1
+      assert [_ | _] = page.items
       assert Enum.all?(page.items, &match?(%ProgramListing{}, &1))
     end
 
