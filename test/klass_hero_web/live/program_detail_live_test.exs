@@ -66,6 +66,34 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
 
       assert_redirect(view, ~p"/programs/#{program.id}/booking")
     end
+
+    test "enroll_now event shows error flash when registration is closed", %{conn: conn} do
+      past_start = Date.add(Date.utc_today(), -30)
+      past_end = Date.add(Date.utc_today(), -1)
+
+      program =
+        insert(:program_schema,
+          registration_start_date: past_start,
+          registration_end_date: past_end
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      render_click(view, "enroll_now")
+
+      assert_flash(view, :error, "Registration is not open for this program.")
+    end
+
+    test "back_to_programs event navigates to programs list", %{conn: conn} do
+      program = insert(:program_schema)
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      view
+      |> element("[phx-click='back_to_programs']")
+      |> render_click()
+
+      assert_redirect(view, ~p"/programs")
+    end
   end
 
   describe "staff member display" do
