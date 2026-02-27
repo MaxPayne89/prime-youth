@@ -120,6 +120,50 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListingsTe
       assert listing.end_date == ~D[2026-06-30]
       assert listing.provider_verified == false
     end
+
+    test "handles duplicate program_created event idempotently" do
+      program_id = Ecto.UUID.generate()
+      provider_id = Ecto.UUID.generate()
+
+      event =
+        IntegrationEvent.new(
+          :program_created,
+          :program_catalog,
+          :program,
+          program_id,
+          %{
+            program_id: program_id,
+            provider_id: provider_id,
+            title: "Soccer Camp",
+            category: "sports",
+            meeting_days: []
+          }
+        )
+
+      # First broadcast
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:program_catalog:program_created",
+        {:integration_event, event}
+      )
+
+      _ = :sys.get_state(@test_server_name)
+      original = Repo.get!(ProgramListingSchema, program_id)
+
+      # Second broadcast of same event
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:program_catalog:program_created",
+        {:integration_event, event}
+      )
+
+      _ = :sys.get_state(@test_server_name)
+
+      # Row still exists with preserved inserted_at
+      listing = Repo.get!(ProgramListingSchema, program_id)
+      assert listing.title == "Soccer Camp"
+      assert listing.inserted_at == original.inserted_at
+    end
   end
 
   describe "handle program_updated event" do
@@ -199,6 +243,46 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListingsTe
       assert listing.registration_end_date == ~D[2026-02-28]
       assert listing.instructor_name == "Coach Smith"
       assert listing.instructor_headshot_url == "https://example.com/coach.jpg"
+    end
+
+    test "creates new listing when program_id has no pre-existing row (upsert)" do
+      program_id = Ecto.UUID.generate()
+      provider_id = Ecto.UUID.generate()
+
+      event =
+        IntegrationEvent.new(
+          :program_updated,
+          :program_catalog,
+          :program,
+          program_id,
+          %{
+            program_id: program_id,
+            provider_id: provider_id,
+            title: "Fresh Program",
+            description: "Created via update event",
+            category: "education",
+            meeting_days: ["Monday"],
+            meeting_start_time: ~T[10:00:00],
+            meeting_end_time: ~T[12:00:00]
+          }
+        )
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:program_catalog:program_updated",
+        {:integration_event, event}
+      )
+
+      _ = :sys.get_state(@test_server_name)
+
+      listing = Repo.get(ProgramListingSchema, program_id)
+      assert listing != nil
+      assert listing.title == "Fresh Program"
+      assert listing.description == "Created via update event"
+      assert listing.category == "education"
+      assert listing.provider_id == provider_id
+      assert listing.season == nil
+      assert listing.provider_verified == false
     end
   end
 

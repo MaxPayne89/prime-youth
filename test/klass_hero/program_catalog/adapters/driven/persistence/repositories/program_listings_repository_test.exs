@@ -140,4 +140,32 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       assert titles == ["Art Class", "Zebra Club"]
     end
   end
+
+  describe "list_all/0" do
+    test "returns all listings as ProgramListing DTOs" do
+      insert_listing(%{title: "Soccer Camp"})
+      insert_listing(%{title: "Art Class"})
+
+      results = ProgramListingsRepository.list_all()
+
+      assert length(results) == 2
+      assert Enum.all?(results, &match?(%ProgramListing{}, &1))
+    end
+
+    test "returns empty list when no listings exist" do
+      results = ProgramListingsRepository.list_all()
+
+      assert results == []
+    end
+
+    test "orders by title ascending" do
+      insert_listing(%{title: "Zebra Club"})
+      insert_listing(%{title: "Art Class"})
+
+      results = ProgramListingsRepository.list_all()
+
+      titles = Enum.map(results, & &1.title)
+      assert titles == ["Art Class", "Zebra Club"]
+    end
+  end
 end
