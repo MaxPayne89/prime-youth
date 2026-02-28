@@ -20,7 +20,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ParentProfileMapp
   (e.g., for updates or when domain entity already has an id).
   """
 
-  import KlassHero.Family.Adapters.Driven.Persistence.Mappers.MapperHelpers,
+  import KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers,
     only: [string_to_tier: 2, tier_to_string: 2, maybe_add_id: 2]
 
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema

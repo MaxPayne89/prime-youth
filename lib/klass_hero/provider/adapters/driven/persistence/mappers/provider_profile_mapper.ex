@@ -20,7 +20,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
   (e.g., for updates or when domain entity already has an id).
   """
 
-  import KlassHero.Provider.Adapters.Driven.Persistence.Mappers.MapperHelpers,
+  import KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers,
     only: [string_to_tier: 2, tier_to_string: 2, maybe_add_id: 2]
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema

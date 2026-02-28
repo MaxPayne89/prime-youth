@@ -14,6 +14,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
   - `inserted_at`, `updated_at` - Managed by Ecto timestamps
   """
 
+  import KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers,
+    only: [maybe_add_id: 2]
+
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
   alias KlassHero.Enrollment.Domain.Models.Enrollment
 
@@ -91,7 +94,4 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
 
   defp status_to_string(nil), do: "pending"
   defp status_to_string(status) when is_atom(status), do: Atom.to_string(status)
-
-  defp maybe_add_id(attrs, nil), do: attrs
-  defp maybe_add_id(attrs, id), do: Map.put(attrs, :id, id)
 end

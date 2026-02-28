@@ -3,7 +3,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
   Maps between domain StaffMember entities and StaffMemberSchema Ecto structs.
   """
 
-  import KlassHero.Provider.Adapters.Driven.Persistence.Mappers.MapperHelpers,
+  import KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers,
     only: [maybe_add_id: 2]
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
