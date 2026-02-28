@@ -1164,7 +1164,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp overview_section(assigns) do
     ~H"""
     <div class="space-y-6">
-      <%!-- Stats cards commented out until analytics backend is implemented --%>
+      <%!-- TODO: Stats cards — re-enable when analytics backend is implemented.
+           Dependencies: @stats assign, format_currency/1, format_number/1 helpers (all removed). --%>
       <%!--
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <.provider_stat_card

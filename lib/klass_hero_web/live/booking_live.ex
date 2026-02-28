@@ -581,7 +581,8 @@ defmodule KlassHeroWeb.BookingLive do
             />
           </.booking_summary>
 
-          <%!-- Bank transfer details commented out — needs real IBAN/BIC from provider config --%>
+          <%!-- TODO: Bank transfer details — needs real IBAN/BIC from provider config.
+               WARNING: Contains placeholder IBAN/BIC/reference values — must be replaced before enabling. --%>
           <%!--
           <.info_box
             :if={@payment_method == "transfer"}

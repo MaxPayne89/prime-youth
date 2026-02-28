@@ -312,8 +312,8 @@ defmodule KlassHeroWeb.ProgramComponents do
             <p class="text-hero-black-100 text-sm mb-3 line-clamp-2">{@program.description}</p>
           </div>
         </div>
-        
-    <!-- Provider Info -->
+
+        <%!-- Provider info — renders when provider_name is populated (not yet wired to domain data) --%>
         <div
           :if={Map.get(@program, :provider_name)}
           class="flex items-center gap-2 mb-4 pb-3 border-b border-hero-grey-100"
@@ -350,8 +350,8 @@ defmodule KlassHeroWeb.ProgramComponents do
             </div>
           </div>
         </div>
-        
-    <!-- Rating -->
+
+        <%!-- Rating & reviews — renders when rating data is populated (pending Review context) --%>
         <div :if={Map.get(@program, :rating)} class="flex items-center gap-2 mb-4">
           <div class="flex items-center">
             <%= for _i <- 1..5 do %>

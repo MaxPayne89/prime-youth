@@ -213,7 +213,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
                   {gettext("Schedule TBD")}
                 </span>
               <% end %>
-              <span class="flex items-center">
+              <span :if={@program.age_range} class="flex items-center">
                 <.icon name="hero-user-group" class="w-4 h-4 mr-1" />
                 {gettext("Ages %{range}", range: @program.age_range)}
               </span>
@@ -443,7 +443,8 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           </div>
         </section>
 
-        <%!-- TODO: "What Other Parents Say" reviews section — re-enable when review data is available --%>
+        <%!-- TODO: "What Other Parents Say" reviews section — re-enable when review data is available.
+             Dependencies: <.review_card> component import (removed), @reviews assign. --%>
         <%!--
         <section>
           <div class={[

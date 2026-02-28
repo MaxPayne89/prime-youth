@@ -68,7 +68,7 @@ defmodule KlassHeroWeb.ContactLive do
           icon: "hero-phone",
           title: gettext("Phone"),
           value: KlassHero.Contact.phone(),
-          note: gettext("Mon-Fri, 9am-5pm EST")
+          note: gettext("Mon-Fri, 9am-6pm CET")
         },
       KlassHero.Contact.address() &&
         %{
