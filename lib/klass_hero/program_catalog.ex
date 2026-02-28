@@ -246,6 +246,16 @@ defmodule KlassHero.ProgramCatalog do
   @spec format_total_price(Decimal.t()) :: String.t()
   defdelegate format_total_price(weekly_price), to: ProgramPricing
 
+  @doc """
+  Returns the default program duration in weeks.
+
+  ## Examples
+
+      4 = ProgramCatalog.default_program_weeks()
+  """
+  @spec default_program_weeks() :: pos_integer()
+  defdelegate default_program_weeks, to: ProgramPricing
+
   # ============================================================================
   # Registration Period
   # ============================================================================

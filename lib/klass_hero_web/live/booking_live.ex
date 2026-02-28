@@ -10,6 +10,8 @@ defmodule KlassHeroWeb.BookingLive do
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
 
+  require Logger
+
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
     with {:ok, program} <- fetch_program(program_id),
@@ -35,6 +37,7 @@ defmodule KlassHeroWeb.BookingLive do
         |> assign(
           page_title: gettext("Enrollment - %{title}", title: program.title),
           program: program,
+          schedule_brief: ProgramPresenter.format_schedule_brief(program),
           children: children_for_view,
           children_by_id: children_by_id,
           selected_child_id: nil,
@@ -327,10 +330,33 @@ defmodule KlassHeroWeb.BookingLive do
     end
   end
 
-  defp calculate_weeks(nil, _), do: 1
-  defp calculate_weeks(_, nil), do: 1
+  defp calculate_weeks(nil, end_date) do
+    Logger.warning("calculate_weeks: nil start_date, defaulting to 1 week",
+      end_date: inspect(end_date)
+    )
+
+    1
+  end
+
+  defp calculate_weeks(start_date, nil) do
+    Logger.warning("calculate_weeks: nil end_date, defaulting to 1 week",
+      start_date: inspect(start_date)
+    )
+
+    1
+  end
 
   defp calculate_weeks(start_date, end_date) do
+    # Trigger: start_date is after end_date
+    # Why: reversed dates produce negative diff, max(1) silently masks the error
+    # Outcome: logs warning for investigation while still returning safe default
+    if Date.after?(start_date, end_date) do
+      Logger.warning("calculate_weeks: reversed dates, defaulting to 1 week",
+        start_date: start_date,
+        end_date: end_date
+      )
+    end
+
     Date.diff(end_date, start_date) |> div(7) |> max(1)
   end
 
@@ -374,10 +400,10 @@ defmodule KlassHeroWeb.BookingLive do
                   {@program.title}
                 </h4>
                 <p
-                  :if={ProgramPresenter.format_schedule_brief(@program) != ""}
+                  :if={@schedule_brief != ""}
                   class={["text-sm", Theme.text_color(:secondary)]}
                 >
-                  {ProgramPresenter.format_schedule_brief(@program)}
+                  {@schedule_brief}
                 </p>
               </div>
             </div>

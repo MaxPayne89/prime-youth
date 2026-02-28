@@ -279,8 +279,9 @@ defmodule KlassHeroWeb.ProgramDetailLive do
                 </p>
               <% end %>
               <p class={["text-xs mt-1", Theme.text_color(:subtle)]}>
-                {gettext("%{price}/week • 4 weeks",
-                  price: ProgramCatalog.format_price(@program.price)
+                {gettext("%{price}/week • %{weeks} weeks",
+                  price: ProgramCatalog.format_price(@program.price),
+                  weeks: ProgramCatalog.default_program_weeks()
                 )}
               </p>
               <%!-- TODO: show instructor name when instructor data is wired to programs --%>
