@@ -94,5 +94,4 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
 
   defp status_to_string(nil), do: "pending"
   defp status_to_string(status) when is_atom(status), do: Atom.to_string(status)
-
 end
