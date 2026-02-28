@@ -318,6 +318,12 @@ config :klass_hero, :contact,
   phone: nil,
   address: nil
 
+# Booking fee defaults — business constants not tied to specific programs
+config :klass_hero, :booking,
+  registration_fee: 25.00,
+  vat_rate: 0.19,
+  card_processing_fee: 2.50
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

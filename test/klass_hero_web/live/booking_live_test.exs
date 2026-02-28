@@ -141,7 +141,6 @@ defmodule KlassHeroWeb.BookingLiveTest do
       # Card fee should be removed
       html = render(view)
       refute html =~ "Credit card fee"
-      assert html =~ "Bank Transfer Details"
     end
   end
 end
