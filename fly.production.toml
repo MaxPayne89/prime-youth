@@ -10,7 +10,7 @@ kill_signal = "SIGTERM"
 
 [env]
   PHX_SERVER = "true"
-  PHX_HOST = "klass-hero-live.fly.dev"
+  PHX_HOST = "klasshero.com"
   POOL_SIZE = "10"
 
 [http_service]
