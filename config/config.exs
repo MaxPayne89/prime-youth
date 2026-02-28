@@ -312,6 +312,12 @@ config :tailwind,
     cd: Path.expand("..", __DIR__)
   ]
 
+# Contact information — centralized, configurable per environment
+config :klass_hero, :contact,
+  email: "info@klasshero.com",
+  phone: nil,
+  address: nil
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"
