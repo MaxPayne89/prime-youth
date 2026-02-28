@@ -25,7 +25,10 @@ defmodule KlassHeroWeb.BookingLive do
       # Calculate weeks from program date range
       weeks_count = calculate_weeks(program.start_date, program.end_date)
 
-      booking_config = Application.get_env(:klass_hero, :booking)
+      # Trigger: booking config missing from application env
+      # Why: fail fast with clear error instead of cryptic nil crashes in templates
+      # Outcome: raises ArgumentError at mount time pointing to missing config
+      booking_config = Application.fetch_env!(:klass_hero, :booking)
 
       socket =
         socket
