@@ -648,7 +648,9 @@ defmodule KlassHeroWeb.CompositeComponents do
       </div>
 
       <div class="border-t border-base-300 pt-6 mt-6 w-full">
-        <p class="text-sm">&copy; {Date.utc_today().year} Klass Hero. {gettext("All rights reserved.")}</p>
+        <p class="text-sm">
+          &copy; {Date.utc_today().year} Klass Hero. {gettext("All rights reserved.")}
+        </p>
         <div class="flex gap-4 justify-center mt-2 text-xs">
           <.link navigate={~p"/privacy"} class="link link-hover">{gettext("Privacy Policy")}</.link>
           <span class="text-gray-400">•</span>

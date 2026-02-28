@@ -96,6 +96,5 @@ defmodule KlassHeroWeb.DashboardLiveTest do
       assert html =~ "Add Child"
       assert html =~ "id=\"add-child-button\""
     end
-
   end
 end
