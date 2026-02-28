@@ -53,29 +53,33 @@ defmodule KlassHeroWeb.ContactLive do
   end
 
   defp contact_methods do
+    email = KlassHero.Contact.email()
+    phone = KlassHero.Contact.phone()
+    address = KlassHero.Contact.address()
+
     [
-      KlassHero.Contact.email() &&
+      email &&
         %{
           type: :email,
           icon: "hero-envelope",
           title: gettext("Email"),
-          value: KlassHero.Contact.email(),
+          value: email,
           note: gettext("We respond within 24 hours")
         },
-      KlassHero.Contact.phone() &&
+      phone &&
         %{
           type: :phone,
           icon: "hero-phone",
           title: gettext("Phone"),
-          value: KlassHero.Contact.phone(),
+          value: phone,
           note: gettext("Mon-Fri, 9am-6pm CET")
         },
-      KlassHero.Contact.address() &&
+      address &&
         %{
           type: :address,
           icon: "hero-map-pin",
           title: gettext("Address"),
-          value: KlassHero.Contact.address()
+          value: address
         }
     ]
     |> Enum.reject(&is_nil/1)

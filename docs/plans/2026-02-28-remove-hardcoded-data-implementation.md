@@ -1,7 +1,5 @@
 # Remove Hardcoded Data — Implementation Plan
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
-
 **Goal:** Remove all hardcoded/fake data from LiveViews before go-live. Wire up existing backends, comment out unsupported features, centralize contact info in config.
 
 **Architecture:** Bottom-up deletion — delete fixture modules first, then fix every compile error. Each task is one logical unit with its own commit.

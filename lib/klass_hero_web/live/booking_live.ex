@@ -32,6 +32,11 @@ defmodule KlassHeroWeb.BookingLive do
       # Outcome: raises ArgumentError at mount time pointing to missing config
       booking_config = Application.fetch_env!(:klass_hero, :booking)
 
+      # Trigger: program spans multiple weeks
+      # Why: fee calculator is generic — multiply before passing so subtotal reflects full duration
+      # Outcome: booking summary shows correct total program cost, not just one week
+      program_fee = weekly_fee * weeks_count
+
       socket =
         socket
         |> assign(
@@ -44,7 +49,7 @@ defmodule KlassHeroWeb.BookingLive do
           eligibility_status: nil,
           special_requirements: "",
           payment_method: "card",
-          weekly_fee: weekly_fee,
+          program_fee: program_fee,
           weeks_count: weeks_count,
           registration_fee: booking_config[:registration_fee],
           vat_rate: booking_config[:vat_rate],
@@ -236,7 +241,7 @@ defmodule KlassHeroWeb.BookingLive do
   defp apply_fee_calculation(socket) do
     {:ok, fees} =
       Enrollment.calculate_fees(%{
-        weekly_fee: socket.assigns.weekly_fee,
+        weekly_fee: socket.assigns.program_fee,
         registration_fee: socket.assigns.registration_fee,
         vat_rate: socket.assigns.vat_rate,
         card_fee: socket.assigns.card_fee,
@@ -553,8 +558,8 @@ defmodule KlassHeroWeb.BookingLive do
 
           <.booking_summary title={gettext("Payment Summary")}>
             <:line_item
-              label={gettext("Weekly fee (%{count} weeks):", count: @weeks_count)}
-              value={"€#{:erlang.float_to_binary(@weekly_fee, decimals: 2)}"}
+              label={gettext("Program fee (%{count} weeks):", count: @weeks_count)}
+              value={"€#{:erlang.float_to_binary(@program_fee, decimals: 2)}"}
             />
             <:line_item
               label={gettext("Registration fee:")}

@@ -223,7 +223,7 @@ defmodule KlassHero.ProgramCatalog do
 
       "€45.00" = ProgramCatalog.format_price(Decimal.new("45.00"))
   """
-  @spec format_price(Decimal.t() | number()) :: String.t()
+  @spec format_price(Decimal.t() | number() | nil) :: String.t()
   defdelegate format_price(price), to: ProgramPricing
 
   @doc """
@@ -243,7 +243,7 @@ defmodule KlassHero.ProgramCatalog do
 
       "€180.00" = ProgramCatalog.format_total_price(Decimal.new("45.00"))
   """
-  @spec format_total_price(Decimal.t()) :: String.t()
+  @spec format_total_price(Decimal.t() | nil) :: String.t()
   defdelegate format_total_price(weekly_price), to: ProgramPricing
 
   @doc """
