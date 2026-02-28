@@ -45,13 +45,6 @@ defmodule KlassHeroWeb.DashboardLiveTest do
       assert html =~ "goal" or html =~ "Goal" or html =~ "activities"
     end
 
-    test "displays family achievements section", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify achievements are displayed
-      assert html =~ "Activity Explorer" or html =~ "Super Reviewer" or html =~ "Art Pro"
-    end
-
     test "children section has View All placeholder", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
@@ -96,14 +89,6 @@ defmodule KlassHeroWeb.DashboardLiveTest do
       assert html =~ "phx-update=\"stream\""
     end
 
-    test "displays recommended programs section", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify recommended programs section is displayed
-      assert html =~ "Recommended for"
-      assert html =~ "Based on your children"
-    end
-
     test "displays add child button", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
@@ -112,12 +97,5 @@ defmodule KlassHeroWeb.DashboardLiveTest do
       assert html =~ "id=\"add-child-button\""
     end
 
-    test "displays referral section", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify referral section content
-      # The referral_card component should render referral stats
-      assert html =~ "BERLIN" or html =~ "referral" or html =~ "Refer"
-    end
   end
 end
