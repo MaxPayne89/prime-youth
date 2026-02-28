@@ -10,9 +10,6 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   require Logger
 
-  # Compile-time environment check (Mix is not available in releases)
-  @env Mix.env()
-
   # Private helpers - Static data
   defp filter_options do
     [
@@ -111,7 +108,7 @@ defmodule KlassHeroWeb.ProgramsLive do
     remaining = Map.get(capacities, program.id)
     spots_left = if remaining != :unlimited, do: remaining
 
-    base_map = %{
+    %{
       id: program.id,
       title: program.title,
       description: program.description,
@@ -127,8 +124,6 @@ defmodule KlassHeroWeb.ProgramsLive do
       gradient_class: default_gradient_class(),
       icon_path: program.icon_path || default_icon_path()
     }
-
-    enrich_program_with_mock_data(base_map)
   end
 
   # Formats category for display (capitalizes and handles hyphenated categories)
@@ -139,106 +134,6 @@ defmodule KlassHeroWeb.ProgramsLive do
   end
 
   defp format_category_for_display(_), do: "Education"
-
-  # Enrich program with mock data for UI elements
-  # This is temporary until these fields are added to the database
-  # Only enriches in non-test environments to avoid affecting test behavior
-  defp enrich_program_with_mock_data(program) do
-    if @env == :test do
-      program
-    else
-      enrich_with_mock_data(program)
-    end
-  end
-
-  defp enrich_with_mock_data(program) do
-    mock_data =
-      case program.title do
-        "Art Adventures" ->
-          %{
-            category: "Arts",
-            provider_name: "Creative Studio Berlin",
-            provider_avatar: "CS",
-            provider_location: "Berlin",
-            rating: 4.8,
-            review_count: 127,
-            is_online: false,
-            is_verified: true,
-            popularity_score: 85
-          }
-
-        "Drama Club" ->
-          %{
-            category: "Arts",
-            provider_name: "Theater Academy",
-            provider_avatar: "TA",
-            provider_location: "Munich",
-            rating: 4.9,
-            review_count: 203,
-            is_online: false,
-            is_verified: true,
-            popularity_score: 92
-          }
-
-        "Science Lab" ->
-          %{
-            category: "Education",
-            provider_name: "STEM Learning Center",
-            provider_avatar: "SL",
-            provider_location: "Hamburg",
-            rating: 4.7,
-            review_count: 156,
-            is_online: true,
-            is_verified: true,
-            popularity_score: 78
-          }
-
-        "Sports Camp" ->
-          %{
-            category: "Sports",
-            provider_name: "Active Kids Sports",
-            provider_avatar: "AK",
-            provider_location: "Cologne",
-            rating: 4.6,
-            review_count: 89,
-            is_online: false,
-            is_verified: true,
-            popularity_score: 71
-          }
-
-        "Music Journey" ->
-          %{
-            category: "Music",
-            provider_name: "Melody School",
-            provider_avatar: "MS",
-            provider_location: "Frankfurt",
-            rating: 4.9,
-            review_count: 245,
-            is_online: true,
-            is_verified: true,
-            popularity_score: 95
-          }
-
-        "Tech Explorers" ->
-          %{
-            category: "Education",
-            provider_name: "Code Academy Kids",
-            provider_avatar: "CA",
-            provider_location: "Stuttgart",
-            rating: 5.0,
-            review_count: 312,
-            is_online: true,
-            is_verified: true,
-            popularity_score: 98
-          }
-
-        # Don't enrich test programs to avoid affecting test behavior
-        _ ->
-          %{}
-      end
-
-    Map.merge(program, mock_data)
-  end
 
   defp default_gradient_class, do: Theme.gradient(:program_default)
 

@@ -19,7 +19,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Presenters.StaffMemberPresenter
-  alias KlassHeroWeb.Provider.MockData
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -56,9 +55,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         # Update business with actual program count
         business = %{business | program_slots_used: length(programs)}
 
-        # Mock data for stats until features are implemented
-        stats = MockData.stats()
-
         # Load real staff members
         staff_members = fetch_staff_members(provider_profile.id)
         staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
@@ -76,7 +72,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           socket
           |> assign(page_title: gettext("Provider Dashboard"))
           |> assign(business: business)
-          |> assign(stats: stats)
           |> stream(:team_members, staff_views)
           |> assign(staff_count: length(staff_views))
           |> stream(:programs, programs)
@@ -988,7 +983,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
             <%= case @live_action do %>
               <% :overview -> %>
-                <.overview_section stats={@stats} business={@business} />
+                <.overview_section business={@business} />
               <% :team -> %>
                 <.team_section
                   team_members={@streams.team_members}
@@ -1169,6 +1164,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp overview_section(assigns) do
     ~H"""
     <div class="space-y-6">
+      <%!-- TODO: Stats cards — re-enable when analytics backend is implemented.
+           Dependencies: @stats assign, format_currency/1, format_number/1 helpers (all removed). --%>
+      <%!--
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <.provider_stat_card
           label={gettext("Total Revenue")}
@@ -1199,6 +1197,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           icon_color="text-hero-yellow"
         />
       </div>
+      --%>
 
       <.business_profile_card business={@business} />
     </div>
@@ -1611,14 +1610,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         []
     end
   end
-
-  defp format_number(number) when is_integer(number) do
-    number
-    |> Integer.to_string()
-    |> String.replace(~r/(\d)(?=(\d{3})+$)/, "\\1,")
-  end
-
-  defp format_currency(amount), do: format_number(amount)
 
   # Trigger: both capacity fields are blank
   # Why: no policy needed when provider doesn't set capacity constraints

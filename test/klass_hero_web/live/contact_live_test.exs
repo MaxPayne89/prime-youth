@@ -11,12 +11,18 @@ defmodule KlassHeroWeb.ContactLiveTest do
       assert has_element?(view, "#contact-form")
     end
 
-    test "displays contact information", %{conn: conn} do
+    test "displays contact information from config", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/contact")
 
-      assert html =~ "support@primeyouth.com"
-      assert html =~ "+1 (555) 123-4567"
-      assert html =~ "123 Youth Avenue, Suite 100"
+      # Trigger: contact config has email set, phone/address nil
+      # Why: only configured contact methods should render
+      email = Application.get_env(:klass_hero, :contact, [])[:email]
+      assert email, "expected :contact config to have :email set"
+      assert html =~ email
+
+      # Phone and address are nil in config, so they should not appear
+      refute html =~ "+1 (555) 123-4567"
+      refute html =~ "123 Youth Avenue"
     end
 
     test "displays office hours", %{conn: conn} do

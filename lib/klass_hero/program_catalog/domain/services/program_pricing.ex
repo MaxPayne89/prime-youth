@@ -24,7 +24,9 @@ defmodule KlassHero.ProgramCatalog.Domain.Services.ProgramPricing do
       iex> ProgramPricing.format_price(45.50)
       "€45.50"
   """
-  @spec format_price(Decimal.t() | number()) :: String.t()
+  @spec format_price(Decimal.t() | number() | nil) :: String.t()
+  def format_price(nil), do: "N/A"
+
   def format_price(%Decimal{} = price) do
     "#{@default_currency}#{Decimal.to_string(price)}"
   end
@@ -62,7 +64,9 @@ defmodule KlassHero.ProgramCatalog.Domain.Services.ProgramPricing do
       iex> ProgramPricing.format_total_price(Decimal.new("45.00"))
       "€180.00"
   """
-  @spec format_total_price(Decimal.t()) :: String.t()
+  @spec format_total_price(Decimal.t() | nil) :: String.t()
+  def format_total_price(nil), do: "N/A"
+
   def format_total_price(%Decimal{} = weekly_price) do
     weekly_price
     |> calculate_total()

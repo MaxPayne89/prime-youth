@@ -7,13 +7,10 @@ defmodule KlassHeroWeb.BookingLive do
   alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.ChildPresenter
+  alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
 
-  @default_weekly_fee 45.00
-  @default_weeks_count 8
-  @default_registration_fee 25.00
-  @default_vat_rate 0.19
-  @default_card_processing_fee 2.50
+  require Logger
 
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
@@ -24,22 +21,39 @@ defmodule KlassHeroWeb.BookingLive do
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
       children_by_id = Map.new(children, &{&1.id, &1})
 
+      # Program price is a Decimal — convert for fee calculator
+      weekly_fee = if program.price, do: Decimal.to_float(program.price), else: 0.0
+
+      # Calculate weeks from program date range
+      weeks_count = calculate_weeks(program.start_date, program.end_date)
+
+      # Trigger: booking config missing from application env
+      # Why: fail fast with clear error instead of cryptic nil crashes in templates
+      # Outcome: raises ArgumentError at mount time pointing to missing config
+      booking_config = Application.fetch_env!(:klass_hero, :booking)
+
+      # Trigger: program spans multiple weeks
+      # Why: fee calculator is generic — multiply before passing so subtotal reflects full duration
+      # Outcome: booking summary shows correct total program cost, not just one week
+      program_fee = weekly_fee * weeks_count
+
       socket =
         socket
         |> assign(
           page_title: gettext("Enrollment - %{title}", title: program.title),
           program: program,
+          schedule_brief: ProgramPresenter.format_schedule_brief(program),
           children: children_for_view,
           children_by_id: children_by_id,
           selected_child_id: nil,
           eligibility_status: nil,
           special_requirements: "",
           payment_method: "card",
-          weekly_fee: @default_weekly_fee,
-          weeks_count: @default_weeks_count,
-          registration_fee: @default_registration_fee,
-          vat_rate: @default_vat_rate,
-          card_fee: @default_card_processing_fee
+          program_fee: program_fee,
+          weeks_count: weeks_count,
+          registration_fee: booking_config[:registration_fee],
+          vat_rate: booking_config[:vat_rate],
+          card_fee: booking_config[:card_processing_fee]
         )
         |> apply_fee_calculation()
         |> assign_booking_limit_info()
@@ -227,7 +241,7 @@ defmodule KlassHeroWeb.BookingLive do
   defp apply_fee_calculation(socket) do
     {:ok, fees} =
       Enrollment.calculate_fees(%{
-        weekly_fee: socket.assigns.weekly_fee,
+        weekly_fee: socket.assigns.program_fee,
         registration_fee: socket.assigns.registration_fee,
         vat_rate: socket.assigns.vat_rate,
         card_fee: socket.assigns.card_fee,
@@ -321,6 +335,36 @@ defmodule KlassHeroWeb.BookingLive do
     end
   end
 
+  defp calculate_weeks(nil, end_date) do
+    Logger.warning("calculate_weeks: nil start_date, defaulting to 1 week",
+      end_date: inspect(end_date)
+    )
+
+    1
+  end
+
+  defp calculate_weeks(start_date, nil) do
+    Logger.warning("calculate_weeks: nil end_date, defaulting to 1 week",
+      start_date: inspect(start_date)
+    )
+
+    1
+  end
+
+  defp calculate_weeks(start_date, end_date) do
+    # Trigger: start_date is after end_date
+    # Why: reversed dates produce negative diff, max(1) silently masks the error
+    # Outcome: logs warning for investigation while still returning safe default
+    if Date.after?(start_date, end_date) do
+      Logger.warning("calculate_weeks: reversed dates, defaulting to 1 week",
+        start_date: start_date,
+        end_date: end_date
+      )
+    end
+
+    Date.diff(end_date, start_date) |> div(7) |> max(1)
+  end
+
   defp build_special_requirements(nil), do: ""
 
   defp build_special_requirements(child) do
@@ -360,8 +404,11 @@ defmodule KlassHeroWeb.BookingLive do
                 <h4 class={[Theme.typography(:card_title), "mb-1", Theme.text_color(:heading)]}>
                   {@program.title}
                 </h4>
-                <p class={["text-sm", Theme.text_color(:secondary)]}>
-                  {gettext("Wednesdays 4-6 PM")}
+                <p
+                  :if={@schedule_brief != ""}
+                  class={["text-sm", Theme.text_color(:secondary)]}
+                >
+                  {@schedule_brief}
                 </p>
               </div>
             </div>
@@ -376,7 +423,9 @@ defmodule KlassHeroWeb.BookingLive do
               </div>
               <div class="flex justify-between text-sm">
                 <span class={Theme.text_color(:secondary)}>{gettext("Duration:")}</span>
-                <span class={Theme.text_color(:secondary)}>{gettext("Jan 15 - Mar 15, 2024")}</span>
+                <span class={Theme.text_color(:secondary)}>
+                  {ProgramPresenter.format_date_range_brief(@program) || gettext("TBD")}
+                </span>
               </div>
             </div>
           </div>
@@ -509,8 +558,8 @@ defmodule KlassHeroWeb.BookingLive do
 
           <.booking_summary title={gettext("Payment Summary")}>
             <:line_item
-              label={gettext("Weekly fee (%{count} weeks):", count: @weeks_count)}
-              value={"€#{:erlang.float_to_binary(@weekly_fee, decimals: 2)}"}
+              label={gettext("Program fee (%{count} weeks):", count: @weeks_count)}
+              value={"€#{:erlang.float_to_binary(@program_fee, decimals: 2)}"}
             />
             <:line_item
               label={gettext("Registration fee:")}
@@ -521,7 +570,7 @@ defmodule KlassHeroWeb.BookingLive do
               value={"€#{:erlang.float_to_binary(@subtotal, decimals: 2)}"}
             />
             <:line_item
-              label={gettext("VAT (19%):")}
+              label={gettext("VAT (%{rate}%):", rate: trunc(@vat_rate * 100))}
               value={"€#{:erlang.float_to_binary(@vat_amount, decimals: 2)}"}
               after_subtotal={true}
             />
@@ -537,6 +586,9 @@ defmodule KlassHeroWeb.BookingLive do
             />
           </.booking_summary>
 
+          <%!-- TODO: Bank transfer details — needs real IBAN/BIC from provider config.
+               WARNING: Contains placeholder IBAN/BIC/reference values — must be replaced before enabling. --%>
+          <%!--
           <.info_box
             :if={@payment_method == "transfer"}
             variant={:info}
@@ -574,6 +626,7 @@ defmodule KlassHeroWeb.BookingLive do
               </p>
             </:footer>
           </.info_box>
+          --%>
 
           <.info_box variant={:neutral} icon="📧" title={gettext("Invoice & Payment Confirmation")}>
             <div class="text-sm space-y-1">

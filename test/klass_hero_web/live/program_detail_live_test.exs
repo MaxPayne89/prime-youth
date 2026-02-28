@@ -110,20 +110,22 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
         role: "Head Coach"
       )
 
-      {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}")
+      {:ok, view, html} = live(conn, ~p"/programs/#{program.id}")
 
       assert html =~ "Coach Smith"
       assert html =~ "Head Coach"
+      assert has_element?(view, "h3", "Meet Your Instructor")
     end
 
-    test "program without staff renders fallback instructor", %{conn: conn} do
+    test "program without staff hides instructor section", %{conn: conn} do
       program = insert(:program_schema, title: "Art Class")
       {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
 
       # Trigger: no staff members for this provider (provider_id is nil)
-      # Why: fallback instructor section is rendered instead
-      # Outcome: sample instructor content is shown
-      assert has_element?(view, "h3", "Meet Your Instructor")
+      # Why: instructor section only renders when real team members exist
+      # Outcome: neither "Meet the Team" nor "Meet Your Instructor" heading is shown
+      refute has_element?(view, "h3", "Meet Your Instructor")
+      refute has_element?(view, "h3", "Meet the Team")
     end
 
     test "staff email is not shown on public page", %{conn: conn} do

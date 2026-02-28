@@ -53,29 +53,36 @@ defmodule KlassHeroWeb.ContactLive do
   end
 
   defp contact_methods do
+    email = KlassHero.Contact.email()
+    phone = KlassHero.Contact.phone()
+    address = KlassHero.Contact.address()
+
     [
-      %{
-        type: :email,
-        icon: "hero-envelope",
-        title: gettext("Email"),
-        value: "support@primeyouth.com",
-        note: gettext("We respond within 24 hours")
-      },
-      %{
-        type: :phone,
-        icon: "hero-phone",
-        title: gettext("Phone"),
-        value: "+1 (555) 123-4567",
-        note: gettext("Mon-Fri, 9am-5pm EST")
-      },
-      %{
-        type: :address,
-        icon: "hero-map-pin",
-        title: gettext("Address"),
-        value: "123 Youth Avenue, Suite 100",
-        note: "New York, NY 10001"
-      }
+      email &&
+        %{
+          type: :email,
+          icon: "hero-envelope",
+          title: gettext("Email"),
+          value: email,
+          note: gettext("We respond within 24 hours")
+        },
+      phone &&
+        %{
+          type: :phone,
+          icon: "hero-phone",
+          title: gettext("Phone"),
+          value: phone,
+          note: gettext("Mon-Fri, 9am-6pm CET")
+        },
+      address &&
+        %{
+          type: :address,
+          icon: "hero-map-pin",
+          title: gettext("Address"),
+          value: address
+        }
     ]
+    |> Enum.reject(&is_nil/1)
   end
 
   @contact_colors %{

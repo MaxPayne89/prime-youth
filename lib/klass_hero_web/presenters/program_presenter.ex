@@ -227,8 +227,8 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   @doc """
   Formats a brief one-line schedule string from any map with scheduling keys.
 
-  Accepts raw maps (e.g. sample fixtures, component assigns) in addition to
-  domain structs. Returns a string like "Mon & Wed 4:00 - 5:30 PM".
+  Accepts any map with schedule fields (e.g. component assigns, test data)
+  in addition to domain structs. Returns a string like "Mon & Wed 4:00 - 5:30 PM".
   """
   @spec format_schedule_brief(map()) :: String.t()
   def format_schedule_brief(program) when is_map(program) do

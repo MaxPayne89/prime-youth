@@ -1,9 +1,7 @@
 defmodule KlassHeroWeb.ProgramDetailLive do
   use KlassHeroWeb, :live_view
 
-  import KlassHeroWeb.Live.SampleFixtures
   import KlassHeroWeb.ProgramComponents
-  import KlassHeroWeb.ReviewComponents
   import KlassHeroWeb.UIComponents
 
   alias KlassHero.Enrollment
@@ -28,15 +26,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           )
         end
 
-        # Add temporary included_items field (fixture data until proper implementation)
-        program_with_items =
-          Map.put(program, :included_items, [
-            gettext("Weekly art supplies and materials"),
-            gettext("Take-home projects every week"),
-            gettext("Portfolio folder to track progress"),
-            gettext("Final exhibition showcase")
-          ])
-
         team_members = load_team_members(program.provider_id)
 
         participant_policy =
@@ -48,10 +37,8 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         socket =
           socket
           |> assign(page_title: program.title)
-          |> assign(program: program_with_items)
+          |> assign(program: program)
           |> assign(team_members: team_members)
-          |> assign(instructor: sample_instructor())
-          |> assign(reviews: sample_reviews())
           |> assign(registration_status: ProgramCatalog.registration_status(program))
           |> assign(participant_policy: participant_policy)
 
@@ -226,12 +213,12 @@ defmodule KlassHeroWeb.ProgramDetailLive do
                   {gettext("Schedule TBD")}
                 </span>
               <% end %>
-              <span class="flex items-center">
+              <span :if={@program.age_range} class="flex items-center">
                 <.icon name="hero-user-group" class="w-4 h-4 mr-1" />
                 {gettext("Ages %{range}", range: @program.age_range)}
               </span>
-              <span class="flex items-center">
-                <.icon name="hero-map-pin" class="w-4 h-4 mr-1" /> Berlin
+              <span :if={@program.location} class="flex items-center">
+                <.icon name="hero-map-pin" class="w-4 h-4 mr-1" /> {@program.location}
               </span>
             </div>
             <%!-- Badges --%>
@@ -286,17 +273,18 @@ defmodule KlassHeroWeb.ProgramDetailLive do
               <p class={[Theme.typography(:page_title), Theme.text_color(:heading)]}>
                 {ProgramCatalog.format_total_price(@program.price)}
               </p>
-              <p class={["text-sm", Theme.text_color(:muted)]}>
-                {gettext("Total: Sept 1 - Oct 26")}
-              </p>
+              <%= if date_range = ProgramPresenter.format_date_range_brief(@program) do %>
+                <p class={["text-sm", Theme.text_color(:muted)]}>
+                  {gettext("Total: %{range}", range: date_range)}
+                </p>
+              <% end %>
               <p class={["text-xs mt-1", Theme.text_color(:subtle)]}>
-                {gettext("%{price}/week • 4 weeks",
-                  price: ProgramCatalog.format_price(@program.price)
+                {gettext("%{price}/week • %{weeks} weeks",
+                  price: ProgramCatalog.format_price(@program.price),
+                  weeks: ProgramCatalog.default_program_weeks()
                 )}
               </p>
-              <p class={["text-xs mt-1", Theme.text_color(:secondary)]}>
-                {gettext("with %{name}", name: @instructor.name)}
-              </p>
+              <%!-- TODO: show instructor name when instructor data is wired to programs --%>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
               <.enroll_button
@@ -352,6 +340,8 @@ defmodule KlassHeroWeb.ProgramDetailLive do
                 {@program.description}
               </p>
 
+              <%!-- TODO: "What's Included" section — re-enable when programs have included_items data --%>
+              <%!--
               <div class="space-y-3">
                 <h4 class={["font-semibold", Theme.text_color(:heading)]}>
                   {gettext("What's Included:")}
@@ -363,6 +353,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
                   </li>
                 </ul>
               </div>
+              --%>
             </div>
           </div>
         </section>
@@ -370,8 +361,8 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         <%!-- Participant Requirements Section --%>
         <.restriction_info :if={@participant_policy} policy={@participant_policy} />
 
-        <%!-- Meet the Team / Instructor Section --%>
-        <section>
+        <%!-- Meet the Team Section — only shown when real team members exist --%>
+        <section :if={@team_members != []}>
           <div class={[
             Theme.bg(:surface),
             Theme.rounded(:xl),
@@ -389,96 +380,72 @@ defmodule KlassHeroWeb.ProgramDetailLive do
               </h3>
             </div>
             <div class="p-6">
-              <%= if @team_members != [] do %>
-                <div class="space-y-6">
-                  <div :for={member <- @team_members} class="flex items-start space-x-4">
-                    <img
-                      :if={member.headshot_url}
-                      src={member.headshot_url}
-                      alt={member.full_name}
-                      class={[
-                        "w-16 h-16 object-cover flex-shrink-0",
-                        Theme.rounded(:full)
-                      ]}
-                    />
-                    <div
-                      :if={!member.headshot_url}
-                      class={[
-                        "w-16 h-16 flex items-center justify-center text-white text-xl font-bold flex-shrink-0",
-                        Theme.rounded(:full),
-                        Theme.gradient(:primary)
-                      ]}
-                    >
-                      {member.initials}
-                    </div>
-                    <div class="flex-1">
-                      <h4 class={["font-semibold", Theme.text_color(:heading)]}>
-                        {member.full_name}
-                      </h4>
-                      <p :if={member.role} class={["text-sm mb-2", Theme.text_color(:muted)]}>
-                        {member.role}
-                      </p>
-                      <p
-                        :if={member.bio}
-                        class={["text-sm leading-relaxed mb-3", Theme.text_color(:secondary)]}
-                      >
-                        {member.bio}
-                      </p>
-                      <div :if={member.tags != []} class="flex flex-wrap gap-1.5 mb-2">
-                        <span
-                          :for={tag <- member.tags}
-                          class={[
-                            "px-2 py-0.5 text-xs font-medium bg-hero-cyan-100 text-hero-cyan",
-                            Theme.rounded(:full)
-                          ]}
-                        >
-                          {tag}
-                        </span>
-                      </div>
-                      <div :if={member.qualifications != []} class="flex flex-wrap gap-1.5">
-                        <span
-                          :for={qual <- member.qualifications}
-                          class={[
-                            "px-2 py-0.5 text-xs font-medium border border-hero-grey-300 text-hero-grey-600",
-                            Theme.rounded(:md)
-                          ]}
-                        >
-                          {qual}
-                        </span>
-                      </div>
-                    </div>
+              <div class="space-y-6">
+                <div :for={member <- @team_members} class="flex items-start space-x-4">
+                  <img
+                    :if={member.headshot_url}
+                    src={member.headshot_url}
+                    alt={member.full_name}
+                    class={[
+                      "w-16 h-16 object-cover flex-shrink-0",
+                      Theme.rounded(:full)
+                    ]}
+                  />
+                  <div
+                    :if={!member.headshot_url}
+                    class={[
+                      "w-16 h-16 flex items-center justify-center text-white text-xl font-bold flex-shrink-0",
+                      Theme.rounded(:full),
+                      Theme.gradient(:primary)
+                    ]}
+                  >
+                    {member.initials}
                   </div>
-                </div>
-              <% else %>
-                <%!-- Fallback to sample instructor when no staff members exist --%>
-                <div class="flex items-start space-x-4">
-                  <.user_avatar size="lg" />
                   <div class="flex-1">
                     <h4 class={["font-semibold", Theme.text_color(:heading)]}>
-                      {@instructor.name}
+                      {member.full_name}
                     </h4>
-                    <p class={["text-sm mb-2", Theme.text_color(:muted)]}>
-                      {@instructor.credentials}
+                    <p :if={member.role} class={["text-sm mb-2", Theme.text_color(:muted)]}>
+                      {member.role}
                     </p>
-                    <p class={["text-sm leading-relaxed mb-3", Theme.text_color(:secondary)]}>
-                      {@instructor.bio}
+                    <p
+                      :if={member.bio}
+                      class={["text-sm leading-relaxed mb-3", Theme.text_color(:secondary)]}
+                    >
+                      {member.bio}
                     </p>
-                    <div class="flex items-center">
-                      <.star_rating
-                        rating={@instructor.rating}
-                        size={:medium}
-                        show_count
-                        count={@instructor.review_count}
-                      />
+                    <div :if={member.tags != []} class="flex flex-wrap gap-1.5 mb-2">
+                      <span
+                        :for={tag <- member.tags}
+                        class={[
+                          "px-2 py-0.5 text-xs font-medium bg-hero-cyan-100 text-hero-cyan",
+                          Theme.rounded(:full)
+                        ]}
+                      >
+                        {tag}
+                      </span>
+                    </div>
+                    <div :if={member.qualifications != []} class="flex flex-wrap gap-1.5">
+                      <span
+                        :for={qual <- member.qualifications}
+                        class={[
+                          "px-2 py-0.5 text-xs font-medium border border-hero-grey-300 text-hero-grey-600",
+                          Theme.rounded(:md)
+                        ]}
+                      >
+                        {qual}
+                      </span>
                     </div>
                   </div>
                 </div>
-              <% end %>
+              </div>
             </div>
           </div>
         </section>
 
-        <%!-- What Other Parents Say Section --%>
+        <%!-- TODO: "What Other Parents Say" reviews section — re-enable when review data is available.
+             Dependencies: <.review_card> component import (removed), @reviews assign. --%>
+        <%!--
         <section>
           <div class={[
             Theme.bg(:surface),
@@ -510,12 +477,13 @@ defmodule KlassHeroWeb.ProgramDetailLive do
                   Theme.text_color(:primary),
                   "text-sm font-medium hover:opacity-80"
                 ]}>
-                  {gettext("View all %{count} reviews →", count: @instructor.review_count)}
+                  {gettext("View all reviews")}
                 </button>
               </div>
             </div>
           </div>
         </section>
+        --%>
 
         <%!-- Bottom CTA (Hidden on Mobile - Mobile has sticky footer) --%>
         <div class="hidden md:block mt-8">

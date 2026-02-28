@@ -46,9 +46,6 @@ defmodule KlassHeroWeb.DashboardLive do
         user: user,
         children_count: length(children_for_view),
         activity_goal: calculate_activity_goal(children_extended),
-        achievements: get_achievements(socket),
-        recommended_programs: get_recommended_programs(socket),
-        referral_stats: get_referral_stats(user),
         family_programs_empty?: active_programs == [] and expired_programs == []
       )
       |> stream(:children, children_for_view)
@@ -66,78 +63,6 @@ defmodule KlassHeroWeb.DashboardLive do
   defp goal_message(:achieved), do: gettext("Congratulations! Goal achieved!")
   defp goal_message(:almost_there), do: gettext("Almost there! One more to go!")
   defp goal_message(:in_progress), do: gettext("You're doing great! Keep it up!")
-
-  defp get_achievements(_socket) do
-    [
-      %{emoji: "🌍", name: gettext("Activity Explorer"), date: "2023-11-15"},
-      %{emoji: "⭐", name: gettext("Super Reviewer"), date: "2024-01-20"},
-      %{emoji: "🎨", name: gettext("Art Pro"), date: "2024-02-10"},
-      %{emoji: "⚽", name: gettext("Sporty Kid"), date: "2024-03-01"}
-    ]
-  end
-
-  defp get_recommended_programs(socket) do
-    children = get_children_for_current_user(socket)
-    first_child_name = get_first_child_name(children)
-
-    %{
-      child_name: first_child_name,
-      programs: [
-        %{
-          id: 1,
-          title: gettext("Creative Art Workshop"),
-          category: gettext("Arts & Crafts"),
-          age_range: "6-12",
-          meeting_days: ["Saturday"],
-          meeting_start_time: ~T[10:00:00],
-          meeting_end_time: ~T[11:30:00],
-          price: "€15",
-          image_url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400"
-        },
-        %{
-          id: 2,
-          title: gettext("Junior Soccer Academy"),
-          category: gettext("Sports"),
-          age_range: "5-10",
-          meeting_days: ["Tuesday", "Thursday"],
-          meeting_start_time: ~T[16:00:00],
-          meeting_end_time: ~T[17:00:00],
-          price: "€20",
-          image_url: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400"
-        },
-        %{
-          id: 3,
-          title: gettext("Coding for Kids"),
-          category: gettext("Technology"),
-          age_range: "8-14",
-          meeting_days: ["Wednesday"],
-          meeting_start_time: ~T[15:30:00],
-          meeting_end_time: ~T[16:30:00],
-          price: "€25",
-          image_url: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400"
-        }
-      ]
-    }
-  end
-
-  defp get_first_child_name(children) do
-    case children do
-      [first | _] -> first.first_name || gettext("Your Child")
-      [] -> gettext("Your Child")
-    end
-  end
-
-  defp get_referral_stats(user) do
-    %{
-      count: 3,
-      points: 600,
-      code: generate_referral_code(user)
-    }
-  end
-
-  defp generate_referral_code(user) do
-    Family.generate_referral_code(user.name)
-  end
 
   defp assign_booking_usage_info(socket) do
     identity_id = socket.assigns.user.id
@@ -295,10 +220,12 @@ defmodule KlassHeroWeb.DashboardLive do
             </div>
           </.info_box>
         </section>
-        <%!-- Family Achievements --%>
+        <%!-- Family Achievements - commented out until achievements backend exists --%>
+        <%!--
         <section class="mb-8">
           <.family_achievements achievements={@achievements} />
         </section>
+        --%>
         <%!-- Family Programs --%>
         <section id="family-programs" class="mb-8">
           <div class="flex items-center gap-2 mb-4">
@@ -345,7 +272,8 @@ defmodule KlassHeroWeb.DashboardLive do
             </div>
           <% end %>
         </section>
-        <%!-- Recommended Programs --%>
+        <%!-- Recommended Programs - commented out until recommendation engine exists --%>
+        <%!--
         <section class="mb-8">
           <div class="flex items-center gap-2 mb-4">
             <.icon name="hero-sparkles-mini" class="w-6 h-6 text-hero-cyan" />
@@ -387,10 +315,13 @@ defmodule KlassHeroWeb.DashboardLive do
             </div>
           </div>
         </section>
-        <%!-- Refer & Earn --%>
+        --%>
+        <%!-- Refer & Earn - commented out until referral tracking (count/points) exists --%>
+        <%!--
         <section class="mb-8">
           <.referral_card referral_stats={@referral_stats} />
         </section>
+        --%>
       </div>
     </div>
     """

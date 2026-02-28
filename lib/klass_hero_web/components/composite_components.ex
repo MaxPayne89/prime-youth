@@ -641,14 +641,16 @@ defmodule KlassHeroWeb.CompositeComponents do
             </a>
           </div>
           <div class="text-sm">
-            <p>Email: info@primeyouth.com</p>
-            <p>Phone: (555) 123-4567</p>
+            <p :if={KlassHero.Contact.email()}>Email: {KlassHero.Contact.email()}</p>
+            <p :if={KlassHero.Contact.phone()}>Phone: {KlassHero.Contact.phone()}</p>
           </div>
         </div>
       </div>
 
       <div class="border-t border-base-300 pt-6 mt-6 w-full">
-        <p class="text-sm">&copy; 2025 Klass Hero. {gettext("All rights reserved.")}</p>
+        <p class="text-sm">
+          &copy; {Date.utc_today().year} Klass Hero. {gettext("All rights reserved.")}
+        </p>
         <div class="flex gap-4 justify-center mt-2 text-xs">
           <.link navigate={~p"/privacy"} class="link link-hover">{gettext("Privacy Policy")}</.link>
           <span class="text-gray-400">•</span>
