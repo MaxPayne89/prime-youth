@@ -17,7 +17,7 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckInTest do
   alias KlassHero.EventTestHelper
   alias KlassHero.Participation.Application.UseCases.BulkCheckIn
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
-  alias KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher
+
 
   setup do
     EventTestHelper.setup_test_events()
@@ -193,9 +193,15 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckInTest do
         checked_in_by: staff_id
       })
 
-      events = TestEventPublisher.get_events()
-      check_in_events = Enum.filter(events, &(&1.event_type == :child_checked_in))
-      assert length(check_in_events) == 2
+      EventTestHelper.assert_event_published(:child_checked_in, %{
+        record_id: record_a.id,
+        checked_in_by: staff_id
+      })
+
+      EventTestHelper.assert_event_published(:child_checked_in, %{
+        record_id: record_b.id,
+        checked_in_by: staff_id
+      })
     end
 
     test "does not publish events for failed check-ins" do
@@ -217,9 +223,7 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckInTest do
         checked_in_by: staff_id
       })
 
-      events = TestEventPublisher.get_events()
-      check_in_events = Enum.filter(events, &(&1.event_type == :child_checked_in))
-      assert check_in_events == []
+      EventTestHelper.assert_no_events_published()
     end
   end
 end
