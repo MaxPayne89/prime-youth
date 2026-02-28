@@ -1,5 +1,18 @@
 {
   "enabledPlugins": {
     "beads@beads-marketplace": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(cat | jq -r '.tool_input.file_path // empty') && [[ \"$FILE\" =~ \\.(ex|exs)$ ]] && mix format \"$FILE\" || true"
+          }
+        ]
+      }
+    ]
   }
 }
