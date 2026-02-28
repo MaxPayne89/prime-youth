@@ -22,6 +22,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
   alias KlassHero.Shared.ErrorIds
 
   require Logger
@@ -36,7 +37,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   - `{:error, changeset}` - Validation failure
   """
   def create_provider_profile(attrs) when is_map(attrs) do
-    schema_attrs = prepare_attrs_for_schema(attrs)
+    schema_attrs = MapperHelpers.normalize_subscription_tier(attrs)
 
     %ProviderProfileSchema{}
     |> ProviderProfileSchema.changeset(schema_attrs)
@@ -151,20 +152,5 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
       |> Repo.all()
 
     {:ok, ids}
-  end
-
-  defp prepare_attrs_for_schema(attrs) do
-    attrs
-    |> maybe_convert_tier_to_string()
-  end
-
-  defp maybe_convert_tier_to_string(attrs) do
-    case Map.get(attrs, :subscription_tier) do
-      tier when is_atom(tier) and not is_nil(tier) ->
-        Map.put(attrs, :subscription_tier, Atom.to_string(tier))
-
-      _ ->
-        attrs
-    end
   end
 end

@@ -41,6 +41,22 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers do
   def tier_to_string(tier, _default) when is_atom(tier), do: Atom.to_string(tier)
 
   @doc """
+  Converts :subscription_tier in an attrs map from atom to string.
+
+  No-op if the key is absent, nil, or already a string.
+  """
+  @spec normalize_subscription_tier(map()) :: map()
+  def normalize_subscription_tier(attrs) do
+    case Map.get(attrs, :subscription_tier) do
+      tier when is_atom(tier) and not is_nil(tier) ->
+        Map.put(attrs, :subscription_tier, Atom.to_string(tier))
+
+      _ ->
+        attrs
+    end
+  end
+
+  @doc """
   Conditionally adds an id to attrs map if the id is not nil.
   """
   @spec maybe_add_id(map(), String.t() | nil) :: map()
