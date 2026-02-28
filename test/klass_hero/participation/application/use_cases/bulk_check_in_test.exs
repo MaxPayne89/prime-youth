@@ -18,7 +18,6 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckInTest do
   alias KlassHero.Participation.Application.UseCases.BulkCheckIn
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
-
   setup do
     EventTestHelper.setup_test_events()
     :ok
