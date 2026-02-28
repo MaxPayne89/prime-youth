@@ -1,14 +1,15 @@
-defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.MapperHelpers do
+defmodule KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers do
   @moduledoc """
-  Shared helper functions for profile mappers.
+  Shared helper functions for persistence mappers across bounded contexts.
 
   Provides common conversion utilities for tier atoms/strings and optional id handling.
+  Used by Family, Provider, and Enrollment mappers.
   """
 
-  # Known valid tiers - ensures atoms exist for String.to_existing_atom/1
-  @parent_tiers [:explorer, :active]
-  @provider_tiers [:starter, :professional, :business_plus]
-  @all_tiers @parent_tiers ++ @provider_tiers
+  alias KlassHero.Shared.SubscriptionTiers
+
+  # Derive tier list from the single source of truth
+  @all_tiers SubscriptionTiers.parent_tiers() ++ SubscriptionTiers.provider_tiers()
 
   @doc """
   Converts a string tier to an atom, returning the default if nil or unknown.
