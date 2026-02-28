@@ -110,10 +110,11 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
         role: "Head Coach"
       )
 
-      {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}")
+      {:ok, view, html} = live(conn, ~p"/programs/#{program.id}")
 
       assert html =~ "Coach Smith"
       assert html =~ "Head Coach"
+      assert has_element?(view, "h3", "Meet Your Instructor")
     end
 
     test "program without staff hides instructor section", %{conn: conn} do
