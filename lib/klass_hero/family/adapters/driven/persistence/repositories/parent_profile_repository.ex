@@ -22,6 +22,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
   alias KlassHero.Shared.ErrorIds
 
   require Logger
@@ -36,7 +37,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
   - `{:error, changeset}` - Validation failure
   """
   def create_parent_profile(attrs) when is_map(attrs) do
-    schema_attrs = prepare_attrs_for_schema(attrs)
+    schema_attrs = MapperHelpers.normalize_subscription_tier(attrs)
 
     %ParentProfileSchema{}
     |> ParentProfileSchema.changeset(schema_attrs)
@@ -91,20 +92,5 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
     ParentProfileSchema
     |> where([p], p.identity_id == ^identity_id)
     |> Repo.exists?()
-  end
-
-  defp prepare_attrs_for_schema(attrs) do
-    attrs
-    |> maybe_convert_tier_to_string()
-  end
-
-  defp maybe_convert_tier_to_string(attrs) do
-    case Map.get(attrs, :subscription_tier) do
-      tier when is_atom(tier) and not is_nil(tier) ->
-        Map.put(attrs, :subscription_tier, Atom.to_string(tier))
-
-      _ ->
-        attrs
-    end
   end
 end
