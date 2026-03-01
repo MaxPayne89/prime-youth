@@ -33,6 +33,12 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpersTest do
 
       assert result == :explorer
     end
+
+    test "returns the default for an existing atom that is not a valid tier" do
+      # Trigger: :ok exists in the BEAM atom table but is not in @all_tiers
+      # Why: covers the allowlist check, not just the rescue path
+      assert MapperHelpers.string_to_tier("ok", :explorer) == :explorer
+    end
   end
 
   describe "tier_to_string/2" do
