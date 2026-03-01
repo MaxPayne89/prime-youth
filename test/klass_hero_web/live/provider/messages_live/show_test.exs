@@ -145,6 +145,26 @@ defmodule KlassHeroWeb.Provider.MessagesLive.ShowTest do
 
       assert messages == []
     end
+
+    test "clears input after sending", %{conn: conn, user: user} do
+      conversation = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/messages/#{conversation.id}")
+
+      view
+      |> form("#message-form", %{"content" => "Hello from provider!"})
+      |> render_submit()
+
+      assert_push_event(view, "clear_message_input", %{})
+
+      html = render(view)
+      refute html =~ "Hello from provider!"
+    end
   end
 
   describe "broadcast conversations" do
