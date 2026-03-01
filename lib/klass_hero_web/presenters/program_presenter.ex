@@ -93,7 +93,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       # Outcome: price stays as Decimal for safe downstream formatting
       price: if(program.price, do: Decimal.round(program.price, 2), else: Decimal.new(0)),
       period: program.pricing_period,
-      icon_path: program.icon_path || default_icon_path(),
+      icon_path: default_icon_path(),
       gradient_class: default_gradient_class(),
       meeting_days: program.meeting_days || [],
       meeting_start_time: program.meeting_start_time,

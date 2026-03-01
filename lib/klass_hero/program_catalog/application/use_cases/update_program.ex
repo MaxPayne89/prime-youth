@@ -68,7 +68,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.UpdateProgram do
         pricing_period: program.pricing_period,
         location: program.location,
         cover_image_url: program.cover_image_url,
-        icon_path: program.icon_path,
         start_date: program.start_date,
         end_date: program.end_date,
         meeting_days: program.meeting_days,

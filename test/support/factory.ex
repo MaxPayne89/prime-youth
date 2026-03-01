@@ -85,7 +85,6 @@ defmodule KlassHero.Factory do
       age_range: "6-10 years",
       price: Decimal.new("100.00"),
       pricing_period: "per month",
-      icon_path: "/images/icons/default.svg",
       end_date: nil,
       inserted_at: ~U[2025-01-01 12:00:00Z],
       updated_at: ~U[2025-01-01 12:00:00Z]
@@ -172,8 +171,7 @@ defmodule KlassHero.Factory do
       description: "Learn soccer fundamentals in a fun environment",
       meeting_days: ["Monday", "Wednesday"],
       age_range: "6-10 years",
-      price: Decimal.new("150.00"),
-      icon_path: "/images/icons/soccer.svg"
+      price: Decimal.new("150.00")
     })
   end
 
@@ -187,8 +185,7 @@ defmodule KlassHero.Factory do
       description: "Express yourself through creative movement and dance",
       meeting_days: ["Tuesday", "Thursday"],
       age_range: "7-12 years",
-      price: Decimal.new("120.00"),
-      icon_path: "/images/icons/dance.svg"
+      price: Decimal.new("120.00")
     })
   end
 
@@ -202,8 +199,7 @@ defmodule KlassHero.Factory do
       description: "Mindfulness and movement for young yogis",
       meeting_days: ["Saturday"],
       age_range: "5-8 years",
-      price: Decimal.new("80.00"),
-      icon_path: "/images/icons/yoga.svg"
+      price: Decimal.new("80.00")
     })
   end
 
@@ -217,8 +213,7 @@ defmodule KlassHero.Factory do
       description: "Develop basketball skills and teamwork",
       meeting_days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
       age_range: "8-14 years",
-      price: Decimal.new("200.00"),
-      icon_path: "/images/icons/basketball.svg"
+      price: Decimal.new("200.00")
     })
   end
 
@@ -232,8 +227,7 @@ defmodule KlassHero.Factory do
       description: "Creative arts and crafts exploration",
       meeting_days: ["Wednesday"],
       age_range: "5-10 years",
-      price: Decimal.new("90.00"),
-      icon_path: "/images/icons/art.svg"
+      price: Decimal.new("90.00")
     })
   end
 
