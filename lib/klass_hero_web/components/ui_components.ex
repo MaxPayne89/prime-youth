@@ -509,14 +509,13 @@ defmodule KlassHeroWeb.UIComponents do
 
       <.feature_card
         gradient_class={Theme.gradient(:cool)}
-        icon_path="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944..."
+        icon="hero-shield-check"
         title="Expert Instructors"
         description="All instructors are background-checked..."
       />
   """
   attr :gradient_class, :string, required: true
-  attr :icon_path, :string, default: nil, doc: "SVG path data for the icon"
-  attr :icon, :string, default: nil, doc: "Heroicon name (e.g., 'hero-shield-check')"
+  attr :icon, :string, required: true, doc: "Heroicon name (e.g., 'hero-shield-check')"
   attr :title, :string, required: true
   attr :description, :string, required: true
   attr :class, :string, default: ""
@@ -535,14 +534,7 @@ defmodule KlassHeroWeb.UIComponents do
         Theme.transition(:normal),
         @gradient_class
       ]}>
-        <%= if @icon do %>
-          <.icon name={@icon} class="w-8 h-8 text-white" />
-        <% else %>
-          <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}>
-            </path>
-          </svg>
-        <% end %>
+        <.icon name={@icon} class="w-8 h-8 text-white" />
       </div>
       <h3 class={[Theme.typography(:card_title), "mb-3", Theme.text_color(:heading)]}>{@title}</h3>
       <p class={Theme.text_color(:secondary)}>{@description}</p>
@@ -557,14 +549,14 @@ defmodule KlassHeroWeb.UIComponents do
 
       <.program_card_simple
         gradient_class={Theme.gradient(:art)}
-        icon_path="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4..."
+        icon_name="hero-paint-brush"
         title="Creative Art World"
         description="Unleash your child's creativity"
         price={45}
       />
   """
   attr :gradient_class, :string, required: true
-  attr :icon_path, :string, required: true
+  attr :icon_name, :string, required: true
   attr :title, :string, required: true
   attr :description, :string, required: true
   attr :price, :integer, required: true
@@ -640,10 +632,7 @@ defmodule KlassHeroWeb.UIComponents do
             "w-20 h-20 bg-white/20 backdrop-blur-sm flex items-center justify-center",
             Theme.rounded(:full)
           ]}>
-            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={@icon_path}>
-              </path>
-            </svg>
+            <.icon name={@icon_name} class="w-10 h-10 text-white" />
           </div>
         </div>
       </div>
@@ -740,12 +729,10 @@ defmodule KlassHeroWeb.UIComponents do
   Displays a centered empty state with gray icon circle, title, and description.
   Commonly used when no results are found or when a list is empty.
 
-  Supports either SVG path data via `icon_path` or heroicons via `icon`.
-
   ## Examples
 
       <.empty_state
-        icon_path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        icon="hero-magnifying-glass"
         title="No programs found"
         description="Try adjusting your search or filter criteria."
       />
@@ -761,7 +748,7 @@ defmodule KlassHeroWeb.UIComponents do
       </.empty_state>
 
       <.empty_state
-        icon_path="M12 4v16m8-8H4"
+        icon="hero-plus"
         title="No items yet"
         description="Get started by adding your first item."
       >
@@ -772,8 +759,7 @@ defmodule KlassHeroWeb.UIComponents do
         </:action>
       </.empty_state>
   """
-  attr :icon_path, :string, default: nil, doc: "SVG path data for the icon"
-  attr :icon, :string, default: nil, doc: "Heroicon name (e.g., 'hero-calendar')"
+  attr :icon, :string, required: true, doc: "Heroicon name (e.g., 'hero-calendar')"
   attr :title, :string, required: true
   attr :description, :string, default: nil, doc: "Static description text"
   attr :class, :string, default: ""
@@ -790,24 +776,7 @@ defmodule KlassHeroWeb.UIComponents do
         Theme.rounded(:full),
         Theme.bg(:light)
       ]}>
-        <%= if @icon do %>
-          <.icon name={@icon} class={"w-8 h-8 #{Theme.text_color(:subtle)}"} />
-        <% else %>
-          <svg
-            class={["w-8 h-8", Theme.text_color(:subtle)]}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d={@icon_path}
-            >
-            </path>
-          </svg>
-        <% end %>
+        <.icon name={@icon} class={"w-8 h-8 #{Theme.text_color(:subtle)}"} />
       </div>
       <h3 class={[Theme.typography(:card_title), "mb-2", Theme.text_color(:heading)]}>{@title}</h3>
       <p class={Theme.text_color(:secondary)}>

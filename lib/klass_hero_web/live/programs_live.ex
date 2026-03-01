@@ -5,6 +5,7 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   alias KlassHero.ProgramCatalog
   alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
+  alias KlassHero.Shared.Categories
   alias KlassHero.Shared.ErrorIds
   alias KlassHeroWeb.Theme
 
@@ -122,7 +123,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       spots_left: spots_left,
       # Default UI properties (these will come from the database in the future)
       gradient_class: default_gradient_class(),
-      icon_path: default_icon_path()
+      icon_name: Categories.icon_name(program.category)
     }
   end
 
@@ -136,9 +137,6 @@ defmodule KlassHeroWeb.ProgramsLive do
   defp format_category_for_display(_), do: "Education"
 
   defp default_gradient_class, do: Theme.gradient(:program_default)
-
-  defp default_icon_path,
-    do: "M12 14l9-5-9-5-9 5 9 5zm0 7l-9-5 9-5 9 5-9 5zM3 12l9-5 9 5-9 5-9-5z"
 
   defp safe_decimal_to_float(nil), do: 0.0
   defp safe_decimal_to_float(%Decimal{} = price), do: Decimal.to_float(price)
@@ -340,7 +338,7 @@ defmodule KlassHeroWeb.ProgramsLive do
         <.empty_state
           :if={@programs_empty?}
           data-testid="empty-state"
-          icon_path="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          icon="hero-magnifying-glass"
           title={gettext("No programs found")}
           description={gettext("Try adjusting your search or filter criteria.")}
         />

@@ -241,7 +241,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.age_range == "6-12"
       assert Decimal.equal?(result.price, Decimal.new("15.00"))
       assert result.period == "session"
-      assert is_binary(result.icon_path)
+      assert is_binary(result.icon_name)
       assert result.meeting_days == ["Monday", "Wednesday"]
       assert result.meeting_start_time == ~T[15:00:00]
       assert result.meeting_end_time == ~T[16:30:00]
@@ -251,13 +251,12 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert is_nil(result.spots_left)
     end
 
-    test "uses default icon_path" do
-      program = build_program(%{})
+    test "derives icon_name from category" do
+      program = build_program(%{category: "sports"})
 
       result = ProgramPresenter.to_card_view(program)
 
-      assert is_binary(result.icon_path)
-      assert String.length(result.icon_path) > 0
+      assert result.icon_name == "hero-trophy"
     end
 
     test "defaults meeting_days to empty list when nil" do
