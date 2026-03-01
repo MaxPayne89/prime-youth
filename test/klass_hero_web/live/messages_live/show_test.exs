@@ -146,6 +146,8 @@ defmodule KlassHeroWeb.MessagesLive.ShowTest do
       |> form("#message-form", %{"content" => "Hello!"})
       |> render_submit()
 
+      assert_push_event(view, "clear_message_input", %{})
+
       html = render(view)
       refute html =~ "Hello!"
     end
