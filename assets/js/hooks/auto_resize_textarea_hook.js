@@ -15,6 +15,8 @@ const AutoResizeTextareaHook = {
   },
 
   updated() {
+    // Sync textarea value with server-rendered content (e.g., after form reset)
+    this.el.value = this.el.textContent
     this.resize()
   },
 
