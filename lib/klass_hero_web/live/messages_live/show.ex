@@ -98,9 +98,9 @@ defmodule KlassHeroWeb.MessagesLive.Show do
 
   defp avatar_color(name) do
     colors = [
-      "bg-prime-cyan-500",
-      "bg-prime-magenta-500",
-      "bg-prime-yellow-500",
+      "bg-hero-blue-500",
+      "bg-rose-500",
+      "bg-hero-yellow-500",
       "bg-emerald-500",
       "bg-blue-500",
       "bg-purple-500",

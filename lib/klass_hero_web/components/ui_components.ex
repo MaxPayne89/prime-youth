@@ -753,7 +753,7 @@ defmodule KlassHeroWeb.UIComponents do
         description="Get started by adding your first item."
       >
         <:action>
-          <button class={["mt-4 px-4 py-2 bg-prime-cyan-400 text-white", Theme.rounded(:md)]}>
+          <button class={["mt-4 px-4 py-2 bg-hero-blue-400 text-white", Theme.rounded(:md)]}>
             Add Item
           </button>
         </:action>
@@ -1555,7 +1555,7 @@ defmodule KlassHeroWeb.UIComponents do
       <.icon name="hero-chat-bubble-left-right" class="w-6 h-6 text-hero-grey-600" />
       <span
         :if={@unread_count > 0}
-        class="absolute -top-1 -right-1 min-w-5 h-5 px-1 text-xs font-semibold text-white bg-prime-magenta-500 rounded-full flex items-center justify-center"
+        class="absolute -top-1 -right-1 min-w-5 h-5 px-1 text-xs font-semibold text-white bg-rose-500 rounded-full flex items-center justify-center"
       >
         {min(@unread_count, 99)}
       </span>

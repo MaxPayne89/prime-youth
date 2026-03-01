@@ -49,7 +49,7 @@ defmodule KlassHeroWeb.UIComponentsTest do
           unread_count: 0
         })
 
-      refute html =~ "badge" or html =~ "bg-prime-magenta"
+      refute html =~ "badge" or html =~ "bg-rose"
     end
   end
 end
