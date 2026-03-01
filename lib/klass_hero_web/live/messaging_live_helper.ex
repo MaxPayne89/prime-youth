@@ -12,7 +12,15 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   import Phoenix.Component, only: [assign: 3]
 
   import Phoenix.LiveView,
-    only: [connected?: 1, put_flash: 3, push_navigate: 2, stream: 3, stream: 4, stream_insert: 4]
+    only: [
+      connected?: 1,
+      push_event: 3,
+      put_flash: 3,
+      push_navigate: 2,
+      stream: 3,
+      stream: 4,
+      stream_insert: 4
+    ]
 
   alias KlassHero.Messaging
   alias KlassHero.Messaging.Domain.Models.Message
@@ -91,7 +99,10 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
       case Messaging.send_message(conversation_id, sender_id, content) do
         {:ok, _message} ->
-          {:noreply, assign(socket, :form, Phoenix.Component.to_form(%{"content" => ""}))}
+          {:noreply,
+           socket
+           |> assign(:form, Phoenix.Component.to_form(%{"content" => ""}))
+           |> push_event("clear_message_input", %{})}
 
         {:error, reason} ->
           Logger.error("Failed to send message", reason: reason)

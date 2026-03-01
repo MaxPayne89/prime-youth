@@ -6,17 +6,27 @@
  *
  * This hook adjusts the textarea height to fit its content, providing a better
  * user experience for message composition without needing scrollbars.
+ *
+ * Listens for "clear_message_input" server events to reset the textarea value
+ * after form submission, since LiveView skips DOM patching on submitted forms.
  */
 const AutoResizeTextareaHook = {
   mounted() {
     this.resize()
     this.inputHandler = () => this.resize()
     this.el.addEventListener("input", this.inputHandler)
+
+    // Trigger: server sends this event after successful message send
+    // Why: LiveView's morphdom skips patching form inputs after phx-submit,
+    //      so the textarea .value diverges from server-rendered content
+    // Outcome: textarea visually clears and resizes to single row
+    this.handleEvent("clear_message_input", () => {
+      this.el.value = ""
+      this.resize()
+    })
   },
 
   updated() {
-    // Sync textarea value with server-rendered content (e.g., after form reset)
-    this.el.value = this.el.textContent
     this.resize()
   },
 
