@@ -179,7 +179,7 @@ defmodule KlassHeroWeb.ContactLive do
 
                     <button
                       type="submit"
-                      class="w-full bg-hero-blue-500 hover:bg-hero-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105"
+                      class="w-full bg-hero-blue-600 hover:bg-hero-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105"
                     >
                       {gettext("Send Message")}
                     </button>

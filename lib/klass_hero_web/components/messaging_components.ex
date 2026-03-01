@@ -149,7 +149,7 @@ defmodule KlassHeroWeb.MessagingComponents do
     <div id={@id} class={["flex", @is_own && "justify-end", !@is_own && "justify-start"]}>
       <div class={[
         "max-w-[80%] rounded-2xl px-4 py-2",
-        @is_own && "bg-hero-blue-500 text-white rounded-br-sm",
+        @is_own && "bg-hero-blue-600 text-white rounded-br-sm",
         !@is_own && [Theme.bg(:light), Theme.text_color(:heading), "rounded-bl-sm"]
       ]}>
         <p
@@ -169,7 +169,7 @@ defmodule KlassHeroWeb.MessagingComponents do
         </p>
         <p class={[
           "text-xs mt-1",
-          @is_own && "text-hero-blue-100",
+          @is_own && "text-white/80",
           !@is_own && Theme.text_color(:subtle)
         ]}>
           {format_message_time(@message.inserted_at)}
@@ -296,7 +296,7 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   defp avatar_color(name) do
     colors = [
-      "bg-hero-blue-500",
+      "bg-hero-blue-600",
       "bg-rose-500",
       "bg-hero-yellow-500",
       "bg-emerald-500",

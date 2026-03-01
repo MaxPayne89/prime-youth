@@ -244,7 +244,7 @@ defmodule KlassHeroWeb.AboutLive do
         </h2>
         <.link
           navigate={~p"/users/register"}
-          class="inline-block bg-hero-blue-500 hover:bg-hero-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105"
+          class="inline-block bg-hero-blue-600 hover:bg-hero-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105"
         >
           {gettext("GET STARTED TODAY")}
         </.link>
