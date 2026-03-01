@@ -38,6 +38,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           socket
           |> assign(page_title: program.title)
           |> assign(program: program)
+          |> assign(program_icon_name: ProgramPresenter.icon_name(program.category))
           |> assign(team_members: team_members)
           |> assign(registration_status: ProgramCatalog.registration_status(program))
           |> assign(participant_policy: participant_policy)
@@ -175,10 +176,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             "w-20 h-20 bg-white/20 backdrop-blur-sm flex items-center justify-center",
             Theme.rounded(:full)
           ]}>
-            <.icon
-              name={KlassHero.Shared.Categories.icon_name(@program.category)}
-              class="w-10 h-10 text-white"
-            />
+            <.icon name={@program_icon_name} class="w-10 h-10 text-white" />
           </div>
         </div>
 

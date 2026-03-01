@@ -5,8 +5,8 @@ defmodule KlassHeroWeb.ProgramsLive do
 
   alias KlassHero.ProgramCatalog
   alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
-  alias KlassHero.Shared.Categories
   alias KlassHero.Shared.ErrorIds
+  alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -123,7 +123,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       spots_left: spots_left,
       # Default UI properties (these will come from the database in the future)
       gradient_class: default_gradient_class(),
-      icon_name: Categories.icon_name(program.category)
+      icon_name: ProgramPresenter.icon_name(program.category)
     }
   end
 

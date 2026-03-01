@@ -4,7 +4,7 @@ defmodule KlassHeroWeb.HomeLive do
   import KlassHeroWeb.UIComponents
 
   alias KlassHero.ProgramCatalog
-  alias KlassHero.Shared.Categories
+  alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
 
   @impl true
@@ -153,7 +153,7 @@ defmodule KlassHeroWeb.HomeLive do
               :for={{dom_id, program} <- @streams.featured_programs}
               id={dom_id}
               gradient_class={Theme.gradient(:program_default)}
-              icon_name={Categories.icon_name(program.category)}
+              icon_name={ProgramPresenter.icon_name(program.category)}
               title={program.title}
               description={program.description}
               price={program.price}

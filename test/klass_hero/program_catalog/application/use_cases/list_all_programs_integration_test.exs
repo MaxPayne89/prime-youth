@@ -234,10 +234,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
       assert length(programs) == 2
 
       program1 = Enum.find(programs, &(&1.title == "Program 1"))
-      assert program1.title == "Program 1"
+      refute Map.has_key?(program1, :icon_path)
 
       program2 = Enum.find(programs, &(&1.title == "Program 2"))
-      assert program2.title == "Program 2"
+      refute Map.has_key?(program2, :icon_path)
     end
   end
 
