@@ -102,7 +102,7 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   def unread_badge(assigns) do
     ~H"""
-    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-semibold text-white bg-prime-magenta-500 rounded-full">
+    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-semibold text-white bg-rose-500 rounded-full">
       {min(@count, 99)}
     </span>
     """
@@ -115,7 +115,7 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   def broadcast_badge(assigns) do
     ~H"""
-    <span class={["inline-flex items-center gap-1 mt-1 text-xs", @class || "text-prime-cyan-600"]}>
+    <span class={["inline-flex items-center gap-1 mt-1 text-xs", @class || "text-hero-blue-600"]}>
       <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path
           stroke-linecap="round"
@@ -149,7 +149,7 @@ defmodule KlassHeroWeb.MessagingComponents do
     <div id={@id} class={["flex", @is_own && "justify-end", !@is_own && "justify-start"]}>
       <div class={[
         "max-w-[80%] rounded-2xl px-4 py-2",
-        @is_own && "bg-prime-cyan-500 text-white rounded-br-sm",
+        @is_own && "bg-hero-blue-600 text-white rounded-br-sm",
         !@is_own && [Theme.bg(:light), Theme.text_color(:heading), "rounded-bl-sm"]
       ]}>
         <p
@@ -169,7 +169,7 @@ defmodule KlassHeroWeb.MessagingComponents do
         </p>
         <p class={[
           "text-xs mt-1",
-          @is_own && "text-prime-cyan-100",
+          @is_own && "text-white/80",
           !@is_own && Theme.text_color(:subtle)
         ]}>
           {format_message_time(@message.inserted_at)}
@@ -296,9 +296,9 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   defp avatar_color(name) do
     colors = [
-      "bg-prime-cyan-500",
-      "bg-prime-magenta-500",
-      "bg-prime-yellow-500",
+      "bg-hero-blue-600",
+      "bg-rose-500",
+      "bg-hero-yellow-500",
       "bg-emerald-500",
       "bg-blue-500",
       "bg-purple-500",

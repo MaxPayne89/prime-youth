@@ -173,7 +173,7 @@ defmodule KlassHeroWeb.CompositeComponents do
     ~H"""
     <div class={[
       "w-full max-w-2xl mx-auto p-6",
-      "bg-hero-blue-500",
+      "bg-hero-blue-600",
       Theme.rounded(:xl),
       "shadow-lg",
       @class

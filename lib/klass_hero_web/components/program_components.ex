@@ -268,7 +268,7 @@ defmodule KlassHeroWeb.ProgramComponents do
     <!-- ONLINE Badge -->
         <div :if={Map.get(@program, :is_online, false)} class="absolute top-4 left-4 mt-10 z-10">
           <span class={[
-            "px-3 py-1 text-xs font-semibold bg-hero-blue-500 text-white",
+            "px-3 py-1 text-xs font-semibold bg-hero-blue-600 text-white",
             Theme.rounded(:full)
           ]}>
             ONLINE

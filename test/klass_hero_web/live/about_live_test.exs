@@ -117,8 +117,8 @@ defmodule KlassHeroWeb.AboutLiveTest do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify button styling
-      assert html =~ "bg-hero-blue-500"
-      assert html =~ "hover:bg-hero-blue-600"
+      assert html =~ "bg-hero-blue-600"
+      assert html =~ "hover:bg-hero-blue-700"
     end
 
     test "page uses mobile-first responsive design", %{conn: conn} do

@@ -95,7 +95,7 @@ defmodule KlassHeroWeb.Theme do
   ## Examples
 
       iex> Theme.color(:primary)
-      "prime-cyan"
+      "hero-blue"
   """
   def color(:primary), do: @colors.primary
   def color(:secondary), do: @colors.secondary
@@ -197,19 +197,19 @@ defmodule KlassHeroWeb.Theme do
 
   ## Variants
 
-  - `:primary`, `:primary_light`, `:primary_dark` - Cyan shades
-  - `:secondary`, `:secondary_light`, `:secondary_dark` - Magenta shades
-  - `:accent`, `:accent_light` - Yellow shades
+  - `:primary`, `:primary_light`, `:primary_dark` - Hero blue shades
+  - `:secondary`, `:secondary_light`, `:secondary_dark` - Hero grey shades
+  - `:accent`, `:accent_light` - Hero yellow shades
   - `:surface` - Default white background
   - `:muted` - Subtle gray background
 
   ## Examples
 
       iex> Theme.bg(:primary)
-      "bg-prime-cyan-400"
+      "bg-hero-blue-600"
 
       iex> Theme.bg(:primary_light)
-      "bg-prime-cyan-100"
+      "bg-hero-blue-50"
   """
   def bg(:primary), do: "bg-hero-blue-600"
   def bg(:primary_light), do: "bg-hero-blue-50"
@@ -234,9 +234,9 @@ defmodule KlassHeroWeb.Theme do
 
   ## Variants
 
-  - `:primary`, `:primary_dark` - Cyan text
-  - `:secondary`, `:secondary_dark` - Magenta text
-  - `:accent` - Yellow text
+  - `:primary`, `:primary_dark` - Hero blue text
+  - `:secondary`, `:secondary_dark` - Hero grey text
+  - `:accent` - Hero yellow text
   - `:heading` - Dark gray for headings
   - `:body` - Medium gray for body text
   - `:muted` - Light gray for secondary text
@@ -245,10 +245,10 @@ defmodule KlassHeroWeb.Theme do
   ## Examples
 
       iex> Theme.text_color(:primary)
-      "text-prime-cyan-400"
+      "text-hero-blue-600"
 
       iex> Theme.text_color(:heading)
-      "text-gray-900"
+      "text-hero-black"
   """
   def text_color(:primary), do: "text-hero-blue-600"
   def text_color(:primary_dark), do: "text-hero-blue-700"
@@ -272,10 +272,10 @@ defmodule KlassHeroWeb.Theme do
   ## Examples
 
       iex> Theme.border_color(:primary)
-      "border-prime-cyan-400"
+      "border-hero-blue-500"
 
       iex> Theme.border_color(:light)
-      "border-gray-200"
+      "border-hero-grey-200"
   """
   def border_color(:primary), do: "border-hero-blue-500"
   def border_color(:primary_light), do: "border-hero-blue-200"
@@ -300,8 +300,8 @@ defmodule KlassHeroWeb.Theme do
   ## Examples
 
       {bg, text} = Theme.icon_styles(:primary)
-      # bg = "bg-prime-cyan-100"
-      # text = "text-prime-cyan-400"
+      # bg = "bg-hero-blue-50"
+      # text = "text-hero-blue-600"
   """
   def icon_styles(:primary), do: {"bg-hero-blue-50", "text-hero-blue-600"}
   def icon_styles(:secondary), do: {"bg-hero-grey-50", "text-hero-grey-500"}
@@ -538,7 +538,7 @@ defmodule KlassHeroWeb.Theme do
   ## Examples
 
       iex> Theme.button_variant(:primary)
-      "bg-prime-cyan-400 text-white hover:bg-prime-cyan-500"
+      "bg-hero-blue-600 text-white hover:bg-hero-blue-700"
   """
   def button_variant(:primary), do: "bg-hero-blue-600 text-white hover:bg-hero-blue-700"
 
