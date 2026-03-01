@@ -38,6 +38,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           socket
           |> assign(page_title: program.title)
           |> assign(program: program)
+          |> assign(program_icon_name: ProgramPresenter.icon_name(program.category))
           |> assign(team_members: team_members)
           |> assign(registration_status: ProgramCatalog.registration_status(program))
           |> assign(participant_policy: participant_policy)
@@ -175,15 +176,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             "w-20 h-20 bg-white/20 backdrop-blur-sm flex items-center justify-center",
             Theme.rounded(:full)
           ]}>
-            <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d={@program.icon_path}
-              >
-              </path>
-            </svg>
+            <.icon name={@program_icon_name} class="w-10 h-10 text-white" />
           </div>
         </div>
 

@@ -32,7 +32,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       ...>   price: Decimal.new("120.00"),
       ...>   pricing_period: "per month",
 
-      ...>   icon_path: "/images/icons/art.svg",
       ...>   inserted_at: ~U[2025-11-15 10:00:00Z],
       ...>   updated_at: ~U[2025-11-15 10:00:00Z]
       ...> }
@@ -56,7 +55,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       age_range: schema.age_range,
       price: schema.price,
       pricing_period: schema.pricing_period,
-      icon_path: schema.icon_path,
       end_date: schema.end_date,
       lock_version: schema.lock_version,
       location: schema.location,
@@ -106,7 +104,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       ...>   price: Decimal.new("150.00"),
       ...>   pricing_period: "per month",
 
-      ...>   icon_path: "/images/icons/art.svg"
       ...> }
       iex> attrs = ProgramMapper.to_schema(program)
       iex> attrs.title
@@ -125,7 +122,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       age_range: program.age_range,
       price: program.price,
       pricing_period: program.pricing_period,
-      icon_path: program.icon_path,
       end_date: program.end_date,
       location: program.location,
       cover_image_url: program.cover_image_url,

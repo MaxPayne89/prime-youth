@@ -772,7 +772,6 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       age_range: "6-12 years",
       price: Decimal.new("100.00"),
       pricing_period: "per month",
-      icon_path: "/images/icons/default.svg",
       provider_id: Ecto.UUID.generate(),
       provider_verified: false,
       inserted_at: now,

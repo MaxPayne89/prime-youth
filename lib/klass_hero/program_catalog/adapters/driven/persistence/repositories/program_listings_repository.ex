@@ -161,7 +161,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       pricing_period: schema.pricing_period,
       location: schema.location,
       cover_image_url: schema.cover_image_url,
-      icon_path: schema.icon_path,
       instructor_name: schema.instructor_name,
       instructor_headshot_url: schema.instructor_headshot_url,
       start_date: schema.start_date,

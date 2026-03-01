@@ -21,7 +21,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     :age_range,
     :price,
     :pricing_period,
-    :icon_path,
     :end_date,
     :lock_version,
     :location,
@@ -45,7 +44,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
           age_range: String.t() | nil,
           price: Decimal.t(),
           pricing_period: String.t() | nil,
-          icon_path: String.t() | nil,
           end_date: Date.t() | nil,
           lock_version: non_neg_integer() | nil,
           location: String.t() | nil,
@@ -195,7 +193,6 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
          start_date: attrs[:start_date],
          age_range: attrs[:age_range],
          pricing_period: attrs[:pricing_period],
-         icon_path: attrs[:icon_path],
          end_date: attrs[:end_date],
          location: attrs[:location],
          cover_image_url: attrs[:cover_image_url],
@@ -267,7 +264,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
 
   @updatable_fields ~w(title description category price
                        meeting_days meeting_start_time meeting_end_time start_date
-                       age_range pricing_period icon_path end_date location cover_image_url
+                       age_range pricing_period end_date location cover_image_url
                        registration_period)a
 
   defp merge_fields(program, changes, instructor) do

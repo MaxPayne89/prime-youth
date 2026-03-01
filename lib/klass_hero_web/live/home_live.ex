@@ -4,6 +4,7 @@ defmodule KlassHeroWeb.HomeLive do
   import KlassHeroWeb.UIComponents
 
   alias KlassHero.ProgramCatalog
+  alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
 
   @impl true
@@ -152,7 +153,7 @@ defmodule KlassHeroWeb.HomeLive do
               :for={{dom_id, program} <- @streams.featured_programs}
               id={dom_id}
               gradient_class={Theme.gradient(:program_default)}
-              icon_path={program.icon_path}
+              icon_name={ProgramPresenter.icon_name(program.category)}
               title={program.title}
               description={program.description}
               price={program.price}
@@ -196,7 +197,7 @@ defmodule KlassHeroWeb.HomeLive do
           <div class="grid md:grid-cols-3 gap-8 lg:gap-12">
             <.feature_card
               gradient_class={Theme.gradient(:cool)}
-              icon_path="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+              icon="hero-shield-check"
               title={gettext("Safety First")}
               description={
                 gettext(

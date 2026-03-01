@@ -198,7 +198,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListingsTe
             pricing_period: "per month",
             location: "City Park",
             cover_image_url: "https://example.com/cover.jpg",
-            icon_path: "/images/icons/soccer.svg",
             start_date: ~D[2026-03-01],
             end_date: ~D[2026-06-30],
             meeting_days: ["Tuesday", "Thursday"],
@@ -232,7 +231,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListingsTe
       assert listing.pricing_period == "per month"
       assert listing.location == "City Park"
       assert listing.cover_image_url == "https://example.com/cover.jpg"
-      assert listing.icon_path == "/images/icons/soccer.svg"
       assert listing.start_date == ~D[2026-03-01]
       assert listing.end_date == ~D[2026-06-30]
       assert listing.meeting_days == ["Tuesday", "Thursday"]

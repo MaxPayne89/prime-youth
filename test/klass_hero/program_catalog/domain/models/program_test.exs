@@ -56,14 +56,12 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
 
       attrs =
         valid_attrs(%{
-          icon_path: "/images/soccer.svg",
           lock_version: 1,
           inserted_at: now,
           updated_at: now
         })
 
       assert {:ok, program} = Program.new(attrs)
-      assert program.icon_path == "/images/soccer.svg"
       assert program.lock_version == 1
       assert program.inserted_at == now
       assert program.updated_at == now

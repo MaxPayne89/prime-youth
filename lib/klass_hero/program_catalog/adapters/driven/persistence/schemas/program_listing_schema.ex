@@ -21,7 +21,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramLi
     field :pricing_period, :string
     field :location, :string
     field :cover_image_url, :string
-    field :icon_path, :string
     field :instructor_name, :string
     field :instructor_headshot_url, :string
     field :start_date, :date

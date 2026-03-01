@@ -1,8 +1,11 @@
 defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
   use ExUnit.Case, async: true
 
+  import ExUnit.CaptureLog
+
   alias KlassHero.ProgramCatalog.Domain.Models.Instructor
   alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.Shared.Categories
   alias KlassHeroWeb.Presenters.ProgramPresenter
 
   describe "to_table_view/1" do
@@ -117,6 +120,56 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
     end
   end
 
+  describe "icon_name/1" do
+    test "returns heroicon name for each valid category" do
+      assert ProgramPresenter.icon_name("sports") == "hero-trophy"
+      assert ProgramPresenter.icon_name("arts") == "hero-paint-brush"
+      assert ProgramPresenter.icon_name("music") == "hero-musical-note"
+      assert ProgramPresenter.icon_name("education") == "hero-academic-cap"
+      assert ProgramPresenter.icon_name("life-skills") == "hero-light-bulb"
+      assert ProgramPresenter.icon_name("camps") == "hero-fire"
+      assert ProgramPresenter.icon_name("workshops") == "hero-wrench-screwdriver"
+    end
+
+    test "returns fallback for nil" do
+      assert ProgramPresenter.icon_name(nil) == "hero-academic-cap"
+    end
+
+    test "returns fallback for empty string and logs warning" do
+      log =
+        capture_log(fn ->
+          assert ProgramPresenter.icon_name("") == "hero-academic-cap"
+        end)
+
+      assert log =~ "[ProgramPresenter] Unrecognized category"
+    end
+
+    test "returns fallback for unknown category and logs warning" do
+      log =
+        capture_log(fn ->
+          assert ProgramPresenter.icon_name("unknown") == "hero-academic-cap"
+        end)
+
+      assert log =~ "[ProgramPresenter] Unrecognized category"
+      assert log =~ "unknown"
+    end
+
+    test "covers all valid categories" do
+      for category <- Categories.categories() do
+        log =
+          capture_log(fn ->
+            icon = ProgramPresenter.icon_name(category)
+
+            assert String.starts_with?(icon, "hero-"),
+                   "icon_name/1 missing clause for category #{inspect(category)}"
+          end)
+
+        refute log =~ "[ProgramPresenter] Unrecognized category",
+               "icon_name/1 fell back to default for category #{inspect(category)}"
+      end
+    end
+  end
+
   describe "format_schedule/1" do
     test "formats full schedule with days, times, and dates" do
       program =
@@ -225,7 +278,6 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
           age_range: "6-12",
           price: Decimal.new("15.00"),
           pricing_period: "session",
-          icon_path: "M12 6v6m0 0v6m0-6h6m-6 0H6",
           meeting_days: ["Monday", "Wednesday"],
           meeting_start_time: ~T[15:00:00],
           meeting_end_time: ~T[16:30:00],
@@ -242,7 +294,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.age_range == "6-12"
       assert Decimal.equal?(result.price, Decimal.new("15.00"))
       assert result.period == "session"
-      assert result.icon_path == "M12 6v6m0 0v6m0-6h6m-6 0H6"
+      assert result.icon_name == "hero-paint-brush"
       assert result.meeting_days == ["Monday", "Wednesday"]
       assert result.meeting_start_time == ~T[15:00:00]
       assert result.meeting_end_time == ~T[16:30:00]
@@ -252,13 +304,12 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert is_nil(result.spots_left)
     end
 
-    test "uses default icon_path when program has none" do
-      program = build_program(%{icon_path: nil})
+    test "derives icon_name from category" do
+      program = build_program(%{category: "sports"})
 
       result = ProgramPresenter.to_card_view(program)
 
-      assert is_binary(result.icon_path)
-      assert String.length(result.icon_path) > 0
+      assert result.icon_name == "hero-trophy"
     end
 
     test "defaults meeting_days to empty list when nil" do
@@ -291,6 +342,14 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       result = ProgramPresenter.to_card_view(program)
 
       assert Decimal.equal?(result.price, Decimal.new(0))
+    end
+
+    test "uses fallback icon_name when category is nil" do
+      program = build_program(%{category: nil})
+
+      result = ProgramPresenter.to_card_view(program)
+
+      assert result.icon_name == "hero-academic-cap"
     end
   end
 
