@@ -122,7 +122,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       spots_left: spots_left,
       # Default UI properties (these will come from the database in the future)
       gradient_class: default_gradient_class(),
-      icon_path: program.icon_path || default_icon_path()
+      icon_path: default_icon_path()
     }
   end
 

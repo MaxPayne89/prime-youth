@@ -27,7 +27,6 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       pricing_period: program.pricing_period,
       location: program.location,
       cover_image_url: program.cover_image_url,
-      icon_path: program.icon_path,
       instructor_name: program.instructor_name,
       instructor_headshot_url: program.instructor_headshot_url,
       start_date: program.start_date,

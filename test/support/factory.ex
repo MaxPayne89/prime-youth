@@ -114,7 +114,6 @@ defmodule KlassHero.Factory do
       age_range: "6-10 years",
       price: Decimal.new("100.00"),
       pricing_period: "per month",
-      icon_path: "/images/icons/default.svg",
       end_date: nil
     }
   end
@@ -141,7 +140,6 @@ defmodule KlassHero.Factory do
       pricing_period: "per month",
       location: nil,
       cover_image_url: nil,
-      icon_path: "/images/icons/default.svg",
       instructor_name: nil,
       instructor_headshot_url: nil,
       start_date: nil,

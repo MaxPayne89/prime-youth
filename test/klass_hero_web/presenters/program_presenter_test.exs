@@ -225,7 +225,6 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
           age_range: "6-12",
           price: Decimal.new("15.00"),
           pricing_period: "session",
-          icon_path: "M12 6v6m0 0v6m0-6h6m-6 0H6",
           meeting_days: ["Monday", "Wednesday"],
           meeting_start_time: ~T[15:00:00],
           meeting_end_time: ~T[16:30:00],
@@ -242,7 +241,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert result.age_range == "6-12"
       assert Decimal.equal?(result.price, Decimal.new("15.00"))
       assert result.period == "session"
-      assert result.icon_path == "M12 6v6m0 0v6m0-6h6m-6 0H6"
+      assert is_binary(result.icon_path)
       assert result.meeting_days == ["Monday", "Wednesday"]
       assert result.meeting_start_time == ~T[15:00:00]
       assert result.meeting_end_time == ~T[16:30:00]
@@ -252,8 +251,8 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
       assert is_nil(result.spots_left)
     end
 
-    test "uses default icon_path when program has none" do
-      program = build_program(%{icon_path: nil})
+    test "uses default icon_path" do
+      program = build_program(%{})
 
       result = ProgramPresenter.to_card_view(program)
 
