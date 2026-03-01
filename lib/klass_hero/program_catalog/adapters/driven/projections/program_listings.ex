@@ -261,8 +261,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
   # strategy for a projection — transient failures resolve via restart, and persistent
   # failures surface as repeated crashes (hitting max_restarts).
 
-  # Note: :icon_path was removed from the schema. Stale events from before the
-  # migration may carry :icon_path in their payload — it is intentionally
+  # Note: :icon_path was removed from this projection's schema. Stale events from before
+  # this change/deploy may carry :icon_path in their payload — it is intentionally
   # discarded. Icon resolution is now handled by ProgramPresenter.icon_name/1
   # at render time using the :category field.
 

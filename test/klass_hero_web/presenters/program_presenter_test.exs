@@ -156,10 +156,16 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenterTest do
 
     test "covers all valid categories" do
       for category <- Categories.categories() do
-        icon = ProgramPresenter.icon_name(category)
+        log =
+          capture_log(fn ->
+            icon = ProgramPresenter.icon_name(category)
 
-        assert String.starts_with?(icon, "hero-"),
-               "icon_name/1 missing clause for category #{inspect(category)}"
+            assert String.starts_with?(icon, "hero-"),
+                   "icon_name/1 missing clause for category #{inspect(category)}"
+          end)
+
+        refute log =~ "[ProgramPresenter] Unrecognized category",
+               "icon_name/1 fell back to default for category #{inspect(category)}"
       end
     end
   end
