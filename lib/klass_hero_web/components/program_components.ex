@@ -287,19 +287,7 @@ defmodule KlassHeroWeb.ProgramComponents do
             "w-16 h-16 bg-white/20 backdrop-blur-sm flex items-center justify-center",
             Theme.rounded(:full)
           ]}>
-            <svg
-              class="w-8 h-8 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d={@program.icon_path}
-              />
-            </svg>
+            <.icon name={@program.icon_name} class="w-8 h-8 text-white" />
           </div>
         </div>
       </div>

@@ -54,7 +54,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
     :pricing_period,
     :location,
     :cover_image_url,
-    :icon_path,
     :instructor_name,
     :instructor_headshot_url,
     :start_date,
@@ -262,6 +261,11 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
   # strategy for a projection — transient failures resolve via restart, and persistent
   # failures surface as repeated crashes (hitting max_restarts).
 
+  # Note: :icon_path was removed from the schema. Stale events from before the
+  # migration may carry :icon_path in their payload — it is intentionally
+  # discarded. Icon resolution is now handled by ProgramPresenter.icon_name/1
+  # at render time using the :category field.
+
   # Trigger: program_created event received
   # Why: new program needs a listing row; uses upsert for idempotency
   # Outcome: row inserted (or replaced if duplicate event)
@@ -278,7 +282,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
       pricing_period: Map.get(payload, :pricing_period),
       location: Map.get(payload, :location),
       cover_image_url: Map.get(payload, :cover_image_url),
-      icon_path: Map.get(payload, :icon_path),
       instructor_name: extract_instructor_name(payload),
       instructor_headshot_url: extract_instructor_headshot_url(payload),
       start_date: Map.get(payload, :start_date),
@@ -312,7 +315,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
     :pricing_period,
     :location,
     :cover_image_url,
-    :icon_path,
     :instructor_name,
     :instructor_headshot_url,
     :start_date,
@@ -346,7 +348,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
       pricing_period: Map.get(payload, :pricing_period),
       location: Map.get(payload, :location),
       cover_image_url: Map.get(payload, :cover_image_url),
-      icon_path: Map.get(payload, :icon_path),
       instructor_name: extract_instructor_name(payload),
       instructor_headshot_url: extract_instructor_headshot_url(payload),
       start_date: Map.get(payload, :start_date),

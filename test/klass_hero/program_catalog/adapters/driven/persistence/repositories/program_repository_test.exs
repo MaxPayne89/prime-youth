@@ -482,7 +482,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         age_range: "6-12",
         price: Decimal.new("100.00"),
         pricing_period: "per week",
-        icon_path: "/images/icon.svg",
         inserted_at: DateTime.utc_now(),
         updated_at: DateTime.utc_now()
       }
@@ -547,8 +546,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           description: "Original description",
           age_range: "6-12",
           price: Decimal.new("150.00"),
-          pricing_period: "per week",
-          icon_path: "/images/original.svg"
+          pricing_period: "per week"
         })
 
       # Update all modifiable fields
@@ -561,8 +559,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
           meeting_days: ["Tuesday", "Thursday"],
           age_range: "8-14",
           price: Decimal.new("200.00"),
-          pricing_period: "per month",
-          icon_path: "/images/new.svg"
+          pricing_period: "per month"
       }
 
       assert {:ok, result} = ProgramRepository.update(updated_program)
@@ -574,7 +571,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       assert result.age_range == "8-14"
       assert result.price == Decimal.new("200.00")
       assert result.pricing_period == "per month"
-      assert result.icon_path == "/images/new.svg"
 
       # Verify in database
       updated_schema = Repo.get(ProgramSchema, program_schema.id)
@@ -770,8 +766,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   defp insert_program(attrs) do
     default_attrs = %{
       id: Ecto.UUID.generate(),
-      category: "education",
-      icon_path: "/images/default.svg"
+      category: "education"
     }
 
     attrs = Map.merge(default_attrs, attrs)
@@ -785,8 +780,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   defp insert_program_with_timestamp(attrs, inserted_at) do
     default_attrs = %{
       id: Ecto.UUID.generate(),
-      category: "education",
-      icon_path: "/images/default.svg"
+      category: "education"
     }
 
     attrs = Map.merge(default_attrs, attrs)

@@ -12,8 +12,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           category: "education",
           age_range: "6-12",
           price: Decimal.new("150.00"),
-          pricing_period: "per week",
-          icon_path: "/images/soccer.svg"
+          pricing_period: "per week"
         },
         overrides
       )
@@ -26,9 +25,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       assert changeset.errors == []
     end
 
-    test "valid changeset with minimum required fields (no icon)" do
-      attrs = valid_attrs() |> Map.delete(:icon_path)
-      changeset = ProgramSchema.changeset(%ProgramSchema{}, attrs)
+    test "valid changeset with minimum required fields" do
+      changeset = ProgramSchema.changeset(%ProgramSchema{}, valid_attrs())
 
       assert changeset.valid?
       assert changeset.errors == []

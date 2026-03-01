@@ -184,8 +184,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "Description A",
         age_range: "6-10 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        icon_path: "/custom/icon.svg"
+        pricing_period: "per week"
       })
 
       insert_listing(%{
@@ -208,8 +207,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         assert match?(%Decimal{}, listing.price)
         assert is_binary(listing.pricing_period) && listing.pricing_period != ""
 
-        if listing.icon_path, do: assert(is_binary(listing.icon_path))
-
         assert match?(%DateTime{}, listing.inserted_at)
         assert match?(%DateTime{}, listing.updated_at)
       end)
@@ -221,8 +218,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
         description: "With all fields",
         age_range: "6-12 years",
         price: Decimal.new("100.00"),
-        pricing_period: "per week",
-        icon_path: "/icon1.svg"
+        pricing_period: "per week"
       })
 
       insert_listing(%{
@@ -238,10 +234,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
       assert length(programs) == 2
 
       program1 = Enum.find(programs, &(&1.title == "Program 1"))
-      assert program1.icon_path == "/icon1.svg"
+      refute Map.has_key?(program1, :icon_path)
 
       program2 = Enum.find(programs, &(&1.title == "Program 2"))
-      assert program2.icon_path == nil
+      refute Map.has_key?(program2, :icon_path)
     end
   end
 

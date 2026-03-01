@@ -18,6 +18,8 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   alias KlassHero.ProgramCatalog.Domain.Models.Program
   alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
 
+  require Logger
+
   @doc """
   Transforms a Program domain model to table view format.
 
@@ -93,7 +95,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
       # Outcome: price stays as Decimal for safe downstream formatting
       price: if(program.price, do: Decimal.round(program.price, 2), else: Decimal.new(0)),
       period: program.pricing_period,
-      icon_path: program.icon_path || default_icon_path(),
+      icon_name: icon_name(program.category),
       gradient_class: default_gradient_class(),
       meeting_days: program.meeting_days || [],
       meeting_start_time: program.meeting_start_time,
@@ -104,11 +106,36 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
     }
   end
 
-  # Trigger: program has no icon_path set
-  # Why: UI components require an SVG path for rendering; a book icon is a safe default
-  # Outcome: card always renders an icon even when provider hasn't configured one
-  defp default_icon_path do
-    "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+  @doc """
+  Returns the heroicon name for a given category.
+
+  Used by UI components to render category-appropriate icons.
+  Returns a fallback icon for nil or unrecognized categories.
+
+  ## Examples
+
+      iex> KlassHeroWeb.Presenters.ProgramPresenter.icon_name("sports")
+      "hero-trophy"
+
+      iex> KlassHeroWeb.Presenters.ProgramPresenter.icon_name(nil)
+      "hero-academic-cap"
+  """
+  @spec icon_name(String.t() | nil) :: String.t()
+  def icon_name("sports"), do: "hero-trophy"
+  def icon_name("arts"), do: "hero-paint-brush"
+  def icon_name("music"), do: "hero-musical-note"
+  def icon_name("education"), do: "hero-academic-cap"
+  def icon_name("life-skills"), do: "hero-light-bulb"
+  def icon_name("camps"), do: "hero-fire"
+  def icon_name("workshops"), do: "hero-wrench-screwdriver"
+  def icon_name(nil), do: "hero-academic-cap"
+
+  def icon_name(unknown) do
+    Logger.warning("[ProgramPresenter] Unrecognized category for icon, using fallback",
+      category: unknown
+    )
+
+    "hero-academic-cap"
   end
 
   # Trigger: no category-specific gradient mapping exists yet

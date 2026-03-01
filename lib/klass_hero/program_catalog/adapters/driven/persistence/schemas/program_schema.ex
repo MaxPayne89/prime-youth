@@ -27,7 +27,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :price, :decimal
     field :pricing_period, :string
     field :lock_version, :integer, default: 1
-    field :icon_path, :string
     field :end_date, :date
     field :registration_start_date, :date
     field :registration_end_date, :date
@@ -56,7 +55,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           price: Decimal.t() | nil,
           pricing_period: String.t() | nil,
           lock_version: integer() | nil,
-          icon_path: String.t() | nil,
           end_date: Date.t() | nil,
           registration_start_date: Date.t() | nil,
           registration_end_date: Date.t() | nil,
@@ -97,7 +95,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :age_range,
       :price,
       :pricing_period,
-      :icon_path,
       :end_date,
       :provider_id,
       :location,
@@ -200,7 +197,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
       :age_range,
       :price,
       :pricing_period,
-      :icon_path,
       :end_date,
       :location,
       :cover_image_url,
