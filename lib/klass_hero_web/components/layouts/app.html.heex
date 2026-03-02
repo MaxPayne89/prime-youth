@@ -246,7 +246,7 @@
                 {gettext("Messages")}
                 <span
                   :if={assigns[:total_unread_count] && @total_unread_count > 0}
-                  class="badge badge-sm bg-rose-500 text-white border-none"
+                  class="badge badge-sm badge-error border-none"
                 >
                   {min(@total_unread_count, 99)}
                 </span>
