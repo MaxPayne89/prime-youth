@@ -12,6 +12,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapper
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
 
   require Logger
 
@@ -50,7 +51,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
       |> where([s], s.provider_id == ^provider_id)
       |> order_by([s], asc: s.inserted_at)
       |> Repo.all()
-      |> StaffMemberMapper.to_domain_list()
+      |> MapperHelpers.to_domain_list(StaffMemberMapper)
 
     {:ok, members}
   end
@@ -62,7 +63,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
       |> where([s], s.provider_id == ^provider_id and s.active == true)
       |> order_by([s], asc: s.inserted_at)
       |> Repo.all()
-      |> StaffMemberMapper.to_domain_list()
+      |> MapperHelpers.to_domain_list(StaffMemberMapper)
 
     {:ok, members}
   end

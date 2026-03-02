@@ -166,26 +166,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
     end
   end
 
-  describe "to_domain_list/1" do
-    test "converts list of schemas to list of domain entities" do
-      schemas = [
-        build_schema(status: "pending"),
-        build_schema(status: "confirmed"),
-        build_schema(status: "completed")
-      ]
-
-      enrollments = EnrollmentMapper.to_domain_list(schemas)
-
-      assert length(enrollments) == 3
-      assert Enum.all?(enrollments, &match?(%Enrollment{}, &1))
-      assert Enum.map(enrollments, & &1.status) == [:pending, :confirmed, :completed]
-    end
-
-    test "returns empty list for empty input" do
-      assert EnrollmentMapper.to_domain_list([]) == []
-    end
-  end
-
   describe "round-trip conversion" do
     test "to_schema -> to_domain preserves data" do
       original =

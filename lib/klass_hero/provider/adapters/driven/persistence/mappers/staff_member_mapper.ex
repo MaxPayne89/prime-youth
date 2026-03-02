@@ -44,7 +44,4 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
     }
     |> maybe_add_id(staff.id)
   end
-
-  @spec to_domain_list([StaffMemberSchema.t()]) :: [StaffMember.t()]
-  def to_domain_list(schemas) when is_list(schemas), do: Enum.map(schemas, &to_domain/1)
 end

@@ -5,8 +5,6 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
   This adapter provides bidirectional conversion:
   - to_domain/1: ProviderProfileSchema -> ProviderProfile (for reading from database)
   - to_schema/1: ProviderProfile -> ProviderProfileSchema attributes (for creating/updating in database)
-  - to_domain_list/1: [ProviderProfileSchema] -> [ProviderProfile] (convenience for collections)
-
   The mapper is bidirectional to support both reading and writing provider profiles.
 
   ## Design Note: to_schema Excludes Database-Managed Fields
@@ -76,14 +74,5 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
       subscription_tier: tier_to_string(provider_profile.subscription_tier, "starter")
     }
     |> maybe_add_id(provider_profile.id)
-  end
-
-  @doc """
-  Converts a list of ProviderProfileSchema structs to a list of domain ProviderProfile entities.
-
-  This is a convenience function for mapping collections returned from database queries.
-  """
-  def to_domain_list(schemas) when is_list(schemas) do
-    Enum.map(schemas, &to_domain/1)
   end
 end

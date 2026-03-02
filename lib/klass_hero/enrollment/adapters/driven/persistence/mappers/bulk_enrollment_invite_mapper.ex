@@ -58,11 +58,4 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.BulkEnrollmen
         raise "Corrupted invite data for id=#{inspect(schema.id)} — required keys missing from persistence"
     end
   end
-
-  @doc """
-  Converts a list of BulkEnrollmentInviteSchema records to domain entities.
-  """
-  def to_domain_list(schemas) when is_list(schemas) do
-    Enum.map(schemas, &to_domain/1)
-  end
 end

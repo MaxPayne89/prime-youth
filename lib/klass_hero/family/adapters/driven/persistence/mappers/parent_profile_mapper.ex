@@ -5,8 +5,6 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ParentProfileMapp
   This adapter provides bidirectional conversion:
   - to_domain/1: ParentProfileSchema -> ParentProfile (for reading from database)
   - to_schema/1: ParentProfile -> ParentProfileSchema attributes (for creating/updating in database)
-  - to_domain_list/1: [ParentProfileSchema] -> [ParentProfile] (convenience for collections)
-
   The mapper is bidirectional to support both reading and writing parent profiles.
 
   ## Design Note: to_schema Excludes Database-Managed Fields
@@ -64,14 +62,5 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ParentProfileMapp
       subscription_tier: tier_to_string(parent_profile.subscription_tier, "explorer")
     }
     |> maybe_add_id(parent_profile.id)
-  end
-
-  @doc """
-  Converts a list of ParentProfileSchema structs to a list of domain ParentProfile entities.
-
-  This is a convenience function for mapping collections returned from database queries.
-  """
-  def to_domain_list(schemas) when is_list(schemas) do
-    Enum.map(schemas, &to_domain/1)
   end
 end

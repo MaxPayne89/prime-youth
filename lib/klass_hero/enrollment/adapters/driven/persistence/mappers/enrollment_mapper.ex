@@ -5,8 +5,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
   This adapter provides bidirectional conversion:
   - to_domain/1: EnrollmentSchema → Enrollment (for reading from database)
   - to_schema/1: Enrollment → EnrollmentSchema attributes (for creating/updating in database)
-  - to_domain_list/1: [EnrollmentSchema] → [Enrollment] (convenience for collections)
-
   ## Design Note: to_schema Excludes Database-Managed Fields
 
   The `to_schema/1` function intentionally excludes:
@@ -77,16 +75,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
       special_requirements: enrollment.special_requirements
     }
     |> maybe_add_id(enrollment.id)
-  end
-
-  @doc """
-  Converts a list of EnrollmentSchema structs to a list of domain Enrollment entities.
-
-  This is a convenience function for mapping collections returned from database queries.
-  """
-  @spec to_domain_list([EnrollmentSchema.t()]) :: [Enrollment.t()]
-  def to_domain_list(schemas) when is_list(schemas) do
-    Enum.map(schemas, &to_domain/1)
   end
 
   defp string_to_status(nil), do: :pending

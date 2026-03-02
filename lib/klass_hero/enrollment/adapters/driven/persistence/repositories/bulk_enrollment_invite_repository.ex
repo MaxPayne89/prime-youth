@@ -19,6 +19,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmentInviteSchema
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
 
   require Logger
 
@@ -137,7 +138,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     |> where([i], i.status == "pending")
     |> where([i], is_nil(i.invite_token))
     |> Repo.all()
-    |> Mapper.to_domain_list()
+    |> MapperHelpers.to_domain_list(Mapper)
   end
 
   @impl true
@@ -150,7 +151,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     |> where([i], i.program_id == ^program_id)
     |> order_by([i], asc: i.child_last_name, asc: i.child_first_name)
     |> Repo.all()
-    |> Mapper.to_domain_list()
+    |> MapperHelpers.to_domain_list(Mapper)
   end
 
   @impl true

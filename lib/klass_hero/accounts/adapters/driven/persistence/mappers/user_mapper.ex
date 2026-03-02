@@ -4,7 +4,6 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Mappers.UserMapper do
 
   One-directional (read path only):
   - `to_domain/1`: User schema -> Domain.Models.User
-  - `to_domain_list/1`: convenience for collections
 
   No `to_schema/1` — use cases work with the Ecto schema directly
   for mutations, since changesets need the schema struct.
@@ -46,12 +45,5 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Mappers.UserMapper do
 
         raise "Corrupted user data for id=#{inspect(schema.id)} — required keys missing"
     end
-  end
-
-  @doc """
-  Converts a list of User schemas to domain entities.
-  """
-  def to_domain_list(schemas) when is_list(schemas) do
-    Enum.map(schemas, &to_domain/1)
   end
 end

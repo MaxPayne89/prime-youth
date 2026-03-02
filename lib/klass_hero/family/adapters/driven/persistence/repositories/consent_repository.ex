@@ -17,6 +17,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
   alias KlassHero.Family.Adapters.Driven.Persistence.Mappers.ConsentMapper
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
 
   require Logger
 
@@ -93,7 +94,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
     |> where([c], is_nil(c.withdrawn_at))
     |> order_by([c], asc: c.consent_type)
     |> Repo.all()
-    |> ConsentMapper.to_domain_list()
+    |> MapperHelpers.to_domain_list(ConsentMapper)
   end
 
   @impl true
@@ -104,7 +105,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
     |> where([c], c.consent_type == ^consent_type)
     |> where([c], is_nil(c.withdrawn_at))
     |> Repo.all()
-    |> ConsentMapper.to_domain_list()
+    |> MapperHelpers.to_domain_list(ConsentMapper)
   end
 
   @impl true
@@ -113,7 +114,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
     |> where([c], c.child_id == ^child_id)
     |> order_by([c], asc: c.consent_type, desc: c.granted_at)
     |> Repo.all()
-    |> ConsentMapper.to_domain_list()
+    |> MapperHelpers.to_domain_list(ConsentMapper)
   end
 
   @impl true

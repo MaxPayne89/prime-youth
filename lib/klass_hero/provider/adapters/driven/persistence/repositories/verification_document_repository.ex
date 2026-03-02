@@ -18,6 +18,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
 
   @impl true
   @doc """
@@ -68,7 +69,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
       |> where([d], d.provider_id == ^provider_id)
       |> order_by([d], desc: d.inserted_at)
       |> Repo.all()
-      |> VerificationDocumentMapper.to_domain_list()
+      |> MapperHelpers.to_domain_list(VerificationDocumentMapper)
 
     {:ok, docs}
   end
@@ -115,7 +116,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
       |> where([d], d.status == "pending")
       |> order_by([d], asc: d.inserted_at)
       |> Repo.all()
-      |> VerificationDocumentMapper.to_domain_list()
+      |> MapperHelpers.to_domain_list(VerificationDocumentMapper)
 
     {:ok, docs}
   end
@@ -137,7 +138,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
       |> where([d], d.status == ^status_string)
       |> order_by([d], desc: d.inserted_at)
       |> Repo.all()
-      |> VerificationDocumentMapper.to_domain_list()
+      |> MapperHelpers.to_domain_list(VerificationDocumentMapper)
 
     {:ok, docs}
   end
