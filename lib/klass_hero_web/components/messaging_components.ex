@@ -40,7 +40,7 @@ defmodule KlassHeroWeb.MessagingComponents do
   attr :conversation, :map, required: true
   attr :unread_count, :integer, default: 0
   attr :latest_message, :map, default: nil
-  attr :other_participant_name, :string, default: "Unknown"
+  attr :other_participant_name, :string, default: nil
   attr :navigate, :string, default: nil
 
   def conversation_card(assigns) do
