@@ -1,5 +1,5 @@
 defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTest do
-  use KlassHero.DataCase, async: true
+  use KlassHero.DataCase, async: false
 
   import KlassHero.EventTestHelper
 

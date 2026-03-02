@@ -67,7 +67,7 @@ defmodule KlassHero.ProviderFixtures do
   Creates a pending verification document for testing.
 
   Returns the unwrapped domain model (not {:ok, doc}).
-  Requires `provider_id`.
+  Accepts optional `provider_id`; if omitted, creates a new provider profile.
   """
   def verification_document_fixture(attrs \\ %{}) do
     attrs_map = Map.new(attrs)
@@ -89,7 +89,7 @@ defmodule KlassHero.ProviderFixtures do
   Creates an approved verification document for testing.
 
   Composes: pending -> approve -> persist.
-  Requires `provider_id` and `reviewer_id`.
+  Requires `reviewer_id`. Accepts optional `provider_id`.
   """
   def approved_verification_document_fixture(attrs \\ %{}) do
     attrs_map = Map.new(attrs)
@@ -105,7 +105,7 @@ defmodule KlassHero.ProviderFixtures do
   Creates a rejected verification document for testing.
 
   Composes: pending -> reject -> persist.
-  Requires `provider_id` and `reviewer_id`. Optional `rejection_reason`.
+  Requires `reviewer_id`. Accepts optional `provider_id` and `rejection_reason`.
   """
   def rejected_verification_document_fixture(attrs \\ %{}) do
     attrs_map = Map.new(attrs)

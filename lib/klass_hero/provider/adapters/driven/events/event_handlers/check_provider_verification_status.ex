@@ -50,14 +50,13 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
 
         {:error, reason} ->
           Logger.warning("Auto-verify failed for provider #{provider_id}: #{inspect(reason)}")
-          {:error, {:auto_verify_failed, reason}}
+          :ok
       end
     else
-      # Trigger: not all docs approved yet, or no docs found
-      # Why: false/[] from all_approved? is normal (not all docs reviewed yet)
+      # Trigger: not all docs approved yet
+      # Why: false from all_approved? is normal (not all docs reviewed yet)
       # Outcome: no action needed, return :ok
       false -> :ok
-      [] -> :ok
       {:error, reason} -> {:error, {:verification_check_failed, reason}}
     end
   end
@@ -76,7 +75,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
 
         {:error, reason} ->
           Logger.warning("Auto-unverify failed for provider #{provider_id}: #{inspect(reason)}")
-          {:error, {:auto_unverify_failed, reason}}
+          :ok
       end
     else
       # Trigger: provider not verified — rejection is expected/normal
