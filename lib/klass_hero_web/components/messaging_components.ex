@@ -44,6 +44,8 @@ defmodule KlassHeroWeb.MessagingComponents do
   attr :navigate, :string, default: nil
 
   def conversation_card(assigns) do
+    assigns = update(assigns, :other_participant_name, &(&1 || "Unknown"))
+
     ~H"""
     <.link
       navigate={@navigate}
