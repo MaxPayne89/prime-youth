@@ -86,7 +86,16 @@ defmodule KlassHero.Application do
         id: :family_domain_event_bus
       ),
       Supervisor.child_spec(
-        {KlassHero.Shared.DomainEventBus, context: KlassHero.Provider, handlers: []},
+        {KlassHero.Shared.DomainEventBus,
+         context: KlassHero.Provider,
+         handlers: [
+           {:verification_document_approved,
+            {KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderVerificationStatus,
+             :handle}},
+           {:verification_document_rejected,
+            {KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderVerificationStatus,
+             :handle}}
+         ]},
         id: :provider_domain_event_bus
       ),
       Supervisor.child_spec(
