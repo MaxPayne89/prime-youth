@@ -1718,8 +1718,13 @@ defmodule KlassHeroWeb.ProviderComponents do
 
     duplicate_msgs =
       case Map.get(errors, :duplicate_errors) do
-        errs when is_list(errs) -> Enum.map(errs, &to_string/1)
-        _ -> []
+        errs when is_list(errs) ->
+          Enum.map(errs, fn {row, msg} ->
+            gettext("Row %{row}: %{msg}", row: row, msg: msg)
+          end)
+
+        _ ->
+          []
       end
 
     parse_msgs ++ validation_msgs ++ duplicate_msgs
@@ -1728,10 +1733,36 @@ defmodule KlassHeroWeb.ProviderComponents do
   defp format_import_errors(_), do: [gettext("An unexpected error occurred during import.")]
 
   # Trigger: field_errors is a keyword list like [{:guardian_email, "is required"}, ...]
-  # Why: gettext interpolation requires a string, not a keyword list
-  # Outcome: formats each field error as "field: message" joined by commas
+  # Why: internal atom names (e.g. :program_name) are confusing to end users
+  # Outcome: human-friendly labels like "Program" shown instead of "program_name"
+  @field_labels %{
+    child_first_name: "Child first name",
+    child_last_name: "Child last name",
+    child_date_of_birth: "Date of birth",
+    guardian_email: "Guardian email",
+    guardian_first_name: "Guardian first name",
+    guardian_last_name: "Guardian last name",
+    guardian2_email: "Second guardian email",
+    guardian2_first_name: "Second guardian first name",
+    guardian2_last_name: "Second guardian last name",
+    program_name: "Program",
+    school_grade: "Grade",
+    school_name: "School"
+  }
+
   defp format_field_errors(field_errors) do
-    Enum.map_join(field_errors, ", ", fn {field, detail} -> "#{field}: #{detail}" end)
+    Enum.map_join(field_errors, ", ", fn {field, detail} ->
+      label = humanize_field(field)
+      "#{label}: #{detail}"
+    end)
+  end
+
+  defp humanize_field(field) do
+    Map.get(
+      @field_labels,
+      field,
+      field |> to_string() |> String.replace("_", " ") |> String.capitalize()
+    )
   end
 
   @doc """

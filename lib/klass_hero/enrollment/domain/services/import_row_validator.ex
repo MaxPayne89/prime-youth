@@ -118,7 +118,10 @@ defmodule KlassHero.Enrollment.Domain.Services.ImportRowValidator do
         # Already caught by validate_required
         errors
 
-      Map.has_key?(context.programs_by_title, program_name) ->
+      # Trigger: program names from CSV may differ in casing
+      # Why: build_context already downcases the lookup keys
+      # Outcome: case-insensitive match against the provider's program catalog
+      Map.has_key?(context.programs_by_title, String.downcase(program_name)) ->
         errors
 
       true ->
@@ -170,7 +173,7 @@ defmodule KlassHero.Enrollment.Domain.Services.ImportRowValidator do
   # Outcome: row gains :program_id and :provider_id, loses transient lookup fields
 
   defp enrich_row(row, context) do
-    {:ok, program_id} = Map.fetch(context.programs_by_title, row.program_name)
+    {:ok, program_id} = Map.fetch(context.programs_by_title, String.downcase(row.program_name))
 
     row
     |> Map.put(:program_id, program_id)

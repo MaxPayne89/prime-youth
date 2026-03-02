@@ -185,6 +185,28 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsvTest do
     end
   end
 
+  # -- case-insensitive program matching --------------------------------------
+
+  describe "execute/2 case-insensitive program matching" do
+    setup :setup_provider_with_programs
+
+    test "imports CSV with differently-cased program names", %{provider: provider} do
+      csv =
+        build_csv([
+          %{
+            first: "Alice",
+            last: "Smith",
+            email: "alice@test.com",
+            program: "ballsports & parkour"
+          },
+          %{first: "Bob", last: "Jones", email: "bob@test.com", program: "ORGANIC ARTS"},
+          %{first: "Carol", last: "Lee", email: "carol@test.com", program: "Ballsports & Parkour"}
+        ])
+
+      assert {:ok, %{created: 3}} = ImportEnrollmentCsv.execute(provider.id, csv)
+    end
+  end
+
   # -- no programs -----------------------------------------------------------
 
   describe "execute/2 no programs" do

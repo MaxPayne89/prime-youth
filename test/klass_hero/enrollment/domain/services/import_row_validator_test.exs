@@ -7,9 +7,12 @@ defmodule KlassHero.Enrollment.Domain.Services.ImportRowValidatorTest do
 
   @provider_id "provider-uuid-1"
 
+  # Trigger: build_context in the use case now downcases keys for case-insensitive matching
+  # Why: tests must mirror the actual runtime context shape
+  # Outcome: keys are lowercase, matching what the validator receives
   @programs_by_title %{
-    "Ballsports & Parkour" => "program-uuid-1",
-    "Organic Arts" => "program-uuid-2"
+    "ballsports & parkour" => "program-uuid-1",
+    "organic arts" => "program-uuid-2"
   }
 
   defp context do
@@ -213,6 +216,31 @@ defmodule KlassHero.Enrollment.Domain.Services.ImportRowValidatorTest do
 
       assert {:ok, result} = ImportRowValidator.validate(row, context())
       assert result.school_grade == 13
+    end
+  end
+
+  # -- case-insensitive program matching --------------------------------------
+
+  describe "case-insensitive program matching" do
+    test "lowercase program name resolves correctly" do
+      row = %{valid_row() | program_name: "ballsports & parkour"}
+
+      assert {:ok, result} = ImportRowValidator.validate(row, context())
+      assert result.program_id == "program-uuid-1"
+    end
+
+    test "UPPERCASE program name resolves correctly" do
+      row = %{valid_row() | program_name: "BALLSPORTS & PARKOUR"}
+
+      assert {:ok, result} = ImportRowValidator.validate(row, context())
+      assert result.program_id == "program-uuid-1"
+    end
+
+    test "MiXeD case program name resolves correctly" do
+      row = %{valid_row() | program_name: "Organic arts"}
+
+      assert {:ok, result} = ImportRowValidator.validate(row, context())
+      assert result.program_id == "program-uuid-2"
     end
   end
 

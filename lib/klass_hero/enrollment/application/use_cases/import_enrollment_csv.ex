@@ -69,7 +69,13 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv do
          ]
        }}
     else
-      {:ok, %{provider_id: provider_id, programs_by_title: programs_by_title}}
+      # Trigger: CSV program names may differ in casing from the catalog
+      # Why: spreadsheet apps may auto-capitalize or users may type lowercase
+      # Outcome: downcased keys allow case-insensitive lookup in the validator
+      downcased =
+        Map.new(programs_by_title, fn {title, id} -> {String.downcase(title), id} end)
+
+      {:ok, %{provider_id: provider_id, programs_by_title: downcased}}
     end
   end
 
