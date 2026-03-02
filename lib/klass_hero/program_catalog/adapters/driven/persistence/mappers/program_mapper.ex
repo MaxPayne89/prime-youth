@@ -4,7 +4,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
 
   This adapter provides bidirectional conversion:
   - to_domain/1: ProgramSchema → Program (for reading from database)
-  - to_domain_list/1: [ProgramSchema] → [Program] (convenience for collections)
   - to_schema/1: Program → map (for update operations)
   """
 
@@ -64,27 +63,6 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
-  end
-
-  @doc """
-  Converts a list of ProgramSchema structs to a list of domain Program entities.
-
-  This is a convenience function for mapping collections returned from database queries.
-
-  ## Examples
-
-      iex> schemas = [
-      ...>   %ProgramSchema{id: "id1", title: "Program 1", ...},
-      ...>   %ProgramSchema{id: "id2", title: "Program 2", ...}
-      ...> ]
-      iex> programs = ProgramMapper.to_domain_list(schemas)
-      iex> length(programs)
-      2
-
-  """
-  @spec to_domain_list([ProgramSchema.t()]) :: [Program.t()]
-  def to_domain_list(schemas) when is_list(schemas) do
-    Enum.map(schemas, &to_domain/1)
   end
 
   @doc """

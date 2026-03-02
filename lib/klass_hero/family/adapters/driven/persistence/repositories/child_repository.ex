@@ -18,6 +18,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildGuardianSchema
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
   alias KlassHero.Shared.ErrorIds
 
   require Logger
@@ -128,7 +129,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
     ChildSchema
     |> where([c], c.id in ^child_ids)
     |> Repo.all()
-    |> ChildMapper.to_domain_list()
+    |> MapperHelpers.to_domain_list(ChildMapper)
   end
 
   @impl true
@@ -183,7 +184,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
     |> where([_c, cg], cg.guardian_id == ^guardian_id)
     |> order_by([c], asc: c.first_name, asc: c.last_name)
     |> Repo.all()
-    |> ChildMapper.to_domain_list()
+    |> MapperHelpers.to_domain_list(ChildMapper)
   end
 
   defp get_schema(child_id) do

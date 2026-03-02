@@ -29,6 +29,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
 
   require Logger
 
@@ -177,7 +178,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     |> EnrollmentQueries.by_parent(parent_id)
     |> EnrollmentQueries.order_by_enrolled_at_desc()
     |> Repo.all()
-    |> EnrollmentMapper.to_domain_list()
+    |> MapperHelpers.to_domain_list(EnrollmentMapper)
   end
 
   @impl true
@@ -231,6 +232,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     |> EnrollmentQueries.active_only()
     |> EnrollmentQueries.order_by_enrolled_at_desc()
     |> Repo.all()
-    |> EnrollmentMapper.to_domain_list()
+    |> MapperHelpers.to_domain_list(EnrollmentMapper)
   end
 end

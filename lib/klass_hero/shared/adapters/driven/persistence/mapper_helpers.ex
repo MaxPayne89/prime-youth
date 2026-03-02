@@ -2,11 +2,31 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers do
   @moduledoc """
   Shared helper functions for persistence mappers across bounded contexts.
 
-  Provides common conversion utilities for tier atoms/strings and optional id handling.
-  Used by Family, Provider, and Enrollment mappers.
+  Provides common conversion utilities for collection mapping, tier atoms/strings,
+  and optional id handling. Used by mapper and repository modules across all contexts.
   """
 
   alias KlassHero.Shared.SubscriptionTiers
+
+  @doc """
+  Converts a list of persistence schemas to domain entities using the given mapper module.
+
+  The mapper module must implement `to_domain/1`.
+
+  ## Examples
+
+      iex> MapperHelpers.to_domain_list([], MyMapper)
+      []
+
+      iex> MapperHelpers.to_domain_list([schema1, schema2], MyMapper)
+      [%DomainModel{}, %DomainModel{}]
+
+  """
+  @spec to_domain_list([input], module()) :: [output]
+        when input: term(), output: term()
+  def to_domain_list(schemas, mapper_module) when is_list(schemas) and is_atom(mapper_module) do
+    Enum.map(schemas, &mapper_module.to_domain/1)
+  end
 
   # Derive tier list from the single source of truth
   @all_tiers SubscriptionTiers.parent_tiers() ++ SubscriptionTiers.provider_tiers()
