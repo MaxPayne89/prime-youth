@@ -122,4 +122,51 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpersTest do
       assert MapperHelpers.maybe_add_id(attrs, "new-id") == %{id: "new-id", name: "Alice"}
     end
   end
+
+  describe "to_domain_list/2" do
+    defmodule TestMapper do
+      # Trigger: we need a mapper module that transforms maps to demonstrate to_domain_list/2
+      # Why: using plain maps avoids struct compilation ordering issues in test modules
+      # Outcome: clean, isolated test of the collection mapping behavior
+      def to_domain(%{id: id, name: name}) do
+        %{id: id, name: String.upcase(name)}
+      end
+    end
+
+    test "converts list of schemas using the given mapper module" do
+      schemas = [
+        %{id: 1, name: "first"},
+        %{id: 2, name: "second"}
+      ]
+
+      result = MapperHelpers.to_domain_list(schemas, TestMapper)
+
+      assert [%{id: 1, name: "FIRST"}, %{id: 2, name: "SECOND"}] = result
+    end
+
+    test "returns empty list for empty input" do
+      assert [] == MapperHelpers.to_domain_list([], TestMapper)
+    end
+
+    test "preserves order of input list" do
+      schemas = [
+        %{id: 3, name: "third"},
+        %{id: 1, name: "first"},
+        %{id: 2, name: "second"}
+      ]
+
+      result = MapperHelpers.to_domain_list(schemas, TestMapper)
+
+      assert [%{id: 3}, %{id: 1}, %{id: 2}] = result
+    end
+
+    test "delegates to mapper module's to_domain/1 for each element" do
+      schema = %{id: 42, name: "test"}
+
+      [domain] = MapperHelpers.to_domain_list([schema], TestMapper)
+
+      assert domain.id == 42
+      assert domain.name == "TEST"
+    end
+  end
 end

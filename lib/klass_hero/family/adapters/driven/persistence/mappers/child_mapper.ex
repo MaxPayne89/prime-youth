@@ -73,11 +73,4 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapper do
       school_name: child.school_name
     }
   end
-
-  @doc """
-  Converts a list of ChildSchema records to Child domain entities.
-  """
-  def to_domain_list(schemas) when is_list(schemas) do
-    Enum.map(schemas, &to_domain/1)
-  end
 end

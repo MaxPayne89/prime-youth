@@ -146,20 +146,6 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.VerificationDoc
     end
   end
 
-  describe "to_domain_list/1" do
-    test "converts list of schemas to domain entities" do
-      schemas = [build_schema(), build_schema(%{document_type: "id_document"})]
-      domains = VerificationDocumentMapper.to_domain_list(schemas)
-
-      assert length(domains) == 2
-      assert Enum.all?(domains, &match?(%VerificationDocument{}, &1))
-    end
-
-    test "returns empty list for empty input" do
-      assert [] == VerificationDocumentMapper.to_domain_list([])
-    end
-  end
-
   defp build_schema(overrides \\ %{}) do
     defaults = %{
       id: Ecto.UUID.generate(),

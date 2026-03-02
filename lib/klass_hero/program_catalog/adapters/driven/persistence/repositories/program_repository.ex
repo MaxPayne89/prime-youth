@@ -22,6 +22,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProgramCatalog.Domain.Models.Program
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
   alias KlassHero.Shared.Domain.Types.Pagination.PageResult
   alias KlassHero.Shared.ErrorIds
 
@@ -83,7 +84,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       ProgramSchema
       |> order_by([p], asc: p.title)
       |> Repo.all()
-      |> ProgramMapper.to_domain_list()
+      |> MapperHelpers.to_domain_list(ProgramMapper)
 
     Logger.info(
       "[ProgramRepository] Successfully retrieved #{length(programs)} programs from database"
@@ -109,7 +110,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       |> where([p], p.provider_id == ^provider_id)
       |> order_by([p], asc: p.title)
       |> Repo.all()
-      |> ProgramMapper.to_domain_list()
+      |> MapperHelpers.to_domain_list(ProgramMapper)
 
     Logger.info(
       "[ProgramRepository] Successfully retrieved #{length(programs)} programs for provider #{provider_id}"

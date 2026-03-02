@@ -40,20 +40,4 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Mappers.UserMapperTest 
       refute Map.has_key?(domain_user, :authenticated_at)
     end
   end
-
-  describe "to_domain_list/1" do
-    test "converts list of schemas" do
-      user1 = user_fixture()
-      user2 = user_fixture()
-
-      result = UserMapper.to_domain_list([user1, user2])
-
-      assert length(result) == 2
-      assert Enum.all?(result, &match?(%DomainUser{}, &1))
-    end
-
-    test "returns empty list for empty input" do
-      assert [] == UserMapper.to_domain_list([])
-    end
-  end
 end

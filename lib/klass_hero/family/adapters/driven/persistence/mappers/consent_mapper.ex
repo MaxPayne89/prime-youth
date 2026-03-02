@@ -33,11 +33,4 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ConsentMapper do
       {:error, :invalid_persistence_data} -> raise "Corrupted consent data: #{inspect(schema.id)}"
     end
   end
-
-  @doc """
-  Converts a list of ConsentSchema records to Consent domain entities.
-  """
-  def to_domain_list(schemas) when is_list(schemas) do
-    Enum.map(schemas, &to_domain/1)
-  end
 end

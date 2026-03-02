@@ -5,8 +5,6 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.VerificationDoc
   This adapter provides bidirectional conversion:
   - to_domain/1: VerificationDocumentSchema -> VerificationDocument (for reading from database)
   - to_schema/1: VerificationDocument -> map of attributes (for creating/updating in database)
-  - to_domain_list/1: [VerificationDocumentSchema] -> [VerificationDocument] (convenience for collections)
-
   ## Field Name Translation
 
   The database uses `provider_id` to reference the `providers` table.
@@ -80,16 +78,6 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.VerificationDoc
       reviewed_at: domain.reviewed_at
     }
     |> maybe_add_id(domain.id)
-  end
-
-  @doc """
-  Converts a list of VerificationDocumentSchema structs to a list of domain entities.
-
-  This is a convenience function for mapping collections returned from database queries.
-  """
-  @spec to_domain_list([VerificationDocumentSchema.t()]) :: [VerificationDocument.t()]
-  def to_domain_list(schemas) when is_list(schemas) do
-    Enum.map(schemas, &to_domain/1)
   end
 
   # Converts a string status to an atom, raising on unknown values.
