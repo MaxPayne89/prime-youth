@@ -5,8 +5,6 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
 
   alias KlassHero.AccountsFixtures
   alias KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderVerificationStatus
-  alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
-  alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.ProviderFixtures
   alias KlassHero.Shared.Domain.Events.DomainEvent
 
@@ -25,7 +23,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
 
   describe "handle/1 for :verification_document_approved" do
     test "verifies provider when all docs approved", %{provider: provider, admin: admin} do
-      doc = create_approved_document(provider.id, admin.id)
+      doc =
+        ProviderFixtures.approved_verification_document_fixture(
+          provider_id: provider.id,
+          reviewer_id: admin.id
+        )
 
       event = build_doc_event(:verification_document_approved, doc, admin.id)
       assert :ok = CheckProviderVerificationStatus.handle(event)
@@ -34,8 +36,13 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
     end
 
     test "does not verify when some docs still pending", %{provider: provider, admin: admin} do
-      _approved = create_approved_document(provider.id, admin.id)
-      pending = create_pending_document(provider.id)
+      _approved =
+        ProviderFixtures.approved_verification_document_fixture(
+          provider_id: provider.id,
+          reviewer_id: admin.id
+        )
+
+      pending = ProviderFixtures.verification_document_fixture(provider_id: provider.id)
 
       event = build_doc_event(:verification_document_approved, pending, admin.id)
       assert :ok = CheckProviderVerificationStatus.handle(event)
@@ -44,8 +51,17 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
     end
 
     test "does not verify when some docs rejected", %{provider: provider, admin: admin} do
-      _approved = create_approved_document(provider.id, admin.id)
-      rejected = create_rejected_document(provider.id, admin.id)
+      _approved =
+        ProviderFixtures.approved_verification_document_fixture(
+          provider_id: provider.id,
+          reviewer_id: admin.id
+        )
+
+      rejected =
+        ProviderFixtures.rejected_verification_document_fixture(
+          provider_id: provider.id,
+          reviewer_id: admin.id
+        )
 
       event = build_doc_event(:verification_document_approved, rejected, admin.id)
       assert :ok = CheckProviderVerificationStatus.handle(event)
@@ -57,12 +73,22 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
   describe "handle/1 for :verification_document_rejected" do
     test "unverifies provider when provider was verified", %{provider: provider, admin: admin} do
       # Verify the provider first
-      _doc = create_approved_document(provider.id, admin.id)
+      _doc =
+        ProviderFixtures.approved_verification_document_fixture(
+          provider_id: provider.id,
+          reviewer_id: admin.id
+        )
+
       {:ok, _} = KlassHero.Provider.verify_provider(provider.id, admin.id)
       clear_integration_events()
 
       # Now reject a doc
-      rejected = create_rejected_document(provider.id, admin.id)
+      rejected =
+        ProviderFixtures.rejected_verification_document_fixture(
+          provider_id: provider.id,
+          reviewer_id: admin.id
+        )
+
       event = build_doc_event(:verification_document_rejected, rejected, admin.id)
       assert :ok = CheckProviderVerificationStatus.handle(event)
 
@@ -70,7 +96,12 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
     end
 
     test "no-op when provider was not verified", %{provider: provider, admin: admin} do
-      rejected = create_rejected_document(provider.id, admin.id)
+      rejected =
+        ProviderFixtures.rejected_verification_document_fixture(
+          provider_id: provider.id,
+          reviewer_id: admin.id
+        )
+
       event = build_doc_event(:verification_document_rejected, rejected, admin.id)
       assert :ok = CheckProviderVerificationStatus.handle(event)
 
@@ -87,33 +118,5 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
       :verification_document,
       %{provider_id: doc.provider_profile_id, reviewer_id: reviewer_id}
     )
-  end
-
-  defp create_pending_document(provider_id) do
-    {:ok, doc} =
-      VerificationDocument.new(%{
-        id: Ecto.UUID.generate(),
-        provider_profile_id: provider_id,
-        document_type: "business_registration",
-        file_url: "verification-docs/test.pdf",
-        original_filename: "doc.pdf"
-      })
-
-    {:ok, persisted} = VerificationDocumentRepository.create(doc)
-    persisted
-  end
-
-  defp create_approved_document(provider_id, reviewer_id) do
-    doc = create_pending_document(provider_id)
-    {:ok, approved} = VerificationDocument.approve(doc, reviewer_id)
-    {:ok, persisted} = VerificationDocumentRepository.update(approved)
-    persisted
-  end
-
-  defp create_rejected_document(provider_id, reviewer_id) do
-    doc = create_pending_document(provider_id)
-    {:ok, rejected} = VerificationDocument.reject(doc, reviewer_id, "Invalid document")
-    {:ok, persisted} = VerificationDocumentRepository.update(rejected)
-    persisted
   end
 end

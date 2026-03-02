@@ -35,7 +35,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
   For :verification_document_approved — checks all docs, verifies provider if all approved.
   For :verification_document_rejected — unverifies provider if currently verified.
   """
-  @spec handle(DomainEvent.t()) :: :ok
+  @spec handle(DomainEvent.t()) :: :ok | {:error, term()}
   def handle(%DomainEvent{event_type: :verification_document_approved, payload: payload}) do
     %{provider_id: provider_id, reviewer_id: reviewer_id} = payload
 
@@ -50,10 +50,15 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
 
         {:error, reason} ->
           Logger.warning("Auto-verify failed for provider #{provider_id}: #{inspect(reason)}")
-          :ok
+          {:error, {:auto_verify_failed, reason}}
       end
     else
-      _ -> :ok
+      # Trigger: not all docs approved yet, or no docs found
+      # Why: false/[] from all_approved? is normal (not all docs reviewed yet)
+      # Outcome: no action needed, return :ok
+      false -> :ok
+      [] -> :ok
+      {:error, reason} -> {:error, {:verification_check_failed, reason}}
     end
   end
 
@@ -71,11 +76,14 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderV
 
         {:error, reason} ->
           Logger.warning("Auto-unverify failed for provider #{provider_id}: #{inspect(reason)}")
-
-          :ok
+          {:error, {:auto_unverify_failed, reason}}
       end
     else
-      _ -> :ok
+      # Trigger: provider not verified — rejection is expected/normal
+      # Why: no invariant violation when unverified provider has rejected doc
+      # Outcome: no action needed
+      false -> :ok
+      {:error, reason} -> {:error, {:unverification_check_failed, reason}}
     end
   end
 

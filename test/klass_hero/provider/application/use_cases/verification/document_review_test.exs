@@ -7,7 +7,6 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTes
   alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
   alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.UseCases.Verification.RejectVerificationDocument
-  alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.ProviderFixtures
   alias KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher
   alias KlassHero.Shared.DomainEventBus
@@ -30,7 +29,7 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTes
 
     provider = ProviderFixtures.provider_profile_fixture()
     admin = AccountsFixtures.user_fixture(%{is_admin: true})
-    {:ok, doc} = create_pending_document(provider.id)
+    doc = ProviderFixtures.verification_document_fixture(provider_id: provider.id)
     %{provider: provider, admin: admin, document: doc}
   end
 
@@ -152,18 +151,5 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTes
       assert event.payload.provider_id == rejected.provider_profile_id
       assert event.payload.reviewer_id == admin.id
     end
-  end
-
-  defp create_pending_document(provider_id) do
-    {:ok, doc} =
-      VerificationDocument.new(%{
-        id: Ecto.UUID.generate(),
-        provider_profile_id: provider_id,
-        document_type: "business_registration",
-        file_url: "verification-docs/test.pdf",
-        original_filename: "doc.pdf"
-      })
-
-    VerificationDocumentRepository.create(doc)
   end
 end

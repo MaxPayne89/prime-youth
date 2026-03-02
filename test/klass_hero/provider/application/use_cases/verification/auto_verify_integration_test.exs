@@ -10,10 +10,8 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.AutoVerifyIntegra
 
   alias KlassHero.AccountsFixtures
   alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
-  alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
   alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.UseCases.Verification.RejectVerificationDocument
-  alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.ProviderFixtures
 
   setup do
@@ -25,8 +23,17 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.AutoVerifyIntegra
 
   describe "full approval flow" do
     test "approving all documents auto-verifies provider", %{provider: provider, admin: admin} do
-      doc1 = create_pending_document(provider.id, "business_registration")
-      doc2 = create_pending_document(provider.id, "insurance_certificate")
+      doc1 =
+        ProviderFixtures.verification_document_fixture(
+          provider_id: provider.id,
+          document_type: "business_registration"
+        )
+
+      doc2 =
+        ProviderFixtures.verification_document_fixture(
+          provider_id: provider.id,
+          document_type: "insurance_certificate"
+        )
 
       # Approve first doc -- provider should NOT be verified yet
       ApproveVerificationDocument.execute(%{document_id: doc1.id, reviewer_id: admin.id})
@@ -43,7 +50,11 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.AutoVerifyIntegra
     end
 
     test "single document approval auto-verifies provider", %{provider: provider, admin: admin} do
-      doc = create_pending_document(provider.id, "business_registration")
+      doc =
+        ProviderFixtures.verification_document_fixture(
+          provider_id: provider.id,
+          document_type: "business_registration"
+        )
 
       ApproveVerificationDocument.execute(%{document_id: doc.id, reviewer_id: admin.id})
 
@@ -57,8 +68,17 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.AutoVerifyIntegra
       provider: provider,
       admin: admin
     } do
-      doc1 = create_pending_document(provider.id, "business_registration")
-      doc2 = create_pending_document(provider.id, "insurance_certificate")
+      doc1 =
+        ProviderFixtures.verification_document_fixture(
+          provider_id: provider.id,
+          document_type: "business_registration"
+        )
+
+      doc2 =
+        ProviderFixtures.verification_document_fixture(
+          provider_id: provider.id,
+          document_type: "insurance_certificate"
+        )
 
       # Approve both to get verified
       ApproveVerificationDocument.execute(%{document_id: doc1.id, reviewer_id: admin.id})
@@ -68,7 +88,11 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.AutoVerifyIntegra
       assert profile.verified == true
 
       # Now submit a new doc and have it rejected
-      doc3 = create_pending_document(provider.id, "tax_certificate")
+      doc3 =
+        ProviderFixtures.verification_document_fixture(
+          provider_id: provider.id,
+          document_type: "tax_certificate"
+        )
 
       RejectVerificationDocument.execute(%{
         document_id: doc3.id,
@@ -79,19 +103,5 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.AutoVerifyIntegra
       {:ok, profile} = ProviderProfileRepository.get(provider.id)
       assert profile.verified == false
     end
-  end
-
-  defp create_pending_document(provider_id, doc_type) do
-    {:ok, doc} =
-      VerificationDocument.new(%{
-        id: Ecto.UUID.generate(),
-        provider_profile_id: provider_id,
-        document_type: doc_type,
-        file_url: "verification-docs/#{Ecto.UUID.generate()}.pdf",
-        original_filename: "#{doc_type}.pdf"
-      })
-
-    {:ok, persisted} = VerificationDocumentRepository.create(doc)
-    persisted
   end
 end
