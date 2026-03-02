@@ -44,7 +44,7 @@ defmodule KlassHeroWeb.DashboardLiveTest do
       assert has_element?(view, "#add-child-button a[href='/settings/children/new']")
     end
 
-    test "add child button navigates to children settings", %{conn: conn} do
+    test "add child button navigates to new child page", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
       view
@@ -64,7 +64,7 @@ defmodule KlassHeroWeb.DashboardLiveTest do
       assert_redirect(view, "/settings/children")
     end
 
-    test "page title is set to Dashboard", %{conn: conn} do
+    test "displays My Children section heading", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
       assert html =~ "My Children"
