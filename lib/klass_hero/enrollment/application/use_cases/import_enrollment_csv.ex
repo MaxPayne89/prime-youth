@@ -69,13 +69,34 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv do
          ]
        }}
     else
-      # Trigger: CSV program names may differ in casing from the catalog
-      # Why: spreadsheet apps may auto-capitalize or users may type lowercase
-      # Outcome: downcased keys allow case-insensitive lookup in the validator
-      downcased =
-        Map.new(programs_by_title, fn {title, id} -> {String.downcase(title), id} end)
+      # Trigger: two programs whose titles differ only by case (e.g. "Yoga" vs "YOGA")
+      # Why: downcasing would silently collapse them into one key, mapping rows
+      #      to the wrong program_id without any error
+      # Outcome: early error listing the conflicting titles so the provider can rename
+      collisions =
+        programs_by_title
+        |> Map.keys()
+        |> Enum.group_by(&String.downcase/1)
+        |> Enum.filter(fn {_downcased, titles} -> length(titles) > 1 end)
 
-      {:ok, %{provider_id: provider_id, programs_by_title: downcased}}
+      if collisions == [] do
+        # Trigger: CSV program names may differ in casing from the catalog
+        # Why: spreadsheet apps may auto-capitalize or users may type lowercase
+        # Outcome: downcased keys allow case-insensitive lookup in the validator
+        downcased =
+          Map.new(programs_by_title, fn {title, id} -> {String.downcase(title), id} end)
+
+        {:ok, %{provider_id: provider_id, programs_by_title: downcased}}
+      else
+        conflicting =
+          Enum.flat_map(collisions, fn {_downcased, titles} -> titles end)
+
+        msg =
+          "Program titles must be unique ignoring case. Conflicting titles: " <>
+            Enum.join(conflicting, ", ")
+
+        {:error, %{parse_errors: [{0, msg}]}}
+      end
     end
   end
 

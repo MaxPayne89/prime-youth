@@ -207,6 +207,28 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsvTest do
     end
   end
 
+  # -- case-insensitive collision detection ------------------------------------
+
+  describe "execute/2 case-insensitive title collisions" do
+    test "returns error when provider has programs differing only by case" do
+      provider = insert(:provider_profile_schema)
+      insert(:program_schema, provider_id: provider.id, title: "Yoga")
+      insert(:program_schema, provider_id: provider.id, title: "YOGA")
+
+      csv =
+        build_csv([
+          %{first: "Alice", last: "Smith", email: "alice@test.com", program: "Yoga"}
+        ])
+
+      assert {:error, %{parse_errors: [{0, msg}]}} =
+               ImportEnrollmentCsv.execute(provider.id, csv)
+
+      assert msg =~ "unique ignoring case"
+      assert msg =~ "Yoga"
+      assert msg =~ "YOGA"
+    end
+  end
+
   # -- no programs -----------------------------------------------------------
 
   describe "execute/2 no programs" do

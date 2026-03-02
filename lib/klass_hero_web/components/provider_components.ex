@@ -1735,21 +1735,6 @@ defmodule KlassHeroWeb.ProviderComponents do
   # Trigger: field_errors is a keyword list like [{:guardian_email, "is required"}, ...]
   # Why: internal atom names (e.g. :program_name) are confusing to end users
   # Outcome: human-friendly labels like "Program" shown instead of "program_name"
-  @field_labels %{
-    child_first_name: "Child first name",
-    child_last_name: "Child last name",
-    child_date_of_birth: "Date of birth",
-    guardian_email: "Guardian email",
-    guardian_first_name: "Guardian first name",
-    guardian_last_name: "Guardian last name",
-    guardian2_email: "Second guardian email",
-    guardian2_first_name: "Second guardian first name",
-    guardian2_last_name: "Second guardian last name",
-    program_name: "Program",
-    school_grade: "Grade",
-    school_name: "School"
-  }
-
   defp format_field_errors(field_errors) do
     Enum.map_join(field_errors, ", ", fn {field, detail} ->
       label = humanize_field(field)
@@ -1757,12 +1742,29 @@ defmodule KlassHeroWeb.ProviderComponents do
     end)
   end
 
+  # Trigger: each field atom needs a user-facing label
+  # Why: dgettext calls must happen at runtime (not in module attributes) for i18n
+  # Outcome: labels are translatable via the "enrollment" gettext domain
+  defp humanize_field(:child_first_name), do: dgettext("enrollment", "Child first name")
+  defp humanize_field(:child_last_name), do: dgettext("enrollment", "Child last name")
+  defp humanize_field(:child_date_of_birth), do: dgettext("enrollment", "Date of birth")
+  defp humanize_field(:guardian_email), do: dgettext("enrollment", "Guardian email")
+  defp humanize_field(:guardian_first_name), do: dgettext("enrollment", "Guardian first name")
+  defp humanize_field(:guardian_last_name), do: dgettext("enrollment", "Guardian last name")
+  defp humanize_field(:guardian2_email), do: dgettext("enrollment", "Second guardian email")
+
+  defp humanize_field(:guardian2_first_name),
+    do: dgettext("enrollment", "Second guardian first name")
+
+  defp humanize_field(:guardian2_last_name),
+    do: dgettext("enrollment", "Second guardian last name")
+
+  defp humanize_field(:program_name), do: dgettext("enrollment", "Program")
+  defp humanize_field(:school_grade), do: dgettext("enrollment", "Grade")
+  defp humanize_field(:school_name), do: dgettext("enrollment", "School")
+
   defp humanize_field(field) do
-    Map.get(
-      @field_labels,
-      field,
-      field |> to_string() |> String.replace("_", " ") |> String.capitalize()
-    )
+    field |> to_string() |> String.replace("_", " ") |> String.capitalize()
   end
 
   @doc """
