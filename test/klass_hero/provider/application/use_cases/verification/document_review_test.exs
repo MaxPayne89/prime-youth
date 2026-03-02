@@ -1,14 +1,28 @@
 defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTest do
   use KlassHero.DataCase, async: true
 
+  import KlassHero.EventTestHelper
+
   alias KlassHero.AccountsFixtures
   alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
   alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.UseCases.Verification.RejectVerificationDocument
   alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.ProviderFixtures
+  alias KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher
+  alias KlassHero.Shared.DomainEventBus
 
   setup do
+    setup_test_events()
+
+    # Trigger: EventDispatchHelper dispatches via DomainEventBus, not the publisher port
+    # Why: capture events into TestEventPublisher so assert_event_published works
+    # Outcome: domain bus events become visible to EventTestHelper assertions
+    DomainEventBus.subscribe(KlassHero.Provider, :verification_document_approved, fn event ->
+      TestEventPublisher.publish(event)
+      :ok
+    end)
+
     provider = ProviderFixtures.provider_profile_fixture()
     admin = AccountsFixtures.user_fixture(%{is_admin: true})
     {:ok, doc} = create_pending_document(provider.id)
@@ -56,6 +70,16 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTes
       # Then try to approve should fail
       approve_params = %{document_id: doc.id, reviewer_id: admin.id}
       assert {:error, :document_not_pending} = ApproveVerificationDocument.execute(approve_params)
+    end
+
+    test "dispatches :verification_document_approved domain event", %{admin: admin, document: doc} do
+      params = %{document_id: doc.id, reviewer_id: admin.id}
+      assert {:ok, approved} = ApproveVerificationDocument.execute(params)
+
+      event = assert_event_published(:verification_document_approved)
+      assert event.aggregate_id == doc.id
+      assert event.payload.provider_id == approved.provider_profile_id
+      assert event.payload.reviewer_id == admin.id
     end
   end
 

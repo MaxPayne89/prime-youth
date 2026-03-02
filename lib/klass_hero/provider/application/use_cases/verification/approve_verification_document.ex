@@ -11,6 +11,8 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.ApproveVerificati
   """
 
   alias KlassHero.Provider.Domain.Models.VerificationDocument
+  alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.EventDispatchHelper
 
   @repository Application.compile_env!(:klass_hero, [
                 :provider,
@@ -33,8 +35,23 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.ApproveVerificati
   """
   def execute(%{document_id: document_id, reviewer_id: reviewer_id}) do
     with {:ok, document} <- @repository.get(document_id),
-         {:ok, approved} <- VerificationDocument.approve(document, reviewer_id) do
-      @repository.update(approved)
+         {:ok, approved} <- VerificationDocument.approve(document, reviewer_id),
+         {:ok, persisted} <- @repository.update(approved) do
+      # Trigger: document successfully approved and persisted
+      # Why: other handlers need to evaluate provider verification status
+      # Outcome: domain event dispatched (fire-and-forget), approved doc returned
+      dispatch_event(persisted, reviewer_id)
+      {:ok, persisted}
     end
+  end
+
+  defp dispatch_event(doc, reviewer_id) do
+    DomainEvent.new(
+      :verification_document_approved,
+      doc.id,
+      :verification_document,
+      %{provider_id: doc.provider_profile_id, reviewer_id: reviewer_id}
+    )
+    |> EventDispatchHelper.dispatch(KlassHero.Provider)
   end
 end
