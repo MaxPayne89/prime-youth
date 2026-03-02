@@ -20,81 +20,61 @@ defmodule KlassHeroWeb.DashboardLiveTest do
     end
 
     test "streams children collection with phx-update=\"stream\"", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
+      {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      # Verify stream container has correct attributes
-      assert html =~ "id=\"children\""
-      assert html =~ "phx-update=\"stream\""
-
-      # Verify children section exists
-      assert html =~ "My Children"
-    end
-
-    test "displays child cards from stream data", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify child cards are rendered
-      assert html =~ "My Children"
+      assert has_element?(view, "#children[phx-update=stream]")
     end
 
     test "displays weekly activity goal section", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
-      # Verify weekly goal section content is present
-      # The weekly_goal_card component should render goal-related content
       assert html =~ "goal" or html =~ "Goal" or html =~ "activities"
     end
 
-    test "children section has View All placeholder", %{conn: conn} do
+    test "children section has View All link to children settings", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      # Verify "View All" placeholder exists for children section (currently disabled)
-      assert has_element?(view, "span", "View All")
+      assert has_element?(view, "a[href='/settings/children']", "View All")
     end
 
-    test "settings link navigates to settings page", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
+    test "displays add child button linking to new child page", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      # Verify settings link is present - using href instead of navigate
-      assert html =~ "href=\"/users/settings\""
+      assert has_element?(view, "#add-child-button")
+      assert has_element?(view, "#add-child-button a[href='/settings/children/new']")
     end
 
-    test "page title is set to Dashboard", %{conn: conn} do
+    test "add child button navigates to new child page", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/dashboard")
+
+      view
+      |> element("#add-child-button a")
+      |> render_click()
+
+      assert_redirect(view, "/settings/children/new")
+    end
+
+    test "view all link navigates to children settings index", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/dashboard")
+
+      view
+      |> element("a[href='/settings/children']", "View All")
+      |> render_click()
+
+      assert_redirect(view, "/settings/children")
+    end
+
+    test "displays My Children section heading", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
-      # Verify dashboard content is rendered
       assert html =~ "My Children"
     end
 
     test "children section uses horizontal scroll layout", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/dashboard")
 
-      # Verify horizontal scroll layout classes are present for children carousel
       assert html =~ "overflow-x-auto"
       assert html =~ "snap-x"
-    end
-
-    test "child cards display with stream data", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify child card structure exists
-      assert html =~ "My Children"
-    end
-
-    test "stream maintains order of children", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify children stream container exists
-      assert html =~ "id=\"children\""
-      assert html =~ "phx-update=\"stream\""
-    end
-
-    test "displays add child button", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
-
-      # Verify add child button is present
-      assert html =~ "Add Child"
-      assert html =~ "id=\"add-child-button\""
     end
   end
 end
