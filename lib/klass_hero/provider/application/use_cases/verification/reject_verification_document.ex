@@ -12,6 +12,8 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.RejectVerificatio
   """
 
   alias KlassHero.Provider.Domain.Models.VerificationDocument
+  alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.EventDispatchHelper
 
   @repository Application.compile_env!(:klass_hero, [
                 :provider,
@@ -40,9 +42,24 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.RejectVerificatio
     # Outcome: early validation prevents rejecting without reason
     with :ok <- validate_reason(reason),
          {:ok, document} <- @repository.get(document_id),
-         {:ok, rejected} <- VerificationDocument.reject(document, reviewer_id, reason) do
-      @repository.update(rejected)
+         {:ok, rejected} <- VerificationDocument.reject(document, reviewer_id, reason),
+         {:ok, persisted} <- @repository.update(rejected) do
+      # Trigger: document successfully rejected and persisted
+      # Why: other handlers need to evaluate provider verification status
+      # Outcome: domain event dispatched (fire-and-forget), rejected doc returned
+      dispatch_event(persisted, reviewer_id)
+      {:ok, persisted}
     end
+  end
+
+  defp dispatch_event(doc, reviewer_id) do
+    DomainEvent.new(
+      :verification_document_rejected,
+      doc.id,
+      :verification_document,
+      %{provider_id: doc.provider_profile_id, reviewer_id: reviewer_id}
+    )
+    |> EventDispatchHelper.dispatch(KlassHero.Provider)
   end
 
   defp validate_reason(reason) when is_binary(reason) and byte_size(reason) > 0, do: :ok

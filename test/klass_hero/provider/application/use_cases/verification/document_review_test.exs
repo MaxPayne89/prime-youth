@@ -1,17 +1,35 @@
 defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTest do
-  use KlassHero.DataCase, async: true
+  use KlassHero.DataCase, async: false
+
+  import KlassHero.EventTestHelper
 
   alias KlassHero.AccountsFixtures
   alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
   alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.UseCases.Verification.RejectVerificationDocument
-  alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.ProviderFixtures
+  alias KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher
+  alias KlassHero.Shared.DomainEventBus
 
   setup do
+    setup_test_events()
+
+    # Trigger: EventDispatchHelper dispatches via DomainEventBus, not the publisher port
+    # Why: capture events into TestEventPublisher so assert_event_published works
+    # Outcome: domain bus events become visible to EventTestHelper assertions
+    DomainEventBus.subscribe(KlassHero.Provider, :verification_document_approved, fn event ->
+      TestEventPublisher.publish(event)
+      :ok
+    end)
+
+    DomainEventBus.subscribe(KlassHero.Provider, :verification_document_rejected, fn event ->
+      TestEventPublisher.publish(event)
+      :ok
+    end)
+
     provider = ProviderFixtures.provider_profile_fixture()
     admin = AccountsFixtures.user_fixture(%{is_admin: true})
-    {:ok, doc} = create_pending_document(provider.id)
+    doc = ProviderFixtures.verification_document_fixture(provider_id: provider.id)
     %{provider: provider, admin: admin, document: doc}
   end
 
@@ -56,6 +74,16 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTes
       # Then try to approve should fail
       approve_params = %{document_id: doc.id, reviewer_id: admin.id}
       assert {:error, :document_not_pending} = ApproveVerificationDocument.execute(approve_params)
+    end
+
+    test "dispatches :verification_document_approved domain event", %{admin: admin, document: doc} do
+      params = %{document_id: doc.id, reviewer_id: admin.id}
+      assert {:ok, approved} = ApproveVerificationDocument.execute(params)
+
+      event = assert_event_published(:verification_document_approved)
+      assert event.aggregate_id == doc.id
+      assert event.payload.provider_id == approved.provider_profile_id
+      assert event.payload.reviewer_id == admin.id
     end
   end
 
@@ -113,18 +141,15 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTes
       reject_params = %{document_id: doc.id, reviewer_id: admin.id, reason: "Too late"}
       assert {:error, :document_not_pending} = RejectVerificationDocument.execute(reject_params)
     end
-  end
 
-  defp create_pending_document(provider_id) do
-    {:ok, doc} =
-      VerificationDocument.new(%{
-        id: Ecto.UUID.generate(),
-        provider_profile_id: provider_id,
-        document_type: "business_registration",
-        file_url: "verification-docs/test.pdf",
-        original_filename: "doc.pdf"
-      })
+    test "dispatches :verification_document_rejected domain event", %{admin: admin, document: doc} do
+      params = %{document_id: doc.id, reviewer_id: admin.id, reason: "Expired document"}
+      assert {:ok, rejected} = RejectVerificationDocument.execute(params)
 
-    VerificationDocumentRepository.create(doc)
+      event = assert_event_published(:verification_document_rejected)
+      assert event.aggregate_id == doc.id
+      assert event.payload.provider_id == rejected.provider_profile_id
+      assert event.payload.reviewer_id == admin.id
+    end
   end
 end

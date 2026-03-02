@@ -5,8 +5,10 @@ defmodule KlassHero.ProviderFixtures do
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfileMapper
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapper
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
+  alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.Repo
 
   @doc """
@@ -59,5 +61,60 @@ defmodule KlassHero.ProviderFixtures do
       |> Repo.insert()
 
     StaffMemberMapper.to_domain(schema)
+  end
+
+  @doc """
+  Creates a pending verification document for testing.
+
+  Returns the unwrapped domain model (not {:ok, doc}).
+  Accepts optional `provider_id`; if omitted, creates a new provider profile.
+  """
+  def verification_document_fixture(attrs \\ %{}) do
+    attrs_map = Map.new(attrs)
+
+    {:ok, doc} =
+      VerificationDocument.new(%{
+        id: Ecto.UUID.generate(),
+        provider_profile_id: attrs_map[:provider_id] || provider_profile_fixture().id,
+        document_type: attrs_map[:document_type] || "business_registration",
+        file_url: attrs_map[:file_url] || "verification-docs/#{Ecto.UUID.generate()}.pdf",
+        original_filename: attrs_map[:original_filename] || "doc.pdf"
+      })
+
+    {:ok, persisted} = VerificationDocumentRepository.create(doc)
+    persisted
+  end
+
+  @doc """
+  Creates an approved verification document for testing.
+
+  Composes: pending -> approve -> persist.
+  Requires `reviewer_id`. Accepts optional `provider_id`.
+  """
+  def approved_verification_document_fixture(attrs \\ %{}) do
+    attrs_map = Map.new(attrs)
+    reviewer_id = attrs_map[:reviewer_id] || raise "reviewer_id is required"
+
+    doc = verification_document_fixture(attrs)
+    {:ok, approved} = VerificationDocument.approve(doc, reviewer_id)
+    {:ok, persisted} = VerificationDocumentRepository.update(approved)
+    persisted
+  end
+
+  @doc """
+  Creates a rejected verification document for testing.
+
+  Composes: pending -> reject -> persist.
+  Requires `reviewer_id`. Accepts optional `provider_id` and `rejection_reason`.
+  """
+  def rejected_verification_document_fixture(attrs \\ %{}) do
+    attrs_map = Map.new(attrs)
+    reviewer_id = attrs_map[:reviewer_id] || raise "reviewer_id is required"
+    reason = attrs_map[:rejection_reason] || "Invalid document"
+
+    doc = verification_document_fixture(attrs)
+    {:ok, rejected} = VerificationDocument.reject(doc, reviewer_id, reason)
+    {:ok, persisted} = VerificationDocumentRepository.update(rejected)
+    persisted
   end
 end
