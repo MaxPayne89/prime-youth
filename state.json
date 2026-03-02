@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-01T13:02:43Z",
+  "last_updated": "2026-03-02T13:03:00Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -20,20 +20,20 @@
     "date_event": "render_change(view, \"change_date\", %{\"date\" => iso_date})",
     "provider_session_setup": "insert program with provider_id, then program_session with program_id and date",
     "closed_registration": "insert(:program_schema, registration_start_date: Date.add(Date.utc_today(), -30), registration_end_date: Date.add(Date.utc_today(), -1))",
+    "upcoming_registration": "insert(:program_schema, registration_start_date: Date.add(Date.utc_today(), 7), registration_end_date: Date.add(Date.utc_today(), 14))",
     "insert_child": "insert_child_with_guardian(parent: parent_schema, first_name: \"Alice\") - parent must be ecto schema",
     "event_testing": "EventTestHelper.setup_test_events() in setup, then TestEventPublisher.get_events() for assertions - safe for async: true (process-local)",
-    "bulk_check_in_pattern": "participation_record_schema factory creates own session+child internally, overrides with session_id:/child_id: work fine"
+    "bulk_check_in_pattern": "participation_record_schema factory creates own session+child internally, overrides with session_id:/child_id: work fine",
+    "messaging_helper_tests": "MessagingLiveHelper pure functions (get_conversation_title/1, own_message?/2, get_sender_name/2) use ExUnit.Case async: true - no DB needed"
   },
   "backlog": [
-    {"item": "program_detail_live integration tests - booking flow when registration upcoming", "priority": "low", "reason": "upcoming status (start in future) also blocks enrollment - similar pattern already tested for closed"},
-    {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"},
-    {"item": "messaging_live_helper pure function tests", "priority": "low", "reason": "get_conversation_title, own_message?, get_sender_name are pure functions - low risk"}
+    {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"}
   ],
   "tasks_last_run": {
     "task1_commands": "2026-02-26",
     "task2_opportunities": "2026-02-28",
-    "task3_implement": "2026-03-01",
-    "task7_monthly_summary": "2026-03-01"
+    "task3_implement": "2026-03-02",
+    "task7_monthly_summary": "2026-03-02"
   },
   "completed_work": [
     {
@@ -53,8 +53,13 @@
     },
     {
       "run": "2026-03-01",
-      "work": "Created PR for MapperHelpers unit tests - pending merge",
+      "work": "Created PR for MapperHelpers unit tests - MERGED",
       "notes": "19 pure-unit tests for newly extracted shared MapperHelpers module (string_to_tier/2, tier_to_string/2, normalize_subscription_tier/1, maybe_add_id/2). Also rolled over monthly activity issue from Feb #208 to Mar 2026."
+    },
+    {
+      "run": "2026-03-02",
+      "work": "Created PR for MessagingLiveHelper unit tests + upcoming registration guard",
+      "notes": "8 pure-unit tests for get_conversation_title/1, own_message?/2, get_sender_name/2. +1 test for enroll_now :upcoming path in program_detail_live_test.exs."
     }
   ]
 }
