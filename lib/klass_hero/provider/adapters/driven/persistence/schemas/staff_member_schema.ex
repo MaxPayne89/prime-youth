@@ -67,7 +67,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
 
   @doc """
   Form changeset for editing staff members via LiveView.
-  Excludes provider_id (set programmatically) and headshot_url (set via upload pipeline).
+  Excludes provider_id (set programmatically, immutable after creation).
 
   Validation constants intentionally mirror StaffMember domain model.
   Domain validates on write; Ecto validates at persistence boundary.
@@ -81,6 +81,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
       :role,
       :email,
       :bio,
+      :headshot_url,
       :tags,
       :qualifications,
       :active
@@ -91,6 +92,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     |> validate_length(:role, max: 100)
     |> validate_length(:email, max: 255)
     |> validate_length(:bio, max: 2000)
+    |> validate_length(:headshot_url, max: 500)
     |> validate_tags()
   end
 

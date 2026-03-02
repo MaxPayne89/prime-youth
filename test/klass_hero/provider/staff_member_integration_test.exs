@@ -133,6 +133,28 @@ defmodule KlassHero.Provider.StaffMemberIntegrationTest do
       assert updated.provider_id == staff.provider_id
       assert updated.role == "New Role"
     end
+
+    test "updates headshot_url" do
+      staff = ProviderFixtures.staff_member_fixture(first_name: "Photo")
+
+      assert {:ok, updated} =
+               Provider.update_staff_member(staff.id, %{
+                 headshot_url: "headshots/providers/abc/new_photo.jpg"
+               })
+
+      assert updated.headshot_url == "headshots/providers/abc/new_photo.jpg"
+      assert updated.first_name == "Photo"
+    end
+
+    test "clears headshot_url with nil" do
+      staff =
+        ProviderFixtures.staff_member_fixture(
+          headshot_url: "headshots/providers/abc/old_photo.jpg"
+        )
+
+      assert {:ok, updated} = Provider.update_staff_member(staff.id, %{headshot_url: nil})
+      assert updated.headshot_url == nil
+    end
   end
 
   describe "delete_staff_member/1" do
