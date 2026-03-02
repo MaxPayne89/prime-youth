@@ -69,7 +69,10 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParser do
           | {:error, {:invalid_headers, [atom()]}}
           | {:error, [{pos_integer(), String.t()}]}
   def parse(csv) when is_binary(csv) do
-    trimmed = String.trim(csv)
+    trimmed =
+      csv
+      |> strip_bom()
+      |> String.trim()
 
     if trimmed == "" do
       {:error, :empty_csv}
@@ -77,6 +80,12 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParser do
       do_parse(trimmed)
     end
   end
+
+  # Trigger: spreadsheet apps (Google Sheets, Excel on Android) prepend UTF-8 BOM
+  # Why: the BOM bytes corrupt the first header, breaking column resolution
+  # Outcome: BOM is silently removed so the parser sees clean UTF-8 text
+  defp strip_bom(<<0xEF, 0xBB, 0xBF, rest::binary>>), do: rest
+  defp strip_bom(text), do: text
 
   # -- internal pipeline -----------------------------------------------------
 

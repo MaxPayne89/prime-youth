@@ -401,6 +401,27 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParserTest do
     end
   end
 
+  # -- BOM handling -----------------------------------------------------------
+
+  describe "BOM handling" do
+    test "parses CSV with UTF-8 BOM prefix correctly" do
+      csv = <<0xEF, 0xBB, 0xBF>> <> build_csv([row_with_overrides(child_first_name: "Avyan")])
+
+      assert {:ok, [row]} = CsvParser.parse(csv)
+      assert row.child_first_name == "Avyan"
+    end
+
+    test "BOM-only input returns empty_csv error" do
+      assert {:error, :empty_csv} = CsvParser.parse(<<0xEF, 0xBB, 0xBF>>)
+    end
+
+    test "BOM with only headers returns empty_csv error" do
+      csv = <<0xEF, 0xBB, 0xBF>> <> header_line() <> "\n"
+
+      assert {:error, :empty_csv} = CsvParser.parse(csv)
+    end
+  end
+
   # -- test row builder ------------------------------------------------------
 
   defp row_with_overrides(overrides) do
