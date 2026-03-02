@@ -22,7 +22,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers do
       [%DomainModel{}, %DomainModel{}]
 
   """
-  @spec to_domain_list([struct()], module()) :: [struct()]
+  @spec to_domain_list([input], module()) :: [output]
+        when input: term(), output: term()
   def to_domain_list(schemas, mapper_module) when is_list(schemas) and is_atom(mapper_module) do
     Enum.map(schemas, &mapper_module.to_domain/1)
   end
