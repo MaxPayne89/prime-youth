@@ -23,6 +23,11 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTes
       :ok
     end)
 
+    DomainEventBus.subscribe(KlassHero.Provider, :verification_document_rejected, fn event ->
+      TestEventPublisher.publish(event)
+      :ok
+    end)
+
     provider = ProviderFixtures.provider_profile_fixture()
     admin = AccountsFixtures.user_fixture(%{is_admin: true})
     {:ok, doc} = create_pending_document(provider.id)
@@ -136,6 +141,16 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.DocumentReviewTes
       # Then try to reject should fail
       reject_params = %{document_id: doc.id, reviewer_id: admin.id, reason: "Too late"}
       assert {:error, :document_not_pending} = RejectVerificationDocument.execute(reject_params)
+    end
+
+    test "dispatches :verification_document_rejected domain event", %{admin: admin, document: doc} do
+      params = %{document_id: doc.id, reviewer_id: admin.id, reason: "Expired document"}
+      assert {:ok, rejected} = RejectVerificationDocument.execute(params)
+
+      event = assert_event_published(:verification_document_rejected)
+      assert event.aggregate_id == doc.id
+      assert event.payload.provider_id == rejected.provider_profile_id
+      assert event.payload.reviewer_id == admin.id
     end
   end
 
