@@ -2,7 +2,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Services.ProgramPricing do
   @moduledoc """
   Domain service for program pricing operations.
 
-  Centralizes all price formatting and calculation logic for the Program Catalog context.
+  Centralizes all price formatting logic for the Program Catalog context.
   """
 
   @default_currency "€"

@@ -1,8 +1,11 @@
 defmodule KlassHeroWeb.BookingLiveTest do
   use KlassHeroWeb.ConnCase, async: true
 
+  import Ecto.Query
   import KlassHero.Factory
   import Phoenix.LiveViewTest
+
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
 
   describe "BookingLive authentication" do
     test "redirects to login when not authenticated", %{conn: conn} do
@@ -157,6 +160,24 @@ defmodule KlassHeroWeb.BookingLiveTest do
       |> render_submit()
 
       assert_redirect(view, ~p"/dashboard")
+
+      # Verify persisted enrollment has correct amounts
+      enrollment =
+        KlassHero.Repo.one!(
+          from e in EnrollmentSchema,
+            where: e.program_id == ^program.id,
+            select: %{
+              subtotal: e.subtotal,
+              total_amount: e.total_amount,
+              vat_amount: e.vat_amount,
+              card_fee_amount: e.card_fee_amount
+            }
+        )
+
+      assert Decimal.equal?(enrollment.total_amount, program.price)
+      assert Decimal.equal?(enrollment.subtotal, program.price)
+      assert Decimal.equal?(enrollment.vat_amount, Decimal.new("0.00"))
+      assert Decimal.equal?(enrollment.card_fee_amount, Decimal.new("0.00"))
     end
 
     test "back_to_program button navigates to program detail", %{conn: conn} do

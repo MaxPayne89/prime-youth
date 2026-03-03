@@ -362,7 +362,7 @@ defmodule KlassHeroWeb.BookingLive do
                   {gettext("Total Price:")}
                 </span>
                 <span class={[Theme.typography(:section_title), Theme.text_color(:primary)]}>
-                  €{Decimal.to_string(@total_amount)}
+                  {ProgramCatalog.format_price(@total_amount)}
                 </span>
               </div>
               <div class="flex justify-between text-sm">
@@ -491,7 +491,7 @@ defmodule KlassHeroWeb.BookingLive do
                 <.payment_option
                   value="transfer"
                   title={gettext("Cash / Bank Transfer")}
-                  description={gettext("Avoid card fees - pay cash or direct transfer")}
+                  description={gettext("Pay by cash or direct bank transfer")}
                   selected={@payment_method == "transfer"}
                   phx-click="select_payment_method"
                   phx-value-method="transfer"
@@ -503,11 +503,11 @@ defmodule KlassHeroWeb.BookingLive do
           <.booking_summary title={gettext("Payment Summary")}>
             <:line_item
               label={gettext("Program fee:")}
-              value={"€#{Decimal.to_string(@total_amount)}"}
+              value={ProgramCatalog.format_price(@total_amount)}
             />
             <:total
               label={gettext("Total due today:")}
-              value={"€#{Decimal.to_string(@total_amount)}"}
+              value={ProgramCatalog.format_price(@total_amount)}
             />
           </.booking_summary>
 
