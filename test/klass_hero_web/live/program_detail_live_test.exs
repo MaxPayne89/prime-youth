@@ -84,6 +84,23 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       assert_flash(view, :error, "Registration is not open for this program.")
     end
 
+    test "enroll_now event shows error flash when registration is upcoming", %{conn: conn} do
+      future_start = Date.add(Date.utc_today(), 7)
+      future_end = Date.add(Date.utc_today(), 14)
+
+      program =
+        insert(:program_schema,
+          registration_start_date: future_start,
+          registration_end_date: future_end
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      render_click(view, "enroll_now")
+
+      assert_flash(view, :error, "Registration is not open for this program.")
+    end
+
     test "back_to_programs event navigates to programs list", %{conn: conn} do
       program = insert(:program_schema)
       {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
