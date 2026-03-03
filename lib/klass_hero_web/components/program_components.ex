@@ -251,46 +251,84 @@ defmodule KlassHeroWeb.ProgramComponents do
       ]}
       {@rest}
     >
-      <!-- Program Image/Header -->
-      <div class={["h-48 relative overflow-hidden", @program.gradient_class]}>
-        <div class="absolute inset-0 bg-black/10"></div>
-        
-    <!-- Category Badge (top-left) -->
-        <div :if={Map.get(@program, :category)} class="absolute top-4 left-4 z-10">
-          <span class={[
-            "px-3 py-1 text-xs font-semibold bg-white/90 text-hero-black backdrop-blur-sm",
-            Theme.rounded(:full)
-          ]}>
-            {@program.category}
-          </span>
+      <%!-- Program Image/Header --%>
+      <%= if Map.get(@program, :cover_image_url) do %>
+        <%!-- Cover image fills header, no icon --%>
+        <div class="h-48 relative overflow-hidden">
+          <img
+            src={@program.cover_image_url}
+            alt={@program.title}
+            class="w-full h-full object-cover"
+          />
+
+          <%!-- Category Badge (top-left) --%>
+          <div :if={Map.get(@program, :category)} class="absolute top-4 left-4 z-10">
+            <span class={[
+              "px-3 py-1 text-xs font-semibold bg-white/90 text-hero-black backdrop-blur-sm",
+              Theme.rounded(:full)
+            ]}>
+              {@program.category}
+            </span>
+          </div>
+
+          <%!-- ONLINE Badge --%>
+          <div :if={Map.get(@program, :is_online, false)} class="absolute top-4 left-4 mt-10 z-10">
+            <span class={[
+              "px-3 py-1 text-xs font-semibold bg-hero-blue-600 text-white",
+              Theme.rounded(:full)
+            ]}>
+              ONLINE
+            </span>
+          </div>
+
+          <%!-- Spots Left Badge (bottom-left) --%>
+          <.spots_badge
+            :if={@program.spots_left && @program.spots_left <= 5}
+            spots_left={@program.spots_left}
+          />
         </div>
-        
-    <!-- ONLINE Badge -->
-        <div :if={Map.get(@program, :is_online, false)} class="absolute top-4 left-4 mt-10 z-10">
-          <span class={[
-            "px-3 py-1 text-xs font-semibold bg-hero-blue-600 text-white",
-            Theme.rounded(:full)
-          ]}>
-            ONLINE
-          </span>
-        </div>
-        
-    <!-- Spots Left Badge (bottom-left) -->
-        <.spots_badge
-          :if={@program.spots_left && @program.spots_left <= 5}
-          spots_left={@program.spots_left}
-        />
-        
-    <!-- Program Icon -->
-        <div class="absolute inset-0 flex items-center justify-center">
-          <div class={[
-            "w-16 h-16 bg-white/20 backdrop-blur-sm flex items-center justify-center",
-            Theme.rounded(:full)
-          ]}>
-            <.icon name={@program.icon_name} class="w-8 h-8 text-white" />
+      <% else %>
+        <%!-- Gradient fallback with icon when no cover image --%>
+        <div class={["h-48 relative overflow-hidden", @program.gradient_class]}>
+          <div class="absolute inset-0 bg-black/10"></div>
+
+          <%!-- Category Badge (top-left) --%>
+          <div :if={Map.get(@program, :category)} class="absolute top-4 left-4 z-10">
+            <span class={[
+              "px-3 py-1 text-xs font-semibold bg-white/90 text-hero-black backdrop-blur-sm",
+              Theme.rounded(:full)
+            ]}>
+              {@program.category}
+            </span>
+          </div>
+
+          <%!-- ONLINE Badge --%>
+          <div :if={Map.get(@program, :is_online, false)} class="absolute top-4 left-4 mt-10 z-10">
+            <span class={[
+              "px-3 py-1 text-xs font-semibold bg-hero-blue-600 text-white",
+              Theme.rounded(:full)
+            ]}>
+              ONLINE
+            </span>
+          </div>
+
+          <%!-- Spots Left Badge (bottom-left) --%>
+          <.spots_badge
+            :if={@program.spots_left && @program.spots_left <= 5}
+            spots_left={@program.spots_left}
+          />
+
+          <%!-- Program Icon --%>
+          <div class="absolute inset-0 flex items-center justify-center">
+            <div class={[
+              "w-16 h-16 bg-white/20 backdrop-blur-sm flex items-center justify-center",
+              Theme.rounded(:full)
+            ]}>
+              <.icon name={@program.icon_name} class="w-8 h-8 text-white" />
+            </div>
           </div>
         </div>
-      </div>
+      <% end %>
       
     <!-- Program Info -->
       <div class="p-6">
