@@ -155,77 +155,113 @@ defmodule KlassHeroWeb.ProgramDetailLive do
     """
   end
 
+  attr :program, :map, required: true
+  attr :wrapper_class, :string, required: true
+
+  defp hero_info_overlay(assigns) do
+    ~H"""
+    <div class={@wrapper_class}>
+      <div class="max-w-4xl mx-auto text-center text-white">
+        <h1 class={[Theme.typography(:page_title), "mb-3"]}>
+          {@program.title}
+        </h1>
+        <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-white/90 mb-4">
+          <%= if schedule = ProgramPresenter.format_schedule(@program) do %>
+            <span class="flex items-center">
+              <.icon name="hero-clock" class="w-4 h-4 mr-1" />
+              <%= if schedule.days do %>
+                {schedule.days}
+                <%= if schedule.times do %>
+                  <span class="mx-1">&middot;</span>
+                  {schedule.times}
+                <% end %>
+              <% else %>
+                {schedule.times}
+              <% end %>
+            </span>
+          <% else %>
+            <span class="flex items-center">
+              <.icon name="hero-clock" class="w-4 h-4 mr-1" />
+              {gettext("Schedule TBD")}
+            </span>
+          <% end %>
+          <span :if={@program.age_range} class="flex items-center">
+            <.icon name="hero-user-group" class="w-4 h-4 mr-1" />
+            {gettext("Ages %{range}", range: @program.age_range)}
+          </span>
+          <span :if={@program.location} class="flex items-center">
+            <.icon name="hero-map-pin" class="w-4 h-4 mr-1" /> {@program.location}
+          </span>
+        </div>
+        <%!-- Badges --%>
+        <div class="flex flex-wrap justify-center gap-2">
+          <span class={[
+            "px-3 py-1 text-xs font-medium bg-white/90 backdrop-blur-sm text-green-700",
+            Theme.rounded(:full)
+          ]}>
+            {gettext("✓ No hidden fees")}
+          </span>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
     <div class={["min-h-screen pb-24 md:pb-6", Theme.bg(:muted)]}>
       <%!-- Hero Section --%>
-      <div class={["relative", Theme.gradient(:hero)]}>
-        <div class="absolute inset-0 bg-black/20"></div>
+      <%= if @program.cover_image_url do %>
+        <div id="program-hero" class="relative">
+          <img
+            id="program-hero-image"
+            src={@program.cover_image_url}
+            alt={@program.title}
+            class="w-full h-64 sm:h-80 object-cover"
+          />
+          <%!-- Subtle bottom gradient for text readability --%>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
 
-        <%!-- Navigation Bar --%>
-        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-          <div class="flex items-center justify-between">
-            <.back_button phx-click="back_to_programs" />
-          </div>
-        </div>
-
-        <%!-- Program Icon --%>
-        <div class="relative flex justify-center py-6">
-          <div class={[
-            "w-20 h-20 bg-white/20 backdrop-blur-sm flex items-center justify-center",
-            Theme.rounded(:full)
-          ]}>
-            <.icon name={@program_icon_name} class="w-10 h-10 text-white" />
-          </div>
-        </div>
-
-        <%!-- Program Title & Info (Centered in Hero) --%>
-        <div class="relative pb-12 px-4">
-          <div class="max-w-4xl mx-auto text-center text-white">
-            <h1 class={[Theme.typography(:page_title), "mb-3"]}>
-              {@program.title}
-            </h1>
-            <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-white/90 mb-4">
-              <%= if schedule = ProgramPresenter.format_schedule(@program) do %>
-                <span class="flex items-center">
-                  <.icon name="hero-clock" class="w-4 h-4 mr-1" />
-                  <%= if schedule.days do %>
-                    {schedule.days}
-                    <%= if schedule.times do %>
-                      <span class="mx-1">&middot;</span>
-                      {schedule.times}
-                    <% end %>
-                  <% else %>
-                    {schedule.times}
-                  <% end %>
-                </span>
-              <% else %>
-                <span class="flex items-center">
-                  <.icon name="hero-clock" class="w-4 h-4 mr-1" />
-                  {gettext("Schedule TBD")}
-                </span>
-              <% end %>
-              <span :if={@program.age_range} class="flex items-center">
-                <.icon name="hero-user-group" class="w-4 h-4 mr-1" />
-                {gettext("Ages %{range}", range: @program.age_range)}
-              </span>
-              <span :if={@program.location} class="flex items-center">
-                <.icon name="hero-map-pin" class="w-4 h-4 mr-1" /> {@program.location}
-              </span>
-            </div>
-            <%!-- Badges --%>
-            <div class="flex flex-wrap justify-center gap-2">
-              <span class={[
-                "px-3 py-1 text-xs font-medium bg-white/90 backdrop-blur-sm text-green-700",
-                Theme.rounded(:full)
-              ]}>
-                {gettext("✓ No hidden fees")}
-              </span>
+          <%!-- Navigation Bar --%>
+          <div class="absolute top-0 left-0 right-0 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <div class="flex items-center justify-between">
+              <.back_button phx-click="back_to_programs" />
             </div>
           </div>
+
+          <.hero_info_overlay
+            program={@program}
+            wrapper_class="absolute bottom-0 left-0 right-0 pb-8 px-4"
+          />
         </div>
-      </div>
+      <% else %>
+        <div id="program-hero" class={["relative", Theme.gradient(:hero)]}>
+          <div class="absolute inset-0 bg-black/20"></div>
+
+          <%!-- Navigation Bar --%>
+          <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <div class="flex items-center justify-between">
+              <.back_button phx-click="back_to_programs" />
+            </div>
+          </div>
+
+          <%!-- Program Icon --%>
+          <div class="relative flex justify-center py-6">
+            <div class={[
+              "w-20 h-20 bg-white/20 backdrop-blur-sm flex items-center justify-center",
+              Theme.rounded(:full)
+            ]}>
+              <.icon name={@program_icon_name} class="w-10 h-10 text-white" />
+            </div>
+          </div>
+
+          <.hero_info_overlay
+            program={@program}
+            wrapper_class="relative pb-12 px-4"
+          />
+        </div>
+      <% end %>
 
       <%!-- Registration Status Banner --%>
       <div
@@ -264,19 +300,13 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p class={[Theme.typography(:page_title), Theme.text_color(:heading)]}>
-                {ProgramCatalog.format_total_price(@program.price)}
+                {ProgramCatalog.format_price(@program.price)}
               </p>
               <%= if date_range = ProgramPresenter.format_date_range_brief(@program) do %>
                 <p class={["text-sm", Theme.text_color(:muted)]}>
-                  {gettext("Total: %{range}", range: date_range)}
+                  {date_range}
                 </p>
               <% end %>
-              <p class={["text-xs mt-1", Theme.text_color(:subtle)]}>
-                {gettext("%{price}/week • %{weeks} weeks",
-                  price: ProgramCatalog.format_price(@program.price),
-                  weeks: ProgramCatalog.default_program_weeks()
-                )}
-              </p>
               <%!-- TODO: show instructor name when instructor data is wired to programs --%>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
@@ -486,7 +516,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             registration_status={@registration_status}
             label={
               gettext("Enroll Now - %{price}",
-                price: ProgramCatalog.format_total_price(@program.price)
+                price: ProgramCatalog.format_price(@program.price)
               )
             }
           />
@@ -502,10 +532,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         <div class="flex items-center justify-between gap-4 max-w-4xl mx-auto">
           <div>
             <p class={["font-semibold", Theme.text_color(:heading)]}>
-              {ProgramCatalog.format_total_price(@program.price)}
-            </p>
-            <p class={["text-xs", Theme.text_color(:muted)]}>
-              {gettext("%{price}/week", price: ProgramCatalog.format_price(@program.price))}
+              {ProgramCatalog.format_price(@program.price)}
             </p>
           </div>
           <.enroll_button

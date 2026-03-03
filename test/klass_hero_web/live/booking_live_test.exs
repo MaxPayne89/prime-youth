@@ -1,8 +1,11 @@
 defmodule KlassHeroWeb.BookingLiveTest do
   use KlassHeroWeb.ConnCase, async: true
 
+  import Ecto.Query
   import KlassHero.Factory
   import Phoenix.LiveViewTest
+
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema
 
   describe "BookingLive authentication" do
     test "redirects to login when not authenticated", %{conn: conn} do
@@ -78,48 +81,37 @@ defmodule KlassHeroWeb.BookingLiveTest do
     end
   end
 
-  describe "BookingLive fee calculations" do
+  describe "BookingLive pricing display" do
     setup :register_and_log_in_user
 
-    test "displays correct fee breakdown for default program (card payment)", %{conn: conn} do
-      # Factory default: price=100.00, no date range → 1 week
-      # program_fee=100.00, registration=25.00, subtotal=125.00
-      # VAT 19%=23.75, card_fee=2.50, total=151.25
-      program = insert(:program_schema, price: Decimal.new("100.00"))
+    test "displays total matching program price exactly", %{conn: conn} do
+      program = insert(:program_schema, price: Decimal.new("149.99"))
       {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}/booking")
 
-      assert html =~ "Program fee (1 weeks):"
-      assert html =~ "€100.00"
-      assert html =~ "€125.00"
-      assert html =~ "VAT (19%):"
-      assert html =~ "€23.75"
-      assert html =~ "Credit card fee:"
-      assert html =~ "€2.50"
-      assert html =~ "€151.25"
+      assert html =~ "Program fee:"
+      assert html =~ "€149.99"
+      assert html =~ "Total due today:"
+      refute html =~ "Registration fee"
+      refute html =~ "VAT"
+      refute html =~ "Credit card fee"
     end
 
-    test "switching to transfer removes card fee and updates total", %{conn: conn} do
-      program = insert(:program_schema, price: Decimal.new("100.00"))
+    test "total is the same regardless of payment method", %{conn: conn} do
+      program = insert(:program_schema, price: Decimal.new("75.00"))
       {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}/booking")
 
-      # Switch to bank transfer
+      # Switch to transfer — total unchanged
       view
       |> element("[phx-click='select_payment_method'][phx-value-method='transfer']")
       |> render_click()
 
       html = render(view)
-
-      # Card fee should be gone, total should be subtotal + VAT only
-      # 125.00 + 23.75 = 148.75
+      assert html =~ "€75.00"
       refute html =~ "Credit card fee"
-      assert html =~ "€148.75"
     end
 
-    test "multi-week program calculates correct program fee", %{conn: conn} do
-      # 8-week program at €50/week → program_fee = 400.00
-      # subtotal = 400.00 + 25.00 = 425.00
-      # VAT = 425.00 * 0.19 = 80.75
-      # card_fee = 2.50, total = 508.25
+    test "multi-week program total is still just program price, not multiplied", %{conn: conn} do
+      # 8-week program at €50 — total should be €50, NOT €400 (8 × 50)
       program =
         insert(:program_schema,
           price: Decimal.new("50.00"),
@@ -129,11 +121,8 @@ defmodule KlassHeroWeb.BookingLiveTest do
 
       {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}/booking")
 
-      assert html =~ "Program fee (8 weeks):"
-      assert html =~ "€400.00"
-      assert html =~ "€425.00"
-      assert html =~ "€80.75"
-      assert html =~ "€508.25"
+      assert html =~ "€50.00"
+      refute html =~ "€400.00"
     end
   end
 
@@ -171,6 +160,24 @@ defmodule KlassHeroWeb.BookingLiveTest do
       |> render_submit()
 
       assert_redirect(view, ~p"/dashboard")
+
+      # Verify persisted enrollment has correct amounts
+      enrollment =
+        KlassHero.Repo.one!(
+          from e in EnrollmentSchema,
+            where: e.program_id == ^program.id,
+            select: %{
+              subtotal: e.subtotal,
+              total_amount: e.total_amount,
+              vat_amount: e.vat_amount,
+              card_fee_amount: e.card_fee_amount
+            }
+        )
+
+      assert Decimal.equal?(enrollment.total_amount, program.price)
+      assert Decimal.equal?(enrollment.subtotal, program.price)
+      assert Decimal.equal?(enrollment.vat_amount, Decimal.new("0.00"))
+      assert Decimal.equal?(enrollment.card_fee_amount, Decimal.new("0.00"))
     end
 
     test "back_to_program button navigates to program detail", %{conn: conn} do
@@ -184,22 +191,22 @@ defmodule KlassHeroWeb.BookingLiveTest do
       assert_redirect(view, ~p"/programs/#{program.id}")
     end
 
-    test "select_payment_method updates payment method and recalculates totals", %{conn: conn} do
+    test "select_payment_method updates payment method selection", %{conn: conn} do
       program = insert(:program_schema)
       {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}/booking")
 
-      # Initially card payment is selected
-      html = render(view)
-      assert html =~ "Credit card fee"
-
-      # Switch to transfer payment
+      # Switch to transfer
       view
       |> element("[phx-click='select_payment_method'][phx-value-method='transfer']")
       |> render_click()
 
-      # Card fee should be removed
-      html = render(view)
-      refute html =~ "Credit card fee"
+      # Switch back to card
+      view
+      |> element("[phx-click='select_payment_method'][phx-value-method='card']")
+      |> render_click()
+
+      # No crash, page still renders
+      assert has_element?(view, "h1", "Enrollment")
     end
   end
 end

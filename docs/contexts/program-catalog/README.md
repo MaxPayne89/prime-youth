@@ -68,7 +68,7 @@
 - **Projections subscribe-before-bootstrap.** ProgramListings subscribes to PubSub topics before bootstrapping from the write model. This prevents missing events that arrive between bootstrap and subscription. Bootstrap retries up to 3 times with exponential backoff before crashing to the supervisor.
 - **VerifiedProviders starts before ProgramListings.** The supervision tree ensures the in-memory verified provider set is available when ProgramListings bootstraps, so each listing gets an accurate `provider_verified` flag.
 - **Categories are a closed set.** Valid categories: sports, arts, music, education, life-skills, camps, workshops. "all" is a filter-only pseudo-category, not assignable to a program.
-- **Pricing uses EUR exclusively.** No multi-currency support. Total price calculated as `price x 4 weeks`.
+- **Pricing uses EUR exclusively.** No multi-currency support. Total price is the program price set by the provider.
 - **Optimistic locking on updates.** If two users edit the same program concurrently, the second save receives `:stale_data` error instead of silently overwriting.
 - **Instructor is a value object, not a reference.** Program Catalog does not depend on or reach into the Provider context at runtime — the Instructor VO is populated from persistence data only.
 - **Search is in-memory, word-boundary matching.** Queries match the start of words in program titles. No full-text database search. Max query length: 100 characters.
@@ -83,7 +83,6 @@
 
 - [NEEDS INPUT] Should featured programs have a curation mechanism (editorial picks, highest-rated, most-enrolled) rather than taking the first two?
 - [NEEDS INPUT] Should trending searches be driven by actual search analytics instead of a hardcoded list?
-- [NEEDS INPUT] Is the 4-week default for `calculate_total` always correct, or should program duration be a field on the program itself?
 - [NEEDS INPUT] Should the `end_date` field be required for all programs, or only for time-bound ones like camps?
 - [NEEDS INPUT] Is there a need for program archiving/soft-delete, or is the current hard-delete sufficient?
 - [NEEDS INPUT] Should the verified-provider projection affect program visibility (i.e., hide programs from unverified providers)?

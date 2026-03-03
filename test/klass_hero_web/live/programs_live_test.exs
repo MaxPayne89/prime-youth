@@ -139,6 +139,26 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
       # Verify Load More button is present since we have 100 programs total
       assert has_element?(view, "button[phx-click='load_more']")
     end
+
+    test "displays cover image on program card when cover_image_url is present", %{conn: conn} do
+      insert_program(%{
+        title: "Swimming Lessons",
+        cover_image_url: "https://example.com/swimming.jpg"
+      })
+
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      assert has_element?(view, "img[src='https://example.com/swimming.jpg']")
+    end
+
+    test "displays gradient fallback when program has no cover image", %{conn: conn} do
+      program = insert_program(%{title: "Chess Club", cover_image_url: nil})
+
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      # No cover image should be rendered inside this program's card
+      refute has_element?(view, "[data-program-id='#{program.id}'] img[src]")
+    end
   end
 
   # T057: Filter behavior validation tests
