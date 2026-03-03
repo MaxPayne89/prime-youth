@@ -10,8 +10,6 @@ defmodule KlassHeroWeb.BookingLive do
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
 
-  require Logger
-
   @impl true
   def mount(%{"id" => program_id}, _session, socket) do
     with {:ok, program} <- fetch_program(program_id),
@@ -21,21 +19,8 @@ defmodule KlassHeroWeb.BookingLive do
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
       children_by_id = Map.new(children, &{&1.id, &1})
 
-      # Program price is a Decimal — convert for fee calculator
-      weekly_fee = if program.price, do: Decimal.to_float(program.price), else: 0.0
-
-      # Calculate weeks from program date range
-      weeks_count = calculate_weeks(program.start_date, program.end_date)
-
-      # Trigger: booking config missing from application env
-      # Why: fail fast with clear error instead of cryptic nil crashes in templates
-      # Outcome: raises ArgumentError at mount time pointing to missing config
-      booking_config = Application.fetch_env!(:klass_hero, :booking)
-
-      # Trigger: program spans multiple weeks
-      # Why: fee calculator is generic — multiply before passing so subtotal reflects full duration
-      # Outcome: booking summary shows correct total program cost, not just one week
-      program_fee = weekly_fee * weeks_count
+      # Provider's price is the total amount the parent pays — no derived fees
+      total_amount = program.price || Decimal.new("0.00")
 
       socket =
         socket
@@ -49,13 +34,8 @@ defmodule KlassHeroWeb.BookingLive do
           eligibility_status: nil,
           special_requirements: "",
           payment_method: "card",
-          program_fee: program_fee,
-          weeks_count: weeks_count,
-          registration_fee: booking_config[:registration_fee],
-          vat_rate: booking_config[:vat_rate],
-          card_fee: booking_config[:card_processing_fee]
+          total_amount: total_amount
         )
-        |> apply_fee_calculation()
         |> assign_booking_limit_info()
 
       {:ok, socket}
@@ -100,12 +80,7 @@ defmodule KlassHeroWeb.BookingLive do
 
   @impl true
   def handle_event("select_payment_method", %{"method" => method}, socket) do
-    socket =
-      socket
-      |> assign(payment_method: method)
-      |> apply_fee_calculation()
-
-    {:noreply, socket}
+    {:noreply, assign(socket, payment_method: method)}
   end
 
   @impl true
@@ -238,24 +213,6 @@ defmodule KlassHeroWeb.BookingLive do
     end
   end
 
-  defp apply_fee_calculation(socket) do
-    {:ok, fees} =
-      Enrollment.calculate_fees(%{
-        weekly_fee: socket.assigns.program_fee,
-        registration_fee: socket.assigns.registration_fee,
-        vat_rate: socket.assigns.vat_rate,
-        card_fee: socket.assigns.card_fee,
-        payment_method: socket.assigns.payment_method
-      })
-
-    assign(socket,
-      subtotal: fees.subtotal,
-      vat_amount: fees.vat_amount,
-      card_fee_amount: fees.card_fee_amount,
-      total: fees.total
-    )
-  end
-
   defp validate_registration_open(program) do
     # Trigger: program has a registration_period field
     # Why: prevent bookings outside the configured registration window
@@ -303,10 +260,10 @@ defmodule KlassHeroWeb.BookingLive do
       program_id: socket.assigns.program.id,
       child_id: params["child_id"],
       payment_method: socket.assigns.payment_method,
-      subtotal: socket.assigns.subtotal,
-      vat_amount: socket.assigns.vat_amount,
-      card_fee_amount: socket.assigns.card_fee_amount,
-      total_amount: socket.assigns.total,
+      subtotal: Decimal.new("0.00"),
+      vat_amount: Decimal.new("0.00"),
+      card_fee_amount: Decimal.new("0.00"),
+      total_amount: socket.assigns.total_amount,
       special_requirements: params["special_requirements"]
     }
 
@@ -333,36 +290,6 @@ defmodule KlassHeroWeb.BookingLive do
           bookings_remaining: :unlimited
         )
     end
-  end
-
-  defp calculate_weeks(nil, end_date) do
-    Logger.warning("calculate_weeks: nil start_date, defaulting to 1 week",
-      end_date: inspect(end_date)
-    )
-
-    1
-  end
-
-  defp calculate_weeks(start_date, nil) do
-    Logger.warning("calculate_weeks: nil end_date, defaulting to 1 week",
-      start_date: inspect(start_date)
-    )
-
-    1
-  end
-
-  defp calculate_weeks(start_date, end_date) do
-    # Trigger: start_date is after end_date
-    # Why: reversed dates produce negative diff, max(1) silently masks the error
-    # Outcome: logs warning for investigation while still returning safe default
-    if Date.after?(start_date, end_date) do
-      Logger.warning("calculate_weeks: reversed dates, defaulting to 1 week",
-        start_date: start_date,
-        end_date: end_date
-      )
-    end
-
-    Date.diff(end_date, start_date) |> div(7) |> max(1)
   end
 
   defp build_special_requirements(nil), do: ""
@@ -418,7 +345,7 @@ defmodule KlassHeroWeb.BookingLive do
                   {gettext("Total Price:")}
                 </span>
                 <span class={[Theme.typography(:section_title), Theme.text_color(:primary)]}>
-                  €{:erlang.float_to_binary(@total, decimals: 2)}
+                  €{Decimal.to_string(@total_amount)}
                 </span>
               </div>
               <div class="flex justify-between text-sm">
@@ -558,31 +485,12 @@ defmodule KlassHeroWeb.BookingLive do
 
           <.booking_summary title={gettext("Payment Summary")}>
             <:line_item
-              label={gettext("Program fee (%{count} weeks):", count: @weeks_count)}
-              value={"€#{:erlang.float_to_binary(@program_fee, decimals: 2)}"}
-            />
-            <:line_item
-              label={gettext("Registration fee:")}
-              value={"€#{:erlang.float_to_binary(@registration_fee, decimals: 2)}"}
-            />
-            <:subtotal
-              label={gettext("Subtotal:")}
-              value={"€#{:erlang.float_to_binary(@subtotal, decimals: 2)}"}
-            />
-            <:line_item
-              label={gettext("VAT (%{rate}%):", rate: trunc(@vat_rate * 100))}
-              value={"€#{:erlang.float_to_binary(@vat_amount, decimals: 2)}"}
-              after_subtotal={true}
-            />
-            <:line_item
-              :if={@payment_method == "card"}
-              label={gettext("Credit card fee:")}
-              value={"€#{:erlang.float_to_binary(@card_fee_amount, decimals: 2)}"}
-              after_subtotal={true}
+              label={gettext("Program fee:")}
+              value={"€#{Decimal.to_string(@total_amount)}"}
             />
             <:total
               label={gettext("Total due today:")}
-              value={"€#{:erlang.float_to_binary(@total, decimals: 2)}"}
+              value={"€#{Decimal.to_string(@total_amount)}"}
             />
           </.booking_summary>
 
