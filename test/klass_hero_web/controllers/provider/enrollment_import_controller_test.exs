@@ -156,6 +156,33 @@ defmodule KlassHeroWeb.Provider.EnrollmentImportControllerTest do
       assert Map.has_key?(error, "errors")
     end
 
+    test "validation error response includes specific field names" do
+      %{conn: conn, provider: provider} = register_and_log_in_provider(%{conn: build_conn()})
+      insert(:program_schema, provider_id: provider.id, title: "Ballsports & Parkour")
+
+      csv = build_csv([%{email: "", program: "Ballsports & Parkour"}])
+      path = write_tmp_csv(csv)
+
+      conn = post(conn, ~p"/provider/enrollment/import", %{"file" => upload(path)})
+
+      assert %{"errors" => %{"validation_errors" => [error]}} = json_response(conn, 422)
+      assert error["row"] == 1
+      assert %{"guardian_email" => "is required"} = error["errors"]
+    end
+
+    test "BOM-prefixed CSV imports successfully" do
+      %{conn: conn, provider: provider} = register_and_log_in_provider(%{conn: build_conn()})
+      insert(:program_schema, provider_id: provider.id, title: "Ballsports & Parkour")
+
+      bom = <<0xEF, 0xBB, 0xBF>>
+      csv = bom <> build_csv([%{first: "Alice", last: "Smith", email: "alice@test.com"}])
+      path = write_tmp_csv(csv)
+
+      conn = post(conn, ~p"/provider/enrollment/import", %{"file" => upload(path)})
+
+      assert json_response(conn, 201) == %{"created" => 1}
+    end
+
     test "file exceeding 2MB returns 413" do
       %{conn: conn} = register_and_log_in_provider(%{conn: build_conn()})
 
