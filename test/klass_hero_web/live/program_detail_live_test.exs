@@ -164,4 +164,20 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       refute html =~ "jane.secret@example.com"
     end
   end
+
+  describe "pricing display" do
+    test "renders formatted program price", %{conn: conn} do
+      program = insert(:program_schema, price: Decimal.new("149.99"))
+      {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert html =~ "€149.99"
+    end
+
+    test "bottom CTA includes price in button label", %{conn: conn} do
+      program = insert(:program_schema, price: Decimal.new("149.99"))
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "#enroll-bottom-cta", "Enroll Now - €149.99")
+    end
+  end
 end
