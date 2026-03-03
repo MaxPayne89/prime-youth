@@ -690,42 +690,37 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     provider = socket.assigns.current_scope.provider
 
     # Trigger: cover image upload may succeed, be absent, or fail
-    # Why: upload failures must not be silently ignored (mirrors save_profile pattern)
-    # Outcome: :upload_error aborts save; :no_upload proceeds without cover; {:ok, url} includes it
-    case upload_program_cover(socket, provider.id) do
-      :upload_error ->
-        {:noreply,
-         put_flash(socket, :error, gettext("Cover image upload failed. Please try again."))}
+    # Why: upload failures warn but don't block program save
+    # Outcome: all results flow through; cover_failed appends warning flash after save
+    cover_result = upload_program_cover(socket, provider.id)
 
-      cover_result ->
-        attrs =
-          %{
-            provider_id: provider.id,
-            title: params["title"],
-            description: params["description"],
-            category: params["category"],
-            price: parse_decimal(params["price"]),
-            location: presence(params["location"]),
-            meeting_days: parse_meeting_days(params["meeting_days"]),
-            meeting_start_time: parse_time(params["meeting_start_time"]),
-            meeting_end_time: parse_time(params["meeting_end_time"]),
-            start_date: parse_date(params["start_date"]),
-            end_date: parse_date(params["end_date"]),
-            registration_start_date: parse_date(params["registration_start_date"]),
-            registration_end_date: parse_date(params["registration_end_date"])
-          }
-          |> maybe_add_cover_image(cover_result)
+    attrs =
+      %{
+        provider_id: provider.id,
+        title: params["title"],
+        description: params["description"],
+        category: params["category"],
+        price: parse_decimal(params["price"]),
+        location: presence(params["location"]),
+        meeting_days: parse_meeting_days(params["meeting_days"]),
+        meeting_start_time: parse_time(params["meeting_start_time"]),
+        meeting_end_time: parse_time(params["meeting_end_time"]),
+        start_date: parse_date(params["start_date"]),
+        end_date: parse_date(params["end_date"]),
+        registration_start_date: parse_date(params["registration_start_date"]),
+        registration_end_date: parse_date(params["registration_end_date"])
+      }
+      |> maybe_add_cover_image(cover_result)
 
-        # Trigger: editing_program_id is nil for new programs, a UUID for edits
-        # Why: reuse the same form and submit handler for both create and edit
-        # Outcome: dispatch to create_new_program or update_existing_program
-        case socket.assigns.editing_program_id do
-          nil ->
-            create_new_program(socket, attrs, all_params)
+    # Trigger: editing_program_id is nil for new programs, a UUID for edits
+    # Why: reuse the same form and submit handler for both create and edit
+    # Outcome: dispatch to create_new_program or update_existing_program
+    case socket.assigns.editing_program_id do
+      nil ->
+        create_new_program(socket, attrs, all_params, cover_result)
 
-          program_id ->
-            update_existing_program(socket, program_id, attrs, all_params)
-        end
+      program_id ->
+        update_existing_program(socket, program_id, attrs, all_params, cover_result)
     end
   end
 
@@ -753,7 +748,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # Program Save Helpers
   # ============================================================================
 
-  defp create_new_program(socket, attrs, all_params) do
+  defp create_new_program(socket, attrs, all_params, cover_result) do
     program_params = all_params["program_schema"] || %{}
     enrollment_params = all_params["enrollment_policy"] || %{}
     participant_policy_params = all_params["participant_policy"] || %{}
@@ -773,6 +768,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       {:noreply,
        socket
        |> flash_for_policy_result(policy_result)
+       |> maybe_flash_cover_warning(cover_result)
        |> stream_insert(:programs, view)
        |> assign(
          show_program_form: false,
@@ -802,7 +798,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end
   end
 
-  defp update_existing_program(socket, program_id, attrs, all_params) do
+  defp update_existing_program(socket, program_id, attrs, all_params, cover_result) do
     program_params = all_params["program_schema"] || %{}
     enrollment_params = all_params["enrollment_policy"] || %{}
     participant_policy_params = all_params["participant_policy"] || %{}
@@ -824,6 +820,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       {:noreply,
        socket
        |> put_flash(:info, gettext("Program updated successfully."))
+       |> maybe_flash_cover_warning(cover_result)
        |> stream_insert(:programs, view)
        |> assign(
          show_program_form: false,
@@ -1563,10 +1560,22 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp maybe_add_cover_image(attrs, {:ok, url}), do: Map.put(attrs, :cover_image_url, url)
   defp maybe_add_cover_image(attrs, :no_upload), do: attrs
 
-  defp maybe_add_cover_image(attrs, :upload_error) do
-    Logger.warning("[DashboardLive] Cover image upload failed")
-    attrs
+  defp maybe_add_cover_image(attrs, :upload_error), do: attrs
+
+  # Trigger: cover upload failed but program saved successfully
+  # Why: non-blocking UX — warn about upload failure without losing the program save
+  # Outcome: warning flash appended so user knows to retry the cover image
+  defp maybe_flash_cover_warning(socket, :upload_error) do
+    put_flash(
+      socket,
+      :warning,
+      gettext(
+        "Program saved, but the cover image upload failed. You can re-upload it by editing the program."
+      )
+    )
   end
+
+  defp maybe_flash_cover_warning(socket, _cover_result), do: socket
 
   # Trigger: instructor_id may be nil/"" (none selected) or a valid UUID
   # Why: instructor is optional; when selected, we resolve display data from Provider
