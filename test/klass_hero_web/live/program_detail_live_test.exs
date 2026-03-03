@@ -113,6 +113,69 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
     end
   end
 
+  describe "ProgramDetailLive cover image" do
+    test "renders cover image in hero when cover_image_url is present", %{conn: conn} do
+      program =
+        insert(:program_schema,
+          title: "Painting Class",
+          cover_image_url: "https://example.com/painting.jpg"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "img[src='https://example.com/painting.jpg']")
+    end
+
+    test "renders gradient hero when no cover image", %{conn: conn} do
+      program = insert(:program_schema, title: "Chess Club", cover_image_url: nil)
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      refute has_element?(view, "#program-hero-image")
+      assert has_element?(view, "#program-hero")
+    end
+  end
+
+  describe "hero info overlay" do
+    test "renders title and schedule info with cover image", %{conn: conn} do
+      program =
+        insert(:program_schema,
+          title: "Yoga for Kids",
+          cover_image_url: "https://example.com/yoga.jpg",
+          meeting_days: ["Tuesday", "Thursday"],
+          meeting_start_time: ~T[10:00:00],
+          meeting_end_time: ~T[11:00:00],
+          age_range: "5-10 years",
+          location: "Berlin"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "h1", "Yoga for Kids")
+      assert has_element?(view, "#program-hero-image")
+      assert has_element?(view, "[phx-click='back_to_programs']")
+    end
+
+    test "renders title and schedule info with gradient fallback", %{conn: conn} do
+      program =
+        insert(:program_schema,
+          title: "Chess Club",
+          cover_image_url: nil,
+          meeting_days: ["Wednesday"],
+          meeting_start_time: ~T[14:00:00],
+          meeting_end_time: ~T[15:30:00],
+          age_range: "8-12 years",
+          location: "Munich"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "h1", "Chess Club")
+      refute has_element?(view, "#program-hero-image")
+      assert has_element?(view, "#program-hero")
+      assert has_element?(view, "[phx-click='back_to_programs']")
+    end
+  end
+
   describe "staff member display" do
     test "program with staff shows team member names", %{conn: conn} do
       provider = provider_profile_fixture()
