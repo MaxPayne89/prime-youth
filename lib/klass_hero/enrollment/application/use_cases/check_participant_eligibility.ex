@@ -21,9 +21,9 @@ defmodule KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility 
                                  :for_resolving_participant_details
                                ])
   @program_schedule_adapter Application.compile_env!(:klass_hero, [
-                               :enrollment,
-                               :for_resolving_program_schedule
-                             ])
+                              :enrollment,
+                              :for_resolving_program_schedule
+                            ])
 
   @spec execute(binary(), binary()) ::
           {:ok, :eligible} | {:error, :ineligible, [String.t()]} | {:error, term()}
