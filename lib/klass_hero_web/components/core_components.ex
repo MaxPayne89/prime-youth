@@ -23,7 +23,7 @@ defmodule KlassHeroWeb.CoreComponents do
   attr :id, :string, doc: "the optional id of flash container"
   attr :flash, :map, default: %{}, doc: "the map of flash messages to display"
   attr :title, :string, default: nil
-  attr :kind, :atom, values: [:info, :error], doc: "used for styling and flash lookup"
+  attr :kind, :atom, values: [:info, :error, :warning], doc: "used for styling and flash lookup"
   attr :rest, :global, doc: "the arbitrary HTML attributes to add to the flash container"
 
   slot :inner_block, doc: "the optional inner block that renders the flash message"
@@ -43,7 +43,8 @@ defmodule KlassHeroWeb.CoreComponents do
       <div class={[
         "rounded-xl shadow-lg p-4 flex items-start gap-3",
         @kind == :info && "bg-blue-50 border border-blue-200",
-        @kind == :error && "bg-red-50 border border-red-200"
+        @kind == :error && "bg-red-50 border border-red-200",
+        @kind == :warning && "bg-yellow-50 border border-yellow-200"
       ]}>
         <.icon
           :if={@kind == :info}
@@ -54,6 +55,11 @@ defmodule KlassHeroWeb.CoreComponents do
           :if={@kind == :error}
           name="hero-exclamation-circle"
           class="w-5 h-5 text-red-500 flex-shrink-0"
+        />
+        <.icon
+          :if={@kind == :warning}
+          name="hero-exclamation-triangle"
+          class="w-5 h-5 text-yellow-500 flex-shrink-0"
         />
         <div class="flex-1">
           <p :if={@title} class="font-semibold text-gray-900 mb-1">{@title}</p>

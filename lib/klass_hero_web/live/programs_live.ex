@@ -121,6 +121,7 @@ defmodule KlassHeroWeb.ProgramsLive do
       price: safe_decimal_to_float(program.price),
       period: program.pricing_period,
       spots_left: spots_left,
+      cover_image_url: program.cover_image_url,
       # Default UI properties (these will come from the database in the future)
       gradient_class: default_gradient_class(),
       icon_name: ProgramPresenter.icon_name(program.category)
