@@ -19,8 +19,9 @@ defmodule KlassHeroWeb.BookingLive do
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
       children_by_id = Map.new(children, &{&1.id, &1})
 
-      # Provider's price is the total amount the parent pays — no derived fees
-      total_amount = program.price || Decimal.new("0.00")
+      # Provider's price is the total amount the parent pays — no derived fees.
+      # price is NOT NULL in DB and @enforce_keys in domain — nil here is a bug, not a normal condition.
+      total_amount = program.price
 
       socket =
         socket
