@@ -7,6 +7,11 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListParentEnrollments do
 
   require Logger
 
+  @enrollment_repository Application.compile_env!(:klass_hero, [
+                           :enrollment,
+                           :for_managing_enrollments
+                         ])
+
   @doc """
   Lists all enrollments for the given parent ID.
 
@@ -16,10 +21,6 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListParentEnrollments do
   @spec execute(binary()) :: [Enrollment.t()]
   def execute(parent_id) when is_binary(parent_id) do
     Logger.debug("[Enrollment.ListParentEnrollments] Listing enrollments", parent_id: parent_id)
-    repository().list_by_parent(parent_id)
-  end
-
-  defp repository do
-    Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollments]
+    @enrollment_repository.list_by_parent(parent_id)
   end
 end

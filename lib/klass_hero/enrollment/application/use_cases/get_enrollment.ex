@@ -7,6 +7,11 @@ defmodule KlassHero.Enrollment.Application.UseCases.GetEnrollment do
 
   require Logger
 
+  @enrollment_repository Application.compile_env!(:klass_hero, [
+                           :enrollment,
+                           :for_managing_enrollments
+                         ])
+
   @doc """
   Retrieves an enrollment by its ID.
 
@@ -17,10 +22,6 @@ defmodule KlassHero.Enrollment.Application.UseCases.GetEnrollment do
   @spec execute(binary()) :: {:ok, Enrollment.t()} | {:error, :not_found}
   def execute(id) when is_binary(id) do
     Logger.debug("[Enrollment.GetEnrollment] Fetching enrollment", enrollment_id: id)
-    repository().get_by_id(id)
-  end
-
-  defp repository do
-    Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollments]
+    @enrollment_repository.get_by_id(id)
   end
 end
