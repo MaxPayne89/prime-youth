@@ -192,12 +192,28 @@ defmodule KlassHeroWeb.BookingLive do
                gettext("Selected child does not meet the program requirements.")
              )}
 
+          {:error, :duplicate_resource} ->
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("This child is already enrolled in this program.")
+             )}
+
           {:error, :processing_failed} ->
             {:noreply,
              put_flash(
                socket,
                :error,
                gettext("Enrollment failed. Please try again or contact support.")
+             )}
+
+          {:error, _reason} ->
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("Something went wrong. Please try again or contact support.")
              )}
         end
     end
@@ -261,7 +277,7 @@ defmodule KlassHeroWeb.BookingLive do
       program_id: socket.assigns.program.id,
       child_id: params["child_id"],
       payment_method: socket.assigns.payment_method,
-      subtotal: Decimal.new("0.00"),
+      subtotal: socket.assigns.total_amount,
       vat_amount: Decimal.new("0.00"),
       card_fee_amount: Decimal.new("0.00"),
       total_amount: socket.assigns.total_amount,
@@ -494,48 +510,6 @@ defmodule KlassHeroWeb.BookingLive do
               value={"€#{Decimal.to_string(@total_amount)}"}
             />
           </.booking_summary>
-
-          <%!-- TODO: Bank transfer details — needs real IBAN/BIC from provider config.
-               WARNING: Contains placeholder IBAN/BIC/reference values — must be replaced before enabling. --%>
-          <%!--
-          <.info_box
-            :if={@payment_method == "transfer"}
-            variant={:info}
-            title={gettext("Bank Transfer Details")}
-          >
-            <p class="mb-4">
-              {gettext("Please transfer")}
-              <strong>€{:erlang.float_to_binary(@total, decimals: 2)}</strong>
-              {gettext("(no card fees) to the following account:")}
-            </p>
-            <div class="space-y-2 font-mono text-sm">
-              <div class="flex justify-between">
-                <span class={Theme.text_color(:secondary)}>{gettext("Account Name:")}</span>
-                <span class="font-semibold">Klass Hero</span>
-              </div>
-              <div class="flex justify-between">
-                <span class={Theme.text_color(:secondary)}>{gettext("IBAN:")}</span>
-                <span class="font-semibold">IE64 BOFI 9000 1234 5678 90</span>
-              </div>
-              <div class="flex justify-between">
-                <span class={Theme.text_color(:secondary)}>{gettext("BIC:")}</span>
-                <span class="font-semibold">BOFIIE2D</span>
-              </div>
-              <div class="flex justify-between">
-                <span class={Theme.text_color(:secondary)}>{gettext("Reference:")}</span>
-                <span class="font-semibold">CAW-EMMA-0124</span>
-              </div>
-            </div>
-            <:footer>
-              <p class={["text-xs", Theme.text_color(:secondary)]}>
-                💡 <strong>{gettext("Important:")}</strong>
-                {gettext(
-                  "Please include the reference code in your transfer to ensure proper allocation."
-                )}
-              </p>
-            </:footer>
-          </.info_box>
-          --%>
 
           <.info_box variant={:neutral} icon="📧" title={gettext("Invoice & Payment Confirmation")}>
             <div class="text-sm space-y-1">

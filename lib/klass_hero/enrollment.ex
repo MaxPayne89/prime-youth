@@ -8,15 +8,16 @@ defmodule KlassHero.Enrollment do
 
   ## Usage
 
-      # Create an enrollment
+      # Create an enrollment (total = program price, no derived fees)
       {:ok, enrollment} = Enrollment.create_enrollment(%{
         program_id: "program-uuid",
         child_id: "child-uuid",
         parent_id: "parent-uuid",
         payment_method: "card",
         subtotal: Decimal.new("45.00"),
-        vat_amount: Decimal.new("8.55"),
-        total_amount: Decimal.new("53.55")
+        vat_amount: Decimal.new("0.00"),
+        card_fee_amount: Decimal.new("0.00"),
+        total_amount: Decimal.new("45.00")
       })
 
       # Get an enrollment
