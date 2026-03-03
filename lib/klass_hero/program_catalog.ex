@@ -29,7 +29,6 @@ defmodule KlassHero.ProgramCatalog do
 
       # Format prices
       "€45.00" = ProgramCatalog.format_price(Decimal.new("45.00"))
-      "€180.00" = ProgramCatalog.format_total_price(Decimal.new("45.00"))
 
   """
 
@@ -225,36 +224,6 @@ defmodule KlassHero.ProgramCatalog do
   """
   @spec format_price(Decimal.t() | number() | nil) :: String.t()
   defdelegate format_price(price), to: ProgramPricing
-
-  @doc """
-  Calculates total price for standard program duration (4 weeks).
-
-  ## Examples
-
-      Decimal.new("180.00") = ProgramCatalog.calculate_total(Decimal.new("45.00"))
-  """
-  @spec calculate_total(Decimal.t()) :: Decimal.t()
-  defdelegate calculate_total(weekly_price), to: ProgramPricing
-
-  @doc """
-  Formats the total price (4 weeks) for display.
-
-  ## Examples
-
-      "€180.00" = ProgramCatalog.format_total_price(Decimal.new("45.00"))
-  """
-  @spec format_total_price(Decimal.t() | nil) :: String.t()
-  defdelegate format_total_price(weekly_price), to: ProgramPricing
-
-  @doc """
-  Returns the default program duration in weeks.
-
-  ## Examples
-
-      4 = ProgramCatalog.default_program_weeks()
-  """
-  @spec default_program_weeks() :: pos_integer()
-  defdelegate default_program_weeks, to: ProgramPricing
 
   # ============================================================================
   # Registration Period
