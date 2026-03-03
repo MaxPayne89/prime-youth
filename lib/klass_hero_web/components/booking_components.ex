@@ -91,32 +91,19 @@ defmodule KlassHeroWeb.BookingComponents do
 
   Displays a structured summary of costs with support for:
   - Line items (label + value pairs)
-  - Subtotal section with divider
-  - Additional fees or charges
   - Grand total with emphasis
-  - Conditional items that can be shown/hidden
 
   ## Examples
 
       <.booking_summary title="Payment Summary">
-        <:line_item label="Weekly fee (8 weeks)" value="€45.00" />
-        <:line_item label="Registration fee" value="€25.00" />
-        <:subtotal label="Subtotal" value="€70.00" />
-        <:line_item label="VAT (19%)" value="€13.30" />
-        <:line_item :if={show_card_fee} label="Credit card fee" value="€2.50" />
-        <:total label="Total due today" value="€85.80" />
+        <:line_item label="Program fee:" value="€45.00" />
+        <:total label="Total due today" value="€45.00" />
       </.booking_summary>
   """
   attr :title, :string, default: "Summary"
   attr :class, :string, default: ""
 
   slot :line_item, doc: "Regular line item with label and value" do
-    attr :label, :string, required: true
-    attr :value, :string, required: true
-    attr :after_subtotal, :boolean
-  end
-
-  slot :subtotal, doc: "Subtotal line with bottom border" do
     attr :label, :string, required: true
     attr :value, :string, required: true
   end
@@ -131,29 +118,8 @@ defmodule KlassHeroWeb.BookingComponents do
     <div class={["bg-white p-6 shadow-lg", Theme.rounded(:xl), @class]}>
       <h3 class={[Theme.typography(:card_title), "text-hero-black mb-4"]}>{@title}</h3>
       <div class="space-y-2">
-        <!-- Regular line items before subtotal -->
         <div
           :for={item <- @line_item}
-          :if={!Map.get(item, :after_subtotal, false)}
-          class="flex justify-between text-hero-black-100"
-        >
-          <span>{item[:label]}</span>
-          <span>{item[:value]}</span>
-        </div>
-        
-    <!-- Subtotal with border -->
-        <div
-          :for={subtotal <- @subtotal}
-          class="flex justify-between text-hero-black-100 pb-2 border-b border-hero-grey-200"
-        >
-          <span>{subtotal[:label]}</span>
-          <span>{subtotal[:value]}</span>
-        </div>
-        
-    <!-- Line items after subtotal (like taxes, fees) -->
-        <div
-          :for={item <- @line_item}
-          :if={Map.get(item, :after_subtotal, false)}
           class="flex justify-between text-hero-black-100"
         >
           <span>{item[:label]}</span>

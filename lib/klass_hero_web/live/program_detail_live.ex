@@ -300,19 +300,13 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <p class={[Theme.typography(:page_title), Theme.text_color(:heading)]}>
-                {ProgramCatalog.format_total_price(@program.price)}
+                {ProgramCatalog.format_price(@program.price)}
               </p>
               <%= if date_range = ProgramPresenter.format_date_range_brief(@program) do %>
                 <p class={["text-sm", Theme.text_color(:muted)]}>
-                  {gettext("Total: %{range}", range: date_range)}
+                  {date_range}
                 </p>
               <% end %>
-              <p class={["text-xs mt-1", Theme.text_color(:subtle)]}>
-                {gettext("%{price}/week • %{weeks} weeks",
-                  price: ProgramCatalog.format_price(@program.price),
-                  weeks: ProgramCatalog.default_program_weeks()
-                )}
-              </p>
               <%!-- TODO: show instructor name when instructor data is wired to programs --%>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
@@ -522,7 +516,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             registration_status={@registration_status}
             label={
               gettext("Enroll Now - %{price}",
-                price: ProgramCatalog.format_total_price(@program.price)
+                price: ProgramCatalog.format_price(@program.price)
               )
             }
           />
@@ -538,10 +532,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         <div class="flex items-center justify-between gap-4 max-w-4xl mx-auto">
           <div>
             <p class={["font-semibold", Theme.text_color(:heading)]}>
-              {ProgramCatalog.format_total_price(@program.price)}
-            </p>
-            <p class={["text-xs", Theme.text_color(:muted)]}>
-              {gettext("%{price}/week", price: ProgramCatalog.format_price(@program.price))}
+              {ProgramCatalog.format_price(@program.price)}
             </p>
           </div>
           <.enroll_button

@@ -8,15 +8,16 @@ defmodule KlassHero.Enrollment do
 
   ## Usage
 
-      # Create an enrollment
+      # Create an enrollment (total = program price, no derived fees)
       {:ok, enrollment} = Enrollment.create_enrollment(%{
         program_id: "program-uuid",
         child_id: "child-uuid",
         parent_id: "parent-uuid",
         payment_method: "card",
         subtotal: Decimal.new("45.00"),
-        vat_amount: Decimal.new("8.55"),
-        total_amount: Decimal.new("53.55")
+        vat_amount: Decimal.new("0.00"),
+        card_fee_amount: Decimal.new("0.00"),
+        total_amount: Decimal.new("45.00")
       })
 
       # Get an enrollment
@@ -48,7 +49,6 @@ defmodule KlassHero.Enrollment do
     ],
     exports: []
 
-  alias KlassHero.Enrollment.Application.UseCases.CalculateEnrollmentFees
   alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
   alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
   alias KlassHero.Enrollment.Application.UseCases.ClaimInvite
@@ -190,27 +190,6 @@ defmodule KlassHero.Enrollment do
   """
   def get_booking_usage_info(identity_id) when is_binary(identity_id) do
     GetBookingUsageInfo.execute(identity_id)
-  end
-
-  # ============================================================================
-  # Fee Calculation Functions
-  # ============================================================================
-
-  @doc """
-  Calculates enrollment fees including VAT and optional card processing fees.
-
-  Parameters:
-  - weekly_fee: The weekly program fee
-  - registration_fee: One-time registration fee
-  - vat_rate: VAT rate as decimal (e.g., 0.19 for 19%)
-  - card_fee: Card processing fee amount
-  - payment_method: "card" or "transfer"
-
-  Returns:
-  - `{:ok, FeeCalculation.t()}` with subtotal, vat_amount, card_fee_amount, and total
-  """
-  def calculate_fees(params) when is_map(params) do
-    CalculateEnrollmentFees.execute(params)
   end
 
   # ============================================================================

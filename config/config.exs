@@ -64,12 +64,6 @@ config :klass_hero, Oban,
 config :klass_hero, :accounts,
   for_storing_users: KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
 
-# Booking fee defaults — business constants not tied to specific programs
-config :klass_hero, :booking,
-  registration_fee: 25.00,
-  vat_rate: 0.19,
-  card_processing_fee: 2.50
-
 # Contact information — centralized, configurable per environment
 config :klass_hero, :contact,
   email: "info@klasshero.com",
