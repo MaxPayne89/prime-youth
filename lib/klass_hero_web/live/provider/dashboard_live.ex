@@ -1224,7 +1224,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           phx-click="add_member"
           class={[
             "flex items-center gap-2 px-4 py-2 bg-hero-yellow hover:bg-hero-yellow-dark",
-            "text-hero-charcoal font-semibold",
+            "text-hero-charcoal font-semibold active:scale-[0.98]",
             Theme.rounded(:lg),
             Theme.transition(:normal)
           ]}

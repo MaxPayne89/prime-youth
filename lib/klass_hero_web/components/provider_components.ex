@@ -666,7 +666,7 @@ defmodule KlassHeroWeb.ProviderComponents do
             id="save-staff-btn"
             class={[
               "flex items-center gap-2 px-6 py-2.5 bg-hero-yellow hover:bg-hero-yellow-dark",
-              "text-hero-charcoal font-semibold",
+              "text-hero-charcoal font-semibold active:scale-[0.98]",
               Theme.rounded(:lg),
               Theme.transition(:normal)
             ]}
@@ -1140,7 +1140,7 @@ defmodule KlassHeroWeb.ProviderComponents do
       class={[
         "w-full h-full min-h-[200px] border-2 border-dashed border-hero-grey-300",
         "flex flex-col items-center justify-center gap-2",
-        "text-hero-grey-400 hover:border-hero-cyan hover:text-hero-cyan",
+        "text-hero-grey-400 hover:border-hero-cyan hover:text-hero-cyan active:scale-[0.98]",
         Theme.rounded(:xl),
         Theme.transition(:normal),
         @class
