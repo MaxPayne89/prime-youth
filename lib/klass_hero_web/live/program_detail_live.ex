@@ -155,6 +155,58 @@ defmodule KlassHeroWeb.ProgramDetailLive do
     """
   end
 
+  attr :program, :map, required: true
+  attr :wrapper_class, :string, required: true
+
+  defp hero_info_overlay(assigns) do
+    ~H"""
+    <div class={@wrapper_class}>
+      <div class="max-w-4xl mx-auto text-center text-white">
+        <h1 class={[Theme.typography(:page_title), "mb-3"]}>
+          {@program.title}
+        </h1>
+        <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-white/90 mb-4">
+          <%= if schedule = ProgramPresenter.format_schedule(@program) do %>
+            <span class="flex items-center">
+              <.icon name="hero-clock" class="w-4 h-4 mr-1" />
+              <%= if schedule.days do %>
+                {schedule.days}
+                <%= if schedule.times do %>
+                  <span class="mx-1">&middot;</span>
+                  {schedule.times}
+                <% end %>
+              <% else %>
+                {schedule.times}
+              <% end %>
+            </span>
+          <% else %>
+            <span class="flex items-center">
+              <.icon name="hero-clock" class="w-4 h-4 mr-1" />
+              {gettext("Schedule TBD")}
+            </span>
+          <% end %>
+          <span :if={@program.age_range} class="flex items-center">
+            <.icon name="hero-user-group" class="w-4 h-4 mr-1" />
+            {gettext("Ages %{range}", range: @program.age_range)}
+          </span>
+          <span :if={@program.location} class="flex items-center">
+            <.icon name="hero-map-pin" class="w-4 h-4 mr-1" /> {@program.location}
+          </span>
+        </div>
+        <%!-- Badges --%>
+        <div class="flex flex-wrap justify-center gap-2">
+          <span class={[
+            "px-3 py-1 text-xs font-medium bg-white/90 backdrop-blur-sm text-green-700",
+            Theme.rounded(:full)
+          ]}>
+            {gettext("✓ No hidden fees")}
+          </span>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -178,51 +230,10 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             </div>
           </div>
 
-          <%!-- Program Title & Info (Bottom of Hero) --%>
-          <div class="absolute bottom-0 left-0 right-0 pb-8 px-4">
-            <div class="max-w-4xl mx-auto text-center text-white">
-              <h1 class={[Theme.typography(:page_title), "mb-3"]}>
-                {@program.title}
-              </h1>
-              <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-white/90 mb-4">
-                <%= if schedule = ProgramPresenter.format_schedule(@program) do %>
-                  <span class="flex items-center">
-                    <.icon name="hero-clock" class="w-4 h-4 mr-1" />
-                    <%= if schedule.days do %>
-                      {schedule.days}
-                      <%= if schedule.times do %>
-                        <span class="mx-1">&middot;</span>
-                        {schedule.times}
-                      <% end %>
-                    <% else %>
-                      {schedule.times}
-                    <% end %>
-                  </span>
-                <% else %>
-                  <span class="flex items-center">
-                    <.icon name="hero-clock" class="w-4 h-4 mr-1" />
-                    {gettext("Schedule TBD")}
-                  </span>
-                <% end %>
-                <span :if={@program.age_range} class="flex items-center">
-                  <.icon name="hero-user-group" class="w-4 h-4 mr-1" />
-                  {gettext("Ages %{range}", range: @program.age_range)}
-                </span>
-                <span :if={@program.location} class="flex items-center">
-                  <.icon name="hero-map-pin" class="w-4 h-4 mr-1" /> {@program.location}
-                </span>
-              </div>
-              <%!-- Badges --%>
-              <div class="flex flex-wrap justify-center gap-2">
-                <span class={[
-                  "px-3 py-1 text-xs font-medium bg-white/90 backdrop-blur-sm text-green-700",
-                  Theme.rounded(:full)
-                ]}>
-                  {gettext("✓ No hidden fees")}
-                </span>
-              </div>
-            </div>
-          </div>
+          <.hero_info_overlay
+            program={@program}
+            wrapper_class="absolute bottom-0 left-0 right-0 pb-8 px-4"
+          />
         </div>
       <% else %>
         <div id="program-hero" class={["relative", Theme.gradient(:hero)]}>
@@ -245,51 +256,10 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             </div>
           </div>
 
-          <%!-- Program Title & Info (Centered in Hero) --%>
-          <div class="relative pb-12 px-4">
-            <div class="max-w-4xl mx-auto text-center text-white">
-              <h1 class={[Theme.typography(:page_title), "mb-3"]}>
-                {@program.title}
-              </h1>
-              <div class="flex flex-wrap items-center justify-center gap-4 text-sm text-white/90 mb-4">
-                <%= if schedule = ProgramPresenter.format_schedule(@program) do %>
-                  <span class="flex items-center">
-                    <.icon name="hero-clock" class="w-4 h-4 mr-1" />
-                    <%= if schedule.days do %>
-                      {schedule.days}
-                      <%= if schedule.times do %>
-                        <span class="mx-1">&middot;</span>
-                        {schedule.times}
-                      <% end %>
-                    <% else %>
-                      {schedule.times}
-                    <% end %>
-                  </span>
-                <% else %>
-                  <span class="flex items-center">
-                    <.icon name="hero-clock" class="w-4 h-4 mr-1" />
-                    {gettext("Schedule TBD")}
-                  </span>
-                <% end %>
-                <span :if={@program.age_range} class="flex items-center">
-                  <.icon name="hero-user-group" class="w-4 h-4 mr-1" />
-                  {gettext("Ages %{range}", range: @program.age_range)}
-                </span>
-                <span :if={@program.location} class="flex items-center">
-                  <.icon name="hero-map-pin" class="w-4 h-4 mr-1" /> {@program.location}
-                </span>
-              </div>
-              <%!-- Badges --%>
-              <div class="flex flex-wrap justify-center gap-2">
-                <span class={[
-                  "px-3 py-1 text-xs font-medium bg-white/90 backdrop-blur-sm text-green-700",
-                  Theme.rounded(:full)
-                ]}>
-                  {gettext("✓ No hidden fees")}
-                </span>
-              </div>
-            </div>
-          </div>
+          <.hero_info_overlay
+            program={@program}
+            wrapper_class="relative pb-12 px-4"
+          />
         </div>
       <% end %>
 

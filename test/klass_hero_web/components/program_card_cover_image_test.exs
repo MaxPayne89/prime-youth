@@ -27,19 +27,87 @@ defmodule KlassHeroWeb.ProgramCardCoverImageTest do
     test "renders cover image when cover_image_url is present" do
       program = Map.put(@base_program, :cover_image_url, "https://example.com/cover.jpg")
       html = render_component(&ProgramComponents.program_card/1, program: program)
+      doc = LazyHTML.from_fragment(html)
 
-      assert html =~ ~s(src="https://example.com/cover.jpg")
-      assert html =~ "object-cover"
+      imgs = LazyHTML.query(doc, "img[src='https://example.com/cover.jpg']")
+      assert Enum.count(imgs) == 1
+      assert LazyHTML.attribute(imgs, "loading") == ["lazy"]
+      assert LazyHTML.attribute(imgs, "id") == ["program-cover-test-123"]
+
       # Icon should NOT be rendered when cover image is present
-      refute html =~ "hero-paint-brush"
+      assert Enum.empty?(LazyHTML.query(doc, ".hero-paint-brush"))
     end
 
     test "renders gradient fallback when cover_image_url is nil" do
       html = render_component(&ProgramComponents.program_card/1, program: @base_program)
+      doc = LazyHTML.from_fragment(html)
 
-      refute html =~ "<img"
-      assert html =~ "bg-gradient-to-br"
-      assert html =~ "hero-paint-brush"
+      assert Enum.empty?(LazyHTML.query(doc, "img[id='program-cover-test-123']"))
+      refute Enum.empty?(LazyHTML.query(doc, ".bg-gradient-to-br"))
+    end
+  end
+
+  describe "card header badges" do
+    test "renders category badge with cover image" do
+      program = Map.put(@base_program, :cover_image_url, "https://example.com/cover.jpg")
+      html = render_component(&ProgramComponents.program_card/1, program: program)
+      doc = LazyHTML.from_fragment(html)
+
+      assert LazyHTML.text(doc) =~ "Arts"
+    end
+
+    test "renders category badge with gradient fallback" do
+      html = render_component(&ProgramComponents.program_card/1, program: @base_program)
+      doc = LazyHTML.from_fragment(html)
+
+      assert LazyHTML.text(doc) =~ "Arts"
+    end
+
+    test "renders ONLINE badge when is_online is true with cover image" do
+      program =
+        @base_program
+        |> Map.put(:cover_image_url, "https://example.com/cover.jpg")
+        |> Map.put(:is_online, true)
+
+      html = render_component(&ProgramComponents.program_card/1, program: program)
+      doc = LazyHTML.from_fragment(html)
+
+      assert LazyHTML.text(doc) =~ "ONLINE"
+    end
+
+    test "renders ONLINE badge when is_online is true with gradient fallback" do
+      program = Map.put(@base_program, :is_online, true)
+      html = render_component(&ProgramComponents.program_card/1, program: program)
+      doc = LazyHTML.from_fragment(html)
+
+      assert LazyHTML.text(doc) =~ "ONLINE"
+    end
+
+    test "does not render ONLINE badge when is_online is false" do
+      html = render_component(&ProgramComponents.program_card/1, program: @base_program)
+      doc = LazyHTML.from_fragment(html)
+
+      refute LazyHTML.text(doc) =~ "ONLINE"
+    end
+
+    test "renders spots badge when spots_left <= 5 with cover image" do
+      program =
+        @base_program
+        |> Map.put(:cover_image_url, "https://example.com/cover.jpg")
+        |> Map.put(:spots_left, 3)
+
+      html = render_component(&ProgramComponents.program_card/1, program: program)
+      doc = LazyHTML.from_fragment(html)
+
+      assert LazyHTML.text(doc) =~ "3 spots left!"
+    end
+
+    test "renders spots badge when spots_left <= 5 with gradient fallback" do
+      program = Map.put(@base_program, :spots_left, 3)
+      html = render_component(&ProgramComponents.program_card/1, program: program)
+      doc = LazyHTML.from_fragment(html)
+
+      assert LazyHTML.text(doc) =~ "3 spots left!"
     end
   end
 end
