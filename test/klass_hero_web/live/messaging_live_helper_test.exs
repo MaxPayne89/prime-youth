@@ -25,10 +25,11 @@ defmodule KlassHeroWeb.MessagingLiveHelperTest do
 
   describe "own_message?/2" do
     test "returns true when the message sender is the given user" do
-      user_id = "user-uuid-123"
+      user_id = Ecto.UUID.generate()
+
       message = %Message{
-        id: "msg-1",
-        conversation_id: "conv-1",
+        id: Ecto.UUID.generate(),
+        conversation_id: Ecto.UUID.generate(),
         sender_id: user_id,
         content: "hello"
       }
@@ -38,27 +39,33 @@ defmodule KlassHeroWeb.MessagingLiveHelperTest do
 
     test "returns false when the message sender is a different user" do
       message = %Message{
-        id: "msg-1",
-        conversation_id: "conv-1",
-        sender_id: "sender-uuid",
+        id: Ecto.UUID.generate(),
+        conversation_id: Ecto.UUID.generate(),
+        sender_id: Ecto.UUID.generate(),
         content: "hello"
       }
 
-      assert MessagingLiveHelper.own_message?(message, "other-uuid") == false
+      assert MessagingLiveHelper.own_message?(message, Ecto.UUID.generate()) == false
     end
   end
 
   describe "get_sender_name/2" do
     test "returns the name when sender_id is present in the map" do
-      sender_names = %{"user-1" => "Alice", "user-2" => "Bob"}
+      id_1 = Ecto.UUID.generate()
+      id_2 = Ecto.UUID.generate()
+      sender_names = %{id_1 => "Alice", id_2 => "Bob"}
 
-      assert MessagingLiveHelper.get_sender_name(sender_names, "user-1") == "Alice"
-      assert MessagingLiveHelper.get_sender_name(sender_names, "user-2") == "Bob"
+      assert MessagingLiveHelper.get_sender_name(sender_names, id_1) == "Alice"
+      assert MessagingLiveHelper.get_sender_name(sender_names, id_2) == "Bob"
     end
 
     test "returns 'Unknown' as fallback when sender_id is not in the map" do
-      assert MessagingLiveHelper.get_sender_name(%{}, "missing-id") == "Unknown"
-      assert MessagingLiveHelper.get_sender_name(%{"other" => "Name"}, "missing-id") == "Unknown"
+      missing_id = Ecto.UUID.generate()
+
+      assert MessagingLiveHelper.get_sender_name(%{}, missing_id) == "Unknown"
+
+      assert MessagingLiveHelper.get_sender_name(%{Ecto.UUID.generate() => "Name"}, missing_id) ==
+               "Unknown"
     end
   end
 end
