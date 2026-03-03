@@ -8,6 +8,11 @@ defmodule KlassHero.Enrollment.Application.UseCases.CheckEnrollment do
 
   require Logger
 
+  @enrollment_repository Application.compile_env!(:klass_hero, [
+                           :enrollment,
+                           :for_managing_enrollments
+                         ])
+
   @spec execute(binary(), binary()) :: boolean()
   def execute(program_id, identity_id) when is_binary(program_id) and is_binary(identity_id) do
     Logger.debug("[Enrollment.CheckEnrollment] Checking",
@@ -15,10 +20,6 @@ defmodule KlassHero.Enrollment.Application.UseCases.CheckEnrollment do
       identity_id: identity_id
     )
 
-    repository().enrolled?(program_id, identity_id)
-  end
-
-  defp repository do
-    Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollments]
+    @enrollment_repository.enrolled?(program_id, identity_id)
   end
 end

@@ -14,6 +14,11 @@ defmodule KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings do
 
   require Logger
 
+  @enrollment_repository Application.compile_env!(:klass_hero, [
+                           :enrollment,
+                           :for_managing_enrollments
+                         ])
+
   @doc """
   Counts active enrollments for a parent in a given month.
 
@@ -33,7 +38,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings do
       end_date: end_date
     )
 
-    repository().count_monthly_bookings(parent_id, start_date, end_date)
+    @enrollment_repository.count_monthly_bookings(parent_id, start_date, end_date)
   end
 
   defp get_month_range(nil) do
@@ -45,9 +50,5 @@ defmodule KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings do
     start_date = Date.beginning_of_month(date)
     end_date = Date.end_of_month(date)
     {start_date, end_date}
-  end
-
-  defp repository do
-    Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollments]
   end
 end

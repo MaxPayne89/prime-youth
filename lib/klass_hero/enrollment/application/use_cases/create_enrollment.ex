@@ -38,6 +38,11 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
 
   require Logger
 
+  @enrollment_repository Application.compile_env!(:klass_hero, [
+                           :enrollment,
+                           :for_managing_enrollments
+                         ])
+
   @doc """
   Creates a new enrollment.
 
@@ -75,7 +80,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
       # Trigger: capacity check and enrollment creation happen atomically
       # Why: prevents TOCTOU race where concurrent requests both pass check
       # Outcome: SELECT FOR UPDATE on policy row serializes concurrent attempts
-      repository().create_with_capacity_check(attrs, params[:program_id])
+      @enrollment_repository.create_with_capacity_check(attrs, params[:program_id])
     end
   end
 
@@ -88,7 +93,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
       parent_id: attrs[:parent_id]
     )
 
-    repository().create_with_capacity_check(attrs, params[:program_id])
+    @enrollment_repository.create_with_capacity_check(attrs, params[:program_id])
   end
 
   defp validate_parent_profile(identity_id) do
@@ -155,9 +160,5 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
       payment_method: params[:payment_method],
       special_requirements: params[:special_requirements]
     }
-  end
-
-  defp repository do
-    Application.get_env(:klass_hero, :enrollment)[:for_managing_enrollments]
   end
 end
