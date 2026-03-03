@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-02T13:03:00Z",
+  "last_updated": "2026-03-04T00:00:00Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -27,39 +27,39 @@
     "messaging_helper_tests": "MessagingLiveHelper pure functions (get_conversation_title/1, own_message?/2, get_sender_name/2) use ExUnit.Case async: true - no DB needed"
   },
   "backlog": [
+    {"item": "participation_live check-in/checkout LiveView tests", "priority": "medium", "reason": "critical provider flow, no LiveView-level tests exist, potential FK bug: provider_id used for check_in_by but constraint references users.id"},
     {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"}
   ],
   "tasks_last_run": {
     "task1_commands": "2026-02-26",
     "task2_opportunities": "2026-02-28",
-    "task3_implement": "2026-03-02",
-    "task7_monthly_summary": "2026-03-02"
+    "task3_implement": "2026-03-04",
+    "task7_monthly_summary": "2026-03-04"
   },
   "completed_work": [
     {
       "run": "2026-02-26",
-      "work": "Created PR #207 for SessionsLive tests - MERGED",
-      "notes": "PR was merged into main"
+      "work": "Created PR #207 for SessionsLive tests - MERGED"
     },
     {
       "run": "2026-02-27",
-      "work": "Created PR #211 for program_detail_live registration guard + settings_live smoke tests - MERGED",
-      "notes": "2 new tests for program_detail (enroll_now closed + back_to_programs), 6 new smoke tests for settings_live"
+      "work": "Created PR #211 for program_detail_live registration guard + settings_live smoke tests - MERGED"
     },
     {
       "run": "2026-02-28",
-      "work": "Created PR #218 for BulkCheckIn use case tests - MERGED",
-      "notes": "8 tests covering all business rules: empty list, happy path, notes, partial success, non-existent IDs, order preservation, event publishing"
+      "work": "Created PR #218 for BulkCheckIn use case tests - MERGED"
     },
     {
       "run": "2026-03-01",
-      "work": "Created PR for MapperHelpers unit tests - MERGED",
-      "notes": "19 pure-unit tests for newly extracted shared MapperHelpers module (string_to_tier/2, tier_to_string/2, normalize_subscription_tier/1, maybe_add_id/2). Also rolled over monthly activity issue from Feb #208 to Mar 2026."
+      "work": "Created PR for MapperHelpers unit tests - MERGED. Rolled over monthly issue to #234 (Mar 2026)."
     },
     {
       "run": "2026-03-02",
-      "work": "Created PR for MessagingLiveHelper unit tests + upcoming registration guard",
-      "notes": "8 pure-unit tests for get_conversation_title/1, own_message?/2, get_sender_name/2. +1 test for enroll_now :upcoming path in program_detail_live_test.exs."
+      "work": "Created PR #249 for MessagingLiveHelper unit tests + upcoming registration guard - MERGED"
+    },
+    {
+      "run": "2026-03-04",
+      "work": "Created PR for enrollment import controller tests: validation field label contract test + BOM end-to-end test. FK bug noted in backlog."
     }
   ]
 }
