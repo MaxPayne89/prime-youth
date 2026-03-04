@@ -95,6 +95,12 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
 
   describe "full invite claim saga" do
     setup context do
+      # Trigger: provider_profile_schema factory calls unconfirmed_user_fixture(:provider)
+      # Why: with real PubSub, ProviderEventHandler receives user_registered and creates a
+      #      provider profile — then factory's Repo.insert! duplicates the identity_id → crash
+      # Outcome: create test data FIRST with test publisher, then swap to real PubSub
+      invite_data = create_claimable_invite(context)
+
       # Trigger: test config uses TestIntegrationEventPublisher (process dictionary storage)
       # Why: PromoteIntegrationEvents handlers must actually broadcast to PubSub so the
       #      EventSubscriber GenServers receive the events and drive the saga forward
@@ -120,7 +126,7 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
         end
       end)
 
-      create_claimable_invite(context)
+      invite_data
     end
 
     test "claim_invite triggers the full saga: user -> registered -> family -> enrolled", %{

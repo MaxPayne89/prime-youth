@@ -3,7 +3,6 @@ defmodule KlassHeroWeb.Provider.SubscriptionLiveTest do
 
   import Phoenix.LiveViewTest
 
-  alias KlassHero.Accounts.Scope
   alias KlassHero.AccountsFixtures
   alias KlassHero.Factory
 
@@ -17,9 +16,7 @@ defmodule KlassHeroWeb.Provider.SubscriptionLiveTest do
         subscription_tier: "starter"
       )
 
-    scope = Scope.for_user(user) |> Scope.resolve_roles()
-
-    %{conn: log_in_user(conn, user), user: user, scope: scope}
+    %{conn: log_in_user(conn, user), user: user}
   end
 
   describe "mount" do
@@ -60,6 +57,26 @@ defmodule KlassHeroWeb.Provider.SubscriptionLiveTest do
       |> render_click()
 
       assert has_element?(view, "#tier-business_plus [data-current-plan]")
+    end
+
+    test "downgrades from professional to starter", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/subscription")
+
+      # First upgrade to professional
+      view |> element("#switch-to-professional") |> render_click()
+      assert has_element?(view, "#tier-professional [data-current-plan]")
+
+      # Then downgrade back to starter
+      view |> element("#switch-to-starter") |> render_click()
+      assert has_element?(view, "#tier-starter [data-current-plan]")
+      assert render(view) =~ "Switched to"
+    end
+
+    test "current plan button is disabled", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/subscription")
+
+      assert has_element?(view, "#switch-to-starter[disabled]")
+      assert has_element?(view, "#switch-to-starter[data-current-plan]")
     end
   end
 end
