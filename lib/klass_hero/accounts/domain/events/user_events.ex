@@ -86,7 +86,8 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
     base_payload = %{
       email: user.email,
       name: user.name,
-      intended_roles: Enum.map(Map.get(user, :intended_roles) || [], &Atom.to_string/1)
+      intended_roles: Enum.map(Map.get(user, :intended_roles) || [], &Atom.to_string/1),
+      provider_subscription_tier: Map.get(user, :provider_subscription_tier)
     }
 
     opts = Keyword.put_new(opts, :criticality, :critical)

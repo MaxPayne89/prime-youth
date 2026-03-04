@@ -28,6 +28,7 @@ defmodule KlassHero.Accounts.User do
     field :intended_roles, UserRoles, default: []
     field :locale, :string, default: "en"
     field :is_admin, :boolean, default: false
+    field :provider_subscription_tier, :string, virtual: true
 
     timestamps(type: :utc_datetime)
   end
@@ -59,7 +60,7 @@ defmodule KlassHero.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:name, :email, :intended_roles])
+    |> cast(attrs, [:name, :email, :intended_roles, :provider_subscription_tier])
     |> put_default_role()
     |> validate_required([:name, :email, :intended_roles])
     |> validate_length(:name, min: 2, max: 100)
