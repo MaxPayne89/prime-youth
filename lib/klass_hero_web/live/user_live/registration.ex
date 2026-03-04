@@ -115,6 +115,11 @@ defmodule KlassHeroWeb.UserLive.Registration do
                 </div>
               </label>
             </div>
+            <.error :for={
+              msg <- Enum.map(@form[:provider_subscription_tier].errors, &translate_error/1)
+            }>
+              {msg}
+            </.error>
           </div>
 
           <.button
