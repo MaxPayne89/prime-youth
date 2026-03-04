@@ -9,6 +9,7 @@ defmodule KlassHeroWeb.Provider.SubscriptionLive do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Provider
+  alias KlassHero.Shared.SubscriptionTiers
   alias KlassHeroWeb.Presenters.ProviderPresenter
 
   require Logger
@@ -35,27 +36,38 @@ defmodule KlassHeroWeb.Provider.SubscriptionLive do
 
   @impl true
   def handle_event("switch_tier", %{"tier" => tier_string}, socket) do
-    new_tier = String.to_existing_atom(tier_string)
-    provider = socket.assigns.provider
+    case SubscriptionTiers.cast_provider_tier(tier_string) do
+      {:ok, new_tier} ->
+        provider = socket.assigns.provider
 
-    case Provider.change_subscription_tier(provider, new_tier) do
-      {:ok, updated_provider} ->
-        label = ProviderPresenter.tier_label(new_tier)
+        case Provider.change_subscription_tier(provider, new_tier) do
+          {:ok, updated_provider} ->
+            label = ProviderPresenter.tier_label(new_tier)
 
-        {:noreply,
-         socket
-         |> assign(:provider, updated_provider)
-         |> assign(:current_tier, new_tier)
-         |> put_flash(:info, gettext("Switched to %{plan}", plan: label))}
+            {:noreply,
+             socket
+             |> assign(:provider, updated_provider)
+             |> assign(:current_tier, new_tier)
+             |> put_flash(:info, gettext("Switched to %{plan}", plan: label))}
 
-      {:error, :same_tier} ->
-        {:noreply, put_flash(socket, :info, gettext("You are already on this plan"))}
+          {:error, :same_tier} ->
+            {:noreply, put_flash(socket, :info, gettext("You are already on this plan"))}
 
-      {:error, :invalid_tier} ->
+          {:error, :invalid_tier} ->
+            {:noreply, put_flash(socket, :error, gettext("Invalid subscription tier"))}
+
+          {:error, reason} ->
+            Logger.error("Subscription tier change failed",
+              provider_id: provider.id,
+              attempted_tier: new_tier,
+              reason: inspect(reason)
+            )
+
+            {:noreply, put_flash(socket, :error, gettext("Could not change subscription tier"))}
+        end
+
+      :error ->
         {:noreply, put_flash(socket, :error, gettext("Invalid subscription tier"))}
-
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, gettext("Could not change subscription tier"))}
     end
   end
 

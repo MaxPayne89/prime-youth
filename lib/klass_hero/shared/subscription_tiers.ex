@@ -83,4 +83,25 @@ defmodule KlassHero.Shared.SubscriptionTiers do
   """
   @spec default_provider_tier() :: atom()
   def default_provider_tier, do: :starter
+
+  # Compile-time lookup map: "starter" => :starter, "professional" => :professional, etc.
+  @provider_tier_strings Map.new(@provider_tiers, fn tier -> {Atom.to_string(tier), tier} end)
+
+  @doc """
+  Safely casts a binary tier name to its atom equivalent.
+
+  Uses a compile-time lookup map instead of `String.to_existing_atom/1`
+  to avoid crashes on untrusted input.
+
+  ## Examples
+
+      iex> KlassHero.Shared.SubscriptionTiers.cast_provider_tier("professional")
+      {:ok, :professional}
+
+      iex> KlassHero.Shared.SubscriptionTiers.cast_provider_tier("invalid")
+      :error
+  """
+  @spec cast_provider_tier(binary()) :: {:ok, atom()} | :error
+  def cast_provider_tier(tier) when is_binary(tier), do: Map.fetch(@provider_tier_strings, tier)
+  def cast_provider_tier(_), do: :error
 end

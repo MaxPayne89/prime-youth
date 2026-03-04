@@ -21,6 +21,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler do
 
   alias KlassHero.Provider
   alias KlassHero.Shared.Adapters.Driven.Events.RetryHelpers
+  alias KlassHero.Shared.SubscriptionTiers
+
+  require Logger
 
   @impl true
   def subscribed_events, do: [:user_registered, :user_anonymized]
@@ -73,12 +76,23 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler do
   end
 
   # Trigger: provider_subscription_tier may be nil or a string like "professional"
-  # Why: nil means use default (starter); string needs conversion to atom for domain model
-  # Outcome: attrs includes subscription_tier only when explicitly selected
+  # Why: nil means use default (starter); string needs safe cast to atom for domain model
+  # Outcome: attrs includes subscription_tier only when explicitly selected and valid
   defp maybe_put_tier(attrs, nil), do: attrs
   defp maybe_put_tier(attrs, ""), do: attrs
 
   defp maybe_put_tier(attrs, tier) when is_binary(tier) do
-    Map.put(attrs, :subscription_tier, String.to_existing_atom(tier))
+    case SubscriptionTiers.cast_provider_tier(tier) do
+      {:ok, valid_tier} ->
+        Map.put(attrs, :subscription_tier, valid_tier)
+
+      :error ->
+        Logger.warning("Invalid provider tier in registration event, using default",
+          tier: tier,
+          identity_id: Map.get(attrs, :identity_id)
+        )
+
+        attrs
+    end
   end
 end

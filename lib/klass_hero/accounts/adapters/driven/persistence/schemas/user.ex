@@ -58,6 +58,11 @@ defmodule KlassHero.Accounts.User do
     * `:validate_unique` - Set to false if you don't want to validate the
       uniqueness of the email. Defaults to `true`.
   """
+  @valid_provider_tier_strings Enum.map(
+                                 KlassHero.Shared.SubscriptionTiers.provider_tiers(),
+                                 &Atom.to_string/1
+                               )
+
   def registration_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, [:name, :email, :intended_roles, :provider_subscription_tier])
@@ -66,6 +71,9 @@ defmodule KlassHero.Accounts.User do
     |> validate_length(:name, min: 2, max: 100)
     |> validate_subset(:intended_roles, UserRole.valid_roles())
     |> validate_at_least_one_role()
+    |> validate_inclusion(:provider_subscription_tier, @valid_provider_tier_strings,
+      message: "is not a valid subscription tier"
+    )
     |> validate_email(opts)
   end
 
