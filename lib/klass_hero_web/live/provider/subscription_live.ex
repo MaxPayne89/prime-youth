@@ -25,11 +25,27 @@ defmodule KlassHeroWeb.Provider.SubscriptionLive do
         {:ok, redirect(socket, to: ~p"/")}
 
       provider_profile ->
+        # Trigger: subscription_tier is nil (data integrity gap)
+        # Why: new providers may lack a persisted tier before onboarding completes
+        # Outcome: default to :starter so the page renders, log for investigation
+        current_tier =
+          case provider_profile.subscription_tier do
+            nil ->
+              Logger.info("Provider missing subscription tier, defaulting to starter",
+                provider_id: provider_profile.id
+              )
+
+              :starter
+
+            tier ->
+              tier
+          end
+
         {:ok,
          socket
          |> assign(:page_title, gettext("Subscription"))
          |> assign(:provider, provider_profile)
-         |> assign(:current_tier, provider_profile.subscription_tier || :starter)
+         |> assign(:current_tier, current_tier)
          |> assign(:tiers, build_tiers())}
     end
   end

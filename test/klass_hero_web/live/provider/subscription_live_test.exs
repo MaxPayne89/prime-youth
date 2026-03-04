@@ -78,5 +78,14 @@ defmodule KlassHeroWeb.Provider.SubscriptionLiveTest do
       assert has_element?(view, "#switch-to-starter[disabled]")
       assert has_element?(view, "#switch-to-starter[data-current-plan]")
     end
+
+    test "switching to current tier shows already-on-plan flash", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/subscription")
+
+      # Bypass disabled button by sending event directly (e.g. crafted WS message)
+      render_click(view, "switch_tier", %{"tier" => "starter"})
+
+      assert render(view) =~ "already on this plan"
+    end
   end
 end
