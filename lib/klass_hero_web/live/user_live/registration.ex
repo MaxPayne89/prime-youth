@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.UserLive.Registration do
 
   alias KlassHero.Accounts
   alias KlassHero.Accounts.User
+  alias KlassHeroWeb.Presenters.TierPresenter
 
   @impl true
   def render(assigns) do
@@ -91,14 +92,7 @@ defmodule KlassHeroWeb.UserLive.Registration do
             <p class="text-sm font-semibold text-zinc-800">{gettext("Choose your plan")}</p>
             <div class="space-y-2">
               <label
-                :for={
-                  {key, label, summary} <- [
-                    {"starter", gettext("Starter"), gettext("2 programs, 18% commission")},
-                    {"professional", gettext("Professional"), gettext("5 programs, 12% commission")},
-                    {"business_plus", gettext("Business Plus"),
-                     gettext("Unlimited programs, 8% commission")}
-                  ]
-                }
+                :for={{key, label, summary} <- TierPresenter.registration_tier_options()}
                 id={"tier-option-#{key}"}
                 class="flex items-start gap-3 cursor-pointer rounded-lg border border-zinc-200 p-3 hover:border-hero-blue-300 transition-colors"
               >

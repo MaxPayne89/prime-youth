@@ -10,7 +10,7 @@ defmodule KlassHeroWeb.Provider.SubscriptionLive do
 
   alias KlassHero.Provider
   alias KlassHero.Shared.SubscriptionTiers
-  alias KlassHeroWeb.Presenters.ProviderPresenter
+  alias KlassHeroWeb.Presenters.TierPresenter
 
   require Logger
 
@@ -46,7 +46,7 @@ defmodule KlassHeroWeb.Provider.SubscriptionLive do
          |> assign(:page_title, gettext("Subscription"))
          |> assign(:provider, provider_profile)
          |> assign(:current_tier, current_tier)
-         |> assign(:tiers, build_tiers())}
+         |> assign(:tiers, TierPresenter.subscription_tiers())}
     end
   end
 
@@ -58,13 +58,14 @@ defmodule KlassHeroWeb.Provider.SubscriptionLive do
 
         case Provider.change_subscription_tier(provider, new_tier) do
           {:ok, updated_provider} ->
-            label = ProviderPresenter.tier_label(new_tier)
-
             {:noreply,
              socket
              |> assign(:provider, updated_provider)
              |> assign(:current_tier, new_tier)
-             |> put_flash(:info, gettext("Switched to %{plan}", plan: label))}
+             |> put_flash(
+               :info,
+               gettext("Switched to %{plan}", plan: TierPresenter.tier_plan_label(new_tier))
+             )}
 
           {:error, :same_tier} ->
             {:noreply, put_flash(socket, :info, gettext("You are already on this plan"))}
@@ -178,54 +179,5 @@ defmodule KlassHeroWeb.Provider.SubscriptionLive do
       </div>
     </div>
     """
-  end
-
-  # Builds the static tier data for display.
-  # Each map describes one subscription tier's UI card content.
-  defp build_tiers do
-    [
-      %{
-        key: :starter,
-        title: gettext("Starter"),
-        subtitle: gettext("Get started for free"),
-        price: gettext("Free"),
-        period: gettext("forever"),
-        features: [
-          gettext("2 programs"),
-          gettext("18% commission"),
-          gettext("Avatar media only"),
-          gettext("1 team seat")
-        ]
-      },
-      %{
-        key: :professional,
-        title: gettext("Professional"),
-        subtitle: gettext("For growing businesses"),
-        price: "€19",
-        period: gettext("month"),
-        features: [
-          gettext("5 programs"),
-          gettext("12% commission"),
-          gettext("Avatar, Gallery & Video"),
-          gettext("1 team seat"),
-          gettext("Direct messaging")
-        ]
-      },
-      %{
-        key: :business_plus,
-        title: gettext("Business Plus"),
-        subtitle: gettext("For established providers"),
-        price: "€49",
-        period: gettext("month"),
-        features: [
-          gettext("Unlimited programs"),
-          gettext("8% commission"),
-          gettext("All media types"),
-          gettext("3 team seats"),
-          gettext("Direct messaging"),
-          gettext("Promotional content")
-        ]
-      }
-    ]
   end
 end
