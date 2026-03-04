@@ -58,7 +58,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
       record ->
         case Participation.record_check_in(%{
                record_id: record.id,
-               checked_in_by: socket.assigns.provider_id
+               checked_in_by: socket.assigns.current_scope.user.id
              }) do
           {:ok, _record} ->
             {:noreply,
@@ -124,7 +124,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
       record ->
         case Participation.record_check_out(%{
                record_id: record.id,
-               checked_out_by: socket.assigns.provider_id,
+               checked_out_by: socket.assigns.current_scope.user.id,
                notes: notes
              }) do
           {:ok, _record} ->

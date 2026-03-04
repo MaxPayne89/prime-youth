@@ -419,4 +419,121 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       refute has_element?(view, "#add-note-btn-#{record.id}")
     end
   end
+
+  describe "check-in via LiveView event" do
+    setup [:create_session_with_child]
+
+    test "check_in event transitions record to checked_in and shows success flash", %{
+      conn: conn,
+      session: session,
+      record: record
+    } do
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      assert has_element?(view, "button[phx-click='check_in'][phx-value-id='#{record.id}']")
+
+      view
+      |> element("button[phx-click='check_in'][phx-value-id='#{record.id}']")
+      |> render_click()
+
+      assert_flash(view, :info, "Child checked in successfully")
+      assert has_element?(
+               view,
+               "button[phx-click='expand_checkout_form'][phx-value-id='#{record.id}']"
+             )
+    end
+
+    test "check_in uses logged-in user ID (not provider profile ID) for FK integrity", %{
+      conn: conn,
+      session: session,
+      record: record
+    } do
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      view
+      |> element("button[phx-click='check_in'][phx-value-id='#{record.id}']")
+      |> render_click()
+
+      # FK integrity: success (not an error flash) confirms a valid users.id was used
+      assert_flash(view, :info, "Child checked in successfully")
+    end
+  end
+
+  describe "checkout via LiveView event" do
+    setup [:create_session_with_child]
+
+    test "expand_checkout_form shows checkout form for checked-in child", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      {:ok, _} =
+        KlassHero.Participation.record_check_in(%{
+          record_id: record.id,
+          checked_in_by: user.id
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      view
+      |> element("button[phx-click='expand_checkout_form'][phx-value-id='#{record.id}']")
+      |> render_click()
+
+      assert has_element?(view, "#checkout-form-#{record.id}")
+    end
+
+    test "confirm_checkout completes checkout and shows success flash", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      {:ok, _} =
+        KlassHero.Participation.record_check_in(%{
+          record_id: record.id,
+          checked_in_by: user.id
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      view
+      |> element("button[phx-click='expand_checkout_form'][phx-value-id='#{record.id}']")
+      |> render_click()
+
+      view
+      |> form("#checkout-form-#{record.id}", %{checkout: %{notes: "Picked up by parent"}})
+      |> render_submit()
+
+      assert_flash(view, :info, "Child checked out successfully")
+      refute has_element?(view, "#checkout-form-#{record.id}")
+    end
+
+    test "cancel_checkout hides the checkout form", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      {:ok, _} =
+        KlassHero.Participation.record_check_in(%{
+          record_id: record.id,
+          checked_in_by: user.id
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      view
+      |> element("button[phx-click='expand_checkout_form'][phx-value-id='#{record.id}']")
+      |> render_click()
+
+      assert has_element?(view, "#checkout-form-#{record.id}")
+
+      view
+      |> element("button[phx-click='cancel_checkout'][phx-value-id='#{record.id}']")
+      |> render_click()
+
+      refute has_element?(view, "#checkout-form-#{record.id}")
+    end
+  end
 end
