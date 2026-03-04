@@ -17,6 +17,7 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
 
   alias KlassHero.Entitlements
   alias KlassHero.Provider.Domain.Models.ProviderProfile
+  alias KlassHeroWeb.Presenters.TierPresenter
 
   @doc """
   Transforms a Provider domain model to business view format.
@@ -37,7 +38,7 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
       name: provider.business_name,
       tagline: provider.description,
       plan: tier,
-      plan_label: tier_label(tier),
+      plan_label: TierPresenter.tier_plan_label(tier),
       verified: provider.verified || false,
       verification_badges: build_verification_badges(provider),
       program_slots_used: 0,
@@ -75,12 +76,12 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
   end
 
   @doc """
-  Converts a subscription tier atom to a human-readable label.
+  Converts a subscription tier atom to a human-readable label with "Plan" suffix.
+
+  Delegates to `TierPresenter.tier_plan_label/1`.
   """
   @spec tier_label(atom()) :: String.t()
-  def tier_label(:starter), do: gettext("Starter Plan")
-  def tier_label(:professional), do: gettext("Professional Plan")
-  def tier_label(:business_plus), do: gettext("Business Plus Plan")
+  defdelegate tier_label(tier), to: TierPresenter, as: :tier_plan_label
 
   @doc """
   Builds a list of verification badges for display.
