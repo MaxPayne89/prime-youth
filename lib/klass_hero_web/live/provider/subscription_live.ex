@@ -82,7 +82,7 @@ defmodule KlassHeroWeb.Provider.SubscriptionLive do
             {:noreply, put_flash(socket, :error, gettext("Could not change subscription tier"))}
         end
 
-      :error ->
+      {:error, :invalid_tier} ->
         {:noreply, put_flash(socket, :error, gettext("Invalid subscription tier"))}
     end
   end

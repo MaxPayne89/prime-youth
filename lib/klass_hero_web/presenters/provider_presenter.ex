@@ -81,7 +81,6 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
   def tier_label(:starter), do: gettext("Starter Plan")
   def tier_label(:professional), do: gettext("Professional Plan")
   def tier_label(:business_plus), do: gettext("Business Plus Plan")
-  def tier_label(_), do: gettext("Starter Plan")
 
   @doc """
   Builds a list of verification badges for display.

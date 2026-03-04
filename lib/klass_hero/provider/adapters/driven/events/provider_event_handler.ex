@@ -86,7 +86,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler do
       {:ok, valid_tier} ->
         Map.put(attrs, :subscription_tier, valid_tier)
 
-      :error ->
+      {:error, :invalid_tier} ->
         Logger.warning("Invalid provider tier in registration event, using default",
           tier: tier,
           identity_id: Map.get(attrs, :identity_id)

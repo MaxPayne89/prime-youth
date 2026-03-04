@@ -99,9 +99,15 @@ defmodule KlassHero.Shared.SubscriptionTiers do
       {:ok, :professional}
 
       iex> KlassHero.Shared.SubscriptionTiers.cast_provider_tier("invalid")
-      :error
+      {:error, :invalid_tier}
   """
-  @spec cast_provider_tier(binary()) :: {:ok, atom()} | :error
-  def cast_provider_tier(tier) when is_binary(tier), do: Map.fetch(@provider_tier_strings, tier)
-  def cast_provider_tier(_), do: :error
+  @spec cast_provider_tier(binary()) :: {:ok, atom()} | {:error, :invalid_tier}
+  def cast_provider_tier(tier) when is_binary(tier) do
+    case Map.fetch(@provider_tier_strings, tier) do
+      {:ok, _atom} = ok -> ok
+      :error -> {:error, :invalid_tier}
+    end
+  end
+
+  def cast_provider_tier(_), do: {:error, :invalid_tier}
 end
