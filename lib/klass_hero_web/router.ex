@@ -87,6 +87,7 @@ defmodule KlassHeroWeb.Router do
         live "/messages", MessagesLive.Index, :index
         live "/messages/:id", MessagesLive.Show, :show
         live "/programs/:program_id/broadcast", BroadcastLive, :new
+        live "/subscription", SubscriptionLive, :index
       end
     end
 
