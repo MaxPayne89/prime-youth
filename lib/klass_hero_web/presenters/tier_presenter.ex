@@ -24,6 +24,8 @@ defmodule KlassHeroWeb.Presenters.TierPresenter do
 
   alias KlassHero.Entitlements
 
+  @provider_tiers Entitlements.provider_tiers()
+
   # -- Individual tier attributes (multi-clause pattern matching) --
 
   @doc "Human-readable tier name."
@@ -61,7 +63,7 @@ defmodule KlassHeroWeb.Presenters.TierPresenter do
   strings (e.g. "2 programs").
   """
   @spec tier_features(atom()) :: [String.t()]
-  def tier_features(tier) do
+  def tier_features(tier) when tier in @provider_tiers do
     info = Entitlements.provider_tier_info(tier)
 
     [
@@ -80,7 +82,7 @@ defmodule KlassHeroWeb.Presenters.TierPresenter do
   Returns a short string like "2 programs, 12% commission".
   """
   @spec tier_summary(atom()) :: String.t()
-  def tier_summary(tier) do
+  def tier_summary(tier) when tier in @provider_tiers do
     info = Entitlements.provider_tier_info(tier)
 
     [format_program_limit(info.max_programs), format_commission(info.commission_rate)]
@@ -136,13 +138,17 @@ defmodule KlassHeroWeb.Presenters.TierPresenter do
     # Trigger: tier allows multiple media types beyond avatar
     # Why: feature list should highlight the accessible media types without :promotional
     #      (promotional is listed separately as a distinct feature)
-    # Outcome: human-readable media summary for the tier card
-    display_types =
-      media
-      |> Enum.reject(&(&1 == :promotional))
-      |> Enum.map_join(", ", &media_label/1)
+    # Outcome: human-readable, fully-translatable media summary for the tier card
+    non_promotional = Enum.reject(media, &(&1 == :promotional))
 
-    display_types
+    case Enum.sort(non_promotional) do
+      [:avatar, :gallery, :video] ->
+        gettext("All media types")
+
+      types ->
+        labels = Enum.map_join(types, ", ", &media_label/1)
+        gettext("%{media_types} media", media_types: labels)
+    end
   end
 
   defp media_label(:avatar), do: gettext("Avatar")
