@@ -11,39 +11,15 @@ defmodule KlassHeroWeb.MessagesLive.Show do
   """
 
   use KlassHeroWeb, :live_view
+  use KlassHeroWeb.MessagingLiveHelper, :show
 
   import KlassHeroWeb.MessagingComponents
 
-  alias KlassHero.Shared.Domain.Events.DomainEvent
-  alias KlassHeroWeb.MessagingLiveHelper
   alias KlassHeroWeb.Theme
-
-  require Logger
 
   @impl true
   def mount(%{"id" => conversation_id}, _session, socket) do
     MessagingLiveHelper.mount_conversation_show(socket, conversation_id, back_path: ~p"/messages")
-  end
-
-  @impl true
-  def handle_event("send_message", params, socket) do
-    MessagingLiveHelper.handle_send_message(params, socket)
-  end
-
-  @impl true
-  def handle_info({:domain_event, %DomainEvent{event_type: :message_sent} = event}, socket) do
-    MessagingLiveHelper.handle_message_sent_event(event, socket)
-  end
-
-  @impl true
-  def handle_info({:domain_event, %DomainEvent{event_type: :messages_read} = event}, socket) do
-    Logger.debug("Messages read by user", user_id: event.payload.user_id)
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info(_msg, socket) do
-    {:noreply, socket}
   end
 
   @impl true
@@ -94,20 +70,5 @@ defmodule KlassHeroWeb.MessagesLive.Show do
       </div>
     </div>
     """
-  end
-
-  defp avatar_color(name) do
-    colors = [
-      "bg-hero-blue-500",
-      "bg-rose-500",
-      "bg-hero-yellow-500",
-      "bg-emerald-500",
-      "bg-blue-500",
-      "bg-purple-500",
-      "bg-rose-500"
-    ]
-
-    index = :erlang.phash2(name, length(colors))
-    Enum.at(colors, index)
   end
 end

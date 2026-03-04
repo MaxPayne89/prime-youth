@@ -6,30 +6,13 @@ defmodule KlassHeroWeb.Provider.MessagesLive.Index do
   """
 
   use KlassHeroWeb, :live_view
+  use KlassHeroWeb.MessagingLiveHelper, :index
 
   import KlassHeroWeb.MessagingComponents
-
-  alias KlassHero.Shared.Domain.Events.DomainEvent
-  alias KlassHeroWeb.MessagingLiveHelper
 
   @impl true
   def mount(_params, _session, socket) do
     MessagingLiveHelper.mount_conversation_index(socket, navigate_base: "/provider/messages")
-  end
-
-  @impl true
-  def handle_info({:domain_event, %DomainEvent{event_type: :message_sent}}, socket) do
-    MessagingLiveHelper.refresh_conversations(socket)
-  end
-
-  @impl true
-  def handle_info({:domain_event, %DomainEvent{event_type: :conversation_created}}, socket) do
-    MessagingLiveHelper.refresh_conversations(socket)
-  end
-
-  @impl true
-  def handle_info(_msg, socket) do
-    {:noreply, socket}
   end
 
   @impl true
