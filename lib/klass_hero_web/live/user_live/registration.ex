@@ -86,6 +86,42 @@ defmodule KlassHeroWeb.UserLive.Registration do
             </.error>
           </fieldset>
 
+          <%!-- Provider Tier Selector --%>
+          <div :if={@show_tier_selector} id="tier-selector" class="mt-4 space-y-2">
+            <p class="text-sm font-semibold text-zinc-800">{gettext("Choose your plan")}</p>
+            <div class="space-y-2">
+              <label
+                :for={
+                  {key, label, summary} <- [
+                    {"starter", gettext("Starter"), gettext("2 programs, 18% commission")},
+                    {"professional", gettext("Professional"), gettext("5 programs, 12% commission")},
+                    {"business_plus", gettext("Business Plus"),
+                     gettext("Unlimited programs, 8% commission")}
+                  ]
+                }
+                id={"tier-option-#{key}"}
+                class="flex items-start gap-3 cursor-pointer rounded-lg border border-zinc-200 p-3 hover:border-hero-blue-300 transition-colors"
+              >
+                <input
+                  type="radio"
+                  name="user[provider_subscription_tier]"
+                  value={key}
+                  checked={(@form[:provider_subscription_tier].value || "starter") == key}
+                  class="mt-0.5 text-hero-blue-600 focus:ring-hero-blue-500"
+                />
+                <div>
+                  <span class="font-medium text-zinc-900 text-sm">{label}</span>
+                  <p class="text-xs text-zinc-500">{summary}</p>
+                </div>
+              </label>
+            </div>
+            <.error :for={
+              msg <- Enum.map(@form[:provider_subscription_tier].errors, &translate_error/1)
+            }>
+              {msg}
+            </.error>
+          </div>
+
           <.button
             phx-disable-with={gettext("Creating account...")}
             class="btn btn-primary w-full mt-6"
@@ -107,7 +143,10 @@ defmodule KlassHeroWeb.UserLive.Registration do
   def mount(_params, _session, socket) do
     changeset = Accounts.change_user_registration(%User{}, %{}, validate_unique: false)
 
-    {:ok, assign_form(socket, changeset), temporary_assigns: [form: nil]}
+    {:ok,
+     socket
+     |> assign(:show_tier_selector, false)
+     |> assign_form(changeset), temporary_assigns: [form: nil]}
   end
 
   @impl true
@@ -137,7 +176,17 @@ defmodule KlassHeroWeb.UserLive.Registration do
 
   def handle_event("validate", %{"user" => user_params}, socket) do
     changeset = Accounts.change_user_registration(%User{}, user_params, validate_unique: false)
-    {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
+
+    # Trigger: user toggled role checkboxes
+    # Why: tier selector only relevant for providers, hide when not applicable
+    # Outcome: show_tier_selector drives conditional rendering of plan radio buttons
+    intended_roles = Map.get(user_params, "intended_roles", [])
+    show_tier = "provider" in intended_roles
+
+    {:noreply,
+     socket
+     |> assign(:show_tier_selector, show_tier)
+     |> assign_form(Map.put(changeset, :action, :validate))}
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do

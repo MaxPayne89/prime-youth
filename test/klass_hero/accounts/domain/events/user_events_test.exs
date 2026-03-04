@@ -121,6 +121,28 @@ defmodule KlassHero.Accounts.Domain.Events.UserEventsTest do
                    ~r/User.intended_roles must be a list/,
                    fn -> UserEvents.user_registered(user) end
     end
+
+    test "includes provider_subscription_tier in payload when present" do
+      user = %{
+        id: 1,
+        email: "test@example.com",
+        name: "Test User",
+        intended_roles: [:provider],
+        provider_subscription_tier: "professional"
+      }
+
+      event = UserEvents.user_registered(user)
+
+      assert event.payload.provider_subscription_tier == "professional"
+    end
+
+    test "includes nil provider_subscription_tier when not set" do
+      user = %{id: 1, email: "test@example.com", name: "Test User"}
+
+      event = UserEvents.user_registered(user)
+
+      assert event.payload.provider_subscription_tier == nil
+    end
   end
 
   describe "user_confirmed/3 validation" do

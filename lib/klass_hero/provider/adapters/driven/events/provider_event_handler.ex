@@ -21,6 +21,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler do
 
   alias KlassHero.Provider
   alias KlassHero.Shared.Adapters.Driven.Events.RetryHelpers
+  alias KlassHero.Shared.SubscriptionTiers
+
+  require Logger
 
   @impl true
   def subscribed_events, do: [:user_registered, :user_anonymized]
@@ -37,12 +40,13 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler do
   def handle_event(%{event_type: :user_registered, entity_id: user_id, payload: payload}) do
     intended_roles = Map.get(payload, :intended_roles, [])
     business_name = Map.get(payload, :name, "")
+    provider_tier = Map.get(payload, :provider_subscription_tier)
 
     # Trigger: user_registered event with role list
     # Why: only create provider profile if "provider" role requested
-    # Outcome: provider profile created or skipped
+    # Outcome: provider profile created with selected tier or default starter
     if "provider" in intended_roles do
-      create_provider_profile_with_retry(user_id, business_name)
+      create_provider_profile_with_retry(user_id, business_name, provider_tier)
     else
       :ignore
     end
@@ -50,11 +54,13 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler do
 
   def handle_event(_event), do: :ignore
 
-  defp create_provider_profile_with_retry(user_id, business_name) do
-    attrs = %{
-      identity_id: user_id,
-      business_name: business_name
-    }
+  defp create_provider_profile_with_retry(user_id, business_name, provider_tier) do
+    attrs =
+      %{
+        identity_id: user_id,
+        business_name: business_name
+      }
+      |> maybe_put_tier(provider_tier)
 
     operation = fn ->
       Provider.create_provider_profile(attrs)
@@ -67,5 +73,26 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler do
     }
 
     RetryHelpers.retry_with_backoff(operation, context)
+  end
+
+  # Trigger: provider_subscription_tier may be nil or a string like "professional"
+  # Why: nil means use default (starter); string needs safe cast to atom for domain model
+  # Outcome: attrs includes subscription_tier only when explicitly selected and valid
+  defp maybe_put_tier(attrs, nil), do: attrs
+  defp maybe_put_tier(attrs, ""), do: attrs
+
+  defp maybe_put_tier(attrs, tier) when is_binary(tier) do
+    case SubscriptionTiers.cast_provider_tier(tier) do
+      {:ok, valid_tier} ->
+        Map.put(attrs, :subscription_tier, valid_tier)
+
+      {:error, :invalid_tier} ->
+        Logger.warning("Invalid provider tier in registration event, using default",
+          tier: tier,
+          identity_id: Map.get(attrs, :identity_id)
+        )
+
+        attrs
+    end
   end
 end
