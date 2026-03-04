@@ -1197,6 +1197,29 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       --%>
 
       <.business_profile_card business={@business} />
+
+      <%!-- Subscription CTA — shows current plan and links to management page --%>
+      <div
+        id="subscription-cta"
+        class="mt-4 rounded-lg border border-hero-blue-200 bg-hero-blue-50 p-4"
+      >
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-medium text-zinc-900">
+              {gettext("Current Plan: %{plan}", plan: @business.plan_label)}
+            </p>
+            <p :if={@business.plan == :starter} class="text-sm text-zinc-600 mt-0.5">
+              {gettext("Upgrade your plan to unlock more features")}
+            </p>
+          </div>
+          <.link
+            navigate={~p"/provider/subscription"}
+            class="text-sm font-medium text-hero-blue-600 hover:text-hero-blue-700 whitespace-nowrap"
+          >
+            {gettext("Manage Plan →")}
+          </.link>
+        </div>
+      </div>
     </div>
     """
   end
