@@ -12,7 +12,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.NotifyLiveVi
   end
 
   describe "handle/1" do
-    test "publishes participant_policy_set to derived topic" do
+    test "delegates to shared handler and publishes event" do
       program_id = Ecto.UUID.generate()
 
       event =
@@ -26,23 +26,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.NotifyLiveVi
   end
 
   describe "derive_topic/1" do
-    test "builds topic from aggregate_type and event_type" do
+    test "delegates to shared handler" do
       event = DomainEvent.new(:participant_policy_set, "id", :enrollment, %{})
       assert NotifyLiveViews.derive_topic(event) == "enrollment:participant_policy_set"
-    end
-  end
-
-  describe "build_topic/2" do
-    test "builds topic string from atoms" do
-      assert NotifyLiveViews.build_topic(:enrollment, :participant_policy_set) ==
-               "enrollment:participant_policy_set"
-    end
-  end
-
-  describe "error handling" do
-    test "swallows publish failures and returns :ok" do
-      event = DomainEvent.new(:participant_policy_set, "id", :enrollment, %{})
-      assert :ok = NotifyLiveViews.handle(event)
     end
   end
 end

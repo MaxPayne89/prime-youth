@@ -23,6 +23,7 @@ defmodule KlassHero.Shared do
       EventPublishing,
       IntegrationEventPublishing,
       EventDispatchHelper,
+      Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
       Adapters.Driven.Events.RetryHelpers,
       Adapters.Driven.Persistence.EctoErrorHelpers,
       Adapters.Driven.Persistence.MapperHelpers,

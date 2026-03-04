@@ -21,10 +21,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveVie
   - `:retention_enforced`     → `"messaging:bulk_operations"`
   """
 
-  alias KlassHero.Shared.Domain.Events.DomainEvent
-  alias KlassHero.Shared.EventPublishing
+  alias KlassHero.Shared.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+    as: SharedNotifyLiveViews
 
-  require Logger
+  alias KlassHero.Shared.Domain.Events.DomainEvent
 
   @bulk_topic "messaging:bulk_operations"
 
@@ -37,17 +37,17 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveVie
 
   def handle(%DomainEvent{event_type: :message_sent} = event) do
     topic = conversation_topic(event.payload.conversation_id)
-    safe_publish(event, topic)
+    SharedNotifyLiveViews.safe_publish(event, topic)
   end
 
   def handle(%DomainEvent{event_type: :messages_read} = event) do
     topic = conversation_topic(event.payload.conversation_id)
-    safe_publish(event, topic)
+    SharedNotifyLiveViews.safe_publish(event, topic)
   end
 
   def handle(%DomainEvent{event_type: :broadcast_sent} = event) do
     topic = conversation_topic(event.payload.conversation_id)
-    safe_publish(event, topic)
+    SharedNotifyLiveViews.safe_publish(event, topic)
   end
 
   # Fan-out event → user:{id}:messages per participant
@@ -55,7 +55,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveVie
   def handle(%DomainEvent{event_type: :conversation_created} = event) do
     Enum.each(event.payload.participant_ids, fn user_id ->
       topic = user_messages_topic(user_id)
-      safe_publish(event, topic)
+      SharedNotifyLiveViews.safe_publish(event, topic)
     end)
 
     :ok
@@ -64,34 +64,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveVie
   # Bulk operation events → messaging:bulk_operations
 
   def handle(%DomainEvent{event_type: :conversations_archived} = event) do
-    safe_publish(event, @bulk_topic)
+    SharedNotifyLiveViews.safe_publish(event, @bulk_topic)
   end
 
   def handle(%DomainEvent{event_type: :retention_enforced} = event) do
-    safe_publish(event, @bulk_topic)
-  end
-
-  # ---------------------------------------------------------------------------
-  # Private
-  # ---------------------------------------------------------------------------
-
-  defp safe_publish(event, topic) do
-    case EventPublishing.publisher_module().publish(event, topic) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        # Trigger: PubSub publish failed after use case committed
-        # Why: transaction is durable, LiveView notification is best-effort
-        # Outcome: log warning, return :ok so bus reports success
-        Logger.warning("Failed to publish #{event.event_type} to #{topic}",
-          event_type: event.event_type,
-          topic: topic,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    SharedNotifyLiveViews.safe_publish(event, @bulk_topic)
   end
 
   @doc "Returns PubSub topic for a specific conversation."
