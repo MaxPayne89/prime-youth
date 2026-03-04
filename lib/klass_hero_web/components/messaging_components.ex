@@ -296,7 +296,8 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   # Helpers
 
-  defp avatar_color(name) do
+  @doc "Returns a deterministic Tailwind background color class for a given name."
+  def avatar_color(name) do
     colors = [
       "bg-hero-blue-600",
       "bg-rose-500",

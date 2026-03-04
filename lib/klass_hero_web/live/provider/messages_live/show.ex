@@ -6,40 +6,15 @@ defmodule KlassHeroWeb.Provider.MessagesLive.Show do
   """
 
   use KlassHeroWeb, :live_view
+  use KlassHeroWeb.MessagingLiveHelper, :show
 
   import KlassHeroWeb.MessagingComponents
-
-  alias KlassHero.Shared.Domain.Events.DomainEvent
-  alias KlassHeroWeb.MessagingLiveHelper
-
-  require Logger
 
   @impl true
   def mount(%{"id" => conversation_id}, _session, socket) do
     MessagingLiveHelper.mount_conversation_show(socket, conversation_id,
       back_path: ~p"/provider/messages"
     )
-  end
-
-  @impl true
-  def handle_event("send_message", params, socket) do
-    MessagingLiveHelper.handle_send_message(params, socket)
-  end
-
-  @impl true
-  def handle_info({:domain_event, %DomainEvent{event_type: :message_sent} = event}, socket) do
-    MessagingLiveHelper.handle_message_sent_event(event, socket)
-  end
-
-  @impl true
-  def handle_info({:domain_event, %DomainEvent{event_type: :messages_read} = event}, socket) do
-    Logger.debug("Messages read by user", user_id: event.payload.user_id)
-    {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info(_msg, socket) do
-    {:noreply, socket}
   end
 
   @impl true

@@ -5,6 +5,16 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   Provides common functionality for both parent and provider
   conversation views, reducing code duplication while maintaining
   the flexibility needed for different navigation paths.
+
+  ## Usage
+
+  LiveViews `use` this module with a view type to inject shared callbacks:
+
+      use KlassHeroWeb.MessagingLiveHelper, :show   # conversation detail callbacks
+      use KlassHeroWeb.MessagingLiveHelper, :index   # conversation list callbacks
+
+  Each LiveView only needs to implement `mount/3` (for its unique back_path /
+  navigate_base) and `render/1`.
   """
 
   use Gettext, backend: KlassHeroWeb.Gettext
@@ -28,6 +38,49 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   alias KlassHero.Shared.Domain.Events.DomainEvent
 
   require Logger
+
+  @doc false
+  defmacro __using__(:show) do
+    quote do
+      alias KlassHero.Shared.Domain.Events.DomainEvent
+      alias KlassHeroWeb.MessagingLiveHelper
+
+      require Logger
+
+      @impl true
+      def handle_event("send_message", params, socket) do
+        MessagingLiveHelper.handle_send_message(params, socket)
+      end
+
+      @impl true
+      def handle_info({:domain_event, %DomainEvent{event_type: :message_sent} = event}, socket) do
+        MessagingLiveHelper.handle_message_sent_event(event, socket)
+      end
+
+      @impl true
+      def handle_info({:domain_event, %DomainEvent{event_type: :messages_read} = event}, socket) do
+        Logger.debug("Messages read by user", user_id: event.payload.user_id)
+        {:noreply, socket}
+      end
+    end
+  end
+
+  defmacro __using__(:index) do
+    quote do
+      alias KlassHero.Shared.Domain.Events.DomainEvent
+      alias KlassHeroWeb.MessagingLiveHelper
+
+      @impl true
+      def handle_info({:domain_event, %DomainEvent{event_type: :message_sent}}, socket) do
+        MessagingLiveHelper.refresh_conversations(socket)
+      end
+
+      @impl true
+      def handle_info({:domain_event, %DomainEvent{event_type: :conversation_created}}, socket) do
+        MessagingLiveHelper.refresh_conversations(socket)
+      end
+    end
+  end
 
   @doc """
   Mounts a conversation show view with all necessary assigns.
