@@ -3,17 +3,21 @@ defmodule KlassHeroWeb.Provider.SubscriptionLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Accounts.Scope
+  alias KlassHero.AccountsFixtures
+  alias KlassHero.Factory
+
   # Override factory default to start on :starter tier for these tests
   setup %{conn: conn} do
-    user = KlassHero.AccountsFixtures.user_fixture(%{intended_roles: [:provider]})
+    user = AccountsFixtures.user_fixture(%{intended_roles: [:provider]})
 
     _provider =
-      KlassHero.Factory.insert(:provider_profile_schema,
+      Factory.insert(:provider_profile_schema,
         identity_id: user.id,
         subscription_tier: "starter"
       )
 
-    scope = KlassHero.Accounts.Scope.for_user(user) |> KlassHero.Accounts.Scope.resolve_roles()
+    scope = Scope.for_user(user) |> Scope.resolve_roles()
 
     %{conn: log_in_user(conn, user), user: user, scope: scope}
   end
