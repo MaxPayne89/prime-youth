@@ -62,9 +62,6 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
         Logger.debug("Messages read by user", user_id: event.payload.user_id)
         {:noreply, socket}
       end
-
-      @impl true
-      def handle_info(_msg, socket), do: {:noreply, socket}
     end
   end
 
@@ -82,9 +79,6 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
       def handle_info({:domain_event, %DomainEvent{event_type: :conversation_created}}, socket) do
         MessagingLiveHelper.refresh_conversations(socket)
       end
-
-      @impl true
-      def handle_info(_msg, socket), do: {:noreply, socket}
     end
   end
 
