@@ -13,6 +13,7 @@ env:
 
 permissions:
   security-events: write
+  contents: read
 
 jobs:
   sobelow:
