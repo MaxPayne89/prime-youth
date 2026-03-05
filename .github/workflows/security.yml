@@ -11,6 +11,9 @@ env:
   ELIXIR_VERSION: '1.20.0-rc.1'
   OTP_VERSION: '28.3'
 
+permissions:
+  security-events: write
+
 jobs:
   sobelow:
     name: Sobelow Security Scan
