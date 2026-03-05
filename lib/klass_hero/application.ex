@@ -94,6 +94,9 @@ defmodule KlassHero.Application do
              :handle}},
            {:verification_document_rejected,
             {KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderVerificationStatus,
+             :handle}},
+           {:subscription_tier_changed,
+            {KlassHero.Provider.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}}
          ]},
         id: :provider_domain_event_bus
