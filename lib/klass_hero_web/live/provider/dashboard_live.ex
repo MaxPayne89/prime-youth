@@ -892,7 +892,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
       {:error, {:validation_error, _errors}} ->
         changeset =
-          Provider.new_staff_member_changeset(params)
+          params
+          |> normalize_staff_form_params()
+          |> Provider.new_staff_member_changeset()
           |> Map.put(:action, :validate)
 
         {:noreply,
@@ -939,7 +941,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     case Provider.get_staff_member(staff_id) do
       {:ok, staff} ->
         changeset =
-          Provider.change_staff_member(staff, params)
+          Provider.change_staff_member(staff, normalize_staff_form_params(params))
           |> Map.put(:action, :validate)
 
         {:noreply,

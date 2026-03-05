@@ -308,6 +308,29 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
       refute html =~ "Please fix the errors below."
     end
 
+    test "no qualifications cast error when save fails with validation error", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view |> element("#add-member-btn") |> render_click()
+
+      # Submit with qualifications string but missing required first/last name
+      html =
+        view
+        |> form("#staff-form", %{
+          "staff_member_schema" => %{
+            "first_name" => "",
+            "last_name" => "",
+            "qualifications" => "First Aid, CPR"
+          }
+        })
+        |> render_submit()
+
+      # Qualifications should not show cast error — the string was normalized to a list
+      refute html =~ "is invalid"
+      # Actual validation errors should appear
+      assert html =~ "Please fix the errors below."
+    end
+
     test "validates qualifications as comma-separated string without cast error", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
 
