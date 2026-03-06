@@ -762,4 +762,113 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       assert_flash(view, :error, "No file selected.")
     end
   end
+
+  # ===========================================================================
+  # Program start/end time parsing (#282)
+  # ===========================================================================
+
+  describe "program time parsing on save" do
+    setup %{provider: provider} do
+      provider
+      |> Ecto.Changeset.change(
+        verified: true,
+        verified_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+      |> KlassHero.Repo.update!()
+
+      %{}
+    end
+
+    defp valid_program_params(overrides \\ %{}) do
+      Map.merge(
+        %{
+          "title" => "Time Test Program",
+          "category" => "sports",
+          "description" => "A test program",
+          "price" => "50.00",
+          "meeting_start_time" => "09:00",
+          "meeting_end_time" => "11:00"
+        },
+        overrides
+      )
+    end
+
+    test "saves program with HH:MM time format from initial form submission", %{
+      conn: conn
+    } do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      # Open the new program form
+      view |> element("#new-program-btn") |> render_click()
+
+      # Submit with HH:MM format (as HTML time input sends)
+      view
+      |> render_submit("save_program", %{
+        "program_schema" => valid_program_params(),
+        "enrollment_policy" => %{},
+        "participant_policy" => %{}
+      })
+
+      refute has_element?(view, "#program-form")
+    end
+
+    test "saves program with HH:MM:SS time format from re-rendered form", %{
+      conn: conn
+    } do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#new-program-btn") |> render_click()
+
+      # Submit with HH:MM:SS format (as Time.to_iso8601/1 produces after a phx-change cycle)
+      view
+      |> render_submit("save_program", %{
+        "program_schema" =>
+          valid_program_params(%{
+            "meeting_start_time" => "09:00:00",
+            "meeting_end_time" => "11:00:00"
+          }),
+        "enrollment_policy" => %{},
+        "participant_policy" => %{}
+      })
+
+      refute has_element?(view, "#program-form")
+    end
+
+    test "editing program with existing times and re-saving succeeds", %{
+      conn: conn,
+      provider: provider
+    } do
+      program =
+        insert_program_with_listing(
+          provider_id: provider.id,
+          title: "Existing Timed Program",
+          meeting_start_time: ~T[14:30:00],
+          meeting_end_time: ~T[16:00:00]
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      # Open edit form (populates times as HH:MM:SS via Time.to_iso8601/1)
+      view
+      |> element(~s([phx-click="edit_program"][phx-value-id="#{program.id}"]))
+      |> render_click()
+
+      assert has_element?(view, "#program-form")
+
+      # Re-submit with HH:MM:SS values (simulating what the form sends after edit_program)
+      view
+      |> render_submit("save_program", %{
+        "program_schema" =>
+          valid_program_params(%{
+            "title" => "Existing Timed Program",
+            "meeting_start_time" => "14:30:00",
+            "meeting_end_time" => "16:00:00"
+          }),
+        "enrollment_policy" => %{},
+        "participant_policy" => %{}
+      })
+
+      assert_flash(view, :info, "Program updated successfully.")
+    end
+  end
 end
