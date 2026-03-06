@@ -496,10 +496,10 @@ defmodule KlassHeroWeb.HomeLive do
           <div class="space-y-4">
             <.faq_item
               id="faq-1"
-              question={gettext("How does the 4-step provider vetting process work?")}
+              question={gettext("How does the 6-step provider vetting process work?")}
               answer={
                 gettext(
-                  "We verify credentials, conduct background checks, check references, and perform a personal interview before approving any provider."
+                  "Every provider completes identity and age verification, experience validation, an extended background check, video screening, child safeguarding training, and agreement to our Community Guidelines before being approved."
                 )
               }
             />
