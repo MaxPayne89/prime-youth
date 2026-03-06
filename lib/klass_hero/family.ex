@@ -33,6 +33,7 @@ defmodule KlassHero.Family do
   alias KlassHero.Family.Adapters.Driven.Persistence.ChangeChild
   alias KlassHero.Family.Application.UseCases.Children.CreateChild
   alias KlassHero.Family.Application.UseCases.Children.DeleteChild
+  alias KlassHero.Family.Application.UseCases.Children.PrepareChildDeletion
   alias KlassHero.Family.Application.UseCases.Children.UpdateChild
   alias KlassHero.Family.Application.UseCases.Consents.GrantConsent
   alias KlassHero.Family.Application.UseCases.Consents.WithdrawConsent
@@ -149,6 +150,17 @@ defmodule KlassHero.Family do
   """
   def delete_child(child_id) when is_binary(child_id) do
     DeleteChild.execute(child_id)
+  end
+
+  @doc """
+  Checks if a child has active enrollments before deletion.
+
+  Returns:
+  - `{:ok, :no_enrollments}` -- no active enrollments, safe to delete
+  - `{:ok, :has_enrollments, program_titles}` -- child is enrolled in programs
+  """
+  def prepare_child_deletion(child_id) when is_binary(child_id) do
+    PrepareChildDeletion.execute(child_id)
   end
 
   @doc """
