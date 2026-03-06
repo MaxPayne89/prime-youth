@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-05T13:04:00Z",
+  "last_updated": "2026-03-06T13:03:42Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -26,20 +26,21 @@
     "bulk_check_in_pattern": "participation_record_schema factory creates own session+child internally, overrides with session_id:/child_id: work fine",
     "messaging_helper_tests": "MessagingLiveHelper pure functions (get_conversation_title/1, own_message?/2, get_sender_name/2) use ExUnit.Case async: true - no DB needed",
     "participation_live_checkin_fk": "check_in_by and check_out_by FK to users table; use current_scope.user.id NOT provider_id; click via element(view, \"button[phx-click='check_in'][phx-value-id='#{record.id}']\")",
-    "pure_domain_service_tests": "Pure domain services (no DB) use ExUnit.Case, async: true; construct ParticipationRecord directly with %ParticipationRecord{id:, session_id:, child_id:, status:}"
+    "pure_domain_service_tests": "Pure domain services (no DB) use ExUnit.Case, async: true; construct ParticipationRecord directly with %ParticipationRecord{id:, session_id:, child_id:, status:}",
+    "behavioral_note_schema_factory": "insert(:behavioral_note_schema) auto-creates user+provider+record via FK constraints; override provider_id explicitly when testing cross-provider isolation"
   },
   "backlog": [
     {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"},
     {"item": "ParticipationEvents factory tests", "priority": "low", "reason": "9 event factory functions, tests would guard payload shape contracts"},
-    {"item": "ChangeSubscriptionTier subscription_live integration (LiveView test)", "priority": "medium", "reason": "subscription_live_test.exs exists but may not cover tier change event dispatch path through LiveView"}
+    {"item": "subscription_live tier change integration", "priority": "resolved", "reason": "tests already cover switch_tier dispatch, flash, tier state fully"}
   ],
   "tasks_last_run": {
     "task1_commands": "2026-02-26",
     "task2_opportunities": "2026-03-04",
-    "task3_implement": "2026-03-05",
-    "task6_infrastructure": "never",
+    "task3_implement": "2026-03-06",
+    "task6_infrastructure": "2026-03-06",
     "task5_comments": "never",
-    "task7_monthly_summary": "2026-03-05"
+    "task7_monthly_summary": "2026-03-06"
   },
   "completed_work": [
     {
@@ -72,7 +73,11 @@
     },
     {
       "run": "2026-03-05",
-      "work": "Created PR: ParticipationCollection domain service unit tests (11 pure unit tests, count_checked_in/1 and count_by_status/1)"
+      "work": "Created PR #285: ParticipationCollection domain service unit tests (11 pure unit tests, count_checked_in/1 and count_by_status/1) - MERGED"
+    },
+    {
+      "run": "2026-03-06",
+      "work": "Created PR (branch test-assist/get-behavioral-note-for-record-tests): GetBehavioralNoteForRecord use case integration tests - 10 tests for execute/2 and execute_batch/2"
     }
   ]
 }
