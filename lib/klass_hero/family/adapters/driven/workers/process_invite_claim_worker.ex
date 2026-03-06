@@ -1,0 +1,64 @@
+defmodule KlassHero.Family.Adapters.Driven.Workers.ProcessInviteClaimWorker do
+  @moduledoc """
+  Oban worker that processes invite claims.
+
+  Deserializes JSON args from the queue and delegates to the
+  `ProcessInviteClaim` use case. The `family` queue runs with
+  concurrency 1, serializing all invite processing globally
+  to prevent duplicate child records from concurrent events.
+  """
+
+  use Oban.Worker,
+    queue: :family,
+    max_attempts: 3
+
+  alias KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim
+
+  require Logger
+
+  @impl Oban.Worker
+  def perform(%Oban.Job{args: args}) do
+    case ProcessInviteClaim.execute(deserialize_args(args)) do
+      {:ok, _result} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.error("[ProcessInviteClaimWorker] Failed",
+          invite_id: args["invite_id"],
+          user_id: args["user_id"],
+          reason: inspect(reason)
+        )
+
+        {:error, reason}
+    end
+  end
+
+  # Trigger: Oban serializes args as JSON (string keys, ISO date strings)
+  # Why: use case expects atom keys and native Elixir types
+  # Outcome: converts string keys to atoms, parses date string to Date struct
+  defp deserialize_args(args) do
+    %{
+      invite_id: args["invite_id"],
+      user_id: args["user_id"],
+      program_id: args["program_id"],
+      child_first_name: args["child_first_name"],
+      child_last_name: args["child_last_name"],
+      child_date_of_birth: parse_date(args["child_date_of_birth"]),
+      school_grade: args["school_grade"],
+      school_name: args["school_name"],
+      medical_conditions: args["medical_conditions"],
+      nut_allergy: args["nut_allergy"]
+    }
+  end
+
+  defp parse_date(nil), do: nil
+
+  defp parse_date(date_string) when is_binary(date_string) do
+    case Date.from_iso8601(date_string) do
+      {:ok, date} -> date
+      {:error, _} -> nil
+    end
+  end
+
+  defp parse_date(%Date{} = date), do: date
+end
