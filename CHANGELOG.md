@@ -5,6 +5,16 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2](https://github.com/MaxPayne89/prime-youth/compare/v0.1.1...v0.1.2) (2026-03-06)
+
+
+### Bug Fixes
+
+* handle HH:MM:SS time format in program save ([b4d17dc](https://github.com/MaxPayne89/prime-youth/commit/b4d17dc1a0f2f6129d2e58bbd9f5bbf41fe24932))
+* handle HH:MM:SS time format in program save ([#282](https://github.com/MaxPayne89/prime-youth/issues/282)) ([3e85491](https://github.com/MaxPayne89/prime-youth/commit/3e854912d62f645a9fe8bc5ce6054b4ac90d03bd))
+* normalize qualifications params in save error paths ([e2c2b1f](https://github.com/MaxPayne89/prime-youth/commit/e2c2b1f29bf65ccb6fe9441838958e10f3b817f0))
+* normalize qualifications params in save error paths ([57fc0c5](https://github.com/MaxPayne89/prime-youth/commit/57fc0c5cd3782ae73a49072ec3d594bb109b2c28)), closes [#141](https://github.com/MaxPayne89/prime-youth/issues/141)
+
 ## [0.1.1](https://github.com/MaxPayne89/prime-youth/compare/v0.1.0...v0.1.1) (2026-03-05)
 
 
