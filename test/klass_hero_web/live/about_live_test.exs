@@ -48,28 +48,24 @@ defmodule KlassHeroWeb.AboutLiveTest do
       assert html =~ "bg-hero-blue-400"
     end
 
-    test "displays 4-Step Vetting Process section with beige background", %{conn: conn} do
+    test "displays 6-Step Vetting Process section with beige background", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify section heading and background
-      assert html =~ "Our 3-Step Vetting Process"
+      assert html =~ "Our 6-Step Vetting Process"
       assert html =~ "bg-hero-pink-50"
       assert html =~ "rigorous screening to ensure the highest quality"
     end
 
-    test "displays all three vetting process steps", %{conn: conn} do
+    test "displays all six vetting process steps", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      assert html =~ "Identity Verification"
-      assert html =~ "Official ID and credentials check"
-
-      assert html =~ "Qualifications"
-      assert html =~ "Certification and experience verification"
-
-      assert html =~ "Personal Interview"
-      assert html =~ "In-depth conversation about values and approach"
-
-      refute html =~ "Background Check"
+      assert html =~ "Identity &amp; Age Verification"
+      assert html =~ "Experience Validation"
+      assert html =~ "Extended Background Checks"
+      assert html =~ "Video Screening"
+      assert html =~ "Child Safeguarding Training"
+      assert html =~ "Community Standards Agreement"
     end
 
     test "vetting steps have KH blue numbered circles", %{conn: conn} do
