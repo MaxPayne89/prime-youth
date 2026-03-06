@@ -43,6 +43,7 @@ defmodule KlassHeroWeb.Router do
       live "/contact", ContactLive, :index
       live "/privacy", PrivacyPolicyLive, :index
       live "/terms", TermsOfServiceLive, :index
+      live "/trust-safety", TrustSafetyLive, :index
     end
 
     # Protected routes - authentication required
