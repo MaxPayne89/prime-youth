@@ -1539,9 +1539,17 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp parse_time(""), do: nil
 
   defp parse_time(value) when is_binary(value) do
-    case Time.from_iso8601(value <> ":00") do
-      {:ok, time} -> time
-      {:error, _reason} -> nil
+    # Try parsing as-is first (handles "HH:MM:SS" from re-rendered %Time{} structs),
+    # then fall back to appending ":00" (handles "HH:MM" from HTML time inputs)
+    case Time.from_iso8601(value) do
+      {:ok, time} ->
+        time
+
+      {:error, _} ->
+        case Time.from_iso8601(value <> ":00") do
+          {:ok, time} -> time
+          {:error, _} -> nil
+        end
     end
   end
 
