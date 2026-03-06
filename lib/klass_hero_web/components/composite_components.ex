@@ -655,6 +655,10 @@ defmodule KlassHeroWeb.CompositeComponents do
           <.link navigate={~p"/privacy"} class="link link-hover">{gettext("Privacy Policy")}</.link>
           <span class="text-gray-400">•</span>
           <.link navigate={~p"/terms"} class="link link-hover">{gettext("Terms of Service")}</.link>
+          <span class="text-gray-400">&bull;</span>
+          <.link navigate={~p"/trust-safety"} class="link link-hover">
+            {gettext("Trust & Safety")}
+          </.link>
         </div>
       </div>
     </footer>
