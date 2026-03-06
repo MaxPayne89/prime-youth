@@ -3873,9 +3873,9 @@ msgstr ""
 
 #: lib/klass_hero_web/live/about_live.ex:23
 #: lib/klass_hero_web/live/trust_safety_live.ex:21
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Identity & Age Verification"
-msgstr "Identitätsverifizierung"
+msgstr "Identitäts- und Altersverifizierung"
 
 #: lib/klass_hero_web/live/trust_safety_live.ex:219
 #, elixir-autogen, elixir-format

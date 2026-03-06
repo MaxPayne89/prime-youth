@@ -48,7 +48,7 @@ defmodule KlassHeroWeb.AboutLiveTest do
       assert html =~ "bg-hero-blue-400"
     end
 
-    test "displays 6-Step Vetting Process section with beige background", %{conn: conn} do
+    test "displays 6-Step Vetting Process section with pink background", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
       # Verify section heading and background
