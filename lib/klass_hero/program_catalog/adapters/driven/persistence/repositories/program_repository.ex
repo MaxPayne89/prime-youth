@@ -398,6 +398,16 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     |> Repo.all()
   end
 
+  @impl true
+  def get_by_ids([]), do: []
+
+  def get_by_ids(ids) when is_list(ids) do
+    ProgramSchema
+    |> where([p], p.id in ^ids)
+    |> Repo.all()
+    |> Enum.map(&ProgramMapper.to_domain/1)
+  end
+
   defp apply_cursor_filter(query, nil), do: query
 
   defp apply_cursor_filter(query, {cursor_ts, cursor_id}) do

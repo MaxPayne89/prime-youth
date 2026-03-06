@@ -85,20 +85,16 @@ defmodule KlassHeroWeb.DashboardLive do
   defp load_family_programs(identity_id) do
     enrollments = Enrollment.list_parent_enrollments(identity_id)
 
-    # Trigger: each enrollment references a program_id
-    # Why: we need full program data for card rendering (title, schedule, etc.)
-    # Outcome: list of {enrollment, program} tuples, dropping any where program is not found
-    # Note: This is N+1 (1 query for enrollments + N for programs). Acceptable because
-    # enrollment count per parent is bounded (typically <20). Future optimization:
-    # add ProgramCatalog.get_programs_by_ids/1 batch function.
-    enrollment_programs =
-      enrollments
-      |> Enum.map(fn enrollment ->
-        case ProgramCatalog.get_program_by_id(enrollment.program_id) do
-          {:ok, program} ->
-            {enrollment, program}
+    program_ids = Enum.map(enrollments, & &1.program_id)
+    programs_by_id = ProgramCatalog.get_programs_by_ids(program_ids) |> Map.new(&{&1.id, &1})
 
-          {:error, :not_found} ->
+    enrollment_programs =
+      Enum.flat_map(enrollments, fn enrollment ->
+        case Map.fetch(programs_by_id, enrollment.program_id) do
+          {:ok, program} ->
+            [{enrollment, program}]
+
+          :error ->
             # Trigger: enrollment references a program that no longer exists
             # Why: program may have been deleted; orphaned enrollment is a data issue
             # Outcome: skip this enrollment but log for data hygiene monitoring
@@ -107,22 +103,9 @@ defmodule KlassHeroWeb.DashboardLive do
               program_id: enrollment.program_id
             )
 
-            nil
-
-          {:error, reason} ->
-            # Trigger: infrastructure error fetching program data
-            # Why: DB connection/query failures should not silently hide enrollments
-            # Outcome: log error for observability, skip this enrollment
-            Logger.error("[DashboardLive] Failed to load program",
-              enrollment_id: enrollment.id,
-              program_id: enrollment.program_id,
-              reason: inspect(reason)
-            )
-
-            nil
+            []
         end
       end)
-      |> Enum.reject(&is_nil/1)
 
     Enrollment.classify_family_programs(enrollment_programs, Date.utc_today())
   end

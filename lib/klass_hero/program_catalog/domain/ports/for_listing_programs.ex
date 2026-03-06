@@ -98,4 +98,12 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms do
   (archiving broadcast conversations for ended programs).
   """
   @callback list_ended_program_ids(cutoff_date :: Date.t()) :: [String.t()]
+
+  @doc """
+  Returns all programs matching the given list of IDs in a single query.
+
+  IDs that do not correspond to any program are silently omitted from the result.
+  The order of returned programs is not guaranteed.
+  """
+  @callback get_by_ids(ids :: [String.t()]) :: [Program.t()]
 end
