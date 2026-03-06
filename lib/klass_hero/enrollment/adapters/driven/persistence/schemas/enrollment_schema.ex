@@ -37,8 +37,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
     timestamps()
   end
 
-  @required_fields ~w(program_id child_id parent_id status enrolled_at)a
+  @required_fields ~w(program_id parent_id status enrolled_at)a
   @optional_fields ~w(
+    child_id
     confirmed_at completed_at cancelled_at cancellation_reason
     subtotal vat_amount card_fee_amount total_amount
     payment_method special_requirements
@@ -49,12 +50,12 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
 
   Required fields:
   - program_id (valid UUID)
-  - child_id (valid UUID)
   - parent_id (valid UUID)
   - status (pending, confirmed, completed, or cancelled)
   - enrolled_at (UTC datetime)
 
   Optional fields:
+  - child_id (valid UUID, nullable after child deletion)
   - confirmed_at, completed_at, cancelled_at (UTC datetime)
   - cancellation_reason (text, max 1000 chars)
   - subtotal, vat_amount, card_fee_amount, total_amount (decimal)
@@ -88,8 +89,13 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
   Does not allow modification of program_id, child_id, or parent_id.
   """
   def update_changeset(enrollment_schema, attrs) do
+    # Trigger: child_id is in @optional_fields for create_changeset but must not be updatable
+    # Why: child_id is only nullified at the DB level via ON DELETE SET NULL, never via application code
+    # Outcome: update path excludes child_id from castable fields
+    updatable_fields = Enum.reject(@optional_fields, &(&1 == :child_id))
+
     enrollment_schema
-    |> cast(attrs, @optional_fields ++ [:status])
+    |> cast(attrs, updatable_fields ++ [:status])
     |> validate_inclusion(:status, @valid_statuses)
     |> validate_inclusion(:payment_method, @valid_payment_methods ++ [nil])
     |> validate_length(:cancellation_reason, max: 1000)
