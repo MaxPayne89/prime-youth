@@ -3,16 +3,21 @@ defmodule KlassHeroWeb.TrustSafetyLive do
 
   alias KlassHeroWeb.{Theme, UIComponents}
 
+  @step_icon_gradient "bg-hero-blue-400"
+
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, page_title: gettext("Trust & Safety"))}
+    {:ok,
+     assign(socket,
+       page_title: gettext("Trust & Safety"),
+       step_icon_gradient: @step_icon_gradient
+     )}
   end
 
   defp verification_steps do
     [
       %{
         icon: "hero-identification",
-        icon_gradient: "bg-hero-blue-400",
         title: gettext("Identity & Age Verification"),
         description:
           gettext(
@@ -21,7 +26,6 @@ defmodule KlassHeroWeb.TrustSafetyLive do
       },
       %{
         icon: "hero-academic-cap",
-        icon_gradient: "bg-hero-blue-400",
         title: gettext("Experience Validation"),
         description:
           gettext(
@@ -30,7 +34,6 @@ defmodule KlassHeroWeb.TrustSafetyLive do
       },
       %{
         icon: "hero-shield-check",
-        icon_gradient: "bg-hero-blue-400",
         title: gettext("Extended Background Checks"),
         description:
           gettext(
@@ -39,7 +42,6 @@ defmodule KlassHeroWeb.TrustSafetyLive do
       },
       %{
         icon: "hero-video-camera",
-        icon_gradient: "bg-hero-blue-400",
         title: gettext("Video Screening"),
         description:
           gettext(
@@ -48,7 +50,6 @@ defmodule KlassHeroWeb.TrustSafetyLive do
       },
       %{
         icon: "hero-heart",
-        icon_gradient: "bg-hero-blue-400",
         title: gettext("Child Safeguarding Training"),
         description:
           gettext(
@@ -57,7 +58,6 @@ defmodule KlassHeroWeb.TrustSafetyLive do
       },
       %{
         icon: "hero-check-circle",
-        icon_gradient: "bg-hero-blue-400",
         title: gettext("Community Standards Agreement"),
         description:
           gettext(
@@ -165,7 +165,7 @@ defmodule KlassHeroWeb.TrustSafetyLive do
             <div :for={step <- verification_steps()} class="bg-white rounded-xl p-6 text-center">
               <div class="mb-4 flex justify-center">
                 <UIComponents.gradient_icon
-                  gradient_class={step.icon_gradient}
+                  gradient_class={@step_icon_gradient}
                   size="md"
                   shape="circle"
                 >
