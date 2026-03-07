@@ -76,12 +76,42 @@ defmodule KlassHeroWeb.Telemetry do
           "The time the connection spent waiting before being checked out for the query"
       ),
 
+      # LiveView Metrics
+      summary("phoenix.live_view.mount.stop.duration",
+        tags: [:view],
+        tag_values: &live_view_tag_values/1,
+        unit: {:native, :millisecond}
+      ),
+      summary("phoenix.live_view.handle_params.stop.duration",
+        tags: [:view],
+        tag_values: &live_view_tag_values/1,
+        unit: {:native, :millisecond}
+      ),
+      summary("phoenix.live_view.handle_event.stop.duration",
+        tags: [:view, :event],
+        tag_values: &live_view_event_tag_values/1,
+        unit: {:native, :millisecond}
+      ),
+      summary("phoenix.live_view.render.stop.duration",
+        tags: [:view],
+        tag_values: &live_view_tag_values/1,
+        unit: {:native, :millisecond}
+      ),
+
       # VM Metrics
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
       summary("vm.total_run_queue_lengths.io")
     ]
+  end
+
+  defp live_view_tag_values(metadata) do
+    %{view: inspect(metadata.socket.view)}
+  end
+
+  defp live_view_event_tag_values(metadata) do
+    %{view: inspect(metadata.socket.view), event: metadata.event}
   end
 
   defp periodic_measurements do
