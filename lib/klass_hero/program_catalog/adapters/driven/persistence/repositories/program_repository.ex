@@ -405,7 +405,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     ProgramSchema
     |> where([p], p.id in ^ids)
     |> Repo.all()
-    |> Enum.map(&ProgramMapper.to_domain/1)
+    |> MapperHelpers.to_domain_list(ProgramMapper)
   end
 
   defp apply_cursor_filter(query, nil), do: query
