@@ -35,9 +35,15 @@ ProcessInviteClaim (use case)
 
 ### Serialization
 
-Oban `unique: [keys: [:parent_id], period: 60]` ensures only one job per parent
-runs at a time. Concurrent invite claims for the same parent queue up instead of
-racing.
+The `family` queue runs with `concurrency: 1`, serializing all invite claim
+processing globally. This prevents TOCTOU races in `find_existing_child`.
+
+Note: Oban's `unique` option was considered for per-parent serialization, but
+`unique` only deduplicates job _insertion_ (preventing the same job from being
+enqueued twice). It does not serialize job _execution_. Execution serialization
+comes from queue concurrency. Since invite volume is low and correctness is
+paramount, global serialization via `concurrency: 1` is the simplest correct
+approach.
 
 ### Key files
 
@@ -88,7 +94,7 @@ Run via `fly ssh console` with `rpc`.
 | Test | Scope |
 |---|---|
 | `ProcessInviteClaim` use case | find-or-create: first call creates, second returns existing |
-| `ProcessInviteClaimWorker` | Job enqueued with correct args, unique key on `[:parent_id]` |
+| `ProcessInviteClaimWorker` | Deserializes JSON args, delegates to use case |
 | `InviteClaimedHandler` | Enqueues job instead of doing work directly |
 
 Remediation script: dry-run mode serves as safety net, no formal test file.

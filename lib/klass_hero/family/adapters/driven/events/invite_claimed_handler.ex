@@ -5,7 +5,8 @@ defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler do
   Thin adapter that enqueues an Oban job for serialized processing.
   The actual domain logic lives in the `ProcessInviteClaim` use case,
   called by `ProcessInviteClaimWorker`. The `family` queue runs with
-  concurrency 1 to prevent concurrent processing for the same parent.
+  concurrency 1, serializing all invite processing globally to prevent
+  duplicate child records from concurrent events.
   """
 
   @behaviour KlassHero.Shared.Domain.Ports.ForHandlingIntegrationEvents

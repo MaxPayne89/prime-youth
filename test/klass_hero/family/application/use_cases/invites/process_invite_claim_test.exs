@@ -131,6 +131,29 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaimTest d
       assert length(Family.get_children(parent.id)) == 1
     end
 
+    test "idempotent retry after partial commit (event dispatch failure recovery)" do
+      user = user_fixture()
+      attrs = valid_attrs(user.id)
+
+      # First execution: creates parent + child, dispatches event
+      assert {:ok, %{child: first_child, parent: first_parent}} =
+               ProcessInviteClaim.execute(attrs)
+
+      # Simulate retry scenario: if event dispatch had failed on the first call,
+      # Oban would retry with the same args. The retry must find existing parent
+      # and child (idempotent) and succeed.
+      assert {:ok, %{child: retry_child, parent: retry_parent}} =
+               ProcessInviteClaim.execute(attrs)
+
+      # Same records reused -- no duplicates created
+      assert retry_parent.id == first_parent.id
+      assert retry_child.id == first_child.id
+
+      # Only one child exists for this parent
+      {:ok, parent} = Family.get_parent_by_identity(user.id)
+      assert length(Family.get_children(parent.id)) == 1
+    end
+
     test "maps nut_allergy false to nil allergies" do
       user = user_fixture()
       attrs = valid_attrs(user.id, %{nut_allergy: false})

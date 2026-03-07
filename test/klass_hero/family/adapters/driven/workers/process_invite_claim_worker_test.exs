@@ -33,6 +33,24 @@ defmodule KlassHero.Family.Adapters.Driven.Workers.ProcessInviteClaimWorkerTest 
       assert hd(children).first_name == "Emma"
     end
 
+    test "returns error for malformed date_of_birth string" do
+      user = user_fixture()
+
+      job =
+        ProcessInviteClaimWorker.new(%{
+          "invite_id" => Ecto.UUID.generate(),
+          "user_id" => user.id,
+          "program_id" => Ecto.UUID.generate(),
+          "child_first_name" => "Emma",
+          "child_last_name" => "Schmidt",
+          "child_date_of_birth" => "not-a-date"
+        })
+        |> Oban.insert!()
+
+      assert {:error, {:invalid_date, "not-a-date"}} =
+               ProcessInviteClaimWorker.perform(job)
+    end
+
     test "handles nil date_of_birth in args" do
       user = user_fixture()
 

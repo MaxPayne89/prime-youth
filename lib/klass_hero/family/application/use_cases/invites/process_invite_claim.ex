@@ -36,6 +36,10 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
     invite_id = Map.fetch!(attrs, :invite_id)
     program_id = Map.fetch!(attrs, :program_id)
 
+    # Trigger: parent and child are already committed at this point
+    # Why: event dispatch is not transactional (PubSub); if it fails, Oban retries
+    # Outcome: retry is safe because ensure_parent_profile and find_or_create_child
+    #   are idempotent -- they find existing records, no duplicates created
     with {:ok, parent} <- ensure_parent_profile(user_id, invite_id),
          {:ok, child} <- find_or_create_child(parent.id, attrs),
          :ok <- publish_family_ready(invite_id, user_id, child.id, parent.id, program_id) do

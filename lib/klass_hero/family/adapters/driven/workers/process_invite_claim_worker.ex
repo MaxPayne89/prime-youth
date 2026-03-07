@@ -14,16 +14,11 @@ defmodule KlassHero.Family.Adapters.Driven.Workers.ProcessInviteClaimWorker do
 
   alias KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim
 
-  require Logger
-
   @impl Oban.Worker
   def perform(%Oban.Job{args: args}) do
-    case ProcessInviteClaim.execute(deserialize_args(args)) do
-      {:ok, _result} ->
-        :ok
-
-      {:error, reason} ->
-        {:error, reason}
+    with {:ok, attrs} <- deserialize_args(args),
+         {:ok, _result} <- ProcessInviteClaim.execute(attrs) do
+      :ok
     end
   end
 
@@ -31,36 +26,34 @@ defmodule KlassHero.Family.Adapters.Driven.Workers.ProcessInviteClaimWorker do
   # Why: use case expects atom keys and native Elixir types
   # Outcome: converts string keys to atoms, parses date string to Date struct
   defp deserialize_args(args) do
-    %{
-      invite_id: args["invite_id"],
-      user_id: args["user_id"],
-      program_id: args["program_id"],
-      child_first_name: args["child_first_name"],
-      child_last_name: args["child_last_name"],
-      child_date_of_birth: parse_date(args["child_date_of_birth"]),
-      school_grade: args["school_grade"],
-      school_name: args["school_name"],
-      medical_conditions: args["medical_conditions"],
-      nut_allergy: args["nut_allergy"]
-    }
+    with {:ok, date_of_birth} <- parse_date(args["child_date_of_birth"]) do
+      {:ok,
+       %{
+         invite_id: args["invite_id"],
+         user_id: args["user_id"],
+         program_id: args["program_id"],
+         child_first_name: args["child_first_name"],
+         child_last_name: args["child_last_name"],
+         child_date_of_birth: date_of_birth,
+         school_grade: args["school_grade"],
+         school_name: args["school_name"],
+         medical_conditions: args["medical_conditions"],
+         nut_allergy: args["nut_allergy"]
+       }}
+    end
   end
 
-  defp parse_date(nil), do: nil
+  defp parse_date(nil), do: {:ok, nil}
 
   defp parse_date(date_string) when is_binary(date_string) do
     case Date.from_iso8601(date_string) do
       {:ok, date} ->
-        date
+        {:ok, date}
 
-      {:error, reason} ->
-        Logger.warning("[ProcessInviteClaimWorker] Malformed date_of_birth",
-          input: date_string,
-          reason: inspect(reason)
-        )
-
-        nil
+      {:error, _reason} ->
+        {:error, {:invalid_date, date_string}}
     end
   end
 
-  defp parse_date(%Date{} = date), do: date
+  defp parse_date(%Date{} = date), do: {:ok, date}
 end
