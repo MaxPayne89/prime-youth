@@ -101,7 +101,9 @@ config :klass_hero, :family,
     KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
   for_storing_children: KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildRepository,
   for_storing_consents:
-    KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepository
+    KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepository,
+  for_managing_child_enrollments: KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACL,
+  for_managing_child_participation: KlassHero.Family.Adapters.Driven.ACL.ChildParticipationACL
 
 # Configure Integration Event Publisher (cross-context communication)
 config :klass_hero, :integration_event_publisher,
