@@ -107,7 +107,9 @@ defmodule KlassHero.MixProject do
       {:ex_aws_s3, "~> 2.5"},
       {:sweet_xml, "~> 0.7"},
       # Fitness Functions
-      {:boundary, "~> 0.10", runtime: false}
+      {:boundary, "~> 0.10", runtime: false},
+      # Admin dashboard
+      {:backpex, "~> 0.17"}
     ]
   end
 
