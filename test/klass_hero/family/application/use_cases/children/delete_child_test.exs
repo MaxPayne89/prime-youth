@@ -49,9 +49,10 @@ defmodule KlassHero.Family.Application.UseCases.Children.DeleteChildTest do
 
       assert :ok = DeleteChild.execute(child.id)
 
-      # Enrollment should be cancelled, not deleted
+      # Enrollment should be cancelled, not deleted; child_id nullified by FK nilify_all
       updated = Repo.get(EnrollmentSchema, enrollment.id)
       assert updated.status == "cancelled"
+      assert is_nil(updated.child_id)
     end
 
     test "deletes child with participation records" do
