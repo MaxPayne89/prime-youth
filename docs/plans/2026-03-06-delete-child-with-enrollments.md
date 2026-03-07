@@ -14,9 +14,9 @@
 
 **Files:**
 - Create: `lib/klass_hero/family/domain/ports/for_managing_child_enrollments.ex`
-- Create: `lib/klass_hero/family/adapters/driven/enrollment/child_enrollment_acl.ex`
+- Create: `lib/klass_hero/family/adapters/driven/acl/child_enrollment_acl.ex`
 - Modify: `config/config.exs:97-104` (family config)
-- Test: `test/klass_hero/family/adapters/driven/enrollment/child_enrollment_acl_test.exs`
+- Test: `test/klass_hero/family/adapters/driven/acl/child_enrollment_acl_test.exs`
 
 **Step 1: Write the port behaviour**
 
@@ -49,7 +49,7 @@ end
 **Step 2: Write the failing ACL adapter test**
 
 ```elixir
-# test/klass_hero/family/adapters/driven/enrollment/child_enrollment_acl_test.exs
+# test/klass_hero/family/adapters/driven/acl/child_enrollment_acl_test.exs
 defmodule KlassHero.Family.Adapters.Driven.Enrollment.ChildEnrollmentACLTest do
   use KlassHero.DataCase, async: true
 
@@ -146,13 +146,13 @@ end
 
 **Step 3: Run tests to verify they fail**
 
-Run: `mix test test/klass_hero/family/adapters/driven/enrollment/child_enrollment_acl_test.exs`
+Run: `mix test test/klass_hero/family/adapters/driven/acl/child_enrollment_acl_test.exs`
 Expected: Compilation error — module `ChildEnrollmentACL` does not exist
 
 **Step 4: Implement the ACL adapter**
 
 ```elixir
-# lib/klass_hero/family/adapters/driven/enrollment/child_enrollment_acl.ex
+# lib/klass_hero/family/adapters/driven/acl/child_enrollment_acl.ex
 defmodule KlassHero.Family.Adapters.Driven.Enrollment.ChildEnrollmentACL do
   @moduledoc """
   ACL adapter that manages enrollment data for child deletion.
@@ -178,7 +178,7 @@ defmodule KlassHero.Family.Adapters.Driven.Enrollment.ChildEnrollmentACL do
       where: e.status in ^@active_statuses,
       select: %{
         enrollment_id: type(e.id, :binary_id),
-        program_id: type(e.id, :binary_id),
+        program_id: type(e.program_id, :binary_id),
         program_title: p.title,
         status: e.status
       }
@@ -204,7 +204,7 @@ end
 
 **Step 5: Run tests to verify they pass**
 
-Run: `mix test test/klass_hero/family/adapters/driven/enrollment/child_enrollment_acl_test.exs`
+Run: `mix test test/klass_hero/family/adapters/driven/acl/child_enrollment_acl_test.exs`
 Expected: All 6 tests pass
 
 **Step 6: Wire up config**
@@ -231,8 +231,8 @@ Note: `for_managing_child_participation` won't exist yet — that's fine, it'll 
 
 ```bash
 git add lib/klass_hero/family/domain/ports/for_managing_child_enrollments.ex \
-  lib/klass_hero/family/adapters/driven/enrollment/child_enrollment_acl.ex \
-  test/klass_hero/family/adapters/driven/enrollment/child_enrollment_acl_test.exs \
+  lib/klass_hero/family/adapters/driven/acl/child_enrollment_acl.ex \
+  test/klass_hero/family/adapters/driven/acl/child_enrollment_acl_test.exs \
   config/config.exs
 git commit -m "feat(family): add enrollment cleanup ACL for child deletion (#298)"
 ```

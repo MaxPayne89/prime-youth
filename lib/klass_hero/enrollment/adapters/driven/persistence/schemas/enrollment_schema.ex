@@ -51,11 +51,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
   Required fields:
   - program_id (valid UUID)
   - parent_id (valid UUID)
+  - child_id (valid UUID, required on create; nullable in DB after child deletion via `ON DELETE: :nilify_all`)
   - status (pending, confirmed, completed, or cancelled)
   - enrolled_at (UTC datetime)
 
   Optional fields:
-  - child_id (valid UUID, nullable after child deletion)
   - confirmed_at, completed_at, cancelled_at (UTC datetime)
   - cancellation_reason (text, max 1000 chars)
   - subtotal, vat_amount, card_fee_amount, total_amount (decimal)

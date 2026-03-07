@@ -551,6 +551,9 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
         </div>
         <div
           id="delete-confirmation-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-confirmation-title"
           class={[
             "fixed inset-x-4 top-[20%] z-50 mx-auto max-w-md",
             Theme.bg(:surface),
@@ -563,7 +566,10 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
             <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
               <.icon name="hero-exclamation-triangle" class="w-5 h-5 text-red-600" />
             </div>
-            <h3 class={["text-lg font-semibold", Theme.text_color(:heading)]}>
+            <h3
+              id="delete-confirmation-title"
+              class={["text-lg font-semibold", Theme.text_color(:heading)]}
+            >
               {gettext("Remove Child?")}
             </h3>
           </div>

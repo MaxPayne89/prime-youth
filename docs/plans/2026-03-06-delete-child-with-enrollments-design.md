@@ -4,41 +4,30 @@
 >
 > **Root cause:** `DeleteChild` use case only cleans up consents before deletion. Enrollments and participation records have FK RESTRICT constraints that block the DELETE.
 
-## Approach: Synchronous ACL via Public API Facades
+## Approach: Synchronous ACL Adapters within Family
 
-Family's `DeleteChild` use case calls Enrollment and Participation public APIs within a single transaction to clean up cross-context records before deleting the child. No saga, no async events — all contexts share `KlassHero.Repo`, so SQL operations from other contexts automatically participate in Family's open transaction.
+Family's `DeleteChild` use case uses ACL (Anti-Corruption Layer) adapters that query enrollment and participation tables directly via raw Ecto queries. This avoids a dependency cycle (Enrollment already depends on Family) while keeping all cleanup within Family's transaction. No saga, no async events — all contexts share `KlassHero.Repo`, so the ACL queries automatically participate in Family's open transaction.
 
 ## Changes by Context
 
 ### Enrollment Context
 
-Two new public API functions:
-
-**`Enrollment.cancel_enrollments_for_child/1`**
-- Bulk-updates active enrollments (pending/confirmed) to status "cancelled" for a given child_id
-- New use case: `CancelEnrollmentsForChild`
-- New repo port function on the enrollment repository port
-- Returns `{:ok, cancelled_count}`
-- No transaction wrapping — caller coordinates
-
-**`Enrollment.list_active_enrollments_for_child/1`**
-- Returns active enrollments for a child with program names (via SQL join)
-- Used by Family's `PrepareChildDeletion` use case for the confirmation modal
-- Returns `[%{enrollment_id, program_id, program_name, status}]`
+No changes. Family's `ChildEnrollmentACL` adapter queries the `enrollments` and `programs` tables directly to avoid coupling.
 
 ### Participation Context
 
-**`Participation.delete_records_for_child/1`**
-- Hard-deletes all participation records for a given child_id
-- Behavioral notes cascade automatically (FK `ON DELETE: delete_all` on `participation_record_id`)
-- New use case: `DeleteRecordsForChild`
-- New repo port function on the participation repository port
-- Returns `{:ok, deleted_count}`
-- No transaction wrapping — caller coordinates
-
-Why hard-delete: participation records (check-in/out timestamps) have no meaningful "cancelled" state.
+No changes. Family's `ChildParticipationACL` adapter queries the `participation_records` and `behavioral_notes` tables directly.
 
 ### Family Context
+
+**New ACL adapters** (in `family/adapters/driven/acl/`):
+
+**`ChildEnrollmentACL`** — implements `ForManagingChildEnrollments` port:
+- `list_active_with_program_titles/1` — returns active enrollments with program names via direct table join
+- `cancel_active_for_child/1` — bulk-updates active enrollments to "cancelled"
+
+**`ChildParticipationACL`** — implements `ForManagingChildParticipation` port:
+- `delete_records_for_child/1` — hard-deletes participation records and behavioral notes
 
 **Updated `DeleteChild.execute/1`** — enhanced transaction:
 
@@ -76,7 +65,7 @@ New assigns: `delete_candidate` (child being considered), `enrolled_programs` (p
 ## Non-Goals
 
 - No new integration events (YAGNI — transaction cleans up all referencing contexts)
-- No migration changes (FK constraints stay as RESTRICT)
+- No additional migration changes beyond making `enrollments.child_id` nullable with FK `ON DELETE: :nilify_all`; all other FK constraints remain `RESTRICT`
 - No soft-delete for children
 - No changes to enrollment status enum ("cancelled" already exists)
 
