@@ -56,4 +56,5 @@ defmodule KlassHero.Family.Adapters.Driven.Workers.ProcessInviteClaimWorker do
   end
 
   defp parse_date(%Date{} = date), do: {:ok, date}
+  defp parse_date(other), do: {:error, {:invalid_date_type, other}}
 end

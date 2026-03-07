@@ -5,7 +5,7 @@
 #
 # Usage (via fly ssh console with rpc):
 #   DRY RUN (default -- logs only, no changes):
-#   fly ssh console -a klass-hero-dev -C "/app/bin/klass_hero rpc 'Code.eval_file(\"/app/lib/klass_hero-0.1.0/priv/repo/scripts/remediate_duplicate_children.exs\")'"
+#   fly ssh console -a klass-hero-dev -C "/app/bin/klass_hero rpc '[path] = Path.wildcard(\"/app/lib/klass_hero-*/priv/repo/scripts/remediate_duplicate_children.exs\"); Code.eval_file(path)'"
 #
 #   EXECUTE (edit dry_run to false first, redeploy, then run same command)
 
@@ -21,6 +21,7 @@ duplicate_groups =
   from(cg in "children_guardians",
     join: c in "children",
     on: c.id == cg.child_id,
+    where: not is_nil(c.date_of_birth),
     group_by: [
       cg.guardian_id,
       fragment("lower(?)", c.first_name),

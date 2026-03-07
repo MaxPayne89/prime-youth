@@ -59,7 +59,7 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
   # Trigger: user may already have a parent profile from a prior invite or registration
   # Why: idempotent -- create if missing, fetch if exists
   # Outcome: always returns {:ok, parent} or propagates unexpected error
-  defp ensure_parent_profile(user_id, invite_id) do
+  defp ensure_parent_profile(user_id, _invite_id) do
     attrs = %{id: Ecto.UUID.generate(), identity_id: user_id}
 
     with {:ok, _validated} <- ParentProfile.new(attrs),
@@ -73,12 +73,6 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
         {:error, {:validation_error, errors}}
 
       {:error, reason} ->
-        Logger.error("[ProcessInviteClaim] Failed to create parent profile",
-          invite_id: invite_id,
-          user_id: user_id,
-          reason: inspect(reason)
-        )
-
         {:error, reason}
     end
   end
@@ -113,7 +107,7 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
     end
   end
 
-  defp create_child(parent_id, attrs, invite_id, user_id, first_name, last_name, date_of_birth) do
+  defp create_child(parent_id, attrs, _invite_id, _user_id, first_name, last_name, date_of_birth) do
     child_attrs = %{
       id: Ecto.UUID.generate(),
       first_name: first_name,
@@ -133,13 +127,6 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
         {:error, {:validation_error, errors}}
 
       {:error, reason} ->
-        Logger.error("[ProcessInviteClaim] Failed to create child",
-          invite_id: invite_id,
-          user_id: user_id,
-          parent_id: parent_id,
-          reason: inspect(reason)
-        )
-
         {:error, reason}
     end
   end
