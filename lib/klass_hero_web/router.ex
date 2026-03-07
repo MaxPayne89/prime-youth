@@ -1,6 +1,7 @@
 defmodule KlassHeroWeb.Router do
   use KlassHeroWeb, :router
 
+  import Backpex.Router
   import KlassHeroWeb.UserAuth
 
   pipeline :browser do
@@ -119,6 +120,23 @@ defmodule KlassHeroWeb.Router do
       scope "/admin", Admin do
         live "/verifications", VerificationsLive, :index
         live "/verifications/:id", VerificationsLive, :show
+      end
+    end
+
+    # Backpex admin dashboard - separate live_session with Backpex layout
+    scope "/admin", Admin do
+      backpex_routes()
+
+      live_session :backpex_admin,
+        layout: {KlassHeroWeb.Layouts, :admin},
+        on_mount: [
+          {KlassHeroWeb.UserAuth, :mount_current_scope},
+          {KlassHeroWeb.UserAuth, :require_authenticated},
+          {KlassHeroWeb.UserAuth, :require_admin},
+          {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale},
+          Backpex.InitAssigns
+        ] do
+        live_resources("/users", UserLive, only: [:index, :show, :edit])
       end
     end
   end
