@@ -24,6 +24,8 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
           |> assign(parent_id: parent.id)
           |> assign(children_count: children_count)
           |> assign(children_empty?: children_count == 0)
+          |> assign(delete_candidate: nil)
+          |> assign(enrolled_programs: [])
           |> stream(:children, Enum.map(children, &child_view_data/1))
 
         {:ok, socket}
@@ -114,32 +116,59 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     save_child(socket, socket.assigns.live_action, child_params)
   end
 
-  def handle_event("delete_child", %{"id" => child_id}, socket) do
-    # Trigger: verify child belongs to current parent before deleting
+  def handle_event("request_delete_child", %{"id" => child_id}, socket) do
+    # Trigger: verify child belongs to current parent before proceeding
     # Why: prevent unauthorized deletion
-    # Outcome: only delete if ownership confirmed
+    # Outcome: only proceed if ownership confirmed
     if Family.child_belongs_to_parent?(child_id, socket.assigns.parent_id) do
-      case Family.delete_child(child_id) do
-        :ok ->
-          new_count = socket.assigns.children_count - 1
+      case Family.prepare_child_deletion(child_id) do
+        {:ok, :no_enrollments} ->
+          do_delete_child(socket, child_id)
 
+        {:ok, :has_enrollments, program_titles} ->
           {:noreply,
            socket
-           |> stream_delete_by_dom_id(:children, "children-#{child_id}")
-           |> assign(children_count: new_count)
-           |> assign(children_empty?: new_count == 0)
-           |> put_flash(:info, gettext("Child removed successfully."))}
-
-        {:error, :not_found} ->
-          {:noreply, put_flash(socket, :error, gettext("Child not found."))}
-
-        {:error, _reason} ->
-          {:noreply,
-           put_flash(socket, :error, gettext("Could not remove child. Please try again."))}
+           |> assign(delete_candidate: child_id)
+           |> assign(enrolled_programs: program_titles)}
       end
     else
       {:noreply,
        put_flash(socket, :error, gettext("You don't have permission to delete this child."))}
+    end
+  end
+
+  def handle_event("confirm_delete_child", _params, socket) do
+    child_id = socket.assigns.delete_candidate
+    do_delete_child(socket, child_id)
+  end
+
+  def handle_event("cancel_delete", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(delete_candidate: nil)
+     |> assign(enrolled_programs: [])}
+  end
+
+  defp do_delete_child(socket, child_id) do
+    case Family.delete_child(child_id) do
+      :ok ->
+        new_count = socket.assigns.children_count - 1
+
+        {:noreply,
+         socket
+         |> stream_delete_by_dom_id(:children, "children-#{child_id}")
+         |> assign(children_count: new_count)
+         |> assign(children_empty?: new_count == 0)
+         |> assign(delete_candidate: nil)
+         |> assign(enrolled_programs: [])
+         |> put_flash(:info, gettext("Child removed successfully."))}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Child not found."))}
+
+      {:error, _reason} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("Could not remove child. Please try again."))}
     end
   end
 
@@ -420,9 +449,8 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
                 </.link>
                 <button
                   type="button"
-                  phx-click="delete_child"
+                  phx-click="request_delete_child"
                   phx-value-id={child.id}
-                  data-confirm={gettext("Are you sure you want to remove this child?")}
                   class={[
                     "p-2 text-hero-grey-400 hover:text-red-600",
                     Theme.rounded(:lg),
@@ -485,6 +513,81 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
           </div>
         </div>
       </div>
+
+      <%!-- Delete Confirmation Modal --%>
+      <%= if @delete_candidate do %>
+        <div
+          id="delete-modal-backdrop"
+          class="fixed inset-0 z-50 bg-black/50"
+          phx-click="cancel_delete"
+        >
+        </div>
+        <div
+          id="delete-confirmation-modal"
+          class={[
+            "fixed inset-x-4 top-[20%] z-50 mx-auto max-w-md",
+            Theme.bg(:surface),
+            Theme.rounded(:xl),
+            "shadow-xl p-6"
+          ]}
+          phx-click-away="cancel_delete"
+        >
+          <div class="flex items-center gap-3 mb-4">
+            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+              <.icon name="hero-exclamation-triangle" class="w-5 h-5 text-red-600" />
+            </div>
+            <h3 class={["text-lg font-semibold", Theme.text_color(:heading)]}>
+              {gettext("Remove Child?")}
+            </h3>
+          </div>
+
+          <p class={["text-sm mb-3", Theme.text_color(:body)]}>
+            {gettext("This child is currently enrolled in the following programs:")}
+          </p>
+
+          <ul class="mb-4 space-y-1">
+            <%= for title <- @enrolled_programs do %>
+              <li class="flex items-center gap-2 text-sm text-hero-grey-700">
+                <.icon name="hero-academic-cap-mini" class="w-4 h-4 text-hero-blue-500" />
+                {title}
+              </li>
+            <% end %>
+          </ul>
+
+          <p class={["text-sm mb-4", Theme.text_color(:muted)]}>
+            {gettext("Their enrollments will be cancelled. This action cannot be undone.")}
+          </p>
+
+          <div class="flex justify-end gap-3">
+            <button
+              type="button"
+              id="cancel-delete-btn"
+              phx-click="cancel_delete"
+              class={[
+                "px-4 py-2 text-sm font-medium text-hero-grey-700",
+                "bg-hero-grey-100 hover:bg-hero-grey-200",
+                Theme.rounded(:lg),
+                Theme.transition(:normal)
+              ]}
+            >
+              {gettext("Cancel")}
+            </button>
+            <button
+              type="button"
+              id="confirm-delete-btn"
+              phx-click="confirm_delete_child"
+              class={[
+                "px-4 py-2 text-sm font-semibold text-white",
+                "bg-red-600 hover:bg-red-700",
+                Theme.rounded(:lg),
+                Theme.transition(:normal)
+              ]}
+            >
+              {gettext("Remove Child")}
+            </button>
+          </div>
+        </div>
+      <% end %>
 
       <%!-- Add/Edit Modal --%>
       <%= if @show_modal do %>

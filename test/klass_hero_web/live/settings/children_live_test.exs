@@ -176,15 +176,117 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
   describe "delete child" do
     setup :register_and_log_in_user_with_child
 
-    test "clicking delete removes child from list", %{conn: conn, child: child} do
+    test "deleting child with no enrollments removes child immediately", %{
+      conn: conn,
+      child: child
+    } do
       {:ok, view, _html} = live(conn, ~p"/settings/children")
 
       view
-      |> element("button[phx-click='delete_child'][phx-value-id='#{child.id}']")
+      |> element("button[phx-click='request_delete_child'][phx-value-id='#{child.id}']")
+      |> render_click()
+
+      # No enrollments — child deleted immediately
+      refute render(view) =~ child.first_name
+      assert {:error, :not_found} = Family.get_child_by_id(child.id)
+    end
+
+    test "deleting child with active enrollments shows confirmation modal", %{
+      conn: conn,
+      child: child,
+      parent: parent
+    } do
+      program = KlassHero.Factory.insert(:program_schema, title: "Soccer Camp")
+
+      KlassHero.Factory.insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: "confirmed"
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/settings/children")
+
+      view
+      |> element("button[phx-click='request_delete_child'][phx-value-id='#{child.id}']")
+      |> render_click()
+
+      # Should show confirmation modal with program name
+      html = render(view)
+      assert html =~ "Soccer Camp"
+      assert has_element?(view, "#delete-confirmation-modal")
+
+      # Child should still exist
+      assert {:ok, _} = Family.get_child_by_id(child.id)
+    end
+
+    test "confirming deletion in modal deletes child and cancels enrollments", %{
+      conn: conn,
+      child: child,
+      parent: parent
+    } do
+      program = KlassHero.Factory.insert(:program_schema, title: "Art Class")
+
+      enrollment =
+        KlassHero.Factory.insert(:enrollment_schema,
+          program_id: program.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: "confirmed"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/settings/children")
+
+      # Request delete — shows modal
+      view
+      |> element("button[phx-click='request_delete_child'][phx-value-id='#{child.id}']")
+      |> render_click()
+
+      # Confirm deletion
+      view
+      |> element("#confirm-delete-btn")
       |> render_click()
 
       refute render(view) =~ child.first_name
       assert {:error, :not_found} = Family.get_child_by_id(child.id)
+
+      # Enrollment should be cancelled
+      updated =
+        KlassHero.Repo.get(
+          KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema,
+          enrollment.id
+        )
+
+      assert updated.status == "cancelled"
+    end
+
+    test "cancelling the confirmation modal does not delete child", %{
+      conn: conn,
+      child: child,
+      parent: parent
+    } do
+      program = KlassHero.Factory.insert(:program_schema)
+
+      KlassHero.Factory.insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: "confirmed"
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/settings/children")
+
+      view
+      |> element("button[phx-click='request_delete_child'][phx-value-id='#{child.id}']")
+      |> render_click()
+
+      # Cancel — dismiss modal
+      view
+      |> element("#cancel-delete-btn")
+      |> render_click()
+
+      refute has_element?(view, "#delete-confirmation-modal")
+      assert {:ok, _} = Family.get_child_by_id(child.id)
     end
 
     test "cannot delete child belonging to another parent", %{conn: conn} do
@@ -195,10 +297,8 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
 
       {:ok, view, _html} = live(conn, ~p"/settings/children")
 
-      # Send delete event for another parent's child
-      render_click(view, "delete_child", %{"id" => other_child.id})
+      render_click(view, "request_delete_child", %{"id" => other_child.id})
 
-      # Child should still exist
       assert {:ok, _} = Family.get_child_by_id(other_child.id)
     end
   end
