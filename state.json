@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-06T13:03:42Z",
+  "last_updated": "2026-03-07T13:02:23Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -27,7 +27,9 @@
     "messaging_helper_tests": "MessagingLiveHelper pure functions (get_conversation_title/1, own_message?/2, get_sender_name/2) use ExUnit.Case async: true - no DB needed",
     "participation_live_checkin_fk": "check_in_by and check_out_by FK to users table; use current_scope.user.id NOT provider_id; click via element(view, \"button[phx-click='check_in'][phx-value-id='#{record.id}']\")",
     "pure_domain_service_tests": "Pure domain services (no DB) use ExUnit.Case, async: true; construct ParticipationRecord directly with %ParticipationRecord{id:, session_id:, child_id:, status:}",
-    "behavioral_note_schema_factory": "insert(:behavioral_note_schema) auto-creates user+provider+record via FK constraints; override provider_id explicitly when testing cross-provider isolation"
+    "behavioral_note_schema_factory": "insert(:behavioral_note_schema) auto-creates user+provider+record via FK constraints; override provider_id explicitly when testing cross-provider isolation",
+    "parent_profile_use_case": "CreateParentProfile needs real user (unconfirmed_user_fixture) for FK; notification_preferences stored as :map type returns string keys from DB (not atom keys) - assert is_map/1 not exact equality",
+    "create_parent_profile_identity_fk": "identity_id in parent_profiles FK references users table - need real user via unconfirmed_user_fixture(intended_roles: [:parent])"
   },
   "backlog": [
     {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"},
@@ -36,11 +38,11 @@
   ],
   "tasks_last_run": {
     "task1_commands": "2026-02-26",
-    "task2_opportunities": "2026-03-04",
-    "task3_implement": "2026-03-06",
+    "task2_opportunities": "2026-03-07",
+    "task3_implement": "2026-03-07",
     "task6_infrastructure": "2026-03-06",
     "task5_comments": "never",
-    "task7_monthly_summary": "2026-03-06"
+    "task7_monthly_summary": "2026-03-07"
   },
   "completed_work": [
     {
@@ -78,6 +80,10 @@
     {
       "run": "2026-03-06",
       "work": "Created PR (branch test-assist/get-behavioral-note-for-record-tests): GetBehavioralNoteForRecord use case integration tests - 10 tests for execute/2 and execute_batch/2"
+    },
+    {
+      "run": "2026-03-07",
+      "work": "Created PR (branch test-assist/create-parent-profile-use-case-tests): CreateParentProfile use case integration tests - 8 tests covering happy paths, UUID generation, validation errors, duplicate detection"
     }
   ]
 }
