@@ -68,7 +68,8 @@ else
 
       # Trigger: multiple children match the same (name, dob) for this guardian
       # Why: oldest record chosen as survivor to preserve longest-standing enrollments/consent history
-      # Outcome: first-inserted child kept; newer duplicates merged into it
+      # Outcome: first-inserted child kept; newer duplicates merged into it.
+      #   Relies on order_by: [asc: c.inserted_at] above to guarantee head = oldest.
       [survivor | duplicates] = children_in_group
       IO.puts("  Survivor:   #{survivor.id} (#{survivor.inserted_at})")
       for dup <- duplicates, do: IO.puts("  Duplicate:  #{dup.id} (#{dup.inserted_at})")
@@ -124,20 +125,18 @@ else
                  )
                  |> Repo.all()
 
-               for dup_id <- duplicate_ids do
-                 if active_types != [] do
-                   from(c in "consents",
-                     where:
-                       c.child_id == ^dup_id and
-                         c.consent_type in ^active_types and
-                         is_nil(c.withdrawn_at)
-                   )
-                   |> Repo.delete_all()
-                 end
-
-                 from(c in "consents", where: c.child_id == ^dup_id)
-                 |> Repo.update_all(set: [child_id: survivor.id])
+               if active_types != [] do
+                 from(c in "consents",
+                   where:
+                     c.child_id in ^duplicate_ids and
+                       c.consent_type in ^active_types and
+                       is_nil(c.withdrawn_at)
+                 )
+                 |> Repo.delete_all()
                end
+
+               from(c in "consents", where: c.child_id in ^duplicate_ids)
+               |> Repo.update_all(set: [child_id: survivor.id])
 
                IO.puts("  Re-pointed consents")
 
@@ -149,17 +148,15 @@ else
                  )
                  |> Repo.all()
 
-               for dup_id <- duplicate_ids do
-                 if survivor_sessions != [] do
-                   from(p in "participation_records",
-                     where: p.child_id == ^dup_id and p.session_id in ^survivor_sessions
-                   )
-                   |> Repo.delete_all()
-                 end
-
-                 from(p in "participation_records", where: p.child_id == ^dup_id)
-                 |> Repo.update_all(set: [child_id: survivor.id])
+               if survivor_sessions != [] do
+                 from(p in "participation_records",
+                   where: p.child_id in ^duplicate_ids and p.session_id in ^survivor_sessions
+                 )
+                 |> Repo.delete_all()
                end
+
+               from(p in "participation_records", where: p.child_id in ^duplicate_ids)
+               |> Repo.update_all(set: [child_id: survivor.id])
 
                IO.puts("  Re-pointed participation records")
 

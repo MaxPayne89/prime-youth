@@ -71,4 +71,9 @@ defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler do
   defp serialize_date(%Date{} = date), do: Date.to_iso8601(date)
   defp serialize_date(nil), do: nil
   defp serialize_date(date) when is_binary(date), do: date
+
+  defp serialize_date(other) do
+    raise ArgumentError,
+          "expected %Date{}, binary, or nil for child_date_of_birth, got: #{inspect(other)}"
+  end
 end
