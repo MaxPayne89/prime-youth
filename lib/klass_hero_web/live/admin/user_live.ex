@@ -17,6 +17,13 @@ defmodule KlassHeroWeb.Admin.UserLive do
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
 
+  # Trigger: :new route is not defined for user management
+  # Why: users register themselves; admins should not create users
+  # Outcome: hides the "New User" button on the index page
+  @impl Backpex.LiveResource
+  def can?(_assigns, :new, _item), do: false
+  def can?(_assigns, _action, _item), do: true
+
   @impl Backpex.LiveResource
   def singular_name, do: "User"
 

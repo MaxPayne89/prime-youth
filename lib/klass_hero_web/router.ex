@@ -127,8 +127,12 @@ defmodule KlassHeroWeb.Router do
     scope "/admin", Admin do
       backpex_routes()
 
+      # Trigger: no layout set on live_session for Backpex routes
+      # Why: Backpex resource templates internally call <.layout> which renders
+      #   the admin layout. Setting layout here would cause double-rendering
+      #   and duplicate DOM IDs (backpex-app-shell).
+      # Outcome: admin layout rendered once by Backpex, no duplicates
       live_session :backpex_admin,
-        layout: {KlassHeroWeb.Layouts, :admin},
         on_mount: [
           {KlassHeroWeb.UserAuth, :mount_current_scope},
           {KlassHeroWeb.UserAuth, :require_authenticated},

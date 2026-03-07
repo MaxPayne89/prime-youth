@@ -25,4 +25,20 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
       assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(conn, ~p"/admin/users")
     end
   end
+
+  describe "user list" do
+    setup :register_and_log_in_admin
+
+    test "displays users in the table", %{conn: conn, user: admin} do
+      regular_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Regular Test User"})
+
+      {:ok, view, _html} = live(conn, ~p"/admin/users")
+
+      # Backpex renders table data after connected mount via handle_params
+      assert has_element?(view, "td", admin.email)
+      assert has_element?(view, "td", admin.name)
+      assert has_element?(view, "td", regular_user.email)
+      assert has_element?(view, "td", regular_user.name)
+    end
+  end
 end

@@ -28,9 +28,5 @@
   </:sidebar>
 
   <Backpex.HTML.Layout.flash_messages flash={@flash} />
-  <%= if assigns[:inner_content] do %>
-    {@inner_content}
-  <% else %>
-    {render_slot(@inner_block)}
-  <% end %>
+  {render_slot(@inner_block)}
 </Backpex.HTML.Layout.app_shell>
