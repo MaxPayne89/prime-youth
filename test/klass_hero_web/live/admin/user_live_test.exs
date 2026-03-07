@@ -41,4 +41,39 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
       assert has_element?(view, "td", regular_user.name)
     end
   end
+
+  describe "edit user" do
+    setup :register_and_log_in_admin
+
+    test "admin can update user name", %{conn: conn} do
+      target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Original Name"})
+
+      {:ok, view, _html} = live(conn, ~p"/admin/users/#{target_user.id}/edit")
+
+      # Backpex form targets a LiveComponent (phx-target="1").
+      # The submit button has name="save-type" value="save" which must be
+      # included in the submit params. Use render_submit with the submitter
+      # option to include the button's value.
+      view
+      |> form("#resource-form", %{change: %{name: "Updated Name"}})
+      |> render_submit(%{"save-type" => "save"})
+
+      updated = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
+      assert updated.name == "Updated Name"
+    end
+
+    test "admin can toggle is_admin flag", %{conn: conn} do
+      target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Toggle Target"})
+      assert target_user.is_admin == false
+
+      {:ok, view, _html} = live(conn, ~p"/admin/users/#{target_user.id}/edit")
+
+      view
+      |> form("#resource-form", %{change: %{is_admin: true}})
+      |> render_submit(%{"save-type" => "save"})
+
+      updated = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
+      assert updated.is_admin == true
+    end
+  end
 end
