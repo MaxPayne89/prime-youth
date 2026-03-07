@@ -88,6 +88,49 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaimTest d
       assert child1.id != child2.id
     end
 
+    test "deduplicates children case-insensitively" do
+      user = user_fixture()
+      attrs = valid_attrs(user.id)
+
+      assert {:ok, %{child: first_child}} = ProcessInviteClaim.execute(attrs)
+
+      # Same child with different casing
+      attrs2 =
+        valid_attrs(user.id, %{
+          invite_id: Ecto.UUID.generate(),
+          program_id: Ecto.UUID.generate(),
+          child_first_name: "emma",
+          child_last_name: "schmidt"
+        })
+
+      assert {:ok, %{child: second_child}} = ProcessInviteClaim.execute(attrs2)
+      assert second_child.id == first_child.id
+
+      {:ok, parent} = Family.get_parent_by_identity(user.id)
+      assert length(Family.get_children(parent.id)) == 1
+    end
+
+    test "does not false-match when date_of_birth is nil" do
+      user = user_fixture()
+      attrs = valid_attrs(user.id)
+
+      assert {:ok, %{child: _first_child}} = ProcessInviteClaim.execute(attrs)
+
+      # Same name but nil DOB — should not match existing child
+      attrs2 =
+        valid_attrs(user.id, %{
+          invite_id: Ecto.UUID.generate(),
+          program_id: Ecto.UUID.generate(),
+          child_date_of_birth: nil
+        })
+
+      # Trigger: nil DOB skips dedup, falls through to domain validation which rejects it
+      assert {:error, _reason} = ProcessInviteClaim.execute(attrs2)
+
+      {:ok, parent} = Family.get_parent_by_identity(user.id)
+      assert length(Family.get_children(parent.id)) == 1
+    end
+
     test "maps nut_allergy false to nil allergies" do
       user = user_fixture()
       attrs = valid_attrs(user.id, %{nut_allergy: false})

@@ -4,14 +4,18 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
 
   Orchestrates: ensure parent profile, find-or-create child, publish
   `invite_family_ready` event. Called by the Oban worker, which serializes
-  execution per parent to prevent duplicate children.
+  execution via a single-concurrency queue to prevent duplicate children.
   """
 
-  alias KlassHero.Family
   alias KlassHero.Family.Domain.Events.FamilyEvents
+  alias KlassHero.Family.Domain.Models.Child
+  alias KlassHero.Family.Domain.Models.ParentProfile
   alias KlassHero.Shared.EventDispatchHelper
 
   require Logger
+
+  @child_repository Application.compile_env!(:klass_hero, [:family, :for_storing_children])
+  @parent_repository Application.compile_env!(:klass_hero, [:family, :for_storing_parent_profiles])
 
   @doc """
   Processes an invite claim by setting up the family unit.
@@ -52,12 +56,17 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
   # Why: idempotent -- create if missing, fetch if exists
   # Outcome: always returns {:ok, parent} or propagates unexpected error
   defp ensure_parent_profile(user_id, invite_id) do
-    case Family.create_parent_profile(%{identity_id: user_id}) do
-      {:ok, parent} ->
-        {:ok, parent}
+    attrs = %{id: Ecto.UUID.generate(), identity_id: user_id}
 
+    with {:ok, _validated} <- ParentProfile.new(attrs),
+         {:ok, parent} <- @parent_repository.create_parent_profile(attrs) do
+      {:ok, parent}
+    else
       {:error, :duplicate_resource} ->
-        Family.get_parent_by_identity(user_id)
+        @parent_repository.get_by_identity_id(user_id)
+
+      {:error, errors} when is_list(errors) ->
+        {:error, {:validation_error, errors}}
 
       {:error, reason} ->
         Logger.error("[ProcessInviteClaim] Failed to create parent profile",
@@ -82,7 +91,9 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
 
     # Trigger: event may replay after a crash or redelivery
     # Why: children table has no uniqueness constraint; unconditional create produces duplicates
-    # Outcome: find existing child by (first_name, last_name, date_of_birth) for this parent
+    # Outcome: find existing child by (first_name, last_name, date_of_birth) for this parent.
+    #   Safety relies on the family queue's concurrency-1 guarantee -- without serialized
+    #   execution, this find-then-create would be vulnerable to a TOCTOU race condition.
     case find_existing_child(parent_id, first_name, last_name, date_of_birth) do
       %{} = child ->
         Logger.info("[ProcessInviteClaim] Child already exists, skipping creation",
@@ -94,43 +105,57 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
         {:ok, child}
 
       nil ->
-        child_attrs = %{
-          parent_id: parent_id,
-          first_name: first_name,
-          last_name: last_name,
-          date_of_birth: date_of_birth,
-          school_grade: Map.get(attrs, :school_grade),
-          school_name: Map.get(attrs, :school_name),
-          support_needs: Map.get(attrs, :medical_conditions),
-          allergies: map_nut_allergy(Map.get(attrs, :nut_allergy, false))
-        }
-
-        case Family.create_child(child_attrs) do
-          {:ok, child} ->
-            {:ok, child}
-
-          {:error, reason} ->
-            Logger.error("[ProcessInviteClaim] Failed to create child",
-              invite_id: invite_id,
-              user_id: user_id,
-              parent_id: parent_id,
-              reason: inspect(reason)
-            )
-
-            {:error, reason}
-        end
+        create_child(parent_id, attrs, invite_id, user_id, first_name, last_name, date_of_birth)
     end
   end
 
+  defp create_child(parent_id, attrs, invite_id, user_id, first_name, last_name, date_of_birth) do
+    child_attrs = %{
+      id: Ecto.UUID.generate(),
+      first_name: first_name,
+      last_name: last_name,
+      date_of_birth: date_of_birth,
+      school_grade: Map.get(attrs, :school_grade),
+      school_name: Map.get(attrs, :school_name),
+      support_needs: Map.get(attrs, :medical_conditions),
+      allergies: map_nut_allergy(Map.get(attrs, :nut_allergy, false))
+    }
+
+    with {:ok, _validated} <- Child.new(child_attrs),
+         {:ok, persisted} <- @child_repository.create_with_guardian(child_attrs, parent_id) do
+      {:ok, persisted}
+    else
+      {:error, errors} when is_list(errors) ->
+        {:error, {:validation_error, errors}}
+
+      {:error, reason} ->
+        Logger.error("[ProcessInviteClaim] Failed to create child",
+          invite_id: invite_id,
+          user_id: user_id,
+          parent_id: parent_id,
+          reason: inspect(reason)
+        )
+
+        {:error, reason}
+    end
+  end
+
+  # Trigger: any nil identity field means we cannot reliably match
+  # Why: nil == nil is true in Elixir, which would false-match unrelated children
+  # Outcome: skip dedup and let domain validation catch the missing field downstream
+  defp find_existing_child(_parent_id, nil, _last, _dob), do: nil
+  defp find_existing_child(_parent_id, _first, nil, _dob), do: nil
+  defp find_existing_child(_parent_id, _first, _last, nil), do: nil
+
   # Trigger: need to check for duplicate child before creating
-  # Why: uses public Family API (not direct repository access) to respect context boundaries
+  # Why: case-insensitive match aligns with the remediation script's lower() grouping
   # Outcome: returns matching child or nil
   defp find_existing_child(parent_id, first_name, last_name, date_of_birth) do
     parent_id
-    |> Family.get_children()
+    |> @child_repository.list_by_guardian()
     |> Enum.find(fn child ->
-      child.first_name == first_name &&
-        child.last_name == last_name &&
+      String.downcase(child.first_name) == String.downcase(first_name) &&
+        String.downcase(child.last_name) == String.downcase(last_name) &&
         child.date_of_birth == date_of_birth
     end)
   end
