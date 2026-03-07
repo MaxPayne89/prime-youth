@@ -325,6 +325,22 @@ defmodule KlassHero.ProgramCatalog do
     @repository.list_ended_program_ids(cutoff_date)
   end
 
+  @doc """
+  Fetches multiple programs by a list of IDs in a single database query.
+
+  Returns a list of Program structs for all matching IDs. IDs with no corresponding
+  program are silently omitted. Use this instead of calling `get_program_by_id/1`
+  in a loop to avoid N+1 queries.
+
+  ## Examples
+
+      programs = ProgramCatalog.get_programs_by_ids(["uuid1", "uuid2"])
+  """
+  @spec get_programs_by_ids([String.t()]) :: [Program.t()]
+  def get_programs_by_ids(ids) when is_list(ids) do
+    @repository.get_by_ids(ids)
+  end
+
   # ============================================================================
   # Enrollment Capacity (via ACL)
   # ============================================================================

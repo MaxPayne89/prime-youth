@@ -1,6 +1,9 @@
 defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandlerTest do
   @moduledoc """
-  Tests for InviteClaimedHandler — creates parent profile and child from invite data.
+  Tests for InviteClaimedHandler -- enqueues Oban job for invite processing.
+
+  Oban is `testing: :inline` in test env, so jobs execute synchronously.
+  We verify end-to-end outcomes (parent + child created).
   """
 
   use KlassHero.DataCase, async: true
@@ -54,16 +57,13 @@ defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandlerTest do
   end
 
   describe "handle_event/1" do
-    test "creates parent profile and child for new user" do
+    test "enqueues job that creates parent profile and child" do
       user = user_fixture()
       event = build_invite_claimed_event(%{user_id: user.id})
 
       assert :ok = InviteClaimedHandler.handle_event(event)
 
-      # Verify parent profile created
-      assert {:ok, parent} = Family.get_parent_by_identity(user.id)
-
-      # Verify child created with mapped fields
+      {:ok, parent} = Family.get_parent_by_identity(user.id)
       children = Family.get_children(parent.id)
       assert length(children) == 1
       child = hd(children)
@@ -116,7 +116,6 @@ defmodule KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandlerTest do
       event = build_invite_claimed_event(%{user_id: user.id})
       assert :ok = InviteClaimedHandler.handle_event(event)
 
-      # Should still have created the child under the existing parent
       {:ok, parent} = Family.get_parent_by_identity(user.id)
       children = Family.get_children(parent.id)
       assert length(children) == 1

@@ -20,8 +20,11 @@ defmodule KlassHeroWeb.AboutLive do
         number_color: "text-hero-blue-700",
         icon: "hero-identification",
         icon_gradient: "bg-hero-blue-400",
-        title: gettext("Identity Verification"),
-        description: gettext("Official ID and credentials check")
+        title: gettext("Identity & Age Verification"),
+        description:
+          gettext(
+            "All providers must be 18 years or older, ensuring legal accountability and professional responsibility."
+          )
       },
       %{
         number: 2,
@@ -29,17 +32,59 @@ defmodule KlassHeroWeb.AboutLive do
         number_color: "text-hero-blue-700",
         icon: "hero-academic-cap",
         icon_gradient: "bg-hero-blue-400",
-        title: gettext("Qualifications"),
-        description: gettext("Certification and experience verification")
+        title: gettext("Experience Validation"),
+        description:
+          gettext(
+            "Providers must demonstrate at least one year of experience working with children in their area of expertise."
+          )
       },
       %{
         number: 3,
         number_bg: "bg-hero-blue-100",
         number_color: "text-hero-blue-700",
+        icon: "hero-shield-check",
+        icon_gradient: "bg-hero-blue-400",
+        title: gettext("Extended Background Checks"),
+        description:
+          gettext(
+            "Each provider submits an extended police background check, confirming their eligibility to work safely with minors."
+          )
+      },
+      %{
+        number: 4,
+        number_bg: "bg-hero-blue-100",
+        number_color: "text-hero-blue-700",
         icon: "hero-video-camera",
         icon_gradient: "bg-hero-blue-400",
-        title: gettext("Personal Interview"),
-        description: gettext("In-depth conversation about values and approach")
+        title: gettext("Video Screening"),
+        description:
+          gettext(
+            "Applicants complete a video screening to assess communication skills and alignment with our values."
+          )
+      },
+      %{
+        number: 5,
+        number_bg: "bg-hero-blue-100",
+        number_color: "text-hero-blue-700",
+        icon: "hero-heart",
+        icon_gradient: "bg-hero-blue-400",
+        title: gettext("Child Safeguarding Training"),
+        description:
+          gettext(
+            "All Heroes must hold or complete a recognized child safeguarding course, ensuring up-to-date knowledge."
+          )
+      },
+      %{
+        number: 6,
+        number_bg: "bg-hero-blue-100",
+        number_color: "text-hero-blue-700",
+        icon: "hero-check-circle",
+        icon_gradient: "bg-hero-blue-400",
+        title: gettext("Community Standards Agreement"),
+        description:
+          gettext(
+            "Every provider agrees to follow our Community Guidelines, defining expectations around professionalism."
+          )
       }
     ]
   end
@@ -159,12 +204,12 @@ defmodule KlassHeroWeb.AboutLive do
         </div>
       </div>
 
-      <%!-- 3-Step Vetting Process --%>
+      <%!-- 6-Step Vetting Process --%>
       <div class="bg-hero-pink-50 py-12 md:py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="text-center mb-12">
             <h2 class="font-display text-3xl md:text-4xl lg:text-5xl text-hero-black mb-4">
-              {gettext("Our 3-Step Vetting Process")}
+              {gettext("Our 6-Step Vetting Process")}
             </h2>
             <p class="text-lg text-hero-grey-700 max-w-3xl mx-auto">
               {gettext(

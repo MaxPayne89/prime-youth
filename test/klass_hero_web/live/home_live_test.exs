@@ -189,7 +189,7 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "h2", "Frequently Asked Questions")
 
       # Verify all 5 FAQ questions exist
-      assert has_element?(view, "button", "How does the 4-step provider vetting process work?")
+      assert has_element?(view, "button", "How does the 6-step provider vetting process work?")
       assert has_element?(view, "button", "Is there a free trial for the Active Family plan?")
       assert has_element?(view, "button", "Can I cancel a booking?")
       assert has_element?(view, "button", "Do you offer programs for adults?")
