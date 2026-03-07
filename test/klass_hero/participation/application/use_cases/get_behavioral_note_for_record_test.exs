@@ -129,7 +129,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetBehavioralNoteForRecor
 
     test "returns only notes for given record ids, ignoring others" do
       note1 = insert(:behavioral_note_schema)
-      _note2 = insert(:behavioral_note_schema)
+      _note2 = insert(:behavioral_note_schema, provider_id: note1.provider_id)
 
       # Only pass note1's record id
       notes =
