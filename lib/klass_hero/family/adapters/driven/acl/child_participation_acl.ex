@@ -21,18 +21,18 @@ defmodule KlassHero.Family.Adapters.Driven.ACL.ChildParticipationACL do
     # Trigger: behavioral_notes.child_id has ON DELETE: nothing FK constraint
     # Why: must delete behavioral notes before participation records and before child
     # Outcome: no FK violations when participation records and child are deleted
-    {_notes_count, _} =
+    {notes_count, _} =
       from(n in "behavioral_notes",
         where: n.child_id == type(^child_id, :binary_id)
       )
       |> Repo.delete_all()
 
-    {count, _} =
+    {records_count, _} =
       from(r in "participation_records",
         where: r.child_id == type(^child_id, :binary_id)
       )
       |> Repo.delete_all()
 
-    {:ok, count}
+    {:ok, %{participation_records: records_count, behavioral_notes: notes_count}}
   end
 end

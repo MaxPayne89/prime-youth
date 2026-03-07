@@ -11,6 +11,7 @@ defmodule KlassHero.Family.Domain.Ports.ForManagingChildEnrollments do
           enrollment_id: String.t(),
           program_id: String.t(),
           program_title: String.t(),
+          # "pending" | "confirmed" — only active statuses returned
           status: String.t()
         }
 

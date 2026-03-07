@@ -25,14 +25,22 @@ defmodule KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACLTest do
     end
 
     test "excludes cancelled and completed enrollments" do
-      program = insert(:program_schema)
+      program1 = insert(:program_schema)
+      program2 = insert(:program_schema)
       {child, parent} = insert_child_with_guardian()
 
       insert(:enrollment_schema,
-        program_id: program.id,
+        program_id: program1.id,
         child_id: child.id,
         parent_id: parent.id,
         status: "cancelled"
+      )
+
+      insert(:enrollment_schema,
+        program_id: program2.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: "completed"
       )
 
       assert [] = ChildEnrollmentACL.list_active_with_program_titles(child.id)

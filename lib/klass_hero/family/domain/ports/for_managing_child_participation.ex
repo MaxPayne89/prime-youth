@@ -13,7 +13,9 @@ defmodule KlassHero.Family.Domain.Ports.ForManagingChildParticipation do
   Behavioral notes are deleted first (they reference both child_id and
   participation_record_id). Then participation records are deleted.
 
-  Returns count of deleted participation records.
+  Returns counts of deleted behavioral notes and participation records.
   """
-  @callback delete_all_for_child(child_id :: binary()) :: {:ok, non_neg_integer()}
+  @callback delete_all_for_child(child_id :: binary()) ::
+              {:ok,
+               %{participation_records: non_neg_integer(), behavioral_notes: non_neg_integer()}}
 end
