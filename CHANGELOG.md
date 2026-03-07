@@ -5,6 +5,29 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3](https://github.com/MaxPayne89/prime-youth/compare/v0.1.2...v0.1.3) (2026-03-06)
+
+
+### Features
+
+* add skeleton Trust & Safety page with route and test ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([74cc92e](https://github.com/MaxPayne89/prime-youth/commit/74cc92e284090472164a6ee80454fd552998c4f8))
+* add Trust & Safety links to navbar, sidebar, and footer ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([cd5fea5](https://github.com/MaxPayne89/prime-youth/commit/cd5fea534bd2c21f14249a9e3c5523725e7e8272))
+* add Trust & Safety page ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([453b726](https://github.com/MaxPayne89/prime-youth/commit/453b7260949e8cd077606abd7bcfadbe8fa35bc3))
+* implement full Trust & Safety page content ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([ccc40a5](https://github.com/MaxPayne89/prime-youth/commit/ccc40a57eeb044c02d2e970d9d57b8f0be43eb91))
+* update provider vetting to 6-step process across all pages ([98d7879](https://github.com/MaxPayne89/prime-youth/commit/98d78794ad278ddad36ae6d4563775abd47279ca))
+* update provider vetting to 6-step process across all pages ([#251](https://github.com/MaxPayne89/prime-youth/issues/251)) ([dfd757e](https://github.com/MaxPayne89/prime-youth/commit/dfd757e87ec9e6f95bd097270009dc1fa80ee0d0))
+
+
+### Bug Fixes
+
+* address PR review comments for vetting steps ([#251](https://github.com/MaxPayne89/prime-youth/issues/251)) ([10644e8](https://github.com/MaxPayne89/prime-youth/commit/10644e83c768c9fdc4f950cd637ebe75ae5d7be6))
+* use consistent Unicode bullet in footer separator ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([e5c3f7c](https://github.com/MaxPayne89/prime-youth/commit/e5c3f7c4f3253976b6722cb7185e4da5e655836f))
+
+
+### Code Refactoring
+
+* extract repeated icon gradient to module attribute ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([382a2fc](https://github.com/MaxPayne89/prime-youth/commit/382a2fce6460dfa24dc77b929c511b699268721e))
+
 ## [0.1.2](https://github.com/MaxPayne89/prime-youth/compare/v0.1.1...v0.1.2) (2026-03-06)
 
 
