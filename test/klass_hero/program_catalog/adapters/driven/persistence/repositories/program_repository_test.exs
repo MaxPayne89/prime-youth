@@ -762,6 +762,64 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     end
   end
 
+  describe "get_by_ids/1" do
+    test "returns empty list for empty input" do
+      assert ProgramRepository.get_by_ids([]) == []
+    end
+
+    test "returns all matching programs as domain models" do
+      program_1 =
+        insert_program(%{
+          title: "Soccer Camp",
+          description: "Fun soccer",
+          age_range: "6-12",
+          price: Decimal.new("150.00"),
+          pricing_period: "per week"
+        })
+
+      program_2 =
+        insert_program(%{
+          title: "Art Class",
+          description: "Creative arts",
+          age_range: "8-14",
+          price: Decimal.new("75.00"),
+          pricing_period: "per month"
+        })
+
+      results = ProgramRepository.get_by_ids([program_1.id, program_2.id])
+
+      assert length(results) == 2
+      assert Enum.all?(results, &match?(%Program{}, &1))
+
+      titles = Enum.map(results, & &1.title)
+      assert "Soccer Camp" in titles
+      assert "Art Class" in titles
+    end
+
+    test "silently omits non-existent IDs" do
+      program =
+        insert_program(%{
+          title: "Existing Program",
+          description: "Description",
+          age_range: "6-12",
+          price: Decimal.new("100.00"),
+          pricing_period: "per week"
+        })
+
+      non_existent_id = Ecto.UUID.generate()
+      results = ProgramRepository.get_by_ids([program.id, non_existent_id])
+
+      assert length(results) == 1
+      assert hd(results).title == "Existing Program"
+    end
+
+    test "returns empty list when no IDs match" do
+      ids = [Ecto.UUID.generate(), Ecto.UUID.generate()]
+
+      assert ProgramRepository.get_by_ids(ids) == []
+    end
+  end
+
   # Helper function to insert a complete valid program
   defp insert_program(attrs) do
     default_attrs = %{
