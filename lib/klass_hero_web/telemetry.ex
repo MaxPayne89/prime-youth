@@ -88,8 +88,8 @@ defmodule KlassHeroWeb.Telemetry do
         unit: {:native, :millisecond}
       ),
       summary("phoenix.live_view.handle_event.stop.duration",
-        tags: [:view, :event],
-        tag_values: &live_view_event_tag_values/1,
+        tags: [:view],
+        tag_values: &live_view_tag_values/1,
         unit: {:native, :millisecond}
       ),
       summary("phoenix.live_view.render.stop.duration",
@@ -108,10 +108,6 @@ defmodule KlassHeroWeb.Telemetry do
 
   defp live_view_tag_values(metadata) do
     %{view: inspect(metadata.socket.view)}
-  end
-
-  defp live_view_event_tag_values(metadata) do
-    %{view: inspect(metadata.socket.view), event: metadata.event}
   end
 
   defp periodic_measurements do
