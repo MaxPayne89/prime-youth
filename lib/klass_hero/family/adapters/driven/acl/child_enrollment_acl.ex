@@ -1,4 +1,4 @@
-defmodule KlassHero.Family.Adapters.Driven.Enrollment.ChildEnrollmentACL do
+defmodule KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACL do
   @moduledoc """
   ACL adapter that manages enrollment data for child deletion.
 
@@ -40,7 +40,14 @@ defmodule KlassHero.Family.Adapters.Driven.Enrollment.ChildEnrollmentACL do
         where: e.child_id == type(^child_id, :binary_id),
         where: e.status in ^@active_statuses
       )
-      |> Repo.update_all(set: [status: "cancelled", cancelled_at: now, updated_at: now])
+      |> Repo.update_all(
+        set: [
+          status: "cancelled",
+          cancellation_reason: "child_deleted",
+          cancelled_at: now,
+          updated_at: now
+        ]
+      )
 
     {:ok, count}
   end

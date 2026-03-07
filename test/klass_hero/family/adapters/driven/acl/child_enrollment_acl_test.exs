@@ -1,9 +1,11 @@
-defmodule KlassHero.Family.Adapters.Driven.Enrollment.ChildEnrollmentACLTest do
+defmodule KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACLTest do
   use KlassHero.DataCase, async: true
 
+  import Ecto.Query
   import KlassHero.Factory
 
-  alias KlassHero.Family.Adapters.Driven.Enrollment.ChildEnrollmentACL
+  alias KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACL
+  alias KlassHero.Repo
 
   describe "list_active_with_program_titles/1" do
     test "returns active enrollments with program titles" do
@@ -65,8 +67,28 @@ defmodule KlassHero.Family.Adapters.Driven.Enrollment.ChildEnrollmentACLTest do
 
       assert {:ok, 2} = ChildEnrollmentACL.cancel_active_for_child(child.id)
 
-      # Verify they're cancelled
+      # Verify they're cancelled with audit trail
       assert [] = ChildEnrollmentACL.list_active_with_program_titles(child.id)
+
+      cancelled =
+        Repo.all(
+          from(e in "enrollments",
+            where: e.child_id == type(^child.id, :binary_id),
+            select: %{
+              status: e.status,
+              cancellation_reason: e.cancellation_reason,
+              cancelled_at: e.cancelled_at
+            }
+          )
+        )
+
+      assert length(cancelled) == 2
+
+      for enrollment <- cancelled do
+        assert enrollment.status == "cancelled"
+        assert enrollment.cancellation_reason == "child_deleted"
+        assert enrollment.cancelled_at != nil
+      end
     end
 
     test "does not cancel already cancelled enrollments" do

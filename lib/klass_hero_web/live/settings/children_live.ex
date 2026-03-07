@@ -139,9 +139,10 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
 
   # Trigger: stale browser tab or crafted WebSocket message with no delete_candidate
   # Why: guard against nil child_id reaching Family.delete_child/1 (has binary guard)
-  # Outcome: no-op instead of FunctionClauseError
+  # Outcome: user sees flash instead of silent no-op
   def handle_event("confirm_delete_child", _params, %{assigns: %{delete_candidate: nil}} = socket) do
-    {:noreply, socket}
+    {:noreply,
+     put_flash(socket, :error, gettext("This deletion request has expired. Please try again."))}
   end
 
   def handle_event("confirm_delete_child", _params, socket) do
@@ -171,11 +172,20 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
          |> put_flash(:info, gettext("Child removed successfully."))}
 
       {:error, :not_found} ->
-        {:noreply, put_flash(socket, :error, gettext("Child not found."))}
-
-      {:error, _reason} ->
         {:noreply,
-         put_flash(socket, :error, gettext("Could not remove child. Please try again."))}
+         socket
+         |> assign(delete_candidate: nil)
+         |> assign(enrolled_programs: [])
+         |> put_flash(:error, gettext("Child not found."))}
+
+      {:error, reason} ->
+        Logger.error("Child deletion failed: #{inspect(reason)}", child_id: child_id)
+
+        {:noreply,
+         socket
+         |> assign(delete_candidate: nil)
+         |> assign(enrolled_programs: [])
+         |> put_flash(:error, gettext("Could not remove child. Please try again."))}
     end
   end
 

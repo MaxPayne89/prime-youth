@@ -34,30 +34,26 @@ defmodule KlassHero.Family.Application.UseCases.Children.DeleteChild do
   """
   def execute(child_id) when is_binary(child_id) do
     @repo.transaction(fn ->
-      # Trigger: consents have FK RESTRICT constraint on child_id
-      # Why: must delete consents before the child or PostgreSQL rejects the delete
-      # Outcome: consent records removed
-      {:ok, _count} = @consent_repo.delete_all_for_child(child_id)
-
-      # Trigger: enrollments have FK nilify_all on child_id
-      # Why: cancelling preserves audit trail for providers; child deletion nullifies child_id
-      # Outcome: active enrollments set to "cancelled" status
-      {:ok, _count} = @enrollment_acl.cancel_active_for_child(child_id)
-
-      # Trigger: behavioral_notes.child_id has ON DELETE: nothing, participation_records has FK RESTRICT
-      # Why: ACL deletes behavioral notes first, then participation records
-      # Outcome: all participation data for this child removed
-      {:ok, _count} = @participation_acl.delete_all_for_child(child_id)
-
-      case @child_repo.delete(child_id) do
-        :ok -> :ok
+      with {:ok, _} <- tag_step(:delete_consents, @consent_repo.delete_all_for_child(child_id)),
+           {:ok, _} <-
+             tag_step(:cancel_enrollments, @enrollment_acl.cancel_active_for_child(child_id)),
+           {:ok, _} <-
+             tag_step(:delete_participation, @participation_acl.delete_all_for_child(child_id)),
+           :ok <- tag_step(:delete_child, @child_repo.delete(child_id)) do
+        :ok
+      else
         {:error, reason} -> @repo.rollback(reason)
       end
     end)
     |> case do
       {:ok, :ok} -> :ok
-      {:error, :not_found} -> {:error, :not_found}
+      {:error, {:delete_child, :not_found}} -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
     end
   end
+
+  # Passes through success, tags errors with the step name for traceability
+  defp tag_step(_step, {:ok, _} = result), do: result
+  defp tag_step(_step, :ok), do: :ok
+  defp tag_step(step, {:error, reason}), do: {:error, {step, reason}}
 end

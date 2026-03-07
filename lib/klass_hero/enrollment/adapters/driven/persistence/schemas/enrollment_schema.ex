@@ -65,7 +65,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
   def create_changeset(enrollment_schema \\ %__MODULE__{}, attrs) do
     enrollment_schema
     |> cast(attrs, @required_fields ++ @optional_fields)
-    |> validate_required(@required_fields)
+    |> validate_required(@required_fields ++ [:child_id])
     |> validate_inclusion(:status, @valid_statuses)
     |> validate_inclusion(:payment_method, @valid_payment_methods ++ [nil])
     |> validate_length(:cancellation_reason, max: 1000)

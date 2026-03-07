@@ -1,10 +1,10 @@
-defmodule KlassHero.Family.Adapters.Driven.Participation.ChildParticipationACLTest do
+defmodule KlassHero.Family.Adapters.Driven.ACL.ChildParticipationACLTest do
   use KlassHero.DataCase, async: true
 
   import Ecto.Query
   import KlassHero.Factory
 
-  alias KlassHero.Family.Adapters.Driven.Participation.ChildParticipationACL
+  alias KlassHero.Family.Adapters.Driven.ACL.ChildParticipationACL
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.BehavioralNoteSchema
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
   alias KlassHero.Repo

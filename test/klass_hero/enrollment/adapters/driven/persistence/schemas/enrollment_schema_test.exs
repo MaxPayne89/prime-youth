@@ -33,6 +33,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
       changeset = EnrollmentSchema.create_changeset(%{})
 
       refute changeset.valid?
+      assert "can't be blank" in errors_on(changeset).child_id
       assert "can't be blank" in errors_on(changeset).program_id
       assert "can't be blank" in errors_on(changeset).parent_id
       assert "can't be blank" in errors_on(changeset).status

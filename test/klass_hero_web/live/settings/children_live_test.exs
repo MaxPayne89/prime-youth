@@ -289,6 +289,14 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
       assert {:ok, _} = Family.get_child_by_id(child.id)
     end
 
+    test "confirm_delete_child with no prior request shows expired flash", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/settings/children")
+
+      render_click(view, "confirm_delete_child", %{})
+
+      assert render(view) =~ "expired"
+    end
+
     test "cannot delete child belonging to another parent", %{conn: conn} do
       other_parent = KlassHero.Factory.insert(:parent_schema)
 
