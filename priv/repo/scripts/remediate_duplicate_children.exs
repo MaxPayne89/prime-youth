@@ -111,14 +111,14 @@ else
         IO.puts("  Re-pointed #{enrolled} enrollment(s)")
 
         # 3. Re-point consents (delete dup's conflicting active consents first)
-        for dup_id <- duplicate_ids do
-          active_types =
-            from(c in "consents",
-              where: c.child_id == ^survivor.id and is_nil(c.withdrawn_at),
-              select: c.consent_type
-            )
-            |> Repo.all()
+        active_types =
+          from(c in "consents",
+            where: c.child_id == ^survivor.id and is_nil(c.withdrawn_at),
+            select: c.consent_type
+          )
+          |> Repo.all()
 
+        for dup_id <- duplicate_ids do
           if active_types != [] do
             from(c in "consents",
               where:
@@ -136,14 +136,14 @@ else
         IO.puts("  Re-pointed consents")
 
         # 4. Re-point participation records (delete dup's conflicting sessions)
-        for dup_id <- duplicate_ids do
-          survivor_sessions =
-            from(p in "participation_records",
-              where: p.child_id == ^survivor.id,
-              select: p.session_id
-            )
-            |> Repo.all()
+        survivor_sessions =
+          from(p in "participation_records",
+            where: p.child_id == ^survivor.id,
+            select: p.session_id
+          )
+          |> Repo.all()
 
+        for dup_id <- duplicate_ids do
           if survivor_sessions != [] do
             from(p in "participation_records",
               where: p.child_id == ^dup_id and p.session_id in ^survivor_sessions

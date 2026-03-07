@@ -33,7 +33,7 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
     program_id = Map.fetch!(attrs, :program_id)
 
     with {:ok, parent} <- ensure_parent_profile(user_id, invite_id),
-         {:ok, child} <- find_or_create_child(parent.id, attrs, invite_id, user_id),
+         {:ok, child} <- find_or_create_child(parent.id, attrs),
          :ok <- publish_family_ready(invite_id, user_id, child.id, parent.id, program_id) do
       {:ok, %{parent: parent, child: child}}
     else
@@ -73,7 +73,9 @@ defmodule KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim do
   # Trigger: invite payload contains child data mapped to domain fields
   # Why: same child may be enrolled in multiple programs -- avoid duplicates
   # Outcome: child found (idempotent) or created and linked to parent
-  defp find_or_create_child(parent_id, attrs, invite_id, user_id) do
+  defp find_or_create_child(parent_id, attrs) do
+    invite_id = Map.get(attrs, :invite_id)
+    user_id = Map.get(attrs, :user_id)
     first_name = Map.get(attrs, :child_first_name)
     last_name = Map.get(attrs, :child_last_name)
     date_of_birth = Map.get(attrs, :child_date_of_birth)

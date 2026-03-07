@@ -23,12 +23,6 @@ defmodule KlassHero.Family.Adapters.Driven.Workers.ProcessInviteClaimWorker do
         :ok
 
       {:error, reason} ->
-        Logger.error("[ProcessInviteClaimWorker] Failed",
-          invite_id: args["invite_id"],
-          user_id: args["user_id"],
-          reason: inspect(reason)
-        )
-
         {:error, reason}
     end
   end
@@ -55,8 +49,16 @@ defmodule KlassHero.Family.Adapters.Driven.Workers.ProcessInviteClaimWorker do
 
   defp parse_date(date_string) when is_binary(date_string) do
     case Date.from_iso8601(date_string) do
-      {:ok, date} -> date
-      {:error, _} -> nil
+      {:ok, date} ->
+        date
+
+      {:error, reason} ->
+        Logger.warning("[ProcessInviteClaimWorker] Malformed date_of_birth",
+          input: date_string,
+          reason: inspect(reason)
+        )
+
+        nil
     end
   end
 
