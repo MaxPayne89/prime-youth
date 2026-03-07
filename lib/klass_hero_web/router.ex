@@ -13,6 +13,7 @@ defmodule KlassHeroWeb.Router do
     plug :fetch_current_scope_for_user
     plug :set_error_tracker_context
     plug KlassHeroWeb.Plugs.SetLocale
+    plug Backpex.ThemeSelectorPlug
   end
 
   pipeline :api do
