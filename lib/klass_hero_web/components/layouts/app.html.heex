@@ -65,6 +65,14 @@
               {gettext("Contact")}
             </.link>
           </li>
+          <li>
+            <.link
+              navigate={~p"/trust-safety"}
+              class="btn btn-ghost text-hero-black-100 hover:text-hero-blue-600"
+            >
+              {gettext("Trust & Safety")}
+            </.link>
+          </li>
         </ul>
       </div>
 
@@ -230,6 +238,7 @@
           <li><.link navigate={~p"/programs"}>{gettext("Programs")}</.link></li>
           <li><.link navigate={~p"/about"}>{gettext("About")}</.link></li>
           <li><.link navigate={~p"/contact"}>{gettext("Contact")}</.link></li>
+          <li><.link navigate={~p"/trust-safety"}>{gettext("Trust & Safety")}</.link></li>
 
           <%= if assigns[:current_scope] && @current_scope.user do %>
             <li class="mt-4"><.link navigate={~p"/dashboard"}>{gettext("Dashboard")}</.link></li>

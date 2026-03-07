@@ -5,6 +5,59 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4](https://github.com/MaxPayne89/prime-youth/compare/v0.1.3...v0.1.4) (2026-03-07)
+
+
+### Features
+
+* **family:** handle cross-context cleanup in DeleteChild ([#298](https://github.com/MaxPayne89/prime-youth/issues/298)) ([6582629](https://github.com/MaxPayne89/prime-youth/commit/65826293a784b7dd723788a530a27c43ab2ba687))
+* **liveview:** two-step child deletion with enrollment warning ([#298](https://github.com/MaxPayne89/prime-youth/issues/298)) ([567e3a0](https://github.com/MaxPayne89/prime-youth/commit/567e3a04bfd22d867a3826173d1c592c5671d253))
+
+
+### Bug Fixes
+
+* add error handling and observability for child deletion ([#298](https://github.com/MaxPayne89/prime-youth/issues/298)) ([af78e18](https://github.com/MaxPayne89/prime-youth/commit/af78e18ec9586441087b9b280d7dd7ce1669a791))
+* address architecture review findings for child deletion ([#298](https://github.com/MaxPayne89/prime-youth/issues/298)) ([4b4f860](https://github.com/MaxPayne89/prime-youth/commit/4b4f8601f32fd87b073087d46c4199e535d177e5))
+* address critical architecture review findings ([#299](https://github.com/MaxPayne89/prime-youth/issues/299)) ([780bc54](https://github.com/MaxPayne89/prime-youth/commit/780bc549ce3426e6c8335c7aa99413b188ca9a65))
+* address important review findings for invite claim processing ([#299](https://github.com/MaxPayne89/prime-youth/issues/299)) ([f2e41a2](https://github.com/MaxPayne89/prime-youth/commit/f2e41a276a670903c01c252fab4a79e1258157ea))
+* address PR [#304](https://github.com/MaxPayne89/prime-youth/issues/304) review comments for child deletion ([#298](https://github.com/MaxPayne89/prime-youth/issues/298)) ([de6e214](https://github.com/MaxPayne89/prime-youth/commit/de6e214c02a4840361c394fed600ad3da0f6ef1a))
+* address PR review comments for invite claim processing ([#299](https://github.com/MaxPayne89/prime-youth/issues/299)) ([73e5161](https://github.com/MaxPayne89/prime-youth/commit/73e51615cd2e3a865887b58945f1e4af11f3259f))
+* address PR review suggestions for child deletion ([#298](https://github.com/MaxPayne89/prime-youth/issues/298)) ([e51960f](https://github.com/MaxPayne89/prime-youth/commit/e51960f03e5088f578f95a6a306c199fb60bdc0c))
+* address suggestion-level review findings ([#299](https://github.com/MaxPayne89/prime-youth/issues/299)) ([0a7636f](https://github.com/MaxPayne89/prime-youth/commit/0a7636f9b15aeb36f9865aad8071419047752926))
+* cast binary UUIDs to string in remediation script output ([5ae1b76](https://github.com/MaxPayne89/prime-youth/commit/5ae1b76cd8773468db8203786603c7e6a546cb42))
+* cast binary UUIDs to string in remediation script output ([3aeb7d7](https://github.com/MaxPayne89/prime-youth/commit/3aeb7d7eef08ccdaa479c42690957277bc757132))
+* guard against nil delete_candidate in confirm handler ([#298](https://github.com/MaxPayne89/prime-youth/issues/298)) ([077fc96](https://github.com/MaxPayne89/prime-youth/commit/077fc96373c1570d9bd42f9eed76c9255ee36b4c))
+* prevent duplicate child records on invite claim ([#299](https://github.com/MaxPayne89/prime-youth/issues/299)) ([ed9086b](https://github.com/MaxPayne89/prime-youth/commit/ed9086bcd20288d0b5c5e56424851adbb2da2d63))
+* two-step child deletion with enrollment cleanup ([#298](https://github.com/MaxPayne89/prime-youth/issues/298)) ([7359d97](https://github.com/MaxPayne89/prime-youth/commit/7359d97059b89dfb1b0bc2ad499aaeb427cdd8ae))
+
+
+### Code Refactoring
+
+* cleanup post-review for invite claim processing ([#299](https://github.com/MaxPayne89/prime-youth/issues/299)) ([5b9404e](https://github.com/MaxPayne89/prime-youth/commit/5b9404eaf07eef36b5a67fd0e867daf52951f868))
+
+## [0.1.3](https://github.com/MaxPayne89/prime-youth/compare/v0.1.2...v0.1.3) (2026-03-06)
+
+
+### Features
+
+* add skeleton Trust & Safety page with route and test ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([74cc92e](https://github.com/MaxPayne89/prime-youth/commit/74cc92e284090472164a6ee80454fd552998c4f8))
+* add Trust & Safety links to navbar, sidebar, and footer ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([cd5fea5](https://github.com/MaxPayne89/prime-youth/commit/cd5fea534bd2c21f14249a9e3c5523725e7e8272))
+* add Trust & Safety page ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([453b726](https://github.com/MaxPayne89/prime-youth/commit/453b7260949e8cd077606abd7bcfadbe8fa35bc3))
+* implement full Trust & Safety page content ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([ccc40a5](https://github.com/MaxPayne89/prime-youth/commit/ccc40a57eeb044c02d2e970d9d57b8f0be43eb91))
+* update provider vetting to 6-step process across all pages ([98d7879](https://github.com/MaxPayne89/prime-youth/commit/98d78794ad278ddad36ae6d4563775abd47279ca))
+* update provider vetting to 6-step process across all pages ([#251](https://github.com/MaxPayne89/prime-youth/issues/251)) ([dfd757e](https://github.com/MaxPayne89/prime-youth/commit/dfd757e87ec9e6f95bd097270009dc1fa80ee0d0))
+
+
+### Bug Fixes
+
+* address PR review comments for vetting steps ([#251](https://github.com/MaxPayne89/prime-youth/issues/251)) ([10644e8](https://github.com/MaxPayne89/prime-youth/commit/10644e83c768c9fdc4f950cd637ebe75ae5d7be6))
+* use consistent Unicode bullet in footer separator ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([e5c3f7c](https://github.com/MaxPayne89/prime-youth/commit/e5c3f7c4f3253976b6722cb7185e4da5e655836f))
+
+
+### Code Refactoring
+
+* extract repeated icon gradient to module attribute ([#250](https://github.com/MaxPayne89/prime-youth/issues/250)) ([382a2fc](https://github.com/MaxPayne89/prime-youth/commit/382a2fce6460dfa24dc77b929c511b699268721e))
+
 ## [0.1.2](https://github.com/MaxPayne89/prime-youth/compare/v0.1.1...v0.1.2) (2026-03-06)
 
 

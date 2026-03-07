@@ -1,0 +1,72 @@
+## "msgid"s in this file come from POT (.pot) files.
+###
+### Do not add, change, or remove "msgid"s manually here as
+### they're tied to the ones in the corresponding POT file
+### (with the same domain).
+###
+### Use "mix gettext.extract --merge" or "mix gettext.merge"
+### to merge POT files into PO files.
+msgid ""
+msgstr ""
+"Language: de\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/klass_hero_web/components/provider_components.ex:1748
+#, elixir-autogen, elixir-format
+msgid "Child first name"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1749
+#, elixir-autogen, elixir-format
+msgid "Child last name"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1750
+#, elixir-autogen, elixir-format
+msgid "Date of birth"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1763
+#, elixir-autogen, elixir-format
+msgid "Grade"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1751
+#, elixir-autogen, elixir-format
+msgid "Guardian email"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1752
+#, elixir-autogen, elixir-format
+msgid "Guardian first name"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1753
+#, elixir-autogen, elixir-format
+msgid "Guardian last name"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1762
+#, elixir-autogen, elixir-format
+msgid "Program"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1764
+#, elixir-autogen, elixir-format
+msgid "School"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1754
+#, elixir-autogen, elixir-format
+msgid "Second guardian email"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1757
+#, elixir-autogen, elixir-format
+msgid "Second guardian first name"
+msgstr ""
+
+#: lib/klass_hero_web/components/provider_components.ex:1760
+#, elixir-autogen, elixir-format
+msgid "Second guardian last name"
+msgstr ""

@@ -1574,8 +1574,8 @@ defmodule KlassHeroWeb.UIComponents do
 
       <.faq_item
         id="faq-1"
-        question="How does the 4-step provider vetting process work?"
-        answer="Our vetting process includes background checks, credential verification, reference checks, and a personal interview to ensure the highest quality providers."
+        question="How does the 6-step provider vetting process work?"
+        answer="Every provider completes identity and age verification, experience validation, an extended background check, video screening, child safeguarding training, and agreement to our Community Guidelines before being approved."
       />
 
       <.faq_item
