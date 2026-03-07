@@ -137,6 +137,13 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
     end
   end
 
+  # Trigger: stale browser tab or crafted WebSocket message with no delete_candidate
+  # Why: guard against nil child_id reaching Family.delete_child/1 (has binary guard)
+  # Outcome: no-op instead of FunctionClauseError
+  def handle_event("confirm_delete_child", _params, %{assigns: %{delete_candidate: nil}} = socket) do
+    {:noreply, socket}
+  end
+
   def handle_event("confirm_delete_child", _params, socket) do
     child_id = socket.assigns.delete_candidate
     do_delete_child(socket, child_id)
