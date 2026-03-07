@@ -297,6 +297,42 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
       assert render(view) =~ "expired"
     end
 
+    test "confirm_delete_child after child deleted elsewhere shows not-found flash", %{
+      conn: conn,
+      child: child,
+      parent: parent
+    } do
+      program = KlassHero.Factory.insert(:program_schema, title: "Swimming")
+
+      KlassHero.Factory.insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: "confirmed"
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/settings/children")
+
+      # Request triggers two-step modal flow
+      view
+      |> element("button[phx-click='request_delete_child'][phx-value-id='#{child.id}']")
+      |> render_click()
+
+      assert has_element?(view, "#delete-confirmation-modal")
+
+      # Simulate race: child deleted by another session
+      Family.delete_child(child.id)
+
+      # Confirm hits {:error, :not_found} path
+      view
+      |> element("#confirm-delete-btn")
+      |> render_click()
+
+      html = render(view)
+      assert html =~ "not found"
+      refute has_element?(view, "#delete-confirmation-modal")
+    end
+
     test "cannot delete child belonging to another parent", %{conn: conn} do
       other_parent = KlassHero.Factory.insert(:parent_schema)
 

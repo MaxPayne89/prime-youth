@@ -130,6 +130,14 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
            socket
            |> assign(delete_candidate: child_id)
            |> assign(enrolled_programs: program_titles)}
+
+        {:error, reason} ->
+          Logger.error("[ChildrenLive] prepare_child_deletion failed: #{inspect(reason)}",
+            child_id: child_id
+          )
+
+          {:noreply,
+           put_flash(socket, :error, gettext("Could not check enrollments. Please try again."))}
       end
     else
       {:noreply,
@@ -141,6 +149,8 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
   # Why: guard against nil child_id reaching Family.delete_child/1 (has binary guard)
   # Outcome: user sees flash instead of silent no-op
   def handle_event("confirm_delete_child", _params, %{assigns: %{delete_candidate: nil}} = socket) do
+    Logger.warning("[ChildrenLive] confirm_delete_child with nil delete_candidate")
+
     {:noreply,
      put_flash(socket, :error, gettext("This deletion request has expired. Please try again."))}
   end

@@ -158,6 +158,7 @@ defmodule KlassHero.Family do
   Returns:
   - `{:ok, :no_enrollments}` -- no active enrollments, safe to delete
   - `{:ok, :has_enrollments, program_titles}` -- child is enrolled in programs
+  - `{:error, reason}` -- database or infrastructure error
   """
   def prepare_child_deletion(child_id) when is_binary(child_id) do
     PrepareChildDeletion.execute(child_id)
