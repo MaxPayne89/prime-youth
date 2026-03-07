@@ -72,8 +72,10 @@ else
       # Outcome: first-inserted child kept; newer duplicates merged into it.
       #   Relies on order_by: [asc: c.inserted_at] above to guarantee head = oldest.
       [survivor | duplicates] = children_in_group
-      IO.puts("  Survivor:   #{survivor.id} (#{survivor.inserted_at})")
-      for dup <- duplicates, do: IO.puts("  Duplicate:  #{dup.id} (#{dup.inserted_at})")
+      IO.puts("  Survivor:   #{Ecto.UUID.cast!(survivor.id)} (#{survivor.inserted_at})")
+
+      for dup <- duplicates,
+          do: IO.puts("  Duplicate:  #{Ecto.UUID.cast!(dup.id)} (#{dup.inserted_at})")
 
       if dry_run do
         :skipped
