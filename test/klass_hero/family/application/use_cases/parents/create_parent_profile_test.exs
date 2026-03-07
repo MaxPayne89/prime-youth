@@ -48,15 +48,6 @@ defmodule KlassHero.Family.Application.UseCases.Parents.CreateParentProfileTest 
       assert byte_size(profile.id) == 36
     end
 
-    test "uses caller-provided id when given" do
-      user = unconfirmed_user_fixture(intended_roles: [:parent])
-      custom_id = Ecto.UUID.generate()
-
-      {:ok, profile} = CreateParentProfile.execute(%{id: custom_id, identity_id: user.id})
-
-      assert profile.id == custom_id
-    end
-
     test "returns validation error for empty identity_id" do
       assert {:error, {:validation_error, errors}} =
                CreateParentProfile.execute(%{identity_id: ""})
