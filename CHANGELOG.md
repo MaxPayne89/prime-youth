@@ -5,6 +5,23 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5](https://github.com/MaxPayne89/prime-youth/compare/v0.1.4...v0.1.5) (2026-03-07)
+
+
+### Bug Fixes
+
+* address PR review comments for get_by_ids/1 ([c368027](https://github.com/MaxPayne89/prime-youth/commit/c36802704dea2be508de31574d79573a486bf11c))
+* remove unsupported caller-provided ID test ([a15fe5e](https://github.com/MaxPayne89/prime-youth/commit/a15fe5e123f40642ef3f6869805f63ac503ee093))
+* replace brittle String.contains? assertions with non-empty list checks ([291a5f7](https://github.com/MaxPayne89/prime-youth/commit/291a5f7504f3c1b0534f046a271ee3cdb5535b15))
+* share provider_id in batch test to validate record_ids scoping ([4f493d5](https://github.com/MaxPayne89/prime-youth/commit/4f493d573e5fa8a7759e6fa3544bb9d663c6111a))
+
+
+### Performance Improvements
+
+* add LiveView telemetry metrics to LiveDashboard ([1c95353](https://github.com/MaxPayne89/prime-youth/commit/1c953535b6d44b7516cf998f1d80dddf68de63b5))
+* batch-load programs in DashboardLive to eliminate N+1 ([e019fc1](https://github.com/MaxPayne89/prime-youth/commit/e019fc129de51e64dbb37a622a56e27b38eb2f3f))
+* drop :event tag from handle_event telemetry metric ([258aba5](https://github.com/MaxPayne89/prime-youth/commit/258aba5e87e06cc30b92fe9ea740d2ad26d41d28))
+
 ## [0.1.4](https://github.com/MaxPayne89/prime-youth/compare/v0.1.3...v0.1.4) (2026-03-07)
 
 
