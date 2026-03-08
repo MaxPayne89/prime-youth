@@ -188,12 +188,13 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "#faq-section")
       assert has_element?(view, "h2", "Frequently Asked Questions")
 
-      # Verify all 5 FAQ questions exist
+      # Verify FAQ questions exist (updated per issue #312)
       assert has_element?(view, "button", "How does the 6-step provider vetting process work?")
-      assert has_element?(view, "button", "Is there a free trial for the Active Family plan?")
-      assert has_element?(view, "button", "Can I cancel a booking?")
-      assert has_element?(view, "button", "Do you offer programs for adults?")
-      assert has_element?(view, "button", "What are Klass Points?")
+      assert has_element?(view, "button", "Can I list my programs on Klass Hero and what does it cost?")
+      assert has_element?(view, "button", "How does the booking system work?")
+      assert has_element?(view, "button", "What happens if a parent cancels or I need to cancel?")
+      assert has_element?(view, "button", "Is Klass Hero free for parents to use?")
+      assert has_element?(view, "button", "Where is Klass Hero available?")
     end
 
     test "faq items have correct structure for client-side toggle", %{conn: conn} do
@@ -215,6 +216,9 @@ defmodule KlassHeroWeb.HomeLiveTest do
 
       assert has_element?(view, "#faq-5-answer")
       assert has_element?(view, "#faq-5-chevron")
+
+      assert has_element?(view, "#faq-8-answer")
+      assert has_element?(view, "#faq-8-chevron")
     end
 
     @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
