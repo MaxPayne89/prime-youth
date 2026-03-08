@@ -1340,6 +1340,7 @@ defmodule KlassHeroWeb.ProviderComponents do
 
   attr :icon, :string, required: true
   attr :title, :string, required: true
+  attr :disabled, :boolean, default: false
   attr :rest, :global, include: ~w(id phx-click phx-value-id)
 
   defp action_button(assigns) do
@@ -1347,10 +1348,16 @@ defmodule KlassHeroWeb.ProviderComponents do
     <button
       type="button"
       title={@title}
+      aria-label={@title}
+      disabled={@disabled}
       class={[
-        "p-2 text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100",
+        "p-2",
         Theme.rounded(:lg),
-        Theme.transition(:normal)
+        Theme.transition(:normal),
+        if(@disabled,
+          do: "text-hero-grey-300 cursor-not-allowed",
+          else: "text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100"
+        )
       ]}
       {@rest}
     >
@@ -1394,13 +1401,42 @@ defmodule KlassHeroWeb.ProviderComponents do
             <h3 class="text-lg font-semibold text-hero-charcoal">
               {gettext("Roster: %{name}", name: @program_name)}
             </h3>
-            <button
-              type="button"
-              phx-click="close_roster"
-              class="text-hero-grey-400 hover:text-hero-grey-600"
-            >
-              <.icon name="hero-x-mark-mini" class="w-5 h-5" />
-            </button>
+            <div class="flex items-center gap-1">
+              <%!-- Trigger: provider wants to broadcast to enrolled parents
+                   Why: navigates to existing BroadcastLive page with program context
+                   Outcome: disabled with title attribute when no parents enrolled --%>
+              <%= if @enrolled_count > 0 do %>
+                <.link
+                  id={"broadcast-#{@program_id}"}
+                  navigate={~p"/provider/programs/#{@program_id}/broadcast"}
+                  title={gettext("Send Broadcast")}
+                  aria-label={gettext("Send Broadcast")}
+                  class={[
+                    "p-2",
+                    Theme.rounded(:lg),
+                    Theme.transition(:normal),
+                    "text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100"
+                  ]}
+                >
+                  <.icon name="hero-megaphone-mini" class="w-5 h-5" />
+                </.link>
+              <% else %>
+                <.action_button
+                  id={"broadcast-#{@program_id}"}
+                  icon="hero-megaphone-mini"
+                  title={gettext("No enrolled parents")}
+                  disabled={true}
+                />
+              <% end %>
+              <button
+                type="button"
+                phx-click="close_roster"
+                aria-label={gettext("close")}
+                class="text-hero-grey-400 hover:text-hero-grey-600"
+              >
+                <.icon name="hero-x-mark-mini" class="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <%!-- Tabs --%>
