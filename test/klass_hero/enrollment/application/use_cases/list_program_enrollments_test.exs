@@ -77,5 +77,53 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollmentsTest d
       program = insert(:program_schema)
       assert ListProgramEnrollments.execute(program.id) == []
     end
+
+    test "includes parent_id and parent_user_id in roster entries" do
+      program = insert(:program_schema)
+      {child, parent} = insert_child_with_guardian(first_name: "Emma", last_name: "Smith")
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: "confirmed"
+      )
+
+      [entry] = ListProgramEnrollments.execute(program.id)
+
+      assert entry.parent_id == to_string(parent.id)
+      assert entry.parent_user_id == to_string(parent.identity_id)
+    end
+
+    test "returns nil parent_user_id when parent profile not found" do
+      program = insert(:program_schema)
+      {child, parent} = insert_child_with_guardian(first_name: "Orphan", last_name: "Entry")
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: "confirmed"
+      )
+
+      # Trigger: simulate orphaned enrollment (parent profile deleted after enrollment)
+      # Why: FK constraints normally prevent this, but we need to test defensive code
+      # Outcome: parent lookup returns nil, parent_user_id should be nil
+      parent_id_bin = Ecto.UUID.dump!(parent.id)
+
+      # Disable FK trigger checks so we can simulate an orphaned enrollment
+      KlassHero.Repo.query!("SET session_replication_role = 'replica'")
+
+      KlassHero.Repo.query!("DELETE FROM children_guardians WHERE guardian_id = $1", [
+        parent_id_bin
+      ])
+
+      KlassHero.Repo.query!("DELETE FROM parents WHERE id = $1", [parent_id_bin])
+
+      [entry] = ListProgramEnrollments.execute(program.id)
+
+      assert entry.parent_id == to_string(parent.id)
+      assert entry.parent_user_id == nil
+    end
   end
 end
