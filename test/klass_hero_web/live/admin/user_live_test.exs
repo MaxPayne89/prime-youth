@@ -10,13 +10,19 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
       {:ok, _view, html} = live(conn, ~p"/admin/users")
       assert html =~ "Users"
     end
+
+    test "new user button is not shown on index", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/admin/users")
+      refute has_element?(view, "a", "New")
+    end
   end
 
   describe "non-admin access control" do
     setup :register_and_log_in_user
 
     test "non-admin is redirected from /admin/users", %{conn: conn} do
-      assert {:error, {:redirect, %{to: "/"}}} = live(conn, ~p"/admin/users")
+      assert {:error, {:redirect, %{to: "/", flash: flash}}} = live(conn, ~p"/admin/users")
+      assert flash["error"] =~ "access"
     end
   end
 
@@ -50,16 +56,41 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
 
       {:ok, view, _html} = live(conn, ~p"/admin/users/#{target_user.id}/edit")
 
-      # Backpex form targets a LiveComponent (phx-target="1").
-      # The submit button has name="save-type" value="save" which must be
-      # included in the submit params. Use render_submit with the submitter
-      # option to include the button's value.
+      # Backpex requires name="save-type" value="save" on submit.
+      # Pass as extra params to render_submit/2 since button values
+      # aren't included automatically.
       view
       |> form("#resource-form", %{change: %{name: "Updated Name"}})
       |> render_submit(%{"save-type" => "save"})
 
       updated = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
       assert updated.name == "Updated Name"
+    end
+
+    test "rejects blank name", %{conn: conn} do
+      target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Keep This Name"})
+
+      {:ok, view, _html} = live(conn, ~p"/admin/users/#{target_user.id}/edit")
+
+      view
+      |> form("#resource-form", %{change: %{name: ""}})
+      |> render_submit(%{"save-type" => "save"})
+
+      unchanged = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
+      assert unchanged.name == "Keep This Name"
+    end
+
+    test "rejects name shorter than 2 characters", %{conn: conn} do
+      target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Keep This Name"})
+
+      {:ok, view, _html} = live(conn, ~p"/admin/users/#{target_user.id}/edit")
+
+      view
+      |> form("#resource-form", %{change: %{name: "A"}})
+      |> render_submit(%{"save-type" => "save"})
+
+      unchanged = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
+      assert unchanged.name == "Keep This Name"
     end
 
     test "admin can toggle is_admin flag", %{conn: conn} do

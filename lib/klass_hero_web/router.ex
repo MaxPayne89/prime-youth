@@ -112,7 +112,6 @@ defmodule KlassHeroWeb.Router do
     live_session :require_admin,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
-        {KlassHeroWeb.UserAuth, :mount_current_scope},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_admin},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
