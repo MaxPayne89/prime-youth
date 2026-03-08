@@ -134,7 +134,6 @@ defmodule KlassHeroWeb.Router do
       # Outcome: admin layout rendered once by Backpex, no duplicates
       live_session :backpex_admin,
         on_mount: [
-          {KlassHeroWeb.UserAuth, :mount_current_scope},
           {KlassHeroWeb.UserAuth, :require_authenticated},
           {KlassHeroWeb.UserAuth, :require_admin},
           {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale},
