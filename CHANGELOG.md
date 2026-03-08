@@ -5,6 +5,31 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7](https://github.com/MaxPayne89/prime-youth/compare/v0.1.6...v0.1.7) (2026-03-08)
+
+
+### Features
+
+* add broadcast button to roster modal ([1cee319](https://github.com/MaxPayne89/prime-youth/commit/1cee319d7cecdf8cbb2d40700352f4fe3e263fba))
+* add broadcast button to roster modal with disabled state ([3f80dee](https://github.com/MaxPayne89/prime-youth/commit/3f80dee6a4849e36c9dd4ffe7c1926869849237b)), closes [#317](https://github.com/MaxPayne89/prime-youth/issues/317)
+* add bulk parent profile lookup by IDs to Family context ([de8082d](https://github.com/MaxPayne89/prime-youth/commit/de8082d33654c61457607cdd6fb96de0e3303c7f))
+* add ForResolvingParentInfo ACL port and adapter ([b334fac](https://github.com/MaxPayne89/prime-youth/commit/b334facdb81747d4deb46e9ab3365be213e956b8))
+* add send individual message button to roster modal ([c35f843](https://github.com/MaxPayne89/prime-youth/commit/c35f8434223b4e44a15a90ecb502bb2a42effd47))
+* add send message button to roster with entitlement gating ([9e097a6](https://github.com/MaxPayne89/prime-youth/commit/9e097a64f04ed3824b14ab4354c10cf429b517be))
+* include parent_id and parent_user_id in roster entries ([0c8303f](https://github.com/MaxPayne89/prime-youth/commit/0c8303ffe0334a3baf3dd0706d28aa6bb592bdef))
+
+
+### Bug Fixes
+
+* address PR [#324](https://github.com/MaxPayne89/prime-youth/issues/324) accessibility and HTML validity review comments ([0368979](https://github.com/MaxPayne89/prime-youth/commit/036897987a1bb0d1721684c11e237146fd5cf55a))
+* reset session_replication_role after FK bypass in test ([61fdb82](https://github.com/MaxPayne89/prime-youth/commit/61fdb82f1f3628bbee7f18f7580c31e6480da89c))
+* validate parent_user_id server-side and add starter tier test ([6c987d2](https://github.com/MaxPayne89/prime-youth/commit/6c987d289d89b10a0220c416511d4113810aaa0d))
+
+
+### Code Refactoring
+
+* tighten broadcast button comment and test assertions ([2f7676c](https://github.com/MaxPayne89/prime-youth/commit/2f7676c7994e4fe683ca56c93c7fcff04520576f))
+
 ## [0.1.6](https://github.com/MaxPayne89/prime-youth/compare/v0.1.5...v0.1.6) (2026-03-08)
 
 
