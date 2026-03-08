@@ -120,6 +120,9 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListProgramEnrollmentsTest d
 
       KlassHero.Repo.query!("DELETE FROM parents WHERE id = $1", [parent_id_bin])
 
+      # Re-enable FK trigger checks to avoid leaking session state
+      KlassHero.Repo.query!("SET session_replication_role = 'origin'")
+
       [entry] = ListProgramEnrollments.execute(program.id)
 
       assert entry.parent_id == to_string(parent.id)
