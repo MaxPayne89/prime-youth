@@ -543,17 +543,30 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_event("send_message_to_parent", %{"parent-user-id" => parent_user_id}, socket) do
     scope = socket.assigns.current_scope
     provider_id = scope.provider.id
+    roster_entries = socket.assigns.roster_entries
 
-    case Messaging.create_direct_conversation(scope, provider_id, parent_user_id) do
-      {:ok, conversation} ->
-        {:noreply, push_navigate(socket, to: ~p"/provider/messages/#{conversation.id}")}
+    # Trigger: parent_user_id comes from client — could be tampered
+    # Why: validate against server-side roster to prevent messaging unauthorized parents
+    # Outcome: rejects requests for non-roster or unconfirmed enrollments
+    valid_confirmed? =
+      Enum.any?(roster_entries, fn entry ->
+        entry.parent_user_id == parent_user_id and entry.status == :confirmed
+      end)
 
-      {:error, :not_entitled} ->
-        {:noreply, put_flash(socket, :error, gettext("Upgrade your plan to send messages."))}
+    if valid_confirmed? do
+      case Messaging.create_direct_conversation(scope, provider_id, parent_user_id) do
+        {:ok, conversation} ->
+          {:noreply, push_navigate(socket, to: ~p"/provider/messages/#{conversation.id}")}
 
-      {:error, _reason} ->
-        {:noreply,
-         put_flash(socket, :error, gettext("Could not start conversation. Please try again."))}
+        {:error, :not_entitled} ->
+          {:noreply, put_flash(socket, :error, gettext("Upgrade your plan to send messages."))}
+
+        {:error, _reason} ->
+          {:noreply,
+           put_flash(socket, :error, gettext("Could not start conversation. Please try again."))}
+      end
+    else
+      {:noreply, put_flash(socket, :error, gettext("Cannot message this parent."))}
     end
   end
 
