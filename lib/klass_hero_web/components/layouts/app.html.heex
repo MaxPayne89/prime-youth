@@ -161,6 +161,15 @@
                   </li>
                   <li>
                     <.link
+                      navigate={~p"/admin/users"}
+                      class="text-hero-black-100 hover:bg-hero-grey-50"
+                    >
+                      <.icon name="hero-chart-bar-square" class="w-5 h-5" />
+                      {gettext("Dashboard")}
+                    </.link>
+                  </li>
+                  <li>
+                    <.link
                       navigate={~p"/admin/verifications"}
                       class="text-hero-black-100 hover:bg-hero-grey-50"
                     >
@@ -267,6 +276,9 @@
                 <span class="text-xs font-semibold text-hero-grey-500 uppercase tracking-wider">
                   Admin
                 </span>
+              </li>
+              <li>
+                <.link navigate={~p"/admin/users"}>{gettext("Dashboard")}</.link>
               </li>
               <li>
                 <.link navigate={~p"/admin/verifications"}>{gettext("Verifications")}</.link>

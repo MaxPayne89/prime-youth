@@ -99,4 +99,14 @@ defmodule KlassHeroWeb.Layouts do
     </div>
     """
   end
+
+  # Backpex admin dashboard layout
+  # Provides the shell (sidebar, topbar, flash) for all admin LiveResource pages.
+  attr :flash, :map, required: true
+  attr :fluid?, :boolean, default: true
+  attr :current_url, :string, required: true
+  attr :live_resource, :atom, default: nil
+  slot :inner_block, required: true
+
+  def admin(assigns)
 end
