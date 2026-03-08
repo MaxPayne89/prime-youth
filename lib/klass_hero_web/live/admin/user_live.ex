@@ -30,7 +30,12 @@ defmodule KlassHeroWeb.Admin.UserLive do
   def can?(_assigns, :new, _item), do: false
   def can?(_assigns, :index, _item), do: true
   def can?(_assigns, :show, _item), do: true
-  def can?(_assigns, :edit, _item), do: true
+
+  # Trigger: admin attempts to edit their own record
+  # Why: toggling own is_admin flag would lock the admin out
+  # Outcome: Backpex raises ForbiddenError (403) for self-edit attempts
+  def can?(assigns, :edit, item), do: item.id != assigns.current_scope.user.id
+
   def can?(_assigns, _action, _item), do: false
 
   @impl Backpex.LiveResource

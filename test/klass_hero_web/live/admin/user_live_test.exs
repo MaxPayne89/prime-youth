@@ -48,6 +48,16 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
     end
   end
 
+  describe "self-edit restriction" do
+    setup :register_and_log_in_admin
+
+    test "admin cannot edit their own record", %{conn: conn, user: admin} do
+      assert_raise Backpex.ForbiddenError, fn ->
+        live(conn, ~p"/admin/users/#{admin.id}/edit")
+      end
+    end
+  end
+
   describe "edit user" do
     setup :register_and_log_in_admin
 

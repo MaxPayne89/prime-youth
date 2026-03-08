@@ -21,7 +21,7 @@ Integrate Backpex as the admin dashboard foundation, starting with User manageme
 - Add `{:backpex, "~> 0.17"}` to `mix.exs`
 - CSS: Add Backpex `@source` directives to `assets/css/app.css`
 - JS: Import `BackpexHooks` and merge with existing hooks in `assets/js/app.js`
-- Router: Add `plug Backpex.ThemeSelectorPlug` to `:browser` pipeline
+- Router: Add `plug Backpex.ThemeSelectorPlug` to `:backpex_admin` pipeline (scoped to admin routes only)
 
 daisyUI and Tailwind CSS v4 are already in the project.
 

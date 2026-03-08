@@ -1,8 +1,8 @@
 <Backpex.HTML.Layout.app_shell fluid={@fluid?} live_resource={@live_resource}>
   <:topbar>
-    <Backpex.HTML.Layout.topbar_branding title="Klass Hero Admin">
+    <Backpex.HTML.Layout.topbar_branding title={gettext("Klass Hero Admin")}>
       <:logo>
-        <img src={~p"/images/logo.png"} alt="Klass Hero" class="h-8" />
+        <img src={~p"/images/logo.png"} alt={gettext("Klass Hero")} class="h-8" />
       </:logo>
     </Backpex.HTML.Layout.topbar_branding>
 
@@ -13,17 +13,19 @@
         </div>
       </:label>
       <li>
-        <.link navigate={~p"/"}>Back to App</.link>
+        <.link navigate={~p"/"}>{gettext("Back to App")}</.link>
       </li>
       <li>
-        <.link href={~p"/users/log-out"} method="delete" class="text-error">Sign Out</.link>
+        <.link href={~p"/users/log-out"} method="delete" class="text-error">
+          {gettext("Sign Out")}
+        </.link>
       </li>
     </Backpex.HTML.Layout.topbar_dropdown>
   </:topbar>
 
   <:sidebar>
     <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate={~p"/admin/users"}>
-      <Backpex.HTML.CoreComponents.icon name="hero-users" class="h-5 w-5" /> Users
+      <Backpex.HTML.CoreComponents.icon name="hero-users" class="h-5 w-5" /> {gettext("Users")}
     </Backpex.HTML.Layout.sidebar_item>
   </:sidebar>
 
