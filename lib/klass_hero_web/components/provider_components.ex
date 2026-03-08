@@ -1403,7 +1403,7 @@ defmodule KlassHeroWeb.ProviderComponents do
             <div class="flex items-center gap-1">
               <%!-- Trigger: provider wants to broadcast to enrolled parents
                    Why: navigates to existing BroadcastLive page with program context
-                   Outcome: disabled with tooltip when no parents enrolled --%>
+                   Outcome: disabled with title attribute when no parents enrolled --%>
               <%= if @enrolled_count > 0 do %>
                 <.link navigate={~p"/provider/programs/#{@program_id}/broadcast"}>
                   <.action_button

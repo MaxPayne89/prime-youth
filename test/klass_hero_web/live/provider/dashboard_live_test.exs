@@ -310,20 +310,13 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       assert has_element?(view, "#roster-tab-enrolled[aria-selected=true]")
     end
 
-    test "broadcast button visible in roster modal", %{conn: conn, program: program} do
-      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
-
-      view |> element("#view-roster-#{program.id}") |> render_click()
-
-      assert has_element?(view, "#broadcast-#{program.id}")
-    end
-
     test "broadcast button disabled when no enrollments", %{conn: conn, program: program} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
 
       view |> element("#view-roster-#{program.id}") |> render_click()
 
       assert has_element?(view, "#broadcast-#{program.id}[disabled]")
+      assert has_element?(view, ~s(#broadcast-#{program.id}[title="No enrolled parents"]))
     end
 
     test "broadcast button links to broadcast page when enrollments exist", %{
