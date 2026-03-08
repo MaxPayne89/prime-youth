@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-07T13:02:23Z",
+  "last_updated": "2026-03-08T13:02:21Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -29,20 +29,22 @@
     "pure_domain_service_tests": "Pure domain services (no DB) use ExUnit.Case, async: true; construct ParticipationRecord directly with %ParticipationRecord{id:, session_id:, child_id:, status:}",
     "behavioral_note_schema_factory": "insert(:behavioral_note_schema) auto-creates user+provider+record via FK constraints; override provider_id explicitly when testing cross-provider isolation",
     "parent_profile_use_case": "CreateParentProfile needs real user (unconfirmed_user_fixture) for FK; notification_preferences stored as :map type returns string keys from DB (not atom keys) - assert is_map/1 not exact equality",
-    "create_parent_profile_identity_fk": "identity_id in parent_profiles FK references users table - need real user via unconfirmed_user_fixture(intended_roles: [:parent])"
+    "create_parent_profile_identity_fk": "identity_id in parent_profiles FK references users table - need real user via unconfirmed_user_fixture(intended_roles: [:parent])",
+    "activity_goal_calculator_tests": "Pure domain service, async: true, no DB; sessions field accepts list (length counted) or string 'current/total' (Integer.parse on current); percentage capped at 100; statuses: :achieved >=100%, :almost_there >=80%, :in_progress otherwise"
   },
   "backlog": [
     {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"},
     {"item": "ParticipationEvents factory tests", "priority": "low", "reason": "9 event factory functions, tests would guard payload shape contracts"},
-    {"item": "subscription_live tier change integration", "priority": "resolved", "reason": "tests already cover switch_tier dispatch, flash, tier state fully"}
+    {"item": "CreateProgram / UpdateProgram use case tests", "priority": "medium", "reason": "core provider workflow - create/update program has no integration tests yet"},
+    {"item": "StaffMember CRUD use case tests (create/update/delete)", "priority": "medium", "reason": "3 use cases in provider context, none have tests"}
   ],
   "tasks_last_run": {
     "task1_commands": "2026-02-26",
-    "task2_opportunities": "2026-03-07",
-    "task3_implement": "2026-03-07",
+    "task2_opportunities": "2026-03-08",
+    "task3_implement": "2026-03-08",
     "task6_infrastructure": "2026-03-06",
     "task5_comments": "never",
-    "task7_monthly_summary": "2026-03-07"
+    "task7_monthly_summary": "2026-03-08"
   },
   "completed_work": [
     {
@@ -79,11 +81,15 @@
     },
     {
       "run": "2026-03-06",
-      "work": "Created PR (branch test-assist/get-behavioral-note-for-record-tests): GetBehavioralNoteForRecord use case integration tests - 10 tests for execute/2 and execute_batch/2"
+      "work": "Created PR #293 (branch test-assist/get-behavioral-note-for-record-tests): GetBehavioralNoteForRecord use case integration tests - MERGED"
     },
     {
       "run": "2026-03-07",
-      "work": "Created PR (branch test-assist/create-parent-profile-use-case-tests): CreateParentProfile use case integration tests - 8 tests covering happy paths, UUID generation, validation errors, duplicate detection"
+      "work": "Created PR #306 (branch test-assist/create-parent-profile-use-case-tests): CreateParentProfile use case integration tests - MERGED"
+    },
+    {
+      "run": "2026-03-08",
+      "work": "Created PR (branch test-assist/activity-goal-calculator-tests): ActivityGoalCalculator domain service unit tests - 18 pure unit tests for calculate/2"
     }
   ]
 }
