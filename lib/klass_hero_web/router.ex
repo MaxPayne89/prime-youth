@@ -14,11 +14,17 @@ defmodule KlassHeroWeb.Router do
     plug :fetch_current_scope_for_user
     plug :set_error_tracker_context
     plug KlassHeroWeb.Plugs.SetLocale
-    plug Backpex.ThemeSelectorPlug
   end
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  # Trigger: ThemeSelectorPlug reads session["backpex"]["theme"] for @theme assign
+  # Why: only Backpex layout templates use @theme; non-admin routes don't need it
+  # Outcome: avoids unnecessary session reads on every public/parent/provider request
+  pipeline :backpex_admin do
+    plug Backpex.ThemeSelectorPlug
   end
 
   # Health check endpoint for Fly.io
@@ -124,6 +130,8 @@ defmodule KlassHeroWeb.Router do
 
     # Backpex admin dashboard - separate live_session with Backpex layout
     scope "/admin", Admin do
+      pipe_through :backpex_admin
+
       backpex_routes()
 
       # Trigger: no layout set on live_session for Backpex routes
