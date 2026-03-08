@@ -11,6 +11,8 @@ defmodule KlassHeroWeb.Admin.UserLive do
   exception scoped to admin-only read + limited edit operations.
   """
 
+  # Backpex requires FQ refs in `use` args — alias can't precede `use` per formatter rules
+  # credo:disable-for-lines:10 Credo.Check.Design.AliasUsage
   use Backpex.LiveResource,
     adapter_config: [
       schema: KlassHero.Accounts.User,
