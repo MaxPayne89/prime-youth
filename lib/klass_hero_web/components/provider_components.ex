@@ -1348,6 +1348,7 @@ defmodule KlassHeroWeb.ProviderComponents do
     <button
       type="button"
       title={@title}
+      aria-label={@title}
       disabled={@disabled}
       class={[
         "p-2",
@@ -1405,12 +1406,19 @@ defmodule KlassHeroWeb.ProviderComponents do
                    Why: navigates to existing BroadcastLive page with program context
                    Outcome: disabled with title attribute when no parents enrolled --%>
               <%= if @enrolled_count > 0 do %>
-                <.link navigate={~p"/provider/programs/#{@program_id}/broadcast"}>
-                  <.action_button
-                    id={"broadcast-#{@program_id}"}
-                    icon="hero-megaphone-mini"
-                    title={gettext("Send Broadcast")}
-                  />
+                <.link
+                  id={"broadcast-#{@program_id}"}
+                  navigate={~p"/provider/programs/#{@program_id}/broadcast"}
+                  title={gettext("Send Broadcast")}
+                  aria-label={gettext("Send Broadcast")}
+                  class={[
+                    "p-2",
+                    Theme.rounded(:lg),
+                    Theme.transition(:normal),
+                    "text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100"
+                  ]}
+                >
+                  <.icon name="hero-megaphone-mini" class="w-5 h-5" />
                 </.link>
               <% else %>
                 <.action_button
@@ -1423,6 +1431,7 @@ defmodule KlassHeroWeb.ProviderComponents do
               <button
                 type="button"
                 phx-click="close_roster"
+                aria-label={gettext("close")}
                 class="text-hero-grey-400 hover:text-hero-grey-600"
               >
                 <.icon name="hero-x-mark-mini" class="w-5 h-5" />
