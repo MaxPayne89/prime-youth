@@ -5,6 +5,35 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6](https://github.com/MaxPayne89/prime-youth/compare/v0.1.5...v0.1.6) (2026-03-08)
+
+
+### Features
+
+* add admin dashboard link to app navigation ([4121f40](https://github.com/MaxPayne89/prime-youth/commit/4121f40af922f5398431072d6d484adeb28cec9a))
+* add admin dashboard with Backpex user management ([e7d5a6c](https://github.com/MaxPayne89/prime-youth/commit/e7d5a6c58efd24e1b97d8fd7c3067f40049ef236))
+* add admin layout with Backpex app shell ([47d660f](https://github.com/MaxPayne89/prime-youth/commit/47d660f55148b2c4200a4464d62a6e898799d331))
+* add Backpex admin routes and User LiveResource ([3296807](https://github.com/MaxPayne89/prime-youth/commit/3296807077b61544808a074258ec3f5a9200c101))
+* add Backpex ThemeSelectorPlug to browser pipeline ([d9bdfb5](https://github.com/MaxPayne89/prime-youth/commit/d9bdfb5e38783168911434b4f4e3f2ea91c59978))
+* integrate Backpex CSS sources and JS hooks ([91c8810](https://github.com/MaxPayne89/prime-youth/commit/91c8810442170bf8a52a6af130cf191b04fb41f6))
+
+
+### Bug Fixes
+
+* address Copilot PR review comments ([ce73fca](https://github.com/MaxPayne89/prime-youth/commit/ce73fca5d465227644fd38a3615db01ae39d1d5a))
+* remove duplicate mount_current_scope from admin on_mount ([274175a](https://github.com/MaxPayne89/prime-youth/commit/274175a7499143731634860005dcfb8988cec613))
+* scope ThemeSelectorPlug to admin routes only ([31f66c6](https://github.com/MaxPayne89/prime-youth/commit/31f66c6f35460c09d904dcb59ebff2ea7255ded6))
+
+
+### Code Refactoring
+
+* address admin dashboard review findings ([0aef4e0](https://github.com/MaxPayne89/prime-youth/commit/0aef4e02fae0173ddb30cf4a2b27074b0001a04e))
+
+
+### Dependencies
+
+* add backpex for admin dashboard ([7f7af12](https://github.com/MaxPayne89/prime-youth/commit/7f7af12a268d62b100caee87548f4c741ee4c60a))
+
 ## [0.1.5](https://github.com/MaxPayne89/prime-youth/compare/v0.1.4...v0.1.5) (2026-03-07)
 
 
