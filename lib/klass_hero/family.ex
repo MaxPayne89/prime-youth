@@ -94,6 +94,15 @@ defmodule KlassHero.Family do
     @parent_repository.has_profile?(identity_id)
   end
 
+  @doc """
+  Retrieves multiple parent profiles by their IDs.
+
+  Missing or invalid IDs are silently excluded from the result.
+  """
+  def get_parents_by_ids(parent_ids) when is_list(parent_ids) do
+    @parent_repository.list_by_ids(parent_ids)
+  end
+
   # ============================================================================
   # Children Functions
   # ============================================================================
