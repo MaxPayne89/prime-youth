@@ -51,6 +51,11 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
   def can?(_assigns, _action, _item), do: false
 
   @impl Backpex.LiveResource
+  def filters do
+    [verified: %{module: KlassHeroWeb.Admin.Filters.VerifiedFilter}]
+  end
+
+  @impl Backpex.LiveResource
   def singular_name, do: "Provider"
 
   @impl Backpex.LiveResource
@@ -105,7 +110,12 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
         module: Backpex.Fields.Text,
         label: "Categories",
         only: [:show],
-        readonly: true
+        readonly: true,
+        render: fn assigns ->
+          ~H"""
+          <p>{Enum.join(@value || [], ", ")}</p>
+          """
+        end
       },
       inserted_at: %{
         module: Backpex.Fields.DateTime,
