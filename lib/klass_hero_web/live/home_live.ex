@@ -1,15 +1,18 @@
 defmodule KlassHeroWeb.HomeLive do
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.ProgramComponents
   import KlassHeroWeb.UIComponents
 
   alias KlassHero.ProgramCatalog
+  alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
 
   @impl true
   def mount(_params, _session, socket) do
     featured = ProgramCatalog.list_featured_programs()
+    featured_maps = Enum.map(featured, &listing_to_card_map/1)
     trending_tags = ProgramCatalog.trending_searches()
 
     socket =
@@ -20,7 +23,7 @@ defmodule KlassHeroWeb.HomeLive do
         pricing_tab: :families,
         trending_tags: trending_tags
       )
-      |> stream(:featured_programs, featured)
+      |> stream(:featured_programs, featured_maps)
       |> assign(:featured_empty?, Enum.empty?(featured))
 
     {:ok, socket}
@@ -58,6 +61,40 @@ defmodule KlassHeroWeb.HomeLive do
   def handle_event("view_program", %{"program-id" => program_id}, socket) do
     {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
   end
+
+  # Converts a ProgramListing read model into the map shape expected by program_card
+  defp listing_to_card_map(%ProgramListing{} = program) do
+    %{
+      id: program.id,
+      title: program.title,
+      description: program.description,
+      category: format_category(program.category),
+      age_range: program.age_range,
+      price: safe_decimal_to_float(program.price),
+      period: program.pricing_period,
+      cover_image_url: program.cover_image_url,
+      meeting_days: program.meeting_days || [],
+      meeting_start_time: program.meeting_start_time,
+      meeting_end_time: program.meeting_end_time,
+      start_date: program.start_date,
+      end_date: program.end_date,
+      spots_left: nil,
+      gradient_class: Theme.gradient(:program_default),
+      icon_name: ProgramPresenter.icon_name(program.category)
+    }
+  end
+
+  defp format_category(category) when is_binary(category) do
+    category
+    |> String.split("-")
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  defp format_category(_), do: "Education"
+
+  defp safe_decimal_to_float(nil), do: 0.0
+  defp safe_decimal_to_float(%Decimal{} = price), do: Decimal.to_float(price)
+  defp safe_decimal_to_float(_other), do: 0.0
 
   @impl true
   def render(assigns) do
@@ -149,14 +186,11 @@ defmodule KlassHeroWeb.HomeLive do
             phx-update="stream"
             class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8 items-stretch"
           >
-            <.program_card_simple
+            <.program_card
               :for={{dom_id, program} <- @streams.featured_programs}
               id={dom_id}
-              gradient_class={Theme.gradient(:program_default)}
-              icon_name={ProgramPresenter.icon_name(program.category)}
-              title={program.title}
-              description={program.description}
-              price={program.price}
+              program={program}
+              variant={:compact}
               phx-click="view_program"
               phx-value-program-id={program.id}
             />
