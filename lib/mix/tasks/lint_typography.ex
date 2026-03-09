@@ -22,9 +22,7 @@ defmodule Mix.Tasks.LintTypography do
   def run(_args) do
     violations =
       Path.wildcard(Path.join(@search_dir, "**/*.{ex,heex}"))
-      |> Enum.reject(fn path ->
-        Enum.any?(@excluded_files, fn excluded -> String.ends_with?(path, "/#{excluded}") end)
-      end)
+      |> Enum.reject(fn path -> Path.basename(path) in @excluded_files end)
       |> Enum.flat_map(&find_violations/1)
 
     if violations == [] do
@@ -46,16 +44,23 @@ defmodule Mix.Tasks.LintTypography do
       |> File.read!()
       |> String.split("\n")
 
-    lines
-    |> Enum.with_index(1)
-    |> Enum.filter(fn {line, line_num} ->
-      has_violation =
-        String.contains?(line, "font-display") and not String.contains?(line, @suppression_marker)
+    {_line_num, _prev_line, violations} =
+      Enum.reduce(lines, {1, "", []}, fn line, {line_num, prev_line, acc} ->
+        has_violation =
+          String.contains?(line, "font-display") and
+            not String.contains?(line, @suppression_marker)
 
-      # Also check the preceding line for a suppression comment
-      prev_line = if(line_num > 1, do: Enum.at(lines, line_num - 2, ""), else: "")
-      has_violation and not String.contains?(prev_line, @suppression_marker)
-    end)
-    |> Enum.map(fn {line, num} -> {file, num, line} end)
+        # Also check the preceding line for a suppression comment
+        acc =
+          if has_violation and not String.contains?(prev_line, @suppression_marker) do
+            [{file, line_num, line} | acc]
+          else
+            acc
+          end
+
+        {line_num + 1, line, acc}
+      end)
+
+    Enum.reverse(violations)
   end
 end
