@@ -1,7 +1,7 @@
 defmodule KlassHeroWeb.TermsOfServiceLive do
   use KlassHeroWeb, :live_view
 
-  alias KlassHeroWeb.{Theme, UIComponents}
+  alias KlassHeroWeb.Theme
 
   @impl true
   def mount(_params, _session, socket) do
@@ -263,97 +263,15 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
-      <%!-- Hero Section --%>
-      <.hero_section
-        variant="page"
-        gradient_class={Theme.gradient(:primary)}
-        show_back_button
-      >
-        <:title>{gettext("Terms of Service")}</:title>
-        <:subtitle>{gettext("Understanding our agreement with you")}</:subtitle>
-      </.hero_section>
-
-      <div class="max-w-4xl mx-auto p-6 space-y-6">
-        <%!-- Last Updated Banner --%>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p class="text-sm text-blue-800">
-            <span class="font-semibold">{gettext("Last Updated:")}</span> {last_updated()}
-          </p>
-        </div>
-
-        <%!-- Table of Contents Card --%>
-        <.card>
-          <:header>
-            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              {gettext("Table of Contents")}
-            </h2>
-          </:header>
-          <:body>
-            <ul class="space-y-2">
-              <li :for={section <- terms_sections()}>
-                <a
-                  href={"##{section.id}"}
-                  class="text-blue-600 hover:underline flex items-center gap-2"
-                >
-                  <.icon name={section.icon} class="w-4 h-4" />
-                  {section.title}
-                </a>
-              </li>
-            </ul>
-          </:body>
-        </.card>
-
-        <%!-- Terms of Service Sections --%>
-        <.card :for={section <- terms_sections()} id={section.id}>
-          <:header>
-            <div class="flex items-center gap-3">
-              <UIComponents.gradient_icon
-                gradient_class={section.gradient}
-                size="sm"
-                shape="circle"
-              >
-                <.icon name={section.icon} class="w-5 h-5 text-white" />
-              </UIComponents.gradient_icon>
-              <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-                {section.title}
-              </h2>
-            </div>
-          </:header>
-          <:body>
-            <div class={["prose prose-sm max-w-none", Theme.text_color(:secondary)]}>
-              {raw(section.content)}
-            </div>
-          </:body>
-        </.card>
-
-        <%!-- Contact CTA Section --%>
-        <.card padding="p-8">
-          <:body>
-            <div class="text-center">
-              <h3 class={["font-semibold mb-2", Theme.text_color(:heading)]}>
-                {gettext("Questions About These Terms?")}
-              </h3>
-              <p class={["text-sm mb-4", Theme.text_color(:secondary)]}>
-                {gettext("We're here to clarify any questions you may have.")}
-              </p>
-              <.link
-                navigate={~p"/contact"}
-                class={[
-                  "inline-block",
-                  Theme.gradient(:primary),
-                  "text-white px-6 py-2 text-sm font-semibold hover:shadow-lg transform hover:scale-[1.02]",
-                  Theme.transition(:normal),
-                  Theme.rounded(:lg)
-                ]}
-              >
-                {gettext("Contact Us")}
-              </.link>
-            </div>
-          </:body>
-        </.card>
-      </div>
-    </div>
+    <.document_page
+      gradient_class={Theme.gradient(:primary)}
+      title={gettext("Terms of Service")}
+      subtitle={gettext("Understanding our agreement with you")}
+      last_updated={last_updated()}
+      sections={terms_sections()}
+      cta_title={gettext("Questions About These Terms?")}
+      cta_body={gettext("We're here to clarify any questions you may have.")}
+    />
     """
   end
 end
