@@ -12,6 +12,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
 
   alias KlassHero.Accounts.User
 
+  @valid_tier_strings Enum.map(
+                        KlassHero.Shared.SubscriptionTiers.provider_tiers(),
+                        &Atom.to_string/1
+                      )
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]
 
@@ -75,7 +80,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
     |> validate_website_protocol()
     |> validate_length(:address, min: 1, max: 500)
     |> validate_length(:logo_url, min: 1, max: 500)
-    |> validate_inclusion(:subscription_tier, ["starter", "professional", "business_plus"])
+    |> validate_inclusion(:subscription_tier, @valid_tier_strings)
     |> unique_constraint(:identity_id,
       name: :providers_identity_id_index,
       message: "Provider profile already exists for this identity"
@@ -105,7 +110,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
   def admin_changeset(schema, attrs, _metadata) do
     schema
     |> cast(attrs, [:verified, :subscription_tier])
-    |> validate_inclusion(:subscription_tier, ["starter", "professional", "business_plus"])
+    |> validate_inclusion(:subscription_tier, @valid_tier_strings)
   end
 
   defp validate_website_protocol(changeset) do

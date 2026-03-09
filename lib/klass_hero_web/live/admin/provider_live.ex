@@ -10,21 +10,32 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
   exception scoped to admin-only read + limited edit operations.
   """
 
-  # Backpex requires FQ refs in `use` args — alias can't precede `use` per formatter rules
-  # credo:disable-for-lines:10 Credo.Check.Design.AliasUsage
   use Backpex.LiveResource,
     adapter_config: [
       schema: KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema,
       repo: KlassHero.Repo,
       update_changeset:
         &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema.admin_changeset/3,
-      # Required by Backpex even though :new is disabled via can?/3
       create_changeset:
         &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema.admin_changeset/3
     ],
     layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
+
+  @tier_options Enum.map(
+                  KlassHero.Shared.SubscriptionTiers.provider_tiers(),
+                  fn tier ->
+                    label =
+                      tier
+                      |> Atom.to_string()
+                      |> String.replace("_", " ")
+                      |> String.split()
+                      |> Enum.map_join(" ", &String.capitalize/1)
+
+                    {label, Atom.to_string(tier)}
+                  end
+                )
 
   # Trigger: :new and :delete are not valid operations for provider profiles
   # Why: providers create their own profiles; deletion follows GDPR process
@@ -62,11 +73,7 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
         module: Backpex.Fields.Select,
         label: "Tier",
         orderable: true,
-        options: [
-          {"Starter", "starter"},
-          {"Professional", "professional"},
-          {"Business Plus", "business_plus"}
-        ]
+        options: @tier_options
       },
       description: %{
         module: Backpex.Fields.Textarea,
