@@ -5,6 +5,28 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8](https://github.com/MaxPayne89/prime-youth/compare/v0.1.7...v0.1.8) (2026-03-09)
+
+
+### Features
+
+* update homepage FAQ content (`[#312](https://github.com/MaxPayne89/prime-youth/issues/312)`) ([28a3314](https://github.com/MaxPayne89/prime-youth/commit/28a33142e5b0292bfdb4fa83e4c21175e50194a5))
+
+
+### Bug Fixes
+
+* match FAQ content exactly to issue [#312](https://github.com/MaxPayne89/prime-youth/issues/312) and add missing items ([39580fb](https://github.com/MaxPayne89/prime-youth/commit/39580fb253bc5e8b6b059617f2aabadc0cfb978b))
+
+
+### Performance Improvements
+
+* eliminate redundant DB query in ParticipationHistoryLive ([9410a6d](https://github.com/MaxPayne89/prime-youth/commit/9410a6d8d3b3581ca085bbd2a740f2533508bf41))
+
+
+### Code Refactoring
+
+* remove unused parent_id param from apply_history/4 ([83b7ed6](https://github.com/MaxPayne89/prime-youth/commit/83b7ed6fd03cd7df7b7b4c69d377d5b0ed860217))
+
 ## [0.1.7](https://github.com/MaxPayne89/prime-youth/compare/v0.1.6...v0.1.7) (2026-03-08)
 
 
