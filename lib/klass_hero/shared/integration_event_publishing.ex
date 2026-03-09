@@ -32,6 +32,8 @@ defmodule KlassHero.Shared.IntegrationEventPublishing do
 
   alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
 
+  require Logger
+
   @doc """
   Returns the configured integration event publisher module.
 
@@ -59,5 +61,62 @@ defmodule KlassHero.Shared.IntegrationEventPublishing do
   @spec publish(struct()) :: :ok | {:error, term()}
   def publish(event) do
     publisher_module().publish(event)
+  end
+
+  @doc """
+  Publishes an integration event and propagates failures.
+
+  Logs a warning on failure with the given label and metadata fields,
+  then returns the `{:error, reason}` tuple so the caller can react.
+
+  ## Parameters
+
+  - `event` - The integration event struct to publish
+  - `label` - Event name for the log message (e.g. `"program_created"`)
+  - `log_fields` - Extra keyword metadata for the log entry (default: `[]`)
+  """
+  @spec publish_critical(struct(), String.t(), keyword()) :: :ok | {:error, term()}
+  def publish_critical(event, label, log_fields \\ []) do
+    case publish(event) do
+      :ok ->
+        :ok
+
+      {:error, reason} = error ->
+        Logger.warning(
+          "[PromoteIntegrationEvents] Failed to publish #{label}",
+          Keyword.put(log_fields, :reason, inspect(reason))
+        )
+
+        error
+    end
+  end
+
+  @doc """
+  Publishes an integration event, swallowing failures.
+
+  Logs a warning on failure with the given label and metadata fields,
+  but always returns `:ok`. Use for non-critical notifications where
+  the underlying state change is already durable.
+
+  ## Parameters
+
+  - `event` - The integration event struct to publish
+  - `label` - Event name for the log message (e.g. `"messages_read"`)
+  - `log_fields` - Extra keyword metadata for the log entry (default: `[]`)
+  """
+  @spec publish_best_effort(struct(), String.t(), keyword()) :: :ok
+  def publish_best_effort(event, label, log_fields \\ []) do
+    case publish(event) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning(
+          "[PromoteIntegrationEvents] Failed to publish #{label}",
+          Keyword.put(log_fields, :reason, inspect(reason))
+        )
+
+        :ok
+    end
   end
 end
