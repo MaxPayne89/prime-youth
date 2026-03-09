@@ -113,35 +113,20 @@ defmodule KlassHeroWeb.ProgramsLive do
       id: program.id,
       title: program.title,
       description: program.description,
-      category: format_category_for_display(program.category),
+      category: ProgramPresenter.format_category_for_display(program.category),
       meeting_days: program.meeting_days || [],
       meeting_start_time: program.meeting_start_time,
       meeting_end_time: program.meeting_end_time,
       age_range: program.age_range,
-      price: safe_decimal_to_float(program.price),
+      price: ProgramPresenter.safe_decimal_to_float(program.price),
       period: program.pricing_period,
       spots_left: spots_left,
       cover_image_url: program.cover_image_url,
       # Default UI properties (these will come from the database in the future)
-      gradient_class: default_gradient_class(),
+      gradient_class: Theme.gradient(:primary),
       icon_name: ProgramPresenter.icon_name(program.category)
     }
   end
-
-  # Formats category for display (capitalizes and handles hyphenated categories)
-  defp format_category_for_display(category) when is_binary(category) do
-    category
-    |> String.split("-")
-    |> Enum.map_join(" ", &String.capitalize/1)
-  end
-
-  defp format_category_for_display(_), do: "Education"
-
-  defp default_gradient_class, do: Theme.gradient(:program_default)
-
-  defp safe_decimal_to_float(nil), do: 0.0
-  defp safe_decimal_to_float(%Decimal{} = price), do: Decimal.to_float(price)
-  defp safe_decimal_to_float(_other), do: 0.0
 
   @impl true
   def handle_event("search", %{"search" => query}, socket) do

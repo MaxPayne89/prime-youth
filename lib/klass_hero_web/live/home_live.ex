@@ -68,9 +68,9 @@ defmodule KlassHeroWeb.HomeLive do
       id: program.id,
       title: program.title,
       description: program.description,
-      category: format_category(program.category),
+      category: ProgramPresenter.format_category_for_display(program.category),
       age_range: program.age_range,
-      price: safe_decimal_to_float(program.price),
+      price: ProgramPresenter.safe_decimal_to_float(program.price),
       period: program.pricing_period,
       cover_image_url: program.cover_image_url,
       meeting_days: program.meeting_days || [],
@@ -79,22 +79,10 @@ defmodule KlassHeroWeb.HomeLive do
       start_date: program.start_date,
       end_date: program.end_date,
       spots_left: nil,
-      gradient_class: Theme.gradient(:program_default),
+      gradient_class: Theme.gradient(:primary),
       icon_name: ProgramPresenter.icon_name(program.category)
     }
   end
-
-  defp format_category(category) when is_binary(category) do
-    category
-    |> String.split("-")
-    |> Enum.map_join(" ", &String.capitalize/1)
-  end
-
-  defp format_category(_), do: "Education"
-
-  defp safe_decimal_to_float(nil), do: 0.0
-  defp safe_decimal_to_float(%Decimal{} = price), do: Decimal.to_float(price)
-  defp safe_decimal_to_float(_other), do: 0.0
 
   @impl true
   def render(assigns) do
