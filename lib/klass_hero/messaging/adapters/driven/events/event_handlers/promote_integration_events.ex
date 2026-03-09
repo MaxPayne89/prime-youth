@@ -21,140 +21,71 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegr
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHero.Shared.IntegrationEventPublishing
 
-  require Logger
-
   @doc """
   Handles a domain event by promoting it to the corresponding integration event.
   """
   @spec handle(DomainEvent.t()) :: :ok | {:error, term()}
   def handle(%DomainEvent{event_type: :user_data_anonymized} = event) do
+    # Trigger: user_data_anonymized domain event received
+    # Why: downstream contexts need notification; but event is non-critical (state already durable)
+    # Outcome: best-effort publish; swallow failures and return :ok
     user_id = event.payload.user_id
 
-    integration_event = MessagingIntegrationEvents.message_data_anonymized(user_id)
-
-    case IntegrationEventPublishing.publish(integration_event) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        # Trigger: PubSub publish failed after transaction committed
-        # Why: data change is durable, integration event is best-effort notification
-        # Outcome: log warning, return :ok so bus reports success to use case
-        Logger.warning("[PromoteIntegrationEvents] Failed to publish message_data_anonymized",
-          user_id: user_id,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    MessagingIntegrationEvents.message_data_anonymized(user_id)
+    |> IntegrationEventPublishing.publish_best_effort("message_data_anonymized",
+      user_id: user_id
+    )
   end
 
   def handle(%DomainEvent{event_type: :conversation_created} = event) do
     # Trigger: conversation_created domain event dispatched from CreateDirectConversation use case
     # Why: CQRS projections need this to build denormalized conversation summaries
     # Outcome: publish integration event; propagate failure so use case is aware
-    result =
-      event.aggregate_id
-      |> MessagingIntegrationEvents.conversation_created(event.payload)
-      |> IntegrationEventPublishing.publish()
-
-    case result do
-      :ok ->
-        :ok
-
-      {:error, reason} = error ->
-        Logger.warning("[PromoteIntegrationEvents] Failed to publish conversation_created",
-          conversation_id: event.aggregate_id,
-          reason: inspect(reason)
-        )
-
-        error
-    end
+    event.aggregate_id
+    |> MessagingIntegrationEvents.conversation_created(event.payload)
+    |> IntegrationEventPublishing.publish_critical("conversation_created",
+      conversation_id: event.aggregate_id
+    )
   end
 
   def handle(%DomainEvent{event_type: :message_sent} = event) do
     # Trigger: message_sent domain event dispatched from SendMessage use case
     # Why: CQRS projections need this to update last-message summaries and unread counts
     # Outcome: publish integration event; propagate failure so use case is aware
-    result =
-      event.aggregate_id
-      |> MessagingIntegrationEvents.message_sent(event.payload)
-      |> IntegrationEventPublishing.publish()
-
-    case result do
-      :ok ->
-        :ok
-
-      {:error, reason} = error ->
-        Logger.warning("[PromoteIntegrationEvents] Failed to publish message_sent",
-          conversation_id: event.aggregate_id,
-          reason: inspect(reason)
-        )
-
-        error
-    end
+    event.aggregate_id
+    |> MessagingIntegrationEvents.message_sent(event.payload)
+    |> IntegrationEventPublishing.publish_critical("message_sent",
+      conversation_id: event.aggregate_id
+    )
   end
 
   def handle(%DomainEvent{event_type: :messages_read} = event) do
     # Trigger: messages_read domain event dispatched from MarkAsRead use case
     # Why: CQRS projections use this to update unread counts
     # Outcome: best-effort publish; swallow failure since read-receipt is non-critical
-    integration_event =
-      MessagingIntegrationEvents.messages_read(event.aggregate_id, event.payload)
-
-    case IntegrationEventPublishing.publish(integration_event) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("[PromoteIntegrationEvents] Failed to publish messages_read",
-          conversation_id: event.aggregate_id,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    MessagingIntegrationEvents.messages_read(event.aggregate_id, event.payload)
+    |> IntegrationEventPublishing.publish_best_effort("messages_read",
+      conversation_id: event.aggregate_id
+    )
   end
 
   def handle(%DomainEvent{event_type: :conversation_archived} = event) do
     # Trigger: conversation_archived domain event dispatched from archive use case
     # Why: CQRS projections use this to mark conversations as archived
     # Outcome: best-effort publish; swallow failure since archive status is non-critical
-    integration_event =
-      MessagingIntegrationEvents.conversation_archived(event.aggregate_id, event.payload)
-
-    case IntegrationEventPublishing.publish(integration_event) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("[PromoteIntegrationEvents] Failed to publish conversation_archived",
-          conversation_id: event.aggregate_id,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    MessagingIntegrationEvents.conversation_archived(event.aggregate_id, event.payload)
+    |> IntegrationEventPublishing.publish_best_effort("conversation_archived",
+      conversation_id: event.aggregate_id
+    )
   end
 
   def handle(%DomainEvent{event_type: :conversations_archived} = event) do
     # Trigger: conversations_archived domain event dispatched from bulk archive use case
     # Why: CQRS projections use this to mark multiple conversations as archived
     # Outcome: best-effort publish; swallow failure since bulk archive status is non-critical
-    integration_event =
-      MessagingIntegrationEvents.conversations_archived(event.aggregate_id, event.payload)
-
-    case IntegrationEventPublishing.publish(integration_event) do
-      :ok ->
-        :ok
-
-      {:error, reason} ->
-        Logger.warning("[PromoteIntegrationEvents] Failed to publish conversations_archived",
-          aggregate_id: event.aggregate_id,
-          reason: inspect(reason)
-        )
-
-        :ok
-    end
+    MessagingIntegrationEvents.conversations_archived(event.aggregate_id, event.payload)
+    |> IntegrationEventPublishing.publish_best_effort("conversations_archived",
+      aggregate_id: event.aggregate_id
+    )
   end
 end
