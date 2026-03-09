@@ -102,15 +102,43 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
   @doc """
   Admin changeset for provider profile management via Backpex.
 
-  Only casts `verified` and `subscription_tier` — provider-owned fields
+  Casts `verified` and `subscription_tier` — provider-owned fields
   (business_name, description, phone, etc.) are excluded.
 
+  When `verified` changes, also sets `verified_at` and `verified_by_id`
+  to maintain consistency with the domain model's verify/unverify behaviour.
+
   Accepts 3 args to match the Backpex changeset callback signature.
+  The metadata keyword list includes `:assigns` with the current admin scope.
   """
-  def admin_changeset(schema, attrs, _metadata) do
+  def admin_changeset(schema, attrs, metadata) do
     schema
     |> cast(attrs, [:verified, :subscription_tier])
     |> validate_inclusion(:subscription_tier, @valid_tier_strings)
+    |> maybe_set_verification_fields(metadata)
+  end
+
+  # Trigger: admin toggled the `verified` checkbox in the Backpex form
+  # Why: verified_at and verified_by_id must stay in sync with verified flag,
+  #      matching what VerifyProvider / UnverifyProvider use cases set
+  # Outcome: DB record has consistent audit trail after Backpex save
+  defp maybe_set_verification_fields(changeset, metadata) do
+    case get_change(changeset, :verified) do
+      true ->
+        admin_id = metadata[:assigns].current_scope.user.id
+
+        changeset
+        |> put_change(:verified_at, DateTime.utc_now() |> DateTime.truncate(:second))
+        |> put_change(:verified_by_id, admin_id)
+
+      false ->
+        changeset
+        |> put_change(:verified_at, nil)
+        |> put_change(:verified_by_id, nil)
+
+      nil ->
+        changeset
+    end
   end
 
   defp validate_website_protocol(changeset) do

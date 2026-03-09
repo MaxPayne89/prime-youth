@@ -48,7 +48,7 @@ defmodule KlassHeroWeb.Admin.ProviderLiveTest do
   describe "edit provider" do
     setup :register_and_log_in_admin
 
-    test "admin can toggle verified status", %{conn: conn} do
+    test "admin can toggle verified status and sets audit fields", %{conn: conn, user: user} do
       provider = provider_profile_fixture(business_name: "Verify Me")
 
       {:ok, view, _html} = live(conn, ~p"/admin/providers/#{provider.id}/edit")
@@ -64,6 +64,28 @@ defmodule KlassHeroWeb.Admin.ProviderLiveTest do
         )
 
       assert schema.verified == true
+      assert schema.verified_at != nil
+      assert schema.verified_by_id == user.id
+    end
+
+    test "admin can unverify and clears audit fields", %{conn: conn} do
+      provider = provider_profile_fixture(business_name: "Unverify Me", verified: true)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/providers/#{provider.id}/edit")
+
+      view
+      |> form("#resource-form", %{change: %{verified: false}})
+      |> render_submit(%{"save-type" => "save"})
+
+      schema =
+        KlassHero.Repo.get!(
+          KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema,
+          provider.id
+        )
+
+      assert schema.verified == false
+      assert schema.verified_at == nil
+      assert schema.verified_by_id == nil
     end
 
     test "admin can change subscription tier", %{conn: conn} do

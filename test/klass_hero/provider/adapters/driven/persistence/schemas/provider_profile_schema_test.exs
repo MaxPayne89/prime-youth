@@ -19,6 +19,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
     end
 
     test "casts verified and subscription_tier", %{schema: schema} do
+      admin_id = Ecto.UUID.generate()
+      metadata = [assigns: %{current_scope: %{user: %{id: admin_id}}}]
+
       changeset =
         ProviderProfileSchema.admin_changeset(
           schema,
@@ -26,12 +29,63 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
             verified: true,
             subscription_tier: "professional"
           },
-          %{}
+          metadata
         )
 
       assert changeset.valid?
       assert Ecto.Changeset.get_change(changeset, :verified) == true
       assert Ecto.Changeset.get_change(changeset, :subscription_tier) == "professional"
+    end
+
+    test "sets verified_at and verified_by_id when verified changes to true", %{schema: schema} do
+      admin_id = Ecto.UUID.generate()
+      metadata = [assigns: %{current_scope: %{user: %{id: admin_id}}}]
+
+      changeset =
+        ProviderProfileSchema.admin_changeset(
+          schema,
+          %{verified: true},
+          metadata
+        )
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :verified_at) != nil
+      assert Ecto.Changeset.get_change(changeset, :verified_by_id) == admin_id
+    end
+
+    test "clears verified_at and verified_by_id when verified changes to false", %{schema: schema} do
+      metadata = [assigns: %{current_scope: %{user: %{id: "some-admin-id"}}}]
+
+      changeset =
+        ProviderProfileSchema.admin_changeset(
+          %{
+            schema
+            | verified: true,
+              verified_at: DateTime.utc_now(),
+              verified_by_id: "some-admin-id"
+          },
+          %{verified: false},
+          metadata
+        )
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :verified_at) == nil
+      assert Ecto.Changeset.get_change(changeset, :verified_by_id) == nil
+    end
+
+    test "does not change verified_at when verified is unchanged", %{schema: schema} do
+      metadata = [assigns: %{current_scope: %{user: %{id: "some-admin-id"}}}]
+
+      changeset =
+        ProviderProfileSchema.admin_changeset(
+          schema,
+          %{subscription_tier: "professional"},
+          metadata
+        )
+
+      assert changeset.valid?
+      assert Ecto.Changeset.get_change(changeset, :verified_at) == nil
+      assert Ecto.Changeset.get_change(changeset, :verified_by_id) == nil
     end
 
     test "ignores provider-owned fields", %{schema: schema} do

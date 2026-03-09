@@ -8,6 +8,8 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
   Note: Backpex operates directly on Ecto schemas and Repo, bypassing
   the Ports & Adapters layering used elsewhere. This is a pragmatic
   exception scoped to admin-only read + limited edit operations.
+  The `on_item_updated/2` callback bridges back into the domain layer
+  by publishing integration/domain events that projections depend on.
   """
 
   # Backpex requires FQ refs in `use` args — alias can't precede `use` per formatter rules
@@ -24,6 +26,11 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
     layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
+
+  alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
+  alias KlassHero.Shared.DomainEventBus
+  alias KlassHero.Shared.IntegrationEventPublishing
 
   @tier_options Enum.map(
                   KlassHero.Shared.SubscriptionTiers.provider_tiers(),
@@ -124,5 +131,82 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
         orderable: true
       }
     ]
+  end
+
+  # Trigger: Backpex saved a provider profile update
+  # Why: admin_changeset bypasses domain use cases; projections (VerifiedProviders,
+  #      ProgramListings) subscribe to integration/domain events to stay in sync
+  # Outcome: matching events are published so projections update correctly
+  @impl Backpex.LiveResource
+  def on_item_updated(socket, item) do
+    old_item = socket.assigns.item
+
+    maybe_publish_verification_event(old_item, item, socket)
+    maybe_dispatch_tier_event(old_item, item)
+
+    socket
+  end
+
+  # Trigger: verified status changed between old and new item
+  # Why: ProgramCatalog projections listen for provider_verified / provider_unverified
+  #      integration events to keep denormalized provider_verified flag in sync
+  # Outcome: integration event published to PubSub for cross-context consumption
+  defp maybe_publish_verification_event(%{verified: same}, %{verified: same}, _socket), do: :ok
+
+  defp maybe_publish_verification_event(_old, %{verified: true} = item, socket) do
+    admin_id = socket.assigns.current_scope.user.id
+
+    IntegrationEvent.new(
+      :provider_verified,
+      :provider,
+      :provider,
+      item.id,
+      %{
+        provider_id: item.id,
+        business_name: item.business_name,
+        verified_at: item.verified_at,
+        admin_id: admin_id
+      }
+    )
+    |> IntegrationEventPublishing.publish()
+  end
+
+  defp maybe_publish_verification_event(_old, %{verified: false} = item, socket) do
+    admin_id = socket.assigns.current_scope.user.id
+
+    IntegrationEvent.new(
+      :provider_unverified,
+      :provider,
+      :provider,
+      item.id,
+      %{
+        provider_id: item.id,
+        business_name: item.business_name,
+        admin_id: admin_id
+      }
+    )
+    |> IntegrationEventPublishing.publish()
+  end
+
+  # Trigger: subscription tier changed between old and new item
+  # Why: ChangeSubscriptionTier use case dispatches a domain event that gets
+  #      promoted to an integration event by PromoteIntegrationEvents handler
+  # Outcome: domain event dispatched so downstream handlers are notified
+  defp maybe_dispatch_tier_event(%{subscription_tier: same}, %{subscription_tier: same}), do: :ok
+
+  defp maybe_dispatch_tier_event(old_item, item) do
+    event =
+      DomainEvent.new(
+        :subscription_tier_changed,
+        item.id,
+        :provider,
+        %{
+          provider_id: item.id,
+          previous_tier: String.to_existing_atom(old_item.subscription_tier),
+          new_tier: String.to_existing_atom(item.subscription_tier)
+        }
+      )
+
+    DomainEventBus.dispatch(KlassHero.Provider, event)
   end
 end
