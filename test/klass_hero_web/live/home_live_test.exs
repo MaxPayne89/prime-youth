@@ -188,12 +188,25 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "#faq-section")
       assert has_element?(view, "h2", "Frequently Asked Questions")
 
-      # Verify all 5 FAQ questions exist
+      # Verify all 12 FAQ questions exist (updated per issue #312)
       assert has_element?(view, "button", "How does the 6-step provider vetting process work?")
-      assert has_element?(view, "button", "Is there a free trial for the Active Family plan?")
-      assert has_element?(view, "button", "Can I cancel a booking?")
-      assert has_element?(view, "button", "Do you offer programs for adults?")
-      assert has_element?(view, "button", "What are Klass Points?")
+
+      assert has_element?(
+               view,
+               "button",
+               "Can I list my programs on Klass Hero and what does it cost?"
+             )
+
+      assert has_element?(view, "button", "How does the booking system work?")
+      assert has_element?(view, "button", "What happens if a parent cancels or I need to cancel?")
+      assert has_element?(view, "button", "Is Klass Hero free for parents to use?")
+      assert has_element?(view, "button", "Do I need an account to book?")
+      assert has_element?(view, "button", "Can I change my booking date?")
+      assert has_element?(view, "button", "What if my child gets sick?")
+      assert has_element?(view, "button", "Can I get a refund if the provider cancels?")
+      assert has_element?(view, "button", "What if the provider doesn't show up?")
+      assert has_element?(view, "button", "Where is Klass Hero available?")
+      assert has_element?(view, "button", "Can I buy a gift voucher?")
     end
 
     test "faq items have correct structure for client-side toggle", %{conn: conn} do
@@ -215,6 +228,27 @@ defmodule KlassHeroWeb.HomeLiveTest do
 
       assert has_element?(view, "#faq-5-answer")
       assert has_element?(view, "#faq-5-chevron")
+
+      assert has_element?(view, "#faq-6-answer")
+      assert has_element?(view, "#faq-6-chevron")
+
+      assert has_element?(view, "#faq-7-answer")
+      assert has_element?(view, "#faq-7-chevron")
+
+      assert has_element?(view, "#faq-8-answer")
+      assert has_element?(view, "#faq-8-chevron")
+
+      assert has_element?(view, "#faq-9-answer")
+      assert has_element?(view, "#faq-9-chevron")
+
+      assert has_element?(view, "#faq-10-answer")
+      assert has_element?(view, "#faq-10-chevron")
+
+      assert has_element?(view, "#faq-11-answer")
+      assert has_element?(view, "#faq-11-chevron")
+
+      assert has_element?(view, "#faq-12-answer")
+      assert has_element?(view, "#faq-12-chevron")
     end
 
     @tag {:skip, "Pricing section hidden until transactions are live (#178)"}
