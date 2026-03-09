@@ -13,6 +13,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   import KlassHeroWeb.ProviderComponents
 
   alias KlassHero.Enrollment
+  alias KlassHero.Entitlements
+  alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
   alias KlassHero.Shared.Storage
@@ -91,7 +93,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             roster_invites: [],
             roster_enrolled_count: 0,
             roster_invite_count: 0,
-            import_errors: nil
+            import_errors: nil,
+            can_message?: false
           )
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
           |> assign(
@@ -503,7 +506,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          roster_invites: [],
          roster_enrolled_count: length(roster),
          roster_invite_count: invite_count,
-         import_errors: nil
+         import_errors: nil,
+         can_message?: Entitlements.can_initiate_messaging?(socket.assigns.current_scope)
        )}
     else
       false ->
@@ -530,8 +534,40 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
        roster_program_id: nil,
        roster_invite_count: 0,
        roster_enrolled_count: 0,
-       import_errors: nil
+       import_errors: nil,
+       can_message?: false
      )}
+  end
+
+  @impl true
+  def handle_event("send_message_to_parent", %{"parent-user-id" => parent_user_id}, socket) do
+    scope = socket.assigns.current_scope
+    provider_id = scope.provider.id
+    roster_entries = socket.assigns.roster_entries
+
+    # Trigger: parent_user_id comes from client — could be tampered
+    # Why: validate against server-side roster to prevent messaging unauthorized parents
+    # Outcome: rejects requests for non-roster or unconfirmed enrollments
+    valid_confirmed? =
+      Enum.any?(roster_entries, fn entry ->
+        entry.parent_user_id == parent_user_id and entry.status == :confirmed
+      end)
+
+    if valid_confirmed? do
+      case Messaging.create_direct_conversation(scope, provider_id, parent_user_id) do
+        {:ok, conversation} ->
+          {:noreply, push_navigate(socket, to: ~p"/provider/messages/#{conversation.id}")}
+
+        {:error, :not_entitled} ->
+          {:noreply, put_flash(socket, :error, gettext("Upgrade your plan to send messages."))}
+
+        {:error, _reason} ->
+          {:noreply,
+           put_flash(socket, :error, gettext("Could not start conversation. Please try again."))}
+      end
+    else
+      {:noreply, put_flash(socket, :error, gettext("Cannot message this parent."))}
+    end
   end
 
   @impl true
@@ -1015,6 +1051,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   roster_enrolled_count={@roster_enrolled_count}
                   roster_invite_count={@roster_invite_count}
                   import_errors={@import_errors}
+                  can_message?={@can_message?}
                 />
             <% end %>
         <% end %>
@@ -1306,6 +1343,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :roster_enrolled_count, :integer, default: 0
   attr :roster_invite_count, :integer, default: 0
   attr :import_errors, :any, default: nil
+  attr :can_message?, :boolean, default: false
 
   defp programs_section(assigns) do
     ~H"""
@@ -1340,6 +1378,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         invite_count={@roster_invite_count}
         uploads={@uploads}
         import_errors={@import_errors}
+        can_message?={@can_message?}
       />
     </div>
     """

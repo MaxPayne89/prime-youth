@@ -82,6 +82,7 @@ config :klass_hero, :enrollment,
     KlassHero.Enrollment.Adapters.Driven.ACL.ParticipantDetailsACL,
   for_resolving_program_schedule: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramScheduleACL,
   for_resolving_child_info: KlassHero.Enrollment.Adapters.Driven.ACL.ChildInfoACL,
+  for_resolving_parent_info: KlassHero.Enrollment.Adapters.Driven.ACL.ParentInfoACL,
   for_storing_bulk_enrollment_invites:
     KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository,
   for_resolving_program_catalog: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramCatalogACL,

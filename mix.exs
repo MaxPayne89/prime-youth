@@ -4,7 +4,7 @@ defmodule KlassHero.MixProject do
   def project do
     [
       app: :klass_hero,
-      version: "0.1.5",
+      version: "0.1.7",
       elixir: "~> 1.20.0-rc.1",
       erlang: "~> 28.3",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -107,7 +107,9 @@ defmodule KlassHero.MixProject do
       {:ex_aws_s3, "~> 2.5"},
       {:sweet_xml, "~> 0.7"},
       # Fitness Functions
-      {:boundary, "~> 0.10", runtime: false}
+      {:boundary, "~> 0.10", runtime: false},
+      # Admin dashboard
+      {:backpex, "~> 0.17"}
     ]
   end
 

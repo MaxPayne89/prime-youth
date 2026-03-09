@@ -93,4 +93,19 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
     |> where([p], p.identity_id == ^identity_id)
     |> Repo.exists?()
   end
+
+  @impl true
+  @doc """
+  Retrieves multiple parent profiles by their IDs from the database.
+
+  Missing or invalid IDs are silently excluded from the result.
+  """
+  def list_by_ids([]), do: []
+
+  def list_by_ids(parent_ids) when is_list(parent_ids) do
+    ParentProfileSchema
+    |> where([p], p.id in ^parent_ids)
+    |> Repo.all()
+    |> MapperHelpers.to_domain_list(ParentProfileMapper)
+  end
 end

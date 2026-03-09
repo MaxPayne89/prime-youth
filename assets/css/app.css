@@ -5,6 +5,8 @@
 @source "../css";
 @source "../js";
 @source "../../lib/klass_hero_web";
+@source "../../deps/backpex/**/*.*ex";
+@source "../../deps/backpex/assets/js/**/*.*js";
 
 /* A Tailwind plugin that makes "hero-#{ICON}" classes available.
    The heroicons installation itself is managed by your mix.exs */

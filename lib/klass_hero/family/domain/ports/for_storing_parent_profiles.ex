@@ -44,4 +44,11 @@ defmodule KlassHero.Family.Domain.Ports.ForStoringParentProfiles do
   Returns boolean directly (no error tuple for simple existence check).
   """
   @callback has_profile?(identity_id :: binary()) :: boolean()
+
+  @doc """
+  Retrieves multiple parent profiles by their IDs.
+
+  Missing or invalid IDs are silently excluded from the result.
+  """
+  @callback list_by_ids(parent_ids :: [binary()]) :: [term()]
 end

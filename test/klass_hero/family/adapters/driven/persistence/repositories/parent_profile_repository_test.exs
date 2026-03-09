@@ -75,6 +75,37 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
     end
   end
 
+  describe "list_by_ids/1" do
+    test "returns parent profiles matching the given IDs" do
+      user1 = unconfirmed_user_fixture(intended_roles: [:parent])
+      user2 = unconfirmed_user_fixture(intended_roles: [:parent])
+      user3 = unconfirmed_user_fixture(intended_roles: [:parent])
+
+      {:ok, parent1} = ParentProfileRepository.create_parent_profile(%{identity_id: user1.id})
+      {:ok, parent2} = ParentProfileRepository.create_parent_profile(%{identity_id: user2.id})
+      {:ok, _other} = ParentProfileRepository.create_parent_profile(%{identity_id: user3.id})
+
+      result = ParentProfileRepository.list_by_ids([parent1.id, parent2.id])
+
+      ids = Enum.map(result, & &1.id) |> Enum.sort()
+      assert ids == Enum.sort([parent1.id, parent2.id])
+    end
+
+    test "returns empty list for empty input" do
+      assert ParentProfileRepository.list_by_ids([]) == []
+    end
+
+    test "silently excludes non-existent IDs" do
+      user = unconfirmed_user_fixture(intended_roles: [:parent])
+      {:ok, parent} = ParentProfileRepository.create_parent_profile(%{identity_id: user.id})
+
+      result = ParentProfileRepository.list_by_ids([parent.id, Ecto.UUID.generate()])
+
+      assert length(result) == 1
+      assert hd(result).id == parent.id
+    end
+  end
+
   describe "has_profile?/1" do
     test "returns true when profile exists" do
       user = unconfirmed_user_fixture(intended_roles: [:parent])

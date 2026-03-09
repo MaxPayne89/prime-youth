@@ -1,6 +1,7 @@
 defmodule KlassHeroWeb.Router do
   use KlassHeroWeb, :router
 
+  import Backpex.Router
   import KlassHeroWeb.UserAuth
 
   pipeline :browser do
@@ -17,6 +18,13 @@ defmodule KlassHeroWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+  end
+
+  # Trigger: ThemeSelectorPlug reads session["backpex"]["theme"] for @theme assign
+  # Why: only Backpex layout templates use @theme; non-admin routes don't need it
+  # Outcome: avoids unnecessary session reads on every public/parent/provider request
+  pipeline :backpex_admin do
+    plug Backpex.ThemeSelectorPlug
   end
 
   # Health check endpoint for Fly.io
@@ -110,7 +118,6 @@ defmodule KlassHeroWeb.Router do
     live_session :require_admin,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
-        {KlassHeroWeb.UserAuth, :mount_current_scope},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_admin},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
@@ -118,6 +125,28 @@ defmodule KlassHeroWeb.Router do
       scope "/admin", Admin do
         live "/verifications", VerificationsLive, :index
         live "/verifications/:id", VerificationsLive, :show
+      end
+    end
+
+    # Backpex admin dashboard - separate live_session with Backpex layout
+    scope "/admin", Admin do
+      pipe_through :backpex_admin
+
+      backpex_routes()
+
+      # Trigger: no layout set on live_session for Backpex routes
+      # Why: Backpex resource templates internally call <.layout> which renders
+      #   the admin layout. Setting layout here would cause double-rendering
+      #   and duplicate DOM IDs (backpex-app-shell).
+      # Outcome: admin layout rendered once by Backpex, no duplicates
+      live_session :backpex_admin,
+        on_mount: [
+          {KlassHeroWeb.UserAuth, :require_authenticated},
+          {KlassHeroWeb.UserAuth, :require_admin},
+          {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale},
+          Backpex.InitAssigns
+        ] do
+        live_resources("/users", UserLive, only: [:index, :show, :edit])
       end
     end
   end

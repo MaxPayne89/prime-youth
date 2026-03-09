@@ -225,6 +225,21 @@ defmodule KlassHero.Accounts.User do
   end
 
   @doc """
+  A changeset for admin edits to user accounts.
+
+  Only allows changing name and admin status. All other fields
+  (email, password, roles) are excluded from the cast whitelist.
+
+  Accepts 3 args to match the Backpex changeset callback signature.
+  """
+  def admin_update_changeset(user, attrs, _metadata) do
+    user
+    |> cast(attrs, [:name, :is_admin])
+    |> validate_required([:name])
+    |> validate_length(:name, min: 2, max: 100)
+  end
+
+  @doc """
   Verifies the password.
 
   If there is no user or the user doesn't have a password, we call

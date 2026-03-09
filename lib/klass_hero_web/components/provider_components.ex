@@ -1340,6 +1340,7 @@ defmodule KlassHeroWeb.ProviderComponents do
 
   attr :icon, :string, required: true
   attr :title, :string, required: true
+  attr :disabled, :boolean, default: false
   attr :rest, :global, include: ~w(id phx-click phx-value-id)
 
   defp action_button(assigns) do
@@ -1347,10 +1348,16 @@ defmodule KlassHeroWeb.ProviderComponents do
     <button
       type="button"
       title={@title}
+      aria-label={@title}
+      disabled={@disabled}
       class={[
-        "p-2 text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100",
+        "p-2",
         Theme.rounded(:lg),
-        Theme.transition(:normal)
+        Theme.transition(:normal),
+        if(@disabled,
+          do: "text-hero-grey-300 cursor-not-allowed",
+          else: "text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100"
+        )
       ]}
       {@rest}
     >
@@ -1372,6 +1379,7 @@ defmodule KlassHeroWeb.ProviderComponents do
   attr :invite_count, :integer, default: 0
   attr :uploads, :map, required: true
   attr :import_errors, :any, default: nil
+  attr :can_message?, :boolean, default: false
 
   def roster_modal(assigns) do
     ~H"""
@@ -1394,13 +1402,42 @@ defmodule KlassHeroWeb.ProviderComponents do
             <h3 class="text-lg font-semibold text-hero-charcoal">
               {gettext("Roster: %{name}", name: @program_name)}
             </h3>
-            <button
-              type="button"
-              phx-click="close_roster"
-              class="text-hero-grey-400 hover:text-hero-grey-600"
-            >
-              <.icon name="hero-x-mark-mini" class="w-5 h-5" />
-            </button>
+            <div class="flex items-center gap-1">
+              <%!-- Trigger: provider wants to broadcast to enrolled parents
+                   Why: navigates to existing BroadcastLive page with program context
+                   Outcome: disabled with title attribute when no parents enrolled --%>
+              <%= if @enrolled_count > 0 do %>
+                <.link
+                  id={"broadcast-#{@program_id}"}
+                  navigate={~p"/provider/programs/#{@program_id}/broadcast"}
+                  title={gettext("Send Broadcast")}
+                  aria-label={gettext("Send Broadcast")}
+                  class={[
+                    "p-2",
+                    Theme.rounded(:lg),
+                    Theme.transition(:normal),
+                    "text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100"
+                  ]}
+                >
+                  <.icon name="hero-megaphone-mini" class="w-5 h-5" />
+                </.link>
+              <% else %>
+                <.action_button
+                  id={"broadcast-#{@program_id}"}
+                  icon="hero-megaphone-mini"
+                  title={gettext("No enrolled parents")}
+                  disabled={true}
+                />
+              <% end %>
+              <button
+                type="button"
+                phx-click="close_roster"
+                aria-label={gettext("close")}
+                class="text-hero-grey-400 hover:text-hero-grey-600"
+              >
+                <.icon name="hero-x-mark-mini" class="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <%!-- Tabs --%>
@@ -1445,7 +1482,7 @@ defmodule KlassHeroWeb.ProviderComponents do
           <div class="p-4">
             <%= if @active_tab == "enrolled" do %>
               <div id="enrolled-tab-content">
-                <.enrolled_tab entries={@entries} />
+                <.enrolled_tab entries={@entries} can_message?={@can_message?} />
               </div>
             <% else %>
               <div id="invites-tab-content">
@@ -1465,6 +1502,7 @@ defmodule KlassHeroWeb.ProviderComponents do
   end
 
   attr :entries, :list, required: true
+  attr :can_message?, :boolean, default: false
 
   defp enrolled_tab(assigns) do
     ~H"""
@@ -1485,6 +1523,9 @@ defmodule KlassHeroWeb.ProviderComponents do
           <th class="px-3 py-2 text-left text-xs font-semibold text-hero-grey-500 uppercase">
             {gettext("Enrolled")}
           </th>
+          <th class="px-3 py-2 text-right text-xs font-semibold text-hero-grey-500 uppercase">
+            <span class="sr-only">{gettext("Actions")}</span>
+          </th>
         </tr>
       </thead>
       <tbody class="divide-y divide-hero-grey-200">
@@ -1500,10 +1541,59 @@ defmodule KlassHeroWeb.ProviderComponents do
           <td class="px-3 py-3 text-sm text-hero-grey-500">
             {format_enrollment_date(entry.enrolled_at)}
           </td>
+          <td class="px-3 py-3 text-right">
+            <%!-- Trigger: can_message? is true AND enrollment is confirmed AND parent has a user account
+                 Why: only entitled providers can message confirmed enrollments with linked parents
+                 Outcome: enabled button fires send_message_to_parent event; otherwise disabled with explanation --%>
+            <%= if @can_message? and entry.status == :confirmed and entry.parent_user_id do %>
+              <button
+                id={"send-message-#{entry.enrollment_id}"}
+                type="button"
+                phx-click="send_message_to_parent"
+                phx-value-parent-user-id={entry.parent_user_id}
+                title={gettext("Send Message")}
+                aria-label={gettext("Send Message")}
+                class={[
+                  "p-2 inline-flex",
+                  Theme.rounded(:lg),
+                  Theme.transition(:normal),
+                  "text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100"
+                ]}
+              >
+                <.icon name="hero-chat-bubble-left-mini" class="w-5 h-5" />
+              </button>
+            <% else %>
+              <button
+                id={"send-message-#{entry.enrollment_id}"}
+                type="button"
+                disabled
+                title={message_button_title(@can_message?, entry)}
+                aria-label={message_button_title(@can_message?, entry)}
+                class={[
+                  "p-2 inline-flex",
+                  Theme.rounded(:lg),
+                  "text-hero-grey-300 cursor-not-allowed"
+                ]}
+              >
+                <.icon name="hero-chat-bubble-left-mini" class="w-5 h-5" />
+              </button>
+            <% end %>
+          </td>
         </tr>
       </tbody>
     </table>
     """
+  end
+
+  defp message_button_title(false = _can_message?, _entry),
+    do: gettext("Upgrade to Professional to message parents")
+
+  defp message_button_title(true = _can_message?, entry) do
+    cond do
+      entry.parent_user_id == nil -> gettext("Parent account not available")
+      entry.status != :confirmed -> gettext("Enrollment not confirmed")
+      true -> gettext("Send Message")
+    end
   end
 
   attr :invites, :list, required: true

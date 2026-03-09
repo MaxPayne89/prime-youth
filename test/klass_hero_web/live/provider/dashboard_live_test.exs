@@ -310,6 +310,35 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       assert has_element?(view, "#roster-tab-enrolled[aria-selected=true]")
     end
 
+    test "broadcast button disabled when no enrollments", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#broadcast-#{program.id}[disabled]")
+      assert has_element?(view, ~s(#broadcast-#{program.id}[title="No enrolled parents"]))
+    end
+
+    test "broadcast button links to broadcast page when enrollments exist", %{
+      conn: conn,
+      program: program
+    } do
+      parent = KlassHero.Factory.insert(:parent_profile_schema)
+
+      KlassHero.Factory.insert(:enrollment_schema,
+        program_id: program.id,
+        parent_id: parent.id,
+        status: "confirmed"
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view |> element("#view-roster-#{program.id}") |> render_click()
+
+      assert has_element?(view, ~s(a[href="/provider/programs/#{program.id}/broadcast"]))
+      refute has_element?(view, "#broadcast-#{program.id}[disabled]")
+    end
+
     test "switches to invites tab", %{conn: conn, program: program} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
 
@@ -869,6 +898,124 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       })
 
       assert_flash(view, :info, "Program updated successfully.")
+    end
+  end
+
+  # ===========================================================================
+  # T4: roster send message button
+  # ===========================================================================
+
+  describe "roster send message button" do
+    setup %{provider: provider} do
+      program =
+        insert_program_with_listing(
+          provider_id: provider.id,
+          title: "Message Test Program"
+        )
+
+      %{program: program}
+    end
+
+    test "shows enabled message button for confirmed enrollment", %{
+      conn: conn,
+      program: program
+    } do
+      parent = KlassHero.Factory.insert(:parent_profile_schema)
+      child = KlassHero.Factory.insert(:child_schema)
+
+      enrollment =
+        KlassHero.Factory.insert(:enrollment_schema,
+          program_id: program.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: "confirmed"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      view |> element("#view-roster-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#send-message-#{enrollment.id}")
+      refute has_element?(view, "#send-message-#{enrollment.id}[disabled]")
+    end
+
+    test "shows disabled message button for pending enrollment", %{
+      conn: conn,
+      program: program
+    } do
+      parent = KlassHero.Factory.insert(:parent_profile_schema)
+      child = KlassHero.Factory.insert(:child_schema)
+
+      enrollment =
+        KlassHero.Factory.insert(:enrollment_schema,
+          program_id: program.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: "pending"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      view |> element("#view-roster-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#send-message-#{enrollment.id}[disabled]")
+    end
+
+    test "clicking send message navigates to messaging page", %{
+      conn: conn,
+      program: program
+    } do
+      parent = KlassHero.Factory.insert(:parent_profile_schema)
+      child = KlassHero.Factory.insert(:child_schema)
+
+      enrollment =
+        KlassHero.Factory.insert(:enrollment_schema,
+          program_id: program.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: "confirmed"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      view |> element("#view-roster-#{program.id}") |> render_click()
+
+      view |> element("#send-message-#{enrollment.id}") |> render_click()
+
+      {path, _flash} = assert_redirect(view)
+      assert path =~ "/provider/messages/"
+    end
+
+    test "shows disabled message buttons for starter tier provider", %{conn: conn} do
+      # Re-register with starter tier — starter providers cannot initiate messaging
+      user = KlassHero.AccountsFixtures.user_fixture(%{intended_roles: [:provider]})
+
+      provider =
+        KlassHero.Factory.insert(:provider_profile_schema,
+          identity_id: user.id,
+          subscription_tier: "starter"
+        )
+
+      conn = log_in_user(conn, user)
+
+      program =
+        insert_program_with_listing(
+          provider_id: provider.id,
+          title: "Starter Program"
+        )
+
+      parent = KlassHero.Factory.insert(:parent_profile_schema)
+      child = KlassHero.Factory.insert(:child_schema)
+
+      enrollment =
+        KlassHero.Factory.insert(:enrollment_schema,
+          program_id: program.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: "confirmed"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      view |> element("#view-roster-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#send-message-#{enrollment.id}[disabled]")
     end
   end
 end
