@@ -97,7 +97,7 @@ defmodule KlassHeroWeb.TrustSafetyLive do
               <.icon name="hero-shield-check" class="w-8 h-8 text-white" />
             </UIComponents.gradient_icon>
           </div>
-          <h1 class="font-display text-4xl md:text-5xl lg:text-6xl text-hero-black mb-6">
+          <h1 class={[Theme.typography(:hero), "text-hero-black mb-6"]}>
             {gettext("TRUST & SAFETY")}
           </h1>
           <p class="text-xl text-hero-grey-600 max-w-3xl mx-auto">
@@ -112,7 +112,7 @@ defmodule KlassHeroWeb.TrustSafetyLive do
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
         <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
           <div class="space-y-6">
-            <h2 class="font-display text-3xl md:text-4xl text-hero-black">
+            <h2 class={[Theme.typography(:page_title), "text-hero-black"]}>
               {gettext("Our Commitment to Child Safety")}
             </h2>
             <p class="text-lg text-hero-grey-700 leading-relaxed">
@@ -131,7 +131,7 @@ defmodule KlassHeroWeb.TrustSafetyLive do
             </div>
           </div>
           <div class="bg-hero-blue-600 rounded-2xl p-8 text-white relative overflow-hidden">
-            <h3 class="text-2xl font-display text-white mb-4">
+            <h3 class={[Theme.typography(:section_title), "text-white mb-4"]}>
               {gettext("Vetted with Care")}
             </h3>
             <p class="text-white/90 mb-6 text-lg">
@@ -152,7 +152,7 @@ defmodule KlassHeroWeb.TrustSafetyLive do
       <div class="bg-hero-pink-50 py-12 md:py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="text-center mb-12">
-            <h2 class="font-display text-3xl md:text-4xl lg:text-5xl text-hero-black mb-4">
+            <h2 class={[Theme.typography(:page_title), "text-hero-black mb-4"]}>
               {gettext("How We Verify Providers")}
             </h2>
             <p class="text-lg text-hero-grey-700 max-w-3xl mx-auto">
@@ -182,7 +182,7 @@ defmodule KlassHeroWeb.TrustSafetyLive do
       <%!-- Ongoing Quality & Accountability --%>
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
         <div class="bg-gray-900 rounded-2xl p-8 md:p-10 text-white">
-          <h2 class="text-3xl font-display mb-8 text-hero-yellow-400">
+          <h2 class={[Theme.typography(:section_title), "mb-8 text-hero-yellow-400"]}>
             {gettext("Ongoing Quality & Accountability")}
           </h2>
           <p class="text-gray-300 mb-8 text-lg">
@@ -212,7 +212,7 @@ defmodule KlassHeroWeb.TrustSafetyLive do
       <%!-- CTA Section --%>
       <div class="bg-hero-pink-50 py-16 text-center">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 class="font-display text-3xl md:text-4xl text-hero-black mb-4">
+          <h2 class={[Theme.typography(:page_title), "text-hero-black mb-4"]}>
             {gettext("Have Questions?")}
           </h2>
           <p class="text-lg text-hero-grey-700 mb-8">
@@ -228,6 +228,7 @@ defmodule KlassHeroWeb.TrustSafetyLive do
           </.link>
           <div class="mt-12">
             <div class="h-px w-32 bg-hero-grey-300 mx-auto mb-8"></div>
+            <%!-- typography-lint-ignore: tracking-widest is intentional for this tagline --%>
             <p class="text-2xl font-display text-hero-black tracking-widest">
               {gettext("Trust is earned. Safety is non-negotiable.")}
             </p>

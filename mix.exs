@@ -139,6 +139,7 @@ defmodule KlassHero.MixProject do
         "compile --warning-as-errors",
         "deps.unlock --unused",
         "format",
+        "lint_typography",
         "cmd env MIX_ENV=test mix test"
       ]
     ]
