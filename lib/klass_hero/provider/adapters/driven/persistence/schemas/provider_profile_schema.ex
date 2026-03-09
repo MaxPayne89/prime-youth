@@ -12,6 +12,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
 
   alias KlassHero.Accounts.User
 
+  @valid_tier_strings Enum.map(
+                        KlassHero.Shared.SubscriptionTiers.provider_tiers(),
+                        &Atom.to_string/1
+                      )
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]
 
@@ -75,7 +80,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
     |> validate_website_protocol()
     |> validate_length(:address, min: 1, max: 500)
     |> validate_length(:logo_url, min: 1, max: 500)
-    |> validate_inclusion(:subscription_tier, ["starter", "professional", "business_plus"])
+    |> validate_inclusion(:subscription_tier, @valid_tier_strings)
     |> unique_constraint(:identity_id,
       name: :providers_identity_id_index,
       message: "Provider profile already exists for this identity"
@@ -92,6 +97,48 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
     schema
     |> cast(attrs, [:description])
     |> validate_length(:description, max: 1000)
+  end
+
+  @doc """
+  Admin changeset for provider profile management via Backpex.
+
+  Casts `verified` and `subscription_tier` — provider-owned fields
+  (business_name, description, phone, etc.) are excluded.
+
+  When `verified` changes, also sets `verified_at` and `verified_by_id`
+  to maintain consistency with the domain model's verify/unverify behaviour.
+
+  Accepts 3 args to match the Backpex changeset callback signature.
+  The metadata keyword list includes `:assigns` with the current admin scope.
+  """
+  def admin_changeset(schema, attrs, metadata) do
+    schema
+    |> cast(attrs, [:verified, :subscription_tier])
+    |> validate_inclusion(:subscription_tier, @valid_tier_strings)
+    |> maybe_set_verification_fields(metadata)
+  end
+
+  # Trigger: admin toggled the `verified` checkbox in the Backpex form
+  # Why: verified_at and verified_by_id must stay in sync with verified flag,
+  #      matching what VerifyProvider / UnverifyProvider use cases set
+  # Outcome: DB record has consistent audit trail after Backpex save
+  defp maybe_set_verification_fields(changeset, metadata) do
+    case get_change(changeset, :verified) do
+      true ->
+        admin_id = metadata[:assigns].current_scope.user.id
+
+        changeset
+        |> put_change(:verified_at, DateTime.utc_now() |> DateTime.truncate(:second))
+        |> put_change(:verified_by_id, admin_id)
+
+      false ->
+        changeset
+        |> put_change(:verified_at, nil)
+        |> put_change(:verified_by_id, nil)
+
+      nil ->
+        changeset
+    end
   end
 
   defp validate_website_protocol(changeset) do
