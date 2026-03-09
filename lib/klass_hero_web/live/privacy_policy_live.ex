@@ -231,7 +231,7 @@ defmodule KlassHeroWeb.PrivacyPolicyLive do
   def render(assigns) do
     ~H"""
     <.document_page
-      gradient={Theme.gradient(:cool)}
+      gradient_class={Theme.gradient(:cool)}
       title={gettext("Privacy Policy")}
       subtitle={gettext("Your privacy matters to us")}
       last_updated={last_updated()}

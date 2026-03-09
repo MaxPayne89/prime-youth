@@ -264,7 +264,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
   def render(assigns) do
     ~H"""
     <.document_page
-      gradient={Theme.gradient(:primary)}
+      gradient_class={Theme.gradient(:primary)}
       title={gettext("Terms of Service")}
       subtitle={gettext("Understanding our agreement with you")}
       last_updated={last_updated()}

@@ -671,10 +671,15 @@ defmodule KlassHeroWeb.CompositeComponents do
 
   Used for pages that display structured document sections (Terms of Service, Privacy Policy, etc.).
 
+  ## Security
+
+  Section `content` values are rendered with `raw/1` and must be trusted, pre-sanitized HTML
+  defined in application code. Never pass user-controlled input as section content.
+
   ## Examples
 
       <.document_page
-        gradient={Theme.gradient(:primary)}
+        gradient_class={Theme.gradient(:primary)}
         title={gettext("Terms of Service")}
         subtitle={gettext("Understanding our agreement with you")}
         last_updated="December 12, 2025"
@@ -683,7 +688,7 @@ defmodule KlassHeroWeb.CompositeComponents do
         cta_body={gettext("We're here to clarify any questions you may have.")}
       />
   """
-  attr :gradient, :string, required: true, doc: "Hero section gradient class"
+  attr :gradient_class, :string, required: true, doc: "Hero section gradient class"
   attr :title, :string, required: true, doc: "Page title (already translated)"
   attr :subtitle, :string, required: true, doc: "Page subtitle (already translated)"
   attr :last_updated, :string, required: true, doc: "Last updated date string"
@@ -700,7 +705,7 @@ defmodule KlassHeroWeb.CompositeComponents do
     <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
       <.hero_section
         variant="page"
-        gradient_class={@gradient}
+        gradient_class={@gradient_class}
         show_back_button
       >
         <:title>{@title}</:title>
