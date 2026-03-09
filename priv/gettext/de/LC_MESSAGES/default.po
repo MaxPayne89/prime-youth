@@ -293,8 +293,8 @@ msgstr "Laden..."
 
 #: lib/klass_hero_web/live/program_detail_live.ex:401
 #, elixir-autogen, elixir-format
-msgid "Meet Your Instructor"
-msgstr "Ihr Kursleiter"
+msgid "Meet the Hero"
+msgstr "Triff den Helden"
 
 #: lib/klass_hero_web/live/programs_live.ex:343
 #, elixir-autogen, elixir-format
@@ -3090,8 +3090,8 @@ msgstr ""
 
 #: lib/klass_hero_web/live/program_detail_live.ex:399
 #, elixir-autogen, elixir-format
-msgid "Meet the Team"
-msgstr ""
+msgid "Meet the Heroes"
+msgstr "Triff die Helden"
 
 #: lib/klass_hero_web/components/provider_components.ex:787
 #, elixir-autogen, elixir-format
