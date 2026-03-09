@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-08T13:02:21Z",
+  "last_updated": "2026-03-09T13:04:40Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -30,21 +30,21 @@
     "behavioral_note_schema_factory": "insert(:behavioral_note_schema) auto-creates user+provider+record via FK constraints; override provider_id explicitly when testing cross-provider isolation",
     "parent_profile_use_case": "CreateParentProfile needs real user (unconfirmed_user_fixture) for FK; notification_preferences stored as :map type returns string keys from DB (not atom keys) - assert is_map/1 not exact equality",
     "create_parent_profile_identity_fk": "identity_id in parent_profiles FK references users table - need real user via unconfirmed_user_fixture(intended_roles: [:parent])",
-    "activity_goal_calculator_tests": "Pure domain service, async: true, no DB; sessions field accepts list (length counted) or string 'current/total' (Integer.parse on current); percentage capped at 100; statuses: :achieved >=100%, :almost_there >=80%, :in_progress otherwise"
+    "activity_goal_calculator_tests": "Pure domain service, async: true, no DB; sessions field accepts list (length counted) or string 'current/total' (Integer.parse on current); percentage capped at 100; statuses: :achieved >=100%, :almost_there >=80%, :in_progress otherwise",
+    "enrollment_identity_id_pattern": "enrolled?/2 and list_enrolled_identity_ids/1 join enrollments->parent_profiles on parent_id, filter by active_only (pending+confirmed); pass parent.identity_id (user.id) not parent.id to CheckEnrollment.execute/2"
   },
   "backlog": [
-    {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"},
     {"item": "ParticipationEvents factory tests", "priority": "low", "reason": "9 event factory functions, tests would guard payload shape contracts"},
-    {"item": "CreateProgram / UpdateProgram use case tests", "priority": "medium", "reason": "core provider workflow - create/update program has no integration tests yet"},
-    {"item": "StaffMember CRUD use case tests (create/update/delete)", "priority": "medium", "reason": "3 use cases in provider context, none have tests"}
+    {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"},
+    {"item": "admin provider_live.ex on_item_updated event publishing", "priority": "low", "reason": "existing tests verify DB state only; on_item_updated/2 publishes provider_verified/provider_unverified events - complex to test from LiveView (process dictionary isolation)"}
   ],
   "tasks_last_run": {
     "task1_commands": "2026-02-26",
-    "task2_opportunities": "2026-03-08",
-    "task3_implement": "2026-03-08",
+    "task2_opportunities": "2026-03-09",
+    "task3_implement": "2026-03-09",
     "task6_infrastructure": "2026-03-06",
-    "task5_comments": "never",
-    "task7_monthly_summary": "2026-03-08"
+    "task5_comments": "2026-03-09",
+    "task7_monthly_summary": "2026-03-09"
   },
   "completed_work": [
     {
@@ -89,7 +89,11 @@
     },
     {
       "run": "2026-03-08",
-      "work": "Created PR (branch test-assist/activity-goal-calculator-tests): ActivityGoalCalculator domain service unit tests - 18 pure unit tests for calculate/2"
+      "work": "Created PR #321 (branch test-assist/activity-goal-calculator-tests): ActivityGoalCalculator domain service unit tests - MERGED"
+    },
+    {
+      "run": "2026-03-09",
+      "work": "Created PR (branch test-assist/check-enrollment-list-enrolled-identity-ids-tests): CheckEnrollment + ListEnrolledIdentityIds use case tests - 12 integration tests covering enrollment-based messaging access control"
     }
   ]
 }
