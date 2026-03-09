@@ -81,9 +81,10 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
         readonly: true
       },
       website: %{
-        module: Backpex.Fields.URL,
+        module: Backpex.Fields.Text,
         label: "Website",
-        only: [:show]
+        only: [:show],
+        readonly: true
       },
       address: %{
         module: Backpex.Fields.Text,
