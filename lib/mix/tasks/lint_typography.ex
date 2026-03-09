@@ -4,7 +4,8 @@ defmodule Mix.Tasks.LintTypography do
   Checks for raw `font-display` class usage in LiveView and component files.
 
   All display typography should go through `Theme.typography/1` for consistency.
-  Lines containing `typography-lint-ignore` are excluded from checks.
+  Lines containing `typography-lint-ignore` — either on the same line or
+  the preceding line — are excluded from checks.
 
   ## Usage
 
@@ -20,8 +21,10 @@ defmodule Mix.Tasks.LintTypography do
   @impl true
   def run(_args) do
     violations =
-      Path.wildcard(Path.join(@search_dir, "**/*.ex"))
-      |> Enum.reject(fn path -> Enum.any?(@excluded_files, &String.ends_with?(path, &1)) end)
+      Path.wildcard(Path.join(@search_dir, "**/*.{ex,heex}"))
+      |> Enum.reject(fn path ->
+        Enum.any?(@excluded_files, fn excluded -> String.ends_with?(path, "/#{excluded}") end)
+      end)
       |> Enum.flat_map(&find_violations/1)
 
     if violations == [] do
@@ -50,7 +53,7 @@ defmodule Mix.Tasks.LintTypography do
         String.contains?(line, "font-display") and not String.contains?(line, @suppression_marker)
 
       # Also check the preceding line for a suppression comment
-      prev_line = Enum.at(lines, line_num - 2, "")
+      prev_line = if(line_num > 1, do: Enum.at(lines, line_num - 2, ""), else: "")
       has_violation and not String.contains?(prev_line, @suppression_marker)
     end)
     |> Enum.map(fn {line, num} -> {file, num, line} end)
