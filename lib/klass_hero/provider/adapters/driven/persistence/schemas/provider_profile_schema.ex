@@ -94,6 +94,20 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
     |> validate_length(:description, max: 1000)
   end
 
+  @doc """
+  Admin changeset for provider profile management via Backpex.
+
+  Only casts `verified` and `subscription_tier` — provider-owned fields
+  (business_name, description, phone, etc.) are excluded.
+
+  Accepts 3 args to match the Backpex changeset callback signature.
+  """
+  def admin_changeset(schema, attrs, _metadata) do
+    schema
+    |> cast(attrs, [:verified, :subscription_tier])
+    |> validate_inclusion(:subscription_tier, ["starter", "professional", "business_plus"])
+  end
+
   defp validate_website_protocol(changeset) do
     case get_change(changeset, :website) do
       nil ->
