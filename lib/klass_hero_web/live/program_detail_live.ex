@@ -384,7 +384,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         <%!-- Participant Requirements Section --%>
         <.restriction_info :if={@participant_policy} policy={@participant_policy} />
 
-        <%!-- Meet the Team Section — only shown when real team members exist --%>
+        <%!-- Meet the Heroes Section — only shown when real team members exist --%>
         <section :if={@team_members != []}>
           <div class={[
             Theme.bg(:surface),
@@ -395,11 +395,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             <div class={["p-4 border-b", Theme.border_color(:light)]}>
               <h3 class={["font-semibold flex items-center gap-2", Theme.text_color(:heading)]}>
                 <.icon name="hero-user" class="w-5 h-5 text-hero-blue-500" />
-                <%= if length(@team_members) > 1 do %>
-                  {gettext("Meet the Team")}
-                <% else %>
-                  {gettext("Meet Your Instructor")}
-                <% end %>
+                {ngettext("Meet the Hero", "Meet the Heroes", length(@team_members))}
               </h3>
             </div>
             <div class="p-6">
