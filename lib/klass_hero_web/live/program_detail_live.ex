@@ -395,11 +395,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             <div class={["p-4 border-b", Theme.border_color(:light)]}>
               <h3 class={["font-semibold flex items-center gap-2", Theme.text_color(:heading)]}>
                 <.icon name="hero-user" class="w-5 h-5 text-hero-blue-500" />
-                <%= if length(@team_members) > 1 do %>
-                  {gettext("Meet the Heroes")}
-                <% else %>
-                  {gettext("Meet the Hero")}
-                <% end %>
+                {ngettext("Meet the Hero", "Meet the Heroes", length(@team_members))}
               </h3>
             </div>
             <div class="p-6">

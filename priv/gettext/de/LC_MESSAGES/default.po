@@ -291,10 +291,12 @@ msgstr "Mehr Programme laden"
 msgid "Loading..."
 msgstr "Laden..."
 
-#: lib/klass_hero_web/live/program_detail_live.ex:401
+#: lib/klass_hero_web/live/program_detail_live.ex:398
 #, elixir-autogen, elixir-format
 msgid "Meet the Hero"
-msgstr "Triff den Helden"
+msgid_plural "Meet the Heroes"
+msgstr[0] "Triff den Helden"
+msgstr[1] "Triff die Helden"
 
 #: lib/klass_hero_web/live/programs_live.ex:343
 #, elixir-autogen, elixir-format
@@ -3088,10 +3090,6 @@ msgstr ""
 msgid "Maximum Grade"
 msgstr ""
 
-#: lib/klass_hero_web/live/program_detail_live.ex:399
-#, elixir-autogen, elixir-format
-msgid "Meet the Heroes"
-msgstr "Triff die Helden"
 
 #: lib/klass_hero_web/components/provider_components.ex:787
 #, elixir-autogen, elixir-format

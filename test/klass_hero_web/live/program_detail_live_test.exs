@@ -197,6 +197,31 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       assert has_element?(view, "h3", "Meet the Hero")
     end
 
+    test "program with multiple staff shows plural heading", %{conn: conn} do
+      provider = provider_profile_fixture()
+
+      program =
+        insert(:program_schema, provider_id: provider.id, title: "STEM Camp")
+
+      staff_member_fixture(
+        provider_id: provider.id,
+        first_name: "Alice",
+        last_name: "Johnson",
+        role: "Instructor"
+      )
+
+      staff_member_fixture(
+        provider_id: provider.id,
+        first_name: "Bob",
+        last_name: "Williams",
+        role: "Assistant Instructor"
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "h3", "Meet the Heroes")
+    end
+
     test "program without staff hides instructor section", %{conn: conn} do
       program = insert(:program_schema, title: "Art Class")
       {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
