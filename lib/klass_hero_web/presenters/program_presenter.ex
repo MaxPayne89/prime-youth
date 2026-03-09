@@ -323,6 +323,42 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   defp build_initials(_), do: "?"
 
   @doc """
+  Formats a category slug for display by splitting on hyphens and capitalizing each word.
+
+  ## Examples
+
+      iex> KlassHeroWeb.Presenters.ProgramPresenter.format_category_for_display("life-skills")
+      "Life Skills"
+
+      iex> KlassHeroWeb.Presenters.ProgramPresenter.format_category_for_display(nil)
+      "Education"
+  """
+  @spec format_category_for_display(String.t() | nil) :: String.t()
+  def format_category_for_display(category) when is_binary(category) do
+    category
+    |> String.split("-")
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  def format_category_for_display(_), do: "Education"
+
+  @doc """
+  Safely converts a Decimal, nil, or unknown value to a float.
+
+  ## Examples
+
+      iex> KlassHeroWeb.Presenters.ProgramPresenter.safe_decimal_to_float(Decimal.new("19.99"))
+      19.99
+
+      iex> KlassHeroWeb.Presenters.ProgramPresenter.safe_decimal_to_float(nil)
+      0.0
+  """
+  @spec safe_decimal_to_float(Decimal.t() | nil | term()) :: float()
+  def safe_decimal_to_float(nil), do: 0.0
+  def safe_decimal_to_float(%Decimal{} = price), do: Decimal.to_float(price)
+  def safe_decimal_to_float(_other), do: 0.0
+
+  @doc """
   Transforms a category code to a human-readable label.
   """
   @spec humanize_category(String.t() | nil) :: String.t()
