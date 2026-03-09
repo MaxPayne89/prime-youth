@@ -147,6 +147,7 @@ defmodule KlassHeroWeb.Router do
           Backpex.InitAssigns
         ] do
         live_resources("/users", UserLive, only: [:index, :show, :edit])
+        live_resources("/providers", ProviderLive, only: [:index, :show, :edit])
       end
     end
   end
