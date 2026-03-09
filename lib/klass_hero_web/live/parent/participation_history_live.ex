@@ -175,7 +175,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
       child_ids = Enum.map(children, & &1.id)
 
       case Participation.get_participation_history(%{child_ids: child_ids}) do
-        {:ok, records} -> apply_history(socket, parent_id, children, records)
+        {:ok, records} -> apply_history(socket, children, records)
         {:error, reason} -> handle_history_error(socket, parent_id, reason)
       end
     else
@@ -189,13 +189,14 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
     end
   end
 
-  defp apply_history(socket, parent_id, children, participation_records) do
+  defp apply_history(socket, children, participation_records) do
     child_names_map =
       Map.new(children, fn child ->
         {child.id, %{first_name: child.first_name, last_name: child.last_name}}
       end)
 
-    children_ids = Family.get_child_ids_for_parent(parent_id)
+    # Derive children_ids from already-fetched children list to avoid a redundant DB query.
+    children_ids = MapSet.new(children, & &1.id)
 
     enriched_records =
       Enum.map(participation_records, &enrich_history_record(&1, child_names_map))
