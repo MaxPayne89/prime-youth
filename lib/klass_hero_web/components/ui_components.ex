@@ -1594,7 +1594,11 @@ defmodule KlassHeroWeb.UIComponents do
   """
   attr :id, :string, required: true, doc: "Unique ID for JS targeting (e.g., 'faq-1')"
   attr :question, :string, required: true, doc: "FAQ question text"
-  attr :answer, :string, default: nil, doc: "FAQ answer text (use inner_block slot for rich content)"
+
+  attr :answer, :string,
+    default: nil,
+    doc: "FAQ answer text (use inner_block slot for rich content)"
+
   attr :expanded, :boolean, default: false, doc: "Initial expanded state"
   attr :class, :string, default: ""
   slot :inner_block, doc: "Optional rich HTML answer content; overrides :answer when provided"
