@@ -108,7 +108,7 @@ defmodule KlassHeroWeb.ContactLive do
       <%!-- Hero Section --%>
       <div class="bg-hero-pink-50 py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 class="font-display text-4xl md:text-5xl lg:text-6xl text-hero-black mb-6">
+          <h1 class={[Theme.typography(:hero), "text-hero-black mb-6"]}>
             {gettext("Contact Us")}
           </h1>
           <p class="text-xl text-hero-grey-600 max-w-3xl mx-auto">

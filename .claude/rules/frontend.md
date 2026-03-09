@@ -17,6 +17,15 @@
 - Consistent spacing and typography using Tailwind design tokens
 - Tailwind CSS utility classes for styling
 
+## Typography
+
+- **Always use `Theme.typography(:variant)`** for headings and display text in component/page templates — never raw `font-display` or `font-sans` on those elements
+- Root/layout-level base font (e.g. `class="font-sans"` on `<body>` in `root.html.heex`) is allowed as a defense-in-depth default
+- Available variants: `:hero`, `:page_title`, `:section_title`, `:cta`, `:card_title`, `:body`, `:body_small`, `:caption`
+- Font configuration lives in `assets/css/app.css` (`@theme` block: `--font-sans`, `--font-display`) and `lib/klass_hero_web/components/theme.ex`
+- Enforced by `mix lint_typography` in the precommit pipeline
+- For justified exceptions, add `<%!-- typography-lint-ignore: reason --%>` on the line
+
 ## Important Notes
 
 - **Mobile-first design mandatory** - every design element must be designed mobile-first before desktop
