@@ -14,6 +14,7 @@ defmodule KlassHeroWeb.CompositeComponents do
     statics: KlassHeroWeb.static_paths()
 
   import KlassHeroWeb.UIComponents
+  import Phoenix.HTML, only: [raw: 1]
 
   alias KlassHeroWeb.Theme
 
@@ -662,6 +663,130 @@ defmodule KlassHeroWeb.CompositeComponents do
         </div>
       </div>
     </footer>
+    """
+  end
+
+  @doc """
+  Renders a legal document page with hero, table of contents, content sections, and contact CTA.
+
+  Used for pages that display structured document sections (Terms of Service, Privacy Policy, etc.).
+
+  ## Examples
+
+      <.document_page
+        gradient={Theme.gradient(:primary)}
+        title={gettext("Terms of Service")}
+        subtitle={gettext("Understanding our agreement with you")}
+        last_updated="December 12, 2025"
+        sections={terms_sections()}
+        cta_title={gettext("Questions About These Terms?")}
+        cta_body={gettext("We're here to clarify any questions you may have.")}
+      />
+  """
+  attr :gradient, :string, required: true, doc: "Hero section gradient class"
+  attr :title, :string, required: true, doc: "Page title (already translated)"
+  attr :subtitle, :string, required: true, doc: "Page subtitle (already translated)"
+  attr :last_updated, :string, required: true, doc: "Last updated date string"
+
+  attr :sections, :list,
+    required: true,
+    doc: "List of section maps with keys: id, icon, gradient, title, content"
+
+  attr :cta_title, :string, required: true, doc: "CTA heading text (already translated)"
+  attr :cta_body, :string, required: true, doc: "CTA body text (already translated)"
+
+  def document_page(assigns) do
+    ~H"""
+    <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
+      <.hero_section
+        variant="page"
+        gradient_class={@gradient}
+        show_back_button
+      >
+        <:title>{@title}</:title>
+        <:subtitle>{@subtitle}</:subtitle>
+      </.hero_section>
+
+      <div class="max-w-4xl mx-auto p-6 space-y-6">
+        <%!-- Last Updated Banner --%>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p class="text-sm text-blue-800">
+            <span class="font-semibold">{gettext("Last Updated:")}</span> {@last_updated}
+          </p>
+        </div>
+
+        <%!-- Table of Contents Card --%>
+        <.card>
+          <:header>
+            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+              {gettext("Table of Contents")}
+            </h2>
+          </:header>
+          <:body>
+            <ul class="space-y-2">
+              <li :for={section <- @sections}>
+                <a
+                  href={"##{section.id}"}
+                  class="text-blue-600 hover:underline flex items-center gap-2"
+                >
+                  <.icon name={section.icon} class="w-4 h-4" />
+                  {section.title}
+                </a>
+              </li>
+            </ul>
+          </:body>
+        </.card>
+
+        <%!-- Document Sections --%>
+        <.card :for={section <- @sections} id={section.id}>
+          <:header>
+            <div class="flex items-center gap-3">
+              <.gradient_icon
+                gradient_class={section.gradient}
+                size="sm"
+                shape="circle"
+              >
+                <.icon name={section.icon} class="w-5 h-5 text-white" />
+              </.gradient_icon>
+              <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+                {section.title}
+              </h2>
+            </div>
+          </:header>
+          <:body>
+            <div class={["prose prose-sm max-w-none", Theme.text_color(:secondary)]}>
+              {raw(section.content)}
+            </div>
+          </:body>
+        </.card>
+
+        <%!-- Contact CTA Section --%>
+        <.card padding="p-8">
+          <:body>
+            <div class="text-center">
+              <h3 class={["font-semibold mb-2", Theme.text_color(:heading)]}>
+                {@cta_title}
+              </h3>
+              <p class={["text-sm mb-4", Theme.text_color(:secondary)]}>
+                {@cta_body}
+              </p>
+              <.link
+                navigate={~p"/contact"}
+                class={[
+                  "inline-block",
+                  Theme.gradient(:primary),
+                  "text-white px-6 py-2 text-sm font-semibold hover:shadow-lg transform hover:scale-[1.02]",
+                  Theme.transition(:normal),
+                  Theme.rounded(:lg)
+                ]}
+              >
+                {gettext("Contact Us")}
+              </.link>
+            </div>
+          </:body>
+        </.card>
+      </div>
+    </div>
     """
   end
 end
