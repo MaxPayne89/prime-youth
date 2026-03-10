@@ -26,13 +26,19 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           )
         end
 
-        team_members = load_team_members(program.provider_id)
+        # Run two independent DB queries in parallel to reduce total mount latency.
+        team_task = Task.async(fn -> load_team_members(program.provider_id) end)
 
-        participant_policy =
-          case Enrollment.get_participant_policy(program.id) do
-            {:ok, policy} -> ParticipantPolicyPresenter.to_view(policy)
-            {:error, :not_found} -> nil
-          end
+        policy_task =
+          Task.async(fn ->
+            case Enrollment.get_participant_policy(program.id) do
+              {:ok, policy} -> ParticipantPolicyPresenter.to_view(policy)
+              {:error, :not_found} -> nil
+            end
+          end)
+
+        team_members = Task.await(team_task)
+        participant_policy = Task.await(policy_task)
 
         socket =
           socket
