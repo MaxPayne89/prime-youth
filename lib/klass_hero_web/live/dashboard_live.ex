@@ -57,12 +57,13 @@ defmodule KlassHeroWeb.DashboardLive do
 
   defp calculate_activity_goal(children) do
     goal = Family.calculate_activity_goal(children)
-    Map.put(goal, :message, goal_message(goal.status))
+    Map.put(goal, :message, goal_message(goal.status, goal.percentage))
   end
 
-  defp goal_message(:achieved), do: gettext("Congratulations! Goal achieved!")
-  defp goal_message(:almost_there), do: gettext("Almost there! One more to go!")
-  defp goal_message(:in_progress), do: gettext("You're doing great! Keep it up!")
+  defp goal_message(:achieved, _percentage), do: gettext("Congratulations! Goal achieved!")
+  defp goal_message(:almost_there, _percentage), do: gettext("Almost there! One more to go!")
+  defp goal_message(:in_progress, 0), do: gettext("You're just getting started!")
+  defp goal_message(:in_progress, _percentage), do: gettext("You're doing great! Keep it up!")
 
   defp assign_booking_usage_info(socket) do
     identity_id = socket.assigns.user.id
