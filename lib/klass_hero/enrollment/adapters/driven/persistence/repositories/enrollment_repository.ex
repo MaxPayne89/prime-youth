@@ -234,4 +234,42 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     |> Repo.all()
     |> MapperHelpers.to_domain_list(EnrollmentMapper)
   end
+
+  @impl true
+  @doc """
+  Updates an existing enrollment in the database.
+
+  Returns:
+  - `{:ok, Enrollment.t()}` on success
+  - `{:error, :not_found}` when enrollment doesn't exist
+  - `{:error, changeset}` on validation failure
+  """
+  def update(id, attrs) when is_binary(id) and is_map(attrs) do
+    case Repo.get(EnrollmentSchema, id) do
+      nil ->
+        {:error, :not_found}
+
+      schema ->
+        schema
+        |> EnrollmentSchema.update_changeset(attrs)
+        |> Repo.update()
+        |> case do
+          {:ok, updated} ->
+            Logger.info("[Enrollment.Repository] Updated enrollment",
+              enrollment_id: id,
+              status: attrs[:status]
+            )
+
+            {:ok, EnrollmentMapper.to_domain(updated)}
+
+          {:error, changeset} ->
+            Logger.warning("[Enrollment.Repository] Validation error updating enrollment",
+              enrollment_id: id,
+              errors: inspect(changeset.errors)
+            )
+
+            {:error, changeset}
+        end
+    end
+  end
 end

@@ -289,6 +289,27 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     end
   end
 
+  describe "update/2" do
+    test "updates enrollment status and returns domain entity" do
+      schema = insert(:enrollment_schema, status: "pending")
+
+      attrs = %{
+        status: "cancelled",
+        cancelled_at: DateTime.utc_now() |> DateTime.truncate(:second),
+        cancellation_reason: "Admin cancelled"
+      }
+
+      assert {:ok, enrollment} = EnrollmentRepository.update(schema.id, attrs)
+      assert enrollment.status == :cancelled
+      assert enrollment.cancellation_reason == "Admin cancelled"
+      assert enrollment.cancelled_at != nil
+    end
+
+    test "returns not_found for nonexistent enrollment" do
+      assert {:error, :not_found} = EnrollmentRepository.update(Ecto.UUID.generate(), %{status: "cancelled"})
+    end
+  end
+
   describe "list_by_program/1" do
     test "returns active enrollments for a program" do
       program = insert(:program_schema)
