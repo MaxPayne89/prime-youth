@@ -5,6 +5,21 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10](https://github.com/MaxPayne89/prime-youth/compare/v0.1.9...v0.1.10) (2026-03-10)
+
+
+### Bug Fixes
+
+* replace raw SVG back arrow with icon component in provider MessagesLive.Show ([7407b3b](https://github.com/MaxPayne89/prime-youth/commit/7407b3bcbe9d565a898aba4a38eed98b6a5247b9))
+* replace raw SVG back arrow with icon component in provider MessagesLive.Show ([954d6ea](https://github.com/MaxPayne89/prime-youth/commit/954d6ea63f5d499b14327eaaac527567056ee438))
+* resolve flaky ChangeSubscriptionTierTest caused by global event bus leak ([9fe9f3d](https://github.com/MaxPayne89/prime-youth/commit/9fe9f3d5cbcded06542a5b730ba90d8f3e1b561f))
+* unify assertion style in ListEnrolledIdentityIds tests ([d152558](https://github.com/MaxPayne89/prime-youth/commit/d15255883ed54970592494b9ab77bb70a14a5195))
+
+
+### Performance Improvements
+
+* parallelize independent DB queries in ProgramDetailLive mount ([a943ef4](https://github.com/MaxPayne89/prime-youth/commit/a943ef4748731473beb710215dbb53de77536620))
+
 ## [0.1.9](https://github.com/MaxPayne89/prime-youth/compare/v0.1.8...v0.1.9) (2026-03-09)
 
 
