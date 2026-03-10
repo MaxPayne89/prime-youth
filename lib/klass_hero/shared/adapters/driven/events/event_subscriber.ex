@@ -53,6 +53,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriber do
 
   use GenServer
 
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
+  alias KlassHero.Shared.Domain.Services.CriticalEventDispatcher
+
   require Logger
 
   defstruct [:handler, :topics, :pubsub, :message_tag, :event_label]
@@ -117,6 +120,47 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriber do
   end
 
   defp handle_event_safely(event, %{handler: handler, event_label: label}) do
+    # Trigger: integration event may be marked critical
+    # Why: critical events need exactly-once processing via processed_events gate
+    # Outcome: critical events go through CriticalEventDispatcher, normal events
+    #          are handled directly as before
+    if critical_integration_event?(event) do
+      handle_critical_event(event, handler, label)
+    else
+      handle_normal_event(event, handler, label)
+    end
+  rescue
+    error ->
+      Logger.error(
+        "Handler #{inspect(handler)} crashed handling #{String.downcase(label)} #{event.event_type}: #{Exception.message(error)}",
+        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+      )
+  end
+
+  defp critical_integration_event?(%IntegrationEvent{} = event),
+    do: IntegrationEvent.critical?(event)
+
+  defp critical_integration_event?(_event), do: false
+
+  defp handle_critical_event(event, handler, label) do
+    handler_ref = CriticalEventDispatcher.handler_ref({handler, :handle_event})
+
+    case CriticalEventDispatcher.execute(event.event_id, handler_ref, fn ->
+           handler.handle_event(event)
+         end) do
+      :ok ->
+        Logger.debug(
+          "#{label} #{event.event_type} handled by #{inspect(handler)} (critical, processed)"
+        )
+
+      {:error, reason} ->
+        Logger.error(
+          "Handler #{inspect(handler)} failed to handle critical #{String.downcase(label)} #{event.event_type}: #{inspect(reason)}"
+        )
+    end
+  end
+
+  defp handle_normal_event(event, handler, label) do
     case handler.handle_event(event) do
       :ok ->
         Logger.debug("#{label} #{event.event_type} handled by #{inspect(handler)}")
@@ -134,11 +178,5 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriber do
           "Handler #{inspect(handler)} returned unexpected value for #{String.downcase(label)} #{event.event_type}: #{inspect(unexpected)}"
         )
     end
-  rescue
-    error ->
-      Logger.error(
-        "Handler #{inspect(handler)} crashed handling #{String.downcase(label)} #{event.event_type}: #{Exception.message(error)}",
-        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
-      )
   end
 end
