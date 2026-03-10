@@ -70,7 +70,8 @@ defmodule KlassHeroWeb.Admin.StaffLive do
         label: "Provider",
         display_field: :business_name,
         searchable: true,
-        orderable: true
+        orderable: true,
+        only: [:index, :show]
       },
       role: %{
         module: Backpex.Fields.Text,
