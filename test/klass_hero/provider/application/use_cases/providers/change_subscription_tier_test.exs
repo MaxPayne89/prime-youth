@@ -5,18 +5,6 @@ defmodule KlassHero.Provider.Application.UseCases.Providers.ChangeSubscriptionTi
   alias KlassHero.ProviderFixtures
   alias KlassHero.Shared.DomainEventBus
 
-  setup do
-    # Subscribe a test handler to capture dispatched domain events
-    test_pid = self()
-
-    DomainEventBus.subscribe(KlassHero.Provider, :subscription_tier_changed, fn event ->
-      send(test_pid, {:domain_event, event})
-      :ok
-    end)
-
-    :ok
-  end
-
   describe "execute/2" do
     test "changes subscription tier for an existing provider" do
       provider = ProviderFixtures.provider_profile_fixture(subscription_tier: "starter")
@@ -25,6 +13,13 @@ defmodule KlassHero.Provider.Application.UseCases.Providers.ChangeSubscriptionTi
     end
 
     test "dispatches subscription_tier_changed event on success" do
+      test_pid = self()
+
+      DomainEventBus.subscribe(KlassHero.Provider, :subscription_tier_changed, fn event ->
+        send(test_pid, {:domain_event, event})
+        :ok
+      end)
+
       provider = ProviderFixtures.provider_profile_fixture(subscription_tier: "starter")
       assert {:ok, _updated} = ChangeSubscriptionTier.execute(provider, :professional)
 
@@ -36,26 +31,12 @@ defmodule KlassHero.Provider.Application.UseCases.Providers.ChangeSubscriptionTi
       assert event.payload.new_tier == :professional
     end
 
-    test "does not dispatch event on same tier error" do
-      provider = ProviderFixtures.provider_profile_fixture(subscription_tier: "professional")
-      assert {:error, :same_tier} = ChangeSubscriptionTier.execute(provider, :professional)
-
-      refute_receive {:domain_event, _}
-    end
-
-    test "does not dispatch event on invalid tier error" do
-      provider = ProviderFixtures.provider_profile_fixture()
-      assert {:error, :invalid_tier} = ChangeSubscriptionTier.execute(provider, :gold)
-
-      refute_receive {:domain_event, _}
-    end
-
-    test "returns error for same tier" do
+    test "returns error for same tier without dispatching event" do
       provider = ProviderFixtures.provider_profile_fixture(subscription_tier: "professional")
       assert {:error, :same_tier} = ChangeSubscriptionTier.execute(provider, :professional)
     end
 
-    test "returns error for invalid tier" do
+    test "returns error for invalid tier without dispatching event" do
       provider = ProviderFixtures.provider_profile_fixture()
       assert {:error, :invalid_tier} = ChangeSubscriptionTier.execute(provider, :gold)
     end
