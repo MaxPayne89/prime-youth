@@ -5,6 +5,36 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.11](https://github.com/MaxPayne89/prime-youth/compare/v0.1.10...v0.1.11) (2026-03-10)
+
+
+### Features
+
+* add admin_changeset/3 to StaffMemberSchema ([#339](https://github.com/MaxPayne89/prime-youth/issues/339)) ([7d7ce76](https://github.com/MaxPayne89/prime-youth/commit/7d7ce7645d151bacc43d4d9b834e3db36f811c77))
+* add staff members to admin dashboard ([f743a2b](https://github.com/MaxPayne89/prime-youth/commit/f743a2bdf24501b34abda52dfe6c4a788716da50))
+* add staff members to admin dashboard ([#339](https://github.com/MaxPayne89/prime-youth/issues/339)) ([edbd3db](https://github.com/MaxPayne89/prime-youth/commit/edbd3dba52a03b227683ba935897a1222f985096))
+
+
+### Bug Fixes
+
+* address PR review - test use cases directly instead of facade ([6e81c5e](https://github.com/MaxPayne89/prime-youth/commit/6e81c5e571a7ab8aa790859d598ae086e35d1c87))
+* hide provider field from staff member edit form ([55f9f37](https://github.com/MaxPayne89/prime-youth/commit/55f9f3729e0ae9e560b12b5188dac16b19f7712c))
+* use divide-* class instead of border-* for conversation list dividers ([8bed751](https://github.com/MaxPayne89/prime-youth/commit/8bed7516eb9884b0191c23a851ca2c1442f33b05))
+
+
+### Performance Improvements
+
+* eliminate duplicate staff query on provider dashboard mount ([b4f7c9f](https://github.com/MaxPayne89/prime-youth/commit/b4f7c9fb619958f363c7e8fcd9a41ff281c9c8d7))
+* eliminate duplicate staff query on provider dashboard mount ([13b02f8](https://github.com/MaxPayne89/prime-youth/commit/13b02f8dc7d2515bae155e880a67197e0d283e21))
+
+
+### Code Refactoring
+
+* extract shared messaging templates ([#349](https://github.com/MaxPayne89/prime-youth/issues/349)) ([4a6ff8f](https://github.com/MaxPayne89/prime-youth/commit/4a6ff8f1a1c6578a2d775edcf4fd4f78ac7f74d0))
+* extract shared messaging templates into MessagingComponents ([#349](https://github.com/MaxPayne89/prime-youth/issues/349)) ([d2fdafb](https://github.com/MaxPayne89/prime-youth/commit/d2fdafb0fece9b1e3b7fffd90fd3491b4bef5bc2))
+* replace staff_member provider_id field with belongs_to association ([a972cee](https://github.com/MaxPayne89/prime-youth/commit/a972ceeee0737200c42d1f60d1f029028127d79c))
+* simplify instructor options with for comprehension and extract helper ([dd1023a](https://github.com/MaxPayne89/prime-youth/commit/dd1023a34b54b3ef5ca34d2f6d53a55213d7e052))
+
 ## [0.1.10](https://github.com/MaxPayne89/prime-youth/compare/v0.1.9...v0.1.10) (2026-03-10)
 
 
