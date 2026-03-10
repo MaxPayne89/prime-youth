@@ -12,6 +12,9 @@ defmodule KlassHeroWeb.MessagingComponents do
   use Phoenix.Component
   use Gettext, backend: KlassHeroWeb.Gettext
 
+  import KlassHeroWeb.UIComponents, only: [icon: 1]
+
+  alias KlassHeroWeb.MessagingLiveHelper
   alias KlassHeroWeb.Theme
 
   @doc """
@@ -294,22 +297,188 @@ defmodule KlassHeroWeb.MessagingComponents do
   defp empty_state_message(_parent),
     do: gettext("Your conversations with providers will appear here")
 
+  # Page-level components
+  # These encapsulate the full page layout for messaging views,
+  # with variant-based dispatch for parent vs provider styling.
+
+  @doc """
+  Renders the conversation index page.
+
+  Uses multi-clause dispatch on `variant` to render the appropriate
+  page chrome (header, wrapper) while sharing the conversation list.
+  """
+  attr :variant, :atom, required: true, values: [:parent, :provider]
+  attr :streams, :any, required: true
+  attr :conversations_empty?, :boolean, required: true
+  attr :navigate_base, :string, required: true
+
+  def conversation_index(%{variant: :parent} = assigns) do
+    ~H"""
+    <div class={["min-h-screen", Theme.bg(:muted)]}>
+      <header class={[Theme.gradient(:primary), "px-6 py-4"]}>
+        <div class="max-w-2xl mx-auto flex items-center gap-3">
+          <.icon name="hero-chat-bubble-left-right" class="w-7 h-7 text-white" />
+          <h1 class={[Theme.typography(:section_title), "text-white"]}>
+            {gettext("Messages")}
+          </h1>
+        </div>
+      </header>
+      <div class="max-w-2xl mx-auto -mt-2">
+        <div class={[Theme.bg(:surface), Theme.rounded(:xl), "shadow-sm overflow-hidden"]}>
+          <.conversation_list
+            streams={@streams}
+            conversations_empty?={@conversations_empty?}
+            navigate_base={@navigate_base}
+            user_type={:parent}
+          />
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  def conversation_index(%{variant: :provider} = assigns) do
+    ~H"""
+    <div class="min-h-screen bg-gray-50">
+      <div class="max-w-2xl mx-auto bg-white min-h-screen shadow-sm">
+        <header class="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3">
+          <h1 class="text-xl font-semibold text-gray-900">{gettext("Messages")}</h1>
+        </header>
+        <.conversation_list
+          streams={@streams}
+          conversations_empty?={@conversations_empty?}
+          navigate_base={@navigate_base}
+          user_type={:provider}
+        />
+      </div>
+    </div>
+    """
+  end
+
+  defp conversation_list(assigns) do
+    ~H"""
+    <div id="conversations" phx-update="stream" class={["divide-y", Theme.border_color(:light)]}>
+      <.conversation_card
+        :for={{dom_id, conv_data} <- @streams.conversations}
+        id={dom_id}
+        conversation={conv_data.conversation}
+        unread_count={conv_data.unread_count}
+        latest_message={conv_data.latest_message}
+        other_participant_name={conv_data.other_participant_name}
+        navigate={@navigate_base <> "/" <> conv_data.conversation.id}
+      />
+      <div :if={@conversations_empty?} id="conversations-empty-state" class="p-4">
+        <.conversations_empty_state user_type={@user_type} />
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders the conversation show (detail) page.
+
+  Uses multi-clause dispatch on `variant` to render the appropriate
+  page chrome (header, avatar) while sharing the message area.
+  """
+  attr :variant, :atom, required: true, values: [:parent, :provider]
+  attr :streams, :any, required: true
+  attr :messages_empty?, :boolean, required: true
+  attr :page_title, :string, required: true
+  attr :conversation, :map, required: true
+  attr :back_path, :string, required: true
+  attr :form, :map, required: true
+  attr :current_user_id, :string, required: true
+  attr :sender_names, :map, required: true
+
+  def conversation_show(%{variant: :parent} = assigns) do
+    ~H"""
+    <div class={["flex flex-col h-screen", Theme.bg(:muted)]}>
+      <div class="max-w-2xl mx-auto w-full flex flex-col h-full">
+        <header class={[Theme.gradient(:primary), "px-4 py-3 flex items-center gap-3"]}>
+          <.link navigate={@back_path} class="text-white/80 hover:text-white">
+            <.icon name="hero-arrow-left" class="w-6 h-6" />
+          </.link>
+          <div class={[
+            "w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold",
+            avatar_color(@page_title)
+          ]}>
+            {String.first(@page_title) |> String.upcase()}
+          </div>
+          <div class="flex-1">
+            <h1 class="text-lg font-semibold text-white truncate">{@page_title}</h1>
+            <.broadcast_badge :if={@conversation.type == :program_broadcast} class="text-white/80" />
+          </div>
+        </header>
+        <div class={[Theme.bg(:surface), "flex-1 flex flex-col shadow-sm overflow-hidden"]}>
+          <.message_area
+            streams={@streams}
+            messages_empty?={@messages_empty?}
+            form={@form}
+            current_user_id={@current_user_id}
+            sender_names={@sender_names}
+          />
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  def conversation_show(%{variant: :provider} = assigns) do
+    ~H"""
+    <div class="flex flex-col h-screen bg-gray-50">
+      <div class="max-w-2xl mx-auto w-full flex flex-col h-full bg-white shadow-sm">
+        <header class="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+          <.link navigate={@back_path} class="text-gray-500 hover:text-gray-700">
+            <.icon name="hero-arrow-left" class="w-6 h-6" />
+          </.link>
+          <div class="flex-1">
+            <h1 class="text-lg font-semibold text-gray-900 truncate">{@page_title}</h1>
+            <.broadcast_badge :if={@conversation.type == :program_broadcast} />
+          </div>
+        </header>
+        <.message_area
+          streams={@streams}
+          messages_empty?={@messages_empty?}
+          form={@form}
+          current_user_id={@current_user_id}
+          sender_names={@sender_names}
+        />
+      </div>
+    </div>
+    """
+  end
+
+  defp message_area(assigns) do
+    ~H"""
+    <div
+      id="messages-container"
+      class="flex-1 overflow-y-auto p-4 space-y-3"
+      phx-hook="ScrollToBottom"
+    >
+      <div id="messages" phx-update="stream" class="space-y-3">
+        <.message_bubble
+          :for={{dom_id, message} <- @streams.messages}
+          id={dom_id}
+          message={message}
+          is_own={MessagingLiveHelper.own_message?(message, @current_user_id)}
+          sender_name={MessagingLiveHelper.get_sender_name(@sender_names, message.sender_id)}
+        />
+      </div>
+      <.messages_empty_state :if={@messages_empty?} />
+    </div>
+    <.message_input form={@form} />
+    """
+  end
+
   # Helpers
+
+  @avatar_colors {"bg-hero-blue-600", "bg-rose-500", "bg-hero-yellow-500", "bg-emerald-500",
+                  "bg-blue-500", "bg-purple-500", "bg-rose-500"}
 
   @doc "Returns a deterministic Tailwind background color class for a given name."
   def avatar_color(name) do
-    colors = [
-      "bg-hero-blue-600",
-      "bg-rose-500",
-      "bg-hero-yellow-500",
-      "bg-emerald-500",
-      "bg-blue-500",
-      "bg-purple-500",
-      "bg-rose-500"
-    ]
-
-    index = :erlang.phash2(name, length(colors))
-    Enum.at(colors, index)
+    index = :erlang.phash2(name, tuple_size(@avatar_colors))
+    elem(@avatar_colors, index)
   end
 
   defp format_timestamp(nil), do: ""
