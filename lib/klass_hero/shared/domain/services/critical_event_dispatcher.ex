@@ -10,6 +10,9 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   and transactional insert + handler execution to guarantee atomicity.
   """
 
+  alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.Schemas.ProcessedEvent
+
   @doc """
   Derives the canonical handler reference string from a `{module, function}` tuple.
 
@@ -28,4 +31,70 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
     # Outcome: both PubSub and Oban paths produce identical handler_ref strings
     "#{Atom.to_string(module)}:#{function}"
   end
+
+  @doc """
+  Executes a handler exactly once for a given event-handler pair.
+
+  Uses a database transaction to atomically:
+  1. Insert a `processed_events` row (ON CONFLICT DO NOTHING)
+  2. If inserted (not a duplicate), run the handler function
+  3. If handler succeeds, commit — row persists as proof of processing
+  4. If handler fails or crashes, rollback — row removed, allowing retry
+
+  Returns `:ok` if the handler ran successfully or was already processed.
+  Returns `{:error, reason}` if the handler failed (row is rolled back).
+  """
+  @spec execute(String.t(), String.t(), (-> :ok | {:error, term()})) :: :ok | {:error, term()}
+  def execute(event_id, handler_ref, handler_fn)
+      when is_binary(event_id) and is_binary(handler_ref) and is_function(handler_fn, 0) do
+    Repo.transaction(fn ->
+      case insert_processed_event(event_id, handler_ref) do
+        # Trigger: event-handler pair already in processed_events
+        # Why: another delivery path (PubSub or earlier Oban attempt) already handled it
+        # Outcome: skip handler, return :ok (idempotent no-op)
+        :already_processed ->
+          :ok
+
+        # Trigger: row inserted — this is the first attempt for this pair
+        # Why: handler must run inside the transaction so rollback removes the row on failure
+        # Outcome: handler runs, success commits, failure rolls back
+        :inserted ->
+          run_handler(handler_fn)
+      end
+    end)
+    |> unwrap_transaction_result()
+  end
+
+  defp insert_processed_event(event_id, handler_ref) do
+    now = DateTime.utc_now()
+
+    result =
+      Repo.insert_all(
+        ProcessedEvent,
+        [%{event_id: event_id, handler_ref: handler_ref, processed_at: now}],
+        on_conflict: :nothing
+      )
+
+    case result do
+      {1, _} -> :inserted
+      {0, _} -> :already_processed
+    end
+  end
+
+  defp run_handler(handler_fn) do
+    case handler_fn.() do
+      :ok -> :ok
+      {:error, reason} -> Repo.rollback({:handler_failed, reason})
+    end
+  rescue
+    error ->
+      Repo.rollback({:handler_crashed, error})
+  end
+
+  defp unwrap_transaction_result({:ok, :ok}), do: :ok
+
+  defp unwrap_transaction_result({:error, {:handler_failed, reason}}), do: {:error, reason}
+
+  defp unwrap_transaction_result({:error, {:handler_crashed, error}}),
+    do: {:error, {:handler_crashed, error}}
 end

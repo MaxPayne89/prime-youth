@@ -8,7 +8,7 @@ defmodule KlassHero.Shared do
 
   use Boundary,
     top_level?: true,
-    deps: [],
+    deps: [KlassHero],
     exports: [
       Categories,
       ErrorIds,
