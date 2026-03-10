@@ -97,6 +97,17 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     |> validate_tags()
   end
 
+  @doc """
+  Admin changeset for Backpex dashboard edits.
+
+  Only allows toggling `active` status — all other fields are provider-owned.
+  Accepts Backpex 3-arg signature (schema, attrs, metadata); metadata is unused
+  since no audit trail fields are needed for active toggle.
+  """
+  def admin_changeset(schema, attrs, _metadata) do
+    cast(schema, attrs, [:active])
+  end
+
   defp validate_tags(changeset) do
     case get_change(changeset, :tags) do
       nil ->
