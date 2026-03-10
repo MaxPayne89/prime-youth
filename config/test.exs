@@ -16,11 +16,22 @@ config :klass_hero, KlassHero.Repo,
 config :klass_hero, KlassHeroWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "gY/oKuAYeC5ExhHrtu1JBwrpQdoGwtPOo3X9GdS7CFOnLe0eqRQ9w4cyV1MqvoYc",
+  # Oban: disable in tests, use inline testing mode
+  # Use test event publisher for testing
+  # Critical event handlers — same as production for integration testing
+  # Oban runs inline in tests, so these handlers execute synchronously
   server: false
 
-# Oban: disable in tests, use inline testing mode
-# Use test event publisher for testing
 config :klass_hero, Oban, testing: :inline
+
+config :klass_hero, :critical_event_handlers, %{
+  "integration:enrollment:invite_claimed" => [
+    {KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler, :handle_event}
+  ],
+  "integration:family:invite_family_ready" => [
+    {KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler, :handle_event}
+  ]
+}
 
 config :klass_hero, :event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher,
@@ -41,32 +52,32 @@ config :klass_hero, :participation,
 
 # Use stub adapter for tests by default
 config :klass_hero, :storage,
+  # Trigger: VerifiedProviders GenServer bootstraps a DB query at app startup
+  # Why: that query runs outside the Ecto test sandbox, poisoning the connection pool
+  # Outcome: disabling projections prevents sandbox leaks across async tests
   adapter: KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter,
   bucket: "klass-hero-test"
 
-# Trigger: VerifiedProviders GenServer bootstraps a DB query at app startup
-# Why: that query runs outside the Ecto test sandbox, poisoning the connection pool
-# Outcome: disabling projections prevents sandbox leaks across async tests
 config :klass_hero, start_projections: false
 
 # Print only warnings and errors during test
 config :logger, level: :warning
 
-# OpenTelemetry: disable tracing in tests for performance
-config :opentelemetry, traces_exporter: :none
-
 # Initialize plugs at runtime for faster test compilation
 # Enable helpful, but potentially expensive runtime checks
-#
-# to provide built-in test partitioning in CI environment.
-# Run `mix help test` for more information.
-config :phoenix, :plug_init_mode, :runtime
 
+# OpenTelemetry: disable tracing in tests for performance
+#
 # Configure your database
+config :opentelemetry, traces_exporter: :none
+# to provide built-in test partitioning in CI environment.
 # In test we don't send emails
+# Run `mix help test` for more information.
 # The MIX_TEST_PARTITION environment variable can be used
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
+config :phoenix, :plug_init_mode, :runtime
+
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
 

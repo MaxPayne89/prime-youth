@@ -58,7 +58,7 @@ config :klass_hero, Oban,
        {"0 4 * * *", KlassHero.Messaging.Workers.RetentionPolicyWorker}
      ]}
   ],
-  queues: [default: 10, messaging: 5, cleanup: 2, email: 5, family: 1]
+  queues: [default: 10, messaging: 5, cleanup: 2, email: 5, family: 1, critical_events: 5]
 
 # Configure Accounts bounded context
 config :klass_hero, :accounts,
@@ -69,6 +69,18 @@ config :klass_hero, :contact,
   email: "info@klasshero.com",
   phone: nil,
   address: nil
+
+# Critical event handler registry — maps integration event topics to handlers
+# that must be durably delivered via Oban. Only critical event subscriptions
+# are registered here; non-critical events use PubSub-only delivery.
+config :klass_hero, :critical_event_handlers, %{
+  "integration:enrollment:invite_claimed" => [
+    {KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler, :handle_event}
+  ],
+  "integration:family:invite_family_ready" => [
+    {KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler, :handle_event}
+  ]
+}
 
 # Configure Enrollment bounded context
 config :klass_hero, :enrollment,
