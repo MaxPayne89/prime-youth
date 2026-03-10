@@ -104,7 +104,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             participant_policy_form:
               to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
           )
-          |> assign(instructor_options: build_instructor_options(provider_profile.id))
+          |> assign(instructor_options: build_instructor_options(staff_members))
           |> assign(categories: ProgramCatalog.program_categories())
           |> assign(document_types: Provider.valid_document_types())
           |> allow_upload(:logo,
@@ -1673,6 +1673,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
         {:error, :instructor_not_found}
     end
+  end
+
+  # Builds instructor options from an already-fetched list of StaffMember domain structs.
+  # Avoids a redundant DB query when the full list is already in scope (e.g. mount).
+  defp build_instructor_options(staff_members) when is_list(staff_members) do
+    staff_members
+    |> Enum.filter(& &1.active)
+    |> Enum.map(fn m -> {Provider.staff_member_full_name(m), m.id} end)
   end
 
   defp build_instructor_options(provider_id) do
