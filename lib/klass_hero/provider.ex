@@ -31,7 +31,8 @@ defmodule KlassHero.Provider do
       Adapters.Driven.Persistence.ChangeProviderProfile,
       Adapters.Driven.Persistence.ChangeStaffMember,
       # Pragmatic export: Backpex admin operates directly on Ecto schemas
-      Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+      Adapters.Driven.Persistence.Schemas.ProviderProfileSchema,
+      Adapters.Driven.Persistence.Schemas.StaffMemberSchema
     ]
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile

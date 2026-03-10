@@ -9,13 +9,14 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
 
   import Ecto.Changeset
 
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Shared.Categories
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]
 
   schema "staff_members" do
-    field :provider_id, :binary_id
+    belongs_to :provider, ProviderProfileSchema, type: :binary_id
     field :first_name, :string
     field :last_name, :string
     field :role, :string
@@ -94,6 +95,17 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     |> validate_length(:bio, max: 2000)
     |> validate_length(:headshot_url, max: 500)
     |> validate_tags()
+  end
+
+  @doc """
+  Admin changeset for Backpex dashboard edits.
+
+  Only allows toggling `active` status — all other fields are provider-owned.
+  Accepts Backpex 3-arg signature (schema, attrs, metadata); metadata is unused
+  since no audit trail fields are needed for active toggle.
+  """
+  def admin_changeset(schema, attrs, _metadata) do
+    cast(schema, attrs, [:active])
   end
 
   defp validate_tags(changeset) do

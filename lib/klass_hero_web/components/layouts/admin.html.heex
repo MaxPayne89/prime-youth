@@ -32,6 +32,11 @@
         "Providers"
       )}
     </Backpex.HTML.Layout.sidebar_item>
+    <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate={~p"/admin/staff"}>
+      <Backpex.HTML.CoreComponents.icon name="hero-user-group" class="h-5 w-5" /> {gettext(
+        "Staff Members"
+      )}
+    </Backpex.HTML.Layout.sidebar_item>
   </:sidebar>
 
   <Backpex.HTML.Layout.flash_messages flash={@flash} />
