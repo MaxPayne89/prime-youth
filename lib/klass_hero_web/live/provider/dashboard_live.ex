@@ -104,7 +104,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             participant_policy_form:
               to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
           )
-          |> assign(instructor_options: build_instructor_options(provider_profile.id))
+          |> assign(instructor_options: build_instructor_options(staff_members))
           |> assign(categories: ProgramCatalog.program_categories())
           |> assign(document_types: Provider.valid_document_types())
           |> allow_upload(:logo,
@@ -1675,12 +1675,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end
   end
 
+  # Builds instructor options from an already-fetched list of StaffMember domain structs.
+  # Avoids a redundant DB query when the full list is already in scope (e.g. mount).
+  defp build_instructor_options(staff_members) when is_list(staff_members) do
+    for m <- staff_members, m.active, do: {Provider.staff_member_full_name(m), m.id}
+  end
+
   defp build_instructor_options(provider_id) do
     case Provider.list_active_staff_members(provider_id) do
       {:ok, members} ->
-        Enum.map(members, fn m ->
-          {Provider.staff_member_full_name(m), m.id}
-        end)
+        staff_to_options(members)
 
       {:error, reason} ->
         Logger.error("Failed to load instructor options",
@@ -1690,6 +1694,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
         []
     end
+  end
+
+  defp staff_to_options(members) do
+    Enum.map(members, fn m -> {Provider.staff_member_full_name(m), m.id} end)
   end
 
   # Trigger: both capacity fields are blank
