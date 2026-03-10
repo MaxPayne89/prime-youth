@@ -15,8 +15,6 @@ defmodule KlassHeroWeb.MessagesLive.Show do
 
   import KlassHeroWeb.MessagingComponents
 
-  alias KlassHeroWeb.Theme
-
   @impl true
   def mount(%{"id" => conversation_id}, _session, socket) do
     MessagingLiveHelper.mount_conversation_show(socket, conversation_id, back_path: ~p"/messages")
@@ -25,50 +23,17 @@ defmodule KlassHeroWeb.MessagesLive.Show do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={["flex flex-col h-screen", Theme.bg(:muted)]}>
-      <div class="max-w-2xl mx-auto w-full flex flex-col h-full">
-        <!-- Gradient Header -->
-        <header class={[Theme.gradient(:primary), "px-4 py-3 flex items-center gap-3"]}>
-          <.link navigate={@back_path} class="text-white/80 hover:text-white">
-            <.icon name="hero-arrow-left" class="w-6 h-6" />
-          </.link>
-          <div class={[
-            "w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold",
-            avatar_color(@page_title)
-          ]}>
-            {String.first(@page_title) |> String.upcase()}
-          </div>
-          <div class="flex-1">
-            <h1 class="text-lg font-semibold text-white truncate">{@page_title}</h1>
-            <.broadcast_badge :if={@conversation.type == :program_broadcast} class="text-white/80" />
-          </div>
-        </header>
-        
-    <!-- Messages Container -->
-        <div class={[Theme.bg(:surface), "flex-1 flex flex-col shadow-sm overflow-hidden"]}>
-          <!-- Messages -->
-          <div
-            id="messages-container"
-            class="flex-1 overflow-y-auto p-4 space-y-3"
-            phx-hook="ScrollToBottom"
-          >
-            <div id="messages" phx-update="stream" class="space-y-3">
-              <.message_bubble
-                :for={{dom_id, message} <- @streams.messages}
-                id={dom_id}
-                message={message}
-                is_own={MessagingLiveHelper.own_message?(message, @current_scope.user.id)}
-                sender_name={MessagingLiveHelper.get_sender_name(@sender_names, message.sender_id)}
-              />
-            </div>
-            <.messages_empty_state :if={@messages_empty?} />
-          </div>
-          
-    <!-- Message Input -->
-          <.message_input form={@form} />
-        </div>
-      </div>
-    </div>
+    <.conversation_show
+      variant={:parent}
+      streams={@streams}
+      messages_empty?={@messages_empty?}
+      page_title={@page_title}
+      conversation={@conversation}
+      back_path={@back_path}
+      form={@form}
+      current_user_id={@current_scope.user.id}
+      sender_names={@sender_names}
+    />
     """
   end
 end
