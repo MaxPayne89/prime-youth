@@ -65,6 +65,21 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
     |> unwrap_transaction_result()
   end
 
+  @doc """
+  Marks an event-handler pair as processed without running a handler.
+
+  Used by `EventDispatchHelper` when a critical domain event's handler already
+  succeeded synchronously via `DomainEventBus`. Inserts the `processed_events`
+  row so any subsequent Oban retry is a no-op.
+
+  Idempotent — calling twice with the same args is safe.
+  """
+  @spec mark_processed(String.t(), String.t()) :: :ok
+  def mark_processed(event_id, handler_ref) when is_binary(event_id) and is_binary(handler_ref) do
+    insert_processed_event(event_id, handler_ref)
+    :ok
+  end
+
   defp insert_processed_event(event_id, handler_ref) do
     now = DateTime.utc_now()
 

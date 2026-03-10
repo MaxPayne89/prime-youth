@@ -113,4 +113,22 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcherTest do
       assert Repo.get_by(ProcessedEvent, event_id: event_id, handler_ref: handler_ref)
     end
   end
+
+  describe "mark_processed/2" do
+    test "inserts a processed_events row" do
+      event_id = Ecto.UUID.generate()
+      handler_ref = "Elixir.TestModule:handle"
+
+      assert :ok = CriticalEventDispatcher.mark_processed(event_id, handler_ref)
+      assert Repo.get_by(ProcessedEvent, event_id: event_id, handler_ref: handler_ref)
+    end
+
+    test "is idempotent — second call is a no-op" do
+      event_id = Ecto.UUID.generate()
+      handler_ref = "Elixir.TestModule:handle"
+
+      assert :ok = CriticalEventDispatcher.mark_processed(event_id, handler_ref)
+      assert :ok = CriticalEventDispatcher.mark_processed(event_id, handler_ref)
+    end
+  end
 end
