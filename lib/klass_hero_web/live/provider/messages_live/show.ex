@@ -25,14 +25,7 @@ defmodule KlassHeroWeb.Provider.MessagesLive.Show do
         <!-- Header -->
         <header class="sticky top-0 z-10 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
           <.link navigate={@back_path} class="text-gray-500 hover:text-gray-700">
-            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
+            <.icon name="hero-arrow-left" class="w-6 h-6" />
           </.link>
           <div class="flex-1">
             <h1 class="text-lg font-semibold text-gray-900 truncate">{@page_title}</h1>
