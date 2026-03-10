@@ -19,7 +19,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIdsTest 
 
       ids = ListEnrolledIdentityIds.execute(program.id)
 
-      assert ids == [parent.identity_id]
+      assert parent.identity_id in ids
+      assert length(ids) == 1
     end
 
     test "includes pending enrollments" do
@@ -36,6 +37,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIdsTest 
       ids = ListEnrolledIdentityIds.execute(program.id)
 
       assert parent.identity_id in ids
+      assert length(ids) == 1
     end
 
     test "returns empty list when no active enrollments exist" do
@@ -97,7 +99,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIdsTest 
 
       ids = ListEnrolledIdentityIds.execute(program.id)
 
-      assert ids == [parent.identity_id]
+      assert parent.identity_id in ids
+      assert length(ids) == 1
     end
 
     test "does not include identity_ids from other programs" do
