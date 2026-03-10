@@ -374,7 +374,7 @@ defmodule KlassHeroWeb.ProgramComponents do
             </svg>
             {ProgramPresenter.format_date_range_brief(@program)}
           </div>
-          <div class="flex items-center text-sm text-hero-grey-500">
+          <div :if={@program.age_range} class="flex items-center text-sm text-hero-grey-500">
             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"

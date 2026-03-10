@@ -5,6 +5,46 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9](https://github.com/MaxPayne89/prime-youth/compare/v0.1.8...v0.1.9) (2026-03-09)
+
+
+### Features
+
+* add admin_changeset to ProviderProfileSchema ([8b413d6](https://github.com/MaxPayne89/prime-youth/commit/8b413d62b515a9c8b25473cbcf1679c660e5a98d))
+* add provider profiles Backpex admin resource ([9aa9bc4](https://github.com/MaxPayne89/prime-youth/commit/9aa9bc404b5eb5f25bc6e1677625afb82f273cdf)), closes [#338](https://github.com/MaxPayne89/prime-youth/issues/338)
+* add provider profiles to admin dashboard ([bb058ac](https://github.com/MaxPayne89/prime-youth/commit/bb058aca7c257bbd6d41a3c47598b8cbb717bbf5))
+* add providers link to admin sidebar ([cac9f66](https://github.com/MaxPayne89/prime-youth/commit/cac9f660d91eb2ff8e1825e93bc597ee02b59734))
+* fix categories display and add verified filter ([3c1b5d5](https://github.com/MaxPayne89/prime-youth/commit/3c1b5d539e7df0415e9d4d9f8e18f5e3dc8d5fdf))
+* rebrand instructor section to Hero terminology ([4caa119](https://github.com/MaxPayne89/prime-youth/commit/4caa119a463069ab4236968264c8bba8f776e92b))
+* rebrand instructor section to Hero terminology ([bf05af8](https://github.com/MaxPayne89/prime-youth/commit/bf05af8ee6d9dcefccb8bce5e47a283cdc523e0f)), closes [#297](https://github.com/MaxPayne89/prime-youth/issues/297)
+* standardize font usage across all pages ([932a3bc](https://github.com/MaxPayne89/prime-youth/commit/932a3bcce83c52f8594a07c4bd3292ce7ba1ac61))
+* standardize font usage across all pages ([#347](https://github.com/MaxPayne89/prime-youth/issues/347)) ([76cb706](https://github.com/MaxPayne89/prime-youth/commit/76cb7064b6bf7740a10a6f01fbcd6e88581d252a))
+
+
+### Bug Fixes
+
+* address PR review comments on lint_typography ([59d6a8f](https://github.com/MaxPayne89/prime-youth/commit/59d6a8f07fcdd070ebbde6618b3cddc9b8b71a5d))
+* display featured programs using data-driven component ([c8dfebd](https://github.com/MaxPayne89/prime-youth/commit/c8dfebdbad95b1797745122734372ec7b1b42481))
+* hide age range row in program card when nil ([059cc2b](https://github.com/MaxPayne89/prime-youth/commit/059cc2b5082939c742961208f74da2fde4b0a335))
+* lint_typography off-by-one bug, broaden glob and exclusion ([12b39ce](https://github.com/MaxPayne89/prime-youth/commit/12b39ce1e0d267f3efb2aea807dd75aa208b87c2))
+* publish domain/integration events from admin provider updates ([a22ae27](https://github.com/MaxPayne89/prime-youth/commit/a22ae27dec5e38e6c2f751b66b83b3b01f6634ff))
+* replace hardcoded featured program cards with data-driven component ([078eb6d](https://github.com/MaxPayne89/prime-youth/commit/078eb6daef2cd446e86368bb7b6fbfe350fe5947))
+* use Text field for website (URL lacks readonly support) ([29efd0c](https://github.com/MaxPayne89/prime-youth/commit/29efd0cdf29bb4a6d0d1f98f5f2313240d8b8ac1))
+
+
+### Code Refactoring
+
+* deduplicate check-in/check-out attendance pipeline ([dea884e](https://github.com/MaxPayne89/prime-youth/commit/dea884e9f3596a5b1de5b5daaad6d4fd9fa012a3))
+* deduplicate check-in/check-out attendance pipeline into Shared ([fd58df0](https://github.com/MaxPayne89/prime-youth/commit/fd58df056476cd17820790fb493dcb745e961b4f)), closes [#310](https://github.com/MaxPayne89/prime-youth/issues/310)
+* derive subscription tier values from SubscriptionTiers ([718a17e](https://github.com/MaxPayne89/prime-youth/commit/718a17e62d6998a9bc75b6ef0bab7c6cf3384090))
+* extract publish-and-log boilerplate from PromoteIntegrationEvents ([66720d9](https://github.com/MaxPayne89/prime-youth/commit/66720d90131b92e58a813a55f5812d2361c9e1c5))
+* extract publish-and-log boilerplate into shared helpers ([#323](https://github.com/MaxPayne89/prime-youth/issues/323)) ([bd1cb4d](https://github.com/MaxPayne89/prime-youth/commit/bd1cb4dec474585641fdd4f14b639782a605595b))
+* extract shared document_page component from legal pages ([d9b35ad](https://github.com/MaxPayne89/prime-youth/commit/d9b35ada9361b3ee6a80aad84f921957ba45c5b2))
+* extract shared document_page component from legal pages ([d3bcea4](https://github.com/MaxPayne89/prime-youth/commit/d3bcea4cd7814779ea88ff319653463839c1af3f)), closes [#300](https://github.com/MaxPayne89/prime-youth/issues/300)
+* extract shared helpers to ProgramPresenter ([aeb46df](https://github.com/MaxPayne89/prime-youth/commit/aeb46df899f65d013558770d9ca4007cd8c62b62))
+* rename gradient to gradient_class in document_page component ([483db53](https://github.com/MaxPayne89/prime-youth/commit/483db5355d925909bfced3a2bdd6bd8efb69a61d))
+* use ngettext for Hero heading and add plural test ([32915be](https://github.com/MaxPayne89/prime-youth/commit/32915beb4c31b8185a8235a2680b4226f0517119))
+
 ## [0.1.8](https://github.com/MaxPayne89/prime-youth/compare/v0.1.7...v0.1.8) (2026-03-09)
 
 

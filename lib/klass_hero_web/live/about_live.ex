@@ -96,7 +96,7 @@ defmodule KlassHeroWeb.AboutLive do
       <%!-- Hero Section --%>
       <div class="bg-hero-pink-50 py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 class="font-display text-4xl md:text-5xl lg:text-6xl text-hero-black mb-6">
+          <h1 class={[Theme.typography(:hero), "text-hero-black mb-6"]}>
             {gettext("OUR MISSION")}
           </h1>
           <p class="text-xl text-hero-grey-600 max-w-3xl mx-auto">
@@ -111,7 +111,7 @@ defmodule KlassHeroWeb.AboutLive do
         <%!-- Built for Berlin Families Section --%>
         <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
           <div class="space-y-6">
-            <h2 class="font-display text-3xl md:text-4xl text-hero-black">
+            <h2 class={[Theme.typography(:page_title), "text-hero-black"]}>
               {gettext("Built for Berlin Families")}
             </h2>
             <p class="text-lg text-hero-grey-700 leading-relaxed">
@@ -208,7 +208,7 @@ defmodule KlassHeroWeb.AboutLive do
       <div class="bg-hero-pink-50 py-12 md:py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="text-center mb-12">
-            <h2 class="font-display text-3xl md:text-4xl lg:text-5xl text-hero-black mb-4">
+            <h2 class={[Theme.typography(:page_title), "text-hero-black mb-4"]}>
               {gettext("Our 6-Step Vetting Process")}
             </h2>
             <p class="text-lg text-hero-grey-700 max-w-3xl mx-auto">
@@ -245,7 +245,7 @@ defmodule KlassHeroWeb.AboutLive do
       <%!-- The Klass Hero Story Section --%>
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
         <div class="text-center mb-12">
-          <h2 class="font-display text-3xl md:text-4xl lg:text-5xl text-hero-black mb-4">
+          <h2 class={[Theme.typography(:page_title), "text-hero-black mb-4"]}>
             {gettext("The Klass Hero Story")}
           </h2>
           <p class="text-lg text-hero-grey-700 max-w-3xl mx-auto">
@@ -284,7 +284,7 @@ defmodule KlassHeroWeb.AboutLive do
 
       <%!-- CTA Section --%>
       <div class="bg-hero-pink-50 py-16 text-center">
-        <h2 class="font-display text-3xl md:text-4xl text-hero-black mb-8">
+        <h2 class={[Theme.typography(:page_title), "text-hero-black mb-8"]}>
           {gettext("Ready to join the movement?")}
         </h2>
         <.link

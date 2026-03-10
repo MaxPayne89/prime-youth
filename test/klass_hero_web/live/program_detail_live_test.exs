@@ -194,7 +194,32 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
 
       assert html =~ "Coach Smith"
       assert html =~ "Head Coach"
-      assert has_element?(view, "h3", "Meet Your Instructor")
+      assert has_element?(view, "h3", "Meet the Hero")
+    end
+
+    test "program with multiple staff shows plural heading", %{conn: conn} do
+      provider = provider_profile_fixture()
+
+      program =
+        insert(:program_schema, provider_id: provider.id, title: "STEM Camp")
+
+      staff_member_fixture(
+        provider_id: provider.id,
+        first_name: "Alice",
+        last_name: "Johnson",
+        role: "Instructor"
+      )
+
+      staff_member_fixture(
+        provider_id: provider.id,
+        first_name: "Bob",
+        last_name: "Williams",
+        role: "Assistant Instructor"
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "h3", "Meet the Heroes")
     end
 
     test "program without staff hides instructor section", %{conn: conn} do
@@ -203,9 +228,9 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
 
       # Trigger: no staff members for this provider (provider_id is nil)
       # Why: instructor section only renders when real team members exist
-      # Outcome: neither "Meet the Team" nor "Meet Your Instructor" heading is shown
-      refute has_element?(view, "h3", "Meet Your Instructor")
-      refute has_element?(view, "h3", "Meet the Team")
+      # Outcome: neither "Meet the Heroes" nor "Meet the Hero" heading is shown
+      refute has_element?(view, "h3", "Meet the Hero")
+      refute has_element?(view, "h3", "Meet the Heroes")
     end
 
     test "staff email is not shown on public page", %{conn: conn} do
