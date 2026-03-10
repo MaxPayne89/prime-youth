@@ -27,14 +27,29 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
 
   @behaviour KlassHero.Shared.Domain.Ports.ForPublishingIntegrationEvents
 
+  alias KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistry
+  alias KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer
+  alias KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
+  alias KlassHero.Shared.Domain.Services.CriticalEventDispatcher
 
   require Logger
 
   @impl true
   def publish(%IntegrationEvent{} = event) do
     topic = derive_topic(event)
-    publish(event, topic)
+
+    case publish(event, topic) do
+      :ok ->
+        # Trigger: event may be marked critical
+        # Why: critical integration events need durable delivery as Oban fallback
+        # Outcome: one CriticalEventWorker job enqueued per registered handler
+        maybe_enqueue_critical_jobs(event, topic)
+        :ok
+
+      error ->
+        error
+    end
   end
 
   @impl true
@@ -89,6 +104,39 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
   @spec derive_topic(IntegrationEvent.t()) :: String.t()
   def derive_topic(%IntegrationEvent{source_context: ctx, event_type: event_type}) do
     build_topic(ctx, event_type)
+  end
+
+  # Trigger: event has criticality: :critical and handlers are registered
+  # Why: PubSub is fire-and-forget — Oban provides durable retry if PubSub path fails
+  # Outcome: one Oban job per handler, each going through CriticalEventDispatcher
+  defp maybe_enqueue_critical_jobs(%IntegrationEvent{} = event, topic) do
+    if IntegrationEvent.critical?(event) do
+      handlers = CriticalEventHandlerRegistry.handlers_for(topic)
+
+      Enum.each(handlers, fn {_module, _function} = handler_tuple ->
+        handler_ref = CriticalEventDispatcher.handler_ref(handler_tuple)
+
+        args =
+          CriticalEventSerializer.serialize(event)
+          |> Map.put("handler", handler_ref)
+
+        case Oban.insert(CriticalEventWorker.new(args)) do
+          {:ok, _job} ->
+            Logger.debug(
+              "Enqueued critical integration event job: #{event.event_type} → #{handler_ref}",
+              event_id: event.event_id,
+              handler: handler_ref
+            )
+
+          {:error, reason} ->
+            Logger.error(
+              "Failed to enqueue critical integration event job: #{event.event_type} → #{handler_ref}",
+              event_id: event.event_id,
+              reason: inspect(reason)
+            )
+        end
+      end)
+    end
   end
 
   defp pubsub_server do
