@@ -9,13 +9,14 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
 
   import Ecto.Changeset
 
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Shared.Categories
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @timestamps_opts [type: :utc_datetime]
 
   schema "staff_members" do
-    field :provider_id, :binary_id
+    belongs_to :provider, ProviderProfileSchema, type: :binary_id
     field :first_name, :string
     field :last_name, :string
     field :role, :string
