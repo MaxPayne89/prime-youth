@@ -357,7 +357,7 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   defp conversation_list(assigns) do
     ~H"""
-    <div id="conversations" phx-update="stream" class={["divide-y", Theme.border_color(:light)]}>
+    <div id="conversations" phx-update="stream" class="divide-y divide-hero-grey-200">
       <.conversation_card
         :for={{dom_id, conv_data} <- @streams.conversations}
         id={dom_id}
