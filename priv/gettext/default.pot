@@ -1831,6 +1831,11 @@ msgstr ""
 
 #: lib/klass_hero_web/live/dashboard_live.ex:65
 #, elixir-autogen, elixir-format
+msgid "You're just getting started!"
+msgstr ""
+
+#: lib/klass_hero_web/live/dashboard_live.ex:66
+#, elixir-autogen, elixir-format
 msgid "You're doing great! Keep it up!"
 msgstr ""
 
