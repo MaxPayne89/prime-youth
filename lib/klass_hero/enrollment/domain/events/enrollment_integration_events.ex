@@ -11,6 +11,9 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
   - `:invite_claimed` - Emitted when a guardian claims an enrollment invite.
     Downstream contexts (e.g. Family, Accounts) react to create profiles or
     link existing users.
+  - `:enrollment_cancelled` - Emitted when an admin cancels an enrollment.
+    Downstream contexts (e.g. Messaging, Analytics) react to notify
+    affected parties or update reporting data.
   """
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
@@ -93,5 +96,46 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
   def invite_claimed(invite_id, _payload, _opts) do
     raise ArgumentError,
           "invite_claimed/3 requires a non-empty invite_id string, got: #{inspect(invite_id)}"
+  end
+
+  @doc """
+  Creates an `:enrollment_cancelled` integration event.
+
+  ## Parameters
+
+  - `enrollment_id` - the cancelled enrollment's ID
+  - `payload` - event data including admin_id, reason, etc.
+  - `opts` - metadata options (correlation_id, causation_id)
+
+  ## Raises
+
+  - `ArgumentError` if `enrollment_id` is nil or empty
+  """
+  def enrollment_cancelled(enrollment_id, payload \\ %{}, opts \\ [])
+
+  def enrollment_cancelled(enrollment_id, payload, opts)
+      when is_binary(enrollment_id) and byte_size(enrollment_id) > 0 do
+    base_payload = %{enrollment_id: enrollment_id}
+
+    IntegrationEvent.new(
+      :enrollment_cancelled,
+      @source_context,
+      # Trigger: enrollment_cancelled uses a different entity type than the module default
+      # Why: @entity_type is :participant_policy for existing functions; enrollments
+      #   are a separate entity type in the enrollment context
+      # Outcome: hardcoded :enrollment ensures correct entity classification
+      :enrollment,
+      enrollment_id,
+      # Trigger: caller may pass a conflicting :enrollment_id in payload
+      # Why: base_payload contains the canonical enrollment_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def enrollment_cancelled(enrollment_id, _payload, _opts) do
+    raise ArgumentError,
+          "enrollment_cancelled/3 requires a non-empty enrollment_id string, got: #{inspect(enrollment_id)}"
   end
 end
