@@ -5,6 +5,56 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.12](https://github.com/MaxPayne89/prime-youth/compare/v0.1.11...v0.1.12) (2026-03-11)
+
+
+### Features
+
+* add bookings admin dashboard with cancel action ([4afb68f](https://github.com/MaxPayne89/prime-youth/commit/4afb68fb87f374d401295f9fa48939059be47735))
+* add CriticalEventDispatcher with handler_ref/1 ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([9cb3f36](https://github.com/MaxPayne89/prime-youth/commit/9cb3f36bfd344d30c05a35e45024c05312d0db65))
+* add CriticalEventDispatcher.execute/3 with transactional idempotency ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([e45d33b](https://github.com/MaxPayne89/prime-youth/commit/e45d33bd6d5d72c68aae1e61fdc01279125f058e))
+* add CriticalEventDispatcher.mark_processed/2 ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([73c30fa](https://github.com/MaxPayne89/prime-youth/commit/73c30fac05f3271b2c78adb68ef6dfcf775d5e4e))
+* add CriticalEventHandlerRegistry and critical_events Oban queue ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([e8ffddd](https://github.com/MaxPayne89/prime-youth/commit/e8ffddd13dc88e9874426315d2fde2664a3813d5))
+* add CriticalEventSerializer for event struct JSON round-trip ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([c245af5](https://github.com/MaxPayne89/prime-youth/commit/c245af57e4464d8826422bf40d154ac009f097e4))
+* add CriticalEventWorker Oban worker for durable event delivery ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([b15fb0b](https://github.com/MaxPayne89/prime-youth/commit/b15fb0b9c34d667a1d069c1576696339f99c7469))
+* add DomainEventBus.dispatch_critical/2 with per-handler identity ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([2691fff](https://github.com/MaxPayne89/prime-youth/commit/2691fff54280e6da2beda9be46eabdfc2feb77c2))
+* add dual delivery for critical integration events in PubSubIntegrationEventPublisher ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([a834341](https://github.com/MaxPayne89/prime-youth/commit/a8343416073ad87e5e5a4d7168291d3862b5c821))
+* add Oban Web dashboard with admin-only access ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([0d1b8e0](https://github.com/MaxPayne89/prime-youth/commit/0d1b8e070601e8384a7aa5f71ba117783147ced4))
+* add persistent critical events with exactly-once delivery ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([ba73d12](https://github.com/MaxPayne89/prime-youth/commit/ba73d12c8a43ba21d28c0b385c94cd6ee35ba240))
+* add processed_events table and schema for critical event idempotency ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([95f2771](https://github.com/MaxPayne89/prime-youth/commit/95f277105027bb8eebff9e3440b95c89f0de3868))
+* **admin:** add BookingLive Backpex resource with cancel action and status filter ([13c1a52](https://github.com/MaxPayne89/prime-youth/commit/13c1a526bc6653f505de981b059d5b0f9faf11b5))
+* **admin:** add CancelBookingAction item action with reason modal ([5fe264d](https://github.com/MaxPayne89/prime-youth/commit/5fe264d9c057973eeb1d3a3c49470f1064437eb1))
+* **admin:** add StatusFilter for enrollment status filtering ([0d383e4](https://github.com/MaxPayne89/prime-youth/commit/0d383e418b6df19f1aa47344f46073e1325882cf))
+* **enrollment:** add belongs_to associations and admin_changeset to EnrollmentSchema ([c60485f](https://github.com/MaxPayne89/prime-youth/commit/c60485ff09112b53522e1ae961283fef12c425d3))
+* **enrollment:** add CancelEnrollmentByAdmin use case with event dispatch ([5a74e49](https://github.com/MaxPayne89/prime-youth/commit/5a74e498b20c2a28ea927ffb19c2161cba479031))
+* **enrollment:** add enrollment_cancelled domain event factory ([87fd2a1](https://github.com/MaxPayne89/prime-youth/commit/87fd2a1b86ecbb17e58505bdfbb62fa3266b30c6))
+* **enrollment:** add enrollment_cancelled integration event factory ([cc1a05c](https://github.com/MaxPayne89/prime-youth/commit/cc1a05c123227be2f801086ac8bb1227c2c00fc5))
+* **enrollment:** add update/2 to enrollment port and repository ([4c8907a](https://github.com/MaxPayne89/prime-youth/commit/4c8907ae47130f9964b5c8e72eb679cc0442c8c6))
+* **enrollment:** promote enrollment_cancelled to integration event ([942c3f0](https://github.com/MaxPayne89/prime-youth/commit/942c3f0261be221bd32fa09adad1bf0808212f24))
+* wire critical domain events through CriticalEventDispatcher in EventDispatchHelper ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([8b7208f](https://github.com/MaxPayne89/prime-youth/commit/8b7208f8710a70affa840f1e1f3baae14bd2468d))
+* wrap critical integration events in CriticalEventDispatcher in EventSubscriber ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([24508e0](https://github.com/MaxPayne89/prime-youth/commit/24508e0cff3b9567aecb2dc27eef0b7ba16c5565))
+
+
+### Bug Fixes
+
+* address PR review — typespecs accuracy ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([79444b9](https://github.com/MaxPayne89/prime-youth/commit/79444b97932a370c162c44a7c5e0efcd427e5288))
+* **admin:** add Bookings sidebar nav link and shorten date format ([57d1d40](https://github.com/MaxPayne89/prime-youth/commit/57d1d4061bb72e24804aecd74c112f90021a4c43))
+* **admin:** propagate event dispatch errors and improve cancel action feedback ([87a311b](https://github.com/MaxPayne89/prime-youth/commit/87a311b3a14a6aebd649361d89fe501dfa2abd99))
+* **enrollment:** remove adapter-layer dependency from CancelEnrollmentByAdmin ([1c2e77c](https://github.com/MaxPayne89/prime-youth/commit/1c2e77c47c66fa190b1f33a00c0d0d90c1527894))
+* **enrollment:** validate non-empty reason in CancelEnrollmentByAdmin ([36d3378](https://github.com/MaxPayne89/prime-youth/commit/36d3378d99ef81a522b88bd4e2e9a2c08d00da36))
+* harden error handling, logging, and test coverage for critical events ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([31d1437](https://github.com/MaxPayne89/prime-youth/commit/31d14374c4c3f2fd3f1b7695c2faa8e0b19cc438))
+* improve docs, error messages, and test coverage for critical events ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([017b8b1](https://github.com/MaxPayne89/prime-youth/commit/017b8b14ffd088c515aacaf44f3e2a02c8d5f1c4))
+* resolve credo strict issues — add admin_id metadata, reduce mount nesting ([1136207](https://github.com/MaxPayne89/prime-youth/commit/11362073bd6996f89574e840afdfdb4a6e5c3c26))
+* show "You're just getting started!" at 0% weekly activity goal ([ecd1567](https://github.com/MaxPayne89/prime-youth/commit/ecd1567d130dcb9c128b329071017776e720ac72)), closes [#226](https://github.com/MaxPayne89/prime-youth/issues/226)
+* show starter message at 0% weekly activity goal ([3c22864](https://github.com/MaxPayne89/prime-youth/commit/3c22864040cfecd54427006863dd2e32c9849041))
+
+
+### Code Refactoring
+
+* **enrollment:** simplify CancelEnrollmentByAdmin use case ([a12fe8a](https://github.com/MaxPayne89/prime-youth/commit/a12fe8a7347586ac77a7b1279a10d3f641191363))
+* extract infrastructure from domain service, fix critical event error handling ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([768b3ba](https://github.com/MaxPayne89/prime-youth/commit/768b3ba665b401c4c7194fbf9d05fd0ecc319636))
+* simplify critical event infrastructure ([#325](https://github.com/MaxPayne89/prime-youth/issues/325)) ([6dac34d](https://github.com/MaxPayne89/prime-youth/commit/6dac34d63d4c5e00e733fcd55c4c58384c0ac9d8))
+
 ## [0.1.11](https://github.com/MaxPayne89/prime-youth/compare/v0.1.10...v0.1.11) (2026-03-10)
 
 
