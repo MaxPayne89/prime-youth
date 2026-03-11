@@ -381,4 +381,78 @@ defmodule KlassHero.Shared.DomainEventBusTest do
       assert :ok = DomainEventBus.dispatch(@test_context, build_event(:compat_event))
     end
   end
+
+  # ===========================================================================
+  # dispatch_critical/2
+  # ===========================================================================
+
+  defmodule TestCriticalHandler do
+    @moduledoc false
+    def handle(%DomainEvent{} = _event), do: :ok
+  end
+
+  defmodule TestCriticalFailHandler do
+    @moduledoc false
+    def handle(%DomainEvent{} = _event), do: {:error, :critical_fail}
+  end
+
+  describe "dispatch_critical/2" do
+    test "returns per-handler results with handler identity" do
+      context = :"test_critical_#{System.unique_integer([:positive])}"
+
+      start_supervised!(
+        {DomainEventBus,
+         context: context,
+         handlers: [
+           {:test_event, {TestCriticalHandler, :handle}}
+         ]},
+        id: make_ref()
+      )
+
+      event = DomainEvent.new(:test_event, "agg-1", :test, %{})
+
+      assert {:ok, results} = DomainEventBus.dispatch_critical(context, event)
+      assert [{handler_identity, :ok}] = results
+      assert handler_identity == {TestCriticalHandler, :handle}
+    end
+
+    test "includes handler identity in failure results" do
+      context = :"test_critical_fail_#{System.unique_integer([:positive])}"
+
+      start_supervised!(
+        {DomainEventBus,
+         context: context,
+         handlers: [
+           {:test_event, {TestCriticalHandler, :handle}},
+           {:test_event, {TestCriticalFailHandler, :handle}}
+         ]},
+        id: make_ref()
+      )
+
+      event = DomainEvent.new(:test_event, "agg-1", :test, %{})
+
+      assert {:ok, results} = DomainEventBus.dispatch_critical(context, event)
+
+      assert Enum.any?(results, fn
+               {{TestCriticalHandler, :handle}, :ok} -> true
+               _ -> false
+             end)
+
+      assert Enum.any?(results, fn
+               {{TestCriticalFailHandler, :handle}, {:error, :critical_fail}} -> true
+               _ -> false
+             end)
+    end
+
+    test "anonymous handlers use :anonymous identity" do
+      context = :"test_critical_anon_#{System.unique_integer([:positive])}"
+      start_supervised!({DomainEventBus, context: context}, id: make_ref())
+
+      DomainEventBus.subscribe(context, :test_event, fn _event -> :ok end)
+      event = DomainEvent.new(:test_event, "agg-1", :test, %{})
+
+      assert {:ok, results} = DomainEventBus.dispatch_critical(context, event)
+      assert [{:anonymous, :ok}] = results
+    end
+  end
 end

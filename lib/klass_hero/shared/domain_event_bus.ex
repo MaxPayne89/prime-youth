@@ -112,6 +112,29 @@ defmodule KlassHero.Shared.DomainEventBus do
   end
 
   @doc """
+  Dispatches a domain event and returns per-handler results with handler identity.
+
+  Unlike `dispatch/2` which returns a flat `:ok` or `{:error, failures}`, this
+  variant returns `{:ok, [{handler_identity, result}]}` so callers can determine
+  which specific handlers succeeded or failed — needed for critical event routing
+  where each handler's outcome must be tracked individually for retry logic.
+
+  Handler identity is `{Module, :function}` for init-time registered handlers
+  or `:anonymous` for runtime lambda subscriptions.
+  """
+  @spec dispatch_critical(module(), DomainEvent.t()) ::
+          {:ok, list({{module(), atom()} | :anonymous, :ok | {:error, term()}})}
+  def dispatch_critical(context, %DomainEvent{event_type: event_type} = event) do
+    handlers = GenServer.call(process_name(context), {:get_handlers, event_type})
+
+    # Trigger: always returns {:ok, results} even when handlers fail
+    # Why: callers need the full per-handler result set to route retries;
+    #      they decide how to handle failures, not dispatch_critical
+    # Outcome: caller receives [{identity, :ok | {:error, reason}}] for every handler
+    {:ok, execute_handlers_with_identity(handlers, event)}
+  end
+
+  @doc """
   Derives the process name for a context's DomainEventBus.
   """
   @spec process_name(module()) :: atom()
@@ -137,7 +160,11 @@ defmodule KlassHero.Shared.DomainEventBus do
 
   @impl true
   def handle_call({:subscribe, event_type, handler_fn, opts}, _from, state) do
-    entry = {handler_fn, opts}
+    # Trigger: runtime lambda subscription — no module/function origin available
+    # Why: anonymous fns have no stable identity; :anonymous signals to callers
+    #      (e.g. dispatch_critical/2) that this handler has no named origin
+    # Outcome: entry stored as 3-tuple with :anonymous identity
+    entry = {handler_fn, opts, :anonymous}
 
     # Trigger: appending to existing handler list for this event type
     # Why: preserves registration order for same-priority handlers
@@ -159,24 +186,35 @@ defmodule KlassHero.Shared.DomainEventBus do
   defp execute_handlers([], _event), do: :ok
 
   defp execute_handlers(entries, event) do
-    # Trigger: entries may have mixed priorities
-    # Why: sort by priority so lower numbers execute first; stable sort preserves
-    #      registration order for entries with the same priority
-    # Outcome: handlers execute in deterministic priority order
-    sorted =
-      entries
-      |> Enum.with_index()
-      |> Enum.sort_by(fn {{_fn, opts}, index} ->
-        {Keyword.get(opts, :priority, @default_priority), index}
-      end)
-      |> Enum.map(fn {{handler_fn, _opts}, _index} -> handler_fn end)
-
     failures =
-      sorted
-      |> Enum.map(&safe_call(&1, event))
+      entries
+      |> sort_by_priority()
+      |> Enum.map(fn {{handler_fn, _opts, _identity}, _index} -> safe_call(handler_fn, event) end)
       |> Enum.filter(&match?({:error, _}, &1))
 
     if failures == [], do: :ok, else: {:error, failures}
+  end
+
+  defp execute_handlers_with_identity([], _event), do: []
+
+  defp execute_handlers_with_identity(entries, event) do
+    entries
+    |> sort_by_priority()
+    |> Enum.map(fn {{handler_fn, _opts, identity}, _index} ->
+      {identity, safe_call(handler_fn, event)}
+    end)
+  end
+
+  # Trigger: entries may have mixed priorities
+  # Why: sort by priority so lower numbers execute first; stable sort preserves
+  #      registration order for entries with the same priority
+  # Outcome: handlers execute in deterministic priority order
+  defp sort_by_priority(entries) do
+    entries
+    |> Enum.with_index()
+    |> Enum.sort_by(fn {{_fn, opts, _identity}, index} ->
+      {Keyword.get(opts, :priority, @default_priority), index}
+    end)
   end
 
   defp safe_call(handler_fn, event) do
@@ -201,17 +239,21 @@ defmodule KlassHero.Shared.DomainEventBus do
 
   defp register_init_handlers(specs) do
     Enum.reduce(specs, %{}, fn spec, acc ->
-      {event_type, handler_fn, opts} = normalize_handler_spec(spec)
-      entry = {handler_fn, opts}
+      {event_type, handler_fn, opts, identity} = normalize_handler_spec(spec)
+      entry = {handler_fn, opts, identity}
       Map.update(acc, event_type, [entry], &(&1 ++ [entry]))
     end)
   end
 
   defp normalize_handler_spec({event_type, {module, function}}) do
-    {event_type, Function.capture(module, function, 1), []}
+    # Trigger: init-time {Module, :function} spec without opts
+    # Why: capture identity at registration so dispatch_critical/2 can report
+    #      which named handler succeeded or failed
+    # Outcome: returns 4-tuple with {module, function} identity
+    {event_type, Function.capture(module, function, 1), [], {module, function}}
   end
 
   defp normalize_handler_spec({event_type, {module, function}, opts}) do
-    {event_type, Function.capture(module, function, 1), opts}
+    {event_type, Function.capture(module, function, 1), opts, {module, function}}
   end
 end

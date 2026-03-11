@@ -25,7 +25,7 @@ defmodule KlassHero.Shared.Domain.Events.IntegrationEvent do
   ## Event Criticality
 
   Events can be marked with a criticality level via metadata:
-  - `:critical` - Must not be lost (for future guaranteed delivery support)
+  - `:critical` - Must not be lost (durable delivery via CriticalEventDispatcher + Oban)
   - `:normal` - Standard fire-and-forget (default)
   """
 

@@ -1,9 +1,12 @@
 defmodule KlassHero.Shared.EventDispatchHelperTest do
-  use ExUnit.Case, async: true
+  use KlassHero.DataCase, async: true
 
   import ExUnit.CaptureLog
 
+  alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.Schemas.ProcessedEvent
   alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.Domain.Services.CriticalEventDispatcher
   alias KlassHero.Shared.DomainEventBus
   alias KlassHero.Shared.EventDispatchHelper
 
@@ -63,6 +66,134 @@ defmodule KlassHero.Shared.EventDispatchHelperTest do
 
       assert log =~ "Critical event dispatch failed"
       assert log =~ "critical_event"
+    end
+  end
+
+  defmodule CriticalSuccessHandler do
+    def handle(%DomainEvent{} = _event), do: :ok
+  end
+
+  defmodule CriticalFailHandler do
+    def handle(%DomainEvent{} = _event), do: {:error, :handler_broke}
+  end
+
+  describe "dispatch/2 with critical events" do
+    setup do
+      context = :"test_critical_dispatch_#{System.unique_integer([:positive])}"
+
+      start_supervised!(
+        {DomainEventBus,
+         context: context,
+         handlers: [
+           {:critical_test, {CriticalSuccessHandler, :handle}}
+         ]},
+        id: make_ref()
+      )
+
+      %{context: context}
+    end
+
+    test "marks handler as processed when critical event succeeds", %{context: context} do
+      event = DomainEvent.new(:critical_test, "agg-1", :test, %{}, criticality: :critical)
+
+      assert :ok = EventDispatchHelper.dispatch(event, context)
+
+      handler_ref = CriticalEventDispatcher.handler_ref({CriticalSuccessHandler, :handle})
+      assert Repo.get_by(ProcessedEvent, event_id: event.event_id, handler_ref: handler_ref)
+    end
+
+    test "does NOT mark as processed for normal events", %{context: context} do
+      event = DomainEvent.new(:critical_test, "agg-1", :test, %{})
+
+      assert :ok = EventDispatchHelper.dispatch(event, context)
+
+      # No processed_events row for normal events
+      assert [] == Repo.all(ProcessedEvent)
+    end
+  end
+
+  describe "dispatch/2 critical event with failed handler" do
+    setup do
+      context = :"test_critical_fail_#{System.unique_integer([:positive])}"
+
+      start_supervised!(
+        {DomainEventBus,
+         context: context,
+         handlers: [
+           {:critical_fail_test, {CriticalSuccessHandler, :handle}},
+           {:critical_fail_test, {CriticalFailHandler, :handle}}
+         ]},
+        id: make_ref()
+      )
+
+      %{context: context}
+    end
+
+    test "enqueues Oban job for failed handler and marks successful one", %{context: context} do
+      event =
+        DomainEvent.new(:critical_fail_test, "agg-1", :test, %{data: "val"},
+          criticality: :critical
+        )
+
+      assert :ok = EventDispatchHelper.dispatch(event, context)
+
+      # Successful handler should be marked processed
+      success_ref = CriticalEventDispatcher.handler_ref({CriticalSuccessHandler, :handle})
+      assert Repo.get_by(ProcessedEvent, event_id: event.event_id, handler_ref: success_ref)
+
+      # Failed handler should have an Oban job enqueued
+      # (In test mode with Oban :inline, the job runs immediately — so it will
+      #  also fail and the processed_events row won't exist)
+      fail_ref = CriticalEventDispatcher.handler_ref({CriticalFailHandler, :handle})
+      refute Repo.get_by(ProcessedEvent, event_id: event.event_id, handler_ref: fail_ref)
+    end
+  end
+
+  describe "dispatch_or_error/2 with critical events" do
+    setup do
+      context = :"test_critical_or_error_#{System.unique_integer([:positive])}"
+
+      start_supervised!(
+        {DomainEventBus,
+         context: context,
+         handlers: [
+           {:critical_or_error_test, {CriticalFailHandler, :handle}}
+         ]},
+        id: make_ref()
+      )
+
+      %{context: context}
+    end
+
+    test "does NOT enqueue Oban job — caller owns error handling", %{context: context} do
+      event =
+        DomainEvent.new(:critical_or_error_test, "agg-1", :test, %{}, criticality: :critical)
+
+      assert {:error, _reason} = EventDispatchHelper.dispatch_or_error(event, context)
+
+      # No Oban job — dispatch_or_error lets caller handle the failure
+      # No processed_events row either
+      assert [] == Repo.all(ProcessedEvent)
+    end
+  end
+
+  describe "dispatch_or_error/2 with normal events" do
+    test "returns :ok when handler succeeds" do
+      DomainEventBus.subscribe(@context, :normal_or_error, fn _event -> :ok end)
+
+      event = build_event(:normal_or_error)
+
+      assert :ok = EventDispatchHelper.dispatch_or_error(event, @context)
+    end
+
+    test "returns {:error, reason} when handler fails" do
+      DomainEventBus.subscribe(@context, :normal_or_error_fail, fn _event ->
+        {:error, :handler_failed}
+      end)
+
+      event = build_event(:normal_or_error_fail)
+
+      assert {:error, _reason} = EventDispatchHelper.dispatch_or_error(event, @context)
     end
   end
 

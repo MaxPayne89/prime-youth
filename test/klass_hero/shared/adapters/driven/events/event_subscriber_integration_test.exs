@@ -10,12 +10,17 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
   - Multiple subscribers can coexist
   """
 
-  use ExUnit.Case, async: false
+  use KlassHero.DataCase, async: false
 
   import KlassHero.EventTestHelper
 
+  alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Events.EventSubscriber
   alias KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher
+  alias KlassHero.Shared.Adapters.Driven.Persistence.Schemas.ProcessedEvent
   alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
+  alias KlassHero.Shared.Domain.Services.CriticalEventDispatcher
 
   @pubsub KlassHero.PubSub
 
@@ -384,6 +389,152 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
       assert subscriber1 != subscriber2
       assert Process.alive?(subscriber1)
       assert Process.alive?(subscriber2)
+    end
+  end
+
+  describe "critical integration event handling" do
+    test "wraps critical event handler in CriticalEventDispatcher" do
+      handler = KlassHero.Test.CriticalTestHandler
+
+      {:ok, pid} =
+        EventSubscriber.start_link(
+          handler: handler,
+          topics: ["integration:test:critical_test_event"],
+          message_tag: :integration_event,
+          event_label: "Integration event",
+          name: :"critical_test_sub_#{System.unique_integer([:positive])}"
+        )
+
+      # Trigger: EventSubscriber runs in a separate process outside the test
+      # Why: it needs DB access (via CriticalEventDispatcher) to write processed_events
+      # Outcome: subscriber process shares the test's sandboxed DB connection
+      Ecto.Adapters.SQL.Sandbox.allow(KlassHero.Repo, self(), pid)
+
+      # Publish a critical integration event
+      event =
+        IntegrationEvent.new(:critical_test_event, :test, :entity, "ent-1", %{},
+          criticality: :critical
+        )
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:test:critical_test_event",
+        {:integration_event, event}
+      )
+
+      # Give the subscriber time to process
+      Process.sleep(100)
+
+      # Verify processed_events row was created
+      handler_ref = CriticalEventDispatcher.handler_ref({handler, :handle_event})
+      assert Repo.get_by(ProcessedEvent, event_id: event.event_id, handler_ref: handler_ref)
+    end
+
+    test "subscriber stays alive and no processed row when critical handler fails" do
+      handler = KlassHero.Test.CriticalFailingTestHandler
+
+      {:ok, pid} =
+        EventSubscriber.start_link(
+          handler: handler,
+          topics: ["integration:test:critical_test_event"],
+          message_tag: :integration_event,
+          event_label: "Integration event",
+          name: :"critical_fail_sub_#{System.unique_integer([:positive])}"
+        )
+
+      Ecto.Adapters.SQL.Sandbox.allow(KlassHero.Repo, self(), pid)
+
+      event =
+        IntegrationEvent.new(:critical_test_event, :test, :entity, "ent-fail", %{},
+          criticality: :critical
+        )
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:test:critical_test_event",
+        {:integration_event, event}
+      )
+
+      Process.sleep(100)
+
+      # Handler failed → transaction rolled back → no processed_events row
+      assert [] == Repo.all(ProcessedEvent)
+      # Subscriber GenServer stays alive after handler failure
+      assert Process.alive?(pid)
+    end
+
+    test "logs differentiated crash message when dispatcher itself fails for critical event" do
+      handler = KlassHero.Test.CriticalTestHandler
+
+      {:ok, pid} =
+        EventSubscriber.start_link(
+          handler: handler,
+          topics: ["integration:test:critical_crash_event"],
+          message_tag: :integration_event,
+          event_label: "Integration event",
+          name: :"critical_crash_sub_#{System.unique_integer([:positive])}"
+        )
+
+      Ecto.Adapters.SQL.Sandbox.allow(KlassHero.Repo, self(), pid)
+
+      # Trigger: construct a critical event with nil event_id
+      # Why: CriticalEventDispatcher.execute/3 guard `when is_binary(event_id)` will fail
+      #      with FunctionClauseError, which propagates past handle_critical_event to
+      #      the outer rescue block in handle_event_safely — the exact scenario C3 addresses
+      # Outcome: rescue block detects critical event and logs with [CRITICAL EVENT HANDLER CRASH]
+      event = %IntegrationEvent{
+        event_id: nil,
+        event_type: :critical_crash_event,
+        source_context: :test,
+        entity_type: :entity,
+        entity_id: "ent-crash",
+        occurred_at: DateTime.utc_now(),
+        payload: %{},
+        metadata: %{criticality: :critical}
+      }
+
+      log =
+        ExUnit.CaptureLog.capture_log([level: :error], fn ->
+          Phoenix.PubSub.broadcast(
+            KlassHero.PubSub,
+            "integration:test:critical_crash_event",
+            {:integration_event, event}
+          )
+
+          Process.sleep(100)
+        end)
+
+      assert log =~ "CRITICAL EVENT HANDLER CRASH"
+      assert log =~ "Durable Oban path will retry"
+      assert Process.alive?(pid)
+    end
+
+    test "normal integration events bypass CriticalEventDispatcher" do
+      handler = KlassHero.Test.CriticalTestHandler
+
+      {:ok, _pid} =
+        EventSubscriber.start_link(
+          handler: handler,
+          topics: ["integration:test:critical_test_event"],
+          message_tag: :integration_event,
+          event_label: "Integration event",
+          name: :"normal_test_sub_#{System.unique_integer([:positive])}"
+        )
+
+      # Publish a NORMAL integration event (no criticality)
+      event =
+        IntegrationEvent.new(:critical_test_event, :test, :entity, "ent-2", %{})
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:test:critical_test_event",
+        {:integration_event, event}
+      )
+
+      Process.sleep(100)
+
+      # No processed_events row — normal events bypass dispatcher
+      assert [] == Repo.all(ProcessedEvent)
     end
   end
 end
