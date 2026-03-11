@@ -18,9 +18,13 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
   @valid_payment_methods ~w(card transfer)
 
   schema "enrollments" do
-    field :program_id, :binary_id
-    field :child_id, :binary_id
-    field :parent_id, :binary_id
+    belongs_to :program,
+               KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+
+    belongs_to :child, KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
+
+    belongs_to :parent, KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+
     field :status, :string
     field :enrolled_at, :utc_datetime
     field :confirmed_at, :utc_datetime
@@ -105,4 +109,9 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
     |> validate_number(:card_fee_amount, greater_than_or_equal_to: 0)
     |> validate_number(:total_amount, greater_than_or_equal_to: 0)
   end
+
+  @doc """
+  No-op changeset required by Backpex even when edit is disabled via `can?/3`.
+  """
+  def admin_changeset(schema, _attrs, _metadata), do: change(schema)
 end
