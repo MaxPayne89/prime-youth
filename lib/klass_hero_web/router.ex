@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.Router do
 
   import Backpex.Router
   import KlassHeroWeb.UserAuth
+  import Oban.Web.Router
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -151,6 +152,18 @@ defmodule KlassHeroWeb.Router do
         live_resources("/staff", StaffLive, only: [:index, :show, :edit])
       end
     end
+  end
+
+  # Oban Web dashboard - admin only
+  scope "/" do
+    pipe_through :browser
+
+    oban_dashboard("/oban",
+      on_mount: [
+        {KlassHeroWeb.UserAuth, :require_authenticated},
+        {KlassHeroWeb.UserAuth, :require_admin}
+      ]
+    )
   end
 
   # Other scopes may use custom stacks.
