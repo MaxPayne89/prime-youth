@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-10T13:04:22Z",
+  "last_updated": "2026-03-11T13:04:11Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -32,21 +32,22 @@
     "create_parent_profile_identity_fk": "identity_id in parent_profiles FK references users table - need real user via unconfirmed_user_fixture(intended_roles: [:parent])",
     "activity_goal_calculator_tests": "Pure domain service, async: true, no DB; sessions field accepts list (length counted) or string 'current/total' (Integer.parse on current); percentage capped at 100; statuses: :achieved >=100%, :almost_there >=80%, :in_progress otherwise",
     "enrollment_identity_id_pattern": "enrolled?/2 and list_enrolled_identity_ids/1 join enrollments->parent_profiles on parent_id, filter by active_only (pending+confirmed); pass parent.identity_id (user.id) not parent.id to CheckEnrollment.execute/2",
-    "staff_member_use_case_tests": "staff_member_fixture(provider_id: id) creates a staff member; Provider facade used for create/update/delete/get_staff_member; delete returns :ok or {:error, :not_found}; update ignores provider_id changes (not in @allowed_fields)"
+    "staff_member_use_case_tests": "staff_member_fixture(provider_id: id) creates a staff member; Provider facade used for create/update/delete/get_staff_member; delete returns :ok or {:error, :not_found}; update ignores provider_id changes (not in @allowed_fields)",
+    "integration_event_publishing_tests": "IntegrationEventPublishing tests use ExUnit.Case async: true (no DB); call TestIntegrationEventPublisher.setup() in setup; use configure_publish_error(:reason) to simulate failures; tests cover publish_critical (propagates) vs publish_best_effort (swallows)"
   },
   "backlog": [
-    {"item": "create_program/get_program_by_id/update_program use case tests", "priority": "medium", "reason": "3 program catalog use cases (create, get_by_id, update) have zero test coverage; create/update dispatch domain events"},
     {"item": "ParticipationEvents factory tests", "priority": "low", "reason": "9 event factory functions, tests would guard payload shape contracts"},
     {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"},
-    {"item": "admin provider_live.ex on_item_updated event publishing", "priority": "low", "reason": "existing tests verify DB state only; on_item_updated/2 publishes provider_verified/provider_unverified events - complex to test from LiveView (process dictionary isolation)"}
+    {"item": "admin provider_live.ex on_item_updated event publishing", "priority": "low", "reason": "existing tests verify DB state only; on_item_updated/2 publishes provider_verified/provider_unverified events - complex to test from LiveView"},
+    {"item": "PubSubIntegrationEventPublisher additional cases", "priority": "low", "reason": "only 2 tests; missing: critical event with no registered handlers, publish_all/1, build_topic/2/derive_topic/1"}
   ],
   "tasks_last_run": {
     "task1_commands": "2026-02-26",
-    "task2_opportunities": "2026-03-10",
-    "task3_implement": "2026-03-10",
+    "task2_opportunities": "2026-03-11",
+    "task3_implement": "2026-03-11",
     "task6_infrastructure": "2026-03-06",
     "task5_comments": "2026-03-09",
-    "task7_monthly_summary": "2026-03-10"
+    "task7_monthly_summary": "2026-03-11"
   },
   "completed_work": [
     {
@@ -99,7 +100,11 @@
     },
     {
       "run": "2026-03-10",
-      "work": "Created PR (branch test-assist/staff-member-use-case-tests): CreateStaffMember + UpdateStaffMember + DeleteStaffMember use case tests - 19 integration tests"
+      "work": "Created PR #368 (branch test-assist/staff-member-use-case-tests): CreateStaffMember + UpdateStaffMember + DeleteStaffMember use case tests - 19 integration tests - MERGED"
+    },
+    {
+      "run": "2026-03-11",
+      "work": "Created PR (branch test-assist/integration-event-publishing-tests): IntegrationEventPublishing unit tests - 11 pure async tests covering publish_critical/publish_best_effort contracts"
     }
   ]
 }
