@@ -141,9 +141,14 @@ defmodule KlassHeroWeb.Admin.BookingLive do
         end
       },
       enrolled_at: %{
-        module: Backpex.Fields.DateTime,
+        module: Backpex.Fields.Text,
         label: "Enrolled At",
-        orderable: true
+        orderable: true,
+        render: fn assigns ->
+          ~H"""
+          <span>{if @value, do: Calendar.strftime(@value, "%b %d, %Y"), else: "—"}</span>
+          """
+        end
       },
       special_requirements: %{
         module: Backpex.Fields.Textarea,
