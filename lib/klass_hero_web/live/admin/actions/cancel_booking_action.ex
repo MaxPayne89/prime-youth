@@ -11,6 +11,8 @@ defmodule KlassHeroWeb.Admin.Actions.CancelBookingAction do
 
   import Ecto.Changeset
 
+  require Logger
+
   @impl Backpex.ItemAction
   def icon(assigns, _item) do
     ~H"""
@@ -54,23 +56,53 @@ defmodule KlassHeroWeb.Admin.Actions.CancelBookingAction do
 
     results =
       Enum.map(items, fn item ->
-        KlassHero.Enrollment.cancel_enrollment_by_admin(item.id, admin_id, data.reason)
+        {item.id, KlassHero.Enrollment.cancel_enrollment_by_admin(item.id, admin_id, data.reason)}
       end)
 
-    # Trigger: check if any cancellation failed
-    # Why: some items may be in a non-cancellable state (completed/cancelled)
-    # Outcome: flash appropriate success or error message
-    errors = Enum.filter(results, &match?({:error, _}, &1))
+    {successes, failures} = Enum.split_with(results, fn {_id, r} -> match?({:ok, _}, r) end)
 
+    # Trigger: one or more cancellations failed
+    # Why: server-side traceability — correlate each failure with its enrollment ID
+    # Outcome: structured log entry per failure for debugging and audit
+    Enum.each(failures, fn {id, {:error, reason}} ->
+      Logger.warning("[Admin.CancelBookingAction] Failed to cancel booking",
+        enrollment_id: id,
+        admin_id: admin_id,
+        error: inspect(reason)
+      )
+    end)
+
+    total = length(items)
+    fail_count = length(failures)
+
+    # Trigger: branch on how many cancellations succeeded vs failed
+    # Why: admin needs precise feedback — all-ok, partial, or total failure
+    # Outcome: flash severity matches the outcome for clear UX
     socket =
-      if errors == [] do
-        Phoenix.LiveView.put_flash(socket, :info, "Booking(s) cancelled successfully.")
-      else
-        Phoenix.LiveView.put_flash(
-          socket,
-          :error,
-          "Some bookings could not be cancelled (already completed or cancelled)."
-        )
+      cond do
+        fail_count == 0 ->
+          Phoenix.LiveView.put_flash(
+            socket,
+            :info,
+            "#{total} booking(s) cancelled successfully."
+          )
+
+        fail_count == total ->
+          Phoenix.LiveView.put_flash(
+            socket,
+            :error,
+            "Could not cancel #{total} booking(s)."
+          )
+
+        true ->
+          ok_count = length(successes)
+
+          Phoenix.LiveView.put_flash(
+            socket,
+            :warning,
+            "#{ok_count} of #{total} booking(s) cancelled. " <>
+              "#{fail_count} could not be cancelled."
+          )
       end
 
     {:ok, socket}

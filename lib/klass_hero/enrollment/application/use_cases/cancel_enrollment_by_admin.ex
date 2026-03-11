@@ -42,18 +42,18 @@ defmodule KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin do
     with {:ok, enrollment} <- @enrollment_repo.get_by_id(enrollment_id),
          {:ok, cancelled} <- Enrollment.cancel(enrollment, reason),
          {:ok, persisted} <-
-           @enrollment_repo.update(enrollment_id, EnrollmentMapper.to_schema(cancelled)) do
-      EnrollmentEvents.enrollment_cancelled(persisted.id, %{
-        enrollment_id: persisted.id,
-        program_id: persisted.program_id,
-        child_id: persisted.child_id,
-        parent_id: persisted.parent_id,
-        admin_id: admin_id,
-        reason: reason,
-        cancelled_at: persisted.cancelled_at
-      })
-      |> EventDispatchHelper.dispatch(@context)
-
+           @enrollment_repo.update(enrollment_id, EnrollmentMapper.to_schema(cancelled)),
+         :ok <-
+           EnrollmentEvents.enrollment_cancelled(persisted.id, %{
+             enrollment_id: persisted.id,
+             program_id: persisted.program_id,
+             child_id: persisted.child_id,
+             parent_id: persisted.parent_id,
+             admin_id: admin_id,
+             reason: reason,
+             cancelled_at: persisted.cancelled_at
+           })
+           |> EventDispatchHelper.dispatch_or_error(@context) do
       Logger.info("[Enrollment.CancelByAdmin] Enrollment cancelled by admin",
         enrollment_id: enrollment_id,
         admin_id: admin_id
