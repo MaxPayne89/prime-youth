@@ -47,7 +47,10 @@ defmodule KlassHero.Enrollment do
       KlassHero.Family,
       KlassHero.Shared
     ],
-    exports: []
+    exports: [
+      # Pragmatic export: Backpex admin operates directly on Ecto schemas
+      Adapters.Driven.Persistence.Schemas.EnrollmentSchema
+    ]
 
   alias KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin
   alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
