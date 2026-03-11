@@ -31,4 +31,15 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteInteg
       invite_id: event.payload.invite_id
     )
   end
+
+  def handle(%DomainEvent{event_type: :enrollment_cancelled} = event) do
+    # Trigger: enrollment_cancelled domain event dispatched from CancelEnrollmentByAdmin use case
+    # Why: downstream contexts may react to cancellations (e.g., notifications, analytics)
+    # Outcome: publish integration event on topic integration:enrollment:enrollment_cancelled
+    event.payload.enrollment_id
+    |> EnrollmentIntegrationEvents.enrollment_cancelled(event.payload)
+    |> IntegrationEventPublishing.publish_critical("enrollment_cancelled",
+      enrollment_id: event.payload.enrollment_id
+    )
+  end
 end

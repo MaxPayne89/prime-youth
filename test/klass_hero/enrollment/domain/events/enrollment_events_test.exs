@@ -158,4 +158,52 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEventsTest do
                    end
     end
   end
+
+  describe "enrollment_cancelled/3" do
+    test "creates event with correct type and aggregate" do
+      enrollment_id = Ecto.UUID.generate()
+
+      payload = %{
+        enrollment_id: enrollment_id,
+        program_id: Ecto.UUID.generate(),
+        child_id: Ecto.UUID.generate(),
+        parent_id: Ecto.UUID.generate(),
+        admin_id: Ecto.UUID.generate(),
+        reason: "Duplicate booking",
+        cancelled_at: DateTime.utc_now()
+      }
+
+      event = EnrollmentEvents.enrollment_cancelled(enrollment_id, payload)
+
+      assert %DomainEvent{} = event
+      assert event.event_type == :enrollment_cancelled
+      assert event.aggregate_id == enrollment_id
+      assert event.aggregate_type == :enrollment
+      assert event.payload.enrollment_id == enrollment_id
+      assert event.payload.admin_id == payload.admin_id
+      assert event.payload.reason == "Duplicate booking"
+    end
+
+    test "base_payload enrollment_id wins over caller-supplied enrollment_id" do
+      real_id = Ecto.UUID.generate()
+      conflicting_payload = %{enrollment_id: "should-be-overridden", extra: "data"}
+
+      event = EnrollmentEvents.enrollment_cancelled(real_id, conflicting_payload)
+
+      assert event.payload.enrollment_id == real_id
+      assert event.payload.extra == "data"
+    end
+
+    test "raises for nil enrollment_id" do
+      assert_raise ArgumentError,
+                   ~r/requires a non-empty enrollment_id string/,
+                   fn -> EnrollmentEvents.enrollment_cancelled(nil, %{}) end
+    end
+
+    test "raises for empty string enrollment_id" do
+      assert_raise ArgumentError,
+                   ~r/requires a non-empty enrollment_id string/,
+                   fn -> EnrollmentEvents.enrollment_cancelled("", %{}) end
+    end
+  end
 end

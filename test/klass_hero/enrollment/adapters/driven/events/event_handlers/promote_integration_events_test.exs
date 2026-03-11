@@ -43,6 +43,42 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteInteg
     end
   end
 
+  describe "handle/1 — :enrollment_cancelled" do
+    test "promotes to enrollment_cancelled integration event" do
+      enrollment_id = Ecto.UUID.generate()
+      admin_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:enrollment_cancelled, enrollment_id, :enrollment, %{
+          enrollment_id: enrollment_id,
+          admin_id: admin_id,
+          reason: "Duplicate booking"
+        })
+
+      assert :ok = PromoteIntegrationEvents.handle(domain_event)
+
+      event = assert_integration_event_published(:enrollment_cancelled)
+      assert event.entity_id == enrollment_id
+      assert event.source_context == :enrollment
+      assert event.entity_type == :enrollment
+      assert event.payload.enrollment_id == enrollment_id
+      assert event.payload.admin_id == admin_id
+    end
+
+    test "propagates publish failures as {:error, reason}" do
+      enrollment_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:enrollment_cancelled, enrollment_id, :enrollment, %{
+          enrollment_id: enrollment_id
+        })
+
+      TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)
+
+      assert {:error, :pubsub_down} = PromoteIntegrationEvents.handle(domain_event)
+    end
+  end
+
   describe "handle/1 — :invite_claimed" do
     test "promotes to invite_claimed integration event" do
       invite_id = Ecto.UUID.generate()

@@ -11,6 +11,7 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForManagingEnrollments do
   - `get_by_id/1` - Returns `{:ok, Enrollment.t()}` or `{:error, :not_found}`
   - `list_by_parent/1` - Returns list of Enrollment.t() (empty list if none)
   - `count_monthly_bookings/3` - Returns non_neg_integer()
+  - `update/2` - Returns `{:ok, Enrollment.t()}` or `{:error, :not_found | changeset}`
 
   Infrastructure errors (connection, query) are not caught - they crash and
   are handled by the supervision tree.
@@ -106,4 +107,15 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForManagingEnrollments do
   Returns list of Enrollment.t(), ordered by enrolled_at descending.
   """
   @callback list_by_program(program_id :: binary()) :: [Enrollment.t()]
+
+  @doc """
+  Updates an existing enrollment by ID.
+
+  Returns:
+  - `{:ok, Enrollment.t()}` - Enrollment updated successfully
+  - `{:error, :not_found}` - No enrollment exists with the given ID
+  - `{:error, changeset}` - Validation failure
+  """
+  @callback update(id :: binary(), attrs :: map()) ::
+              {:ok, Enrollment.t()} | {:error, :not_found | term()}
 end

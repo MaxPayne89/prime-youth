@@ -47,8 +47,12 @@ defmodule KlassHero.Enrollment do
       KlassHero.Family,
       KlassHero.Shared
     ],
-    exports: []
+    exports: [
+      # Pragmatic export: Backpex admin operates directly on Ecto schemas
+      Adapters.Driven.Persistence.Schemas.EnrollmentSchema
+    ]
 
+  alias KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin
   alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
   alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
   alias KlassHero.Enrollment.Application.UseCases.ClaimInvite
@@ -118,6 +122,31 @@ defmodule KlassHero.Enrollment do
   """
   def get_enrollment(id) when is_binary(id) do
     GetEnrollment.execute(id)
+  end
+
+  @doc """
+  Cancels an enrollment by admin action.
+
+  Enforces domain lifecycle guards (only pending/confirmed can be cancelled),
+  persists the status change, and dispatches an enrollment_cancelled domain event.
+
+  ## Parameters
+
+  - `enrollment_id` — UUID of the enrollment
+  - `admin_id` — UUID of the admin performing the cancellation
+  - `reason` — human-readable cancellation reason
+
+  ## Returns
+
+  - `{:ok, Enrollment.t()}` — cancellation succeeded
+  - `{:error, :not_found}` — enrollment does not exist
+  - `{:error, :invalid_status_transition}` — enrollment is completed or already cancelled
+  - `{:error, :invalid_reason}` — reason is empty
+  """
+  def cancel_enrollment_by_admin(enrollment_id, admin_id, reason)
+      when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) and
+             byte_size(reason) > 0 do
+    CancelEnrollmentByAdmin.execute(enrollment_id, admin_id, reason)
   end
 
   @doc """
