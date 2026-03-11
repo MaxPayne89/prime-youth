@@ -65,8 +65,8 @@ asdf install
 ```
 
 This installs:
-- Erlang 28.3
-- Elixir 1.20.0-rc.1-otp-28
+- Erlang 28.4
+- Elixir 1.20.0-rc.3-otp-28
 
 **3. Start PostgreSQL:**
 
