@@ -186,21 +186,10 @@ defmodule KlassHero.Shared.DomainEventBus do
   defp execute_handlers([], _event), do: :ok
 
   defp execute_handlers(entries, event) do
-    # Trigger: entries may have mixed priorities
-    # Why: sort by priority so lower numbers execute first; stable sort preserves
-    #      registration order for entries with the same priority
-    # Outcome: handlers execute in deterministic priority order
-    sorted =
-      entries
-      |> Enum.with_index()
-      |> Enum.sort_by(fn {{_fn, opts, _identity}, index} ->
-        {Keyword.get(opts, :priority, @default_priority), index}
-      end)
-      |> Enum.map(fn {{handler_fn, _opts, _identity}, _index} -> handler_fn end)
-
     failures =
-      sorted
-      |> Enum.map(&safe_call(&1, event))
+      entries
+      |> sort_by_priority()
+      |> Enum.map(fn {{handler_fn, _opts, _identity}, _index} -> safe_call(handler_fn, event) end)
       |> Enum.filter(&match?({:error, _}, &1))
 
     if failures == [], do: :ok, else: {:error, failures}
@@ -209,15 +198,22 @@ defmodule KlassHero.Shared.DomainEventBus do
   defp execute_handlers_with_identity([], _event), do: []
 
   defp execute_handlers_with_identity(entries, event) do
-    sorted =
-      entries
-      |> Enum.with_index()
-      |> Enum.sort_by(fn {{_fn, opts, _identity}, index} ->
-        {Keyword.get(opts, :priority, @default_priority), index}
-      end)
-
-    Enum.map(sorted, fn {{handler_fn, _opts, identity}, _index} ->
+    entries
+    |> sort_by_priority()
+    |> Enum.map(fn {{handler_fn, _opts, identity}, _index} ->
       {identity, safe_call(handler_fn, event)}
+    end)
+  end
+
+  # Trigger: entries may have mixed priorities
+  # Why: sort by priority so lower numbers execute first; stable sort preserves
+  #      registration order for entries with the same priority
+  # Outcome: handlers execute in deterministic priority order
+  defp sort_by_priority(entries) do
+    entries
+    |> Enum.with_index()
+    |> Enum.sort_by(fn {{_fn, opts, _identity}, index} ->
+      {Keyword.get(opts, :priority, @default_priority), index}
     end)
   end
 

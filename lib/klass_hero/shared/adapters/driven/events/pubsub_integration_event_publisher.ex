@@ -120,21 +120,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
           CriticalEventSerializer.serialize(event)
           |> Map.put("handler", handler_ref)
 
-        case Oban.insert(CriticalEventWorker.new(args)) do
-          {:ok, _job} ->
-            Logger.debug(
-              "Enqueued critical integration event job: #{event.event_type} → #{handler_ref}",
-              event_id: event.event_id,
-              handler: handler_ref
-            )
-
-          {:error, reason} ->
-            Logger.error(
-              "Failed to enqueue critical integration event job: #{event.event_type} → #{handler_ref}",
-              event_id: event.event_id,
-              reason: inspect(reason)
-            )
-        end
+        CriticalEventWorker.insert_job(args)
       end)
     end
   end

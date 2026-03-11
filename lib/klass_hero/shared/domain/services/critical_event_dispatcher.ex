@@ -33,6 +33,18 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   end
 
   @doc """
+  Reconstitutes a `{module, function}` tuple from a handler ref string.
+
+  Inverse of `handler_ref/1`. Uses `String.to_existing_atom/1` — safe because
+  handler modules are loaded at boot via the supervision tree.
+  """
+  @spec parse_handler_ref(String.t()) :: {module(), atom()}
+  def parse_handler_ref(handler_ref_str) when is_binary(handler_ref_str) do
+    [module_str, function_str] = String.split(handler_ref_str, ":")
+    {String.to_existing_atom(module_str), String.to_existing_atom(function_str)}
+  end
+
+  @doc """
   Executes a handler exactly once for a given event-handler pair.
 
   Uses a database transaction to atomically:

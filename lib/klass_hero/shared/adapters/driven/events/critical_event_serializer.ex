@@ -11,13 +11,16 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer do
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
+  @domain_kind "domain"
+  @integration_kind "integration"
+
   @doc """
   Serializes an event struct into a JSON-safe map.
   """
   @spec serialize(DomainEvent.t() | IntegrationEvent.t()) :: map()
   def serialize(%DomainEvent{} = event) do
     %{
-      "event_kind" => "domain",
+      "event_kind" => @domain_kind,
       "event_id" => event.event_id,
       "event_type" => Atom.to_string(event.event_type),
       "aggregate_id" => event.aggregate_id,
@@ -30,7 +33,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer do
 
   def serialize(%IntegrationEvent{} = event) do
     %{
-      "event_kind" => "integration",
+      "event_kind" => @integration_kind,
       "event_id" => event.event_id,
       "event_type" => Atom.to_string(event.event_type),
       "source_context" => Atom.to_string(event.source_context),
@@ -50,7 +53,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer do
   are atomized recursively.
   """
   @spec deserialize(map()) :: DomainEvent.t() | IntegrationEvent.t()
-  def deserialize(%{"event_kind" => "domain"} = data) do
+  def deserialize(%{"event_kind" => @domain_kind} = data) do
     %DomainEvent{
       event_id: data["event_id"],
       event_type: to_existing_atom(data["event_type"]),
@@ -62,7 +65,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer do
     }
   end
 
-  def deserialize(%{"event_kind" => "integration"} = data) do
+  def deserialize(%{"event_kind" => @integration_kind} = data) do
     %IntegrationEvent{
       event_id: data["event_id"],
       event_type: to_existing_atom(data["event_type"]),

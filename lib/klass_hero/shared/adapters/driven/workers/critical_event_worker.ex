@@ -19,10 +19,40 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker do
 
   require Logger
 
+  @doc """
+  Inserts a critical event job and logs the outcome.
+
+  Callers build the args map (serialized event + "handler" key); this function
+  handles `Oban.insert/1` and consistent success/error logging.
+  """
+  @spec insert_job(map()) :: {:ok, Oban.Job.t()} | {:error, term()}
+  def insert_job(args) when is_map(args) do
+    event_type = args["event_type"]
+    handler = args["handler"]
+
+    case Oban.insert(new(args)) do
+      {:ok, _job} = ok ->
+        Logger.debug("Enqueued critical event job: #{event_type} → #{handler}",
+          event_id: args["event_id"],
+          handler: handler
+        )
+
+        ok
+
+      {:error, reason} = error ->
+        Logger.error("Failed to enqueue critical event job: #{event_type} → #{handler}",
+          event_id: args["event_id"],
+          reason: inspect(reason)
+        )
+
+        error
+    end
+  end
+
   @impl Oban.Worker
   def perform(%Oban.Job{args: args, attempt: attempt, max_attempts: max_attempts}) do
     handler_ref_str = Map.fetch!(args, "handler")
-    {module, function} = parse_handler_ref(handler_ref_str)
+    {module, function} = CriticalEventDispatcher.parse_handler_ref(handler_ref_str)
     event = CriticalEventSerializer.deserialize(args)
 
     result =
@@ -50,14 +80,5 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker do
       _ ->
         result
     end
-  end
-
-  # Trigger: handler ref stored as "Elixir.Module.Name:function" string
-  # Why: Oban args are JSON — can't store module/function atoms directly
-  # Outcome: reconstitute {module, function} tuple using existing atoms (safe
-  #          because handler modules are loaded at boot via supervision tree)
-  defp parse_handler_ref(handler_ref_str) do
-    [module_str, function_str] = String.split(handler_ref_str, ":")
-    {String.to_existing_atom(module_str), String.to_existing_atom(function_str)}
   end
 end

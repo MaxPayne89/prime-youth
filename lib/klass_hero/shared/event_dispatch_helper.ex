@@ -90,7 +90,7 @@ defmodule KlassHero.Shared.EventDispatchHelper do
         CriticalEventDispatcher.mark_processed(event.event_id, ref)
 
       {identity, {:error, _reason}} when identity != :anonymous ->
-        enqueue_critical_retry(event, identity, context)
+        enqueue_critical_retry(event, identity)
 
       # Trigger: anonymous handlers (runtime-subscribed lambdas) have no identity
       # Why: can't serialize anonymous functions for Oban — no retry possible
@@ -116,32 +116,14 @@ defmodule KlassHero.Shared.EventDispatchHelper do
     end
   end
 
-  defp enqueue_critical_retry(%DomainEvent{} = event, {module, function}, context) do
+  defp enqueue_critical_retry(%DomainEvent{} = event, {module, function}) do
     handler_ref = CriticalEventDispatcher.handler_ref({module, function})
 
     args =
       CriticalEventSerializer.serialize(event)
-      |> Map.merge(%{
-        "handler" => handler_ref,
-        "context" => inspect(context)
-      })
+      |> Map.put("handler", handler_ref)
 
-    case Oban.insert(CriticalEventWorker.new(args)) do
-      {:ok, _job} ->
-        Logger.info(
-          "Enqueued critical event retry: event_type=#{event.event_type} handler=#{handler_ref}",
-          event_id: event.event_id,
-          event_type: event.event_type,
-          handler: handler_ref
-        )
-
-      {:error, reason} ->
-        Logger.error(
-          "Failed to enqueue critical event retry: event_type=#{event.event_type} handler=#{handler_ref}",
-          event_id: event.event_id,
-          reason: inspect(reason)
-        )
-    end
+    CriticalEventWorker.insert_job(args)
   end
 
   # Trigger: critical events (e.g. GDPR anonymization) fail to dispatch
