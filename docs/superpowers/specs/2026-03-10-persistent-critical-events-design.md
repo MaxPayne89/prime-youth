@@ -33,7 +33,7 @@ All components use a single canonical format for handler references:
 "Elixir.KlassHero.Some.Module:handle_event"
 ```
 
-Derived from `{module, function}` tuples as: `"#{inspect(module)}:#{function}"`.
+Derived from `{module, function}` tuples as: `"#{Atom.to_string(module)}:#{function}"`.
 
 This format is used consistently in:
 - `processed_events` table rows

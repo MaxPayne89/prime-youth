@@ -63,10 +63,11 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   3. If handler succeeds, commits — row persists as proof of processing
   4. If handler fails or crashes, rolls back — row removed, allowing retry
 
-  Returns `:ok` if the handler ran successfully or was already processed.
+  Returns `:ok` if the handler ran successfully, returned `:ignore`, or was already processed.
   Returns `{:error, reason}` if the handler failed (row is rolled back).
   """
-  @spec execute(String.t(), String.t(), (-> :ok | {:error, term()})) :: :ok | {:error, term()}
+  @spec execute(String.t(), String.t(), (-> :ok | :ignore | {:error, term()})) ::
+          :ok | {:error, term()}
   def execute(event_id, handler_ref, handler_fn)
       when is_binary(event_id) and is_binary(handler_ref) and is_function(handler_fn, 0) do
     @processed_events.execute_atomically(event_id, handler_ref, handler_fn)

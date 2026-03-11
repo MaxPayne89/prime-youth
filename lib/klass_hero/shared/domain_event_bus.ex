@@ -123,7 +123,7 @@ defmodule KlassHero.Shared.DomainEventBus do
   or `:anonymous` for runtime lambda subscriptions.
   """
   @spec dispatch_critical(module(), DomainEvent.t()) ::
-          {:ok, [{{module(), atom()} | :anonymous, :ok | {:error, term()}}]}
+          {:ok, list({{module(), atom()} | :anonymous, :ok | {:error, term()}})}
   def dispatch_critical(context, %DomainEvent{event_type: event_type} = event) do
     handlers = GenServer.call(process_name(context), {:get_handlers, event_type})
 
