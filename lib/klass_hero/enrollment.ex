@@ -304,6 +304,38 @@ defmodule KlassHero.Enrollment do
   end
 
   @doc """
+  Returns enrollment summary (enrolled count + total capacity) for multiple programs
+  using only 2 DB queries. Returns a map of `program_id => %{enrolled: integer, capacity: integer | nil}`.
+
+  Use this instead of calling `get_remaining_capacities/1` and `count_active_enrollments_batch/1`
+  separately — doing so would issue 3 DB queries for the same data.
+  """
+  def get_enrollment_summary_batch(program_ids) when is_list(program_ids) do
+    alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
+
+    policies = @policy_repo.get_policies_by_program_ids(program_ids)
+    active_counts = @policy_repo.count_active_enrollments_batch(program_ids)
+
+    Map.new(program_ids, fn id ->
+      active = Map.get(active_counts, id, 0)
+
+      capacity =
+        case Map.get(policies, id) do
+          nil ->
+            nil
+
+          policy ->
+            case EnrollmentPolicy.remaining_capacity(policy, active) do
+              :unlimited -> nil
+              remaining -> active + remaining
+            end
+        end
+
+      {id, %{enrolled: active, capacity: capacity}}
+    end)
+  end
+
+  @doc """
   Returns a changeset for enrollment policy form validation.
 
   Used by the provider dashboard to validate capacity fields inline
