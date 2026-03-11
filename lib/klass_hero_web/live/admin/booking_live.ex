@@ -82,11 +82,13 @@ defmodule KlassHeroWeb.Admin.BookingLive do
         only: [:index, :show],
         render: fn assigns ->
           ~H"""
-          <%= if @value do %>
-            {@value.first_name} {@value.last_name}
-          <% else %>
-            <span class="text-gray-400 italic">Deleted</span>
-          <% end %>
+          <span>
+            <%= if @value do %>
+              {@value.first_name} {@value.last_name}
+            <% else %>
+              <span class="text-gray-400 italic">Deleted</span>
+            <% end %>
+          </span>
           """
         end
       },
@@ -118,11 +120,13 @@ defmodule KlassHeroWeb.Admin.BookingLive do
         orderable: true,
         render: fn assigns ->
           ~H"""
-          <%= if @value do %>
-            &euro;{Decimal.round(@value, 2)}
-          <% else %>
-            &mdash;
-          <% end %>
+          <span>
+            <%= if @value do %>
+              &euro;{Decimal.round(@value, 2)}
+            <% else %>
+              &mdash;
+            <% end %>
+          </span>
           """
         end
       },
@@ -132,7 +136,7 @@ defmodule KlassHeroWeb.Admin.BookingLive do
         only: [:show],
         render: fn assigns ->
           ~H"""
-          {String.capitalize(@value || "—")}
+          <span>{String.capitalize(@value || "—")}</span>
           """
         end
       },
