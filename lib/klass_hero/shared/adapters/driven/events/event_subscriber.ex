@@ -121,7 +121,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriber do
 
   defp handle_event_safely(event, %{handler: handler, event_label: label}) do
     # Trigger: integration event may be marked critical
-    # Why: critical events need exactly-once processing via processed_events gate
+    # Why: critical events need idempotent processing via processed_events gate
     # Outcome: critical events go through CriticalEventDispatcher, normal events
     #          are handled directly as before
     if critical_integration_event?(event) do

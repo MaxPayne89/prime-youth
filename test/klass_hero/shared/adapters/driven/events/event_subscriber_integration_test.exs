@@ -430,6 +430,39 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
       assert Repo.get_by(ProcessedEvent, event_id: event.event_id, handler_ref: handler_ref)
     end
 
+    test "subscriber stays alive and no processed row when critical handler fails" do
+      handler = KlassHero.Test.CriticalFailingTestHandler
+
+      {:ok, pid} =
+        EventSubscriber.start_link(
+          handler: handler,
+          topics: ["integration:test:critical_test_event"],
+          message_tag: :integration_event,
+          event_label: "Integration event",
+          name: :"critical_fail_sub_#{System.unique_integer([:positive])}"
+        )
+
+      Ecto.Adapters.SQL.Sandbox.allow(KlassHero.Repo, self(), pid)
+
+      event =
+        IntegrationEvent.new(:critical_test_event, :test, :entity, "ent-fail", %{},
+          criticality: :critical
+        )
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:test:critical_test_event",
+        {:integration_event, event}
+      )
+
+      Process.sleep(100)
+
+      # Handler failed → transaction rolled back → no processed_events row
+      assert [] == Repo.all(ProcessedEvent)
+      # Subscriber GenServer stays alive after handler failure
+      assert Process.alive?(pid)
+    end
+
     test "normal integration events bypass CriticalEventDispatcher" do
       handler = KlassHero.Test.CriticalTestHandler
 

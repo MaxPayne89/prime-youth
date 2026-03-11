@@ -40,8 +40,15 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   """
   @spec parse_handler_ref(String.t()) :: {module(), atom()}
   def parse_handler_ref(handler_ref_str) when is_binary(handler_ref_str) do
-    [module_str, function_str] = String.split(handler_ref_str, ":")
-    {String.to_existing_atom(module_str), String.to_existing_atom(function_str)}
+    case String.split(handler_ref_str, ":") do
+      [module_str, function_str] ->
+        {String.to_existing_atom(module_str), String.to_existing_atom(function_str)}
+
+      _other ->
+        raise ArgumentError,
+              "Invalid handler_ref format: #{inspect(handler_ref_str)}. " <>
+                "Expected \"Elixir.Module.Name:function_name\"."
+    end
   end
 
   @doc """

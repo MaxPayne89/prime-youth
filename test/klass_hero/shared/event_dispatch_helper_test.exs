@@ -177,6 +177,26 @@ defmodule KlassHero.Shared.EventDispatchHelperTest do
     end
   end
 
+  describe "dispatch_or_error/2 with normal events" do
+    test "returns :ok when handler succeeds" do
+      DomainEventBus.subscribe(@context, :normal_or_error, fn _event -> :ok end)
+
+      event = build_event(:normal_or_error)
+
+      assert :ok = EventDispatchHelper.dispatch_or_error(event, @context)
+    end
+
+    test "returns {:error, reason} when handler fails" do
+      DomainEventBus.subscribe(@context, :normal_or_error_fail, fn _event ->
+        {:error, :handler_failed}
+      end)
+
+      event = build_event(:normal_or_error_fail)
+
+      assert {:error, _reason} = EventDispatchHelper.dispatch_or_error(event, @context)
+    end
+  end
+
   defp build_event(type, opts \\ []) do
     DomainEvent.new(type, 1, :test, %{}, opts)
   end

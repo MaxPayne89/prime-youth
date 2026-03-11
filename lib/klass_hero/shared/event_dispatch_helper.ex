@@ -52,9 +52,10 @@ defmodule KlassHero.Shared.EventDispatchHelper do
   when any handler fails — useful in `with` chains where dispatch failure must
   halt the pipeline.
 
-  For critical events, this does NOT enqueue Oban jobs. The caller owns error
-  handling — they receive `{:error, reason}` and can roll back their own
-  transaction. Enqueueing a retry would conflict with the caller's rollback.
+  For critical events, this does NOT enqueue Oban jobs or mark handlers as
+  processed. The caller owns error handling — they receive `{:error, reason}`
+  and can roll back their own transaction. Enqueueing a retry or writing a
+  processed_events row would conflict with the caller's rollback.
 
       FamilyEvents.invite_family_ready(invite_id, payload)
       |> EventDispatchHelper.dispatch_or_error(KlassHero.Family)

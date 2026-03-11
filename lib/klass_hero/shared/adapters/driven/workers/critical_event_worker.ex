@@ -5,9 +5,11 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker do
   Deserializes the event from job args, reconstitutes the handler function,
   and dispatches through `CriticalEventDispatcher` for exactly-once execution.
 
-  Used as a fallback when:
-  - A critical domain event's handler failed during synchronous dispatch
-  - A critical integration event needs durable delivery alongside PubSub
+  Used in two modes:
+  - **Domain events**: enqueued only when a handler fails during synchronous
+    dispatch (retry on failure)
+  - **Integration events**: always enqueued alongside PubSub for durable
+    delivery (belt-and-suspenders, idempotency gate prevents double execution)
   """
 
   use Oban.Worker,

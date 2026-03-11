@@ -79,6 +79,17 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer do
     }
   end
 
+  def deserialize(%{"event_kind" => kind}) do
+    raise ArgumentError,
+          "Unknown event_kind #{inspect(kind)} in critical event job args. " <>
+            ~s(Expected "domain" or "integration".)
+  end
+
+  def deserialize(data) when is_map(data) do
+    raise ArgumentError,
+          "Missing event_kind in critical event job args: #{inspect(Map.keys(data))}"
+  end
+
   # -- Key conversion helpers --
 
   defp stringify_keys(map) when is_map(map) do
