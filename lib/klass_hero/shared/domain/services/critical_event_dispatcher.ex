@@ -13,6 +13,8 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.Schemas.ProcessedEvent
 
+  require Logger
+
   @doc """
   Derives the canonical handler reference string from a `{module, function}` tuple.
 
@@ -97,6 +99,20 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   def mark_processed(event_id, handler_ref) when is_binary(event_id) and is_binary(handler_ref) do
     insert_processed_event(event_id, handler_ref)
     :ok
+  rescue
+    error ->
+      # Trigger: DB failure (timeout, connection error) when marking event as processed
+      # Why: handler already succeeded — crashing would propagate a false failure to callers;
+      #      the Oban fallback will re-execute but idempotent handlers tolerate this
+      # Outcome: log the DB error for operator awareness, return :ok to avoid disrupting the caller
+      Logger.error(
+        "Failed to mark event as processed: #{Exception.message(error)}",
+        event_id: event_id,
+        handler_ref: handler_ref,
+        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+      )
+
+      :ok
   end
 
   defp insert_processed_event(event_id, handler_ref) do
@@ -118,10 +134,18 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   defp run_handler(handler_fn) do
     case handler_fn.() do
       :ok -> :ok
+      :ignore -> :ok
       {:error, reason} -> Repo.rollback({:handler_failed, reason})
     end
   rescue
     error ->
+      # Trigger: handler raised an exception inside the transaction
+      # Why: Repo.rollback loses the original stacktrace — log it now for debugging
+      # Outcome: operators see the crash cause in logs before the transaction rolls back
+      Logger.error("Critical event handler crashed: #{Exception.message(error)}",
+        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+      )
+
       Repo.rollback({:handler_crashed, error})
   end
 
@@ -131,4 +155,6 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
 
   defp unwrap_transaction_result({:error, {:handler_crashed, error}}),
     do: {:error, {:handler_crashed, error}}
+
+  defp unwrap_transaction_result({:error, reason}), do: {:error, reason}
 end

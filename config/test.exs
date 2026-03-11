@@ -13,26 +13,16 @@ config :klass_hero, KlassHero.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
+# We don't run a server during test
 config :klass_hero, KlassHeroWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "gY/oKuAYeC5ExhHrtu1JBwrpQdoGwtPOo3X9GdS7CFOnLe0eqRQ9w4cyV1MqvoYc",
-  # Oban: disable in tests, use inline testing mode
-  # Use test event publisher for testing
-  # Critical event handlers — same as production for integration testing
-  # Oban runs inline in tests, so these handlers execute synchronously
   server: false
 
+# Oban runs inline in tests so critical event handlers execute synchronously
 config :klass_hero, Oban, testing: :inline
 
-config :klass_hero, :critical_event_handlers, %{
-  "integration:enrollment:invite_claimed" => [
-    {KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler, :handle_event}
-  ],
-  "integration:family:invite_family_ready" => [
-    {KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler, :handle_event}
-  ]
-}
-
+# Use test event publishers for testing
 config :klass_hero, :event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher,
   pubsub: KlassHero.PubSub
@@ -63,21 +53,13 @@ config :klass_hero, start_projections: false
 # Print only warnings and errors during test
 config :logger, level: :warning
 
-# Initialize plugs at runtime for faster test compilation
-# Enable helpful, but potentially expensive runtime checks
-
 # OpenTelemetry: disable tracing in tests for performance
-#
-# Configure your database
 config :opentelemetry, traces_exporter: :none
-# to provide built-in test partitioning in CI environment.
-# In test we don't send emails
-# Run `mix help test` for more information.
-# The MIX_TEST_PARTITION environment variable can be used
-# We don't run a server during test. If one is required,
-# you can enable the server option below.
+
+# Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
 
+# Enable helpful, but potentially expensive runtime checks
 config :phoenix_live_view,
   enable_expensive_runtime_checks: true
 

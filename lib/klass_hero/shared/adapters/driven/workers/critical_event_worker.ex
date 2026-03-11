@@ -62,10 +62,13 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker do
         apply(module, function, [event])
       end)
 
-    # Trigger: all retry attempts exhausted and handler still failing
-    # Why: critical events that permanently fail need operator attention
-    # Outcome: error-level log with full context for ErrorTracker alerting
     case result do
+      :ok ->
+        :ok
+
+      # Trigger: all retry attempts exhausted and handler still failing
+      # Why: critical events that permanently fail need operator attention
+      # Outcome: error-level log with full context for ErrorTracker alerting
       {:error, reason} when attempt >= max_attempts ->
         Logger.error(
           "Critical event permanently failed after #{max_attempts} attempts: " <>
@@ -74,12 +77,27 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker do
           event_type: args["event_type"],
           handler: handler_ref_str,
           reason: inspect(reason),
-          attempt: attempt
+          attempt: attempt,
+          max_attempts: max_attempts
         )
 
         result
 
-      _ ->
+      # Trigger: handler failed but retries remain
+      # Why: early warning lets operators investigate before all attempts are exhausted
+      # Outcome: warning-level log — does not trigger ErrorTracker alerts by default
+      {:error, reason} ->
+        Logger.warning(
+          "Critical event handler failed (attempt #{attempt}/#{max_attempts}): " <>
+            "event_type=#{args["event_type"]} handler=#{handler_ref_str}",
+          event_id: args["event_id"],
+          event_type: args["event_type"],
+          handler: handler_ref_str,
+          reason: inspect(reason),
+          attempt: attempt,
+          max_attempts: max_attempts
+        )
+
         result
     end
   end

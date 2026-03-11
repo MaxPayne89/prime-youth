@@ -124,7 +124,18 @@ defmodule KlassHero.Shared.EventDispatchHelper do
       CriticalEventSerializer.serialize(event)
       |> Map.put("handler", handler_ref)
 
-    CriticalEventWorker.insert_job(args)
+    case CriticalEventWorker.insert_job(args) do
+      {:ok, _job} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.error(
+          "Failed to enqueue critical event retry: event_type=#{event.event_type} handler=#{handler_ref}",
+          event_id: event.event_id,
+          handler_ref: handler_ref,
+          reason: inspect(reason)
+        )
+    end
   end
 
   # Trigger: critical events (e.g. GDPR anonymization) fail to dispatch

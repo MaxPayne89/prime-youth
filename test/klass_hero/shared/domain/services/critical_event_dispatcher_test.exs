@@ -1,6 +1,8 @@
 defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcherTest do
   use KlassHero.DataCase, async: true
 
+  import ExUnit.CaptureLog
+
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.Schemas.ProcessedEvent
   alias KlassHero.Shared.Domain.Services.CriticalEventDispatcher
@@ -91,6 +93,34 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcherTest do
       refute Repo.get_by(ProcessedEvent, event_id: event_id, handler_ref: handler_ref)
     end
 
+    test "treats :ignore return as success" do
+      event_id = Ecto.UUID.generate()
+      handler_ref = "Elixir.TestModule:handle"
+
+      result =
+        CriticalEventDispatcher.execute(event_id, handler_ref, fn ->
+          :ignore
+        end)
+
+      assert result == :ok
+      assert Repo.get_by(ProcessedEvent, event_id: event_id, handler_ref: handler_ref)
+    end
+
+    test "logs crash with stacktrace before rolling back" do
+      event_id = Ecto.UUID.generate()
+      handler_ref = "Elixir.TestModule:handle"
+
+      log =
+        capture_log([level: :error], fn ->
+          CriticalEventDispatcher.execute(event_id, handler_ref, fn ->
+            raise "kaboom"
+          end)
+        end)
+
+      assert log =~ "Critical event handler crashed"
+      assert log =~ "kaboom"
+    end
+
     test "allows retry after failure (row was rolled back)" do
       event_id = Ecto.UUID.generate()
       handler_ref = "Elixir.TestModule:handle"
@@ -111,6 +141,32 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcherTest do
 
       assert_received :retry_succeeded
       assert Repo.get_by(ProcessedEvent, event_id: event_id, handler_ref: handler_ref)
+    end
+  end
+
+  describe "parse_handler_ref/1" do
+    test "round-trips with handler_ref/1" do
+      original = {MyApp.SomeHandler, :handle_event}
+      ref_str = CriticalEventDispatcher.handler_ref(original)
+      assert CriticalEventDispatcher.parse_handler_ref(ref_str) == original
+    end
+
+    test "raises ArgumentError on missing colon" do
+      assert_raise ArgumentError, ~r/Invalid handler_ref format/, fn ->
+        CriticalEventDispatcher.parse_handler_ref("NoColonHere")
+      end
+    end
+
+    test "raises ArgumentError on multiple colons" do
+      assert_raise ArgumentError, ~r/Invalid handler_ref format/, fn ->
+        CriticalEventDispatcher.parse_handler_ref("Elixir.Mod:func:extra")
+      end
+    end
+
+    test "raises ArgumentError on non-existent atom" do
+      assert_raise ArgumentError, fn ->
+        CriticalEventDispatcher.parse_handler_ref("Elixir.NonExistentModule99999:handle")
+      end
     end
   end
 
