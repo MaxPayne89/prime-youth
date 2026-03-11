@@ -3,17 +3,19 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
   Factory module for creating Enrollment integration events.
 
   Integration events are the public contract between bounded contexts.
+  All event factories that accept a caller-supplied `payload` merge it with
+  a `base_payload` containing the canonical entity ID. `Map.merge/2` gives
+  second-argument priority, so the canonical ID always wins.
 
   ## Events
 
   - `:participant_policy_set` - Emitted when participant eligibility restrictions
     are created or updated. Downstream contexts can react (e.g., search indexing).
   - `:invite_claimed` - Emitted when a guardian claims an enrollment invite.
-    Downstream contexts (e.g. Family, Accounts) react to create profiles or
-    link existing users.
+    Downstream contexts can react to create profiles or link existing users.
   - `:enrollment_cancelled` - Emitted when an admin cancels an enrollment.
-    Downstream contexts (e.g. Messaging, Analytics) react to notify
-    affected parties or update reporting data.
+    Downstream contexts can react to notify affected parties or
+    update reporting data.
   """
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
@@ -27,6 +29,12 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
   @typedoc "Payload for `:invite_claimed` events."
   @type invite_claimed_payload :: %{
           required(:invite_id) => String.t(),
+          optional(atom()) => term()
+        }
+
+  @typedoc "Payload for `:enrollment_cancelled` events."
+  @type enrollment_cancelled_payload :: %{
+          required(:enrollment_id) => String.t(),
           optional(atom()) => term()
         }
 
@@ -44,9 +52,6 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
       @source_context,
       @entity_type,
       program_id,
-      # Trigger: caller may pass a conflicting :program_id in payload
-      # Why: base_payload contains the canonical program_id from the function argument
-      # Outcome: base_payload keys always win, preventing accidental overwrite
       Map.merge(payload, base_payload),
       opts
     )
@@ -85,9 +90,6 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
       # Outcome: hardcoded :invite ensures correct entity classification
       :invite,
       invite_id,
-      # Trigger: caller may pass a conflicting :invite_id in payload
-      # Why: base_payload contains the canonical invite_id from the function argument
-      # Outcome: base_payload keys always win, preventing accidental overwrite
       Map.merge(payload, base_payload),
       opts
     )
@@ -126,9 +128,6 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
       # Outcome: hardcoded :enrollment ensures correct entity classification
       :enrollment,
       enrollment_id,
-      # Trigger: caller may pass a conflicting :enrollment_id in payload
-      # Why: base_payload contains the canonical enrollment_id from the function argument
-      # Outcome: base_payload keys always win, preventing accidental overwrite
       Map.merge(payload, base_payload),
       opts
     )

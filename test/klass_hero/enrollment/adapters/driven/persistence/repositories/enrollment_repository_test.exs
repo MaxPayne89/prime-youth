@@ -309,6 +309,16 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
       assert {:error, :not_found} =
                EnrollmentRepository.update(Ecto.UUID.generate(), %{status: "cancelled"})
     end
+
+    test "returns changeset error for invalid status" do
+      schema = insert(:enrollment_schema, status: "pending")
+
+      assert {:error, changeset} =
+               EnrollmentRepository.update(schema.id, %{status: "bogus"})
+
+      assert %Ecto.Changeset{} = changeset
+      assert {"is invalid", _} = changeset.errors[:status]
+    end
   end
 
   describe "list_by_program/1" do

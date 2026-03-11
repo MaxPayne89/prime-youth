@@ -2,6 +2,10 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
   @moduledoc """
   Factory module for creating Enrollment domain events.
 
+  All event factories that accept a caller-supplied `payload` merge it with
+  a `base_payload` containing the canonical entity ID. `Map.merge/2` gives
+  second-argument priority, so the canonical ID always wins.
+
   ## Events
 
   - `:participant_policy_set` - Emitted when a provider creates or updates
@@ -10,6 +14,8 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
     enrollment invite records for one or more programs.
   - `:invite_claimed` - Emitted when a guardian clicks an invite link and
     claims the enrollment invitation.
+  - `:invite_resend_requested` - Emitted when a provider requests resending
+    an enrollment invite email.
   - `:enrollment_cancelled` - Emitted when an admin cancels an enrollment.
   """
 
@@ -27,9 +33,6 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
       :participant_policy_set,
       program_id,
       @aggregate_type,
-      # Trigger: caller may pass a conflicting :program_id in payload
-      # Why: base_payload contains the canonical program_id from the function argument
-      # Outcome: base_payload keys always win, preventing accidental overwrite
       Map.merge(payload, base_payload),
       opts
     )
@@ -119,9 +122,6 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
       :invite_claimed,
       invite_id,
       :invite,
-      # Trigger: caller may pass a conflicting :invite_id in payload
-      # Why: base_payload contains the canonical invite_id from the function argument
-      # Outcome: base_payload keys always win, preventing accidental overwrite
       Map.merge(payload, base_payload),
       opts
     )
@@ -151,9 +151,6 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
       :enrollment_cancelled,
       enrollment_id,
       @aggregate_type,
-      # Trigger: caller may pass a conflicting :enrollment_id in payload
-      # Why: base_payload contains the canonical enrollment_id from the function argument
-      # Outcome: base_payload keys always win, preventing accidental overwrite
       Map.merge(payload, base_payload),
       opts
     )
