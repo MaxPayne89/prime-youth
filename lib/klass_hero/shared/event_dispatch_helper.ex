@@ -10,8 +10,6 @@ defmodule KlassHero.Shared.EventDispatchHelper do
   For critical events, failed handlers are automatically retried via Oban.
   """
 
-  alias KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer
-  alias KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHero.Shared.Domain.Services.CriticalEventDispatcher
   alias KlassHero.Shared.DomainEventBus
@@ -117,18 +115,14 @@ defmodule KlassHero.Shared.EventDispatchHelper do
     end
   end
 
-  defp enqueue_critical_retry(%DomainEvent{} = event, {module, function}) do
-    handler_ref = CriticalEventDispatcher.handler_ref({module, function})
-
-    args =
-      CriticalEventSerializer.serialize(event)
-      |> Map.put("handler", handler_ref)
-
-    case CriticalEventWorker.insert_job(args) do
-      {:ok, _job} ->
+  defp enqueue_critical_retry(%DomainEvent{} = event, {_module, _function} = identity) do
+    case CriticalEventDispatcher.enqueue_retry(event, identity) do
+      :ok ->
         :ok
 
       {:error, reason} ->
+        handler_ref = CriticalEventDispatcher.handler_ref(identity)
+
         Logger.error(
           "Failed to enqueue critical event retry: event_type=#{event.event_type} handler=#{handler_ref}",
           event_id: event.event_id,

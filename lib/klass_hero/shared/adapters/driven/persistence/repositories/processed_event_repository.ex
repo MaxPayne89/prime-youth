@@ -1,0 +1,115 @@
+defmodule KlassHero.Shared.Adapters.Driven.Persistence.Repositories.ProcessedEventRepository do
+  @moduledoc """
+  Ecto/PostgreSQL implementation of `ForTrackingProcessedEvents`.
+
+  Manages the `processed_events` table and provides the transactional
+  atomicity guarantees for exactly-once event handler execution.
+  """
+
+  @behaviour KlassHero.Shared.Domain.Ports.ForTrackingProcessedEvents
+
+  alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer
+  alias KlassHero.Shared.Adapters.Driven.Persistence.Schemas.ProcessedEvent
+  alias KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker
+
+  require Logger
+
+  @impl true
+  def execute_atomically(event_id, handler_ref, handler_fn)
+      when is_binary(event_id) and is_binary(handler_ref) and is_function(handler_fn, 0) do
+    Repo.transaction(fn ->
+      case insert_processed_event(event_id, handler_ref) do
+        # Trigger: event-handler pair already in processed_events
+        # Why: another delivery path (PubSub or earlier Oban attempt) already handled it
+        # Outcome: skip handler, return :ok (idempotent no-op)
+        :already_processed ->
+          :ok
+
+        # Trigger: row inserted — this is the first attempt for this pair
+        # Why: handler must run inside the transaction so rollback removes the row on failure
+        # Outcome: handler runs, success commits, failure rolls back
+        :inserted ->
+          run_handler(handler_fn)
+      end
+    end)
+    |> unwrap_transaction_result()
+  end
+
+  @impl true
+  def mark_processed(event_id, handler_ref) when is_binary(event_id) and is_binary(handler_ref) do
+    insert_processed_event(event_id, handler_ref)
+    :ok
+  rescue
+    error ->
+      # Trigger: DB failure (timeout, connection error) when marking event as processed
+      # Why: handler already succeeded — crashing would propagate a false failure to callers;
+      #      the Oban fallback will re-execute but idempotent handlers tolerate this
+      # Outcome: log the DB error for operator awareness, return :ok to avoid disrupting the caller
+      Logger.error(
+        "Failed to mark event as processed: #{Exception.message(error)}",
+        event_id: event_id,
+        handler_ref: handler_ref,
+        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+      )
+
+      :ok
+  end
+
+  @impl true
+  def enqueue_durable_retry(event, handler_ref) when is_binary(handler_ref) do
+    args =
+      CriticalEventSerializer.serialize(event)
+      |> Map.put("handler", handler_ref)
+
+    case CriticalEventWorker.insert_job(args) do
+      {:ok, _job} -> :ok
+      {:error, _reason} = error -> error
+    end
+  end
+
+  # -- Private helpers --
+
+  defp insert_processed_event(event_id, handler_ref) do
+    now = DateTime.utc_now()
+
+    result =
+      Repo.insert_all(
+        ProcessedEvent,
+        [%{event_id: event_id, handler_ref: handler_ref, processed_at: now}],
+        on_conflict: :nothing
+      )
+
+    case result do
+      {1, _} -> :inserted
+      {0, _} -> :already_processed
+    end
+  end
+
+  defp run_handler(handler_fn) do
+    case handler_fn.() do
+      :ok -> :ok
+      :ignore -> :ok
+      {:error, reason} -> Repo.rollback({:handler_failed, reason})
+    end
+  rescue
+    error ->
+      # Trigger: handler raised an exception inside the transaction
+      # Why: Repo.rollback loses the original stacktrace — log it now for debugging
+      # Outcome: operators see the crash cause in logs before the transaction rolls back
+      Logger.error("Critical event handler crashed: #{Exception.message(error)}",
+        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+      )
+
+      Repo.rollback({:handler_crashed, error})
+  end
+
+  defp unwrap_transaction_result({:ok, :ok}), do: :ok
+
+  defp unwrap_transaction_result({:error, {:handler_failed, reason}}), do: {:error, reason}
+
+  defp unwrap_transaction_result({:error, {:handler_crashed, error}}),
+    do: {:error, {:handler_crashed, error}}
+
+  defp unwrap_transaction_result({:error, reason}), do: {:error, reason}
+end

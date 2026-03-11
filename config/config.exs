@@ -181,6 +181,11 @@ config :klass_hero, :scopes,
     test_setup_helper: :register_and_log_in_user
   ]
 
+# Configure Shared bounded context (critical event infrastructure)
+config :klass_hero, :shared,
+  for_tracking_processed_events:
+    KlassHero.Shared.Adapters.Driven.Persistence.Repositories.ProcessedEventRepository
+
 # Configure Storage (defaults, overridden per environment)
 config :klass_hero, :storage,
   adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,

@@ -6,14 +6,15 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   most once, regardless of how many delivery paths attempt it. Both the PubSub
   real-time path and the Oban durable path funnel through this module.
 
-  Uses a `processed_events` table with composite key `{event_id, handler_ref}`
-  and transactional insert + handler execution to guarantee atomicity.
+  Delegates persistence and transactional atomicity to the
+  `ForTrackingProcessedEvents` port — this domain service contains no
+  infrastructure dependencies.
   """
 
-  alias KlassHero.Repo
-  alias KlassHero.Shared.Adapters.Driven.Persistence.Schemas.ProcessedEvent
-
-  require Logger
+  @processed_events Application.compile_env!(
+                      :klass_hero,
+                      [:shared, :for_tracking_processed_events]
+                    )
 
   @doc """
   Derives the canonical handler reference string from a `{module, function}` tuple.
@@ -56,11 +57,11 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   @doc """
   Executes a handler exactly once for a given event-handler pair.
 
-  Uses a database transaction to atomically:
-  1. Insert a `processed_events` row (ON CONFLICT DO NOTHING)
-  2. If inserted (not a duplicate), run the handler function
-  3. If handler succeeds, commit — row persists as proof of processing
-  4. If handler fails or crashes, rollback — row removed, allowing retry
+  Delegates to the `ForTrackingProcessedEvents` port which atomically:
+  1. Inserts a `processed_events` row (ON CONFLICT DO NOTHING)
+  2. If inserted (not a duplicate), runs the handler function
+  3. If handler succeeds, commits — row persists as proof of processing
+  4. If handler fails or crashes, rolls back — row removed, allowing retry
 
   Returns `:ok` if the handler ran successfully or was already processed.
   Returns `{:error, reason}` if the handler failed (row is rolled back).
@@ -68,22 +69,7 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   @spec execute(String.t(), String.t(), (-> :ok | {:error, term()})) :: :ok | {:error, term()}
   def execute(event_id, handler_ref, handler_fn)
       when is_binary(event_id) and is_binary(handler_ref) and is_function(handler_fn, 0) do
-    Repo.transaction(fn ->
-      case insert_processed_event(event_id, handler_ref) do
-        # Trigger: event-handler pair already in processed_events
-        # Why: another delivery path (PubSub or earlier Oban attempt) already handled it
-        # Outcome: skip handler, return :ok (idempotent no-op)
-        :already_processed ->
-          :ok
-
-        # Trigger: row inserted — this is the first attempt for this pair
-        # Why: handler must run inside the transaction so rollback removes the row on failure
-        # Outcome: handler runs, success commits, failure rolls back
-        :inserted ->
-          run_handler(handler_fn)
-      end
-    end)
-    |> unwrap_transaction_result()
+    @processed_events.execute_atomically(event_id, handler_ref, handler_fn)
   end
 
   @doc """
@@ -97,64 +83,18 @@ defmodule KlassHero.Shared.Domain.Services.CriticalEventDispatcher do
   """
   @spec mark_processed(String.t(), String.t()) :: :ok
   def mark_processed(event_id, handler_ref) when is_binary(event_id) and is_binary(handler_ref) do
-    insert_processed_event(event_id, handler_ref)
-    :ok
-  rescue
-    error ->
-      # Trigger: DB failure (timeout, connection error) when marking event as processed
-      # Why: handler already succeeded — crashing would propagate a false failure to callers;
-      #      the Oban fallback will re-execute but idempotent handlers tolerate this
-      # Outcome: log the DB error for operator awareness, return :ok to avoid disrupting the caller
-      Logger.error(
-        "Failed to mark event as processed: #{Exception.message(error)}",
-        event_id: event_id,
-        handler_ref: handler_ref,
-        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
-      )
-
-      :ok
+    @processed_events.mark_processed(event_id, handler_ref)
   end
 
-  defp insert_processed_event(event_id, handler_ref) do
-    now = DateTime.utc_now()
+  @doc """
+  Enqueues a durable retry job for a failed handler.
 
-    result =
-      Repo.insert_all(
-        ProcessedEvent,
-        [%{event_id: event_id, handler_ref: handler_ref, processed_at: now}],
-        on_conflict: :nothing
-      )
-
-    case result do
-      {1, _} -> :inserted
-      {0, _} -> :already_processed
-    end
+  Derives the handler ref from the `{module, function}` tuple and delegates
+  serialization + job insertion to the `ForTrackingProcessedEvents` port.
+  """
+  @spec enqueue_retry(struct(), {module(), atom()}) :: :ok | {:error, term()}
+  def enqueue_retry(event, {module, function}) when is_atom(module) and is_atom(function) do
+    ref = handler_ref({module, function})
+    @processed_events.enqueue_durable_retry(event, ref)
   end
-
-  defp run_handler(handler_fn) do
-    case handler_fn.() do
-      :ok -> :ok
-      :ignore -> :ok
-      {:error, reason} -> Repo.rollback({:handler_failed, reason})
-    end
-  rescue
-    error ->
-      # Trigger: handler raised an exception inside the transaction
-      # Why: Repo.rollback loses the original stacktrace — log it now for debugging
-      # Outcome: operators see the crash cause in logs before the transaction rolls back
-      Logger.error("Critical event handler crashed: #{Exception.message(error)}",
-        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
-      )
-
-      Repo.rollback({:handler_crashed, error})
-  end
-
-  defp unwrap_transaction_result({:ok, :ok}), do: :ok
-
-  defp unwrap_transaction_result({:error, {:handler_failed, reason}}), do: {:error, reason}
-
-  defp unwrap_transaction_result({:error, {:handler_crashed, error}}),
-    do: {:error, {:handler_crashed, error}}
-
-  defp unwrap_transaction_result({:error, reason}), do: {:error, reason}
 end

@@ -131,10 +131,25 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriber do
     end
   rescue
     error ->
-      Logger.error(
-        "Handler #{inspect(handler)} crashed handling #{String.downcase(label)} #{event.event_type}: #{Exception.message(error)}",
-        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
-      )
+      # Trigger: handler raised an exception during event processing
+      # Why: critical events have a durable Oban fallback, but operators need clear
+      #      signal that the PubSub path failed for a critical event specifically
+      # Outcome: critical events get an urgent log prefix; normal events get generic error
+      if critical_integration_event?(event) do
+        Logger.error(
+          "[CRITICAL EVENT HANDLER CRASH] Handler #{inspect(handler)} crashed for critical " <>
+            "#{String.downcase(label)} #{event.event_type}. " <>
+            "Durable Oban path will retry. Error: #{Exception.message(error)}",
+          event_id: event.event_id,
+          handler: inspect(handler),
+          stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+        )
+      else
+        Logger.error(
+          "Handler #{inspect(handler)} crashed handling #{String.downcase(label)} #{event.event_type}: #{Exception.message(error)}",
+          stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+        )
+      end
   end
 
   defp critical_integration_event?(%IntegrationEvent{} = event),
