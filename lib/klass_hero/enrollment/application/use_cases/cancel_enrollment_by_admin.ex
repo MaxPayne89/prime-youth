@@ -6,7 +6,6 @@ defmodule KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin do
   persists the change, and dispatches an enrollment_cancelled domain event.
   """
 
-  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMapper
   alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
   alias KlassHero.Enrollment.Domain.Models.Enrollment
   alias KlassHero.Shared.EventDispatchHelper
@@ -42,7 +41,11 @@ defmodule KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin do
     with {:ok, enrollment} <- @enrollment_repo.get_by_id(enrollment_id),
          {:ok, cancelled} <- Enrollment.cancel(enrollment, reason),
          {:ok, persisted} <-
-           @enrollment_repo.update(enrollment_id, EnrollmentMapper.to_schema(cancelled)),
+           @enrollment_repo.update(enrollment_id, %{
+             status: Atom.to_string(cancelled.status),
+             cancelled_at: cancelled.cancelled_at,
+             cancellation_reason: cancelled.cancellation_reason
+           }),
          :ok <-
            EnrollmentEvents.enrollment_cancelled(persisted.id, %{
              enrollment_id: persisted.id,
