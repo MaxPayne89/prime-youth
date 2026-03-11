@@ -141,9 +141,11 @@ defmodule KlassHero.Enrollment do
   - `{:ok, Enrollment.t()}` — cancellation succeeded
   - `{:error, :not_found}` — enrollment does not exist
   - `{:error, :invalid_status_transition}` — enrollment is completed or already cancelled
+  - `{:error, :invalid_reason}` — reason is empty
   """
   def cancel_enrollment_by_admin(enrollment_id, admin_id, reason)
-      when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) do
+      when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) and
+             byte_size(reason) > 0 do
     CancelEnrollmentByAdmin.execute(enrollment_id, admin_id, reason)
   end
 

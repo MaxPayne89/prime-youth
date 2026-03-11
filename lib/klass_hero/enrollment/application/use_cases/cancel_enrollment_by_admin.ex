@@ -33,11 +33,14 @@ defmodule KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin do
   - `{:ok, Enrollment.t()}` — cancellation succeeded
   - `{:error, :not_found}` — enrollment does not exist
   - `{:error, :invalid_status_transition}` — enrollment is completed or already cancelled
+  - `{:error, :invalid_reason}` — reason is empty
   """
   @spec execute(String.t(), String.t(), String.t()) ::
-          {:ok, Enrollment.t()} | {:error, :not_found | :invalid_status_transition | term()}
+          {:ok, Enrollment.t()}
+          | {:error, :not_found | :invalid_status_transition | :invalid_reason | term()}
   def execute(enrollment_id, admin_id, reason)
-      when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) do
+      when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) and
+             byte_size(reason) > 0 do
     with {:ok, enrollment} <- @enrollment_repo.get_by_id(enrollment_id),
          {:ok, cancelled} <- Enrollment.cancel(enrollment, reason),
          {:ok, persisted} <-
@@ -64,5 +67,10 @@ defmodule KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin do
 
       {:ok, persisted}
     end
+  end
+
+  def execute(enrollment_id, admin_id, reason)
+      when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) do
+    {:error, :invalid_reason}
   end
 end
