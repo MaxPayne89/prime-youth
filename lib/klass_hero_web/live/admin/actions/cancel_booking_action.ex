@@ -45,7 +45,7 @@ defmodule KlassHeroWeb.Admin.Actions.CancelBookingAction do
     change
     |> cast(attrs, [:reason])
     |> validate_required([:reason])
-    |> validate_length(:reason, min: 1, max: 1000)
+    |> validate_length(:reason, max: 1000)
   end
 
   @impl Backpex.ItemAction

@@ -6,9 +6,10 @@ defmodule KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin do
   persists the change, and dispatches an enrollment_cancelled domain event.
   """
 
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMapper
   alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
   alias KlassHero.Enrollment.Domain.Models.Enrollment
-  alias KlassHero.Shared.DomainEventBus
+  alias KlassHero.Shared.EventDispatchHelper
 
   require Logger
 
@@ -40,13 +41,18 @@ defmodule KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin do
       when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) do
     with {:ok, enrollment} <- @enrollment_repo.get_by_id(enrollment_id),
          {:ok, cancelled} <- Enrollment.cancel(enrollment, reason),
-         attrs = %{
-           status: Atom.to_string(cancelled.status),
-           cancelled_at: cancelled.cancelled_at,
-           cancellation_reason: cancelled.cancellation_reason
-         },
-         {:ok, persisted} <- @enrollment_repo.update(enrollment_id, attrs) do
-      dispatch_event(persisted, admin_id, reason)
+         {:ok, persisted} <-
+           @enrollment_repo.update(enrollment_id, EnrollmentMapper.to_schema(cancelled)) do
+      EnrollmentEvents.enrollment_cancelled(persisted.id, %{
+        enrollment_id: persisted.id,
+        program_id: persisted.program_id,
+        child_id: persisted.child_id,
+        parent_id: persisted.parent_id,
+        admin_id: admin_id,
+        reason: reason,
+        cancelled_at: persisted.cancelled_at
+      })
+      |> EventDispatchHelper.dispatch(@context)
 
       Logger.info("[Enrollment.CancelByAdmin] Enrollment cancelled by admin",
         enrollment_id: enrollment_id,
@@ -55,18 +61,5 @@ defmodule KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin do
 
       {:ok, persisted}
     end
-  end
-
-  defp dispatch_event(enrollment, admin_id, reason) do
-    EnrollmentEvents.enrollment_cancelled(enrollment.id, %{
-      enrollment_id: enrollment.id,
-      program_id: enrollment.program_id,
-      child_id: enrollment.child_id,
-      parent_id: enrollment.parent_id,
-      admin_id: admin_id,
-      reason: reason,
-      cancelled_at: enrollment.cancelled_at
-    })
-    |> then(&DomainEventBus.dispatch(@context, &1))
   end
 end

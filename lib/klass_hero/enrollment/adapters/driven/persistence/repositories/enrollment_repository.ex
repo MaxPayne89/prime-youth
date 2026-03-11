@@ -257,7 +257,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
           {:ok, updated} ->
             Logger.info("[Enrollment.Repository] Updated enrollment",
               enrollment_id: id,
-              status: attrs[:status]
+              status: updated.status
             )
 
             {:ok, EnrollmentMapper.to_domain(updated)}

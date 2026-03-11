@@ -306,7 +306,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     end
 
     test "returns not_found for nonexistent enrollment" do
-      assert {:error, :not_found} = EnrollmentRepository.update(Ecto.UUID.generate(), %{status: "cancelled"})
+      assert {:error, :not_found} =
+               EnrollmentRepository.update(Ecto.UUID.generate(), %{status: "cancelled"})
     end
   end
 
