@@ -273,8 +273,7 @@ defmodule KlassHero.Enrollment do
   def get_remaining_capacities(program_ids) when is_list(program_ids) do
     alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
 
-    policies = @policy_repo.get_policies_by_program_ids(program_ids)
-    active_counts = @policy_repo.count_active_enrollments_batch(program_ids)
+    {policies, active_counts} = fetch_policies_and_active_counts(program_ids)
 
     Map.new(program_ids, fn id ->
       case Map.get(policies, id) do
@@ -313,8 +312,7 @@ defmodule KlassHero.Enrollment do
   def get_enrollment_summary_batch(program_ids) when is_list(program_ids) do
     alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
 
-    policies = @policy_repo.get_policies_by_program_ids(program_ids)
-    active_counts = @policy_repo.count_active_enrollments_batch(program_ids)
+    {policies, active_counts} = fetch_policies_and_active_counts(program_ids)
 
     Map.new(program_ids, fn id ->
       active = Map.get(active_counts, id, 0)
@@ -470,5 +468,13 @@ defmodule KlassHero.Enrollment do
   """
   def claim_invite(token) when is_binary(token) do
     ClaimInvite.execute(token)
+  end
+
+  # Shared data fetching for get_remaining_capacities/1 and get_enrollment_summary_batch/1.
+  # Both need the same two queries — centralising prevents drift if repo contracts change.
+  defp fetch_policies_and_active_counts(program_ids) do
+    policies = @policy_repo.get_policies_by_program_ids(program_ids)
+    active_counts = @policy_repo.count_active_enrollments_batch(program_ids)
+    {policies, active_counts}
   end
 end
