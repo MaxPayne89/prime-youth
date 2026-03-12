@@ -24,6 +24,24 @@ defmodule KlassHeroWeb.Admin.AccountLiveTest do
       assert {:error, {:redirect, %{to: "/", flash: flash}}} = live(conn, ~p"/admin/accounts")
       assert flash["error"] =~ "access"
     end
+
+    test "non-admin is redirected from /admin/accounts/:id/show", %{conn: conn} do
+      user = KlassHero.AccountsFixtures.user_fixture(%{name: "Target"})
+
+      assert {:error, {:redirect, %{to: "/", flash: flash}}} =
+               live(conn, ~p"/admin/accounts/#{user.id}/show")
+
+      assert flash["error"] =~ "access"
+    end
+
+    test "non-admin is redirected from /admin/accounts/:id/edit", %{conn: conn} do
+      user = KlassHero.AccountsFixtures.user_fixture(%{name: "Target"})
+
+      assert {:error, {:redirect, %{to: "/", flash: flash}}} =
+               live(conn, ~p"/admin/accounts/#{user.id}/edit")
+
+      assert flash["error"] =~ "access"
+    end
   end
 
   describe "unauthenticated access control" do
@@ -45,6 +63,26 @@ defmodule KlassHeroWeb.Admin.AccountLiveTest do
       assert has_element?(view, "td", admin.name)
       assert has_element?(view, "td", regular_user.email)
       assert has_element?(view, "td", regular_user.name)
+    end
+  end
+
+  describe "show view" do
+    setup :register_and_log_in_admin
+
+    test "admin can view account details", %{conn: conn} do
+      user = KlassHero.AccountsFixtures.user_fixture(%{name: "Show Target"})
+
+      KlassHero.Factory.insert(:parent_profile_schema,
+        identity_id: user.id,
+        subscription_tier: "active"
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts/#{user.id}/show")
+
+      assert has_element?(view, "dd", user.email)
+      assert has_element?(view, "dd", "Show Target")
+      assert has_element?(view, "span", "Parent")
+      assert has_element?(view, "span", "Active")
     end
   end
 
@@ -221,8 +259,8 @@ defmodule KlassHeroWeb.Admin.AccountLiveTest do
   describe "admin toggle" do
     setup :register_and_log_in_admin
 
-    test "admin can toggle is_admin flag", %{conn: conn} do
-      target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Toggle Target"})
+    test "admin can promote user to admin", %{conn: conn} do
+      target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Promote Target"})
       assert target_user.is_admin == false
 
       {:ok, view, _html} = live(conn, ~p"/admin/accounts/#{target_user.id}/edit")
@@ -233,6 +271,22 @@ defmodule KlassHeroWeb.Admin.AccountLiveTest do
 
       updated = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
       assert updated.is_admin == true
+    end
+
+    test "admin can demote admin to regular user", %{conn: conn} do
+      target_user =
+        KlassHero.AccountsFixtures.user_fixture(%{name: "Demote Target", is_admin: true})
+
+      assert target_user.is_admin == true
+
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts/#{target_user.id}/edit")
+
+      view
+      |> form("#resource-form", %{change: %{is_admin: false}})
+      |> render_submit(%{"save-type" => "save"})
+
+      updated = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
+      assert updated.is_admin == false
     end
   end
 end

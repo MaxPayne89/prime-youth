@@ -14,7 +14,8 @@ defmodule KlassHero.Accounts.User do
   alias KlassHero.Accounts.Domain.Models.User, as: DomainUser
   alias KlassHero.Accounts.Types.{UserRole, UserRoles}
 
-  # Cross-context references for admin dashboard preloading (read-only)
+  # Cross-context references for admin dashboard preloading (read-only).
+  # Pragmatic DDD boundary crossing — see AccountLive moduledoc.
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
 
@@ -234,16 +235,13 @@ defmodule KlassHero.Accounts.User do
   @doc """
   A changeset for admin edits to user accounts.
 
-  Only allows changing name and admin status. All other fields
-  (email, password, roles) are excluded from the cast whitelist.
+  Only allows toggling admin status. All other fields
+  (email, name, password, roles) are excluded from the cast whitelist.
 
   Accepts 3 args to match the Backpex changeset callback signature.
   """
   def admin_update_changeset(user, attrs, _metadata) do
-    user
-    |> cast(attrs, [:name, :is_admin])
-    |> validate_required([:name])
-    |> validate_length(:name, min: 2, max: 100)
+    cast(user, attrs, [:is_admin])
   end
 
   @doc """

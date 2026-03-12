@@ -28,9 +28,9 @@ defmodule KlassHeroWeb.Admin.AccountLive do
 
   import Ecto.Query
 
-  # Trigger: :new and :delete are not defined for user management
+  # Trigger: :new action is denied; :delete excluded from routes
   # Why: users register themselves; deletion follows GDPR anonymization
-  # Outcome: hides "New User" button, denies unknown future actions
+  # Outcome: hides "New Account" button, denies unknown future actions
   @impl Backpex.LiveResource
   def can?(_assigns, :new, _item), do: false
   def can?(_assigns, :index, _item), do: true
@@ -38,12 +38,17 @@ defmodule KlassHeroWeb.Admin.AccountLive do
 
   # Trigger: admin attempts to edit their own record
   # Why: toggling own is_admin flag would lock the admin out
-  # Outcome: Backpex raises ForbiddenError (403) for self-edit attempts
+  # Outcome: Backpex raises ForbiddenError, blocking the edit page
   def can?(assigns, :edit, item), do: item.id != assigns.current_scope.user.id
 
   def can?(_assigns, _action, _item), do: false
 
   @doc false
+  # Trigger: edit action only needs the `is_admin` boolean toggle
+  # Why: roles/subscription fields use `only: [:index, :show]`, so associations are unused on edit
+  # Outcome: skips 2 unnecessary preload queries for the single-row edit form
+  def item_query(query, :edit, _assigns), do: query
+
   def item_query(query, _live_action, _assigns) do
     from u in query, preload: [:parent_profile, :provider_profile]
   end
