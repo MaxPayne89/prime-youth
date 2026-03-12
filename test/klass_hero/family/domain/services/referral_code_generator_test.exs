@@ -26,8 +26,11 @@ defmodule KlassHero.Family.Domain.Services.ReferralCodeGeneratorTest do
     end
 
     test "uses current year suffix when not specified" do
+      year_suffix =
+        Date.utc_today().year |> rem(100) |> Integer.to_string() |> String.pad_leading(2, "0")
+
       code = ReferralCodeGenerator.generate("Carol")
-      year_suffix = Date.utc_today().year |> rem(100) |> Integer.to_string() |> String.pad_leading(2, "0")
+
       assert String.ends_with?(code, "-#{year_suffix}")
     end
   end
@@ -39,7 +42,9 @@ defmodule KlassHero.Family.Domain.Services.ReferralCodeGeneratorTest do
     end
 
     test "handles three-part names by using only the first word" do
-      code = ReferralCodeGenerator.generate("Mary Jane Watson", location: "NYC", year_suffix: "26")
+      code =
+        ReferralCodeGenerator.generate("Mary Jane Watson", location: "NYC", year_suffix: "26")
+
       assert code == "MARY-NYC-26"
     end
 
@@ -48,14 +53,14 @@ defmodule KlassHero.Family.Domain.Services.ReferralCodeGeneratorTest do
       assert code == "MADONNA-PARIS-26"
     end
 
-    test "trims trailing spaces from extracted first name" do
+    test "handles standard two-part name" do
       code = ReferralCodeGenerator.generate("Hans Mueller", location: "BERLIN", year_suffix: "25")
       assert code == "HANS-BERLIN-25"
     end
   end
 
   describe "generate/2 - year suffix formatting" do
-    test "pads single-digit year string to two characters" do
+    test "accepts zero-prefixed year string as-is" do
       code = ReferralCodeGenerator.generate("Test", location: "BERLIN", year_suffix: "09")
       assert code == "TEST-BERLIN-09"
     end
