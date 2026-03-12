@@ -76,6 +76,7 @@ defmodule KlassHero.Shared.IntegrationEventPublishingTest do
         end)
 
       assert log =~ "Failed to publish critical_event"
+      assert log =~ "entity-123"
     end
   end
 
@@ -127,7 +128,7 @@ defmodule KlassHero.Shared.IntegrationEventPublishingTest do
       assert {:error, :publisher_down} =
                IntegrationEventPublishing.publish_critical(event, "some_event")
 
-      # Reset error for next call
+      # Clear publisher state (events + error) before next assertion
       TestIntegrationEventPublisher.setup()
       TestIntegrationEventPublisher.configure_publish_error(:publisher_down)
 
