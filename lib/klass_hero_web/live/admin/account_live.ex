@@ -1,0 +1,177 @@
+defmodule KlassHeroWeb.Admin.AccountLive do
+  @moduledoc """
+  Backpex LiveResource for the admin account overview.
+
+  Provides index, show, and edit views for user management.
+  Creation and deletion are intentionally disabled — users register
+  themselves, and account deletion follows the GDPR anonymization flow.
+
+  Note: Backpex operates directly on Ecto schemas and Repo, bypassing
+  the Ports & Adapters layering used elsewhere. This is a pragmatic
+  exception scoped to admin-only read + limited edit operations.
+  """
+
+  # Backpex requires FQ refs in `use` args — alias can't precede `use` per formatter rules
+  # credo:disable-for-lines:11 Credo.Check.Design.AliasUsage
+  use Backpex.LiveResource,
+    adapter_config: [
+      schema: KlassHero.Accounts.User,
+      repo: KlassHero.Repo,
+      update_changeset: &KlassHero.Accounts.User.admin_update_changeset/3,
+      # Required by Backpex even though :new is disabled via can?/3
+      create_changeset: &KlassHero.Accounts.User.admin_update_changeset/3,
+      item_query: &__MODULE__.item_query/3
+    ],
+    layout: {KlassHeroWeb.Layouts, :admin},
+    pubsub: [server: KlassHero.PubSub],
+    init_order: %{by: :inserted_at, direction: :desc}
+
+  import Ecto.Query
+
+  # Trigger: :new action is denied; :delete excluded from routes
+  # Why: users register themselves; deletion follows GDPR anonymization
+  # Outcome: hides "New Account" button, denies unknown future actions
+  @impl Backpex.LiveResource
+  def can?(_assigns, :new, _item), do: false
+  def can?(_assigns, :index, _item), do: true
+  def can?(_assigns, :show, _item), do: true
+
+  # Trigger: admin attempts to edit their own record
+  # Why: toggling own is_admin flag would lock the admin out
+  # Outcome: Backpex raises ForbiddenError, blocking the edit page
+  def can?(assigns, :edit, item), do: item.id != assigns.current_scope.user.id
+
+  def can?(_assigns, _action, _item), do: false
+
+  @doc false
+  # Trigger: edit action only needs the `is_admin` boolean toggle
+  # Why: roles/subscription fields use `only: [:index, :show]`, so associations are unused on edit
+  # Outcome: skips 2 unnecessary preload queries for the single-row edit form
+  def item_query(query, :edit, _assigns), do: query
+
+  def item_query(query, _live_action, _assigns) do
+    from u in query, preload: [:parent_profile, :provider_profile]
+  end
+
+  @impl Backpex.LiveResource
+  def singular_name, do: "Account"
+
+  @impl Backpex.LiveResource
+  def plural_name, do: "Accounts"
+
+  @impl Backpex.LiveResource
+  def fields do
+    [
+      email: %{
+        module: Backpex.Fields.Text,
+        label: "Email",
+        searchable: true,
+        orderable: true,
+        readonly: true
+      },
+      name: %{
+        module: Backpex.Fields.Text,
+        label: "Name",
+        searchable: true,
+        orderable: true,
+        readonly: true
+      },
+      roles: %{
+        module: Backpex.Fields.Text,
+        label: "Roles",
+        readonly: true,
+        only: [:index, :show],
+        render: fn assigns ->
+          ~H"""
+          <div class="flex flex-wrap gap-1">
+            <%= if @item.parent_profile do %>
+              <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700">
+                Parent
+              </span>
+            <% end %>
+            <%= if @item.provider_profile do %>
+              <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700">
+                Provider
+              </span>
+            <% end %>
+            <%= if @item.is_admin do %>
+              <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-red-100 text-red-700">
+                Admin
+              </span>
+            <% end %>
+            <%= if !@item.parent_profile && !@item.provider_profile && !@item.is_admin do %>
+              <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700">
+                User
+              </span>
+            <% end %>
+          </div>
+          """
+        end
+      },
+      subscription: %{
+        module: Backpex.Fields.Text,
+        label: "Subscription",
+        readonly: true,
+        only: [:index, :show],
+        render: fn assigns ->
+          ~H"""
+          <div class="flex flex-wrap gap-1">
+            <%= if @item.parent_profile do %>
+              <span class={[
+                "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
+                parent_tier_class(@item.parent_profile.subscription_tier)
+              ]}>
+                {parent_tier_label(@item.parent_profile.subscription_tier)}
+              </span>
+            <% end %>
+            <%= if @item.provider_profile do %>
+              <span class={[
+                "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
+                provider_tier_class(@item.provider_profile.subscription_tier)
+              ]}>
+                {provider_tier_label(@item.provider_profile.subscription_tier)}
+              </span>
+            <% end %>
+            <%= if !@item.parent_profile && !@item.provider_profile do %>
+              <span>&mdash;</span>
+            <% end %>
+          </div>
+          """
+        end
+      },
+      is_admin: %{
+        module: Backpex.Fields.Boolean,
+        label: "Admin",
+        only: [:edit]
+      },
+      inserted_at: %{
+        module: Backpex.Fields.DateTime,
+        label: "Created At",
+        only: [:index, :show],
+        orderable: true
+      }
+    ]
+  end
+
+  # Parent tier display helpers
+
+  defp parent_tier_label("explorer"), do: "Explorer"
+  defp parent_tier_label("active"), do: "Active"
+  defp parent_tier_label(tier), do: String.capitalize(tier || "")
+
+  defp parent_tier_class("explorer"), do: "bg-gray-100 text-gray-700"
+  defp parent_tier_class("active"), do: "bg-green-100 text-green-700"
+  defp parent_tier_class(_), do: "bg-gray-100 text-gray-700"
+
+  # Provider tier display helpers
+
+  defp provider_tier_label("starter"), do: "Starter"
+  defp provider_tier_label("professional"), do: "Professional"
+  defp provider_tier_label("business_plus"), do: "Business+"
+  defp provider_tier_label(tier), do: String.capitalize(tier || "")
+
+  defp provider_tier_class("starter"), do: "bg-gray-100 text-gray-700"
+  defp provider_tier_class("professional"), do: "bg-blue-100 text-blue-700"
+  defp provider_tier_class("business_plus"), do: "bg-amber-100 text-amber-700"
+  defp provider_tier_class(_), do: "bg-gray-100 text-gray-700"
+end

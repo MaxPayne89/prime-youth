@@ -339,27 +339,24 @@ defmodule KlassHero.Enrollment do
   separately — doing so would issue 3 DB queries for the same data.
   """
   def get_enrollment_summary_batch(program_ids) when is_list(program_ids) do
-    alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
-
     {policies, active_counts} = fetch_policies_and_active_counts(program_ids)
 
     Map.new(program_ids, fn id ->
       active = Map.get(active_counts, id, 0)
-
-      capacity =
-        case Map.get(policies, id) do
-          nil ->
-            nil
-
-          policy ->
-            case EnrollmentPolicy.remaining_capacity(policy, active) do
-              :unlimited -> nil
-              remaining -> active + remaining
-            end
-        end
-
+      capacity = calculate_capacity(Map.get(policies, id), active)
       {id, %{enrolled: active, capacity: capacity}}
     end)
+  end
+
+  defp calculate_capacity(nil, _active), do: nil
+
+  defp calculate_capacity(policy, active) do
+    alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
+
+    case EnrollmentPolicy.remaining_capacity(policy, active) do
+      :unlimited -> nil
+      remaining -> active + remaining
+    end
   end
 
   @doc """

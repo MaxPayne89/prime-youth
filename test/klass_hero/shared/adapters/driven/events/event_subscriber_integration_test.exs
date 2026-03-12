@@ -14,6 +14,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
 
   import KlassHero.EventTestHelper
 
+  alias Ecto.Adapters.SQL.Sandbox
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Events.EventSubscriber
   alias KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher
@@ -408,7 +409,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
       # Trigger: EventSubscriber runs in a separate process outside the test
       # Why: it needs DB access (via CriticalEventDispatcher) to write processed_events
       # Outcome: subscriber process shares the test's sandboxed DB connection
-      Ecto.Adapters.SQL.Sandbox.allow(KlassHero.Repo, self(), pid)
+      Sandbox.allow(KlassHero.Repo, self(), pid)
 
       # Publish a critical integration event
       event =
@@ -442,7 +443,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
           name: :"critical_fail_sub_#{System.unique_integer([:positive])}"
         )
 
-      Ecto.Adapters.SQL.Sandbox.allow(KlassHero.Repo, self(), pid)
+      Sandbox.allow(KlassHero.Repo, self(), pid)
 
       event =
         IntegrationEvent.new(:critical_test_event, :test, :entity, "ent-fail", %{},
@@ -475,7 +476,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
           name: :"critical_crash_sub_#{System.unique_integer([:positive])}"
         )
 
-      Ecto.Adapters.SQL.Sandbox.allow(KlassHero.Repo, self(), pid)
+      Sandbox.allow(KlassHero.Repo, self(), pid)
 
       # Trigger: construct a critical event with nil event_id
       # Why: CriticalEventDispatcher.execute/3 guard `when is_binary(event_id)` will fail

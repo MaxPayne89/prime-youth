@@ -62,16 +62,19 @@ defmodule KlassHero.Shared.EventDispatchHelper do
   def dispatch_or_error(%DomainEvent{} = event, context) do
     if DomainEvent.critical?(event) do
       {:ok, results} = DomainEventBus.dispatch_critical(context, event)
-
-      case Enum.find(results, fn {_identity, result} -> match?({:error, _}, result) end) do
-        nil -> :ok
-        {_identity, {:error, reason}} -> {:error, reason}
-      end
+      find_first_failure(results)
     else
       case DomainEventBus.dispatch(context, event) do
         :ok -> :ok
         {:error, [first_failure | _]} -> normalize_failure(first_failure)
       end
+    end
+  end
+
+  defp find_first_failure(results) do
+    case Enum.find(results, fn {_identity, result} -> match?({:error, _}, result) end) do
+      nil -> :ok
+      {_identity, {:error, reason}} -> {:error, reason}
     end
   end
 
