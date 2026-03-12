@@ -165,7 +165,6 @@ _A config-driven dev tool for Elixir projects to manage AGENTS.md files and agen
 4. **PUSH TO REMOTE** - This is MANDATORY:
    ```bash
    git pull --rebase
-   bd sync
    git push
    git status  # MUST show "up to date with origin"
    ```
