@@ -5,6 +5,25 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.13](https://github.com/MaxPayne89/prime-youth/compare/v0.1.12...v0.1.13) (2026-03-12)
+
+
+### Bug Fixes
+
+* address PR review — extract shared helper and add enrollment summary tests ([978b0ab](https://github.com/MaxPayne89/prime-youth/commit/978b0ab91af39ed1b58b72e6ebb452781763d657))
+* address PR review — misleading comment and missing assertion ([9ead52e](https://github.com/MaxPayne89/prime-youth/commit/9ead52e34084a3841e3b52df054eb0ec71270287))
+* align security workflow with Elixir 1.20.0-rc.3 and OTP 28.4 ([d4f6442](https://github.com/MaxPayne89/prime-youth/commit/d4f64426732e271b471af1397638fc9ebb9a9d3f))
+* remove tests that referenced deleted CSV template ([ed0b80e](https://github.com/MaxPayne89/prime-youth/commit/ed0b80ef695a23e93e3b8dd8bbb56d804a64f6ee))
+* resolve Elixir 1.20 type checker warnings ([ad41134](https://github.com/MaxPayne89/prime-youth/commit/ad4113477c233f3a4f9c306f0a76b7343af0c504))
+* update stale version references in README ([ccf1d6b](https://github.com/MaxPayne89/prime-youth/commit/ccf1d6bba5e3741bc83e93424b23a3369e106af6))
+
+
+### Performance Improvements
+
+* eliminate redundant active-enrollment count query on provider dashboard ([944620e](https://github.com/MaxPayne89/prime-youth/commit/944620ec77efa716528e7534d5dd51585713e53f))
+* parallelize programs + staff DB queries in provider dashboard mount ([2183eab](https://github.com/MaxPayne89/prime-youth/commit/2183eab3194fb7472228b31c6d3465711341aa88))
+* parallelize programs + staff DB queries in provider dashboard mount ([ba639cc](https://github.com/MaxPayne89/prime-youth/commit/ba639cc0acd11012a3c1b13b779ae2a615808ae1))
+
 ## [0.1.12](https://github.com/MaxPayne89/prime-youth/compare/v0.1.11...v0.1.12) (2026-03-11)
 
 
