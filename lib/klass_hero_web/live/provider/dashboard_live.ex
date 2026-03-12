@@ -1494,21 +1494,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp build_enrollment_data(domain_programs) do
     program_ids = Enum.map(domain_programs, & &1.id)
-    capacities = Enrollment.get_remaining_capacities(program_ids)
-    active_counts = Enrollment.count_active_enrollments_batch(program_ids)
-
-    Map.new(program_ids, fn id ->
-      active = Map.get(active_counts, id, 0)
-      remaining = Map.get(capacities, id, :unlimited)
-
-      capacity =
-        case remaining do
-          :unlimited -> nil
-          rem -> active + rem
-        end
-
-      {id, %{enrolled: active, capacity: capacity}}
-    end)
+    Enrollment.get_enrollment_summary_batch(program_ids)
   end
 
   defp filter_by_search(programs, ""), do: programs
