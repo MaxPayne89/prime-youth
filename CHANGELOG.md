@@ -5,6 +5,15 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.15](https://github.com/MaxPayne89/prime-youth/compare/v0.1.14...v0.1.15) (2026-03-12)
+
+
+### Bug Fixes
+
+* address PR review comments on ReferralCodeGenerator tests ([ce5cba1](https://github.com/MaxPayne89/prime-youth/commit/ce5cba1d6c55fe1c22bb9ae5820cc131a86af701))
+* allow minor version bumps for feat commits in pre-1.0 ([de4c12c](https://github.com/MaxPayne89/prime-youth/commit/de4c12c427f4daba8faa601ba3816a790006d97e))
+* allow minor version bumps for feat commits in pre-1.0 ([768c2a2](https://github.com/MaxPayne89/prime-youth/commit/768c2a2e3beeca94bfe0419fde9921e51824bba2))
+
 ## [0.1.14](https://github.com/MaxPayne89/prime-youth/compare/v0.1.13...v0.1.14) (2026-03-12)
 
 
