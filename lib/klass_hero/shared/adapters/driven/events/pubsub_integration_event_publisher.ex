@@ -120,25 +120,29 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
           CriticalEventSerializer.serialize(event)
           |> Map.put("handler", handler_ref)
 
-        case CriticalEventWorker.insert_job(args) do
-          {:ok, _job} ->
-            :ok
-
-          {:error, reason} ->
-            # Trigger: Oban job insertion failed for a critical integration event
-            # Why: PubSub broadcast already succeeded, but the durable fallback is now absent
-            # Outcome: error-level log for operator alerting — event relies solely on PubSub path
-            Logger.error(
-              "Failed to enqueue durable delivery job for critical integration event " <>
-                "#{event.event_type} (#{event.event_id}), handler #{handler_ref}. " <>
-                "Durable delivery guarantee voided for this handler.",
-              event_id: event.event_id,
-              event_type: event.event_type,
-              handler: handler_ref,
-              reason: inspect(reason)
-            )
-        end
+        enqueue_critical_job(args, event, handler_ref)
       end)
+    end
+  end
+
+  defp enqueue_critical_job(args, event, handler_ref) do
+    case CriticalEventWorker.insert_job(args) do
+      {:ok, _job} ->
+        :ok
+
+      {:error, reason} ->
+        # Trigger: Oban job insertion failed for a critical integration event
+        # Why: PubSub broadcast already succeeded, but the durable fallback is now absent
+        # Outcome: error-level log for operator alerting — event relies solely on PubSub path
+        Logger.error(
+          "Failed to enqueue durable delivery job for critical integration event " <>
+            "#{event.event_type} (#{event.event_id}), handler #{handler_ref}. " <>
+            "Durable delivery guarantee voided for this handler.",
+          event_id: event.event_id,
+          event_type: event.event_type,
+          handler: handler_ref,
+          reason: inspect(reason)
+        )
     end
   end
 
