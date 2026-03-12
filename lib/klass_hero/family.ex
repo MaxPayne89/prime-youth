@@ -262,17 +262,6 @@ defmodule KlassHero.Family do
 
       {:error, :not_found} ->
         false
-
-      # Trigger: unexpected error from consent repository (e.g. database issue)
-      # Why: consent check must fail closed — never expose data on error
-      {:error, reason} ->
-        Logger.warning("[Family] child_has_active_consent? failed",
-          child_id: child_id,
-          consent_type: consent_type,
-          reason: inspect(reason)
-        )
-
-        false
     end
   end
 

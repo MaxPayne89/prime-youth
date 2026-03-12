@@ -11,6 +11,7 @@ defmodule KlassHeroWeb.Admin.Actions.CancelBookingAction do
 
   import Ecto.Changeset
 
+  require KlassHeroWeb.BackpexCompat
   require Logger
 
   @impl Backpex.ItemAction
@@ -28,8 +29,13 @@ defmodule KlassHeroWeb.Admin.Actions.CancelBookingAction do
     "This will free the reserved slot and cannot be undone. Are you sure?"
   end
 
-  @impl Backpex.ItemAction
-  def confirm_label(_assigns), do: "Cancel Booking"
+  # Trigger: Backpex's @before_compile unconditionally appends default confirm_label/1
+  # Why: Elixir 1.20 type checker flags the generated default as a redundant clause
+  # Outcome: BackpexCompat re-emits our definition after Backpex's, collapsing duplicates
+  KlassHeroWeb.BackpexCompat.override :confirm_label, 1 do
+    @impl Backpex.ItemAction
+    def confirm_label(_assigns), do: "Cancel Booking"
+  end
 
   @impl Backpex.ItemAction
   def fields do

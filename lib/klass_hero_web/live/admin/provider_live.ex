@@ -32,6 +32,8 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
   alias KlassHero.Shared.DomainEventBus
   alias KlassHero.Shared.IntegrationEventPublishing
 
+  require KlassHeroWeb.BackpexCompat
+
   @tier_options Enum.map(
                   KlassHero.Shared.SubscriptionTiers.provider_tiers(),
                   fn tier ->
@@ -137,14 +139,16 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
   # Why: admin_changeset bypasses domain use cases; projections (VerifiedProviders,
   #      ProgramListings) subscribe to integration/domain events to stay in sync
   # Outcome: matching events are published so projections update correctly
-  @impl Backpex.LiveResource
-  def on_item_updated(socket, item) do
-    old_item = socket.assigns.item
+  KlassHeroWeb.BackpexCompat.override :on_item_updated, 2 do
+    @impl Backpex.LiveResource
+    def on_item_updated(socket, item) do
+      old_item = socket.assigns.item
 
-    maybe_publish_verification_event(old_item, item, socket)
-    maybe_dispatch_tier_event(old_item, item)
+      maybe_publish_verification_event(old_item, item, socket)
+      maybe_dispatch_tier_event(old_item, item)
 
-    socket
+      socket
+    end
   end
 
   # Trigger: verified status changed between old and new item

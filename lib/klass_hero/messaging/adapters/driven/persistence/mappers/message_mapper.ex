@@ -46,8 +46,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.MessageMapper 
     attrs
     |> Map.take([:conversation_id, :sender_id, :content, :message_type])
     |> Map.update(:message_type, "text", fn
-      type when is_atom(type) -> to_string(type)
       nil -> "text"
+      type when is_atom(type) -> to_string(type)
       type -> type
     end)
   end
