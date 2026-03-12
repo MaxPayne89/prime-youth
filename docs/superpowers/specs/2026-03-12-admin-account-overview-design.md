@@ -22,15 +22,26 @@ Roles are not stored as a list on the user — they are resolved by checking whe
 
 ## Schema Changes
 
-Add two `has_one` associations to the User Ecto schema (`lib/klass_hero/accounts/adapters/driven/persistence/schemas/user.ex`):
+Add two `has_one` associations to the User Ecto schema (`lib/klass_hero/accounts/adapters/driven/persistence/schemas/user.ex`).
+
+Required aliases (cross-context references, deliberately scoped to read-only admin display):
+
+```elixir
+alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+```
+
+Associations:
 
 ```elixir
 has_one :parent_profile, ParentProfileSchema, foreign_key: :identity_id
 has_one :provider_profile, ProviderProfileSchema, foreign_key: :identity_id
 ```
 
+**Architectural note:** This creates a cross-context reference (Accounts → Family/Provider schemas). This is a deliberate trade-off: the User Ecto schema already lives in the persistence adapter layer (not the domain model), and the `has_one` is read-only — used only for Backpex preloading in the admin dashboard. The pure domain model `Accounts.Domain.Models.User` is untouched.
+
 - Read-only from the admin perspective — no writes go through these associations
-- `admin_update_changeset` unchanged (only casts `name` and `is_admin`)
+- `admin_update_changeset` unchanged (only casts `name` and `is_admin`). Name remains in the changeset cast list because the changeset is shared with other callers; the readonly constraint is enforced by Backpex field config.
 - No changes to ParentProfileSchema or ProviderProfileSchema
 - No migrations needed
 
@@ -41,43 +52,52 @@ Rename `user_live.ex` → `account_live.ex`, module `UserLive` → `AccountLive`
 ### Configuration
 
 - `singular_name` → `"Account"`, `plural_name` → `"Accounts"`
-- `item_query` in `adapter_config` preloads `:parent_profile` and `:provider_profile` for all actions
+- `item_query` in `adapter_config` preloads `:parent_profile` and `:provider_profile` for all actions (including `:edit`, which is harmless — the extra data is unused on the edit form but ensures `can?/3` still works correctly since it receives the item)
 - `can?/3` unchanged — no self-edit, no create/delete
 
 ### Fields (in order)
 
 1. **Email** — text, searchable, orderable, readonly
 2. **Name** — text, searchable, orderable, readonly
-3. **Roles** — text with custom `render`, read-only, index/show only. Displays colored badges based on profile existence and admin flag.
-4. **Subscription** — text with custom `render`, read-only, index/show only. Displays tier badges from preloaded profiles.
+3. **Roles** — text with custom `render`, read-only, index/show only. Displays colored badges based on profile existence and admin flag. **Not orderable, not searchable** — no backing database column.
+4. **Subscription** — text with custom `render`, read-only, index/show only. Displays tier badges from preloaded profiles. **Not orderable, not searchable** — no backing database column.
 5. **Admin** — boolean, orderable, edit only (`only: [:edit]`). The sole editable field.
 6. **Created At** — datetime, orderable, index/show only
 
 Name becomes readonly (was editable in UserLive). Admin toggle moves to edit-only (not shown as a column on index, since it's absorbed into the Roles badges).
 
+### Render Function Access Pattern
+
+The Roles and Subscription fields have no backing database column, so `@value` will be `nil`. The custom `render` functions must use `@item` (the full preloaded record) instead:
+
+- Roles render: checks `@item.parent_profile`, `@item.provider_profile`, `@item.is_admin`
+- Subscription render: checks `@item.parent_profile.subscription_tier`, `@item.provider_profile.subscription_tier`
+
+This follows Backpex convention — `@item` is available in render assigns alongside `@value`.
+
 ### Roles Badge Rendering
 
-| Condition                      | Badge    | Color  |
-| ------------------------------ | -------- | ------ |
-| `parent_profile != nil`        | Parent   | Blue   |
-| `provider_profile != nil`      | Provider | Purple |
-| `is_admin == true`             | Admin    | Red    |
-| None of the above              | User     | Grey   |
+| Condition                      | Badge    | Tailwind classes |
+| ------------------------------ | -------- | ---------------- |
+| `parent_profile != nil`        | Parent   | `bg-blue-100 text-blue-700` |
+| `provider_profile != nil`      | Provider | `bg-purple-100 text-purple-700` |
+| `is_admin == true`             | Admin    | `bg-red-100 text-red-700` |
+| None of the above              | User     | `bg-gray-100 text-gray-700` |
 
 Multiple badges shown simultaneously for users with multiple roles.
 
 ### Subscription Badge Rendering
 
-| Tier                           | Badge        | Color  |
-| ------------------------------ | ------------ | ------ |
-| Parent: explorer               | Explorer     | Grey   |
-| Parent: active                 | Active       | Green  |
-| Provider: starter              | Starter      | Grey   |
-| Provider: professional         | Professional | Blue   |
-| Provider: business_plus        | Business+    | Amber  |
-| No profiles                    | —            | —      |
+| Tier                           | Badge        | Tailwind classes |
+| ------------------------------ | ------------ | ---------------- |
+| Parent: explorer               | Explorer     | `bg-gray-100 text-gray-700` |
+| Parent: active                 | Active       | `bg-green-100 text-green-700` |
+| Provider: starter              | Starter      | `bg-gray-100 text-gray-700` |
+| Provider: professional         | Professional | `bg-blue-100 text-blue-700` |
+| Provider: business_plus        | Business+    | `bg-amber-100 text-amber-700` |
+| No profiles                    | —            | — |
 
-Badge styling follows existing pattern from BookingLive status badges: `inline-flex items-center rounded-full px-2 py-1 text-xs font-medium`.
+Badge base classes (same pattern as BookingLive status badges): `inline-flex items-center rounded-full px-2 py-1 text-xs font-medium`.
 
 ## Route Changes
 
@@ -125,13 +145,13 @@ Rename `user_live_test.exs` → `account_live_test.exs`, module `UserLiveTest` �
 
 - **Roles badges**: user with parent profile shows "Parent" badge; provider profile shows "Provider"; `is_admin` shows "Admin"; dual-role shows both; no profile shows "User"
 - **Subscription badges**: parent with explorer tier shows "Explorer"; active shows "Active"; provider with starter shows "Starter"; professional shows "Professional"; business_plus shows "Business+"; no profiles shows em-dash
-- Tests need fixtures from `AccountsFixtures` plus `FamilyFixtures` and/or `ProviderFixtures`
+- Tests use `AccountsFixtures` for users, `KlassHero.Factory` with `:parent_profile_schema` for parent profiles, and `ProviderFixtures` for provider profiles
 
 ## Files Changed
 
 | File | Action |
 | --- | --- |
-| `lib/klass_hero/accounts/.../schemas/user.ex` | Add `has_one :parent_profile` and `has_one :provider_profile` |
+| `lib/klass_hero/accounts/.../schemas/user.ex` | Add aliases + `has_one :parent_profile` and `has_one :provider_profile` |
 | `lib/klass_hero_web/live/admin/user_live.ex` | Rename → `account_live.ex`, rewrite fields, add `item_query` |
 | `lib/klass_hero_web/router.ex` | Route and module name update |
 | `lib/klass_hero_web/components/layouts/admin.html.heex` | Sidebar link + label |
