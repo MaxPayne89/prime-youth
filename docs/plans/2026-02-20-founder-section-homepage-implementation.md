@@ -121,4 +121,4 @@ Navigate to `http://localhost:4000` and verify:
 
 **Step 2: Close issue**
 
-If all looks good, the feature is complete. Close beads issue if one exists.
+If all looks good, the feature is complete.

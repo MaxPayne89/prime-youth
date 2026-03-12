@@ -499,9 +499,3 @@ Expected: Compile, format, test all pass
 **Step 2: Fix any issues if they arise**
 
 ---
-
-### Task 6: Close beads issue
-
-```bash
-bd close prime-youth-jrm --reason="Implemented show action with document preview, approve/reject workflow"
-```
