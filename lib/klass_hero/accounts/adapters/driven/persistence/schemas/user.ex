@@ -236,7 +236,7 @@ defmodule KlassHero.Accounts.User do
   A changeset for admin edits to user accounts.
 
   Only allows toggling admin status. All other fields
-  (email, name, password, roles) are excluded from the cast whitelist.
+  (email, name, password, intended_roles) are excluded from the cast whitelist.
 
   Accepts 3 args to match the Backpex changeset callback signature.
   """
