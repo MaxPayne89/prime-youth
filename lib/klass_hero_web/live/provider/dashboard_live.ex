@@ -49,16 +49,20 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             business
           end
 
-        # Load real programs for this provider
-        domain_programs = ProgramCatalog.list_programs_for_provider(provider_profile.id)
+        # Load programs and staff in parallel — both are independent DB queries
+        programs_task =
+          Task.async(fn -> ProgramCatalog.list_programs_for_provider(provider_profile.id) end)
+
+        staff_task = Task.async(fn -> fetch_staff_members(provider_profile.id) end)
+
+        domain_programs = Task.await(programs_task)
         enrollment_data = build_enrollment_data(domain_programs)
         programs = Enum.map(domain_programs, &ProgramPresenter.to_table_view(&1, enrollment_data))
 
         # Update business with actual program count
         business = %{business | program_slots_used: length(programs)}
 
-        # Load real staff members
-        staff_members = fetch_staff_members(provider_profile.id)
+        staff_members = Task.await(staff_task)
         staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
 
         # Build staff filter options from real data
