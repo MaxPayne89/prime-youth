@@ -14,6 +14,10 @@ defmodule KlassHero.Accounts.User do
   alias KlassHero.Accounts.Domain.Models.User, as: DomainUser
   alias KlassHero.Accounts.Types.{UserRole, UserRoles}
 
+  # Cross-context references for admin dashboard preloading (read-only)
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
 
@@ -29,6 +33,9 @@ defmodule KlassHero.Accounts.User do
     field :locale, :string, default: "en"
     field :is_admin, :boolean, default: false
     field :provider_subscription_tier, :string, virtual: true
+
+    has_one :parent_profile, ParentProfileSchema, foreign_key: :identity_id
+    has_one :provider_profile, ProviderProfileSchema, foreign_key: :identity_id
 
     timestamps(type: :utc_datetime)
   end
