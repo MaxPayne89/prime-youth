@@ -5,6 +5,24 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0](https://github.com/MaxPayne89/prime-youth/compare/v0.1.15...v0.2.0) (2026-03-12)
+
+
+### Features
+
+* add account overview to admin dashboard ([6ae5481](https://github.com/MaxPayne89/prime-youth/commit/6ae54810f8e0ea3aef3aac22656f55e5d0550686))
+* add has_one associations for parent/provider profiles on User schema ([837d138](https://github.com/MaxPayne89/prime-youth/commit/837d138ce13105408490108b40bd1d88c2a24887))
+* add roles badges to admin account overview ([d3dc31f](https://github.com/MaxPayne89/prime-youth/commit/d3dc31f8a79a8aa9a0f734f614614846ebd27b2c))
+* add subscription tier badges to admin account overview ([2b3e048](https://github.com/MaxPayne89/prime-youth/commit/2b3e0489de0baf033678912a868c63ba9b96e557))
+* finalize admin account overview field layout ([0ceede0](https://github.com/MaxPayne89/prime-youth/commit/0ceede0d17b56deea6e30dadf1ba065264a1fd2f))
+
+
+### Code Refactoring
+
+* address PR review findings for admin account overview ([eed2799](https://github.com/MaxPayne89/prime-youth/commit/eed27999dc70e8df86a269e3cd01d02caa932441))
+* fix credo --strict issues across 4 files ([4b81fc1](https://github.com/MaxPayne89/prime-youth/commit/4b81fc133495ed9b83adeee97b2a902e14548bd6))
+* rename admin UserLive to AccountLive ([dd90dcb](https://github.com/MaxPayne89/prime-youth/commit/dd90dcbeb6d9c701d93447377ad0b5217b867e0b))
+
 ## [0.1.15](https://github.com/MaxPayne89/prime-youth/compare/v0.1.14...v0.1.15) (2026-03-12)
 
 
