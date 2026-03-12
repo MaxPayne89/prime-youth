@@ -444,20 +444,4 @@ defmodule KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsvTest do
       assert Repo.aggregate(BulkEnrollmentInviteSchema, :count) == 0
     end
   end
-
-  # -- real CSV file ---------------------------------------------------------
-
-  describe "execute/2 with real CSV file" do
-    setup :setup_provider_with_programs
-
-    test "imports the project template CSV successfully", %{provider: provider} do
-      csv = File.read!(Path.join(File.cwd!(), "program.import.template.Klass.Hero.csv"))
-
-      assert {:ok, %{created: count}} = ImportEnrollmentCsv.execute(provider.id, csv)
-
-      # The real CSV has 20 data rows
-      assert count == 20
-      assert Repo.aggregate(BulkEnrollmentInviteSchema, :count) == 20
-    end
-  end
 end

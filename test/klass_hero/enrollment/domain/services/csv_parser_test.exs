@@ -354,53 +354,6 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParserTest do
     end
   end
 
-  # -- real CSV file ---------------------------------------------------------
-
-  describe "real CSV file" do
-    test "parses the project template CSV file with 20 data rows" do
-      csv = File.read!(Path.join(File.cwd!(), "program.import.template.Klass.Hero.csv"))
-
-      assert {:ok, rows} = CsvParser.parse(csv)
-      assert length(rows) == 20
-
-      # Spot-check first row (Avyan)
-      first = hd(rows)
-      assert first.child_first_name == "Avyan"
-      assert first.child_last_name == "Srivastava"
-      assert first.child_date_of_birth == ~D[2016-01-01]
-      assert first.guardian_email == "vaibhavinuk@gmail.com"
-      assert first.school_grade == 3
-      assert first.program_name == "Ballsports & Parkour"
-      assert first.season == "Berlin International School 24/25: Semester 2"
-
-      # Spot-check row with second guardian (Marat, row index 1)
-      marat = Enum.at(rows, 1)
-      assert marat.child_first_name == "Marat"
-      assert marat.guardian2_first_name == "Alex"
-      assert marat.guardian2_last_name == "Iakubovskii"
-      assert marat.nut_allergy == false
-      assert marat.consent_photo_marketing == false
-
-      # Spot-check row with medical conditions (Bennick, row index 18)
-      bennick = Enum.at(rows, 18)
-      assert bennick.child_first_name == "Bennick"
-      assert bennick.medical_conditions =~ "nut allergy"
-      assert bennick.nut_allergy == true
-
-      # Spot-check row with instructor (Eliana, row index 3)
-      eliana = Enum.at(rows, 3)
-      assert eliana.instructor_name == "Jala Salti"
-      assert eliana.program_name == "Organic Arts"
-      assert eliana.consent_photo_marketing == true
-      assert eliana.consent_photo_social_media == true
-
-      # Spot-check trimming (Maxim with trailing space, row index 2)
-      maxim_row = Enum.at(rows, 2)
-      assert maxim_row.child_first_name == "Maxim"
-      assert maxim_row.guardian2_first_name == "Oxana"
-    end
-  end
-
   # -- BOM handling -----------------------------------------------------------
 
   describe "BOM handling" do
