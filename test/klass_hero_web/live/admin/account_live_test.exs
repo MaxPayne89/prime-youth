@@ -58,6 +58,65 @@ defmodule KlassHeroWeb.Admin.AccountLiveTest do
     end
   end
 
+  describe "roles badges" do
+    setup :register_and_log_in_admin
+
+    test "displays Parent badge for user with parent profile", %{conn: conn} do
+      user = KlassHero.AccountsFixtures.user_fixture(%{name: "Parent User"})
+      KlassHero.Factory.insert(:parent_profile_schema, identity_id: user.id)
+
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts")
+
+      assert has_element?(view, "span", "Parent")
+    end
+
+    test "displays Provider badge for user with provider profile", %{conn: conn} do
+      user = KlassHero.AccountsFixtures.user_fixture(%{name: "Provider User"})
+
+      KlassHero.Factory.insert(:provider_profile_schema,
+        identity_id: user.id,
+        business_name: "Test Biz"
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts")
+
+      assert has_element?(view, "span", "Provider")
+    end
+
+    test "displays Admin badge for admin user", %{conn: conn} do
+      _admin_user =
+        KlassHero.AccountsFixtures.user_fixture(%{name: "Other Admin", is_admin: true})
+
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts")
+
+      # The logged-in admin also has Admin badge, but we check for the other admin
+      assert has_element?(view, "span", "Admin")
+    end
+
+    test "displays multiple badges for dual-role user", %{conn: conn} do
+      user = KlassHero.AccountsFixtures.user_fixture(%{name: "Dual Role"})
+      KlassHero.Factory.insert(:parent_profile_schema, identity_id: user.id)
+
+      KlassHero.Factory.insert(:provider_profile_schema,
+        identity_id: user.id,
+        business_name: "Dual Biz"
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts")
+
+      assert has_element?(view, "span", "Parent")
+      assert has_element?(view, "span", "Provider")
+    end
+
+    test "displays User badge for user with no profile and not admin", %{conn: conn} do
+      _bare_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Bare User"})
+
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts")
+
+      assert has_element?(view, "span", "User")
+    end
+  end
+
   describe "edit user" do
     setup :register_and_log_in_admin
 

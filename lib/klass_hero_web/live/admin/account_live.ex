@@ -12,18 +12,21 @@ defmodule KlassHeroWeb.Admin.AccountLive do
   """
 
   # Backpex requires FQ refs in `use` args — alias can't precede `use` per formatter rules
-  # credo:disable-for-lines:10 Credo.Check.Design.AliasUsage
+  # credo:disable-for-lines:11 Credo.Check.Design.AliasUsage
   use Backpex.LiveResource,
     adapter_config: [
       schema: KlassHero.Accounts.User,
       repo: KlassHero.Repo,
       update_changeset: &KlassHero.Accounts.User.admin_update_changeset/3,
       # Required by Backpex even though :new is disabled via can?/3
-      create_changeset: &KlassHero.Accounts.User.admin_update_changeset/3
+      create_changeset: &KlassHero.Accounts.User.admin_update_changeset/3,
+      item_query: &__MODULE__.item_query/3
     ],
     layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
+
+  import Ecto.Query
 
   # Trigger: :new and :delete are not defined for user management
   # Why: users register themselves; deletion follows GDPR anonymization
@@ -39,6 +42,11 @@ defmodule KlassHeroWeb.Admin.AccountLive do
   def can?(assigns, :edit, item), do: item.id != assigns.current_scope.user.id
 
   def can?(_assigns, _action, _item), do: false
+
+  @doc false
+  def item_query(query, _live_action, _assigns) do
+    from u in query, preload: [:parent_profile, :provider_profile]
+  end
 
   @impl Backpex.LiveResource
   def singular_name, do: "Account"
@@ -61,6 +69,38 @@ defmodule KlassHeroWeb.Admin.AccountLive do
         label: "Name",
         searchable: true,
         orderable: true
+      },
+      roles: %{
+        module: Backpex.Fields.Text,
+        label: "Roles",
+        readonly: true,
+        only: [:index, :show],
+        render: fn assigns ->
+          ~H"""
+          <div class="flex flex-wrap gap-1">
+            <%= if @item.parent_profile do %>
+              <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700">
+                Parent
+              </span>
+            <% end %>
+            <%= if @item.provider_profile do %>
+              <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-purple-100 text-purple-700">
+                Provider
+              </span>
+            <% end %>
+            <%= if @item.is_admin do %>
+              <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-red-100 text-red-700">
+                Admin
+              </span>
+            <% end %>
+            <%= if !@item.parent_profile && !@item.provider_profile && !@item.is_admin do %>
+              <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700">
+                User
+              </span>
+            <% end %>
+          </div>
+          """
+        end
       },
       is_admin: %{
         module: Backpex.Fields.Boolean,
