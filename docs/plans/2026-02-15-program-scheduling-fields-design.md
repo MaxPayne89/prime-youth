@@ -2,7 +2,6 @@
 
 **Issue:** GH #146 — Add program scheduling fields to provider "Add Programs" section
 **Date:** 2026-02-15
-**Beads:** prime-youth-0ax
 
 ## Problem
 

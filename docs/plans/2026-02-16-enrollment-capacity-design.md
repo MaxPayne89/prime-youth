@@ -1,6 +1,6 @@
 # Enrollment Capacity Design
 
-**Issue:** GH #149 / beads prime-youth-67d
+**Issue:** GH #149
 **Date:** 2026-02-16
 **Status:** Approved
 

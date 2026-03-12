@@ -41,4 +41,4 @@ Run the full credo command again to confirm zero remaining issues.
 - Only fix what credo reports. Do not refactor or "improve" surrounding code.
 - Preserve existing behavior exactly.
 - For `Credo.Check.Readability.ModuleDoc` on internal/private modules, use `@moduledoc false` rather than writing filler docs.
-- For `Credo.Check.Design.TagTODO` or `Credo.Check.Design.TagFIXME`, convert to beads issues (`bd create`) and remove the tag, unless the category is in the ignore list.
+- For `Credo.Check.Design.TagTODO` or `Credo.Check.Design.TagFIXME`, convert to GitHub issues and remove the tag, unless the category is in the ignore list.
