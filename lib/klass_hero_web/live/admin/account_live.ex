@@ -1,6 +1,6 @@
-defmodule KlassHeroWeb.Admin.UserLive do
+defmodule KlassHeroWeb.Admin.AccountLive do
   @moduledoc """
-  Backpex LiveResource for managing users in the admin dashboard.
+  Backpex LiveResource for the admin account overview.
 
   Provides index, show, and edit views for user management.
   Creation and deletion are intentionally disabled — users register
@@ -41,10 +41,10 @@ defmodule KlassHeroWeb.Admin.UserLive do
   def can?(_assigns, _action, _item), do: false
 
   @impl Backpex.LiveResource
-  def singular_name, do: "User"
+  def singular_name, do: "Account"
 
   @impl Backpex.LiveResource
-  def plural_name, do: "Users"
+  def plural_name, do: "Accounts"
 
   @impl Backpex.LiveResource
   def fields do

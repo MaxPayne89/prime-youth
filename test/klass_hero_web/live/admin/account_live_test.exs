@@ -1,4 +1,4 @@
-defmodule KlassHeroWeb.Admin.UserLiveTest do
+defmodule KlassHeroWeb.Admin.AccountLiveTest do
   use KlassHeroWeb.ConnCase, async: true
 
   import Phoenix.LiveViewTest
@@ -6,13 +6,13 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
   describe "admin access control" do
     setup :register_and_log_in_admin
 
-    test "admin can access /admin/users", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/admin/users")
-      assert html =~ "Users"
+    test "admin can access /admin/accounts", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/admin/accounts")
+      assert html =~ "Accounts"
     end
 
     test "new user button is not shown on index", %{conn: conn} do
-      {:ok, view, _html} = live(conn, ~p"/admin/users")
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts")
       refute has_element?(view, "a", "New")
     end
   end
@@ -20,15 +20,15 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
   describe "non-admin access control" do
     setup :register_and_log_in_user
 
-    test "non-admin is redirected from /admin/users", %{conn: conn} do
-      assert {:error, {:redirect, %{to: "/", flash: flash}}} = live(conn, ~p"/admin/users")
+    test "non-admin is redirected from /admin/accounts", %{conn: conn} do
+      assert {:error, {:redirect, %{to: "/", flash: flash}}} = live(conn, ~p"/admin/accounts")
       assert flash["error"] =~ "access"
     end
   end
 
   describe "unauthenticated access control" do
-    test "unauthenticated user is redirected from /admin/users", %{conn: conn} do
-      assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(conn, ~p"/admin/users")
+    test "unauthenticated user is redirected from /admin/accounts", %{conn: conn} do
+      assert {:error, {:redirect, %{to: "/users/log-in"}}} = live(conn, ~p"/admin/accounts")
     end
   end
 
@@ -38,7 +38,7 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
     test "displays users in the table", %{conn: conn, user: admin} do
       regular_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Regular Test User"})
 
-      {:ok, view, _html} = live(conn, ~p"/admin/users")
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts")
 
       # Backpex renders table data after connected mount via handle_params
       assert has_element?(view, "td", admin.email)
@@ -53,7 +53,7 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
 
     test "admin cannot edit their own record", %{conn: conn, user: admin} do
       assert_raise Backpex.ForbiddenError, fn ->
-        live(conn, ~p"/admin/users/#{admin.id}/edit")
+        live(conn, ~p"/admin/accounts/#{admin.id}/edit")
       end
     end
   end
@@ -64,7 +64,7 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
     test "admin can update user name", %{conn: conn} do
       target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Original Name"})
 
-      {:ok, view, _html} = live(conn, ~p"/admin/users/#{target_user.id}/edit")
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts/#{target_user.id}/edit")
 
       # Backpex requires name="save-type" value="save" on submit.
       # Pass as extra params to render_submit/2 since button values
@@ -80,7 +80,7 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
     test "rejects blank name", %{conn: conn} do
       target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Keep This Name"})
 
-      {:ok, view, _html} = live(conn, ~p"/admin/users/#{target_user.id}/edit")
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts/#{target_user.id}/edit")
 
       view
       |> form("#resource-form", %{change: %{name: ""}})
@@ -93,7 +93,7 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
     test "rejects name shorter than 2 characters", %{conn: conn} do
       target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Keep This Name"})
 
-      {:ok, view, _html} = live(conn, ~p"/admin/users/#{target_user.id}/edit")
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts/#{target_user.id}/edit")
 
       view
       |> form("#resource-form", %{change: %{name: "A"}})
@@ -107,7 +107,7 @@ defmodule KlassHeroWeb.Admin.UserLiveTest do
       target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Toggle Target"})
       assert target_user.is_admin == false
 
-      {:ok, view, _html} = live(conn, ~p"/admin/users/#{target_user.id}/edit")
+      {:ok, view, _html} = live(conn, ~p"/admin/accounts/#{target_user.id}/edit")
 
       view
       |> form("#resource-form", %{change: %{is_admin: true}})

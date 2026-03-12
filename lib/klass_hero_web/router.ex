@@ -147,7 +147,7 @@ defmodule KlassHeroWeb.Router do
           {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale},
           Backpex.InitAssigns
         ] do
-        live_resources("/users", UserLive, only: [:index, :show, :edit])
+        live_resources("/accounts", AccountLive, only: [:index, :show, :edit])
         live_resources("/providers", ProviderLive, only: [:index, :show, :edit])
         live_resources("/staff", StaffLive, only: [:index, :show, :edit])
         live_resources("/bookings", BookingLive, only: [:index, :show])
