@@ -5,6 +5,14 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.14](https://github.com/MaxPayne89/prime-youth/compare/v0.1.13...v0.1.14) (2026-03-12)
+
+
+### Bug Fixes
+
+* update Debian base image tag to available version ([03722e8](https://github.com/MaxPayne89/prime-youth/commit/03722e8cfc93ed7c0cbcf36fa23cf8db76b3d4a5))
+* update Debian base image tag to available version ([3c91af6](https://github.com/MaxPayne89/prime-youth/commit/3c91af6b9f6ed666e76381743cc2ec33122a2a64))
+
 ## [0.1.13](https://github.com/MaxPayne89/prime-youth/compare/v0.1.12...v0.1.13) (2026-03-12)
 
 
