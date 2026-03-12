@@ -68,7 +68,8 @@ defmodule KlassHeroWeb.Admin.AccountLive do
         module: Backpex.Fields.Text,
         label: "Name",
         searchable: true,
-        orderable: true
+        orderable: true,
+        readonly: true
       },
       roles: %{
         module: Backpex.Fields.Text,
@@ -136,7 +137,7 @@ defmodule KlassHeroWeb.Admin.AccountLive do
       is_admin: %{
         module: Backpex.Fields.Boolean,
         label: "Admin",
-        orderable: true
+        only: [:edit]
       },
       inserted_at: %{
         module: Backpex.Fields.DateTime,

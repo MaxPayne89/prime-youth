@@ -218,50 +218,8 @@ defmodule KlassHeroWeb.Admin.AccountLiveTest do
     end
   end
 
-  describe "edit user" do
+  describe "admin toggle" do
     setup :register_and_log_in_admin
-
-    test "admin can update user name", %{conn: conn} do
-      target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Original Name"})
-
-      {:ok, view, _html} = live(conn, ~p"/admin/accounts/#{target_user.id}/edit")
-
-      # Backpex requires name="save-type" value="save" on submit.
-      # Pass as extra params to render_submit/2 since button values
-      # aren't included automatically.
-      view
-      |> form("#resource-form", %{change: %{name: "Updated Name"}})
-      |> render_submit(%{"save-type" => "save"})
-
-      updated = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
-      assert updated.name == "Updated Name"
-    end
-
-    test "rejects blank name", %{conn: conn} do
-      target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Keep This Name"})
-
-      {:ok, view, _html} = live(conn, ~p"/admin/accounts/#{target_user.id}/edit")
-
-      view
-      |> form("#resource-form", %{change: %{name: ""}})
-      |> render_submit(%{"save-type" => "save"})
-
-      unchanged = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
-      assert unchanged.name == "Keep This Name"
-    end
-
-    test "rejects name shorter than 2 characters", %{conn: conn} do
-      target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Keep This Name"})
-
-      {:ok, view, _html} = live(conn, ~p"/admin/accounts/#{target_user.id}/edit")
-
-      view
-      |> form("#resource-form", %{change: %{name: "A"}})
-      |> render_submit(%{"save-type" => "save"})
-
-      unchanged = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
-      assert unchanged.name == "Keep This Name"
-    end
 
     test "admin can toggle is_admin flag", %{conn: conn} do
       target_user = KlassHero.AccountsFixtures.user_fixture(%{name: "Toggle Target"})
