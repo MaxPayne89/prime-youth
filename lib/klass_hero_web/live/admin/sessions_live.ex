@@ -2,26 +2,37 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
   @moduledoc """
   Admin dashboard for participation sessions.
 
-  Two modes:
-  - `:today` (default) — shows all sessions for today
-  - `:filter` — shows filtered sessions across any date range
+  Unified view with searchable provider/program dropdowns,
+  date range, and status filter. All filters apply live.
   """
 
   use KlassHeroWeb, :live_view
 
+  alias KlassHero.Admin.Queries
   alias KlassHero.Participation
+  alias KlassHeroWeb.Admin.Components.SearchableSelect
   alias KlassHeroWeb.Theme
 
   @impl true
   def mount(_params, _session, socket) do
+    today = Date.utc_today()
+    all_providers = Queries.list_providers_for_select()
+    all_programs = Queries.list_programs_for_select()
+
     {:ok,
      socket
      |> assign(:fluid?, false)
      |> assign(:live_resource, nil)
-     |> assign(:mode, :today)
-     |> assign(:filters, %{})
      |> assign(:page_title, gettext("Sessions"))
-     |> assign(:session_statuses, Participation.session_statuses())}
+     |> assign(:session_statuses, Participation.session_statuses())
+     |> assign(:all_providers, all_providers)
+     |> assign(:all_programs, all_programs)
+     |> assign(:filtered_programs, all_programs)
+     |> assign(:selected_provider, nil)
+     |> assign(:selected_program, nil)
+     |> assign(:date_from, today)
+     |> assign(:date_to, today)
+     |> assign(:selected_status, nil)}
   end
 
   @impl true
@@ -37,9 +48,7 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
   end
 
   defp apply_action(socket, :index, _params) do
-    # Use case defaults to today when no date filter provided
-    sessions = Participation.list_admin_sessions(%{})
-    stream(socket, :sessions, sessions, reset: true)
+    load_sessions(socket)
   end
 
   # Trigger: id param arrives from URL as raw string
@@ -68,39 +77,81 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
     end
   end
 
+  # -- Filter Event Handlers --
+
   @impl true
-  def handle_event("switch_mode", %{"mode" => mode}, socket) when mode in ~w(today filter) do
-    mode = String.to_existing_atom(mode)
+  def handle_info({:select, "provider_id", selected}, socket) do
+    # Trigger: user selected or cleared a provider in the SearchableSelect
+    # Why: selecting a provider must cascade to narrow program options
+    # Outcome: filter programs in-memory, clear program if it doesn't belong
+    filtered_programs =
+      case selected do
+        nil ->
+          socket.assigns.all_programs
 
-    socket =
-      case mode do
-        :today ->
-          sessions = Participation.list_admin_sessions(%{date: Date.utc_today()})
-
-          socket
-          |> assign(:mode, :today)
-          |> assign(:filters, %{})
-          |> stream(:sessions, sessions, reset: true)
-
-        :filter ->
-          assign(socket, :mode, :filter)
+        %{id: provider_id} ->
+          Enum.filter(socket.assigns.all_programs, &(&1.provider_id == provider_id))
       end
 
-    {:noreply, socket}
+    # Trigger: selected program may not belong to the newly selected provider
+    # Why: showing a stale program selection would produce confusing results
+    # Outcome: clear program selection if it's not in the filtered list
+    selected_program =
+      case socket.assigns.selected_program do
+        nil ->
+          nil
+
+        %{id: program_id} ->
+          if Enum.any?(filtered_programs, &(&1.id == program_id)) do
+            socket.assigns.selected_program
+          end
+      end
+
+    socket
+    |> assign(:selected_provider, selected)
+    |> assign(:filtered_programs, filtered_programs)
+    |> assign(:selected_program, selected_program)
+    |> load_sessions()
+    |> then(&{:noreply, &1})
   end
 
-  def handle_event("apply_filters", params, socket) do
-    filters = build_filters_from_params(params)
-    sessions = Participation.list_admin_sessions(filters)
-
-    socket =
-      socket
-      |> assign(:filters, filters)
-      |> stream(:sessions, sessions, reset: true)
-
-    {:noreply, socket}
+  @impl true
+  def handle_info({:select, "program_id", selected}, socket) do
+    socket
+    |> assign(:selected_program, selected)
+    |> load_sessions()
+    |> then(&{:noreply, &1})
   end
 
+  @impl true
+  def handle_event("filter_change", params, socket) do
+    # Trigger: unified filter bar form emits phx-change on any input change
+    # Why: single handler for date and status changes avoids per-input phx-change attrs
+    # Outcome: parse all filter params, update assigns, reload sessions
+    date_from = parse_date(params["date_from"], socket.assigns.date_from)
+    date_to = parse_date(params["date_to"], socket.assigns.date_to)
+    selected_status = parse_status(params["status"])
+
+    socket
+    |> assign(:date_from, date_from)
+    |> assign(:date_to, date_to)
+    |> assign(:selected_status, selected_status)
+    |> load_sessions()
+    |> then(&{:noreply, &1})
+  end
+
+  @impl true
+  def handle_event("reset_dates", _params, socket) do
+    today = Date.utc_today()
+
+    socket
+    |> assign(:date_from, today)
+    |> assign(:date_to, today)
+    |> load_sessions()
+    |> then(&{:noreply, &1})
+  end
+
+  @impl true
   def handle_event("open_correction", %{"record-id" => record_id}, socket) do
     {:noreply,
      socket
@@ -108,6 +159,7 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
      |> assign(:correction_form, to_form(%{"reason" => ""}, as: :correction))}
   end
 
+  @impl true
   def handle_event("cancel_correction", _params, socket) do
     {:noreply,
      socket
@@ -115,6 +167,7 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
      |> assign(:correction_form, nil)}
   end
 
+  @impl true
   def handle_event("save_correction", %{"correction" => correction_params}, socket) do
     record_id = socket.assigns.editing_record_id
 
@@ -142,39 +195,40 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
 
   # -- Private Helpers --
 
-  defp build_filters_from_params(params) do
+  defp load_sessions(socket) do
+    filters = build_filters(socket.assigns)
+    sessions = Participation.list_admin_sessions(filters)
+    stream(socket, :sessions, sessions, reset: true)
+  end
+
+  defp build_filters(assigns) do
     %{}
-    |> maybe_add_uuid_filter(:provider_id, params["provider_id"])
-    |> maybe_add_uuid_filter(:program_id, params["program_id"])
-    |> maybe_add_filter(:status, parse_status(params["status"]))
-    |> maybe_add_date_filter(params)
+    |> maybe_add_filter(:provider_id, get_in(assigns, [:selected_provider, :id]))
+    |> maybe_add_filter(:program_id, get_in(assigns, [:selected_program, :id]))
+    |> maybe_add_filter(:status, assigns.selected_status)
+    |> maybe_add_date_range(assigns.date_from, assigns.date_to)
   end
 
   defp maybe_add_filter(filters, _key, nil), do: filters
   defp maybe_add_filter(filters, key, value), do: Map.put(filters, key, value)
 
-  defp maybe_add_uuid_filter(filters, _key, nil), do: filters
-  defp maybe_add_uuid_filter(filters, _key, ""), do: filters
+  defp maybe_add_date_range(filters, %Date{} = from, %Date{} = to) when from == to,
+    do: Map.put(filters, :date, from)
 
-  defp maybe_add_uuid_filter(filters, key, value) do
-    case Ecto.UUID.cast(value) do
-      {:ok, uuid} -> Map.put(filters, key, uuid)
-      :error -> filters
+  defp maybe_add_date_range(filters, %Date{} = from, %Date{} = to),
+    do: Map.merge(filters, %{date_from: from, date_to: to})
+
+  defp maybe_add_date_range(filters, _, _), do: filters
+
+  defp parse_date("", fallback), do: fallback
+  defp parse_date(nil, fallback), do: fallback
+
+  defp parse_date(date_string, fallback) do
+    case Date.from_iso8601(date_string) do
+      {:ok, date} -> date
+      _ -> fallback
     end
   end
-
-  defp maybe_add_date_filter(filters, %{"date_from" => from, "date_to" => to})
-       when from != "" and to != "" do
-    with {:ok, date_from} <- Date.from_iso8601(from),
-         {:ok, date_to} <- Date.from_iso8601(to) do
-      Map.merge(filters, %{date_from: date_from, date_to: date_to})
-    else
-      _ -> filters
-    end
-  end
-
-  # No date range provided in filter mode — use case defaults to today
-  defp maybe_add_date_filter(filters, _params), do: filters
 
   @session_status_strings ~w(scheduled in_progress completed cancelled)
   @record_status_strings ~w(registered checked_in checked_out absent)

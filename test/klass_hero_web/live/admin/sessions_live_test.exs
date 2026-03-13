@@ -24,11 +24,11 @@ defmodule KlassHeroWeb.Admin.SessionsLiveTest do
     end
   end
 
-  describe "today mode" do
+  describe "unified filter bar" do
     setup :register_and_log_in_admin
 
     setup do
-      provider = insert(:provider_profile_schema)
+      provider = insert(:provider_profile_schema, business_name: "Creative Learning Inc.")
       program = insert(:program_schema, provider_id: provider.id, title: "Art Adventures")
 
       session =
@@ -55,10 +55,11 @@ defmodule KlassHeroWeb.Admin.SessionsLiveTest do
       %{session: session, program: program, provider: provider}
     end
 
-    test "displays today's sessions with program name", %{conn: conn} do
+    test "displays sessions with program and provider names", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/admin/sessions")
       assert has_element?(view, "#sessions-list")
       assert render(view) =~ "Art Adventures"
+      assert render(view) =~ "Creative Learning Inc."
     end
 
     test "shows attendance count", %{conn: conn} do
@@ -66,41 +67,61 @@ defmodule KlassHeroWeb.Admin.SessionsLiveTest do
       assert html =~ "1 / 1"
     end
 
-    test "shows session status badge", %{conn: conn} do
+    test "renders provider searchable select", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions")
+      assert has_element?(view, "#provider-select")
+    end
+
+    test "renders program searchable select", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions")
+      assert has_element?(view, "#program-select")
+    end
+
+    test "renders date inputs defaulting to today", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions")
+      today = Date.utc_today() |> Date.to_iso8601()
+      assert has_element?(view, "input[name=date_from][value='#{today}']")
+      assert has_element?(view, "input[name=date_to][value='#{today}']")
+    end
+
+    test "renders status dropdown", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions")
+      assert has_element?(view, "select[name=status]")
+    end
+
+    test "no mode switcher exists", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions")
+      refute has_element?(view, "#mode-today")
+      refute has_element?(view, "#mode-filter")
+    end
+
+    test "always shows session date in rows", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/admin/sessions")
-      assert html =~ "In Progress" or html =~ "in_progress"
-    end
-  end
-
-  describe "filter mode" do
-    setup :register_and_log_in_admin
-
-    setup do
-      provider = insert(:provider_profile_schema)
-      program = insert(:program_schema, provider_id: provider.id, title: "Soccer Training")
-
-      insert(:program_session_schema,
-        program_id: program.id,
-        session_date: Date.utc_today(),
-        status: "completed"
-      )
-
-      %{provider: provider, program: program}
+      today = Date.utc_today() |> Date.to_iso8601()
+      assert html =~ today
     end
 
-    test "switches to filter mode", %{conn: conn} do
+    test "filtering by status re-queries sessions", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/admin/sessions")
 
-      view |> element("#mode-filter") |> render_click()
-      assert has_element?(view, "#filter-form")
+      view
+      |> element("#filter-bar")
+      |> render_change(%{"status" => "completed"})
+
+      # Session is in_progress, so filtering for completed should hide it
+      refute render(view) =~ "Art Adventures"
     end
 
-    test "switches back to today mode", %{conn: conn} do
+    test "filtering by date range excludes sessions outside range", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/admin/sessions")
+      yesterday = Date.utc_today() |> Date.add(-1) |> Date.to_iso8601()
 
-      view |> element("#mode-filter") |> render_click()
-      view |> element("#mode-today") |> render_click()
-      refute has_element?(view, "#filter-form")
+      view
+      |> element("#filter-bar")
+      |> render_change(%{"date_from" => yesterday, "date_to" => yesterday})
+
+      # Session is today, so filtering for yesterday should hide it
+      refute render(view) =~ "Art Adventures"
     end
   end
 

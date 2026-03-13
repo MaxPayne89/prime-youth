@@ -4,73 +4,86 @@
     <h1 class={Theme.typography(:page_title)}>{gettext("Sessions")}</h1>
   </div>
 
-  <%!-- Mode switcher --%>
-  <div class="flex items-center gap-3 mb-4 border-b border-base-300 pb-2">
-    <button
-      id="mode-today"
-      phx-click="switch_mode"
-      phx-value-mode="today"
-      class={[
-        "text-sm font-medium px-3 py-1 rounded",
-        @mode == :today && "bg-primary text-primary-content"
-      ]}
-    >
-      {gettext("Today")}
-    </button>
-    <button
-      id="mode-filter"
-      phx-click="switch_mode"
-      phx-value-mode="filter"
-      class={[
-        "text-sm font-medium px-3 py-1 rounded",
-        @mode == :filter && "bg-primary text-primary-content"
-      ]}
-    >
-      {gettext("Search & Filter")}
-    </button>
-  </div>
+  <%!-- Unified filter bar --%>
+  <%!-- SearchableSelects have their own internal forms, so they live outside #filter-bar --%>
+  <div class="flex flex-wrap gap-3 mb-4 items-end">
+    <div class="w-full sm:w-auto sm:min-w-[200px]">
+      <.live_component
+        module={SearchableSelect}
+        id="provider-select"
+        label={gettext("Provider")}
+        placeholder={gettext("All providers")}
+        field_name="provider_id"
+        options={@all_providers}
+        selected={@selected_provider}
+      />
+    </div>
 
-  <%!-- Filter form (filter mode only) --%>
-  <form
-    :if={@mode == :filter}
-    id="filter-form"
-    phx-submit="apply_filters"
-    class="flex flex-wrap gap-3 mb-4"
-  >
-    <input
-      type="text"
-      name="provider_id"
-      placeholder={gettext("Provider ID")}
-      class="input input-bordered input-sm"
-      value={@filters[:provider_id]}
-    />
-    <input
-      type="text"
-      name="program_id"
-      placeholder={gettext("Program ID")}
-      class="input input-bordered input-sm"
-      value={@filters[:program_id]}
-    />
-    <input
-      type="date"
-      name="date_from"
-      class="input input-bordered input-sm"
-      value={@filters[:date_from]}
-    />
-    <input
-      type="date"
-      name="date_to"
-      class="input input-bordered input-sm"
-      value={@filters[:date_to]}
-    />
-    <select name="status" class="select select-bordered select-sm">
-      <option value="">{gettext("All Statuses")}</option>
-      <option :for={status <- @session_statuses} value={status}>
-        {humanize_status(status)}
-      </option>
-    </select>
-    <button type="submit" class="btn btn-primary btn-sm">{gettext("Apply")}</button>
-  </form>
+    <div class="w-full sm:w-auto sm:min-w-[200px]">
+      <.live_component
+        module={SearchableSelect}
+        id="program-select"
+        label={gettext("Program")}
+        placeholder={gettext("All programs")}
+        field_name="program_id"
+        options={@filtered_programs}
+        selected={@selected_program}
+      />
+    </div>
+
+    <%!-- Date/status filters in their own form for phx-change --%>
+    <form id="filter-bar" phx-change="filter_change" class="contents">
+      <div class="flex gap-2 items-end">
+        <div>
+          <label class="label label-text text-xs font-medium uppercase tracking-wide">
+            {gettext("From")}
+          </label>
+          <input
+            type="date"
+            name="date_from"
+            value={Date.to_iso8601(@date_from)}
+            phx-debounce="300"
+            class="input input-bordered input-sm"
+          />
+        </div>
+        <div>
+          <label class="label label-text text-xs font-medium uppercase tracking-wide">
+            {gettext("To")}
+          </label>
+          <input
+            type="date"
+            name="date_to"
+            value={Date.to_iso8601(@date_to)}
+            phx-debounce="300"
+            class="input input-bordered input-sm"
+          />
+        </div>
+        <button
+          type="button"
+          phx-click="reset_dates"
+          class="btn btn-ghost btn-xs mb-1"
+          title={gettext("Reset to today")}
+        >
+          ↻
+        </button>
+      </div>
+
+      <div>
+        <label class="label label-text text-xs font-medium uppercase tracking-wide">
+          {gettext("Status")}
+        </label>
+        <select
+          name="status"
+          class="select select-bordered select-sm"
+        >
+          <option value="">{gettext("All Statuses")}</option>
+          <option :for={status <- @session_statuses} value={status}>
+            {humanize_status(status)}
+          </option>
+        </select>
+      </div>
+    </form>
+  </div>
 
   <%!-- Session list --%>
   <div id="sessions-list" phx-update="stream" class="space-y-1">
@@ -84,11 +97,10 @@
         <div>
           <div class="font-semibold text-sm">{session.program_name}</div>
           <div class="text-xs opacity-50 mt-0.5">
-            {session.provider_name} ·
-            <%= if @mode == :filter do %>
-              {session.session_date} ·
-            <% end %>
-            {Calendar.strftime(session.start_time, "%H:%M")}–{Calendar.strftime(
+            {session.provider_name} · {session.session_date} · {Calendar.strftime(
+              session.start_time,
+              "%H:%M"
+            )}–{Calendar.strftime(
               session.end_time,
               "%H:%M"
             )}
@@ -107,7 +119,7 @@
   </div>
 </div>
 
-<%!-- Show view --%>
+<%!-- Show view (unchanged) --%>
 <div :if={@live_action == :show}>
   <div class="mb-6">
     <.link
