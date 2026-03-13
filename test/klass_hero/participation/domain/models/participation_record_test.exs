@@ -293,4 +293,113 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecordTest do
       assert length(statuses) == 4
     end
   end
+
+  describe "admin_correct/2" do
+    setup do
+      {:ok, record} =
+        ParticipationRecord.new(%{
+          id: "rec-1",
+          session_id: "sess-1",
+          child_id: "child-1"
+        })
+
+      %{record: record}
+    end
+
+    test "corrects registered → checked_in with check_in_at", %{record: record} do
+      check_in_at = ~U[2026-03-13 09:00:00Z]
+
+      assert {:ok, corrected} =
+               ParticipationRecord.admin_correct(record, %{
+                 status: :checked_in,
+                 check_in_at: check_in_at
+               })
+
+      assert corrected.status == :checked_in
+      assert corrected.check_in_at == check_in_at
+    end
+
+    test "corrects absent → checked_in (reverse transition)", %{record: record} do
+      {:ok, absent} = ParticipationRecord.mark_absent(record)
+      check_in_at = ~U[2026-03-13 09:05:00Z]
+
+      assert {:ok, corrected} =
+               ParticipationRecord.admin_correct(absent, %{
+                 status: :checked_in,
+                 check_in_at: check_in_at
+               })
+
+      assert corrected.status == :checked_in
+    end
+
+    test "corrects checked_out → checked_in (reverse transition)" do
+      record = build_checked_out_record()
+
+      assert {:ok, corrected} =
+               ParticipationRecord.admin_correct(record, %{status: :checked_in})
+
+      assert corrected.status == :checked_in
+      assert corrected.check_out_at == nil
+      assert corrected.check_out_by == nil
+      assert corrected.check_out_notes == nil
+    end
+
+    test "corrects check_in_at time only (no status change)" do
+      record = build_checked_in_record()
+      new_time = ~U[2026-03-13 09:15:00Z]
+
+      assert {:ok, corrected} =
+               ParticipationRecord.admin_correct(record, %{check_in_at: new_time})
+
+      assert corrected.check_in_at == new_time
+      assert corrected.status == :checked_in
+    end
+
+    test "corrects check_out_at time only (no status change)" do
+      record = build_checked_out_record()
+      new_time = ~U[2026-03-13 11:30:00Z]
+
+      assert {:ok, corrected} =
+               ParticipationRecord.admin_correct(record, %{check_out_at: new_time})
+
+      assert corrected.check_out_at == new_time
+    end
+
+    test "rejects check_out_at without check_in_at present" do
+      {:ok, record} =
+        ParticipationRecord.new(%{id: "r-1", session_id: "s-1", child_id: "c-1"})
+
+      assert {:error, :check_out_requires_check_in} =
+               ParticipationRecord.admin_correct(record, %{
+                 status: :checked_out,
+                 check_out_at: ~U[2026-03-13 10:00:00Z]
+               })
+    end
+
+    test "rejects empty corrections (no changes)", %{record: record} do
+      assert {:error, :no_changes} =
+               ParticipationRecord.admin_correct(record, %{})
+    end
+
+    test "rejects invalid status atom", %{record: record} do
+      assert {:error, :invalid_status} =
+               ParticipationRecord.admin_correct(record, %{status: :invalid})
+    end
+
+    # -- helpers --
+
+    defp build_checked_in_record do
+      {:ok, record} =
+        ParticipationRecord.new(%{id: "r-ci", session_id: "s-1", child_id: "c-1"})
+
+      {:ok, checked_in} = ParticipationRecord.check_in(record, "provider-1", "On time")
+      checked_in
+    end
+
+    defp build_checked_out_record do
+      checked_in = build_checked_in_record()
+      {:ok, checked_out} = ParticipationRecord.check_out(checked_in, "provider-1")
+      checked_out
+    end
+  end
 end
