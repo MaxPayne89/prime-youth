@@ -5,6 +5,33 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0](https://github.com/MaxPayne89/prime-youth/compare/v0.2.0...v0.3.0) (2026-03-13)
+
+
+### Features
+
+* add ConsentStatusFilter for admin consents ([#341](https://github.com/MaxPayne89/prime-youth/issues/341)) ([7599a8a](https://github.com/MaxPayne89/prime-youth/commit/7599a8a7117021eca937d554c731cdbdd97e6ddc))
+* add ConsentTypeFilter for admin consents ([#341](https://github.com/MaxPayne89/prime-youth/issues/341)) ([35ee8a4](https://github.com/MaxPayne89/prime-youth/commit/35ee8a414c62f6a24a68703fca949374d89bdfac))
+* add read-only admin consent overview with Backpex ([#341](https://github.com/MaxPayne89/prime-youth/issues/341)) ([8195263](https://github.com/MaxPayne89/prime-youth/commit/81952630c8112c9edfd4b27b37accdd0ba3ea15b))
+* add read-only admin consents overview ([#341](https://github.com/MaxPayne89/prime-youth/issues/341)) ([1bf091d](https://github.com/MaxPayne89/prime-youth/commit/1bf091d98a7e7fcebd0636d37470c0ee865a3e3d))
+
+
+### Bug Fixes
+
+* add Consents link to admin sidebar navigation ([#341](https://github.com/MaxPayne89/prime-youth/issues/341)) ([9e66a20](https://github.com/MaxPayne89/prime-youth/commit/9e66a2085ff41da5aa2ff53483192ba65ea201fa))
+* add DB connection pool resilience for Fly.io suspend/resume ([4ffd420](https://github.com/MaxPayne89/prime-youth/commit/4ffd4202dab33807de21e9e8a9fabf1c72c3a1e6))
+* add DB connection pool resilience for Fly.io suspend/resume ([6bb4129](https://github.com/MaxPayne89/prime-youth/commit/6bb41291e047f7d4421bfd129dca8bada3179ce2)), closes [#395](https://github.com/MaxPayne89/prime-youth/issues/395)
+* address PR review — add filter tests, fix test names, update spec ([#341](https://github.com/MaxPayne89/prime-youth/issues/341)) ([012dd9d](https://github.com/MaxPayne89/prime-youth/commit/012dd9dfd99c30592e758eb8a6748c62acd19a7d))
+* harden admin consent view — nil parent render, catch-all filter, tighter tests ([#341](https://github.com/MaxPayne89/prime-youth/issues/341)) ([e47af47](https://github.com/MaxPayne89/prime-youth/commit/e47af476ca6d3e6c82d61b5506badcd894df5909))
+
+
+### Code Refactoring
+
+* add belongs_to associations and admin_changeset to ConsentSchema ([#341](https://github.com/MaxPayne89/prime-youth/issues/341)) ([f539e13](https://github.com/MaxPayne89/prime-youth/commit/f539e136b057f623412bfe4e2738a9b4712d1678))
+* deduplicate humanize helper, fix missing [@impl](https://github.com/impl), simplify tests ([#341](https://github.com/MaxPayne89/prime-youth/issues/341)) ([983a3ce](https://github.com/MaxPayne89/prime-youth/commit/983a3ce8e9d61daf1d5d5301749936092d4801eb))
+* extract duplicate unique constraint check to shared EctoErrorHelpers ([ec112e5](https://github.com/MaxPayne89/prime-youth/commit/ec112e54694507ee89152db581da5700728f874d))
+* extract duplicate unique constraint check to shared EctoErrorHelpers ([8447ea9](https://github.com/MaxPayne89/prime-youth/commit/8447ea9bdf24dc5cabc57f2f1d3c24065b66efe3)), closes [#403](https://github.com/MaxPayne89/prime-youth/issues/403)
+
 ## [0.2.0](https://github.com/MaxPayne89/prime-youth/compare/v0.1.15...v0.2.0) (2026-03-12)
 
 
