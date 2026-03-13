@@ -120,4 +120,37 @@ defmodule KlassHero.Participation.Application.UseCases.ListSessionsTest do
       assert is_list(sessions)
     end
   end
+
+  describe "execute_admin/1" do
+    setup do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id, title: "Test Program")
+
+      insert(:program_session_schema,
+        program_id: program.id,
+        session_date: Date.utc_today(),
+        status: "scheduled"
+      )
+
+      %{provider: provider, program: program}
+    end
+
+    test "defaults to today when no date filter provided" do
+      results = ListSessions.execute_admin(%{})
+      assert length(results) == 1
+      assert hd(results).program_name == "Test Program"
+    end
+
+    test "uses provided date filter instead of default" do
+      yesterday = Date.add(Date.utc_today(), -1)
+      results = ListSessions.execute_admin(%{date: yesterday})
+      assert results == []
+    end
+
+    test "passes through provider_id filter" do
+      other_provider = insert(:provider_profile_schema)
+      results = ListSessions.execute_admin(%{provider_id: other_provider.id})
+      assert results == []
+    end
+  end
 end

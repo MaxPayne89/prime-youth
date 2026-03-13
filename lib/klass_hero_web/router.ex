@@ -154,6 +154,20 @@ defmodule KlassHeroWeb.Router do
         live_resources("/consents", ConsentLive, only: [:index, :show])
       end
     end
+
+    # Custom admin LiveViews — separate live_session from Backpex
+    scope "/admin", Admin do
+      live_session :admin_custom,
+        layout: {KlassHeroWeb.Layouts, :admin},
+        on_mount: [
+          {KlassHeroWeb.UserAuth, :require_authenticated},
+          {KlassHeroWeb.UserAuth, :require_admin},
+          {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+        ] do
+        live "/sessions", SessionsLive, :index
+        live "/sessions/:id", SessionsLive, :show
+      end
+    end
   end
 
   # Oban Web dashboard - admin only

@@ -7,5 +7,5 @@ defmodule KlassHero do
   if it comes from the database, an external API or others.
   """
 
-  use Boundary, deps: [], exports: [Repo, Mailer, Contact]
+  use Boundary, deps: [], exports: [Repo, Mailer, Contact, Admin.Queries]
 end

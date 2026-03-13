@@ -45,8 +45,20 @@
         "Consents"
       )}
     </Backpex.HTML.Layout.sidebar_item>
+    <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate={~p"/admin/sessions"}>
+      <Backpex.HTML.CoreComponents.icon name="hero-calendar-days" class="h-5 w-5" /> {gettext(
+        "Sessions"
+      )}
+    </Backpex.HTML.Layout.sidebar_item>
   </:sidebar>
 
   <Backpex.HTML.Layout.flash_messages flash={@flash} />
-  {render_slot(@inner_block)}
+  <%!-- Trigger: Backpex passes empty named slot [] for inner_content; Phoenix layout passes rendered content --%>
+  <%!-- Why: [] is truthy in Elixir, so plain `if assigns[:inner_content]` would render nothing for Backpex --%>
+  <%!-- Outcome: Backpex resources use @inner_block slot; SessionsLive uses Phoenix layout @inner_content --%>
+  <%= if assigns[:inner_content] not in [nil, []] do %>
+    {@inner_content}
+  <% else %>
+    {render_slot(@inner_block)}
+  <% end %>
 </Backpex.HTML.Layout.app_shell>

@@ -45,6 +45,7 @@ defmodule KlassHero.Participation do
   alias KlassHero.Participation.Application.UseCases.AnonymizeBehavioralNotesForChild
   alias KlassHero.Participation.Application.UseCases.BulkCheckIn
   alias KlassHero.Participation.Application.UseCases.CompleteSession
+  alias KlassHero.Participation.Application.UseCases.CorrectAttendance
   alias KlassHero.Participation.Application.UseCases.CreateSession
   alias KlassHero.Participation.Application.UseCases.GetApprovedBehavioralNotes
   alias KlassHero.Participation.Application.UseCases.GetBehavioralNoteForRecord
@@ -140,6 +141,21 @@ defmodule KlassHero.Participation do
   """
   def list_sessions(params \\ %{}) when is_map(params) do
     ListSessions.execute(params)
+  end
+
+  @doc "Lists sessions with enriched data for admin dashboard."
+  def list_admin_sessions(filters \\ %{}) when is_map(filters) do
+    ListSessions.execute_admin(filters)
+  end
+
+  @doc "Returns the list of valid session statuses."
+  def session_statuses do
+    KlassHero.Participation.Domain.Models.ProgramSession.valid_statuses()
+  end
+
+  @doc "Returns the list of valid participation record statuses."
+  def record_statuses do
+    KlassHero.Participation.Domain.Models.ParticipationRecord.valid_statuses()
   end
 
   @doc """
@@ -292,6 +308,11 @@ defmodule KlassHero.Participation do
   """
   def get_participation_history(params) when is_map(params) do
     GetParticipationHistory.execute(params)
+  end
+
+  @doc "Admin-corrects a participation record's attendance data."
+  def correct_attendance(params) when is_map(params) do
+    CorrectAttendance.execute(params)
   end
 
   # ============================================================================

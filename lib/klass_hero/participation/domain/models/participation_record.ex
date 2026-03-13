@@ -200,4 +200,108 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
   @doc "Returns list of valid status atoms."
   @spec valid_statuses() :: [status()]
   def valid_statuses, do: @valid_statuses
+
+  @doc """
+  Admin correction — allows any status transition and time edits.
+
+  Unlike `check_in/3` and `check_out/3`, this bypasses the forward-only
+  state machine for administrative fixes.
+
+  ## Validations
+  - At least one field must change (status or times)
+  - `check_out_at` requires `check_in_at` to be present (on the record or in attrs)
+  - Status must be a valid status atom
+  """
+  @spec admin_correct(t(), map()) :: {:ok, t()} | {:error, atom()}
+  def admin_correct(%__MODULE__{} = record, attrs) when is_map(attrs) do
+    with :ok <- validate_has_changes(record, attrs),
+         :ok <- validate_status(attrs),
+         :ok <- validate_check_out_consistency(record, attrs) do
+      corrected = apply_corrections(record, attrs)
+      validate_temporal_ordering(corrected)
+    end
+  end
+
+  defp validate_has_changes(record, attrs) do
+    has_status_change = Map.has_key?(attrs, :status) and attrs.status != record.status
+
+    has_time_change =
+      (Map.has_key?(attrs, :check_in_at) and attrs.check_in_at != record.check_in_at) or
+        (Map.has_key?(attrs, :check_out_at) and attrs.check_out_at != record.check_out_at)
+
+    if has_status_change or has_time_change, do: :ok, else: {:error, :no_changes}
+  end
+
+  defp validate_status(%{status: status}) when status not in @valid_statuses,
+    do: {:error, :invalid_status}
+
+  defp validate_status(_attrs), do: :ok
+
+  defp validate_check_out_consistency(record, attrs) do
+    new_status = Map.get(attrs, :status, record.status)
+    setting_check_out = Map.has_key?(attrs, :check_out_at)
+    has_check_in = record.check_in_at != nil or Map.has_key?(attrs, :check_in_at)
+
+    # Trigger: transitioning to checked_out OR directly setting check_out_at
+    # Why: a child can't be checked out without first being checked in
+    # Outcome: rejects logically impossible corrections (e.g. check_out_at on :registered with no check_in_at)
+    if (new_status == :checked_out or setting_check_out) and not has_check_in do
+      {:error, :check_out_requires_check_in}
+    else
+      :ok
+    end
+  end
+
+  defp apply_corrections(record, attrs) do
+    record
+    |> maybe_update(:status, attrs)
+    |> maybe_update(:check_in_at, attrs)
+    |> maybe_update(:check_out_at, attrs)
+    |> clear_downstream_fields(attrs)
+  end
+
+  defp maybe_update(record, field, attrs) do
+    case Map.fetch(attrs, field) do
+      {:ok, value} -> Map.put(record, field, value)
+      :error -> record
+    end
+  end
+
+  # Trigger: status corrected backwards (e.g. checked_out → checked_in)
+  # Why: downstream fields from a reversed state are no longer valid
+  # Outcome: clears check-out data when reverting from checked_out
+  defp clear_downstream_fields(record, %{status: :checked_in}) do
+    %{record | check_out_at: nil, check_out_by: nil, check_out_notes: nil}
+  end
+
+  # Trigger: status corrected to registered or absent
+  # Why: both states precede any check-in, so all timing data is invalid
+  # Outcome: clears all check-in and check-out fields
+  defp clear_downstream_fields(record, %{status: status}) when status in [:registered, :absent] do
+    %{
+      record
+      | check_in_at: nil,
+        check_in_by: nil,
+        check_in_notes: nil,
+        check_out_at: nil,
+        check_out_by: nil,
+        check_out_notes: nil
+    }
+  end
+
+  defp clear_downstream_fields(record, _attrs), do: record
+
+  # Trigger: both check_in_at and check_out_at are non-nil after corrections
+  # Why: check-out cannot precede check-in — logically impossible
+  # Outcome: rejects corrections that would create an impossible timeline
+  defp validate_temporal_ordering(
+         %__MODULE__{check_in_at: %DateTime{} = ci, check_out_at: %DateTime{} = co} = record
+       ) do
+    case DateTime.compare(ci, co) do
+      :gt -> {:error, :check_in_must_precede_check_out}
+      _ -> {:ok, record}
+    end
+  end
+
+  defp validate_temporal_ordering(record), do: {:ok, record}
 end
