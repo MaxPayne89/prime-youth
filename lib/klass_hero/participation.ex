@@ -143,6 +143,11 @@ defmodule KlassHero.Participation do
     ListSessions.execute(params)
   end
 
+  @doc "Lists sessions with enriched data for admin dashboard."
+  def list_admin_sessions(filters \\ %{}) when is_map(filters) do
+    ListSessions.execute_admin(filters)
+  end
+
   @doc """
   Lists sessions for a provider on a specific date.
 

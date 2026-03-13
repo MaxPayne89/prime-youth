@@ -42,4 +42,25 @@ defmodule KlassHero.Participation.Application.UseCases.ListSessions do
     # Default to today's sessions if no filter specified
     @session_repository.list_today_sessions(Date.utc_today())
   end
+
+  @doc """
+  Lists sessions with enriched data for admin dashboard.
+
+  Returns maps with program_name, provider_name, checked_in_count, total_count.
+  """
+  @spec execute_admin(map()) :: [map()]
+  def execute_admin(filters \\ %{}) do
+    # Trigger: no date/date_range filter provided
+    # Why: default to today for the admin "today mode"
+    # Outcome: prevents loading all sessions across all time
+    filters =
+      if not Map.has_key?(filters, :date) and
+           not (Map.has_key?(filters, :date_from) and Map.has_key?(filters, :date_to)) do
+        Map.put(filters, :date, Date.utc_today())
+      else
+        filters
+      end
+
+    @session_repository.list_admin_sessions(filters)
+  end
 end
