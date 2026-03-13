@@ -58,7 +58,7 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
   end
 
   @impl true
-  def handle_event("switch_mode", %{"mode" => mode}, socket) do
+  def handle_event("switch_mode", %{"mode" => mode}, socket) when mode in ~w(today filter) do
     mode = String.to_existing_atom(mode)
 
     socket =
@@ -145,22 +145,28 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
 
   defp maybe_add_date_filter(filters, %{"date_from" => from, "date_to" => to})
        when from != "" and to != "" do
-    Map.merge(filters, %{
-      date_from: Date.from_iso8601!(from),
-      date_to: Date.from_iso8601!(to)
-    })
+    with {:ok, date_from} <- Date.from_iso8601(from),
+         {:ok, date_to} <- Date.from_iso8601(to) do
+      Map.merge(filters, %{date_from: date_from, date_to: date_to})
+    else
+      _ -> filters
+    end
   end
 
   # No date range provided in filter mode — use case defaults to today
   defp maybe_add_date_filter(filters, _params), do: filters
 
+  @session_status_strings ~w(scheduled in_progress completed cancelled)
+  @record_status_strings ~w(registered checked_in checked_out absent)
+
   defp parse_status(""), do: nil
   defp parse_status(nil), do: nil
-  defp parse_status(status), do: String.to_existing_atom(status)
+  defp parse_status(s) when s in @session_status_strings, do: String.to_existing_atom(s)
+  defp parse_status(_), do: nil
 
   defp maybe_put_status(params, %{"status" => ""}), do: params
 
-  defp maybe_put_status(params, %{"status" => s}),
+  defp maybe_put_status(params, %{"status" => s}) when s in @record_status_strings,
     do: Map.put(params, :status, String.to_existing_atom(s))
 
   defp maybe_put_status(params, _), do: params

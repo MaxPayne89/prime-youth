@@ -13,7 +13,6 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.Participation.Domain.Models.ProgramSession
-  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
   alias KlassHero.Shared.ErrorIds
@@ -110,7 +109,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
     ProgramSessionSchema
     |> join(:inner, [s], p in "programs", on: p.id == s.program_id)
     |> join(:left, [s, _p], pr in ParticipationRecordSchema, on: pr.session_id == s.id)
-    |> join(:inner, [_s, p, _pr], prov in ProviderProfileSchema, on: prov.id == p.provider_id)
+    |> join(:inner, [_s, p, _pr], prov in "providers", on: prov.id == p.provider_id)
     |> apply_admin_filters(filters)
     |> group_by([s, p, _pr, prov], [s.id, p.title, prov.business_name])
     |> select([s, p, _pr, prov], %{
@@ -157,7 +156,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   defp maybe_filter_date_range(query, _), do: query
 
   defp maybe_filter_provider(query, %{provider_id: id}),
-    do: where(query, [_s, _p, _pr, prov], prov.id == ^id)
+    do: where(query, [_s, _p, _pr, prov], prov.id == type(^id, Ecto.UUID))
 
   defp maybe_filter_provider(query, _), do: query
 
