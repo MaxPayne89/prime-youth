@@ -3,7 +3,6 @@ defmodule KlassHeroWeb.DashboardLive do
 
   import KlassHeroWeb.BookingComponents, only: [info_box: 1]
   import KlassHeroWeb.CompositeComponents
-  import KlassHeroWeb.Helpers.FamilyHelpers
   import KlassHeroWeb.ProgramComponents, only: [program_card: 1]
 
   alias KlassHero.Enrollment
@@ -18,26 +17,39 @@ defmodule KlassHeroWeb.DashboardLive do
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
-    children = get_children_for_current_user(socket)
+
+    # Trigger: enrollments are stored with parent_id (Family context), not identity_id (Accounts)
+    # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
+    # Outcome: resolve parent profile once, then query children + enrollments in parallel
+    {children, active_programs, expired_programs} =
+      case Family.get_parent_by_identity(user.id) do
+        {:ok, parent} ->
+          # Children and family programs are independent — fetch in parallel
+          children_task = Task.async(fn -> Family.get_children(parent.id) end)
+
+          # Trigger: database failure during program loading
+          # Why: a failing section should not crash the entire dashboard
+          # Outcome: gracefully degrade to empty state if load fails
+          {active, expired} =
+            try do
+              load_family_programs(parent.id)
+            rescue
+              e ->
+                Logger.error(
+                  "[DashboardLive] Failed to load family programs: #{Exception.message(e)}"
+                )
+
+                {[], []}
+            end
+
+          {Task.await(children_task), active, expired}
+
+        {:error, _} ->
+          {[], [], []}
+      end
+
     children_for_view = Enum.map(children, &ChildPresenter.to_profile_view/1)
     children_extended = Enum.map(children, &ChildPresenter.to_extended_view/1)
-    # Trigger: database failure during program loading
-    # Why: a failing section should not crash the entire dashboard
-    # Outcome: gracefully degrade to empty state if load fails
-    {active_programs, expired_programs} =
-      try do
-        # Trigger: enrollments are stored with parent_id (Family context), not identity_id (Accounts)
-        # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
-        # Outcome: resolve parent profile first, then query enrollments by parent.id
-        case Family.get_parent_by_identity(user.id) do
-          {:ok, parent} -> load_family_programs(parent.id)
-          {:error, _} -> {[], []}
-        end
-      rescue
-        e ->
-          Logger.error("[DashboardLive] Failed to load family programs: #{Exception.message(e)}")
-          {[], []}
-      end
 
     socket =
       socket
