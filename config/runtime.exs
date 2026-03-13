@@ -69,7 +69,13 @@ if config_env() == :prod do
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
     # For machines with several cores, consider starting multiple pools of `pool_size`
     # pool_count: 4,
-    socket_options: maybe_ipv6
+    socket_options: maybe_ipv6 ++ [keepalive: true],
+    # Trigger: Fly.io machine resumes from suspension with stale DB connections
+    # Why: protocol_violation (08P01) and idle_in_transaction timeout (25P03) indicate
+    #      connections that died server-side during suspension — kill them immediately
+    #      so the pool replaces them with fresh connections
+    # Outcome: stale connections are pruned on first failed query instead of lingering
+    disconnect_on_error_codes: [:protocol_violation, :idle_in_transaction_session_timeout]
 
   config :klass_hero, KlassHeroWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
