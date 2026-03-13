@@ -40,17 +40,13 @@ defmodule KlassHeroWeb.Admin.ConsentLiveTest do
     setup :register_and_log_in_admin
 
     test "displays consent records in the table", %{conn: conn} do
-      consent = insert(:consent_schema, consent_type: "medical")
-
-      child =
-        KlassHero.Repo.get!(
-          KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema,
-          consent.child_id
-        )
+      consent =
+        insert(:consent_schema, consent_type: "medical")
+        |> KlassHero.Repo.preload(:child)
 
       {:ok, view, _html} = live(conn, ~p"/admin/consents")
 
-      assert has_element?(view, "td", child.first_name)
+      assert has_element?(view, "td", consent.child.first_name)
       assert has_element?(view, "td", "Medical")
     end
 
@@ -75,39 +71,31 @@ defmodule KlassHeroWeb.Admin.ConsentLiveTest do
     end
 
     test "search by child name returns matching results", %{conn: conn} do
-      consent = insert(:consent_schema, consent_type: "medical")
-
-      child =
-        KlassHero.Repo.get!(
-          KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema,
-          consent.child_id
-        )
+      consent =
+        insert(:consent_schema, consent_type: "medical")
+        |> KlassHero.Repo.preload(:child)
 
       {:ok, view, _html} = live(conn, ~p"/admin/consents")
 
       view
       |> element("form#index-search-form")
-      |> render_change(%{"index_search" => %{"value" => child.first_name}})
+      |> render_change(%{"index_search" => %{"value" => consent.child.first_name}})
 
-      assert has_element?(view, "td", child.first_name)
+      assert has_element?(view, "td", consent.child.first_name)
     end
 
     test "search by parent display name returns matching results", %{conn: conn} do
-      consent = insert(:consent_schema)
-
-      parent =
-        KlassHero.Repo.get!(
-          KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema,
-          consent.parent_id
-        )
+      consent =
+        insert(:consent_schema)
+        |> KlassHero.Repo.preload(:parent)
 
       {:ok, view, _html} = live(conn, ~p"/admin/consents")
 
       view
       |> element("form#index-search-form")
-      |> render_change(%{"index_search" => %{"value" => parent.display_name}})
+      |> render_change(%{"index_search" => %{"value" => consent.parent.display_name}})
 
-      assert has_element?(view, "td", parent.display_name)
+      assert has_element?(view, "td", consent.parent.display_name)
     end
   end
 

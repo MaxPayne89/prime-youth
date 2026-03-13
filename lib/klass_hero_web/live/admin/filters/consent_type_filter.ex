@@ -4,6 +4,7 @@ defmodule KlassHeroWeb.Admin.Filters.ConsentTypeFilter do
   use Backpex.Filters.Select
 
   alias KlassHero.Family.Domain.Models.Consent
+  alias KlassHeroWeb.Admin.ConsentLive
 
   @impl Backpex.Filter
   def label, do: "Consent Type"
@@ -14,13 +15,6 @@ defmodule KlassHeroWeb.Admin.Filters.ConsentTypeFilter do
   @impl Backpex.Filters.Select
   def options(_assigns) do
     Consent.valid_consent_types()
-    |> Enum.map(fn type -> {humanize_consent_type(type), type} end)
-  end
-
-  defp humanize_consent_type(type) do
-    type
-    |> String.replace("_", " ")
-    |> String.split(" ")
-    |> Enum.map_join(" ", &String.capitalize/1)
+    |> Enum.map(fn type -> {ConsentLive.humanize_consent_type(type), type} end)
   end
 end

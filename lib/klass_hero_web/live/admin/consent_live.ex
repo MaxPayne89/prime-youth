@@ -139,14 +139,18 @@ defmodule KlassHeroWeb.Admin.ConsentLive do
     ]
   end
 
-  defp humanize_consent_type(type) when is_binary(type) do
+  @doc """
+  Converts a snake_case consent type string to Title Case for display.
+  Shared with `ConsentTypeFilter`.
+  """
+  def humanize_consent_type(type) when is_binary(type) do
     type
     |> String.replace("_", " ")
     |> String.split(" ")
     |> Enum.map_join(" ", &String.capitalize/1)
   end
 
-  defp humanize_consent_type(_), do: "—"
+  def humanize_consent_type(_), do: "—"
 
   defp status_badge_class(%{withdrawn_at: nil}), do: "bg-green-100 text-green-800"
   defp status_badge_class(%{withdrawn_at: _}), do: "bg-amber-100 text-amber-800"

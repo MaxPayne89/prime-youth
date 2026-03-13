@@ -27,6 +27,7 @@ defmodule KlassHeroWeb.Admin.Filters.ConsentStatusFilter do
     where(query, [x], is_nil(x.withdrawn_at))
   end
 
+  @impl Backpex.Filter
   def query(query, _attribute, "withdrawn", _assigns) do
     where(query, [x], not is_nil(x.withdrawn_at))
   end
