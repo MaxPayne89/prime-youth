@@ -1,0 +1,156 @@
+defmodule KlassHeroWeb.Admin.ConsentLive do
+  @moduledoc """
+  Backpex LiveResource for viewing consent records in the admin dashboard.
+
+  Read-only overview — no grant, withdraw, or delete actions. Consent records
+  are append-only for compliance; withdrawals are recorded with timestamps
+  and records are never deleted.
+
+  Note: Backpex operates directly on Ecto schemas and Repo, bypassing
+  the Ports & Adapters layering used elsewhere. This is a pragmatic
+  exception scoped to admin-only read operations.
+  """
+
+  # Backpex requires FQ refs in `use` args — alias can't precede `use` per formatter rules
+  # credo:disable-for-lines:11 Credo.Check.Design.AliasUsage
+  use Backpex.LiveResource,
+    adapter_config: [
+      schema: KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema,
+      repo: KlassHero.Repo,
+      update_changeset:
+        &KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema.admin_changeset/3,
+      create_changeset:
+        &KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema.admin_changeset/3,
+      item_query: &__MODULE__.item_query/3
+    ],
+    layout: {KlassHeroWeb.Layouts, :admin},
+    pubsub: [server: KlassHero.PubSub],
+    init_order: %{by: :inserted_at, direction: :desc}
+
+  import Ecto.Query
+
+  # Trigger: all mutation actions denied — this is a read-only compliance view
+  # Why: consents are granted/withdrawn by parents, not admins
+  # Outcome: hides New button, denies edit/delete/new actions
+  @impl Backpex.LiveResource
+  def can?(_assigns, :new, _item), do: false
+  def can?(_assigns, :edit, _item), do: false
+  def can?(_assigns, :delete, _item), do: false
+  def can?(_assigns, :index, _item), do: true
+  def can?(_assigns, :show, _item), do: true
+  def can?(_assigns, _action, _item), do: false
+
+  @impl Backpex.LiveResource
+  def singular_name, do: "Consent"
+
+  @impl Backpex.LiveResource
+  def plural_name, do: "Consents"
+
+  @impl Backpex.LiveResource
+  def filters do
+    [
+      consent_type: %{module: KlassHeroWeb.Admin.Filters.ConsentTypeFilter},
+      withdrawn_at: %{module: KlassHeroWeb.Admin.Filters.ConsentStatusFilter}
+    ]
+  end
+
+  @doc false
+  def item_query(query, _live_action, _assigns) do
+    from c in query, preload: [:child, :parent]
+  end
+
+  # Trigger: index page renders — show compliance context
+  # Why: admins need to understand that consent records are immutable audit trails
+  # Outcome: info banner displayed above the main table
+  @impl Backpex.LiveResource
+  def render_resource_slot(assigns, :index, :before_main) do
+    ~H"""
+    <div class="mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+      Consent records are append-only for compliance. Withdrawals are recorded
+      with timestamps — records are never deleted.
+    </div>
+    """
+  end
+
+  @impl Backpex.LiveResource
+  def fields do
+    [
+      child: %{
+        module: Backpex.Fields.BelongsTo,
+        label: "Child",
+        display_field: :first_name,
+        searchable: true,
+        only: [:index, :show],
+        render: fn assigns ->
+          ~H"""
+          <span>
+            <%= if @value do %>
+              {@value.first_name} {@value.last_name}
+            <% else %>
+              <span class="text-gray-400 italic">Deleted</span>
+            <% end %>
+          </span>
+          """
+        end
+      },
+      parent: %{
+        module: Backpex.Fields.BelongsTo,
+        label: "Parent",
+        display_field: :display_name,
+        searchable: true,
+        only: [:index, :show]
+      },
+      consent_type: %{
+        module: Backpex.Fields.Text,
+        label: "Type",
+        searchable: true,
+        orderable: true,
+        render: fn assigns ->
+          ~H"""
+          <span>{humanize_consent_type(@value)}</span>
+          """
+        end
+      },
+      status: %{
+        module: Backpex.Fields.Text,
+        label: "Status",
+        only: [:index, :show],
+        render: fn assigns ->
+          ~H"""
+          <span class={[
+            "inline-flex items-center rounded-full px-2 py-1 text-xs font-medium",
+            status_badge_class(@item)
+          ]}>
+            {status_label(@item)}
+          </span>
+          """
+        end
+      },
+      granted_at: %{
+        module: Backpex.Fields.DateTime,
+        label: "Granted At",
+        orderable: true
+      },
+      withdrawn_at: %{
+        module: Backpex.Fields.DateTime,
+        label: "Withdrawn At",
+        only: [:show]
+      }
+    ]
+  end
+
+  defp humanize_consent_type(type) when is_binary(type) do
+    type
+    |> String.replace("_", " ")
+    |> String.split(" ")
+    |> Enum.map_join(" ", &String.capitalize/1)
+  end
+
+  defp humanize_consent_type(_), do: "—"
+
+  defp status_badge_class(%{withdrawn_at: nil}), do: "bg-green-100 text-green-800"
+  defp status_badge_class(%{withdrawn_at: _}), do: "bg-amber-100 text-amber-800"
+
+  defp status_label(%{withdrawn_at: nil}), do: "Active"
+  defp status_label(%{withdrawn_at: _}), do: "Withdrawn"
+end

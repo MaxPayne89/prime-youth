@@ -27,7 +27,10 @@ defmodule KlassHero.Family do
       Domain.Models.Consent,
       Adapters.Driven.Persistence.ChangeChild,
       # Schema exported for Enrollment's enrollment→parent_profile join
-      Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+      Adapters.Driven.Persistence.Schemas.ParentProfileSchema,
+      # Schemas exported for Backpex admin direct Ecto access (read-only compliance view)
+      Adapters.Driven.Persistence.Schemas.ConsentSchema,
+      Adapters.Driven.Persistence.Schemas.ChildSchema
     ]
 
   alias KlassHero.Family.Adapters.Driven.Persistence.ChangeChild
