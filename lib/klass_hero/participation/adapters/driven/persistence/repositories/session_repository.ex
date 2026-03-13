@@ -18,6 +18,9 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
   alias KlassHero.Shared.ErrorIds
 
+  # Statuses that count as "checked in" for attendance tallies
+  @checked_in_statuses ~w(checked_in checked_out)
+
   @impl true
   def create(%ProgramSession{} = session) do
     attrs = ProgramSessionMapper.to_persistence(session)
@@ -122,8 +125,9 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
       checked_in_count:
         count(
           fragment(
-            "CASE WHEN ? IN ('checked_in', 'checked_out') THEN 1 END",
-            _pr.status
+            "CASE WHEN ? = ANY(?) THEN 1 END",
+            _pr.status,
+            ^@checked_in_statuses
           )
         ),
       total_count: count(_pr.id)

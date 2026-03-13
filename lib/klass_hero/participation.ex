@@ -148,6 +148,11 @@ defmodule KlassHero.Participation do
     ListSessions.execute_admin(filters)
   end
 
+  @doc "Returns the list of valid session statuses."
+  def session_statuses do
+    KlassHero.Participation.Domain.Models.ProgramSession.valid_statuses()
+  end
+
   @doc """
   Lists sessions for a provider on a specific date.
 

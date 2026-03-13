@@ -65,10 +65,9 @@
     />
     <select name="status" class="select select-bordered select-sm">
       <option value="">{gettext("All Statuses")}</option>
-      <option value="scheduled">{gettext("Scheduled")}</option>
-      <option value="in_progress">{gettext("In Progress")}</option>
-      <option value="completed">{gettext("Completed")}</option>
-      <option value="cancelled">{gettext("Cancelled")}</option>
+      <option :for={status <- @session_statuses} value={status}>
+        {humanize_status(status)}
+      </option>
     </select>
     <button type="submit" class="btn btn-primary btn-sm">{gettext("Apply")}</button>
   </form>

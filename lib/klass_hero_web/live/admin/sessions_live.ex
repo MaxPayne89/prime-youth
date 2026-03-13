@@ -20,7 +20,8 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
      |> assign(:live_resource, nil)
      |> assign(:mode, :today)
      |> assign(:filters, %{})
-     |> assign(:page_title, gettext("Sessions"))}
+     |> assign(:page_title, gettext("Sessions"))
+     |> assign(:session_statuses, Participation.session_statuses())}
   end
 
   @impl true
@@ -36,7 +37,8 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
   end
 
   defp apply_action(socket, :index, _params) do
-    sessions = Participation.list_admin_sessions(%{date: Date.utc_today()})
+    # Use case defaults to today when no date filter provided
+    sessions = Participation.list_admin_sessions(%{})
     stream(socket, :sessions, sessions, reset: true)
   end
 
@@ -150,7 +152,8 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
     })
   end
 
-  defp maybe_add_date_filter(filters, _params), do: Map.put(filters, :date, Date.utc_today())
+  # No date range provided in filter mode — use case defaults to today
+  defp maybe_add_date_filter(filters, _params), do: filters
 
   defp parse_status(""), do: nil
   defp parse_status(nil), do: nil
@@ -221,10 +224,10 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
         "—"
 
       Enum.any?(notes, &(&1.status == :approved)) ->
-        "Approved"
+        gettext("Approved")
 
       Enum.any?(notes, &(&1.status == :pending_approval)) ->
-        "Pending"
+        gettext("Pending")
 
       true ->
         "—"

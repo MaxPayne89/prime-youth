@@ -273,19 +273,10 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
     %{record | check_out_at: nil, check_out_by: nil, check_out_notes: nil}
   end
 
-  defp clear_downstream_fields(record, %{status: :registered}) do
-    %{
-      record
-      | check_in_at: nil,
-        check_in_by: nil,
-        check_in_notes: nil,
-        check_out_at: nil,
-        check_out_by: nil,
-        check_out_notes: nil
-    }
-  end
-
-  defp clear_downstream_fields(record, %{status: :absent}) do
+  # Trigger: status corrected to registered or absent
+  # Why: both states precede any check-in, so all timing data is invalid
+  # Outcome: clears all check-in and check-out fields
+  defp clear_downstream_fields(record, %{status: status}) when status in [:registered, :absent] do
     %{
       record
       | check_in_at: nil,
