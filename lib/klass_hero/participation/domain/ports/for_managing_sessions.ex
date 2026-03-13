@@ -52,7 +52,7 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingSessions do
           optional(:date_to) => Date.t(),
           optional(:provider_id) => String.t(),
           optional(:program_id) => String.t(),
-          optional(:status) => atom()
+          optional(:status) => ProgramSession.status()
         }
 
   @type admin_session :: %{
@@ -63,7 +63,7 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingSessions do
           session_date: Date.t(),
           start_time: Time.t(),
           end_time: Time.t(),
-          status: atom(),
+          status: ProgramSession.status(),
           checked_in_count: non_neg_integer(),
           total_count: non_neg_integer()
         }

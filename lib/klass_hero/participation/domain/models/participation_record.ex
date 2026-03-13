@@ -218,7 +218,7 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
          :ok <- validate_status(attrs),
          :ok <- validate_check_out_consistency(record, attrs) do
       corrected = apply_corrections(record, attrs)
-      {:ok, corrected}
+      validate_temporal_ordering(corrected)
     end
   end
 
@@ -289,4 +289,18 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
   end
 
   defp clear_downstream_fields(record, _attrs), do: record
+
+  # Trigger: both check_in_at and check_out_at are non-nil after corrections
+  # Why: check-out cannot precede check-in — logically impossible
+  # Outcome: rejects corrections that would create an impossible timeline
+  defp validate_temporal_ordering(
+         %__MODULE__{check_in_at: %DateTime{} = ci, check_out_at: %DateTime{} = co} = record
+       ) do
+    case DateTime.compare(ci, co) do
+      :gt -> {:error, :check_in_must_precede_check_out}
+      _ -> {:ok, record}
+    end
+  end
+
+  defp validate_temporal_ordering(record), do: {:ok, record}
 end

@@ -107,24 +107,23 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
   def handle_event("save_correction", %{"correction" => correction_params}, socket) do
     record_id = socket.assigns.editing_record_id
 
-    params =
+    base_params =
       %{record_id: record_id, reason: correction_params["reason"]}
       |> maybe_put_status(correction_params)
-      |> maybe_put_time(:check_in_at, correction_params["check_in_at"])
-      |> maybe_put_time(:check_out_at, correction_params["check_out_at"])
 
-    case Participation.correct_attendance(params) do
-      {:ok, _corrected} ->
-        {:ok, session} =
-          Participation.get_session_with_roster_enriched(socket.assigns.session.id)
-
-        {:noreply,
-         socket
-         |> assign(:session, session)
-         |> assign(:editing_record_id, nil)
-         |> assign(:correction_form, nil)
-         |> put_flash(:info, gettext("Attendance corrected successfully"))}
-
+    with {:ok, params} <-
+           maybe_put_time(base_params, :check_in_at, correction_params["check_in_at"]),
+         {:ok, params} <- maybe_put_time(params, :check_out_at, correction_params["check_out_at"]),
+         {:ok, _corrected} <- Participation.correct_attendance(params),
+         {:ok, session} <-
+           Participation.get_session_with_roster_enriched(socket.assigns.session.id) do
+      {:noreply,
+       socket
+       |> assign(:session, session)
+       |> assign(:editing_record_id, nil)
+       |> assign(:correction_form, nil)
+       |> put_flash(:info, gettext("Attendance corrected successfully"))}
+    else
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, error_message(reason))}
     end
@@ -166,18 +165,26 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
 
   defp maybe_put_status(params, _), do: params
 
-  defp maybe_put_time(params, _key, nil), do: params
-  defp maybe_put_time(params, _key, ""), do: params
+  defp maybe_put_time(params, _key, nil), do: {:ok, params}
+  defp maybe_put_time(params, _key, ""), do: {:ok, params}
 
   defp maybe_put_time(params, key, time_string) do
-    # Trigger: datetime-local inputs submit "YYYY-MM-DDTHH:MM" (no timezone)
-    # Why: DateTime.from_iso8601 requires a timezone offset and would fail
-    # Outcome: parse as NaiveDateTime, then convert to UTC DateTime
-    case NaiveDateTime.from_iso8601(time_string) do
-      {:ok, ndt} -> Map.put(params, key, DateTime.from_naive!(ndt, "Etc/UTC"))
-      _ -> params
+    # Trigger: datetime-local inputs submit "YYYY-MM-DDTHH:MM" (no timezone, no seconds)
+    # Why: NaiveDateTime.from_iso8601 requires seconds; datetime-local omits them
+    # Outcome: normalize by appending ":00", parse as NaiveDateTime, convert to UTC
+    normalized = normalize_datetime_local(time_string)
+
+    case NaiveDateTime.from_iso8601(normalized) do
+      {:ok, ndt} -> {:ok, Map.put(params, key, DateTime.from_naive!(ndt, "Etc/UTC"))}
+      _ -> {:error, :invalid_time}
     end
   end
+
+  # Trigger: HTML datetime-local inputs submit "YYYY-MM-DDTHH:MM" (16 chars, no seconds)
+  # Why: NaiveDateTime.from_iso8601/1 requires "YYYY-MM-DDTHH:MM:SS" format
+  # Outcome: appends ":00" to match the expected format
+  defp normalize_datetime_local(s) when byte_size(s) == 16, do: s <> ":00"
+  defp normalize_datetime_local(s), do: s
 
   defp error_message(:reason_required), do: gettext("A reason is required for corrections")
   defp error_message(:no_changes), do: gettext("No changes detected")
@@ -188,6 +195,11 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
 
   defp error_message(:check_out_requires_check_in),
     do: gettext("Cannot check out without a check-in")
+
+  defp error_message(:check_in_must_precede_check_out),
+    do: gettext("Check-in time must be before check-out time")
+
+  defp error_message(:invalid_time), do: gettext("Invalid time format")
 
   defp error_message(_), do: gettext("An error occurred")
 

@@ -23,7 +23,7 @@ defmodule KlassHero.Participation.Application.UseCases.CorrectAttendanceTest do
           check_in_by: user.id
         )
 
-      %{record: record, session: session}
+      %{record: record, session: session, user: user}
     end
 
     test "corrects status with required reason", %{record: record} do
@@ -53,6 +53,35 @@ defmodule KlassHero.Participation.Application.UseCases.CorrectAttendanceTest do
 
       assert corrected.check_in_at == new_time
       assert corrected.check_in_notes =~ "[Admin correction]"
+    end
+
+    test "appends correction reason to pre-existing notes with separator", %{
+      session: session,
+      user: user
+    } do
+      {child, parent} = insert_child_with_guardian()
+
+      record_with_notes =
+        insert(:participation_record_schema,
+          session_id: session.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: :checked_in,
+          check_in_at: ~U[2026-03-13 09:00:00Z],
+          check_in_by: user.id,
+          check_in_notes: "Arrived on time"
+        )
+
+      assert {:ok, corrected} =
+               Participation.correct_attendance(%{
+                 record_id: record_with_notes.id,
+                 check_in_at: ~U[2026-03-13 09:30:00Z],
+                 reason: "Actually arrived late"
+               })
+
+      assert corrected.check_in_notes =~ "Arrived on time"
+      assert corrected.check_in_notes =~ " | "
+      assert corrected.check_in_notes =~ "[Admin correction] Actually arrived late"
     end
 
     test "rejects correction without reason", %{record: record} do
