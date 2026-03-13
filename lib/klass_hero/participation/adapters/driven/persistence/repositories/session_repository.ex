@@ -161,7 +161,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   defp maybe_filter_provider(query, _), do: query
 
   defp maybe_filter_program(query, %{program_id: id}),
-    do: where(query, [s, _p, _pr, _prov], s.program_id == ^id)
+    do: where(query, [s, _p, _pr, _prov], s.program_id == type(^id, Ecto.UUID))
 
   defp maybe_filter_program(query, _), do: query
 

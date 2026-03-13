@@ -42,15 +42,26 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
     stream(socket, :sessions, sessions, reset: true)
   end
 
+  # Trigger: id param arrives from URL as raw string
+  # Why: non-UUID strings cause Ecto.Query.CastError before Repo.get executes
+  # Outcome: invalid UUIDs redirect to index with error flash instead of crashing
   defp apply_action(socket, :show, %{"id" => id}) do
-    case Participation.get_session_with_roster_enriched(id) do
-      {:ok, session} ->
-        socket
-        |> assign(:session, session)
-        |> assign(:editing_record_id, nil)
-        |> assign(:correction_form, nil)
+    case Ecto.UUID.cast(id) do
+      {:ok, uuid} ->
+        case Participation.get_session_with_roster_enriched(uuid) do
+          {:ok, session} ->
+            socket
+            |> assign(:session, session)
+            |> assign(:editing_record_id, nil)
+            |> assign(:correction_form, nil)
 
-      {:error, :not_found} ->
+          {:error, :not_found} ->
+            socket
+            |> put_flash(:error, gettext("Session not found"))
+            |> push_navigate(to: ~p"/admin/sessions")
+        end
+
+      :error ->
         socket
         |> put_flash(:error, gettext("Session not found"))
         |> push_navigate(to: ~p"/admin/sessions")
@@ -133,15 +144,24 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
 
   defp build_filters_from_params(params) do
     %{}
-    |> maybe_add_filter(:provider_id, params["provider_id"])
-    |> maybe_add_filter(:program_id, params["program_id"])
+    |> maybe_add_uuid_filter(:provider_id, params["provider_id"])
+    |> maybe_add_uuid_filter(:program_id, params["program_id"])
     |> maybe_add_filter(:status, parse_status(params["status"]))
     |> maybe_add_date_filter(params)
   end
 
   defp maybe_add_filter(filters, _key, nil), do: filters
-  defp maybe_add_filter(filters, _key, ""), do: filters
   defp maybe_add_filter(filters, key, value), do: Map.put(filters, key, value)
+
+  defp maybe_add_uuid_filter(filters, _key, nil), do: filters
+  defp maybe_add_uuid_filter(filters, _key, ""), do: filters
+
+  defp maybe_add_uuid_filter(filters, key, value) do
+    case Ecto.UUID.cast(value) do
+      {:ok, uuid} -> Map.put(filters, key, uuid)
+      :error -> filters
+    end
+  end
 
   defp maybe_add_date_filter(filters, %{"date_from" => from, "date_to" => to})
        when from != "" and to != "" do

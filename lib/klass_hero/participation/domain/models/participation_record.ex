@@ -239,12 +239,13 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
 
   defp validate_check_out_consistency(record, attrs) do
     new_status = Map.get(attrs, :status, record.status)
+    setting_check_out = Map.has_key?(attrs, :check_out_at)
     has_check_in = record.check_in_at != nil or Map.has_key?(attrs, :check_in_at)
 
-    # Trigger: transitioning to checked_out or setting check_out_at
+    # Trigger: transitioning to checked_out OR directly setting check_out_at
     # Why: a child can't be checked out without first being checked in
-    # Outcome: rejects logically impossible corrections
-    if new_status == :checked_out and not has_check_in do
+    # Outcome: rejects logically impossible corrections (e.g. check_out_at on :registered with no check_in_at)
+    if (new_status == :checked_out or setting_check_out) and not has_check_in do
       {:error, :check_out_requires_check_in}
     else
       :ok
