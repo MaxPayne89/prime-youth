@@ -40,6 +40,9 @@
     <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate={~p"/admin/bookings"}>
       <Backpex.HTML.CoreComponents.icon name="hero-ticket" class="h-5 w-5" /> {gettext("Bookings")}
     </Backpex.HTML.Layout.sidebar_item>
+    <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate={~p"/admin/consents"}>
+      <Backpex.HTML.CoreComponents.icon name="hero-shield-check" class="h-5 w-5" /> {gettext("Consents")}
+    </Backpex.HTML.Layout.sidebar_item>
   </:sidebar>
 
   <Backpex.HTML.Layout.flash_messages flash={@flash} />
