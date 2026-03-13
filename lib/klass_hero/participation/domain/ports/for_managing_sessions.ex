@@ -42,4 +42,29 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingSessions do
 
   @doc "Retrieves multiple sessions by their IDs (batch fetch)."
   @callback get_many_by_ids([binary()]) :: [ProgramSession.t()]
+
+  @type admin_filter :: %{
+          optional(:date) => Date.t(),
+          optional(:date_from) => Date.t(),
+          optional(:date_to) => Date.t(),
+          optional(:provider_id) => String.t(),
+          optional(:program_id) => String.t(),
+          optional(:status) => atom()
+        }
+
+  @type admin_session :: %{
+          id: String.t(),
+          program_id: String.t(),
+          program_name: String.t(),
+          provider_name: String.t(),
+          session_date: Date.t(),
+          start_time: Time.t(),
+          end_time: Time.t(),
+          status: atom(),
+          checked_in_count: non_neg_integer(),
+          total_count: non_neg_integer()
+        }
+
+  @doc "Lists sessions with enriched data for admin dashboard."
+  @callback list_admin_sessions(admin_filter()) :: [admin_session()]
 end

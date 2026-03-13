@@ -337,4 +337,73 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
       assert [] = SessionRepository.list_by_provider_and_date(provider.id, target_date)
     end
   end
+
+  describe "list_admin_sessions/1" do
+    setup do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      today = Date.utc_today()
+
+      session =
+        insert(:program_session_schema,
+          program_id: program.id,
+          session_date: today,
+          status: "in_progress"
+        )
+
+      {child, parent} = insert_child_with_guardian()
+      user = KlassHero.AccountsFixtures.unconfirmed_user_fixture()
+
+      insert(:participation_record_schema,
+        session_id: session.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: :checked_in,
+        check_in_at: DateTime.utc_now(),
+        check_in_by: user.id
+      )
+
+      %{provider: provider, program: program, session: session, today: today}
+    end
+
+    test "returns sessions for today with enriched data", %{today: today, program: program} do
+      results = SessionRepository.list_admin_sessions(%{date: today})
+
+      assert [session_map] = results
+      assert session_map.program_name == program.title
+      assert is_binary(session_map.provider_name)
+      assert session_map.checked_in_count == 1
+      assert session_map.total_count == 1
+    end
+
+    test "filters by provider_id", %{provider: provider, today: today} do
+      other_provider = insert(:provider_profile_schema)
+      other_program = insert(:program_schema, provider_id: other_provider.id)
+      insert(:program_session_schema, program_id: other_program.id, session_date: today)
+
+      results = SessionRepository.list_admin_sessions(%{date: today, provider_id: provider.id})
+      assert length(results) == 1
+    end
+
+    test "filters by status", %{today: today} do
+      results = SessionRepository.list_admin_sessions(%{date: today, status: :in_progress})
+      assert length(results) == 1
+
+      results = SessionRepository.list_admin_sessions(%{date: today, status: :completed})
+      assert results == []
+    end
+
+    test "filters by date range" do
+      yesterday = Date.add(Date.utc_today(), -1)
+      tomorrow = Date.add(Date.utc_today(), 1)
+
+      results =
+        SessionRepository.list_admin_sessions(%{
+          date_from: yesterday,
+          date_to: tomorrow
+        })
+
+      assert length(results) == 1
+    end
+  end
 end

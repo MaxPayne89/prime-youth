@@ -10,9 +10,11 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   import Ecto.Query
 
   alias KlassHero.Participation.Adapters.Driven.Persistence.Mappers.ProgramSessionMapper
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
   alias KlassHero.Shared.ErrorIds
@@ -91,6 +93,76 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
     |> Repo.all()
     |> Enum.map(&ProgramSessionMapper.to_domain/1)
   end
+
+  @impl true
+  def list_admin_sessions(filters) when is_map(filters) do
+    ProgramSessionSchema
+    |> join(:inner, [s], p in ProgramSchema, on: p.id == s.program_id)
+    |> join(:left, [s, _p], pr in ParticipationRecordSchema, on: pr.session_id == s.id)
+    |> join(:inner, [_s, p, _pr], prov in ProviderProfileSchema, on: prov.id == p.provider_id)
+    |> apply_admin_filters(filters)
+    |> group_by([s, p, _pr, prov], [s.id, p.title, prov.business_name])
+    |> select([s, p, _pr, prov], %{
+      id: s.id,
+      program_id: s.program_id,
+      program_name: p.title,
+      provider_name: prov.business_name,
+      session_date: s.session_date,
+      start_time: s.start_time,
+      end_time: s.end_time,
+      status: s.status,
+      checked_in_count:
+        count(
+          fragment(
+            "CASE WHEN ? IN ('checked_in', 'checked_out') THEN 1 END",
+            _pr.status
+          )
+        ),
+      total_count: count(_pr.id)
+    })
+    |> order_by([s, _p, _pr, _prov], asc: s.session_date, asc: s.start_time)
+    |> Repo.all()
+    |> Enum.map(&atomize_status/1)
+  end
+
+  defp apply_admin_filters(query, filters) do
+    query
+    |> maybe_filter_date(filters)
+    |> maybe_filter_date_range(filters)
+    |> maybe_filter_provider(filters)
+    |> maybe_filter_program(filters)
+    |> maybe_filter_status(filters)
+  end
+
+  defp maybe_filter_date(query, %{date: date}),
+    do: where(query, [s, _p, _pr, _prov], s.session_date == ^date)
+
+  defp maybe_filter_date(query, _), do: query
+
+  defp maybe_filter_date_range(query, %{date_from: from, date_to: to}),
+    do: where(query, [s, _p, _pr, _prov], s.session_date >= ^from and s.session_date <= ^to)
+
+  defp maybe_filter_date_range(query, _), do: query
+
+  defp maybe_filter_provider(query, %{provider_id: id}),
+    do: where(query, [_s, _p, _pr, prov], prov.id == ^id)
+
+  defp maybe_filter_provider(query, _), do: query
+
+  defp maybe_filter_program(query, %{program_id: id}),
+    do: where(query, [s, _p, _pr, _prov], s.program_id == ^id)
+
+  defp maybe_filter_program(query, _), do: query
+
+  defp maybe_filter_status(query, %{status: status}),
+    do: where(query, [s, _p, _pr, _prov], s.status == ^to_string(status))
+
+  defp maybe_filter_status(query, _), do: query
+
+  defp atomize_status(%{status: status} = map) when is_binary(status),
+    do: %{map | status: String.to_existing_atom(status)}
+
+  defp atomize_status(map), do: map
 
   defp handle_insert_result({:ok, schema}) do
     {:ok, ProgramSessionMapper.to_domain(schema)}
