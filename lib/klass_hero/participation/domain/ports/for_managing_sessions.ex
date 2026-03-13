@@ -43,6 +43,9 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingSessions do
   @doc "Retrieves multiple sessions by their IDs (batch fetch)."
   @callback get_many_by_ids([binary()]) :: [ProgramSession.t()]
 
+  @doc "Retrieves the program name for a given program ID. Returns nil if not found."
+  @callback get_program_name(binary()) :: String.t() | nil
+
   @type admin_filter :: %{
           optional(:date) => Date.t(),
           optional(:date_from) => Date.t(),

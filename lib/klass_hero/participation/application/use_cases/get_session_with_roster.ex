@@ -103,12 +103,18 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
           |> Map.merge(build_enrichment_fields(info, notes))
         end)
 
+      # Trigger: admin show page needs program_name for display
+      # Why: ProgramSession domain struct only holds program_id; name requires cross-table lookup
+      # Outcome: enriched session map includes program_name for use in template header
+      program_name = @session_repository.get_program_name(session.program_id)
+
       # Trigger: session is a struct — Map.put on structs bypasses struct enforcement
-      # Why: convert to plain map so presentation field (:participation_records) can be merged
-      # Outcome: returns a plain map with all session fields + enriched records
+      # Why: convert to plain map so presentation fields can be safely merged
+      # Outcome: returns a plain map with all session fields + enriched records + program_name
       enriched_session =
         Map.from_struct(session)
         |> Map.put(:participation_records, enriched_records)
+        |> Map.put(:program_name, program_name)
 
       {:ok, enriched_session}
     end

@@ -95,6 +95,15 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   end
 
   @impl true
+  def get_program_name(program_id) when is_binary(program_id) do
+    from(p in ProgramSchema,
+      where: p.id == ^program_id,
+      select: p.title
+    )
+    |> Repo.one()
+  end
+
+  @impl true
   def list_admin_sessions(filters) when is_map(filters) do
     ProgramSessionSchema
     |> join(:inner, [s], p in ProgramSchema, on: p.id == s.program_id)

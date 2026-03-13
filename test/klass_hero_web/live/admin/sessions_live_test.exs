@@ -71,4 +71,114 @@ defmodule KlassHeroWeb.Admin.SessionsLiveTest do
       assert html =~ "In Progress" or html =~ "in_progress"
     end
   end
+
+  describe "filter mode" do
+    setup :register_and_log_in_admin
+
+    setup do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id, title: "Soccer Training")
+
+      insert(:program_session_schema,
+        program_id: program.id,
+        session_date: Date.utc_today(),
+        status: "completed"
+      )
+
+      %{provider: provider, program: program}
+    end
+
+    test "switches to filter mode", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions")
+
+      view |> element("#mode-filter") |> render_click()
+      assert has_element?(view, "#filter-form")
+    end
+
+    test "switches back to today mode", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions")
+
+      view |> element("#mode-filter") |> render_click()
+      view |> element("#mode-today") |> render_click()
+      refute has_element?(view, "#filter-form")
+    end
+  end
+
+  describe "correction flow" do
+    setup :register_and_log_in_admin
+
+    setup do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      user = KlassHero.AccountsFixtures.unconfirmed_user_fixture()
+
+      session =
+        insert(:program_session_schema,
+          program_id: program.id,
+          session_date: Date.utc_today(),
+          status: "in_progress"
+        )
+
+      {child, parent} = insert_child_with_guardian(first_name: "Emma")
+
+      record =
+        insert(:participation_record_schema,
+          session_id: session.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: :checked_in,
+          check_in_at: ~U[2026-03-13 09:00:00Z],
+          check_in_by: user.id
+        )
+
+      %{session: session, record: record}
+    end
+
+    test "opens correction form for a record", %{conn: conn, session: session, record: record} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions/#{session.id}")
+
+      view |> element("#correct-#{record.id}") |> render_click()
+      assert has_element?(view, "#correction-form")
+    end
+
+    test "cancels correction", %{conn: conn, session: session, record: record} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions/#{session.id}")
+
+      view |> element("#correct-#{record.id}") |> render_click()
+      view |> element("#cancel-correction") |> render_click()
+      refute has_element?(view, "#correction-form")
+    end
+
+    test "saves correction with reason", %{conn: conn, session: session, record: record} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions/#{session.id}")
+
+      view |> element("#correct-#{record.id}") |> render_click()
+
+      view
+      |> form("#correction-form", %{
+        correction: %{
+          status: "checked_out",
+          check_out_at: "2026-03-13T10:30",
+          reason: "Provider forgot to check out"
+        }
+      })
+      |> render_submit()
+
+      assert render(view) =~ "corrected successfully"
+    end
+
+    test "shows error when reason is blank", %{conn: conn, session: session, record: record} do
+      {:ok, view, _html} = live(conn, ~p"/admin/sessions/#{session.id}")
+
+      view |> element("#correct-#{record.id}") |> render_click()
+
+      view
+      |> form("#correction-form", %{
+        correction: %{status: "absent", reason: ""}
+      })
+      |> render_submit()
+
+      assert render(view) =~ "reason"
+    end
+  end
 end
