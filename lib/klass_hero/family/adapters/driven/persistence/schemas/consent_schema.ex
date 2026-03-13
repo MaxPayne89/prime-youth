@@ -28,8 +28,12 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema do
   @timestamps_opts [type: :utc_datetime]
 
   schema "consents" do
-    field :parent_id, :binary_id
-    field :child_id, :binary_id
+    belongs_to :parent,
+               KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+
+    belongs_to :child,
+               KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
+
     field :consent_type, :string
     field :granted_at, :utc_datetime
     field :withdrawn_at, :utc_datetime
@@ -69,4 +73,9 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema do
     schema
     |> change(%{withdrawn_at: withdrawn_at})
   end
+
+  @doc """
+  No-op changeset required by Backpex even when edit is disabled via `can?/3`.
+  """
+  def admin_changeset(schema, _attrs, _metadata), do: change(schema)
 end
