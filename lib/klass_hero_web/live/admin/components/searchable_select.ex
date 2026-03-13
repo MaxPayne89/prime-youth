@@ -46,16 +46,7 @@ defmodule KlassHeroWeb.Admin.Components.SearchableSelect do
     selected = assigns[:selected]
     current_term = socket.assigns[:search_term] || ""
 
-    filtered =
-      if current_term == "" do
-        options
-      else
-        downcased = String.downcase(current_term)
-
-        Enum.filter(options, fn opt ->
-          String.downcase(opt.label) |> String.contains?(downcased)
-        end)
-      end
+    filtered = filter_options(options, current_term)
 
     {:ok,
      socket
@@ -138,30 +129,25 @@ defmodule KlassHeroWeb.Admin.Components.SearchableSelect do
     search_key = "#{socket.assigns.field_name}_search"
     term = params[search_key] || ""
 
-    filtered =
-      if term == "" do
-        socket.assigns.options
-      else
-        downcased = String.downcase(term)
-
-        Enum.filter(socket.assigns.options, fn opt ->
-          String.downcase(opt.label) |> String.contains?(downcased)
-        end)
-      end
-
     {:noreply,
      socket
      |> assign(:search_term, term)
      |> assign(:open?, true)
-     |> assign(:filtered_options, filtered)}
+     |> assign(:filtered_options, filter_options(socket.assigns.options, term))}
   end
 
   @impl true
   def handle_event("open", _params, socket) do
+    # Trigger: user focuses the search input while a search term is already typed
+    # Why: preserve filter state rather than resetting to full list on focus
+    # Outcome: dropdown opens showing results consistent with current search_term
     {:noreply,
      socket
      |> assign(:open?, true)
-     |> assign(:filtered_options, socket.assigns.options)}
+     |> assign(
+       :filtered_options,
+       filter_options(socket.assigns.options, socket.assigns.search_term)
+     )}
   end
 
   @impl true
@@ -195,5 +181,12 @@ defmodule KlassHeroWeb.Admin.Components.SearchableSelect do
   @impl true
   def handle_event("noop", _params, socket) do
     {:noreply, socket}
+  end
+
+  defp filter_options(options, ""), do: options
+
+  defp filter_options(options, term) do
+    downcased = String.downcase(term)
+    Enum.filter(options, fn opt -> String.contains?(String.downcase(opt.label), downcased) end)
   end
 end
