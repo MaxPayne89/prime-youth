@@ -32,8 +32,7 @@ defmodule KlassHeroWeb.Admin.Components.SearchableSelect do
     {:ok,
      socket
      |> assign(:search_term, "")
-     |> assign(:open?, false)
-     |> assign(:filtered_options, [])}
+     |> assign(:open?, false)}
   end
 
   @impl true
@@ -41,12 +40,20 @@ defmodule KlassHeroWeb.Admin.Components.SearchableSelect do
     # Trigger: props arrive from parent on mount and on every parent re-render
     # Why: must update options (e.g. program list narrowed by provider) while
     #      preserving any in-progress search the user is typing
-    # Outcome: re-filter options against current search_term if options changed
+    # Outcome: re-filter options against current search_term only if options changed
     options = assigns[:options] || []
     selected = assigns[:selected]
     current_term = socket.assigns[:search_term] || ""
 
-    filtered = filter_options(options, current_term)
+    # Trigger: parent re-renders frequently (any filter change in SessionsLive)
+    # Why: avoid re-filtering when options haven't changed — saves work on every parent render
+    # Outcome: only recompute filtered list when the option set actually changes
+    filtered =
+      if options == socket.assigns[:options] do
+        socket.assigns[:filtered_options] || options
+      else
+        filter_options(options, current_term)
+      end
 
     {:ok,
      socket
@@ -138,16 +145,10 @@ defmodule KlassHeroWeb.Admin.Components.SearchableSelect do
 
   @impl true
   def handle_event("open", _params, socket) do
-    # Trigger: user focuses the search input while a search term is already typed
-    # Why: preserve filter state rather than resetting to full list on focus
-    # Outcome: dropdown opens showing results consistent with current search_term
-    {:noreply,
-     socket
-     |> assign(:open?, true)
-     |> assign(
-       :filtered_options,
-       filter_options(socket.assigns.options, socket.assigns.search_term)
-     )}
+    # Trigger: user focuses the search input
+    # Why: filtered_options already reflects current search_term — no recompute needed
+    # Outcome: dropdown opens showing the existing filtered list
+    {:noreply, assign(socket, :open?, true)}
   end
 
   @impl true

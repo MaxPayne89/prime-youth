@@ -230,8 +230,8 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
     end
   end
 
-  @session_status_strings ~w(scheduled in_progress completed cancelled)
-  @record_status_strings ~w(registered checked_in checked_out absent)
+  @session_status_strings Enum.map(Participation.session_statuses(), &to_string/1)
+  @record_status_strings Enum.map(Participation.record_statuses(), &to_string/1)
 
   defp parse_status(""), do: nil
   defp parse_status(nil), do: nil

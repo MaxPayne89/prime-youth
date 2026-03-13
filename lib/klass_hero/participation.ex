@@ -153,6 +153,11 @@ defmodule KlassHero.Participation do
     KlassHero.Participation.Domain.Models.ProgramSession.valid_statuses()
   end
 
+  @doc "Returns the list of valid participation record statuses."
+  def record_statuses do
+    KlassHero.Participation.Domain.Models.ParticipationRecord.valid_statuses()
+  end
+
   @doc """
   Lists sessions for a provider on a specific date.
 
