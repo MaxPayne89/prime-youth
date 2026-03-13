@@ -17,6 +17,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
   alias KlassHero.Family.Adapters.Driven.Persistence.Mappers.ConsentMapper
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
   alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
 
   require Logger
@@ -33,7 +34,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
         # Trigger: unique partial index on (child_id, consent_type) WHERE withdrawn_at IS NULL
         # Why: prevent duplicate active consents for the same child and type
         # Outcome: return domain-specific :already_active error
-        if has_unique_constraint_error?(changeset.errors) do
+        if EctoErrorHelpers.any_unique_constraint_violation?(changeset.errors) do
           {:error, :already_active}
         else
           Logger.warning(
@@ -125,13 +126,6 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
       |> Repo.delete_all()
 
     {:ok, count}
-  end
-
-  defp has_unique_constraint_error?(errors) do
-    Enum.any?(errors, fn
-      {_field, {_msg, opts}} -> Keyword.get(opts, :constraint) == :unique
-      _ -> false
-    end)
   end
 
   defp get_schema(consent_id) do
