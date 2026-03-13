@@ -42,7 +42,7 @@ def admin_changeset(schema, _attrs, _metadata), do: change(schema)
 | consent_type | Text | yes | yes | yes | yes | Custom render: humanized label |
 | status | Text | yes | yes | no | no | Custom render as badge (not a DB field — driven by `withdrawn_at`) |
 | granted_at | DateTime | yes | yes | no | yes | |
-| withdrawn_at | DateTime | no | yes | no | yes | |
+| withdrawn_at | DateTime | no | yes | no | no | |
 
 **Default sort:** `inserted_at` desc (Ecto timestamp, not a displayed field).
 

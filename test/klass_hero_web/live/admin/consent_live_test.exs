@@ -97,18 +97,49 @@ defmodule KlassHeroWeb.Admin.ConsentLiveTest do
 
       assert has_element?(view, "td", consent.parent.display_name)
     end
+
+    test "consent type filter narrows results", %{conn: conn} do
+      insert(:consent_schema, consent_type: "medical")
+      insert(:consent_schema, consent_type: "photo_marketing")
+
+      {:ok, view, _html} = live(conn, ~p"/admin/consents")
+
+      view
+      |> element("form[phx-change='change-filter']")
+      |> render_change(%{"filters" => %{"consent_type" => "medical"}})
+
+      assert has_element?(view, "td", "Medical")
+      refute has_element?(view, "td", "Photo Marketing")
+    end
+
+    test "status filter shows only active consents", %{conn: conn} do
+      insert(:consent_schema, withdrawn_at: nil)
+
+      insert(:consent_schema,
+        withdrawn_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/admin/consents")
+
+      view
+      |> element("form[phx-change='change-filter']")
+      |> render_change(%{"filters" => %{"withdrawn_at" => "active"}})
+
+      assert has_element?(view, "span", "Active")
+      refute has_element?(view, "span", "Withdrawn")
+    end
   end
 
   describe "consent show" do
     setup :register_and_log_in_admin
 
-    test "displays consent detail with granted_at", %{conn: conn} do
+    test "displays consent type on show page", %{conn: conn} do
       consent = insert(:consent_schema, consent_type: "photo_marketing")
       {:ok, _view, html} = live(conn, ~p"/admin/consents/#{consent.id}/show")
       assert html =~ "Photo Marketing"
     end
 
-    test "displays withdrawn_at on show page", %{conn: conn} do
+    test "displays withdrawn status on show page", %{conn: conn} do
       withdrawn_at = ~U[2026-02-15 10:30:00Z]
 
       consent =
