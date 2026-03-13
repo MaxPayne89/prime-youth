@@ -5,6 +5,39 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0](https://github.com/MaxPayne89/prime-youth/compare/v0.3.0...v0.4.0) (2026-03-13)
+
+
+### Features
+
+* add admin sessions LiveView with today mode and roster display ([5c78eca](https://github.com/MaxPayne89/prime-youth/commit/5c78ecaddd7e5e5812a6fbb4d5e5b0f701ab3b8b))
+* add admin sessions route and sidebar item ([5240ea1](https://github.com/MaxPayne89/prime-youth/commit/5240ea18b626ffcb94abcdb5eba6557f20932939))
+* add admin_correct/2 to ParticipationRecord for admin corrections ([df62dc8](https://github.com/MaxPayne89/prime-youth/commit/df62dc8ff33366ad7736363cd58495fd3ef39ee8))
+* add Admin.Queries.list_providers_for_select/0 ([8f19a70](https://github.com/MaxPayne89/prime-youth/commit/8f19a70179942d66e179fb5380d9471811353b0c))
+* add CorrectAttendance use case for admin attendance fixes ([a5fca75](https://github.com/MaxPayne89/prime-youth/commit/a5fca75cfbba39af6f3bf28bd179783eed114ab2))
+* add German translations for admin sessions dashboard ([aad0c3b](https://github.com/MaxPayne89/prime-youth/commit/aad0c3b681a7e811d20a5aa9629b4358eb79d810))
+* add list_admin_sessions/1 with enriched data for admin dashboard ([13b562a](https://github.com/MaxPayne89/prime-youth/commit/13b562a7a5fcbeaef0503d2266bc65383e96baf1))
+* add participation session management to admin dashboard ([b8b7f20](https://github.com/MaxPayne89/prime-youth/commit/b8b7f206e9153de6e585f86e22d23a35dd642e0b))
+* add SearchableSelect LiveComponent with basic rendering ([49943af](https://github.com/MaxPayne89/prime-youth/commit/49943af4fdb12be2cc7577c286a0218a43fe7670))
+* expose list_admin_sessions through participation context facade ([b6707b9](https://github.com/MaxPayne89/prime-youth/commit/b6707b98d2f5dea3cdda1ae0dd9d31aac46de8c7))
+* replace mode toggle with unified filter bar in admin sessions ([c9720b8](https://github.com/MaxPayne89/prime-youth/commit/c9720b8d4537f3023e5af6d019f2a8a6422d2b48))
+
+
+### Bug Fixes
+
+* address Copilot PR review comments ([#1](https://github.com/MaxPayne89/prime-youth/issues/1), [#2](https://github.com/MaxPayne89/prime-youth/issues/2), [#3](https://github.com/MaxPayne89/prime-youth/issues/3), [#7](https://github.com/MaxPayne89/prime-youth/issues/7)) ([f89a0e2](https://github.com/MaxPayne89/prime-youth/commit/f89a0e2bfac3629bbff0f774431e9f8e27da9cec))
+* address critical PR review issues (C1-C3) ([1999748](https://github.com/MaxPayne89/prime-youth/commit/19997481ffef7f9bcec11a3a61265388b4d2a544))
+* address PR review suggestions (S11-S15) ([c388a2e](https://github.com/MaxPayne89/prime-youth/commit/c388a2e0357256f29b6ca8b8ddd963261a8a9e8c))
+* export Admin.Queries from KlassHero boundary ([c6b0fc4](https://github.com/MaxPayne89/prime-youth/commit/c6b0fc40dc5a35eecf48a5115183ed73e408f737))
+* resolve admin layout rendering and boundary violation regressions ([476d246](https://github.com/MaxPayne89/prime-youth/commit/476d246ed9e2fb5a2045abec7192677f4cf7fd7a))
+
+
+### Code Refactoring
+
+* extract filter_options/2 and fix open event in SearchableSelect ([d84e60e](https://github.com/MaxPayne89/prime-youth/commit/d84e60e8cf2c26c8820f416bd37635d0c096ad6a))
+* simplify admin sessions code after review ([3b2a212](https://github.com/MaxPayne89/prime-youth/commit/3b2a2129679a5cc6a7e03252ad9b8319136f99ad))
+* simplify SearchableSelect state and use domain status references ([d91a4e8](https://github.com/MaxPayne89/prime-youth/commit/d91a4e8c38bcdd2b9cc7bfd03cd6bc3d77c9e8b6))
+
 ## [0.3.0](https://github.com/MaxPayne89/prime-youth/compare/v0.2.0...v0.3.0) (2026-03-13)
 
 
