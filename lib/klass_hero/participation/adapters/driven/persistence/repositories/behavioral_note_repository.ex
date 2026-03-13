@@ -14,6 +14,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.BehavioralNoteSchema
   alias KlassHero.Participation.Domain.Models.BehavioralNote
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
 
   require Logger
 
@@ -163,7 +164,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
     # Trigger: unique constraint violation on [participation_record_id, provider_id]
     # Why: one note per provider per participation record
     # Outcome: return domain-specific error atom
-    if has_unique_constraint_error?(errors) do
+    if EctoErrorHelpers.any_unique_constraint_violation?(errors) do
       {:error, :duplicate_note}
     else
       Logger.warning("[BehavioralNoteRepository] Validation failed on insert",
@@ -184,13 +185,6 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
     )
 
     {:error, :validation_failed}
-  end
-
-  defp has_unique_constraint_error?(errors) do
-    Enum.any?(errors, fn
-      {_field, {_msg, opts}} -> Keyword.get(opts, :constraint) == :unique
-      _ -> false
-    end)
   end
 
   defp convert_enum_fields(attrs) do

@@ -68,6 +68,39 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers do
   end
 
   @doc """
+  Detects if any field has a unique constraint violation.
+
+  Unlike `unique_constraint_violation?/2`, this does not check a specific field —
+  it returns true if any error in the list is a unique constraint violation.
+
+  ## Parameters
+
+  - `errors` - List of Ecto changeset errors in format `[{field, {message, opts}}]`
+
+  ## Returns
+
+  - `true` if any field has a unique constraint violation
+  - `false` otherwise
+
+  ## Examples
+
+      errors = [{:email, {"has already been taken", [constraint: :unique]}}]
+      any_unique_constraint_violation?(errors)
+      # => true
+
+      errors = [{:email, {"is invalid", []}}]
+      any_unique_constraint_violation?(errors)
+      # => false
+  """
+  @spec any_unique_constraint_violation?(errors :: [{atom(), {String.t(), Keyword.t()}}]) ::
+          boolean()
+  def any_unique_constraint_violation?(errors) when is_list(errors) do
+    Enum.any?(errors, fn {_field, {_message, opts}} ->
+      Keyword.get(opts, :constraint) == :unique
+    end)
+  end
+
+  @doc """
   Detects if a specific field has a foreign key constraint violation.
 
   ## Parameters

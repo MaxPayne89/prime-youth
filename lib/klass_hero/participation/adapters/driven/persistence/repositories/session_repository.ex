@@ -14,6 +14,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
   alias KlassHero.Shared.ErrorIds
 
   @impl true
@@ -96,7 +97,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   end
 
   defp handle_insert_result({:error, %Ecto.Changeset{errors: errors} = changeset}) do
-    if has_unique_constraint_error?(errors) do
+    if EctoErrorHelpers.any_unique_constraint_violation?(errors) do
       {:error, :duplicate_session}
     else
       {:error, ErrorIds.session_create_failed(changeset)}
@@ -113,11 +114,5 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
     else
       {:error, ErrorIds.session_update_failed(changeset)}
     end
-  end
-
-  defp has_unique_constraint_error?(errors) do
-    Enum.any?(errors, fn {_field, {_msg, opts}} ->
-      opts[:constraint] == :unique
-    end)
   end
 end

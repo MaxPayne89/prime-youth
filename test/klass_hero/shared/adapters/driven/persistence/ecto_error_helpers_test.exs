@@ -55,6 +55,40 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpersTest do
     end
   end
 
+  describe "any_unique_constraint_violation?/1" do
+    test "returns true when a unique constraint violation exists" do
+      errors = [{:email, {"has already been taken", [constraint: :unique]}}]
+
+      assert EctoErrorHelpers.any_unique_constraint_violation?(errors)
+    end
+
+    test "returns true when unique constraint exists among multiple errors" do
+      errors = [
+        {:name, {"can't be blank", []}},
+        {:email, {"has already been taken", [constraint: :unique]}},
+        {:age, {"must be a number", []}}
+      ]
+
+      assert EctoErrorHelpers.any_unique_constraint_violation?(errors)
+    end
+
+    test "returns false when no constraint violations exist" do
+      errors = [{:email, {"is invalid", []}}]
+
+      refute EctoErrorHelpers.any_unique_constraint_violation?(errors)
+    end
+
+    test "returns false when constraint type is different" do
+      errors = [{:user_id, {"does not exist", [constraint: :foreign]}}]
+
+      refute EctoErrorHelpers.any_unique_constraint_violation?(errors)
+    end
+
+    test "returns false for empty error list" do
+      refute EctoErrorHelpers.any_unique_constraint_violation?([])
+    end
+  end
+
   describe "foreign_key_violation?/2" do
     test "returns true when foreign key constraint violation exists for specified field" do
       errors = [{:user_id, {"does not exist", [constraint: :foreign]}}]
