@@ -45,6 +45,7 @@ defmodule KlassHero.Participation do
   alias KlassHero.Participation.Application.UseCases.AnonymizeBehavioralNotesForChild
   alias KlassHero.Participation.Application.UseCases.BulkCheckIn
   alias KlassHero.Participation.Application.UseCases.CompleteSession
+  alias KlassHero.Participation.Application.UseCases.CorrectAttendance
   alias KlassHero.Participation.Application.UseCases.CreateSession
   alias KlassHero.Participation.Application.UseCases.GetApprovedBehavioralNotes
   alias KlassHero.Participation.Application.UseCases.GetBehavioralNoteForRecord
@@ -292,6 +293,11 @@ defmodule KlassHero.Participation do
   """
   def get_participation_history(params) when is_map(params) do
     GetParticipationHistory.execute(params)
+  end
+
+  @doc "Admin-corrects a participation record's attendance data."
+  def correct_attendance(params) when is_map(params) do
+    CorrectAttendance.execute(params)
   end
 
   # ============================================================================
