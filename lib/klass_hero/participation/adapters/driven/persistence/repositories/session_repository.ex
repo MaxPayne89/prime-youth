@@ -13,7 +13,6 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.Participation.Domain.Models.ProgramSession
-  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
@@ -76,9 +75,9 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   @impl true
   def list_by_provider_and_date(provider_id, date) when is_binary(provider_id) do
     from(s in ProgramSessionSchema,
-      join: p in ProgramSchema,
+      join: p in "programs",
       on: p.id == s.program_id,
-      where: p.provider_id == ^provider_id and s.session_date == ^date,
+      where: p.provider_id == type(^provider_id, Ecto.UUID) and s.session_date == ^date,
       order_by: [asc: s.start_time]
     )
     |> Repo.all()
@@ -96,8 +95,8 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
 
   @impl true
   def get_program_name(program_id) when is_binary(program_id) do
-    from(p in ProgramSchema,
-      where: p.id == ^program_id,
+    from(p in "programs",
+      where: p.id == type(^program_id, Ecto.UUID),
       select: p.title
     )
     |> Repo.one()
@@ -106,7 +105,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   @impl true
   def list_admin_sessions(filters) when is_map(filters) do
     ProgramSessionSchema
-    |> join(:inner, [s], p in ProgramSchema, on: p.id == s.program_id)
+    |> join(:inner, [s], p in "programs", on: p.id == s.program_id)
     |> join(:left, [s, _p], pr in ParticipationRecordSchema, on: pr.session_id == s.id)
     |> join(:inner, [_s, p, _pr], prov in ProviderProfileSchema, on: prov.id == p.provider_id)
     |> apply_admin_filters(filters)

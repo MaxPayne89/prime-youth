@@ -53,7 +53,10 @@
   </:sidebar>
 
   <Backpex.HTML.Layout.flash_messages flash={@flash} />
-  <%= if assigns[:inner_content] do %>
+  <%!-- Trigger: Backpex passes empty named slot [] for inner_content; Phoenix layout passes rendered content --%>
+  <%!-- Why: [] is truthy in Elixir, so plain `if assigns[:inner_content]` would render nothing for Backpex --%>
+  <%!-- Outcome: Backpex resources use @inner_block slot; SessionsLive uses Phoenix layout @inner_content --%>
+  <%= if assigns[:inner_content] not in [nil, []] do %>
     {@inner_content}
   <% else %>
     {render_slot(@inner_block)}
