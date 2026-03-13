@@ -27,6 +27,15 @@ defmodule KlassHeroWeb.Admin.ConsentLiveTest do
 
       assert flash["error"] =~ "access"
     end
+
+    test "non-admin is redirected from consent show page", %{conn: conn} do
+      consent = insert(:consent_schema)
+
+      assert {:error, {:redirect, %{to: "/", flash: flash}}} =
+               live(conn, ~p"/admin/consents/#{consent.id}/show")
+
+      assert flash["error"] =~ "access"
+    end
   end
 
   describe "unauthenticated access control" do
@@ -52,8 +61,8 @@ defmodule KlassHeroWeb.Admin.ConsentLiveTest do
 
     test "displays active status badge for active consent", %{conn: conn} do
       insert(:consent_schema, withdrawn_at: nil)
-      {:ok, _view, html} = live(conn, ~p"/admin/consents")
-      assert html =~ "Active"
+      {:ok, view, _html} = live(conn, ~p"/admin/consents")
+      assert has_element?(view, "span", "Active")
     end
 
     test "displays withdrawn status badge for withdrawn consent", %{conn: conn} do
@@ -61,18 +70,22 @@ defmodule KlassHeroWeb.Admin.ConsentLiveTest do
         withdrawn_at: DateTime.utc_now() |> DateTime.truncate(:second)
       )
 
-      {:ok, _view, html} = live(conn, ~p"/admin/consents")
-      assert html =~ "Withdrawn"
+      {:ok, view, _html} = live(conn, ~p"/admin/consents")
+      assert has_element?(view, "span", "Withdrawn")
     end
 
     test "displays compliance banner", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/admin/consents")
-      assert html =~ "append-only"
+      {:ok, view, _html} = live(conn, ~p"/admin/consents")
+      assert has_element?(view, "div.bg-blue-50", "append-only")
     end
 
     test "search by child name returns matching results", %{conn: conn} do
       consent =
         insert(:consent_schema, consent_type: "medical")
+        |> KlassHero.Repo.preload(:child)
+
+      other_consent =
+        insert(:consent_schema, consent_type: "photo_marketing")
         |> KlassHero.Repo.preload(:child)
 
       {:ok, view, _html} = live(conn, ~p"/admin/consents")
@@ -82,10 +95,15 @@ defmodule KlassHeroWeb.Admin.ConsentLiveTest do
       |> render_change(%{"index_search" => %{"value" => consent.child.first_name}})
 
       assert has_element?(view, "td", consent.child.first_name)
+      refute has_element?(view, "td", other_consent.child.first_name)
     end
 
     test "search by parent display name returns matching results", %{conn: conn} do
       consent =
+        insert(:consent_schema)
+        |> KlassHero.Repo.preload(:parent)
+
+      other_consent =
         insert(:consent_schema)
         |> KlassHero.Repo.preload(:parent)
 
@@ -96,6 +114,7 @@ defmodule KlassHeroWeb.Admin.ConsentLiveTest do
       |> render_change(%{"index_search" => %{"value" => consent.parent.display_name}})
 
       assert has_element?(view, "td", consent.parent.display_name)
+      refute has_element?(view, "td", other_consent.parent.display_name)
     end
 
     test "consent type filter narrows results", %{conn: conn} do
@@ -128,6 +147,23 @@ defmodule KlassHeroWeb.Admin.ConsentLiveTest do
       assert has_element?(view, "span", "Active")
       refute has_element?(view, "span", "Withdrawn")
     end
+
+    test "status filter shows only withdrawn consents", %{conn: conn} do
+      insert(:consent_schema, withdrawn_at: nil)
+
+      insert(:consent_schema,
+        withdrawn_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/admin/consents")
+
+      view
+      |> element("form[phx-change='change-filter']")
+      |> render_change(%{"filters" => %{"withdrawn_at" => "withdrawn"}})
+
+      assert has_element?(view, "span", "Withdrawn")
+      refute has_element?(view, "span", "Active")
+    end
   end
 
   describe "consent show" do
@@ -137,6 +173,13 @@ defmodule KlassHeroWeb.Admin.ConsentLiveTest do
       consent = insert(:consent_schema, consent_type: "photo_marketing")
       {:ok, _view, html} = live(conn, ~p"/admin/consents/#{consent.id}/show")
       assert html =~ "Photo Marketing"
+    end
+
+    test "edit and delete buttons are not shown on show page", %{conn: conn} do
+      consent = insert(:consent_schema)
+      {:ok, view, _html} = live(conn, ~p"/admin/consents/#{consent.id}/show")
+      refute has_element?(view, "a", "Edit")
+      refute has_element?(view, "a", "Delete")
     end
 
     test "displays withdrawn status on show page", %{conn: conn} do

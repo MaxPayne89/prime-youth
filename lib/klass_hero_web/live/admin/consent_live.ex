@@ -98,7 +98,18 @@ defmodule KlassHeroWeb.Admin.ConsentLive do
         label: "Parent",
         display_field: :display_name,
         searchable: true,
-        only: [:index, :show]
+        only: [:index, :show],
+        render: fn assigns ->
+          ~H"""
+          <span>
+            <%= if @value do %>
+              {@value.display_name}
+            <% else %>
+              <span class="text-gray-400 italic">Deleted</span>
+            <% end %>
+          </span>
+          """
+        end
       },
       consent_type: %{
         module: Backpex.Fields.Text,
