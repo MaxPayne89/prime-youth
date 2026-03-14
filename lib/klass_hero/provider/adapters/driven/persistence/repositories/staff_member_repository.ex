@@ -13,6 +13,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
+  alias KlassHero.Shared.Adapters.Driven.Persistence.RepositoryHelpers
 
   require Logger
 
@@ -38,10 +39,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
 
   @impl true
   def get(id) when is_binary(id) do
-    case Repo.get(StaffMemberSchema, id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, StaffMemberMapper.to_domain(schema)}
-    end
+    RepositoryHelpers.get_by_id(StaffMemberSchema, id, StaffMemberMapper)
   end
 
   @impl true

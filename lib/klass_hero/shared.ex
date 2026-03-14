@@ -27,6 +27,7 @@ defmodule KlassHero.Shared do
       Adapters.Driven.Events.RetryHelpers,
       Adapters.Driven.Persistence.EctoErrorHelpers,
       Adapters.Driven.Persistence.MapperHelpers,
+      Adapters.Driven.Persistence.RepositoryHelpers,
       Storage
     ]
 end

@@ -19,6 +19,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
+  alias KlassHero.Shared.Adapters.Driven.Persistence.RepositoryHelpers
 
   @impl true
   @doc """
@@ -48,10 +49,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   - `{:error, :not_found}` when no document exists with the given ID
   """
   def get(id) do
-    case Repo.get(VerificationDocumentSchema, id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, VerificationDocumentMapper.to_domain(schema)}
-    end
+    RepositoryHelpers.get_by_id(VerificationDocumentSchema, id, VerificationDocumentMapper)
   end
 
   @impl true

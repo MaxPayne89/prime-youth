@@ -21,6 +21,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
   alias KlassHero.Accounts.Adapters.Driven.Persistence.TokenCleanup
   alias KlassHero.Accounts.{User, UserToken}
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.RepositoryHelpers
 
   require Logger
 
@@ -30,10 +31,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
 
   @impl true
   def get_by_id(user_id) when is_binary(user_id) do
-    case Repo.get(User, user_id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, UserMapper.to_domain(schema)}
-    end
+    RepositoryHelpers.get_by_id(User, user_id, UserMapper)
   end
 
   @impl true
