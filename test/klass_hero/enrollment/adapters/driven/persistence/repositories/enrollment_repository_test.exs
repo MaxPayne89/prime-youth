@@ -3,8 +3,10 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
   import KlassHero.Factory
 
+  alias Ecto.Adapters.SQL.Sandbox
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentRepository
   alias KlassHero.Enrollment.Domain.Models.Enrollment
+  alias KlassHero.Repo
 
   describe "create/1" do
     test "creates enrollment with valid attributes" do
@@ -431,6 +433,48 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
       )
 
       assert EnrollmentRepository.list_by_program(program2.id) == []
+    end
+  end
+
+  describe "concurrent create/1" do
+    # Verifies that the unique constraint on (program_id, child_id) for active
+    # enrollments is handled gracefully when two requests race to enroll the
+    # same child in the same program. One must succeed and the other must return
+    # {:error, :duplicate_resource} rather than crashing or leaking a raw
+    # constraint error to callers.
+    @tag :capture_log
+    test "one request succeeds and the other returns duplicate_resource" do
+      program = insert(:program_schema)
+      {child, parent} = insert_child_with_guardian()
+      test_pid = self()
+
+      attrs = %{
+        program_id: program.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: "pending",
+        enrolled_at: DateTime.utc_now()
+      }
+
+      results =
+        Task.async_stream(
+          [1, 2],
+          fn _ ->
+            Sandbox.allow(Repo, test_pid, self())
+            EnrollmentRepository.create(attrs)
+          end,
+          max_concurrency: 2,
+          timeout: 5_000
+        )
+        |> Enum.map(fn {:ok, result} -> result end)
+
+      ok_count = Enum.count(results, &match?({:ok, _}, &1))
+      dup_count = Enum.count(results, &match?({:error, :duplicate_resource}, &1))
+
+      assert ok_count == 1, "Expected exactly one successful enrollment, got: #{inspect(results)}"
+
+      assert dup_count == 1,
+             "Expected exactly one :duplicate_resource error, got: #{inspect(results)}"
     end
   end
 end
