@@ -22,29 +22,24 @@ defmodule KlassHeroWeb.DashboardLive do
     # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
     # Outcome: resolve parent profile once, then query children + enrollments in parallel
     {children, active_programs, expired_programs} =
-      case Family.get_parent_by_identity(user.id) do
-        {:ok, parent} ->
-          # Children and family programs are independent — fetch in parallel
-          children_task = Task.async(fn -> Family.get_children(parent.id) end)
+      try do
+        case Family.get_parent_by_identity(user.id) do
+          {:ok, parent} ->
+            # Children and family programs are independent — fetch in parallel
+            children_task = Task.async(fn -> Family.get_children(parent.id) end)
+            {active, expired} = load_family_programs(parent.id)
+            {Task.await(children_task), active, expired}
 
-          # Trigger: database failure during program loading
-          # Why: a failing section should not crash the entire dashboard
-          # Outcome: gracefully degrade to empty state if load fails
-          {active, expired} =
-            try do
-              load_family_programs(parent.id)
-            rescue
-              e ->
-                Logger.error(
-                  "[DashboardLive] Failed to load family programs: #{Exception.message(e)}"
-                )
+          {:error, _} ->
+            {[], [], []}
+        end
+      rescue
+        # Trigger: database or linked-task failure during dashboard data loading
+        # Why: a failing section should not crash the entire dashboard
+        # Outcome: gracefully degrade to empty state if any load fails
+        e ->
+          Logger.error("[DashboardLive] Failed to load dashboard data: #{Exception.message(e)}")
 
-                {[], []}
-            end
-
-          {Task.await(children_task), active, expired}
-
-        {:error, _} ->
           {[], [], []}
       end
 
@@ -95,8 +90,8 @@ defmodule KlassHeroWeb.DashboardLive do
     end
   end
 
-  defp load_family_programs(identity_id) do
-    enrollments = Enrollment.list_parent_enrollments(identity_id)
+  defp load_family_programs(parent_id) do
+    enrollments = Enrollment.list_parent_enrollments(parent_id)
 
     program_ids = Enum.map(enrollments, & &1.program_id)
     programs_by_id = ProgramCatalog.get_programs_by_ids(program_ids) |> Map.new(&{&1.id, &1})
