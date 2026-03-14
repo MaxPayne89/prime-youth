@@ -87,6 +87,9 @@
 
   <%!-- Session list --%>
   <div id="sessions-list" phx-update="stream" class="space-y-1">
+    <div id="sessions-empty" class="hidden only:block p-8 text-center text-sm opacity-50">
+      {gettext("No sessions found for the selected filters.")}
+    </div>
     <.link
       :for={{dom_id, session} <- @streams.sessions}
       id={dom_id}
