@@ -3,10 +3,10 @@ defmodule KlassHeroWeb.DashboardLive do
 
   import KlassHeroWeb.BookingComponents, only: [info_box: 1]
   import KlassHeroWeb.CompositeComponents
-  import KlassHeroWeb.Helpers.FamilyHelpers
   import KlassHeroWeb.ProgramComponents, only: [program_card: 1]
 
   alias KlassHero.Enrollment
+  alias KlassHero.Entitlements
   alias KlassHero.Family
   alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.ChildPresenter
@@ -18,26 +18,34 @@ defmodule KlassHeroWeb.DashboardLive do
   @impl true
   def mount(_params, _session, socket) do
     user = socket.assigns.current_scope.user
-    children = get_children_for_current_user(socket)
-    children_for_view = Enum.map(children, &ChildPresenter.to_profile_view/1)
-    children_extended = Enum.map(children, &ChildPresenter.to_extended_view/1)
-    # Trigger: database failure during program loading
-    # Why: a failing section should not crash the entire dashboard
-    # Outcome: gracefully degrade to empty state if load fails
-    {active_programs, expired_programs} =
+
+    # Trigger: enrollments are stored with parent_id (Family context), not identity_id (Accounts)
+    # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
+    # Outcome: resolve parent profile once, then query children + enrollments in parallel
+    {parent, children, active_programs, expired_programs} =
       try do
-        # Trigger: enrollments are stored with parent_id (Family context), not identity_id (Accounts)
-        # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
-        # Outcome: resolve parent profile first, then query enrollments by parent.id
         case Family.get_parent_by_identity(user.id) do
-          {:ok, parent} -> load_family_programs(parent.id)
-          {:error, _} -> {[], []}
+          {:ok, parent} ->
+            # Children and family programs are independent — fetch in parallel
+            children_task = Task.async(fn -> Family.get_children(parent.id) end)
+            {active, expired} = load_family_programs(parent.id)
+            {parent, Task.await(children_task), active, expired}
+
+          {:error, _} ->
+            {nil, [], [], []}
         end
       rescue
+        # Trigger: database or linked-task failure during dashboard data loading
+        # Why: a failing section should not crash the entire dashboard
+        # Outcome: gracefully degrade to empty state if any load fails
         e ->
-          Logger.error("[DashboardLive] Failed to load family programs: #{Exception.message(e)}")
-          {[], []}
+          Logger.error("[DashboardLive] Failed to load dashboard data: #{Exception.message(e)}")
+
+          {nil, [], [], []}
       end
+
+    children_for_view = Enum.map(children, &ChildPresenter.to_profile_view/1)
+    children_extended = Enum.map(children, &ChildPresenter.to_extended_view/1)
 
     socket =
       socket
@@ -50,7 +58,7 @@ defmodule KlassHeroWeb.DashboardLive do
       )
       |> stream(:children, children_for_view)
       |> stream(:family_programs, build_family_program_items(active_programs, expired_programs))
-      |> assign_booking_usage_info()
+      |> assign_booking_usage_info(parent)
 
     {:ok, socket}
   end
@@ -65,26 +73,31 @@ defmodule KlassHeroWeb.DashboardLive do
   defp goal_message(:in_progress, 0), do: gettext("You're just getting started!")
   defp goal_message(:in_progress, _percentage), do: gettext("You're doing great! Keep it up!")
 
-  defp assign_booking_usage_info(socket) do
-    identity_id = socket.assigns.user.id
+  # Trigger: parent is nil when no parent profile exists or data loading failed
+  # Why: reuse the already-resolved parent to avoid a duplicate get_parent_by_identity query
+  # Outcome: skip booking usage entirely when parent is unavailable
+  defp assign_booking_usage_info(socket, nil), do: assign(socket, show_booking_usage: false)
 
-    case Enrollment.get_booking_usage_info(identity_id) do
-      {:ok, info} when info.cap != :unlimited ->
-        assign(socket,
-          show_booking_usage: true,
-          booking_tier: info.tier,
-          booking_cap: info.cap,
-          bookings_used: info.used,
-          bookings_remaining: info.remaining
-        )
+  defp assign_booking_usage_info(socket, parent) do
+    cap = Entitlements.monthly_booking_cap(parent)
 
-      _ ->
-        assign(socket, show_booking_usage: false)
+    if cap == :unlimited do
+      assign(socket, show_booking_usage: false)
+    else
+      used = Enrollment.count_monthly_bookings(parent.id)
+
+      assign(socket,
+        show_booking_usage: true,
+        booking_tier: parent.subscription_tier,
+        booking_cap: cap,
+        bookings_used: used,
+        bookings_remaining: max(0, cap - used)
+      )
     end
   end
 
-  defp load_family_programs(identity_id) do
-    enrollments = Enrollment.list_parent_enrollments(identity_id)
+  defp load_family_programs(parent_id) do
+    enrollments = Enrollment.list_parent_enrollments(parent_id)
 
     program_ids = Enum.map(enrollments, & &1.program_id)
     programs_by_id = ProgramCatalog.get_programs_by_ids(program_ids) |> Map.new(&{&1.id, &1})
