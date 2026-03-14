@@ -5,6 +5,26 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0](https://github.com/MaxPayne89/prime-youth/compare/v0.4.0...v0.5.0) (2026-03-14)
+
+
+### Features
+
+* add empty state message to admin sessions list ([9a9d017](https://github.com/MaxPayne89/prime-youth/commit/9a9d01775cf4dd2c425069c3c0149ae9859e732e))
+* add empty state message to admin sessions list ([5e35d83](https://github.com/MaxPayne89/prime-youth/commit/5e35d83b4af403779cecddcbe5612dc593027d06))
+
+
+### Bug Fixes
+
+* correct changeset error assertions in ParticipantPolicyForm tests ([c288a1e](https://github.com/MaxPayne89/prime-youth/commit/c288a1eae173cc04c3ed7237e0f0a0288b777e35))
+* harden dashboard mount resilience and fix misleading param name ([a440150](https://github.com/MaxPayne89/prime-youth/commit/a44015040c6d7f9ef549a977754174dc94d14902))
+
+
+### Performance Improvements
+
+* eliminate duplicate parent lookup and parallelize children + programs in parent dashboard mount ([070a07d](https://github.com/MaxPayne89/prime-youth/commit/070a07d0bf37ce8a2a661b9cbb80e47b2822fcb1))
+* reuse resolved parent in booking usage to eliminate duplicate DB lookup ([7781a57](https://github.com/MaxPayne89/prime-youth/commit/7781a57cf88127fa6b9a31dbc52a7725dd075820))
+
 ## [0.4.0](https://github.com/MaxPayne89/prime-youth/compare/v0.3.0...v0.4.0) (2026-03-13)
 
 
