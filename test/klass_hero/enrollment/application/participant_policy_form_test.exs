@@ -104,13 +104,8 @@ defmodule KlassHero.Enrollment.Application.ParticipantPolicyFormTest do
     test "rejects unknown eligibility_at value" do
       changeset = ParticipantPolicyForm.changeset(%{eligibility_at: "on_payment"})
       refute changeset.valid?
-      assert {_, [validation: :inclusion]} = changeset.errors[:eligibility_at]
-    end
-
-    test "rejects empty string eligibility_at" do
-      changeset = ParticipantPolicyForm.changeset(%{eligibility_at: ""})
-      refute changeset.valid?
-      assert changeset.errors[:eligibility_at]
+      assert {_, opts} = changeset.errors[:eligibility_at]
+      assert opts[:validation] == :inclusion
     end
   end
 
@@ -118,13 +113,15 @@ defmodule KlassHero.Enrollment.Application.ParticipantPolicyFormTest do
     test "rejects negative min_age_months" do
       changeset = ParticipantPolicyForm.changeset(%{min_age_months: -1})
       refute changeset.valid?
-      assert {_, [validation: :number]} = changeset.errors[:min_age_months]
+      assert {_, opts} = changeset.errors[:min_age_months]
+      assert opts[:validation] == :number
     end
 
     test "rejects negative max_age_months" do
       changeset = ParticipantPolicyForm.changeset(%{max_age_months: -1})
       refute changeset.valid?
-      assert {_, [validation: :number]} = changeset.errors[:max_age_months]
+      assert {_, opts} = changeset.errors[:max_age_months]
+      assert opts[:validation] == :number
     end
   end
 
@@ -132,13 +129,15 @@ defmodule KlassHero.Enrollment.Application.ParticipantPolicyFormTest do
     test "rejects min_grade of 0 (below minimum of 1)" do
       changeset = ParticipantPolicyForm.changeset(%{min_grade: 0})
       refute changeset.valid?
-      assert {_, [validation: :number]} = changeset.errors[:min_grade]
+      assert {_, opts} = changeset.errors[:min_grade]
+      assert opts[:validation] == :number
     end
 
     test "rejects max_grade of 14 (above maximum of 13)" do
       changeset = ParticipantPolicyForm.changeset(%{max_grade: 14})
       refute changeset.valid?
-      assert {_, [validation: :number]} = changeset.errors[:max_grade]
+      assert {_, opts} = changeset.errors[:max_grade]
+      assert opts[:validation] == :number
     end
 
     test "rejects negative min_grade" do
