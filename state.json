@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-13T13:03:29Z",
+  "last_updated": "2026-03-14T13:03:00Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -35,10 +35,10 @@
     "staff_member_use_case_tests": "staff_member_fixture(provider_id: id) creates a staff member; Provider facade used for create/update/delete/get_staff_member; delete returns :ok or {:error, :not_found}; update ignores provider_id changes (not in @allowed_fields)",
     "integration_event_publishing_tests": "IntegrationEventPublishing tests use ExUnit.Case async: true (no DB); call TestIntegrationEventPublisher.setup() in setup; use configure_publish_error(:reason) to simulate failures; tests cover publish_critical (propagates) vs publish_best_effort (swallows)",
     "referral_code_generator_tests": "ReferralCodeGenerator.generate/2 splits name on \" \" parts:2, takes List.first, trims - so 'John Smith' -> 'JOHN'; location passed as-is; year_suffix: 2-digit string auto-derived from Date.utc_today().year rem 100 padded to 2 chars",
-    "participant_policy_form_changeset": "ParticipantPolicyForm.changeset/1 (no args uses default struct) and changeset/2 (existing struct, attrs); cross-field: min_age > max_age adds error to :min_age_months; min_grade > max_grade adds error to :min_grade; allowed_genders invalid message contains 'invalid values: <val>'"
+    "participant_policy_form_changeset": "ParticipantPolicyForm.changeset/1 (no args uses default struct) and changeset/2 (existing struct, attrs); cross-field: min_age > max_age adds error to :min_age_months; min_grade > max_grade adds error to :min_grade; allowed_genders invalid message contains 'invalid values: <val>'",
+    "concurrent_enrollment_sandbox": "Use Sandbox.allow(Repo, test_pid, self()) inside Task.async_stream tasks when test module uses async: true (exclusive sandbox mode); @tag :capture_log suppresses expected duplicate warning log"
   },
   "backlog": [
-    {"item": "enrollment_repository concurrent duplicate test (Task.async_stream pattern)", "priority": "medium", "reason": "issue #397 explicitly requests this; pattern: Task.async_stream with 2 concurrent inserts, assert one :ok + one {:error, :duplicate_resource}, @tag :capture_log for noise suppression"},
     {"item": "ParticipationEvents factory tests", "priority": "low", "reason": "9 event factory functions, tests would guard payload shape contracts"},
     {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"},
     {"item": "admin provider_live.ex on_item_updated event publishing", "priority": "low", "reason": "existing tests verify DB state only; on_item_updated/2 publishes provider_verified/provider_unverified events - complex to test from LiveView"},
@@ -47,15 +47,20 @@
   "tasks_last_run": {
     "task1_commands": "2026-02-26",
     "task2_opportunities": "2026-03-11",
-    "task3_implement": "2026-03-13",
+    "task3_implement": "2026-03-14",
+    "task4_maintain_prs": "2026-03-14",
     "task6_infrastructure": "2026-03-12",
     "task5_comments": "2026-03-13",
-    "task7_monthly_summary": "2026-03-13"
+    "task7_monthly_summary": "2026-03-14"
   },
   "completed_work": [
     {
+      "run": "2026-03-14",
+      "work": "Task 4: Verified PR #413 (ParticipantPolicyForm changeset tests) was merged. No open Test Improver PRs to maintain. Task 3: Created PR (branch test-assist/enrollment-concurrent-duplicate-test): 1 concurrent test for enrollment duplicate race condition using Task.async_stream + Sandbox.allow pattern, addressing issue #397 verification request."
+    },
+    {
       "run": "2026-03-13",
-      "work": "Created PR (branch test-assist/participant-policy-form-changeset-tests): 28 pure async changeset tests for ParticipantPolicyForm - all validation paths. Commented on issue #397 with Task.async_stream concurrent test strategy. Confirmed PR #401 (ReferralCodeGenerator + ProgramCategories) merged."
+      "work": "Created PR (branch test-assist/participant-policy-form-changeset-tests): 28 pure async changeset tests for ParticipantPolicyForm - all validation paths. Commented on issue #397 with Task.async_stream concurrent test strategy. Confirmed PR #401 (ReferralCodeGenerator + ProgramCategories) merged. PR #413 MERGED."
     },
     {
       "run": "2026-03-12",
