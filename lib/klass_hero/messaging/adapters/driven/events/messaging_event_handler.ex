@@ -43,13 +43,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler do
       backoff_ms: 100
     }
 
-    # Trigger: RetryHelpers preserves {:ok, result} from the operation
-    # Why: ForHandlingEvents contract specifies :ok | {:error, _} | :ignore,
-    #   and EventSubscriber logs a warning for any value outside that set
-    # Outcome: strip the result from {:ok, _} to return bare :ok
-    case RetryHelpers.retry_with_backoff(operation, context) do
-      {:ok, _} -> :ok
-      other -> other
-    end
+    RetryHelpers.retry_and_normalize(operation, context)
   end
 end

@@ -262,6 +262,45 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpersTest do
     end
   end
 
+  describe "retry_and_normalize/2" do
+    test "normalizes {:ok, result} to bare :ok" do
+      operation = fn -> {:ok, %{count: 5}} end
+
+      assert :ok = RetryHelpers.retry_and_normalize(operation, @default_context)
+    end
+
+    test "passes through bare :ok unchanged" do
+      operation = fn -> :ok end
+
+      assert :ok = RetryHelpers.retry_and_normalize(operation, @default_context)
+    end
+
+    test "passes through {:error, reason} unchanged" do
+      operation = fn -> {:error, :resource_not_found} end
+
+      assert {:error, :resource_not_found} =
+               RetryHelpers.retry_and_normalize(operation, @default_context)
+    end
+
+    test "retries transient error then normalizes success" do
+      {:ok, counter} = Agent.start_link(fn -> 0 end)
+
+      operation = fn ->
+        count = Agent.get_and_update(counter, fn count -> {count, count + 1} end)
+
+        case count do
+          0 -> {:error, :database_connection_error}
+          1 -> {:ok, %{anonymized: true}}
+        end
+      end
+
+      assert :ok = RetryHelpers.retry_and_normalize(operation, @default_context)
+      assert Agent.get(counter, & &1) == 2
+
+      Agent.stop(counter)
+    end
+  end
+
   describe "retry_with_backoff/2 with step-tagged errors" do
     test "retries tagged retryable error and succeeds on 2nd attempt" do
       {:ok, counter} = Agent.start_link(fn -> 0 end)

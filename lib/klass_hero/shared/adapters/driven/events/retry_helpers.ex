@@ -114,6 +114,24 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
     end
   end
 
+  @doc """
+  Like `retry_with_backoff/2` but normalizes `{:ok, _}` to bare `:ok`.
+
+  Use when the caller's contract requires `:ok | {:error, _} | :ignore`
+  (e.g., ForHandlingEvents, ForHandlingIntegrationEvents).
+  """
+  @spec retry_and_normalize(
+          operation :: (-> :ok | {:ok, term()} | {:error, term()}),
+          context :: map()
+        ) :: :ok | {:error, term()}
+  def retry_and_normalize(operation, context)
+      when is_function(operation, 0) and is_map(context) do
+    case retry_with_backoff(operation, context) do
+      {:ok, _} -> :ok
+      other -> other
+    end
+  end
+
   # Attempt retry for transient errors, return immediately for permanent errors
   defp maybe_retry(operation, context, reason, error) do
     if retryable_error?(reason) do
