@@ -5,6 +5,27 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1](https://github.com/MaxPayne89/prime-youth/compare/v0.5.0...v0.5.1) (2026-03-15)
+
+
+### Bug Fixes
+
+* address PR review comments on concurrent enrollment test ([e36e4b7](https://github.com/MaxPayne89/prime-youth/commit/e36e4b7b9bc041b9532dc475e3cd3b2ecda7566e))
+* use valid UUID format in RepositoryHelpers docstring examples ([3a3dd49](https://github.com/MaxPayne89/prime-youth/commit/3a3dd49613be0fccf524dd627e13dae9f8d98a9b))
+
+
+### Performance Improvements
+
+* eliminate duplicate parent lookup in BookingLive mount ([7a383aa](https://github.com/MaxPayne89/prime-youth/commit/7a383aa5524113ba95e18a8244ec15ca7e476d95))
+* eliminate duplicate parent lookup in BookingLive mount ([e78025d](https://github.com/MaxPayne89/prime-youth/commit/e78025ded2520e66d85dee5671dd26205f8c6ee8))
+
+
+### Code Refactoring
+
+* alias nested module references in Participation context ([64bd11a](https://github.com/MaxPayne89/prime-youth/commit/64bd11aaf05ffe8d022d11197a6b9257b3e9be5a))
+* extract RepositoryHelpers.get_by_id/3 to eliminate duplicate Repo.get pattern ([33887b6](https://github.com/MaxPayne89/prime-youth/commit/33887b62a763f39171c83c8c7f55fbd862b74d3d))
+* extract RepositoryHelpers.get_by_id/3 to eliminate duplicate Repo.get pattern ([cf88f24](https://github.com/MaxPayne89/prime-youth/commit/cf88f242b4d5365f22281accdd678c4c3163db41))
+
 ## [0.5.0](https://github.com/MaxPayne89/prime-youth/compare/v0.4.0...v0.5.0) (2026-03-14)
 
 
