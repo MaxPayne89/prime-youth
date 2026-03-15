@@ -5,6 +5,17 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1](https://github.com/MaxPayne89/prime-youth/compare/v0.7.0...v0.7.1) (2026-03-15)
+
+
+### Code Refactoring
+
+* accept optional log metadata in check_entitlement ([82b4892](https://github.com/MaxPayne89/prime-youth/commit/82b4892856d855e67357b1a306a6ae95f9511eab))
+* extract check_entitlement into Shared module ([24a59e5](https://github.com/MaxPayne89/prime-youth/commit/24a59e5f94b17e4cd4355aacfb03eb771c0bb6fe)), closes [#432](https://github.com/MaxPayne89/prime-youth/issues/432)
+* extract duplicate check_entitlement into Shared module ([76edd60](https://github.com/MaxPayne89/prime-youth/commit/76edd60b189f5fa1da1c888a7a9db3b9e5176591))
+* extract verify_participant into Shared module ([da19197](https://github.com/MaxPayne89/prime-youth/commit/da1919752835e4bb7bbc092c2cc91fb9ca7fe569))
+* extract verify_participant into Shared module ([6240ffc](https://github.com/MaxPayne89/prime-youth/commit/6240ffc97acc39d77df40557fed0d0231ddb4e13)), closes [#436](https://github.com/MaxPayne89/prime-youth/issues/436)
+
 ## [0.7.0](https://github.com/MaxPayne89/prime-youth/compare/v0.6.0...v0.7.0) (2026-03-15)
 
 
