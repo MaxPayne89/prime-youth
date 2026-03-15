@@ -62,6 +62,11 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
         Logger.debug("Messages read by user", user_id: event.payload.user_id)
         {:noreply, socket}
       end
+
+      @impl true
+      def handle_event("reply_privately", _params, socket) do
+        MessagingLiveHelper.handle_reply_privately(socket)
+      end
     end
   end
 
@@ -161,6 +166,35 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
           Logger.error("Failed to send message", reason: reason)
           {:noreply, put_flash(socket, :error, gettext("Failed to send message"))}
       end
+    end
+  end
+
+  @doc """
+  Handles the reply_privately event for broadcast conversations.
+
+  Creates a direct conversation with the broadcast's provider and
+  navigates to it.
+  """
+  def handle_reply_privately(socket) do
+    scope = socket.assigns.current_scope
+    conversation_id = socket.assigns.conversation.id
+    back_path = socket.assigns.back_path
+
+    case Messaging.reply_privately_to_broadcast(scope, conversation_id) do
+      {:ok, direct_conversation_id} ->
+        # Derive the conversation URL from the back_path
+        # back_path is "/messages" or "/provider/messages"
+        direct_path = "#{back_path}/#{direct_conversation_id}"
+
+        {:noreply, push_navigate(socket, to: direct_path)}
+
+      {:error, reason} ->
+        Logger.error("Failed to create private reply",
+          conversation_id: conversation_id,
+          reason: inspect(reason)
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Could not start private conversation"))}
     end
   end
 
