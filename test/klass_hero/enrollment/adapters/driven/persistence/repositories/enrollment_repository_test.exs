@@ -6,7 +6,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   alias Ecto.Adapters.SQL.Sandbox
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentRepository
   alias KlassHero.Enrollment.Domain.Models.Enrollment
-  alias KlassHero.Repo
 
   describe "create/1" do
     test "creates enrollment with valid attributes" do
@@ -456,17 +455,35 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
         enrolled_at: DateTime.utc_now()
       }
 
-      results =
-        Task.async_stream(
-          [1, 2],
-          fn _ ->
+      # Barrier pattern: both tasks signal readiness, then the test process
+      # releases them simultaneously so the DB inserts actually overlap.
+      tasks =
+        Enum.map([1, 2], fn _ ->
+          Task.async(fn ->
             Sandbox.allow(Repo, test_pid, self())
+            send(test_pid, {:ready, self()})
+
+            receive do
+              :go -> :ok
+            end
+
             EnrollmentRepository.create(attrs)
-          end,
-          max_concurrency: 2,
-          timeout: 5_000
-        )
-        |> Enum.map(fn {:ok, result} -> result end)
+          end)
+        end)
+
+      pids = Enum.map(tasks, & &1.pid)
+
+      # Wait for both tasks to be ready
+      for pid <- pids do
+        assert_receive {:ready, ^pid}, 5_000
+      end
+
+      # Release both at the same time
+      for pid <- pids do
+        send(pid, :go)
+      end
+
+      results = Task.await_many(tasks, 5_000)
 
       ok_count = Enum.count(results, &match?({:ok, _}, &1))
       dup_count = Enum.count(results, &match?({:error, :duplicate_resource}, &1))
