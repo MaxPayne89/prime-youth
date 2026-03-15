@@ -45,7 +45,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
     subject = Keyword.get(opts, :subject)
     repos = Repositories.all()
 
-    with :ok <- Shared.check_entitlement(scope),
+    with :ok <- Shared.check_entitlement(scope, provider_id: scope.provider.id),
          {:ok, parent_user_ids} <- get_enrolled_parent_user_ids(program_id, repos),
          :ok <- verify_has_recipients(parent_user_ids),
          {:ok, conversation, message} <-
