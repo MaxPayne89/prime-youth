@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-14T13:03:00Z",
+  "last_updated": "2026-03-15T13:03:00Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -36,7 +36,8 @@
     "integration_event_publishing_tests": "IntegrationEventPublishing tests use ExUnit.Case async: true (no DB); call TestIntegrationEventPublisher.setup() in setup; use configure_publish_error(:reason) to simulate failures; tests cover publish_critical (propagates) vs publish_best_effort (swallows)",
     "referral_code_generator_tests": "ReferralCodeGenerator.generate/2 splits name on \" \" parts:2, takes List.first, trims - so 'John Smith' -> 'JOHN'; location passed as-is; year_suffix: 2-digit string auto-derived from Date.utc_today().year rem 100 padded to 2 chars",
     "participant_policy_form_changeset": "ParticipantPolicyForm.changeset/1 (no args uses default struct) and changeset/2 (existing struct, attrs); cross-field: min_age > max_age adds error to :min_age_months; min_grade > max_grade adds error to :min_grade; allowed_genders invalid message contains 'invalid values: <val>'",
-    "concurrent_enrollment_sandbox": "Use Sandbox.allow(Repo, test_pid, self()) inside Task.async_stream tasks when test module uses async: true (exclusive sandbox mode); @tag :capture_log suppresses expected duplicate warning log"
+    "concurrent_enrollment_sandbox": "Use Sandbox.allow(Repo, test_pid, self()) inside Task.async_stream tasks when test module uses async: true (exclusive sandbox mode); @tag :capture_log suppresses expected duplicate warning log",
+    "reply_privately_broadcast_guards": "ReplyPrivatelyToBroadcast: insert(:conversation_schema, type: \"direct\", ...) for :not_broadcast test; create user without insert(:participant_schema) for :not_participant test; scope built from %Scope{user:, roles: [:parent], parent: %ParentProfile{...}, provider: nil}"
   },
   "backlog": [
     {"item": "ParticipationEvents factory tests", "priority": "low", "reason": "9 event factory functions, tests would guard payload shape contracts"},
@@ -46,14 +47,18 @@
   ],
   "tasks_last_run": {
     "task1_commands": "2026-02-26",
-    "task2_opportunities": "2026-03-11",
-    "task3_implement": "2026-03-14",
-    "task4_maintain_prs": "2026-03-14",
+    "task2_opportunities": "2026-03-15",
+    "task3_implement": "2026-03-15",
+    "task4_maintain_prs": "2026-03-15",
     "task6_infrastructure": "2026-03-12",
     "task5_comments": "2026-03-13",
-    "task7_monthly_summary": "2026-03-14"
+    "task7_monthly_summary": "2026-03-15"
   },
   "completed_work": [
+    {
+      "run": "2026-03-15",
+      "work": "Task 2: Identified 2 missing security guard tests in ReplyPrivatelyToBroadcast (new v0.6.0 feature) - :not_broadcast and :not_participant access control paths. Task 3: Created PR (branch test-assist/reply-privately-security-guard-tests): 2 security guard tests for ReplyPrivatelyToBroadcast use case. Task 4: No open Test Improver PRs to maintain (concurrent enrollment PR from 2026-03-14 was merged)."
+    },
     {
       "run": "2026-03-14",
       "work": "Task 4: Verified PR #413 (ParticipantPolicyForm changeset tests) was merged. No open Test Improver PRs to maintain. Task 3: Created PR (branch test-assist/enrollment-concurrent-duplicate-test): 1 concurrent test for enrollment duplicate race condition using Task.async_stream + Sandbox.allow pattern, addressing issue #397 verification request."
