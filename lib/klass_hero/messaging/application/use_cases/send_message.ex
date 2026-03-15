@@ -9,6 +9,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   4. Publishes a message_sent event for real-time updates
   """
 
+  alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
   alias KlassHero.Shared.DomainEventBus
@@ -39,7 +40,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
     message_type = Keyword.get(opts, :message_type, :text)
     repos = Repositories.all()
 
-    with :ok <- verify_participant(conversation_id, sender_id, repos.participants),
+    with :ok <- Shared.verify_participant(conversation_id, sender_id, repos.participants),
          :ok <- verify_broadcast_send_permission(conversation_id, sender_id, repos),
          {:ok, message} <-
            create_message(conversation_id, sender_id, content, message_type, repos.messages) do
@@ -74,19 +75,6 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
 
       {:error, :not_found} ->
         {:error, :not_found}
-    end
-  end
-
-  defp verify_participant(conversation_id, user_id, participant_repo) do
-    if participant_repo.is_participant?(conversation_id, user_id) do
-      :ok
-    else
-      Logger.debug("User not participant in conversation",
-        conversation_id: conversation_id,
-        user_id: user_id
-      )
-
-      {:error, :not_participant}
     end
   end
 
