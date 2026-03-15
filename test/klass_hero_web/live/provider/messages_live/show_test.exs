@@ -182,5 +182,19 @@ defmodule KlassHeroWeb.Provider.MessagesLive.ShowTest do
 
       assert has_element?(view, "span", "Broadcast")
     end
+
+    test "shows message form (not reply bar) for provider on broadcast", %{conn: conn, user: user} do
+      conversation = insert(:broadcast_conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/messages/#{conversation.id}")
+
+      assert has_element?(view, "#message-form")
+      refute has_element?(view, "#broadcast-reply-bar")
+    end
   end
 end
