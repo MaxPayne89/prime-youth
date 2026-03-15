@@ -47,12 +47,6 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandl
       backoff_ms: 100
     }
 
-    # Trigger: RetryHelpers passes through {:ok, count} but subscriber expects bare :ok
-    # Why: handler contract (ForHandlingIntegrationEvents) returns :ok | {:error, _} | :ignore
-    # Outcome: normalize {:ok, _} to :ok for the subscriber
-    case RetryHelpers.retry_with_backoff(operation, context) do
-      {:ok, _} -> :ok
-      other -> other
-    end
+    RetryHelpers.retry_and_normalize(operation, context)
   end
 end

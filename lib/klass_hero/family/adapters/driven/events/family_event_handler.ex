@@ -71,12 +71,6 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler do
       backoff_ms: 100
     }
 
-    # Trigger: RetryHelpers passes through {:ok, result} but EventSubscriber expects bare :ok
-    # Why: handler contract (ForHandlingEvents) returns :ok | {:error, _} | :ignore
-    # Outcome: normalize {:ok, _} to :ok for the subscriber
-    case RetryHelpers.retry_with_backoff(operation, context) do
-      {:ok, _} -> :ok
-      other -> other
-    end
+    RetryHelpers.retry_and_normalize(operation, context)
   end
 end
