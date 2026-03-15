@@ -108,5 +108,35 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcastTest
       assert {:error, :not_found} =
                ReplyPrivatelyToBroadcast.execute(ctx.scope, Ecto.UUID.generate())
     end
+
+    test "returns error when conversation is not a broadcast (direct conversation)", ctx do
+      # Guards against crafted calls targeting a direct conversation ID
+      direct =
+        insert(:conversation_schema,
+          type: "direct",
+          provider_id: ctx.provider.id
+        )
+
+      assert {:error, :not_broadcast} =
+               ReplyPrivatelyToBroadcast.execute(ctx.scope, direct.id)
+    end
+
+    test "returns error when user is not a participant of the broadcast", ctx do
+      non_participant_user = AccountsFixtures.user_fixture()
+
+      non_participant_scope = %Scope{
+        user: non_participant_user,
+        roles: [:parent],
+        parent: %ParentProfile{
+          id: Ecto.UUID.generate(),
+          identity_id: non_participant_user.id,
+          subscription_tier: :explorer
+        },
+        provider: nil
+      }
+
+      assert {:error, :not_participant} =
+               ReplyPrivatelyToBroadcast.execute(non_participant_scope, ctx.broadcast.id)
+    end
   end
 end
