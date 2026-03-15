@@ -53,6 +53,7 @@ defmodule KlassHero.Messaging do
     GetTotalUnreadCount,
     ListConversations,
     MarkAsRead,
+    ReplyPrivatelyToBroadcast,
     SendMessage
   }
 
@@ -171,7 +172,7 @@ defmodule KlassHero.Messaging do
 
   """
   @spec send_message(String.t(), String.t(), String.t(), keyword()) ::
-          {:ok, Message.t()} | {:error, :not_participant | term()}
+          {:ok, Message.t()} | {:error, :not_participant | :broadcast_reply_not_allowed | term()}
   defdelegate send_message(conversation_id, sender_id, content, opts \\ []),
     to: SendMessage,
     as: :execute
@@ -231,6 +232,34 @@ defmodule KlassHero.Messaging do
           | {:error, :not_entitled | :no_enrollments | term()}
   defdelegate broadcast_to_program(scope, program_id, content, opts \\ []),
     to: BroadcastToProgram,
+    as: :execute
+
+  @doc """
+  Initiates a private reply to a broadcast message.
+
+  Creates (or finds) a direct conversation between the parent and the
+  broadcast's provider, inserts a context system message, and returns
+  the direct conversation ID for navigation.
+
+  ## Parameters
+  - scope: The parent's scope
+  - broadcast_conversation_id: The broadcast being replied to
+
+  ## Returns
+  - `{:ok, direct_conversation_id}` - Ready for messaging
+  - `{:error, :not_found}` - Broadcast not found
+  - `{:error, reason}` - Other errors
+
+  ## Examples
+
+      iex> Messaging.reply_privately_to_broadcast(scope, broadcast_id)
+      {:ok, "direct-conversation-uuid"}
+
+  """
+  @spec reply_privately_to_broadcast(Scope.t(), String.t()) ::
+          {:ok, String.t()} | {:error, term()}
+  defdelegate reply_privately_to_broadcast(scope, broadcast_conversation_id),
+    to: ReplyPrivatelyToBroadcast,
     as: :execute
 
   @doc """
