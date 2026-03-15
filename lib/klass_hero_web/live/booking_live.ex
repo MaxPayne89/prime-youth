@@ -2,9 +2,10 @@ defmodule KlassHeroWeb.BookingLive do
   use KlassHeroWeb, :live_view
 
   import KlassHeroWeb.BookingComponents
-  import KlassHeroWeb.Helpers.FamilyHelpers
 
   alias KlassHero.Enrollment
+  alias KlassHero.Entitlements
+  alias KlassHero.Family
   alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
@@ -15,7 +16,18 @@ defmodule KlassHeroWeb.BookingLive do
     with {:ok, program} <- fetch_program(program_id),
          :ok <- validate_registration_open(program),
          :ok <- validate_program_capacity(program) do
-      children = get_children_for_current_user(socket)
+      identity_id = socket.assigns.current_scope.user.id
+
+      # Trigger: both get_children_for_current_user and assign_booking_limit_info previously called
+      #          Family.get_parent_by_identity(identity_id) — two separate DB queries for the same row.
+      # Why: resolve parent once, then reuse for children lookup and booking limits.
+      # Outcome: 1 DB round-trip saved per booking page load.
+      {parent, children} =
+        case Family.get_parent_by_identity(identity_id) do
+          {:ok, parent} -> {parent, Family.get_children(parent.id)}
+          {:error, :not_found} -> {nil, []}
+        end
+
       children_for_view = Enum.map(children, &ChildPresenter.to_simple_view/1)
       children_by_id = Map.new(children, &{&1.id, &1})
 
@@ -37,7 +49,7 @@ defmodule KlassHeroWeb.BookingLive do
           payment_method: "card",
           total_amount: total_amount
         )
-        |> assign_booking_limit_info()
+        |> assign_booking_limit_info(parent)
 
       {:ok, socket}
     else
@@ -287,26 +299,29 @@ defmodule KlassHeroWeb.BookingLive do
     Enrollment.create_enrollment(enrollment_params)
   end
 
-  defp assign_booking_limit_info(socket) do
-    identity_id = socket.assigns.current_scope.user.id
+  # Trigger: parent is nil when no parent profile exists
+  # Why: reuse the already-resolved parent to avoid a duplicate get_parent_by_identity query
+  # Outcome: skip booking limits display when parent is unavailable
+  defp assign_booking_limit_info(socket, nil) do
+    assign(socket,
+      booking_tier: nil,
+      booking_cap: nil,
+      bookings_used: 0,
+      bookings_remaining: :unlimited
+    )
+  end
 
-    case Enrollment.get_booking_usage_info(identity_id) do
-      {:ok, info} ->
-        assign(socket,
-          booking_tier: info.tier,
-          booking_cap: info.cap,
-          bookings_used: info.used,
-          bookings_remaining: info.remaining
-        )
+  defp assign_booking_limit_info(socket, parent) do
+    cap = Entitlements.monthly_booking_cap(parent)
+    used = Enrollment.count_monthly_bookings(parent.id)
+    remaining = if cap == :unlimited, do: :unlimited, else: max(0, cap - used)
 
-      {:error, :no_parent_profile} ->
-        assign(socket,
-          booking_tier: nil,
-          booking_cap: nil,
-          bookings_used: 0,
-          bookings_remaining: :unlimited
-        )
-    end
+    assign(socket,
+      booking_tier: parent.subscription_tier,
+      booking_cap: cap,
+      bookings_used: used,
+      bookings_remaining: remaining
+    )
   end
 
   defp build_special_requirements(nil), do: ""
