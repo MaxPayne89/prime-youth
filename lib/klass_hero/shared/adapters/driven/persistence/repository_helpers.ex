@@ -14,10 +14,10 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.RepositoryHelpers do
 
   ## Examples
 
-      iex> RepositoryHelpers.get_by_id(UserSchema, "valid-uuid", UserMapper)
+      iex> RepositoryHelpers.get_by_id(UserSchema, "a1b2c3d4-e5f6-7890-abcd-ef1234567890", UserMapper)
       {:ok, %User{}}
 
-      iex> RepositoryHelpers.get_by_id(UserSchema, "nonexistent", UserMapper)
+      iex> RepositoryHelpers.get_by_id(UserSchema, "00000000-0000-0000-0000-000000000000", UserMapper)
       {:error, :not_found}
 
   """
