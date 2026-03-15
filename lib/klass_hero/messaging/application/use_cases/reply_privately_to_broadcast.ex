@@ -10,7 +10,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
   """
 
   alias KlassHero.Accounts.Scope
-  alias KlassHero.Messaging.Application.UseCases.{CreateDirectConversation, SendMessage}
+  alias KlassHero.Messaging
   alias KlassHero.Messaging.Repositories
 
   require Logger
@@ -34,7 +34,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
     with {:ok, broadcast} <- repos.conversations.get_by_id(broadcast_conversation_id),
          {:ok, provider_user_id} <- repos.users.get_user_id_for_provider(broadcast.provider_id),
          {:ok, direct_conversation} <-
-           CreateDirectConversation.execute(
+           Messaging.create_direct_conversation(
              scope,
              broadcast.provider_id,
              provider_user_id,
@@ -72,7 +72,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
       content = "#{token} Re: #{subject}"
 
       with {:ok, _message} <-
-             SendMessage.execute(direct_conversation.id, sender_id, content,
+             Messaging.send_message(direct_conversation.id, sender_id, content,
                message_type: :system
              ) do
         :ok

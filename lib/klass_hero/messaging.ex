@@ -80,11 +80,11 @@ defmodule KlassHero.Messaging do
       {:ok, %Conversation{type: :direct, ...}}
 
   """
-  @spec create_direct_conversation(Scope.t(), String.t(), String.t()) ::
+  @spec create_direct_conversation(Scope.t(), String.t(), String.t(), keyword()) ::
           {:ok, Conversation.t()} | {:error, :not_entitled | term()}
-  defdelegate create_direct_conversation(scope, provider_id, target_user_id),
-    to: CreateDirectConversation,
-    as: :execute
+  def create_direct_conversation(scope, provider_id, target_user_id, opts \\ []) do
+    CreateDirectConversation.execute(scope, provider_id, target_user_id, opts)
+  end
 
   @doc """
   Retrieves a conversation with its messages.
