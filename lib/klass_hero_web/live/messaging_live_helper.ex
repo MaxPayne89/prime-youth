@@ -181,27 +181,41 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   navigates to it.
   """
   def handle_reply_privately(socket) do
-    scope = socket.assigns.current_scope
-    conversation_id = socket.assigns.conversation.id
-    back_path = socket.assigns.back_path
+    conversation = socket.assigns.conversation
 
-    case Messaging.reply_privately_to_broadcast(scope, conversation_id) do
-      {:ok, direct_conversation_id} ->
-        direct_path =
-          case back_path do
-            "/provider/messages" -> ~p"/provider/messages/#{direct_conversation_id}"
-            _ -> ~p"/messages/#{direct_conversation_id}"
-          end
+    # Trigger: crafted event targets a non-broadcast conversation
+    # Why: the reply_privately handler is injected into all show LiveViews —
+    #      UI hides the button, but a crafted event could bypass that
+    # Outcome: reject early, only broadcast conversations proceed
+    if conversation.type == :program_broadcast do
+      scope = socket.assigns.current_scope
+      back_path = socket.assigns.back_path
 
-        {:noreply, push_navigate(socket, to: direct_path)}
+      case Messaging.reply_privately_to_broadcast(scope, conversation.id) do
+        {:ok, direct_conversation_id} ->
+          direct_path =
+            case back_path do
+              "/provider/messages" -> ~p"/provider/messages/#{direct_conversation_id}"
+              _ -> ~p"/messages/#{direct_conversation_id}"
+            end
 
-      {:error, reason} ->
-        Logger.error("Failed to create private reply",
-          conversation_id: conversation_id,
-          reason: inspect(reason)
-        )
+          {:noreply, push_navigate(socket, to: direct_path)}
 
-        {:noreply, put_flash(socket, :error, gettext("Could not start private conversation"))}
+        {:error, reason} ->
+          Logger.error("Failed to create private reply",
+            conversation_id: conversation.id,
+            reason: inspect(reason)
+          )
+
+          {:noreply, put_flash(socket, :error, gettext("Could not start private conversation"))}
+      end
+    else
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         gettext("Reply privately is only available for broadcast messages")
+       )}
     end
   end
 

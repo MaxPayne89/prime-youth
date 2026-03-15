@@ -36,7 +36,12 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
   def execute(%Scope{} = scope, broadcast_conversation_id) do
     repos = Repositories.all()
 
-    with {:ok, broadcast} <- repos.conversations.get_by_id(broadcast_conversation_id),
+    # Trigger: crafted call with a non-broadcast or unauthorized conversation ID
+    # Why: get_by_id doesn't verify type or participant status — pattern match
+    #      on :program_broadcast and check participation for defense in depth
+    # Outcome: only broadcast participants can initiate private replies
+    with {:ok, broadcast} <- fetch_broadcast(broadcast_conversation_id, repos),
+         :ok <- verify_participant(broadcast.id, scope.user.id, repos),
          {:ok, provider_user_id} <- repos.users.get_user_id_for_provider(broadcast.provider_id),
          {:ok, direct_conversation} <-
            find_or_create_direct_conversation(
@@ -59,6 +64,22 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
       )
 
       {:ok, direct_conversation.id}
+    end
+  end
+
+  defp fetch_broadcast(conversation_id, repos) do
+    case repos.conversations.get_by_id(conversation_id) do
+      {:ok, %{type: :program_broadcast} = broadcast} -> {:ok, broadcast}
+      {:ok, _non_broadcast} -> {:error, :not_broadcast}
+      {:error, :not_found} -> {:error, :not_found}
+    end
+  end
+
+  defp verify_participant(conversation_id, user_id, repos) do
+    if repos.participants.is_participant?(conversation_id, user_id) do
+      :ok
+    else
+      {:error, :not_participant}
     end
   end
 
