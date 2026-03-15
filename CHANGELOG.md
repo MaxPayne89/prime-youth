@@ -5,6 +5,36 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0](https://github.com/MaxPayne89/prime-youth/compare/v0.5.1...v0.6.0) (2026-03-15)
+
+
+### Features
+
+* fix broadcast reply privacy — parents can no longer expose replies to group ([6409033](https://github.com/MaxPayne89/prime-youth/commit/6409033d5f5dd8c26fc63d5036ddfff535f0e698))
+* **messaging-ui:** add broadcast_reply_bar and conditional rendering ([8961c6f](https://github.com/MaxPayne89/prime-youth/commit/8961c6fef50ae15a8ea5bbca6939901ecf3cf584))
+* **messaging:** add get_user_id_for_provider/1 to ForResolvingUsers port ([67cd06c](https://github.com/MaxPayne89/prime-youth/commit/67cd06c25dc14b21afc0782e424e987f57081f8e))
+* **messaging:** add ReplyPrivatelyToBroadcast use case ([cecfe22](https://github.com/MaxPayne89/prime-youth/commit/cecfe22cd059f7fa4460e17e38e1cad029d463fb))
+* **messaging:** add skip_entitlement_check opt to CreateDirectConversation ([e7f1943](https://github.com/MaxPayne89/prime-youth/commit/e7f1943b0833f5c70fa0c2b958c8bc1ae275b8a6))
+* **messaging:** expose reply_privately_to_broadcast on facade ([b49b77a](https://github.com/MaxPayne89/prime-youth/commit/b49b77ab025dac1e0e85a4623ef5d6ef8be65e0f))
+* **messaging:** inject reply_privately event handler in LiveView helper ([60428d8](https://github.com/MaxPayne89/prime-youth/commit/60428d851b6c0055b0abf6d39e0fc8c2858efb43))
+
+
+### Bug Fixes
+
+* **messaging:** add server-side guards for reply_privately ([af105da](https://github.com/MaxPayne89/prime-youth/commit/af105da41655ab38bc4a4dba6b5303e85e20b2a5))
+* **messaging:** block non-provider replies in broadcast conversations ([9bc20bc](https://github.com/MaxPayne89/prime-youth/commit/9bc20bcddbf832ec468660adfaef475121dcd882))
+* **messaging:** correct find_direct_conversation lookup in ReplyPrivatelyToBroadcast ([b3d5a9c](https://github.com/MaxPayne89/prime-youth/commit/b3d5a9c2390987e534017b4632ea2a0c6b53e3df))
+* tighten retry_and_normalize spec to match retry_with_backoff ([823a929](https://github.com/MaxPayne89/prime-youth/commit/823a929f82e7d41b3342f4d1f6ffe4009fc5c2a8))
+
+
+### Code Refactoring
+
+* clarify retry_and_normalize docstring ([454810f](https://github.com/MaxPayne89/prime-youth/commit/454810f035731c5fcd3561102e770db117cd6fca))
+* extract retry_and_normalize/2 into RetryHelpers ([1700373](https://github.com/MaxPayne89/prime-youth/commit/17003737d6cd30e411d07b28325f6266f8b2712d))
+* extract retry_and_normalize/2 into RetryHelpers ([b335e6a](https://github.com/MaxPayne89/prime-youth/commit/b335e6a0230aa37d989b69024bc3a16dba41ed01)), closes [#421](https://github.com/MaxPayne89/prime-youth/issues/421)
+* **messaging:** route use case calls through Messaging facade ([199b838](https://github.com/MaxPayne89/prime-youth/commit/199b838fd29b2957f91a173ad9a1e762e1c47550))
+* **messaging:** simplify broadcast reply code ([712ba67](https://github.com/MaxPayne89/prime-youth/commit/712ba678e7af26f46660396443df68e3e2c6c119))
+
 ## [0.5.1](https://github.com/MaxPayne89/prime-youth/compare/v0.5.0...v0.5.1) (2026-03-15)
 
 
