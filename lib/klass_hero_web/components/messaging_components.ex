@@ -499,7 +499,8 @@ defmodule KlassHeroWeb.MessagingComponents do
       <button
         phx-click="reply_privately"
         class={[
-          "inline-flex items-center gap-2 px-6 py-2.5 bg-hero-blue-600 text-white font-medium hover:bg-hero-blue-700 transition-colors",
+          "inline-flex items-center gap-2 px-6 py-2.5 font-medium transition-colors",
+          Theme.button_variant(:primary),
           Theme.rounded(:full)
         ]}
       >

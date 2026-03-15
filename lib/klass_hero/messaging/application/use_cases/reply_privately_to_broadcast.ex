@@ -71,9 +71,11 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
       subject = broadcast.subject || "broadcast"
       content = "#{token} Re: #{subject}"
 
-      case SendMessage.execute(direct_conversation.id, sender_id, content, message_type: :system) do
-        {:ok, _message} -> :ok
-        {:error, reason} -> {:error, reason}
+      with {:ok, _message} <-
+             SendMessage.execute(direct_conversation.id, sender_id, content,
+               message_type: :system
+             ) do
+        :ok
       end
     end
   end

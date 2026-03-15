@@ -19,6 +19,11 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
   use Gettext, backend: KlassHeroWeb.Gettext
 
+  use Phoenix.VerifiedRoutes,
+    endpoint: KlassHeroWeb.Endpoint,
+    router: KlassHeroWeb.Router,
+    statics: KlassHeroWeb.static_paths()
+
   import Phoenix.Component, only: [assign: 3]
 
   import Phoenix.LiveView,
@@ -182,9 +187,11 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
     case Messaging.reply_privately_to_broadcast(scope, conversation_id) do
       {:ok, direct_conversation_id} ->
-        # Derive the conversation URL from the back_path
-        # back_path is "/messages" or "/provider/messages"
-        direct_path = "#{back_path}/#{direct_conversation_id}"
+        direct_path =
+          case back_path do
+            "/provider/messages" -> ~p"/provider/messages/#{direct_conversation_id}"
+            _ -> ~p"/messages/#{direct_conversation_id}"
+          end
 
         {:noreply, push_navigate(socket, to: direct_path)}
 

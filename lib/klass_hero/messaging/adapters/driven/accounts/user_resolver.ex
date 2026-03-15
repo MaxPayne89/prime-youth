@@ -1,9 +1,10 @@
 defmodule KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver do
   @moduledoc """
-  Adapter for resolving user display information from the Accounts bounded context.
+  Adapter for resolving user information in the Messaging bounded context.
 
-  This adapter queries the Accounts context to get user names for
-  displaying in messaging UI (participant names, sender names).
+  Provides user display name resolution (via Accounts) and
+  provider-to-user ID mapping (via Provider facade) for
+  messaging UI and permission checks.
   """
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForResolvingUsers
