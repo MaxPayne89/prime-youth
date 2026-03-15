@@ -11,6 +11,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Messaging
+  alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
@@ -41,7 +42,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
     #      on :program_broadcast and check participation for defense in depth
     # Outcome: only broadcast participants can initiate private replies
     with {:ok, broadcast} <- fetch_broadcast(broadcast_conversation_id, repos),
-         :ok <- verify_participant(broadcast.id, scope.user.id, repos),
+         :ok <- Shared.verify_participant(broadcast.id, scope.user.id, repos.participants),
          {:ok, provider_user_id} <- repos.users.get_user_id_for_provider(broadcast.provider_id),
          {:ok, direct_conversation} <-
            find_or_create_direct_conversation(
@@ -72,14 +73,6 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
       {:ok, %{type: :program_broadcast} = broadcast} -> {:ok, broadcast}
       {:ok, _non_broadcast} -> {:error, :not_broadcast}
       {:error, :not_found} -> {:error, :not_found}
-    end
-  end
-
-  defp verify_participant(conversation_id, user_id, repos) do
-    if repos.participants.is_participant?(conversation_id, user_id) do
-      :ok
-    else
-      {:error, :not_participant}
     end
   end
 

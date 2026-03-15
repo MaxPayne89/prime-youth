@@ -11,6 +11,7 @@ defmodule KlassHero.Messaging.Application.UseCases.GetConversation do
   """
 
   alias KlassHero.Messaging.Application.UseCases.MarkAsRead
+  alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Repositories
 
   require Logger
@@ -44,7 +45,7 @@ defmodule KlassHero.Messaging.Application.UseCases.GetConversation do
 
     with {:ok, conversation} <-
            repos.conversations.get_by_id(conversation_id, preload: [:participants]),
-         :ok <- verify_participant(conversation_id, user_id, repos.participants),
+         :ok <- Shared.verify_participant(conversation_id, user_id, repos.participants),
          {:ok, messages, sender_names, has_more} <-
            repos.messages.list_with_senders(conversation_id, opts) do
       maybe_mark_as_read(mark_as_read?, conversation_id, user_id)
@@ -62,14 +63,6 @@ defmodule KlassHero.Messaging.Application.UseCases.GetConversation do
          has_more: has_more,
          sender_names: sender_names
        }}
-    end
-  end
-
-  defp verify_participant(conversation_id, user_id, participant_repo) do
-    if participant_repo.is_participant?(conversation_id, user_id) do
-      :ok
-    else
-      {:error, :not_participant}
     end
   end
 
