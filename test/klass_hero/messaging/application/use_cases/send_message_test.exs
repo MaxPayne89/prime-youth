@@ -103,5 +103,57 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
       assert {:error, :not_participant} =
                SendMessage.execute(conversation.id, user.id, "Hello!")
     end
+
+    test "rejects message from parent in broadcast conversation" do
+      # Create provider with a known user
+      provider_user = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: provider_user.id)
+
+      # Create broadcast conversation owned by provider
+      program = insert(:program_schema)
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Announcement"
+        )
+
+      # Parent is a participant but should not be able to send
+      parent_user = AccountsFixtures.user_fixture()
+
+      insert(:participant_schema,
+        conversation_id: broadcast.id,
+        user_id: parent_user.id
+      )
+
+      assert {:error, :broadcast_reply_not_allowed} =
+               SendMessage.execute(broadcast.id, parent_user.id, "My reply")
+    end
+
+    test "allows provider to send in their own broadcast conversation" do
+      provider_user = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: provider_user.id)
+      program = insert(:program_schema)
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Announcement"
+        )
+
+      insert(:participant_schema,
+        conversation_id: broadcast.id,
+        user_id: provider_user.id
+      )
+
+      assert {:ok, message} =
+               SendMessage.execute(broadcast.id, provider_user.id, "Follow-up!")
+
+      assert message.content == "Follow-up!"
+    end
   end
 end

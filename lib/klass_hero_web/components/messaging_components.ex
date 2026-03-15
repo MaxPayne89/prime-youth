@@ -416,6 +416,8 @@ defmodule KlassHeroWeb.MessagingComponents do
             form={@form}
             current_user_id={@current_user_id}
             sender_names={@sender_names}
+            conversation={@conversation}
+            variant={:parent}
           />
         </div>
       </div>
@@ -442,6 +444,8 @@ defmodule KlassHeroWeb.MessagingComponents do
           form={@form}
           current_user_id={@current_user_id}
           sender_names={@sender_names}
+          conversation={@conversation}
+          variant={:provider}
         />
       </div>
     </div>
@@ -466,7 +470,44 @@ defmodule KlassHeroWeb.MessagingComponents do
       </div>
       <.messages_empty_state :if={@messages_empty?} />
     </div>
-    <.message_input form={@form} />
+    <%= cond do %>
+      <% @variant == :provider -> %>
+        <.message_input form={@form} />
+      <% @conversation.type == :program_broadcast -> %>
+        <.broadcast_reply_bar />
+      <% true -> %>
+        <.message_input form={@form} />
+    <% end %>
+    """
+  end
+
+  @doc """
+  Renders the broadcast reply bar shown to parents viewing broadcast conversations.
+
+  Replaces the message input with a note that broadcasts are one-way
+  and a button to reply privately to the provider.
+  """
+  def broadcast_reply_bar(assigns) do
+    ~H"""
+    <div
+      id="broadcast-reply-bar"
+      class={["p-4 border-t text-center", Theme.border_color(:light), Theme.bg(:surface)]}
+    >
+      <p class={["text-sm mb-3", Theme.text_color(:muted)]}>
+        {gettext("Broadcast messages are one-way")}
+      </p>
+      <button
+        phx-click="reply_privately"
+        class={[
+          "inline-flex items-center gap-2 px-6 py-2.5 font-medium transition-colors",
+          Theme.button_variant(:primary),
+          Theme.rounded(:full)
+        ]}
+      >
+        <.icon name="hero-chat-bubble-left-right" class="w-5 h-5" />
+        {gettext("Reply privately")}
+      </button>
+    </div>
     """
   end
 

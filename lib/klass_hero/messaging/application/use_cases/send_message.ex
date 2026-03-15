@@ -34,12 +34,13 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   """
   @spec execute(String.t(), String.t(), String.t(), keyword()) ::
           {:ok, KlassHero.Messaging.Domain.Models.Message.t()}
-          | {:error, :not_participant | term()}
+          | {:error, :not_participant | :broadcast_reply_not_allowed | term()}
   def execute(conversation_id, sender_id, content, opts \\ []) do
     message_type = Keyword.get(opts, :message_type, :text)
     repos = Repositories.all()
 
     with :ok <- verify_participant(conversation_id, sender_id, repos.participants),
+         :ok <- verify_broadcast_send_permission(conversation_id, sender_id, repos),
          {:ok, message} <-
            create_message(conversation_id, sender_id, content, message_type, repos.messages) do
       update_sender_read_status(conversation_id, sender_id, repos.participants)
@@ -52,6 +53,27 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
       )
 
       {:ok, message}
+    end
+  end
+
+  # Trigger: sender is trying to post in a broadcast conversation
+  # Why: broadcast conversations are one-way — only the provider can send.
+  #      Parents replying would expose their messages to all other parents (privacy breach).
+  # Outcome: non-provider senders are rejected; direct conversations pass through unchanged.
+  defp verify_broadcast_send_permission(conversation_id, sender_id, repos) do
+    case repos.conversations.get_by_id(conversation_id) do
+      {:ok, %{type: :program_broadcast, provider_id: provider_id}} ->
+        case repos.users.get_user_id_for_provider(provider_id) do
+          {:ok, ^sender_id} -> :ok
+          {:ok, _other_user_id} -> {:error, :broadcast_reply_not_allowed}
+          {:error, :not_found} -> {:error, :broadcast_reply_not_allowed}
+        end
+
+      {:ok, _direct_conversation} ->
+        :ok
+
+      {:error, :not_found} ->
+        {:error, :not_found}
     end
   end
 

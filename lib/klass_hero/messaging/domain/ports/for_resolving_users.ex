@@ -34,4 +34,20 @@ defmodule KlassHero.Messaging.Domain.Ports.ForResolvingUsers do
   """
   @callback get_display_name(user_id :: String.t()) ::
               {:ok, String.t()} | {:error, :not_found}
+
+  @doc """
+  Gets the user ID (identity_id) for a provider profile.
+
+  Used to resolve the provider_id stored on conversations (which is the
+  provider profile ID) back to the user ID for permission checks.
+
+  ## Parameters
+  - provider_id: The provider profile ID
+
+  ## Returns
+  - `{:ok, user_id}` - The user ID for this provider
+  - `{:error, :not_found}` - No provider exists with this ID
+  """
+  @callback get_user_id_for_provider(provider_id :: String.t()) ::
+              {:ok, String.t()} | {:error, :not_found}
 end

@@ -19,6 +19,11 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
   use Gettext, backend: KlassHeroWeb.Gettext
 
+  use Phoenix.VerifiedRoutes,
+    endpoint: KlassHeroWeb.Endpoint,
+    router: KlassHeroWeb.Router,
+    statics: KlassHeroWeb.static_paths()
+
   import Phoenix.Component, only: [assign: 3]
 
   import Phoenix.LiveView,
@@ -61,6 +66,11 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
       def handle_info({:domain_event, %DomainEvent{event_type: :messages_read} = event}, socket) do
         Logger.debug("Messages read by user", user_id: event.payload.user_id)
         {:noreply, socket}
+      end
+
+      @impl true
+      def handle_event("reply_privately", _params, socket) do
+        MessagingLiveHelper.handle_reply_privately(socket)
       end
     end
   end
@@ -161,6 +171,51 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
           Logger.error("Failed to send message", reason: reason)
           {:noreply, put_flash(socket, :error, gettext("Failed to send message"))}
       end
+    end
+  end
+
+  @doc """
+  Handles the reply_privately event for broadcast conversations.
+
+  Creates a direct conversation with the broadcast's provider and
+  navigates to it.
+  """
+  def handle_reply_privately(socket) do
+    conversation = socket.assigns.conversation
+
+    # Trigger: crafted event targets a non-broadcast conversation
+    # Why: the reply_privately handler is injected into all show LiveViews —
+    #      UI hides the button, but a crafted event could bypass that
+    # Outcome: reject early, only broadcast conversations proceed
+    if conversation.type == :program_broadcast do
+      scope = socket.assigns.current_scope
+      back_path = socket.assigns.back_path
+
+      case Messaging.reply_privately_to_broadcast(scope, conversation.id) do
+        {:ok, direct_conversation_id} ->
+          direct_path =
+            case back_path do
+              "/provider/messages" -> ~p"/provider/messages/#{direct_conversation_id}"
+              _ -> ~p"/messages/#{direct_conversation_id}"
+            end
+
+          {:noreply, push_navigate(socket, to: direct_path)}
+
+        {:error, reason} ->
+          Logger.error("Failed to create private reply",
+            conversation_id: conversation.id,
+            reason: inspect(reason)
+          )
+
+          {:noreply, put_flash(socket, :error, gettext("Could not start private conversation"))}
+      end
+    else
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         gettext("Reply privately is only available for broadcast messages")
+       )}
     end
   end
 

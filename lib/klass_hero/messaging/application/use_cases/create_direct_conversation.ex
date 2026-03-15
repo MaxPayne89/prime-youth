@@ -30,18 +30,34 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   - scope: The current user's scope (for entitlement checks)
   - provider_id: The provider's profile ID
   - target_user_id: The user ID to start conversation with
+  - opts: Optional keyword list
+    - `:skip_entitlement_check` - When `true`, bypasses the entitlement check.
+      Used by ReplyPrivatelyToBroadcast so that any tier can reply when the
+      provider initiated contact via a broadcast.
 
   ## Returns
   - `{:ok, conversation}` - New or existing conversation
   - `{:error, :not_entitled}` - User cannot initiate messaging
   - `{:error, reason}` - Other errors
   """
-  @spec execute(Scope.t(), String.t(), String.t()) ::
+  @spec execute(Scope.t(), String.t(), String.t(), keyword()) ::
           {:ok, KlassHero.Messaging.Domain.Models.Conversation.t()}
           | {:error, :not_entitled | term()}
-  def execute(%Scope{} = scope, provider_id, target_user_id) do
-    with :ok <- check_entitlement(scope) do
+  def execute(%Scope{} = scope, provider_id, target_user_id, opts \\ []) do
+    with :ok <- maybe_check_entitlement(scope, opts) do
       find_or_create_conversation(scope, provider_id, target_user_id)
+    end
+  end
+
+  # Trigger: skip_entitlement_check opt is set
+  # Why: ReplyPrivatelyToBroadcast use case allows all tiers to reply
+  #      privately — the provider initiated contact via broadcast.
+  # Outcome: entitlement check is skipped, conversation creation proceeds
+  defp maybe_check_entitlement(scope, opts) do
+    if Keyword.get(opts, :skip_entitlement_check, false) do
+      :ok
+    else
+      check_entitlement(scope)
     end
   end
 

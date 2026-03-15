@@ -261,6 +261,25 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
+  Gets the user (identity) ID for a provider profile ID.
+
+  Used by cross-context consumers (e.g. Messaging) to resolve
+  `conversation.provider_id` (provider profile ID) back to a user ID
+  for permission and authorization checks.
+
+  Returns:
+  - `{:ok, identity_id}` - The user ID that owns this provider profile
+  - `{:error, :not_found}` - No provider profile exists with this ID
+  """
+  @spec get_identity_id_for_provider(String.t()) :: {:ok, String.t()} | {:error, :not_found}
+  def get_identity_id_for_provider(provider_id) when is_binary(provider_id) do
+    case @provider_repository.get(provider_id) do
+      {:ok, %ProviderProfile{identity_id: identity_id}} -> {:ok, identity_id}
+      {:error, :not_found} -> {:error, :not_found}
+    end
+  end
+
+  @doc """
   List all verified provider IDs (for projections).
   """
   def list_verified_provider_ids do

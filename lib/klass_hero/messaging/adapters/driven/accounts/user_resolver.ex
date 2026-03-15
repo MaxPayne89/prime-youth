@@ -1,9 +1,10 @@
 defmodule KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver do
   @moduledoc """
-  Adapter for resolving user display information from the Accounts bounded context.
+  Adapter for resolving user information in the Messaging bounded context.
 
-  This adapter queries the Accounts context to get user names for
-  displaying in messaging UI (participant names, sender names).
+  Provides user display name resolution (via Accounts) and
+  provider-to-user ID mapping (via Provider facade) for
+  messaging UI and permission checks.
   """
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForResolvingUsers
@@ -36,5 +37,15 @@ defmodule KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver do
       nil -> {:error, :not_found}
       {name, email} -> {:ok, name || email}
     end
+  end
+
+  @impl true
+  @spec get_user_id_for_provider(String.t()) :: {:ok, String.t()} | {:error, :not_found}
+  def get_user_id_for_provider(provider_id) do
+    # Trigger: need identity_id for a provider_id stored on a conversation
+    # Why: delegate to Provider facade to respect bounded context boundaries —
+    #      Messaging is not allowed to query Provider schemas directly
+    # Outcome: returns the user ID (identity_id) for permission checks
+    KlassHero.Provider.get_identity_id_for_provider(provider_id)
   end
 end

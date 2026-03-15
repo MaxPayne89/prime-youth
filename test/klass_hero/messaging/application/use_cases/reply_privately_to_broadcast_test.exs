@@ -1,0 +1,112 @@
+defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcastTest do
+  use KlassHero.DataCase, async: true
+
+  import KlassHero.Factory
+
+  alias KlassHero.Accounts.Scope
+  alias KlassHero.AccountsFixtures
+  alias KlassHero.Family.Domain.Models.ParentProfile
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
+  alias KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast
+
+  describe "execute/2" do
+    setup do
+      # Create provider with known user
+      provider_user = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: provider_user.id)
+      program = insert(:program_schema)
+
+      # Create broadcast conversation
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Schedule Change"
+        )
+
+      # Create parent with scope
+      parent_user = AccountsFixtures.user_fixture()
+
+      insert(:participant_schema,
+        conversation_id: broadcast.id,
+        user_id: parent_user.id
+      )
+
+      parent_profile = %ParentProfile{
+        id: Ecto.UUID.generate(),
+        identity_id: parent_user.id,
+        subscription_tier: :explorer
+      }
+
+      scope = %Scope{
+        user: parent_user,
+        roles: [:parent],
+        parent: parent_profile,
+        provider: nil
+      }
+
+      %{
+        scope: scope,
+        broadcast: broadcast,
+        provider: provider,
+        provider_user: provider_user,
+        parent_user: parent_user
+      }
+    end
+
+    test "creates direct conversation with provider and inserts system note", ctx do
+      assert {:ok, direct_conversation_id} =
+               ReplyPrivatelyToBroadcast.execute(ctx.scope, ctx.broadcast.id)
+
+      assert is_binary(direct_conversation_id)
+      refute direct_conversation_id == ctx.broadcast.id
+
+      # Verify system note was inserted
+      {:ok, messages, _} =
+        MessageRepository.list_for_conversation(direct_conversation_id, limit: 10)
+
+      system_messages = Enum.filter(messages, &(&1.message_type == :system))
+      assert length(system_messages) == 1
+
+      note = hd(system_messages)
+      assert note.content =~ "[broadcast:#{ctx.broadcast.id}]"
+      assert note.content =~ "Schedule Change"
+    end
+
+    test "reuses existing direct conversation", ctx do
+      assert {:ok, first_id} =
+               ReplyPrivatelyToBroadcast.execute(ctx.scope, ctx.broadcast.id)
+
+      assert {:ok, second_id} =
+               ReplyPrivatelyToBroadcast.execute(ctx.scope, ctx.broadcast.id)
+
+      assert first_id == second_id
+    end
+
+    test "is idempotent — no duplicate system notes on repeated calls", ctx do
+      {:ok, conversation_id} =
+        ReplyPrivatelyToBroadcast.execute(ctx.scope, ctx.broadcast.id)
+
+      {:ok, ^conversation_id} =
+        ReplyPrivatelyToBroadcast.execute(ctx.scope, ctx.broadcast.id)
+
+      {:ok, messages, _} =
+        MessageRepository.list_for_conversation(conversation_id, limit: 50)
+
+      system_messages = Enum.filter(messages, &(&1.message_type == :system))
+      assert length(system_messages) == 1
+    end
+
+    test "works regardless of subscription tier (explorer parent)", ctx do
+      # ctx.scope already has an explorer-tier parent (lowest tier)
+      assert {:ok, _conversation_id} =
+               ReplyPrivatelyToBroadcast.execute(ctx.scope, ctx.broadcast.id)
+    end
+
+    test "returns not_found for non-existent broadcast", ctx do
+      assert {:error, :not_found} =
+               ReplyPrivatelyToBroadcast.execute(ctx.scope, Ecto.UUID.generate())
+    end
+  end
+end

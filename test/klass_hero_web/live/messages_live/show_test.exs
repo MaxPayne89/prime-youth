@@ -4,6 +4,7 @@ defmodule KlassHeroWeb.MessagesLive.ShowTest do
   import KlassHero.Factory
   import Phoenix.LiveViewTest
 
+  alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
 
   describe "authentication" do
@@ -167,6 +168,80 @@ defmodule KlassHeroWeb.MessagesLive.ShowTest do
       {:ok, view, _html} = live(conn, ~p"/messages/#{conversation.id}")
 
       assert has_element?(view, "span", "Broadcast")
+    end
+
+    test "shows reply bar instead of message form for parent", %{conn: conn, user: user} do
+      provider_user = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: provider_user.id)
+      program = insert(:program_schema)
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Update"
+        )
+
+      insert(:participant_schema,
+        conversation_id: broadcast.id,
+        user_id: user.id
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/messages/#{broadcast.id}")
+
+      assert has_element?(view, "#broadcast-reply-bar")
+      refute has_element?(view, "#message-form")
+      assert has_element?(view, "button", "Reply privately")
+    end
+
+    test "shows message form for direct conversations", %{conn: conn, user: user} do
+      conversation = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/messages/#{conversation.id}")
+
+      assert has_element?(view, "#message-form")
+      refute has_element?(view, "#broadcast-reply-bar")
+    end
+
+    test "reply_privately navigates to direct conversation", %{conn: conn, user: user} do
+      provider_user = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: provider_user.id)
+      program = insert(:program_schema)
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Update"
+        )
+
+      insert(:participant_schema,
+        conversation_id: broadcast.id,
+        user_id: user.id
+      )
+
+      # Also add provider as participant (as BroadcastToProgram would)
+      insert(:participant_schema,
+        conversation_id: broadcast.id,
+        user_id: provider_user.id
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/messages/#{broadcast.id}")
+
+      view
+      |> element("#broadcast-reply-bar button", "Reply privately")
+      |> render_click()
+
+      # Should navigate to a new direct conversation
+      {path, _flash} = assert_redirect(view)
+      assert path =~ "/messages/"
     end
   end
 

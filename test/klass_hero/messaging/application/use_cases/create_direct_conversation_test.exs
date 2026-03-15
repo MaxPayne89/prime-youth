@@ -10,6 +10,37 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversationTest 
   alias KlassHero.Messaging.Domain.Models.Conversation
   alias KlassHero.Provider.Domain.Models.ProviderProfile
 
+  describe "execute/4 with opts" do
+    test "skips entitlement check when skip_entitlement_check: true" do
+      provider = insert(:provider_profile_schema)
+      user = AccountsFixtures.user_fixture()
+      target_user = AccountsFixtures.user_fixture()
+
+      # Explorer tier would normally be blocked by entitlement check
+      scope = %Scope{
+        user: user,
+        roles: [:parent],
+        parent: %ParentProfile{
+          id: Ecto.UUID.generate(),
+          identity_id: user.id,
+          subscription_tier: :explorer
+        },
+        provider: nil
+      }
+
+      # Without bypass, this would return {:error, :not_entitled}
+      assert {:ok, conversation} =
+               CreateDirectConversation.execute(
+                 scope,
+                 provider.id,
+                 target_user.id,
+                 skip_entitlement_check: true
+               )
+
+      assert conversation.type == :direct
+    end
+  end
+
   describe "execute/3" do
     test "creates new conversation with participants" do
       provider = insert(:provider_profile_schema)
