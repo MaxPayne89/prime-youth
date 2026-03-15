@@ -3,6 +3,9 @@ defmodule KlassHero.Messaging.Application.UseCases.Shared do
   Shared utilities for Messaging use cases.
   """
 
+  alias KlassHero.Accounts.Scope
+  alias KlassHero.Entitlements
+
   require Logger
 
   @doc """
@@ -21,6 +24,49 @@ defmodule KlassHero.Messaging.Application.UseCases.Shared do
       )
 
       {:error, :not_participant}
+    end
+  end
+
+  @doc """
+  Checks whether the scope's user is entitled to initiate messaging.
+
+  Returns `:ok` if entitled, or `{:error, :not_entitled}` otherwise.
+
+  Accepts optional `metadata` keyword list merged into the Logger call
+  so callers can add context (e.g. `provider_id`).
+  """
+  @spec check_entitlement(Scope.t(), keyword()) :: :ok | {:error, :not_entitled}
+  def check_entitlement(%Scope{} = scope, metadata \\ []) do
+    if Entitlements.can_initiate_messaging?(scope) do
+      :ok
+    else
+      Logger.debug(
+        "Not entitled to initiate messaging",
+        Keyword.merge([user_id: scope.user.id], metadata)
+      )
+
+      {:error, :not_entitled}
+    end
+  end
+
+  @doc """
+  Conditionally checks entitlement based on opts.
+
+  ## Options
+  - `:skip_entitlement_check` - When `true`, bypasses the entitlement check.
+
+  Accepts optional `metadata` keyword list forwarded to `check_entitlement/2`.
+  """
+  # Trigger: skip_entitlement_check opt is set
+  # Why: ReplyPrivatelyToBroadcast use case allows all tiers to reply
+  #      privately — the provider initiated contact via broadcast.
+  # Outcome: entitlement check is skipped, conversation creation proceeds
+  @spec maybe_check_entitlement(Scope.t(), keyword(), keyword()) :: :ok | {:error, :not_entitled}
+  def maybe_check_entitlement(%Scope{} = scope, opts, metadata \\ []) do
+    if Keyword.get(opts, :skip_entitlement_check, false) do
+      :ok
+    else
+      check_entitlement(scope, metadata)
     end
   end
 end
