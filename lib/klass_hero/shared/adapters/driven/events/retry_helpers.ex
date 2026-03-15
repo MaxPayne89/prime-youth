@@ -122,9 +122,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
   where handlers manage `:ignore` returns separately.
   """
   @spec retry_and_normalize(
-          operation :: (-> :ok | {:ok, term()} | {:error, term()}),
+          operation :: (-> :ok | {:ok, term()} | {:error, atom() | {atom(), term()}}),
           context :: map()
-        ) :: :ok | {:error, term()}
+        ) :: :ok | {:error, atom() | {atom(), term()}}
   def retry_and_normalize(operation, context)
       when is_function(operation, 0) and is_map(context) do
     case retry_with_backoff(operation, context) do
