@@ -13,7 +13,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   """
 
   alias KlassHero.Accounts.Scope
-  alias KlassHero.Entitlements
+  alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
@@ -44,29 +44,8 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
           {:ok, KlassHero.Messaging.Domain.Models.Conversation.t()}
           | {:error, :not_entitled | term()}
   def execute(%Scope{} = scope, provider_id, target_user_id, opts \\ []) do
-    with :ok <- maybe_check_entitlement(scope, opts) do
+    with :ok <- Shared.maybe_check_entitlement(scope, opts) do
       find_or_create_conversation(scope, provider_id, target_user_id)
-    end
-  end
-
-  # Trigger: skip_entitlement_check opt is set
-  # Why: ReplyPrivatelyToBroadcast use case allows all tiers to reply
-  #      privately — the provider initiated contact via broadcast.
-  # Outcome: entitlement check is skipped, conversation creation proceeds
-  defp maybe_check_entitlement(scope, opts) do
-    if Keyword.get(opts, :skip_entitlement_check, false) do
-      :ok
-    else
-      check_entitlement(scope)
-    end
-  end
-
-  defp check_entitlement(scope) do
-    if Entitlements.can_initiate_messaging?(scope) do
-      :ok
-    else
-      Logger.debug("User not entitled to initiate messaging", user_id: scope.user.id)
-      {:error, :not_entitled}
     end
   end
 

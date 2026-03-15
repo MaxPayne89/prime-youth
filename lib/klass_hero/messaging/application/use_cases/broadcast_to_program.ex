@@ -11,7 +11,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   """
 
   alias KlassHero.Accounts.Scope
-  alias KlassHero.Entitlements
+  alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
@@ -45,7 +45,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
     subject = Keyword.get(opts, :subject)
     repos = Repositories.all()
 
-    with :ok <- check_entitlement(scope),
+    with :ok <- Shared.check_entitlement(scope),
          {:ok, parent_user_ids} <- get_enrolled_parent_user_ids(program_id, repos),
          :ok <- verify_has_recipients(parent_user_ids),
          {:ok, conversation, message} <-
@@ -60,15 +60,6 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
       )
 
       {:ok, conversation, message, recipient_count}
-    end
-  end
-
-  defp check_entitlement(scope) do
-    if Entitlements.can_initiate_messaging?(scope) do
-      :ok
-    else
-      Logger.debug("Provider not entitled to broadcast", provider_id: scope.provider.id)
-      {:error, :not_entitled}
     end
   end
 
