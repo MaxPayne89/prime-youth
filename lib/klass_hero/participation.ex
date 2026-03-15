@@ -61,6 +61,8 @@ defmodule KlassHero.Participation do
   alias KlassHero.Participation.Application.UseCases.ReviseBehavioralNote
   alias KlassHero.Participation.Application.UseCases.StartSession
   alias KlassHero.Participation.Application.UseCases.SubmitBehavioralNote
+  alias KlassHero.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Participation.Domain.Models.ProgramSession
 
   # ============================================================================
   # Session Management
@@ -150,12 +152,12 @@ defmodule KlassHero.Participation do
 
   @doc "Returns the list of valid session statuses."
   def session_statuses do
-    KlassHero.Participation.Domain.Models.ProgramSession.valid_statuses()
+    ProgramSession.valid_statuses()
   end
 
   @doc "Returns the list of valid participation record statuses."
   def record_statuses do
-    KlassHero.Participation.Domain.Models.ParticipationRecord.valid_statuses()
+    ParticipationRecord.valid_statuses()
   end
 
   @doc """
