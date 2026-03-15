@@ -16,6 +16,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
   alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.RepositoryHelpers
   alias KlassHero.Shared.ErrorIds
 
   @impl true
@@ -30,10 +31,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
 
   @impl true
   def get_by_id(id) when is_binary(id) do
-    case Repo.get(ParticipationRecordSchema, id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, ParticipationRecordMapper.to_domain(schema)}
-    end
+    RepositoryHelpers.get_by_id(ParticipationRecordSchema, id, ParticipationRecordMapper)
   end
 
   @impl true

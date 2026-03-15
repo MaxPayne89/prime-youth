@@ -30,6 +30,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
   alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
+  alias KlassHero.Shared.Adapters.Driven.Persistence.RepositoryHelpers
 
   require Logger
 
@@ -160,10 +161,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   - `{:error, :not_found}` when no enrollment exists with the given ID
   """
   def get_by_id(id) when is_binary(id) do
-    case Repo.get(EnrollmentSchema, id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, EnrollmentMapper.to_domain(schema)}
-    end
+    RepositoryHelpers.get_by_id(EnrollmentSchema, id, EnrollmentMapper)
   end
 
   @impl true

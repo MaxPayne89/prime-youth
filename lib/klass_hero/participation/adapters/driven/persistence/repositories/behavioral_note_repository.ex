@@ -15,6 +15,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
   alias KlassHero.Participation.Domain.Models.BehavioralNote
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
+  alias KlassHero.Shared.Adapters.Driven.Persistence.RepositoryHelpers
 
   require Logger
 
@@ -30,10 +31,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
 
   @impl true
   def get_by_id(id) when is_binary(id) do
-    case Repo.get(BehavioralNoteSchema, id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, BehavioralNoteMapper.to_domain(schema)}
-    end
+    RepositoryHelpers.get_by_id(BehavioralNoteSchema, id, BehavioralNoteMapper)
   end
 
   @impl true

@@ -15,6 +15,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
+  alias KlassHero.Shared.Adapters.Driven.Persistence.RepositoryHelpers
   alias KlassHero.Shared.ErrorIds
 
   # Statuses that count as "checked in" for attendance tallies
@@ -32,10 +33,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
 
   @impl true
   def get_by_id(id) when is_binary(id) do
-    case Repo.get(ProgramSessionSchema, id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, ProgramSessionMapper.to_domain(schema)}
-    end
+    RepositoryHelpers.get_by_id(ProgramSessionSchema, id, ProgramSessionMapper)
   end
 
   @impl true
