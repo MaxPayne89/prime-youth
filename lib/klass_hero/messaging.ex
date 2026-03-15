@@ -32,6 +32,7 @@ defmodule KlassHero.Messaging do
       KlassHero.Entitlements,
       KlassHero.Enrollment,
       KlassHero.ProgramCatalog,
+      KlassHero.Provider,
       KlassHero.Shared
     ],
     exports: [
