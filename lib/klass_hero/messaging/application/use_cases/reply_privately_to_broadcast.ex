@@ -11,9 +11,14 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Messaging
+  alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Repositories
+  alias KlassHero.Repo
+  alias KlassHero.Shared.DomainEventBus
 
   require Logger
+
+  @context KlassHero.Messaging
 
   @doc """
   Orchestrates a private reply to a broadcast.
@@ -34,11 +39,11 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
     with {:ok, broadcast} <- repos.conversations.get_by_id(broadcast_conversation_id),
          {:ok, provider_user_id} <- repos.users.get_user_id_for_provider(broadcast.provider_id),
          {:ok, direct_conversation} <-
-           Messaging.create_direct_conversation(
+           find_or_create_direct_conversation(
              scope,
              broadcast.provider_id,
              provider_user_id,
-             skip_entitlement_check: true
+             repos
            ),
          :ok <-
            maybe_insert_system_note(
@@ -55,6 +60,58 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
 
       {:ok, direct_conversation.id}
     end
+  end
+
+  # Trigger: parent wants a direct conversation with the broadcast's provider
+  # Why: find_direct_conversation(provider_id, user_id) expects the NON-PROVIDER
+  #      user as the lookup key — the parent's user_id uniquely identifies the
+  #      conversation. CreateDirectConversation was designed for provider-initiated
+  #      flows and searches by target_user_id, which doesn't work when the parent
+  #      is the initiator (it would match any provider conversation).
+  #      We handle find and create separately to get the correct lookup semantics.
+  # Outcome: returns the unique direct conversation between this parent and provider
+  defp find_or_create_direct_conversation(scope, provider_id, provider_user_id, repos) do
+    case repos.conversations.find_direct_conversation(provider_id, scope.user.id) do
+      {:ok, existing} ->
+        {:ok, existing}
+
+      {:error, :not_found} ->
+        create_direct_conversation(scope, provider_id, provider_user_id, repos)
+    end
+  end
+
+  defp create_direct_conversation(scope, provider_id, provider_user_id, repos) do
+    Repo.transaction(fn ->
+      with {:ok, conversation} <-
+             repos.conversations.create(%{type: :direct, provider_id: provider_id}),
+           {:ok, _} <-
+             repos.participants.add(%{
+               conversation_id: conversation.id,
+               user_id: scope.user.id
+             }),
+           {:ok, _} <-
+             repos.participants.add(%{
+               conversation_id: conversation.id,
+               user_id: provider_user_id
+             }) do
+        publish_conversation_created(conversation, scope.user.id, provider_user_id, provider_id)
+        conversation
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
+  end
+
+  defp publish_conversation_created(conversation, parent_user_id, provider_user_id, provider_id) do
+    event =
+      MessagingEvents.conversation_created(
+        conversation.id,
+        conversation.type,
+        provider_id,
+        [parent_user_id, provider_user_id]
+      )
+
+    DomainEventBus.dispatch(@context, event)
   end
 
   # Trigger: parent initiates a private reply to a broadcast
