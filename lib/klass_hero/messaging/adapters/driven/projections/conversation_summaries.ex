@@ -469,7 +469,15 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       |> Repo.update_all(inc: [unread_count: 1])
     end)
 
-    maybe_project_system_note(payload)
+    try do
+      maybe_project_system_note(payload)
+    rescue
+      error ->
+        Logger.error("Failed to project system note — will recover on next bootstrap",
+          conversation_id: payload.conversation_id,
+          error: Exception.message(error)
+        )
+    end
   end
 
   # Trigger: messages_read event received

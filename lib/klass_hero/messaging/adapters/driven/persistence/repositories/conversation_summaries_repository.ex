@@ -1,9 +1,10 @@
 defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository do
   @moduledoc """
-  Read repository for the conversation_summaries denormalized read model.
+  Repository for the conversation_summaries denormalized read model.
 
-  Queries the conversation_summaries table and returns ConversationSummary DTOs.
-  This is the read side — writes are handled by the ConversationSummariesProjection.
+  Handles reads (listing, counting, existence checks) and synchronous
+  write-throughs (system note tokens). Bulk writes are handled by the
+  ConversationSummaries projection.
   """
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingConversationSummaries
@@ -139,28 +140,41 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
       )
       |> Repo.all()
 
-    if conversation && participant_user_ids != [] do
-      entries =
-        Enum.map(participant_user_ids, fn user_id ->
-          %{
-            id: Ecto.UUID.generate(),
-            conversation_id: conversation_id,
-            user_id: user_id,
-            conversation_type: conversation.type,
-            provider_id: conversation.provider_id,
-            subject: conversation.subject,
-            system_notes: token_json,
-            unread_count: 0,
-            participant_count: length(participant_user_ids),
-            inserted_at: now,
-            updated_at: now
-          }
-        end)
+    cond do
+      is_nil(conversation) ->
+        Logger.warning(
+          "seed_summary_rows_with_token: conversation not found, projection will handle",
+          conversation_id: conversation_id
+        )
 
-      Repo.insert_all(ConversationSummarySchema, entries,
-        on_conflict: {:replace, [:system_notes, :updated_at]},
-        conflict_target: [:conversation_id, :user_id]
-      )
+      participant_user_ids == [] ->
+        Logger.warning(
+          "seed_summary_rows_with_token: no active participants, projection will handle",
+          conversation_id: conversation_id
+        )
+
+      true ->
+        entries =
+          Enum.map(participant_user_ids, fn user_id ->
+            %{
+              id: Ecto.UUID.generate(),
+              conversation_id: conversation_id,
+              user_id: user_id,
+              conversation_type: conversation.type,
+              provider_id: conversation.provider_id,
+              subject: conversation.subject,
+              system_notes: token_json,
+              unread_count: 0,
+              participant_count: length(participant_user_ids),
+              inserted_at: now,
+              updated_at: now
+            }
+          end)
+
+        Repo.insert_all(ConversationSummarySchema, entries,
+          on_conflict: {:replace, [:system_notes, :updated_at]},
+          conflict_target: [:conversation_id, :user_id]
+        )
     end
   end
 

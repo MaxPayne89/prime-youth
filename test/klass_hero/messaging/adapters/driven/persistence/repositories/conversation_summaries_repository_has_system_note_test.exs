@@ -2,8 +2,12 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
   use KlassHero.DataCase, async: true
 
   import Ecto.Query
+  import KlassHero.Factory
+
+  alias KlassHero.AccountsFixtures
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository
+
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
   alias KlassHero.Repo
 
@@ -86,6 +90,45 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
         )
 
       assert map_size(summary.system_notes) == 1
+    end
+  end
+
+  describe "write_system_note_token/2 seed fallback" do
+    test "seeds summary rows when no pre-existing summary rows exist" do
+      provider = insert(:provider_profile_schema)
+
+      conversation =
+        insert(:conversation_schema, provider_id: provider.id, type: "direct")
+
+      user = AccountsFixtures.user_fixture()
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      token = "[broadcast:#{Ecto.UUID.generate()}]"
+
+      assert :ok =
+               ConversationSummariesRepository.write_system_note_token(conversation.id, token)
+
+      summary =
+        Repo.one(
+          from(s in ConversationSummarySchema,
+            where: s.conversation_id == ^conversation.id and s.user_id == ^user.id
+          )
+        )
+
+      assert summary != nil
+      assert Map.has_key?(summary.system_notes, token)
+    end
+
+    test "returns :ok when conversation does not exist in database" do
+      assert :ok =
+               ConversationSummariesRepository.write_system_note_token(
+                 Ecto.UUID.generate(),
+                 "[broadcast:#{Ecto.UUID.generate()}]"
+               )
     end
   end
 

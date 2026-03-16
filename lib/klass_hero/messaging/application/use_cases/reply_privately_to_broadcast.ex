@@ -152,10 +152,18 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
         #      token and insert a duplicate
         # Outcome: token immediately visible in the projection table; the
         #          projection's async handler is idempotent and harmless
-        repos.conversation_summaries.write_system_note_token(
-          direct_conversation.id,
-          token
-        )
+        try do
+          repos.conversation_summaries.write_system_note_token(
+            direct_conversation.id,
+            token
+          )
+        rescue
+          error ->
+            Logger.warning("write_system_note_token failed — projection will catch up",
+              conversation_id: direct_conversation.id,
+              error: Exception.message(error)
+            )
+        end
 
         :ok
       end
