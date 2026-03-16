@@ -1,15 +1,17 @@
 defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository do
   @moduledoc """
-  Read repository for the conversation_summaries denormalized read model.
+  Repository for the conversation_summaries denormalized read model.
 
-  Queries the conversation_summaries table and returns ConversationSummary DTOs.
-  This is the read side — writes are handled by the ConversationSummariesProjection.
+  Handles reads (listing, counting, existence checks) and synchronous
+  write-throughs (system note tokens). Bulk writes are handled by the
+  ConversationSummaries projection.
   """
 
-  @behaviour KlassHero.Messaging.Domain.Ports.ForListingConversationSummaries
+  @behaviour KlassHero.Messaging.Domain.Ports.ForManagingConversationSummaries
 
   import Ecto.Query
 
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationSummaryQueries
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
   alias KlassHero.Messaging.Domain.ReadModels.ConversationSummary
   alias KlassHero.Repo
@@ -75,6 +77,122 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
     )
 
     count
+  end
+
+  @impl true
+  def has_system_note?(conversation_id, token) do
+    ConversationSummaryQueries.base()
+    |> ConversationSummaryQueries.by_conversation(conversation_id)
+    |> ConversationSummaryQueries.has_system_note_key(token)
+    |> Repo.exists?()
+  end
+
+  @impl true
+  def write_system_note_token(conversation_id, token) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    token_json = %{token => DateTime.to_iso8601(now)}
+
+    {updated, _} =
+      from(s in ConversationSummarySchema,
+        where: s.conversation_id == ^conversation_id,
+        update: [
+          set: [
+            system_notes:
+              fragment(
+                "coalesce(system_notes, '{}')::jsonb || ?::jsonb",
+                ^token_json
+              ),
+            updated_at: ^now
+          ]
+        ]
+      )
+      |> Repo.update_all([])
+
+    # Trigger: update_all affected 0 rows — summary rows don't exist yet
+    # Why: the projection creates summary rows asynchronously via the
+    #      conversation_created event. If the use case calls write-through
+    #      before the projection processes that event, there are no rows to
+    #      update and the token is silently lost.
+    # Outcome: seed minimal summary rows carrying the token; the projection's
+    #          upsert will merge the remaining fields when it catches up
+    if updated == 0 do
+      seed_summary_rows_with_token(conversation_id, token_json, now)
+    end
+
+    :ok
+  end
+
+  defp seed_summary_rows_with_token(conversation_id, token_json, now) do
+    alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
+    alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
+
+    conversation =
+      from(c in ConversationSchema,
+        where: c.id == ^conversation_id,
+        select: %{type: c.type, provider_id: c.provider_id, subject: c.subject}
+      )
+      |> Repo.one()
+
+    participant_user_ids =
+      from(p in ParticipantSchema,
+        where: p.conversation_id == ^conversation_id and is_nil(p.left_at),
+        select: p.user_id
+      )
+      |> Repo.all()
+
+    cond do
+      is_nil(conversation) ->
+        Logger.warning(
+          "seed_summary_rows_with_token: conversation not found, projection will handle",
+          conversation_id: conversation_id
+        )
+
+      participant_user_ids == [] ->
+        Logger.warning(
+          "seed_summary_rows_with_token: no active participants, projection will handle",
+          conversation_id: conversation_id
+        )
+
+      true ->
+        entries =
+          Enum.map(participant_user_ids, fn user_id ->
+            %{
+              id: Ecto.UUID.generate(),
+              conversation_id: conversation_id,
+              user_id: user_id,
+              conversation_type: conversation.type,
+              provider_id: conversation.provider_id,
+              subject: conversation.subject,
+              system_notes: token_json,
+              unread_count: 0,
+              participant_count: length(participant_user_ids),
+              inserted_at: now,
+              updated_at: now
+            }
+          end)
+
+        # Trigger: summary rows may have been created by the projection between
+        #          the update_all (0 rows) and this insert_all
+        # Why: {:replace, [:system_notes]} would overwrite tokens the projection
+        #      already wrote; JSONB || merge preserves both sets of tokens
+        # Outcome: seed tokens merged with any existing projection tokens
+        Repo.insert_all(ConversationSummarySchema, entries,
+          on_conflict:
+            from(s in ConversationSummarySchema,
+              update: [
+                set: [
+                  system_notes:
+                    fragment(
+                      "coalesce(?.system_notes, '{}')::jsonb || excluded.system_notes::jsonb",
+                      s
+                    ),
+                  updated_at: fragment("excluded.updated_at")
+                ]
+              ]
+            ),
+          conflict_target: [:conversation_id, :user_id]
+        )
+    end
   end
 
   defp to_dto(%ConversationSummarySchema{} = schema) do
