@@ -37,4 +37,24 @@ defmodule KlassHero.Messaging.Domain.Ports.ForListingConversationSummaries do
   has no unread messages or no conversations.
   """
   @callback get_total_unread_count(user_id :: String.t()) :: non_neg_integer()
+
+  @doc """
+  Checks whether a system note with the given token exists for a conversation.
+
+  Used for idempotent system note insertion — returns true if the token
+  has already been projected into the conversation's system_notes JSONB.
+
+  This is a boolean existence check that bypasses the ConversationSummary
+  DTO entirely.
+  """
+  @callback has_system_note?(conversation_id :: String.t(), token :: String.t()) :: boolean()
+
+  @doc """
+  Writes a system note token directly to the conversation_summaries JSONB.
+
+  This is a synchronous write-through used by use cases that need immediate
+  visibility of the token. The projection also writes it asynchronously via
+  the message_sent event — both writes are idempotent via JSONB merge.
+  """
+  @callback write_system_note_token(conversation_id :: String.t(), token :: String.t()) :: :ok
 end

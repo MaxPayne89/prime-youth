@@ -10,6 +10,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
 
   import Ecto.Query
 
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationSummaryQueries
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
   alias KlassHero.Messaging.Domain.ReadModels.ConversationSummary
   alias KlassHero.Repo
@@ -75,6 +76,41 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
     )
 
     count
+  end
+
+  @impl true
+  def has_system_note?(conversation_id, token) do
+    ConversationSummaryQueries.base()
+    |> ConversationSummaryQueries.by_conversation(conversation_id)
+    |> ConversationSummaryQueries.has_system_note_key(token)
+    |> Repo.exists?()
+  end
+
+  @impl true
+  def write_system_note_token(conversation_id, token) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    # Trigger: merge a single-key map into the existing system_notes JSONB
+    # Why: JSONB `||` operator overwrites on duplicate keys — idempotent for same token value
+    # Outcome: token key appears in the row; duplicate writes leave map_size unchanged
+    token_json = %{token => DateTime.to_iso8601(now)}
+
+    from(s in ConversationSummarySchema,
+      where: s.conversation_id == ^conversation_id,
+      update: [
+        set: [
+          system_notes:
+            fragment(
+              "coalesce(system_notes, '{}')::jsonb || ?::jsonb",
+              ^token_json
+            ),
+          updated_at: ^now
+        ]
+      ]
+    )
+    |> Repo.update_all([])
+
+    :ok
   end
 
   defp to_dto(%ConversationSummarySchema{} = schema) do
