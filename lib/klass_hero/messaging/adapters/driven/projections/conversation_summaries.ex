@@ -675,7 +675,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     from(m in MessageSchema,
       where:
         m.conversation_id in ^conversation_ids and
-          m.message_type == "system",
+          m.message_type == "system" and
+          is_nil(m.deleted_at),
       select: %{
         conversation_id: m.conversation_id,
         content: m.content,
