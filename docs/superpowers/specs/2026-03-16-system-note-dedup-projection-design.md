@@ -37,26 +37,46 @@ lookup. The `ConversationSummaries` projection is the natural home.
 ## Schema & Migration
 
 Add a `system_notes` JSONB column (default `{}`) to the `conversation_summaries`
-table with a GIN index using `jsonb_path_ops`.
+table with a GIN index using the default `jsonb_ops` operator class.
+
+**Why `jsonb_ops` and not `jsonb_path_ops`:** The `jsonb_path_ops` operator class
+only supports the `@>` containment operator. We need the `?` (key-existence)
+operator for efficient token lookups, which requires the default `jsonb_ops`
+class.
 
 ```sql
 ALTER TABLE conversation_summaries
   ADD COLUMN system_notes jsonb NOT NULL DEFAULT '{}';
 
 CREATE INDEX idx_conv_summaries_system_notes
-  ON conversation_summaries USING gin (system_notes jsonb_path_ops);
+  ON conversation_summaries USING gin (system_notes);
+```
+
+### Ecto Schema Update
+
+Add the field to `ConversationSummarySchema`:
+
+```elixir
+field :system_notes, :map, default: %{}
 ```
 
 ### JSONB Structure
 
-Keys are system note tokens (without brackets), values are ISO 8601 timestamps:
+Keys are system note tokens in bracketed form (e.g. `[broadcast:uuid]`),
+matching the token format used by `ReplyPrivatelyToBroadcast`. Values are
+ISO 8601 timestamps of when the note was first projected:
 
 ```json
 {
-  "broadcast:550e8400-e29b-41d4-a716-446655440000": "2026-03-16T10:30:00Z",
-  "broadcast:6ba7b810-9dad-11d1-80b4-00c04fd430c8": "2026-03-16T11:45:00Z"
+  "[broadcast:550e8400-e29b-41d4-a716-446655440000]": "2026-03-16T10:30:00Z",
+  "[broadcast:6ba7b810-9dad-11d1-80b4-00c04fd430c8]": "2026-03-16T11:45:00Z"
 }
 ```
+
+**Token format consistency:** The use case constructs `token = "[broadcast:#{broadcast.id}]"`.
+The projection extracts tokens from message content using the same bracketed
+format. The query receives the token in the same form. One format throughout —
+no stripping or transforming at any boundary.
 
 The same `system_notes` data is replicated per participant row. This is
 intentional — it's a read model, and the dedup check only needs "does this token
@@ -71,23 +91,26 @@ In `project_message_sent/1`, when the event payload's `message_type` is
 (`~r/\[broadcast:[^\]]+\]/`), then upsert the token into the `system_notes`
 JSONB column for all rows of that conversation.
 
-The JSONB update uses PostgreSQL's `||` (jsonb_concat) operator:
+The JSONB update uses an `update:` clause within the query (not `set:` as
+a second argument) to reference the current row's column value:
 
 ```elixir
-Repo.update_all(
-  from(s in ConversationSummarySchema,
-    where: s.conversation_id == ^conversation_id
-  ),
-  set: [
+from(s in ConversationSummarySchema,
+  where: s.conversation_id == ^conversation_id,
+  update: [set: [
     system_notes: fragment(
-      "coalesce(?, '{}')::jsonb || ?::jsonb",
-      s.system_notes,
+      "coalesce(system_notes, '{}')::jsonb || ?::jsonb",
       ^token_json
     ),
     updated_at: ^now
-  ]
+  ]]
 )
+|> Repo.update_all([])
 ```
+
+Note: The fragment references `system_notes` as a raw column name string, not
+as a bound variable `s.system_notes`. This is required because Ecto's
+`update_all` does not support binding references in update expressions.
 
 This is idempotent — re-projecting the same token overwrites with the same value.
 
@@ -100,12 +123,21 @@ tokens:
 from(m in MessageSchema,
   where: m.message_type == "system" and is_nil(m.deleted_at),
   where: like(m.content, "[broadcast:%"),
-  select: %{conversation_id: m.conversation_id, content: m.content}
+  select: %{
+    conversation_id: m.conversation_id,
+    content: m.content,
+    inserted_at: m.inserted_at
+  }
 )
 ```
 
-Parse tokens, build `%{"broadcast:uuid" => timestamp}` maps per conversation,
-merge into summary entries during the existing bootstrap upsert.
+Parse tokens from content, build `%{"[broadcast:uuid]" => timestamp}` maps per
+conversation. Thread these maps into `build_conversation_entries/5` and
+`build_summary_entry/8` so the `system_notes` key is included in the entry map
+passed to `Repo.insert_all`. The signature gains a `system_notes_by_conversation`
+parameter (a map of `conversation_id => %{token => timestamp}`).
+
+For conversations with no system notes, the entry uses the default `%{}`.
 
 ## Query Module & Port
 
@@ -130,15 +162,24 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationSu
 end
 ```
 
+The `?` operator checks key existence in the GIN-indexed JSONB column — O(1)
+lookup regardless of table size.
+
 ### Port
 
-New port `ForReadingConversationSummaries` with:
+Add `has_system_note?/2` to the existing `ForListingConversationSummaries` port
+(not a new port). This port already defines the read-side contract for the
+`conversation_summaries` table, and the existing `ConversationSummariesRepository`
+adapter implements it. Adding the callback here keeps one port per read table.
 
 ```elixir
 @callback has_system_note?(conversation_id :: String.t(), token :: String.t()) :: boolean()
 ```
 
-The adapter composes query builders and calls `Repo.exists?/1`.
+The adapter implementation composes query builders and calls `Repo.exists?/1`.
+This bypasses the `ConversationSummary` domain read model struct entirely —
+`has_system_note?` is a boolean existence check, not a DTO query. No changes
+needed to the `ConversationSummary` struct.
 
 ### Use case change
 
@@ -148,8 +189,8 @@ The adapter composes query builders and calls `Repo.exists?/1`.
 repos.conversation_summaries.has_system_note?(direct_conversation.id, token)
 ```
 
-The `Repositories.all/0` map gains a `:conversation_summaries` key pointing to
-the configured adapter.
+`Repositories.all/0` already has a `:conversation_summaries` key pointing to the
+`ForListingConversationSummaries` adapter — no change needed there.
 
 ## Edge Cases
 
