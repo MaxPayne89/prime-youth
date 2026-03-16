@@ -25,11 +25,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Workers.SendInviteEmailWorker do
     end
   end
 
-  defp rate_limit_error?(%{reason: reason}) do
-    reason_str = inspect(reason)
-    String.contains?(reason_str, "429") or String.contains?(reason_str, "rate_limit")
-  end
-
+  defp rate_limit_error?(%{reason: {429, _}}), do: true
   defp rate_limit_error?(_), do: false
 
   @invite_repository Application.compile_env!(:klass_hero, [
