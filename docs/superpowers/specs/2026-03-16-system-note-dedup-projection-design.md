@@ -174,12 +174,18 @@ adapter implements it. Adding the callback here keeps one port per read table.
 
 ```elixir
 @callback has_system_note?(conversation_id :: String.t(), token :: String.t()) :: boolean()
+@callback write_system_note_token(conversation_id :: String.t(), token :: String.t()) :: :ok
 ```
 
-The adapter implementation composes query builders and calls `Repo.exists?/1`.
-This bypasses the `ConversationSummary` domain read model struct entirely —
-`has_system_note?` is a boolean existence check, not a DTO query. No changes
-needed to the `ConversationSummary` struct.
+`has_system_note?/2` composes query builders and calls `Repo.exists?/1`.
+`write_system_note_token/2` is a synchronous write-through that upserts the
+token into `system_notes` JSONB immediately. This eliminates a race condition:
+the projection processes `message_sent` events asynchronously, so without
+the write-through, a rapid second call to `execute/2` could miss the token.
+Both writes (use case + projection) are idempotent via JSONB `||` merge.
+
+These bypass the `ConversationSummary` domain read model struct entirely.
+No changes needed to the `ConversationSummary` struct.
 
 ### Use case change
 
