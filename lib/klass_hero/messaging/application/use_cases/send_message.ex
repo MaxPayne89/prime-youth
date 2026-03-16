@@ -27,6 +27,9 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   - content: The message content
   - opts: Optional parameters
     - message_type: :text (default) or :system
+    - conversation: pre-fetched %Conversation{} domain struct for the same
+      conversation_id (skips DB fetch in broadcast permission check; ignored
+      if ID doesn't match)
 
   ## Returns
   - `{:ok, message}` - Message sent successfully
@@ -38,10 +41,11 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
           | {:error, :not_participant | :broadcast_reply_not_allowed | term()}
   def execute(conversation_id, sender_id, content, opts \\ []) do
     message_type = Keyword.get(opts, :message_type, :text)
+    conversation = Keyword.get(opts, :conversation)
     repos = Repositories.all()
 
     with :ok <- Shared.verify_participant(conversation_id, sender_id, repos.participants),
-         :ok <- verify_broadcast_send_permission(conversation_id, sender_id, repos),
+         :ok <- verify_broadcast_send_permission(conversation_id, sender_id, repos, conversation),
          {:ok, message} <-
            create_message(conversation_id, sender_id, content, message_type, repos.messages) do
       update_sender_read_status(conversation_id, sender_id, repos.participants)
@@ -61,8 +65,17 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   # Why: broadcast conversations are one-way — only the provider can send.
   #      Parents replying would expose their messages to all other parents (privacy breach).
   # Outcome: non-provider senders are rejected; direct conversations pass through unchanged.
-  defp verify_broadcast_send_permission(conversation_id, sender_id, repos) do
-    case repos.conversations.get_by_id(conversation_id) do
+  defp verify_broadcast_send_permission(conversation_id, sender_id, repos, conversation) do
+    # Trigger: caller may pass a pre-fetched conversation to skip DB round-trip
+    # Why: must validate conversation.id matches conversation_id to prevent
+    #      a mismatched struct from bypassing broadcast guards (privacy breach)
+    # Outcome: uses passed conversation only if ID matches; otherwise fetches from DB
+    result =
+      if conversation && conversation.id == conversation_id,
+        do: {:ok, conversation},
+        else: repos.conversations.get_by_id(conversation_id)
+
+    case result do
       {:ok, %{type: :program_broadcast, provider_id: provider_id}} ->
         case repos.users.get_user_id_for_provider(provider_id) do
           {:ok, ^sender_id} -> :ok

@@ -144,7 +144,8 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
 
       with {:ok, _message} <-
              Messaging.send_message(direct_conversation.id, sender_id, content,
-               message_type: :system
+               message_type: :system,
+               conversation: direct_conversation
              ) do
         # Trigger: system note just written to messages table
         # Why: the projection processes message_sent events asynchronously —
