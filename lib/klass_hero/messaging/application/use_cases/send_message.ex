@@ -38,10 +38,11 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
           | {:error, :not_participant | :broadcast_reply_not_allowed | term()}
   def execute(conversation_id, sender_id, content, opts \\ []) do
     message_type = Keyword.get(opts, :message_type, :text)
+    conversation = Keyword.get(opts, :conversation)
     repos = Repositories.all()
 
     with :ok <- Shared.verify_participant(conversation_id, sender_id, repos.participants),
-         :ok <- verify_broadcast_send_permission(conversation_id, sender_id, repos),
+         :ok <- verify_broadcast_send_permission(conversation_id, sender_id, repos, conversation),
          {:ok, message} <-
            create_message(conversation_id, sender_id, content, message_type, repos.messages) do
       update_sender_read_status(conversation_id, sender_id, repos.participants)
@@ -61,8 +62,15 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   # Why: broadcast conversations are one-way — only the provider can send.
   #      Parents replying would expose their messages to all other parents (privacy breach).
   # Outcome: non-provider senders are rejected; direct conversations pass through unchanged.
-  defp verify_broadcast_send_permission(conversation_id, sender_id, repos) do
-    case repos.conversations.get_by_id(conversation_id) do
+  # Note: callers that already hold the conversation struct may pass it via `conversation`
+  #       to avoid an extra DB round-trip (e.g. ReplyPrivatelyToBroadcast).
+  defp verify_broadcast_send_permission(conversation_id, sender_id, repos, conversation) do
+    result =
+      if conversation,
+        do: {:ok, conversation},
+        else: repos.conversations.get_by_id(conversation_id)
+
+    case result do
       {:ok, %{type: :program_broadcast, provider_id: provider_id}} ->
         case repos.users.get_user_id_for_provider(provider_id) do
           {:ok, ^sender_id} -> :ok
