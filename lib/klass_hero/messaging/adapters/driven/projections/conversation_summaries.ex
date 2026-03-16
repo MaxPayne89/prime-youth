@@ -588,8 +588,12 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
     case Regex.run(@broadcast_token_regex, content || "") do
       [token] ->
-        now = DateTime.utc_now() |> DateTime.truncate(:second)
-        token_json = %{token => DateTime.to_iso8601(now)}
+        # Trigger: use event timestamp for deterministic, replay-safe values
+        # Why: DateTime.utc_now() changes on each replay, causing unnecessary writes
+        # Outcome: same event always produces the same JSONB value (truly idempotent)
+        sent_at = Map.get(payload, :sent_at) || DateTime.utc_now()
+        truncated_at = DateTime.truncate(sent_at, :second)
+        token_json = %{token => DateTime.to_iso8601(truncated_at)}
 
         from(s in ConversationSummarySchema,
           where: s.conversation_id == ^conversation_id,
@@ -600,7 +604,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
                   "coalesce(system_notes, '{}')::jsonb || ?::jsonb",
                   ^token_json
                 ),
-              updated_at: ^now
+              updated_at: ^truncated_at
             ]
           ]
         )

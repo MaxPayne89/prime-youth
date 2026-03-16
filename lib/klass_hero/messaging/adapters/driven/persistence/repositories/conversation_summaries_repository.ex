@@ -171,8 +171,25 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
             }
           end)
 
+        # Trigger: summary rows may have been created by the projection between
+        #          the update_all (0 rows) and this insert_all
+        # Why: {:replace, [:system_notes]} would overwrite tokens the projection
+        #      already wrote; JSONB || merge preserves both sets of tokens
+        # Outcome: seed tokens merged with any existing projection tokens
         Repo.insert_all(ConversationSummarySchema, entries,
-          on_conflict: {:replace, [:system_notes, :updated_at]},
+          on_conflict:
+            from(s in ConversationSummarySchema,
+              update: [
+                set: [
+                  system_notes:
+                    fragment(
+                      "coalesce(?.system_notes, '{}')::jsonb || excluded.system_notes::jsonb",
+                      s
+                    ),
+                  updated_at: fragment("excluded.updated_at")
+                ]
+              ]
+            ),
           conflict_target: [:conversation_id, :user_id]
         )
     end
