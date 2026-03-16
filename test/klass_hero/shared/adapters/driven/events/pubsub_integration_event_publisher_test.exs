@@ -8,27 +8,36 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
 
   describe "publish/1 with critical integration events" do
     test "enqueues Oban jobs for critical events with registered handlers" do
+      # Trigger: test-specific context/event so we don't broadcast on a real
+      #          topic that supervision-tree EventSubscribers listen on
+      # Why: real subscribers would receive the PubSub message and hit Ecto
+      #      sandbox ownership errors under async: true
+      # Outcome: isolated test that only exercises the Oban enqueueing path
       event =
         IntegrationEvent.new(
-          :invite_claimed,
-          :enrollment,
-          :invite,
-          "invite-1",
+          :test_critical_event,
+          :test_context,
+          :test_entity,
+          "entity-1",
           %{user_id: 1},
           criticality: :critical
         )
 
-      # Trigger: using manual mode so Oban workers don't execute immediately
-      # Why: inline mode runs the CriticalEventWorker synchronously, which would
-      #      need DB sandbox access and pull in unrelated handler dependencies
-      # Outcome: job is inserted and visible via assert_enqueued without executing
-      Oban.Testing.with_testing_mode(:manual, fn ->
-        assert :ok = PubSubIntegrationEventPublisher.publish(event)
+      topic = PubSubIntegrationEventPublisher.derive_topic(event)
 
-        assert_enqueued(
-          worker: CriticalEventWorker,
-          args: %{"event_type" => "invite_claimed", "event_kind" => "integration"}
-        )
+      with_critical_handlers(%{topic => [{__MODULE__, :handle_event}]}, fn ->
+        # Trigger: using manual mode so Oban workers don't execute immediately
+        # Why: inline mode runs the CriticalEventWorker synchronously, which would
+        #      need DB sandbox access and pull in unrelated handler dependencies
+        # Outcome: job is inserted and visible via assert_enqueued without executing
+        Oban.Testing.with_testing_mode(:manual, fn ->
+          assert :ok = PubSubIntegrationEventPublisher.publish(event)
+
+          assert_enqueued(
+            worker: CriticalEventWorker,
+            args: %{"event_type" => "test_critical_event", "event_kind" => "integration"}
+          )
+        end)
       end)
     end
 
@@ -51,10 +60,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
     end
 
     test "does not enqueue Oban jobs for critical events with no registered handlers" do
-      # Event type with no entry in :critical_event_handlers config
       event =
         IntegrationEvent.new(
-          :unknown_unregistered_event,
+          :unregistered_event,
           :test_context,
           :test_entity,
           "entity-1",
@@ -62,10 +70,16 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
           criticality: :critical
         )
 
-      Oban.Testing.with_testing_mode(:manual, fn ->
-        assert :ok = PubSubIntegrationEventPublisher.publish(event)
+      # Trigger: explicitly empty handler registry
+      # Why: relying on the global config implicitly missing an entry is fragile —
+      #      a future config addition could silently break this test
+      # Outcome: guarantees "no handlers" precondition regardless of app config
+      with_critical_handlers(%{}, fn ->
+        Oban.Testing.with_testing_mode(:manual, fn ->
+          assert :ok = PubSubIntegrationEventPublisher.publish(event)
 
-        refute_enqueued(worker: CriticalEventWorker)
+          refute_enqueued(worker: CriticalEventWorker)
+        end)
       end)
     end
   end
@@ -121,31 +135,35 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
     end
 
     test "enqueues Oban jobs for each critical event in the list" do
-      events = [
+      critical_event =
         IntegrationEvent.new(
-          :invite_claimed,
-          :enrollment,
-          :invite,
-          "invite-100",
+          :test_batch_critical,
+          :test_context,
+          :test_entity,
+          "entity-100",
           %{user_id: 99},
           criticality: :critical
-        ),
-        IntegrationEvent.new(:normal_event, :ctx, :entity, "e-3", %{})
-      ]
-
-      Oban.Testing.with_testing_mode(:manual, fn ->
-        assert :ok = PubSubIntegrationEventPublisher.publish_all(events)
-
-        assert_enqueued(
-          worker: CriticalEventWorker,
-          args: %{"event_type" => "invite_claimed", "event_kind" => "integration"}
         )
 
-        # Normal event in the same batch must not trigger a job
-        refute_enqueued(
-          worker: CriticalEventWorker,
-          args: %{"event_type" => "normal_event"}
-        )
+      normal_event = IntegrationEvent.new(:normal_event, :test_context, :entity, "e-3", %{})
+
+      topic = PubSubIntegrationEventPublisher.derive_topic(critical_event)
+
+      with_critical_handlers(%{topic => [{__MODULE__, :handle_event}]}, fn ->
+        Oban.Testing.with_testing_mode(:manual, fn ->
+          assert :ok = PubSubIntegrationEventPublisher.publish_all([critical_event, normal_event])
+
+          assert_enqueued(
+            worker: CriticalEventWorker,
+            args: %{"event_type" => "test_batch_critical", "event_kind" => "integration"}
+          )
+
+          # Normal event in the same batch must not trigger a job
+          refute_enqueued(
+            worker: CriticalEventWorker,
+            args: %{"event_type" => "normal_event"}
+          )
+        end)
       end)
     end
   end
@@ -169,6 +187,19 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
 
       assert PubSubIntegrationEventPublisher.derive_topic(event) ==
                "integration:identity:child_data_anonymized"
+    end
+  end
+
+  # Temporarily overrides :critical_event_handlers config for the duration of `fun`,
+  # restoring the original value on exit regardless of success or failure.
+  defp with_critical_handlers(handlers, fun) do
+    original = Application.get_env(:klass_hero, :critical_event_handlers, %{})
+    Application.put_env(:klass_hero, :critical_event_handlers, handlers)
+
+    try do
+      fun.()
+    after
+      Application.put_env(:klass_hero, :critical_event_handlers, original)
     end
   end
 end
