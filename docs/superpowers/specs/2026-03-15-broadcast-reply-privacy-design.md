@@ -1,6 +1,6 @@
 # Broadcast Reply Privacy — Design Spec
 
-**Issue:** [#425](https://github.com/MaxPayne89/prime-youth/issues/425)
+**Issue:** [#425](https://github.com/MaxPayne89/klass-hero/issues/425)
 **Date:** 2026-03-15
 **Status:** Draft
 

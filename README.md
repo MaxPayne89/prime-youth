@@ -53,8 +53,8 @@ Usually pre-installed. If needed:
 **1. Clone and navigate:**
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/prime-youth.git
-cd prime-youth
+git clone https://github.com/YOUR_USERNAME/klass-hero.git
+cd klass-hero
 ```
 
 **2. Install Elixir and Erlang:**

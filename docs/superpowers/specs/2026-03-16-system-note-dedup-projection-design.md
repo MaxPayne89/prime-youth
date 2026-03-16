@@ -1,6 +1,6 @@
 # System Note Dedup via ConversationSummaries Projection
 
-**Issue:** [#431](https://github.com/MaxPayne89/prime-youth/issues/431) — `system_note_exists?` has 100-message dedup ceiling
+**Issue:** [#431](https://github.com/MaxPayne89/klass-hero/issues/431) — `system_note_exists?` has 100-message dedup ceiling
 **Date:** 2026-03-16
 **Status:** Design approved
 
