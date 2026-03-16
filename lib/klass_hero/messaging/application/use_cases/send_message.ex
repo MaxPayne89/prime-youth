@@ -27,6 +27,9 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   - content: The message content
   - opts: Optional parameters
     - message_type: :text (default) or :system
+    - conversation: pre-fetched %Conversation{} domain struct for the same
+      conversation_id (skips DB fetch in broadcast permission check; ignored
+      if ID doesn't match)
 
   ## Returns
   - `{:ok, message}` - Message sent successfully
@@ -62,11 +65,13 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   # Why: broadcast conversations are one-way — only the provider can send.
   #      Parents replying would expose their messages to all other parents (privacy breach).
   # Outcome: non-provider senders are rejected; direct conversations pass through unchanged.
-  # Note: callers that already hold the conversation struct may pass it via `conversation`
-  #       to avoid an extra DB round-trip (e.g. ReplyPrivatelyToBroadcast).
   defp verify_broadcast_send_permission(conversation_id, sender_id, repos, conversation) do
+    # Trigger: caller may pass a pre-fetched conversation to skip DB round-trip
+    # Why: must validate conversation.id matches conversation_id to prevent
+    #      a mismatched struct from bypassing broadcast guards (privacy breach)
+    # Outcome: uses passed conversation only if ID matches; otherwise fetches from DB
     result =
-      if conversation,
+      if conversation && conversation.id == conversation_id,
         do: {:ok, conversation},
         else: repos.conversations.get_by_id(conversation_id)
 

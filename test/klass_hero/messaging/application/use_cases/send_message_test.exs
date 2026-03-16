@@ -4,8 +4,10 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
   import KlassHero.Factory
 
   alias KlassHero.AccountsFixtures
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.ConversationMapper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
   alias KlassHero.Messaging.Application.UseCases.SendMessage
+  alias KlassHero.Messaging.Domain.Models.Conversation
   alias KlassHero.Messaging.Domain.Models.Message
 
   describe "execute/4" do
@@ -154,6 +156,68 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
                SendMessage.execute(broadcast.id, provider_user.id, "Follow-up!")
 
       assert message.content == "Follow-up!"
+    end
+
+    test "allows provider to send in broadcast when pre-fetched conversation is passed" do
+      provider_user = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: provider_user.id)
+      program = insert(:program_schema)
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Announcement"
+        )
+
+      insert(:participant_schema,
+        conversation_id: broadcast.id,
+        user_id: provider_user.id
+      )
+
+      domain_conversation = ConversationMapper.to_domain(broadcast)
+      assert %Conversation{} = domain_conversation
+
+      assert {:ok, message} =
+               SendMessage.execute(broadcast.id, provider_user.id, "Fast path!",
+                 conversation: domain_conversation
+               )
+
+      assert message.content == "Fast path!"
+    end
+
+    test "rejects mismatched conversation struct — falls back to DB fetch" do
+      provider_user = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: provider_user.id)
+      program = insert(:program_schema)
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Announcement"
+        )
+
+      parent_user = AccountsFixtures.user_fixture()
+
+      insert(:participant_schema,
+        conversation_id: broadcast.id,
+        user_id: parent_user.id
+      )
+
+      # Build a direct conversation domain struct with a different ID
+      direct = insert(:conversation_schema, type: "direct", provider_id: provider.id)
+      mismatched_conversation = ConversationMapper.to_domain(direct)
+
+      # Trigger: parent passes a direct conversation struct targeting a broadcast conversation_id
+      # Why: the ID mismatch must cause a DB fetch, which correctly identifies the broadcast
+      # Outcome: parent is still rejected from broadcast
+      assert {:error, :broadcast_reply_not_allowed} =
+               SendMessage.execute(broadcast.id, parent_user.id, "Sneaky reply",
+                 conversation: mismatched_conversation
+               )
     end
   end
 end
