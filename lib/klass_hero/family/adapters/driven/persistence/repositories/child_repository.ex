@@ -83,6 +83,10 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
         # Why: wrapping in a changeset with foreign_key_constraint converts
         #      constraint errors into {:error, changeset} tagged tuples
         # Outcome: graceful error return instead of crash
+        #
+        # Note: constraint names span contexts (Enrollment, Participation, Family).
+        # Defined in migrations: 20260226000006, 20260226000007, 20260226000008,
+        # 20260306200504. Update here if those constraints are renamed.
         changeset =
           schema
           |> Ecto.Changeset.change()
