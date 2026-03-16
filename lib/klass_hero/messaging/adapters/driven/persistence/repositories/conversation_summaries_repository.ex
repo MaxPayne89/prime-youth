@@ -95,22 +95,83 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
     # Outcome: token key appears in the row; duplicate writes leave map_size unchanged
     token_json = %{token => DateTime.to_iso8601(now)}
 
-    from(s in ConversationSummarySchema,
-      where: s.conversation_id == ^conversation_id,
-      update: [
-        set: [
-          system_notes:
-            fragment(
-              "coalesce(system_notes, '{}')::jsonb || ?::jsonb",
-              ^token_json
-            ),
-          updated_at: ^now
+    {updated, _} =
+      from(s in ConversationSummarySchema,
+        where: s.conversation_id == ^conversation_id,
+        update: [
+          set: [
+            system_notes:
+              fragment(
+                "coalesce(system_notes, '{}')::jsonb || ?::jsonb",
+                ^token_json
+              ),
+            updated_at: ^now
+          ]
         ]
-      ]
-    )
-    |> Repo.update_all([])
+      )
+      |> Repo.update_all([])
+
+    # Trigger: update_all affected 0 rows — summary rows don't exist yet
+    # Why: the projection creates summary rows asynchronously via the
+    #      conversation_created event. If the use case calls write-through
+    #      before the projection processes the event, there are no rows to
+    #      update. Without this fallback the token is silently lost, causing
+    #      duplicate system notes on the next call.
+    # Outcome: minimal summary rows inserted for each participant, carrying
+    #          the system_notes token; the projection's upsert will merge
+    #          the remaining fields when it catches up.
+    if updated == 0 do
+      seed_summary_rows_with_token(conversation_id, token_json, now)
+    end
 
     :ok
+  end
+
+  defp seed_summary_rows_with_token(conversation_id, token_json, now) do
+    alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
+    alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
+
+    # Trigger: need conversation metadata and participant list for seed rows
+    # Why: conversation_type is NOT NULL in the table, and provider_id/subject
+    #      are needed for the projection's upsert to merge cleanly later
+    # Outcome: one seed row per active participant with required fields populated
+    conversation =
+      from(c in ConversationSchema,
+        where: c.id == ^conversation_id,
+        select: %{type: c.type, provider_id: c.provider_id, subject: c.subject}
+      )
+      |> Repo.one()
+
+    participant_user_ids =
+      from(p in ParticipantSchema,
+        where: p.conversation_id == ^conversation_id and is_nil(p.left_at),
+        select: p.user_id
+      )
+      |> Repo.all()
+
+    if conversation && participant_user_ids != [] do
+      entries =
+        Enum.map(participant_user_ids, fn user_id ->
+          %{
+            id: Ecto.UUID.generate(),
+            conversation_id: conversation_id,
+            user_id: user_id,
+            conversation_type: conversation.type,
+            provider_id: conversation.provider_id,
+            subject: conversation.subject,
+            system_notes: token_json,
+            unread_count: 0,
+            participant_count: length(participant_user_ids),
+            inserted_at: now,
+            updated_at: now
+          }
+        end)
+
+      Repo.insert_all(ConversationSummarySchema, entries,
+        on_conflict: {:replace, [:system_notes, :updated_at]},
+        conflict_target: [:conversation_id, :user_id]
+      )
+    end
   end
 
   defp to_dto(%ConversationSummarySchema{} = schema) do

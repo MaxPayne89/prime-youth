@@ -121,6 +121,32 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcastTest
                ReplyPrivatelyToBroadcast.execute(ctx.scope, direct.id)
     end
 
+    test "dedup works with more than 100 messages in the conversation (regression #431)", ctx do
+      # First call creates the direct conversation and system note
+      {:ok, conversation_id} =
+        ReplyPrivatelyToBroadcast.execute(ctx.scope, ctx.broadcast.id)
+
+      # Insert 110 regular messages to push the system note beyond the old 100-message ceiling
+      for i <- 1..110 do
+        insert(:message_schema,
+          conversation_id: conversation_id,
+          sender_id: ctx.parent_user.id,
+          content: "Message #{i}",
+          message_type: "text"
+        )
+      end
+
+      # Second call should still detect the existing system note (no duplicate)
+      {:ok, ^conversation_id} =
+        ReplyPrivatelyToBroadcast.execute(ctx.scope, ctx.broadcast.id)
+
+      {:ok, messages, _} =
+        MessageRepository.list_for_conversation(conversation_id, limit: 200)
+
+      system_messages = Enum.filter(messages, &(&1.message_type == :system))
+      assert length(system_messages) == 1
+    end
+
     test "returns error when user is not a participant of the broadcast", ctx do
       non_participant_user = AccountsFixtures.user_fixture()
 
