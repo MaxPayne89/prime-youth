@@ -89,10 +89,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
   @impl true
   def write_system_note_token(conversation_id, token) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
-
-    # Trigger: merge a single-key map into the existing system_notes JSONB
-    # Why: JSONB `||` operator overwrites on duplicate keys — idempotent for same token value
-    # Outcome: token key appears in the row; duplicate writes leave map_size unchanged
     token_json = %{token => DateTime.to_iso8601(now)}
 
     {updated, _} =
@@ -114,12 +110,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
     # Trigger: update_all affected 0 rows — summary rows don't exist yet
     # Why: the projection creates summary rows asynchronously via the
     #      conversation_created event. If the use case calls write-through
-    #      before the projection processes the event, there are no rows to
-    #      update. Without this fallback the token is silently lost, causing
-    #      duplicate system notes on the next call.
-    # Outcome: minimal summary rows inserted for each participant, carrying
-    #          the system_notes token; the projection's upsert will merge
-    #          the remaining fields when it catches up.
+    #      before the projection processes that event, there are no rows to
+    #      update and the token is silently lost.
+    # Outcome: seed minimal summary rows carrying the token; the projection's
+    #          upsert will merge the remaining fields when it catches up
     if updated == 0 do
       seed_summary_rows_with_token(conversation_id, token_json, now)
     end
@@ -131,10 +125,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
     alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
     alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
 
-    # Trigger: need conversation metadata and participant list for seed rows
-    # Why: conversation_type is NOT NULL in the table, and provider_id/subject
-    #      are needed for the projection's upsert to merge cleanly later
-    # Outcome: one seed row per active participant with required fields populated
     conversation =
       from(c in ConversationSchema,
         where: c.id == ^conversation_id,
