@@ -124,6 +124,86 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummariesT
       # themselves — own messages never count as unread
       assert summary_2.unread_count == 0
     end
+
+    test "bootstraps system_notes from existing system messages" do
+      user_1 = user_fixture(name: "Alice Smith")
+      user_2 = user_fixture(name: "Bob Jones")
+
+      provider = insert(:provider_profile_schema)
+
+      # Create a conversation in the write table
+      conversation_id = Ecto.UUID.generate()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      Repo.insert!(%ConversationSchema{
+        id: conversation_id,
+        type: "direct",
+        provider_id: provider.id
+      })
+
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: user_1.id,
+        joined_at: now
+      })
+
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: user_2.id,
+        joined_at: now
+      })
+
+      # Insert a system message with a broadcast token
+      token = "[broadcast:#{Ecto.UUID.generate()}]"
+
+      Repo.insert!(%MessageSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        sender_id: user_1.id,
+        content: "System note #{token}",
+        message_type: "system",
+        inserted_at: now,
+        updated_at: now
+      })
+
+      # Insert a regular text message (should NOT appear in system_notes)
+      Repo.insert!(%MessageSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        sender_id: user_2.id,
+        content: "Just a regular message",
+        message_type: "text",
+        inserted_at: now,
+        updated_at: now
+      })
+
+      # Stop the default test server and start fresh for bootstrap
+      stop_supervised!(ConversationSummaries)
+
+      bootstrap_name = :"bootstrap_sysnotes_#{System.unique_integer([:positive])}"
+
+      bootstrap_pid =
+        start_supervised!({ConversationSummaries, name: bootstrap_name},
+          id: :bootstrap_sysnotes
+        )
+
+      _ = :sys.get_state(bootstrap_pid)
+
+      # Verify the bootstrapped summary row has the token in system_notes
+      summary =
+        Repo.one(
+          from(s in ConversationSummarySchema,
+            where: s.conversation_id == ^conversation_id and s.user_id == ^user_1.id
+          )
+        )
+
+      assert summary != nil
+
+      assert Map.has_key?(summary.system_notes, token),
+             "Expected system_notes to contain key #{token}, got: #{inspect(summary.system_notes)}"
+    end
   end
 
   describe "handle conversation_created event" do
