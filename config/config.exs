@@ -58,7 +58,7 @@ config :klass_hero, Oban,
        {"0 4 * * *", KlassHero.Messaging.Workers.RetentionPolicyWorker}
      ]}
   ],
-  queues: [default: 10, messaging: 5, cleanup: 2, email: 5, family: 1, critical_events: 5]
+  queues: [default: 10, messaging: 5, cleanup: 2, email: 1, family: 1, critical_events: 5]
 
 # Configure Accounts bounded context
 config :klass_hero, :accounts,

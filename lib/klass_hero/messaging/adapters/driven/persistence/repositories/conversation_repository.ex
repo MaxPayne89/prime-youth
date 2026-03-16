@@ -68,6 +68,20 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
   end
 
   @impl true
+  def find_active_broadcast_for_program(provider_id, program_id) do
+    ConversationQueries.base()
+    |> ConversationQueries.by_provider(provider_id)
+    |> ConversationQueries.by_type(:program_broadcast)
+    |> ConversationQueries.active_only()
+    |> ConversationQueries.by_program(program_id)
+    |> Repo.one()
+    |> case do
+      nil -> {:error, :not_found}
+      schema -> {:ok, ConversationMapper.to_domain(schema)}
+    end
+  end
+
+  @impl true
   def list_for_user(user_id, opts \\ []) do
     limit = Keyword.get(opts, :limit, 50)
 

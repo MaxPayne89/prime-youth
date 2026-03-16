@@ -79,13 +79,37 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   def delete(child_id) when is_binary(child_id) do
     case get_schema(child_id) do
       {:ok, schema} ->
-        case Repo.delete(schema) do
+        # Trigger: bare Repo.delete raises Ecto.ConstraintError on FK violations
+        # Why: wrapping in a changeset with foreign_key_constraint converts
+        #      constraint errors into {:error, changeset} tagged tuples
+        # Outcome: graceful error return instead of crash
+        changeset =
+          schema
+          |> Ecto.Changeset.change()
+          |> Ecto.Changeset.foreign_key_constraint(:id,
+            name: "enrollments_child_id_fkey",
+            message: "has associated enrollments"
+          )
+          |> Ecto.Changeset.foreign_key_constraint(:id,
+            name: "participation_records_child_id_fkey",
+            message: "has associated participation records"
+          )
+          |> Ecto.Changeset.foreign_key_constraint(:id,
+            name: "consents_child_id_fkey",
+            message: "has associated consents"
+          )
+          |> Ecto.Changeset.foreign_key_constraint(:id,
+            name: "behavioral_notes_child_id_fkey",
+            message: "has associated behavioral notes"
+          )
+
+        case Repo.delete(changeset) do
           {:ok, _deleted} ->
             :ok
 
           {:error, changeset} ->
             Logger.warning(
-              "[Family.ChildRepository] Delete failed",
+              "[Family.ChildRepository] Delete blocked by FK constraint",
               error_id: ErrorIds.child_validation_error(),
               child_id: child_id,
               errors: changeset.errors
