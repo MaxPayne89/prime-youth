@@ -132,10 +132,10 @@ from(m in MessageSchema,
 ```
 
 Parse tokens from content, build `%{"[broadcast:uuid]" => timestamp}` maps per
-conversation. Thread these maps into `build_conversation_entries/5` and
-`build_summary_entry/8` so the `system_notes` key is included in the entry map
-passed to `Repo.insert_all`. The signature gains a `system_notes_by_conversation`
-parameter (a map of `conversation_id => %{token => timestamp}`).
+conversation. Thread these maps into `build_conversation_entries` (becomes `/6`)
+and `build_summary_entry` (becomes `/9`) so the `system_notes` key is included
+in the entry map passed to `Repo.insert_all`. The new parameter is
+`system_notes_by_conversation` (a map of `conversation_id => %{token => timestamp}`).
 
 For conversations with no system notes, the entry uses the default `%{}`.
 
