@@ -54,6 +54,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   @conversation_archived_topic "integration:messaging:conversation_archived"
   @conversations_archived_topic "integration:messaging:conversations_archived"
   @message_data_anonymized_topic "integration:messaging:message_data_anonymized"
+  @broadcast_token_regex ~r/\[broadcast:[^\]]+\]/
 
   # Client API
 
@@ -272,6 +273,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       # Outcome: {conversation_id, user_id} -> unread_count lookup map
       unread_counts = fetch_unread_counts(conversations)
 
+      # Trigger: need system note tokens per conversation for dedup tracking
+      # Why: system messages with broadcast tokens must be pre-populated in the read table
+      # Outcome: conversation_id -> %{token => iso8601_timestamp} lookup map
+      system_notes = fetch_system_notes(conversation_ids)
+
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       entries =
@@ -281,6 +287,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
             user_names,
             latest_messages,
             unread_counts,
+            system_notes,
             now
           )
         end)
@@ -302,10 +309,18 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     end
   end
 
-  defp build_conversation_entries(conversation, user_names, latest_messages, unread_counts, now) do
+  defp build_conversation_entries(
+         conversation,
+         user_names,
+         latest_messages,
+         unread_counts,
+         system_notes,
+         now
+       ) do
     active_participants = Enum.filter(conversation.participants, &is_nil(&1.left_at))
     participant_count = length(active_participants)
     latest_message = Map.get(latest_messages, conversation.id)
+    conv_system_notes = Map.get(system_notes, conversation.id, %{})
 
     Enum.map(active_participants, fn participant ->
       build_summary_entry(
@@ -316,6 +331,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
         latest_message,
         unread_counts,
         participant_count,
+        conv_system_notes,
         now
       )
     end)
@@ -329,6 +345,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
          latest_message,
          unread_counts,
          participant_count,
+         conv_system_notes,
          now
        ) do
     other_name =
@@ -357,6 +374,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       unread_count: unread_count,
       last_read_at: participant.last_read_at,
       archived_at: conversation.archived_at,
+      system_notes: conv_system_notes,
       inserted_at: now,
       updated_at: now
     }
@@ -450,6 +468,16 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       )
       |> Repo.update_all(inc: [unread_count: 1])
     end)
+
+    try do
+      maybe_project_system_note(payload)
+    rescue
+      error ->
+        Logger.error("Failed to project system note — will recover on next bootstrap",
+          conversation_id: payload.conversation_id,
+          error: Exception.message(error)
+        )
+    end
   end
 
   # Trigger: messages_read event received
@@ -549,6 +577,46 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     end
   end
 
+  # Private Functions — System Note Projection
+
+  # Trigger: a message_sent event was received
+  # Why: only system messages with broadcast tokens need tracking in the projection
+  # Outcome: if a broadcast token is found, upsert into system_notes JSONB
+  defp maybe_project_system_note(%{message_type: message_type, content: content} = payload)
+       when message_type in [:system, "system"] do
+    conversation_id = payload.conversation_id
+
+    case Regex.run(@broadcast_token_regex, content || "") do
+      [token] ->
+        # Trigger: use event timestamp for deterministic, replay-safe values
+        # Why: DateTime.utc_now() changes on each replay, causing unnecessary writes
+        # Outcome: same event always produces the same JSONB value (truly idempotent)
+        sent_at = Map.get(payload, :sent_at) || DateTime.utc_now()
+        truncated_at = DateTime.truncate(sent_at, :second)
+        token_json = %{token => DateTime.to_iso8601(truncated_at)}
+
+        from(s in ConversationSummarySchema,
+          where: s.conversation_id == ^conversation_id,
+          update: [
+            set: [
+              system_notes:
+                fragment(
+                  "coalesce(system_notes, '{}')::jsonb || ?::jsonb",
+                  ^token_json
+                ),
+              updated_at: ^truncated_at
+            ]
+          ]
+        )
+        |> Repo.update_all([])
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp maybe_project_system_note(_payload), do: :ok
+
   # Private Functions — Helpers
 
   # Trigger: need to look up display names for a set of user IDs
@@ -612,6 +680,38 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   end
 
   defp fetch_latest_messages(_), do: %{}
+
+  # Trigger: bootstrap needs to pre-populate system note tokens from existing system messages
+  # Why: system messages with broadcast tokens must be tracked in the read table for dedup
+  # Outcome: map of conversation_id -> %{token => iso8601_timestamp}
+  defp fetch_system_notes(conversation_ids) when conversation_ids != [] do
+    from(m in MessageSchema,
+      where:
+        m.conversation_id in ^conversation_ids and
+          m.message_type == "system" and
+          is_nil(m.deleted_at) and
+          like(m.content, "%[broadcast:%"),
+      select: %{
+        conversation_id: m.conversation_id,
+        content: m.content,
+        inserted_at: m.inserted_at
+      }
+    )
+    |> Repo.all()
+    |> Enum.reduce(%{}, fn %{conversation_id: conv_id, content: content, inserted_at: at}, acc ->
+      case Regex.run(@broadcast_token_regex, content || "") do
+        [token] ->
+          conv_notes = Map.get(acc, conv_id, %{})
+          updated_notes = Map.put(conv_notes, token, DateTime.to_iso8601(at))
+          Map.put(acc, conv_id, updated_notes)
+
+        _ ->
+          acc
+      end
+    end)
+  end
+
+  defp fetch_system_notes(_), do: %{}
 
   # Trigger: bootstrap needs unread counts per (conversation, participant) without loading messages
   # Why: counting in DB is far cheaper than loading all messages into memory

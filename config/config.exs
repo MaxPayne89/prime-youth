@@ -135,7 +135,7 @@ config :klass_hero, :messaging,
     KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository,
   for_resolving_users: KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver,
   for_querying_enrollments: KlassHero.Messaging.Adapters.Driven.Enrollment.EnrollmentResolver,
-  for_listing_conversation_summaries:
+  for_managing_conversation_summaries:
     KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository,
   retention: [
     days_after_program_end: 30,

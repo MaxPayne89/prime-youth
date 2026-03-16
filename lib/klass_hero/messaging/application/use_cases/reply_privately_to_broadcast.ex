@@ -136,7 +136,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
   defp maybe_insert_system_note(direct_conversation, sender_id, broadcast, repos) do
     token = "[broadcast:#{broadcast.id}]"
 
-    if system_note_exists?(direct_conversation.id, token, repos.messages) do
+    if system_note_exists?(direct_conversation.id, token, repos) do
       :ok
     else
       subject = broadcast.subject || "broadcast"
@@ -147,17 +147,31 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
                message_type: :system,
                conversation: direct_conversation
              ) do
+        # Trigger: system note just written to messages table
+        # Why: the projection processes message_sent events asynchronously —
+        #      without this write-through, a rapid second call could miss the
+        #      token and insert a duplicate
+        # Outcome: token immediately visible in the projection table; the
+        #          projection's async handler is idempotent and harmless
+        try do
+          repos.conversation_summaries.write_system_note_token(
+            direct_conversation.id,
+            token
+          )
+        rescue
+          error ->
+            Logger.warning("write_system_note_token failed — projection will catch up",
+              conversation_id: direct_conversation.id,
+              error: Exception.message(error)
+            )
+        end
+
         :ok
       end
     end
   end
 
-  defp system_note_exists?(conversation_id, token, message_repo) do
-    {:ok, messages, _} =
-      message_repo.list_for_conversation(conversation_id, limit: 100)
-
-    Enum.any?(messages, fn msg ->
-      msg.message_type == :system and String.contains?(msg.content, token)
-    end)
+  defp system_note_exists?(conversation_id, token, repos) do
+    repos.conversation_summaries.has_system_note?(conversation_id, token)
   end
 end
