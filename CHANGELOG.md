@@ -5,6 +5,44 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0](https://github.com/MaxPayne89/prime-youth/compare/v0.7.0...v0.8.0) (2026-03-16)
+
+
+### Features
+
+* **messaging:** add ConversationSummaryQueries with system note lookup ([f81062f](https://github.com/MaxPayne89/prime-youth/commit/f81062fde06780c45ad3a17525ced3d46cfecc69))
+* **messaging:** add has_system_note? and write_system_note_token ([528cbb6](https://github.com/MaxPayne89/prime-youth/commit/528cbb665d5cf06ee53640f24d3fd81e3e127fc2))
+* **messaging:** add system_notes JSONB column with GIN index ([4e6a25c](https://github.com/MaxPayne89/prime-youth/commit/4e6a25cd842597ceb95c4ac93e65d5555a98cb11))
+* **messaging:** bootstrap system_notes from existing system messages ([343b623](https://github.com/MaxPayne89/prime-youth/commit/343b6234e4727a4320a180d7cee803228ddce126))
+* **messaging:** project system note tokens into JSONB on message_sent ([4839a69](https://github.com/MaxPayne89/prime-youth/commit/4839a6915002048adc2837705969bc1a0c910543))
+
+
+### Bug Fixes
+
+* **messaging:** address PR review — JSONB merge on conflict + idempotent timestamps ([6576a19](https://github.com/MaxPayne89/prime-youth/commit/6576a190a345c9e051a91a3528774725af8ecfb6))
+* **messaging:** exclude soft-deleted messages from bootstrap system notes ([91f6734](https://github.com/MaxPayne89/prime-youth/commit/91f673451ab3a4dbf885c7c2a8700f923e881fde))
+* **messaging:** harden error handling in system note write-through ([2238bb3](https://github.com/MaxPayne89/prime-youth/commit/2238bb322534a370d9891e88cb05dec6eb64045f))
+* **messaging:** replace 100-message dedup ceiling with projection lookup ([1ca58c7](https://github.com/MaxPayne89/prime-youth/commit/1ca58c7f131dc620c5f9321ac148a72c2c04f721))
+* **messaging:** restore seed fallback in write_system_note_token ([d958f17](https://github.com/MaxPayne89/prime-youth/commit/d958f17eba1c62e1cf1b359ba495ef761fdd9627))
+* **messaging:** validate conversation ID match in SendMessage fast-path ([7006710](https://github.com/MaxPayne89/prime-youth/commit/70067108014532f959a0ecc87d52962fedd567f7))
+* replace 100-message dedup ceiling with projection lookup ([189d671](https://github.com/MaxPayne89/prime-youth/commit/189d671ddf437bb29df4fe0d503ea376f4c78532))
+
+
+### Performance Improvements
+
+* **messaging:** skip conversation DB fetch in SendMessage when caller provides it ([d6e74c3](https://github.com/MaxPayne89/prime-youth/commit/d6e74c37357f93e65260259de41a10ea4d842216))
+* **messaging:** skip conversation DB fetch in SendMessage when caller provides it ([9f8ca30](https://github.com/MaxPayne89/prime-youth/commit/9f8ca30721039477bd0a6c2158fcd94b37f75357)), closes [#430](https://github.com/MaxPayne89/prime-youth/issues/430)
+
+
+### Code Refactoring
+
+* accept optional log metadata in check_entitlement ([82b4892](https://github.com/MaxPayne89/prime-youth/commit/82b4892856d855e67357b1a306a6ae95f9511eab))
+* extract check_entitlement into Shared module ([24a59e5](https://github.com/MaxPayne89/prime-youth/commit/24a59e5f94b17e4cd4355aacfb03eb771c0bb6fe)), closes [#432](https://github.com/MaxPayne89/prime-youth/issues/432)
+* extract duplicate check_entitlement into Shared module ([76edd60](https://github.com/MaxPayne89/prime-youth/commit/76edd60b189f5fa1da1c888a7a9db3b9e5176591))
+* extract verify_participant into Shared module ([da19197](https://github.com/MaxPayne89/prime-youth/commit/da1919752835e4bb7bbc092c2cc91fb9ca7fe569))
+* extract verify_participant into Shared module ([6240ffc](https://github.com/MaxPayne89/prime-youth/commit/6240ffc97acc39d77df40557fed0d0231ddb4e13)), closes [#436](https://github.com/MaxPayne89/prime-youth/issues/436)
+* **messaging:** simplify system note dedup projection ([ff33282](https://github.com/MaxPayne89/prime-youth/commit/ff33282404c3fd6acadc65ab1540cca485ccff2c))
+
 ## [0.7.0](https://github.com/MaxPayne89/prime-youth/compare/v0.6.0...v0.7.0) (2026-03-15)
 
 
