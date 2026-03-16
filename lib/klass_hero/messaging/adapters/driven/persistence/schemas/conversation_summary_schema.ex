@@ -27,6 +27,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSu
     field :unread_count, :integer, default: 0
     field :last_read_at, :utc_datetime
     field :archived_at, :utc_datetime
+    field :system_notes, :map, default: %{}
 
     timestamps()
   end
