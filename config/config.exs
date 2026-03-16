@@ -308,7 +308,9 @@ config :logger, :default_formatter,
     :program_count,
     :status,
     :step,
-    :user_type
+    :user_type,
+    :broadcast_id,
+    :direct_conversation_id
   ]
 
 config :opentelemetry, :resource,
