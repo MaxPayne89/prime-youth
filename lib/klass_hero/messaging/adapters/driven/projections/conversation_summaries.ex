@@ -450,6 +450,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       )
       |> Repo.update_all(inc: [unread_count: 1])
     end)
+
+    maybe_project_system_note(payload)
   end
 
   # Trigger: messages_read event received
@@ -548,6 +550,42 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       )
     end
   end
+
+  # Private Functions — System Note Projection
+
+  # Trigger: a message_sent event was received
+  # Why: only system messages with broadcast tokens need tracking in the projection
+  # Outcome: if a broadcast token is found, upsert into system_notes JSONB
+  defp maybe_project_system_note(%{message_type: message_type, content: content} = payload)
+       when message_type in [:system, "system"] do
+    conversation_id = payload.conversation_id
+
+    case Regex.run(~r/\[broadcast:[^\]]+\]/, content || "") do
+      [token] ->
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+        token_json = %{token => DateTime.to_iso8601(now)}
+
+        from(s in ConversationSummarySchema,
+          where: s.conversation_id == ^conversation_id,
+          update: [
+            set: [
+              system_notes:
+                fragment(
+                  "coalesce(system_notes, '{}')::jsonb || ?::jsonb",
+                  ^token_json
+                ),
+              updated_at: ^now
+            ]
+          ]
+        )
+        |> Repo.update_all([])
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp maybe_project_system_note(_payload), do: :ok
 
   # Private Functions — Helpers
 

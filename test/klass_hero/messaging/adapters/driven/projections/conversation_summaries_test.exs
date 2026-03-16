@@ -274,6 +274,230 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummariesT
     end
   end
 
+  describe "handle message_sent event (system notes)" do
+    test "projects system note token into system_notes JSONB for system messages" do
+      user_1 = user_fixture(name: "Alice Smith")
+      user_2 = user_fixture(name: "Bob Jones")
+
+      conversation_id = Ecto.UUID.generate()
+      provider_id = Ecto.UUID.generate()
+
+      # Create conversation first
+      created_event =
+        IntegrationEvent.new(
+          :conversation_created,
+          :messaging,
+          :conversation,
+          conversation_id,
+          %{
+            conversation_id: conversation_id,
+            type: "direct",
+            provider_id: provider_id,
+            participant_ids: [user_1.id, user_2.id]
+          }
+        )
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:messaging:conversation_created",
+        {:integration_event, created_event}
+      )
+
+      _ = :sys.get_state(@test_server_name)
+
+      # Send a system message with a broadcast token
+      token = "[broadcast:#{Ecto.UUID.generate()}]"
+
+      sent_event =
+        IntegrationEvent.new(
+          :message_sent,
+          :messaging,
+          :conversation,
+          conversation_id,
+          %{
+            conversation_id: conversation_id,
+            message_id: Ecto.UUID.generate(),
+            sender_id: user_1.id,
+            content: "System note #{token}",
+            message_type: "system",
+            sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          }
+        )
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:messaging:message_sent",
+        {:integration_event, sent_event}
+      )
+
+      _ = :sys.get_state(@test_server_name)
+
+      # Both participants should have the token in system_notes
+      summaries =
+        Repo.all(
+          from(s in ConversationSummarySchema,
+            where: s.conversation_id == ^conversation_id
+          )
+        )
+
+      assert length(summaries) == 2
+
+      for summary <- summaries do
+        assert Map.has_key?(summary.system_notes, token),
+               "Expected system_notes to contain key #{token}, got: #{inspect(summary.system_notes)}"
+      end
+    end
+
+    test "does not update system_notes for regular text messages" do
+      user_1 = user_fixture(name: "Alice Smith")
+      user_2 = user_fixture(name: "Bob Jones")
+
+      conversation_id = Ecto.UUID.generate()
+      provider_id = Ecto.UUID.generate()
+
+      # Create conversation
+      created_event =
+        IntegrationEvent.new(
+          :conversation_created,
+          :messaging,
+          :conversation,
+          conversation_id,
+          %{
+            conversation_id: conversation_id,
+            type: "direct",
+            provider_id: provider_id,
+            participant_ids: [user_1.id, user_2.id]
+          }
+        )
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:messaging:conversation_created",
+        {:integration_event, created_event}
+      )
+
+      _ = :sys.get_state(@test_server_name)
+
+      # Send a regular text message (not system)
+      sent_event =
+        IntegrationEvent.new(
+          :message_sent,
+          :messaging,
+          :conversation,
+          conversation_id,
+          %{
+            conversation_id: conversation_id,
+            message_id: Ecto.UUID.generate(),
+            sender_id: user_1.id,
+            content: "Just a regular message [broadcast:#{Ecto.UUID.generate()}]",
+            message_type: "text",
+            sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          }
+        )
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:messaging:message_sent",
+        {:integration_event, sent_event}
+      )
+
+      _ = :sys.get_state(@test_server_name)
+
+      # system_notes should remain empty
+      summaries =
+        Repo.all(
+          from(s in ConversationSummarySchema,
+            where: s.conversation_id == ^conversation_id
+          )
+        )
+
+      assert length(summaries) == 2
+
+      for summary <- summaries do
+        assert summary.system_notes == %{},
+               "Expected system_notes to be empty, got: #{inspect(summary.system_notes)}"
+      end
+    end
+
+    test "system note projection is idempotent" do
+      user_1 = user_fixture(name: "Alice Smith")
+      user_2 = user_fixture(name: "Bob Jones")
+
+      conversation_id = Ecto.UUID.generate()
+      provider_id = Ecto.UUID.generate()
+
+      # Create conversation
+      created_event =
+        IntegrationEvent.new(
+          :conversation_created,
+          :messaging,
+          :conversation,
+          conversation_id,
+          %{
+            conversation_id: conversation_id,
+            type: "direct",
+            provider_id: provider_id,
+            participant_ids: [user_1.id, user_2.id]
+          }
+        )
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:messaging:conversation_created",
+        {:integration_event, created_event}
+      )
+
+      _ = :sys.get_state(@test_server_name)
+
+      # Send the same system message event twice
+      token = "[broadcast:#{Ecto.UUID.generate()}]"
+
+      sent_event =
+        IntegrationEvent.new(
+          :message_sent,
+          :messaging,
+          :conversation,
+          conversation_id,
+          %{
+            conversation_id: conversation_id,
+            message_id: Ecto.UUID.generate(),
+            sender_id: user_1.id,
+            content: "System note #{token}",
+            message_type: "system",
+            sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          }
+        )
+
+      # Send same event twice
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:messaging:message_sent",
+        {:integration_event, sent_event}
+      )
+
+      _ = :sys.get_state(@test_server_name)
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:messaging:message_sent",
+        {:integration_event, sent_event}
+      )
+
+      _ = :sys.get_state(@test_server_name)
+
+      # system_notes should have exactly 1 key (idempotent merge)
+      summary =
+        Repo.one(
+          from(s in ConversationSummarySchema,
+            where: s.conversation_id == ^conversation_id and s.user_id == ^user_1.id
+          )
+        )
+
+      assert map_size(summary.system_notes) == 1
+      assert Map.has_key?(summary.system_notes, token)
+    end
+  end
+
   describe "handle messages_read event" do
     test "sets unread_count to 0 and updates last_read_at for the user" do
       user_1 = user_fixture(name: "Alice Smith")
