@@ -46,7 +46,7 @@ defmodule KlassHero.Messaging.Repositories do
       participants: config[:for_managing_participants],
       enrollments: config[:for_querying_enrollments],
       users: config[:for_resolving_users],
-      conversation_summaries: config[:for_listing_conversation_summaries]
+      conversation_summaries: config[:for_managing_conversation_summaries]
     }
   end
 
@@ -72,7 +72,7 @@ defmodule KlassHero.Messaging.Repositories do
 
   @doc "Returns the conversation summaries repository module."
   @spec conversation_summaries() :: module()
-  def conversation_summaries, do: messaging_config()[:for_listing_conversation_summaries]
+  def conversation_summaries, do: messaging_config()[:for_managing_conversation_summaries]
 
   @doc "Returns the retention policy configuration."
   @spec retention_config() :: Keyword.t()

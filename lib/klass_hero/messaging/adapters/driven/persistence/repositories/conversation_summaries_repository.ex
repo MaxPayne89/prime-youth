@@ -6,7 +6,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
   This is the read side — writes are handled by the ConversationSummariesProjection.
   """
 
-  @behaviour KlassHero.Messaging.Domain.Ports.ForListingConversationSummaries
+  @behaviour KlassHero.Messaging.Domain.Ports.ForManagingConversationSummaries
 
   import Ecto.Query
 

@@ -54,6 +54,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   @conversation_archived_topic "integration:messaging:conversation_archived"
   @conversations_archived_topic "integration:messaging:conversations_archived"
   @message_data_anonymized_topic "integration:messaging:message_data_anonymized"
+  @broadcast_token_regex ~r/\[broadcast:[^\]]+\]/
 
   # Client API
 
@@ -577,7 +578,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
        when message_type in [:system, "system"] do
     conversation_id = payload.conversation_id
 
-    case Regex.run(~r/\[broadcast:[^\]]+\]/, content || "") do
+    case Regex.run(@broadcast_token_regex, content || "") do
       [token] ->
         now = DateTime.utc_now() |> DateTime.truncate(:second)
         token_json = %{token => DateTime.to_iso8601(now)}
@@ -676,7 +677,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       where:
         m.conversation_id in ^conversation_ids and
           m.message_type == "system" and
-          is_nil(m.deleted_at),
+          is_nil(m.deleted_at) and
+          like(m.content, "%[broadcast:%"),
       select: %{
         conversation_id: m.conversation_id,
         content: m.content,
@@ -685,7 +687,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     )
     |> Repo.all()
     |> Enum.reduce(%{}, fn %{conversation_id: conv_id, content: content, inserted_at: at}, acc ->
-      case Regex.run(~r/\[broadcast:[^\]]+\]/, content || "") do
+      case Regex.run(@broadcast_token_regex, content || "") do
         [token] ->
           conv_notes = Map.get(acc, conv_id, %{})
           updated_notes = Map.put(conv_notes, token, DateTime.to_iso8601(at))

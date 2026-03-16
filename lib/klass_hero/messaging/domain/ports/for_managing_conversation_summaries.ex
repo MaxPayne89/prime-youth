@@ -1,10 +1,10 @@
-defmodule KlassHero.Messaging.Domain.Ports.ForListingConversationSummaries do
+defmodule KlassHero.Messaging.Domain.Ports.ForManagingConversationSummaries do
   @moduledoc """
-  Read port for querying the conversation_summaries denormalized read model.
+  Port for querying and updating the conversation_summaries denormalized read model.
 
-  This port defines the contract for read-side queries against the CQRS
-  read table. The projection GenServer handles writes; this port handles
-  reads only.
+  This port defines the contract for read-side queries and targeted writes
+  against the CQRS read table. The projection GenServer handles bulk writes;
+  this port handles reads and synchronous write-throughs.
 
   Implemented by the ConversationSummariesRepository adapter.
   """
