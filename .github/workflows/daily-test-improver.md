@@ -61,14 +61,8 @@ tools:
     toolsets: [all]
   repo-memory: true
 
-<<<<<<< current (local changes)
-source: githubnext/agentics/workflows/daily-test-improver.md@ee49512da7887942965ac0a0e48357106313c9dd
-engine: copilot
-||||||| base (original)
-source: githubnext/agentics/workflows/daily-test-improver.md@ee49512da7887942965ac0a0e48357106313c9dd
-=======
 source: githubnext/agentics/workflows/daily-test-improver.md@613b585d37d53ee994d85ad27e8e62ad0022ae32
->>>>>>> new (upstream)
+engine: copilot
 ---
 
 # Daily Test Improver

@@ -18,14 +18,8 @@ safe-outputs:
     max: 3
 timeout-minutes: 15
 strict: true
-<<<<<<< current (local changes)
-source: githubnext/agentics/workflows/duplicate-code-detector.md@442992eda2ccb11ee75a39c019ec6d38ae5a84a2
-engine: copilot
-||||||| base (original)
-source: githubnext/agentics/workflows/duplicate-code-detector.md@442992eda2ccb11ee75a39c019ec6d38ae5a84a2
-=======
 source: githubnext/agentics/workflows/duplicate-code-detector.md@613b585d37d53ee994d85ad27e8e62ad0022ae32
->>>>>>> new (upstream)
+engine: copilot
 ---
 
 # Duplicate Code Detection

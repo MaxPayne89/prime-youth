@@ -35,14 +35,8 @@ tools:
   web-fetch:
   bash: true
 
-<<<<<<< current (local changes)
-source: githubnext/agentics/workflows/daily-qa.md@442992eda2ccb11ee75a39c019ec6d38ae5a84a2
-engine: copilot
-||||||| base (original)
-source: githubnext/agentics/workflows/daily-qa.md@442992eda2ccb11ee75a39c019ec6d38ae5a84a2
-=======
 source: githubnext/agentics/workflows/daily-qa.md@613b585d37d53ee994d85ad27e8e62ad0022ae32
->>>>>>> new (upstream)
+engine: copilot
 ---
 
 # Daily QA

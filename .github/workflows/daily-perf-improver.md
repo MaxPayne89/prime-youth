@@ -61,14 +61,8 @@ tools:
   bash: true
   repo-memory: true
 
-<<<<<<< current (local changes)
-source: githubnext/agentics/workflows/daily-perf-improver.md@b466f28f0f65b68d6f2b10b15b44f51d787b93be
-engine: copilot
-||||||| base (original)
-source: githubnext/agentics/workflows/daily-perf-improver.md@b466f28f0f65b68d6f2b10b15b44f51d787b93be
-=======
 source: githubnext/agentics/workflows/daily-perf-improver.md@613b585d37d53ee994d85ad27e8e62ad0022ae32
->>>>>>> new (upstream)
+engine: copilot
 ---
 
 # Daily Perf Improver
