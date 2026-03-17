@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Klass Hero is a platform for afterschool activities, camps, and class trips management, connecting parents, instructors, and administrators.
 
-**Tech Stack:** Elixir 1.20 + Phoenix 1.8 + LiveView 1.1 + PostgreSQL + Tailwind CSS
+**Tech Stack:** Elixir 1.20 + Phoenix 1.8 + LiveView 1.1 + PostgreSQL + Tailwind CSS + Oban + Backpex
 
 ## Commands
 
@@ -103,8 +103,32 @@ If Tidewave unavailable: Alert user immediately - indicates Phoenix server not r
 
 - **Mobile-first design** - Design for mobile before desktop
 - **Warnings as errors** - All warnings must be resolved before commit
+- **Tests before commit** - If tests fail, fix before proceeding — never commit with failing tests
 - **No Claude references** - Never mention Claude in commits, PRs, or issues
 - Merchant codes: set under `sumup.merchant.code` attribute
+
+## Git Conventions
+
+Use semantic commit messages: `type: description`
+
+Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, `perf`
+
+Examples: `feat: add staff invitation flow`, `fix: correct enrollment fee calculation`, `ci: split test workflow into parallel jobs`
+
+## Ecto Anti-Patterns
+
+- **Never** use `Multi.run` for side-effects — `Multi.run` is for operations that need to be part of the transaction
+- **Never** read data outside a `Multi` transaction and use it inside — fetch within the Multi to avoid race conditions
+
+## PR Review Comments
+
+When addressing PR review comments, follow this workflow:
+
+1. Fetch all comments on the PR
+2. Triage: classify as actionable fix, style nit, or dismissible bot noise
+3. Confirm with user before dismissing any comments
+4. Apply fixes for actionable items
+5. Run `mix precommit`, then commit and push
 
 ## Detailed Rules
 
