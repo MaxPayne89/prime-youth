@@ -5,6 +5,21 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1](https://github.com/MaxPayne89/klass-hero/compare/v0.8.0...v0.8.1) (2026-03-17)
+
+
+### Bug Fixes
+
+* add broadcast_id and direct_conversation_id to Logger metadata ([e978115](https://github.com/MaxPayne89/klass-hero/commit/e97811543ad1d51efbff469ed1e1d5002a7c86d1))
+* address PR review comments on [#448](https://github.com/MaxPayne89/klass-hero/issues/448) ([256d7d4](https://github.com/MaxPayne89/klass-hero/commit/256d7d423532c7f05726e9c8fdc233316ca9898a))
+* resolve 4 production error tracker entries ([2667afa](https://github.com/MaxPayne89/klass-hero/commit/2667afa73d01c97d447074a517b88f6660b67a7b))
+* resolve 4 production error tracker entries ([29282b5](https://github.com/MaxPayne89/klass-hero/commit/29282b5681994a2e35764ae412916525a2fa3db8))
+
+
+### Code Refactoring
+
+* use structural pattern matching for rate limit detection ([407003b](https://github.com/MaxPayne89/klass-hero/commit/407003bec8a8a15f4f25c892d8d93bc8e1368ee3))
+
 ## [0.8.0](https://github.com/MaxPayne89/klass-hero/compare/v0.7.0...v0.8.0) (2026-03-16)
 
 
