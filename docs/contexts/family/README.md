@@ -14,10 +14,8 @@
 |---|---|---|
 | Child Management | Active | [child-management](features/child-management.md) |
 | Consent Management | Active | [consent-management](features/consent-management.md) |
-| Parent Profile Creation | Active | [parent-profile-creation](features/parent-profile-creation.md) |
-| GDPR Data Anonymization | Active | [gdpr-anonymization](features/gdpr-anonymization.md) |
-| GDPR Data Export | Active | [gdpr-data-export](features/gdpr-data-export.md) |
-| Referral Codes | Active | [referral-codes](features/referral-codes.md) |
+| Parent Profile Creation & Referral Codes | Active | [parent-profile-creation](features/parent-profile-creation.md) |
+| GDPR Compliance (Anonymization + Export) | Active | [gdpr-compliance](features/gdpr-compliance.md) |
 | Activity Goal Calculation | Active | [activity-goal](features/activity-goal.md) |
 
 ## Inbound Communication

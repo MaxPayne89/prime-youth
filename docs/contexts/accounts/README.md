@@ -12,15 +12,12 @@
 
 | Feature | Status | Doc |
 |---|---|---|
-| User Registration | Active | — |
-| Magic Link Login | Active | — |
-| Email Change | Active | — |
-| Password Management | Active | — |
-| Locale Preferences | Active | — |
-| Sudo Mode | Active | — |
-| GDPR Data Export | Active | — |
-| GDPR Account Anonymization | Active | — |
-| Role Resolution (Scope) | Active | — |
+| User Registration | Active | [user-registration](features/user-registration.md) |
+| Magic Link Login | Active | [magic-link-login](features/magic-link-login.md) |
+| Email & Password Management | Active | [email-and-password-management](features/email-and-password-management.md) |
+| Sudo Mode & Locale | Active | [sudo-mode-and-locale](features/sudo-mode-and-locale.md) |
+| GDPR Compliance (Export + Anonymization) | Active | [gdpr-compliance](features/gdpr-compliance.md) |
+| Role Resolution (Scope) | Active | [role-resolution](features/role-resolution.md) |
 | Permission Enforcement | Planned | — |
 
 ## Inbound Communication

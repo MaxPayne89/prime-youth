@@ -12,19 +12,18 @@
 
 | Feature | Status | Doc |
 |---|---|---|
-| Create Enrollment | Active | - |
+| Create Enrollment | Active | [create-enrollment](features/create-enrollment.md) |
 | Enrollment Capacity (Policies) | Active | [capacity](features/capacity.md) |
 | Participant Restrictions | Active | [participant-restrictions](features/participant-restrictions.md) |
-| Pricing (total = program price) | Active | - |
-| Booking Usage Tracking | Active | - |
-| Enrollment Status Lifecycle | Active | - |
-| Enrollment Classification (Active/Expired) | Active | [enrollment-classification](features/enrollment-classification.md) |
+| Pricing | Active | [pricing](features/pricing.md) |
+| Booking Usage Tracking | Active | [booking-usage-tracking](features/booking-usage-tracking.md) |
+| Enrollment Status Lifecycle | Active | [enrollment-status-lifecycle](features/enrollment-status-lifecycle.md) |
+| Enrollment Classification | Active | [enrollment-classification](features/enrollment-classification.md) |
 | Provider Enrollment Roster | Active | [provider-enrollment-roster](features/provider-enrollment-roster.md) |
 | CSV Bulk Import | Active | [import-enrollment-csv](features/import-enrollment-csv.md) |
 | Invite Email Pipeline | Active | [invite-email-pipeline](features/invite-email-pipeline.md) |
-| Invite Management (list, resend, delete) | Active | [invite-management](features/invite-management.md) |
-| Invite Claim Saga | Active | - |
-| Cross-Context Enrollment Queries | Active | - |
+| Invite Management | Active | [invite-management](features/invite-management.md) |
+| Invite Claim Saga | Active | [invite-claim-saga](features/invite-claim-saga.md) |
 
 ## Inbound Communication
 

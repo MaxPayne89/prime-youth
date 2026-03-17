@@ -12,14 +12,12 @@
 
 | Feature | Status | Doc |
 |---|---|---|
-| Session Management | Active | - |
-| Check-In / Check-Out | Active | - |
-| Bulk Check-In | Active | - |
-| Behavioral Notes (submit/review/revise) | Active | - |
-| Session Roster with Child Info | Active | - |
-| Participation History | Active | - |
-| GDPR Anonymization | Active | - |
-| Real-Time LiveView Updates | Active | - |
+| Session Management | Active | [session-management](features/session-management.md) |
+| Check-In / Check-Out / Bulk | Active | [check-in-check-out](features/check-in-check-out.md) |
+| Behavioral Notes | Active | [behavioral-notes](features/behavioral-notes.md) |
+| Session Roster & Participation History | Active | [session-roster-and-history](features/session-roster-and-history.md) |
+| GDPR Anonymization | Active | [gdpr-anonymization](features/gdpr-anonymization.md) |
+| Real-Time LiveView Updates | Active | — (cross-cutting pattern, see individual features) |
 
 ## Inbound Communication
 

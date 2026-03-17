@@ -12,10 +12,10 @@
 
 | Feature | Status | Doc |
 |---|---|---|
-| Provider Profile Management | Active | — |
-| Staff Member Management | Active | — |
-| Verification Document Workflow | Active | — |
-| Provider Verification (Admin) | Active | — |
+| Provider Profile Management | Active | [provider-profile-management](features/provider-profile-management.md) |
+| Staff Member Management | Active | [staff-member-management](features/staff-member-management.md) |
+| Verification Document Workflow | Active | [verification-document-workflow](features/verification-document-workflow.md) |
+| Provider Verification (Admin) | Active | [provider-verification-admin](features/provider-verification-admin.md) |
 
 ## Inbound Communication
 
