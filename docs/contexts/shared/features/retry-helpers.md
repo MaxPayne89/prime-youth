@@ -12,7 +12,7 @@ Provides intelligent retry logic for event-driven operations, automatically clas
 - Executes an operation and retries once on transient errors (`:database_connection_error`) after a configurable backoff (default 100 ms)
 - Classifies errors into transient (retryable) and permanent (non-retryable) categories
 - Treats `:duplicate_resource` as idempotent success, returning `:ok` instead of an error
-- Logs every retry attempt, success, and failure with unique error IDs for correlation
+- Logs every retry attempt and failure with unique error IDs for correlation; logs retry success without an error ID
 - Unwraps step-tagged errors (e.g., `{:anonymize_messages, :database_connection_error}`) and delegates classification to the inner reason
 - Offers `retry_and_normalize/2` to collapse `{:ok, result}` down to bare `:ok` for event handler contracts
 
