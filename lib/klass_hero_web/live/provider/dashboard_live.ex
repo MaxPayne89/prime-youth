@@ -378,44 +378,45 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     provider = socket.assigns.current_scope.provider
     doc_type = socket.assigns.doc_type
 
-    results =
-      consume_uploaded_entries(socket, :verification_doc, fn %{path: path}, entry ->
-        try do
-          # sobelow_skip ["Traversal.FileModule"]
-          file_binary = File.read!(path)
+    case safe_consume_uploaded_entries(socket, :verification_doc, fn %{path: path}, entry ->
+           try do
+             # sobelow_skip ["Traversal.FileModule"]
+             file_binary = File.read!(path)
 
-          case Provider.submit_verification_document(%{
-                 provider_profile_id: provider.id,
-                 document_type: doc_type,
-                 file_binary: file_binary,
-                 original_filename: entry.client_name,
-                 content_type: entry.client_type
-               }) do
-            {:ok, doc} -> {:ok, doc}
-            {:error, reason} -> {:postpone, reason}
-          end
-        catch
-          kind, reason ->
-            Logger.error("Verification doc upload failed",
-              provider_id: provider.id,
-              doc_type: doc_type,
-              kind: kind,
-              error: inspect(reason)
-            )
+             case Provider.submit_verification_document(%{
+                    provider_profile_id: provider.id,
+                    document_type: doc_type,
+                    file_binary: file_binary,
+                    original_filename: entry.client_name,
+                    content_type: entry.client_type
+                  }) do
+               {:ok, doc} -> {:ok, doc}
+               {:error, reason} -> {:postpone, reason}
+             end
+           catch
+             kind, reason ->
+               Logger.error("Verification doc upload failed",
+                 provider_id: provider.id,
+                 doc_type: doc_type,
+                 kind: kind,
+                 error: inspect(reason)
+               )
 
-            {:error, :upload_exception}
-        end
-      end)
+               {:error, :upload_exception}
+           end
+         end) do
+      {:error, :upload_channel_died} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("Upload connection lost. Please try again."))}
 
-    # consume_uploaded_entries unwraps {:ok, value} → value
-    case results do
-      [%{} = doc] ->
+      # consume_uploaded_entries unwraps {:ok, value} → value
+      {:ok, [%{} = doc]} ->
         {:noreply,
          socket
          |> stream_insert(:verification_docs, doc, dom_id: &"vdoc-#{&1.id}")
          |> put_flash(:info, gettext("Document uploaded successfully."))}
 
-      other ->
+      {:ok, other} ->
         Logger.error("Verification document upload failed",
           provider_id: provider.id,
           doc_type: doc_type,
@@ -655,20 +656,22 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     # Why: consume_uploaded_entries unwraps the outer {:ok, _} from the callback,
     #      so we wrap File.read/1's result to preserve the inner {:ok, binary}/{:error, reason}
     # Outcome: empty list or I/O failure produces user-facing flash error
-    entries =
-      consume_uploaded_entries(socket, :csv_file, fn %{path: path}, _entry ->
-        {:ok, File.read(path)}
-      end)
+    # sobelow_skip ["Traversal.FileModule"]
+    case safe_consume_uploaded_entries(socket, :csv_file, fn %{path: path}, _entry ->
+           {:ok, File.read(path)}
+         end) do
+      {:error, :upload_channel_died} ->
+        {:noreply,
+         put_flash(socket, :error, gettext("Upload connection lost. Please try again."))}
 
-    case entries do
-      [] ->
+      {:ok, []} ->
         {:noreply, put_flash(socket, :error, gettext("No file selected."))}
 
-      [{:error, reason}] ->
+      {:ok, [{:error, reason}]} ->
         Logger.warning("[DashboardLive] CSV file read failed: #{inspect(reason)}")
         {:noreply, put_flash(socket, :error, gettext("Could not read the uploaded file."))}
 
-      [{:ok, csv_binary}] ->
+      {:ok, [{:ok, csv_binary}]} ->
         case Enrollment.import_enrollment_csv(provider_id, csv_binary) do
           {:ok, %{created: count}} ->
             socket = refresh_invites_silent(socket, program_id)
@@ -1392,11 +1395,27 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # Upload Helpers
   # ============================================================================
 
+  # Trigger: consume_uploaded_entries calls GenServer.call on the upload channel PID
+  # Why: if the WebSocket reconnects (tab sleep, network hiccup) the PID is dead
+  #      and an :exit propagates before the user callback runs
+  # Outcome: wraps the call so dead-channel crashes return a tagged error tuple
+  defp safe_consume_uploaded_entries(socket, upload_name, callback) do
+    {:ok, consume_uploaded_entries(socket, upload_name, callback)}
+  catch
+    :exit, reason ->
+      Logger.warning("Upload channel process died during consume",
+        upload: upload_name,
+        reason: inspect(reason)
+      )
+
+      {:error, :upload_channel_died}
+  end
+
   # Trigger: upload entries may be empty (user didn't pick a file)
   # Why: consume_uploaded_entries returns [] when no entries exist
   # Outcome: {:ok, url} on success, :no_upload if no file selected, :upload_error on failure
   defp consume_single_upload(socket, upload_name, storage_prefix, provider_id) do
-    case consume_uploaded_entries(socket, upload_name, fn %{path: path}, entry ->
+    case safe_consume_uploaded_entries(socket, upload_name, fn %{path: path}, entry ->
            try do
              # sobelow_skip ["Traversal.FileModule"]
              file_binary = File.read!(path)
@@ -1419,12 +1438,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                {:error, :upload_exception}
            end
          end) do
+      {:error, :upload_channel_died} -> :upload_error
       # Trigger: consume_uploaded_entries unwraps {:ok, value} tuples
       # Why: the callback returns {:ok, url}, but the list contains only the url string
       # Outcome: match on a single-element list with a string URL
-      [url] when is_binary(url) -> {:ok, url}
-      [] -> :no_upload
-      _other -> :upload_error
+      {:ok, [url]} when is_binary(url) -> {:ok, url}
+      {:ok, []} -> :no_upload
+      {:ok, _other} -> :upload_error
     end
   end
 

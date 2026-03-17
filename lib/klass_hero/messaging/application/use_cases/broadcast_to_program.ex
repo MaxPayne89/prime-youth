@@ -72,56 +72,67 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   defp verify_has_recipients(_), do: :ok
 
   defp create_broadcast(scope, program_id, subject, content, parent_user_ids, repos) do
-    Repo.transaction(fn ->
-      with {:ok, conversation} <-
-             get_or_create_broadcast_conversation(scope, program_id, subject, repos.conversations),
-           {:ok, _participants} <- repos.participants.add_batch(conversation.id, parent_user_ids),
-           {:ok, _} <-
-             repos.participants.add(%{conversation_id: conversation.id, user_id: scope.user.id}),
-           {:ok, message} <-
-             repos.messages.create(%{
-               conversation_id: conversation.id,
-               sender_id: scope.user.id,
-               content: String.trim(content),
-               message_type: :text
-             }) do
-        {conversation, message}
-      else
-        {:error, reason} -> Repo.rollback(reason)
+    # Trigger: get-or-create runs OUTSIDE the transaction
+    # Why: unique constraint violation inside Repo.transaction aborts the Postgres
+    #      transaction — subsequent queries fail with 25P02 (in_failed_sql_transaction)
+    # Outcome: conversation lookup/creation is isolated; only participant + message
+    #          creation needs transactional consistency
+    with {:ok, conversation} <-
+           get_or_create_broadcast_conversation(scope, program_id, subject, repos.conversations) do
+      Repo.transaction(fn ->
+        with {:ok, _participants} <-
+               repos.participants.add_batch(conversation.id, parent_user_ids),
+             {:ok, _} <-
+               repos.participants.add(%{
+                 conversation_id: conversation.id,
+                 user_id: scope.user.id
+               }),
+             {:ok, message} <-
+               repos.messages.create(%{
+                 conversation_id: conversation.id,
+                 sender_id: scope.user.id,
+                 content: String.trim(content),
+                 message_type: :text
+               }) do
+          {conversation, message}
+        else
+          {:error, reason} -> Repo.rollback(reason)
+        end
+      end)
+      |> case do
+        {:ok, {conversation, message}} -> {:ok, conversation, message}
+        {:error, reason} -> {:error, reason}
       end
-    end)
-    |> case do
-      {:ok, {conversation, message}} -> {:ok, conversation, message}
-      {:error, reason} -> {:error, reason}
     end
   end
 
   defp get_or_create_broadcast_conversation(scope, program_id, subject, conversation_repo) do
-    attrs = %{
-      type: :program_broadcast,
-      provider_id: scope.provider.id,
-      program_id: program_id,
-      subject: subject
-    }
-
-    case conversation_repo.create(attrs) do
+    # Trigger: check for existing broadcast BEFORE attempting insert
+    # Why: avoids unique constraint violation that would abort a parent transaction
+    # Outcome: existing conversation reused; new one created only if none exists
+    case conversation_repo.find_active_broadcast_for_program(scope.provider.id, program_id) do
       {:ok, conversation} ->
         {:ok, conversation}
 
-      {:error, :duplicate_broadcast} ->
-        find_existing_broadcast(scope.provider.id, program_id, conversation_repo)
-    end
-  end
+      {:error, :not_found} ->
+        attrs = %{
+          type: :program_broadcast,
+          provider_id: scope.provider.id,
+          program_id: program_id,
+          subject: subject
+        }
 
-  defp find_existing_broadcast(provider_id, program_id, conversation_repo) do
-    with {:ok, existing, _has_more} <-
-           conversation_repo.list_for_provider(provider_id, type: :program_broadcast) do
-      existing
-      |> Enum.find(fn c -> c.program_id == program_id end)
-      |> case do
-        nil -> {:error, :broadcast_not_found}
-        conversation -> {:ok, conversation}
-      end
+        case conversation_repo.create(attrs) do
+          {:ok, conversation} ->
+            {:ok, conversation}
+
+          # Trigger: race condition — another request created the conversation between
+          #          our find and our create
+          # Why: unique constraint fires; handle gracefully by re-querying
+          # Outcome: return the conversation that won the race
+          {:error, :duplicate_broadcast} ->
+            conversation_repo.find_active_broadcast_for_program(scope.provider.id, program_id)
+        end
     end
   end
 

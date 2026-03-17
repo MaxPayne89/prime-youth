@@ -58,7 +58,9 @@ config :klass_hero, Oban,
        {"0 4 * * *", KlassHero.Messaging.Workers.RetentionPolicyWorker}
      ]}
   ],
-  queues: [default: 10, messaging: 5, cleanup: 2, email: 5, family: 1, critical_events: 5]
+  # email: 1 — serialized to stay under Resend's 2 req/sec rate limit (per-node;
+  #   add a rate limiter if scaling to multiple Oban nodes)
+  queues: [default: 10, messaging: 5, cleanup: 2, email: 1, family: 1, critical_events: 5]
 
 # Configure Accounts bounded context
 config :klass_hero, :accounts,

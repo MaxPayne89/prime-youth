@@ -44,6 +44,13 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationQu
   end
 
   @doc """
+  Filter by program.
+  """
+  def by_program(query, program_id) do
+    where(query, [conversation: c], c.program_id == ^program_id)
+  end
+
+  @doc """
   Filter to only active (non-archived) conversations.
   """
   def active_only(query) do

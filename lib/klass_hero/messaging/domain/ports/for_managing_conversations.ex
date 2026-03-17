@@ -43,6 +43,16 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingConversations do
               {:ok, Conversation.t()} | {:error, :not_found}
 
   @doc """
+  Finds the active broadcast conversation for a specific program.
+
+  Returns:
+  - `{:ok, Conversation.t()}` - Active broadcast found
+  - `{:error, :not_found}` - No active broadcast exists for this program
+  """
+  @callback find_active_broadcast_for_program(provider_id :: binary(), program_id :: binary()) ::
+              {:ok, Conversation.t()} | {:error, :not_found}
+
+  @doc """
   Lists all conversations for a user.
 
   Returns conversations where the user is an active participant,
