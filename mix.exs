@@ -4,7 +4,7 @@ defmodule KlassHero.MixProject do
   def project do
     [
       app: :klass_hero,
-      version: "0.8.0",
+      version: "0.8.1",
       elixir: "~> 1.20.0-rc.3",
       erlang: "~> 28.4",
       elixirc_paths: elixirc_paths(Mix.env()),
