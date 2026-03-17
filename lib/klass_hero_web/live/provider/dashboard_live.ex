@@ -656,6 +656,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     # Why: consume_uploaded_entries unwraps the outer {:ok, _} from the callback,
     #      so we wrap File.read/1's result to preserve the inner {:ok, binary}/{:error, reason}
     # Outcome: empty list or I/O failure produces user-facing flash error
+    # sobelow_skip ["Traversal.FileModule"]
     case safe_consume_uploaded_entries(socket, :csv_file, fn %{path: path}, _entry ->
            {:ok, File.read(path)}
          end) do
