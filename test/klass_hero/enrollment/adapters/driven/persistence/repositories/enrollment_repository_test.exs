@@ -441,7 +441,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
     # same child in the same program. One must succeed and the other must return
     # {:error, :duplicate_resource} rather than crashing or leaking a raw
     # constraint error to callers.
-    @tag :capture_log
     test "one request succeeds and the other returns duplicate_resource" do
       program = insert(:program_schema)
       {child, parent} = insert_child_with_guardian()
