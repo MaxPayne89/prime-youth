@@ -68,7 +68,7 @@ THEN  the scope is nil and resolve_roles is never invoked
 sequenceDiagram
     participant Browser
     participant LiveView
-    participant UserAuth (on_mount)
+    participant UserAuth as UserAuth (on_mount)
     participant Scope
     participant Family
     participant Provider

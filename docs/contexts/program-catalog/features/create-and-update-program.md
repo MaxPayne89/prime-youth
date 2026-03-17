@@ -130,23 +130,23 @@ THEN  they are ignored because these fields bypass cast and are set only via put
 ```mermaid
 sequenceDiagram
     participant Provider
-    participant CreateProgram (Use Case)
-    participant Program (Domain Model)
-    participant ForCreatingPrograms (Port)
-    participant ProgramRepository (Adapter)
+    participant CreateProgram as CreateProgram (Use Case)
+    participant Program as Program (Domain Model)
+    participant ForCreating as ForCreatingPrograms (Port)
+    participant ProgramRepo as ProgramRepository (Adapter)
     participant DomainEventBus
 
-    Provider->>CreateProgram (Use Case): execute(attrs)
-    CreateProgram (Use Case)->>Program (Domain Model): create(attrs)
-    Note over Program (Domain Model): Validate title, description,<br/>category, price, provider_id,<br/>scheduling, instructor, registration period
-    Program (Domain Model)-->>CreateProgram (Use Case): {:ok, program} | {:error, reasons}
-    CreateProgram (Use Case)->>ForCreatingPrograms (Port): create(program)
-    ForCreatingPrograms (Port)->>ProgramRepository (Adapter): create_changeset + Repo.insert
-    ProgramRepository (Adapter)-->>ForCreatingPrograms (Port): {:ok, schema}
-    ForCreatingPrograms (Port)->>CreateProgram (Use Case): {:ok, persisted_program}
-    CreateProgram (Use Case)->>DomainEventBus: dispatch(:program_created)
+    Provider->>CreateProgram: execute(attrs)
+    CreateProgram->>Program: create(attrs)
+    Note over Program: Validate title, description,<br/>category, price, provider_id,<br/>scheduling, instructor, registration period
+    Program-->>CreateProgram: {:ok, program} | {:error, reasons}
+    CreateProgram->>ForCreating: create(program)
+    ForCreating->>ProgramRepo: create_changeset + Repo.insert
+    ProgramRepo-->>ForCreating: {:ok, schema}
+    ForCreating->>CreateProgram: {:ok, persisted_program}
+    CreateProgram->>DomainEventBus: dispatch(:program_created)
     Note over DomainEventBus: Fire-and-forget; failures logged,<br/>never roll back the insert
-    CreateProgram (Use Case)-->>Provider: {:ok, program}
+    CreateProgram-->>Provider: {:ok, program}
 ```
 
 ### Update Flow
@@ -154,26 +154,26 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Provider
-    participant UpdateProgram (Use Case)
-    participant ForUpdatingPrograms (Port)
-    participant Program (Domain Model)
-    participant ProgramRepository (Adapter)
+    participant UpdateProgram as UpdateProgram (Use Case)
+    participant ForUpdating as ForUpdatingPrograms (Port)
+    participant Program as Program (Domain Model)
+    participant ProgramRepo as ProgramRepository (Adapter)
     participant DomainEventBus
 
-    Provider->>UpdateProgram (Use Case): execute(id, changes)
-    UpdateProgram (Use Case)->>ForUpdatingPrograms (Port): get_by_id(id)
-    ForUpdatingPrograms (Port)-->>UpdateProgram (Use Case): {:ok, current_program}
-    UpdateProgram (Use Case)->>Program (Domain Model): apply_changes(current, changes)
-    Note over Program (Domain Model): Merge only changed fields,<br/>re-validate all invariants
-    Program (Domain Model)-->>UpdateProgram (Use Case): {:ok, updated_program}
-    UpdateProgram (Use Case)->>ForUpdatingPrograms (Port): update(updated_program)
-    Note over ProgramRepository (Adapter): Schema loaded with client lock_version,<br/>optimistic_lock(:lock_version) applied
-    ForUpdatingPrograms (Port)->>ProgramRepository (Adapter): update_changeset + Repo.update
-    ProgramRepository (Adapter)-->>ForUpdatingPrograms (Port): {:ok, schema} | StaleEntryError
-    ForUpdatingPrograms (Port)-->>UpdateProgram (Use Case): {:ok, persisted} | {:error, :stale_data}
-    UpdateProgram (Use Case)->>DomainEventBus: dispatch(:program_updated)
-    UpdateProgram (Use Case)->>DomainEventBus: dispatch(:program_schedule_updated) [if schedule changed]
-    UpdateProgram (Use Case)-->>Provider: {:ok, program}
+    Provider->>UpdateProgram: execute(id, changes)
+    UpdateProgram->>ForUpdating: get_by_id(id)
+    ForUpdating-->>UpdateProgram: {:ok, current_program}
+    UpdateProgram->>Program: apply_changes(current, changes)
+    Note over Program: Merge only changed fields,<br/>re-validate all invariants
+    Program-->>UpdateProgram: {:ok, updated_program}
+    UpdateProgram->>ForUpdating: update(updated_program)
+    Note over ProgramRepo: Schema loaded with client lock_version,<br/>optimistic_lock(:lock_version) applied
+    ForUpdating->>ProgramRepo: update_changeset + Repo.update
+    ProgramRepo-->>ForUpdating: {:ok, schema} | StaleEntryError
+    ForUpdating-->>UpdateProgram: {:ok, persisted} | {:error, :stale_data}
+    UpdateProgram->>DomainEventBus: dispatch(:program_updated)
+    UpdateProgram->>DomainEventBus: dispatch(:program_schedule_updated) [if schedule changed]
+    UpdateProgram-->>Provider: {:ok, program}
 ```
 
 ## Dependencies

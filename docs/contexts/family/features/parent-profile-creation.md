@@ -77,7 +77,7 @@ sequenceDiagram
     participant FamilyEventHandler
     participant Family
     participant CreateParentProfile
-    participant ParentProfile (Domain)
+    participant ParentProfile as ParentProfile (Domain)
     participant ParentProfileRepository
 
     Accounts->>PubSub: publish(:user_registered, %{entity_id: user_id, payload: %{intended_roles: ["parent"]}})

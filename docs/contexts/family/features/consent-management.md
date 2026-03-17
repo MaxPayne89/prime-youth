@@ -79,20 +79,20 @@ THEN  all consent records for that child are hard-deleted
 ```mermaid
 sequenceDiagram
     participant Parent
-    participant Family (Facade)
-    participant GrantConsent (UseCase)
-    participant Consent (Domain)
-    participant ConsentRepository (Adapter)
+    participant Family as Family (Facade)
+    participant GrantConsent as GrantConsent (UseCase)
+    participant Consent as Consent (Domain)
+    participant ConsentRepository as ConsentRepository (Adapter)
 
-    Parent->>Family (Facade): grant_consent(%{parent_id, child_id, consent_type})
-    Family (Facade)->>GrantConsent (UseCase): execute(attrs)
-    GrantConsent (UseCase)->>GrantConsent (UseCase): Generate UUID, set granted_at
-    GrantConsent (UseCase)->>Consent (Domain): new(attrs_with_defaults)
-    Consent (Domain)-->>GrantConsent (UseCase): {:ok, validated} | {:error, errors}
-    GrantConsent (UseCase)->>ConsentRepository (Adapter): grant(attrs)
-    Note over ConsentRepository (Adapter): Unique partial index on<br/>(child_id, consent_type)<br/>WHERE withdrawn_at IS NULL
-    ConsentRepository (Adapter)-->>GrantConsent (UseCase): {:ok, consent} | {:error, :already_active}
-    GrantConsent (UseCase)-->>Parent: {:ok, consent} | {:error, reason}
+    Parent->>Family: grant_consent(%{parent_id, child_id, consent_type})
+    Family->>GrantConsent: execute(attrs)
+    GrantConsent->>GrantConsent: Generate UUID, set granted_at
+    GrantConsent->>Consent: new(attrs_with_defaults)
+    Consent-->>GrantConsent: {:ok, validated} | {:error, errors}
+    GrantConsent->>ConsentRepository: grant(attrs)
+    Note over ConsentRepository: Unique partial index on<br/>(child_id, consent_type)<br/>WHERE withdrawn_at IS NULL
+    ConsentRepository-->>GrantConsent: {:ok, consent} | {:error, :already_active}
+    GrantConsent-->>Parent: {:ok, consent} | {:error, reason}
 ```
 
 ### Withdraw Consent
@@ -100,21 +100,21 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     participant Parent
-    participant Family (Facade)
-    participant WithdrawConsent (UseCase)
-    participant Consent (Domain)
-    participant ConsentRepository (Adapter)
+    participant Family as Family (Facade)
+    participant WithdrawConsent as WithdrawConsent (UseCase)
+    participant Consent as Consent (Domain)
+    participant ConsentRepository as ConsentRepository (Adapter)
 
-    Parent->>Family (Facade): withdraw_consent(child_id, consent_type)
-    Family (Facade)->>WithdrawConsent (UseCase): execute(child_id, consent_type)
-    WithdrawConsent (UseCase)->>ConsentRepository (Adapter): get_active_for_child(child_id, consent_type)
-    ConsentRepository (Adapter)-->>WithdrawConsent (UseCase): {:ok, consent} | {:error, :not_found}
-    WithdrawConsent (UseCase)->>Consent (Domain): withdraw(consent)
-    Consent (Domain)-->>WithdrawConsent (UseCase): {:ok, withdrawn_consent}
-    Note over Consent (Domain): Sets withdrawn_at = DateTime.utc_now()
-    WithdrawConsent (UseCase)->>ConsentRepository (Adapter): withdraw(id, withdrawn_at)
-    ConsentRepository (Adapter)-->>WithdrawConsent (UseCase): {:ok, consent}
-    WithdrawConsent (UseCase)-->>Parent: {:ok, consent}
+    Parent->>Family: withdraw_consent(child_id, consent_type)
+    Family->>WithdrawConsent: execute(child_id, consent_type)
+    WithdrawConsent->>ConsentRepository: get_active_for_child(child_id, consent_type)
+    ConsentRepository-->>WithdrawConsent: {:ok, consent} | {:error, :not_found}
+    WithdrawConsent->>Consent: withdraw(consent)
+    Consent-->>WithdrawConsent: {:ok, withdrawn_consent}
+    Note over Consent: Sets withdrawn_at = DateTime.utc_now()
+    WithdrawConsent->>ConsentRepository: withdraw(id, withdrawn_at)
+    ConsentRepository-->>WithdrawConsent: {:ok, consent}
+    WithdrawConsent-->>Parent: {:ok, consent}
 ```
 
 ## Dependencies

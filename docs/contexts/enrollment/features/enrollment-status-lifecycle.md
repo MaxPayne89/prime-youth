@@ -94,7 +94,7 @@ sequenceDiagram
     participant Admin
     participant CancelEnrollmentByAdmin
     participant EnrollmentRepo
-    participant Enrollment (Domain)
+    participant Enrollment as Enrollment (Domain)
     participant EnrollmentEvents
     participant EventDispatcher
 
