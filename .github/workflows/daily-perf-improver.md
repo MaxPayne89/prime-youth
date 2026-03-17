@@ -40,6 +40,7 @@ safe-outputs:
     title-prefix: "[Perf Improver] "
     labels: [automation, performance]
     max: 4
+    protected-files: fallback-to-issue
   push-to-pull-request-branch:
     target: "*"
     title-prefix: "[Perf Improver] "
@@ -60,7 +61,7 @@ tools:
   bash: true
   repo-memory: true
 
-source: githubnext/agentics/workflows/daily-perf-improver.md@b466f28f0f65b68d6f2b10b15b44f51d787b93be
+source: githubnext/agentics/workflows/daily-perf-improver.md@613b585d37d53ee994d85ad27e8e62ad0022ae32
 engine: copilot
 ---
 
@@ -154,24 +155,24 @@ Always do Task 7 (Update Monthly Activity Summary Issue) every run. In all comme
 3. Check for existing performance PRs (especially yours with "[Perf Improver]" prefix). Avoid duplicate work.
 4. For the selected goal:
 
-   a. Create a fresh branch off `main`: `perf-assist/<desc>`.
-   
+   a. Create a fresh branch off the default branch: `perf-assist/<desc>`.
+
    b. **Before implementing**: Establish baseline measurements using appropriate methods:
       - Synthetic benchmarks for algorithm changes
       - User journey tests for UX improvements
       - Load tests for scalability work
       - Build time comparisons for developer experience
-   
+
    c. Implement the optimization. Consider approaches like:
       - **Code optimization**: Algorithm improvements, data structure changes, caching
       - **User experience**: Reducing load times, improving responsiveness, optimizing assets
       - **System efficiency**: Resource utilization, concurrency, I/O optimization
       - **Build/test performance**: Faster builds, parallelized tests, reduced CI duration
-   
+
    d. **After implementing**: Measure again with the same methodology. Document both baseline and new measurements.
-   
+
    e. Ensure the code still works - run tests. Add new tests if appropriate.
-   
+
    f. If no improvement: iterate, try a different approach, or revert. Record the attempt in memory as a learning.
 
 5. **Finalize changes**:
