@@ -2,7 +2,7 @@
 
 ## Scope
 - Mode: branch (`refactor/445-duplicate-code` vs `main`)
-- Files changed: 5
+- Files changed: 5 (code), 6 total with this report
 - Routes affected: none (pure backend refactoring)
 - UI affected: none
 

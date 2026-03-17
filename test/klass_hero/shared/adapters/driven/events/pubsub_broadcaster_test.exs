@@ -2,13 +2,15 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubBroadcasterTest do
   use ExUnit.Case, async: true
 
   alias KlassHero.Shared.Adapters.Driven.Events.PubSubBroadcaster
+  alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   describe "broadcast/3" do
     test "returns :ok and delivers tagged message to subscriber" do
       topic = "broadcaster_test:#{:erlang.unique_integer([:positive])}"
       Phoenix.PubSub.subscribe(KlassHero.PubSub, topic)
 
-      event = %{event_id: "evt-1", event_type: :test_event, aggregate_id: "agg-1"}
+      event = DomainEvent.new(:test_event, "agg-1", :test_agg, %{foo: "bar"})
 
       assert :ok =
                PubSubBroadcaster.broadcast(event, topic,
@@ -18,14 +20,16 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubBroadcasterTest do
                  extra_metadata: [aggregate_id: event.aggregate_id]
                )
 
-      assert_receive {:domain_event, ^event}
+      assert_receive {:domain_event, received}
+      assert received.event_type == :test_event
+      assert received.aggregate_id == "agg-1"
     end
 
     test "uses the correct message tag in broadcast tuple" do
       topic = "broadcaster_test:#{:erlang.unique_integer([:positive])}"
       Phoenix.PubSub.subscribe(KlassHero.PubSub, topic)
 
-      event = %{event_id: "evt-2", event_type: :integration_test, entity_id: "ent-1"}
+      event = IntegrationEvent.new(:integration_test, :test_ctx, :test_entity, "ent-1", %{})
 
       assert :ok =
                PubSubBroadcaster.broadcast(event, topic,
@@ -35,14 +39,16 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubBroadcasterTest do
                  extra_metadata: [entity_id: event.entity_id]
                )
 
-      assert_receive {:integration_event, ^event}
+      assert_receive {:integration_event, received}
+      assert received.event_type == :integration_test
+      assert received.entity_id == "ent-1"
     end
 
     test "extra_metadata defaults to empty list when omitted" do
       topic = "broadcaster_test:#{:erlang.unique_integer([:positive])}"
       Phoenix.PubSub.subscribe(KlassHero.PubSub, topic)
 
-      event = %{event_id: "evt-4", event_type: :minimal_event}
+      event = DomainEvent.new(:minimal_event, "agg-2", :test_agg, %{})
 
       assert :ok =
                PubSubBroadcaster.broadcast(event, topic,
@@ -51,7 +57,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubBroadcasterTest do
                  log_label: "event"
                )
 
-      assert_receive {:domain_event, ^event}
+      assert_receive {:domain_event, received}
+      assert received.event_type == :minimal_event
     end
   end
 

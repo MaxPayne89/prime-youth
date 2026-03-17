@@ -32,7 +32,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubBroadcaster do
 
   Returns `:ok` on success or `{:error, reason}` on failure.
   """
-  @spec broadcast(struct(), String.t(), broadcast_opts()) :: :ok | {:error, term()}
+  @spec broadcast(map(), String.t(), broadcast_opts()) :: :ok | {:error, term()}
   def broadcast(event, topic, opts) do
     config_key = Keyword.fetch!(opts, :config_key)
     message_tag = Keyword.fetch!(opts, :message_tag)
