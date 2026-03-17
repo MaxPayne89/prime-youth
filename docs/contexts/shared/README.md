@@ -12,18 +12,12 @@
 
 | Feature | Status | Doc |
 |---|---|---|
-| Domain Event System (DomainEvent + DomainEventBus) | Active | — |
-| Integration Event System (IntegrationEvent + PubSub publishing) | Active | — |
-| Event Subscriber (GenServer PubSub-to-handler dispatch) | Active | — |
-| Retry Helpers (transient failure resilience) | Active | — |
-| File Storage Abstraction (S3/Tigris/MinIO) | Active | — |
-| Cursor-Based Pagination Types (PageParams, PageResult) | Active | — |
-| Subscription Tier Definitions | Active | — |
-| Category Registry | Active | — |
-| Error ID Constants (structured logging) | Active | — |
-| Activity Goal Calculator | Active | — |
-| Ecto Error Helpers (constraint violation detection) | Active | — |
-| Test Event Publishers (process-isolated test doubles) | Active | — |
+| Domain & Integration Event System | Active | [domain-event-system](features/domain-event-system.md) |
+| Retry Helpers | Active | [retry-helpers](features/retry-helpers.md) |
+| File Storage Abstraction | Active | [file-storage](features/file-storage.md) |
+| Cursor-Based Pagination | Active | [cursor-pagination](features/cursor-pagination.md) |
+| Configuration Registries (Tiers, Categories, Error IDs) | Active | [configuration-registries](features/configuration-registries.md) |
+| Utility Helpers (Goal Calc, Ecto Helpers, Test Publishers) | Active | [utility-helpers](features/utility-helpers.md) |
 
 ## Inbound Communication
 

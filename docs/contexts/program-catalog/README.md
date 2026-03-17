@@ -14,18 +14,12 @@
 
 | Feature | Status | Doc |
 |---|---|---|
-| Browse Programs (paginated, filtered by category) | Active | — |
-| Program Detail View | Active | — |
-| Program Search (in-memory word-boundary matching) | Active | — |
-| Featured Programs (homepage) | Active | — |
-| Create Program (provider) | Active | — |
-| Update Program (provider, optimistic locking) | Active | — |
-| Trending Searches | Active | — |
-| CQRS Read Model (ProgramListings projection) | Active | — |
-| Verified Provider Projection | Active | — |
-| Registration Period (open/closed/upcoming window) | Active | — |
-| Remaining Capacity (via Enrollment ACL) | Active | — |
-| Ended Program ID Listing (for Messaging retention) | Active | — |
+| Browse Programs (Search, Filter, Featured, Trending) | Active | [browse-programs](features/browse-programs.md) |
+| Program Detail View | Active | [program-detail-view](features/program-detail-view.md) |
+| Create & Update Program | Active | [create-and-update-program](features/create-and-update-program.md) |
+| CQRS Read Model & Projections | Active | [cqrs-read-model](features/cqrs-read-model.md) |
+| Registration Period | Active | [registration-period](features/registration-period.md) |
+| Remaining Capacity (via Enrollment ACL) | Active | [remaining-capacity](features/remaining-capacity.md) |
 
 ## Inbound Communication
 

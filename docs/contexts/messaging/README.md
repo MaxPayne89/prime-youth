@@ -16,18 +16,12 @@
 
 | Feature | Status | Doc |
 |---|---|---|
-| Direct Conversations | Active | — |
-| Program Broadcasts | Active | — |
-| Send Messages | Active | — |
-| Read Receipts | Active | — |
-| Unread Count | Active | — |
-| Conversation Listing (CQRS read model) | Active | — |
-| CQRS Conversation Summaries Projection | Active | — |
-| Real-time Updates (PubSub) | Active | — |
-| Conversation Archival | Active | — |
-| Retention Policy Enforcement | Active | — |
-| GDPR Data Anonymization | Active | — |
-| Entitlement Checks | Active | — |
+| Direct Conversations & Messaging | Active | [direct-conversations](features/direct-conversations.md) |
+| Program Broadcasts | Active | [program-broadcasts](features/program-broadcasts.md) |
+| Read Receipts & Unread Count | Active | [read-receipts-and-unread](features/read-receipts-and-unread.md) |
+| Conversation Listing & CQRS Projection | Active | [conversation-listing-and-cqrs](features/conversation-listing-and-cqrs.md) |
+| Lifecycle, Retention & GDPR | Active | [lifecycle-and-retention](features/lifecycle-and-retention.md) |
+| Real-time Updates (PubSub) | Active | — (cross-cutting pattern, see individual features) |
 
 ## Inbound Communication
 
