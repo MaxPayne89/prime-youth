@@ -29,6 +29,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
 
   alias KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistry
   alias KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer
+  alias KlassHero.Shared.Adapters.Driven.Events.PubSubBroadcaster
   alias KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
   alias KlassHero.Shared.Domain.Services.CriticalEventDispatcher
@@ -54,17 +55,12 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
 
   @impl true
   def publish(%IntegrationEvent{} = event, topic) when is_binary(topic) do
-    pubsub = pubsub_server()
-
-    case Phoenix.PubSub.broadcast(pubsub, topic, {:integration_event, event}) do
-      :ok ->
-        log_event_published(event, topic)
-        :ok
-
-      {:error, reason} = error ->
-        log_publish_error(event, topic, reason)
-        error
-    end
+    PubSubBroadcaster.broadcast(event, topic,
+      config_key: :integration_event_publisher,
+      message_tag: :integration_event,
+      log_label: "integration event",
+      extra_metadata: [entity_id: event.entity_id]
+    )
   end
 
   @impl true
@@ -144,31 +140,5 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
           reason: inspect(reason)
         )
     end
-  end
-
-  defp pubsub_server do
-    Application.get_env(:klass_hero, :integration_event_publisher, [])
-    |> Keyword.get(:pubsub, KlassHero.PubSub)
-  end
-
-  defp log_event_published(event, topic) do
-    Logger.debug(
-      "Published integration event #{event.event_type} (#{event.event_id}) to topic #{topic}",
-      event_id: event.event_id,
-      event_type: event.event_type,
-      entity_id: event.entity_id,
-      topic: topic
-    )
-  end
-
-  defp log_publish_error(event, topic, reason) do
-    Logger.error(
-      "Failed to publish integration event #{event.event_type} (#{event.event_id}) to topic #{topic}: #{inspect(reason)}",
-      event_id: event.event_id,
-      event_type: event.event_type,
-      entity_id: event.entity_id,
-      topic: topic,
-      error: reason
-    )
   end
 end

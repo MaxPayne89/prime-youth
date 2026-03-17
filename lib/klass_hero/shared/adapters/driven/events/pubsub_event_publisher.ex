@@ -27,9 +27,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher do
 
   @behaviour KlassHero.Shared.Domain.Ports.ForPublishingEvents
 
+  alias KlassHero.Shared.Adapters.Driven.Events.PubSubBroadcaster
   alias KlassHero.Shared.Domain.Events.DomainEvent
-
-  require Logger
 
   @impl true
   def publish(%DomainEvent{} = event) do
@@ -39,17 +38,12 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher do
 
   @impl true
   def publish(%DomainEvent{} = event, topic) when is_binary(topic) do
-    pubsub = pubsub_server()
-
-    case Phoenix.PubSub.broadcast(pubsub, topic, {:domain_event, event}) do
-      :ok ->
-        log_event_published(event, topic)
-        :ok
-
-      {:error, reason} = error ->
-        log_publish_error(event, topic, reason)
-        error
-    end
+    PubSubBroadcaster.broadcast(event, topic,
+      config_key: :event_publisher,
+      message_tag: :domain_event,
+      log_label: "event",
+      extra_metadata: [aggregate_id: event.aggregate_id]
+    )
   end
 
   @impl true
@@ -100,31 +94,5 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher do
   @spec derive_topic(DomainEvent.t()) :: String.t()
   def derive_topic(%DomainEvent{aggregate_type: agg_type, event_type: event_type}) do
     build_topic(agg_type, event_type)
-  end
-
-  defp pubsub_server do
-    Application.get_env(:klass_hero, :event_publisher, [])
-    |> Keyword.get(:pubsub, KlassHero.PubSub)
-  end
-
-  defp log_event_published(event, topic) do
-    Logger.debug(
-      "Published event #{event.event_type} (#{event.event_id}) to topic #{topic}",
-      event_id: event.event_id,
-      event_type: event.event_type,
-      aggregate_id: event.aggregate_id,
-      topic: topic
-    )
-  end
-
-  defp log_publish_error(event, topic, reason) do
-    Logger.error(
-      "Failed to publish event #{event.event_type} (#{event.event_id}) to topic #{topic}: #{inspect(reason)}",
-      event_id: event.event_id,
-      event_type: event.event_type,
-      aggregate_id: event.aggregate_id,
-      topic: topic,
-      error: reason
-    )
   end
 end
