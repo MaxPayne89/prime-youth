@@ -137,6 +137,52 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
     end
   end
 
+  describe "PubSub real-time updates" do
+    setup :register_and_log_in_provider
+
+    test "updates session in stream when session_started event received", %{
+      conn: conn,
+      provider: provider
+    } do
+      program = insert(:program_schema, provider_id: provider.id)
+      # Need listing so mount can build provider_program_ids MapSet
+      _listing = insert(:program_listing_schema, id: program.id, provider_id: provider.id)
+
+      session =
+        insert(:program_session_schema,
+          program_id: program.id,
+          session_date: Date.utc_today(),
+          status: :scheduled
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions")
+
+      # Session initially shows Start button
+      assert has_element?(view, "button", "Start Session")
+
+      # Simulate PubSub event (matching actual broadcast format)
+      event =
+        KlassHero.Participation.Domain.Events.ParticipationEvents.session_started(
+          struct!(KlassHero.Participation.Domain.Models.ProgramSession, %{
+            id: session.id,
+            program_id: program.id,
+            session_date: Date.utc_today(),
+            start_time: ~T[15:00:00],
+            end_time: ~T[17:00:00],
+            status: :in_progress
+          })
+        )
+
+      # Transition the session in DB so the re-fetch picks it up
+      {:ok, _} = Participation.start_session(session.id)
+
+      send(view.pid, {:domain_event, event})
+
+      # After PubSub update, should show in_progress actions
+      assert has_element?(view, "a", "Manage Participation")
+    end
+  end
+
   describe "session actions" do
     setup :register_and_log_in_provider
 

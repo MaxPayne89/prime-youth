@@ -2,6 +2,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Participation
+  alias KlassHero.ProgramCatalog
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -11,18 +12,31 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     provider_id = socket.assigns.current_scope.provider.id
     selected_date = Date.utc_today()
 
+    provider_programs = ProgramCatalog.list_programs_for_provider(provider_id)
+    provider_program_ids = MapSet.new(provider_programs, & &1.id)
+
     socket =
       socket
       |> assign(:page_title, gettext("My Sessions"))
       |> assign(:provider_id, provider_id)
       |> assign(:selected_date, selected_date)
+      |> assign(:provider_programs, provider_programs)
+      |> assign(:provider_program_ids, provider_program_ids)
       |> stream(:sessions, [])
 
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(
-        KlassHero.PubSub,
-        "participation:provider:#{provider_id}"
-      )
+      # Trigger: subscribing to generic event topics (not provider-specific)
+      # Why: event system publishes to "aggregate:event_type" topics;
+      #      provider-specific routing is a future enhancement
+      # Outcome: handle_info receives all events, filters by provider's program IDs
+      for topic <- [
+            "participation:session_created",
+            "participation:session_started",
+            "participation:session_completed",
+            "participation:child_checked_in"
+          ] do
+        Phoenix.PubSub.subscribe(KlassHero.PubSub, topic)
+      end
     end
 
     {:ok, load_sessions(socket)}
@@ -90,27 +104,40 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     end
   end
 
-  # PubSub event handlers for session lifecycle events
+  # PubSub event handlers — session lifecycle events
   @impl true
   def handle_info(
-        %KlassHero.Shared.Domain.Events.DomainEvent{
-          event_type: event_type,
-          aggregate_id: session_id
-        },
+        {:domain_event,
+         %KlassHero.Shared.Domain.Events.DomainEvent{
+           event_type: event_type,
+           aggregate_id: session_id,
+           payload: %{program_id: program_id}
+         }},
         socket
       )
-      when event_type in [:session_started, :session_completed] do
-    {:noreply, update_session_in_stream(socket, session_id)}
+      when event_type in [:session_started, :session_completed, :session_created] do
+    # Trigger: generic topic delivers events for ALL providers' sessions
+    # Why: we only subscribe to generic topics (not provider-specific)
+    # Outcome: ignore events for programs not belonging to this provider
+    if MapSet.member?(socket.assigns.provider_program_ids, program_id) do
+      {:noreply, update_session_in_stream(socket, session_id)}
+    else
+      {:noreply, socket}
+    end
   end
 
   @impl true
   def handle_info(
-        %KlassHero.Shared.Domain.Events.DomainEvent{
-          event_type: :child_checked_in,
-          payload: %{session_id: session_id}
-        },
+        {:domain_event,
+         %KlassHero.Shared.Domain.Events.DomainEvent{
+           event_type: :child_checked_in,
+           payload: %{session_id: session_id}
+         }},
         socket
       ) do
+    # Trigger: child_checked_in payload lacks program_id
+    # Why: event only carries session_id and child_id
+    # Outcome: attempt fetch — if session not in stream, stream_insert is harmless
     {:noreply, update_session_in_stream(socket, session_id)}
   end
 
@@ -129,7 +156,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
 
   defp update_session_in_stream(socket, session_id) do
     case Participation.get_session_with_roster(session_id) do
-      {:ok, session} ->
+      {:ok, %{session: session}} ->
         stream_insert(socket, :sessions, session)
 
       {:error, reason} ->
