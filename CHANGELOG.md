@@ -5,6 +5,32 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0](https://github.com/MaxPayne89/klass-hero/compare/v0.8.2...v0.9.0) (2026-03-18)
+
+
+### Features
+
+* add create session route and modal shell ([4efc58f](https://github.com/MaxPayne89/klass-hero/commit/4efc58f8a6ce116a1efbd41600d1f13b0d0708dd))
+* add create-issue skill ([c414744](https://github.com/MaxPayne89/klass-hero/commit/c414744359a7ce04567adef403681104842abfbc))
+* add create-issue skill for turning findings into GitHub issues ([3457372](https://github.com/MaxPayne89/klass-hero/commit/3457372d201bbfe7f31229c6634b7f483a5bdbf6))
+* add date filtering for session_created events and Create Session button ([b712a16](https://github.com/MaxPayne89/klass-hero/commit/b712a16d79d419d6ce3730d27c0975881de139b0))
+* add form fields and program pre-fill to create session modal ([0e66f13](https://github.com/MaxPayne89/klass-hero/commit/0e66f134adf44c7804c9d488e2ac267f270a28cd))
+* add ParticipationIntegrationEvents factory for cross-context event promotion ([bbd794f](https://github.com/MaxPayne89/klass-hero/commit/bbd794fea77a1c084d04841264c2bbff0effa33e))
+* add PromoteIntegrationEvents handler for Participation context ([7b34182](https://github.com/MaxPayne89/klass-hero/commit/7b341821d4ea68e2334fb85dec681c9a2db66382))
+* expose session creation in provider Sessions LiveView ([4a1b004](https://github.com/MaxPayne89/klass-hero/commit/4a1b004f65fedb9cb4138bea63b9fc43508c7dfd))
+* implement create session form submission with validation ([985991d](https://github.com/MaxPayne89/klass-hero/commit/985991d915bd81f20764e7d7e107387612154b27))
+
+
+### Bug Fixes
+
+* address PR review comments on [#466](https://github.com/MaxPayne89/klass-hero/issues/466) ([7bc226f](https://github.com/MaxPayne89/klass-hero/commit/7bc226ffc403bb482d83504c7a3a001e1737b910))
+* correct PubSub subscriptions, message format, and stream shape in SessionsLive ([f6ba571](https://github.com/MaxPayne89/klass-hero/commit/f6ba571fd57a3b424fc0b386a331a8f902ceaf06))
+
+
+### Code Refactoring
+
+* simplify SessionsLive after code review ([eb095fd](https://github.com/MaxPayne89/klass-hero/commit/eb095fd1133a5d46fdf4d9c6cdab9af55ae93f67))
+
 ## [0.8.2](https://github.com/MaxPayne89/klass-hero/compare/v0.8.1...v0.8.2) (2026-03-18)
 
 
