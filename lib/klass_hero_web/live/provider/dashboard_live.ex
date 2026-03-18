@@ -147,19 +147,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     changeset = Provider.change_provider_profile(provider)
 
-    docs =
-      case Provider.get_provider_verification_documents(provider.id) do
-        {:ok, docs} ->
-          docs
-
-        {:error, reason} ->
-          Logger.error("[DashboardLive] Failed to load verification documents",
-            provider_id: provider.id,
-            reason: inspect(reason)
-          )
-
-          []
-      end
+    docs = fetch_verification_docs(provider.id)
 
     socket =
       socket
@@ -178,19 +166,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     # Trigger: overview tab needs verification status derived from documents
     # Why: provider.verified alone is boolean; documents give granular status
     # Outcome: business map gets :verification_status (:verified/:pending/:rejected/:not_started)
-    docs =
-      case Provider.get_provider_verification_documents(provider.id) do
-        {:ok, docs} ->
-          docs
-
-        {:error, reason} ->
-          Logger.error("[DashboardLive] Failed to load verification documents",
-            provider_id: provider.id,
-            reason: inspect(reason)
-          )
-
-          []
-      end
+    docs = fetch_verification_docs(provider.id)
 
     verification_status =
       ProviderPresenter.verification_status_from_docs(provider.verified, docs)
@@ -1470,6 +1446,21 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     case refresh_invites(socket, program_id) do
       {:ok, socket} -> socket
       {:error, :no_program} -> socket
+    end
+  end
+
+  defp fetch_verification_docs(provider_id) do
+    case Provider.get_provider_verification_documents(provider_id) do
+      {:ok, docs} ->
+        docs
+
+      {:error, reason} ->
+        Logger.error("[DashboardLive] Failed to load verification documents",
+          provider_id: provider_id,
+          reason: inspect(reason)
+        )
+
+        []
     end
   end
 
