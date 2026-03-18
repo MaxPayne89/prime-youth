@@ -22,6 +22,8 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
       |> assign(:selected_date, selected_date)
       |> assign(:provider_programs, provider_programs)
       |> assign(:provider_program_ids, provider_program_ids)
+      |> assign(:show_modal, false)
+      |> assign(:form, nil)
       |> stream(:sessions, [])
 
     if connected?(socket) do
@@ -40,6 +42,26 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     end
 
     {:ok, load_sessions(socket)}
+  end
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, :index, _params) do
+    socket
+    |> assign(:show_modal, false)
+    |> assign(:form, nil)
+  end
+
+  defp apply_action(socket, :new, _params) do
+    programs = socket.assigns.provider_programs
+    form_data = build_initial_form_data(socket.assigns.selected_date, programs)
+
+    socket
+    |> assign(:show_modal, true)
+    |> assign(:form, to_form(form_data, as: :session))
   end
 
   @impl true
@@ -104,6 +126,16 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     end
   end
 
+  @impl true
+  def handle_event("validate_session", %{"session" => _params}, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("save_session", %{"session" => _params}, socket) do
+    {:noreply, socket}
+  end
+
   # PubSub event handlers — session lifecycle events
   @impl true
   def handle_info(
@@ -142,6 +174,18 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   end
 
   # Private helper functions
+
+  defp build_initial_form_data(selected_date, _programs) do
+    %{
+      "program_id" => "",
+      "session_date" => Date.to_iso8601(selected_date),
+      "start_time" => "",
+      "end_time" => "",
+      "location" => "",
+      "notes" => "",
+      "max_capacity" => ""
+    }
+  end
 
   defp load_sessions(socket) do
     provider_id = socket.assigns.provider_id

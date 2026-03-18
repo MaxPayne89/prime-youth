@@ -183,6 +183,29 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
     end
   end
 
+  describe "create session modal" do
+    setup :register_and_log_in_provider
+
+    test "navigating to /provider/sessions/new shows modal", %{conn: conn, provider: provider} do
+      _listing = insert(:program_listing_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      assert has_element?(view, "#create-session-modal")
+      assert has_element?(view, "#create-session-form")
+    end
+
+    test "navigating back to /provider/sessions hides modal", %{conn: conn, provider: provider} do
+      _listing = insert(:program_listing_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+      assert has_element?(view, "#create-session-modal")
+
+      view |> element("#create-session-backdrop") |> render_click()
+      refute has_element?(view, "#create-session-modal")
+    end
+  end
+
   describe "session actions" do
     setup :register_and_log_in_provider
 
