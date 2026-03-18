@@ -61,7 +61,7 @@ GenServer.call(server, :request, to_timeout(second: 30))
 
 ## Built-in JSON Module (1.18+)
 
-Replaces Jason for basic encode/decode. No dependency needed.
+Elixir 1.18+ includes a built-in `JSON` module for basic encode/decode without external dependencies.
 
 ```elixir
 JSON.encode!(%{name: "Alice", age: 30})
@@ -77,7 +77,7 @@ defmodule User do
 end
 ```
 
-**Note:** Jason is still needed for advanced features (custom encoders with options, streaming, sorting keys). Use the built-in module for standard encode/decode.
+**Note:** This project currently uses Jason (`{:jason, "~> 1.2"}`). The built-in `JSON` module is an option for new code or a future migration, but prefer Jason for consistency with the existing codebase until a deliberate switch is made.
 
 ---
 

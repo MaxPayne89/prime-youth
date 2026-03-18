@@ -346,9 +346,8 @@ This project follows Domain-Driven Design with Ports & Adapters architecture. Ke
 - **Review & Rating** - Program reviews and feedback
 
 **Documentation:**
-- `docs/DDD_ARCHITECTURE.md` - DDD patterns and code templates
-- `docs/technical-architecture.md` - Bounded context definitions
-- `docs/domain-stories.md` - Business domain understanding
+- `docs/contexts/` - Per-bounded-context documentation (purpose, features, communication patterns)
+- `.claude/rules/domain-architecture.md` - DDD patterns and key conventions
 
 ## Project Structure
 
