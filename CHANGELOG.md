@@ -5,6 +5,28 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.2](https://github.com/MaxPayne89/klass-hero/compare/v0.8.1...v0.8.2) (2026-03-18)
+
+
+### Bug Fixes
+
+* address PR review — widen broadcast spec, use real event structs in tests ([fd657be](https://github.com/MaxPayne89/klass-hero/commit/fd657bee17af465555d58f789c8a044563753dbd))
+* address PR review comments on [#458](https://github.com/MaxPayne89/klass-hero/issues/458) ([4b73de4](https://github.com/MaxPayne89/klass-hero/commit/4b73de4aeaf9b786698f33fbffc12d1ace60c23d))
+* address PR review comments on [#460](https://github.com/MaxPayne89/klass-hero/issues/460) ([cf2a1b7](https://github.com/MaxPayne89/klass-hero/commit/cf2a1b7cb27ab800f40090f9d63e34416cb9fa58))
+* resolve merge conflict markers in agentic workflow files ([69faf6d](https://github.com/MaxPayne89/klass-hero/commit/69faf6da894ca6815970af74e6ee26039fad7913))
+* update rules with correct references and current state ([a20f1fc](https://github.com/MaxPayne89/klass-hero/commit/a20f1fc22e923bc7adb067b784810064a0c21b7d))
+* use Mermaid alias syntax for participant names with parentheses ([99c8c5f](https://github.com/MaxPayne89/klass-hero/commit/99c8c5fd93350ad25359ed22e429916f2dd0670e))
+
+
+### Code Refactoring
+
+* deduplicate EventPublishing and IntegrationEventPublishing ([a151f84](https://github.com/MaxPayne89/klass-hero/commit/a151f8431c2db65ba7318db7d8af14af2437a907))
+* deduplicate EventPublishing and IntegrationEventPublishing ([5bed30e](https://github.com/MaxPayne89/klass-hero/commit/5bed30eaa6b2b2febaa584f5da18a9cda4519220)), closes [#385](https://github.com/MaxPayne89/klass-hero/issues/385)
+* extract fetch_verification_docs/1 helper in DashboardLive ([e8c5379](https://github.com/MaxPayne89/klass-hero/commit/e8c53794da20d44ddbc902490fc27da37b98d0a7))
+* extract fetch_verification_docs/1 helper in DashboardLive ([444d94a](https://github.com/MaxPayne89/klass-hero/commit/444d94a9dcb512fdf9fe5ba4f35216a99d4451a0)), closes [#376](https://github.com/MaxPayne89/klass-hero/issues/376)
+* extract shared PubSubBroadcaster from event publishers ([7443037](https://github.com/MaxPayne89/klass-hero/commit/74430375e029e9d467569bc1f751e277db4a0259))
+* extract shared PubSubBroadcaster from event publishers ([#445](https://github.com/MaxPayne89/klass-hero/issues/445)) ([b2ca574](https://github.com/MaxPayne89/klass-hero/commit/b2ca574f35cfed2b3d2dacbb0140f0ee4bda7c1c))
+
 ## [0.8.1](https://github.com/MaxPayne89/klass-hero/compare/v0.8.0...v0.8.1) (2026-03-17)
 
 
