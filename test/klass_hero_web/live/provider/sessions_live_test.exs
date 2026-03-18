@@ -137,6 +137,369 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
     end
   end
 
+  describe "PubSub real-time updates" do
+    setup :register_and_log_in_provider
+
+    test "updates session in stream when session_started event received", %{
+      conn: conn,
+      provider: provider
+    } do
+      program = insert(:program_schema, provider_id: provider.id)
+      # Need listing so mount can build provider_program_ids MapSet
+      _listing = insert(:program_listing_schema, id: program.id, provider_id: provider.id)
+
+      session =
+        insert(:program_session_schema,
+          program_id: program.id,
+          session_date: Date.utc_today(),
+          status: :scheduled
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions")
+
+      # Session initially shows Start button
+      assert has_element?(view, "button", "Start Session")
+
+      # Simulate PubSub event (matching actual broadcast format)
+      event =
+        KlassHero.Participation.Domain.Events.ParticipationEvents.session_started(
+          struct!(KlassHero.Participation.Domain.Models.ProgramSession, %{
+            id: session.id,
+            program_id: program.id,
+            session_date: Date.utc_today(),
+            start_time: ~T[15:00:00],
+            end_time: ~T[17:00:00],
+            status: :in_progress
+          })
+        )
+
+      # Transition the session in DB so the re-fetch picks it up
+      {:ok, _} = Participation.start_session(session.id)
+
+      send(view.pid, {:domain_event, event})
+
+      # After PubSub update, should show in_progress actions
+      assert has_element?(view, "a", "Manage Participation")
+    end
+  end
+
+  describe "create session modal" do
+    setup :register_and_log_in_provider
+
+    test "navigating to /provider/sessions/new shows modal", %{conn: conn, provider: provider} do
+      _listing = insert(:program_listing_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      assert has_element?(view, "#create-session-modal")
+      assert has_element?(view, "#create-session-form")
+    end
+
+    test "navigating back to /provider/sessions hides modal", %{conn: conn, provider: provider} do
+      _listing = insert(:program_listing_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+      assert has_element?(view, "#create-session-modal")
+
+      view |> element("#create-session-backdrop") |> render_click()
+      refute has_element?(view, "#create-session-modal")
+    end
+
+    test "create session form shows provider's programs in dropdown", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          title: "Art Workshop"
+        )
+
+      _program =
+        insert(:program_schema, id: listing.id, provider_id: provider.id, title: "Art Workshop")
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      assert has_element?(view, "option", "Art Workshop")
+    end
+
+    test "create session form shows date, time, location, notes, and capacity fields", %{
+      conn: conn,
+      provider: provider
+    } do
+      _listing = insert(:program_listing_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      assert has_element?(view, ~s(input[name="session[session_date]"]))
+      assert has_element?(view, ~s(input[name="session[start_time]"]))
+      assert has_element?(view, ~s(input[name="session[end_time]"]))
+      assert has_element?(view, ~s(input[name="session[location]"]))
+      assert has_element?(view, ~s(textarea[name="session[notes]"]))
+      assert has_element?(view, ~s(input[name="session[max_capacity]"]))
+    end
+  end
+
+  describe "program pre-fill" do
+    setup :register_and_log_in_provider
+
+    test "selecting a program pre-fills start_time, end_time, and location", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          title: "Art Workshop",
+          meeting_start_time: ~T[09:00:00],
+          meeting_end_time: ~T[11:30:00],
+          location: "Room 101"
+        )
+
+      _program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      # Select the program — triggers validate_session with pre-fill
+      render_change(view, "validate_session", %{
+        "session" => %{
+          "program_id" => listing.id,
+          "session_date" => Date.to_iso8601(Date.utc_today()),
+          "start_time" => "",
+          "end_time" => "",
+          "location" => "",
+          "notes" => "",
+          "max_capacity" => ""
+        }
+      })
+
+      # Verify pre-filled values in form inputs
+      assert has_element?(view, ~s(input[name="session[start_time]"][value="09:00"]))
+      assert has_element?(view, ~s(input[name="session[end_time]"][value="11:30"]))
+      assert has_element?(view, ~s(input[name="session[location]"][value="Room 101"]))
+    end
+
+    test "selecting a program does not overwrite already-filled fields", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          title: "Art Workshop",
+          meeting_start_time: ~T[09:00:00],
+          meeting_end_time: ~T[11:30:00],
+          location: "Room 101"
+        )
+
+      _program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      # Select the program with already-filled start_time — should not overwrite
+      render_change(view, "validate_session", %{
+        "session" => %{
+          "program_id" => listing.id,
+          "session_date" => Date.to_iso8601(Date.utc_today()),
+          "start_time" => "10:00",
+          "end_time" => "",
+          "location" => "",
+          "notes" => "",
+          "max_capacity" => ""
+        }
+      })
+
+      # start_time should keep the provider's value, not the program default
+      assert has_element?(view, ~s(input[name="session[start_time]"][value="10:00"]))
+      # end_time and location should be pre-filled from program
+      assert has_element?(view, ~s(input[name="session[end_time]"][value="11:30"]))
+      assert has_element?(view, ~s(input[name="session[location]"][value="Room 101"]))
+    end
+  end
+
+  describe "save_session" do
+    setup :register_and_log_in_provider
+
+    test "creates session and closes modal on valid submission", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          title: "Art Workshop"
+        )
+
+      program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      view
+      |> form("#create-session-form", %{
+        "session" => %{
+          "program_id" => program.id,
+          "session_date" => Date.to_iso8601(Date.utc_today()),
+          "start_time" => "09:00",
+          "end_time" => "11:00",
+          "location" => "Room 101",
+          "notes" => "",
+          "max_capacity" => "20"
+        }
+      })
+      |> render_submit()
+
+      # Modal should close (redirects to :index)
+      refute has_element?(view, "#create-session-modal")
+
+      assert_flash(view, :info, "Session created successfully")
+    end
+
+    test "rejects session creation for program not owned by provider", %{
+      conn: conn,
+      provider: provider
+    } do
+      # Need at least one listing for the provider so the form renders
+      _listing = insert(:program_listing_schema, provider_id: provider.id)
+
+      other_provider = insert(:provider_profile_schema)
+      other_program = insert(:program_schema, provider_id: other_provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      # Trigger: bypass LiveViewTest select validation to simulate form tampering
+      # Why: the dropdown only shows provider's own programs, but a malicious client
+      #      could submit a program_id not in the dropdown
+      # Outcome: server-side ownership check rejects the request
+      render_submit(view, "save_session", %{
+        "session" => %{
+          "program_id" => other_program.id,
+          "session_date" => Date.to_iso8601(Date.utc_today()),
+          "start_time" => "09:00",
+          "end_time" => "11:00"
+        }
+      })
+
+      assert_flash(view, :error, "Unauthorized")
+    end
+
+    test "shows error for invalid time range", %{conn: conn, provider: provider} do
+      listing = insert(:program_listing_schema, provider_id: provider.id)
+      _program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      view
+      |> form("#create-session-form", %{
+        "session" => %{
+          "program_id" => listing.id,
+          "session_date" => Date.to_iso8601(Date.utc_today()),
+          "start_time" => "14:00",
+          "end_time" => "10:00"
+        }
+      })
+      |> render_submit()
+
+      # Should stay on modal with error
+      assert has_element?(view, "#create-session-modal")
+      assert_flash(view, :error, "End time must be after start time")
+    end
+  end
+
+  describe "session_created PubSub date filtering" do
+    setup :register_and_log_in_provider
+
+    test "created session appears in stream for the selected date", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          title: "Art Workshop"
+        )
+
+      program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      session =
+        insert(:program_session_schema,
+          program_id: program.id,
+          session_date: Date.utc_today(),
+          status: :scheduled
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions")
+
+      # Simulate PubSub event for a session created today
+      event =
+        KlassHero.Participation.Domain.Events.ParticipationEvents.session_created(
+          struct!(KlassHero.Participation.Domain.Models.ProgramSession, %{
+            id: session.id,
+            program_id: program.id,
+            session_date: Date.utc_today(),
+            start_time: ~T[09:00:00],
+            end_time: ~T[11:00:00],
+            status: :scheduled
+          })
+        )
+
+      send(view.pid, {:domain_event, event})
+
+      # Session for today should appear in stream
+      assert has_element?(view, "button", "Start Session")
+    end
+
+    test "created session does NOT appear when viewing a different date", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing = insert(:program_listing_schema, provider_id: provider.id)
+      program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      tomorrow = Date.add(Date.utc_today(), 1)
+
+      # Insert session for tomorrow — it won't show up in today's mount
+      session =
+        insert(:program_session_schema,
+          program_id: program.id,
+          session_date: tomorrow,
+          status: :scheduled
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions")
+
+      # Initially no sessions for today
+      refute has_element?(view, "button", "Start Session")
+
+      # Send a session_created event with tomorrow's date
+      event =
+        KlassHero.Participation.Domain.Events.ParticipationEvents.session_created(
+          struct!(KlassHero.Participation.Domain.Models.ProgramSession, %{
+            id: session.id,
+            program_id: program.id,
+            session_date: tomorrow,
+            start_time: ~T[09:00:00],
+            end_time: ~T[11:00:00],
+            status: :scheduled
+          })
+        )
+
+      send(view.pid, {:domain_event, event})
+
+      # Session is for tomorrow but we're viewing today — should NOT appear
+      refute has_element?(view, "button", "Start Session")
+    end
+  end
+
+  describe "Create Session button" do
+    setup :register_and_log_in_provider
+
+    test "shows 'Create Session' button on sessions page", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions")
+
+      assert has_element?(view, ~s(a[href="/provider/sessions/new"]), "Create Session")
+    end
+  end
+
   describe "session actions" do
     setup :register_and_log_in_provider
 

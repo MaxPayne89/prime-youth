@@ -85,6 +85,7 @@ defmodule KlassHeroWeb.Router do
       ] do
       scope "/provider", Provider do
         live "/sessions", SessionsLive, :index
+        live "/sessions/new", SessionsLive, :new
         live "/participation/:session_id", ParticipationLive, :show
 
         # Provider dashboard routes

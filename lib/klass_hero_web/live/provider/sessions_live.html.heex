@@ -4,6 +4,19 @@
     <.page_header>
       <:title>My Sessions</:title>
       <:subtitle>Manage your scheduled sessions and attendance</:subtitle>
+      <:actions>
+        <.link
+          patch={~p"/provider/sessions/new"}
+          class={[
+            "px-4 py-2 text-sm font-medium text-white bg-hero-blue-600 hover:bg-hero-blue-700 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
+            Theme.rounded(:lg),
+            Theme.transition(:normal)
+          ]}
+        >
+          <.icon name="hero-plus" class="w-4 h-4 mr-1 inline" />
+          {gettext("Create Session")}
+        </.link>
+      </:actions>
     </.page_header>
   </div>
 
@@ -96,4 +109,97 @@
       </div>
     </div>
   </div>
+
+  <%!-- Create Session Modal --%>
+  <%= if @live_action == :new do %>
+    <div
+      id="create-session-backdrop"
+      class="fixed inset-0 z-50 bg-black/50"
+      phx-click={JS.patch(~p"/provider/sessions")}
+    >
+    </div>
+    <div
+      id="create-session-modal"
+      class={[
+        "fixed inset-x-4 top-[5%] z-50 mx-auto max-w-lg",
+        Theme.bg(:surface),
+        Theme.rounded(:xl),
+        "shadow-xl max-h-[90vh] overflow-y-auto"
+      ]}
+      phx-click-away={JS.patch(~p"/provider/sessions")}
+    >
+      <div class="flex items-center justify-between p-4 border-b border-hero-grey-200">
+        <h2 class={["text-lg font-semibold", Theme.text_color(:heading)]}>
+          {gettext("Create Session")}
+        </h2>
+        <.link
+          patch={~p"/provider/sessions"}
+          class="p-1 text-hero-grey-400 hover:text-hero-grey-600"
+        >
+          <.icon name="hero-x-mark" class="w-5 h-5" />
+        </.link>
+      </div>
+
+      <div class="p-4">
+        <.form
+          for={@form}
+          id="create-session-form"
+          phx-change="validate_session"
+          phx-submit="save_session"
+          class="space-y-4"
+        >
+          <.input
+            field={@form[:program_id]}
+            type="select"
+            label={gettext("Program")}
+            prompt={gettext("Select a program...")}
+            options={Enum.map(@provider_programs, &{&1.title, &1.id})}
+            required
+          />
+
+          <.input field={@form[:session_date]} type="date" label={gettext("Date")} required />
+
+          <div class="grid grid-cols-2 gap-4">
+            <.input field={@form[:start_time]} type="time" label={gettext("Start Time")} required />
+            <.input field={@form[:end_time]} type="time" label={gettext("End Time")} required />
+          </div>
+
+          <.input
+            field={@form[:location]}
+            type="text"
+            label={gettext("Location")}
+            phx-debounce="blur"
+          />
+          <.input
+            field={@form[:notes]}
+            type="textarea"
+            label={gettext("Notes")}
+            phx-debounce="blur"
+          />
+          <.input field={@form[:max_capacity]} type="number" label={gettext("Max Capacity")} />
+
+          <div class="flex justify-end gap-3 pt-2">
+            <.link
+              patch={~p"/provider/sessions"}
+              class={[
+                "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50",
+                Theme.rounded(:lg)
+              ]}
+            >
+              {gettext("Cancel")}
+            </.link>
+            <button
+              type="submit"
+              class={[
+                "px-4 py-2 text-sm font-medium text-white bg-hero-blue-600 hover:bg-hero-blue-700",
+                Theme.rounded(:lg)
+              ]}
+            >
+              {gettext("Create Session")}
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
 </div>
