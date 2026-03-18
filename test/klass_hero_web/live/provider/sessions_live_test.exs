@@ -405,6 +405,101 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
     end
   end
 
+  describe "session_created PubSub date filtering" do
+    setup :register_and_log_in_provider
+
+    test "created session appears in stream for the selected date", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          title: "Art Workshop"
+        )
+
+      program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      session =
+        insert(:program_session_schema,
+          program_id: program.id,
+          session_date: Date.utc_today(),
+          status: :scheduled
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions")
+
+      # Simulate PubSub event for a session created today
+      event =
+        KlassHero.Participation.Domain.Events.ParticipationEvents.session_created(
+          struct!(KlassHero.Participation.Domain.Models.ProgramSession, %{
+            id: session.id,
+            program_id: program.id,
+            session_date: Date.utc_today(),
+            start_time: ~T[09:00:00],
+            end_time: ~T[11:00:00],
+            status: :scheduled
+          })
+        )
+
+      send(view.pid, {:domain_event, event})
+
+      # Session for today should appear in stream
+      assert has_element?(view, "button", "Start Session")
+    end
+
+    test "created session does NOT appear when viewing a different date", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing = insert(:program_listing_schema, provider_id: provider.id)
+      program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      tomorrow = Date.add(Date.utc_today(), 1)
+
+      # Insert session for tomorrow — it won't show up in today's mount
+      session =
+        insert(:program_session_schema,
+          program_id: program.id,
+          session_date: tomorrow,
+          status: :scheduled
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions")
+
+      # Initially no sessions for today
+      refute has_element?(view, "button", "Start Session")
+
+      # Send a session_created event with tomorrow's date
+      event =
+        KlassHero.Participation.Domain.Events.ParticipationEvents.session_created(
+          struct!(KlassHero.Participation.Domain.Models.ProgramSession, %{
+            id: session.id,
+            program_id: program.id,
+            session_date: tomorrow,
+            start_time: ~T[09:00:00],
+            end_time: ~T[11:00:00],
+            status: :scheduled
+          })
+        )
+
+      send(view.pid, {:domain_event, event})
+
+      # Session is for tomorrow but we're viewing today — should NOT appear
+      refute has_element?(view, "button", "Start Session")
+    end
+  end
+
+  describe "Create Session button" do
+    setup :register_and_log_in_provider
+
+    test "shows 'Create Session' button on sessions page", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions")
+
+      assert has_element?(view, ~s(a[href="/provider/sessions/new"]), "Create Session")
+    end
+  end
+
   describe "session actions" do
     setup :register_and_log_in_provider
 

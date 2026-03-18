@@ -156,7 +156,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
          %KlassHero.Shared.Domain.Events.DomainEvent{
            event_type: event_type,
            aggregate_id: session_id,
-           payload: %{program_id: program_id}
+           payload: payload
          }},
         socket
       )
@@ -164,8 +164,17 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     # Trigger: generic topic delivers events for ALL providers' sessions
     # Why: we only subscribe to generic topics (not provider-specific)
     # Outcome: ignore events for programs not belonging to this provider
-    if MapSet.member?(socket.assigns.provider_program_ids, program_id) do
-      {:noreply, update_session_in_stream(socket, session_id)}
+    if MapSet.member?(socket.assigns.provider_program_ids, payload.program_id) do
+      # Trigger: session_created events may be for a date the provider isn't currently viewing
+      # Why: the stream only shows sessions for selected_date; inserting a wrong-date session
+      #      would pollute the current view
+      # Outcome: for session_created, also check date; start/complete are for existing stream items
+      if event_type == :session_created and
+           Map.get(payload, :session_date) != socket.assigns.selected_date do
+        {:noreply, socket}
+      else
+        {:noreply, update_session_in_stream(socket, session_id)}
+      end
     else
       {:noreply, socket}
     end
