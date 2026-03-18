@@ -135,8 +135,18 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   end
 
   @impl true
-  def handle_event("save_session", %{"session" => _params}, socket) do
-    {:noreply, socket}
+  def handle_event("save_session", %{"session" => params}, socket) do
+    provider_program_ids = socket.assigns.provider_program_ids
+
+    # Trigger: provider submitted the create session form
+    # Why: verify program ownership server-side — dropdown only shows their programs,
+    #      but form data can be tampered with
+    # Outcome: reject if program_id not in provider's set
+    if MapSet.member?(provider_program_ids, params["program_id"]) do
+      do_create_session(params, socket)
+    else
+      {:noreply, put_flash(socket, :error, gettext("Unauthorized"))}
+    end
   end
 
   # PubSub event handlers — session lifecycle events
@@ -230,6 +240,104 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
 
   defp format_time(nil), do: ""
   defp format_time(%Time{} = time), do: Calendar.strftime(time, "%H:%M")
+
+  defp do_create_session(params, socket) do
+    case coerce_session_params(params) do
+      {:ok, coerced} ->
+        case Participation.create_session(coerced) do
+          {:ok, _session} ->
+            {:noreply,
+             socket
+             |> put_flash(:info, gettext("Session created successfully"))
+             |> push_patch(to: ~p"/provider/sessions")}
+
+          {:error, reason} when reason in [:invalid_time_range, :duplicate_session] ->
+            # Trigger: domain validation returned a known business rule violation
+            # Why: these are user-correctable errors, show directly without "Failed" prefix
+            # Outcome: flash shows the humanized error, modal stays open
+            {:noreply, put_flash(socket, :error, humanize_error(reason))}
+
+          {:error, reason} ->
+            Logger.error(
+              "[SessionsLive.save_session] Failed to create session",
+              reason: inspect(reason),
+              provider_id: socket.assigns.provider_id
+            )
+
+            {:noreply,
+             put_flash(
+               socket,
+               :error,
+               gettext("Failed to create session: %{reason}", reason: humanize_error(reason))
+             )}
+        end
+
+      {:error, message} ->
+        {:noreply, put_flash(socket, :error, message)}
+    end
+  end
+
+  defp coerce_session_params(params) do
+    with {:ok, date} <- parse_date(params["session_date"]),
+         {:ok, start_time} <- parse_time(params["start_time"]),
+         {:ok, end_time} <- parse_time(params["end_time"]) do
+      coerced = %{
+        program_id: params["program_id"],
+        session_date: date,
+        start_time: start_time,
+        end_time: end_time
+      }
+
+      coerced =
+        if params["location"] in [nil, ""],
+          do: coerced,
+          else: Map.put(coerced, :location, params["location"])
+
+      coerced =
+        if params["notes"] in [nil, ""],
+          do: coerced,
+          else: Map.put(coerced, :notes, params["notes"])
+
+      coerced =
+        if params["max_capacity"] in [nil, ""],
+          do: coerced,
+          else: Map.put(coerced, :max_capacity, String.to_integer(params["max_capacity"]))
+
+      {:ok, coerced}
+    end
+  end
+
+  defp parse_date(nil), do: {:error, gettext("Date is required")}
+  defp parse_date(""), do: {:error, gettext("Date is required")}
+
+  defp parse_date(date_string) do
+    case Date.from_iso8601(date_string) do
+      {:ok, _date} = ok -> ok
+      {:error, _} -> {:error, gettext("Invalid date format")}
+    end
+  end
+
+  defp parse_time(nil), do: {:error, gettext("Time is required")}
+  defp parse_time(""), do: {:error, gettext("Time is required")}
+
+  defp parse_time(time_string) do
+    # Trigger: HTML time inputs produce "HH:MM" without seconds
+    # Why: Time.from_iso8601/1 requires "HH:MM:SS" format
+    # Outcome: append ":00" seconds for successful parsing
+    normalized = if String.length(time_string) == 5, do: time_string <> ":00", else: time_string
+
+    case Time.from_iso8601(normalized) do
+      {:ok, _time} = ok -> ok
+      {:error, _} -> {:error, gettext("Invalid time format")}
+    end
+  end
+
+  defp humanize_error(:invalid_time_range), do: gettext("End time must be after start time")
+  defp humanize_error(:duplicate_session), do: gettext("A session already exists at this time")
+
+  defp humanize_error(:missing_required_fields), do: gettext("Please fill in all required fields")
+
+  defp humanize_error(reason), do: inspect(reason)
 
   defp update_session_in_stream(socket, session_id) do
     case Participation.get_session_with_roster(session_id) do

@@ -317,6 +317,94 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
     end
   end
 
+  describe "save_session" do
+    setup :register_and_log_in_provider
+
+    test "creates session and closes modal on valid submission", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          title: "Art Workshop"
+        )
+
+      program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      view
+      |> form("#create-session-form", %{
+        "session" => %{
+          "program_id" => program.id,
+          "session_date" => Date.to_iso8601(Date.utc_today()),
+          "start_time" => "09:00",
+          "end_time" => "11:00",
+          "location" => "Room 101",
+          "notes" => "",
+          "max_capacity" => "20"
+        }
+      })
+      |> render_submit()
+
+      # Modal should close (redirects to :index)
+      refute has_element?(view, "#create-session-modal")
+
+      assert_flash(view, :info, "Session created successfully")
+    end
+
+    test "rejects session creation for program not owned by provider", %{
+      conn: conn,
+      provider: provider
+    } do
+      # Need at least one listing for the provider so the form renders
+      _listing = insert(:program_listing_schema, provider_id: provider.id)
+
+      other_provider = insert(:provider_profile_schema)
+      other_program = insert(:program_schema, provider_id: other_provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      # Trigger: bypass LiveViewTest select validation to simulate form tampering
+      # Why: the dropdown only shows provider's own programs, but a malicious client
+      #      could submit a program_id not in the dropdown
+      # Outcome: server-side ownership check rejects the request
+      render_submit(view, "save_session", %{
+        "session" => %{
+          "program_id" => other_program.id,
+          "session_date" => Date.to_iso8601(Date.utc_today()),
+          "start_time" => "09:00",
+          "end_time" => "11:00"
+        }
+      })
+
+      assert_flash(view, :error, "Unauthorized")
+    end
+
+    test "shows error for invalid time range", %{conn: conn, provider: provider} do
+      listing = insert(:program_listing_schema, provider_id: provider.id)
+      _program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      view
+      |> form("#create-session-form", %{
+        "session" => %{
+          "program_id" => listing.id,
+          "session_date" => Date.to_iso8601(Date.utc_today()),
+          "start_time" => "14:00",
+          "end_time" => "10:00"
+        }
+      })
+      |> render_submit()
+
+      # Should stay on modal with error
+      assert has_element?(view, "#create-session-modal")
+      assert_flash(view, :error, "End time must be after start time")
+    end
+  end
+
   describe "session actions" do
     setup :register_and_log_in_provider
 
