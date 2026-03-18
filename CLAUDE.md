@@ -66,7 +66,7 @@ context/
 - **Participation** (`participation/`) - Session tracking, check-in/out, attendance rosters
 - **Shared** (`shared/`) - Event publishing, Ecto helpers, pagination, domain events
 
-See `docs/DDD_ARCHITECTURE.md` for patterns and `docs/technical-architecture.md` for context definitions.
+See `.claude/rules/domain-architecture.md` for patterns and `docs/domain-stories.md` for business domain context.
 
 ### Authentication & Role-Based Routing
 
