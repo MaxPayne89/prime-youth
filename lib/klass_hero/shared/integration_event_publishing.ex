@@ -2,65 +2,32 @@ defmodule KlassHero.Shared.IntegrationEventPublishing do
   @moduledoc """
   Shared utilities for integration event publishing across bounded contexts.
 
-  This module provides a centralized way to access the configured integration
-  event publisher, mirroring `EventPublishing` but for cross-context events.
-
-  ## Configuration
-
-  The publisher module is configured in application config:
+  The publisher module is resolved at runtime from application config to allow
+  the invite-claim saga test to swap to the real PubSub publisher.
 
       config :klass_hero, :integration_event_publisher,
         module: KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher,
         pubsub: KlassHero.PubSub
 
-  For tests, configure a test publisher:
-
-      config :klass_hero, :integration_event_publisher,
-        module: KlassHero.Shared.Adapters.Driven.Events.TestIntegrationEventPublisher,
-        pubsub: KlassHero.PubSub
-
   ## Usage
 
-      alias KlassHero.Shared.IntegrationEventPublishing
-
-      # Get the configured publisher module
-      IntegrationEventPublishing.publisher_module()
-
-      # Publish an integration event directly
       IntegrationEventPublishing.publish(event)
+      IntegrationEventPublishing.publish_critical(event, "label")
+      IntegrationEventPublishing.publish_best_effort(event, "label")
   """
-
-  alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
 
   require Logger
 
   @doc """
-  Returns the configured integration event publisher module.
-
-  Falls back to `PubSubIntegrationEventPublisher` if not configured.
-  """
-  @spec publisher_module() :: module()
-  def publisher_module do
-    :klass_hero
-    |> Application.get_env(:integration_event_publisher, [])
-    |> Keyword.get(:module, PubSubIntegrationEventPublisher)
-  end
-
-  @doc """
   Publishes an integration event using the configured publisher.
 
-  ## Parameters
-
-  - `event` - The integration event struct to publish
-
-  ## Returns
-
-  - `:ok` on successful publish
-  - `{:error, reason}` on failure
+  Returns `:ok` on success, `{:error, reason}` on failure.
   """
   @spec publish(struct()) :: :ok | {:error, term()}
-  def publish(event) do
-    publisher_module().publish(event)
+  def publish(event), do: publisher_module().publish(event)
+
+  defp publisher_module do
+    Application.get_env(:klass_hero, :integration_event_publisher)[:module]
   end
 
   @doc """

@@ -10,79 +10,17 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInIntegrationT
   - Events are published with correct payload structure
   """
 
-  # async: false is REQUIRED because this test modifies global Application config
-  use KlassHero.DataCase, async: false
+  use KlassHero.DataCase, async: true
 
   import KlassHero.Factory
 
   alias KlassHero.AccountsFixtures
   alias KlassHero.Participation.Application.UseCases.RecordCheckIn
   alias KlassHero.Participation.Application.UseCases.RecordCheckOut
-
-  # Test event publisher that captures published events using Agent
-  defmodule TestEventPublisher do
-    use Agent
-
-    def start_link(_opts) do
-      Agent.start_link(fn -> [] end, name: __MODULE__)
-    end
-
-    def publish(event) do
-      Agent.update(__MODULE__, &[event | &1])
-      :ok
-    end
-
-    def publish(event, _topic) do
-      publish(event)
-    end
-
-    def get_events do
-      Agent.get(__MODULE__, & &1) |> Enum.reverse()
-    end
-
-    def clear do
-      Agent.update(__MODULE__, fn _ -> [] end)
-    end
-  end
+  alias KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher
 
   setup do
-    # Store original configs
-    original_participation_config = Application.get_env(:klass_hero, :participation)
-    original_publisher_config = Application.get_env(:klass_hero, :event_publisher)
-
-    # Start test event publisher
-    start_supervised!(TestEventPublisher)
-
-    # Configure real repositories + test publisher
-    Application.put_env(:klass_hero, :participation,
-      session_repository:
-        KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
-      participation_repository:
-        KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-      child_info_resolver:
-        KlassHero.Participation.Adapters.Driven.IdentityContext.ChildInfoResolver
-    )
-
-    Application.put_env(:klass_hero, :event_publisher,
-      module: TestEventPublisher,
-      pubsub: KlassHero.PubSub
-    )
-
-    on_exit(fn ->
-      # Restore original configs
-      if original_participation_config do
-        Application.put_env(:klass_hero, :participation, original_participation_config)
-      else
-        Application.delete_env(:klass_hero, :participation)
-      end
-
-      if original_publisher_config do
-        Application.put_env(:klass_hero, :event_publisher, original_publisher_config)
-      else
-        Application.delete_env(:klass_hero, :event_publisher)
-      end
-    end)
-
+    TestEventPublisher.setup()
     :ok
   end
 

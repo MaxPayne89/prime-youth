@@ -43,7 +43,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventHandlers.NotifyLiveViews 
   """
   @spec safe_publish(DomainEvent.t(), String.t()) :: :ok
   def safe_publish(event, topic) do
-    case EventPublishing.publisher_module().publish(event, topic) do
+    case EventPublishing.publish(event, topic) do
       :ok ->
         :ok
 
