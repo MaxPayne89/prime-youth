@@ -24,10 +24,10 @@ For full project conventions, see [CLAUDE.md](../CLAUDE.md).
 
 - Pattern match failures that would crash at runtime
 - Race conditions in concurrent code (GenServer state, Oban jobs)
-- `Ecto.Multi` misuse: side-effects in `Multi.run/5`, or reading data outside a Multi and using it inside (stale reads)
+- `Ecto.Multi` misuse: side-effects in `Multi.run`, or reading data outside a Multi and using it inside (stale reads)
 - Missing Ecto preloads that cause N+1 queries or `Ecto.Association.NotLoaded` errors
 - Incorrect `with` chain error handling — unmatched error clauses falling through silently
-- LiveView stream misuse: filtering streams with `Enum` (streams aren't enumerable), using deprecated `phx-update="append"`
+- LiveView stream misuse: transforming streams with `Enum` functions in Elixir code (use `stream/3` with `reset: true` to re-filter), using deprecated `phx-update="append"`
 - Using `changeset[:field]` map access on structs — must use `Ecto.Changeset.get_field/2`
 
 ### Architecture & Conventions
@@ -45,7 +45,7 @@ For full project conventions, see [CLAUDE.md](../CLAUDE.md).
 - **Bounded contexts**: Accounts, Family, Provider, Program Catalog, Enrollment, Entitlements, Messaging, Participation, Shared
 - **Auth pattern**: `phx.gen.auth` with scopes — always use `@current_scope`, access user via `@current_scope.user`
 - **Error handling**: `{:ok, result}` / `{:error, reason}` tuples, `with` chains — no exceptions for control flow
-- **LiveView collections**: always use streams (`stream/3`), never assign raw lists
+- **LiveView collections**: use streams (`stream/3`) for DB-backed record lists rendered in templates — static lists (filter options, select choices) are fine as regular assigns
 - **Design**: mobile-first mandatory — every UI element designed for mobile before desktop
 
 ## CI Pipeline Coverage — Don't Duplicate These
@@ -54,7 +54,7 @@ The following checks run automatically on every PR. Do **not** flag issues alrea
 
 | Check | What it catches |
 |---|---|
-| `mix compile --warnings-as-errors` | Unused variables, imports, unreachable code, deprecations |
+| `mix compile --warnings-as-errors` | Unused variables, imports, unreachable code, deprecations, Boundary context violations |
 | `mix format --check-formatted` | All formatting issues |
 | `mix credo --min-priority=high` | Style violations, code smells, complexity |
 | `mix lint_typography` | Font/typography usage violations |
