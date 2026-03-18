@@ -130,16 +130,21 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
 
   @impl true
   def handle_event("save_session", %{"session" => params}, socket) do
-    provider_program_ids = socket.assigns.provider_program_ids
+    program_id = params["program_id"]
 
-    # Trigger: provider submitted the create session form
-    # Why: verify program ownership server-side — dropdown only shows their programs,
-    #      but form data can be tampered with
-    # Outcome: reject if program_id not in provider's set
-    if MapSet.member?(provider_program_ids, params["program_id"]) do
-      do_create_session(params, socket)
-    else
-      {:noreply, put_flash(socket, :error, gettext("Unauthorized"))}
+    cond do
+      program_id in [nil, ""] ->
+        {:noreply, put_flash(socket, :error, gettext("Program is required"))}
+
+      # Trigger: provider submitted the create session form
+      # Why: verify program ownership server-side — dropdown only shows their programs,
+      #      but form data can be tampered with
+      # Outcome: reject if program_id not in provider's set
+      not MapSet.member?(socket.assigns.provider_program_ids, program_id) ->
+        {:noreply, put_flash(socket, :error, gettext("Unauthorized"))}
+
+      true ->
+        do_create_session(params, socket)
     end
   end
 
@@ -303,7 +308,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
 
       coerced =
         case Integer.parse(params["max_capacity"] || "") do
-          {value, ""} -> Map.put(coerced, :max_capacity, value)
+          {value, ""} when value > 0 -> Map.put(coerced, :max_capacity, value)
           _ -> coerced
         end
 
