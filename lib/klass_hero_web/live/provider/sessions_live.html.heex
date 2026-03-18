@@ -164,8 +164,18 @@
             <.input field={@form[:end_time]} type="time" label={gettext("End Time")} required />
           </div>
 
-          <.input field={@form[:location]} type="text" label={gettext("Location")} phx-debounce="blur" />
-          <.input field={@form[:notes]} type="textarea" label={gettext("Notes")} phx-debounce="blur" />
+          <.input
+            field={@form[:location]}
+            type="text"
+            label={gettext("Location")}
+            phx-debounce="blur"
+          />
+          <.input
+            field={@form[:notes]}
+            type="textarea"
+            label={gettext("Notes")}
+            phx-debounce="blur"
+          />
           <.input field={@form[:max_capacity]} type="number" label={gettext("Max Capacity")} />
 
           <div class="flex justify-end gap-3 pt-2">
