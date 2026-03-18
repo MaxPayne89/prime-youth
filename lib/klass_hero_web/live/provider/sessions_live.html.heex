@@ -135,7 +135,46 @@
           phx-submit="save_session"
           class="space-y-4"
         >
-          <%!-- Form fields added in Task 3 --%>
+          <.input
+            field={@form[:program_id]}
+            type="select"
+            label={gettext("Program")}
+            prompt={gettext("Select a program...")}
+            options={Enum.map(@provider_programs, &{&1.title, &1.id})}
+            required
+          />
+
+          <.input field={@form[:session_date]} type="date" label={gettext("Date")} required />
+
+          <div class="grid grid-cols-2 gap-4">
+            <.input field={@form[:start_time]} type="time" label={gettext("Start Time")} required />
+            <.input field={@form[:end_time]} type="time" label={gettext("End Time")} required />
+          </div>
+
+          <.input field={@form[:location]} type="text" label={gettext("Location")} />
+          <.input field={@form[:notes]} type="textarea" label={gettext("Notes")} />
+          <.input field={@form[:max_capacity]} type="number" label={gettext("Max Capacity")} />
+
+          <div class="flex justify-end gap-3 pt-2">
+            <.link
+              patch={~p"/provider/sessions"}
+              class={[
+                "px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50",
+                Theme.rounded(:lg)
+              ]}
+            >
+              {gettext("Cancel")}
+            </.link>
+            <button
+              type="submit"
+              class={[
+                "px-4 py-2 text-sm font-medium text-white bg-hero-blue-600 hover:bg-hero-blue-700",
+                Theme.rounded(:lg)
+              ]}
+            >
+              {gettext("Create Session")}
+            </button>
+          </div>
         </.form>
       </div>
     </div>

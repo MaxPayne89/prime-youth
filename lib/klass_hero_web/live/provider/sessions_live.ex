@@ -127,8 +127,11 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   end
 
   @impl true
-  def handle_event("validate_session", %{"session" => _params}, socket) do
-    {:noreply, socket}
+  def handle_event("validate_session", %{"session" => params}, socket) do
+    params = maybe_prefill_from_program(params, socket.assigns.provider_programs)
+    form = to_form(params, as: :session)
+
+    {:noreply, assign(socket, :form, form)}
   end
 
   @impl true
@@ -197,6 +200,36 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     |> stream(:sessions, sessions, reset: true)
     |> assign(:sessions_error, nil)
   end
+
+  defp maybe_prefill_from_program(params, programs) do
+    program_id = params["program_id"]
+
+    case Enum.find(programs, &(&1.id == program_id)) do
+      nil ->
+        params
+
+      program ->
+        # Trigger: provider selected a program from the dropdown
+        # Why: pre-fill time/location from program defaults to reduce repetitive typing
+        # Outcome: form fields populated; provider can override any value
+        params
+        |> maybe_set_default("start_time", format_time(program.meeting_start_time))
+        |> maybe_set_default("end_time", format_time(program.meeting_end_time))
+        |> maybe_set_default("location", program.location || "")
+    end
+  end
+
+  # Only set if the field is currently empty — don't overwrite provider edits
+  defp maybe_set_default(params, key, default) do
+    if params[key] in [nil, ""] do
+      Map.put(params, key, default)
+    else
+      params
+    end
+  end
+
+  defp format_time(nil), do: ""
+  defp format_time(%Time{} = time), do: Calendar.strftime(time, "%H:%M")
 
   defp update_session_in_stream(socket, session_id) do
     case Participation.get_session_with_roster(session_id) do

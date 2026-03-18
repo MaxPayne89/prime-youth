@@ -204,6 +204,117 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
       view |> element("#create-session-backdrop") |> render_click()
       refute has_element?(view, "#create-session-modal")
     end
+
+    test "create session form shows provider's programs in dropdown", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          title: "Art Workshop"
+        )
+
+      _program =
+        insert(:program_schema, id: listing.id, provider_id: provider.id, title: "Art Workshop")
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      assert has_element?(view, "option", "Art Workshop")
+    end
+
+    test "create session form shows date, time, location, notes, and capacity fields", %{
+      conn: conn,
+      provider: provider
+    } do
+      _listing = insert(:program_listing_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      assert has_element?(view, ~s(input[name="session[session_date]"]))
+      assert has_element?(view, ~s(input[name="session[start_time]"]))
+      assert has_element?(view, ~s(input[name="session[end_time]"]))
+      assert has_element?(view, ~s(input[name="session[location]"]))
+      assert has_element?(view, ~s(textarea[name="session[notes]"]))
+      assert has_element?(view, ~s(input[name="session[max_capacity]"]))
+    end
+  end
+
+  describe "program pre-fill" do
+    setup :register_and_log_in_provider
+
+    test "selecting a program pre-fills start_time, end_time, and location", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          title: "Art Workshop",
+          meeting_start_time: ~T[09:00:00],
+          meeting_end_time: ~T[11:30:00],
+          location: "Room 101"
+        )
+
+      _program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      # Select the program — triggers validate_session with pre-fill
+      render_change(view, "validate_session", %{
+        "session" => %{
+          "program_id" => listing.id,
+          "session_date" => Date.to_iso8601(Date.utc_today()),
+          "start_time" => "",
+          "end_time" => "",
+          "location" => "",
+          "notes" => "",
+          "max_capacity" => ""
+        }
+      })
+
+      # Verify pre-filled values in form inputs
+      assert has_element?(view, ~s(input[name="session[start_time]"][value="09:00"]))
+      assert has_element?(view, ~s(input[name="session[end_time]"][value="11:30"]))
+      assert has_element?(view, ~s(input[name="session[location]"][value="Room 101"]))
+    end
+
+    test "selecting a program does not overwrite already-filled fields", %{
+      conn: conn,
+      provider: provider
+    } do
+      listing =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          title: "Art Workshop",
+          meeting_start_time: ~T[09:00:00],
+          meeting_end_time: ~T[11:30:00],
+          location: "Room 101"
+        )
+
+      _program = insert(:program_schema, id: listing.id, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions/new")
+
+      # Select the program with already-filled start_time — should not overwrite
+      render_change(view, "validate_session", %{
+        "session" => %{
+          "program_id" => listing.id,
+          "session_date" => Date.to_iso8601(Date.utc_today()),
+          "start_time" => "10:00",
+          "end_time" => "",
+          "location" => "",
+          "notes" => "",
+          "max_capacity" => ""
+        }
+      })
+
+      # start_time should keep the provider's value, not the program default
+      assert has_element?(view, ~s(input[name="session[start_time]"][value="10:00"]))
+      # end_time and location should be pre-filled from program
+      assert has_element?(view, ~s(input[name="session[end_time]"][value="11:30"]))
+      assert has_element?(view, ~s(input[name="session[location]"][value="Room 101"]))
+    end
   end
 
   describe "session actions" do
