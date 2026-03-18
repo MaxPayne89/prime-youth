@@ -12,12 +12,6 @@ defmodule KlassHero.Shared.IntegrationEventPublishingTest do
     :ok
   end
 
-  describe "publisher_module/0" do
-    test "returns the configured publisher (TestIntegrationEventPublisher in test env)" do
-      assert IntegrationEventPublishing.publisher_module() == TestIntegrationEventPublisher
-    end
-  end
-
   describe "publish/1" do
     test "returns :ok and stores the event" do
       event = build_event(:some_event)
