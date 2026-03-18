@@ -27,18 +27,27 @@ Three changes:
 
 SessionsLive subscribes to `"participation:provider:#{provider_id}"`, but the event system publishes to generic topics like `"participation:session_started"`.
 
-**Change:** Subscribe to the three relevant generic event topics:
+**Change:** Subscribe (inside `connected?` guard) to the four relevant generic event topics:
 - `"participation:session_created"`
 - `"participation:session_started"`
 - `"participation:session_completed"`
+- `"participation:child_checked_in"` (existing handler at line 107 needs this)
 
 Filter relevance in `handle_info` by checking `event.payload.program_id` against the provider's program IDs.
+
+**Note:** `child_checked_in` event payload does not include `program_id` (only `session_id`, `child_id`, etc.). For this event, skip the program_id filter and rely on the session fetch in `update_session_in_stream` — if the session doesn't belong to this provider, the fetch returns data for a session not in the current stream, which is harmless (stream_insert with an unknown ID is a no-op for the UI since it won't match the date filter). Alternatively, the handler can be a pass-through that re-fetches and verifies.
 
 ### Fix 2 — Message Format
 
 SessionsLive's `handle_info` matches bare `%DomainEvent{}`, but `PubSubBroadcaster` sends `{:domain_event, %DomainEvent{}}`.
 
 **Change:** Update all `handle_info` clauses to match `{:domain_event, %DomainEvent{...}}`.
+
+### Fix 3 — Stream Data Shape
+
+The existing `update_session_in_stream` does `{:ok, session} ->` from `get_session_with_roster/1`, but this function returns `{:ok, %{session: session, roster: roster}}`. The stream expects `ProgramSession.t()` structs (from `list_provider_sessions`). This is a latent bug — never triggered because PubSub handlers never fire.
+
+**Change:** Destructure the result: `{:ok, %{session: session}} -> stream_insert(socket, :sessions, session)`.
 
 ### Follow-up
 
@@ -50,11 +59,13 @@ File a separate issue for migrating to provider-specific topic routing as an arc
 
 Add `:new` live action to the provider sessions route: `/provider/sessions/new`.
 
-Modal visibility controlled via `apply_action/3` in `handle_params/3`, following the ChildrenLive pattern.
+Add `handle_params/3` callback (does not currently exist) with `apply_action/3`:
+- `:index` action — sets `show_modal: false`, clears form assigns
+- `:new` action — sets `show_modal: true`, initializes form with defaults
 
 ### Mount Changes
 
-Load provider programs in mount via `ProgramCatalog.list_programs_for_provider/1`. Store both the program list (for the dropdown) and a MapSet of program IDs (for PubSub filtering).
+Load provider programs in mount via `ProgramCatalog.list_programs_for_provider/1` (returns `[ProgramListing.t()]` read models — has `id`, `title`, `meeting_start_time`, `meeting_end_time`, `location` needed for dropdown and pre-fill). Store both the program list and a MapSet of program IDs (for PubSub filtering).
 
 ### Form Fields
 
@@ -77,8 +88,18 @@ When the provider selects a program, a `phx-change` event updates form defaults 
 - Form built with `to_form/2` from a plain map (no Ecto changeset — `CreateSession` use case takes a params map)
 - `phx-change="validate_session"` for live validation (time range, required fields)
 - `phx-submit="save_session"` calls `Participation.create_session/1`
-- On success: flash message, close modal via `push_patch` to `/provider/sessions`
+- On success: flash message, close modal via `push_patch` to `/provider/sessions` (does NOT touch the stream directly — the PubSub `session_created` handler inserts the session into the stream after `push_patch` processes)
 - On error: display inline errors (`:invalid_time_range`, `:duplicate_session`, etc.)
+
+### Type Coercion
+
+HTML form params arrive as string-keyed maps with string values. The `CreateSession` use case expects atom keys with typed values (`Date.t()`, `Time.t()`, `pos_integer()`). The `save_session` handler must coerce params before calling the use case:
+
+- `program_id` — string, pass through
+- `session_date` — `Date.from_iso8601!/1`
+- `start_time` / `end_time` — `Time.from_iso8601!/1` (HTML time inputs produce `"HH:MM"`, needs `":00"` appended for seconds)
+- `max_capacity` — `String.to_integer/1` (only if non-empty)
+- `location` / `notes` — strings, pass through (omit if empty)
 
 ### Security
 
