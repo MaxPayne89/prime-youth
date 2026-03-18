@@ -70,3 +70,9 @@ Reads a Daily QA GitHub Discussion by number, triages Carried-Forward and New Co
 Enhanced version of the global skill with auto-triggering on `.ex`/`.exs` files and modern Elixir 1.17–1.20 patterns (type system, Duration, built-in JSON, parameterized tests).
 
 **Triggers automatically** when working on any Elixir file.
+
+### create-issue
+
+Creates well-formed GitHub issues from findings or hypotheses. Validates against current code, gathers references, drafts using project issue templates.
+
+**Use when:** `/create-issue "description"` or when asked to file/open/create an issue
