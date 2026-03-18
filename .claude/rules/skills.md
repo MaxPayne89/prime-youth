@@ -56,3 +56,17 @@ A mental model for making better decisions by thinking beyond immediate effects 
 - Evaluating major technical decisions
 - Assessing long-term impact of architectural choices
 - Considering tradeoffs between short-term speed and long-term maintainability
+
+## Project-Bespoke Skills (in `.claude/skills/`)
+
+### triage-qa-discussion
+
+Reads a Daily QA GitHub Discussion by number, triages Carried-Forward and New Code Review findings, and systematically addresses confirmed issues.
+
+**Use when:** `/triage-qa-discussion <discussion-number>`
+
+### idiomatic-elixir (project version)
+
+Enhanced version of the global skill with auto-triggering on `.ex`/`.exs` files and modern Elixir 1.17–1.20 patterns (type system, Duration, built-in JSON, parameterized tests).
+
+**Triggers automatically** when working on any Elixir file.
