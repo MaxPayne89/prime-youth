@@ -4,28 +4,28 @@ The project uses **Phoenix's standard `phx.gen.auth` authentication** for simpli
 
 ## Directory Structure
 
-Standard Phoenix authentication structure in the Accounts context:
+Accounts context follows DDD/Ports & Adapters:
 
 ```
 lib/klass_hero/accounts/
-  user.ex              # Ecto schema with changesets
-  user_token.ex        # Token generation/verification
-  user_notifier.ex     # Email sending utility
+  domain/models/user.ex              # Domain model
+  adapters/driven/persistence/
+    schemas/user.ex                  # Ecto schema
+  user_token.ex                      # Token generation/verification
+  user_notifier.ex                   # Email sending utility
 
 lib/klass_hero_web/
   user_auth.ex         # Authentication plug and helpers
   live/user_live/      # Authentication LiveView pages
     registration.ex    # User registration
-    login.ex          # User login
-    settings.ex       # User settings
-    forgot_password.ex # Password reset
-    reset_password.ex  # Password reset confirmation
+    login.ex           # User login
+    settings.ex        # User settings
     confirmation.ex    # Email confirmation
 ```
 
 ## Authentication Features
 
-### Passwordless Email-Based Authentication
+### Password + Email Confirmation Authentication
 
 - Email confirmation required before account activation
 - Secure token-based email verification
@@ -94,7 +94,7 @@ The application supports two Phoenix layout patterns in `app.html.heex`:
 - Layout receives `@inner_block` slot from component usage
 - Used by: Registration, Login, Settings, etc.
 
-### Implementation (lib/klass_hero_web/components/layouts/app.html.heex:161-166)
+### Implementation (lib/klass_hero_web/components/layouts/app.html.heex:219-225)
 
 ```heex
 <main class="flex-1 relative z-0">

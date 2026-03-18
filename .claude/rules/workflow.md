@@ -13,8 +13,8 @@
 
 When implementing features, reference:
 
-- `docs/domain-stories.md` - Business domain understanding and user journeys
-- `docs/technical-architecture.md` - DDD implementation patterns and architecture
+- `docs/contexts/` - Per-bounded-context documentation and communication patterns
+- `.claude/rules/domain-architecture.md` - DDD patterns and key conventions
 - Existing LiveView pages - Established UI patterns and component usage
 
 ## Pre-commit Checklist

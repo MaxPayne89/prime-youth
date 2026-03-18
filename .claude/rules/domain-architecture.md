@@ -15,9 +15,8 @@ The project follows Domain-Driven Design with Ports & Adapters architecture (Hex
 
 **Start here for architectural guidance:**
 
-- `docs/DDD_ARCHITECTURE.md` - Comprehensive DDD patterns, code templates, and directory structures
-- `docs/technical-architecture.md` - Klass Hero bounded context definitions and examples
-- `docs/domain-stories.md` - Business domain understanding
+- `docs/contexts/` - Per-bounded-context documentation (purpose, features, communication patterns)
+- Existing context implementations under `lib/klass_hero/` - Follow established patterns
 
 ## Authentication Note
 
