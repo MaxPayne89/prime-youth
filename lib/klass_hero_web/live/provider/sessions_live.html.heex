@@ -111,7 +111,7 @@
   </div>
 
   <%!-- Create Session Modal --%>
-  <%= if @show_modal do %>
+  <%= if @live_action == :new do %>
     <div
       id="create-session-backdrop"
       class="fixed inset-0 z-50 bg-black/50"
@@ -164,8 +164,8 @@
             <.input field={@form[:end_time]} type="time" label={gettext("End Time")} required />
           </div>
 
-          <.input field={@form[:location]} type="text" label={gettext("Location")} />
-          <.input field={@form[:notes]} type="textarea" label={gettext("Notes")} />
+          <.input field={@form[:location]} type="text" label={gettext("Location")} phx-debounce="blur" />
+          <.input field={@form[:notes]} type="textarea" label={gettext("Notes")} phx-debounce="blur" />
           <.input field={@form[:max_capacity]} type="number" label={gettext("Max Capacity")} />
 
           <div class="flex justify-end gap-3 pt-2">

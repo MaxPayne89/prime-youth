@@ -22,7 +22,6 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
       |> assign(:selected_date, selected_date)
       |> assign(:provider_programs, provider_programs)
       |> assign(:provider_program_ids, provider_program_ids)
-      |> assign(:show_modal, false)
       |> assign(:form, nil)
       |> stream(:sessions, [])
 
@@ -50,18 +49,13 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   end
 
   defp apply_action(socket, :index, _params) do
-    socket
-    |> assign(:show_modal, false)
-    |> assign(:form, nil)
+    assign(socket, :form, nil)
   end
 
   defp apply_action(socket, :new, _params) do
-    programs = socket.assigns.provider_programs
-    form_data = build_initial_form_data(socket.assigns.selected_date, programs)
+    form_data = build_initial_form_data(socket.assigns.selected_date)
 
-    socket
-    |> assign(:show_modal, true)
-    |> assign(:form, to_form(form_data, as: :session))
+    assign(socket, :form, to_form(form_data, as: :session))
   end
 
   @impl true
@@ -190,14 +184,14 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
         socket
       ) do
     # Trigger: child_checked_in payload lacks program_id
-    # Why: event only carries session_id and child_id
-    # Outcome: attempt fetch — if session not in stream, stream_insert is harmless
-    {:noreply, update_session_in_stream(socket, session_id)}
+    # Why: can't filter by MapSet before fetch; verify ownership after fetch instead
+    # Outcome: skip DB query result if session belongs to a different provider
+    {:noreply, update_session_in_stream_if_owned(socket, session_id)}
   end
 
   # Private helper functions
 
-  defp build_initial_form_data(selected_date, _programs) do
+  defp build_initial_form_data(selected_date) do
     %{
       "program_id" => "",
       "session_date" => Date.to_iso8601(selected_date),
@@ -308,9 +302,10 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
           else: Map.put(coerced, :notes, params["notes"])
 
       coerced =
-        if params["max_capacity"] in [nil, ""],
-          do: coerced,
-          else: Map.put(coerced, :max_capacity, String.to_integer(params["max_capacity"]))
+        case Integer.parse(params["max_capacity"] || "") do
+          {value, ""} -> Map.put(coerced, :max_capacity, value)
+          _ -> coerced
+        end
 
       {:ok, coerced}
     end
@@ -333,7 +328,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     # Trigger: HTML time inputs produce "HH:MM" without seconds
     # Why: Time.from_iso8601/1 requires "HH:MM:SS" format
     # Outcome: append ":00" seconds for successful parsing
-    normalized = if String.length(time_string) == 5, do: time_string <> ":00", else: time_string
+    normalized = if byte_size(time_string) == 5, do: time_string <> ":00", else: time_string
 
     case Time.from_iso8601(normalized) do
       {:ok, _time} = ok -> ok
@@ -347,6 +342,20 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   defp humanize_error(:missing_required_fields), do: gettext("Please fill in all required fields")
 
   defp humanize_error(reason), do: inspect(reason)
+
+  defp update_session_in_stream_if_owned(socket, session_id) do
+    case Participation.get_session_with_roster(session_id) do
+      {:ok, %{session: session}} ->
+        if MapSet.member?(socket.assigns.provider_program_ids, session.program_id) do
+          stream_insert(socket, :sessions, session)
+        else
+          socket
+        end
+
+      {:error, _} ->
+        socket
+    end
+  end
 
   defp update_session_in_stream(socket, session_id) do
     case Participation.get_session_with_roster(session_id) do
