@@ -26,18 +26,14 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
       |> stream(:sessions, [])
 
     if connected?(socket) do
-      # Trigger: subscribing to generic event topics (not provider-specific)
-      # Why: event system publishes to "aggregate:event_type" topics;
-      #      provider-specific routing is a future enhancement
-      # Outcome: handle_info receives all events, filters by provider's program IDs
-      for topic <- [
-            "participation:session_created",
-            "participation:session_started",
-            "participation:session_completed",
-            "participation:child_checked_in"
-          ] do
-        Phoenix.PubSub.subscribe(KlassHero.PubSub, topic)
-      end
+      # Trigger: subscribing to provider-specific topic
+      # Why: events are already routed to provider's topic by NotifyLiveViews handler;
+      #      no client-side filtering needed
+      # Outcome: LiveView receives only events for this provider's programs
+      Phoenix.PubSub.subscribe(
+        KlassHero.PubSub,
+        "participation:provider:#{provider_id}"
+      )
     end
 
     {:ok, load_sessions(socket)}
@@ -160,22 +156,14 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
         socket
       )
       when event_type in [:session_started, :session_completed, :session_created] do
-    # Trigger: generic topic delivers events for ALL providers' sessions
-    # Why: we only subscribe to generic topics (not provider-specific)
-    # Outcome: ignore events for programs not belonging to this provider
-    if MapSet.member?(socket.assigns.provider_program_ids, payload.program_id) do
-      # Trigger: session_created events may be for a date the provider isn't currently viewing
-      # Why: the stream only shows sessions for selected_date; inserting a wrong-date session
-      #      would pollute the current view
-      # Outcome: for session_created, also check date; start/complete are for existing stream items
-      if event_type == :session_created and
-           Map.get(payload, :session_date) != socket.assigns.selected_date do
-        {:noreply, socket}
-      else
-        {:noreply, update_session_in_stream(socket, session_id)}
-      end
-    else
+    # Trigger: session_created events may be for a date not currently viewed
+    # Why: stream only shows sessions for selected_date; wrong-date sessions would pollute the view
+    # Outcome: for session_created, check date; start/complete are for existing stream items
+    if event_type == :session_created and
+         Map.get(payload, :session_date) != socket.assigns.selected_date do
       {:noreply, socket}
+    else
+      {:noreply, update_session_in_stream(socket, session_id)}
     end
   end
 
@@ -188,10 +176,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
          }},
         socket
       ) do
-    # Trigger: child_checked_in payload lacks program_id
-    # Why: can't filter by MapSet before fetch; verify ownership after fetch instead
-    # Outcome: skip DB query result if session belongs to a different provider
-    {:noreply, update_session_in_stream_if_owned(socket, session_id)}
+    {:noreply, update_session_in_stream(socket, session_id)}
   end
 
   # Private helper functions
@@ -347,20 +332,6 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   defp humanize_error(:missing_required_fields), do: gettext("Please fill in all required fields")
 
   defp humanize_error(reason), do: inspect(reason)
-
-  defp update_session_in_stream_if_owned(socket, session_id) do
-    case Participation.get_session_with_roster(session_id) do
-      {:ok, %{session: session}} ->
-        if MapSet.member?(socket.assigns.provider_program_ids, session.program_id) do
-          stream_insert(socket, :sessions, session)
-        else
-          socket
-        end
-
-      {:error, _} ->
-        socket
-    end
-  end
 
   defp update_session_in_stream(socket, session_id) do
     case Participation.get_session_with_roster(session_id) do
