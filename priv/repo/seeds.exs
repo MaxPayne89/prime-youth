@@ -15,10 +15,13 @@ alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
+alias KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries
 alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.BehavioralNoteSchema
 alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
 alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings
+alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
 alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
 alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
@@ -1420,7 +1423,25 @@ Logger.info("Created #{participant_count} conversation participants")
 Logger.info("Created #{message_count} messages")
 
 # ==============================================================================
-# S18: SUMMARY
+# S18: REBUILD CQRS READ MODEL PROJECTIONS
+# ==============================================================================
+
+# Trigger: seeds inserted directly into write tables, bypassing integration events
+# Why: projection GenServers only bootstrap on startup — seeding after startup leaves
+#      read tables empty (e.g. program_listings, conversation_summaries)
+# Outcome: all read tables rebuilt from authoritative write data
+Logger.info("Rebuilding CQRS projections...")
+
+# Order matters: VerifiedProviders must be rebuilt first because ProgramListings
+# reads provider verification status from it during bootstrap
+VerifiedProviders.rebuild()
+ProgramListings.rebuild()
+ConversationSummaries.rebuild()
+
+Logger.info("Rebuilt CQRS projections")
+
+# ==============================================================================
+# S19: SUMMARY
 # ==============================================================================
 
 Logger.info("Seeding complete!")

@@ -75,6 +75,35 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListingsTe
     end
   end
 
+  describe "rebuild/1" do
+    test "rebuilds program_listings from write table without restarting" do
+      # Ensure initial bootstrap has completed before inserting test data
+      _ = :sys.get_state(@test_server_name)
+
+      provider = insert(:provider_profile_schema)
+
+      # Insert programs into the write table after the projection has already started
+      program =
+        insert(:program_schema,
+          title: "Rebuild Test Program",
+          category: "sports",
+          provider_id: provider.id
+        )
+
+      # The read table should not have this program yet (it was inserted after bootstrap)
+      assert Repo.get(ProgramListingSchema, program.id) == nil
+
+      # Rebuild should pick it up from the write table
+      assert :ok = ProgramListings.rebuild(@test_server_name)
+
+      listing = Repo.get(ProgramListingSchema, program.id)
+      assert listing != nil
+      assert listing.title == "Rebuild Test Program"
+      assert listing.category == "sports"
+      assert listing.provider_id == provider.id
+    end
+  end
+
   describe "handle program_created event" do
     test "inserts a new row into program_listings" do
       program_id = Ecto.UUID.generate()

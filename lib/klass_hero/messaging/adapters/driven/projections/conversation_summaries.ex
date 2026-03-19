@@ -70,6 +70,17 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     GenServer.start_link(__MODULE__, opts, name: name)
   end
 
+  @doc """
+  Rebuilds the conversation_summaries read table from the write tables.
+
+  Useful after seeding write tables directly (bypassing integration events).
+  Blocks until the rebuild is complete.
+  """
+  @spec rebuild(GenServer.name()) :: :ok
+  def rebuild(name \\ __MODULE__) do
+    GenServer.call(name, :rebuild, :infinity)
+  end
+
   # Server Callbacks
 
   @impl true
@@ -94,6 +105,16 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     # Why: project all existing conversations from write tables into read table
     # Outcome: conversation_summaries table populated with current data
     attempt_bootstrap(state)
+  end
+
+  # Trigger: external caller requests a full rebuild (e.g. after seeding)
+  # Why: seeds insert into write tables without emitting integration events
+  # Outcome: conversation_summaries read table refreshed from write tables
+  @impl true
+  def handle_call(:rebuild, _from, state) do
+    count = bootstrap_from_write_tables()
+    Logger.info("ConversationSummaries rebuilt", count: count)
+    {:reply, :ok, %{state | bootstrapped: true}}
   end
 
   @impl true
