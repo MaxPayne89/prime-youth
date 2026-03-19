@@ -8,6 +8,11 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiv
 
   Provider ID is resolved via the ForResolvingProgramProvider ACL port.
   If resolution fails, the provider-specific publish is skipped (best-effort).
+
+  Provider-specific routing applies only to session and attendance events (which carry
+  `program_id` in their payload). Behavioral note events use a different aggregate type
+  and carry `provider_id` directly — they skip provider-specific routing and are delivered
+  only via the generic topic.
   """
 
   alias KlassHero.Shared.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,

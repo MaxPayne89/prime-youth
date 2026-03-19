@@ -197,11 +197,21 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     provider_id = socket.assigns.provider_id
     selected_date = socket.assigns.selected_date
 
-    {:ok, sessions} = Participation.list_provider_sessions(provider_id, selected_date)
+    case Participation.list_provider_sessions(provider_id, selected_date) do
+      {:ok, sessions} ->
+        socket
+        |> stream(:sessions, sessions, reset: true)
+        |> assign(:sessions_error, nil)
 
-    socket
-    |> stream(:sessions, sessions, reset: true)
-    |> assign(:sessions_error, nil)
+      {:error, reason} ->
+        Logger.error("[SessionsLive] Failed to load sessions",
+          provider_id: provider_id,
+          date: selected_date,
+          reason: inspect(reason)
+        )
+
+        assign(socket, :sessions_error, reason)
+    end
   end
 
   defp maybe_prefill_from_program(params, programs) do
