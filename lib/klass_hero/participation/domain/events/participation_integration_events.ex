@@ -278,7 +278,9 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
 
   Published after participation records have been bulk-seeded for a new session.
   """
-  def roster_seeded(session_id, %{program_id: _, seeded_count: _} = payload, opts \\ [])
+  def roster_seeded(session_id, payload \\ %{}, opts \\ [])
+
+  def roster_seeded(session_id, %{program_id: _, seeded_count: _} = payload, opts)
       when is_binary(session_id) and byte_size(session_id) > 0 do
     base_payload = %{session_id: session_id}
 
@@ -290,6 +292,19 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
       Map.merge(payload, base_payload),
       opts
     )
+  end
+
+  def roster_seeded(session_id, payload, _opts)
+      when is_binary(session_id) and byte_size(session_id) > 0 do
+    missing = [:program_id, :seeded_count] -- Map.keys(payload)
+
+    raise ArgumentError,
+          "roster_seeded missing required payload keys: #{inspect(missing)}"
+  end
+
+  def roster_seeded(session_id, _payload, _opts) do
+    raise ArgumentError,
+          "roster_seeded/3 requires a non-empty session_id string, got: #{inspect(session_id)}"
   end
 
   # ---------------------------------------------------------------------------
