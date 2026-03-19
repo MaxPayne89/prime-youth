@@ -181,6 +181,38 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
       # After PubSub update, should show in_progress actions
       assert has_element?(view, "a", "Manage Participation")
     end
+
+    test "refreshes session in stream when roster_seeded event received", %{
+      conn: conn,
+      provider: provider
+    } do
+      program = insert(:program_schema, provider_id: provider.id)
+      _listing = insert(:program_listing_schema, id: program.id, provider_id: provider.id)
+
+      session =
+        insert(:program_session_schema,
+          program_id: program.id,
+          session_date: Date.utc_today(),
+          status: :scheduled
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions")
+
+      # Session initially visible
+      assert has_element?(view, "button", "Start Session")
+
+      event =
+        KlassHero.Participation.Domain.Events.ParticipationEvents.roster_seeded(
+          session.id,
+          program.id,
+          1
+        )
+
+      send(view.pid, {:domain_event, event})
+
+      # Session still present in stream after roster_seeded event (no crash)
+      assert has_element?(view, "button", "Start Session")
+    end
   end
 
   describe "create session modal" do

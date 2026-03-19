@@ -341,6 +341,42 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIn
     end
   end
 
+  describe "handle/1 -- :roster_seeded" do
+    test "promotes to roster_seeded integration event" do
+      session_id = Ecto.UUID.generate()
+      program_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:roster_seeded, session_id, :participation, %{
+          session_id: session_id,
+          program_id: program_id,
+          seeded_count: 3
+        })
+
+      assert :ok = PromoteIntegrationEvents.handle(domain_event)
+
+      event = assert_integration_event_published(:roster_seeded)
+      assert event.entity_id == session_id
+      assert event.source_context == :participation
+    end
+
+    test "swallows publish failures with :ok" do
+      session_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:roster_seeded, session_id, :participation, %{
+          session_id: session_id,
+          program_id: Ecto.UUID.generate(),
+          seeded_count: 3
+        })
+
+      TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)
+
+      assert :ok = PromoteIntegrationEvents.handle(domain_event)
+      assert_no_integration_events_published()
+    end
+  end
+
   describe "handle/1 — :behavioral_note_rejected" do
     test "promotes to behavioral_note_rejected integration event" do
       note_id = Ecto.UUID.generate()

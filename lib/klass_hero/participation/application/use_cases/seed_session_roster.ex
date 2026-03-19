@@ -87,7 +87,18 @@ defmodule KlassHero.Participation.Application.UseCases.SeedSessionRoster do
   # Outcome: distinct log messages for seeding vs. notification failures
   defp safe_publish_event(session_id, program_id, count) do
     event = ParticipationEvents.roster_seeded(session_id, program_id, count)
-    DomainEventBus.dispatch(@context, event)
+
+    case DomainEventBus.dispatch(@context, event) do
+      :ok ->
+        :ok
+
+      {:error, failures} ->
+        Logger.warning("[SeedSessionRoster] Event dispatch had handler failures",
+          session_id: session_id,
+          program_id: program_id,
+          failures: inspect(failures)
+        )
+    end
   rescue
     error ->
       Logger.error(

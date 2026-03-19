@@ -48,5 +48,12 @@ defmodule KlassHero.Participation.Application.UseCases.SeedSessionRosterTest do
       records = ParticipationRepository.list_by_session(session.id)
       assert records == []
     end
+
+    test "returns :ok when seeding fails (best-effort)" do
+      enrollment = insert(:enrollment_schema, status: "confirmed")
+      non_existent_session_id = Ecto.UUID.generate()
+
+      assert :ok = SeedSessionRoster.execute(non_existent_session_id, enrollment.program_id)
+    end
   end
 end
