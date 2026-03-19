@@ -131,6 +131,36 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
     end
   end
 
+  @impl true
+  def seed_batch(_session_id, []), do: {:ok, 0}
+
+  def seed_batch(session_id, child_ids) when is_binary(session_id) and is_list(child_ids) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    rows =
+      Enum.map(child_ids, fn child_id ->
+        %{
+          id: Ecto.UUID.generate(),
+          session_id: session_id,
+          child_id: child_id,
+          status: :registered,
+          lock_version: 1,
+          inserted_at: now,
+          updated_at: now
+        }
+      end)
+
+    {count, _} =
+      Repo.insert_all(
+        ParticipationRecordSchema,
+        rows,
+        on_conflict: :nothing,
+        conflict_target: [:session_id, :child_id]
+      )
+
+    {:ok, count}
+  end
+
   @doc """
   Lists participation records for a session with child names resolved.
 

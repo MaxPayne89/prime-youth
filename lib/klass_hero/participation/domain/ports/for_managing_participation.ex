@@ -49,4 +49,13 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingParticipation do
   @doc "Creates multiple participation records in a batch."
   @callback create_batch([ParticipationRecord.t()]) ::
               {:ok, [ParticipationRecord.t()]} | {:error, :validation_failed}
+
+  @doc """
+  Bulk-seeds participation records for a session using insert_all with ON CONFLICT DO NOTHING.
+
+  Returns `{:ok, count}` where count is the number of actually inserted records.
+  Duplicates (existing session_id+child_id pairs) are silently skipped.
+  """
+  @callback seed_batch(session_id :: String.t(), child_ids :: [String.t()]) ::
+              {:ok, non_neg_integer()}
 end

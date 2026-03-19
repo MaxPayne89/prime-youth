@@ -193,12 +193,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
       case Messaging.reply_privately_to_broadcast(scope, conversation.id) do
         {:ok, direct_conversation_id} ->
-          direct_path =
-            case back_path do
-              "/provider/messages" -> ~p"/provider/messages/#{direct_conversation_id}"
-              _ -> ~p"/messages/#{direct_conversation_id}"
-            end
-
+          direct_path = reply_privately_path(back_path, direct_conversation_id)
           {:noreply, push_navigate(socket, to: direct_path)}
 
         {:error, reason} ->
@@ -347,6 +342,11 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
         socket
     end
   end
+
+  defp reply_privately_path("/provider/messages", conversation_id),
+    do: ~p"/provider/messages/#{conversation_id}"
+
+  defp reply_privately_path(_back_path, conversation_id), do: ~p"/messages/#{conversation_id}"
 
   defp subscribe_to_conversation(conversation_id) do
     topic = Messaging.conversation_topic(conversation_id)

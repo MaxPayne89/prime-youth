@@ -339,7 +339,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
          now
        ) do
     active_participants = Enum.filter(conversation.participants, &is_nil(&1.left_at))
-    participant_count = length(active_participants)
     latest_message = Map.get(latest_messages, conversation.id)
     conv_system_notes = Map.get(system_notes, conversation.id, %{})
 
@@ -351,7 +350,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
         user_names,
         latest_message,
         unread_counts,
-        participant_count,
         conv_system_notes,
         now
       )
@@ -365,10 +363,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
          user_names,
          latest_message,
          unread_counts,
-         participant_count,
          conv_system_notes,
          now
        ) do
+    participant_count = length(active_participants)
+
     other_name =
       resolve_other_participant_name(
         conversation.type,

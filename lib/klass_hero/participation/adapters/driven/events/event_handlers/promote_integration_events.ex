@@ -56,6 +56,16 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIn
     )
   end
 
+  def handle(%DomainEvent{event_type: :roster_seeded} = event) do
+    # Trigger: roster_seeded domain event dispatched from SeedSessionRoster use case
+    # Why: downstream contexts may need to know roster is ready (e.g. notifications)
+    # Outcome: best-effort publish; swallow failures since records are already persisted
+    ParticipationIntegrationEvents.roster_seeded(event.aggregate_id, event.payload)
+    |> IntegrationEventPublishing.publish_best_effort("roster_seeded",
+      session_id: event.aggregate_id
+    )
+  end
+
   # ---------------------------------------------------------------------------
   # Attendance events
   # ---------------------------------------------------------------------------

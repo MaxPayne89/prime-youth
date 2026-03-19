@@ -253,6 +253,13 @@ defmodule KlassHero.Application do
              :handle}, priority: 10},
            {:behavioral_note_rejected,
             {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+             :handle}},
+           # roster_seeded: promote to integration event, then notify LiveViews
+           {:roster_seeded,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
+           {:roster_seeded,
+            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
              :handle}}
          ]},
         id: :participation_domain_event_bus
@@ -325,6 +332,16 @@ defmodule KlassHero.Application do
          message_tag: :integration_event,
          event_label: "Integration event"},
         id: :enrollment_family_invite_subscriber
+      ),
+      # Participation seeds session roster when a session is created
+      Supervisor.child_spec(
+        {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler:
+           KlassHero.Participation.Adapters.Driven.Events.EventHandlers.SeedSessionRosterHandler,
+         topics: ["integration:participation:session_created"],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :participation_seed_roster_subscriber
       )
     ]
   end
