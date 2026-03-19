@@ -92,6 +92,8 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
     DomainEvent.new(:child_checked_in, record.id, @aggregate_type, payload, opts)
   end
 
+  def child_checked_in(%ParticipationRecord{} = record, nil), do: child_checked_in(record, [])
+
   @doc "Creates a child_checked_in event with program_id from the session."
   @spec child_checked_in(ParticipationRecord.t(), ProgramSession.t()) :: DomainEvent.t()
   def child_checked_in(%ParticipationRecord{} = record, %ProgramSession{} = session) do
@@ -131,6 +133,8 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
     DomainEvent.new(:child_checked_out, record.id, @aggregate_type, payload, opts)
   end
 
+  def child_checked_out(%ParticipationRecord{} = record, nil), do: child_checked_out(record, [])
+
   @doc "Creates a child_checked_out event with program_id from the session."
   @spec child_checked_out(ParticipationRecord.t(), ProgramSession.t()) :: DomainEvent.t()
   def child_checked_out(%ParticipationRecord{} = record, %ProgramSession{} = session) do
@@ -164,6 +168,9 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
 
     DomainEvent.new(:child_marked_absent, record.id, @aggregate_type, payload, opts)
   end
+
+  def child_marked_absent(%ParticipationRecord{} = record, nil),
+    do: child_marked_absent(record, [])
 
   @doc "Creates a child_marked_absent event with program_id from the session."
   @spec child_marked_absent(ParticipationRecord.t(), ProgramSession.t()) :: DomainEvent.t()

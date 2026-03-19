@@ -56,7 +56,7 @@ defmodule KlassHero.Participation.Application.UseCases.Shared do
   @type domain_fn ::
           (ParticipationRecord.t(), String.t(), String.t() | nil ->
              {:ok, ParticipationRecord.t()} | {:error, term()})
-  @type event_fn :: (ParticipationRecord.t(), ProgramSession.t() -> DomainEvent.t())
+  @type event_fn :: (ParticipationRecord.t(), ProgramSession.t() | nil -> DomainEvent.t())
 
   @spec run_attendance_action(String.t(), String.t(), String.t() | nil, domain_fn(), event_fn()) ::
           {:ok, ParticipationRecord.t()} | {:error, term()}
@@ -71,18 +71,22 @@ defmodule KlassHero.Participation.Application.UseCases.Shared do
       #      should not make the caller see an error
       # Outcome: if session found, event includes program_id; if not, event
       #          still dispatched without it (NotifyLiveViews handles gracefully)
-      case @session_repository.get_by_id(persisted.session_id) do
-        {:ok, session} ->
-          event = event_fn.(persisted, session)
-          DomainEventBus.dispatch(@context, event)
+      session =
+        case @session_repository.get_by_id(persisted.session_id) do
+          {:ok, session} ->
+            session
 
-        {:error, reason} ->
-          Logger.warning("[Participation.Shared] Session fetch failed for event enrichment",
-            session_id: persisted.session_id,
-            reason: reason
-          )
-      end
+          {:error, reason} ->
+            Logger.warning("[Participation.Shared] Session fetch failed for event enrichment",
+              session_id: persisted.session_id,
+              reason: reason
+            )
 
+            nil
+        end
+
+      event = event_fn.(persisted, session)
+      DomainEventBus.dispatch(@context, event)
       {:ok, persisted}
     end
   end
