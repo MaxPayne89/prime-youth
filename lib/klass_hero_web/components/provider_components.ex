@@ -81,12 +81,20 @@ defmodule KlassHeroWeb.ProviderComponents do
         >
           {gettext("My Programs")}
         </.nav_tab>
+        <.nav_tab
+          navigate={~p"/provider/sessions"}
+          active={false}
+          icon="hero-calendar-days-mini"
+        >
+          {gettext("Sessions")}
+        </.nav_tab>
       </div>
     </nav>
     """
   end
 
-  attr :patch, :string, required: true
+  attr :patch, :string, default: nil
+  attr :navigate, :string, default: nil
   attr :active, :boolean, required: true
   attr :icon, :string, required: true
   slot :inner_block, required: true
@@ -95,6 +103,7 @@ defmodule KlassHeroWeb.ProviderComponents do
     ~H"""
     <.link
       patch={@patch}
+      navigate={@navigate}
       class={[
         "flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors",
         if(@active,
