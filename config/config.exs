@@ -152,7 +152,9 @@ config :klass_hero, :participation,
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
   child_info_resolver: KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver,
   behavioral_note_repository:
-    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
+    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository,
+  program_provider_resolver:
+    KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver
 
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,
