@@ -339,7 +339,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
          now
        ) do
     active_participants = Enum.filter(conversation.participants, &is_nil(&1.left_at))
-    participant_count = length(active_participants)
     latest_message = Map.get(latest_messages, conversation.id)
     conv_system_notes = Map.get(system_notes, conversation.id, %{})
 
