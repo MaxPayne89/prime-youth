@@ -78,32 +78,34 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
     # Outcome: conversation lookup/creation is isolated; only participant + message
     #          creation needs transactional consistency
     with {:ok, conversation} <-
-           get_or_create_broadcast_conversation(scope, program_id, subject, repos.conversations) do
-      Repo.transaction(fn ->
-        with {:ok, _participants} <-
-               repos.participants.add_batch(conversation.id, parent_user_ids),
-             {:ok, _} <-
-               repos.participants.add(%{
-                 conversation_id: conversation.id,
-                 user_id: scope.user.id
-               }),
-             {:ok, message} <-
-               repos.messages.create(%{
-                 conversation_id: conversation.id,
-                 sender_id: scope.user.id,
-                 content: String.trim(content),
-                 message_type: :text
-               }) do
-          {conversation, message}
-        else
-          {:error, reason} -> Repo.rollback(reason)
-        end
-      end)
-      |> case do
-        {:ok, {conversation, message}} -> {:ok, conversation, message}
-        {:error, reason} -> {:error, reason}
-      end
+           get_or_create_broadcast_conversation(scope, program_id, subject, repos.conversations),
+         {:ok, {conversation, message}} <-
+           execute_broadcast_transaction(conversation, scope, content, parent_user_ids, repos) do
+      {:ok, conversation, message}
     end
+  end
+
+  defp execute_broadcast_transaction(conversation, scope, content, parent_user_ids, repos) do
+    Repo.transaction(fn ->
+      with {:ok, _participants} <-
+             repos.participants.add_batch(conversation.id, parent_user_ids),
+           {:ok, _} <-
+             repos.participants.add(%{
+               conversation_id: conversation.id,
+               user_id: scope.user.id
+             }),
+           {:ok, message} <-
+             repos.messages.create(%{
+               conversation_id: conversation.id,
+               sender_id: scope.user.id,
+               content: String.trim(content),
+               message_type: :text
+             }) do
+        {conversation, message}
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
   end
 
   defp get_or_create_broadcast_conversation(scope, program_id, subject, conversation_repo) do

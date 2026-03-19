@@ -5,6 +5,8 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
   import Phoenix.LiveViewTest
 
   alias KlassHero.Participation
+  alias KlassHero.Participation.Domain.Events.ParticipationEvents
+  alias KlassHero.Participation.Domain.Models.ProgramSession
 
   describe "authentication and authorization" do
     test "redirects unauthenticated users to login", %{conn: conn} do
@@ -162,8 +164,8 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
 
       # Simulate PubSub event (matching actual broadcast format)
       event =
-        KlassHero.Participation.Domain.Events.ParticipationEvents.session_started(
-          struct!(KlassHero.Participation.Domain.Models.ProgramSession, %{
+        ParticipationEvents.session_started(
+          struct!(ProgramSession, %{
             id: session.id,
             program_id: program.id,
             session_date: Date.utc_today(),
@@ -202,7 +204,7 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
       assert has_element?(view, "button", "Start Session")
 
       event =
-        KlassHero.Participation.Domain.Events.ParticipationEvents.roster_seeded(
+        ParticipationEvents.roster_seeded(
           session.id,
           program.id,
           1
@@ -463,8 +465,8 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
 
       # Simulate PubSub event for a session created today
       event =
-        KlassHero.Participation.Domain.Events.ParticipationEvents.session_created(
-          struct!(KlassHero.Participation.Domain.Models.ProgramSession, %{
+        ParticipationEvents.session_created(
+          struct!(ProgramSession, %{
             id: session.id,
             program_id: program.id,
             session_date: Date.utc_today(),
@@ -504,8 +506,8 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
 
       # Send a session_created event with tomorrow's date
       event =
-        KlassHero.Participation.Domain.Events.ParticipationEvents.session_created(
-          struct!(KlassHero.Participation.Domain.Models.ProgramSession, %{
+        ParticipationEvents.session_created(
+          struct!(ProgramSession, %{
             id: session.id,
             program_id: program.id,
             session_date: tomorrow,

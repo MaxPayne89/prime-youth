@@ -57,12 +57,10 @@ defmodule KlassHero.Participation.Application.UseCases.SeedSessionRoster do
     # Outcome: all child_ids are passed to seed_batch without filtering
     {:ok, count} = @participation_repository.seed_batch(session_id, child_ids)
 
-    Logger.info("[SeedSessionRoster] Seeded roster",
+    Logger.info(
+      "[SeedSessionRoster] Seeded roster — enrolled=#{length(child_ids)} inserted=#{count} skipped=#{length(child_ids) - count}",
       session_id: session_id,
-      program_id: program_id,
-      enrolled: length(child_ids),
-      inserted: count,
-      skipped: length(child_ids) - count
+      program_id: program_id
     )
 
     safe_publish_event(session_id, program_id, count)
@@ -93,10 +91,10 @@ defmodule KlassHero.Participation.Application.UseCases.SeedSessionRoster do
         :ok
 
       {:error, failures} ->
-        Logger.warning("[SeedSessionRoster] Event dispatch had handler failures",
+        Logger.warning(
+          "[SeedSessionRoster] Event dispatch had handler failures: #{inspect(failures)}",
           session_id: session_id,
-          program_id: program_id,
-          failures: inspect(failures)
+          program_id: program_id
         )
     end
   rescue

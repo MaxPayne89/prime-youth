@@ -1,4 +1,4 @@
-defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepositoryHasSystemNoteTest do
+defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConvSummariesRepoHasSystemNoteTest do
   use KlassHero.DataCase, async: true
 
   import Ecto.Query
