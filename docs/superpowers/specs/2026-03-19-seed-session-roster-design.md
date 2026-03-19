@@ -19,7 +19,7 @@ CreateSession.execute/1
   → session_created domain event
   → PromoteIntegrationEvents handler
   → PubSub topic "integration:participation:session_created"
-  → SeedSessionRosterSubscriber (GenServer)
+  → EventSubscriber + SeedSessionRosterHandler
   → SeedSessionRoster use case
   → EnrollmentContextACL → Enrollment.list_program_enrollments/1
   → bulk insert participation_records (ON CONFLICT DO NOTHING)
@@ -61,7 +61,7 @@ Calls `Enrollment.list_program_enrollments/1` and plucks `child_id` from the enr
 
 1. Query enrolled child IDs via the ACL port
 2. Build `ParticipationRecord` structs with status `:registered`
-3. Bulk insert with ON CONFLICT DO NOTHING on `(session_id, child_id)` unique constraint
+3. Bulk insert via `Repo.insert_all` with `on_conflict: :nothing, conflict_target: [:session_id, :child_id]`
 4. Log: count seeded, count skipped (duplicates)
 5. Publish `roster_seeded` domain event for LiveView notification
 
@@ -69,21 +69,32 @@ Calls `Enrollment.list_program_enrollments/1` and plucks `child_id` from the enr
 
 **Error handling:** Best-effort. ACL failures or insert errors are logged but swallowed — session creation is already complete. Follows the `publish_best_effort` pattern established in `PromoteIntegrationEvents`.
 
-### 4. Subscriber: `SeedSessionRosterSubscriber`
+### 4. Event Handler: `SeedSessionRosterHandler`
 
-**Location:** `lib/klass_hero/participation/adapters/driven/events/subscribers/seed_session_roster_subscriber.ex`
+**Location:** `lib/klass_hero/participation/adapters/driven/events/event_handlers/seed_session_roster_handler.ex`
 
-GenServer started under the application supervision tree.
+Uses the existing `EventSubscriber` GenServer infrastructure (not a custom GenServer). Implements `ForHandlingIntegrationEvents` behaviour:
 
-- `init/1`: subscribes to `"integration:participation:session_created"`
-- `handle_info({:integration_event, event}, state)`: extracts `program_id` and `session_id` from payload, delegates to `SeedSessionRoster.execute/2`
-- Stateless — no GenServer state beyond the subscription
+- `handle_event/1`: extracts `program_id` and `session_id` from integration event payload, delegates to `SeedSessionRoster.execute/2`
+- Returns `:ok` on success, `:ignore` for irrelevant events
+
+Wired into the supervision tree via `EventSubscriber`:
+
+```elixir
+{EventSubscriber,
+ handler: SeedSessionRosterHandler,
+ topics: ["integration:participation:session_created"],
+ message_tag: :integration_event,
+ event_label: "Integration event"}
+```
 
 Not using Oban for durable delivery: if the node is down, the session creation that fired the event also didn't happen. Can be promoted to critical event later if needed.
 
 ### 5. Domain Event: `roster_seeded`
 
-New event in `ParticipationEvents` — published after bulk insert completes. Flows through the existing `NotifyLiveViews` handler to push updates to `ParticipationLive` via the provider-specific PubSub topic.
+New event in `ParticipationEvents` — published after bulk insert completes. Payload must include `program_id` so `NotifyLiveViews` can resolve the provider-specific PubSub topic (see `resolve_and_publish/2` which requires `program_id` in the event payload). Aggregate type: `:session`, aggregate ID: `session_id`.
+
+Flows through the existing `NotifyLiveViews` handler to push updates to `ParticipationLive` via the provider-specific PubSub topic.
 
 Handles the eventual consistency gap: if the provider navigates to "manage participants" before seeding completes, they see empty state briefly, then records stream in automatically.
 
@@ -98,7 +109,7 @@ enrolled_children_resolver:
 
 Test config swaps to a mock via `config/test.exs`.
 
-Add `SeedSessionRosterSubscriber` to the application supervision tree children in `application.ex`.
+Add `EventSubscriber` with `SeedSessionRosterHandler` to the application supervision tree children in `application.ex`.
 
 ## What This Does NOT Do
 
@@ -114,10 +125,10 @@ Add `SeedSessionRosterSubscriber` to the application supervision tree children i
 - Run twice → verify idempotency (no duplicates via ON CONFLICT)
 - Empty enrollments → no records, no crash
 
-### Unit: SeedSessionRosterSubscriber
+### Unit: SeedSessionRosterHandler
 
-- Receives `{:integration_event, ...}` with session_created → delegates to use case
-- Ignores malformed or irrelevant messages
+- `handle_event/1` with session_created integration event → delegates to use case
+- Returns `:ignore` for irrelevant event types
 
 ### Unit: EnrolledChildrenResolver ACL
 
