@@ -24,6 +24,8 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
                               :participation_repository
                             ])
 
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+
   @type params :: %{
           required(:record_ids) => [String.t()],
           required(:checked_in_by) => String.t(),
@@ -69,8 +71,9 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
   defp check_in_record(record_id, checked_in_by, notes) do
     with {:ok, record} <- @participation_repository.get_by_id(record_id),
          {:ok, checked_in} <- ParticipationRecord.check_in(record, checked_in_by, notes),
-         {:ok, persisted} <- @participation_repository.update(checked_in) do
-      publish_event(persisted)
+         {:ok, persisted} <- @participation_repository.update(checked_in),
+         {:ok, session} <- @session_repository.get_by_id(persisted.session_id) do
+      publish_event(persisted, session)
       {:ok, persisted}
     else
       {:error, reason} -> {:error, record_id, reason}
@@ -85,8 +88,8 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
     %{acc | failed: [{record_id, reason} | acc.failed]}
   end
 
-  defp publish_event(record) do
-    event = ParticipationEvents.child_checked_in(record)
+  defp publish_event(record, session) do
+    event = ParticipationEvents.child_checked_in(record, session)
     DomainEventBus.dispatch(@context, event)
   end
 end
