@@ -34,7 +34,7 @@ defmodule KlassHeroWeb.DashboardLive do
             {nil, [], [], []}
         end
       rescue
-        # Trigger: database or linked-task failure during dashboard data loading
+        # Trigger: database failure during dashboard data loading
         # Why: a failing section should not crash the entire dashboard
         # Outcome: gracefully degrade to empty state if any load fails
         e ->
