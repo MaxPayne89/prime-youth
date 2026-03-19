@@ -5,6 +5,37 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0](https://github.com/MaxPayne89/klass-hero/compare/v0.10.0...v0.11.0) (2026-03-19)
+
+
+### Features
+
+* add ForResolvingProgramProvider ACL port ([#464](https://github.com/MaxPayne89/klass-hero/issues/464)) ([1e54ae0](https://github.com/MaxPayne89/klass-hero/commit/1e54ae0ec190ad84fc9a6929d7c5b8a0c6d011ef))
+* add ProgramProviderResolver ACL adapter ([#464](https://github.com/MaxPayne89/klass-hero/issues/464)) ([869dcef](https://github.com/MaxPayne89/klass-hero/commit/869dcefac021ffb9c3e0720eeeb0061e740bdd50))
+* enrich attendance event payloads with program_id ([#464](https://github.com/MaxPayne89/klass-hero/issues/464)) ([815347d](https://github.com/MaxPayne89/klass-hero/commit/815347d6d416bd76e6d0207bf686d5acb10eab5d))
+* pass session to attendance event factories for payload enrichment ([#464](https://github.com/MaxPayne89/klass-hero/issues/464)) ([134c898](https://github.com/MaxPayne89/klass-hero/commit/134c898e9fb4eb20dd57085b589f2b5052817582))
+* publish participation events to provider-specific PubSub topics ([#464](https://github.com/MaxPayne89/klass-hero/issues/464)) ([37401ad](https://github.com/MaxPayne89/klass-hero/commit/37401ad88853c118c9690a06ba27f12a2cb3ed23))
+* rebuild CQRS projections after seeding write tables ([4674c35](https://github.com/MaxPayne89/klass-hero/commit/4674c35eb54df6d33bf637f9bdc287bba6b51bef))
+* rebuild CQRS projections after seeding write tables ([2d328e1](https://github.com/MaxPayne89/klass-hero/commit/2d328e14135cc6098e29a0e0fdc41e5ec730225b)), closes [#465](https://github.com/MaxPayne89/klass-hero/issues/465)
+* subscribe SessionsLive to provider-specific PubSub topic ([#464](https://github.com/MaxPayne89/klass-hero/issues/464)) ([943f4ae](https://github.com/MaxPayne89/klass-hero/commit/943f4ae238d1086a1f99b82dc1627d80c3973b86))
+
+
+### Bug Fixes
+
+* address PR review comments on [#469](https://github.com/MaxPayne89/klass-hero/issues/469) ([09f1e5c](https://github.com/MaxPayne89/klass-hero/commit/09f1e5c6f9893506230375ea94d835caed893ae3))
+* address PR review comments on [#479](https://github.com/MaxPayne89/klass-hero/issues/479) ([8e67f99](https://github.com/MaxPayne89/klass-hero/commit/8e67f99727f23cb50c47f3a1cdbc6979f4bf3388))
+* address PR review comments on [#480](https://github.com/MaxPayne89/klass-hero/issues/480) ([76bf5de](https://github.com/MaxPayne89/klass-hero/commit/76bf5deb4f8dd8da2beb82b1541b427632f07a96))
+* make event enrichment best-effort to prevent false failures ([#464](https://github.com/MaxPayne89/klass-hero/issues/464)) ([064eff6](https://github.com/MaxPayne89/klass-hero/commit/064eff6366496cc19c634d6eeed104be5ba3dd46))
+* remove orphaned Task.async in DashboardLive mount ([c390247](https://github.com/MaxPayne89/klass-hero/commit/c390247ec1c00d8b33dcf6f5f10470d6450cf4d8))
+* use registered Logger metadata keys in SessionsLive.load_sessions ([#464](https://github.com/MaxPayne89/klass-hero/issues/464)) ([4d63f15](https://github.com/MaxPayne89/klass-hero/commit/4d63f1578475d540bfa48ee12ff2f5751302a31b))
+
+
+### Code Refactoring
+
+* fix N+1 session fetch in BulkCheckIn, remove repetitive comments ([#464](https://github.com/MaxPayne89/klass-hero/issues/464)) ([d3b126e](https://github.com/MaxPayne89/klass-hero/commit/d3b126e8a2dd84e72fd9cc90e8c6ca209d1b1f3f))
+* migrate SessionsLive PubSub to provider-specific topic routing ([96dfbb9](https://github.com/MaxPayne89/klass-hero/commit/96dfbb9f414dba10513276e81e69e5aa3bdc5a7a))
+* remove orphaned Task.async in DashboardLive mount ([e4114f7](https://github.com/MaxPayne89/klass-hero/commit/e4114f7fc2f841fb7d36660e79b6694e5d8a0deb))
+
 ## [0.10.0](https://github.com/MaxPayne89/klass-hero/compare/v0.9.0...v0.10.0) (2026-03-19)
 
 
