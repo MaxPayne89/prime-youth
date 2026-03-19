@@ -346,8 +346,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   defp reply_privately_path("/provider/messages", conversation_id),
     do: ~p"/provider/messages/#{conversation_id}"
 
-  defp reply_privately_path(_back_path, conversation_id),
-    do: ~p"/messages/#{conversation_id}"
+  defp reply_privately_path(_back_path, conversation_id), do: ~p"/messages/#{conversation_id}"
 
   defp subscribe_to_conversation(conversation_id) do
     topic = Messaging.conversation_topic(conversation_id)
