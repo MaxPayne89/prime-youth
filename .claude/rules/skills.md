@@ -76,3 +76,9 @@ Enhanced version of the global skill with auto-triggering on `.ex`/`.exs` files 
 Creates well-formed GitHub issues from findings or hypotheses. Validates against current code, gathers references, drafts using project issue templates.
 
 **Use when:** `/create-issue "description"` or when asked to file/open/create an issue
+
+### test-drive
+
+Test-drives code changes using Playwright and Tidewave MCP. Verifies backend logic, UI flows, responsive design, and edge cases. Includes pre-flight checks, prioritized test ordering, and structured report generation. References auth flows with seed user credentials.
+
+**Use when:** `/test-drive [branch|unstaged|<issue-number>]` or when asked to "test-drive", "verify changes", or "QA this"
