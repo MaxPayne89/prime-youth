@@ -21,21 +21,20 @@ defmodule KlassHeroWeb.DashboardLive do
 
     # Trigger: enrollments are stored with parent_id (Family context), not identity_id (Accounts)
     # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
-    # Outcome: resolve parent profile once, then query children + enrollments in parallel
+    # Outcome: resolve parent profile once, then query children + enrollments sequentially
     {parent, children, active_programs, expired_programs} =
       try do
         case Family.get_parent_by_identity(user.id) do
           {:ok, parent} ->
-            # Children and family programs are independent — fetch in parallel
-            children_task = Task.async(fn -> Family.get_children(parent.id) end)
+            children = Family.get_children(parent.id)
             {active, expired} = load_family_programs(parent.id)
-            {parent, Task.await(children_task), active, expired}
+            {parent, children, active, expired}
 
           {:error, _} ->
             {nil, [], [], []}
         end
       rescue
-        # Trigger: database or linked-task failure during dashboard data loading
+        # Trigger: database failure during dashboard data loading
         # Why: a failing section should not crash the entire dashboard
         # Outcome: gracefully degrade to empty state if any load fails
         e ->
