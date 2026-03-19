@@ -183,6 +183,9 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
 
   describe "rebuild/1" do
     test "rebuilds in-memory cache from database" do
+      # Ensure initial bootstrap has completed before inserting test data
+      _ = :sys.get_state(@test_server_name)
+
       admin = AccountsFixtures.user_fixture(%{is_admin: true})
 
       # Create and verify a provider directly in the database

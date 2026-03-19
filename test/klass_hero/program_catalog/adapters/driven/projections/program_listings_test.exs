@@ -77,6 +77,9 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListingsTe
 
   describe "rebuild/1" do
     test "rebuilds program_listings from write table without restarting" do
+      # Ensure initial bootstrap has completed before inserting test data
+      _ = :sys.get_state(@test_server_name)
+
       provider = insert(:provider_profile_schema)
 
       # Insert programs into the write table after the projection has already started

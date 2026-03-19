@@ -80,7 +80,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   """
   @spec rebuild(GenServer.name()) :: :ok
   def rebuild(name \\ __MODULE__) do
-    GenServer.call(name, :rebuild, 30_000)
+    GenServer.call(name, :rebuild, :infinity)
   end
 
   # Server Callbacks

@@ -208,6 +208,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummariesT
 
   describe "rebuild/1" do
     test "rebuilds conversation_summaries from write tables without restarting" do
+      # Ensure initial bootstrap has completed before inserting test data
+      _ = :sys.get_state(@test_server_name)
+
       user_1 = user_fixture(name: "Alice Rebuild")
       user_2 = user_fixture(name: "Bob Rebuild")
       provider = insert(:provider_profile_schema)
