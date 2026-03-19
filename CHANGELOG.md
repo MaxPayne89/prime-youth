@@ -5,6 +5,19 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0](https://github.com/MaxPayne89/klass-hero/compare/v0.9.0...v0.10.0) (2026-03-19)
+
+
+### Features
+
+* add Sessions tab to provider dashboard navigation ([31ebe5a](https://github.com/MaxPayne89/klass-hero/commit/31ebe5ae669baaca241e2d054bb75d0148dec530))
+* add Sessions tab to provider dashboard navigation ([dd5d95a](https://github.com/MaxPayne89/klass-hero/commit/dd5d95a808de96fa02b2932c7f7d6301b362e5bb))
+
+
+### Code Refactoring
+
+* consolidate redundant sessions navigation tests ([153e291](https://github.com/MaxPayne89/klass-hero/commit/153e291833bbc9683a51554ddb526d83f2b83039))
+
 ## [0.9.0](https://github.com/MaxPayne89/klass-hero/compare/v0.8.2...v0.9.0) (2026-03-18)
 
 
