@@ -141,9 +141,6 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
       checked_out_by: record.check_out_by,
       checked_out_at: record.check_out_at,
       notes: record.check_out_notes,
-      # Trigger: caller provides the session so downstream handlers can route by provider
-      # Why: NotifyLiveViews needs program_id to resolve provider_id for PubSub topic routing
-      # Outcome: program_id included in payload, enabling provider-specific broadcasts
       program_id: session.program_id
     }
 
@@ -174,9 +171,6 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
       record_id: record.id,
       session_id: record.session_id,
       child_id: record.child_id,
-      # Trigger: caller provides the session so downstream handlers can route by provider
-      # Why: NotifyLiveViews needs program_id to resolve provider_id for PubSub topic routing
-      # Outcome: program_id included in payload, enabling provider-specific broadcasts
       program_id: session.program_id
     }
 
