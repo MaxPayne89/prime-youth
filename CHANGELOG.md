@@ -5,6 +5,32 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0](https://github.com/MaxPayne89/klass-hero/compare/v0.11.0...v0.12.0) (2026-03-19)
+
+
+### Features
+
+* add EnrolledChildrenResolver ACL adapter ([#471](https://github.com/MaxPayne89/klass-hero/issues/471)) ([d6d8394](https://github.com/MaxPayne89/klass-hero/commit/d6d8394d88c33c7db41800454072c180a962caa3))
+* add ForResolvingEnrolledChildren port ([#471](https://github.com/MaxPayne89/klass-hero/issues/471)) ([255a6cd](https://github.com/MaxPayne89/klass-hero/commit/255a6cd7d9ae97f68ee3672d0b4be802d43c6abf))
+* add roster_seeded domain and integration events ([#471](https://github.com/MaxPayne89/klass-hero/issues/471)) ([e032c97](https://github.com/MaxPayne89/klass-hero/commit/e032c975591443c93ffe989eb8fb56d00b484ebf))
+* add seed_batch/2 with ON CONFLICT DO NOTHING ([#471](https://github.com/MaxPayne89/klass-hero/issues/471)) ([4e3286c](https://github.com/MaxPayne89/klass-hero/commit/4e3286c2056e9e069ef2438c8257cad00434e7ba))
+* add SeedSessionRoster use case ([#471](https://github.com/MaxPayne89/klass-hero/issues/471)) ([ecf4f26](https://github.com/MaxPayne89/klass-hero/commit/ecf4f268b8f0067362fc4533982737ea7947b4f5))
+* add SeedSessionRosterHandler + wire into supervision tree ([#471](https://github.com/MaxPayne89/klass-hero/issues/471)) ([6572212](https://github.com/MaxPayne89/klass-hero/commit/657221285873e237cc9f5099785a4021a92af193))
+
+
+### Bug Fixes
+
+* add validation clauses to roster_seeded integration event factory ([#471](https://github.com/MaxPayne89/klass-hero/issues/471)) ([5973f3e](https://github.com/MaxPayne89/klass-hero/commit/5973f3ea488bdfc090d6c0e62f6f63738d730b78))
+* address PR review findings — tests and dispatch error handling ([#471](https://github.com/MaxPayne89/klass-hero/issues/471)) ([65ecb2d](https://github.com/MaxPayne89/klass-hero/commit/65ecb2de5d7fc9975ad03a97a0e3b714cb04629d))
+* remove unused participant_count variable after credo refactor ([8b57b31](https://github.com/MaxPayne89/klass-hero/commit/8b57b3100442e9f2796bf4b459c40e960a646734))
+* seed session roster with enrolled children on creation ([c6578d4](https://github.com/MaxPayne89/klass-hero/commit/c6578d4d599efaddc50b1c83d1c5a760362a121e))
+* separate error handling for seeding vs event dispatch ([#471](https://github.com/MaxPayne89/klass-hero/issues/471)) ([58e7c2f](https://github.com/MaxPayne89/klass-hero/commit/58e7c2f1de111f3a8c210e2648ca7130679f3271))
+
+
+### Code Refactoring
+
+* resolve all credo --strict warnings and suggestions ([5e4f209](https://github.com/MaxPayne89/klass-hero/commit/5e4f2098930e6761740a59076445f61b292bed82))
+
 ## [0.11.0](https://github.com/MaxPayne89/klass-hero/compare/v0.10.0...v0.11.0) (2026-03-19)
 
 
