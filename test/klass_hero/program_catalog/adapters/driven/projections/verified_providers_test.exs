@@ -181,6 +181,32 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
     end
   end
 
+  describe "rebuild/1" do
+    test "rebuilds in-memory cache from database" do
+      admin = AccountsFixtures.user_fixture(%{is_admin: true})
+
+      # Create and verify a provider directly in the database
+      verified_user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
+      {:ok, provider} =
+        ProviderProfileRepository.create_provider_profile(%{
+          identity_id: verified_user.id,
+          business_name: "Rebuild Test Business"
+        })
+
+      {:ok, verified} = ProviderProfile.verify(provider, admin.id)
+      {:ok, _} = ProviderProfileRepository.update(verified)
+
+      # The running test server was started before this provider existed,
+      # so it shouldn't know about it yet
+      refute VerifiedProviders.verified?(provider.id, @test_server_name)
+
+      # Rebuild should pick it up from the database
+      assert :ok = VerifiedProviders.rebuild(@test_server_name)
+      assert VerifiedProviders.verified?(provider.id, @test_server_name)
+    end
+  end
+
   describe "idempotency" do
     test "duplicate verification events are handled gracefully" do
       provider_id = Ecto.UUID.generate()

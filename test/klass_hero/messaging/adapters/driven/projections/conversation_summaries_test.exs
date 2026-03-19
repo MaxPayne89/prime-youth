@@ -206,6 +206,61 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummariesT
     end
   end
 
+  describe "rebuild/1" do
+    test "rebuilds conversation_summaries from write tables without restarting" do
+      user_1 = user_fixture(name: "Alice Rebuild")
+      user_2 = user_fixture(name: "Bob Rebuild")
+      provider = insert(:provider_profile_schema)
+
+      # Create a conversation in the write table after the projection has started
+      conversation_id = Ecto.UUID.generate()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      Repo.insert!(%ConversationSchema{
+        id: conversation_id,
+        type: "direct",
+        provider_id: provider.id
+      })
+
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: user_1.id,
+        joined_at: now
+      })
+
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: user_2.id,
+        joined_at: now
+      })
+
+      # The read table should not have this conversation yet
+      assert Repo.all(
+               from(s in ConversationSummarySchema,
+                 where: s.conversation_id == ^conversation_id
+               )
+             ) == []
+
+      # Rebuild should pick it up from the write tables
+      assert :ok = ConversationSummaries.rebuild(@test_server_name)
+
+      summaries =
+        Repo.all(
+          from(s in ConversationSummarySchema,
+            where: s.conversation_id == ^conversation_id
+          )
+        )
+
+      assert length(summaries) == 2
+
+      summary_1 = Enum.find(summaries, &(&1.user_id == user_1.id))
+      assert summary_1.conversation_type == "direct"
+      assert summary_1.other_participant_name == "Bob Rebuild"
+    end
+  end
+
   describe "handle conversation_created event" do
     test "inserts one summary row per participant for a direct conversation" do
       user_1 = user_fixture(name: "Alice Smith")

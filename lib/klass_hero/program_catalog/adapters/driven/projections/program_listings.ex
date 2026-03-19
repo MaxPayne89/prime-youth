@@ -81,6 +81,17 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
     GenServer.start_link(__MODULE__, opts, name: name)
   end
 
+  @doc """
+  Rebuilds the program_listings read table from the programs write table.
+
+  Useful after seeding write tables directly (bypassing integration events).
+  Blocks until the rebuild is complete.
+  """
+  @spec rebuild(GenServer.name()) :: :ok
+  def rebuild(name \\ __MODULE__) do
+    GenServer.call(name, :rebuild, 30_000)
+  end
+
   # Server Callbacks
 
   @impl true
@@ -103,6 +114,16 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
     # Why: project all existing programs from write table into read table
     # Outcome: program_listings table populated with current program data
     attempt_bootstrap(state)
+  end
+
+  # Trigger: external caller requests a full rebuild (e.g. after seeding)
+  # Why: seeds insert into write tables without emitting integration events
+  # Outcome: program_listings read table refreshed from programs write table
+  @impl true
+  def handle_call(:rebuild, _from, state) do
+    count = bootstrap_from_write_table()
+    Logger.info("ProgramListings rebuilt", count: count)
+    {:reply, :ok, %{state | bootstrapped: true}}
   end
 
   @impl true

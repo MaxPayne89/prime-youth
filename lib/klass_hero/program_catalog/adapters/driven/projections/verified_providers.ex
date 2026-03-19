@@ -72,6 +72,17 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
     GenServer.call(name, {:verified?, provider_id})
   end
 
+  @doc """
+  Rebuilds the in-memory verified providers cache from the database.
+
+  Useful after seeding write tables directly (bypassing integration events).
+  Blocks until the rebuild is complete.
+  """
+  @spec rebuild(GenServer.name()) :: :ok
+  def rebuild(name \\ __MODULE__) do
+    GenServer.call(name, :rebuild, 30_000)
+  end
+
   # Server Callbacks
 
   @impl true
@@ -105,6 +116,16 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   def handle_call({:verified?, provider_id}, _from, state) do
     result = MapSet.member?(state.verified_ids, provider_id)
     {:reply, result, state}
+  end
+
+  # Trigger: external caller requests a full rebuild (e.g. after seeding)
+  # Why: seeds insert into write tables without emitting integration events
+  # Outcome: in-memory cache refreshed from the authoritative Provider context
+  @impl true
+  def handle_call(:rebuild, _from, state) do
+    verified_ids = bootstrap_verified_ids()
+    Logger.info("VerifiedProviders rebuilt", count: MapSet.size(verified_ids))
+    {:reply, :ok, %{state | verified_ids: verified_ids}}
   end
 
   # Trigger: Received a provider_verified integration event
