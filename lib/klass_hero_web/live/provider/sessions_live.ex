@@ -204,9 +204,8 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
         |> assign(:sessions_error, nil)
 
       {:error, reason} ->
-        Logger.error("[SessionsLive] Failed to load sessions",
+        Logger.error("[SessionsLive] Failed to load sessions for date #{selected_date}",
           provider_id: provider_id,
-          date: selected_date,
           reason: inspect(reason)
         )
 
