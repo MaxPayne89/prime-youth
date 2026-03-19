@@ -155,7 +155,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
          }},
         socket
       )
-      when event_type in [:session_started, :session_completed, :session_created] do
+      when event_type in [:session_started, :session_completed, :session_created, :roster_seeded] do
     # Trigger: session_created events may be for a date not currently viewed
     # Why: stream only shows sessions for selected_date; wrong-date sessions would pollute the view
     # Outcome: for session_created, check date; start/complete are for existing stream items

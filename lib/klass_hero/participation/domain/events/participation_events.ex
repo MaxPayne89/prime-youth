@@ -7,6 +7,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
   - `session_created` - A new program session was created
   - `session_started` - A session has begun
   - `session_completed` - A session has ended
+  - `roster_seeded` - Participation records were bulk-seeded for a session
   - `child_checked_in` - A child was checked into a session
   - `child_checked_out` - A child was checked out of a session
   - `child_marked_absent` - A child was marked absent from a session
@@ -70,6 +71,19 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
     }
 
     DomainEvent.new(:session_completed, session.id, @aggregate_type, payload, opts)
+  end
+
+  @doc "Creates a roster_seeded event."
+  @spec roster_seeded(String.t(), String.t(), non_neg_integer(), keyword()) :: DomainEvent.t()
+  def roster_seeded(session_id, program_id, count, opts \\ [])
+      when is_binary(session_id) and is_binary(program_id) do
+    payload = %{
+      session_id: session_id,
+      program_id: program_id,
+      seeded_count: count
+    }
+
+    DomainEvent.new(:roster_seeded, session_id, @aggregate_type, payload, opts)
   end
 
   @doc deprecated: "Use child_checked_in/2 with ProgramSession to include program_id in payload"

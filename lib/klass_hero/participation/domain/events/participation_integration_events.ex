@@ -13,6 +13,8 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     Entity type: `:session`.
   - `:session_completed` - Emitted when a session ends (all check-outs done).
     Entity type: `:session`.
+  - `:roster_seeded` - Emitted after participation records are bulk-seeded for a session.
+    Entity type: `:session`.
   - `:child_checked_in` - Emitted when a child is checked into a session.
     Entity type: `:participation_record`.
   - `:child_checked_out` - Emitted when a child is checked out of a session.
@@ -51,6 +53,13 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
           required(:session_id) => String.t(),
           required(:program_id) => String.t(),
           optional(atom()) => term()
+        }
+
+  @typedoc "Payload for `:roster_seeded` events."
+  @type roster_seeded_payload :: %{
+          required(:session_id) => String.t(),
+          required(:program_id) => String.t(),
+          required(:seeded_count) => non_neg_integer()
         }
 
   @typedoc "Payload for `:child_checked_in` events."
@@ -258,6 +267,29 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   def session_completed(session_id, _payload, _opts) do
     raise ArgumentError,
           "session_completed/3 requires a non-empty session_id string, got: #{inspect(session_id)}"
+  end
+
+  # ---------------------------------------------------------------------------
+  # roster_seeded (entity type: :session)
+  # ---------------------------------------------------------------------------
+
+  @doc """
+  Creates a `roster_seeded` integration event.
+
+  Published after participation records have been bulk-seeded for a new session.
+  """
+  def roster_seeded(session_id, %{program_id: _, seeded_count: _} = payload, opts \\ [])
+      when is_binary(session_id) and byte_size(session_id) > 0 do
+    base_payload = %{session_id: session_id}
+
+    IntegrationEvent.new(
+      :roster_seeded,
+      @source_context,
+      :session,
+      session_id,
+      Map.merge(payload, base_payload),
+      opts
+    )
   end
 
   # ---------------------------------------------------------------------------
