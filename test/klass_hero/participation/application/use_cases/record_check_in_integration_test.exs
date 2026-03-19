@@ -41,11 +41,11 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInIntegrationT
       assert record.check_in_notes == "Arrived on time"
       assert %DateTime{} = record.check_in_at
 
+      # Dual-topic publishing: one publish per topic (generic + provider-specific)
       events = TestEventPublisher.get_events()
-      assert length(events) == 1
+      assert Enum.any?(events, &(&1.event_type == :child_checked_in))
 
-      event = hd(events)
-      assert event.event_type == :child_checked_in
+      event = Enum.find(events, &(&1.event_type == :child_checked_in))
       assert event.payload.record_id == record_schema.id
       assert event.payload.session_id == record_schema.session_id
       assert event.payload.child_id == record_schema.child_id
@@ -129,11 +129,11 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInIntegrationT
       assert record.check_out_notes == "Picked up by parent"
       assert %DateTime{} = record.check_out_at
 
+      # Dual-topic publishing: one publish per topic (generic + provider-specific)
       events = TestEventPublisher.get_events()
-      assert length(events) == 1
+      assert Enum.any?(events, &(&1.event_type == :child_checked_out))
 
-      event = hd(events)
-      assert event.event_type == :child_checked_out
+      event = Enum.find(events, &(&1.event_type == :child_checked_out))
       assert event.payload.record_id == record_schema.id
       assert event.payload.session_id == record_schema.session_id
       assert event.payload.child_id == record_schema.child_id
@@ -219,16 +219,15 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInIntegrationT
 
       assert check_out_record.status == :checked_out
 
-      # Verify both events were published
+      # Verify both events were published (dual-topic: each event appears per topic)
       events = TestEventPublisher.get_events()
-      assert length(events) == 2
+      assert Enum.any?(events, &(&1.event_type == :child_checked_in))
+      assert Enum.any?(events, &(&1.event_type == :child_checked_out))
 
-      [check_in_event, check_out_event] = events
+      check_in_event = Enum.find(events, &(&1.event_type == :child_checked_in))
+      check_out_event = Enum.find(events, &(&1.event_type == :child_checked_out))
 
-      assert check_in_event.event_type == :child_checked_in
       assert check_in_event.payload.notes == "Morning arrival"
-
-      assert check_out_event.event_type == :child_checked_out
       assert check_out_event.payload.notes == "Evening pickup"
     end
   end
