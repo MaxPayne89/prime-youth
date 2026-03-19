@@ -73,8 +73,13 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
   end
 
   @doc "Creates a child_checked_in event."
+  @spec child_checked_in(ParticipationRecord.t()) :: DomainEvent.t()
+  def child_checked_in(%ParticipationRecord{} = record) do
+    child_checked_in(record, [])
+  end
+
   @spec child_checked_in(ParticipationRecord.t(), keyword()) :: DomainEvent.t()
-  def child_checked_in(%ParticipationRecord{} = record, opts \\ []) do
+  def child_checked_in(%ParticipationRecord{} = record, opts) when is_list(opts) do
     payload = %{
       record_id: record.id,
       session_id: record.session_id,
@@ -87,9 +92,33 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
     DomainEvent.new(:child_checked_in, record.id, @aggregate_type, payload, opts)
   end
 
+  @doc "Creates a child_checked_in event with program_id from the session."
+  @spec child_checked_in(ParticipationRecord.t(), ProgramSession.t()) :: DomainEvent.t()
+  def child_checked_in(%ParticipationRecord{} = record, %ProgramSession{} = session) do
+    payload = %{
+      record_id: record.id,
+      session_id: record.session_id,
+      child_id: record.child_id,
+      checked_in_by: record.check_in_by,
+      checked_in_at: record.check_in_at,
+      notes: record.check_in_notes,
+      # Trigger: caller provides the session so downstream handlers can route by provider
+      # Why: NotifyLiveViews needs program_id to resolve provider_id for PubSub topic routing
+      # Outcome: program_id included in payload, enabling provider-specific broadcasts
+      program_id: session.program_id
+    }
+
+    DomainEvent.new(:child_checked_in, record.id, @aggregate_type, payload, [])
+  end
+
   @doc "Creates a child_checked_out event."
+  @spec child_checked_out(ParticipationRecord.t()) :: DomainEvent.t()
+  def child_checked_out(%ParticipationRecord{} = record) do
+    child_checked_out(record, [])
+  end
+
   @spec child_checked_out(ParticipationRecord.t(), keyword()) :: DomainEvent.t()
-  def child_checked_out(%ParticipationRecord{} = record, opts \\ []) do
+  def child_checked_out(%ParticipationRecord{} = record, opts) when is_list(opts) do
     payload = %{
       record_id: record.id,
       session_id: record.session_id,
@@ -102,9 +131,33 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
     DomainEvent.new(:child_checked_out, record.id, @aggregate_type, payload, opts)
   end
 
+  @doc "Creates a child_checked_out event with program_id from the session."
+  @spec child_checked_out(ParticipationRecord.t(), ProgramSession.t()) :: DomainEvent.t()
+  def child_checked_out(%ParticipationRecord{} = record, %ProgramSession{} = session) do
+    payload = %{
+      record_id: record.id,
+      session_id: record.session_id,
+      child_id: record.child_id,
+      checked_out_by: record.check_out_by,
+      checked_out_at: record.check_out_at,
+      notes: record.check_out_notes,
+      # Trigger: caller provides the session so downstream handlers can route by provider
+      # Why: NotifyLiveViews needs program_id to resolve provider_id for PubSub topic routing
+      # Outcome: program_id included in payload, enabling provider-specific broadcasts
+      program_id: session.program_id
+    }
+
+    DomainEvent.new(:child_checked_out, record.id, @aggregate_type, payload, [])
+  end
+
   @doc "Creates a child_marked_absent event."
+  @spec child_marked_absent(ParticipationRecord.t()) :: DomainEvent.t()
+  def child_marked_absent(%ParticipationRecord{} = record) do
+    child_marked_absent(record, [])
+  end
+
   @spec child_marked_absent(ParticipationRecord.t(), keyword()) :: DomainEvent.t()
-  def child_marked_absent(%ParticipationRecord{} = record, opts \\ []) do
+  def child_marked_absent(%ParticipationRecord{} = record, opts) when is_list(opts) do
     payload = %{
       record_id: record.id,
       session_id: record.session_id,
@@ -112,6 +165,22 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
     }
 
     DomainEvent.new(:child_marked_absent, record.id, @aggregate_type, payload, opts)
+  end
+
+  @doc "Creates a child_marked_absent event with program_id from the session."
+  @spec child_marked_absent(ParticipationRecord.t(), ProgramSession.t()) :: DomainEvent.t()
+  def child_marked_absent(%ParticipationRecord{} = record, %ProgramSession{} = session) do
+    payload = %{
+      record_id: record.id,
+      session_id: record.session_id,
+      child_id: record.child_id,
+      # Trigger: caller provides the session so downstream handlers can route by provider
+      # Why: NotifyLiveViews needs program_id to resolve provider_id for PubSub topic routing
+      # Outcome: program_id included in payload, enabling provider-specific broadcasts
+      program_id: session.program_id
+    }
+
+    DomainEvent.new(:child_marked_absent, record.id, @aggregate_type, payload, [])
   end
 
   @doc "Creates a behavioral_note_submitted event."
