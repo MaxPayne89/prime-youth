@@ -22,11 +22,17 @@ defmodule KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChil
 
   alias KlassHero.Enrollment
 
+  # Trigger: uses enriched roster endpoint rather than a lean child-IDs-only query
+  # Why: deliberate trade-off — slight over-fetching (name/parent resolution) avoids
+  #      adding new functions to the Enrollment context. Acceptable for class-sized lists.
+  # Outcome: returns only child_id values; enrichment data is discarded at the ACL boundary
   @impl true
   def list_enrolled_child_ids(program_id) when is_binary(program_id) do
     program_id
     |> Enrollment.list_program_enrollments()
     |> Enum.map(& &1.child_id)
+    # Defensive: DB unique partial index prevents duplicate active enrollments per child/program,
+    # but dedup here guards against any future loosening of that constraint
     |> Enum.uniq()
   end
 end
