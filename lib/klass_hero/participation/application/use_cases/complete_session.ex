@@ -49,25 +49,25 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSession do
     with {:ok, session} <- @session_repository.get_by_id(session_id),
          {:ok, completed} <- ProgramSession.complete(session),
          {:ok, persisted} <- @session_repository.update(completed),
-         :ok <- mark_remaining_as_absent(session_id) do
+         :ok <- mark_remaining_as_absent(persisted) do
       publish_session_completed(persisted)
       {:ok, persisted}
     end
   end
 
-  defp mark_remaining_as_absent(session_id) do
-    session_id
+  defp mark_remaining_as_absent(session) do
+    session.id
     |> @participation_repository.list_by_session()
     |> Enum.filter(&(&1.status == :registered))
-    |> Enum.each(&mark_absent/1)
+    |> Enum.each(&mark_absent(&1, session))
 
     :ok
   end
 
-  defp mark_absent(%ParticipationRecord{} = record) do
+  defp mark_absent(%ParticipationRecord{} = record, session) do
     with {:ok, absent} <- ParticipationRecord.mark_absent(record),
          {:ok, persisted} <- @participation_repository.update(absent) do
-      publish_child_absent(persisted)
+      publish_child_absent(persisted, session)
       :ok
     end
   end
@@ -77,8 +77,8 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSession do
     DomainEventBus.dispatch(@context, event)
   end
 
-  defp publish_child_absent(record) do
-    event = ParticipationEvents.child_marked_absent(record)
+  defp publish_child_absent(record, session) do
+    event = ParticipationEvents.child_marked_absent(record, session)
     DomainEventBus.dispatch(@context, event)
   end
 end

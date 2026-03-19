@@ -4,6 +4,7 @@ defmodule KlassHero.Participation.Application.UseCases.Shared do
   """
 
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHero.Shared.DomainEventBus
 
@@ -15,6 +16,8 @@ defmodule KlassHero.Participation.Application.UseCases.Shared do
                               :participation,
                               :participation_repository
                             ])
+
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
 
   @doc """
   Normalizes notes by trimming whitespace and converting empty strings to nil.
@@ -41,16 +44,19 @@ defmodule KlassHero.Participation.Application.UseCases.Shared do
   end
 
   @doc """
-  Runs the shared attendance action pipeline: fetch → domain call → persist → publish event.
+  Runs the shared attendance action pipeline: fetch → domain call → persist → fetch session → publish event.
 
   Accepts the domain function (e.g. `&ParticipationRecord.check_in/3`) and event function
-  (e.g. `&ParticipationEvents.child_checked_in/1`) to keep the pipeline generic while each
+  (e.g. `&ParticipationEvents.child_checked_in/2`) to keep the pipeline generic while each
   use case controls the specific action and event.
+
+  The session is fetched after persisting so the event factory can include `program_id` in
+  the payload, enabling provider-specific PubSub topic routing.
   """
   @type domain_fn ::
           (ParticipationRecord.t(), String.t(), String.t() | nil ->
              {:ok, ParticipationRecord.t()} | {:error, term()})
-  @type event_fn :: (ParticipationRecord.t() -> DomainEvent.t())
+  @type event_fn :: (ParticipationRecord.t(), ProgramSession.t() | nil -> DomainEvent.t())
 
   @spec run_attendance_action(String.t(), String.t(), String.t() | nil, domain_fn(), event_fn()) ::
           {:ok, ParticipationRecord.t()} | {:error, term()}
@@ -60,7 +66,26 @@ defmodule KlassHero.Participation.Application.UseCases.Shared do
     with {:ok, record} <- @participation_repository.get_by_id(record_id),
          {:ok, updated} <- domain_fn.(record, actor_id, notes),
          {:ok, persisted} <- @participation_repository.update(updated) do
-      event = event_fn.(persisted)
+      # Trigger: session fetch is best-effort for event enrichment
+      # Why: the attendance action already succeeded; session fetch failure
+      #      should not make the caller see an error
+      # Outcome: if session found, event includes program_id; if not, event
+      #          still dispatched without it (NotifyLiveViews handles gracefully)
+      session =
+        case @session_repository.get_by_id(persisted.session_id) do
+          {:ok, session} ->
+            session
+
+          {:error, reason} ->
+            Logger.warning("[Participation.Shared] Session fetch failed for event enrichment",
+              session_id: persisted.session_id,
+              reason: reason
+            )
+
+            nil
+        end
+
+      event = event_fn.(persisted, session)
       DomainEventBus.dispatch(@context, event)
       {:ok, persisted}
     end

@@ -48,7 +48,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckIn do
       checked_in_by,
       Map.get(params, :notes),
       &ParticipationRecord.check_in/3,
-      &ParticipationEvents.child_checked_in/1
+      &ParticipationEvents.child_checked_in/2
     )
   end
 end

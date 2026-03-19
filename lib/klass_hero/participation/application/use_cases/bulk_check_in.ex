@@ -15,7 +15,10 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
 
   alias KlassHero.Participation.Domain.Events.ParticipationEvents
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
+  alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.Shared.DomainEventBus
+
+  require Logger
 
   @context KlassHero.Participation
 
@@ -23,6 +26,8 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
                               :participation,
                               :participation_repository
                             ])
+
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
 
   @type params :: %{
           required(:record_ids) => [String.t()],
@@ -55,8 +60,21 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
   def execute(%{record_ids: record_ids, checked_in_by: checked_in_by} = params) do
     notes = Map.get(params, :notes)
 
-    record_ids
-    |> Enum.map(&check_in_record(&1, checked_in_by, notes))
+    # Trigger: all records in a bulk check-in belong to the same session
+    # Why: fetching session once avoids N redundant queries for the same session_id
+    # Outcome: session resolved lazily from first successful record, reused for all
+    {results, _session} =
+      Enum.map_reduce(record_ids, nil, fn record_id, session ->
+        case check_in_record(record_id, checked_in_by, notes, session) do
+          {:ok, persisted, resolved_session} ->
+            {{:ok, persisted}, resolved_session}
+
+          {:error, _, _} = error ->
+            {error, session}
+        end
+      end)
+
+    results
     |> Enum.reduce(%{successful: [], failed: []}, &categorize_result/2)
     |> then(fn result ->
       %{
@@ -66,14 +84,32 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
     end)
   end
 
-  defp check_in_record(record_id, checked_in_by, notes) do
+  defp check_in_record(record_id, checked_in_by, notes, session) do
     with {:ok, record} <- @participation_repository.get_by_id(record_id),
          {:ok, checked_in} <- ParticipationRecord.check_in(record, checked_in_by, notes),
          {:ok, persisted} <- @participation_repository.update(checked_in) do
-      publish_event(persisted)
-      {:ok, persisted}
+      session = resolve_session_best_effort(session, persisted.session_id)
+      publish_event(persisted, session)
+      {:ok, persisted, session}
     else
       {:error, reason} -> {:error, record_id, reason}
+    end
+  end
+
+  defp resolve_session_best_effort(%ProgramSession{} = session, _session_id), do: session
+
+  defp resolve_session_best_effort(nil, session_id) do
+    case @session_repository.get_by_id(session_id) do
+      {:ok, session} ->
+        session
+
+      {:error, reason} ->
+        Logger.warning("[BulkCheckIn] Session fetch failed for event enrichment",
+          session_id: session_id,
+          reason: reason
+        )
+
+        nil
     end
   end
 
@@ -85,7 +121,12 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
     %{acc | failed: [{record_id, reason} | acc.failed]}
   end
 
-  defp publish_event(record) do
+  defp publish_event(record, %ProgramSession{} = session) do
+    event = ParticipationEvents.child_checked_in(record, session)
+    DomainEventBus.dispatch(@context, event)
+  end
+
+  defp publish_event(record, nil) do
     event = ParticipationEvents.child_checked_in(record)
     DomainEventBus.dispatch(@context, event)
   end
