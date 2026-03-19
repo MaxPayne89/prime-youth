@@ -65,7 +65,7 @@ defmodule KlassHero.Participation.Application.UseCases.SeedSessionRoster do
       skipped: length(child_ids) - count
     )
 
-    publish_event(session_id, program_id, count)
+    safe_publish_event(session_id, program_id, count)
 
     :ok
   rescue
@@ -74,14 +74,28 @@ defmodule KlassHero.Participation.Application.UseCases.SeedSessionRoster do
         "[SeedSessionRoster] Failed to seed roster: #{Exception.message(error)}",
         session_id: session_id,
         program_id: program_id,
+        step: "acl_query_or_bulk_insert",
         stacktrace: Exception.format_stacktrace(__STACKTRACE__)
       )
 
       :ok
   end
 
-  defp publish_event(session_id, program_id, count) do
+  # Trigger: event dispatch is separated from the main rescue
+  # Why: if seed_batch succeeds but event dispatch fails, the error message should
+  #      reflect that records were persisted but notification failed — not "failed to seed"
+  # Outcome: distinct log messages for seeding vs. notification failures
+  defp safe_publish_event(session_id, program_id, count) do
     event = ParticipationEvents.roster_seeded(session_id, program_id, count)
     DomainEventBus.dispatch(@context, event)
+  rescue
+    error ->
+      Logger.error(
+        "[SeedSessionRoster] Roster seeded but event dispatch failed: #{Exception.message(error)}",
+        session_id: session_id,
+        program_id: program_id,
+        step: "event_dispatch",
+        stacktrace: Exception.format_stacktrace(__STACKTRACE__)
+      )
   end
 end
