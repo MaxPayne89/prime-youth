@@ -40,7 +40,9 @@ config :klass_hero, :participation,
   behavioral_note_repository:
     KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository,
   program_provider_resolver:
-    KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver
+    KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver,
+  enrolled_children_resolver:
+    KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
 
 # Use stub adapter for tests by default
 config :klass_hero, :storage,
