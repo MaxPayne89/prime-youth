@@ -22,14 +22,21 @@ defmodule KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramP
 
   alias KlassHero.ProgramCatalog
 
+  require Logger
+
   @impl true
   def resolve_provider_id(program_id) when is_binary(program_id) do
     case ProgramCatalog.get_programs_by_ids([program_id]) do
-      [program] ->
-        {:ok, program.provider_id}
-
-      [] ->
-        {:error, :program_not_found}
+      [program] -> {:ok, program.provider_id}
+      _other -> {:error, :program_not_found}
     end
+  rescue
+    error ->
+      Logger.warning("[ProgramProviderResolver] Failed to resolve provider",
+        program_id: program_id,
+        error: Exception.message(error)
+      )
+
+      {:error, :program_not_found}
   end
 end

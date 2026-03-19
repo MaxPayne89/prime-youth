@@ -18,6 +18,8 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.Shared.DomainEventBus
 
+  require Logger
+
   @context KlassHero.Participation
 
   @participation_repository Application.compile_env!(:klass_hero, [
@@ -85,8 +87,8 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
   defp check_in_record(record_id, checked_in_by, notes, session) do
     with {:ok, record} <- @participation_repository.get_by_id(record_id),
          {:ok, checked_in} <- ParticipationRecord.check_in(record, checked_in_by, notes),
-         {:ok, persisted} <- @participation_repository.update(checked_in),
-         {:ok, session} <- resolve_session(session, persisted.session_id) do
+         {:ok, persisted} <- @participation_repository.update(checked_in) do
+      session = resolve_session_best_effort(session, persisted.session_id)
       publish_event(persisted, session)
       {:ok, persisted, session}
     else
@@ -94,8 +96,22 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
     end
   end
 
-  defp resolve_session(%ProgramSession{} = session, _session_id), do: {:ok, session}
-  defp resolve_session(nil, session_id), do: @session_repository.get_by_id(session_id)
+  defp resolve_session_best_effort(%ProgramSession{} = session, _session_id), do: session
+
+  defp resolve_session_best_effort(nil, session_id) do
+    case @session_repository.get_by_id(session_id) do
+      {:ok, session} ->
+        session
+
+      {:error, reason} ->
+        Logger.warning("[BulkCheckIn] Session fetch failed for event enrichment",
+          session_id: session_id,
+          reason: reason
+        )
+
+        nil
+    end
+  end
 
   defp categorize_result({:ok, record}, acc) do
     %{acc | successful: [record | acc.successful]}
@@ -105,8 +121,13 @@ defmodule KlassHero.Participation.Application.UseCases.BulkCheckIn do
     %{acc | failed: [{record_id, reason} | acc.failed]}
   end
 
-  defp publish_event(record, session) do
+  defp publish_event(record, %ProgramSession{} = session) do
     event = ParticipationEvents.child_checked_in(record, session)
+    DomainEventBus.dispatch(@context, event)
+  end
+
+  defp publish_event(record, nil) do
+    event = ParticipationEvents.child_checked_in(record)
     DomainEventBus.dispatch(@context, event)
   end
 end

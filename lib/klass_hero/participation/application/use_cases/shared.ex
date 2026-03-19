@@ -65,13 +65,24 @@ defmodule KlassHero.Participation.Application.UseCases.Shared do
 
     with {:ok, record} <- @participation_repository.get_by_id(record_id),
          {:ok, updated} <- domain_fn.(record, actor_id, notes),
-         {:ok, persisted} <- @participation_repository.update(updated),
-         # Trigger: need session to include program_id in attendance event payloads
-         # Why: provider-specific PubSub routing requires program_id → provider_id resolution
-         # Outcome: session fetched and passed to event factory for payload enrichment
-         {:ok, session} <- @session_repository.get_by_id(persisted.session_id) do
-      event = event_fn.(persisted, session)
-      DomainEventBus.dispatch(@context, event)
+         {:ok, persisted} <- @participation_repository.update(updated) do
+      # Trigger: session fetch is best-effort for event enrichment
+      # Why: the attendance action already succeeded; session fetch failure
+      #      should not make the caller see an error
+      # Outcome: if session found, event includes program_id; if not, event
+      #          still dispatched without it (NotifyLiveViews handles gracefully)
+      case @session_repository.get_by_id(persisted.session_id) do
+        {:ok, session} ->
+          event = event_fn.(persisted, session)
+          DomainEventBus.dispatch(@context, event)
+
+        {:error, reason} ->
+          Logger.warning("[Participation.Shared] Session fetch failed for event enrichment",
+            session_id: persisted.session_id,
+            reason: reason
+          )
+      end
+
       {:ok, persisted}
     end
   end

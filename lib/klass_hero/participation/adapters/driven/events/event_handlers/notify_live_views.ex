@@ -67,14 +67,15 @@ defmodule KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiv
         provider_topic = "participation:provider:#{provider_id}"
         SharedNotifyLiveViews.safe_publish(event, provider_topic)
 
-      {:error, :program_not_found} ->
-        # Trigger: program_id in event payload doesn't match any program
-        # Why: possible data inconsistency or recently deleted program
-        # Outcome: log warning, skip provider-specific publish (generic still went through)
+      {:error, reason} ->
+        # Trigger: program_id resolution failed (not found, DB error, etc.)
+        # Why: provider-specific publish is best-effort; generic topic already succeeded
+        # Outcome: log warning, skip provider-specific publish
         Logger.warning(
           "[Participation.NotifyLiveViews] Could not resolve provider for program",
           program_id: program_id,
-          event_type: event.event_type
+          event_type: event.event_type,
+          reason: reason
         )
     end
   end
