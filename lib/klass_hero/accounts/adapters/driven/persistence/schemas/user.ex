@@ -33,7 +33,7 @@ defmodule KlassHero.Accounts.User do
     field :intended_roles, UserRoles, default: []
     field :locale, :string, default: "en"
     field :is_admin, :boolean, default: false
-    field :provider_subscription_tier, :string, virtual: true
+    field :provider_subscription_tier, :string
 
     has_one :parent_profile, ParentProfileSchema, foreign_key: :identity_id
     has_one :provider_profile, ProviderProfileSchema, foreign_key: :identity_id
