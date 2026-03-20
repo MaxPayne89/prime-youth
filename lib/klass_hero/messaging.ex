@@ -39,10 +39,12 @@ defmodule KlassHero.Messaging do
       Domain.Models.Message,
       Domain.Models.Conversation,
       Domain.Models.Participant,
+      Domain.Models.InboundEmail,
       Repositories
     ]
 
   alias KlassHero.Accounts.Scope
+  alias KlassHero.Messaging.Adapters.Driven.EmailSanitizer
   alias KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
 
   alias KlassHero.Messaging.Application.UseCases.{
@@ -50,14 +52,19 @@ defmodule KlassHero.Messaging do
     BroadcastToProgram,
     CreateDirectConversation,
     GetConversation,
+    GetInboundEmail,
     GetTotalUnreadCount,
     ListConversations,
+    ListInboundEmails,
     MarkAsRead,
+    ReceiveInboundEmail,
     ReplyPrivatelyToBroadcast,
+    ReplyToEmail,
     SendMessage
   }
 
   alias KlassHero.Messaging.Domain.Models.{Conversation, Message, Participant}
+  alias KlassHero.Messaging.Repositories
 
   @doc """
   Creates or retrieves a direct conversation between provider and user.
@@ -306,6 +313,120 @@ defmodule KlassHero.Messaging do
   """
   @spec anonymize_data_for_user(String.t()) :: {:ok, map()} | {:error, term()}
   defdelegate anonymize_data_for_user(user_id), to: AnonymizeUserData, as: :execute
+
+  @doc """
+  Stores an inbound email received via webhook.
+
+  Handles deduplication by resend_id — returns `{:ok, :duplicate}` for
+  already-stored emails so callers can acknowledge without re-processing.
+
+  ## Parameters
+  - attrs: Map with inbound email attributes (resend_id, from_address, subject, etc.)
+
+  ## Returns
+  - `{:ok, inbound_email}` - Email stored successfully
+  - `{:ok, :duplicate}` - Email already exists (idempotent)
+  - `{:error, reason}` - Storage failure
+
+  ## Examples
+
+      iex> Messaging.receive_inbound_email(%{resend_id: "...", from_address: "sender@example.com", ...})
+      {:ok, %InboundEmail{}}
+
+  """
+  @spec receive_inbound_email(map()) :: {:ok, struct()} | {:ok, :duplicate} | {:error, term()}
+  defdelegate receive_inbound_email(attrs), to: ReceiveInboundEmail, as: :execute
+
+  @doc """
+  Lists inbound emails with optional filtering.
+
+  ## Options
+  - `:limit` - Max emails to return (default 50)
+  - `:status` - Filter by status atom (:unread, :read, :archived)
+
+  ## Returns
+  - `{:ok, emails, has_more}` - List of inbound emails with pagination flag
+  """
+  @spec list_inbound_emails(keyword()) :: {:ok, [struct()], boolean()}
+  defdelegate list_inbound_emails(opts \\ []), to: ListInboundEmails, as: :execute
+
+  @doc """
+  Retrieves an inbound email by ID, optionally marking it as read.
+
+  ## Options
+  - `:mark_read` - Whether to mark the email as read (default false)
+  - `:reader_id` - The ID of the user reading the email
+
+  ## Returns
+  - `{:ok, email}` - The inbound email
+  - `{:error, :not_found}` - Email not found
+  """
+  @spec get_inbound_email(String.t(), keyword()) :: {:ok, struct()} | {:error, :not_found}
+  defdelegate get_inbound_email(id, opts \\ []), to: GetInboundEmail, as: :execute
+
+  @doc """
+  Replies to an inbound email by sending a response via Swoosh/Resend.
+
+  ## Parameters
+  - `email_id` - The inbound email to reply to
+  - `reply_body` - The reply text content
+
+  ## Returns
+  - `{:ok, swoosh_email}` - Reply sent successfully
+  - `{:error, reason}` - Failed to send
+  """
+  @spec reply_to_inbound_email(String.t(), String.t(), keyword()) ::
+          {:ok, Swoosh.Email.t()} | {:error, term()}
+  defdelegate reply_to_inbound_email(email_id, reply_body, opts \\ []),
+    to: ReplyToEmail,
+    as: :execute
+
+  @doc """
+  Sanitizes inbound email HTML for safe rendering.
+
+  Strips dangerous tags (script, iframe, style) and event handlers.
+  By default blocks external images to prevent tracking pixels.
+
+  ## Options
+  - `:allow_images` - Whether to allow external images (default false)
+
+  ## Returns
+  - Sanitized HTML string
+  """
+  @spec sanitize_email_html(String.t() | nil, keyword()) :: String.t()
+  defdelegate sanitize_email_html(html, opts \\ []), to: EmailSanitizer, as: :sanitize
+
+  @doc """
+  Returns the count of inbound emails with the given status.
+
+  ## Examples
+
+      iex> Messaging.count_inbound_emails_by_status(:unread)
+      3
+
+  """
+  @spec count_inbound_emails_by_status(atom()) :: non_neg_integer()
+  def count_inbound_emails_by_status(status) do
+    Repositories.inbound_emails().count_by_status(status)
+  end
+
+  @doc """
+  Updates the status of an inbound email.
+
+  ## Parameters
+  - `id` - The email ID
+  - `status` - The new status string ("unread", "read", "archived")
+  - `attrs` - Additional attributes to update
+
+  ## Returns
+  - `{:ok, email}` - Updated email
+  - `{:error, reason}` - Failure
+  """
+  @spec update_inbound_email_status(String.t(), String.t(), map()) ::
+          {:ok, struct()} | {:error, term()}
+  def update_inbound_email_status(id, status, attrs \\ %{}) do
+    Repositories.inbound_emails().update_status(id, status, attrs)
+  end
 
   # ---------------------------------------------------------------------------
   # Topic helpers & subscriptions

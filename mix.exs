@@ -103,6 +103,7 @@ defmodule KlassHero.MixProject do
       {:opentelemetry_ecto, "~> 1.1"},
       {:oban, "~> 2.19"},
       {:oban_web, "~> 2.11"},
+      {:html_sanitize_ex, "~> 1.4"},
       # Object storage (S3-compatible)
       {:ex_aws, "~> 2.5"},
       {:ex_aws_s3, "~> 2.5"},

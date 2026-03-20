@@ -139,6 +139,8 @@ config :klass_hero, :messaging,
   for_querying_enrollments: KlassHero.Messaging.Adapters.Driven.Enrollment.EnrollmentResolver,
   for_managing_conversation_summaries:
     KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository,
+  for_managing_inbound_emails:
+    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailRepository,
   retention: [
     days_after_program_end: 30,
     retention_period_days: 30

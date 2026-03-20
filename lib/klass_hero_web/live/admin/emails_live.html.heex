@@ -1,0 +1,168 @@
+<%!-- Index view --%>
+<div :if={@live_action == :index}>
+  <div class="mb-6 flex items-center justify-between">
+    <h1 class={Theme.typography(:page_title)}>{gettext("Emails")}</h1>
+    <span
+      :if={@unread_email_count > 0}
+      class="inline-flex items-center justify-center rounded-full bg-red-500 px-2.5 py-0.5 text-xs font-bold text-white"
+    >
+      {gettext("%{count} unread", count: @unread_email_count)}
+    </span>
+  </div>
+
+  <%!-- Filter buttons --%>
+  <div class="flex gap-2 mb-4">
+    <button
+      id="filter-all"
+      phx-click="filter"
+      phx-value-status="all"
+      class={[
+        "btn btn-sm",
+        if(is_nil(@status_filter), do: "btn-primary", else: "btn-ghost")
+      ]}
+    >
+      {gettext("All")}
+    </button>
+    <button
+      id="filter-unread"
+      phx-click="filter"
+      phx-value-status="unread"
+      class={[
+        "btn btn-sm",
+        if(@status_filter == :unread, do: "btn-primary", else: "btn-ghost")
+      ]}
+    >
+      {gettext("Unread")}
+    </button>
+    <button
+      id="filter-read"
+      phx-click="filter"
+      phx-value-status="read"
+      class={[
+        "btn btn-sm",
+        if(@status_filter == :read, do: "btn-primary", else: "btn-ghost")
+      ]}
+    >
+      {gettext("Read")}
+    </button>
+    <button
+      id="filter-archived"
+      phx-click="filter"
+      phx-value-status="archived"
+      class={[
+        "btn btn-sm",
+        if(@status_filter == :archived, do: "btn-primary", else: "btn-ghost")
+      ]}
+    >
+      {gettext("Archived")}
+    </button>
+  </div>
+
+  <%!-- Email list --%>
+  <div id="emails-table" phx-update="stream">
+    <div id="emails-empty" class="hidden only:block p-8 text-center text-sm opacity-50">
+      {gettext("No emails found.")}
+    </div>
+    <.link
+      :for={{dom_id, email} <- @streams.emails}
+      id={dom_id}
+      navigate={~p"/admin/emails/#{email.id}"}
+      class={[
+        "block p-4 rounded-lg border border-base-300 hover:bg-base-200 transition mb-1",
+        email.status == :unread && "bg-base-200 font-semibold"
+      ]}
+    >
+      <div class="flex justify-between items-center flex-wrap gap-2">
+        <div class="min-w-0 flex-1">
+          <div class="text-sm truncate">{email.subject}</div>
+          <div class="text-xs opacity-50 mt-0.5">
+            {email.from_address} · {format_received_at(email.received_at)}
+          </div>
+        </div>
+        <span class={["badge badge-sm", status_badge_class(email.status)]}>
+          {email.status |> to_string() |> String.capitalize()}
+        </span>
+      </div>
+    </.link>
+  </div>
+</div>
+
+<%!-- Show view --%>
+<div :if={@live_action == :show}>
+  <div class="mb-6">
+    <.link
+      id="back-to-emails"
+      navigate={~p"/admin/emails"}
+      class="text-sm opacity-50 hover:opacity-100 mb-2 inline-block"
+    >
+      ← {gettext("Back to emails")}
+    </.link>
+
+    <div class="flex justify-between items-start flex-wrap gap-2">
+      <div>
+        <h1 class={Theme.typography(:section_title)}>{@email.subject}</h1>
+        <div class="text-sm opacity-50 mt-1">
+          {gettext("From:")} {@email.from_address} · {format_received_at(@email.received_at)}
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button
+          :if={@email.status != :archived}
+          id="archive-btn"
+          phx-click="archive"
+          class="btn btn-sm btn-ghost"
+        >
+          {gettext("Archive")}
+        </button>
+        <button
+          :if={@email.status != :unread}
+          id="mark-unread-btn"
+          phx-click="mark_unread"
+          class="btn btn-sm btn-ghost"
+        >
+          {gettext("Mark Unread")}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <%!-- Email body --%>
+  <div class="rounded-lg border border-base-300 p-6 mb-6">
+    <button
+      :if={!@allow_images}
+      id="load-images-btn"
+      phx-click="load_images"
+      class="btn btn-xs btn-ghost mb-4"
+    >
+      {gettext("Load images")}
+    </button>
+    <div id="email-body" class="prose max-w-none">
+      {raw(@sanitized_html)}
+    </div>
+  </div>
+
+  <%!-- Plain text fallback --%>
+  <div
+    :if={(@sanitized_html == "" || is_nil(@sanitized_html)) && @email.body_text}
+    class="rounded-lg border border-base-300 p-6 mb-6"
+  >
+    <pre class="whitespace-pre-wrap text-sm">{@email.body_text}</pre>
+  </div>
+
+  <%!-- Reply form --%>
+  <div class="rounded-lg border border-base-300 p-6">
+    <h2 class={Theme.typography(:card_title)}>{gettext("Reply")}</h2>
+    <.form for={@reply_form} id="reply-form" phx-submit="submit_reply" class="mt-4 space-y-4">
+      <.input
+        field={@reply_form[:body]}
+        type="textarea"
+        placeholder={gettext("Type your reply...")}
+      />
+      <div class="flex justify-end">
+        <button type="submit" id="send-reply-btn" class="btn btn-primary btn-sm">
+          {gettext("Send Reply")}
+        </button>
+      </div>
+    </.form>
+  </div>
+</div>
