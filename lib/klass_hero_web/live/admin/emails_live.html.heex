@@ -153,7 +153,11 @@
   <div class="rounded-lg border border-base-300 p-6">
     <h2 class={Theme.typography(:card_title)}>{gettext("Reply")}</h2>
     <.form for={@reply_form} id="reply-form" phx-submit="submit_reply" class="mt-4 space-y-4">
-      <.input field={@reply_form[:body]} type="textarea" placeholder={gettext("Type your reply...")} />
+      <.input
+        field={@reply_form[:body]}
+        type="textarea"
+        placeholder={gettext("Type your reply...")}
+      />
       <div class="flex justify-end">
         <button type="submit" id="send-reply-btn" class="btn btn-primary btn-sm">
           {gettext("Send Reply")}
