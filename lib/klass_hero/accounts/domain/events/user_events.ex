@@ -8,7 +8,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
   ## Events
 
   - `:user_registered` - Emitted when a new user completes registration (critical)
-  - `:user_confirmed` - Emitted when a user confirms their email
+  - `:user_confirmed` - Emitted when a user confirms their email (critical)
   - `:user_email_changed` - Emitted when a user changes their email address
   - `:user_anonymized` - Emitted when a user's account is anonymized for GDPR deletion (critical)
 
@@ -134,6 +134,8 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
   """
   def user_confirmed(%{id: _, email: _, confirmed_at: _} = user, payload \\ %{}, opts \\ []) do
     validate_user_for_confirmation!(user)
+
+    opts = Keyword.put_new(opts, :criticality, :critical)
 
     base_payload = %{
       email: user.email,
