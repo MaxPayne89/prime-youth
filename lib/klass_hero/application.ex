@@ -66,6 +66,9 @@ defmodule KlassHero.Application do
            {:user_registered,
             {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
+           {:user_confirmed,
+            {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
            {:user_anonymized,
             {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}

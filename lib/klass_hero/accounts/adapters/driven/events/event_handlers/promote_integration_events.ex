@@ -9,6 +9,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegra
   ## Error strategy
 
   Propagates publish failures — Identity profile creation depends on user_registered,
+  the compensation path for profile existence depends on user_confirmed,
   and the GDPR anonymization cascade depends on user_anonymized.
   """
 
@@ -26,6 +27,15 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegra
     # Outcome: publish integration event; propagate failure so caller knows
     event.aggregate_id
     |> AccountsIntegrationEvents.user_registered(event.payload)
+    |> IntegrationEventPublishing.publish()
+  end
+
+  def handle(%DomainEvent{event_type: :user_confirmed} = event) do
+    # Trigger: user_confirmed domain event dispatched after email confirmation
+    # Why: compensation path — downstream contexts verify/create profiles before first login
+    # Outcome: publish integration event; propagate failure so caller knows
+    event.aggregate_id
+    |> AccountsIntegrationEvents.user_confirmed(event.payload)
     |> IntegrationEventPublishing.publish()
   end
 
