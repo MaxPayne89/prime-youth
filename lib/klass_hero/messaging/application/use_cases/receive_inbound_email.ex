@@ -22,7 +22,34 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail do
         {:ok, :duplicate}
 
       {:error, :not_found} ->
-        repo.create(attrs)
+        # Trigger: concurrent webhook deliveries may both pass the dedup check
+        # Why: unique_index on resend_id catches the race; treat as duplicate, not failure
+        # Outcome: constraint violation returns {:ok, :duplicate} to maintain idempotency
+        case repo.create(attrs) do
+          {:ok, email} ->
+            {:ok, email}
+
+          {:error, %Ecto.Changeset{} = changeset} ->
+            if unique_constraint_on?(changeset, :resend_id) do
+              Logger.debug("Concurrent duplicate inbound email ignored",
+                resend_id: attrs.resend_id
+              )
+
+              {:ok, :duplicate}
+            else
+              {:error, changeset}
+            end
+
+          {:error, reason} ->
+            {:error, reason}
+        end
     end
+  end
+
+  defp unique_constraint_on?(%Ecto.Changeset{} = changeset, field) do
+    Enum.any?(changeset.errors, fn
+      {^field, {_, opts}} -> opts[:constraint] == :unique
+      _ -> false
+    end)
   end
 end

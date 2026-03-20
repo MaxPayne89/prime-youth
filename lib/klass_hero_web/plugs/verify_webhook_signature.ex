@@ -77,31 +77,34 @@ defmodule KlassHeroWeb.Plugs.VerifyWebhookSignature do
 
   defp validate_signature(secret, raw_body, svix_id, svix_timestamp, svix_signature) do
     # Strip "whsec_" prefix and decode base64
-    secret_bytes =
-      secret
-      |> String.replace_prefix("whsec_", "")
-      |> Base.decode64!()
+    stripped = String.replace_prefix(secret, "whsec_", "")
 
-    # Construct signed content per Svix spec
-    signed_content = "#{svix_id}.#{svix_timestamp}.#{raw_body}"
+    case Base.decode64(stripped) do
+      {:ok, secret_bytes} ->
+        # Construct signed content per Svix spec
+        signed_content = "#{svix_id}.#{svix_timestamp}.#{raw_body}"
 
-    # HMAC-SHA256 and base64-encode to get expected signature
-    expected =
-      :crypto.mac(:hmac, :sha256, secret_bytes, signed_content)
-      |> Base.encode64()
+        # HMAC-SHA256 and base64-encode to get expected signature
+        expected =
+          :crypto.mac(:hmac, :sha256, secret_bytes, signed_content)
+          |> Base.encode64()
 
-    # Trigger: Resend may send multiple signatures (key rotation)
-    # Why: any matching signature is sufficient for verification
-    # Outcome: conn passes if at least one signature matches
-    signatures =
-      svix_signature
-      |> String.split(" ")
-      |> Enum.map(fn sig -> String.replace_prefix(sig, "v1,", "") end)
+        # Trigger: Resend may send multiple signatures (key rotation)
+        # Why: any matching signature is sufficient for verification
+        # Outcome: conn passes if at least one signature matches
+        signatures =
+          svix_signature
+          |> String.split(" ")
+          |> Enum.map(fn sig -> String.replace_prefix(sig, "v1,", "") end)
 
-    if Enum.any?(signatures, &(&1 == expected)) do
-      {:ok, :valid}
-    else
-      {:error, "invalid signature"}
+        if Enum.any?(signatures, &Plug.Crypto.secure_compare(&1, expected)) do
+          {:ok, :valid}
+        else
+          {:error, "invalid signature"}
+        end
+
+      :error ->
+        {:error, "invalid webhook secret configuration"}
     end
   end
 end

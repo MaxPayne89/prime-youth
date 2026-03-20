@@ -74,9 +74,11 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
 
   # -- Event Handlers --
 
+  @valid_status_filters ~w(unread read archived)
+
   @impl true
   def handle_event("filter", %{"status" => status}, socket) do
-    filter = if status != "all", do: String.to_existing_atom(status)
+    filter = parse_status_filter(status)
 
     {:noreply,
      socket
@@ -160,6 +162,11 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
     {:ok, emails, _has_more} = Messaging.list_inbound_emails(opts)
     stream(socket, :emails, emails, reset: true)
   end
+
+  defp parse_status_filter(status) when status in @valid_status_filters,
+    do: String.to_existing_atom(status)
+
+  defp parse_status_filter(_), do: nil
 
   defp status_badge_class(:unread), do: "badge-warning"
   defp status_badge_class(:read), do: "badge-ghost"
