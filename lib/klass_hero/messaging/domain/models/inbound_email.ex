@@ -137,8 +137,7 @@ defmodule KlassHero.Messaging.Domain.Models.InboundEmail do
 
   defp validate_present(errors, field, _), do: ["#{field} must be a string" | errors]
 
-  defp validate_list(errors, _field, value)
-       when is_list(value) and (is_list(value) and value != []), do: errors
+  defp validate_list(errors, _field, value) when is_list(value) and value != [], do: errors
 
   defp validate_list(errors, field, _), do: ["#{field} must be a non-empty list" | errors]
 
