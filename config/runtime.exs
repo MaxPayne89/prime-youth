@@ -124,6 +124,13 @@ if config_env() == :prod do
   config :klass_hero, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
   config :klass_hero, :resend_webhook_secret, System.get_env("RESEND_WEBHOOK_SECRET")
 
+  # Trigger: dev Fly.io instance needs to receive test webhook payloads via curl
+  # Why: Svix signature verification requires a live webhook secret and real headers
+  # Outcome: set VERIFY_WEBHOOK_SIGNATURE=false on dev instance to skip verification
+  if System.get_env("VERIFY_WEBHOOK_SIGNATURE") == "false" do
+    config :klass_hero, :verify_webhook_signature, false
+  end
+
   # Storage configuration for production
   # Trigger: Tigris storage on Fly.io auto-sets AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
   # Why: single bucket with per-object ACLs — Fly.io Tigris allows one bucket per app
