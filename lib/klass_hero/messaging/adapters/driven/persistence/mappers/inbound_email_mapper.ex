@@ -47,6 +47,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.InboundEmailMa
       :body_html,
       :body_text,
       :headers,
+      :status,
       :received_at
     ])
     |> Map.put_new(:status, "unread")

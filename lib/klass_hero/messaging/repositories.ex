@@ -28,6 +28,7 @@ defmodule KlassHero.Messaging.Repositories do
   - `:enrollments` - Enrollment query adapter
   - `:users` - User resolver adapter
   - `:conversation_summaries` - Conversation summaries read repository
+  - `:inbound_emails` - Inbound email repository
   """
   @spec all() :: %{
           conversations: module(),
@@ -35,7 +36,8 @@ defmodule KlassHero.Messaging.Repositories do
           participants: module(),
           enrollments: module(),
           users: module(),
-          conversation_summaries: module()
+          conversation_summaries: module(),
+          inbound_emails: module()
         }
   def all do
     config = messaging_config()
@@ -46,7 +48,8 @@ defmodule KlassHero.Messaging.Repositories do
       participants: config[:for_managing_participants],
       enrollments: config[:for_querying_enrollments],
       users: config[:for_resolving_users],
-      conversation_summaries: config[:for_managing_conversation_summaries]
+      conversation_summaries: config[:for_managing_conversation_summaries],
+      inbound_emails: config[:for_managing_inbound_emails]
     }
   end
 
@@ -73,6 +76,10 @@ defmodule KlassHero.Messaging.Repositories do
   @doc "Returns the conversation summaries repository module."
   @spec conversation_summaries() :: module()
   def conversation_summaries, do: messaging_config()[:for_managing_conversation_summaries]
+
+  @doc "Returns the inbound email repository module."
+  @spec inbound_emails() :: module()
+  def inbound_emails, do: messaging_config()[:for_managing_inbound_emails]
 
   @doc "Returns the retention policy configuration."
   @spec retention_config() :: Keyword.t()
