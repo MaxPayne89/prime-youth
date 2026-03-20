@@ -21,6 +21,16 @@ defmodule KlassHeroWeb.Router do
     plug :accepts, ["json"]
   end
 
+  pipeline :webhook do
+    plug KlassHeroWeb.Plugs.VerifyWebhookSignature
+  end
+
+  scope "/webhooks", KlassHeroWeb do
+    pipe_through [:api, :webhook]
+
+    post "/resend", ResendWebhookController, :handle
+  end
+
   # Trigger: ThemeSelectorPlug reads session["backpex"]["theme"] for @theme assign
   # Why: only Backpex layout templates use @theme; non-admin routes don't need it
   # Outcome: avoids unnecessary session reads on every public/parent/provider request

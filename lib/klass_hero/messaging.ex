@@ -53,6 +53,7 @@ defmodule KlassHero.Messaging do
     GetTotalUnreadCount,
     ListConversations,
     MarkAsRead,
+    ReceiveInboundEmail,
     ReplyPrivatelyToBroadcast,
     SendMessage
   }
@@ -306,6 +307,29 @@ defmodule KlassHero.Messaging do
   """
   @spec anonymize_data_for_user(String.t()) :: {:ok, map()} | {:error, term()}
   defdelegate anonymize_data_for_user(user_id), to: AnonymizeUserData, as: :execute
+
+  @doc """
+  Stores an inbound email received via webhook.
+
+  Handles deduplication by resend_id — returns `{:ok, :duplicate}` for
+  already-stored emails so callers can acknowledge without re-processing.
+
+  ## Parameters
+  - attrs: Map with inbound email attributes (resend_id, from_address, subject, etc.)
+
+  ## Returns
+  - `{:ok, inbound_email}` - Email stored successfully
+  - `{:ok, :duplicate}` - Email already exists (idempotent)
+  - `{:error, reason}` - Storage failure
+
+  ## Examples
+
+      iex> Messaging.receive_inbound_email(%{resend_id: "...", from_address: "sender@example.com", ...})
+      {:ok, %InboundEmail{}}
+
+  """
+  @spec receive_inbound_email(map()) :: {:ok, struct()} | {:ok, :duplicate} | {:error, term()}
+  defdelegate receive_inbound_email(attrs), to: ReceiveInboundEmail, as: :execute
 
   # ---------------------------------------------------------------------------
   # Topic helpers & subscriptions

@@ -22,7 +22,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.InboundEmailMa
       body_html: schema.body_html,
       body_text: schema.body_text,
       headers: schema.headers,
-      status: String.to_existing_atom(schema.status),
+      status: parse_status(schema.status),
       read_by_id: schema.read_by_id,
       read_at: schema.read_at,
       received_at: schema.received_at,
@@ -30,6 +30,13 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.InboundEmailMa
       updated_at: schema.updated_at
     }
   end
+
+  # Trigger: Ecto stores status as a string; atom table is not guaranteed populated in async tests
+  # Why: String.to_existing_atom/1 raises ArgumentError if the atom hasn't been interned yet
+  # Outcome: safe pattern match ensures known values always produce the correct atom
+  defp parse_status("unread"), do: :unread
+  defp parse_status("read"), do: :read
+  defp parse_status("archived"), do: :archived
 
   @doc """
   Converts creation attributes to schema-compatible format.

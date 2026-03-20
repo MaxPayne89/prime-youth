@@ -122,6 +122,7 @@ if config_env() == :prod do
     secret_key_base: secret_key_base
 
   config :klass_hero, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
+  config :klass_hero, :resend_webhook_secret, System.get_env("RESEND_WEBHOOK_SECRET")
 
   # Storage configuration for production
   # Trigger: Tigris storage on Fly.io auto-sets AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
