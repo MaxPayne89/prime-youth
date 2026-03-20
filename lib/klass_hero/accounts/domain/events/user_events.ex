@@ -117,7 +117,10 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
   Standard payload includes:
   - `email` - User's confirmed email address
+  - `name` - User's display name
   - `confirmed_at` - Timestamp of confirmation
+  - `intended_roles` - List of role identifiers selected during registration (["parent"], ["provider"], or both)
+  - `provider_subscription_tier` - Selected provider tier (nil if not a provider)
 
   ## Raises
 

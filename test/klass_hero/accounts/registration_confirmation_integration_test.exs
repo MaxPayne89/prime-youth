@@ -1,4 +1,4 @@
-defmodule KlassHero.Accounts.RegistrationConfirmationIntegrationTest do
+defmodule KlassHero.Accounts.RegistrationProfileCreationIntegrationTest do
   @moduledoc """
   Integration test verifying the full registration → profile creation flow.
 
