@@ -4,13 +4,14 @@
 
 ## What This Context Owns
 
-- **Domain Concepts:** Conversation (direct or program broadcast), Message (text or system), Participant (membership + read receipts), ConversationSummary (CQRS read DTO)
+- **Domain Concepts:** Conversation (direct or program broadcast), Message (text or system), Participant (membership + read receipts), ConversationSummary (CQRS read DTO), InboundEmail (emails received via Resend webhooks with status tracking)
 - **Data:**
   - `conversations` table (write model — type, provider_id, program_id, subject, archived_at, retention_until, lock_version)
   - `messages` table (write model — conversation_id, sender_id, content, message_type, deleted_at)
   - `conversation_participants` table (write model — conversation_id, user_id, joined_at, left_at, last_read_at)
   - `conversation_summaries` table (read model — denormalized per-user inbox rows with latest message, unread count, other participant name)
-- **Processes:** Direct messaging, program broadcasts, read tracking, CQRS projection (ConversationSummaries GenServer), conversation archival (Oban daily 3 AM), retention enforcement (Oban daily 4 AM), GDPR data anonymization, real-time PubSub notifications
+  - `inbound_emails` table (resend_id, from/to/cc addresses, subject, HTML/text body, headers, status, read tracking)
+- **Processes:** Direct messaging, program broadcasts, read tracking, CQRS projection (ConversationSummaries GenServer), conversation archival (Oban daily 3 AM), retention enforcement (Oban daily 4 AM), GDPR data anonymization, real-time PubSub notifications, inbound email receiving (Resend webhooks)
 
 ## Key Features
 
@@ -21,6 +22,7 @@
 | Read Receipts & Unread Count | Active | [read-receipts-and-unread](features/read-receipts-and-unread.md) |
 | Conversation Listing & CQRS Projection | Active | [conversation-listing-and-cqrs](features/conversation-listing-and-cqrs.md) |
 | Lifecycle, Retention & GDPR | Active | [lifecycle-and-retention](features/lifecycle-and-retention.md) |
+| Inbound Email Receiving | Active | [inbound-email-receiving](features/inbound-email-receiving.md) |
 | Real-time Updates (PubSub) | Active | — (cross-cutting pattern, see individual features) |
 
 ## Inbound Communication
@@ -32,6 +34,7 @@
 | Accounts | `ForResolvingUsers` port | Resolves user display names for conversation listings, message display, and projection bootstrap |
 | Entitlements | `Entitlements.can_initiate_messaging?/1` | Gates conversation creation and broadcast sending based on subscription tier |
 | Program Catalog | `ProgramCatalog.list_ended_program_ids/1` (cross-context query) | Called by the archival worker to find programs that have ended, so their broadcast conversations can be archived |
+| External (Resend) | `POST /webhooks/resend` (Svix-signed webhook) | Receives inbound emails, verifies signature, stores via `ReceiveInboundEmail` use case with deduplication |
 | Self (integration events) | `conversation_created`, `message_sent`, `messages_read`, `conversation_archived`, `conversations_archived`, `message_data_anonymized` | ConversationSummaries projection subscribes to its own integration events to maintain the read model |
 
 ## Outbound Communication
@@ -63,6 +66,9 @@
 | **Retention Period** | The time window (default 30 days) after archival during which data is preserved before permanent deletion |
 | **System Message** | An auto-generated message (e.g., "User joined conversation") vs. a regular `:text` message |
 | **Entitlement** | A subscription-tier-based permission check; free-tier parents cannot initiate conversations but can receive and reply |
+| **Inbound Email** | An email received via Resend webhook, stored with status tracking (unread/read/archived) and read-by metadata. Standalone from conversations — not linked to the messaging conversation system |
+| **Email Sanitizer** | An adapter that strips dangerous HTML (scripts, event handlers, iframes), blocks external images by default (tracking pixel protection), and adds safe link attributes (`target="_blank"`, `rel="noopener noreferrer"`) |
+| **Resend Webhook** | An HTTP POST from Resend's inbound email service, signed using the Svix protocol (HMAC-SHA256 with timestamp replay protection). Verified by `VerifyWebhookSignature` plug |
 | **Projection** | A GenServer that subscribes to integration events and maintains the `conversation_summaries` read table in sync with the write model |
 
 ## Business Decisions
@@ -88,6 +94,12 @@
 - **Integration event criticality varies.** `conversation_created` and `message_sent` promotions propagate errors back to the use case (critical path). `messages_read`, `conversation_archived`, `conversations_archived` are best-effort (swallow failures). `message_data_anonymized` is marked as GDPR-critical.
 - **Real-time updates are best-effort.** PubSub publish failures are logged but swallowed; the database transaction is the source of truth.
 - **Retry with backoff for cross-context event handling.** The `user_anonymized` event handler uses `RetryHelpers` (100ms backoff) for transient failure resilience.
+- **Inbound email deduplication is two-layer.** First checks `get_by_resend_id` (fast path for retries), then catches unique constraint violations on concurrent inserts (race-safe). Both paths return `{:ok, :duplicate}`.
+- **Inbound email HTML is always sanitized before rendering.** Uses `HtmlSanitizeEx.basic_html/1` as a baseline, then applies email-specific post-processing (link safety, image blocking). External images are blocked by default to prevent tracking pixels; admins can opt-in via "Load images" toggle.
+- **Inbound email is admin-only.** Only users with `is_admin: true` can access `/admin/emails`. Routes protected by `:require_admin` on_mount hook.
+- **Webhook signature verification uses Svix protocol with stdlib `:crypto`.** No external Svix Hex package (none exists for Elixir). Uses HMAC-SHA256 with timing-safe comparison (`Plug.Crypto.secure_compare/2`) and 5-minute timestamp tolerance.
+- **Email replies use Swoosh directly from use case.** `ReplyToEmail` constructs `Swoosh.Email` with `In-Reply-To` and `References` headers extracted from the original email's stored headers array. Threading enables email client grouping.
+- **Inbound email status transitions are domain-model-driven.** The `InboundEmail.mark_read/2` function enforces idempotency (already-read emails unchanged) and guards archived emails from being marked as read. The use case delegates to the domain model, then persists only if status actually changed.
 
 ## Assumptions & Open Questions
 
