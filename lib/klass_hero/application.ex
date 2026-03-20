@@ -277,6 +277,7 @@ defmodule KlassHero.Application do
          handler: KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler,
          topics: [
            "integration:accounts:user_registered",
+           "integration:accounts:user_confirmed",
            "integration:accounts:user_anonymized"
          ],
          message_tag: :integration_event,

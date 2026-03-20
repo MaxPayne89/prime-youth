@@ -99,5 +99,65 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandlerTest do
     test "includes :user_registered" do
       assert :user_registered in FamilyEventHandler.subscribed_events()
     end
+
+    test "includes :user_confirmed" do
+      assert :user_confirmed in FamilyEventHandler.subscribed_events()
+    end
+  end
+
+  describe "handle_event/1 for :user_confirmed" do
+    test "creates parent profile when 'parent' in intended_roles" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:parent])
+
+      event = build_user_confirmed_event(user)
+      assert {:ok, _profile} = FamilyEventHandler.handle_event(event)
+
+      assert {:ok, _profile} = KlassHero.Family.get_parent_by_identity(user.id)
+    end
+
+    test "returns :ok when parent profile already exists (idempotent)" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:parent])
+
+      # First call creates the profile
+      registered_event = build_user_registered_event(user)
+      assert {:ok, _profile} = FamilyEventHandler.handle_event(registered_event)
+
+      # Second call via user_confirmed is idempotent
+      confirmed_event = build_user_confirmed_event(user)
+      assert :ok = FamilyEventHandler.handle_event(confirmed_event)
+    end
+
+    test "ignores event when 'parent' not in intended_roles" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
+      event = build_user_confirmed_event(user, intended_roles: ["provider"])
+      assert :ignore = FamilyEventHandler.handle_event(event)
+    end
+  end
+
+  defp build_user_registered_event(user, opts \\ []) do
+    intended_roles = Keyword.get(opts, :intended_roles, ["parent"])
+
+    %{
+      event_type: :user_registered,
+      entity_id: user.id,
+      payload: %{
+        intended_roles: intended_roles,
+        name: user.name || "Test User"
+      }
+    }
+  end
+
+  defp build_user_confirmed_event(user, opts \\ []) do
+    intended_roles = Keyword.get(opts, :intended_roles, ["parent"])
+
+    %{
+      event_type: :user_confirmed,
+      entity_id: user.id,
+      payload: %{
+        intended_roles: intended_roles,
+        name: user.name || "Test User"
+      }
+    }
   end
 end
