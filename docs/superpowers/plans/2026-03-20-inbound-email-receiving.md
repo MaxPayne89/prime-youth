@@ -11,6 +11,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-03-20-inbound-email-receiving-design.md`
 
+**Progress (2026-03-20):** Tasks 1-8 complete. Tasks 9-10 remaining (Admin LiveView + Final Integration).
+
 ---
 
 ## File Map
@@ -86,7 +88,6 @@ In `mix.exs`, add to the `deps` list:
 
 ```elixir
 {:html_sanitize_ex, "~> 1.4"},
-{:svix, "~> 1.44"},
 ```
 
 - [ ] **Step 2: Fetch deps**
@@ -1341,9 +1342,17 @@ config :klass_hero, :resend_webhook_secret,
   System.get_env("RESEND_WEBHOOK_SECRET")
 ```
 
-- [ ] **Step 8: Add Svix signature verification plug/check**
+- [ ] **Step 8: Add webhook signature verification**
 
-Add signature verification to the controller (skip in test env). Use `Svix.Webhook.verify/3`. The implementer should check `mix usage_rules.docs Svix.Webhook` for exact API. Configure test env to skip verification via `config :klass_hero, :verify_webhook_signature, false` in `config/test.exs`.
+Implement Svix-protocol signature verification using stdlib `:crypto` (no external dep — no Elixir svix package exists). The Svix protocol:
+1. Construct message: `"${svix_id}.${svix_timestamp}.${raw_body}"`
+2. Decode base64 secret (strip `whsec_` prefix if present)
+3. HMAC-SHA256 the message with the decoded secret
+4. Base64-encode the result
+5. Compare with signatures in `svix-signature` header (space-separated, each prefixed with `v1,`)
+6. Reject if timestamp is older than 5 minutes
+
+Create `KlassHeroWeb.Plugs.VerifyWebhookSignature` plug. Skip in test env via `config :klass_hero, :verify_webhook_signature, false` in `config/test.exs`.
 
 - [ ] **Step 9: Run test to verify it passes**
 
