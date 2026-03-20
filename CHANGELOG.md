@@ -5,6 +5,31 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0](https://github.com/MaxPayne89/klass-hero/compare/v0.12.0...v0.13.0) (2026-03-20)
+
+
+### Features
+
+* add address-pr-comments skill ([c41f38c](https://github.com/MaxPayne89/klass-hero/commit/c41f38c829a58bd56c44c796640ea51ac06c9cec))
+* add user_confirmed integration event factory ([8188f54](https://github.com/MaxPayne89/klass-hero/commit/8188f54f59d72e90d8bbb5769a9c7be9ba5d985b))
+* enrich user_confirmed event with name, roles, and tier ([7f44f13](https://github.com/MaxPayne89/klass-hero/commit/7f44f136607954044bfda4e3148e3cdf62936d23))
+* FamilyEventHandler subscribes to user_confirmed ([9ff5373](https://github.com/MaxPayne89/klass-hero/commit/9ff5373055476f72dc1dc6c8425cadc36744c425))
+* promote user_confirmed to integration event ([955db18](https://github.com/MaxPayne89/klass-hero/commit/955db1885f154ac0887d3856a2dd7dd39ba81439))
+* ProviderEventHandler subscribes to user_confirmed ([cc0a114](https://github.com/MaxPayne89/klass-hero/commit/cc0a11412c01ee2d2eb756b8e55d88c7b10362a9))
+
+
+### Bug Fixes
+
+* address PR review comments ([d978fdd](https://github.com/MaxPayne89/klass-hero/commit/d978fdd4543479102b0ca197008b22ab8afbed0f)), closes [#487](https://github.com/MaxPayne89/klass-hero/issues/487)
+* mark user_confirmed domain event as critical ([4bc173c](https://github.com/MaxPayne89/klass-hero/commit/4bc173ca672c85639f2aea5e5ccbdd31db2e7eb7))
+* persist provider_subscription_tier as real DB column ([5912839](https://github.com/MaxPayne89/klass-hero/commit/59128390b039dbc721d36bf9e5ec08edca93efbc)), closes [#484](https://github.com/MaxPayne89/klass-hero/issues/484)
+* provider registration creates family account instead ([#484](https://github.com/MaxPayne89/klass-hero/issues/484)) ([dbd410e](https://github.com/MaxPayne89/klass-hero/commit/dbd410e3035f1d49e6e243a93762cbfa5d96fc47))
+
+
+### Code Refactoring
+
+* extract assert_eventually to shared DataCase helper ([729a99c](https://github.com/MaxPayne89/klass-hero/commit/729a99c676d945234e492b78c743dcf6140360ae))
+
 ## [0.12.0](https://github.com/MaxPayne89/klass-hero/compare/v0.11.0...v0.12.0) (2026-03-19)
 
 
