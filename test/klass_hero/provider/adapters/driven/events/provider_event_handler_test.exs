@@ -12,7 +12,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandlerTest do
       user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       event = build_user_registered_event(user)
-      assert {:ok, _profile} = ProviderEventHandler.handle_event(event)
+      assert :ok = ProviderEventHandler.handle_event(event)
 
       assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
       assert profile.subscription_tier == :starter
@@ -22,7 +22,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandlerTest do
       user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       event = build_user_registered_event(user, provider_subscription_tier: "professional")
-      assert {:ok, _profile} = ProviderEventHandler.handle_event(event)
+      assert :ok = ProviderEventHandler.handle_event(event)
 
       assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
       assert profile.subscription_tier == :professional
@@ -34,7 +34,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandlerTest do
       log =
         capture_log(fn ->
           event = build_user_registered_event(user, provider_subscription_tier: "invalid_tier")
-          assert {:ok, _profile} = ProviderEventHandler.handle_event(event)
+          assert :ok = ProviderEventHandler.handle_event(event)
         end)
 
       assert log =~ "Invalid provider tier"
@@ -48,7 +48,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandlerTest do
       user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       event = build_user_registered_event(user, provider_subscription_tier: nil)
-      assert {:ok, _profile} = ProviderEventHandler.handle_event(event)
+      assert :ok = ProviderEventHandler.handle_event(event)
 
       assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
       assert profile.subscription_tier == :starter
@@ -58,7 +58,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandlerTest do
       user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       event = build_user_registered_event(user, provider_subscription_tier: "")
-      assert {:ok, _profile} = ProviderEventHandler.handle_event(event)
+      assert :ok = ProviderEventHandler.handle_event(event)
 
       assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
       assert profile.subscription_tier == :starter
@@ -91,7 +91,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandlerTest do
       user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       event = build_user_confirmed_event(user)
-      assert {:ok, _profile} = ProviderEventHandler.handle_event(event)
+      assert :ok = ProviderEventHandler.handle_event(event)
 
       assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
       assert profile.subscription_tier == :starter
@@ -101,7 +101,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandlerTest do
       user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 
       event = build_user_confirmed_event(user, provider_subscription_tier: "professional")
-      assert {:ok, _profile} = ProviderEventHandler.handle_event(event)
+      assert :ok = ProviderEventHandler.handle_event(event)
 
       assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
       assert profile.subscription_tier == :professional
@@ -112,7 +112,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandlerTest do
 
       # First call creates the profile
       registered_event = build_user_registered_event(user)
-      assert {:ok, _profile} = ProviderEventHandler.handle_event(registered_event)
+      assert :ok = ProviderEventHandler.handle_event(registered_event)
 
       # Second call via user_confirmed is idempotent
       confirmed_event =

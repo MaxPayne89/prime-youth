@@ -90,7 +90,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler do
       backoff_ms: 100
     }
 
-    RetryHelpers.retry_with_backoff(operation, context)
+    RetryHelpers.retry_and_normalize(operation, context)
   end
 
   # Trigger: provider_subscription_tier may be nil or a string like "professional"

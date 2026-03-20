@@ -110,7 +110,7 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandlerTest do
       user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:parent])
 
       event = build_user_confirmed_event(user)
-      assert {:ok, _profile} = FamilyEventHandler.handle_event(event)
+      assert :ok = FamilyEventHandler.handle_event(event)
 
       assert {:ok, _profile} = KlassHero.Family.get_parent_by_identity(user.id)
     end
@@ -120,7 +120,7 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandlerTest do
 
       # First call creates the profile
       registered_event = build_user_registered_event(user)
-      assert {:ok, _profile} = FamilyEventHandler.handle_event(registered_event)
+      assert :ok = FamilyEventHandler.handle_event(registered_event)
 
       # Second call via user_confirmed is idempotent
       confirmed_event = build_user_confirmed_event(user)

@@ -73,7 +73,7 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler do
       backoff_ms: 100
     }
 
-    RetryHelpers.retry_with_backoff(operation, context)
+    RetryHelpers.retry_and_normalize(operation, context)
   end
 
   defp anonymize_family_data_with_retry(user_id) do
