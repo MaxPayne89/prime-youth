@@ -107,6 +107,42 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandlerTest do
       assert profile.subscription_tier == :professional
     end
 
+    test "falls back to default tier on invalid tier string" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
+      log =
+        capture_log(fn ->
+          event = build_user_confirmed_event(user, provider_subscription_tier: "invalid_tier")
+          assert :ok = ProviderEventHandler.handle_event(event)
+        end)
+
+      assert log =~ "Invalid provider tier"
+      assert log =~ "invalid_tier"
+
+      assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
+      assert profile.subscription_tier == :starter
+    end
+
+    test "creates provider profile when tier is nil" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
+      event = build_user_confirmed_event(user, provider_subscription_tier: nil)
+      assert :ok = ProviderEventHandler.handle_event(event)
+
+      assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
+      assert profile.subscription_tier == :starter
+    end
+
+    test "creates provider profile when tier is empty string" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
+      event = build_user_confirmed_event(user, provider_subscription_tier: "")
+      assert :ok = ProviderEventHandler.handle_event(event)
+
+      assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
+      assert profile.subscription_tier == :starter
+    end
+
     test "returns :ok when provider profile already exists (idempotent)" do
       user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
 

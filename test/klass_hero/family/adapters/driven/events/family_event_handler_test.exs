@@ -1,6 +1,6 @@
 defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandlerTest do
   @moduledoc """
-  Tests for FamilyEventHandler handling of user_anonymized events.
+  Tests for FamilyEventHandler integration event handling.
   """
 
   use KlassHero.DataCase, async: true
