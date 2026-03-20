@@ -66,6 +66,9 @@ defmodule KlassHero.Application do
            {:user_registered,
             {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
+           {:user_confirmed,
+            {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}, priority: 10},
            {:user_anonymized,
             {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}
@@ -274,6 +277,7 @@ defmodule KlassHero.Application do
          handler: KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler,
          topics: [
            "integration:accounts:user_registered",
+           "integration:accounts:user_confirmed",
            "integration:accounts:user_anonymized"
          ],
          message_tag: :integration_event,
@@ -285,6 +289,7 @@ defmodule KlassHero.Application do
          handler: KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler,
          topics: [
            "integration:accounts:user_registered",
+           "integration:accounts:user_confirmed",
            "integration:accounts:user_anonymized"
          ],
          message_tag: :integration_event,

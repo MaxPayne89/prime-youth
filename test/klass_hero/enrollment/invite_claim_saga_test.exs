@@ -169,26 +169,4 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
       assert Enum.any?(children, &(&1.first_name == "Emma"))
     end
   end
-
-  # Polling helper for async assertions
-  defp assert_eventually(fun, opts) do
-    timeout = Keyword.get(opts, :timeout_ms, 5000)
-    interval = Keyword.get(opts, :interval_ms, 100)
-    deadline = System.monotonic_time(:millisecond) + timeout
-
-    do_assert_eventually(fun, interval, deadline)
-  end
-
-  defp do_assert_eventually(fun, interval, deadline) do
-    if fun.() do
-      :ok
-    else
-      if System.monotonic_time(:millisecond) > deadline do
-        flunk("Condition not met within timeout")
-      else
-        Process.sleep(interval)
-        do_assert_eventually(fun, interval, deadline)
-      end
-    end
-  end
 end

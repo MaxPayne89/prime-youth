@@ -84,4 +84,45 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegra
       assert {:error, :pubsub_down} = PromoteIntegrationEvents.handle(domain_event)
     end
   end
+
+  describe "handle/1 — :user_confirmed" do
+    test "promotes to user_confirmed integration event" do
+      user_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:user_confirmed, user_id, :user, %{
+          email: "test@example.com",
+          name: "Test Provider",
+          confirmed_at: ~U[2024-01-01 12:00:00Z],
+          intended_roles: ["provider"],
+          provider_subscription_tier: "professional"
+        })
+
+      assert :ok = PromoteIntegrationEvents.handle(domain_event)
+
+      event = assert_integration_event_published(:user_confirmed)
+      assert event.entity_id == user_id
+      assert event.source_context == :accounts
+      assert event.payload.user_id == user_id
+      assert event.payload.intended_roles == ["provider"]
+      assert event.payload.provider_subscription_tier == "professional"
+      assert IntegrationEvent.critical?(event)
+    end
+
+    test "propagates publish failures" do
+      user_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:user_confirmed, user_id, :user, %{
+          email: "test@example.com",
+          name: "Test User",
+          confirmed_at: ~U[2024-01-01 12:00:00Z],
+          intended_roles: ["parent"]
+        })
+
+      TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)
+
+      assert {:error, :pubsub_down} = PromoteIntegrationEvents.handle(domain_event)
+    end
+  end
 end
