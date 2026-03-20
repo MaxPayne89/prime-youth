@@ -10,6 +10,10 @@ defmodule KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents do
   - `:user_registered` - Emitted when a new user registers (critical).
     Downstream contexts (e.g. Identity) react to create profiles.
 
+  - `:user_confirmed` - Emitted when a user confirms their email (critical).
+    Downstream contexts use this as a compensation path to ensure profiles exist
+    before first login.
+
   - `:user_anonymized` - Emitted when a user is anonymized for GDPR (critical).
     Downstream contexts (e.g. Identity, Messaging) react to anonymize their data.
   """
@@ -78,6 +82,46 @@ defmodule KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents do
   def user_registered(user_id, _payload, _opts) do
     raise ArgumentError,
           "user_registered/3 requires a non-empty user_id string, got: #{inspect(user_id)}"
+  end
+
+  @doc """
+  Creates a `user_confirmed` integration event.
+
+  Marked `:critical` by default — downstream contexts use this as a compensation
+  path to ensure profiles exist before first login.
+
+  ## Parameters
+
+  - `user_id` - The ID of the confirmed user
+  - `payload` - Additional event-specific data (intended_roles, tier, etc.)
+  - `opts` - Metadata options (correlation_id, causation_id)
+
+  ## Raises
+
+  - `ArgumentError` if `user_id` is nil or empty
+  """
+  def user_confirmed(user_id, payload \\ %{}, opts \\ [])
+
+  def user_confirmed(user_id, payload, opts) when is_binary(user_id) and byte_size(user_id) > 0 do
+    base_payload = %{user_id: user_id}
+    opts = Keyword.put_new(opts, :criticality, :critical)
+
+    IntegrationEvent.new(
+      :user_confirmed,
+      @source_context,
+      @entity_type,
+      user_id,
+      # Trigger: caller may pass a conflicting :user_id in payload
+      # Why: base_payload contains the canonical user_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def user_confirmed(user_id, _payload, _opts) do
+    raise ArgumentError,
+          "user_confirmed/3 requires a non-empty user_id string, got: #{inspect(user_id)}"
   end
 
   @doc """
