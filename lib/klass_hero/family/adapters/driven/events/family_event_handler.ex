@@ -7,6 +7,7 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler do
   ## Subscribed Events
 
   - `:user_registered` - Creates parent profile if "parent" in intended_roles
+  - `:user_confirmed` - Compensation path: creates parent profile if not yet created (idempotent)
   - `:user_anonymized` - Anonymizes Family-owned data (children, consents)
     and publishes `child_data_anonymized` per child for downstream contexts
 
@@ -23,7 +24,7 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler do
   alias KlassHero.Shared.Adapters.Driven.Events.RetryHelpers
 
   @impl true
-  def subscribed_events, do: [:user_registered, :user_anonymized]
+  def subscribed_events, do: [:user_registered, :user_confirmed, :user_anonymized]
 
   @impl true
   def handle_event(%{event_type: :user_anonymized, entity_id: user_id}) do
@@ -44,6 +45,21 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler do
     end
   end
 
+  @impl true
+  def handle_event(%{event_type: :user_confirmed, entity_id: user_id, payload: payload}) do
+    intended_roles = Map.get(payload, :intended_roles, [])
+
+    # Trigger: user_confirmed event — compensation path for profile creation
+    # Why: if user_registered delivery was delayed, this ensures the profile
+    #      exists before the user's first authenticated session
+    # Outcome: creates profile or returns :ok if already exists (idempotent)
+    if "parent" in intended_roles do
+      create_parent_profile_with_retry(user_id)
+    else
+      :ignore
+    end
+  end
+
   def handle_event(_event), do: :ignore
 
   defp create_parent_profile_with_retry(user_id) do
@@ -57,7 +73,7 @@ defmodule KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler do
       backoff_ms: 100
     }
 
-    RetryHelpers.retry_with_backoff(operation, context)
+    RetryHelpers.retry_and_normalize(operation, context)
   end
 
   defp anonymize_family_data_with_retry(user_id) do

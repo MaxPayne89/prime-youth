@@ -2,9 +2,9 @@
 
 ## Scope
 - Mode: branch
-- Branch: `feat/429-enable-receiving-mails` vs `main`
-- Files changed: 39 (+3817 lines)
-- Routes affected: `POST /webhooks/resend`, `GET /admin/emails`, `GET /admin/emails/:id`
+- Branch: `bug/484-provider-becomes-family-account` vs `main`
+- Files changed: 18
+- Routes affected: none (backend event infrastructure only)
 
 ## Backend Checks (Tidewave MCP)
 
@@ -12,13 +12,15 @@
 
 | Check | Description | Result |
 |-------|-------------|--------|
-| A1 | ReceiveInboundEmail creates email with valid attrs | PASS |
-| A2 | Duplicate resend_id returns `{:ok, :duplicate}` | PASS |
-| A3 | ListInboundEmails returns paginated list (5 emails, has_more=false) | PASS |
-| A4 | GetInboundEmail with mark_read transitions unread->read, sets reader_id | PASS |
-| A6 | count_by_status returns correct counts | PASS |
-| A7 | update_status: archive and mark_unread transitions work correctly | PASS |
-| A8 | Schema columns match migration (16 columns verified) | PASS |
+| A1 | `provider_subscription_tier` column exists in DB (nullable varchar) | PASS |
+| A2 | Register provider → tier `"professional"` persisted on user struct | PASS |
+| A3 | Provider profile created via event chain with `:professional` tier | PASS |
+| A4 | Parent profile created via event chain | PASS |
+| A5 | Dual-role registration → both profiles created, correct tier | PASS |
+| A6 | `user_confirmed` domain event marked `:critical` | PASS |
+| A7 | `user_confirmed` payload carries name, intended_roles, tier | PASS |
+| A8 | Family and Provider EventSubscriber GenServers alive | PASS |
+| A9 | Zero error logs after all checks | PASS |
 
 ### Issues Found
 
@@ -30,18 +32,12 @@ None
 
 | Check | Description | Result |
 |-------|-------------|--------|
-| B1 | `/admin/emails` index renders email list, headings, stream container | PASS |
-| B2 | Filter buttons (All/Unread/Read/Archived) switch correctly | PASS |
-| B3 | Empty state visible when filtering to status with no emails | PASS |
-| B4 | Sidebar "Emails" link with unread count badge (shows "5") | PASS |
-| B5 | Email detail page renders at `/admin/emails/:id` with correct elements | PASS |
-| B6 | Detail has reply form, archive/mark-unread/load-images buttons | PASS |
-| B7 | Sanitized HTML: `<script>` stripped, `<strong>` preserved, XSS payload rendered as text | PASS |
-| B8 | Reply form submission shows "Reply sent successfully" flash | PASS |
-| B9 | Archive action shows flash, mark-unread action shows flash | PASS |
-| B9b | Load images button works and disappears after click | PASS |
-| B10 | Mobile (375x667): index renders, no horizontal scroll, all 5 emails visible | PASS |
-| B10b | Mobile detail: reply form, archive btn, back link all visible, no overflow | PASS |
+| B1 | `/users/register` — form loads with registration fields | PASS |
+| B2 | Tier selector appears when provider checkbox checked (3 options) | PASS |
+| B3 | Full registration flow: fill form + select professional tier + submit | PASS |
+| B4 | Redirect to `/users/log-in` after successful registration | PASS |
+| B5 | DB confirms user created with `provider_subscription_tier: "professional"` | PASS |
+| B6 | Provider profile created with `:professional` tier for UI-registered user | PASS |
 
 ### Issues Found
 
@@ -51,11 +47,8 @@ None
 
 | Check | Description | Result |
 |-------|-------------|--------|
-| C1 | Duplicate webhook delivery (same resend_id) returns ok | PASS |
-| C2 | Status transitions: unread->read->archived->unread cycle | PASS |
-| C3 | mark_read is idempotent (already-read email returns unchanged) | PASS (unit tests) |
-| C4 | Archived email not re-marked as read | PASS (unit tests) |
-| C5 | Invalid UUID in URL redirects with error | PASS (unit tests) |
+| A3 | Provider profile with correct tier via async event chain | PASS |
+| A5 | Dual-role (parent + provider) creates both profiles | PASS |
 
 ## Auto-Fixes Applied
 
@@ -63,8 +56,9 @@ None
 
 ## Issues Filed
 
-None
+- #485: Role-aware post-confirmation redirect for providers (follow-up)
+- #486: Add critical_event_handlers config for Accounts integration events (follow-up)
 
 ## Recommendations
 
-None — all checks pass. Ready for PR.
+None — all checks passed. The fix is working correctly end-to-end.

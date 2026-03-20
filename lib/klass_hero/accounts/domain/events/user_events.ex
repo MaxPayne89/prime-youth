@@ -8,7 +8,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
   ## Events
 
   - `:user_registered` - Emitted when a new user completes registration (critical)
-  - `:user_confirmed` - Emitted when a user confirms their email
+  - `:user_confirmed` - Emitted when a user confirms their email (critical)
   - `:user_email_changed` - Emitted when a user changes their email address
   - `:user_anonymized` - Emitted when a user's account is anonymized for GDPR deletion (critical)
 
@@ -117,7 +117,10 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
   Standard payload includes:
   - `email` - User's confirmed email address
+  - `name` - User's display name
   - `confirmed_at` - Timestamp of confirmation
+  - `intended_roles` - List of role identifiers selected during registration (["parent"], ["provider"], or both)
+  - `provider_subscription_tier` - Selected provider tier (nil if not a provider)
 
   ## Raises
 
@@ -135,9 +138,14 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
   def user_confirmed(%{id: _, email: _, confirmed_at: _} = user, payload \\ %{}, opts \\ []) do
     validate_user_for_confirmation!(user)
 
+    opts = Keyword.put_new(opts, :criticality, :critical)
+
     base_payload = %{
       email: user.email,
-      confirmed_at: user.confirmed_at
+      name: Map.get(user, :name),
+      confirmed_at: user.confirmed_at,
+      intended_roles: Enum.map(Map.get(user, :intended_roles) || [], &Atom.to_string/1),
+      provider_subscription_tier: Map.get(user, :provider_subscription_tier)
     }
 
     DomainEvent.new(
