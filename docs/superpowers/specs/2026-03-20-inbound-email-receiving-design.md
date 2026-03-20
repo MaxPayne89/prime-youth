@@ -22,7 +22,8 @@ Enable admins to receive, read, and reply to inbound emails within the admin pan
 | `subject` | `string` | |
 | `body_html` | `text`, nullable | Raw HTML body (stored as-is, sanitized on render) |
 | `body_text` | `text`, nullable | Plain text fallback |
-| `headers` | `map` | Raw email headers as JSON |
+| `cc_addresses` | `{:array, :string}`, nullable | CC recipients |
+| `headers` | `map` | Raw headers as JSON (array format: `[%{"name" => "...", "value" => "..."}]`) |
 | `status` | `string` | `unread`, `read`, `archived` |
 | `read_by_id` | `uuid`, nullable, FK → users | Who first read it |
 | `read_at` | `utc_datetime_usec`, nullable | When first read |
@@ -61,7 +62,7 @@ Enable admins to receive, read, and reply to inbound emails within the admin pan
 ### Security
 
 - Webhook signing secret stored as env var: `RESEND_WEBHOOK_SECRET`.
-- Signature verification using HMAC-SHA256 (Svix protocol) via stdlib `:crypto`.
+- Signature verification using the `svix` Hex package (handles timestamp tolerance, multiple signatures, base64 encoding). Timestamp tolerance: 5 minutes (Svix default).
 - Raw body cached before JSON parsing for signature verification (custom body reader plug).
 
 ### Resend payload structure (`email.received`)
@@ -94,7 +95,7 @@ Webhook handler is lightweight (validate + insert). Notifications ("new email re
 
 ### Module
 
-`KlassHero.Messaging.Domain.Services.EmailSanitizer`
+`KlassHero.Messaging.Adapters.Driven.EmailSanitizer` — placed in adapters since it wraps an external library (`html_sanitize_ex`), not a pure domain service.
 
 ### Strategy
 
@@ -144,7 +145,7 @@ Added to existing `:admin_custom` live_session (admin layout, requires admin aut
 
 - Sends via existing Swoosh/Resend outbound infrastructure (`KlassHero.Mailer`).
 - From address: shared configured address (e.g. `hello@klasshero.com`).
-- Sets `In-Reply-To` and `References` headers using original email's `Message-ID` from stored headers — proper email threading.
+- Sets `In-Reply-To` and `References` headers using original email's `Message-ID` extracted from stored headers (array format: find entry where `name == "Message-ID"` and use its `value`) — proper email threading.
 - Reply is not stored as another `InboundEmail` — fire-and-forget send. Reply history is a follow-up.
 
 ### Sidebar
@@ -159,23 +160,24 @@ All within the **Messaging** bounded context:
 messaging/
 ├── domain/
 │   ├── models/
-│   │   └── inbound_email.ex          # Pure domain struct
-│   ├── ports/
-│   │   └── for_storing_inbound_emails.ex  # Repository port
-│   └── services/
-│       └── email_sanitizer.ex         # HTML sanitization
+│   │   └── inbound_email.ex                    # Pure domain struct
+│   └── ports/
+│       └── for_managing_inbound_emails.ex       # Repository port (matches ForManaging* convention)
 ├── application/
 │   └── use_cases/
-│       ├── receive_inbound_email.ex   # Webhook → store
-│       ├── list_inbound_emails.ex     # Admin listing with filters
-│       ├── get_inbound_email.ex       # Fetch + mark read
-│       └── reply_to_email.ex          # Compose + send reply
+│       ├── receive_inbound_email.ex             # Webhook → store
+│       ├── list_inbound_emails.ex               # Admin listing with filters
+│       ├── get_inbound_email.ex                 # Fetch + mark read
+│       └── reply_to_email.ex                    # Compose + send reply
+├── repositories.ex                              # Update: add inbound_emails accessor
 └── adapters/
     └── driven/
+        ├── email_sanitizer.ex                   # HTML sanitization (adapter, wraps html_sanitize_ex)
         └── persistence/
-            ├── schemas/inbound_email.ex   # Ecto schema
-            ├── repos/inbound_email_repo.ex # Repository adapter
-            └── mappers/inbound_email_mapper.ex # Schema ↔ domain
+            ├── schemas/inbound_email_schema.ex  # Ecto schema (matches *Schema convention)
+            ├── repositories/inbound_email_repository.ex # Repository adapter (matches *Repository convention)
+            ├── queries/inbound_email_queries.ex  # Filtered/sorted/paginated queries
+            └── mappers/inbound_email_mapper.ex   # Schema ↔ domain
 ```
 
 Web layer:
@@ -192,8 +194,15 @@ klass_hero_web/
 
 ## Configuration
 
-- `RESEND_WEBHOOK_SECRET` — env var for webhook signature verification.
+- `RESEND_WEBHOOK_SECRET` — env var for webhook signature verification (set in `runtime.exs`).
 - Shared reply-from address — configurable in `config.exs` (reuse existing `from` config or add dedicated key).
+- Add to `config :klass_hero, :messaging` in `config.exs`: `for_managing_inbound_emails: KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailRepository`
+- Update `KlassHero.Messaging.Repositories` module with `inbound_emails/0` accessor.
+
+### New dependencies
+
+- `html_sanitize_ex` — HTML sanitization.
+- `svix` — Resend webhook signature verification.
 
 ## Out of Scope (v1)
 
