@@ -75,35 +75,13 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
   # -- Event Handlers --
 
   @impl true
-  def handle_event("filter_all", _params, socket) do
-    socket
-    |> assign(:status_filter, nil)
-    |> load_emails()
-    |> then(&{:noreply, &1})
-  end
+  def handle_event("filter", %{"status" => status}, socket) do
+    filter = if status != "all", do: String.to_existing_atom(status)
 
-  @impl true
-  def handle_event("filter_unread", _params, socket) do
-    socket
-    |> assign(:status_filter, :unread)
-    |> load_emails()
-    |> then(&{:noreply, &1})
-  end
-
-  @impl true
-  def handle_event("filter_read", _params, socket) do
-    socket
-    |> assign(:status_filter, :read)
-    |> load_emails()
-    |> then(&{:noreply, &1})
-  end
-
-  @impl true
-  def handle_event("filter_archived", _params, socket) do
-    socket
-    |> assign(:status_filter, :archived)
-    |> load_emails()
-    |> then(&{:noreply, &1})
+    {:noreply,
+     socket
+     |> assign(:status_filter, filter)
+     |> load_emails()}
   end
 
   @impl true

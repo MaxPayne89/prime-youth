@@ -14,7 +14,8 @@
   <div class="flex gap-2 mb-4">
     <button
       id="filter-all"
-      phx-click="filter_all"
+      phx-click="filter"
+      phx-value-status="all"
       class={[
         "btn btn-sm",
         if(is_nil(@status_filter), do: "btn-primary", else: "btn-ghost")
@@ -24,7 +25,8 @@
     </button>
     <button
       id="filter-unread"
-      phx-click="filter_unread"
+      phx-click="filter"
+      phx-value-status="unread"
       class={[
         "btn btn-sm",
         if(@status_filter == :unread, do: "btn-primary", else: "btn-ghost")
@@ -34,7 +36,8 @@
     </button>
     <button
       id="filter-read"
-      phx-click="filter_read"
+      phx-click="filter"
+      phx-value-status="read"
       class={[
         "btn btn-sm",
         if(@status_filter == :read, do: "btn-primary", else: "btn-ghost")
@@ -44,7 +47,8 @@
     </button>
     <button
       id="filter-archived"
-      phx-click="filter_archived"
+      phx-click="filter"
+      phx-value-status="archived"
       class={[
         "btn btn-sm",
         if(@status_filter == :archived, do: "btn-primary", else: "btn-ghost")
@@ -149,16 +153,7 @@
   <div class="rounded-lg border border-base-300 p-6">
     <h2 class={Theme.typography(:card_title)}>{gettext("Reply")}</h2>
     <.form for={@reply_form} id="reply-form" phx-submit="submit_reply" class="mt-4 space-y-4">
-      <div class="form-control">
-        <textarea
-          name="reply[body]"
-          id="reply-body"
-          class="textarea textarea-bordered w-full"
-          rows="5"
-          placeholder={gettext("Type your reply...")}
-          required
-        >{Phoenix.HTML.Form.input_value(@reply_form, :body)}</textarea>
-      </div>
+      <.input field={@reply_form[:body]} type="textarea" placeholder={gettext("Type your reply...")} />
       <div class="flex justify-end">
         <button type="submit" id="send-reply-btn" class="btn btn-primary btn-sm">
           {gettext("Send Reply")}

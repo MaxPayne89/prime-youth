@@ -65,5 +65,27 @@ defmodule KlassHeroWeb.Admin.EmailsLiveTest do
       assert {:error, {:live_redirect, %{to: "/admin/emails"}}} =
                live(conn, ~p"/admin/emails/not-a-uuid")
     end
+
+    test "submitting a reply shows success flash", %{conn: conn} do
+      email = MessagingFixtures.inbound_email_fixture(%{subject: "Reply Test"})
+      {:ok, view, _html} = live(conn, ~p"/admin/emails/#{email.id}")
+
+      view
+      |> form("#reply-form", reply: %{body: "Thanks for your email!"})
+      |> render_submit()
+
+      assert render(view) =~ "Reply sent successfully"
+    end
+
+    test "archiving an email shows success flash", %{conn: conn} do
+      email = MessagingFixtures.inbound_email_fixture(%{status: "read", subject: "Archive Test"})
+      {:ok, view, _html} = live(conn, ~p"/admin/emails/#{email.id}")
+
+      assert has_element?(view, "#archive-btn")
+
+      view |> element("#archive-btn") |> render_click()
+
+      assert render(view) =~ "Email archived"
+    end
   end
 end
