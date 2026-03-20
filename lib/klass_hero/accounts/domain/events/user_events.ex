@@ -137,7 +137,10 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
     base_payload = %{
       email: user.email,
-      confirmed_at: user.confirmed_at
+      name: Map.get(user, :name),
+      confirmed_at: user.confirmed_at,
+      intended_roles: Enum.map(Map.get(user, :intended_roles) || [], &Atom.to_string/1),
+      provider_subscription_tier: Map.get(user, :provider_subscription_tier)
     }
 
     DomainEvent.new(
