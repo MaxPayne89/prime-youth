@@ -13,23 +13,26 @@ defmodule KlassHero.Messaging.Application.UseCases.GetInboundEmail do
     reader_id = Keyword.get(opts, :reader_id)
 
     with {:ok, email} <- repo.get_by_id(id) do
-      if mark_read && reader_id do
-        # Trigger: admin opens email with explicit mark_read intent and reader identity
-        # Why: domain model encodes status transition rules and idempotency
-        # Outcome: unread → read with reader tracked; already-read/archived unchanged
-        {:ok, marked} = InboundEmail.mark_read(email, reader_id)
+      maybe_mark_read(repo, email, mark_read && reader_id, reader_id)
+    end
+  end
 
-        if marked.status == email.status do
-          {:ok, email}
-        else
-          repo.update_status(id, to_string(marked.status), %{
-            read_by_id: marked.read_by_id,
-            read_at: marked.read_at
-          })
-        end
-      else
-        {:ok, email}
-      end
+  # Trigger: admin opens email with explicit mark_read intent and reader identity
+  # Why: domain model encodes status transition rules and idempotency
+  # Outcome: unread → read with reader tracked; already-read/archived unchanged
+  defp maybe_mark_read(_repo, email, falsy, _reader_id) when falsy in [nil, false],
+    do: {:ok, email}
+
+  defp maybe_mark_read(repo, email, _truthy, reader_id) do
+    {:ok, marked} = InboundEmail.mark_read(email, reader_id)
+
+    if marked.status == email.status do
+      {:ok, email}
+    else
+      repo.update_status(email.id, to_string(marked.status), %{
+        read_by_id: marked.read_by_id,
+        read_at: marked.read_at
+      })
     end
   end
 end

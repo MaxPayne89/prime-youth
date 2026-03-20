@@ -30,18 +30,12 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyToEmail do
 
       case KlassHero.Mailer.deliver(swoosh_email) do
         {:ok, _} ->
-          Logger.info("Replied to inbound email",
-            email_id: email_id,
-            to: email.from_address
-          )
+          Logger.info("Replied to inbound email #{email_id} to #{email.from_address}")
 
           {:ok, swoosh_email}
 
         {:error, reason} ->
-          Logger.error("Failed to send reply",
-            email_id: email_id,
-            reason: inspect(reason)
-          )
+          Logger.error("Failed to send reply for #{email_id}: #{inspect(reason)}")
 
           {:error, reason}
       end

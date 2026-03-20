@@ -25,10 +25,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEm
       {:ok, schema} ->
         email = InboundEmailMapper.to_domain(schema)
 
-        Logger.info("Stored inbound email",
-          resend_id: email.resend_id,
-          from: email.from_address
-        )
+        Logger.info("Stored inbound email #{email.resend_id} from #{email.from_address}")
 
         {:ok, email}
 
@@ -96,7 +93,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEm
         |> Repo.update()
         |> case do
           {:ok, updated} ->
-            Logger.debug("Updated inbound email status", id: id, status: status)
+            Logger.debug("Updated inbound email status: #{id} -> #{status}")
             {:ok, InboundEmailMapper.to_domain(updated)}
 
           {:error, changeset} ->

@@ -3,6 +3,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ListInboundEmailsTest do
 
   alias KlassHero.Messaging.Application.UseCases.ListInboundEmails
   alias KlassHero.Messaging.Domain.Models.InboundEmail
+  alias KlassHero.Messaging.Repositories
   alias KlassHero.MessagingFixtures
 
   describe "execute/1" do
@@ -25,7 +26,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ListInboundEmailsTest do
       # Create a read email by storing and then updating status
       unread2 = MessagingFixtures.inbound_email_fixture()
 
-      KlassHero.Messaging.Repositories.inbound_emails().update_status(
+      Repositories.inbound_emails().update_status(
         unread2.id,
         "read",
         %{read_by_id: nil, read_at: DateTime.utc_now()}

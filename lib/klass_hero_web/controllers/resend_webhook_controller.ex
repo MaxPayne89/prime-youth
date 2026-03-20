@@ -27,10 +27,7 @@ defmodule KlassHeroWeb.ResendWebhookController do
         json(conn, %{status: "ok"})
 
       {:error, reason} ->
-        Logger.error("Failed to process inbound email",
-          resend_id: data["email_id"],
-          reason: inspect(reason)
-        )
+        Logger.error("Failed to process inbound email #{data["email_id"]}: #{inspect(reason)}")
 
         # Trigger: processing failed but we still return 200
         # Why: returning non-2xx would cause Resend to retry indefinitely,

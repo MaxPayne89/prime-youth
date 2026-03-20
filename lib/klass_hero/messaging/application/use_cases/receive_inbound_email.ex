@@ -18,31 +18,32 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail do
     # Outcome: duplicate silently acknowledged, new emails persisted
     case repo.get_by_resend_id(attrs.resend_id) do
       {:ok, _existing} ->
-        Logger.debug("Duplicate inbound email ignored", resend_id: attrs.resend_id)
+        Logger.debug("Duplicate inbound email ignored: #{attrs.resend_id}")
         {:ok, :duplicate}
 
       {:error, :not_found} ->
-        # Trigger: concurrent webhook deliveries may both pass the dedup check
-        # Why: unique_index on resend_id catches the race; treat as duplicate, not failure
-        # Outcome: constraint violation returns {:ok, :duplicate} to maintain idempotency
-        case repo.create(attrs) do
-          {:ok, email} ->
-            {:ok, email}
+        create_with_race_handling(repo, attrs)
+    end
+  end
 
-          {:error, %Ecto.Changeset{} = changeset} ->
-            if unique_constraint_on?(changeset, :resend_id) do
-              Logger.debug("Concurrent duplicate inbound email ignored",
-                resend_id: attrs.resend_id
-              )
+  # Trigger: concurrent webhook deliveries may both pass the dedup check
+  # Why: unique_index on resend_id catches the race; treat as duplicate, not failure
+  # Outcome: constraint violation returns {:ok, :duplicate} to maintain idempotency
+  defp create_with_race_handling(repo, attrs) do
+    case repo.create(attrs) do
+      {:ok, email} ->
+        {:ok, email}
 
-              {:ok, :duplicate}
-            else
-              {:error, changeset}
-            end
-
-          {:error, reason} ->
-            {:error, reason}
+      {:error, %Ecto.Changeset{} = changeset} ->
+        if unique_constraint_on?(changeset, :resend_id) do
+          Logger.debug("Concurrent duplicate inbound email ignored: #{attrs.resend_id}")
+          {:ok, :duplicate}
+        else
+          {:error, changeset}
         end
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
