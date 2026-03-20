@@ -113,26 +113,4 @@ defmodule KlassHero.Accounts.RegistrationConfirmationIntegrationTest do
       assert provider.subscription_tier == :starter
     end
   end
-
-  # Polling helper for async assertions — PubSub delivery is asynchronous.
-  defp assert_eventually(fun, opts) do
-    timeout = Keyword.get(opts, :timeout_ms, 2000)
-    interval = Keyword.get(opts, :interval_ms, 50)
-    deadline = System.monotonic_time(:millisecond) + timeout
-
-    do_assert_eventually(fun, interval, deadline)
-  end
-
-  defp do_assert_eventually(fun, interval, deadline) do
-    if fun.() do
-      :ok
-    else
-      if System.monotonic_time(:millisecond) > deadline do
-        flunk("Expected condition was not met within timeout")
-      else
-        Process.sleep(interval)
-        do_assert_eventually(fun, interval, deadline)
-      end
-    end
-  end
 end

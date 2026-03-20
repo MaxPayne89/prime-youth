@@ -57,4 +57,36 @@ defmodule KlassHero.DataCase do
       end)
     end)
   end
+
+  @doc """
+  Polls `fun` until it returns a truthy value, or flunks after `timeout_ms`.
+
+  Useful for asserting on async state changes (e.g., PubSub-driven profile creation).
+
+  ## Options
+
+    * `:timeout_ms` - max wait time (default: 2000)
+    * `:interval_ms` - polling interval (default: 50)
+  """
+  def assert_eventually(fun, opts \\ []) do
+    timeout = Keyword.get(opts, :timeout_ms, 2000)
+    interval = Keyword.get(opts, :interval_ms, 50)
+    deadline = System.monotonic_time(:millisecond) + timeout
+    do_assert_eventually(fun, interval, deadline)
+  end
+
+  defp do_assert_eventually(fun, interval, deadline) do
+    if fun.() do
+      :ok
+    else
+      if System.monotonic_time(:millisecond) > deadline do
+        import ExUnit.Assertions
+
+        flunk("Expected condition was not met within timeout")
+      else
+        Process.sleep(interval)
+        do_assert_eventually(fun, interval, deadline)
+      end
+    end
+  end
 end
