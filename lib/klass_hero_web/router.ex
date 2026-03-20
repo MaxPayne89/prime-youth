@@ -177,6 +177,9 @@ defmodule KlassHeroWeb.Router do
         ] do
         live "/sessions", SessionsLive, :index
         live "/sessions/:id", SessionsLive, :show
+
+        live "/emails", EmailsLive, :index
+        live "/emails/:id", EmailsLive, :show
       end
     end
   end

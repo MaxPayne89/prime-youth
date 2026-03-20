@@ -5,8 +5,6 @@ defmodule KlassHero.Messaging.Application.UseCases.GetInboundEmail do
 
   alias KlassHero.Messaging.Repositories
 
-  require Logger
-
   @spec execute(String.t(), keyword()) :: {:ok, struct()} | {:error, :not_found}
   def execute(id, opts \\ []) do
     repo = Repositories.inbound_emails()

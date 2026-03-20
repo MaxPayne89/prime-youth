@@ -45,6 +45,15 @@
         "Consents"
       )}
     </Backpex.HTML.Layout.sidebar_item>
+    <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate={~p"/admin/emails"}>
+      <Backpex.HTML.CoreComponents.icon name="hero-envelope" class="h-5 w-5" /> {gettext("Emails")}
+      <span
+        :if={assigns[:unread_email_count] && @unread_email_count > 0}
+        class="ml-auto inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white"
+      >
+        {@unread_email_count}
+      </span>
+    </Backpex.HTML.Layout.sidebar_item>
     <Backpex.HTML.Layout.sidebar_item current_url={@current_url} navigate={~p"/admin/sessions"}>
       <Backpex.HTML.CoreComponents.icon name="hero-calendar-days" class="h-5 w-5" /> {gettext(
         "Sessions"
