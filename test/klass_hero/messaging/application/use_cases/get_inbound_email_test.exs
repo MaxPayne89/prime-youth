@@ -71,5 +71,15 @@ defmodule KlassHero.Messaging.Application.UseCases.GetInboundEmailTest do
       assert second_read.read_by_id == user.id
       assert DateTime.compare(second_read.read_at, original_read_at) == :eq
     end
+
+    test "does not mark archived email as read" do
+      user = AccountsFixtures.user_fixture()
+      email = MessagingFixtures.inbound_email_fixture(%{status: "archived"})
+
+      assert {:ok, fetched} =
+               GetInboundEmail.execute(email.id, mark_read: true, reader_id: user.id)
+
+      assert fetched.status == :archived
+    end
   end
 end

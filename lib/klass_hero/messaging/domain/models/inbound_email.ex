@@ -83,6 +83,7 @@ defmodule KlassHero.Messaging.Domain.Models.InboundEmail do
   """
   @spec mark_read(t(), String.t()) :: {:ok, t()}
   def mark_read(%__MODULE__{status: :read} = email, _reader_id), do: {:ok, email}
+  def mark_read(%__MODULE__{status: :archived} = email, _reader_id), do: {:ok, email}
 
   def mark_read(%__MODULE__{} = email, reader_id) do
     {:ok, %{email | status: :read, read_by_id: reader_id, read_at: DateTime.utc_now()}}

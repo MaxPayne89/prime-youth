@@ -39,6 +39,7 @@ defmodule KlassHero.Messaging do
       Domain.Models.Message,
       Domain.Models.Conversation,
       Domain.Models.Participant,
+      Domain.Models.InboundEmail,
       Repositories
     ]
 

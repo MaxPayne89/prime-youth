@@ -48,6 +48,12 @@ defmodule KlassHero.Messaging.Domain.Models.InboundEmailTest do
       {:ok, same_email} = InboundEmail.mark_read(read_email, Ecto.UUID.generate())
       assert same_email.read_by_id == reader_id
     end
+
+    test "does not mark archived email as read" do
+      {:ok, email} = InboundEmail.new(Map.put(@valid_attrs, :status, :archived))
+      {:ok, same} = InboundEmail.mark_read(email, Ecto.UUID.generate())
+      assert same.status == :archived
+    end
   end
 
   describe "archive/1" do
