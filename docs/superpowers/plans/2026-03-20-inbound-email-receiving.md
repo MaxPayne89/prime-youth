@@ -69,6 +69,8 @@ test/support/fixtures/messaging_fixtures.ex
 lib/klass_hero/messaging/repositories.ex          # Add inbound_emails/0 accessor + all/0 key
 lib/klass_hero_web/router.ex                       # Add webhook route + admin email routes
 lib/klass_hero_web/components/layouts/admin.html.heex  # Add Emails sidebar link
+lib/klass_hero_web/endpoint.ex                         # Wire CacheRawBody as body_reader
+config/test.exs                                        # Disable webhook signature verification in tests
 ```
 
 ---
@@ -367,7 +369,7 @@ defmodule KlassHero.Messaging.Domain.Models.InboundEmail do
 
   defp validate_present(errors, field, _), do: ["#{field} must be a string" | errors]
 
-  defp validate_list(errors, field, value) when is_list(value) and length(value) > 0, do: errors
+  defp validate_list(errors, _field, value) when is_list(value) and length(value) > 0, do: errors
   defp validate_list(errors, field, _), do: ["#{field} must be a non-empty list" | errors]
 
   defp validate_status(errors, status) when status in @valid_statuses, do: errors
@@ -760,7 +762,7 @@ defmodule KlassHero.MessagingFixtures do
       subject: "Test Email #{System.unique_integer([:positive])}",
       body_html: "<p>Hello</p>",
       body_text: "Hello",
-      headers: %{},
+      headers: [],
       received_at: DateTime.utc_now()
     })
   end
