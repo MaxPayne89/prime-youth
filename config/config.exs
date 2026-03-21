@@ -141,6 +141,10 @@ config :klass_hero, :messaging,
     KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository,
   for_managing_inbound_emails:
     KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailRepository,
+  for_fetching_email_content: KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter,
+  for_managing_email_replies:
+    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.EmailReplyRepository,
+  for_scheduling_email_jobs: KlassHero.Messaging.Adapters.Driven.ObanEmailJobScheduler,
   retention: [
     days_after_program_end: 30,
     retention_period_days: 30

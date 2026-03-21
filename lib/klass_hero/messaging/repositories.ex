@@ -29,6 +29,9 @@ defmodule KlassHero.Messaging.Repositories do
   - `:users` - User resolver adapter
   - `:conversation_summaries` - Conversation summaries read repository
   - `:inbound_emails` - Inbound email repository
+  - `:email_replies` - Email reply repository
+  - `:email_content_fetcher` - Email content fetcher adapter
+  - `:email_job_scheduler` - Email job scheduler adapter
   """
   @spec all() :: %{
           conversations: module(),
@@ -37,7 +40,10 @@ defmodule KlassHero.Messaging.Repositories do
           enrollments: module(),
           users: module(),
           conversation_summaries: module(),
-          inbound_emails: module()
+          inbound_emails: module(),
+          email_replies: module(),
+          email_content_fetcher: module(),
+          email_job_scheduler: module()
         }
   def all do
     config = messaging_config()
@@ -49,7 +55,10 @@ defmodule KlassHero.Messaging.Repositories do
       enrollments: config[:for_querying_enrollments],
       users: config[:for_resolving_users],
       conversation_summaries: config[:for_managing_conversation_summaries],
-      inbound_emails: config[:for_managing_inbound_emails]
+      inbound_emails: config[:for_managing_inbound_emails],
+      email_replies: config[:for_managing_email_replies],
+      email_content_fetcher: config[:for_fetching_email_content],
+      email_job_scheduler: config[:for_scheduling_email_jobs]
     }
   end
 
@@ -80,6 +89,18 @@ defmodule KlassHero.Messaging.Repositories do
   @doc "Returns the inbound email repository module."
   @spec inbound_emails() :: module()
   def inbound_emails, do: messaging_config()[:for_managing_inbound_emails]
+
+  @doc "Returns the email reply repository module."
+  @spec email_replies() :: module()
+  def email_replies, do: messaging_config()[:for_managing_email_replies]
+
+  @doc "Returns the email content fetcher adapter module."
+  @spec email_content_fetcher() :: module()
+  def email_content_fetcher, do: messaging_config()[:for_fetching_email_content]
+
+  @doc "Returns the email job scheduler adapter module."
+  @spec email_job_scheduler() :: module()
+  def email_job_scheduler, do: messaging_config()[:for_scheduling_email_jobs]
 
   @doc "Returns the retention policy configuration."
   @spec retention_config() :: Keyword.t()

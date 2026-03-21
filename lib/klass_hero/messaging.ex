@@ -40,6 +40,7 @@ defmodule KlassHero.Messaging do
       Domain.Models.Conversation,
       Domain.Models.Participant,
       Domain.Models.InboundEmail,
+      Domain.Models.EmailReply,
       Repositories
     ]
 
@@ -63,7 +64,7 @@ defmodule KlassHero.Messaging do
     SendMessage
   }
 
-  alias KlassHero.Messaging.Domain.Models.{Conversation, Message, Participant}
+  alias KlassHero.Messaging.Domain.Models.{Conversation, EmailReply, Message, Participant}
   alias KlassHero.Messaging.Repositories
 
   @doc """
@@ -370,16 +371,31 @@ defmodule KlassHero.Messaging do
   ## Parameters
   - `email_id` - The inbound email to reply to
   - `reply_body` - The reply text content
+  - `sent_by_id` - The ID of the user sending the reply
 
   ## Returns
-  - `{:ok, swoosh_email}` - Reply sent successfully
+  - `{:ok, email_reply}` - Reply sent and recorded successfully
   - `{:error, reason}` - Failed to send
   """
-  @spec reply_to_inbound_email(String.t(), String.t(), keyword()) ::
-          {:ok, Swoosh.Email.t()} | {:error, term()}
-  defdelegate reply_to_inbound_email(email_id, reply_body, opts \\ []),
+  @spec reply_to_inbound_email(String.t(), String.t(), String.t(), keyword()) ::
+          {:ok, EmailReply.t()} | {:error, term()}
+  defdelegate reply_to_inbound_email(email_id, reply_body, sent_by_id, opts \\ []),
     to: ReplyToEmail,
     as: :execute
+
+  @doc """
+  Lists all email replies for a given inbound email.
+
+  ## Parameters
+  - `inbound_email_id` - The ID of the inbound email
+
+  ## Returns
+  - `{:ok, replies}` - List of email replies
+  """
+  @spec list_email_replies(String.t()) :: {:ok, [EmailReply.t()]}
+  def list_email_replies(inbound_email_id) do
+    Repositories.email_replies().list_by_email(inbound_email_id)
+  end
 
   @doc """
   Sanitizes inbound email HTML for safe rendering.
