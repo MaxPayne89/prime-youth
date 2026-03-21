@@ -47,6 +47,13 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorker do
             Logger.info("Fetched content for inbound email #{email_id}")
             :ok
 
+          {:error, :not_found} ->
+            Logger.warning(
+              "Inbound email #{email_id} not found while storing content; discarding job"
+            )
+
+            {:discard, :not_found}
+
           {:error, reason} ->
             Logger.error("Failed to store content for #{email_id}: #{inspect(reason)}")
             {:error, reason}

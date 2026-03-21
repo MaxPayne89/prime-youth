@@ -64,10 +64,10 @@ defmodule KlassHero.Messaging.Workers.SendEmailReplyWorker do
           {:error, reason}
       end
     else
-      {:error, :not_found} = error ->
+      {:error, :not_found} ->
         Logger.error("Reply or email not found for reply #{reply_id}")
         mark_reply_failed_if_final(reply_repo, reply_id, job)
-        error
+        {:discard, :not_found}
     end
   end
 

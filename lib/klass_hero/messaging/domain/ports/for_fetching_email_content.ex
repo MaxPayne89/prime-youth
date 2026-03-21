@@ -6,6 +6,6 @@ defmodule KlassHero.Messaging.Domain.Ports.ForFetchingEmailContent do
   """
 
   @callback fetch_content(resend_email_id :: String.t()) ::
-              {:ok, %{html: String.t() | nil, text: String.t() | nil, headers: map()}}
+              {:ok, %{html: String.t() | nil, text: String.t() | nil, headers: [map()]}}
               | {:error, term()}
 end

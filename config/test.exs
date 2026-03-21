@@ -27,10 +27,6 @@ config :klass_hero, :event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher,
   pubsub: KlassHero.PubSub
 
-# Use stub adapter for tests by default
-# Trigger: VerifiedProviders GenServer bootstraps a DB query at app startup
-# Why: that query runs outside the Ecto test sandbox, poisoning the connection pool
-# Outcome: disabling projections prevents sandbox leaks across async tests
 config :klass_hero, :integration_event_publisher,
   module: KlassHero.Shared.Adapters.Driven.Events.TestIntegrationEventPublisher,
   pubsub: KlassHero.PubSub
@@ -48,9 +44,6 @@ config :klass_hero, :participation,
   enrolled_children_resolver:
     KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
 
-# Trigger: webhook tests send plain JSON without real Svix signing infrastructure
-# Why: signature verification requires a live webhook secret and real headers
-# Outcome: VerifyWebhookSignature plug is a no-op in tests
 config :klass_hero, :resend_req_options,
   plug: {Req.Test, KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter}
 
@@ -60,6 +53,10 @@ config :klass_hero, :storage,
 
 config :klass_hero, :verify_webhook_signature, false
 config :klass_hero, env: :test
+
+# Trigger: VerifiedProviders GenServer bootstraps a DB query at app startup
+# Why: that query runs outside the Ecto test sandbox, poisoning the connection pool
+# Outcome: disabling projections prevents sandbox leaks across async tests
 config :klass_hero, start_projections: false
 
 # Print only warnings and errors during test

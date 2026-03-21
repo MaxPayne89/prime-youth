@@ -409,6 +409,13 @@ defmodule KlassHero.Messaging do
     Repositories.email_job_scheduler().schedule_content_fetch(email_id, resend_id)
   end
 
+  @doc "Updates inbound email content fields (body, headers, content_status)."
+  @spec update_inbound_email_content(String.t(), map()) ::
+          {:ok, struct()} | {:error, term()}
+  def update_inbound_email_content(id, attrs) do
+    Repositories.inbound_emails().update_content(id, attrs)
+  end
+
   @doc """
   Sanitizes inbound email HTML for safe rendering.
 

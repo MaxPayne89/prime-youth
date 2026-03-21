@@ -8,7 +8,6 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Messaging
-  alias KlassHero.Messaging.Domain.Models.InboundEmail
   alias KlassHeroWeb.Theme
 
   @impl true
@@ -123,13 +122,15 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
   def handle_event("retry_fetch", _params, socket) do
     email = socket.assigns.email
 
-    case Messaging.schedule_content_fetch(email.id, email.resend_id) do
-      {:ok, _job} ->
-        {:noreply,
-         socket
-         |> assign(:email, InboundEmail.reset_content_status(email))
-         |> put_flash(:info, gettext("Content fetch retrying..."))}
-
+    with {:ok, updated_email} <-
+           Messaging.update_inbound_email_content(email.id, %{content_status: "pending"}),
+         {:ok, _job} <-
+           Messaging.schedule_content_fetch(updated_email.id, updated_email.resend_id) do
+      {:noreply,
+       socket
+       |> assign(:email, updated_email)
+       |> put_flash(:info, gettext("Content fetch retrying..."))}
+    else
       {:error, _reason} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to schedule retry"))}
     end
