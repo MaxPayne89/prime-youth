@@ -203,6 +203,8 @@ config :klass_hero,
   ecto_repos: [KlassHero.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+config :klass_hero, env: Mix.env()
+
 # Configures Elixir's Logger
 config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
