@@ -22,6 +22,10 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
     :email,
     :bio,
     :headshot_url,
+    :user_id,
+    :invitation_status,
+    :invitation_token_hash,
+    :invitation_sent_at,
     tags: [],
     qualifications: [],
     active: true,
@@ -38,6 +42,10 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
           email: String.t() | nil,
           bio: String.t() | nil,
           headshot_url: String.t() | nil,
+          user_id: String.t() | nil,
+          invitation_status: :pending | :sent | :failed | :accepted | :expired | nil,
+          invitation_token_hash: binary() | nil,
+          invitation_sent_at: DateTime.t() | nil,
           tags: [String.t()],
           qualifications: [String.t()],
           active: boolean(),
@@ -201,4 +209,24 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
   end
 
   defp validate_qualifications(errors, _), do: ["Qualifications must be a list" | errors]
+
+  @valid_invitation_transitions %{
+    nil => [:pending],
+    :pending => [:sent, :failed],
+    :sent => [:accepted, :expired],
+    :failed => [:pending],
+    :expired => [:pending]
+  }
+
+  @spec transition_invitation(t(), atom()) ::
+          {:ok, t()} | {:error, :invalid_invitation_transition}
+  def transition_invitation(%__MODULE__{} = staff_member, new_status) do
+    allowed = Map.get(@valid_invitation_transitions, staff_member.invitation_status, [])
+
+    if new_status in allowed do
+      {:ok, %{staff_member | invitation_status: new_status}}
+    else
+      {:error, :invalid_invitation_transition}
+    end
+  end
 end
