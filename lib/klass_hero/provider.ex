@@ -355,6 +355,45 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
+  Returns the active staff member record linked to the given user ID.
+  Used by Scope to resolve :staff_provider role.
+  """
+  @spec get_active_staff_member_by_user(String.t()) ::
+          {:ok, StaffMember.t()} | {:error, :not_found}
+  def get_active_staff_member_by_user(user_id) when is_binary(user_id) do
+    @staff_repository.get_active_by_user(user_id)
+  end
+
+  @doc """
+  Returns the staff member matching the given invitation token hash,
+  only if invitation_status is :sent. Used by the invitation registration flow.
+  """
+  @spec get_staff_member_by_token_hash(binary()) :: {:ok, StaffMember.t()} | {:error, :not_found}
+  def get_staff_member_by_token_hash(token_hash) when is_binary(token_hash) do
+    @staff_repository.get_by_token_hash(token_hash)
+  end
+
+  @doc """
+  Returns the provider profile by ID.
+  """
+  @spec get_provider_profile(String.t()) :: {:ok, ProviderProfile.t()} | {:error, :not_found}
+  def get_provider_profile(provider_id) when is_binary(provider_id) do
+    @provider_repository.get(provider_id)
+  end
+
+  @doc """
+  Transitions a staff member's invitation status to :expired.
+  Called by the invitation LiveView on lazy expiry detection.
+  """
+  @spec expire_staff_invitation(String.t()) :: {:ok, StaffMember.t()} | {:error, term()}
+  def expire_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
+    with {:ok, staff} <- @staff_repository.get(staff_member_id),
+         {:ok, updated} <- StaffMember.transition_invitation(staff, :expired) do
+      @staff_repository.update(updated)
+    end
+  end
+
+  @doc """
   Returns the list of valid verification document types.
   """
   defdelegate valid_document_types,
