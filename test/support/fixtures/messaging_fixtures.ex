@@ -3,6 +3,7 @@ defmodule KlassHero.MessagingFixtures do
   Test fixtures for the Messaging bounded context.
   """
 
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.EmailReplyRepository
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailRepository
 
   def unique_resend_id, do: "resend_#{System.unique_integer([:positive])}"
@@ -29,5 +30,32 @@ defmodule KlassHero.MessagingFixtures do
       |> InboundEmailRepository.create()
 
     email
+  end
+
+  def valid_email_reply_attrs(attrs \\ %{}) do
+    inbound_email_id =
+      Map.get_lazy(attrs, :inbound_email_id, fn ->
+        inbound_email_fixture().id
+      end)
+
+    sent_by_id =
+      Map.get_lazy(attrs, :sent_by_id, fn ->
+        KlassHero.AccountsFixtures.user_fixture().id
+      end)
+
+    Enum.into(attrs, %{
+      inbound_email_id: inbound_email_id,
+      body: "Reply #{System.unique_integer([:positive])}",
+      sent_by_id: sent_by_id
+    })
+  end
+
+  def email_reply_fixture(attrs \\ %{}) do
+    {:ok, reply} =
+      attrs
+      |> valid_email_reply_attrs()
+      |> EmailReplyRepository.create()
+
+    reply
   end
 end
