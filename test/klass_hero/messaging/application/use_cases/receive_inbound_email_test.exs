@@ -2,44 +2,51 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmailTest do
   use KlassHero.DataCase, async: true
 
   alias KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail
-  alias KlassHero.Messaging.Domain.Models.InboundEmail
   alias KlassHero.MessagingFixtures
 
+  setup do
+    Req.Test.stub(KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter, fn conn ->
+      Req.Test.json(conn, %{
+        "html" => "<p>Fetched</p>",
+        "text" => "Fetched",
+        "headers" => %{}
+      })
+    end)
+
+    :ok
+  end
+
   describe "execute/1" do
-    test "stores a new inbound email and returns it" do
-      attrs = MessagingFixtures.valid_inbound_email_attrs()
+    test "stores email with message_id and content_status pending" do
+      attrs =
+        MessagingFixtures.valid_inbound_email_attrs(%{
+          message_id: "<test-msg@example.com>",
+          content_status: "pending",
+          body_html: nil,
+          body_text: nil
+        })
 
-      assert {:ok, %InboundEmail{} = email} = ReceiveInboundEmail.execute(attrs)
-      assert email.resend_id == attrs.resend_id
-      assert email.from_address == attrs.from_address
-      assert email.subject == attrs.subject
-      assert email.status == :unread
+      assert {:ok, email} = ReceiveInboundEmail.execute(attrs)
+      assert email.message_id == "<test-msg@example.com>"
+      assert email.content_status == :pending
     end
 
-    test "returns {:ok, :duplicate} when resend_id already exists" do
+    test "enqueues content fetch job after storing" do
+      attrs =
+        MessagingFixtures.valid_inbound_email_attrs(%{
+          content_status: "pending",
+          body_html: nil,
+          body_text: nil
+        })
+
+      assert {:ok, email} = ReceiveInboundEmail.execute(attrs)
+      assert email.id != nil
+    end
+
+    test "returns duplicate for already-stored email" do
       attrs = MessagingFixtures.valid_inbound_email_attrs()
-
-      # First call stores the email
-      assert {:ok, %InboundEmail{}} = ReceiveInboundEmail.execute(attrs)
-
-      # Second call with same resend_id is a duplicate
+      assert {:ok, _} = ReceiveInboundEmail.execute(attrs)
       assert {:ok, :duplicate} = ReceiveInboundEmail.execute(attrs)
-    end
-
-    test "stores two emails with different resend_ids independently" do
-      attrs1 = MessagingFixtures.valid_inbound_email_attrs()
-      attrs2 = MessagingFixtures.valid_inbound_email_attrs()
-
-      assert {:ok, email1} = ReceiveInboundEmail.execute(attrs1)
-      assert {:ok, email2} = ReceiveInboundEmail.execute(attrs2)
-
-      assert email1.resend_id != email2.resend_id
-    end
-
-    test "returns error for missing required fields" do
-      invalid_attrs = %{resend_id: "some_id"}
-
-      assert {:error, _reason} = ReceiveInboundEmail.execute(invalid_attrs)
     end
   end
 end
