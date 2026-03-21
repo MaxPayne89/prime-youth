@@ -89,9 +89,10 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
   @impl true
   def handle_event("submit_reply", %{"reply" => %{"body" => body}}, socket) do
     email = socket.assigns.email
+    sent_by_id = socket.assigns.current_scope.user.id
 
-    case Messaging.reply_to_inbound_email(email.id, body) do
-      {:ok, _swoosh_email} ->
+    case Messaging.reply_to_inbound_email(email.id, body, sent_by_id) do
+      {:ok, _reply} ->
         {:noreply,
          socket
          |> assign(:reply_form, to_form(%{"body" => ""}, as: :reply))
