@@ -32,6 +32,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail do
   defp create_with_race_handling(repo, attrs) do
     case repo.create(attrs) do
       {:ok, email} ->
+        schedule_content_fetch(email)
         {:ok, email}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -44,6 +45,22 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail do
 
       {:error, reason} ->
         {:error, reason}
+    end
+  end
+
+  # Trigger: email stored successfully with metadata only
+  # Why: Resend webhook doesn't include body; content must be fetched via API
+  # Outcome: background job enqueued to fetch html, text, and headers
+  defp schedule_content_fetch(email) do
+    scheduler = Repositories.email_job_scheduler()
+
+    case scheduler.schedule_content_fetch(email.id, email.resend_id) do
+      {:ok, _job} ->
+        Logger.debug("Enqueued content fetch for email #{email.id}")
+
+      {:error, reason} ->
+        Logger.error("Failed to enqueue content fetch for #{email.id}: #{inspect(reason)}")
+        Repositories.inbound_emails().update_content(email.id, %{content_status: "failed"})
     end
   end
 

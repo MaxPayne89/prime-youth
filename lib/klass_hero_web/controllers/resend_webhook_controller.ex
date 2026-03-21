@@ -16,6 +16,7 @@ defmodule KlassHeroWeb.ResendWebhookController do
       body_html: data["html"],
       body_text: data["text"],
       headers: data["headers"] || [],
+      message_id: data["message_id"],
       received_at: parse_timestamp(data["created_at"])
     }
 

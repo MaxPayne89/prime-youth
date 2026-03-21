@@ -16,6 +16,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.InboundEmailSc
   @timestamps_opts [type: :utc_datetime]
 
   @valid_statuses ~w(unread read archived)
+  @valid_content_statuses ~w(pending fetched failed)
 
   schema "inbound_emails" do
     field :resend_id, :string
@@ -27,7 +28,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.InboundEmailSc
     field :body_html, :string
     field :body_text, :string
     field :headers, {:array, :map}, default: []
+    field :message_id, :string
     field :status, :string, default: "unread"
+    field :content_status, :string, default: "pending"
     field :read_by_id, :binary_id
     field :read_at, :utc_datetime_usec
     field :received_at, :utc_datetime_usec
@@ -38,7 +41,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.InboundEmailSc
   end
 
   @required_fields ~w(resend_id from_address to_addresses subject received_at)a
-  @optional_fields ~w(from_name cc_addresses body_html body_text headers status)a
+  @optional_fields ~w(from_name cc_addresses body_html body_text headers status message_id content_status)a
+
+  @content_fields ~w(body_html body_text headers content_status)a
 
   @doc """
   Creates a changeset for new inbound email creation.
@@ -48,6 +53,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.InboundEmailSc
     |> cast(attrs, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
     |> validate_inclusion(:status, @valid_statuses)
+    |> validate_inclusion(:content_status, @valid_content_statuses)
     |> unique_constraint(:resend_id)
     |> foreign_key_constraint(:read_by_id)
   end
@@ -60,5 +66,15 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.InboundEmailSc
     |> cast(attrs, [:status, :read_by_id, :read_at])
     |> validate_required([:status])
     |> validate_inclusion(:status, @valid_statuses)
+  end
+
+  @doc """
+  Creates a changeset for updating email content (body, headers, content_status).
+  """
+  def content_changeset(schema, attrs) do
+    schema
+    |> cast(attrs, @content_fields)
+    |> validate_required([:content_status])
+    |> validate_inclusion(:content_status, @valid_content_statuses)
   end
 end

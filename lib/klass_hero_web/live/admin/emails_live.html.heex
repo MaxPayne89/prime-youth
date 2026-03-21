@@ -82,6 +82,15 @@
         <span class={["badge badge-sm", status_badge_class(email.status)]}>
           {email.status |> to_string() |> String.capitalize()}
         </span>
+        <span :if={email.content_status == :pending} class="loading loading-spinner loading-xs">
+        </span>
+        <span
+          :if={email.content_status == :failed}
+          class="badge badge-xs badge-error"
+          title="Content fetch failed"
+        >
+          !
+        </span>
       </div>
     </.link>
   </div>
@@ -126,27 +135,65 @@
     </div>
   </div>
 
-  <%!-- Email body --%>
+  <%!-- Email body with content status handling --%>
   <div class="rounded-lg border border-base-300 p-6 mb-6">
-    <button
-      :if={!@allow_images}
-      id="load-images-btn"
-      phx-click="load_images"
-      class="btn btn-xs btn-ghost mb-4"
-    >
-      {gettext("Load images")}
-    </button>
-    <div id="email-body" class="prose max-w-none">
-      {raw(@sanitized_html)}
-    </div>
+    <%= cond do %>
+      <% @email.content_status == :pending -> %>
+        <div class="flex items-center gap-2 text-sm opacity-50">
+          <span class="loading loading-spinner loading-sm"></span>
+          {gettext("Content is being fetched...")}
+        </div>
+      <% @email.content_status == :failed -> %>
+        <div class="text-sm">
+          <p class="text-error mb-2">{gettext("Failed to fetch email content.")}</p>
+          <button id="retry-fetch-btn" phx-click="retry_fetch" class="btn btn-sm btn-ghost">
+            {gettext("Retry")}
+          </button>
+        </div>
+      <% true -> %>
+        <button
+          :if={!@allow_images}
+          id="load-images-btn"
+          phx-click="load_images"
+          class="btn btn-xs btn-ghost mb-4"
+        >
+          {gettext("Load images")}
+        </button>
+        <div id="email-body" class="prose max-w-none">
+          {raw(@sanitized_html)}
+        </div>
+    <% end %>
   </div>
 
-  <%!-- Plain text fallback --%>
+  <%!-- Plain text fallback (only when fetched but no HTML) --%>
   <div
-    :if={(@sanitized_html == "" || is_nil(@sanitized_html)) && @email.body_text}
+    :if={
+      @email.content_status == :fetched && (@sanitized_html == "" || is_nil(@sanitized_html)) &&
+        @email.body_text
+    }
     class="rounded-lg border border-base-300 p-6 mb-6"
   >
     <pre class="whitespace-pre-wrap text-sm">{@email.body_text}</pre>
+  </div>
+
+  <%!-- Replies list --%>
+  <div id="replies-list" phx-update="stream" class="space-y-3 mb-6">
+    <div id="replies-empty" class="hidden only:block"></div>
+    <div
+      :for={{dom_id, reply} <- @streams.replies}
+      id={dom_id}
+      class="rounded-lg border border-base-300 p-4"
+    >
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-xs opacity-50">
+          {format_received_at(reply.inserted_at)}
+        </span>
+        <span class={["badge badge-sm", reply_status_badge_class(reply.status)]}>
+          {reply.status |> to_string() |> String.capitalize()}
+        </span>
+      </div>
+      <p class="text-sm whitespace-pre-wrap">{reply.body}</p>
+    </div>
   </div>
 
   <%!-- Reply form --%>
@@ -157,6 +204,7 @@
         field={@reply_form[:body]}
         type="textarea"
         placeholder={gettext("Type your reply...")}
+        phx-hook="AutoResizeTextarea"
       />
       <div class="flex justify-end">
         <button type="submit" id="send-reply-btn" class="btn btn-primary btn-sm">

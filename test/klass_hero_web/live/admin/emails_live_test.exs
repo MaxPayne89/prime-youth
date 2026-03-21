@@ -88,4 +88,53 @@ defmodule KlassHeroWeb.Admin.EmailsLiveTest do
       assert render(view) =~ "Email archived"
     end
   end
+
+  describe "Show - content status" do
+    test "shows loading placeholder for pending content", %{conn: conn} do
+      email =
+        MessagingFixtures.inbound_email_fixture(%{
+          content_status: "pending",
+          body_html: nil,
+          body_text: nil
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/admin/emails/#{email.id}")
+      assert render(view) =~ "Content is being fetched"
+    end
+
+    test "shows error for failed content fetch", %{conn: conn} do
+      email =
+        MessagingFixtures.inbound_email_fixture(%{
+          content_status: "failed",
+          body_html: nil,
+          body_text: nil
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/admin/emails/#{email.id}")
+      assert render(view) =~ "Failed to fetch"
+      assert has_element?(view, "#retry-fetch-btn")
+    end
+  end
+
+  describe "Show - replies" do
+    test "displays sent replies", %{conn: conn} do
+      email = MessagingFixtures.inbound_email_fixture()
+
+      MessagingFixtures.email_reply_fixture(%{
+        inbound_email_id: email.id,
+        body: "We got your message!"
+      })
+
+      {:ok, view, _html} = live(conn, ~p"/admin/emails/#{email.id}")
+      assert render(view) =~ "We got your message!"
+    end
+
+    test "shows reply list container", %{conn: conn} do
+      email = MessagingFixtures.inbound_email_fixture()
+      MessagingFixtures.email_reply_fixture(%{inbound_email_id: email.id})
+
+      {:ok, view, _html} = live(conn, ~p"/admin/emails/#{email.id}")
+      assert has_element?(view, "#replies-list")
+    end
+  end
 end

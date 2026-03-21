@@ -18,12 +18,14 @@ defmodule KlassHero.Messaging.Domain.Models.InboundEmail do
     :body_html,
     :body_text,
     :headers,
+    :message_id,
     :read_by_id,
     :read_at,
     :received_at,
     :inserted_at,
     :updated_at,
-    status: :unread
+    status: :unread,
+    content_status: :pending
   ]
 
   @type status :: :unread | :read | :archived
@@ -39,7 +41,9 @@ defmodule KlassHero.Messaging.Domain.Models.InboundEmail do
           body_html: String.t() | nil,
           body_text: String.t() | nil,
           headers: [map()] | nil,
+          message_id: String.t() | nil,
           status: status(),
+          content_status: :pending | :fetched | :failed,
           read_by_id: String.t() | nil,
           read_at: DateTime.t() | nil,
           received_at: DateTime.t(),
@@ -100,6 +104,10 @@ defmodule KlassHero.Messaging.Domain.Models.InboundEmail do
   def archive(%__MODULE__{} = email) do
     {:ok, %{email | status: :archived}}
   end
+
+  @doc "Resets content_status to :pending for retry."
+  @spec reset_content_status(t()) :: t()
+  def reset_content_status(%__MODULE__{} = email), do: %{email | content_status: :pending}
 
   @doc "Returns true if the email has not been read."
   @spec unread?(t()) :: boolean()

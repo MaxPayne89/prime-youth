@@ -103,6 +103,28 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEm
   end
 
   @impl true
+  def update_content(id, attrs) do
+    InboundEmailSchema
+    |> Repo.get(id)
+    |> case do
+      nil ->
+        {:error, :not_found}
+
+      schema ->
+        schema
+        |> InboundEmailSchema.content_changeset(attrs)
+        |> Repo.update()
+        |> case do
+          {:ok, updated} ->
+            {:ok, InboundEmailMapper.to_domain(updated)}
+
+          {:error, changeset} ->
+            {:error, changeset}
+        end
+    end
+  end
+
+  @impl true
   def count_by_status(status) do
     InboundEmailQueries.count_by_status(status)
     |> Repo.one()

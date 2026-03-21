@@ -51,9 +51,16 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
           {:ok, email} ->
             sanitized_html = Messaging.sanitize_email_html(email.body_html, allow_images: false)
 
+            replies =
+              case Messaging.list_email_replies(email.id) do
+                {:ok, replies} -> replies
+                {:error, _reason} -> []
+              end
+
             socket
             |> assign(:email, email)
             |> assign(:sanitized_html, sanitized_html)
+            |> stream(:replies, replies)
             |> assign(:allow_images, false)
             |> assign(:reply_form, to_form(%{"body" => ""}, as: :reply))
             |> assign(:page_title, email.subject)
@@ -88,17 +95,44 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
 
   @impl true
   def handle_event("submit_reply", %{"reply" => %{"body" => body}}, socket) do
+    trimmed_body = String.trim(body)
+
+    if trimmed_body == "" do
+      {:noreply, socket}
+    else
+      email = socket.assigns.email
+      sent_by_id = socket.assigns.current_scope.user.id
+
+      case Messaging.reply_to_inbound_email(email.id, trimmed_body, sent_by_id) do
+        {:ok, reply} ->
+          {:noreply,
+           socket
+           |> assign(:reply_form, to_form(%{"body" => ""}, as: :reply))
+           |> stream_insert(:replies, reply)
+           |> push_event("clear_message_input", %{})
+           |> put_flash(:info, gettext("Reply sent successfully"))}
+
+        {:error, _reason} ->
+          {:noreply, put_flash(socket, :error, gettext("Failed to send reply"))}
+      end
+    end
+  end
+
+  @impl true
+  def handle_event("retry_fetch", _params, socket) do
     email = socket.assigns.email
 
-    case Messaging.reply_to_inbound_email(email.id, body) do
-      {:ok, _swoosh_email} ->
-        {:noreply,
-         socket
-         |> assign(:reply_form, to_form(%{"body" => ""}, as: :reply))
-         |> put_flash(:info, gettext("Reply sent successfully"))}
-
+    with {:ok, updated_email} <-
+           Messaging.update_inbound_email_content(email.id, %{content_status: "pending"}),
+         {:ok, _job} <-
+           Messaging.schedule_content_fetch(updated_email.id, updated_email.resend_id) do
+      {:noreply,
+       socket
+       |> assign(:email, updated_email)
+       |> put_flash(:info, gettext("Content fetch retrying..."))}
+    else
       {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to send reply"))}
+        {:noreply, put_flash(socket, :error, gettext("Failed to schedule retry"))}
     end
   end
 
@@ -172,6 +206,11 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
   defp status_badge_class(:read), do: "badge-ghost"
   defp status_badge_class(:archived), do: "badge-secondary"
   defp status_badge_class(_), do: ""
+
+  defp reply_status_badge_class(:sending), do: "badge-info"
+  defp reply_status_badge_class(:sent), do: "badge-success"
+  defp reply_status_badge_class(:failed), do: "badge-error"
+  defp reply_status_badge_class(_), do: ""
 
   defp format_received_at(%DateTime{} = dt) do
     Calendar.strftime(dt, "%b %d, %Y %H:%M")
