@@ -5,6 +5,28 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0](https://github.com/MaxPayne89/klass-hero/compare/v0.13.0...v0.14.0) (2026-03-20)
+
+
+### Features
+
+* add admin emails LiveView with inbox, detail, and reply ([09a2d8e](https://github.com/MaxPayne89/klass-hero/commit/09a2d8e14432457313e18fc31000f6d071f9bab4))
+* add inbound email receiving via Resend webhooks ([42c9a72](https://github.com/MaxPayne89/klass-hero/commit/42c9a72901df8ce1abdffda736f7b87174710f9b))
+* add VERIFY_WEBHOOK_SIGNATURE env var for dev server testing ([fac8bd6](https://github.com/MaxPayne89/klass-hero/commit/fac8bd6630d990821d8b5704ee4e8e865a60b53f))
+
+
+### Bug Fixes
+
+* address PR review comments ([08f77b6](https://github.com/MaxPayne89/klass-hero/commit/08f77b6c879459ee02e789206a27131b27dd24d2)), closes [#489](https://github.com/MaxPayne89/klass-hero/issues/489)
+
+
+### Code Refactoring
+
+* consolidate filter handlers, use input component, add interaction tests ([590fad8](https://github.com/MaxPayne89/klass-hero/commit/590fad8686d4f95e7e2377bf28f674518c0f61cf))
+* delegate mark-read logic to domain model, add Boundary export ([cae7567](https://github.com/MaxPayne89/klass-hero/commit/cae75672c64296a7d663d4ee8b4a8d0b066cc797))
+* fix credo strict issues — flatten nesting, inline logger metadata ([752eefa](https://github.com/MaxPayne89/klass-hero/commit/752eefa9a03032fb26bd4c017ba661c97b9b9e14))
+* remove tautological guard in InboundEmail.validate_list ([0fc0a39](https://github.com/MaxPayne89/klass-hero/commit/0fc0a39ae2dfdbe59e4fad2bd4e3f3a6d6f7913b))
+
 ## [0.13.0](https://github.com/MaxPayne89/klass-hero/compare/v0.12.0...v0.13.0) (2026-03-20)
 
 
