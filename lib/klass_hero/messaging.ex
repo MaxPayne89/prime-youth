@@ -398,6 +398,18 @@ defmodule KlassHero.Messaging do
   end
 
   @doc """
+  Schedules a content fetch retry for an inbound email.
+
+  ## Parameters
+  - `email_id` - The inbound email ID
+  - `resend_id` - The Resend email ID for the API call
+  """
+  @spec schedule_content_fetch(String.t(), String.t()) :: {:ok, term()} | {:error, term()}
+  def schedule_content_fetch(email_id, resend_id) do
+    Repositories.email_job_scheduler().schedule_content_fetch(email_id, resend_id)
+  end
+
+  @doc """
   Sanitizes inbound email HTML for safe rendering.
 
   Strips dangerous tags (script, iframe, style) and event handlers.

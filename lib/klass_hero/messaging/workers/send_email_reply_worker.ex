@@ -45,17 +45,16 @@ defmodule KlassHero.Messaging.Workers.SendEmailReplyWorker do
         |> Swoosh.Email.text_body(reply.body)
         |> maybe_add_threading_headers(email.message_id)
 
+      now = DateTime.utc_now()
+
       case KlassHero.Mailer.deliver(swoosh_email) do
         {:ok, %{id: resend_id}} ->
-          now = DateTime.utc_now()
-
           reply_repo.update_status(reply_id, "sent", %{resend_message_id: resend_id, sent_at: now})
 
           Logger.info("Delivered reply #{reply_id} to #{email.from_address}")
           :ok
 
         {:ok, _} ->
-          now = DateTime.utc_now()
           reply_repo.update_status(reply_id, "sent", %{sent_at: now})
           Logger.info("Delivered reply #{reply_id} to #{email.from_address}")
           :ok

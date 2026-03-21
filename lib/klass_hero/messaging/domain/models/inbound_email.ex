@@ -105,6 +105,10 @@ defmodule KlassHero.Messaging.Domain.Models.InboundEmail do
     {:ok, %{email | status: :archived}}
   end
 
+  @doc "Resets content_status to :pending for retry."
+  @spec reset_content_status(t()) :: t()
+  def reset_content_status(%__MODULE__{} = email), do: %{email | content_status: :pending}
+
   @doc "Returns true if the email has not been read."
   @spec unread?(t()) :: boolean()
   def unread?(%__MODULE__{status: :unread}), do: true
