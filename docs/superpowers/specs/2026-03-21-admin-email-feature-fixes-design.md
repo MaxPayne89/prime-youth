@@ -137,12 +137,14 @@ Controller additionally extracts `data["message_id"]` and passes it in attrs.
 
 ```
 Admin clicks Send -> LiveView -> ReplyToEmail
-                                   |-- Persist EmailReply (status: "sending")
+                                   |-- Persist EmailReply (status: "sending", sent_by_id from scope)
                                    |-- schedule_reply_delivery(reply.id)
                                    |-- Return {:ok, reply}
 ```
 
 No longer calls `KlassHero.Mailer.deliver/1` directly. Returns `EmailReply` domain model instead of `Swoosh.Email`.
+
+**Signature change:** `execute(email_id, reply_body, sent_by_id, opts \\ [])` — gains a `sent_by_id` parameter. The LiveView passes `@current_scope.user.id`, and `messaging.ex` facade signature updates to match: `reply_to_inbound_email(email_id, body, sent_by_id, opts \\ [])`.
 
 ## Admin UI Changes
 
@@ -280,14 +282,20 @@ config :klass_hero, :messaging,
 | `messaging/adapters/driven/persistence/mappers/inbound_email_mapper.ex` | Map new fields |
 | `messaging/adapters/driven/persistence/repositories/inbound_email_repository.ex` | Implement `update_content` |
 | `messaging/application/use_cases/receive_inbound_email.ex` | Store `message_id`, enqueue content fetch |
-| `messaging/application/use_cases/reply_to_email.ex` | Persist reply, enqueue delivery |
-| `messaging/repositories.ex` | Add new repository accessors |
-| `messaging.ex` | Add new public API delegates |
+| `messaging/application/use_cases/reply_to_email.ex` | Persist reply, enqueue delivery; signature gains `sent_by_id` parameter |
+| `messaging/repositories.ex` | Add `email_replies/0`, `email_content_fetcher/0`, `email_job_scheduler/0` accessors + update `all/0` map and `@spec` |
+| `messaging.ex` | Add new public API delegates + add `Domain.Models.EmailReply` to Boundary exports |
 | `klass_hero_web/controllers/resend_webhook_controller.ex` | Extract `data["message_id"]` |
 | `klass_hero_web/live/admin/emails_live.ex` | Content status UI, reply list, form clearing |
 | `klass_hero_web/live/admin/emails_live.html.heex` | Template updates |
 | `config/config.exs` | Add new port config entries |
 | `test/support/fixtures/messaging_fixtures.ex` | Add reply fixtures |
+
+## Implementation Notes
+
+- **Adapter placement:** `ResendEmailContentAdapter` and `ObanEmailJobScheduler` live directly in `adapters/driven/` (not in a subdirectory). This follows the precedent set by `email_sanitizer.ex` in the same directory. These are non-persistence driven adapters.
+- **Test config:** `ResendEmailContentAdapter` calls an external HTTP endpoint. Tests should use `Req.Test` to stub responses. Oban runs inline in tests (`testing: :inline`), so worker tests execute synchronously. No test config overrides needed for ports — the production adapters are used with stubbed HTTP.
+- **`list_by_email/1` return shape:** Returns `{:ok, [EmailReply.t()]}` (two-element tuple, no `has_more`). Pagination is unnecessary since reply counts per email will be low. Intentional simplification vs. `ForManagingInboundEmails.list/1`.
 
 ## Out of Scope
 
