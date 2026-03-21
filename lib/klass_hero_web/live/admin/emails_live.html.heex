@@ -82,12 +82,15 @@
         <span class={["badge badge-sm", status_badge_class(email.status)]}>
           {email.status |> to_string() |> String.capitalize()}
         </span>
-        <span :if={email.content_status == :pending} class="loading loading-spinner loading-xs"></span>
+        <span :if={email.content_status == :pending} class="loading loading-spinner loading-xs">
+        </span>
         <span
           :if={email.content_status == :failed}
           class="badge badge-xs badge-error"
           title="Content fetch failed"
-        >!</span>
+        >
+          !
+        </span>
       </div>
     </.link>
   </div>
@@ -164,7 +167,10 @@
 
   <%!-- Plain text fallback (only when fetched but no HTML) --%>
   <div
-    :if={@email.content_status == :fetched && (@sanitized_html == "" || is_nil(@sanitized_html)) && @email.body_text}
+    :if={
+      @email.content_status == :fetched && (@sanitized_html == "" || is_nil(@sanitized_html)) &&
+        @email.body_text
+    }
     class="rounded-lg border border-base-300 p-6 mb-6"
   >
     <pre class="whitespace-pre-wrap text-sm">{@email.body_text}</pre>
