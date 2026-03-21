@@ -144,7 +144,7 @@ Add to `defstruct` (after existing fields, before `active: true`):
 ```elixir
 :user_id,
 :invitation_status,
-:invitation_token,
+:invitation_token_hash,
 :invitation_sent_at,
 ```
 
@@ -152,7 +152,7 @@ Add to `@type t` definition:
 ```elixir
 user_id: String.t() | nil,
 invitation_status: :pending | :sent | :failed | :accepted | :expired | nil,
-invitation_token: String.t() | nil,
+invitation_token_hash: binary() | nil,
 invitation_sent_at: DateTime.t() | nil,
 ```
 
@@ -358,7 +358,20 @@ end
 
 - [ ] **Step 7: Update test fixtures to support new fields**
 
-In `test/support/fixtures/provider_fixtures.ex`, update `staff_member_fixture/1` to merge invitation fields from attrs into the schema insert.
+In `test/support/fixtures/provider_fixtures.ex`, update `staff_member_fixture/1`:
+1. Add invitation fields (`invitation_status`, `invitation_token_hash`, `invitation_sent_at`, `user_id`) to the cast list in `create_changeset/2` so they can be set during test inserts
+2. Alternatively, after the initial insert, apply an `invitation_changeset` update when invitation-specific attrs are provided. The second approach is cleaner (doesn't leak test concerns into production changesets) — pattern:
+
+```elixir
+schema =
+  if Map.has_key?(attrs, :invitation_status) do
+    schema
+    |> StaffMemberSchema.invitation_changeset(Map.take(attrs, [:invitation_status, :invitation_token_hash, :invitation_sent_at, :user_id]))
+    |> Repo.update!()
+  else
+    schema
+  end
+```
 
 - [ ] **Step 8: Run tests to verify they pass**
 
@@ -425,8 +438,8 @@ staff_provider: [
   :manage_own_profile
 ]
 ```
-4. Add `to_string/1` clause: `def to_string(:staff_provider), do: "staff_provider"`
-5. Add `from_string/1` clause: `"staff_provider" -> {:ok, :staff_provider}`
+
+Note: The generic `to_string/1` and `from_string/1` functions operate over `@valid_roles` automatically — no new clauses needed for those.
 
 - [ ] **Step 4: Run tests to verify they pass**
 
@@ -509,7 +522,7 @@ def get_active_staff_member_by_user(user_id) do
 end
 ```
 
-Also add a new public function for token lookup:
+Also add new public functions for token lookup, profile access, and expiry:
 ```elixir
 @doc """
 Returns the staff member matching the given invitation token hash,
@@ -518,6 +531,26 @@ only if invitation_status is :sent. Used by the invitation registration flow.
 @spec get_staff_member_by_token_hash(binary()) :: {:ok, StaffMember.t()} | {:error, :not_found}
 def get_staff_member_by_token_hash(token_hash) do
   @staff_repository.get_by_token_hash(token_hash)
+end
+
+@doc """
+Returns the provider profile by ID. Used by staff dashboard to display business info.
+"""
+@spec get_provider_profile(String.t()) :: {:ok, ProviderProfile.t()} | {:error, :not_found}
+def get_provider_profile(provider_id) do
+  @provider_repository.get(provider_id)
+end
+
+@doc """
+Transitions a staff member's invitation status to :expired.
+Called by the invitation LiveView on lazy expiry detection.
+"""
+@spec expire_staff_invitation(String.t()) :: {:ok, StaffMember.t()} | {:error, term()}
+def expire_staff_invitation(staff_member_id) do
+  with {:ok, staff} <- @staff_repository.get(staff_member_id),
+       {:ok, updated} <- StaffMember.transition_invitation(staff, :expired) do
+    @staff_repository.update(updated)
+  end
 end
 ```
 
@@ -775,19 +808,23 @@ Expected: FAIL — module doesn't exist.
 
 ```elixir
 defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
-  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingIntegrationEvents
+  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingEvents
 
   alias KlassHero.Accounts
   alias KlassHero.Accounts.UserNotifier
   alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
+  alias KlassHero.Shared.IntegrationEventPublishing
 
   @impl true
   def subscribed_events, do: [:staff_member_invited]
 
   @impl true
   def handle_event(%{event_type: :staff_member_invited, payload: payload}) do
+    # Payload keys may be strings after Oban serialization — normalize to atoms
+    payload = Map.new(payload, fn {k, v} -> {to_existing_atom(k), v} end)
+
     %{email: email, staff_member_id: staff_member_id, provider_id: provider_id,
-      first_name: first_name, business_name: business_name, raw_token: raw_token} = atomize_keys(payload)
+      first_name: first_name, business_name: business_name, raw_token: raw_token} = payload
 
     case Accounts.get_user_by_email(email) do
       nil ->
@@ -797,7 +834,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
             emit_sent(staff_member_id, provider_id)
             :ok
           {:error, reason} ->
-            emit_failed(staff_member_id, provider_id, reason)
+            emit_failed(staff_member_id, provider_id, inspect(reason))
             :ok
         end
 
@@ -808,7 +845,23 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
     end
   end
 
-  # Private helpers for emitting events...
+  defp to_existing_atom(key) when is_atom(key), do: key
+  defp to_existing_atom(key) when is_binary(key), do: String.to_existing_atom(key)
+
+  defp emit_sent(staff_member_id, provider_id) do
+    event = AccountsIntegrationEvents.staff_invitation_sent(staff_member_id, provider_id, %{})
+    IntegrationEventPublishing.publish_critical(event)
+  end
+
+  defp emit_failed(staff_member_id, provider_id, reason) do
+    event = AccountsIntegrationEvents.staff_invitation_failed(staff_member_id, provider_id, %{reason: reason})
+    IntegrationEventPublishing.publish_critical(event)
+  end
+
+  defp emit_registered(user_id, staff_member_id, provider_id) do
+    event = AccountsIntegrationEvents.staff_user_registered(user_id, staff_member_id, %{provider_id: provider_id})
+    IntegrationEventPublishing.publish_critical(event)
+  end
 end
 ```
 
@@ -1019,18 +1072,33 @@ Test that the changeset:
 
 Expected: FAIL — function undefined.
 
-- [ ] **Step 3: Implement staff_registration_changeset/2**
+- [ ] **Step 3: Implement staff_registration_changeset/3**
+
+Follows the same pattern as `registration_changeset/3`. Accepts `opts` for email uniqueness validation (used in tests vs. production).
 
 ```elixir
-def staff_registration_changeset(user, attrs) do
+def staff_registration_changeset(user, attrs, opts \\ []) do
   user
   |> cast(attrs, [:name, :email])
   |> validate_required([:name, :email])
   |> put_change(:intended_roles, [:staff_provider])
-  |> validate_email(:email)
-  |> maybe_validate_email_uniqueness()
+  |> validate_email(opts)
+  |> password_changeset(attrs, opts)
 end
 ```
+
+This reuses the existing private `validate_email/2` (handles format + uniqueness) and `password_changeset/3` (handles hashing + validation). The key difference from `registration_changeset`: `intended_roles` is locked to `[:staff_provider]` via `put_change` (not cast from user input), and `provider_subscription_tier` is not validated.
+
+- [ ] **Step 3b: Add Accounts.register_staff_user/1 to the Accounts facade**
+
+In `lib/klass_hero/accounts.ex`, add a new public function:
+```elixir
+def register_staff_user(attrs) do
+  RegisterUser.execute(attrs, changeset_fn: &User.staff_registration_changeset/3)
+end
+```
+
+If `RegisterUser.execute/2` doesn't support a changeset option, adapt it to accept one, or create a thin wrapper that uses `staff_registration_changeset` directly for the insert. The registration must emit the same `:user_registered` domain event so that the FamilyEventHandler and ProviderEventHandler fire (the latter will naturally skip ProviderProfile creation for `:staff_provider`).
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -1084,21 +1152,18 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
   @invitation_expiry_days 7
 
   def mount(%{"token" => raw_token}, _session, socket) do
-    token_hash = :crypto.hash(:sha256, Base.url_decode64!(raw_token, padding: false))
-
-    case Provider.get_staff_member_by_token_hash(token_hash) do
-      {:ok, staff_member} ->
-        if invitation_expired?(staff_member) do
-          # Lazy expiry: transition to :expired
-          Provider.expire_staff_invitation(staff_member.id)
-          {:ok, assign(socket, :error, :expired)}
-        else
-          form = to_form(%{"name" => StaffMember.full_name(staff_member), "email" => staff_member.email}, as: :user)
-          {:ok, assign(socket, staff_member: staff_member, raw_token: raw_token, form: form, error: nil)}
-        end
-
-      {:error, :not_found} ->
-        {:ok, assign(socket, :error, :invalid)}
+    with {:ok, decoded} <- Base.url_decode64(raw_token, padding: false),
+         token_hash = :crypto.hash(:sha256, decoded),
+         {:ok, staff_member} <- Provider.get_staff_member_by_token_hash(token_hash) do
+      if invitation_expired?(staff_member) do
+        Provider.expire_staff_invitation(staff_member.id)
+        {:ok, assign(socket, :error, :expired)}
+      else
+        form = to_form(%{"name" => StaffMember.full_name(staff_member), "email" => staff_member.email}, as: :user)
+        {:ok, assign(socket, staff_member: staff_member, raw_token: raw_token, form: form, error: nil)}
+      end
+    else
+      _ -> {:ok, assign(socket, :error, :invalid)}
     end
   end
 
@@ -1129,9 +1194,9 @@ Test that submitting the form with valid data:
 - [ ] **Step 9: Implement handle_event("save", ...)**
 
 On form submit:
-1. Call `Accounts.register_staff_user/1` (new function wrapping the staff changeset)
-2. On success, emit `:staff_user_registered` integration event
-3. Log in user and redirect to `/staff/dashboard`
+1. Call `Accounts.register_staff_user/1` (defined in Task 13 Step 3b — wraps the staff changeset)
+2. On success, emit `:staff_user_registered` integration event from within the Accounts facade/use case layer (not from the LiveView — LiveViews are thin driving adapters). Pass `staff_member_id` and `provider_id` through attrs so the use case can include them in the event payload.
+3. Log in user via `UserAuth.log_in_user/3` and redirect to `/staff/dashboard`
 
 - [ ] **Step 10: Run all LiveView tests**
 
@@ -1186,15 +1251,13 @@ defmodule KlassHeroWeb.StaffDashboardLive do
 
     {:ok, provider} = Provider.get_provider_profile(staff_member.provider_id)
 
+    all_programs = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
+
     programs =
-      case ProgramCatalog.list_programs_by_provider(staff_member.provider_id) do
-        {:ok, all_programs} ->
-          if staff_member.tags == [] do
-            all_programs
-          else
-            Enum.filter(all_programs, fn p -> p.category in staff_member.tags end)
-          end
-        _ -> []
+      if staff_member.tags == [] do
+        all_programs
+      else
+        Enum.filter(all_programs, fn p -> p.category in staff_member.tags end)
       end
 
     socket =
