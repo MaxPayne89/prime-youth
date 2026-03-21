@@ -891,7 +891,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       |> maybe_add_headshot(headshot_result)
 
     case Provider.create_staff_member(attrs) do
-      {:ok, staff} ->
+      result when elem(result, 0) == :ok ->
+        staff = elem(result, 1)
         view = StaffMemberPresenter.to_card_view(staff)
 
         flash_msg =

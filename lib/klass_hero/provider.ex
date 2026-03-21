@@ -16,8 +16,9 @@ defmodule KlassHero.Provider do
       {:ok, provider} = Provider.get_provider_by_identity("user-uuid")
       true = Provider.has_provider_profile?("user-uuid")
 
-      # Staff Members
-      {:ok, staff} = Provider.create_staff_member(%{provider_id: "...", ...})
+      # Staff Members (email-less: 2-tuple, with email: 3-tuple with raw invitation token)
+      {:ok, staff} = Provider.create_staff_member(%{provider_id: "...", first_name: "Bob", last_name: "Smith"})
+      {:ok, staff, raw_token} = Provider.create_staff_member(%{provider_id: "...", email: "bob@example.com", ...})
       {:ok, members} = Provider.list_staff_members("provider-uuid")
   """
 

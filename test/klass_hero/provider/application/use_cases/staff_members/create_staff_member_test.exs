@@ -39,7 +39,7 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
         active: false
       }
 
-      assert {:ok, staff} = CreateStaffMember.execute(attrs)
+      assert {:ok, staff, _raw_token} = CreateStaffMember.execute(attrs)
       assert staff.role == "Head Coach"
       assert staff.email == "bob@example.com"
       assert staff.bio == "Experienced coach"
