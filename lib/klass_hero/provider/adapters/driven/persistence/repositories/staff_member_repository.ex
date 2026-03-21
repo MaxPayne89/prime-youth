@@ -95,4 +95,29 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
         :ok
     end
   end
+
+  @impl true
+  def get_by_token_hash(token_hash) when is_binary(token_hash) do
+    query =
+      from s in StaffMemberSchema,
+        where: s.invitation_token_hash == ^token_hash and s.invitation_status == "sent"
+
+    case Repo.one(query) do
+      nil -> {:error, :not_found}
+      schema -> {:ok, StaffMemberMapper.to_domain(schema)}
+    end
+  end
+
+  @impl true
+  def get_active_by_user(user_id) when is_binary(user_id) do
+    query =
+      from s in StaffMemberSchema,
+        where: s.user_id == ^user_id and s.active == true,
+        limit: 1
+
+    case Repo.one(query) do
+      nil -> {:error, :not_found}
+      schema -> {:ok, StaffMemberMapper.to_domain(schema)}
+    end
+  end
 end

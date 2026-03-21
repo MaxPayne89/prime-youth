@@ -26,6 +26,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     field :tags, {:array, :string}, default: []
     field :qualifications, {:array, :string}, default: []
     field :active, :boolean, default: true
+    field :invitation_status, :string
+    field :invitation_token_hash, :binary
+    field :invitation_sent_at, :utc_datetime_usec
+    belongs_to :user, KlassHero.Accounts.User, type: :binary_id
 
     timestamps()
   end
@@ -52,7 +56,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
       :headshot_url,
       :tags,
       :qualifications,
-      :active
+      :active,
+      :invitation_status,
+      :invitation_token_hash
     ])
     |> put_change(:provider_id, provider_id)
     |> validate_required([:provider_id, :first_name, :last_name])
@@ -85,7 +91,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
       :headshot_url,
       :tags,
       :qualifications,
-      :active
+      :active,
+      :invitation_status,
+      :invitation_token_hash,
+      :invitation_sent_at,
+      :user_id
     ])
     |> validate_required([:first_name, :last_name])
     |> validate_length(:first_name, min: 1, max: 100)
@@ -95,6 +105,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     |> validate_length(:bio, max: 2000)
     |> validate_length(:headshot_url, max: 500)
     |> validate_tags()
+    |> validate_inclusion(:invitation_status, ~w(pending sent failed accepted expired),
+      allow_nil: true
+    )
   end
 
   @doc """
@@ -106,6 +119,17 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
   """
   def admin_changeset(schema, attrs, _metadata) do
     cast(schema, attrs, [:active])
+  end
+
+  @doc """
+  Changeset for updating invitation-specific fields.
+
+  Used when recording invitation state transitions (pending, sent, failed, accepted, expired).
+  """
+  def invitation_changeset(staff_member, attrs) do
+    staff_member
+    |> cast(attrs, [:invitation_status, :invitation_token_hash, :invitation_sent_at, :user_id])
+    |> validate_inclusion(:invitation_status, ~w(pending sent failed accepted expired))
   end
 
   defp validate_tags(changeset) do
