@@ -79,6 +79,40 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEm
     end
   end
 
+  describe "update_content/2" do
+    test "updates body, headers, and content_status to fetched" do
+      email = MessagingFixtures.inbound_email_fixture()
+
+      attrs = %{
+        body_html: "<p>Fetched content</p>",
+        body_text: "Fetched content",
+        headers: %{"Message-ID" => "<abc@example.com>"},
+        content_status: "fetched"
+      }
+
+      assert {:ok, updated} = InboundEmailRepository.update_content(email.id, attrs)
+      assert updated.body_html == "<p>Fetched content</p>"
+      assert updated.body_text == "Fetched content"
+      assert updated.content_status == :fetched
+    end
+
+    test "updates content_status to failed" do
+      email = MessagingFixtures.inbound_email_fixture()
+
+      assert {:ok, updated} =
+               InboundEmailRepository.update_content(email.id, %{content_status: "failed"})
+
+      assert updated.content_status == :failed
+    end
+
+    test "returns error for nonexistent email" do
+      assert {:error, :not_found} =
+               InboundEmailRepository.update_content(Ecto.UUID.generate(), %{
+                 content_status: "failed"
+               })
+    end
+  end
+
   describe "count_by_status/1" do
     test "counts emails by status" do
       MessagingFixtures.inbound_email_fixture()

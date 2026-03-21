@@ -16,6 +16,8 @@ defmodule KlassHero.MessagingFixtures do
       body_html: "<p>Hello</p>",
       body_text: "Hello",
       headers: [],
+      message_id: "<test-#{System.unique_integer([:positive])}@example.com>",
+      content_status: "fetched",
       received_at: DateTime.utc_now()
     })
   end

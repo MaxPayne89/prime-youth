@@ -22,7 +22,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.InboundEmailMa
       body_html: schema.body_html,
       body_text: schema.body_text,
       headers: schema.headers,
+      message_id: schema.message_id,
       status: parse_status(schema.status),
+      content_status: parse_content_status(schema.content_status),
       read_by_id: schema.read_by_id,
       read_at: schema.read_at,
       received_at: schema.received_at,
@@ -37,6 +39,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.InboundEmailMa
   defp parse_status("unread"), do: :unread
   defp parse_status("read"), do: :read
   defp parse_status("archived"), do: :archived
+
+  defp parse_content_status("pending"), do: :pending
+  defp parse_content_status("fetched"), do: :fetched
+  defp parse_content_status("failed"), do: :failed
 
   @doc """
   Converts creation attributes to schema-compatible format.
@@ -54,9 +60,12 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.InboundEmailMa
       :body_html,
       :body_text,
       :headers,
+      :message_id,
+      :content_status,
       :status,
       :received_at
     ])
     |> Map.put_new(:status, "unread")
+    |> Map.put_new(:content_status, "pending")
   end
 end

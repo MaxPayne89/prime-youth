@@ -28,5 +28,8 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingInboundEmails do
   @callback update_status(id :: binary(), status :: String.t(), attrs :: map()) ::
               {:ok, InboundEmail.t()} | {:error, term()}
 
+  @callback update_content(id :: binary(), attrs :: map()) ::
+              {:ok, InboundEmail.t()} | {:error, term()}
+
   @callback count_by_status(status :: atom()) :: non_neg_integer()
 end
