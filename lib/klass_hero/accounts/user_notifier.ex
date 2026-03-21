@@ -89,4 +89,46 @@ defmodule KlassHero.Accounts.UserNotifier do
     ==============================
     """)
   end
+
+  @doc """
+  Delivers a staff invitation email with a registration link.
+  """
+  def deliver_staff_invitation(
+        email,
+        %{business_name: business_name, first_name: first_name},
+        url
+      ) do
+    deliver(email, "You've been invited to join #{business_name} on Klass Hero", """
+    Hi #{first_name},
+
+    #{business_name} has invited you to join their team on Klass Hero.
+
+    Klass Hero is a platform for managing afterschool activities, camps, and class trips.
+
+    Click the link below to complete your registration:
+
+    #{url}
+
+    This invitation expires in 7 days.
+
+    If you did not expect this invitation, you can ignore this email.
+    """)
+  end
+
+  @doc """
+  Delivers a notification email when an existing user is added as a staff member.
+  """
+  def deliver_staff_added_notification(email, %{business_name: business_name}) do
+    deliver(email, "You've been added to #{business_name}'s team on Klass Hero", """
+    Hi,
+
+    #{business_name} has added you to their team on Klass Hero.
+
+    You can view your assigned programs on your staff dashboard:
+
+    #{KlassHeroWeb.Endpoint.url()}/staff/dashboard
+
+    If you did not expect this, please contact #{business_name} directly.
+    """)
+  end
 end

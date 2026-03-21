@@ -1,0 +1,6 @@
+[  644046ms] [WARNING] %c📡 [warning] navigate event to "http://localhost:4000/users/log-in" failed because you are redirecting across live_sessions. A full page reload will be performed instead
+ color: inherit; @ http://localhost:4000/phoenix/live_reload/frame:1828
+[  680677ms] [WARNING] %c📡 [warning] navigate event to "http://localhost:4000/dashboard" failed because you are redirecting across live_sessions. A full page reload will be performed instead
+ color: inherit; @ http://localhost:4000/phoenix/live_reload/frame:1828
+[  998759ms] [WARNING] %c📡 [warning] navigate event to "http://localhost:4000/dashboard" failed because you are redirecting across live_sessions. A full page reload will be performed instead
+ color: inherit; @ http://localhost:4000/phoenix/live_reload/frame:1828
