@@ -302,6 +302,10 @@ end
 Update `create_changeset/2` to also accept `invitation_status`, `invitation_token_hash`:
 Add to the cast list: `:invitation_status, :invitation_token_hash`
 
+Update `edit_changeset/2` to also cast invitation fields so that `StaffMemberRepository.update/1` can persist invitation state changes:
+Add to the cast list: `:invitation_status, :invitation_token_hash, :invitation_sent_at, :user_id`
+Add `|> validate_inclusion(:invitation_status, ~w(pending sent failed accepted expired))`
+
 - [ ] **Step 4: Update StaffMemberMapper with new fields**
 
 In `lib/klass_hero/provider/adapters/driven/persistence/mappers/staff_member_mapper.ex`:
@@ -406,11 +410,11 @@ defmodule KlassHero.Accounts.Types.UserRoleStaffProviderTest do
   end
 
   test ":staff_provider can be converted to string" do
-    assert UserRole.to_string(:staff_provider) == "staff_provider"
+    assert {:ok, "staff_provider"} = UserRole.to_string(:staff_provider)
   end
 
   test ":staff_provider can be parsed from string" do
-    assert UserRole.from_string("staff_provider") == {:ok, :staff_provider}
+    assert {:ok, :staff_provider} = UserRole.from_string("staff_provider")
   end
 
   test ":staff_provider has permissions" do
@@ -849,18 +853,18 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
   defp to_existing_atom(key) when is_binary(key), do: String.to_existing_atom(key)
 
   defp emit_sent(staff_member_id, provider_id) do
-    event = AccountsIntegrationEvents.staff_invitation_sent(staff_member_id, provider_id, %{})
-    IntegrationEventPublishing.publish_critical(event)
+    event = AccountsIntegrationEvents.staff_invitation_sent(staff_member_id, %{provider_id: provider_id}, [])
+    IntegrationEventPublishing.publish_critical(event, "staff_invitation_sent")
   end
 
   defp emit_failed(staff_member_id, provider_id, reason) do
-    event = AccountsIntegrationEvents.staff_invitation_failed(staff_member_id, provider_id, %{reason: reason})
-    IntegrationEventPublishing.publish_critical(event)
+    event = AccountsIntegrationEvents.staff_invitation_failed(staff_member_id, %{provider_id: provider_id, reason: reason}, [])
+    IntegrationEventPublishing.publish_critical(event, "staff_invitation_failed")
   end
 
   defp emit_registered(user_id, staff_member_id, provider_id) do
-    event = AccountsIntegrationEvents.staff_user_registered(user_id, staff_member_id, %{provider_id: provider_id})
-    IntegrationEventPublishing.publish_critical(event)
+    event = AccountsIntegrationEvents.staff_user_registered(user_id, %{staff_member_id: staff_member_id, provider_id: provider_id}, [])
+    IntegrationEventPublishing.publish_critical(event, "staff_user_registered")
   end
 end
 ```
@@ -1089,16 +1093,28 @@ end
 
 This reuses the existing private `validate_email/2` (handles format + uniqueness) and `password_changeset/3` (handles hashing + validation). The key difference from `registration_changeset`: `intended_roles` is locked to `[:staff_provider]` via `put_change` (not cast from user input), and `provider_subscription_tier` is not validated.
 
-- [ ] **Step 3b: Add Accounts.register_staff_user/1 to the Accounts facade**
+- [ ] **Step 3b: Modify RegisterUser use case to accept a changeset function option**
 
-In `lib/klass_hero/accounts.ex`, add a new public function:
+In `lib/klass_hero/accounts/application/use_cases/register_user.ex`, update `execute/1` to `execute/2`:
+```elixir
+def execute(attrs, opts \\ []) do
+  changeset_fn = Keyword.get(opts, :changeset_fn, &User.registration_changeset/3)
+  # Use changeset_fn instead of hardcoded User.registration_changeset
+end
+```
+
+Also update `UserRepository.register/2` to accept the changeset function and use it instead of the hardcoded `User.registration_changeset(attrs)`.
+
+- [ ] **Step 3c: Add Accounts.register_staff_user/1 to the Accounts facade**
+
+In `lib/klass_hero/accounts.ex`, add:
 ```elixir
 def register_staff_user(attrs) do
   RegisterUser.execute(attrs, changeset_fn: &User.staff_registration_changeset/3)
 end
 ```
 
-If `RegisterUser.execute/2` doesn't support a changeset option, adapt it to accept one, or create a thin wrapper that uses `staff_registration_changeset` directly for the insert. The registration must emit the same `:user_registered` domain event so that the FamilyEventHandler and ProviderEventHandler fire (the latter will naturally skip ProviderProfile creation for `:staff_provider`).
+This reuses the same `RegisterUser` use case (which emits `:user_registered` domain event), so `FamilyEventHandler` and `ProviderEventHandler` fire as normal. The latter naturally skips ProviderProfile creation for `[:staff_provider]`.
 
 - [ ] **Step 4: Run test to verify it passes**
 
