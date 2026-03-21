@@ -86,7 +86,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEm
       attrs = %{
         body_html: "<p>Fetched content</p>",
         body_text: "Fetched content",
-        headers: %{"Message-ID" => "<abc@example.com>"},
+        headers: [%{"name" => "Message-ID", "value" => "<abc@example.com>"}],
         content_status: "fetched"
       }
 

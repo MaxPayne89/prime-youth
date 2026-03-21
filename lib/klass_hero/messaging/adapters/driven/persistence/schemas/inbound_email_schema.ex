@@ -43,7 +43,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.InboundEmailSc
   @required_fields ~w(resend_id from_address to_addresses subject received_at)a
   @optional_fields ~w(from_name cc_addresses body_html body_text headers status message_id content_status)a
 
-  @content_fields ~w(body_html body_text content_status)a
+  @content_fields ~w(body_html body_text headers content_status)a
 
   @doc """
   Creates a changeset for new inbound email creation.
