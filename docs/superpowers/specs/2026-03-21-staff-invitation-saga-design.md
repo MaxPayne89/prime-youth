@@ -57,18 +57,19 @@ Provider updates staff_member
 Provider Context                          Accounts Context
 ──────────────────                        ──────────────────
 Business owner adds staff member
-  → Detects email belongs to existing user
   → invitation_status: :pending
+  → Generates token, stores hash
   → Emits :staff_member_invited (critical)
-    payload includes existing_user_id
                                     ───►
-                                          StaffInvitationHandler sees existing_user_id
-                                          → Skips token generation & invitation email
+                                          StaffInvitationHandler receives event
+                                          → Checks Accounts.get_user_by_email(email)
+                                          → User found! Skips invitation email
                                           → Sends notification email instead
-                                          → Emits :staff_user_registered (critical) immediately
+                                          → Emits :staff_user_registered (critical)
+                                            payload: {user_id, staff_member_id, provider_id}
                                     ◄───
 Provider updates staff_member
-  user_id: existing_user_id
+  user_id: found_user_id
   invitation_status: :accepted
   → Saga complete (fast path)
 ```
@@ -157,8 +158,14 @@ The `email` field on `staff_members` remains optional. When a staff member is ad
 
 ### User Schema — Role Changes
 
-- Add `:staff_provider` to valid roles in `UserRoles` type
-- `intended_roles` at registration can now include `:staff_provider`
+Adding `:staff_provider` requires updates in several places:
+
+- `UserRole` (`accounts/types/user_role.ex`): Add `:staff_provider` to `@valid_roles`, update `valid_roles/0`, type spec `@type t`, and `@role_permissions` map
+- `UserRoles` (`accounts/types/user_roles.ex`): No change needed (generic over `UserRole`)
+- `User` schema (`accounts/.../schemas/user.ex`): The existing `registration_changeset` validates `intended_roles` against `UserRole.valid_roles()` and conditionally validates `provider_subscription_tier` — once `:staff_provider` is in `valid_roles/0`, it will pass validation. However, a **staff-specific registration changeset** (e.g., `staff_registration_changeset/2`) is needed because:
+  - Staff registration doesn't require `provider_subscription_tier` selection
+  - Staff registration pre-fills `name` and `email` from the invitation (may not need the same UI validation)
+  - The `intended_roles` should be locked to `[:staff_provider]` (not user-selectable)
 
 ### Scope Enhancement
 
@@ -184,7 +191,7 @@ The `email` field on `staff_members` remains optional. When a staff member is ad
 
 | Event | Source | Topic | Payload |
 |---|---|---|---|
-| `:staff_member_invited` | Provider | `integration:provider:staff_member_invited` | `{staff_member_id, provider_id, email, first_name, last_name, business_name, raw_token \| nil, existing_user_id \| nil}` |
+| `:staff_member_invited` | Provider | `integration:provider:staff_member_invited` | `{staff_member_id, provider_id, email, first_name, last_name, business_name, raw_token}` |
 | `:staff_invitation_sent` | Accounts | `integration:accounts:staff_invitation_sent` | `{staff_member_id, provider_id}` |
 | `:staff_invitation_failed` | Accounts | `integration:accounts:staff_invitation_failed` | `{staff_member_id, provider_id, reason}` |
 | `:staff_user_registered` | Accounts | `integration:accounts:staff_user_registered` | `{user_id, staff_member_id, provider_id}` |
@@ -197,7 +204,7 @@ New factory functions are needed in:
 
 ### Existing User Detection
 
-Provider checks `Accounts.get_user_by_email/1` before emitting `:staff_member_invited`. If a user exists, `existing_user_id` is populated in the payload. This keeps the Accounts handler simple: branch on presence of `existing_user_id`.
+**Accounts performs the lookup, not Provider.** Provider cannot depend on Accounts (Boundary constraint — would create a cycle since Accounts already depends on Provider). Instead, Provider emits `:staff_member_invited` with the staff member's email. The `StaffInvitationHandler` in Accounts checks `Accounts.get_user_by_email/1` to determine whether the email belongs to an existing user, then branches accordingly. No `existing_user_id` in the event payload — detection happens on the Accounts side.
 
 ### Registration Hook
 
@@ -249,9 +256,10 @@ New LiveView at `lib/klass_hero_web/live/user_live/staff_invitation.ex`, route: 
 
 **On mount:**
 1. Hash token from URL
-2. Look up staff member via `invitation_token_hash` (cross-context read)
-3. Not found or expired → error page
-4. Found → pre-fill form with `first_name`, `last_name`, `email`
+2. Call `Provider.get_staff_member_by_token_hash/1` (cross-context read via public API)
+3. Not found → error page ("invalid or already used invitation")
+4. Found but expired (check `updated_at` + 7 days) → transition status to `:expired`, show "invitation expired — ask your business to resend"
+5. Found and valid → pre-fill form with `first_name`, `last_name`, `email`
 
 **On submit:**
 1. Register via `Accounts.register_user/1` with `intended_roles: [:staff_provider]`
@@ -267,8 +275,8 @@ Same pattern as existing magic link tokens, but **generated by Provider context*
 1. `CreateStaffMember` use case generates 32 random bytes → URL-safe base64 encode (raw token)
 2. SHA-256 hash → store on `staff_members.invitation_token_hash`
 3. Raw token included in `:staff_member_invited` event payload (Accounts uses it to build email link)
-4. Verify (cross-context read by Accounts on registration): hash URL token, query `staff_members` by hash + check `invitation_status == :sent`
-5. Expiry: 7 days from creation, checked on-access in the invitation LiveView (compare `updated_at` or a dedicated `invitation_sent_at` timestamp)
+4. Verify (cross-context read): Accounts calls `Provider.get_staff_member_by_token_hash/1` (**new public API function** on the Provider facade) — returns the staff member if hash matches and `invitation_status == :sent`, `nil` otherwise
+5. Expiry: 7 days from token creation. Checked on-access in the invitation LiveView by comparing `staff_member.updated_at` (or a dedicated `invitation_sent_at` field) against `DateTime.utc_now()`. If expired, the LiveView shows an "invitation expired" message and does **not** render the registration form. The status transition to `:expired` happens at this point (lazy expiry — no scheduled job needed for MVP)
 
 ## Resend Flow
 
