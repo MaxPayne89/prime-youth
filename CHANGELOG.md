@@ -5,6 +5,39 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0](https://github.com/MaxPayne89/klass-hero/compare/v0.14.0...v0.15.0) (2026-03-21)
+
+
+### Features
+
+* add content status handling, reply list, and form clearing to admin emails ([418bed2](https://github.com/MaxPayne89/klass-hero/commit/418bed214dc4e3143f487e7ccf744174d1c7b7c0))
+* add email reply persistence layer (schema, mapper, queries, repo) ([1f8122d](https://github.com/MaxPayne89/klass-hero/commit/1f8122db68dbbc23e1201e6878719b7c87db534b))
+* add EmailReply domain model and InboundEmail content fields ([2b1b3ed](https://github.com/MaxPayne89/klass-hero/commit/2b1b3ed7ff6efe0b4937f9e302003665c587dacf))
+* add migration for email content status and replies ([e74b412](https://github.com/MaxPayne89/klass-hero/commit/e74b412e0ecb5e6656dcfd9ed29fbd97a3e4112a))
+* add Oban email job scheduler adapter ([5229b58](https://github.com/MaxPayne89/klass-hero/commit/5229b587f72d1208f739f8ff753f051e4e319749))
+* add Oban workers for email content fetch and reply delivery ([8209312](https://github.com/MaxPayne89/klass-hero/commit/82093120943e912a69ef18e43438feea33ffe7ce))
+* add ports for email content fetching, reply management, and job scheduling ([b09554e](https://github.com/MaxPayne89/klass-hero/commit/b09554e9d882a8f527ea0ceb00c12f6078f66b95))
+* add Resend email content adapter with Req HTTP client ([cddb588](https://github.com/MaxPayne89/klass-hero/commit/cddb588e52240efec2caaa14e8c1eaaddee51b1c))
+* add update_content to inbound email persistence layer ([13579d7](https://github.com/MaxPayne89/klass-hero/commit/13579d7cc202662736605923b0ce72992cb5dbb3))
+* enqueue content fetch after receiving inbound email ([793abfe](https://github.com/MaxPayne89/klass-hero/commit/793abfe803e01dd3eb7c353ff21909493a328df7))
+* extract message_id from webhook payload for email threading ([dfb2f1b](https://github.com/MaxPayne89/klass-hero/commit/dfb2f1b1c9e0dbadd88ca17904eff3e21368eb40))
+* wire new ports into config, repositories, and messaging facade ([a9feac3](https://github.com/MaxPayne89/klass-hero/commit/a9feac38282f9d4db2971eb1910d84522cb051ab))
+
+
+### Bug Fixes
+
+* address architecture review findings ([e14efb6](https://github.com/MaxPayne89/klass-hero/commit/e14efb6a5962d15bd7c346bd7c0d5de0ed6df3c0))
+* address PR review comments ([f0416cb](https://github.com/MaxPayne89/klass-hero/commit/f0416cb98c31ad0c77e2835fdf95c1e5a2bd25bd)), closes [#494](https://github.com/MaxPayne89/klass-hero/issues/494)
+* fetch email content from Resend API, persist replies, and thread responses ([24f6862](https://github.com/MaxPayne89/klass-hero/commit/24f686224a62e53b2cb49cad00a1045c8f3d141b))
+* include headers in content_changeset with array-of-maps test data ([41090ba](https://github.com/MaxPayne89/klass-hero/commit/41090baf43f00b9f86ab0420a5a0919e70e8f21d))
+
+
+### Code Refactoring
+
+* address architecture review suggestions ([0caeaac](https://github.com/MaxPayne89/klass-hero/commit/0caeaacebeffa6b9174d6aaa070543595dd9bc8b))
+* ReplyToEmail now persists reply and enqueues async delivery ([092abbc](https://github.com/MaxPayne89/klass-hero/commit/092abbc44856688ee11ce0e8bca33447845bb985))
+* simplify admin email code after review ([a45a62c](https://github.com/MaxPayne89/klass-hero/commit/a45a62c669493f5670b909d9176e2f1bb6c4af8c))
+
 ## [0.14.0](https://github.com/MaxPayne89/klass-hero/compare/v0.13.0...v0.14.0) (2026-03-20)
 
 
