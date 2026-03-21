@@ -60,6 +60,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail do
 
       {:error, reason} ->
         Logger.error("Failed to enqueue content fetch for #{email.id}: #{inspect(reason)}")
+        Repositories.inbound_emails().update_content(email.id, %{content_status: "failed"})
     end
   end
 

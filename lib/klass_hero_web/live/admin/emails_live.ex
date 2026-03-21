@@ -56,7 +56,7 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
             socket
             |> assign(:email, email)
             |> assign(:sanitized_html, sanitized_html)
-            |> assign(:replies, replies)
+            |> stream(:replies, replies)
             |> assign(:allow_images, false)
             |> assign(:reply_form, to_form(%{"body" => ""}, as: :reply))
             |> assign(:page_title, email.subject)
@@ -104,7 +104,7 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
           {:noreply,
            socket
            |> assign(:reply_form, to_form(%{"body" => ""}, as: :reply))
-           |> update(:replies, fn replies -> replies ++ [reply] end)
+           |> stream_insert(:replies, reply)
            |> push_event("clear_message_input", %{})
            |> put_flash(:info, gettext("Reply sent successfully"))}
 

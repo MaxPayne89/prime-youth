@@ -7,6 +7,14 @@ defmodule KlassHero.Repo.Migrations.AddEmailContentAndReplies do
       add :content_status, :string, null: false, default: "pending"
     end
 
+    # Trigger: existing emails already have body content from the old webhook flow
+    # Why: default "pending" would show a loading spinner forever for them
+    # Outcome: pre-existing emails with content get "fetched" status
+    execute(
+      "UPDATE inbound_emails SET content_status = 'fetched' WHERE body_html IS NOT NULL OR body_text IS NOT NULL",
+      "UPDATE inbound_emails SET content_status = 'pending'"
+    )
+
     create table(:email_replies, primary_key: false) do
       add :id, :binary_id, primary_key: true
 

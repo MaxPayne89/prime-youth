@@ -58,7 +58,13 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorker do
         )
 
         if job.attempt >= job.max_attempts do
-          email_repo.update_content(email_id, %{content_status: "failed"})
+          case email_repo.update_content(email_id, %{content_status: "failed"}) do
+            {:ok, _} ->
+              Logger.error("Marked email #{email_id} content as permanently failed")
+
+            {:error, mark_reason} ->
+              Logger.error("Failed to mark email #{email_id} as failed: #{inspect(mark_reason)}")
+          end
         end
 
         {:error, reason}

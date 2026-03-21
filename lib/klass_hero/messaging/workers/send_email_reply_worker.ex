@@ -49,24 +49,51 @@ defmodule KlassHero.Messaging.Workers.SendEmailReplyWorker do
 
       case KlassHero.Mailer.deliver(swoosh_email) do
         {:ok, %{id: resend_id}} ->
-          reply_repo.update_status(reply_id, "sent", %{resend_message_id: resend_id, sent_at: now})
-
+          mark_reply_sent(reply_repo, reply_id, %{resend_message_id: resend_id, sent_at: now})
           Logger.info("Delivered reply #{reply_id} to #{email.from_address}")
           :ok
 
         {:ok, _} ->
-          reply_repo.update_status(reply_id, "sent", %{sent_at: now})
+          mark_reply_sent(reply_repo, reply_id, %{sent_at: now})
           Logger.info("Delivered reply #{reply_id} to #{email.from_address}")
           :ok
 
         {:error, reason} ->
           Logger.error("Reply delivery failed for #{reply_id}: #{inspect(reason)}")
-
-          if job.attempt >= job.max_attempts do
-            reply_repo.update_status(reply_id, "failed", %{})
-          end
-
+          mark_reply_failed_if_final(reply_repo, reply_id, job)
           {:error, reason}
+      end
+    else
+      {:error, :not_found} = error ->
+        Logger.error("Reply or email not found for reply #{reply_id}")
+        mark_reply_failed_if_final(reply_repo, reply_id, job)
+        error
+    end
+  end
+
+  # Trigger: email delivered but status update may fail (DB timeout, concurrent delete)
+  # Why: email already sent — retrying the job would send duplicates
+  # Outcome: log critical if update fails, but don't retry
+  defp mark_reply_sent(reply_repo, reply_id, attrs) do
+    case reply_repo.update_status(reply_id, "sent", attrs) do
+      {:ok, _} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.critical(
+          "Reply #{reply_id} delivered but status update failed: #{inspect(reason)}"
+        )
+    end
+  end
+
+  defp mark_reply_failed_if_final(reply_repo, reply_id, job) do
+    if job.attempt >= job.max_attempts do
+      case reply_repo.update_status(reply_id, "failed", %{}) do
+        {:ok, _} ->
+          Logger.error("Marked reply #{reply_id} as permanently failed")
+
+        {:error, reason} ->
+          Logger.error("Failed to mark reply #{reply_id} as failed: #{inspect(reason)}")
       end
     end
   end

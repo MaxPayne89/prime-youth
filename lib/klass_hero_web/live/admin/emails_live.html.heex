@@ -177,9 +177,9 @@
   </div>
 
   <%!-- Replies list --%>
-  <div :if={@replies != []} id="replies-list" class="space-y-3 mb-6">
-    <h2 class={Theme.typography(:card_title)}>{gettext("Replies")}</h2>
-    <div :for={reply <- @replies} class="rounded-lg border border-base-300 p-4">
+  <div id="replies-list" phx-update="stream" class="space-y-3 mb-6">
+    <div id="replies-empty" class="hidden only:block"></div>
+    <div :for={{dom_id, reply} <- @streams.replies} id={dom_id} class="rounded-lg border border-base-300 p-4">
       <div class="flex justify-between items-center mb-2">
         <span class="text-xs opacity-50">
           {format_received_at(reply.inserted_at)}

@@ -180,6 +180,8 @@ config :klass_hero, :provider,
   for_storing_staff_members:
     KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
 
+config :klass_hero, :resend_req_options, []
+
 config :klass_hero, :scopes,
   user: [
     default: true,

@@ -14,17 +14,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter do
 
   @impl true
   def fetch_content(resend_email_id) do
-    req = Req.new(base_url: @base_url, auth: {:bearer, api_key()})
-
-    # Trigger: Req.Test plug must only be active in test environment
-    # Why: Req.Test raises if no stub is registered, which would break production
-    # Outcome: test env uses stubs, prod env makes real HTTP calls
-    req =
-      if Application.get_env(:klass_hero, :env) == :test do
-        Req.merge(req, plug: {Req.Test, __MODULE__})
-      else
-        req
-      end
+    extra_opts = Application.get_env(:klass_hero, :resend_req_options, [])
+    req = Req.new([base_url: @base_url, auth: {:bearer, api_key()}] ++ extra_opts)
 
     case Req.get(req, url: "/emails/receiving/#{resend_email_id}") do
       {:ok, %Req.Response{status: 200, body: body}} ->
@@ -41,12 +32,19 @@ defmodule KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter do
         Logger.error("Resend API server error #{status} for email #{resend_email_id}")
         {:error, :server_error}
 
+      {:ok, %Req.Response{status: status, body: body}} when status >= 400 ->
+        Logger.error(
+          "Resend API client error #{status} for email #{resend_email_id}: #{inspect(body)}"
+        )
+
+        {:error, {:client_error, status}}
+
       {:error, exception} ->
         Logger.error(
           "Resend API request failed for email #{resend_email_id}: #{inspect(exception)}"
         )
 
-        {:error, :timeout}
+        {:error, :request_failed}
     end
   end
 
@@ -58,15 +56,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter do
   end
 
   defp api_key do
-    # Trigger: test environment uses Req.Test stubs and never makes real HTTP calls
-    # Why: the Mailer adapter in test is Swoosh.Adapters.Test, which has no :api_key,
-    #      so we avoid raising on a missing key that isn't needed in tests
-    # Outcome: a placeholder is used in tests; production requires a real key
-    if Application.get_env(:klass_hero, :env) == :test do
-      "test-api-key"
-    else
-      Application.get_env(:klass_hero, KlassHero.Mailer)[:api_key] ||
-        raise "RESEND_API_KEY not configured"
-    end
+    # Trigger: test env has no Mailer api_key (Swoosh.Adapters.Test)
+    # Why: Req.Test stubs intercept before the key is used, so any value works
+    # Outcome: "unconfigured" placeholder in test, real key required in prod
+    Application.get_env(:klass_hero, KlassHero.Mailer)[:api_key] || "unconfigured"
   end
 end
