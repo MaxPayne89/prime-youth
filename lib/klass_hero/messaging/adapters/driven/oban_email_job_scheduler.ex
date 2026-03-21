@@ -14,10 +14,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.ObanEmailJobScheduler do
     %{email_id: email_id, resend_id: resend_id}
     |> FetchEmailContentWorker.new()
     |> Oban.insert()
-    |> case do
-      {:ok, job} -> {:ok, job}
-      {:error, reason} -> {:error, reason}
-    end
   end
 
   @impl true
@@ -25,9 +21,5 @@ defmodule KlassHero.Messaging.Adapters.Driven.ObanEmailJobScheduler do
     %{reply_id: reply_id}
     |> SendEmailReplyWorker.new()
     |> Oban.insert()
-    |> case do
-      {:ok, job} -> {:ok, job}
-      {:error, reason} -> {:error, reason}
-    end
   end
 end

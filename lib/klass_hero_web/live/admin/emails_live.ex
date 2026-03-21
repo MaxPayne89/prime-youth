@@ -51,7 +51,12 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
         case Messaging.get_inbound_email(uuid, mark_read: true, reader_id: reader_id) do
           {:ok, email} ->
             sanitized_html = Messaging.sanitize_email_html(email.body_html, allow_images: false)
-            {:ok, replies} = Messaging.list_email_replies(email.id)
+
+            replies =
+              case Messaging.list_email_replies(email.id) do
+                {:ok, replies} -> replies
+                {:error, _reason} -> []
+              end
 
             socket
             |> assign(:email, email)
