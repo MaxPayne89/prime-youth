@@ -307,17 +307,7 @@ defmodule KlassHero.Messaging.Domain.Models.EmailReply do
 
   defp validate(reply) do
     []
-    |> validate_required_fields(reply)
     |> validate_body_not_blank(reply)
-  end
-
-  defp validate_required_fields(errors, reply) do
-    missing =
-      @required_fields
-      |> Enum.filter(fn field -> is_nil(Map.get(reply, field)) end)
-      |> Enum.map(&"#{&1} is required")
-
-    errors ++ missing
   end
 
   defp validate_body_not_blank(errors, reply) do
@@ -745,9 +735,14 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.EmailReplySche
     field :status, :string, default: "sending"
     field :resend_message_id, :string
     field :sent_at, :utc_datetime_usec
+    field :inbound_email_id, :binary_id
+    field :sent_by_id, :binary_id
 
-    belongs_to :inbound_email, InboundEmailSchema
-    belongs_to :sent_by, User
+    belongs_to :inbound_email, InboundEmailSchema,
+      foreign_key: :inbound_email_id, define_field: false
+
+    belongs_to :sent_by, User,
+      foreign_key: :sent_by_id, define_field: false
 
     timestamps()
   end
@@ -1032,11 +1027,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapterTest do
   end
 
   describe "fetch_content/1" do
-    test "returns content on success" do
+    test "returns content on success with normalized headers" do
       assert {:ok, content} = ResendEmailContentAdapter.fetch_content("success-id")
       assert content.html == "<p>Hello</p>"
       assert content.text == "Hello"
-      assert content.headers == %{"Message-ID" => "<abc@example.com>"}
+      assert content.headers == [%{"name" => "Message-ID", "value" => "<abc@example.com>"}]
     end
 
     test "returns :not_found on 404" do
@@ -1094,12 +1089,12 @@ defmodule KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter do
 
     case Req.get(req, url: "/emails/receiving/#{resend_email_id}") do
       {:ok, %Req.Response{status: 200, body: body}} ->
-        {:ok,
-         %{
-           html: body["html"],
-           text: body["text"],
-           headers: body["headers"] || %{}
-         }}
+        # Trigger: Resend receiving API returns headers as a flat map %{"Key" => "Value"}
+      # Why: existing schema stores headers as {:array, :map} in %{"name" => k, "value" => v} format
+      # Outcome: normalize to array-of-maps to match the webhook header convention
+      headers = normalize_headers(body["headers"])
+
+        {:ok, %{html: body["html"], text: body["text"], headers: headers}}
 
       {:ok, %Req.Response{status: 404}} ->
         {:error, :not_found}
@@ -1117,6 +1112,13 @@ defmodule KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter do
     end
   end
 
+  defp normalize_headers(nil), do: []
+  defp normalize_headers(headers) when is_list(headers), do: headers
+
+  defp normalize_headers(headers) when is_map(headers) do
+    Enum.map(headers, fn {name, value} -> %{"name" => name, "value" => value} end)
+  end
+
   defp api_key do
     Application.get_env(:klass_hero, KlassHero.Mailer)[:api_key] ||
       raise "RESEND_API_KEY not configured"
@@ -1124,7 +1126,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter do
 end
 ```
 
-**Note:** The test plug is conditionally applied based on environment. Ensure `config :klass_hero, :env` is set to `:test` in `config/test.exs` (check if this already exists in the project; if not, add `config :klass_hero, env: :test` to test config and `config :klass_hero, env: Mix.env()` to config.exs).
+**Important:** The test plug is conditionally applied. Before running adapter tests, verify the env config exists. If not present, add:
+- `config :klass_hero, env: Mix.env()` to `config/config.exs`
+- `config :klass_hero, env: :test` to `config/test.exs` (overrides to atom, avoids Mix.env in prod)
 
 - [ ] **Step 6.4: Run tests to verify they pass**
 
