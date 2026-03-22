@@ -46,10 +46,13 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
   def handle_event(_event), do: :ignore
 
   defp handle_new_user(email, staff_member_id, provider_id, first_name, business_name, raw_token) do
+    url =
+      "#{Application.get_env(:klass_hero, :app_base_url, "http://localhost:4000")}/users/staff-invitation/#{raw_token}"
+
     case UserNotifier.deliver_staff_invitation(
            email,
            %{business_name: business_name, first_name: first_name},
-           raw_token
+           url
          ) do
       {:ok, _} ->
         emit_sent(staff_member_id, provider_id)
@@ -68,7 +71,14 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
   end
 
   defp handle_existing_user(email, user, staff_member_id, provider_id, business_name) do
-    UserNotifier.deliver_staff_added_notification(email, %{business_name: business_name})
+    dashboard_url =
+      "#{Application.get_env(:klass_hero, :app_base_url, "http://localhost:4000")}/staff/dashboard"
+
+    UserNotifier.deliver_staff_added_notification(email, %{
+      business_name: business_name,
+      dashboard_url: dashboard_url
+    })
+
     emit_registered(to_string(user.id), staff_member_id, provider_id)
     :ok
   end

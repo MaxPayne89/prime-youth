@@ -25,7 +25,10 @@ defmodule KlassHero.Accounts.UserNotifierStaffTest do
       assert {:ok, email} =
                UserNotifier.deliver_staff_added_notification(
                  "existing@example.com",
-                 %{business_name: "Cool Sports"}
+                 %{
+                   business_name: "Cool Sports",
+                   dashboard_url: "http://localhost:4000/staff/dashboard"
+                 }
                )
 
       assert email.to == [{"", "existing@example.com"}]

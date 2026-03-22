@@ -93,16 +93,14 @@ defmodule KlassHero.Accounts.UserNotifier do
   @doc """
   Delivers a staff invitation email with a registration link.
 
-  Accepts a pre-built URL or a raw invitation token. When a token is provided
-  the registration URL is constructed from the application endpoint.
+  `url` must be the full registration URL (passed from the web layer to avoid
+  boundary violations).
   """
   def deliver_staff_invitation(
         email,
         %{business_name: business_name, first_name: first_name},
-        url_or_token
+        url
       ) do
-    url = build_invitation_url(url_or_token)
-
     deliver(email, "You've been invited to join #{business_name} on Klass Hero", """
     Hi #{first_name},
 
@@ -120,18 +118,16 @@ defmodule KlassHero.Accounts.UserNotifier do
     """)
   end
 
-  # Accepts either a full URL (starting with "http") or a raw token,
-  # constructing the full registration URL from the endpoint in the latter case.
-  defp build_invitation_url("http" <> _ = url), do: url
-
-  defp build_invitation_url(raw_token) do
-    "#{KlassHeroWeb.Endpoint.url()}/users/staff-invitation/#{raw_token}"
-  end
-
   @doc """
   Delivers a notification email when an existing user is added as a staff member.
+
+  `dashboard_url` must be the full URL to the staff dashboard (passed from the web layer
+  to avoid boundary violations).
   """
-  def deliver_staff_added_notification(email, %{business_name: business_name}) do
+  def deliver_staff_added_notification(email, %{
+        business_name: business_name,
+        dashboard_url: dashboard_url
+      }) do
     deliver(email, "You've been added to #{business_name}'s team on Klass Hero", """
     Hi,
 
@@ -139,7 +135,7 @@ defmodule KlassHero.Accounts.UserNotifier do
 
     You can view your assigned programs on your staff dashboard:
 
-    #{KlassHeroWeb.Endpoint.url()}/staff/dashboard
+    #{dashboard_url}
 
     If you did not expect this, please contact #{business_name} directly.
     """)

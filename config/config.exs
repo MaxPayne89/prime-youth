@@ -66,6 +66,10 @@ config :klass_hero, Oban,
 config :klass_hero, :accounts,
   for_storing_users: KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
 
+# Base URL for constructing links in emails and event handlers
+# (avoids boundary violations from referencing KlassHeroWeb.Endpoint in domain code)
+config :klass_hero, :app_base_url, "http://localhost:4000"
+
 # Contact information — centralized, configurable per environment
 config :klass_hero, :contact,
   email: "info@klasshero.com",
