@@ -20,8 +20,10 @@ defmodule KlassHero.Accounts do
     RegisterUser
   }
 
+  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.Accounts.{User, UserNotifier, UserToken}
   alias KlassHero.Repo
+  alias KlassHero.Shared.IntegrationEventPublishing
 
   ## Database getters
 
@@ -116,9 +118,6 @@ defmodule KlassHero.Accounts do
           :ok | {:error, term()}
   def emit_staff_user_registered(user_id, staff_member_id, provider_id)
       when is_binary(user_id) and is_binary(staff_member_id) and is_binary(provider_id) do
-    alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
-    alias KlassHero.Shared.IntegrationEventPublishing
-
     user_id
     |> AccountsIntegrationEvents.staff_user_registered(%{
       staff_member_id: staff_member_id,

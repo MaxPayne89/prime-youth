@@ -82,4 +82,19 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers do
   @spec maybe_add_id(map(), String.t() | nil) :: map()
   def maybe_add_id(attrs, nil), do: attrs
   def maybe_add_id(attrs, id), do: Map.put(attrs, :id, id)
+
+  @doc """
+  Normalizes map keys to atoms. Handles both atom and string keys.
+
+  String keys are converted via `String.to_existing_atom/1` to prevent
+  atom table pollution. Useful for event payloads that may arrive with
+  string keys after Oban JSON serialization.
+  """
+  @spec normalize_keys(map()) :: map()
+  def normalize_keys(payload) when is_map(payload) do
+    Map.new(payload, fn
+      {k, v} when is_binary(k) -> {String.to_existing_atom(k), v}
+      {k, v} when is_atom(k) -> {k, v}
+    end)
+  end
 end

@@ -8,7 +8,7 @@ defmodule KlassHero.Accounts.ScopeStaffProviderTest do
 
   describe "resolve_roles/1 with staff_provider" do
     test "adds :staff_provider role when user is active staff member" do
-      user = user_fixture()
+      user = user_fixture(intended_roles: [:staff_provider])
       provider = provider_profile_fixture()
       _staff = staff_member_fixture(%{provider_id: provider.id, user_id: user.id, active: true})
 
@@ -29,7 +29,7 @@ defmodule KlassHero.Accounts.ScopeStaffProviderTest do
     end
 
     test "does not add :staff_provider when staff member is inactive" do
-      user = user_fixture()
+      user = user_fixture(intended_roles: [:staff_provider])
       provider = provider_profile_fixture()
       _staff = staff_member_fixture(%{provider_id: provider.id, user_id: user.id, active: false})
 

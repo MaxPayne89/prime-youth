@@ -210,6 +210,18 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
 
   defp validate_qualifications(errors, _), do: ["Qualifications must be a list" | errors]
 
+  @doc """
+  Generates a URL-safe invitation token and its SHA-256 hash.
+  Returns `{raw_token, token_hash}`.
+  """
+  @spec generate_invitation_token() :: {String.t(), binary()}
+  def generate_invitation_token do
+    raw_bytes = :crypto.strong_rand_bytes(32)
+    raw_token = Base.url_encode64(raw_bytes, padding: false)
+    token_hash = :crypto.hash(:sha256, raw_bytes)
+    {raw_token, token_hash}
+  end
+
   @valid_invitation_transitions %{
     nil => [:pending],
     :pending => [:sent, :failed, :accepted],

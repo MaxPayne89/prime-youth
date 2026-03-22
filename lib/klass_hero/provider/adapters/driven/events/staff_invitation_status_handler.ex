@@ -15,6 +15,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler
   @behaviour KlassHero.Shared.Domain.Ports.ForHandlingIntegrationEvents
 
   alias KlassHero.Provider.Domain.Models.StaffMember
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   require Logger
@@ -27,117 +28,56 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler
 
   @impl true
   def handle_event(%IntegrationEvent{event_type: :staff_invitation_sent, payload: payload}) do
-    payload = normalize_keys(payload)
+    payload = MapperHelpers.normalize_keys(payload)
+
+    transition_and_persist(payload, :sent, fn transitioned ->
+      %{transitioned | invitation_sent_at: DateTime.utc_now()}
+    end)
+  end
+
+  def handle_event(%IntegrationEvent{event_type: :staff_invitation_failed, payload: payload}) do
+    payload = MapperHelpers.normalize_keys(payload)
+    transition_and_persist(payload, :failed)
+  end
+
+  def handle_event(%IntegrationEvent{event_type: :staff_user_registered, payload: payload}) do
+    payload = MapperHelpers.normalize_keys(payload)
+    user_id = Map.fetch!(payload, :user_id)
+
+    transition_and_persist(payload, :accepted, fn transitioned ->
+      %{transitioned | user_id: user_id}
+    end)
+  end
+
+  def handle_event(_event), do: :ignore
+
+  defp transition_and_persist(payload, new_status, update_fn \\ &Function.identity/1) do
     staff_member_id = Map.fetch!(payload, :staff_member_id)
 
     with {:ok, staff} <- @repository.get(staff_member_id),
-         {:ok, transitioned} <- StaffMember.transition_invitation(staff, :sent),
-         updated = %{transitioned | invitation_sent_at: DateTime.utc_now()},
+         {:ok, transitioned} <- StaffMember.transition_invitation(staff, new_status),
+         updated = update_fn.(transitioned),
          {:ok, _persisted} <- @repository.update(updated) do
-      Logger.info(
-        "[StaffInvitationStatusHandler] Staff invitation marked as sent",
+      Logger.info("[StaffInvitationStatusHandler] Transitioned to #{new_status}",
         staff_member_id: staff_member_id
       )
 
       :ok
     else
       {:error, :invalid_invitation_transition} ->
-        # Idempotent: already in :sent or later state
-        Logger.info(
-          "[StaffInvitationStatusHandler] Skipping transition (already past :pending)",
+        Logger.info("[StaffInvitationStatusHandler] Skipping (already past #{new_status})",
           staff_member_id: staff_member_id
         )
 
         :ok
 
       {:error, reason} ->
-        Logger.error(
-          "[StaffInvitationStatusHandler] Failed to update status to :sent",
+        Logger.error("[StaffInvitationStatusHandler] Failed to transition to #{new_status}",
           staff_member_id: staff_member_id,
           reason: inspect(reason)
         )
 
         {:error, reason}
     end
-  end
-
-  def handle_event(%IntegrationEvent{event_type: :staff_invitation_failed, payload: payload}) do
-    payload = normalize_keys(payload)
-    staff_member_id = Map.fetch!(payload, :staff_member_id)
-
-    with {:ok, staff} <- @repository.get(staff_member_id),
-         {:ok, transitioned} <- StaffMember.transition_invitation(staff, :failed),
-         {:ok, _persisted} <- @repository.update(transitioned) do
-      Logger.warning(
-        "[StaffInvitationStatusHandler] Staff invitation failed (compensating)",
-        staff_member_id: staff_member_id,
-        reason: Map.get(payload, :reason)
-      )
-
-      :ok
-    else
-      {:error, :invalid_invitation_transition} ->
-        Logger.info(
-          "[StaffInvitationStatusHandler] Skipping failed transition (already past :pending)",
-          staff_member_id: staff_member_id
-        )
-
-        :ok
-
-      {:error, reason} ->
-        Logger.error(
-          "[StaffInvitationStatusHandler] Failed to update status to :failed",
-          staff_member_id: staff_member_id,
-          reason: inspect(reason)
-        )
-
-        {:error, reason}
-    end
-  end
-
-  def handle_event(%IntegrationEvent{event_type: :staff_user_registered, payload: payload}) do
-    payload = normalize_keys(payload)
-    staff_member_id = Map.fetch!(payload, :staff_member_id)
-    user_id = Map.fetch!(payload, :user_id)
-
-    with {:ok, staff} <- @repository.get(staff_member_id),
-         {:ok, transitioned} <- StaffMember.transition_invitation(staff, :accepted),
-         updated = %{transitioned | user_id: user_id},
-         {:ok, _persisted} <- @repository.update(updated) do
-      Logger.info(
-        "[StaffInvitationStatusHandler] Staff account linked",
-        staff_member_id: staff_member_id,
-        user_id: user_id
-      )
-
-      :ok
-    else
-      {:error, :invalid_invitation_transition} ->
-        # Idempotent: already accepted
-        Logger.info(
-          "[StaffInvitationStatusHandler] Skipping (already accepted)",
-          staff_member_id: staff_member_id
-        )
-
-        :ok
-
-      {:error, reason} ->
-        Logger.error(
-          "[StaffInvitationStatusHandler] Failed to link staff account",
-          staff_member_id: staff_member_id,
-          reason: inspect(reason)
-        )
-
-        {:error, reason}
-    end
-  end
-
-  def handle_event(_event), do: :ignore
-
-  defp normalize_keys(payload) when is_map(payload) do
-    Map.new(payload, fn
-      {k, v} when is_binary(k) -> {String.to_existing_atom(k), v}
-      {k, v} when is_atom(k) -> {k, v}
-    end)
   end
 end

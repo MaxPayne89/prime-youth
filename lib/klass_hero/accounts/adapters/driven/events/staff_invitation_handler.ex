@@ -13,6 +13,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
   alias KlassHero.Accounts
   alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.Accounts.UserNotifier
+  alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
   alias KlassHero.Shared.IntegrationEventPublishing
 
@@ -23,7 +24,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
 
   @impl true
   def handle_event(%IntegrationEvent{event_type: :staff_member_invited, payload: payload}) do
-    payload = normalize_keys(payload)
+    payload = MapperHelpers.normalize_keys(payload)
 
     %{
       email: email,
@@ -112,13 +113,5 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
       user_id: user_id,
       staff_member_id: staff_member_id
     )
-  end
-
-  # Payload keys may be strings after Oban serialization — normalize to atoms
-  defp normalize_keys(payload) when is_map(payload) do
-    Map.new(payload, fn
-      {k, v} when is_binary(k) -> {String.to_existing_atom(k), v}
-      {k, v} when is_atom(k) -> {k, v}
-    end)
   end
 end

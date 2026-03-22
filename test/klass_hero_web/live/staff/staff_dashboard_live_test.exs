@@ -6,7 +6,7 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLiveTest do
 
   describe "staff dashboard" do
     setup %{conn: conn} do
-      user = user_fixture()
+      user = user_fixture(intended_roles: [:staff_provider])
       provider = provider_profile_fixture()
 
       staff =

@@ -52,7 +52,12 @@ defmodule KlassHero.Accounts.Scope do
   def resolve_roles(%__MODULE__{user: user} = scope) do
     parent = extract_profile(Family.get_parent_by_identity(user.id))
     provider = extract_profile(Provider.get_provider_by_identity(user.id))
-    staff_member = extract_profile(Provider.get_active_staff_member_by_user(user.id))
+
+    # Only query for staff membership if the user registered as a staff provider.
+    # This avoids a DB query on every authenticated mount for 99%+ of users.
+    staff_member =
+      if :staff_provider in (user.intended_roles || []),
+        do: extract_profile(Provider.get_active_staff_member_by_user(user.id))
 
     roles =
       []

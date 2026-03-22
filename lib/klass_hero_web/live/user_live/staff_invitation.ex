@@ -145,6 +145,7 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
     end
   end
 
+  @impl true
   def handle_event("validate", %{"user" => user_params}, socket) do
     staff = socket.assigns.staff_member
     params = Map.put(user_params, "email", staff.email)

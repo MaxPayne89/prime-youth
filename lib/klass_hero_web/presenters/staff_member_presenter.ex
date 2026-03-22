@@ -3,6 +3,8 @@ defmodule KlassHeroWeb.Presenters.StaffMemberPresenter do
   Transforms StaffMember domain models to view-ready formats.
   """
 
+  use Gettext, backend: KlassHeroWeb.Gettext
+
   alias KlassHero.Provider.Domain.Models.StaffMember
 
   @spec to_card_view(StaffMember.t()) :: map()
@@ -32,9 +34,9 @@ defmodule KlassHeroWeb.Presenters.StaffMemberPresenter do
   end
 
   defp invitation_status_label(nil), do: nil
-  defp invitation_status_label(:pending), do: "Invitation Pending"
-  defp invitation_status_label(:sent), do: "Invitation Sent"
-  defp invitation_status_label(:failed), do: "Invitation Failed"
-  defp invitation_status_label(:accepted), do: "Joined"
-  defp invitation_status_label(:expired), do: "Invitation Expired"
+  defp invitation_status_label(:pending), do: gettext("Invitation Pending")
+  defp invitation_status_label(:sent), do: gettext("Invitation Sent")
+  defp invitation_status_label(:failed), do: gettext("Invitation Failed")
+  defp invitation_status_label(:accepted), do: gettext("Joined")
+  defp invitation_status_label(:expired), do: gettext("Invitation Expired")
 end
