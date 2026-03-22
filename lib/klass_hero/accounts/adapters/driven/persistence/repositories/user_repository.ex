@@ -54,9 +54,11 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
   # ============================================================================
 
   @impl true
-  def register(attrs) when is_map(attrs) do
+  def register(attrs, opts \\ []) when is_map(attrs) do
+    changeset_fn = Keyword.get(opts, :changeset_fn, &User.registration_changeset/2)
+
     %User{}
-    |> User.registration_changeset(attrs)
+    |> changeset_fn.(attrs)
     |> Repo.insert()
   end
 

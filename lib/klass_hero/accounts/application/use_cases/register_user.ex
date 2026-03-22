@@ -20,8 +20,8 @@ defmodule KlassHero.Accounts.Application.UseCases.RegisterUser do
   - `{:ok, %User{}}` on success (dispatches user_registered event)
   - `{:error, %Ecto.Changeset{}}` on validation failure
   """
-  def execute(attrs) when is_map(attrs) do
-    case @user_repository.register(attrs) do
+  def execute(attrs, opts \\ []) when is_map(attrs) do
+    case @user_repository.register(attrs, opts) do
       {:ok, user} ->
         UserEvents.user_registered(user, %{registration_source: :web})
         |> EventDispatchHelper.dispatch(KlassHero.Accounts)
