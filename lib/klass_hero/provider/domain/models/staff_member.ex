@@ -212,7 +212,7 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
 
   @valid_invitation_transitions %{
     nil => [:pending],
-    :pending => [:sent, :failed],
+    :pending => [:sent, :failed, :accepted],
     :sent => [:accepted, :expired],
     :failed => [:pending],
     :expired => [:pending]

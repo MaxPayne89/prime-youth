@@ -25,6 +25,13 @@ defmodule KlassHero.Provider.Domain.Models.StaffMemberInvitationTest do
                StaffMember.transition_invitation(staff, :failed)
     end
 
+    test ":pending -> :accepted succeeds (existing user fast path)" do
+      staff = build_staff_member(invitation_status: :pending)
+
+      assert {:ok, %StaffMember{invitation_status: :accepted}} =
+               StaffMember.transition_invitation(staff, :accepted)
+    end
+
     test ":sent -> :accepted succeeds" do
       staff = build_staff_member(invitation_status: :sent)
 
