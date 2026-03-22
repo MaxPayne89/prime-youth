@@ -105,9 +105,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     |> validate_length(:bio, max: 2000)
     |> validate_length(:headshot_url, max: 500)
     |> validate_tags()
-    |> validate_inclusion(:invitation_status, ~w(pending sent failed accepted expired),
-      allow_nil: true
-    )
+    |> validate_inclusion(:invitation_status, ~w(pending sent failed accepted expired))
   end
 
   @doc """

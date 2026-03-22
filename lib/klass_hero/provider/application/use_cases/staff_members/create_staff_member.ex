@@ -35,6 +35,7 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
       nil -> false
       "" -> false
       email when is_binary(email) -> String.trim(email) != ""
+      _other -> false
     end
   end
 

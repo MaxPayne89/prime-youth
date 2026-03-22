@@ -8,26 +8,37 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
   @impl true
   def mount(_params, _session, socket) do
     staff_member = socket.assigns.current_scope.staff_member
-    {:ok, provider} = Provider.get_provider_profile(staff_member.provider_id)
 
-    all_programs = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
+    case Provider.get_provider_profile(staff_member.provider_id) do
+      {:ok, provider} ->
+        all_programs = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
 
-    programs =
-      if staff_member.tags == [] do
-        all_programs
-      else
-        Enum.filter(all_programs, fn p -> p.category in staff_member.tags end)
-      end
+        programs =
+          if staff_member.tags == [] do
+            all_programs
+          else
+            Enum.filter(all_programs, fn p -> p.category in staff_member.tags end)
+          end
 
-    socket =
-      socket
-      |> assign(:page_title, gettext("Staff Dashboard"))
-      |> assign(:provider, provider)
-      |> assign(:staff_member, staff_member)
-      |> assign(:programs_empty?, programs == [])
-      |> stream(:programs, programs)
+        socket =
+          socket
+          |> assign(:page_title, gettext("Staff Dashboard"))
+          |> assign(:provider, provider)
+          |> assign(:staff_member, staff_member)
+          |> assign(:programs_empty?, programs == [])
+          |> stream(:programs, programs)
 
-    {:ok, socket}
+        {:ok, socket}
+
+      {:error, :not_found} ->
+        {:ok,
+         socket
+         |> put_flash(
+           :error,
+           gettext("The business associated with your account could not be found.")
+         )
+         |> push_navigate(to: ~p"/")}
+    end
   end
 
   @impl true

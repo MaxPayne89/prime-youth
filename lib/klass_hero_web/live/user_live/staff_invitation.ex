@@ -4,9 +4,8 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
   alias KlassHero.Accounts
   alias KlassHero.Accounts.User
   alias KlassHero.Provider
-  alias KlassHero.Provider.Domain.Models.StaffMember
 
-  @invitation_expiry_days 7
+  require Logger
 
   @impl true
   def render(assigns) do
@@ -89,16 +88,27 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
     with {:ok, decoded} <- Base.url_decode64(raw_token, padding: false),
          token_hash = :crypto.hash(:sha256, decoded),
          {:ok, staff_member} <- Provider.get_staff_member_by_token_hash(token_hash) do
-      if invitation_expired?(staff_member) do
-        # Only expire in the connected phase to avoid double-mutation across static/WS mount
-        if connected?(socket), do: Provider.expire_staff_invitation(staff_member.id)
+      if Provider.invitation_expired?(staff_member) do
+        if connected?(socket) do
+          case Provider.expire_staff_invitation(staff_member.id) do
+            {:ok, _} ->
+              :ok
+
+            {:error, reason} ->
+              Logger.warning("[StaffInvitation] Failed to expire invitation",
+                staff_member_id: staff_member.id,
+                reason: inspect(reason)
+              )
+          end
+        end
+
         {:ok, assign(socket, error: :expired, form: nil, staff_member: nil)}
       else
         changeset =
           User.staff_registration_changeset(
             %User{},
             %{
-              "name" => StaffMember.full_name(staff_member),
+              "name" => Provider.staff_member_full_name(staff_member),
               "email" => staff_member.email
             },
             validate_unique: false
@@ -114,26 +124,52 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
          |> assign_form(changeset), temporary_assigns: [form: nil]}
       end
     else
-      _ -> {:ok, assign(socket, error: :invalid, form: nil, staff_member: nil)}
+      :error ->
+        Logger.info("[StaffInvitation] Invalid base64 token")
+        {:ok, assign(socket, error: :invalid, form: nil, staff_member: nil)}
+
+      {:error, :not_found} ->
+        Logger.info("[StaffInvitation] Token not found or already used")
+        {:ok, assign(socket, error: :invalid, form: nil, staff_member: nil)}
+
+      {:error, reason} ->
+        Logger.error("[StaffInvitation] Unexpected error during token verification",
+          reason: inspect(reason)
+        )
+
+        {:ok, assign(socket, error: :invalid, form: nil, staff_member: nil)}
     end
   end
 
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
     staff = socket.assigns.staff_member
-
-    # Merge the staff email (readonly field) into params so it cannot be tampered with
     params = Map.put(user_params, "email", staff.email)
 
     case Accounts.register_staff_user(params) do
       {:ok, user} ->
-        Accounts.emit_staff_user_registered(user.id, staff.id, staff.provider_id)
+        case Accounts.emit_staff_user_registered(user.id, staff.id, staff.provider_id) do
+          :ok ->
+            :ok
 
-        {:ok, _} =
-          Accounts.deliver_login_instructions(
-            user,
-            &url(~p"/users/log-in/#{&1}")
-          )
+          {:error, reason} ->
+            Logger.error("[StaffInvitation] Failed to emit staff_user_registered",
+              user_id: user.id,
+              staff_member_id: staff.id,
+              reason: inspect(reason)
+            )
+        end
+
+        case Accounts.deliver_login_instructions(user, &url(~p"/users/log-in/#{&1}")) do
+          {:ok, _} ->
+            :ok
+
+          {:error, reason} ->
+            Logger.error("[StaffInvitation] Failed to deliver login instructions",
+              user_id: user.id,
+              reason: inspect(reason)
+            )
+        end
 
         {:noreply,
          socket
@@ -155,12 +191,6 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
-  end
-
-  defp invitation_expired?(%StaffMember{invitation_sent_at: nil}), do: false
-
-  defp invitation_expired?(%StaffMember{invitation_sent_at: sent_at}) do
-    DateTime.diff(DateTime.utc_now(), sent_at, :day) >= @invitation_expiry_days
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do

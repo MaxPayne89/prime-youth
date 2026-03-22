@@ -401,6 +401,18 @@ defmodule KlassHero.Provider do
     @provider_repository.get(provider_id)
   end
 
+  @invitation_expiry_days 7
+
+  @doc """
+  Checks whether a staff member's invitation has expired (7 days from sending).
+  """
+  @spec invitation_expired?(StaffMember.t()) :: boolean()
+  def invitation_expired?(%StaffMember{invitation_sent_at: nil}), do: false
+
+  def invitation_expired?(%StaffMember{invitation_sent_at: sent_at}) do
+    DateTime.diff(DateTime.utc_now(), sent_at, :day) >= @invitation_expiry_days
+  end
+
   @doc """
   Transitions a staff member's invitation status to :expired.
   Called by the invitation LiveView on lazy expiry detection.

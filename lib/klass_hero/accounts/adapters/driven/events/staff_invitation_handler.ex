@@ -57,7 +57,6 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
          ) do
       {:ok, _} ->
         emit_sent(staff_member_id, provider_id)
-        :ok
 
       {:error, reason} ->
         Logger.error("[StaffInvitationHandler] Failed to deliver invitation email",
@@ -67,7 +66,6 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
         )
 
         emit_failed(staff_member_id, provider_id, inspect(reason))
-        :ok
     end
   end
 
@@ -75,13 +73,22 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
     dashboard_url =
       "#{Application.get_env(:klass_hero, :app_base_url, "http://localhost:4000")}/staff/dashboard"
 
-    UserNotifier.deliver_staff_added_notification(email, %{
-      business_name: business_name,
-      dashboard_url: dashboard_url
-    })
+    case UserNotifier.deliver_staff_added_notification(email, %{
+           business_name: business_name,
+           dashboard_url: dashboard_url
+         }) do
+      {:ok, _} ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("[StaffInvitationHandler] Failed to deliver staff-added notification",
+          email: email,
+          staff_member_id: staff_member_id,
+          reason: inspect(reason)
+        )
+    end
 
     emit_registered(to_string(user.id), staff_member_id, provider_id)
-    :ok
   end
 
   defp emit_sent(staff_member_id, provider_id) do
