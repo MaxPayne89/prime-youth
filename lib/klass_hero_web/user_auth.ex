@@ -292,6 +292,15 @@ defmodule KlassHeroWeb.UserAuth do
     )
   end
 
+  def on_mount(:require_staff_provider, _params, session, socket) do
+    require_role(
+      socket,
+      session,
+      &Scope.staff_provider?/1,
+      gettext("You must be a staff member to access this page.")
+    )
+  end
+
   # Requires the user to be an admin.
   # Trigger: user attempts to access admin-only routes
   # Why: admin routes contain sensitive verification/moderation functionality

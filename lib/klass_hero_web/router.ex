@@ -126,6 +126,19 @@ defmodule KlassHeroWeb.Router do
       end
     end
 
+    # Staff provider routes - staff_provider role required
+    live_session :require_staff_provider,
+      layout: {KlassHeroWeb.Layouts, :app},
+      on_mount: [
+        {KlassHeroWeb.UserAuth, :require_authenticated},
+        {KlassHeroWeb.UserAuth, :require_staff_provider},
+        {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+      ] do
+      scope "/staff", Staff do
+        live "/dashboard", StaffDashboardLive, :index
+      end
+    end
+
     # Admin routes - admin role required
     live_session :require_admin,
       layout: {KlassHeroWeb.Layouts, :app},
@@ -260,6 +273,7 @@ defmodule KlassHeroWeb.Router do
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new
       live "/users/log-in/:token", UserLive.Confirmation, :new
+      live "/users/staff-invitation/:token", UserLive.StaffInvitation, :new
     end
 
     post "/users/log-in", UserSessionController, :create
