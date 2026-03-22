@@ -10,6 +10,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandlerTest d
   use KlassHero.DataCase, async: true
 
   import KlassHero.AccountsFixtures
+  import KlassHero.EmailTestHelper
   import KlassHero.EventTestHelper
   import Swoosh.TestAssertions
 
@@ -20,17 +21,6 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandlerTest d
   setup do
     setup_test_integration_events()
     :ok
-  end
-
-  # Drains all pending Swoosh email messages from the test process mailbox.
-  # Use after setup code (like user_fixture) that delivers emails as a side-effect,
-  # so those emails don't interfere with subsequent assert_email_sent calls.
-  defp flush_emails do
-    receive do
-      {:email, _} -> flush_emails()
-    after
-      0 -> :ok
-    end
   end
 
   defp build_staff_member_invited_event(attrs) do

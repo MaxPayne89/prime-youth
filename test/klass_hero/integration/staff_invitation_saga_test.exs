@@ -20,6 +20,7 @@ defmodule KlassHero.Integration.StaffInvitationSagaTest do
   use KlassHero.DataCase, async: true
 
   import KlassHero.AccountsFixtures
+  import KlassHero.EmailTestHelper
   import KlassHero.EventTestHelper
   import KlassHero.ProviderFixtures
   import Swoosh.TestAssertions
@@ -31,17 +32,6 @@ defmodule KlassHero.Integration.StaffInvitationSagaTest do
   alias KlassHero.Provider
   alias KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler
   alias KlassHero.Provider.Domain.Events.ProviderIntegrationEvents
-
-  # Drains all pending Swoosh email messages from the test process mailbox.
-  # Use after fixture setup that delivers emails as a side-effect (e.g. user_fixture),
-  # so those emails do not interfere with subsequent assert_email_sent calls.
-  defp flush_emails do
-    receive do
-      {:email, _} -> flush_emails()
-    after
-      0 -> :ok
-    end
-  end
 
   defp build_invited_event(staff, provider, raw_token) do
     ProviderIntegrationEvents.staff_member_invited(

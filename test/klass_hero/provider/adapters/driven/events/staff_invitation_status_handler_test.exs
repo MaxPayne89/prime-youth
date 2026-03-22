@@ -150,6 +150,29 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler
     end
   end
 
+  describe "handle_event/1 with non-existent staff member" do
+    test "returns error for :staff_invitation_sent with unknown staff_member_id" do
+      event = AccountsIntegrationEvents.staff_invitation_sent(Ecto.UUID.generate())
+      assert {:error, :not_found} = StaffInvitationStatusHandler.handle_event(event)
+    end
+
+    test "returns error for :staff_invitation_failed with unknown staff_member_id" do
+      event = AccountsIntegrationEvents.staff_invitation_failed(Ecto.UUID.generate())
+      assert {:error, :not_found} = StaffInvitationStatusHandler.handle_event(event)
+    end
+
+    test "returns error for :staff_user_registered with unknown staff_member_id" do
+      user = AccountsFixtures.unconfirmed_user_fixture()
+
+      event =
+        AccountsIntegrationEvents.staff_user_registered(user.id, %{
+          staff_member_id: Ecto.UUID.generate()
+        })
+
+      assert {:error, :not_found} = StaffInvitationStatusHandler.handle_event(event)
+    end
+  end
+
   describe "handle_event/1 for unknown events" do
     test "returns :ignore for unrecognized event types" do
       event = %{

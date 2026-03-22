@@ -84,6 +84,21 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
       assert is_binary(event.payload.raw_token)
     end
 
+    test "whitespace-only email is rejected by domain validation", %{
+      provider: provider
+    } do
+      assert {:error, {:validation_error, errors}} =
+               CreateStaffMember.execute(%{
+                 provider_id: provider.id,
+                 first_name: "Blank",
+                 last_name: "Email",
+                 email: "   "
+               })
+
+      assert "Email cannot be empty if provided" in errors
+      assert_no_integration_events_published()
+    end
+
     test "does not emit integration event when email is absent", %{provider: provider} do
       {:ok, _staff} =
         CreateStaffMember.execute(%{

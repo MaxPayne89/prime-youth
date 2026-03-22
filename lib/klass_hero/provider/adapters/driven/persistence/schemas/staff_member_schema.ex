@@ -122,7 +122,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
   @doc """
   Changeset for updating invitation-specific fields.
 
-  Used when recording invitation state transitions (pending, sent, failed, accepted, expired).
+  Used by test fixtures to set invitation state after initial insert, and by
+  any future code paths that need to update invitation fields independently
+  of the general `edit_changeset`.
   """
   def invitation_changeset(staff_member, attrs) do
     staff_member
