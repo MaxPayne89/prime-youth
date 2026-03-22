@@ -19,7 +19,10 @@ defmodule KlassHeroWeb.Presenters.StaffMemberPresenter do
       headshot_url: staff.headshot_url,
       tags: staff.tags || [],
       qualifications: staff.qualifications || [],
-      active: staff.active
+      active: staff.active,
+      invitation_status: staff.invitation_status,
+      invitation_status_label: invitation_status_label(staff.invitation_status),
+      can_resend?: staff.invitation_status in [:failed, :expired]
     }
   end
 
@@ -27,4 +30,11 @@ defmodule KlassHeroWeb.Presenters.StaffMemberPresenter do
   def to_card_view_list(staff_members) when is_list(staff_members) do
     Enum.map(staff_members, &to_card_view/1)
   end
+
+  defp invitation_status_label(nil), do: nil
+  defp invitation_status_label(:pending), do: "Invitation Pending"
+  defp invitation_status_label(:sent), do: "Invitation Sent"
+  defp invitation_status_label(:failed), do: "Invitation Failed"
+  defp invitation_status_label(:accepted), do: "Joined"
+  defp invitation_status_label(:expired), do: "Invitation Expired"
 end

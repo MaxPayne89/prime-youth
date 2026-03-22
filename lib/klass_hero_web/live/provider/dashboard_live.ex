@@ -291,6 +291,22 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end
   end
 
+  @impl true
+  def handle_event("resend_invitation", %{"id" => staff_member_id}, socket) do
+    case Provider.resend_staff_invitation(staff_member_id) do
+      {:ok, updated, _raw_token} ->
+        staff_view = StaffMemberPresenter.to_card_view(updated)
+
+        {:noreply,
+         socket
+         |> stream_insert(:team_members, staff_view)
+         |> put_flash(:info, gettext("Invitation resent successfully."))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to resend invitation."))}
+    end
+  end
+
   # ============================================================================
   # Edit Profile Events
   # ============================================================================

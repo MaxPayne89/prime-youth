@@ -45,6 +45,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.UseCases.Providers.VerifyProvider
   alias KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
   alias KlassHero.Provider.Application.UseCases.StaffMembers.DeleteStaffMember
+  alias KlassHero.Provider.Application.UseCases.StaffMembers.ResendStaffInvitation
   alias KlassHero.Provider.Application.UseCases.StaffMembers.UpdateStaffMember
   alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.UseCases.Verification.GetVerificationDocumentPreview
@@ -310,6 +311,24 @@ defmodule KlassHero.Provider do
   """
   def delete_staff_member(staff_id) when is_binary(staff_id) do
     DeleteStaffMember.execute(staff_id)
+  end
+
+  @doc """
+  Resends a staff invitation for a staff member in :failed or :expired status.
+
+  Generates a fresh token, transitions status back to :pending, and re-emits
+  :staff_member_invited to restart the invitation saga.
+
+  Returns:
+  - `{:ok, StaffMember.t(), raw_token}` on success
+  - `{:error, :not_found}` if the staff member does not exist
+  - `{:error, :invalid_invitation_transition}` if the current status does not allow resend
+  """
+  @spec resend_staff_invitation(String.t()) ::
+          {:ok, StaffMember.t(), String.t()}
+          | {:error, :not_found | :invalid_invitation_transition}
+  def resend_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
+    ResendStaffInvitation.execute(staff_member_id)
   end
 
   @doc """
