@@ -1,0 +1,114 @@
+defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
+  @moduledoc """
+  Integration event handler for `:staff_member_invited` events from Provider context.
+
+  Handles three paths:
+  - New user: sends invitation email, emits :staff_invitation_sent
+  - Existing user: sends notification, emits :staff_user_registered immediately
+  - Email failure: emits :staff_invitation_failed (compensating event)
+  """
+
+  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingIntegrationEvents
+
+  alias KlassHero.Accounts
+  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
+  alias KlassHero.Accounts.UserNotifier
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
+  alias KlassHero.Shared.IntegrationEventPublishing
+
+  require Logger
+
+  @impl true
+  def subscribed_events, do: [:staff_member_invited]
+
+  @impl true
+  def handle_event(%IntegrationEvent{event_type: :staff_member_invited, payload: payload}) do
+    payload = normalize_keys(payload)
+
+    %{
+      email: email,
+      staff_member_id: staff_member_id,
+      provider_id: provider_id,
+      first_name: first_name,
+      business_name: business_name,
+      raw_token: raw_token
+    } = payload
+
+    case Accounts.get_user_by_email(email) do
+      nil ->
+        handle_new_user(email, staff_member_id, provider_id, first_name, business_name, raw_token)
+
+      user ->
+        handle_existing_user(email, user, staff_member_id, provider_id, business_name)
+    end
+  end
+
+  def handle_event(_event), do: :ignore
+
+  defp handle_new_user(email, staff_member_id, provider_id, first_name, business_name, raw_token) do
+    case UserNotifier.deliver_staff_invitation(
+           email,
+           %{business_name: business_name, first_name: first_name},
+           raw_token
+         ) do
+      {:ok, _} ->
+        emit_sent(staff_member_id, provider_id)
+        :ok
+
+      {:error, reason} ->
+        Logger.error("[StaffInvitationHandler] Failed to deliver invitation email",
+          email: email,
+          staff_member_id: staff_member_id,
+          reason: inspect(reason)
+        )
+
+        emit_failed(staff_member_id, provider_id, inspect(reason))
+        :ok
+    end
+  end
+
+  defp handle_existing_user(email, user, staff_member_id, provider_id, business_name) do
+    UserNotifier.deliver_staff_added_notification(email, %{business_name: business_name})
+    emit_registered(to_string(user.id), staff_member_id, provider_id)
+    :ok
+  end
+
+  defp emit_sent(staff_member_id, provider_id) do
+    staff_member_id
+    |> AccountsIntegrationEvents.staff_invitation_sent(%{provider_id: provider_id})
+    |> IntegrationEventPublishing.publish_critical("staff_invitation_sent",
+      staff_member_id: staff_member_id
+    )
+  end
+
+  defp emit_failed(staff_member_id, provider_id, reason) do
+    staff_member_id
+    |> AccountsIntegrationEvents.staff_invitation_failed(%{
+      provider_id: provider_id,
+      reason: reason
+    })
+    |> IntegrationEventPublishing.publish_critical("staff_invitation_failed",
+      staff_member_id: staff_member_id
+    )
+  end
+
+  defp emit_registered(user_id, staff_member_id, provider_id) do
+    user_id
+    |> AccountsIntegrationEvents.staff_user_registered(%{
+      staff_member_id: staff_member_id,
+      provider_id: provider_id
+    })
+    |> IntegrationEventPublishing.publish_critical("staff_user_registered",
+      user_id: user_id,
+      staff_member_id: staff_member_id
+    )
+  end
+
+  # Payload keys may be strings after Oban serialization — normalize to atoms
+  defp normalize_keys(payload) when is_map(payload) do
+    Map.new(payload, fn
+      {k, v} when is_binary(k) -> {String.to_existing_atom(k), v}
+      {k, v} when is_atom(k) -> {k, v}
+    end)
+  end
+end

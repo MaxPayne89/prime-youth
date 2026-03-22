@@ -92,12 +92,17 @@ defmodule KlassHero.Accounts.UserNotifier do
 
   @doc """
   Delivers a staff invitation email with a registration link.
+
+  Accepts a pre-built URL or a raw invitation token. When a token is provided
+  the registration URL is constructed from the application endpoint.
   """
   def deliver_staff_invitation(
         email,
         %{business_name: business_name, first_name: first_name},
-        url
+        url_or_token
       ) do
+    url = build_invitation_url(url_or_token)
+
     deliver(email, "You've been invited to join #{business_name} on Klass Hero", """
     Hi #{first_name},
 
@@ -113,6 +118,14 @@ defmodule KlassHero.Accounts.UserNotifier do
 
     If you did not expect this invitation, you can ignore this email.
     """)
+  end
+
+  # Accepts either a full URL (starting with "http") or a raw token,
+  # constructing the full registration URL from the endpoint in the latter case.
+  defp build_invitation_url("http" <> _ = url), do: url
+
+  defp build_invitation_url(raw_token) do
+    "#{KlassHeroWeb.Endpoint.url()}/users/staff-invitation/#{raw_token}"
   end
 
   @doc """
