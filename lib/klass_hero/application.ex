@@ -347,6 +347,28 @@ defmodule KlassHero.Application do
          message_tag: :integration_event,
          event_label: "Integration event"},
         id: :participation_seed_roster_subscriber
+      ),
+      # Accounts listens for staff_member_invited from Provider
+      Supervisor.child_spec(
+        {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler,
+         topics: ["integration:provider:staff_member_invited"],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :staff_invitation_event_subscriber
+      ),
+      # Provider listens for staff invitation status events from Accounts
+      Supervisor.child_spec(
+        {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler,
+         topics: [
+           "integration:accounts:staff_invitation_sent",
+           "integration:accounts:staff_invitation_failed",
+           "integration:accounts:staff_user_registered"
+         ],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :staff_invitation_status_subscriber
       )
     ]
   end

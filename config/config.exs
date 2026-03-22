@@ -81,6 +81,18 @@ config :klass_hero, :critical_event_handlers, %{
   ],
   "integration:family:invite_family_ready" => [
     {KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler, :handle_event}
+  ],
+  "integration:provider:staff_member_invited" => [
+    {KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler, :handle_event}
+  ],
+  "integration:accounts:staff_invitation_sent" => [
+    {KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler, :handle_event}
+  ],
+  "integration:accounts:staff_invitation_failed" => [
+    {KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler, :handle_event}
+  ],
+  "integration:accounts:staff_user_registered" => [
+    {KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler, :handle_event}
   ]
 }
 
