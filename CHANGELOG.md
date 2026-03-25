@@ -5,6 +5,45 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0](https://github.com/MaxPayne89/klass-hero/compare/v0.15.0...v0.16.0) (2026-03-25)
+
+
+### Features
+
+* add :staff_provider role resolution to Scope ([3cb04aa](https://github.com/MaxPayne89/klass-hero/commit/3cb04aa2bc34cfea7f2da10366af61374019ed99))
+* add :staff_provider role to UserRole system ([3221ec2](https://github.com/MaxPayne89/klass-hero/commit/3221ec2f722dc3bbb3813e8267366a7686645cf9))
+* add :staff_provider routing and auth mount hook ([4728d51](https://github.com/MaxPayne89/klass-hero/commit/4728d5198144b96e39a84e98ad3cb8e7be9e6c37))
+* add integration event factories for staff invitation saga ([c27431b](https://github.com/MaxPayne89/klass-hero/commit/c27431b10c6a72da47a5e8247898290563179717))
+* add invitation fields to staff member persistence layer ([cb9f2ec](https://github.com/MaxPayne89/klass-hero/commit/cb9f2ec6828315504290dd3502f581a4ef012d39))
+* add invitation fields to staff_members table ([a704636](https://github.com/MaxPayne89/klass-hero/commit/a704636f55d8086e2a439680e767ef3f33273fb0))
+* add invitation state machine to StaffMember domain model ([bc7cdc2](https://github.com/MaxPayne89/klass-hero/commit/bc7cdc29363389589763af9e8d2ced2b8866b9f7))
+* add invitation status display and resend flow to team UI ([8823652](https://github.com/MaxPayne89/klass-hero/commit/8823652960fb1a92979669f29a83c512a77986c6))
+* add minimal staff dashboard LiveView ([bd6e532](https://github.com/MaxPayne89/klass-hero/commit/bd6e532e38267af309d67e96059aa4f0ca57319f))
+* add staff invitation and notification email templates ([9340228](https://github.com/MaxPayne89/klass-hero/commit/9340228c272d2826492740ea1bbe8b390d3c3cf6))
+* add staff invitation registration LiveView ([e507900](https://github.com/MaxPayne89/klass-hero/commit/e507900ca1fb523335acd437d670d93055a59418))
+* add staff invitation saga for automatic provider account creation ([ad79298](https://github.com/MaxPayne89/klass-hero/commit/ad792984c247ff2c55e0977eb67a57243115f5bc))
+* add staff_registration_changeset and register_staff_user facade ([0282ee5](https://github.com/MaxPayne89/klass-hero/commit/0282ee54de1907ea6c3bd3b36946d6eac0d613e1))
+* generate invitation token and emit event on staff member creation ([0a65a15](https://github.com/MaxPayne89/klass-hero/commit/0a65a15b7fedb43d869708fd8f2a45860208750b))
+* implement provider-side staff invitation status handler ([be62b28](https://github.com/MaxPayne89/klass-hero/commit/be62b2897f4cf350169b5baf7fc621ec9e5c2c0c))
+* implement StaffInvitationHandler for accounts context ([51dd590](https://github.com/MaxPayne89/klass-hero/commit/51dd590655b781d390b62d1534af879b98ae1ced))
+* wire staff invitation saga event subscribers and critical handlers ([3ed82ca](https://github.com/MaxPayne89/klass-hero/commit/3ed82ca71d86d2f0dd25d70338313deb3a2f9b7b))
+
+
+### Bug Fixes
+
+* address architecture review findings for staff invitation saga ([17eea48](https://github.com/MaxPayne89/klass-hero/commit/17eea4890d85daa715ac4c8c9bdcd510d8073442))
+* address PR review comments ([adb07e2](https://github.com/MaxPayne89/klass-hero/commit/adb07e2565e494892298ef3eae9ddbe2d96302f2)), closes [#498](https://github.com/MaxPayne89/klass-hero/issues/498)
+* harden event payload handling and improve error differentiation ([0093593](https://github.com/MaxPayne89/klass-hero/commit/0093593bb826ceda352aef8d4a71b08b8b0037ff))
+* remove cross-context belongs_to and add emit failure compensation ([6b9c901](https://github.com/MaxPayne89/klass-hero/commit/6b9c9018a0742a69b32383757282c9fe1a8dba6e))
+* resolve boundary violations in staff invitation email handling ([ba5ec8f](https://github.com/MaxPayne89/klass-hero/commit/ba5ec8f0e3f62c62f534afd4cc3749ab087e49b0))
+
+
+### Code Refactoring
+
+* add Accounts facade for staff changeset and fill test gaps ([087b649](https://github.com/MaxPayne89/klass-hero/commit/087b649ac615cc8334cc370f4897e874505391c5))
+* simplify staff invitation saga after code review ([211f95d](https://github.com/MaxPayne89/klass-hero/commit/211f95d93bc628d2af5147092db76249cf965552))
+* simplify staff invitation saga code ([9224962](https://github.com/MaxPayne89/klass-hero/commit/9224962438abe1577cc584e98d3a015cd70c999c))
+
 ## [0.15.0](https://github.com/MaxPayne89/klass-hero/compare/v0.14.0...v0.15.0) (2026-03-21)
 
 
