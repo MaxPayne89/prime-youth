@@ -26,9 +26,16 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
   def handle_event(%IntegrationEvent{event_type: :staff_member_invited, payload: payload}) do
     payload = MapperHelpers.normalize_keys(payload)
 
-    case Accounts.get_user_by_email(payload.email) do
-      nil -> handle_new_user(payload)
-      user -> handle_existing_user(payload, user)
+    case Map.fetch(payload, :email) do
+      {:ok, email} ->
+        case Accounts.get_user_by_email(email) do
+          nil -> handle_new_user(payload)
+          user -> handle_existing_user(payload, user)
+        end
+
+      :error ->
+        Logger.error("[StaffInvitationHandler] Missing :email in staff_member_invited payload")
+        {:error, :invalid_payload}
     end
   end
 

@@ -169,4 +169,20 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandlerTest d
       assert :ignore = StaffInvitationHandler.handle_event(event)
     end
   end
+
+  describe "handle_event/1 — malformed payloads" do
+    test "returns error for missing email in payload" do
+      event =
+        ProviderIntegrationEvents.staff_member_invited(Ecto.UUID.generate(), %{
+          provider_id: Ecto.UUID.generate(),
+          first_name: "Jane",
+          business_name: "Test Co",
+          raw_token: "token"
+        })
+
+      event = %{event | payload: Map.delete(event.payload, :email)}
+
+      assert {:error, :invalid_payload} = StaffInvitationHandler.handle_event(event)
+    end
+  end
 end

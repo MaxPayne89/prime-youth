@@ -113,6 +113,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
     query =
       from s in StaffMemberSchema,
         where: s.user_id == ^user_id and s.active == true,
+        order_by: [desc: s.inserted_at],
         limit: 1
 
     case Repo.one(query) do

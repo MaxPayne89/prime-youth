@@ -70,6 +70,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     |> validate_length(:bio, max: 2000)
     |> validate_length(:headshot_url, max: 500)
     |> validate_tags()
+    |> validate_inclusion(
+      :invitation_status,
+      Enum.map(StaffMember.valid_invitation_statuses(), &to_string/1)
+    )
     |> foreign_key_constraint(:provider_id)
   end
 
@@ -110,6 +114,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
       :invitation_status,
       Enum.map(StaffMember.valid_invitation_statuses(), &to_string/1)
     )
+    |> foreign_key_constraint(:user_id)
   end
 
   @doc """
@@ -137,6 +142,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
       :invitation_status,
       Enum.map(StaffMember.valid_invitation_statuses(), &to_string/1)
     )
+    |> foreign_key_constraint(:user_id)
   end
 
   defp validate_tags(changeset) do
