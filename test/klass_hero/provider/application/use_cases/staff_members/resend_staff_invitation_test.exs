@@ -4,7 +4,9 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.ResendStaffInvita
   import KlassHero.EventTestHelper
   import KlassHero.ProviderFixtures
 
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
   alias KlassHero.Provider.Application.UseCases.StaffMembers.ResendStaffInvitation
+  alias KlassHero.Shared.Adapters.Driven.Events.TestIntegrationEventPublisher
 
   setup do
     setup_test_integration_events()
@@ -114,6 +116,30 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.ResendStaffInvita
 
       assert :crypto.hash(:sha256, Base.url_decode64!(raw_token, padding: false)) ==
                updated.invitation_token_hash
+    end
+
+    test "compensates to :failed when event publishing fails" do
+      provider = provider_profile_fixture()
+
+      staff =
+        staff_member_fixture(%{
+          provider_id: provider.id,
+          email: "staff@example.com",
+          invitation_status: :failed,
+          invitation_token_hash: :crypto.hash(:sha256, "old-token")
+        })
+
+      # Clear events from fixture setup, then configure publish to fail
+      clear_integration_events()
+      TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)
+
+      assert {:error, :invitation_emission_failed} = ResendStaffInvitation.execute(staff.id)
+
+      # Verify compensation: staff member in :failed, not orphaned as :pending
+      schema = Repo.get!(StaffMemberSchema, staff.id)
+      assert schema.invitation_status == "failed"
+
+      assert_no_integration_events_published()
     end
   end
 end

@@ -30,7 +30,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     field :invitation_status, :string
     field :invitation_token_hash, :binary
     field :invitation_sent_at, :utc_datetime_usec
-    belongs_to :user, KlassHero.Accounts.User, type: :binary_id
+    field :user_id, :binary_id
 
     timestamps()
   end

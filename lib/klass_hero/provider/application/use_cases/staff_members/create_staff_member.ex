@@ -14,6 +14,8 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
   alias KlassHero.Provider.Application.UseCases.StaffMembers.InvitationEmitter
   alias KlassHero.Provider.Domain.Models.StaffMember
 
+  require Logger
+
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_staff_members])
 
   def execute(attrs) when is_map(attrs) do
@@ -56,12 +58,36 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
     persistence_attrs = Map.update!(attrs_with_invitation, :invitation_status, &to_string/1)
 
     with {:ok, _validated} <- StaffMember.new(attrs_with_invitation),
-         {:ok, persisted} <- @repository.create(persistence_attrs),
-         :ok <- InvitationEmitter.emit(persisted, raw_token) do
-      {:ok, persisted, raw_token}
+         {:ok, persisted} <- @repository.create(persistence_attrs) do
+      case InvitationEmitter.emit(persisted, raw_token) do
+        :ok ->
+          {:ok, persisted, raw_token}
+
+        {:error, reason} ->
+          compensate_failed_emission(persisted, reason)
+      end
     else
       {:error, errors} when is_list(errors) -> {:error, {:validation_error, errors}}
       {:error, _} = error -> error
+    end
+  end
+
+  defp compensate_failed_emission(staff_member, reason) do
+    Logger.warning("[CreateStaffMember] Event emission failed, compensating",
+      staff_member_id: staff_member.id,
+      reason: inspect(reason)
+    )
+
+    with {:ok, failed} <- StaffMember.transition_invitation(staff_member, :failed),
+         {:ok, _persisted} <- @repository.update(failed) do
+      {:error, :invitation_emission_failed}
+    else
+      {:error, _compensation_error} ->
+        Logger.error("[CreateStaffMember] Compensation failed",
+          staff_member_id: staff_member.id
+        )
+
+        {:error, :invitation_emission_failed}
     end
   end
 end

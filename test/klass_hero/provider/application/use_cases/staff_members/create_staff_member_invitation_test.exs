@@ -3,8 +3,10 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
 
   import KlassHero.EventTestHelper
 
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
   alias KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
   alias KlassHero.ProviderFixtures
+  alias KlassHero.Shared.Adapters.Driven.Events.TestIntegrationEventPublisher
 
   setup do
     provider = ProviderFixtures.provider_profile_fixture()
@@ -108,6 +110,30 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
         })
 
       assert_no_integration_events_published()
+    end
+  end
+
+  describe "execute/1 — emit failure compensation" do
+    test "compensates to :failed when event publishing fails", %{provider: provider} do
+      TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)
+
+      assert {:error, :invitation_emission_failed} =
+               CreateStaffMember.execute(%{
+                 provider_id: provider.id,
+                 first_name: "Jane",
+                 last_name: "Doe",
+                 email: "jane@example.com"
+               })
+
+      # Verify compensation: staff member persisted in :failed, not orphaned as :pending
+      [schema] =
+        Repo.all(
+          from(s in StaffMemberSchema,
+            where: s.provider_id == ^provider.id and s.email == "jane@example.com"
+          )
+        )
+
+      assert schema.invitation_status == "failed"
     end
   end
 end
