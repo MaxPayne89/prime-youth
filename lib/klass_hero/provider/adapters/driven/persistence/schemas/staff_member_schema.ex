@@ -10,6 +10,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
   import Ecto.Changeset
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Shared.Categories
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -26,6 +27,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     field :tags, {:array, :string}, default: []
     field :qualifications, {:array, :string}, default: []
     field :active, :boolean, default: true
+    field :invitation_status, :string
+    field :invitation_token_hash, :binary
+    field :invitation_sent_at, :utc_datetime_usec
+    field :user_id, :binary_id
 
     timestamps()
   end
@@ -52,7 +57,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
       :headshot_url,
       :tags,
       :qualifications,
-      :active
+      :active,
+      :invitation_status,
+      :invitation_token_hash
     ])
     |> put_change(:provider_id, provider_id)
     |> validate_required([:provider_id, :first_name, :last_name])
@@ -63,6 +70,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     |> validate_length(:bio, max: 2000)
     |> validate_length(:headshot_url, max: 500)
     |> validate_tags()
+    |> validate_inclusion(
+      :invitation_status,
+      Enum.map(StaffMember.valid_invitation_statuses(), &to_string/1)
+    )
     |> foreign_key_constraint(:provider_id)
   end
 
@@ -85,7 +96,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
       :headshot_url,
       :tags,
       :qualifications,
-      :active
+      :active,
+      :invitation_status,
+      :invitation_token_hash,
+      :invitation_sent_at,
+      :user_id
     ])
     |> validate_required([:first_name, :last_name])
     |> validate_length(:first_name, min: 1, max: 100)
@@ -95,6 +110,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     |> validate_length(:bio, max: 2000)
     |> validate_length(:headshot_url, max: 500)
     |> validate_tags()
+    |> validate_inclusion(
+      :invitation_status,
+      Enum.map(StaffMember.valid_invitation_statuses(), &to_string/1)
+    )
+    |> foreign_key_constraint(:user_id)
   end
 
   @doc """
@@ -106,6 +126,23 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
   """
   def admin_changeset(schema, attrs, _metadata) do
     cast(schema, attrs, [:active])
+  end
+
+  @doc """
+  Changeset for updating invitation-specific fields.
+
+  Used by test fixtures to set invitation state after initial insert, and by
+  any future code paths that need to update invitation fields independently
+  of the general `edit_changeset`.
+  """
+  def invitation_changeset(staff_member, attrs) do
+    staff_member
+    |> cast(attrs, [:invitation_status, :invitation_token_hash, :invitation_sent_at, :user_id])
+    |> validate_inclusion(
+      :invitation_status,
+      Enum.map(StaffMember.valid_invitation_statuses(), &to_string/1)
+    )
+    |> foreign_key_constraint(:user_id)
   end
 
   defp validate_tags(changeset) do

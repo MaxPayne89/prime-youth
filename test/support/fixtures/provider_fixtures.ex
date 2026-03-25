@@ -45,6 +45,7 @@ defmodule KlassHero.ProviderFixtures do
   Creates a staff member for testing.
 
   Uses the schema directly to insert into database, then maps to domain model.
+  Supports invitation fields: invitation_status, invitation_token_hash, invitation_sent_at, user_id.
   """
   def staff_member_fixture(attrs \\ %{}) do
     defaults = %{
@@ -55,10 +56,38 @@ defmodule KlassHero.ProviderFixtures do
 
     merged = Map.merge(defaults, Map.new(attrs))
 
+    # Invitation fields are applied via invitation_changeset after initial insert
+    invitation_keys = [:invitation_status, :invitation_token_hash, :invitation_sent_at, :user_id]
+    create_attrs = Map.drop(merged, invitation_keys)
+
     {:ok, schema} =
       %StaffMemberSchema{}
-      |> StaffMemberSchema.create_changeset(merged)
+      |> StaffMemberSchema.create_changeset(create_attrs)
       |> Repo.insert()
+
+    # Apply invitation fields if provided (these go through invitation_changeset, not create)
+    invitation_fields = Map.take(merged, invitation_keys)
+
+    schema =
+      if map_size(invitation_fields) > 0 do
+        invitation_fields =
+          case invitation_fields[:invitation_status] do
+            status when is_atom(status) and not is_nil(status) ->
+              Map.put(invitation_fields, :invitation_status, Atom.to_string(status))
+
+            _ ->
+              invitation_fields
+          end
+
+        {:ok, updated} =
+          schema
+          |> StaffMemberSchema.invitation_changeset(invitation_fields)
+          |> Repo.update()
+
+        updated
+      else
+        schema
+      end
 
     StaffMemberMapper.to_domain(schema)
   end

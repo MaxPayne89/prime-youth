@@ -64,17 +64,20 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorker do
           "Content fetch failed for #{email_id} (attempt #{job.attempt}): #{inspect(reason)}"
         )
 
-        if job.attempt >= job.max_attempts do
-          case email_repo.update_content(email_id, %{content_status: "failed"}) do
-            {:ok, _} ->
-              Logger.error("Marked email #{email_id} content as permanently failed")
-
-            {:error, mark_reason} ->
-              Logger.error("Failed to mark email #{email_id} as failed: #{inspect(mark_reason)}")
-          end
-        end
-
+        maybe_mark_permanently_failed(email_repo, email_id, job)
         {:error, reason}
+    end
+  end
+
+  defp maybe_mark_permanently_failed(email_repo, email_id, job) do
+    if job.attempt >= job.max_attempts do
+      case email_repo.update_content(email_id, %{content_status: "failed"}) do
+        {:ok, _} ->
+          Logger.error("Marked email #{email_id} content as permanently failed")
+
+        {:error, mark_reason} ->
+          Logger.error("Failed to mark email #{email_id} as failed: #{inspect(mark_reason)}")
+      end
     end
   end
 end

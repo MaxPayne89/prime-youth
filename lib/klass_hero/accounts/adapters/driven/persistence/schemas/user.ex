@@ -85,6 +85,28 @@ defmodule KlassHero.Accounts.User do
     |> validate_email(opts)
   end
 
+  @doc """
+  A user changeset for staff provider registration.
+
+  Locks intended_roles to [:staff_provider]. Does not require
+  provider_subscription_tier. Used when a staff member registers
+  via an invitation link.
+
+  ## Options
+
+    * `:validate_unique` - Set to false if you don't want to validate the
+      uniqueness of the email. Defaults to `true`.
+  """
+  def staff_registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:name, :email])
+    |> validate_required([:name, :email])
+    |> validate_length(:name, min: 2, max: 100)
+    |> put_change(:intended_roles, [:staff_provider])
+    |> validate_email(opts)
+    |> password_changeset(attrs, opts)
+  end
+
   defp put_default_role(changeset) do
     case get_field(changeset, :intended_roles) do
       nil -> put_change(changeset, :intended_roles, [:parent])

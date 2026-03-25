@@ -23,7 +23,8 @@ defmodule KlassHero.Accounts.Scope do
   defstruct user: nil,
             roles: [],
             parent: nil,
-            provider: nil
+            provider: nil,
+            staff_member: nil
 
   @doc """
   Creates a scope for the given user.
@@ -52,12 +53,19 @@ defmodule KlassHero.Accounts.Scope do
     parent = extract_profile(Family.get_parent_by_identity(user.id))
     provider = extract_profile(Provider.get_provider_by_identity(user.id))
 
+    # Only query for staff membership if the user registered as a staff provider.
+    # This avoids a DB query on every authenticated mount for 99%+ of users.
+    staff_member =
+      if :staff_provider in (user.intended_roles || []),
+        do: extract_profile(Provider.get_active_staff_member_by_user(user.id))
+
     roles =
       []
       |> maybe_add_role(parent, :parent)
       |> maybe_add_role(provider, :provider)
+      |> maybe_add_role(staff_member, :staff_provider)
 
-    %{scope | roles: roles, parent: parent, provider: provider}
+    %{scope | roles: roles, parent: parent, provider: provider, staff_member: staff_member}
   end
 
   @doc """
@@ -94,6 +102,11 @@ defmodule KlassHero.Accounts.Scope do
       true
   """
   def provider?(%__MODULE__{provider: provider}), do: provider != nil
+
+  @doc """
+  Returns true if the scope has a staff provider profile.
+  """
+  def staff_provider?(%__MODULE__{staff_member: staff_member}), do: staff_member != nil
 
   @doc """
   Returns the parent's subscription tier from the scope.

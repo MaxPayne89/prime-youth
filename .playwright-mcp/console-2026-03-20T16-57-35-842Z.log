@@ -1,0 +1,82 @@
+[     848ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:4000/:0
+[   31064ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[   31065ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[   31065ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  151069ms] [ERROR] %c📡 [error] ** (Bandit.TransportError) Unrecoverable error: timeout
+ color: inherit; @ http://localhost:4000/phoenix/live_reload/frame:1828
+[  152912ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  152912ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  152913ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  167345ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  167345ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  167346ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  179110ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  179110ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  179111ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  205723ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  205723ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  205723ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  216383ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  216383ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  216383ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  230745ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  230745ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  230745ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  243455ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  243456ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  243456ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  268850ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  268850ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  268850ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  285286ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  285287ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  285287ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  294895ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  294895ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  294895ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  348939ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/phoenix/phoenix.js:0
+[  348939ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.css:0
+[  348939ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4007/assets/live_debugger/client.js:0
+[  350064ms] [ERROR] %c📡 [error] GenServer #PID<0.355299.0> terminating
+** (UndefinedFunctionError) function HtmlSanitizeEx.basic_html/1 is undefined (module HtmlSanitizeEx is not available). Make sure the module name is correct and has been specified in full (or that an alias has been defined)
+    HtmlSanitizeEx.basic_html("<p>Hello <strong>world</strong></p><script>alert('xss')</script>")
+    lib/klass_hero/messaging/adapters/driven/email_sanitizer.ex:28: KlassHero.Messaging.Adapters.Driven.EmailSanitizer.sanitize/2
+    lib/klass_hero_web/live/admin/emails_live.ex:52: KlassHeroWeb.Admin.EmailsLive.apply_action/3
+    lib/klass_hero_web/live/admin/emails_live.ex:34: KlassHeroWeb.Admin.EmailsLive.handle_params/3
+    (phoenix_live_view 1.1.27) lib/phoenix_live_view/utils.ex:466: anonymous fn/5 in Phoenix.LiveView.Utils.call_handle_params!/5
+    (telemetry 1.4.1) /Users/maximilianpergl/Projects/klass-hero/deps/telemetry/src/telemetry.erl:359: :telemetry.span/3
+    (phoenix_live_view 1.1.27) lib/phoenix_live_view/channel.ex:590: Phoenix.LiveView.Channel.maybe_call_mount_handle_params/4
+    (phoenix_live_view 1.1.27) lib/phoenix_live_view/channel.ex:1240: Phoenix.LiveView.Channel.verified_mount/8
+    (phoenix_live_view 1.1.27) lib/phoenix_live_view/channel.ex:84: Phoenix.LiveView.Channel.handle_info/2
+    (stdlib 7.3) gen_server.erl:2434: :gen_server.try_handle_info/3
+    (stdlib 7.3) gen_server.erl:2420: :gen_server.handle_msg/3
+    (stdlib 7.3) proc_lib.erl:333: :proc_lib.init_p_do_apply/3
+Process Label: {Phoenix.LiveView, KlassHeroWeb.Admin.EmailsLive, "lv:phx-GJ6bbxz4dPg1sWKE"}
+Last message: {Phoenix.Channel, %{"flash" => nil, "params" => %{"_csrf_token" => "LjY-DTEARwEMGy4pBVQEEwUeLS8UPTlDkyQNH-4SzoYnA8VRmhoKcGc-", "_live_referer" => "http://localhost:4000/admin/emails", "_mount_attempts" => 0, "_mounts" => 0, "_track_static" => ["http://localhost:4000/assets/css/app.css", "http://localhost:4000/assets/js/app.js"]}, "redirect" => "http://localhost:4000/admin/emails/ced9fd1c-aa08-4aa8-a25e-0ad4b0fc2eb9", "session" => "SFMyNTY.g2gDaAJhBnQAAAAIdwJpZG0AAAAUcGh4LUdKNmJieHo0ZFBnMXNXS0V3B3Nlc3Npb250AAAAAHcKcGFyZW50X3BpZHcDbmlsdwZyb3V0ZXJ3GkVsaXhpci5LbGFzc0hlcm9XZWIuUm91dGVydwR2aWV3dyRFbGl4aXIuS2xhc3NIZXJvV2ViLkFkbWluLkVtYWlsc0xpdmV3CXJvb3Rfdmlld3ckRWxpeGlyLktsYXNzSGVyb1dlYi5BZG1pbi5FbWFpbHNMaXZldxFsaXZlX3Nlc3Npb25fbmFtZXcMYWRtaW5fY3VzdG9tdwhyb290X3BpZHcDbmlsbgYAW6YzDJ0BYgABUYA.rXfXe4Cna7Cc6p3lH4E6CiOISGg3-Xtaov75ZMytm9M", "static" => "SFMyNTY.g2gDaAJhBnQAAAADdwJpZG0AAAAUcGh4LUdKNmJieHo0ZFBnMXNXS0V3BWZsYXNodAAAAAB3CmFzc2lnbl9uZXdsAAAAAXcNY3VycmVudF9zY29wZWpuBgBbpjMMnQFiAAFRgA.2nmkI24GlwydoSat1d1wv9Ju1mJLlmOPeL1w-wOJHHY", "sticky" => false}, {#PID<0.355269.0>, #Reference<0.601121517.719847430.104684>}, %Phoenix.Socket{assigns: %{}, channel: Phoenix.LiveView.Channel, channel_pid: nil, endpoint: KlassHeroWeb.Endpoint, handler: Phoenix.LiveView.Socket, id: "users_sessions:WCYZ4_Hw1u5HwgNTX3fM-DjStMmv5ADJz6Y4iB2gUr0=", joined: false, join_ref: "15", private: %{connect_info: %{session: %{"_csrf_token" => "EOoCy-sRvtwGDlRAhvBdwzZn", "live_socket_id" => "users_sessions:WCYZ4_Hw1u5HwgNTX3fM-DjStMmv5ADJz6Y4iB2gUr0=", "locale" => "en", "user_remember_me" => true, "user_token" => <<88, 38, 25, 227, 241, 240, 214, 238, 71, 194, 3, 83, 95, 119, 204, 248, 56, 210, 180, 201, 175, 228, 0, 201, 207, 166, 56, 136, 29, 160, 82, 189>>}}}, pubsub_server: KlassHero.PubSub, ref: nil, serializer: Phoenix.Socket.V2.JSONSerializer, topic: "lv:phx-GJ6bbxz4dPg1sWKE", transport: :websocket, transport_pid: #PID<0.355269.0>}}
+State: #Reference<0.601121517.719847430.104688>
+ color: inherit; @ http://localhost:4000/phoenix/live_reload/frame:1828
+[  350066ms] [ERROR] %c📡 [error] an exception was raised:
+    ** (UndefinedFunctionError) function HtmlSanitizeEx.basic_html/1 is undefined (module HtmlSanitizeEx is not available). Make sure the module name is correct and has been specified in full (or that an alias has been defined)
+        HtmlSanitizeEx.basic_html("<p>Hello <strong>world</strong></p><script>alert('xss')</script>")
+        lib/klass_hero/messaging/adapters/driven/email_sanitizer.ex:28: KlassHero.Messaging.Adapters.Driven.EmailSanitizer.sanitize/2
+        lib/klass_hero_web/live/admin/emails_live.ex:52: KlassHeroWeb.Admin.EmailsLive.apply_action/3
+        lib/klass_hero_web/live/admin/emails_live.ex:34: KlassHeroWeb.Admin.EmailsLive.handle_params/3
+        (phoenix_live_view 1.1.27) lib/phoenix_live_view/utils.ex:466: anonymous fn/5 in Phoenix.LiveView.Utils.call_handle_params!/5
+        (telemetry 1.4.1) /Users/maximilianpergl/Projects/klass-hero/deps/telemetry/src/telemetry.erl:359: :telemetry.span/3
+        (phoenix_live_view 1.1.27) lib/phoenix_live_view/channel.ex:590: Phoenix.LiveView.Channel.maybe_call_mount_handle_params/4
+        (phoenix_live_view 1.1.27) lib/phoenix_live_view/channel.ex:1240: Phoenix.LiveView.Channel.verified_mount/8
+        (phoenix_live_view 1.1.27) lib/phoenix_live_view/channel.ex:84: Phoenix.LiveView.Channel.handle_info/2
+        (stdlib 7.3) gen_server.erl:2434: :gen_server.try_handle_info/3
+        (stdlib 7.3) gen_server.erl:2420: :gen_server.handle_msg/3
+        (stdlib 7.3) proc_lib.erl:333: :proc_lib.init_p_do_apply/3
+ color: inherit; @ http://localhost:4000/phoenix/live_reload/frame:1828
+[  358830ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:4000/admin/emails/ced9fd1c-aa08-4aa8-a25e-0ad4b0fc2eb9:0
+[  701644ms] [ERROR] WebSocket connection to 'ws://localhost:4000/phoenix/live_reload/socket/websocket?vsn=2.0.0' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:4000/phoenix/live_reload/frame:1340
+[  701696ms] [ERROR] WebSocket connection to 'ws://localhost:4000/phoenix/live_reload/socket/websocket?vsn=2.0.0' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:4000/phoenix/live_reload/frame:1340
+[  701798ms] [ERROR] WebSocket connection to 'ws://localhost:4000/phoenix/live_reload/socket/websocket?vsn=2.0.0' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:4000/phoenix/live_reload/frame:1340
+[  701950ms] [ERROR] WebSocket connection to 'ws://localhost:4000/phoenix/live_reload/socket/websocket?vsn=2.0.0' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:4000/phoenix/live_reload/frame:1340
+[  702153ms] [ERROR] WebSocket connection to 'ws://localhost:4000/phoenix/live_reload/socket/websocket?vsn=2.0.0' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:4000/phoenix/live_reload/frame:1340
+[  702409ms] [ERROR] WebSocket connection to 'ws://localhost:4000/phoenix/live_reload/socket/websocket?vsn=2.0.0' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:4000/phoenix/live_reload/frame:1340
+[  702919ms] [ERROR] WebSocket connection to 'ws://localhost:4000/phoenix/live_reload/socket/websocket?vsn=2.0.0' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:4000/phoenix/live_reload/frame:1340
+[  703938ms] [ERROR] WebSocket connection to 'ws://localhost:4000/phoenix/live_reload/socket/websocket?vsn=2.0.0' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:4000/phoenix/live_reload/frame:1340
+[  705975ms] [ERROR] WebSocket connection to 'ws://localhost:4000/phoenix/live_reload/socket/websocket?vsn=2.0.0' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://localhost:4000/phoenix/live_reload/frame:1340

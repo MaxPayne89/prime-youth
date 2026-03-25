@@ -2,6 +2,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyToEmailTest do
   use KlassHero.DataCase, async: true
 
   alias KlassHero.Messaging.Application.UseCases.ReplyToEmail
+  alias KlassHero.Messaging.Repositories
   alias KlassHero.MessagingFixtures
 
   describe "execute/4" do
@@ -22,7 +23,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyToEmailTest do
       assert reply.inbound_email_id == email.id
 
       # Verify the worker actually delivered (DB reflects inline execution)
-      reply_repo = KlassHero.Messaging.Repositories.email_replies()
+      reply_repo = Repositories.email_replies()
       {:ok, persisted} = reply_repo.get_by_id(reply.id)
       assert persisted.status == :sent
     end

@@ -66,6 +66,10 @@ config :klass_hero, Oban,
 config :klass_hero, :accounts,
   for_storing_users: KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
 
+# Base URL for constructing links in emails and event handlers
+# (avoids boundary violations from referencing KlassHeroWeb.Endpoint in domain code)
+config :klass_hero, :app_base_url, "http://localhost:4000"
+
 # Contact information — centralized, configurable per environment
 config :klass_hero, :contact,
   email: "info@klasshero.com",
@@ -81,6 +85,18 @@ config :klass_hero, :critical_event_handlers, %{
   ],
   "integration:family:invite_family_ready" => [
     {KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler, :handle_event}
+  ],
+  "integration:provider:staff_member_invited" => [
+    {KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler, :handle_event}
+  ],
+  "integration:accounts:staff_invitation_sent" => [
+    {KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler, :handle_event}
+  ],
+  "integration:accounts:staff_invitation_failed" => [
+    {KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler, :handle_event}
+  ],
+  "integration:accounts:staff_user_registered" => [
+    {KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler, :handle_event}
   ]
 }
 
@@ -326,7 +342,8 @@ config :logger, :default_formatter,
     :step,
     :user_type,
     :broadcast_id,
-    :direct_conversation_id
+    :direct_conversation_id,
+    :staff_member_id
   ]
 
 config :opentelemetry, :resource,

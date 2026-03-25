@@ -25,4 +25,10 @@ defmodule KlassHero.Provider.Domain.Ports.ForStoringStaffMembers do
 
   @callback delete(id :: binary()) ::
               :ok | {:error, :not_found}
+
+  @callback get_by_token_hash(token_hash :: binary()) ::
+              {:ok, StaffMember.t()} | {:error, :not_found}
+
+  @callback get_active_by_user(user_id :: String.t()) ::
+              {:ok, StaffMember.t()} | {:error, :not_found}
 end

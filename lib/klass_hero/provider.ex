@@ -16,8 +16,9 @@ defmodule KlassHero.Provider do
       {:ok, provider} = Provider.get_provider_by_identity("user-uuid")
       true = Provider.has_provider_profile?("user-uuid")
 
-      # Staff Members
-      {:ok, staff} = Provider.create_staff_member(%{provider_id: "...", ...})
+      # Staff Members (email-less: 2-tuple, with email: 3-tuple with raw invitation token)
+      {:ok, staff} = Provider.create_staff_member(%{provider_id: "...", first_name: "Bob", last_name: "Smith"})
+      {:ok, staff, raw_token} = Provider.create_staff_member(%{provider_id: "...", email: "bob@example.com", ...})
       {:ok, members} = Provider.list_staff_members("provider-uuid")
   """
 
@@ -44,6 +45,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.UseCases.Providers.VerifyProvider
   alias KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
   alias KlassHero.Provider.Application.UseCases.StaffMembers.DeleteStaffMember
+  alias KlassHero.Provider.Application.UseCases.StaffMembers.ResendStaffInvitation
   alias KlassHero.Provider.Application.UseCases.StaffMembers.UpdateStaffMember
   alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.UseCases.Verification.GetVerificationDocumentPreview
@@ -312,6 +314,24 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
+  Resends a staff invitation for a staff member in :failed or :expired status.
+
+  Generates a fresh token, transitions status back to :pending, and re-emits
+  :staff_member_invited to restart the invitation saga.
+
+  Returns:
+  - `{:ok, StaffMember.t(), raw_token}` on success
+  - `{:error, :not_found}` if the staff member does not exist
+  - `{:error, :invalid_invitation_transition}` if the current status does not allow resend
+  """
+  @spec resend_staff_invitation(String.t()) ::
+          {:ok, StaffMember.t(), String.t()}
+          | {:error, :not_found | :invalid_invitation_transition}
+  def resend_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
+    ResendStaffInvitation.execute(staff_member_id)
+  end
+
+  @doc """
   Retrieves a single staff member by ID.
   """
   def get_staff_member(staff_id) when is_binary(staff_id) do
@@ -352,6 +372,57 @@ defmodule KlassHero.Provider do
   """
   def new_staff_member_changeset(attrs \\ %{}) do
     ChangeStaffMember.new_changeset(attrs)
+  end
+
+  @doc """
+  Returns the active staff member record linked to the given user ID.
+  Used by Scope to resolve :staff_provider role.
+  """
+  @spec get_active_staff_member_by_user(String.t()) ::
+          {:ok, StaffMember.t()} | {:error, :not_found}
+  def get_active_staff_member_by_user(user_id) when is_binary(user_id) do
+    @staff_repository.get_active_by_user(user_id)
+  end
+
+  @doc """
+  Returns the staff member matching the given invitation token hash,
+  only if invitation_status is :sent. Used by the invitation registration flow.
+  """
+  @spec get_staff_member_by_token_hash(binary()) :: {:ok, StaffMember.t()} | {:error, :not_found}
+  def get_staff_member_by_token_hash(token_hash) when is_binary(token_hash) do
+    @staff_repository.get_by_token_hash(token_hash)
+  end
+
+  @doc """
+  Returns the provider profile by ID.
+  """
+  @spec get_provider_profile(String.t()) :: {:ok, ProviderProfile.t()} | {:error, :not_found}
+  def get_provider_profile(provider_id) when is_binary(provider_id) do
+    @provider_repository.get(provider_id)
+  end
+
+  @doc """
+  Checks whether a staff member's invitation has expired.
+  Delegates to the domain model.
+  """
+  defdelegate invitation_expired?(staff_member), to: StaffMember
+
+  @doc """
+  Transitions a staff member's invitation status to :expired.
+  Called by the invitation LiveView on lazy expiry detection.
+  """
+  @spec expire_staff_invitation(StaffMember.t() | String.t()) ::
+          {:ok, StaffMember.t()} | {:error, term()}
+  def expire_staff_invitation(%StaffMember{} = staff) do
+    with {:ok, updated} <- StaffMember.transition_invitation(staff, :expired) do
+      @staff_repository.update(updated)
+    end
+  end
+
+  def expire_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
+    with {:ok, staff} <- @staff_repository.get(staff_member_id) do
+      expire_staff_invitation(staff)
+    end
   end
 
   @doc """

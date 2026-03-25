@@ -10,6 +10,7 @@ defmodule KlassHero.Accounts.Types.UserRole do
 
   - `:parent` - Users who enroll children in programs
   - `:provider` - Users who offer programs and services
+  - `:staff_provider` - Staff members working under a business provider
 
   ## Permissions
 
@@ -33,7 +34,7 @@ defmodule KlassHero.Accounts.Types.UserRole do
        :manage_family_profile, :submit_reviews]
   """
 
-  @valid_roles [:parent, :provider]
+  @valid_roles [:parent, :provider, :staff_provider]
 
   # Permission structure for future authorization (not enforced yet)
   @role_permissions %{
@@ -50,10 +51,15 @@ defmodule KlassHero.Accounts.Types.UserRole do
       :manage_schedule,
       :view_analytics,
       :respond_to_reviews
+    ],
+    staff_provider: [
+      :view_assigned_programs,
+      :view_staff_dashboard,
+      :manage_own_profile
     ]
   }
 
-  @type t :: :parent | :provider
+  @type t :: :parent | :provider | :staff_provider
 
   @doc """
   Returns the list of all valid roles.

@@ -20,8 +20,10 @@ defmodule KlassHero.Accounts do
     RegisterUser
   }
 
+  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.Accounts.{User, UserNotifier, UserToken}
   alias KlassHero.Repo
+  alias KlassHero.Shared.IntegrationEventPublishing
 
   ## Database getters
 
@@ -94,6 +96,40 @@ defmodule KlassHero.Accounts do
   end
 
   @doc """
+  Registers a new staff provider user via invitation.
+
+  Uses staff_registration_changeset which locks intended_roles to [:staff_provider]
+  and does not require provider_subscription_tier.
+  """
+  def register_staff_user(attrs) do
+    RegisterUser.execute(attrs, changeset_fn: &User.staff_registration_changeset/2)
+  end
+
+  @doc """
+  Emits a `staff_user_registered` integration event.
+
+  Called by the invitation registration LiveView after a successful
+  `register_staff_user/1`. The LiveView knows the staff context
+  (staff_member_id, provider_id) that the use case layer does not.
+
+  Returns `:ok` on success or `{:error, reason}` on publish failure.
+  """
+  @spec emit_staff_user_registered(String.t(), String.t(), String.t()) ::
+          :ok | {:error, term()}
+  def emit_staff_user_registered(user_id, staff_member_id, provider_id)
+      when is_binary(user_id) and is_binary(staff_member_id) and is_binary(provider_id) do
+    user_id
+    |> AccountsIntegrationEvents.staff_user_registered(%{
+      staff_member_id: staff_member_id,
+      provider_id: provider_id
+    })
+    |> IntegrationEventPublishing.publish_critical("staff_user_registered",
+      user_id: user_id,
+      staff_member_id: staff_member_id
+    )
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking user registration changes.
 
   ## Examples
@@ -104,6 +140,16 @@ defmodule KlassHero.Accounts do
   """
   def change_user_registration(user, attrs \\ %{}, opts \\ []) do
     User.registration_changeset(user, attrs, opts)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking staff registration changes.
+
+  Uses `staff_registration_changeset` which locks intended_roles to
+  `[:staff_provider]` and does not require `provider_subscription_tier`.
+  """
+  def change_staff_registration(attrs, opts \\ []) do
+    User.staff_registration_changeset(%User{}, attrs, opts)
   end
 
   ## Settings

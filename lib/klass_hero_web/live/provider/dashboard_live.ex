@@ -291,6 +291,39 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end
   end
 
+  @impl true
+  def handle_event("resend_invitation", %{"id" => staff_member_id}, socket) do
+    case Provider.resend_staff_invitation(staff_member_id) do
+      {:ok, updated, _raw_token} ->
+        staff_view = StaffMemberPresenter.to_card_view(updated)
+
+        {:noreply,
+         socket
+         |> stream_insert(:team_members, staff_view)
+         |> put_flash(:info, gettext("Invitation resent successfully."))}
+
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Staff member not found."))}
+
+      {:error, :invalid_invitation_transition} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("This invitation cannot be resent in its current state.")
+         )}
+
+      {:error, reason} ->
+        Logger.warning("[DashboardLive] Resend invitation failed",
+          staff_member_id: staff_member_id,
+          reason: inspect(reason)
+        )
+
+        {:noreply,
+         put_flash(socket, :error, gettext("Failed to resend invitation. Please try again."))}
+    end
+  end
+
   # ============================================================================
   # Edit Profile Events
   # ============================================================================
@@ -890,24 +923,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       |> Map.put(:provider_id, provider.id)
       |> maybe_add_headshot(headshot_result)
 
-    case Provider.create_staff_member(attrs) do
+    result = Provider.create_staff_member(attrs)
+
+    # Extract staff member from either 2-tuple or 3-tuple success
+    case result do
+      {:ok, staff, _raw_token} ->
+        handle_staff_created(socket, staff, headshot_status)
+
       {:ok, staff} ->
-        view = StaffMemberPresenter.to_card_view(staff)
-
-        flash_msg =
-          if headshot_status == :headshot_failed,
-            do: gettext("Team member added, but headshot upload failed."),
-            else: gettext("Team member added.")
-
-        {:noreply,
-         socket
-         |> stream_insert(:team_members, view)
-         |> assign(
-           show_staff_form: false,
-           staff_count: socket.assigns.staff_count + 1
-         )
-         |> clear_flash(:error)
-         |> put_flash(:info, flash_msg)}
+        handle_staff_created(socket, staff, headshot_status)
 
       {:error, {:validation_error, _errors}} ->
         changeset =
@@ -921,9 +945,38 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          |> assign(staff_form: to_form(changeset))
          |> put_flash(:error, gettext("Please fix the errors below."))}
 
+      {:error, :invitation_emission_failed} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext(
+             "Staff member created, but the invitation could not be sent. Try resending from the team list."
+           )
+         )}
+
       {:error, changeset} ->
         {:noreply, assign(socket, staff_form: to_form(changeset))}
     end
+  end
+
+  defp handle_staff_created(socket, staff, headshot_status) do
+    view = StaffMemberPresenter.to_card_view(staff)
+
+    flash_msg =
+      if headshot_status == :headshot_failed,
+        do: gettext("Team member added, but headshot upload failed."),
+        else: gettext("Team member added.")
+
+    {:noreply,
+     socket
+     |> stream_insert(:team_members, view)
+     |> assign(
+       show_staff_form: false,
+       staff_count: socket.assigns.staff_count + 1
+     )
+     |> clear_flash(:error)
+     |> put_flash(:info, flash_msg)}
   end
 
   defp save_existing_staff(socket, params, staff_id, headshot_result) do

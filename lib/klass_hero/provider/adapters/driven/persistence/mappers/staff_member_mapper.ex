@@ -23,6 +23,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
       tags: schema.tags || [],
       qualifications: schema.qualifications || [],
       active: schema.active,
+      user_id: schema.user_id && to_string(schema.user_id),
+      invitation_status: atomize_invitation_status(schema.invitation_status),
+      invitation_token_hash: schema.invitation_token_hash,
+      invitation_sent_at: schema.invitation_sent_at,
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -40,8 +44,19 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
       headshot_url: staff.headshot_url,
       tags: staff.tags,
       qualifications: staff.qualifications,
-      active: staff.active
+      active: staff.active,
+      user_id: staff.user_id,
+      invitation_status: staff.invitation_status && Atom.to_string(staff.invitation_status),
+      invitation_token_hash: staff.invitation_token_hash,
+      invitation_sent_at: staff.invitation_sent_at
     }
     |> maybe_add_id(staff.id)
   end
+
+  defp atomize_invitation_status(nil), do: nil
+
+  defp atomize_invitation_status(status) when is_binary(status),
+    do: String.to_existing_atom(status)
+
+  defp atomize_invitation_status(status) when is_atom(status), do: status
 end

@@ -297,6 +297,32 @@ defmodule KlassHeroWeb.ProviderComponents do
   defp badge_icon(:insurance), do: "hero-shield-check-mini"
   defp badge_icon(_), do: "hero-check-mini"
 
+  attr :status, :atom, required: true
+  attr :label, :string, required: true
+
+  defp invitation_status_badge(assigns) do
+    {bg_class, text_class} = invitation_status_colors(assigns.status)
+    assigns = assign(assigns, bg_class: bg_class, text_class: text_class)
+
+    ~H"""
+    <span class={[
+      "shrink-0 px-2 py-0.5 text-xs font-medium",
+      Theme.rounded(:full),
+      @bg_class,
+      @text_class
+    ]}>
+      {@label}
+    </span>
+    """
+  end
+
+  defp invitation_status_colors(:pending), do: {"bg-yellow-100", "text-yellow-700"}
+  defp invitation_status_colors(:sent), do: {"bg-blue-100", "text-blue-700"}
+  defp invitation_status_colors(:accepted), do: {"bg-green-100", "text-green-700"}
+  defp invitation_status_colors(:failed), do: {"bg-red-100", "text-red-700"}
+  defp invitation_status_colors(:expired), do: {"bg-hero-grey-100", "text-hero-grey-600"}
+  defp invitation_status_colors(_), do: {"bg-hero-grey-100", "text-hero-grey-500"}
+
   attr :icon, :string, required: true
   attr :label, :string, required: true
 
@@ -444,7 +470,14 @@ defmodule KlassHeroWeb.ProviderComponents do
       </div>
 
       <div class="pt-10 px-4 pb-4">
-        <h3 class="font-semibold text-hero-charcoal">{@member.full_name}</h3>
+        <div class="flex items-start justify-between gap-2 mb-1">
+          <h3 class="font-semibold text-hero-charcoal">{@member.full_name}</h3>
+          <.invitation_status_badge
+            :if={@member.invitation_status != nil}
+            status={@member.invitation_status}
+            label={@member.invitation_status_label}
+          />
+        </div>
         <p :if={@member.email} class="text-sm text-hero-grey-500 mb-2">{@member.email}</p>
         <p :if={@member.bio} class="text-sm text-hero-grey-600 mb-3 line-clamp-2">{@member.bio}</p>
 
@@ -487,6 +520,20 @@ defmodule KlassHeroWeb.ProviderComponents do
             ]}
           >
             {gettext("Edit")}
+          </button>
+          <button
+            :if={@member.can_resend?}
+            type="button"
+            id={"resend-invitation-#{@member.id}"}
+            phx-click="resend_invitation"
+            phx-value-id={@member.id}
+            class={[
+              "px-3 py-2 bg-hero-yellow hover:bg-hero-yellow-dark text-hero-charcoal text-xs font-medium",
+              Theme.rounded(:lg),
+              Theme.transition(:normal)
+            ]}
+          >
+            {gettext("Resend")}
           </button>
           <button
             type="button"

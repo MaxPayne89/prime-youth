@@ -22,6 +22,10 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
     :email,
     :bio,
     :headshot_url,
+    :user_id,
+    :invitation_status,
+    :invitation_token_hash,
+    :invitation_sent_at,
     tags: [],
     qualifications: [],
     active: true,
@@ -38,6 +42,10 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
           email: String.t() | nil,
           bio: String.t() | nil,
           headshot_url: String.t() | nil,
+          user_id: String.t() | nil,
+          invitation_status: :pending | :sent | :failed | :accepted | :expired | nil,
+          invitation_token_hash: binary() | nil,
+          invitation_sent_at: DateTime.t() | nil,
           tags: [String.t()],
           qualifications: [String.t()],
           active: boolean(),
@@ -201,4 +209,60 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
   end
 
   defp validate_qualifications(errors, _), do: ["Qualifications must be a list" | errors]
+
+  @doc """
+  Generates a URL-safe invitation token and its SHA-256 hash.
+  Returns `{raw_token, token_hash}`.
+  """
+  @spec generate_invitation_token() :: {String.t(), binary()}
+  def generate_invitation_token do
+    raw_bytes = :crypto.strong_rand_bytes(32)
+    raw_token = Base.url_encode64(raw_bytes, padding: false)
+    token_hash = :crypto.hash(:sha256, raw_bytes)
+    {raw_token, token_hash}
+  end
+
+  @valid_invitation_transitions %{
+    nil => [:pending],
+    :pending => [:sent, :failed, :accepted],
+    :sent => [:accepted, :expired],
+    :failed => [:pending],
+    :expired => [:pending]
+  }
+
+  @doc """
+  Returns the list of valid invitation status atoms.
+  Derived from the state machine transitions to keep a single source of truth.
+  """
+  @spec valid_invitation_statuses() :: [atom()]
+  def valid_invitation_statuses do
+    @valid_invitation_transitions
+    |> Map.values()
+    |> List.flatten()
+    |> Enum.uniq()
+  end
+
+  @invitation_expiry_days 7
+
+  @doc """
+  Checks whether a staff member's invitation has expired (#{@invitation_expiry_days} days from sending).
+  """
+  @spec invitation_expired?(t()) :: boolean()
+  def invitation_expired?(%__MODULE__{invitation_sent_at: nil}), do: false
+
+  def invitation_expired?(%__MODULE__{invitation_sent_at: sent_at}) do
+    DateTime.diff(DateTime.utc_now(), sent_at, :day) >= @invitation_expiry_days
+  end
+
+  @spec transition_invitation(t(), atom()) ::
+          {:ok, t()} | {:error, :invalid_invitation_transition}
+  def transition_invitation(%__MODULE__{} = staff_member, new_status) do
+    allowed = Map.get(@valid_invitation_transitions, staff_member.invitation_status, [])
+
+    if new_status in allowed do
+      {:ok, %{staff_member | invitation_status: new_status}}
+    else
+      {:error, :invalid_invitation_transition}
+    end
+  end
 end

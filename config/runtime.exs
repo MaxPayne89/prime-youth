@@ -50,6 +50,8 @@ if config_env() == :prod do
   honeycomb_api_key = System.get_env("HONEYCOMB_KLASS_HERO_API_KEY")
   otel_endpoint = System.get_env("OTEL_EXPORTER_OTLP_ENDPOINT")
 
+  config :klass_hero, :app_base_url, "https://#{host}"
+
   if honeycomb_api_key && otel_endpoint do
     config :opentelemetry_exporter,
       otlp_protocol: :http_protobuf,

@@ -53,11 +53,13 @@ defmodule KlassHero.Accounts.Domain.Ports.ForStoringUsers do
   @doc """
   Registers a new user from the given attributes.
 
+  Accepts optional keyword opts for customization (e.g., `:changeset_fn`).
+
   Returns:
   - `{:ok, ecto_user()}` - User created
   - `{:error, ecto_changeset()}` - Validation or persistence failure
   """
-  @callback register(map()) :: {:ok, ecto_user()} | {:error, ecto_changeset()}
+  @callback register(map(), keyword()) :: {:ok, ecto_user()} | {:error, ecto_changeset()}
 
   @doc """
   Anonymizes a user's PII and deletes all their tokens atomically.
