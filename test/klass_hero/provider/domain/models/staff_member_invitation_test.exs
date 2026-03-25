@@ -107,6 +107,36 @@ defmodule KlassHero.Provider.Domain.Models.StaffMemberInvitationTest do
     end
   end
 
+  describe "generate_invitation_token/0" do
+    test "returns a {raw_token, hash} tuple" do
+      {raw_token, hash} = StaffMember.generate_invitation_token()
+
+      assert is_binary(raw_token)
+      assert is_binary(hash)
+    end
+
+    test "raw_token is valid base64url" do
+      {raw_token, _hash} = StaffMember.generate_invitation_token()
+
+      assert {:ok, _decoded} = Base.url_decode64(raw_token, padding: false)
+    end
+
+    test "hash equals sha256 of decoded raw_token" do
+      {raw_token, hash} = StaffMember.generate_invitation_token()
+
+      decoded = Base.url_decode64!(raw_token, padding: false)
+      assert hash == :crypto.hash(:sha256, decoded)
+    end
+
+    test "two calls produce different tokens" do
+      {token_a, hash_a} = StaffMember.generate_invitation_token()
+      {token_b, hash_b} = StaffMember.generate_invitation_token()
+
+      assert token_a != token_b
+      assert hash_a != hash_b
+    end
+  end
+
   defp build_staff_member(overrides) do
     defaults = %{
       id: Ecto.UUID.generate(),

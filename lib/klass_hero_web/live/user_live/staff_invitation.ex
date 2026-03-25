@@ -2,7 +2,6 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Accounts
-  alias KlassHero.Accounts.User
   alias KlassHero.Provider
 
   require Logger
@@ -105,8 +104,7 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
         {:ok, assign(socket, error: :expired, form: nil, staff_member: nil)}
       else
         changeset =
-          User.staff_registration_changeset(
-            %User{},
+          Accounts.change_staff_registration(
             %{
               "name" => Provider.staff_member_full_name(staff_member),
               "email" => staff_member.email
@@ -191,7 +189,7 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
     params = Map.put(user_params, "email", staff.email)
 
     changeset =
-      User.staff_registration_changeset(%User{}, params, validate_unique: false)
+      Accounts.change_staff_registration(params, validate_unique: false)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}

@@ -169,4 +169,37 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpersTest do
       assert domain.name == "TEST"
     end
   end
+
+  describe "normalize_keys/1" do
+    test "passes through atom keys unchanged" do
+      payload = %{email: "test@example.com", name: "Jane"}
+      assert MapperHelpers.normalize_keys(payload) == payload
+    end
+
+    test "converts known string keys to atoms" do
+      payload = %{"email" => "test@example.com", "name" => "Jane"}
+
+      result = MapperHelpers.normalize_keys(payload)
+
+      assert result == %{email: "test@example.com", name: "Jane"}
+    end
+
+    test "handles mixed atom and string keys" do
+      payload = Map.put(%{email: "test@example.com"}, "name", "Jane")
+
+      result = MapperHelpers.normalize_keys(payload)
+
+      assert result == %{email: "test@example.com", name: "Jane"}
+    end
+
+    test "keeps unknown string keys as strings instead of crashing" do
+      # Atoms :email and :name already exist; "definitely_not_an_atom_xyz" does not
+      payload = %{"email" => "test@example.com", "definitely_not_an_atom_xyz" => "unknown"}
+
+      result = MapperHelpers.normalize_keys(payload)
+
+      assert result[:email] == "test@example.com"
+      assert result["definitely_not_an_atom_xyz"] == "unknown"
+    end
+  end
 end

@@ -198,4 +198,46 @@ defmodule KlassHero.Provider.StaffMemberIntegrationTest do
       assert Ecto.Changeset.get_field(changeset, :first_name) == "New"
     end
   end
+
+  describe "expire_staff_invitation/1" do
+    test "transitions :sent staff member to :expired with struct" do
+      staff =
+        ProviderFixtures.staff_member_fixture(
+          email: "expiry@example.com",
+          invitation_status: :sent,
+          invitation_token_hash: :crypto.hash(:sha256, "token"),
+          invitation_sent_at: DateTime.utc_now()
+        )
+
+      assert {:ok, expired} = Provider.expire_staff_invitation(staff)
+      assert expired.invitation_status == :expired
+    end
+
+    test "transitions :sent staff member to :expired with string ID" do
+      staff =
+        ProviderFixtures.staff_member_fixture(
+          email: "expiry2@example.com",
+          invitation_status: :sent,
+          invitation_token_hash: :crypto.hash(:sha256, "token2"),
+          invitation_sent_at: DateTime.utc_now()
+        )
+
+      assert {:ok, expired} = Provider.expire_staff_invitation(staff.id)
+      assert expired.invitation_status == :expired
+    end
+
+    test "returns error for non-existent ID" do
+      assert {:error, :not_found} = Provider.expire_staff_invitation(Ecto.UUID.generate())
+    end
+
+    test "returns error for invalid transition from :accepted" do
+      staff =
+        ProviderFixtures.staff_member_fixture(
+          email: "accepted@example.com",
+          invitation_status: :accepted
+        )
+
+      assert {:error, :invalid_invitation_transition} = Provider.expire_staff_invitation(staff)
+    end
+  end
 end

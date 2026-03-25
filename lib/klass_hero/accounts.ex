@@ -142,6 +142,16 @@ defmodule KlassHero.Accounts do
     User.registration_changeset(user, attrs, opts)
   end
 
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking staff registration changes.
+
+  Uses `staff_registration_changeset` which locks intended_roles to
+  `[:staff_provider]` and does not require `provider_subscription_tier`.
+  """
+  def change_staff_registration(attrs, opts \\ []) do
+    User.staff_registration_changeset(%User{}, attrs, opts)
+  end
+
   ## Settings
 
   @doc """

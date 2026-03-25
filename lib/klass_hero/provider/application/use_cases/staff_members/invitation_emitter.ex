@@ -13,6 +13,17 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.InvitationEmitter
                          [:provider, :for_storing_provider_profiles]
                        )
 
+  @doc """
+  Emits a `:staff_member_invited` integration event with the invitation payload.
+
+  ## Security note
+
+  The `raw_token` (unhashed invitation secret) is included in the event payload
+  so the Accounts handler can construct the invitation URL without cross-context
+  knowledge of token storage. This means the raw token is persisted in `oban_jobs`
+  JSON until job cleanup. Acceptable because the token expires in 7 days and is
+  single-use (only valid when `invitation_status == "sent"`).
+  """
   @spec emit(KlassHero.Provider.Domain.Models.StaffMember.t(), String.t()) ::
           :ok | {:error, term()}
   def emit(staff_member, raw_token) do
