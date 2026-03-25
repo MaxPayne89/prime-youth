@@ -1,6 +1,7 @@
 defmodule KlassHero.Messaging.Workers.SendEmailReplyWorkerTest do
   use KlassHero.DataCase, async: true
 
+  alias KlassHero.Messaging.Repositories
   alias KlassHero.Messaging.Workers.SendEmailReplyWorker
   alias KlassHero.MessagingFixtures
 
@@ -18,7 +19,7 @@ defmodule KlassHero.Messaging.Workers.SendEmailReplyWorkerTest do
                  args: %{"reply_id" => reply.id}
                })
 
-      reply_repo = KlassHero.Messaging.Repositories.email_replies()
+      reply_repo = Repositories.email_replies()
       {:ok, updated} = reply_repo.get_by_id(reply.id)
       assert updated.status == :sent
       assert updated.sent_at != nil

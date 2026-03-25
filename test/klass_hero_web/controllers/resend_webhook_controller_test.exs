@@ -1,6 +1,8 @@
 defmodule KlassHeroWeb.ResendWebhookControllerTest do
   use KlassHeroWeb.ConnCase, async: true
 
+  alias KlassHero.Messaging.Repositories
+
   @valid_payload %{
     "type" => "email.received",
     "data" => %{
@@ -65,7 +67,7 @@ defmodule KlassHeroWeb.ResendWebhookControllerTest do
 
       post(conn, ~p"/webhooks/resend", payload)
 
-      repo = KlassHero.Messaging.Repositories.inbound_emails()
+      repo = Repositories.inbound_emails()
       {:ok, email} = repo.get_by_resend_id(resend_id)
       assert email.message_id == "<thread-test@gmail.com>"
     end

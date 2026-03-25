@@ -1,6 +1,7 @@
 defmodule KlassHero.Messaging.Workers.FetchEmailContentWorkerTest do
   use KlassHero.DataCase, async: true
 
+  alias KlassHero.Messaging.Repositories
   alias KlassHero.Messaging.Workers.FetchEmailContentWorker
   alias KlassHero.MessagingFixtures
 
@@ -30,7 +31,7 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorkerTest do
                  args: %{"email_id" => email.id, "resend_id" => email.resend_id}
                })
 
-      repo = KlassHero.Messaging.Repositories.inbound_emails()
+      repo = Repositories.inbound_emails()
       {:ok, updated} = repo.get_by_id(email.id)
       assert updated.content_status == :fetched
       assert updated.body_html == "<p>Fetched body</p>"

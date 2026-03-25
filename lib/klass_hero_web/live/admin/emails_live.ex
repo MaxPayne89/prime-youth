@@ -43,36 +43,29 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
   end
 
   defp apply_action(socket, :show, %{"id" => id}) do
-    case Ecto.UUID.cast(id) do
-      {:ok, uuid} ->
-        reader_id = socket.assigns.current_scope.user.id
+    reader_id = socket.assigns.current_scope.user.id
 
-        case Messaging.get_inbound_email(uuid, mark_read: true, reader_id: reader_id) do
-          {:ok, email} ->
-            sanitized_html = Messaging.sanitize_email_html(email.body_html, allow_images: false)
-
-            replies =
-              case Messaging.list_email_replies(email.id) do
-                {:ok, replies} -> replies
-                {:error, _reason} -> []
-              end
-
-            socket
-            |> assign(:email, email)
-            |> assign(:sanitized_html, sanitized_html)
-            |> stream(:replies, replies)
-            |> assign(:allow_images, false)
-            |> assign(:reply_form, to_form(%{"body" => ""}, as: :reply))
-            |> assign(:page_title, email.subject)
-            |> assign(:unread_email_count, Messaging.count_inbound_emails_by_status(:unread))
-
-          {:error, :not_found} ->
-            socket
-            |> put_flash(:error, gettext("Email not found"))
-            |> push_navigate(to: ~p"/admin/emails")
+    with {:ok, uuid} <- Ecto.UUID.cast(id),
+         {:ok, email} <- Messaging.get_inbound_email(uuid, mark_read: true, reader_id: reader_id) do
+      replies =
+        case Messaging.list_email_replies(email.id) do
+          {:ok, replies} -> replies
+          {:error, _reason} -> []
         end
 
-      :error ->
+      socket
+      |> assign(:email, email)
+      |> assign(
+        :sanitized_html,
+        Messaging.sanitize_email_html(email.body_html, allow_images: false)
+      )
+      |> stream(:replies, replies)
+      |> assign(:allow_images, false)
+      |> assign(:reply_form, to_form(%{"body" => ""}, as: :reply))
+      |> assign(:page_title, email.subject)
+      |> assign(:unread_email_count, Messaging.count_inbound_emails_by_status(:unread))
+    else
+      _ ->
         socket
         |> put_flash(:error, gettext("Email not found"))
         |> push_navigate(to: ~p"/admin/emails")

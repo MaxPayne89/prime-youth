@@ -88,38 +88,10 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
          token_hash = :crypto.hash(:sha256, decoded),
          {:ok, staff_member} <- Provider.get_staff_member_by_token_hash(token_hash) do
       if Provider.invitation_expired?(staff_member) do
-        if connected?(socket) do
-          case Provider.expire_staff_invitation(staff_member) do
-            {:ok, _} ->
-              :ok
-
-            {:error, reason} ->
-              Logger.warning("[StaffInvitation] Failed to expire invitation",
-                staff_member_id: staff_member.id,
-                reason: inspect(reason)
-              )
-          end
-        end
-
+        maybe_persist_expiry(socket, staff_member)
         {:ok, assign(socket, error: :expired, form: nil, staff_member: nil)}
       else
-        changeset =
-          Accounts.change_staff_registration(
-            %{
-              "name" => Provider.staff_member_full_name(staff_member),
-              "email" => staff_member.email
-            },
-            validate_unique: false
-          )
-
-        {:ok,
-         socket
-         |> assign(
-           staff_member: staff_member,
-           error: nil,
-           page_title: gettext("Complete Registration")
-         )
-         |> assign_form(changeset), temporary_assigns: [form: nil]}
+        mount_registration_form(socket, staff_member)
       end
     else
       :error ->
@@ -193,6 +165,41 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
+  end
+
+  defp maybe_persist_expiry(socket, staff_member) do
+    if connected?(socket) do
+      case Provider.expire_staff_invitation(staff_member) do
+        {:ok, _} ->
+          :ok
+
+        {:error, reason} ->
+          Logger.warning("[StaffInvitation] Failed to expire invitation",
+            staff_member_id: staff_member.id,
+            reason: inspect(reason)
+          )
+      end
+    end
+  end
+
+  defp mount_registration_form(socket, staff_member) do
+    changeset =
+      Accounts.change_staff_registration(
+        %{
+          "name" => Provider.staff_member_full_name(staff_member),
+          "email" => staff_member.email
+        },
+        validate_unique: false
+      )
+
+    {:ok,
+     socket
+     |> assign(
+       staff_member: staff_member,
+       error: nil,
+       page_title: gettext("Complete Registration")
+     )
+     |> assign_form(changeset), temporary_assigns: [form: nil]}
   end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
