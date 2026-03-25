@@ -195,6 +195,54 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       # Verify Add Team Member button is present
       assert has_element?(view, "button", "Add Team Member")
     end
+
+    test "resend invitation shows success flash for failed invitation", %{
+      conn: conn,
+      provider: provider
+    } do
+      import KlassHero.EventTestHelper
+
+      setup_test_integration_events()
+
+      _staff =
+        ProviderFixtures.staff_member_fixture(%{
+          provider_id: provider.id,
+          email: "staff@example.com",
+          first_name: "Resend",
+          last_name: "Test",
+          invitation_status: :failed,
+          invitation_token_hash: :crypto.hash(:sha256, "old-token")
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view
+      |> element("button", "Resend")
+      |> render_click()
+
+      assert render(view) =~ "Invitation resent successfully."
+    end
+
+    test "resend invitation for accepted member shows specific error", %{
+      conn: conn,
+      provider: provider
+    } do
+      staff =
+        ProviderFixtures.staff_member_fixture(%{
+          provider_id: provider.id,
+          email: "accepted@example.com",
+          first_name: "Already",
+          last_name: "Accepted",
+          invitation_status: :accepted
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      # Accepted members don't show resend button, so push event directly
+      render_hook(view, "resend_invitation", %{"id" => staff.id})
+
+      assert render(view) =~ "This invitation cannot be resent"
+    end
   end
 
   describe "programs section" do

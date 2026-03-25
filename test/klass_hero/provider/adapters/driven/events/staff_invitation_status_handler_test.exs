@@ -184,4 +184,31 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler
       assert :ignore = StaffInvitationStatusHandler.handle_event(event)
     end
   end
+
+  describe "handle_event/1 for malformed payloads" do
+    test "returns error for missing staff_member_id" do
+      event =
+        AccountsIntegrationEvents.staff_invitation_sent(Ecto.UUID.generate(), %{
+          provider_id: Ecto.UUID.generate()
+        })
+
+      # Remove staff_member_id from payload to simulate malformed event
+      event = %{event | payload: Map.delete(event.payload, :staff_member_id)}
+
+      assert {:error, :invalid_payload} = StaffInvitationStatusHandler.handle_event(event)
+    end
+
+    test "returns error for missing user_id in staff_user_registered" do
+      event =
+        AccountsIntegrationEvents.staff_user_registered(Ecto.UUID.generate(), %{
+          staff_member_id: Ecto.UUID.generate(),
+          provider_id: Ecto.UUID.generate()
+        })
+
+      # Remove user_id from payload to simulate malformed event
+      event = %{event | payload: Map.delete(event.payload, :user_id)}
+
+      assert {:error, :invalid_payload} = StaffInvitationStatusHandler.handle_event(event)
+    end
+  end
 end

@@ -302,8 +302,25 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          |> stream_insert(:team_members, staff_view)
          |> put_flash(:info, gettext("Invitation resent successfully."))}
 
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to resend invitation."))}
+      {:error, :not_found} ->
+        {:noreply, put_flash(socket, :error, gettext("Staff member not found."))}
+
+      {:error, :invalid_invitation_transition} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("This invitation cannot be resent in its current state.")
+         )}
+
+      {:error, reason} ->
+        Logger.warning("[DashboardLive] Resend invitation failed",
+          staff_member_id: staff_member_id,
+          reason: inspect(reason)
+        )
+
+        {:noreply,
+         put_flash(socket, :error, gettext("Failed to resend invitation. Please try again."))}
     end
   end
 

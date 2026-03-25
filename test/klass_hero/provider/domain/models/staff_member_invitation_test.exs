@@ -82,6 +82,31 @@ defmodule KlassHero.Provider.Domain.Models.StaffMemberInvitationTest do
     end
   end
 
+  describe "invitation_expired?/1" do
+    test "returns false when invitation_sent_at is nil" do
+      staff = build_staff_member(invitation_status: :sent, invitation_sent_at: nil)
+      refute StaffMember.invitation_expired?(staff)
+    end
+
+    test "returns false when sent less than 7 days ago" do
+      sent_at = DateTime.add(DateTime.utc_now(), -6, :day)
+      staff = build_staff_member(invitation_status: :sent, invitation_sent_at: sent_at)
+      refute StaffMember.invitation_expired?(staff)
+    end
+
+    test "returns true when sent exactly 7 days ago" do
+      sent_at = DateTime.add(DateTime.utc_now(), -7, :day)
+      staff = build_staff_member(invitation_status: :sent, invitation_sent_at: sent_at)
+      assert StaffMember.invitation_expired?(staff)
+    end
+
+    test "returns true when sent more than 7 days ago" do
+      sent_at = DateTime.add(DateTime.utc_now(), -10, :day)
+      staff = build_staff_member(invitation_status: :sent, invitation_sent_at: sent_at)
+      assert StaffMember.invitation_expired?(staff)
+    end
+  end
+
   defp build_staff_member(overrides) do
     defaults = %{
       id: Ecto.UUID.generate(),

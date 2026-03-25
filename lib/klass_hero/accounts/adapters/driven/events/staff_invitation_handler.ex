@@ -84,13 +84,17 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
         :ok
 
       {:error, reason} ->
-        Logger.warning("[StaffInvitationHandler] Failed to deliver staff-added notification",
+        Logger.error(
+          "[StaffInvitationHandler] Failed to deliver staff-added notification (user linked but not notified)",
           email: email,
           staff_member_id: staff_member_id,
           reason: inspect(reason)
         )
     end
 
+    # Emit unconditionally: the user exists, linking user_id is correct
+    # regardless of notification delivery. The user will discover staff
+    # access on next login even without the notification email.
     Accounts.emit_staff_user_registered(user.id, staff_member_id, provider_id)
   end
 

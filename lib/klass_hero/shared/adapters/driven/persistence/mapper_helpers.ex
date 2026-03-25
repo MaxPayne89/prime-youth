@@ -87,14 +87,22 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers do
   Normalizes map keys to atoms. Handles both atom and string keys.
 
   String keys are converted via `String.to_existing_atom/1` to prevent
-  atom table pollution. Useful for event payloads that may arrive with
-  string keys after Oban JSON serialization.
+  atom table pollution. Unknown string keys (not in the atom table) are
+  kept as strings rather than crashing — downstream `Map.fetch` will
+  report the missing atom key clearly.
   """
   @spec normalize_keys(map()) :: map()
   def normalize_keys(payload) when is_map(payload) do
     Map.new(payload, fn
-      {k, v} when is_binary(k) -> {String.to_existing_atom(k), v}
-      {k, v} when is_atom(k) -> {k, v}
+      {k, v} when is_atom(k) ->
+        {k, v}
+
+      {k, v} when is_binary(k) ->
+        try do
+          {String.to_existing_atom(k), v}
+        rescue
+          ArgumentError -> {k, v}
+        end
     end)
   end
 end

@@ -148,6 +148,10 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
 
     case Accounts.register_staff_user(params) do
       {:ok, user} ->
+        # Trigger: emit_staff_user_registered may fail (PubSub/Oban enqueue)
+        # Why: the user account IS created; the critical event infrastructure
+        #   guarantees eventual delivery via Oban durable retry
+        # Outcome: proceed with success UX; the staff linkage self-heals
         case Accounts.emit_staff_user_registered(user.id, staff.id, staff.provider_id) do
           :ok ->
             :ok

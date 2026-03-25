@@ -42,19 +42,27 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler
 
   def handle_event(%IntegrationEvent{event_type: :staff_user_registered, payload: payload}) do
     payload = MapperHelpers.normalize_keys(payload)
-    user_id = Map.fetch!(payload, :user_id)
 
-    transition_and_persist(payload, :accepted, fn transitioned ->
-      %{transitioned | user_id: user_id}
-    end)
+    case Map.fetch(payload, :user_id) do
+      {:ok, user_id} ->
+        transition_and_persist(payload, :accepted, fn transitioned ->
+          %{transitioned | user_id: user_id}
+        end)
+
+      :error ->
+        Logger.error(
+          "[StaffInvitationStatusHandler] Missing :user_id in staff_user_registered payload"
+        )
+
+        {:error, :invalid_payload}
+    end
   end
 
   def handle_event(_event), do: :ignore
 
   defp transition_and_persist(payload, new_status, update_fn \\ &Function.identity/1) do
-    staff_member_id = Map.fetch!(payload, :staff_member_id)
-
-    with {:ok, staff} <- @repository.get(staff_member_id),
+    with {:ok, staff_member_id} <- Map.fetch(payload, :staff_member_id),
+         {:ok, staff} <- @repository.get(staff_member_id),
          {:ok, transitioned} <- StaffMember.transition_invitation(staff, new_status),
          updated = update_fn.(transitioned),
          {:ok, _persisted} <- @repository.update(updated) do
@@ -64,16 +72,20 @@ defmodule KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler
 
       :ok
     else
+      :error ->
+        Logger.error("[StaffInvitationStatusHandler] Missing :staff_member_id in payload")
+        {:error, :invalid_payload}
+
       {:error, :invalid_invitation_transition} ->
         Logger.info("[StaffInvitationStatusHandler] Skipping (already past #{new_status})",
-          staff_member_id: staff_member_id
+          staff_member_id: payload[:staff_member_id]
         )
 
         :ok
 
       {:error, reason} ->
         Logger.error("[StaffInvitationStatusHandler] Failed to transition to #{new_status}",
-          staff_member_id: staff_member_id,
+          staff_member_id: payload[:staff_member_id],
           reason: inspect(reason)
         )
 
