@@ -90,7 +90,7 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
          {:ok, staff_member} <- Provider.get_staff_member_by_token_hash(token_hash) do
       if Provider.invitation_expired?(staff_member) do
         if connected?(socket) do
-          case Provider.expire_staff_invitation(staff_member.id) do
+          case Provider.expire_staff_invitation(staff_member) do
             {:ok, _} ->
               :ok
 

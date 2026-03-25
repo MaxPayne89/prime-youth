@@ -230,6 +230,30 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
     :expired => [:pending]
   }
 
+  @doc """
+  Returns the list of valid invitation status atoms.
+  Derived from the state machine transitions to keep a single source of truth.
+  """
+  @spec valid_invitation_statuses() :: [atom()]
+  def valid_invitation_statuses do
+    @valid_invitation_transitions
+    |> Map.values()
+    |> List.flatten()
+    |> Enum.uniq()
+  end
+
+  @invitation_expiry_days 7
+
+  @doc """
+  Checks whether a staff member's invitation has expired (#{@invitation_expiry_days} days from sending).
+  """
+  @spec invitation_expired?(t()) :: boolean()
+  def invitation_expired?(%__MODULE__{invitation_sent_at: nil}), do: false
+
+  def invitation_expired?(%__MODULE__{invitation_sent_at: sent_at}) do
+    DateTime.diff(DateTime.utc_now(), sent_at, :day) >= @invitation_expiry_days
+  end
+
   @spec transition_invitation(t(), atom()) ::
           {:ok, t()} | {:error, :invalid_invitation_transition}
   def transition_invitation(%__MODULE__{} = staff_member, new_status) do

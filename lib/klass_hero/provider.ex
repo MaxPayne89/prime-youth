@@ -401,27 +401,27 @@ defmodule KlassHero.Provider do
     @provider_repository.get(provider_id)
   end
 
-  @invitation_expiry_days 7
-
   @doc """
-  Checks whether a staff member's invitation has expired (7 days from sending).
+  Checks whether a staff member's invitation has expired.
+  Delegates to the domain model.
   """
-  @spec invitation_expired?(StaffMember.t()) :: boolean()
-  def invitation_expired?(%StaffMember{invitation_sent_at: nil}), do: false
-
-  def invitation_expired?(%StaffMember{invitation_sent_at: sent_at}) do
-    DateTime.diff(DateTime.utc_now(), sent_at, :day) >= @invitation_expiry_days
-  end
+  defdelegate invitation_expired?(staff_member), to: StaffMember
 
   @doc """
   Transitions a staff member's invitation status to :expired.
   Called by the invitation LiveView on lazy expiry detection.
   """
-  @spec expire_staff_invitation(String.t()) :: {:ok, StaffMember.t()} | {:error, term()}
-  def expire_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
-    with {:ok, staff} <- @staff_repository.get(staff_member_id),
-         {:ok, updated} <- StaffMember.transition_invitation(staff, :expired) do
+  @spec expire_staff_invitation(StaffMember.t() | String.t()) ::
+          {:ok, StaffMember.t()} | {:error, term()}
+  def expire_staff_invitation(%StaffMember{} = staff) do
+    with {:ok, updated} <- StaffMember.transition_invitation(staff, :expired) do
       @staff_repository.update(updated)
+    end
+  end
+
+  def expire_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
+    with {:ok, staff} <- @staff_repository.get(staff_member_id) do
+      expire_staff_invitation(staff)
     end
   end
 

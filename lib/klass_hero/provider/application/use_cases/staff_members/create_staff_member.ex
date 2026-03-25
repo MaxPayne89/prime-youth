@@ -26,10 +26,6 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
     end
   end
 
-  # ---------------------------------------------------------------------------
-  # Private
-  # ---------------------------------------------------------------------------
-
   defp has_email?(attrs) do
     case attrs[:email] || attrs["email"] do
       nil -> false
@@ -54,11 +50,13 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
 
     attrs_with_invitation =
       attrs
-      |> Map.put(:invitation_status, "pending")
+      |> Map.put(:invitation_status, :pending)
       |> Map.put(:invitation_token_hash, token_hash)
 
+    persistence_attrs = Map.update!(attrs_with_invitation, :invitation_status, &to_string/1)
+
     with {:ok, _validated} <- StaffMember.new(attrs_with_invitation),
-         {:ok, persisted} <- @repository.create(attrs_with_invitation),
+         {:ok, persisted} <- @repository.create(persistence_attrs),
          :ok <- InvitationEmitter.emit(persisted, raw_token) do
       {:ok, persisted, raw_token}
     else

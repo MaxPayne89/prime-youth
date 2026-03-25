@@ -26,27 +26,22 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
   def handle_event(%IntegrationEvent{event_type: :staff_member_invited, payload: payload}) do
     payload = MapperHelpers.normalize_keys(payload)
 
-    %{
-      email: email,
-      staff_member_id: staff_member_id,
-      provider_id: provider_id,
-      first_name: first_name,
-      business_name: business_name,
-      raw_token: raw_token
-    } = payload
-
-    case Accounts.get_user_by_email(email) do
-      nil ->
-        handle_new_user(email, staff_member_id, provider_id, first_name, business_name, raw_token)
-
-      user ->
-        handle_existing_user(email, user, staff_member_id, provider_id, business_name)
+    case Accounts.get_user_by_email(payload.email) do
+      nil -> handle_new_user(payload)
+      user -> handle_existing_user(payload, user)
     end
   end
 
   def handle_event(_event), do: :ignore
 
-  defp handle_new_user(email, staff_member_id, provider_id, first_name, business_name, raw_token) do
+  defp handle_new_user(%{
+         email: email,
+         staff_member_id: staff_member_id,
+         provider_id: provider_id,
+         first_name: first_name,
+         business_name: business_name,
+         raw_token: raw_token
+       }) do
     url =
       "#{Application.get_env(:klass_hero, :app_base_url, "http://localhost:4000")}/users/staff-invitation/#{raw_token}"
 
@@ -69,7 +64,15 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
     end
   end
 
-  defp handle_existing_user(email, user, staff_member_id, provider_id, business_name) do
+  defp handle_existing_user(
+         %{
+           email: email,
+           staff_member_id: staff_member_id,
+           provider_id: provider_id,
+           business_name: business_name
+         },
+         user
+       ) do
     dashboard_url =
       "#{Application.get_env(:klass_hero, :app_base_url, "http://localhost:4000")}/staff/dashboard"
 
@@ -88,7 +91,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
         )
     end
 
-    emit_registered(to_string(user.id), staff_member_id, provider_id)
+    Accounts.emit_staff_user_registered(user.id, staff_member_id, provider_id)
   end
 
   defp emit_sent(staff_member_id, provider_id) do
@@ -106,18 +109,6 @@ defmodule KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler do
       reason: reason
     })
     |> IntegrationEventPublishing.publish_critical("staff_invitation_failed",
-      staff_member_id: staff_member_id
-    )
-  end
-
-  defp emit_registered(user_id, staff_member_id, provider_id) do
-    user_id
-    |> AccountsIntegrationEvents.staff_user_registered(%{
-      staff_member_id: staff_member_id,
-      provider_id: provider_id
-    })
-    |> IntegrationEventPublishing.publish_critical("staff_user_registered",
-      user_id: user_id,
       staff_member_id: staff_member_id
     )
   end

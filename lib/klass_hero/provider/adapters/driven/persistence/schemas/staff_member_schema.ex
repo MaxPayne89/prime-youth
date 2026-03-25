@@ -10,6 +10,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
   import Ecto.Changeset
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Shared.Categories
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -105,7 +106,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
     |> validate_length(:bio, max: 2000)
     |> validate_length(:headshot_url, max: 500)
     |> validate_tags()
-    |> validate_inclusion(:invitation_status, ~w(pending sent failed accepted expired))
+    |> validate_inclusion(
+      :invitation_status,
+      Enum.map(StaffMember.valid_invitation_statuses(), &to_string/1)
+    )
   end
 
   @doc """
@@ -129,7 +133,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSche
   def invitation_changeset(staff_member, attrs) do
     staff_member
     |> cast(attrs, [:invitation_status, :invitation_token_hash, :invitation_sent_at, :user_id])
-    |> validate_inclusion(:invitation_status, ~w(pending sent failed accepted expired))
+    |> validate_inclusion(
+      :invitation_status,
+      Enum.map(StaffMember.valid_invitation_statuses(), &to_string/1)
+    )
   end
 
   defp validate_tags(changeset) do
