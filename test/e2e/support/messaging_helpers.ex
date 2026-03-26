@@ -34,7 +34,7 @@ defmodule KlassHeroWeb.E2E.MessagingHelpers do
     |> click(Query.button("Or use password"))
     |> fill_in(Query.css("#login_form_password_email"), with: email)
     |> fill_in(Query.css("#login_form_password_password"), with: @password)
-    |> click(Query.button("Log in and stay logged in"))
+    |> click(Query.css("#login_form_password button[type=submit]"))
   end
 
   @doc """
