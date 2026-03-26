@@ -38,7 +38,7 @@ defmodule KlassHero.MixProject do
 
   def cli do
     [
-      preferred_envs: []
+      preferred_envs: ["test.e2e": :test]
     ]
   end
 

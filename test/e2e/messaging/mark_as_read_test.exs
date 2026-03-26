@@ -60,8 +60,7 @@ defmodule KlassHeroWeb.E2E.Messaging.MarkAsReadTest do
     end
 
     test "opening conversation marks messages as read", %{
-      parent_session: parent_session,
-      conversation: conversation
+      parent_session: parent_session
     } do
       # Parent navigates to conversation list and sees unread badge
       parent_session
