@@ -13,11 +13,11 @@ config :klass_hero, KlassHero.Repo,
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
-# We don't run a server during test
+# We run a server during test for Wallaby E2E browser tests
 config :klass_hero, KlassHeroWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "gY/oKuAYeC5ExhHrtu1JBwrpQdoGwtPOo3X9GdS7CFOnLe0eqRQ9w4cyV1MqvoYc",
-  server: false
+  server: true
 
 # Oban runs inline in tests so critical event handlers execute synchronously
 config :klass_hero, Oban, testing: :inline
@@ -54,6 +54,9 @@ config :klass_hero, :storage,
 config :klass_hero, :verify_webhook_signature, false
 config :klass_hero, env: :test
 
+# Enable Ecto sandbox plug for Wallaby browser sessions
+config :klass_hero, sql_sandbox: true
+
 # Trigger: VerifiedProviders GenServer bootstraps a DB query at app startup
 # Why: that query runs outside the Ecto test sandbox, poisoning the connection pool
 # Outcome: disabling projections prevents sandbox leaks across async tests
@@ -76,3 +79,11 @@ config :phoenix_test, :endpoint, KlassHeroWeb.Endpoint
 
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
+
+# Wallaby E2E test configuration
+config :wallaby,
+  driver: Wallaby.Chrome,
+  screenshot_on_failure: true,
+  screenshot_dir: "tmp/e2e_screenshots",
+  chrome: [headless: true],
+  chromedriver: [path: System.get_env("CHROMEDRIVER_PATH", "_build/chromedriver/chromedriver")]
