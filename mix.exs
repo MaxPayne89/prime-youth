@@ -101,7 +101,7 @@ defmodule KlassHero.MixProject do
       {:opentelemetry_bandit, "~> 0.2"},
       {:opentelemetry_phoenix, "~> 2.0"},
       {:opentelemetry_ecto, "~> 1.1"},
-      {:oban, "~> 2.19"},
+      {:oban, "~> 2.21"},
       {:oban_web, "~> 2.11"},
       {:html_sanitize_ex, "~> 1.4"},
       # Object storage (S3-compatible)

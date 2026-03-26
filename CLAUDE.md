@@ -132,7 +132,7 @@ When addressing PR review comments, follow this workflow:
 
 ## Detailed Rules
 
-Comprehensive guidelines live in `.claude/rules/` (auto-loaded into context). These cover LiveView, Elixir style, HEEx templates, authentication, testing, database/Ecto, MCP integration, DDD architecture, frontend, workflow, and available skills. **Do not duplicate those rules here.**
+Comprehensive guidelines live in `.claude/rules/` (auto-loaded into context). These cover LiveView, Elixir style, HEEx templates, authentication, testing, database/Ecto, MCP integration, DDD architecture, frontend, workflow, available skills, and behavioral guidelines. **Do not duplicate those rules here.**
 
 <!-- usage-rules-start -->
 <!-- igniter-start -->
