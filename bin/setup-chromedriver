@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+#
+# Downloads ChromeDriver matching the installed Chrome version.
+# Requires: Node.js (npx), Google Chrome installed.
+#
+# Usage: bin/setup-chromedriver
+
+set -euo pipefail
+
+DEST_DIR="_build/chromedriver"
+DEST_BIN="${DEST_DIR}/chromedriver"
+
+# Detect Chrome version
+if [[ "$(uname)" == "Darwin" ]]; then
+  CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+else
+  CHROME_PATH="google-chrome"
+fi
+
+if ! command -v "$CHROME_PATH" &>/dev/null && [[ ! -x "$CHROME_PATH" ]]; then
+  echo "Error: Google Chrome not found at ${CHROME_PATH}" >&2
+  exit 1
+fi
+
+CHROME_VERSION=$("$CHROME_PATH" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+MAJOR=$(echo "$CHROME_VERSION" | cut -d. -f1)
+
+echo "Detected Chrome ${CHROME_VERSION} (major: ${MAJOR})"
+
+# Download matching ChromeDriver via npx
+TEMP_DIR=$(mktemp -d)
+echo "Downloading ChromeDriver for Chrome ${MAJOR}..."
+npx --yes @puppeteer/browsers install "chromedriver@${MAJOR}" --path "${TEMP_DIR}" 2>&1
+
+# Find the downloaded binary
+DRIVER_BIN=$(find "${TEMP_DIR}" -name chromedriver -type f | head -1)
+
+if [[ -z "$DRIVER_BIN" ]]; then
+  echo "Error: chromedriver binary not found in download" >&2
+  rm -rf "${TEMP_DIR}"
+  exit 1
+fi
+
+# Copy to project destination
+mkdir -p "${DEST_DIR}"
+cp "${DRIVER_BIN}" "${DEST_BIN}"
+chmod +x "${DEST_BIN}"
+
+# Clean up
+rm -rf "${TEMP_DIR}"
+
+echo "ChromeDriver installed at ${DEST_BIN}"
+"${DEST_BIN}" --version
