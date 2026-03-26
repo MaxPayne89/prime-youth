@@ -59,6 +59,38 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
       end)
     end
 
+    test "enqueues one Oban job per registered handler for critical events" do
+      event =
+        IntegrationEvent.new(
+          :test_multi_handler_event,
+          :test_context,
+          :test_entity,
+          "entity-multi",
+          %{user_id: "u-1"},
+          criticality: :critical
+        )
+
+      topic = PubSubIntegrationEventPublisher.derive_topic(event)
+
+      handlers = [
+        {__MODULE__, :handle_event},
+        {__MODULE__, :handle_event_alt},
+        {__MODULE__, :handle_event_third}
+      ]
+
+      with_critical_handlers(%{topic => handlers}, fn ->
+        Oban.Testing.with_testing_mode(:manual, fn ->
+          assert :ok = PubSubIntegrationEventPublisher.publish(event)
+
+          enqueued = all_enqueued(worker: CriticalEventWorker)
+          assert length(enqueued) == 3
+
+          handler_refs = Enum.map(enqueued, & &1.args["handler"])
+          assert length(Enum.uniq(handler_refs)) == 3
+        end)
+      end)
+    end
+
     test "does not enqueue Oban jobs for critical events with no registered handlers" do
       event =
         IntegrationEvent.new(

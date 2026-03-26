@@ -97,6 +97,19 @@ config :klass_hero, :critical_event_handlers, %{
   ],
   "integration:accounts:staff_user_registered" => [
     {KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler, :handle_event}
+  ],
+  "integration:accounts:user_registered" => [
+    {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event},
+    {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event}
+  ],
+  "integration:accounts:user_confirmed" => [
+    {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event},
+    {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event}
+  ],
+  "integration:accounts:user_anonymized" => [
+    {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event},
+    {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event},
+    {KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler, :handle_event}
   ]
 }
 
