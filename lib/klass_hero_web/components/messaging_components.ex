@@ -53,6 +53,7 @@ defmodule KlassHeroWeb.MessagingComponents do
     <.link
       navigate={@navigate}
       id={@id}
+      data-role="conversation-card"
       class={[
         "block p-4 hover:bg-hero-grey-50 transition-colors",
         @unread_count > 0 && "bg-hero-blue-50"
@@ -107,7 +108,10 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   def unread_badge(assigns) do
     ~H"""
-    <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-semibold text-error-content bg-error rounded-full">
+    <span
+      data-role="unread-count"
+      class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-semibold text-error-content bg-error rounded-full"
+    >
       {min(@count, 99)}
     </span>
     """
@@ -151,7 +155,11 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   def message_bubble(assigns) do
     ~H"""
-    <div id={@id} class={["flex", @is_own && "justify-end", !@is_own && "justify-start"]}>
+    <div
+      id={@id}
+      data-role="message"
+      class={["flex", @is_own && "justify-end", !@is_own && "justify-start"]}
+    >
       <div class={[
         "max-w-[80%] rounded-2xl px-4 py-2",
         @is_own && "bg-hero-blue-600 text-white rounded-br-sm",
@@ -216,6 +224,7 @@ defmodule KlassHeroWeb.MessagingComponents do
       <button
         type="submit"
         disabled={@disabled}
+        data-role="send-message-btn"
         class={[
           "w-10 h-10 flex items-center justify-center bg-hero-blue-600 text-white hover:bg-hero-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
           Theme.rounded(:full)
