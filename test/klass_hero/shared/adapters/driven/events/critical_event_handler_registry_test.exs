@@ -51,4 +51,47 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
              ] = handlers
     end
   end
+
+  describe "end-to-end wiring: AccountsIntegrationEvents factory → topic → registry" do
+    alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
+    alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
+
+    test "user_registered factory produces a topic that resolves to 2 handlers" do
+      event = AccountsIntegrationEvents.user_registered("user-1")
+      topic = PubSubIntegrationEventPublisher.derive_topic(event)
+      handlers = CriticalEventHandlerRegistry.handlers_for(topic)
+
+      assert length(handlers) == 2
+
+      assert {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event} in handlers
+
+      assert {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event} in handlers
+    end
+
+    test "user_confirmed factory produces a topic that resolves to 2 handlers" do
+      event = AccountsIntegrationEvents.user_confirmed("user-1")
+      topic = PubSubIntegrationEventPublisher.derive_topic(event)
+      handlers = CriticalEventHandlerRegistry.handlers_for(topic)
+
+      assert length(handlers) == 2
+
+      assert {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event} in handlers
+
+      assert {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event} in handlers
+    end
+
+    test "user_anonymized factory produces a topic that resolves to 3 handlers" do
+      event = AccountsIntegrationEvents.user_anonymized("user-1")
+      topic = PubSubIntegrationEventPublisher.derive_topic(event)
+      handlers = CriticalEventHandlerRegistry.handlers_for(topic)
+
+      assert length(handlers) == 3
+
+      assert {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event} in handlers
+
+      assert {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event} in handlers
+
+      assert {KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler, :handle_event} in handlers
+    end
+  end
 end

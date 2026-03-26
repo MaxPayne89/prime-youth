@@ -84,6 +84,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
 
           enqueued = all_enqueued(worker: CriticalEventWorker)
           assert length(enqueued) == 3
+
+          handler_refs = Enum.map(enqueued, & &1.args["handler"])
+          assert length(Enum.uniq(handler_refs)) == 3
         end)
       end)
     end
