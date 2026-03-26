@@ -29,7 +29,9 @@ tools:
 timeout-minutes: 15
 
 source: githubnext/agentics/workflows/weekly-research.md@ee49512da7887942965ac0a0e48357106313c9dd
-engine: copilot
+engine:
+  id: claude
+  model: claude-opus-4-6
 ---
 
 # Weekly Research
