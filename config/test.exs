@@ -82,6 +82,7 @@ config :swoosh, :api_client, false
 
 # Wallaby E2E test configuration
 config :wallaby,
+  base_url: "http://localhost:4002",
   driver: Wallaby.Chrome,
   screenshot_on_failure: true,
   screenshot_dir: "tmp/e2e_screenshots",

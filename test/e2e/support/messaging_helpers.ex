@@ -29,12 +29,16 @@ defmodule KlassHeroWeb.E2E.MessagingHelpers do
   `AccountsFixtures.set_password/1` called on them.
   """
   def log_in(session, %{email: email}) do
+    session = visit(session, "/users/log-in")
+    session = click(session, Query.button("Or use password"))
+
+    # Wait for the password form to appear after the LiveView toggle
+    assert_has(session, Query.css("#login_form_password"))
+
     session
-    |> visit("/users/log-in")
-    |> click(Query.button("Or use password"))
     |> fill_in(Query.css("#login_form_password_email"), with: email)
-    |> fill_in(Query.css("#login_form_password_password"), with: @password)
-    |> click(Query.css("#login_form_password button[type=submit]"))
+    |> fill_in(Query.css("#user_password"), with: @password)
+    |> click(Query.css("#login_form_password button[name='user[remember_me]']"))
   end
 
   @doc """
