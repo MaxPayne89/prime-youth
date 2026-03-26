@@ -35,10 +35,36 @@ defmodule KlassHeroWeb.E2E.MessagingHelpers do
     # Wait for the password form to appear after the LiveView toggle
     assert_has(session, Query.css("#login_form_password"))
 
-    session
-    |> fill_in(Query.css("#login_form_password_email"), with: email)
-    |> fill_in(Query.css("#user_password"), with: @password)
-    |> click(Query.css("#login_form_password button[name='user[remember_me]']"))
+    session =
+      session
+      |> fill_in(Query.css("#login_form_password_email"), with: email)
+      |> fill_in(Query.css("#user_password"), with: @password)
+      |> click(Query.css("#login_form_password button[name='user[remember_me]']"))
+
+    # The login form uses phx-trigger-action: after the LiveView event sets
+    # trigger_submit=true, the client JS submits an HTTP POST, the server
+    # creates a session and redirects. This multi-step round-trip can race
+    # with subsequent navigation. Poll until the URL changes away from the
+    # login page, indicating the redirect has completed and the session
+    # cookie has been set.
+    wait_for_login_redirect(session)
+  end
+
+  defp wait_for_login_redirect(session, attempts \\ 0)
+
+  defp wait_for_login_redirect(_session, 20) do
+    raise "Login redirect did not complete within 5 seconds"
+  end
+
+  defp wait_for_login_redirect(session, attempts) do
+    url = Wallaby.Browser.current_url(session)
+
+    if String.contains?(url, "/users/log-in") do
+      :timer.sleep(250)
+      wait_for_login_redirect(session, attempts + 1)
+    else
+      session
+    end
   end
 
   @doc """
