@@ -62,7 +62,9 @@ tools:
   repo-memory: true
 
 source: githubnext/agentics/workflows/daily-test-improver.md@613b585d37d53ee994d85ad27e8e62ad0022ae32
-engine: copilot
+engine:
+  id: claude
+  model: claude-sonnet-4-6
 ---
 
 # Daily Test Improver
