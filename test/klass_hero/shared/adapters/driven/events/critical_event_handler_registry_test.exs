@@ -19,5 +19,36 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
     test "returns empty list for unconfigured topic" do
       assert [] == CriticalEventHandlerRegistry.handlers_for("integration:unknown:topic")
     end
+
+    test "returns Family and Provider handlers for user_registered" do
+      handlers =
+        CriticalEventHandlerRegistry.handlers_for("integration:accounts:user_registered")
+
+      assert [
+               {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event},
+               {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event}
+             ] = handlers
+    end
+
+    test "returns Family and Provider handlers for user_confirmed" do
+      handlers =
+        CriticalEventHandlerRegistry.handlers_for("integration:accounts:user_confirmed")
+
+      assert [
+               {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event},
+               {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event}
+             ] = handlers
+    end
+
+    test "returns Family, Provider, and Messaging handlers for user_anonymized" do
+      handlers =
+        CriticalEventHandlerRegistry.handlers_for("integration:accounts:user_anonymized")
+
+      assert [
+               {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event},
+               {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event},
+               {KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler, :handle_event}
+             ] = handlers
+    end
   end
 end
