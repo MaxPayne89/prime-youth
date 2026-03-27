@@ -47,7 +47,7 @@ defmodule KlassHeroWeb.UserAuth do
 
     conn
     |> create_or_extend_session(user, params)
-    |> redirect(to: user_return_to || signed_in_path(conn))
+    |> redirect(to: user_return_to || signed_in_path(user))
   end
 
   @doc """
@@ -384,10 +384,9 @@ defmodule KlassHeroWeb.UserAuth do
     end)
   end
 
-  @doc "Returns the path to redirect to after log in."
-  # the user was already logged in, redirect to settings
-  def signed_in_path(%Plug.Conn{assigns: %{current_scope: %Scope{user: %Accounts.User{}}}}) do
-    ~p"/users/settings"
+  @doc "Returns the path to redirect to after log in, based on the user's intended roles."
+  def signed_in_path(%Accounts.User{intended_roles: roles}) when is_list(roles) do
+    if :provider in roles, do: ~p"/provider/dashboard", else: ~p"/users/settings"
   end
 
   def signed_in_path(_), do: ~p"/"
