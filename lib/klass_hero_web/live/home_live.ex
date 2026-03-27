@@ -630,7 +630,7 @@ defmodule KlassHeroWeb.HomeLive do
               <p class="font-semibold mb-1">{gettext("If Parent Cancels:")}</p>
               <p class="mb-3">
                 {gettext(
-                  "Contact them immediately - often you can find an alternative date. Include us in CC/BCC (support@klasshero.com) so we're informed."
+                  "Contact them immediately - often you can find an alternative date. Include us in CC/BCC (support@mail.klasshero.com) so we're informed."
                 )}
               </p>
               <p class="mb-1">{gettext("Refunds are automatic based on our cancellation policy:")}</p>
@@ -647,7 +647,7 @@ defmodule KlassHeroWeb.HomeLive do
               <p class="font-semibold mb-1">{gettext("If You Must Cancel:")}</p>
               <p class="mb-3">
                 {gettext(
-                  "Contact all booked parents immediately and offer alternative dates. Include us in CC/BCC (support@klasshero.com)."
+                  "Contact all booked parents immediately and offer alternative dates. Include us in CC/BCC (support@mail.klasshero.com)."
                 )}
               </p>
               <p class="mb-3">
@@ -720,7 +720,7 @@ defmodule KlassHeroWeb.HomeLive do
               question={gettext("What if my child gets sick?")}
               answer={
                 gettext(
-                  "Email the provider and us (support@klasshero.com) immediately. You may qualify for full refund."
+                  "Email the provider and us (support@mail.klasshero.com) immediately. You may qualify for full refund."
                 )
               }
             />
@@ -736,7 +736,7 @@ defmodule KlassHeroWeb.HomeLive do
               question={gettext("What if the provider doesn't show up?")}
               answer={
                 gettext(
-                  "Contact us immediately at support@klasshero.com or call +49 (0) 152 2426 0416. You'll receive 100% refund + family credit, and the provider faces serious penalties."
+                  "Contact us immediately at support@mail.klasshero.com or call +49 (0) 152 2426 0416. You'll receive 100% refund + family credit, and the provider faces serious penalties."
                 )
               }
             />

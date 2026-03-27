@@ -4297,7 +4297,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:649
 #, elixir-autogen, elixir-format
-msgid "Contact all booked parents immediately and offer alternative dates. Include us in CC/BCC (support@klasshero.com)."
+msgid "Contact all booked parents immediately and offer alternative dates. Include us in CC/BCC (support@mail.klasshero.com)."
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:712
@@ -4307,12 +4307,12 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:632
 #, elixir-autogen, elixir-format
-msgid "Contact them immediately - often you can find an alternative date. Include us in CC/BCC (support@klasshero.com) so we're informed."
+msgid "Contact them immediately - often you can find an alternative date. Include us in CC/BCC (support@mail.klasshero.com) so we're informed."
 msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:738
 #, elixir-autogen, elixir-format
-msgid "Contact us immediately at support@klasshero.com or call +49 (0) 152 2426 0416. You'll receive 100% refund + family credit, and the provider faces serious penalties."
+msgid "Contact us immediately at support@mail.klasshero.com or call +49 (0) 152 2426 0416. You'll receive 100% refund + family credit, and the provider faces serious penalties."
 msgstr ""
 
 #: lib/klass_hero_web/live/admin/sessions_live.html.heex:170
@@ -4352,7 +4352,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:722
 #, elixir-autogen, elixir-format
-msgid "Email the provider and us (support@klasshero.com) immediately. You may qualify for full refund."
+msgid "Email the provider and us (support@mail.klasshero.com) immediately. You may qualify for full refund."
 msgstr ""
 
 #: lib/klass_hero_web/components/provider_components.ex:1594
