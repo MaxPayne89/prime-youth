@@ -8,7 +8,7 @@ defmodule KlassHeroWeb.ResendWebhookControllerTest do
     "data" => %{
       "email_id" => "resend_test_#{System.unique_integer([:positive])}",
       "from" => "sender@example.com",
-      "to" => ["hello@klasshero.com"],
+      "to" => ["hello@mail.klasshero.com"],
       "subject" => "Test Email",
       "html" => "<p>Hello</p>",
       "text" => "Hello",
@@ -58,7 +58,7 @@ defmodule KlassHeroWeb.ResendWebhookControllerTest do
         "data" => %{
           "email_id" => resend_id,
           "from" => "sender@example.com",
-          "to" => ["hello@klasshero.com"],
+          "to" => ["hello@mail.klasshero.com"],
           "subject" => "Threading Test",
           "message_id" => "<thread-test@gmail.com>",
           "created_at" => "2026-03-21T10:00:00Z"

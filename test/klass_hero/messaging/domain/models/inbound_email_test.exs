@@ -7,7 +7,7 @@ defmodule KlassHero.Messaging.Domain.Models.InboundEmailTest do
     id: Ecto.UUID.generate(),
     resend_id: "resend_abc123",
     from_address: "sender@example.com",
-    to_addresses: ["hello@klasshero.com"],
+    to_addresses: ["hello@mail.klasshero.com"],
     subject: "Test Subject",
     received_at: DateTime.utc_now()
   }

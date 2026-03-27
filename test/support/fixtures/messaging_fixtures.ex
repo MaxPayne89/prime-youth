@@ -12,7 +12,7 @@ defmodule KlassHero.MessagingFixtures do
     Enum.into(attrs, %{
       resend_id: unique_resend_id(),
       from_address: "sender#{System.unique_integer([:positive])}@example.com",
-      to_addresses: ["hello@klasshero.com"],
+      to_addresses: ["hello@mail.klasshero.com"],
       subject: "Test Email #{System.unique_integer([:positive])}",
       body_html: "<p>Hello</p>",
       body_text: "Hello",
