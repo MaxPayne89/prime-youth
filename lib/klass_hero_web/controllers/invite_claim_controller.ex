@@ -27,7 +27,10 @@ defmodule KlassHeroWeb.InviteClaimController do
         magic_token = Accounts.generate_magic_link_token(full_user)
 
         conn
-        |> put_flash(:info, "Your account has been created! Set up your password in settings.")
+        |> put_flash(
+          :info,
+          gettext("Your account has been created! Set up your password in settings.")
+        )
         |> redirect(to: ~p"/users/log-in/#{magic_token}")
 
       {:ok, :existing_user, _user, _invite} ->
@@ -36,19 +39,22 @@ defmodule KlassHeroWeb.InviteClaimController do
         #      enrollment saga can proceed against their existing identity
         # Outcome: redirect to standard login page
         conn
-        |> put_flash(:info, "You already have an account. Log in to see your new enrollment.")
+        |> put_flash(
+          :info,
+          gettext("You already have an account. Log in to see your new enrollment.")
+        )
         |> redirect(to: ~p"/users/log-in")
 
       {:error, :not_found} ->
         Logger.warning("[InviteClaimController] Invalid or expired invite token attempted")
 
         conn
-        |> put_flash(:error, "This invite link is invalid or has expired.")
+        |> put_flash(:error, gettext("This invite link is invalid or has expired."))
         |> redirect(to: ~p"/")
 
       {:error, :already_claimed} ->
         conn
-        |> put_flash(:info, "This invite has already been used.")
+        |> put_flash(:info, gettext("This invite has already been used."))
         |> redirect(to: ~p"/users/log-in")
     end
   end

@@ -6,7 +6,7 @@
       class="inline-flex items-center gap-2 text-hero-blue-600 hover:text-hero-blue-700 font-medium"
     >
       <.icon name="hero-arrow-left" class="w-5 h-5" />
-      <span>Back to Sessions</span>
+      <span>{gettext("Back to Sessions")}</span>
     </.link>
   </div>
 
@@ -22,7 +22,7 @@
     <%!-- Roster list with individual actions --%>
     <div class="mt-6">
       <h2 class="text-xl font-semibold text-gray-900 mb-4">
-        Participation Management
+        {gettext("Participation Management")}
       </h2>
       <.roster_list
         participation_records={@participation_records}
@@ -45,12 +45,12 @@
                   Theme.transition(:normal)
                 ]}
               >
-                Check Out
+                {gettext("Check Out")}
               </button>
               <%!-- Checked Out: Show status text --%>
             <% record.status == :checked_out -> %>
               <span class="px-3 py-1.5 text-sm text-gray-500">
-                Checked Out
+                {gettext("Checked Out")}
               </span>
               <%!-- Expected: Show Check In button --%>
             <% true -> %>
@@ -64,7 +64,7 @@
                   Theme.transition(:normal)
                 ]}
               >
-                Check In
+                {gettext("Check In")}
               </button>
           <% end %>
 
@@ -85,7 +85,7 @@
                     Theme.transition(:normal)
                   ]}
                 >
-                  Add Note
+                  {gettext("Add Note")}
                 </button>
                 <%!-- Note form is expanded for this record --%>
               <% is_nil(existing_note) && @note_form_expanded == to_string(record.id) -> %>
@@ -117,7 +117,7 @@
                         Theme.transition(:normal)
                       ]}
                     >
-                      Edit & Resubmit
+                      {gettext("Edit & Resubmit")}
                     </button>
                   <% end %>
                 <% end %>

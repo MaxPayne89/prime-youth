@@ -80,14 +80,14 @@
           </div>
         </div>
         <span class={["badge badge-sm", status_badge_class(email.status)]}>
-          {email.status |> to_string() |> String.capitalize()}
+          {translate_email_status(email.status)}
         </span>
         <span :if={email.content_status == :pending} class="loading loading-spinner loading-xs">
         </span>
         <span
           :if={email.content_status == :failed}
           class="badge badge-xs badge-error"
-          title="Content fetch failed"
+          title={gettext("Content fetch failed")}
         >
           !
         </span>
@@ -189,7 +189,7 @@
           {format_received_at(reply.inserted_at)}
         </span>
         <span class={["badge badge-sm", reply_status_badge_class(reply.status)]}>
-          {reply.status |> to_string() |> String.capitalize()}
+          {translate_reply_status(reply.status)}
         </span>
       </div>
       <p class="text-sm whitespace-pre-wrap">{reply.body}</p>

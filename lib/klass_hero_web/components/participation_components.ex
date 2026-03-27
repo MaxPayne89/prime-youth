@@ -6,6 +6,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   session management, and participation status tracking for providers and parents.
   """
   use Phoenix.Component
+  use Gettext, backend: KlassHeroWeb.Gettext
 
   import KlassHeroWeb.CoreComponents, only: [input: 1]
   import KlassHeroWeb.UIComponents
@@ -53,7 +54,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
       <div class="flex items-start justify-between gap-4 mb-4">
         <div class="flex-1">
           <h3 class="text-lg font-semibold text-hero-black">
-            {Map.get(@session, :program_name, "Session")}
+            {Map.get(@session, :program_name, gettext("Session"))}
           </h3>
           <p class="text-sm text-hero-black-100 mt-1">
             {format_session_datetime(@session)}
@@ -66,14 +67,17 @@ defmodule KlassHeroWeb.ParticipationComponents do
       <div class="space-y-2 mb-4">
         <div class="flex items-center gap-2 text-sm text-hero-black-100">
           <.icon name="hero-map-pin" class="w-4 h-4 text-hero-grey-400" />
-          <span>{Map.get(@session, :location, "Location TBD")}</span>
+          <span>{Map.get(@session, :location, gettext("Location TBD"))}</span>
         </div>
 
         <%= if @role == :provider && Map.get(@session, :capacity) do %>
           <div class="flex items-center gap-2 text-sm text-hero-black-100">
             <.icon name="hero-user-group" class="w-4 h-4 text-hero-grey-400" />
             <span>
-              {Map.get(@session, :checked_in_count, 0)} / {Map.get(@session, :capacity)} checked in
+              {gettext("%{checked_in} / %{capacity} checked in",
+                checked_in: Map.get(@session, :checked_in_count, 0),
+                capacity: Map.get(@session, :capacity)
+              )}
             </span>
           </div>
         <% end %>
@@ -171,7 +175,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
         <%!-- Session context --%>
         <div class="mb-6">
           <h3 class="text-lg font-semibold text-hero-black mb-2">
-            Participation Check-In
+            {gettext("Participation Check-In")}
           </h3>
           <p class="text-sm text-hero-grey-600">
             {format_session_datetime(@session)}
@@ -180,7 +184,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
         <%!-- Roster grid --%>
         <div class="space-y-3 mb-6">
-          <h4 class="text-sm font-medium text-hero-black-100">Session Roster</h4>
+          <h4 class="text-sm font-medium text-hero-black-100">{gettext("Session Roster")}</h4>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div
               :for={record <- @participation_records}
@@ -209,7 +213,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
                   <.safety_info_badges record={record} />
                   <%= if record.status == :checked_in && record.check_in_at do %>
                     <div class="text-xs text-hero-grey-500 mt-1">
-                      Checked in at {format_time(record.check_in_at)}
+                      {gettext("Checked in at %{time}", time: format_time(record.check_in_at))}
                     </div>
                   <% end %>
                 </div>
@@ -224,8 +228,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
           <.input
             field={@form[:notes]}
             type="textarea"
-            label="Session Notes (optional)"
-            placeholder="Any important notes about today's session..."
+            label={gettext("Session Notes (optional)")}
+            placeholder={gettext("Any important notes about today's session...")}
             rows="3"
           />
         </div>
@@ -240,7 +244,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
               Theme.transition(:normal)
             ]}
           >
-            Submit Participation
+            {gettext("Submit Participation")}
           </button>
         </div>
       </.form>
@@ -312,12 +316,13 @@ defmodule KlassHeroWeb.ParticipationComponents do
       <div class="p-4 md:p-6 border-b border-hero-grey-200">
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold text-hero-black">
-            Session Roster
+            {gettext("Session Roster")}
           </h3>
           <div class="text-sm text-hero-grey-600">
-            {ParticipationCollection.count_checked_in(@participation_records)} / {length(
-              @participation_records
-            )} checked in
+            {gettext("%{checked_in} / %{total} checked in",
+              checked_in: ParticipationCollection.count_checked_in(@participation_records),
+              total: length(@participation_records)
+            )}
           </div>
         </div>
       </div>
@@ -343,13 +348,13 @@ defmodule KlassHeroWeb.ParticipationComponents do
                 <%= if record.check_in_at do %>
                   <div class="flex items-center gap-2">
                     <.icon name="hero-arrow-right-circle" class="w-4 h-4 text-green-600" />
-                    <span>In: {format_time(record.check_in_at)}</span>
+                    <span>{gettext("In: %{time}", time: format_time(record.check_in_at))}</span>
                   </div>
                 <% end %>
                 <%= if record.check_out_at do %>
                   <div class="flex items-center gap-2">
                     <.icon name="hero-arrow-left-circle" class="w-4 h-4 text-hero-blue-600" />
-                    <span>Out: {format_time(record.check_out_at)}</span>
+                    <span>{gettext("Out: %{time}", time: format_time(record.check_out_at))}</span>
                   </div>
                 <% end %>
               </div>
@@ -359,13 +364,13 @@ defmodule KlassHeroWeb.ParticipationComponents do
                 <div class="mt-2 space-y-1">
                   <%= if Map.get(record, :check_in_notes) do %>
                     <div class="text-sm text-hero-grey-600 italic">
-                      <span class="font-medium text-hero-black-100">Check-in:</span>
+                      <span class="font-medium text-hero-black-100">{gettext("Check-in:")}</span>
                       "{record.check_in_notes}"
                     </div>
                   <% end %>
                   <%= if Map.get(record, :check_out_notes) do %>
                     <div class="text-sm text-hero-grey-600 italic">
-                      <span class="font-medium text-hero-black-100">Check-out:</span>
+                      <span class="font-medium text-hero-black-100">{gettext("Check-out:")}</span>
                       "{record.check_out_notes}"
                     </div>
                   <% end %>
@@ -399,8 +404,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
                   <.input
                     field={Map.get(@checkout_forms, to_string(record.id))[:notes]}
                     type="textarea"
-                    label="Check-out notes (optional)"
-                    placeholder="E.g., picked up by parent, gave medication reminder..."
+                    label={gettext("Check-out notes (optional)")}
+                    placeholder={gettext("E.g., picked up by parent, gave medication reminder...")}
                     rows="2"
                   />
 
@@ -415,7 +420,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
                         Theme.transition(:normal)
                       ]}
                     >
-                      Confirm Check Out
+                      {gettext("Confirm Check Out")}
                     </button>
                     <button
                       type="button"
@@ -428,7 +433,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
                         Theme.transition(:normal)
                       ]}
                     >
-                      Cancel
+                      {gettext("Cancel")}
                     </button>
                   </div>
                 </div>
@@ -446,7 +451,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
         <%= if @participation_records == [] do %>
           <div class="p-8 text-center text-hero-grey-500">
             <.icon name="hero-user-group" class="w-12 h-12 mx-auto mb-2 text-hero-grey-400" />
-            <p>No children enrolled in this session</p>
+            <p>{gettext("No children enrolled in this session")}</p>
           </div>
         <% end %>
       </div>
@@ -507,9 +512,9 @@ defmodule KlassHeroWeb.ParticipationComponents do
         entity_id: assigns.record_id,
         id_prefix: "behavioral-note-form",
         wrapper_id_prefix: "note-form",
-        label: "Behavioral Note",
-        placeholder: "Observation about the child's participation...",
-        submit_label: "Submit Note",
+        label: gettext("Behavioral Note"),
+        placeholder: gettext("Observation about the child's participation..."),
+        submit_label: gettext("Submit Note"),
         submit_event: "submit_note",
         change_event: "update_note_content",
         cancel_event: "cancel_note"
@@ -537,9 +542,9 @@ defmodule KlassHeroWeb.ParticipationComponents do
         entity_id: assigns.note_id,
         id_prefix: "revision-note-form",
         wrapper_id_prefix: "revision-form",
-        label: "Revised Note",
-        placeholder: "Update your observation...",
-        submit_label: "Resubmit Note",
+        label: gettext("Revised Note"),
+        placeholder: gettext("Update your observation..."),
+        submit_label: gettext("Resubmit Note"),
         submit_event: "submit_revision",
         change_event: "update_revision_content",
         cancel_event: "cancel_revision"
@@ -566,7 +571,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
           :for={note <- @notes}
           class="text-sm text-hero-grey-600 italic bg-green-50 px-2 py-1 rounded"
         >
-          <span class="font-medium text-green-700">Note:</span> "{note.content}"
+          <span class="font-medium text-green-700">{gettext("Note:")}</span> "{note.content}"
         </div>
       </div>
     <% end %>
@@ -627,7 +632,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
                 Theme.transition(:normal)
               ]}
             >
-              Cancel
+              {gettext("Cancel")}
             </button>
           </div>
         </div>
@@ -647,19 +652,19 @@ defmodule KlassHeroWeb.ParticipationComponents do
           :if={Map.get(@record, :allergies)}
           class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-orange-50 text-orange-700 rounded-full"
         >
-          Allergies: {@record.allergies}
+          {gettext("Allergies: %{details}", details: @record.allergies)}
         </span>
         <span
           :if={Map.get(@record, :support_needs)}
           class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-50 text-blue-700 rounded-full"
         >
-          Support: {@record.support_needs}
+          {gettext("Support: %{details}", details: @record.support_needs)}
         </span>
         <span
           :if={Map.get(@record, :emergency_contact)}
           class="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-red-50 text-red-700 rounded-full"
         >
-          Emergency: {@record.emergency_contact}
+          {gettext("Emergency: %{details}", details: @record.emergency_contact)}
         </span>
       </div>
     <% end %>
@@ -720,14 +725,14 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp status_icon(:absent), do: "hero-x-circle"
   defp status_icon(:expected), do: "hero-clock"
 
-  defp status_label(:registered), do: "Registered"
-  defp status_label(:scheduled), do: "Scheduled"
-  defp status_label(:in_progress), do: "In Progress"
-  defp status_label(:completed), do: "Completed"
-  defp status_label(:checked_in), do: "Checked In"
-  defp status_label(:checked_out), do: "Checked Out"
-  defp status_label(:absent), do: "Absent"
-  defp status_label(:expected), do: "Expected"
+  defp status_label(:registered), do: gettext("Registered")
+  defp status_label(:scheduled), do: gettext("Scheduled")
+  defp status_label(:in_progress), do: gettext("In Progress")
+  defp status_label(:completed), do: gettext("Completed")
+  defp status_label(:checked_in), do: gettext("Checked In")
+  defp status_label(:checked_out), do: gettext("Checked Out")
+  defp status_label(:absent), do: gettext("Absent")
+  defp status_label(:expected), do: gettext("Expected")
 
   # Behavioral note status helpers
 
@@ -742,7 +747,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp note_status_icon(:approved), do: "hero-check-circle"
   defp note_status_icon(:rejected), do: "hero-x-circle"
 
-  defp note_status_label(:pending_approval), do: "Pending Review"
-  defp note_status_label(:approved), do: "Approved"
-  defp note_status_label(:rejected), do: "Rejected"
+  defp note_status_label(:pending_approval), do: gettext("Pending Review")
+  defp note_status_label(:approved), do: gettext("Approved")
+  defp note_status_label(:rejected), do: gettext("Rejected")
 end

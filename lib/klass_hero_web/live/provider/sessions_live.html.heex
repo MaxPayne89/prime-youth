@@ -2,8 +2,8 @@
   <%!-- Page header --%>
   <div class="mb-6">
     <.page_header>
-      <:title>My Sessions</:title>
-      <:subtitle>Manage your scheduled sessions and attendance</:subtitle>
+      <:title>{gettext("My Sessions")}</:title>
+      <:subtitle>{gettext("Manage your scheduled sessions and attendance")}</:subtitle>
       <:actions>
         <.link
           patch={~p"/provider/sessions/new"}
@@ -50,7 +50,7 @@
                   Theme.transition(:normal)
                 ]}
               >
-                Start Session
+                {gettext("Start Session")}
               </button>
             <% session.status == :in_progress -> %>
               <.link
@@ -61,7 +61,7 @@
                   Theme.transition(:normal)
                 ]}
               >
-                Manage Participation
+                {gettext("Manage Participation")}
               </.link>
               <button
                 phx-click="complete_session"
@@ -72,7 +72,7 @@
                   Theme.transition(:normal)
                 ]}
               >
-                Complete Session
+                {gettext("Complete Session")}
               </button>
             <% session.status == :completed -> %>
               <.link
@@ -83,10 +83,10 @@
                   Theme.transition(:normal)
                 ]}
               >
-                View Participation
+                {gettext("View Participation")}
               </.link>
             <% true -> %>
-              <span class="text-sm text-gray-500">No actions available</span>
+              <span class="text-sm text-gray-500">{gettext("No actions available")}</span>
           <% end %>
         </:actions>
       </.participation_card>
@@ -101,10 +101,12 @@
       ]}>
         <.icon name="hero-calendar" class="w-16 h-16 mx-auto mb-4 text-gray-400" />
         <h3 class="text-lg font-medium text-gray-900 mb-2">
-          No sessions scheduled
+          {gettext("No sessions scheduled")}
         </h3>
         <p class="text-gray-600">
-          You have no sessions scheduled for {Calendar.strftime(@selected_date, "%B %d, %Y")}
+          {gettext("You have no sessions scheduled for %{date}",
+            date: Calendar.strftime(@selected_date, "%B %d, %Y")
+          )}
         </p>
       </div>
     </div>

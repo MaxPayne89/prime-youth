@@ -210,4 +210,14 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
   end
 
   defp format_received_at(_), do: ""
+
+  defp translate_email_status(:unread), do: gettext("Unread")
+  defp translate_email_status(:read), do: gettext("Read")
+  defp translate_email_status(:archived), do: gettext("Archived")
+  defp translate_email_status(status), do: status |> to_string() |> String.capitalize()
+
+  defp translate_reply_status(:sending), do: gettext("Sending")
+  defp translate_reply_status(:sent), do: gettext("Sent")
+  defp translate_reply_status(:failed), do: gettext("Failed")
+  defp translate_reply_status(status), do: status |> to_string() |> String.capitalize()
 end
