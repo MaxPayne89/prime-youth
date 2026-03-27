@@ -207,18 +207,11 @@ jobs:
       - name: Set up database
         run: mix ecto.create --quiet && mix ecto.migrate --quiet
 
-      # browser-actions/setup-chrome@v2.1.1
-      - name: Install Chrome and ChromeDriver
-        uses: browser-actions/setup-chrome@3ba2f2bc81ddf8088ecbacdea69d476631049f8b
-        id: setup-chrome
-        with:
-          chrome-version: stable
-          install-chromedriver: true
+      # nanasess/setup-chromedriver@v2.4.0
+      - name: Install ChromeDriver
+        uses: nanasess/setup-chromedriver@c75c3d53d445b96d41dbf2355797b470953c6c30
 
       - name: Run E2E tests
-        env:
-          CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
-          CHROME_BROWSER: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: mix test test/e2e --include e2e
 
       # actions/upload-artifact@v4.6.2

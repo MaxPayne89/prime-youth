@@ -87,4 +87,9 @@ config :wallaby,
   screenshot_on_failure: true,
   screenshot_dir: "tmp/e2e_screenshots",
   chrome: [headless: true],
-  chromedriver: [path: System.get_env("CHROMEDRIVER_PATH", "_build/chromedriver/chromedriver")]
+  chromedriver: [
+    path:
+      System.get_env("CHROMEDRIVER_PATH") ||
+        System.find_executable("chromedriver") ||
+        "_build/chromedriver/chromedriver"
+  ]
