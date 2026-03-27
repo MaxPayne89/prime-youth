@@ -19,7 +19,7 @@ defmodule KlassHeroWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/users/settings"
 
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")
@@ -42,7 +42,7 @@ defmodule KlassHeroWeb.UserSessionControllerTest do
         })
 
       assert conn.resp_cookies["_klass_hero_web_user_remember_me"]
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/users/settings"
     end
 
     test "logs the user in with return to", %{conn: conn, user: user} do
@@ -60,6 +60,18 @@ defmodule KlassHeroWeb.UserSessionControllerTest do
 
       assert redirected_to(conn) == "/foo/bar"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "Welcome back!"
+    end
+
+    test "redirects provider to provider dashboard", %{conn: conn} do
+      provider_user = user_fixture(intended_roles: [:provider])
+      provider_user = set_password(provider_user)
+
+      conn =
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"email" => provider_user.email, "password" => valid_user_password()}
+        })
+
+      assert redirected_to(conn) == ~p"/provider/dashboard"
     end
 
     test "redirects to login page with invalid credentials", %{conn: conn, user: user} do
@@ -83,7 +95,7 @@ defmodule KlassHeroWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/users/settings"
 
       # Now do a logged in request and assert on the menu
       conn = get(conn, ~p"/")
@@ -104,7 +116,7 @@ defmodule KlassHeroWeb.UserSessionControllerTest do
         })
 
       assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/users/settings"
       assert Phoenix.Flash.get(conn.assigns.flash, :info) =~ "User confirmed successfully."
 
       assert Accounts.get_user!(user.id).confirmed_at
@@ -115,6 +127,31 @@ defmodule KlassHeroWeb.UserSessionControllerTest do
       assert response =~ user.email
       assert response =~ ~p"/users/settings"
       assert response =~ ~p"/users/log-out"
+    end
+
+    test "redirects provider to provider dashboard via magic link", %{conn: conn} do
+      provider_user = user_fixture(intended_roles: [:provider])
+      {token, _hashed_token} = generate_user_magic_link_token(provider_user)
+
+      conn =
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"token" => token}
+        })
+
+      assert redirected_to(conn) == ~p"/provider/dashboard"
+    end
+
+    test "redirects provider to provider dashboard on confirmation", %{conn: conn} do
+      provider_user = unconfirmed_user_fixture(intended_roles: [:provider])
+      {token, _hashed_token} = generate_user_magic_link_token(provider_user)
+
+      conn =
+        post(conn, ~p"/users/log-in", %{
+          "user" => %{"token" => token},
+          "_action" => "confirmed"
+        })
+
+      assert redirected_to(conn) == ~p"/provider/dashboard"
     end
 
     test "redirects to login page when magic link is invalid", %{conn: conn} do

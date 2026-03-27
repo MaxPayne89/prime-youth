@@ -27,7 +27,7 @@ defmodule KlassHeroWeb.UserAuthTest do
       conn = UserAuth.log_in_user(conn, user)
       assert token = get_session(conn, :user_token)
       assert get_session(conn, :live_socket_id) == "users_sessions:#{Base.url_encode64(token)}"
-      assert redirected_to(conn) == ~p"/"
+      assert redirected_to(conn) == ~p"/users/settings"
       assert Accounts.get_user_by_session_token(token)
     end
 
@@ -83,6 +83,26 @@ defmodule KlassHeroWeb.UserAuthTest do
         |> UserAuth.log_in_user(user)
 
       assert redirected_to(conn) == ~p"/users/settings"
+    end
+
+    test "redirects provider to provider dashboard", %{conn: conn} do
+      provider_user = %{
+        user_fixture(intended_roles: [:provider])
+        | authenticated_at: DateTime.utc_now(:second)
+      }
+
+      conn = UserAuth.log_in_user(conn, provider_user)
+      assert redirected_to(conn) == ~p"/provider/dashboard"
+    end
+
+    test "redirects dual-role user to provider dashboard", %{conn: conn} do
+      dual_user = %{
+        user_fixture(intended_roles: [:parent, :provider])
+        | authenticated_at: DateTime.utc_now(:second)
+      }
+
+      conn = UserAuth.log_in_user(conn, dual_user)
+      assert redirected_to(conn) == ~p"/provider/dashboard"
     end
 
     test "writes a cookie if remember_me was set in previous session", %{conn: conn, user: user} do
