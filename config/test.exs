@@ -86,7 +86,7 @@ config :wallaby,
   driver: Wallaby.Chrome,
   screenshot_on_failure: true,
   screenshot_dir: "tmp/e2e_screenshots",
-  chrome: [headless: true],
+  chrome: [headless: true, args: ["--no-sandbox", "--disable-gpu"]],
   chromedriver: [
     path:
       System.get_env("CHROMEDRIVER_PATH") ||
