@@ -11,7 +11,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriber do
   Define a handler module implementing `ForHandlingEvents` (or `ForHandlingIntegrationEvents`):
 
       defmodule MyApp.MyEventHandler do
-        @behaviour KlassHero.Shared.Domain.Ports.ForHandlingEvents
+        @behaviour KlassHero.Shared.Domain.Ports.Driving.ForHandlingEvents
 
         @impl true
         def subscribed_events, do: [:user_registered, :user_confirmed]

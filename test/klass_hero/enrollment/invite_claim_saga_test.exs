@@ -33,13 +33,13 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
   # These GenServers receive PubSub integration events and access the DB.
   @saga_subscribers [
     # Handles integration:enrollment:invite_claimed -> creates parent + child
-    KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler,
+    KlassHero.Family.Adapters.Driving.Events.InviteClaimedHandler,
     # Handles integration:family:invite_family_ready -> creates enrollment
-    KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler,
+    KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler,
     # Handles integration:accounts:user_registered -> creates parent profile (may race)
-    KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler,
+    KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler,
     # Handles integration:accounts:user_registered -> creates provider profile stub
-    KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler
+    KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
   ]
 
   defp create_claimable_invite(_context) do

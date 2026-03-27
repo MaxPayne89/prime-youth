@@ -1,6 +1,6 @@
 defmodule KlassHero.Test.CriticalTestHandler do
   @moduledoc false
-  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingIntegrationEvents
+  @behaviour KlassHero.Shared.Domain.Ports.Driving.ForHandlingIntegrationEvents
 
   @impl true
   def subscribed_events, do: [:critical_test_event]
