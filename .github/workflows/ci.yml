@@ -218,6 +218,7 @@ jobs:
       - name: Run E2E tests
         env:
           CHROMEDRIVER_PATH: ${{ steps.setup-chrome.outputs.chromedriver-path }}
+          CHROME_BROWSER: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: mix test test/e2e --include e2e
 
       # actions/upload-artifact@v4.6.2
