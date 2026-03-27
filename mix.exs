@@ -38,12 +38,12 @@ defmodule KlassHero.MixProject do
 
   def cli do
     [
-      preferred_envs: []
+      preferred_envs: ["test.e2e": :test]
     ]
   end
 
   # Specifies which paths to compile per environment.
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(:test), do: ["lib", "test/support", "test/e2e/support"]
   defp elixirc_paths(_), do: ["lib"]
 
   # Specifies your project dependencies.
@@ -64,6 +64,7 @@ defmodule KlassHero.MixProject do
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
       {:phoenix_test, "~> 0.9", only: :test, runtime: false},
+      {:wallaby, "~> 0.30", only: :test, runtime: false},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
@@ -137,6 +138,7 @@ defmodule KlassHero.MixProject do
       ],
       "test.clean": ["test.teardown --remove-volumes", "test.setup --force-recreate"],
       "test.watch": ["test.setup", "test.watch.continuous"],
+      "test.e2e": ["test test/e2e --include e2e"],
       precommit: [
         "compile --warning-as-errors",
         "deps.unlock --unused",
