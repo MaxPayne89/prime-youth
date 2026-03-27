@@ -72,7 +72,7 @@ config :klass_hero, :app_base_url, "http://localhost:4000"
 
 # Contact information — centralized, configurable per environment
 config :klass_hero, :contact,
-  email: "info@klasshero.com",
+  email: "info@mail.klasshero.com",
   phone: nil,
   address: nil
 
