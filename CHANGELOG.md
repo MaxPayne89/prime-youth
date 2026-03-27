@@ -5,6 +5,35 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0](https://github.com/MaxPayne89/klass-hero/compare/v0.16.1...v0.17.0) (2026-03-27)
+
+
+### Features
+
+* add E2ECase, MessagingHelpers, and data-role test anchors ([b8f48f3](https://github.com/MaxPayne89/klass-hero/commit/b8f48f30dae0a1bffaac9e6ef2e88866af9c3b4a))
+* add Wallaby dependency and E2E test infrastructure config ([d8e6f1b](https://github.com/MaxPayne89/klass-hero/commit/d8e6f1bded0ed8ad8e669335437d7cc16c8790a9))
+* register Accounts integration events for durable Oban delivery ([ec7f4dd](https://github.com/MaxPayne89/klass-hero/commit/ec7f4dd6a0efd2a302eb9407c1d9cd1595501026))
+* register Accounts integration events for durable Oban delivery ([902febe](https://github.com/MaxPayne89/klass-hero/commit/902febea710a3bcbe5d57ff0725e16975c5e48ae)), closes [#486](https://github.com/MaxPayne89/klass-hero/issues/486)
+* role-aware post-confirmation redirect for providers ([e06503b](https://github.com/MaxPayne89/klass-hero/commit/e06503b4f1973ddc65a6de178a685eaa4a417d0f))
+* role-aware post-confirmation redirect for providers ([1868730](https://github.com/MaxPayne89/klass-hero/commit/18687306ad63bf41df9ed44e8fdc700c4783b668)), closes [#485](https://github.com/MaxPayne89/klass-hero/issues/485)
+
+
+### Bug Fixes
+
+* add user_agent to socket connect_info and move sandbox plug to top of pipeline ([6b912a9](https://github.com/MaxPayne89/klass-hero/commit/6b912a94a9661f9dab5a7438058a4210136fd062))
+* build assets and add --no-sandbox for E2E in CI ([1a05e55](https://github.com/MaxPayne89/klass-hero/commit/1a05e55b977dadb62df03e24ec0c956570c63ca4))
+* redirect staff_provider users to staff dashboard after login ([5a0a4fc](https://github.com/MaxPayne89/klass-hero/commit/5a0a4fc986e2fde1d753ca87da1d153288e5222b))
+* redirect staff_provider users to staff dashboard after login ([e4c1d66](https://github.com/MaxPayne89/klass-hero/commit/e4c1d66292a1fc4151241e0a2bed44f4fcc0f08e)), closes [#503](https://github.com/MaxPayne89/klass-hero/issues/503)
+* set CHROME_BROWSER env in CI to match chromedriver version ([bfb321a](https://github.com/MaxPayne89/klass-hero/commit/bfb321a25a6a4d5fcb255c6fced10c82dbb84cf8))
+* use CSS selector for login button to avoid text match issues ([ab93130](https://github.com/MaxPayne89/klass-hero/commit/ab9313036254aa296994c12f37d04a8909c8d0ad))
+* use nanasess/setup-chromedriver for version-matched ChromeDriver in CI ([f4c9f3d](https://github.com/MaxPayne89/klass-hero/commit/f4c9f3dd7db94351a179160f783b0e135c262ee9))
+
+
+### Code Refactoring
+
+* extract shared E2E setup and remove duplication ([9f2860d](https://github.com/MaxPayne89/klass-hero/commit/9f2860de5238b236710fcd50e04b1aeb89bbf702))
+* remove redundant guard and add test-drive report ([30f9584](https://github.com/MaxPayne89/klass-hero/commit/30f95844465761dda6b615a1ecc97eb14714997a))
+
 ## [0.16.1](https://github.com/MaxPayne89/klass-hero/compare/v0.16.0...v0.16.1) (2026-03-26)
 
 
