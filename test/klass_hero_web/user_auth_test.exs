@@ -599,4 +599,30 @@ defmodule KlassHeroWeb.UserAuthTest do
       }
     end
   end
+
+  describe "signed_in_path/1" do
+    test "redirects staff_provider to staff dashboard" do
+      user = %Accounts.User{intended_roles: [:staff_provider]}
+      assert UserAuth.signed_in_path(user) == ~p"/staff/dashboard"
+    end
+
+    test "redirects provider to provider dashboard" do
+      user = %Accounts.User{intended_roles: [:provider]}
+      assert UserAuth.signed_in_path(user) == ~p"/provider/dashboard"
+    end
+
+    test "redirects parent to user settings" do
+      user = %Accounts.User{intended_roles: [:parent]}
+      assert UserAuth.signed_in_path(user) == ~p"/users/settings"
+    end
+
+    test "redirects user with no roles to user settings" do
+      user = %Accounts.User{intended_roles: []}
+      assert UserAuth.signed_in_path(user) == ~p"/users/settings"
+    end
+
+    test "falls back to root for nil user" do
+      assert UserAuth.signed_in_path(nil) == ~p"/"
+    end
+  end
 end
