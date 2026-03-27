@@ -2,13 +2,91 @@ defmodule KlassHeroWeb.E2E.MessagingHelpers do
   @moduledoc """
   Thin helper layer for messaging E2E tests.
 
-  Centralizes DOM selectors and common multi-step browser interactions
-  so tests stay readable without premature Page Object abstraction.
+  Centralizes DOM selectors, common multi-step browser interactions,
+  and shared test data setup so tests stay readable without premature
+  Page Object abstraction.
   """
 
   use Wallaby.DSL
 
-  @password "hello world!"
+  import ExUnit.Callbacks, only: [start_supervised!: 1]
+  import KlassHero.AccountsFixtures
+  import KlassHero.Factory
+
+  alias KlassHero.Accounts.Scope
+  alias KlassHero.Messaging
+  alias KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries
+
+  # --- Test data setup ---
+
+  @doc """
+  Creates a direct conversation between a provider and parent, with an initial message.
+
+  Starts the ConversationSummaries projection, creates confirmed users with
+  passwords and profiles, sends a seed message, and rebuilds the read model.
+
+  Returns a map with `:provider_user`, `:parent_user`, `:provider`, and `:conversation`.
+  """
+  def setup_dm_conversation(initial_message \\ "Hello! Welcome to the program.") do
+    start_supervised!(ConversationSummaries)
+
+    provider_user = user_fixture(%{intended_roles: [:provider]}) |> set_password()
+
+    provider =
+      insert(:provider_profile_schema,
+        identity_id: provider_user.id,
+        subscription_tier: "professional"
+      )
+
+    parent_user = user_fixture(%{intended_roles: [:parent]}) |> set_password()
+
+    insert(:parent_profile_schema,
+      identity_id: parent_user.id,
+      subscription_tier: "active"
+    )
+
+    provider_scope = Scope.for_user(provider_user) |> Scope.resolve_roles()
+
+    {:ok, conversation} =
+      Messaging.create_direct_conversation(provider_scope, provider.id, parent_user.id)
+
+    {:ok, _message} =
+      Messaging.send_message(conversation.id, provider_user.id, initial_message)
+
+    rebuild_summaries()
+
+    %{
+      provider_user: provider_user,
+      parent_user: parent_user,
+      provider: provider,
+      conversation: conversation
+    }
+  end
+
+  @doc """
+  Rebuilds the ConversationSummaries CQRS read model.
+
+  Test event publishers don't use PubSub, so the projection needs
+  explicit rebuilds after data mutations to reflect changes in
+  conversation lists and unread counts.
+  """
+  def rebuild_summaries do
+    ConversationSummaries.rebuild()
+  end
+
+  @doc """
+  Waits for a browser-initiated DB write to commit, then rebuilds summaries.
+
+  Use after browser actions (send_message, mark_as_read) that trigger
+  server-side writes — the DB commit may not be visible to the
+  projection immediately.
+  """
+  def wait_and_rebuild_summaries(ms \\ 500) do
+    Process.sleep(ms)
+    rebuild_summaries()
+  end
+
+  # --- Browser session helpers ---
 
   @doc """
   Starts a new Wallaby browser session with Ecto sandbox metadata attached.
@@ -32,13 +110,12 @@ defmodule KlassHeroWeb.E2E.MessagingHelpers do
     session = visit(session, "/users/log-in")
     session = click(session, Query.button("Or use password"))
 
-    # Wait for the password form to appear after the LiveView toggle
     assert_has(session, Query.css("#login_form_password"))
 
     session =
       session
       |> fill_in(Query.css("#login_form_password_email"), with: email)
-      |> fill_in(Query.css("#user_password"), with: @password)
+      |> fill_in(Query.css("#user_password"), with: valid_user_password())
       |> click(Query.css("#login_form_password button[name='user[remember_me]']"))
 
     # The login form uses phx-trigger-action: after the LiveView event sets
@@ -67,10 +144,10 @@ defmodule KlassHeroWeb.E2E.MessagingHelpers do
     end
   end
 
+  # --- DOM interaction helpers ---
+
   @doc """
   Sends a message in the current conversation view.
-
-  Fills the message textarea and clicks the send button.
   """
   def send_message(session, text) do
     session
