@@ -21,8 +21,8 @@ defmodule KlassHero.Accounts.RegistrationProfileCreationIntegrationTest do
 
   # EventSubscriber GenServers that create profiles in response to user_registered.
   @profile_subscribers [
-    KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler,
-    KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler
+    KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler,
+    KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
   ]
 
   setup do

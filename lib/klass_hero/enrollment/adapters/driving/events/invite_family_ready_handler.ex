@@ -1,0 +1,161 @@
+defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler do
+  @moduledoc """
+  Integration event handler that creates an enrollment when the Family context
+  signals that the parent profile and child have been created from an invite.
+
+  Triggered by `:invite_family_ready` from the Family context.
+
+  ## Flow
+
+  1. Receive `:invite_family_ready` with invite_id, child_id, parent_id, program_id
+  2. Fetch invite, validate it is in "registered" status
+  3. Create enrollment via the Enrollment facade (direct path, no tier/eligibility checks)
+  4. Transition invite: registered -> enrolled, set enrolled_at and enrollment_id
+  5. On failure: transition invite -> failed with error details
+
+  ## Idempotency
+
+  - Invite not found -> :ok (likely already processed or cleaned up)
+  - Invite not in "registered" status -> :ok (already processed)
+  - Duplicate enrollment -> transitions invite to enrolled without enrollment_id
+  """
+
+  @behaviour KlassHero.Shared.Domain.Ports.Driving.ForHandlingIntegrationEvents
+
+  alias KlassHero.Enrollment
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
+
+  require Logger
+
+  @invite_repository Application.compile_env!(
+                       :klass_hero,
+                       [:enrollment, :for_storing_bulk_enrollment_invites]
+                     )
+
+  @impl true
+  def subscribed_events, do: [:invite_family_ready]
+
+  @impl true
+  def handle_event(%IntegrationEvent{event_type: :invite_family_ready} = event) do
+    %{invite_id: invite_id, child_id: child_id, parent_id: parent_id, program_id: program_id} =
+      event.payload
+
+    with {:ok, invite} <- fetch_registered_invite(invite_id),
+         {:ok, enrollment} <- create_enrollment(child_id, parent_id, program_id),
+         {:ok, _} <- transition_to_enrolled(invite, enrollment) do
+      Logger.info("[InviteFamilyReadyHandler] Enrollment created",
+        invite_id: invite_id,
+        enrollment_id: enrollment.id
+      )
+
+      :ok
+    else
+      {:error, :not_found} ->
+        Logger.warning("[InviteFamilyReadyHandler] Invite not found", invite_id: invite_id)
+        :ok
+
+      {:error, :not_registered} ->
+        Logger.info("[InviteFamilyReadyHandler] Invite already processed", invite_id: invite_id)
+        :ok
+
+      {:error, :duplicate_resource} ->
+        # Trigger: enrollment already exists for this child+program
+        # Why: idempotent — replaying event must not fail
+        # Outcome: transition invite to enrolled without enrollment_id
+        Logger.info(
+          "[InviteFamilyReadyHandler] Enrollment already exists, transitioning invite",
+          invite_id: invite_id
+        )
+
+        handle_existing_enrollment(invite_id)
+
+      {:error, reason} ->
+        Logger.error("[InviteFamilyReadyHandler] Failed",
+          invite_id: invite_id,
+          reason: inspect(reason)
+        )
+
+        transition_to_failed(invite_id, reason)
+        {:error, reason}
+    end
+  end
+
+  def handle_event(_event), do: :ignore
+
+  # Trigger: handler must only act on invites in "registered" status
+  # Why: prevents double-processing or regressing an already-enrolled invite
+  # Outcome: returns {:ok, invite} or {:error, :not_found/:not_registered}
+  defp fetch_registered_invite(invite_id) do
+    case @invite_repository.get_by_id(invite_id) do
+      nil -> {:error, :not_found}
+      %{status: "registered"} = invite -> {:ok, invite}
+      _other -> {:error, :not_registered}
+    end
+  end
+
+  # Trigger: Family context has created parent + child from invite data
+  # Why: bulk invites use "transfer" payment and "confirmed" status (no online payment)
+  # Outcome: enrollment created via direct path (skips tier/eligibility validation)
+  defp create_enrollment(child_id, parent_id, program_id) do
+    Enrollment.create_enrollment(%{
+      program_id: program_id,
+      child_id: child_id,
+      parent_id: parent_id,
+      status: "confirmed",
+      payment_method: "transfer"
+    })
+  end
+
+  defp transition_to_enrolled(invite, enrollment) do
+    @invite_repository.transition_status(invite, %{
+      status: "enrolled",
+      enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second),
+      enrollment_id: enrollment.id
+    })
+  end
+
+  # Trigger: enrollment already exists (duplicate_resource from repository)
+  # Why: must still mark invite as enrolled for consistency
+  # Outcome: transitions invite without enrollment_id; logs result but always returns :ok
+  #          since enrollment exists and invite status is secondary
+  defp handle_existing_enrollment(invite_id) do
+    case @invite_repository.get_by_id(invite_id) do
+      %{status: "registered"} = invite ->
+        case @invite_repository.transition_status(invite, %{
+               status: "enrolled",
+               enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second)
+             }) do
+          {:ok, _} ->
+            Logger.info(
+              "[InviteFamilyReadyHandler] Transitioned existing-enrollment invite to enrolled",
+              invite_id: invite_id
+            )
+
+          {:error, reason} ->
+            Logger.warning(
+              "[InviteFamilyReadyHandler] Failed to transition existing-enrollment invite",
+              invite_id: invite_id,
+              reason: inspect(reason)
+            )
+        end
+
+        :ok
+
+      _ ->
+        :ok
+    end
+  end
+
+  defp transition_to_failed(invite_id, reason) do
+    case @invite_repository.get_by_id(invite_id) do
+      nil ->
+        :ok
+
+      invite ->
+        @invite_repository.transition_status(invite, %{
+          status: "failed",
+          error_details: inspect(reason)
+        })
+    end
+  end
+end

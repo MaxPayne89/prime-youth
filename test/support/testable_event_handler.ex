@@ -27,7 +27,7 @@ defmodule KlassHero.TestableEventHandler do
   - `:behavior` - Handler behavior: :ok | :ignore | {:error, reason} | :crash
   """
 
-  @behaviour KlassHero.Shared.Domain.Ports.ForHandlingEvents
+  @behaviour KlassHero.Shared.Domain.Ports.Driving.ForHandlingEvents
 
   @table :testable_handler_config
 

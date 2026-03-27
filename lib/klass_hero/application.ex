@@ -64,13 +64,13 @@ defmodule KlassHero.Application do
          context: KlassHero.Accounts,
          handlers: [
            {:user_registered,
-            {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Accounts.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:user_confirmed,
-            {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Accounts.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:user_anonymized,
-            {KlassHero.Accounts.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Accounts.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}
          ]},
         id: :accounts_domain_event_bus
@@ -80,10 +80,10 @@ defmodule KlassHero.Application do
          context: KlassHero.Family,
          handlers: [
            {:child_data_anonymized,
-            {KlassHero.Family.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:invite_family_ready,
-            {KlassHero.Family.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}
          ]},
         id: :family_domain_event_bus
@@ -93,13 +93,13 @@ defmodule KlassHero.Application do
          context: KlassHero.Provider,
          handlers: [
            {:verification_document_approved,
-            {KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderVerificationStatus,
+            {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProviderVerificationStatus,
              :handle}},
            {:verification_document_rejected,
-            {KlassHero.Provider.Adapters.Driven.Events.EventHandlers.CheckProviderVerificationStatus,
+            {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProviderVerificationStatus,
              :handle}},
            {:subscription_tier_changed,
-            {KlassHero.Provider.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}}
          ]},
         id: :provider_domain_event_bus
@@ -109,10 +109,10 @@ defmodule KlassHero.Application do
          context: KlassHero.ProgramCatalog,
          handlers: [
            {:program_created,
-            {KlassHero.ProgramCatalog.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.ProgramCatalog.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:program_updated,
-            {KlassHero.ProgramCatalog.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.ProgramCatalog.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}
          ]},
         id: :program_catalog_domain_event_bus
@@ -122,24 +122,24 @@ defmodule KlassHero.Application do
          context: KlassHero.Enrollment,
          handlers: [
            {:participant_policy_set,
-            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+            {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.NotifyLiveViews, :handle}},
            {:participant_policy_set,
-            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:bulk_invites_imported,
-            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.EnqueueInviteEmails,
+            {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.EnqueueInviteEmails,
              :handle}},
            {:invite_resend_requested,
-            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.EnqueueInviteEmails,
+            {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.EnqueueInviteEmails,
              :handle}},
            {:invite_claimed,
-            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.MarkInviteRegistered,
+            {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteRegistered,
              :handle}, priority: 5},
            {:invite_claimed,
-            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:enrollment_cancelled,
-            {KlassHero.Enrollment.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10}
          ]},
         id: :enrollment_domain_event_bus
@@ -149,44 +149,44 @@ defmodule KlassHero.Application do
          context: KlassHero.Messaging,
          handlers: [
            {:user_data_anonymized,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            # conversation_created: promote to integration event for CQRS projections,
            # then notify LiveViews for real-time UI updates
            {:conversation_created,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:conversation_created,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.NotifyLiveViews, :handle}},
            # message_sent: promote to integration event for CQRS projections,
            # then notify LiveViews for real-time UI updates
            {:message_sent,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:message_sent,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.NotifyLiveViews, :handle}},
            # messages_read: promote to integration event for CQRS projections,
            # then notify LiveViews for real-time UI updates
            {:messages_read,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:messages_read,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.NotifyLiveViews, :handle}},
            # conversation_archived: promote to integration event for CQRS projections
            {:conversation_archived,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            # conversations_archived: promote to integration event for CQRS projections,
            # then notify LiveViews for real-time UI updates
            {:conversations_archived,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:conversations_archived,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.NotifyLiveViews, :handle}},
            {:broadcast_sent,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}},
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.NotifyLiveViews, :handle}},
            {:retention_enforced,
-            {KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews, :handle}}
+            {KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.NotifyLiveViews, :handle}}
          ]},
         id: :messaging_domain_event_bus
       ),
@@ -196,73 +196,73 @@ defmodule KlassHero.Application do
          handlers: [
            # session_created: promote to integration event, then notify LiveViews
            {:session_created,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:session_created,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLiveViews,
              :handle}},
            # session_started: promote to integration event, then notify LiveViews
            {:session_started,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:session_started,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLiveViews,
              :handle}},
            # session_completed: promote to integration event, then notify LiveViews
            {:session_completed,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:session_completed,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLiveViews,
              :handle}},
            # child_checked_in: promote to integration event, then notify LiveViews
            {:child_checked_in,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:child_checked_in,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLiveViews,
              :handle}},
            # child_checked_out: promote to integration event, then notify LiveViews
            {:child_checked_out,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:child_checked_out,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLiveViews,
              :handle}},
            # child_marked_absent: promote to integration event, then notify LiveViews
            {:child_marked_absent,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:child_marked_absent,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLiveViews,
              :handle}},
            # behavioral_note_submitted: promote to integration event, then notify LiveViews
            {:behavioral_note_submitted,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:behavioral_note_submitted,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLiveViews,
              :handle}},
            # behavioral_note_approved: promote to integration event, then notify LiveViews
            {:behavioral_note_approved,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:behavioral_note_approved,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLiveViews,
              :handle}},
            # behavioral_note_rejected: promote to integration event, then notify LiveViews
            {:behavioral_note_rejected,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:behavioral_note_rejected,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLiveViews,
              :handle}},
            # roster_seeded: promote to integration event, then notify LiveViews
            {:roster_seeded,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.PromoteIntegrationEvents,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}, priority: 10},
            {:roster_seeded,
-            {KlassHero.Participation.Adapters.Driven.Events.EventHandlers.NotifyLiveViews,
+            {KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLiveViews,
              :handle}}
          ]},
         id: :participation_domain_event_bus
@@ -274,7 +274,7 @@ defmodule KlassHero.Application do
     [
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler,
+         handler: KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler,
          topics: [
            "integration:accounts:user_registered",
            "integration:accounts:user_confirmed",
@@ -286,7 +286,7 @@ defmodule KlassHero.Application do
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler,
+         handler: KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler,
          topics: [
            "integration:accounts:user_registered",
            "integration:accounts:user_confirmed",
@@ -298,7 +298,7 @@ defmodule KlassHero.Application do
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler,
+         handler: KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler,
          topics: ["integration:accounts:user_anonymized"],
          message_tag: :integration_event,
          event_label: "Integration event"},
@@ -306,7 +306,7 @@ defmodule KlassHero.Application do
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: KlassHero.Participation.Adapters.Driven.Events.ParticipationEventHandler,
+         handler: KlassHero.Participation.Adapters.Driving.Events.ParticipationEventHandler,
          topics: ["integration:family:child_data_anonymized"],
          message_tag: :integration_event,
          event_label: "Integration event"},
@@ -314,7 +314,7 @@ defmodule KlassHero.Application do
       ),
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: KlassHero.ProgramCatalog.Adapters.Driven.Events.EnrollmentEventHandler,
+         handler: KlassHero.ProgramCatalog.Adapters.Driving.Events.EnrollmentEventHandler,
          topics: ["integration:enrollment:participant_policy_set"],
          message_tag: :integration_event,
          event_label: "Integration event"},
@@ -323,7 +323,7 @@ defmodule KlassHero.Application do
       # Family listens for invite_claimed from Enrollment
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: KlassHero.Family.Adapters.Driven.Events.InviteClaimedHandler,
+         handler: KlassHero.Family.Adapters.Driving.Events.InviteClaimedHandler,
          topics: ["integration:enrollment:invite_claimed"],
          message_tag: :integration_event,
          event_label: "Integration event"},
@@ -332,7 +332,7 @@ defmodule KlassHero.Application do
       # Enrollment listens for invite_family_ready from Family
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: KlassHero.Enrollment.Adapters.Driven.Events.InviteFamilyReadyHandler,
+         handler: KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler,
          topics: ["integration:family:invite_family_ready"],
          message_tag: :integration_event,
          event_label: "Integration event"},
@@ -342,7 +342,7 @@ defmodule KlassHero.Application do
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
          handler:
-           KlassHero.Participation.Adapters.Driven.Events.EventHandlers.SeedSessionRosterHandler,
+           KlassHero.Participation.Adapters.Driving.Events.EventHandlers.SeedSessionRosterHandler,
          topics: ["integration:participation:session_created"],
          message_tag: :integration_event,
          event_label: "Integration event"},
@@ -351,7 +351,7 @@ defmodule KlassHero.Application do
       # Accounts listens for staff_member_invited from Provider
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler,
+         handler: KlassHero.Accounts.Adapters.Driving.Events.StaffInvitationHandler,
          topics: ["integration:provider:staff_member_invited"],
          message_tag: :integration_event,
          event_label: "Integration event"},
@@ -360,7 +360,7 @@ defmodule KlassHero.Application do
       # Provider listens for staff invitation status events from Accounts
       Supervisor.child_spec(
         {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
-         handler: KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler,
+         handler: KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler,
          topics: [
            "integration:accounts:staff_invitation_sent",
            "integration:accounts:staff_invitation_failed",

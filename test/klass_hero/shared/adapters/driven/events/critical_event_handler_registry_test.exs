@@ -25,8 +25,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
         CriticalEventHandlerRegistry.handlers_for("integration:accounts:user_registered")
 
       assert [
-               {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event},
-               {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event}
+               {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event},
+               {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event}
              ] = handlers
     end
 
@@ -35,8 +35,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
         CriticalEventHandlerRegistry.handlers_for("integration:accounts:user_confirmed")
 
       assert [
-               {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event},
-               {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event}
+               {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event},
+               {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event}
              ] = handlers
     end
 
@@ -45,9 +45,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
         CriticalEventHandlerRegistry.handlers_for("integration:accounts:user_anonymized")
 
       assert [
-               {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event},
-               {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event},
-               {KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler, :handle_event}
+               {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event},
+               {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event},
+               {KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler, :handle_event}
              ] = handlers
     end
   end
@@ -63,9 +63,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
 
       assert length(handlers) == 2
 
-      assert {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event} in handlers
+      assert {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event} in handlers
 
-      assert {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event} in handlers
+      assert {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event} in handlers
     end
 
     test "user_confirmed factory produces a topic that resolves to 2 handlers" do
@@ -75,9 +75,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
 
       assert length(handlers) == 2
 
-      assert {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event} in handlers
+      assert {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event} in handlers
 
-      assert {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event} in handlers
+      assert {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event} in handlers
     end
 
     test "user_anonymized factory produces a topic that resolves to 3 handlers" do
@@ -87,11 +87,11 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
 
       assert length(handlers) == 3
 
-      assert {KlassHero.Family.Adapters.Driven.Events.FamilyEventHandler, :handle_event} in handlers
+      assert {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event} in handlers
 
-      assert {KlassHero.Provider.Adapters.Driven.Events.ProviderEventHandler, :handle_event} in handlers
+      assert {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event} in handlers
 
-      assert {KlassHero.Messaging.Adapters.Driven.Events.MessagingEventHandler, :handle_event} in handlers
+      assert {KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler, :handle_event} in handlers
     end
   end
 end

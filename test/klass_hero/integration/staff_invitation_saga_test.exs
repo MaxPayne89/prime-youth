@@ -26,11 +26,11 @@ defmodule KlassHero.Integration.StaffInvitationSagaTest do
   import Swoosh.TestAssertions
 
   alias KlassHero.Accounts
-  alias KlassHero.Accounts.Adapters.Driven.Events.StaffInvitationHandler
+  alias KlassHero.Accounts.Adapters.Driving.Events.StaffInvitationHandler
   alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.Accounts.Scope
   alias KlassHero.Provider
-  alias KlassHero.Provider.Adapters.Driven.Events.StaffInvitationStatusHandler
+  alias KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler
   alias KlassHero.Provider.Domain.Events.ProviderIntegrationEvents
 
   defp build_invited_event(staff, provider, raw_token) do

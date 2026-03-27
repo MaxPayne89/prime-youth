@@ -44,14 +44,18 @@ Each context under `lib/klass_hero/` follows this internal structure:
 context/
 ├── domain/
 │   ├── models/          # Pure Elixir structs (entities, value objects)
-│   ├── ports/           # Behavior contracts (interfaces)
+│   ├── ports/           # Driven port contracts (flat = driven by convention)
+│   │   └── driving/     # Driving port contracts (only in shared context)
 │   ├── services/        # Domain logic
 │   └── events/          # Domain events
 ├── application/
 │   └── use_cases/       # Orchestration layer
 └── adapters/
-    └── driven/
-        └── persistence/ # Ecto schemas, repos, mappers
+    ├── driven/          # Outbound adapters (persistence, ACL, notifications, infra)
+    │   └── persistence/ # Ecto schemas, repos, mappers
+    └── driving/         # Inbound adapters (event handlers, workers)
+        ├── events/      # Domain & integration event handlers
+        └── workers/     # Oban background job workers
 ```
 
 **Active contexts:**

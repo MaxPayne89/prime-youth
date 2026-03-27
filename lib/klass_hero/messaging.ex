@@ -46,7 +46,7 @@ defmodule KlassHero.Messaging do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Messaging.Adapters.Driven.EmailSanitizer
-  alias KlassHero.Messaging.Adapters.Driven.Events.EventHandlers.NotifyLiveViews
+  alias KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.NotifyLiveViews
 
   alias KlassHero.Messaging.Application.UseCases.{
     AnonymizeUserData,
