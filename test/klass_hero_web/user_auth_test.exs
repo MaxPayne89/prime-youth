@@ -621,6 +621,11 @@ defmodule KlassHeroWeb.UserAuthTest do
       assert UserAuth.signed_in_path(user) == ~p"/users/settings"
     end
 
+    test "staff_provider takes precedence over provider" do
+      user = %Accounts.User{intended_roles: [:provider, :staff_provider]}
+      assert UserAuth.signed_in_path(user) == ~p"/staff/dashboard"
+    end
+
     test "falls back to root for nil user" do
       assert UserAuth.signed_in_path(nil) == ~p"/"
     end
