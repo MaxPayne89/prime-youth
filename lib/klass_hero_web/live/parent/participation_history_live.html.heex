@@ -2,8 +2,8 @@
   <%!-- Page header --%>
   <div class="mb-6">
     <.page_header>
-      <:title>Participation History</:title>
-      <:subtitle>View your children's participation records</:subtitle>
+      <:title>{gettext("Participation History")}</:title>
+      <:subtitle>{gettext("View your children's participation records")}</:subtitle>
     </.page_header>
   </div>
 
@@ -14,7 +14,7 @@
   <%= if @pending_notes != [] do %>
     <div class="mb-6" id="pending-notes-section">
       <h2 class="text-xl font-semibold text-gray-900 mb-4">
-        Pending Reviews
+        {gettext("Pending Reviews")}
         <span class="ml-2 inline-flex items-center justify-center px-2.5 py-0.5 text-sm font-medium bg-amber-100 text-amber-800 rounded-full">
           {length(@pending_notes)}
         </span>
@@ -32,7 +32,7 @@
           <div class="flex items-start justify-between gap-4 mb-3">
             <div class="flex-1">
               <p class="text-sm text-gray-600 mb-1">
-                Provider observation
+                {gettext("Provider observation")}
               </p>
               <p class="text-gray-900">
                 "{note.content}"
@@ -54,7 +54,7 @@
                 Theme.transition(:normal)
               ]}
             >
-              Approve
+              {gettext("Approve")}
             </button>
             <%= if @reject_form_expanded != to_string(note.id) do %>
               <button
@@ -68,7 +68,7 @@
                   Theme.transition(:normal)
                 ]}
               >
-                Reject
+                {gettext("Reject")}
               </button>
             <% end %>
           </div>
@@ -86,8 +86,8 @@
                   <.input
                     field={Map.get(@reject_forms, to_string(note.id))[:reason]}
                     type="textarea"
-                    label="Reason for rejection (optional)"
-                    placeholder="Please explain why you're rejecting this note..."
+                    label={gettext("Reason for rejection (optional)")}
+                    placeholder={gettext("Please explain why you're rejecting this note...")}
                     rows="2"
                   />
                   <div class="flex gap-2 flex-wrap">
@@ -100,7 +100,7 @@
                         Theme.transition(:normal)
                       ]}
                     >
-                      Confirm Rejection
+                      {gettext("Confirm Rejection")}
                     </button>
                     <button
                       type="button"
@@ -113,7 +113,7 @@
                         Theme.transition(:normal)
                       ]}
                     >
-                      Cancel
+                      {gettext("Cancel")}
                     </button>
                   </div>
                 </div>
@@ -140,7 +140,7 @@
               {record.child_first_name} {record.child_last_name}
             </h3>
             <p class="text-sm text-gray-600 mt-1">
-              {record.program_name || "Program"}
+              {record.program_name || gettext("Program")}
             </p>
           </div>
           <.participation_status status={record.status} />
@@ -171,7 +171,8 @@
             <div class="flex items-center gap-2 text-sm">
               <.icon name="hero-arrow-right-circle" class="w-5 h-5 text-green-600" />
               <span class="text-gray-700">
-                Checked in: <span class="font-medium">{format_datetime(record.check_in_at)}</span>
+                {gettext("Checked in:")}
+                <span class="font-medium">{format_datetime(record.check_in_at)}</span>
               </span>
             </div>
           <% end %>
@@ -180,7 +181,7 @@
             <div class="flex items-center gap-2 text-sm">
               <.icon name="hero-arrow-left-circle" class="w-5 h-5 text-blue-600" />
               <span class="text-gray-700">
-                Checked out:
+                {gettext("Checked out:")}
                 <span class="font-medium">{format_datetime(record.check_out_at)}</span>
               </span>
             </div>
@@ -198,10 +199,10 @@
       ]}>
         <.icon name="hero-clipboard-document-list" class="w-16 h-16 mx-auto mb-4 text-gray-400" />
         <h3 class="text-lg font-medium text-gray-900 mb-2">
-          No participation records yet
+          {gettext("No participation records yet")}
         </h3>
         <p class="text-gray-600">
-          Your children's participation will appear here
+          {gettext("Your children's participation will appear here")}
         </p>
       </div>
     </div>

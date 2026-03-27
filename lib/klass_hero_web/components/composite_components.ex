@@ -560,7 +560,7 @@ defmodule KlassHeroWeb.CompositeComponents do
             <input
               type="text"
               name="comment"
-              placeholder="Write a comment..."
+              placeholder={gettext("Write a comment...")}
               class="flex-1 input input-bordered input-sm bg-white border-hero-grey-300 focus:border-hero-blue-600 focus:ring-1 focus:ring-hero-blue-600"
               autocomplete="off"
             />
@@ -568,7 +568,7 @@ defmodule KlassHeroWeb.CompositeComponents do
               type="submit"
               class={["btn btn-sm text-white border-0 hover:shadow-lg", Theme.gradient(:primary)]}
             >
-              Post
+              {gettext("Post")}
             </button>
           </form>
         </div>
@@ -589,7 +589,7 @@ defmodule KlassHeroWeb.CompositeComponents do
     <footer class="footer footer-center p-10 bg-hero-black text-hero-grey-300">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl">
         <div class="text-left">
-          <h3 class="font-bold text-lg text-white mb-4">Klass Hero</h3>
+          <h3 class="font-bold text-lg text-white mb-4">{gettext("Klass Hero")}</h3>
           <p class="text-sm">
             {gettext("Building the future of youth education by connecting communities.")}
           </p>

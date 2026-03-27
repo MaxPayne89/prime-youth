@@ -25,13 +25,15 @@ defmodule KlassHeroWeb.ProgramComponents do
         phx-change="search"
       />
   """
-  attr :placeholder, :string, default: "Search programs..."
+  attr :placeholder, :string, default: nil
   attr :value, :string, default: ""
   attr :name, :string, default: "search"
   attr :class, :string, default: ""
   attr :rest, :global, include: ~w(phx-change phx-submit phx-debounce disabled readonly)
 
   def search_bar(assigns) do
+    assigns = assign_new(assigns, :placeholder, fn -> gettext("Search programs...") end)
+
     ~H"""
     <div class={["relative", @class]}>
       <input
