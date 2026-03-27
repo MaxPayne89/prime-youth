@@ -385,7 +385,7 @@ defmodule KlassHeroWeb.UserAuth do
   end
 
   @doc "Returns the path to redirect to after log in, based on the user's intended roles."
-  def signed_in_path(%Accounts.User{intended_roles: roles}) when is_list(roles) do
+  def signed_in_path(%Accounts.User{intended_roles: roles}) do
     if :provider in roles, do: ~p"/provider/dashboard", else: ~p"/users/settings"
   end
 
