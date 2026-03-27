@@ -5,6 +5,15 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.2](https://github.com/MaxPayne89/klass-hero/compare/v0.17.1...v0.17.2) (2026-03-27)
+
+
+### Bug Fixes
+
+* correct 23 wrong/fuzzy German translations in PO file ([13d3b3e](https://github.com/MaxPayne89/klass-hero/commit/13d3b3ecb793b6577a483edc410b054750a25472)), closes [#512](https://github.com/MaxPayne89/klass-hero/issues/512)
+* wrap ~50 hardcoded English strings in gettext for i18n support ([021b4d7](https://github.com/MaxPayne89/klass-hero/commit/021b4d7cc0921e73592c47bcfb28c4193781c9b8)), closes [#512](https://github.com/MaxPayne89/klass-hero/issues/512)
+* wrap hardcoded English strings in gettext for i18n ([e707233](https://github.com/MaxPayne89/klass-hero/commit/e707233c8f78386bf95bbac4343b8f4f71a53f00))
+
 ## [0.17.1](https://github.com/MaxPayne89/klass-hero/compare/v0.17.0...v0.17.1) (2026-03-27)
 
 
