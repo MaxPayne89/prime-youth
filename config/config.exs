@@ -22,6 +22,16 @@ config :esbuild,
 # Use Req (via Finch/Mint) instead of hackney for ExAws HTTP requests
 config :ex_aws, http_client: ExAws.Request.Req
 
+# Configure feature flags infrastructure (fun_with_flags)
+config :fun_with_flags, :cache_bust_notifications,
+  enabled: true,
+  adapter: FunWithFlags.Notifications.PhoenixPubSub,
+  client: KlassHero.PubSub
+
+config :fun_with_flags, :persistence,
+  adapter: FunWithFlags.Store.Persistent.Ecto,
+  repo: KlassHero.Repo
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
@@ -148,6 +158,10 @@ config :klass_hero, :family,
     KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepository,
   for_managing_child_enrollments: KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACL,
   for_managing_child_participation: KlassHero.Family.Adapters.Driven.ACL.ChildParticipationACL
+
+# Configure Feature Flags bounded context
+config :klass_hero, :feature_flags,
+  adapter: KlassHero.Shared.Adapters.Driven.FeatureFlags.FunWithFlagsAdapter
 
 # Configure Integration Event Publisher (cross-context communication)
 config :klass_hero, :integration_event_publisher,
