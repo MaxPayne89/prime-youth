@@ -5,13 +5,20 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail do
   Handles deduplication by resend_id — returns {:ok, :duplicate} for already-stored emails.
   """
 
-  alias KlassHero.Messaging.Repositories
-
   require Logger
+
+  @inbound_email_repo Application.compile_env!(:klass_hero, [
+                        :messaging,
+                        :for_managing_inbound_emails
+                      ])
+  @email_job_scheduler Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_scheduling_email_jobs
+                       ])
 
   @spec execute(map()) :: {:ok, struct()} | {:ok, :duplicate} | {:error, term()}
   def execute(attrs) when is_map(attrs) do
-    repo = Repositories.inbound_emails()
+    repo = @inbound_email_repo
 
     # Trigger: same email may arrive multiple times (Resend retries on non-2xx)
     # Why: idempotent handling prevents duplicate storage
@@ -52,15 +59,13 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail do
   # Why: Resend webhook doesn't include body; content must be fetched via API
   # Outcome: background job enqueued to fetch html, text, and headers
   defp schedule_content_fetch(email) do
-    scheduler = Repositories.email_job_scheduler()
-
-    case scheduler.schedule_content_fetch(email.id, email.resend_id) do
+    case @email_job_scheduler.schedule_content_fetch(email.id, email.resend_id) do
       {:ok, _job} ->
         Logger.debug("Enqueued content fetch for email #{email.id}")
 
       {:error, reason} ->
         Logger.error("Failed to enqueue content fetch for #{email.id}: #{inspect(reason)}")
-        Repositories.inbound_emails().update_content(email.id, %{content_status: "failed"})
+        @inbound_email_repo.update_content(email.id, %{content_status: "failed"})
     end
   end
 

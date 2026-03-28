@@ -9,12 +9,12 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
   """
 
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
-  alias KlassHero.Messaging.Repositories
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
 
   @context KlassHero.Messaging
+  @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
 
   @doc """
   Marks messages as read for a user in a conversation.
@@ -32,10 +32,9 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
           {:ok, KlassHero.Messaging.Domain.Models.Participant.t()}
           | {:error, :not_participant}
   def execute(conversation_id, user_id, read_at \\ nil) do
-    participant_repo = Repositories.participants()
     read_at = read_at || DateTime.utc_now()
 
-    case participant_repo.mark_as_read(conversation_id, user_id, read_at) do
+    case @participant_repo.mark_as_read(conversation_id, user_id, read_at) do
       {:ok, participant} ->
         publish_event(conversation_id, user_id, read_at)
 

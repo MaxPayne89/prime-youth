@@ -40,8 +40,7 @@ defmodule KlassHero.Messaging do
       Domain.Models.Conversation,
       Domain.Models.Participant,
       Domain.Models.InboundEmail,
-      Domain.Models.EmailReply,
-      Repositories
+      Domain.Models.EmailReply
     ]
 
   alias KlassHero.Accounts.Scope
@@ -65,7 +64,20 @@ defmodule KlassHero.Messaging do
   }
 
   alias KlassHero.Messaging.Domain.Models.{Conversation, EmailReply, Message, Participant}
-  alias KlassHero.Messaging.Repositories
+
+  @inbound_email_repo Application.compile_env!(:klass_hero, [
+                        :messaging,
+                        :for_managing_inbound_emails
+                      ])
+  @email_reply_repo Application.compile_env!(:klass_hero, [
+                      :messaging,
+                      :for_managing_email_replies
+                    ])
+  @email_job_scheduler Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_scheduling_email_jobs
+                       ])
+  @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
 
   @doc """
   Creates or retrieves a direct conversation between provider and user.
@@ -394,7 +406,7 @@ defmodule KlassHero.Messaging do
   """
   @spec list_email_replies(String.t()) :: {:ok, [EmailReply.t()]}
   def list_email_replies(inbound_email_id) do
-    Repositories.email_replies().list_by_email(inbound_email_id)
+    @email_reply_repo.list_by_email(inbound_email_id)
   end
 
   @doc """
@@ -406,14 +418,14 @@ defmodule KlassHero.Messaging do
   """
   @spec schedule_content_fetch(String.t(), String.t()) :: {:ok, term()} | {:error, term()}
   def schedule_content_fetch(email_id, resend_id) do
-    Repositories.email_job_scheduler().schedule_content_fetch(email_id, resend_id)
+    @email_job_scheduler.schedule_content_fetch(email_id, resend_id)
   end
 
   @doc "Updates inbound email content fields (body, headers, content_status)."
   @spec update_inbound_email_content(String.t(), map()) ::
           {:ok, struct()} | {:error, term()}
   def update_inbound_email_content(id, attrs) do
-    Repositories.inbound_emails().update_content(id, attrs)
+    @inbound_email_repo.update_content(id, attrs)
   end
 
   @doc """
@@ -442,7 +454,7 @@ defmodule KlassHero.Messaging do
   """
   @spec count_inbound_emails_by_status(atom()) :: non_neg_integer()
   def count_inbound_emails_by_status(status) do
-    Repositories.inbound_emails().count_by_status(status)
+    @inbound_email_repo.count_by_status(status)
   end
 
   @doc """
@@ -460,7 +472,17 @@ defmodule KlassHero.Messaging do
   @spec update_inbound_email_status(String.t(), String.t(), map()) ::
           {:ok, struct()} | {:error, term()}
   def update_inbound_email_status(id, status, attrs \\ %{}) do
-    Repositories.inbound_emails().update_status(id, status, attrs)
+    @inbound_email_repo.update_status(id, status, attrs)
+  end
+
+  @doc """
+  Returns the display name for a user.
+
+  Used by LiveView helpers to resolve sender names for real-time messages.
+  """
+  @spec get_display_name(String.t()) :: {:ok, String.t()} | {:error, :not_found}
+  def get_display_name(user_id) do
+    @user_resolver.get_display_name(user_id)
   end
 
   # ---------------------------------------------------------------------------

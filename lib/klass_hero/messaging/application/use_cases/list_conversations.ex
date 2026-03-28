@@ -7,9 +7,12 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
   and other participant info pre-computed in the read model.
   """
 
-  alias KlassHero.Messaging.Repositories
-
   require Logger
+
+  @conversation_summaries_repo Application.compile_env!(:klass_hero, [
+                                 :messaging,
+                                 :for_managing_conversation_summaries
+                               ])
 
   @doc """
   Lists conversations for a user.
@@ -32,8 +35,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
   @spec execute(String.t(), keyword()) ::
           {:ok, [map()], boolean()}
   def execute(user_id, opts \\ []) do
-    repos = Repositories.all()
-    {:ok, summaries, has_more} = repos.conversation_summaries.list_for_user(user_id, opts)
+    {:ok, summaries, has_more} = @conversation_summaries_repo.list_for_user(user_id, opts)
 
     enriched = Enum.map(summaries, &to_enriched_map/1)
 

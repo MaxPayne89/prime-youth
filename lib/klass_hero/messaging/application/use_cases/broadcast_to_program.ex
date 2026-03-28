@@ -13,13 +13,22 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   alias KlassHero.Accounts.Scope
   alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
-  alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
 
   @context KlassHero.Messaging
+  @conversation_repo Application.compile_env!(:klass_hero, [
+                       :messaging,
+                       :for_managing_conversations
+                     ])
+  @enrollment_resolver Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_querying_enrollments
+                       ])
+  @message_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_messages])
+  @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
 
   @doc """
   Sends a broadcast message to all enrolled parents of a program.
@@ -43,13 +52,12 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
           | {:error, :not_entitled | :no_enrollments | term()}
   def execute(%Scope{} = scope, program_id, content, opts \\ []) do
     subject = Keyword.get(opts, :subject)
-    repos = Repositories.all()
 
     with :ok <- Shared.check_entitlement(scope, provider_id: scope.provider.id),
-         {:ok, parent_user_ids} <- get_enrolled_parent_user_ids(program_id, repos),
+         {:ok, parent_user_ids} <- get_enrolled_parent_user_ids(program_id),
          :ok <- verify_has_recipients(parent_user_ids),
          {:ok, conversation, message} <-
-           create_broadcast(scope, program_id, subject, content, parent_user_ids, repos) do
+           create_broadcast(scope, program_id, subject, content, parent_user_ids) do
       recipient_count = length(parent_user_ids)
       publish_event(conversation, program_id, scope.provider.id, message.id, recipient_count)
 
@@ -63,39 +71,39 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
     end
   end
 
-  defp get_enrolled_parent_user_ids(program_id, repos) do
-    parent_ids = repos.enrollments.get_enrolled_parent_user_ids(program_id)
+  defp get_enrolled_parent_user_ids(program_id) do
+    parent_ids = @enrollment_resolver.get_enrolled_parent_user_ids(program_id)
     {:ok, parent_ids}
   end
 
   defp verify_has_recipients([]), do: {:error, :no_enrollments}
   defp verify_has_recipients(_), do: :ok
 
-  defp create_broadcast(scope, program_id, subject, content, parent_user_ids, repos) do
+  defp create_broadcast(scope, program_id, subject, content, parent_user_ids) do
     # Trigger: get-or-create runs OUTSIDE the transaction
     # Why: unique constraint violation inside Repo.transaction aborts the Postgres
     #      transaction — subsequent queries fail with 25P02 (in_failed_sql_transaction)
     # Outcome: conversation lookup/creation is isolated; only participant + message
     #          creation needs transactional consistency
     with {:ok, conversation} <-
-           get_or_create_broadcast_conversation(scope, program_id, subject, repos.conversations),
+           get_or_create_broadcast_conversation(scope, program_id, subject),
          {:ok, {conversation, message}} <-
-           execute_broadcast_transaction(conversation, scope, content, parent_user_ids, repos) do
+           execute_broadcast_transaction(conversation, scope, content, parent_user_ids) do
       {:ok, conversation, message}
     end
   end
 
-  defp execute_broadcast_transaction(conversation, scope, content, parent_user_ids, repos) do
+  defp execute_broadcast_transaction(conversation, scope, content, parent_user_ids) do
     Repo.transaction(fn ->
       with {:ok, _participants} <-
-             repos.participants.add_batch(conversation.id, parent_user_ids),
+             @participant_repo.add_batch(conversation.id, parent_user_ids),
            {:ok, _} <-
-             repos.participants.add(%{
+             @participant_repo.add(%{
                conversation_id: conversation.id,
                user_id: scope.user.id
              }),
            {:ok, message} <-
-             repos.messages.create(%{
+             @message_repo.create(%{
                conversation_id: conversation.id,
                sender_id: scope.user.id,
                content: String.trim(content),
@@ -108,11 +116,11 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
     end)
   end
 
-  defp get_or_create_broadcast_conversation(scope, program_id, subject, conversation_repo) do
+  defp get_or_create_broadcast_conversation(scope, program_id, subject) do
     # Trigger: check for existing broadcast BEFORE attempting insert
     # Why: avoids unique constraint violation that would abort a parent transaction
     # Outcome: existing conversation reused; new one created only if none exists
-    case conversation_repo.find_active_broadcast_for_program(scope.provider.id, program_id) do
+    case @conversation_repo.find_active_broadcast_for_program(scope.provider.id, program_id) do
       {:ok, conversation} ->
         {:ok, conversation}
 
@@ -124,7 +132,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
           subject: subject
         }
 
-        case conversation_repo.create(attrs) do
+        case @conversation_repo.create(attrs) do
           {:ok, conversation} ->
             {:ok, conversation}
 
@@ -133,7 +141,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
           # Why: unique constraint fires; handle gracefully by re-querying
           # Outcome: return the conversation that won the race
           {:error, :duplicate_broadcast} ->
-            conversation_repo.find_active_broadcast_for_program(scope.provider.id, program_id)
+            @conversation_repo.find_active_broadcast_for_program(scope.provider.id, program_id)
         end
     end
   end
