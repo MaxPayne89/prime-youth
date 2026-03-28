@@ -12,13 +12,17 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   """
 
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
-  alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
 
   @context KlassHero.Messaging
+  @message_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_messages])
+  @conversation_repo Application.compile_env!(:klass_hero, [
+                       :messaging,
+                       :for_managing_conversations
+                     ])
 
   @doc """
   Enforces retention policy by deleting expired messages and conversations.
@@ -43,12 +47,10 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   end
 
   defp run_retention_transaction(now) do
-    repos = Repositories.all()
-
     Repo.transaction(fn ->
       with {:ok, msg_count, _conv_ids} <-
-             repos.messages.delete_for_expired_conversations(now),
-           {:ok, conv_count} <- repos.conversations.delete_expired(now) do
+             @message_repo.delete_for_expired_conversations(now),
+           {:ok, conv_count} <- @conversation_repo.delete_expired(now) do
         %{messages_deleted: msg_count, conversations_deleted: conv_count}
       else
         {:error, reason} -> Repo.rollback(reason)

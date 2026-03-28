@@ -39,7 +39,6 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
   alias KlassHero.Messaging
   alias KlassHero.Messaging.Domain.Models.Message
-  alias KlassHero.Messaging.Repositories
   alias KlassHero.Shared.Domain.Events.DomainEvent
 
   require Logger
@@ -331,9 +330,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   end
 
   defp update_sender_names_for_new_message(socket, sender_id) do
-    user_resolver = Repositories.users()
-
-    case user_resolver.get_display_name(sender_id) do
+    case Messaging.get_display_name(sender_id) do
       {:ok, name} ->
         sender_names = Map.put(socket.assigns.sender_names, sender_id, name)
         assign(socket, :sender_names, sender_names)

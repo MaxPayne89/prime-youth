@@ -5,32 +5,37 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail do
   Handles deduplication by resend_id — returns {:ok, :duplicate} for already-stored emails.
   """
 
-  alias KlassHero.Messaging.Repositories
-
   require Logger
+
+  @inbound_email_repo Application.compile_env!(:klass_hero, [
+                        :messaging,
+                        :for_managing_inbound_emails
+                      ])
+  @email_job_scheduler Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_scheduling_email_jobs
+                       ])
 
   @spec execute(map()) :: {:ok, struct()} | {:ok, :duplicate} | {:error, term()}
   def execute(attrs) when is_map(attrs) do
-    repo = Repositories.inbound_emails()
-
     # Trigger: same email may arrive multiple times (Resend retries on non-2xx)
     # Why: idempotent handling prevents duplicate storage
     # Outcome: duplicate silently acknowledged, new emails persisted
-    case repo.get_by_resend_id(attrs.resend_id) do
+    case @inbound_email_repo.get_by_resend_id(attrs.resend_id) do
       {:ok, _existing} ->
         Logger.debug("Duplicate inbound email ignored: #{attrs.resend_id}")
         {:ok, :duplicate}
 
       {:error, :not_found} ->
-        create_with_race_handling(repo, attrs)
+        create_with_race_handling(attrs)
     end
   end
 
   # Trigger: concurrent webhook deliveries may both pass the dedup check
   # Why: unique_index on resend_id catches the race; treat as duplicate, not failure
   # Outcome: constraint violation returns {:ok, :duplicate} to maintain idempotency
-  defp create_with_race_handling(repo, attrs) do
-    case repo.create(attrs) do
+  defp create_with_race_handling(attrs) do
+    case @inbound_email_repo.create(attrs) do
       {:ok, email} ->
         schedule_content_fetch(email)
         {:ok, email}
@@ -52,15 +57,13 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail do
   # Why: Resend webhook doesn't include body; content must be fetched via API
   # Outcome: background job enqueued to fetch html, text, and headers
   defp schedule_content_fetch(email) do
-    scheduler = Repositories.email_job_scheduler()
-
-    case scheduler.schedule_content_fetch(email.id, email.resend_id) do
+    case @email_job_scheduler.schedule_content_fetch(email.id, email.resend_id) do
       {:ok, _job} ->
         Logger.debug("Enqueued content fetch for email #{email.id}")
 
       {:error, reason} ->
         Logger.error("Failed to enqueue content fetch for #{email.id}: #{inspect(reason)}")
-        Repositories.inbound_emails().update_content(email.id, %{content_status: "failed"})
+        @inbound_email_repo.update_content(email.id, %{content_status: "failed"})
     end
   end
 

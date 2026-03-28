@@ -21,15 +21,9 @@ defmodule KlassHero.Messaging.Workers.MessageCleanupWorker do
 
     Logger.info("Starting message cleanup worker", opts: opts)
 
-    case ArchiveEndedProgramConversations.execute(opts) do
-      {:ok, %{count: count}} ->
-        Logger.info("Message cleanup worker completed", archived_count: count)
-        :ok
-
-      {:error, reason} ->
-        Logger.error("Message cleanup worker failed", reason: inspect(reason))
-        {:error, reason}
-    end
+    {:ok, %{count: count}} = ArchiveEndedProgramConversations.execute(opts)
+    Logger.info("Message cleanup worker completed", archived_count: count)
+    :ok
   end
 
   defp build_opts_from_args(args) when is_map(args) do

@@ -13,13 +13,22 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
   alias KlassHero.Messaging
   alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
-  alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
 
   @context KlassHero.Messaging
+  @conversation_repo Application.compile_env!(:klass_hero, [
+                       :messaging,
+                       :for_managing_conversations
+                     ])
+  @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
+  @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
+  @conversation_summaries_repo Application.compile_env!(:klass_hero, [
+                                 :messaging,
+                                 :for_managing_conversation_summaries
+                               ])
 
   @doc """
   Orchestrates a private reply to a broadcast.
@@ -35,28 +44,24 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
   """
   @spec execute(Scope.t(), String.t()) :: {:ok, String.t()} | {:error, term()}
   def execute(%Scope{} = scope, broadcast_conversation_id) do
-    repos = Repositories.all()
-
     # Trigger: crafted call with a non-broadcast or unauthorized conversation ID
     # Why: get_by_id doesn't verify type or participant status — pattern match
     #      on :program_broadcast and check participation for defense in depth
     # Outcome: only broadcast participants can initiate private replies
-    with {:ok, broadcast} <- fetch_broadcast(broadcast_conversation_id, repos),
-         :ok <- Shared.verify_participant(broadcast.id, scope.user.id, repos.participants),
-         {:ok, provider_user_id} <- repos.users.get_user_id_for_provider(broadcast.provider_id),
+    with {:ok, broadcast} <- fetch_broadcast(broadcast_conversation_id),
+         :ok <- Shared.verify_participant(broadcast.id, scope.user.id, @participant_repo),
+         {:ok, provider_user_id} <- @user_resolver.get_user_id_for_provider(broadcast.provider_id),
          {:ok, direct_conversation} <-
            find_or_create_direct_conversation(
              scope,
              broadcast.provider_id,
-             provider_user_id,
-             repos
+             provider_user_id
            ),
          :ok <-
            maybe_insert_system_note(
              direct_conversation,
              scope.user.id,
-             broadcast,
-             repos
+             broadcast
            ) do
       Logger.info("Private reply to broadcast initiated",
         broadcast_id: broadcast_conversation_id,
@@ -68,8 +73,8 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
     end
   end
 
-  defp fetch_broadcast(conversation_id, repos) do
-    case repos.conversations.get_by_id(conversation_id) do
+  defp fetch_broadcast(conversation_id) do
+    case @conversation_repo.get_by_id(conversation_id) do
       {:ok, %{type: :program_broadcast} = broadcast} -> {:ok, broadcast}
       {:ok, _non_broadcast} -> {:error, :not_broadcast}
       {:error, :not_found} -> {:error, :not_found}
@@ -84,27 +89,27 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
   #      is the initiator (it would match any provider conversation).
   #      We handle find and create separately to get the correct lookup semantics.
   # Outcome: returns the unique direct conversation between this parent and provider
-  defp find_or_create_direct_conversation(scope, provider_id, provider_user_id, repos) do
-    case repos.conversations.find_direct_conversation(provider_id, scope.user.id) do
+  defp find_or_create_direct_conversation(scope, provider_id, provider_user_id) do
+    case @conversation_repo.find_direct_conversation(provider_id, scope.user.id) do
       {:ok, existing} ->
         {:ok, existing}
 
       {:error, :not_found} ->
-        create_direct_conversation(scope, provider_id, provider_user_id, repos)
+        create_direct_conversation(scope, provider_id, provider_user_id)
     end
   end
 
-  defp create_direct_conversation(scope, provider_id, provider_user_id, repos) do
+  defp create_direct_conversation(scope, provider_id, provider_user_id) do
     Repo.transaction(fn ->
       with {:ok, conversation} <-
-             repos.conversations.create(%{type: :direct, provider_id: provider_id}),
+             @conversation_repo.create(%{type: :direct, provider_id: provider_id}),
            {:ok, _} <-
-             repos.participants.add(%{
+             @participant_repo.add(%{
                conversation_id: conversation.id,
                user_id: scope.user.id
              }),
            {:ok, _} <-
-             repos.participants.add(%{
+             @participant_repo.add(%{
                conversation_id: conversation.id,
                user_id: provider_user_id
              }) do
@@ -133,10 +138,10 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
   #      knows which broadcast prompted the message. Dedup prevents duplicate
   #      notes if the parent taps "Reply privately" multiple times.
   # Outcome: exactly one system note per broadcast reference in the conversation
-  defp maybe_insert_system_note(direct_conversation, sender_id, broadcast, repos) do
+  defp maybe_insert_system_note(direct_conversation, sender_id, broadcast) do
     token = "[broadcast:#{broadcast.id}]"
 
-    if system_note_exists?(direct_conversation.id, token, repos) do
+    if system_note_exists?(direct_conversation.id, token) do
       :ok
     else
       subject = broadcast.subject || "broadcast"
@@ -154,7 +159,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
         # Outcome: token immediately visible in the projection table; the
         #          projection's async handler is idempotent and harmless
         try do
-          repos.conversation_summaries.write_system_note_token(
+          @conversation_summaries_repo.write_system_note_token(
             direct_conversation.id,
             token
           )
@@ -171,7 +176,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyPrivatelyToBroadcast do
     end
   end
 
-  defp system_note_exists?(conversation_id, token, repos) do
-    repos.conversation_summaries.has_system_note?(conversation_id, token)
+  defp system_note_exists?(conversation_id, token) do
+    @conversation_summaries_repo.has_system_note?(conversation_id, token)
   end
 end

@@ -5,10 +5,13 @@ defmodule KlassHero.Messaging.Application.UseCases.ListInboundEmails do
   Delegates to the inbound email repository with opts passthrough.
   """
 
-  alias KlassHero.Messaging.Repositories
+  @inbound_email_repo Application.compile_env!(:klass_hero, [
+                        :messaging,
+                        :for_managing_inbound_emails
+                      ])
 
   @spec execute(keyword()) :: {:ok, [struct()], boolean()}
   def execute(opts \\ []) do
-    Repositories.inbound_emails().list(opts)
+    @inbound_email_repo.list(opts)
   end
 end

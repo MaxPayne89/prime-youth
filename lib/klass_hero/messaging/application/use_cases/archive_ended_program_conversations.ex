@@ -11,12 +11,16 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
   """
 
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
-  alias KlassHero.Messaging.Repositories
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
 
   @context KlassHero.Messaging
+  @conversation_repo Application.compile_env!(:klass_hero, [
+                       :messaging,
+                       :for_managing_conversations
+                     ])
+  @retention_config Application.compile_env!(:klass_hero, [:messaging, :retention])
 
   @default_days_after_program_end 30
   @default_retention_period_days 30
@@ -51,7 +55,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
       retention_period_days: retention_days
     )
 
-    case Repositories.conversations().archive_ended_program_conversations(
+    case @conversation_repo.archive_ended_program_conversations(
            cutoff_date,
            retention_days
          ) do
@@ -68,13 +72,6 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
         )
 
         {:ok, result}
-
-      {:error, reason} = error ->
-        Logger.error("Failed to archive ended program conversations",
-          reason: inspect(reason)
-        )
-
-        error
     end
   end
 
@@ -85,10 +82,10 @@ defmodule KlassHero.Messaging.Application.UseCases.ArchiveEndedProgramConversati
   end
 
   defp default_days_after_program_end do
-    Repositories.retention_config()[:days_after_program_end] || @default_days_after_program_end
+    @retention_config[:days_after_program_end] || @default_days_after_program_end
   end
 
   defp default_retention_period_days do
-    Repositories.retention_config()[:retention_period_days] || @default_retention_period_days
+    @retention_config[:retention_period_days] || @default_retention_period_days
   end
 end

@@ -6,25 +6,32 @@ defmodule KlassHero.Messaging.Application.UseCases.ReplyToEmail do
   an Oban job for async delivery via Swoosh/Resend.
   """
 
-  alias KlassHero.Messaging.Repositories
-
   require Logger
+
+  @inbound_email_repo Application.compile_env!(:klass_hero, [
+                        :messaging,
+                        :for_managing_inbound_emails
+                      ])
+  @email_reply_repo Application.compile_env!(:klass_hero, [
+                      :messaging,
+                      :for_managing_email_replies
+                    ])
+  @email_job_scheduler Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_scheduling_email_jobs
+                       ])
 
   @spec execute(String.t(), String.t(), String.t(), keyword()) ::
           {:ok, struct()} | {:error, term()}
   def execute(email_id, reply_body, sent_by_id, _opts \\ []) do
-    email_repo = Repositories.inbound_emails()
-    reply_repo = Repositories.email_replies()
-    scheduler = Repositories.email_job_scheduler()
-
-    with {:ok, _email} <- email_repo.get_by_id(email_id),
+    with {:ok, _email} <- @inbound_email_repo.get_by_id(email_id),
          {:ok, reply} <-
-           reply_repo.create(%{
+           @email_reply_repo.create(%{
              inbound_email_id: email_id,
              body: reply_body,
              sent_by_id: sent_by_id
            }),
-         {:ok, _job} <- scheduler.schedule_reply_delivery(reply.id) do
+         {:ok, _job} <- @email_job_scheduler.schedule_reply_delivery(reply.id) do
       Logger.info("Enqueued reply delivery #{reply.id} for email #{email_id}")
       {:ok, reply}
     else

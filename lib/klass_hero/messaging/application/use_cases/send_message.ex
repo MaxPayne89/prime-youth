@@ -11,12 +11,18 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
 
   alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
-  alias KlassHero.Messaging.Repositories
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
 
   @context KlassHero.Messaging
+  @conversation_repo Application.compile_env!(:klass_hero, [
+                       :messaging,
+                       :for_managing_conversations
+                     ])
+  @message_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_messages])
+  @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
+  @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
 
   @doc """
   Sends a message to a conversation.
@@ -42,13 +48,11 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   def execute(conversation_id, sender_id, content, opts \\ []) do
     message_type = Keyword.get(opts, :message_type, :text)
     conversation = Keyword.get(opts, :conversation)
-    repos = Repositories.all()
 
-    with :ok <- Shared.verify_participant(conversation_id, sender_id, repos.participants),
-         :ok <- verify_broadcast_send_permission(conversation_id, sender_id, repos, conversation),
-         {:ok, message} <-
-           create_message(conversation_id, sender_id, content, message_type, repos.messages) do
-      update_sender_read_status(conversation_id, sender_id, repos.participants)
+    with :ok <- Shared.verify_participant(conversation_id, sender_id, @participant_repo),
+         :ok <- verify_broadcast_send_permission(conversation_id, sender_id, conversation),
+         {:ok, message} <- create_message(conversation_id, sender_id, content, message_type) do
+      update_sender_read_status(conversation_id, sender_id)
       publish_event(message)
 
       Logger.info("Message sent",
@@ -65,7 +69,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   # Why: broadcast conversations are one-way — only the provider can send.
   #      Parents replying would expose their messages to all other parents (privacy breach).
   # Outcome: non-provider senders are rejected; direct conversations pass through unchanged.
-  defp verify_broadcast_send_permission(conversation_id, sender_id, repos, conversation) do
+  defp verify_broadcast_send_permission(conversation_id, sender_id, conversation) do
     # Trigger: caller may pass a pre-fetched conversation to skip DB round-trip
     # Why: must validate conversation.id matches conversation_id to prevent
     #      a mismatched struct from bypassing broadcast guards (privacy breach)
@@ -73,11 +77,11 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
     result =
       if conversation && conversation.id == conversation_id,
         do: {:ok, conversation},
-        else: repos.conversations.get_by_id(conversation_id)
+        else: @conversation_repo.get_by_id(conversation_id)
 
     case result do
       {:ok, %{type: :program_broadcast, provider_id: provider_id}} ->
-        case repos.users.get_user_id_for_provider(provider_id) do
+        case @user_resolver.get_user_id_for_provider(provider_id) do
           {:ok, ^sender_id} -> :ok
           {:ok, _other_user_id} -> {:error, :broadcast_reply_not_allowed}
           {:error, :not_found} -> {:error, :broadcast_reply_not_allowed}
@@ -91,7 +95,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
     end
   end
 
-  defp create_message(conversation_id, sender_id, content, message_type, message_repo) do
+  defp create_message(conversation_id, sender_id, content, message_type) do
     attrs = %{
       conversation_id: conversation_id,
       sender_id: sender_id,
@@ -99,13 +103,13 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
       message_type: message_type
     }
 
-    message_repo.create(attrs)
+    @message_repo.create(attrs)
   end
 
-  defp update_sender_read_status(conversation_id, sender_id, participant_repo) do
+  defp update_sender_read_status(conversation_id, sender_id) do
     now = DateTime.utc_now()
 
-    case participant_repo.mark_as_read(conversation_id, sender_id, now) do
+    case @participant_repo.mark_as_read(conversation_id, sender_id, now) do
       {:ok, _} ->
         :ok
 

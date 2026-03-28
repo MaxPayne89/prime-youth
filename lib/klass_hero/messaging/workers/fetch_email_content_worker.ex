@@ -8,9 +8,16 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorker do
 
   use Oban.Worker, queue: :email, max_attempts: 3
 
-  alias KlassHero.Messaging.Repositories
-
   require Logger
+
+  @email_content_fetcher Application.compile_env!(:klass_hero, [
+                           :messaging,
+                           :for_fetching_email_content
+                         ])
+  @inbound_email_repo Application.compile_env!(:klass_hero, [
+                        :messaging,
+                        :for_managing_inbound_emails
+                      ])
 
   # Trigger: Resend API enforces rate limits
   # Why: default Oban backoff doesn't account for 429 responses — retries
@@ -30,10 +37,7 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorker do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"email_id" => email_id, "resend_id" => resend_id}} = job) do
-    fetcher = Repositories.email_content_fetcher()
-    email_repo = Repositories.inbound_emails()
-
-    case fetcher.fetch_content(resend_id) do
+    case @email_content_fetcher.fetch_content(resend_id) do
       {:ok, content} ->
         attrs = %{
           body_html: content.html,
@@ -42,7 +46,7 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorker do
           content_status: "fetched"
         }
 
-        case email_repo.update_content(email_id, attrs) do
+        case @inbound_email_repo.update_content(email_id, attrs) do
           {:ok, _email} ->
             Logger.info("Fetched content for inbound email #{email_id}")
             :ok
@@ -64,14 +68,14 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorker do
           "Content fetch failed for #{email_id} (attempt #{job.attempt}): #{inspect(reason)}"
         )
 
-        maybe_mark_permanently_failed(email_repo, email_id, job)
+        maybe_mark_permanently_failed(email_id, job)
         {:error, reason}
     end
   end
 
-  defp maybe_mark_permanently_failed(email_repo, email_id, job) do
+  defp maybe_mark_permanently_failed(email_id, job) do
     if job.attempt >= job.max_attempts do
-      case email_repo.update_content(email_id, %{content_status: "failed"}) do
+      case @inbound_email_repo.update_content(email_id, %{content_status: "failed"}) do
         {:ok, _} ->
           Logger.error("Marked email #{email_id} content as permanently failed")
 

@@ -8,11 +8,17 @@ defmodule KlassHero.Messaging.Workers.SendEmailReplyWorker do
 
   use Oban.Worker, queue: :email, max_attempts: 3
 
-  alias KlassHero.Messaging.Repositories
-
   require Logger
 
   @from Application.compile_env!(:klass_hero, [:mailer_defaults, :from])
+  @email_reply_repo Application.compile_env!(:klass_hero, [
+                      :messaging,
+                      :for_managing_email_replies
+                    ])
+  @inbound_email_repo Application.compile_env!(:klass_hero, [
+                        :messaging,
+                        :for_managing_inbound_emails
+                      ])
 
   # Trigger: Resend API enforces rate limits
   # Why: default Oban backoff doesn't account for 429 responses — retries
@@ -32,11 +38,8 @@ defmodule KlassHero.Messaging.Workers.SendEmailReplyWorker do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"reply_id" => reply_id}} = job) do
-    reply_repo = Repositories.email_replies()
-    email_repo = Repositories.inbound_emails()
-
-    with {:ok, reply} <- reply_repo.get_by_id(reply_id),
-         {:ok, email} <- email_repo.get_by_id(reply.inbound_email_id) do
+    with {:ok, reply} <- @email_reply_repo.get_by_id(reply_id),
+         {:ok, email} <- @inbound_email_repo.get_by_id(reply.inbound_email_id) do
       swoosh_email =
         Swoosh.Email.new()
         |> Swoosh.Email.to(email.from_address)
@@ -49,24 +52,24 @@ defmodule KlassHero.Messaging.Workers.SendEmailReplyWorker do
 
       case KlassHero.Mailer.deliver(swoosh_email) do
         {:ok, %{id: resend_id}} ->
-          mark_reply_sent(reply_repo, reply_id, %{resend_message_id: resend_id, sent_at: now})
+          mark_reply_sent(reply_id, %{resend_message_id: resend_id, sent_at: now})
           Logger.info("Delivered reply #{reply_id} to #{email.from_address}")
           :ok
 
         {:ok, _} ->
-          mark_reply_sent(reply_repo, reply_id, %{sent_at: now})
+          mark_reply_sent(reply_id, %{sent_at: now})
           Logger.info("Delivered reply #{reply_id} to #{email.from_address}")
           :ok
 
         {:error, reason} ->
           Logger.error("Reply delivery failed for #{reply_id}: #{inspect(reason)}")
-          mark_reply_failed_if_final(reply_repo, reply_id, job)
+          mark_reply_failed_if_final(reply_id, job)
           {:error, reason}
       end
     else
       {:error, :not_found} ->
         Logger.error("Reply or email not found for reply #{reply_id}")
-        mark_reply_failed_if_final(reply_repo, reply_id, job)
+        mark_reply_failed_if_final(reply_id, job)
         {:discard, :not_found}
     end
   end
@@ -74,8 +77,8 @@ defmodule KlassHero.Messaging.Workers.SendEmailReplyWorker do
   # Trigger: email delivered but status update may fail (DB timeout, concurrent delete)
   # Why: email already sent — retrying the job would send duplicates
   # Outcome: log critical if update fails, but don't retry
-  defp mark_reply_sent(reply_repo, reply_id, attrs) do
-    case reply_repo.update_status(reply_id, "sent", attrs) do
+  defp mark_reply_sent(reply_id, attrs) do
+    case @email_reply_repo.update_status(reply_id, "sent", attrs) do
       {:ok, _} ->
         :ok
 
@@ -86,9 +89,9 @@ defmodule KlassHero.Messaging.Workers.SendEmailReplyWorker do
     end
   end
 
-  defp mark_reply_failed_if_final(reply_repo, reply_id, job) do
+  defp mark_reply_failed_if_final(reply_id, job) do
     if job.attempt >= job.max_attempts do
-      case reply_repo.update_status(reply_id, "failed", %{}) do
+      case @email_reply_repo.update_status(reply_id, "failed", %{}) do
         {:ok, _} ->
           Logger.error("Marked reply #{reply_id} as permanently failed")
 

@@ -12,9 +12,15 @@ defmodule KlassHero.Messaging.Application.UseCases.GetConversation do
 
   alias KlassHero.Messaging.Application.UseCases.MarkAsRead
   alias KlassHero.Messaging.Application.UseCases.Shared
-  alias KlassHero.Messaging.Repositories
 
   require Logger
+
+  @conversation_repo Application.compile_env!(:klass_hero, [
+                       :messaging,
+                       :for_managing_conversations
+                     ])
+  @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
+  @message_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_messages])
 
   @doc """
   Gets a conversation with its messages.
@@ -40,14 +46,13 @@ defmodule KlassHero.Messaging.Application.UseCases.GetConversation do
           {:ok, map()}
           | {:error, :not_found | :not_participant}
   def execute(conversation_id, user_id, opts \\ []) do
-    repos = Repositories.all()
     mark_as_read? = Keyword.get(opts, :mark_as_read, false)
 
     with {:ok, conversation} <-
-           repos.conversations.get_by_id(conversation_id, preload: [:participants]),
-         :ok <- Shared.verify_participant(conversation_id, user_id, repos.participants),
+           @conversation_repo.get_by_id(conversation_id, preload: [:participants]),
+         :ok <- Shared.verify_participant(conversation_id, user_id, @participant_repo),
          {:ok, messages, sender_names, has_more} <-
-           repos.messages.list_with_senders(conversation_id, opts) do
+           @message_repo.list_with_senders(conversation_id, opts) do
       maybe_mark_as_read(mark_as_read?, conversation_id, user_id)
 
       Logger.debug("Retrieved conversation",

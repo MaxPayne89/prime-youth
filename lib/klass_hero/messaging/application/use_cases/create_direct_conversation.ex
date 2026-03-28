@@ -15,13 +15,17 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   alias KlassHero.Accounts.Scope
   alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
-  alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
 
   @context KlassHero.Messaging
+  @conversation_repo Application.compile_env!(:klass_hero, [
+                       :messaging,
+                       :for_managing_conversations
+                     ])
+  @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
 
   @doc """
   Creates or retrieves a direct conversation between provider and user.
@@ -50,28 +54,25 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   end
 
   defp find_or_create_conversation(scope, provider_id, target_user_id) do
-    repos = Repositories.all()
-
-    case repos.conversations.find_direct_conversation(provider_id, target_user_id) do
+    case @conversation_repo.find_direct_conversation(provider_id, target_user_id) do
       {:ok, existing} ->
         Logger.debug("Found existing conversation", conversation_id: existing.id)
         {:ok, existing}
 
       {:error, :not_found} ->
-        create_new_conversation(scope, provider_id, target_user_id, repos)
+        create_new_conversation(scope, provider_id, target_user_id)
     end
   end
 
-  defp create_new_conversation(scope, provider_id, target_user_id, repos) do
+  defp create_new_conversation(scope, provider_id, target_user_id) do
     Repo.transaction(fn ->
       attrs = %{
         type: :direct,
         provider_id: provider_id
       }
 
-      with {:ok, conversation} <- repos.conversations.create(attrs),
-           :ok <-
-             add_participants(conversation.id, scope.user.id, target_user_id, repos.participants) do
+      with {:ok, conversation} <- @conversation_repo.create(attrs),
+           :ok <- add_participants(conversation.id, scope.user.id, target_user_id) do
         publish_event(conversation, [scope.user.id, target_user_id], provider_id)
 
         Logger.info("Created direct conversation",
@@ -88,9 +89,11 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
     end)
   end
 
-  defp add_participants(conversation_id, user_id_1, user_id_2, participant_repo) do
-    with {:ok, _} <- participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_1}),
-         {:ok, _} <- participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_2}) do
+  defp add_participants(conversation_id, user_id_1, user_id_2) do
+    with {:ok, _} <-
+           @participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_1}),
+         {:ok, _} <-
+           @participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_2}) do
       :ok
     end
   end

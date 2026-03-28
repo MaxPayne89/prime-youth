@@ -12,13 +12,14 @@ defmodule KlassHero.Messaging.Application.UseCases.AnonymizeUserData do
   """
 
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
-  alias KlassHero.Messaging.Repositories
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
 
   @context KlassHero.Messaging
+  @message_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_messages])
+  @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
 
   @doc """
   Anonymizes all messaging data for a user.
@@ -45,13 +46,11 @@ defmodule KlassHero.Messaging.Application.UseCases.AnonymizeUserData do
   end
 
   defp run_anonymization_transaction(user_id) do
-    repos = Repositories.all()
-
     Repo.transaction(fn ->
       with {:ok, msg_count} <-
-             tag_step(:anonymize_messages, repos.messages.anonymize_for_sender(user_id)),
+             tag_step(:anonymize_messages, @message_repo.anonymize_for_sender(user_id)),
            {:ok, part_count} <-
-             tag_step(:mark_as_left, repos.participants.mark_all_as_left(user_id)) do
+             tag_step(:mark_as_left, @participant_repo.mark_all_as_left(user_id)) do
         %{messages_anonymized: msg_count, participants_updated: part_count}
       else
         {:error, reason} -> Repo.rollback(reason)
