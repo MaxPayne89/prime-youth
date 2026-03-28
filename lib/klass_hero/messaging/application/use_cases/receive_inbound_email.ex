@@ -18,26 +18,24 @@ defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail do
 
   @spec execute(map()) :: {:ok, struct()} | {:ok, :duplicate} | {:error, term()}
   def execute(attrs) when is_map(attrs) do
-    repo = @inbound_email_repo
-
     # Trigger: same email may arrive multiple times (Resend retries on non-2xx)
     # Why: idempotent handling prevents duplicate storage
     # Outcome: duplicate silently acknowledged, new emails persisted
-    case repo.get_by_resend_id(attrs.resend_id) do
+    case @inbound_email_repo.get_by_resend_id(attrs.resend_id) do
       {:ok, _existing} ->
         Logger.debug("Duplicate inbound email ignored: #{attrs.resend_id}")
         {:ok, :duplicate}
 
       {:error, :not_found} ->
-        create_with_race_handling(repo, attrs)
+        create_with_race_handling(attrs)
     end
   end
 
   # Trigger: concurrent webhook deliveries may both pass the dedup check
   # Why: unique_index on resend_id catches the race; treat as duplicate, not failure
   # Outcome: constraint violation returns {:ok, :duplicate} to maintain idempotency
-  defp create_with_race_handling(repo, attrs) do
-    case repo.create(attrs) do
+  defp create_with_race_handling(attrs) do
+    case @inbound_email_repo.create(attrs) do
       {:ok, email} ->
         schedule_content_fetch(email)
         {:ok, email}
