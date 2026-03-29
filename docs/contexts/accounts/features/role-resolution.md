@@ -13,7 +13,7 @@ Determines what roles a user holds (parent, provider, or both) by checking wheth
 - Resolves roles at LiveView mount time by querying Family and Provider for profile existence (`Scope.resolve_roles/1`)
 - Attaches the resolved parent/provider profiles directly onto the scope for downstream access
 - Provides query helpers: `has_role?/2`, `parent?/1`, `provider?/1`, `parent_tier/1`, `provider_tier/1`
-- Powers the `on_mount` hooks (`:require_parent`, `:require_provider`, `:redirect_provider_from_parent_routes`) that gate access to role-specific routes
+- Powers the `on_mount` hooks (`:require_parent`, `:require_provider`, `:redirect_non_parent_from_parent_routes`) that gate access to role-specific routes
 
 ## What It Does NOT Do
 
@@ -107,13 +107,13 @@ Roles are resolved on every LiveView mount rather than cached in the session. Th
 | Requires | Provider | `get_provider_by_identity/1` -- checks for provider profile existence |
 | Provides to | All LiveViews | `@current_scope` with resolved roles, parent/provider profiles, and subscription tiers |
 | Provides to | Enrollment | Scope's `parent` field used to validate booking eligibility |
-| Provides to | Router (on_mount hooks) | `:require_parent`, `:require_provider`, `:redirect_provider_from_parent_routes` |
+| Provides to | Router (on_mount hooks) | `:require_parent`, `:require_provider`, `:redirect_non_parent_from_parent_routes` |
 
 ## Edge Cases
 
 - **User with no profiles**: `resolve_roles` returns `%Scope{roles: [], parent: nil, provider: nil}`. Routes guarded by `:require_parent` or `:require_provider` redirect to home with an error flash.
 - **Context call returns `{:error, _}`**: `extract_profile/1` maps any error tuple to `nil`, so the role is simply absent. No crash, no retry. This covers both `:not_found` and unexpected errors.
-- **Both roles active**: The user holds both `:parent` and `:provider`. Routes guarded by either role succeed. The `:redirect_provider_from_parent_routes` hook redirects dual-role users away from parent-only routes to the provider dashboard.
+- **Both roles active**: The user holds both `:parent` and `:provider`. Routes guarded by either role succeed. The `:redirect_non_parent_from_parent_routes` hook redirects non-parent users away from parent-only routes to their role's dashboard (staff → `/staff/dashboard`, provider → `/provider/dashboard`).
 - **Nil user (unauthenticated)**: `Scope.for_user(nil)` returns `nil`. `resolve_roles` is never called. Hooks that require authentication redirect to login.
 - **`intended_roles` vs resolved roles**: `intended_roles` (set at registration) are stored on the user schema but are **not** used by `resolve_roles`. They serve as a signal for onboarding flows, not as authorization input.
 
@@ -133,7 +133,7 @@ Role Resolution is infrastructure: it populates `@current_scope` so that downstr
 | `:require_authenticated` | No | User must be non-nil |
 | `:require_parent` | Yes | `Scope.parent?/1` must be true |
 | `:require_provider` | Yes | `Scope.provider?/1` must be true |
-| `:redirect_provider_from_parent_routes` | Yes | Redirects providers to `/provider/dashboard` |
+| `:redirect_non_parent_from_parent_routes` | Yes | Redirects providers and staff to their role's dashboard |
 | `:require_admin` | No | `user.is_admin` must be true |
 
 ---
