@@ -36,7 +36,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
   attr :role, :atom,
     required: true,
-    values: [:provider, :parent],
+    values: [:provider, :parent, :staff],
     doc: "User role viewing the card"
 
   attr :class, :string, default: "", doc: "Additional CSS classes"
@@ -70,7 +70,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
           <span>{Map.get(@session, :location, gettext("Location TBD"))}</span>
         </div>
 
-        <%= if @role == :provider && Map.get(@session, :capacity) do %>
+        <%= if @role in [:provider, :staff] && Map.get(@session, :capacity) do %>
           <div class="flex items-center gap-2 text-sm text-hero-black-100">
             <.icon name="hero-user-group" class="w-4 h-4 text-hero-grey-400" />
             <span>
