@@ -5,6 +5,29 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0](https://github.com/MaxPayne89/klass-hero/compare/v0.18.0...v0.19.0) (2026-03-29)
+
+
+### Features
+
+* add German translation for provider section heading ([34f7ba9](https://github.com/MaxPayne89/klass-hero/commit/34f7ba913b51e4bab2ee1995f4fdec1d004a05ae))
+
+
+### Bug Fixes
+
+* switch daily perf improver engine from copilot to claude-sonnet-4-6 ([9bb56e4](https://github.com/MaxPayne89/klass-hero/commit/9bb56e497a7205ad656c174f79c9a04e21cf6b66))
+* switch daily perf improver engine from copilot to claude-sonnet-4-6 ([3b3ca8a](https://github.com/MaxPayne89/klass-hero/commit/3b3ca8ad0be40918a8c7b7fb059685e7639cb4ad)), closes [#518](https://github.com/MaxPayne89/klass-hero/issues/518)
+* switch daily QA engine from copilot to claude-sonnet-4-6 ([b579afa](https://github.com/MaxPayne89/klass-hero/commit/b579afa30d2db4608289ad3e44bc644c82c0c2da))
+* switch daily QA engine from copilot to claude-sonnet-4-6 ([dfac2c7](https://github.com/MaxPayne89/klass-hero/commit/dfac2c7d77844f7bb03304e5a13ab3980ccba94e)), closes [#516](https://github.com/MaxPayne89/klass-hero/issues/516)
+* switch duplicate code detector engine from copilot to claude-sonnet-4-6 ([7732efe](https://github.com/MaxPayne89/klass-hero/commit/7732efedc8efb200a8746b8619c6c5fc934baa04))
+* switch duplicate code detector engine from copilot to claude-sonnet-4-6 ([47eab7e](https://github.com/MaxPayne89/klass-hero/commit/47eab7ea8556a093124ae1d80fd63a7186ff17bc)), closes [#517](https://github.com/MaxPayne89/klass-hero/issues/517)
+
+
+### Code Refactoring
+
+* update provider section heading copy ([ef43fd6](https://github.com/MaxPayne89/klass-hero/commit/ef43fd6b2462e598023b01f0d9a55b6254961f86))
+* update provider section heading to youth program copy ([3c16a46](https://github.com/MaxPayne89/klass-hero/commit/3c16a463b5eb817f01bf850260bcc7f58e3bfba0)), closes [#536](https://github.com/MaxPayne89/klass-hero/issues/536)
+
 ## [0.18.0](https://github.com/MaxPayne89/klass-hero/compare/v0.17.2...v0.18.0) (2026-03-28)
 
 
