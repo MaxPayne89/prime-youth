@@ -19,7 +19,7 @@ safe-outputs:
 timeout-minutes: 15
 strict: true
 source: githubnext/agentics/workflows/duplicate-code-detector.md@613b585d37d53ee994d85ad27e8e62ad0022ae32
-engine: copilot
+engine: claude-sonnet-4-6
 ---
 
 # Duplicate Code Detection
