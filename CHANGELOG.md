@@ -5,6 +5,23 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.0](https://github.com/MaxPayne89/klass-hero/compare/v0.17.2...v0.18.0) (2026-03-28)
+
+
+### Features
+
+* add feature flag infrastructure via fun_with_flags ([5e77e47](https://github.com/MaxPayne89/klass-hero/commit/5e77e477ed679d339cf01d69ead35696d6bb182d))
+* add feature flag infrastructure via fun_with_flags ([ed2a6b4](https://github.com/MaxPayne89/klass-hero/commit/ed2a6b4553d1457cc798e1234e03cb86257294b3)), closes [#327](https://github.com/MaxPayne89/klass-hero/issues/327)
+
+
+### Code Refactoring
+
+* remove redundant local variable in ReceiveInboundEmail ([b84c221](https://github.com/MaxPayne89/klass-hero/commit/b84c2215440d59dc10af959e12f8c0eb7286ba39))
+* replace Messaging Repositories service locator with compile-time adapter resolution ([5f86871](https://github.com/MaxPayne89/klass-hero/commit/5f868719692e2dd9d4f28d27521b65770d1cfe40)), closes [#511](https://github.com/MaxPayne89/klass-hero/issues/511)
+* replace Messaging Repositories service locator with compile-time resolution ([5156091](https://github.com/MaxPayne89/klass-hero/commit/51560913b071586b0da7a2b34d9cff5cb8d6d159))
+* split ports and adapters into driven/driving directories ([1154999](https://github.com/MaxPayne89/klass-hero/commit/11549991d8ff1fdcfdcacd93b01f6ec89d24b71e))
+* split ports and adapters into explicit driven/driving directories ([7c88c2f](https://github.com/MaxPayne89/klass-hero/commit/7c88c2fa1110ce9b9562fc97f3692cd2e4a2d945)), closes [#510](https://github.com/MaxPayne89/klass-hero/issues/510)
+
 ## [0.17.2](https://github.com/MaxPayne89/klass-hero/compare/v0.17.1...v0.17.2) (2026-03-27)
 
 
