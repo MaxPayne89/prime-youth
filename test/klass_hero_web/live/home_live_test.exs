@@ -120,7 +120,7 @@ defmodule KlassHeroWeb.HomeLiveTest do
       {:ok, view, _html} = live(conn, ~p"/")
 
       assert has_element?(view, "#grow-passion-business-section")
-      assert has_element?(view, "h2", "Grow Your Passion Business")
+      assert has_element?(view, "h2", "How to Grow Your Youth Program: Let's Build Together.")
       assert has_element?(view, "button", "Start Teaching Today")
 
       # Verify 3 step cards

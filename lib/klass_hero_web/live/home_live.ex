@@ -262,7 +262,7 @@ defmodule KlassHeroWeb.HomeLive do
     <!-- Section Heading -->
           <div class="text-center mb-12">
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
-              {gettext("Grow Your Passion Business")}
+              {gettext("How to Grow Your Youth Program: Let's Build Together.")}
             </h2>
             <p class={["text-xl", Theme.text_color(:secondary)]}>
               {gettext(
