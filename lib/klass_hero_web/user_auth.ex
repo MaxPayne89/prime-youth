@@ -205,10 +205,9 @@ defmodule KlassHeroWeb.UserAuth do
       Redirects to home page with error flash if the user is not an admin.
       Use this hook for admin-only routes (verification, moderation).
 
-    * `:redirect_non_parent_from_parent_routes` - Redirects non-parent users
-      (providers and staff) away from parent-specific routes to their
-      role's dashboard. Use this hook on routes that should only be
-      accessed by parents.
+    * `:redirect_provider_or_staff_from_parent_routes` - Redirects users with
+      a provider or staff profile away from parent-specific routes to their
+      role's dashboard. Staff takes precedence over provider.
 
   ## Examples
 
@@ -319,9 +318,9 @@ defmodule KlassHeroWeb.UserAuth do
     end
   end
 
-  # Redirects non-parent users (providers and staff) away from parent-specific routes
-  # to their role's dashboard. Use this hook on routes that should only be accessed by parents.
-  def on_mount(:redirect_non_parent_from_parent_routes, _params, session, socket) do
+  # Redirects users with a provider or staff profile to their role's dashboard.
+  # Staff takes precedence over provider. Parent-only users pass through.
+  def on_mount(:redirect_provider_or_staff_from_parent_routes, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
     if socket.assigns.current_scope && socket.assigns.current_scope.user do

@@ -449,7 +449,7 @@ defmodule KlassHeroWeb.UserAuthTest do
     end
   end
 
-  describe "on_mount :redirect_non_parent_from_parent_routes" do
+  describe "on_mount :redirect_provider_or_staff_from_parent_routes" do
     test "redirects provider users to provider dashboard", %{conn: conn} do
       user = user_fixture()
 
@@ -468,7 +468,7 @@ defmodule KlassHeroWeb.UserAuthTest do
       }
 
       {:halt, updated_socket} =
-        UserAuth.on_mount(:redirect_non_parent_from_parent_routes, %{}, session, socket)
+        UserAuth.on_mount(:redirect_provider_or_staff_from_parent_routes, %{}, session, socket)
 
       assert {:redirect, redirect_opts} = updated_socket.redirected
       assert redirect_opts.to == "/provider/dashboard"
@@ -485,7 +485,7 @@ defmodule KlassHeroWeb.UserAuthTest do
       }
 
       {:cont, updated_socket} =
-        UserAuth.on_mount(:redirect_non_parent_from_parent_routes, %{}, session, socket)
+        UserAuth.on_mount(:redirect_provider_or_staff_from_parent_routes, %{}, session, socket)
 
       assert updated_socket.assigns.current_scope.user.id == user.id
     end
@@ -508,7 +508,7 @@ defmodule KlassHeroWeb.UserAuthTest do
       }
 
       {:cont, updated_socket} =
-        UserAuth.on_mount(:redirect_non_parent_from_parent_routes, %{}, session, socket)
+        UserAuth.on_mount(:redirect_provider_or_staff_from_parent_routes, %{}, session, socket)
 
       assert updated_socket.assigns.current_scope.user.id == user.id
       assert Scope.parent?(updated_socket.assigns.current_scope)
@@ -523,7 +523,7 @@ defmodule KlassHeroWeb.UserAuthTest do
       }
 
       {:cont, _updated_socket} =
-        UserAuth.on_mount(:redirect_non_parent_from_parent_routes, %{}, session, socket)
+        UserAuth.on_mount(:redirect_provider_or_staff_from_parent_routes, %{}, session, socket)
     end
 
     test "redirects staff provider users to staff dashboard", %{conn: conn} do
@@ -546,10 +546,27 @@ defmodule KlassHeroWeb.UserAuthTest do
       }
 
       {:halt, updated_socket} =
-        UserAuth.on_mount(:redirect_non_parent_from_parent_routes, %{}, session, socket)
+        UserAuth.on_mount(:redirect_provider_or_staff_from_parent_routes, %{}, session, socket)
 
       assert {:redirect, redirect_opts} = updated_socket.redirected
       assert redirect_opts.to == "/staff/dashboard"
+    end
+
+    test "continues for staff_provider user with no active staff record", %{conn: conn} do
+      user = user_fixture(intended_roles: [:staff_provider])
+
+      user_token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, user_token) |> get_session()
+
+      socket = %LiveView.Socket{
+        endpoint: KlassHeroWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:cont, updated_socket} =
+        UserAuth.on_mount(:redirect_provider_or_staff_from_parent_routes, %{}, session, socket)
+
+      assert updated_socket.assigns.current_scope.user.id == user.id
     end
   end
 

@@ -1,6 +1,7 @@
 defmodule KlassHeroWeb.DashboardLiveTest do
   use KlassHeroWeb.ConnCase, async: true
 
+  import KlassHero.ProviderFixtures
   import Phoenix.LiveViewTest
 
   describe "DashboardLive" do
@@ -75,6 +76,23 @@ defmodule KlassHeroWeb.DashboardLiveTest do
 
       assert html =~ "overflow-x-auto"
       assert html =~ "snap-x"
+    end
+  end
+
+  describe "role-based redirect from /dashboard" do
+    test "staff_provider user is redirected to /staff/dashboard", %{} do
+      user = KlassHero.AccountsFixtures.user_fixture(intended_roles: [:staff_provider])
+      provider = provider_profile_fixture()
+
+      staff_member_fixture(%{
+        provider_id: provider.id,
+        user_id: user.id,
+        active: true,
+        invitation_status: :accepted
+      })
+
+      conn = build_conn() |> log_in_user(user)
+      assert {:error, {:redirect, %{to: "/staff/dashboard"}}} = live(conn, ~p"/dashboard")
     end
   end
 end
