@@ -136,6 +136,8 @@ defmodule KlassHeroWeb.Router do
       ] do
       scope "/staff", Staff do
         live "/dashboard", StaffDashboardLive, :index
+        live "/sessions", StaffSessionsLive, :index
+        live "/participation/:session_id", StaffParticipationLive, :show
       end
     end
 
