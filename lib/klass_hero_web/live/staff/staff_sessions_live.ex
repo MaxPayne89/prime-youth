@@ -22,7 +22,6 @@ defmodule KlassHeroWeb.Staff.StaffSessionsLive do
       |> assign(:provider_id, provider_id)
       |> assign(:staff_member, staff_member)
       |> assign(:selected_date, selected_date)
-      |> assign(:assigned_programs, assigned_programs)
       |> assign(:assigned_program_ids, assigned_program_ids)
       |> assign(:filter_program_id, nil)
       |> stream(:sessions, [])
@@ -154,8 +153,6 @@ defmodule KlassHeroWeb.Staff.StaffSessionsLive do
       ) do
     {:noreply, update_session_in_stream(socket, session_id)}
   end
-
-  # Private helpers
 
   defp assigned_programs(staff_member) do
     all = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)

@@ -28,7 +28,6 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
       |> assign(:checkout_forms, %{})
       |> assign(:note_form_expanded, nil)
       |> assign(:note_forms, %{})
-      |> assign(:provider_notes, %{})
       |> assign(:record_note_map, %{})
 
     if connected?(socket) do
@@ -47,8 +46,6 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
 
     {:ok, load_session_data(socket)}
   end
-
-  # Check-in handler
 
   @impl true
   def handle_event("check_in", %{"id" => record_id}, socket) do
@@ -86,8 +83,6 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
         end
     end
   end
-
-  # Checkout form handlers
 
   @impl true
   def handle_event("expand_checkout_form", %{"id" => record_id}, socket) do
@@ -157,8 +152,6 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
         end
     end
   end
-
-  # Behavioral note form handlers
 
   @impl true
   def handle_event("expand_note_form", %{"id" => record_id}, socket) do
@@ -263,8 +256,6 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
     assign(socket, forms_key, Map.put(Map.get(socket.assigns, forms_key), id, updated_form))
   end
 
-  # Private helper functions
-
   defp assigned_programs(staff_member) do
     all = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
 
@@ -350,11 +341,7 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
     notes_by_record =
       Map.new(notes, fn note -> {to_string(note.participation_record_id), note} end)
 
-    notes_by_id = Map.new(notes, fn note -> {to_string(note.id), note} end)
-
-    socket
-    |> assign(:record_note_map, notes_by_record)
-    |> assign(:provider_notes, notes_by_id)
+    assign(socket, :record_note_map, notes_by_record)
   end
 
   defp find_participation_record(socket, record_id) do

@@ -42,30 +42,14 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
   end
 
   @impl true
-  def handle_event("view_roster", %{"id" => program_id, "title" => program_title}, socket) do
+  def handle_event("view_roster", %{"id" => program_id} = params, socket) do
     if MapSet.member?(socket.assigns.assigned_program_ids, program_id) do
       roster = Enrollment.list_program_enrollments(program_id)
 
       {:noreply,
        assign(socket,
          show_roster: true,
-         roster_program_name: program_title,
-         roster_program_id: program_id,
-         roster_entries: roster
-       )}
-    else
-      {:noreply, put_flash(socket, :error, gettext("Unauthorized"))}
-    end
-  end
-
-  def handle_event("view_roster", %{"id" => program_id}, socket) do
-    if MapSet.member?(socket.assigns.assigned_program_ids, program_id) do
-      roster = Enrollment.list_program_enrollments(program_id)
-
-      {:noreply,
-       assign(socket,
-         show_roster: true,
-         roster_program_name: program_id,
+         roster_program_name: Map.get(params, "title", program_id),
          roster_program_id: program_id,
          roster_entries: roster
        )}
