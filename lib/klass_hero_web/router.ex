@@ -70,7 +70,7 @@ defmodule KlassHeroWeb.Router do
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
         {KlassHeroWeb.UserAuth, :require_authenticated},
-        {KlassHeroWeb.UserAuth, :redirect_provider_from_parent_routes},
+        {KlassHeroWeb.UserAuth, :redirect_provider_or_staff_from_parent_routes},
         {KlassHeroWeb.UserAuth, :fetch_unread_count},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
       ] do

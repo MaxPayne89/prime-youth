@@ -205,9 +205,9 @@ defmodule KlassHeroWeb.UserAuth do
       Redirects to home page with error flash if the user is not an admin.
       Use this hook for admin-only routes (verification, moderation).
 
-    * `:redirect_provider_from_parent_routes` - Redirects provider users
-      away from parent-specific routes to the provider dashboard.
-      Use this hook on routes that should redirect providers.
+    * `:redirect_provider_or_staff_from_parent_routes` - Redirects users with
+      a provider or staff profile away from parent-specific routes to their
+      role's dashboard. Staff takes precedence over provider.
 
   ## Examples
 
@@ -318,23 +318,24 @@ defmodule KlassHeroWeb.UserAuth do
     end
   end
 
-  # Redirects provider users away from parent-specific routes.
-  # Use this hook on routes that should redirect providers to their dashboard.
-  def on_mount(:redirect_provider_from_parent_routes, _params, session, socket) do
+  # Redirects users with a provider or staff profile to their role's dashboard.
+  # Staff takes precedence over provider. Parent-only users pass through.
+  def on_mount(:redirect_provider_or_staff_from_parent_routes, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
     if socket.assigns.current_scope && socket.assigns.current_scope.user do
       scope = Scope.resolve_roles(socket.assigns.current_scope)
       socket = Phoenix.Component.assign(socket, :current_scope, scope)
 
-      if Scope.provider?(scope) do
-        socket =
-          socket
-          |> Phoenix.LiveView.redirect(to: ~p"/provider/dashboard")
+      cond do
+        Scope.staff_provider?(scope) ->
+          {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/staff/dashboard")}
 
-        {:halt, socket}
-      else
-        {:cont, socket}
+        Scope.provider?(scope) ->
+          {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/provider/dashboard")}
+
+        true ->
+          {:cont, socket}
       end
     else
       {:cont, socket}
@@ -394,6 +395,17 @@ defmodule KlassHeroWeb.UserAuth do
   end
 
   def signed_in_path(_), do: ~p"/"
+
+  @doc "Returns the correct dashboard path based on the user's intended roles."
+  def dashboard_path(%Accounts.User{intended_roles: roles}) do
+    cond do
+      :staff_provider in roles -> ~p"/staff/dashboard"
+      :provider in roles -> ~p"/provider/dashboard"
+      true -> ~p"/dashboard"
+    end
+  end
+
+  def dashboard_path(nil), do: ~p"/dashboard"
 
   @doc """
   Plug for routes that require the user to be authenticated.

@@ -103,7 +103,8 @@ sequenceDiagram
 | Role | Can Do | Cannot Do |
 |---|---|---|
 | Parent (authenticated) | Add, edit, delete own children; view own children list | Access another parent's children |
-| Provider | Cannot access child management routes (redirected by `redirect_provider_from_parent_routes` hook) | Any child CRUD operations |
+| Provider | Cannot access child management routes (redirected by `redirect_provider_or_staff_from_parent_routes` hook) | Any child CRUD operations |
+| Staff | Cannot access child management routes (redirected by `redirect_provider_or_staff_from_parent_routes` hook) | Any child CRUD operations |
 | Unauthenticated | Nothing — redirected to login | Any child operations |
 
 ---
