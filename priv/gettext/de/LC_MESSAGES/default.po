@@ -1651,8 +1651,8 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:265
 #, elixir-autogen, elixir-format
-msgid "Grow Your Passion Business"
-msgstr ""
+msgid "How to Grow Your Youth Program: Let's Build Together."
+msgstr "Ihr Programm zum Wachsen bringen: Gemeinsam aufbauen."
 
 #: lib/klass_hero_web/live/home_live.ex:268
 #, elixir-autogen, elixir-format

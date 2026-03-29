@@ -1166,7 +1166,7 @@ defmodule KlassHeroWeb.UIComponents do
   defp format_date_value(value) when is_binary(value), do: value
 
   @doc """
-  Renders a provider step card for "Grow Your Passion Business" section.
+  Renders a provider step card for "How to Grow Your Youth Program: Let's Build Together." section.
 
   Displays a numbered step with icon, title, and description. Designed for
   multi-step process displays with visual consistency and mobile-first layout.
