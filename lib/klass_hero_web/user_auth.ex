@@ -406,7 +406,7 @@ defmodule KlassHeroWeb.UserAuth do
     end
   end
 
-  def dashboard_path(_), do: ~p"/dashboard"
+  def dashboard_path(nil), do: ~p"/dashboard"
 
   @doc """
   Plug for routes that require the user to be authenticated.
