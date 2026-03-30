@@ -64,6 +64,15 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
       assert Entitlements.can_initiate_messaging?(scope)
     end
 
+    test "explorer parent + starter provider can message when bypass enabled" do
+      scope = %Scope{
+        parent: parent_with_tier(:explorer),
+        provider: provider_with_tier(:starter)
+      }
+
+      assert Entitlements.can_initiate_messaging?(scope)
+    end
+
     test "active tier is unaffected (idempotent)" do
       parent = parent_with_tier(:active)
 
@@ -105,6 +114,19 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
       end)
 
       :ok
+    end
+
+    test "reverts to normal enforcement when flag is explicitly disabled" do
+      {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
+      StubFeatureFlagsAdapter.set_enabled(:parent_tier_bypass)
+
+      parent = parent_with_tier(:explorer)
+      assert Entitlements.monthly_booking_cap(parent) == :unlimited
+
+      StubFeatureFlagsAdapter.set_disabled(:parent_tier_bypass)
+
+      assert Entitlements.monthly_booking_cap(parent) == 2
+      refute Entitlements.can_create_booking?(parent, 2)
     end
 
     test "reverts to normal enforcement when flag system unavailable" do

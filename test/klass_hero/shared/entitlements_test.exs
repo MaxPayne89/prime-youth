@@ -1,5 +1,5 @@
 defmodule KlassHero.Shared.EntitlementsTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Family.Domain.Models.ParentProfile
