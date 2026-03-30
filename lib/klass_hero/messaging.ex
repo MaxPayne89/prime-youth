@@ -15,7 +15,7 @@ defmodule KlassHero.Messaging do
   ## Entitlements
 
   Free-tier parents cannot initiate conversations but can receive and reply.
-  Use `KlassHero.Entitlements.can_initiate_messaging?/1` to check permissions.
+  Use `KlassHero.Shared.Entitlements.can_initiate_messaging?/1` to check permissions.
 
   ## Real-time Updates
 
@@ -29,7 +29,6 @@ defmodule KlassHero.Messaging do
     deps: [
       KlassHero,
       KlassHero.Accounts,
-      KlassHero.Entitlements,
       KlassHero.Enrollment,
       KlassHero.ProgramCatalog,
       KlassHero.Provider,

@@ -1,10 +1,10 @@
-defmodule KlassHero.EntitlementsTest do
-  use ExUnit.Case, async: true
+defmodule KlassHero.Shared.EntitlementsTest do
+  use ExUnit.Case, async: false
 
   alias KlassHero.Accounts.Scope
-  alias KlassHero.Entitlements
   alias KlassHero.Family.Domain.Models.ParentProfile
   alias KlassHero.Provider.Domain.Models.ProviderProfile
+  alias KlassHero.Shared.Entitlements
 
   # Helper to create a parent with a specific tier
   defp parent_with_tier(tier) do

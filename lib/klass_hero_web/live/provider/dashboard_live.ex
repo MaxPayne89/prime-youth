@@ -13,10 +13,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   import KlassHeroWeb.ProviderComponents
 
   alias KlassHero.Enrollment
-  alias KlassHero.Entitlements
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+  alias KlassHero.Shared.Entitlements
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.ProviderPresenter

@@ -15,8 +15,8 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
 
   use Gettext, backend: KlassHeroWeb.Gettext
 
-  alias KlassHero.Entitlements
   alias KlassHero.Provider.Domain.Models.ProviderProfile
+  alias KlassHero.Shared.Entitlements
   alias KlassHeroWeb.Presenters.TierPresenter
 
   @doc """

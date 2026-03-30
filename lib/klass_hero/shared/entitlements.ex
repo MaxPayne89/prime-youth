@@ -1,9 +1,10 @@
-defmodule KlassHero.Entitlements do
+defmodule KlassHero.Shared.Entitlements do
   @moduledoc """
-  Pure domain service for subscription tier entitlements.
+  Subscription tier entitlements — shared domain service.
 
-  This module provides cross-context authorization checks based on subscription tiers.
-  It contains no database dependencies and operates solely on domain entities.
+  Provides cross-context authorization checks based on subscription tiers
+  for both parents and providers. Lives in the Shared kernel because it
+  serves multiple bounded contexts (Enrollment, Messaging, Provider).
 
   ## Parent Tiers
 
@@ -20,6 +21,20 @@ defmodule KlassHero.Entitlements do
   | `professional`  | 5            | 12%        | Avatar, Gallery, Video   | 1          | Yes                  |
   | `business_plus` | Unlimited    | 8%         | All (incl. Promotional)  | 3          | Yes                  |
 
+  ## Early-Adopter Bypass
+
+  When the `:parent_tier_bypass` feature flag is enabled, all parent entitlement
+  checks resolve as if the parent is on the `:active` tier (unlimited bookings,
+  free cancellations, detailed progress, messaging enabled).
+
+  Provider tiers and informational functions (`parent_tier_info/1`,
+  `all_parent_tiers/0`) are NOT affected.
+
+  Toggle via IEx:
+
+      KlassHero.Shared.FeatureFlags.enable(:parent_tier_bypass)
+      KlassHero.Shared.FeatureFlags.disable(:parent_tier_bypass)
+
   ## Usage
 
   The module accepts any map with a `:subscription_tier` key, or a scope map
@@ -32,11 +47,7 @@ defmodule KlassHero.Entitlements do
       Entitlements.can_initiate_messaging?(scope)
   """
 
-  use Boundary,
-    top_level?: true,
-    deps: [KlassHero.Shared],
-    exports: []
-
+  alias KlassHero.Shared.FeatureFlags
   alias KlassHero.Shared.SubscriptionTiers
 
   @type tier_holder :: %{subscription_tier: atom()}
@@ -422,7 +433,15 @@ defmodule KlassHero.Entitlements do
 
   defp get_parent_limit(tier, key) do
     tier = tier || :explorer
+    tier = if parent_tier_bypass_enabled?(), do: :active, else: tier
     get_in(@parent_tier_limits, [tier, key])
+  end
+
+  defp parent_tier_bypass_enabled? do
+    case FeatureFlags.enabled?(:parent_tier_bypass) do
+      {:ok, true} -> true
+      _other -> false
+    end
   end
 
   defp get_provider_limit(tier, key) do

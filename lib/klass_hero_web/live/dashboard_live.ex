@@ -6,9 +6,9 @@ defmodule KlassHeroWeb.DashboardLive do
   import KlassHeroWeb.ProgramComponents, only: [program_card: 1]
 
   alias KlassHero.Enrollment
-  alias KlassHero.Entitlements
   alias KlassHero.Family
   alias KlassHero.ProgramCatalog
+  alias KlassHero.Shared.Entitlements
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
