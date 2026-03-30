@@ -479,6 +479,45 @@ staff_by_provider =
   end)
 
 # ==============================================================================
+# S7b: UI TEST STAFF USER
+# ==============================================================================
+# A confirmed staff_provider user for test-driving staff dashboard flows.
+# Linked to Wolf Musik Akademie (pro_1), empty tags (sees all programs).
+
+Logger.info("Seeding UI test staff user...")
+
+uitest_staff_user =
+  User.registration_changeset(%User{}, %{
+    email: "uitest-staff@example.com",
+    password: "password"
+  })
+  |> Ecto.Changeset.put_change(:intended_roles, [:staff_provider])
+  |> Ecto.Changeset.put_change(:confirmed_at, now)
+  |> Repo.insert!()
+
+uitest_staff_member =
+  %StaffMemberSchema{}
+  |> StaffMemberSchema.create_changeset(%{
+    provider_id: pro_1.id,
+    first_name: "UI",
+    last_name: "TestStaff",
+    role: "General Staff",
+    tags: [],
+    qualifications: []
+  })
+  |> Repo.insert!()
+
+# Link the user to the staff member via invitation acceptance
+uitest_staff_member
+|> StaffMemberSchema.invitation_changeset(%{
+  user_id: uitest_staff_user.id,
+  invitation_status: "accepted"
+})
+|> Repo.update!()
+
+Logger.info("Created UI test staff user: uitest-staff@example.com (Wolf Musik Akademie)")
+
+# ==============================================================================
 # S8: VERIFICATION DOCUMENTS (~12)
 # ==============================================================================
 
@@ -1113,6 +1152,46 @@ session_records =
   end)
 
 Logger.info("Created #{length(session_records)} program sessions")
+
+# Staff-testable sessions: ensure Wolf Musik Akademie (pro_1) has sessions
+# even without enrollments, so the seed staff user can test-drive sessions/participation
+staff_session_programs = [
+  program_by_title["Piano for Beginners"],
+  program_by_title["Children's Choir"]
+]
+
+staff_session_records =
+  Enum.flat_map(staff_session_programs, fn program ->
+    if program do
+      start_time = program.meeting_start_time || ~T[15:00:00]
+      end_time = program.meeting_end_time || ~T[17:00:00]
+
+      [
+        {Date.add(today, -7), :completed},
+        {today, :in_progress},
+        {Date.add(today, 7), :scheduled}
+      ]
+      |> Enum.map(fn {date, status} ->
+        ProgramSessionSchema.create_changeset(%{
+          program_id: program.id,
+          session_date: date,
+          start_time: start_time,
+          end_time: end_time,
+          status: status,
+          max_capacity: 15
+        })
+        |> Repo.insert!()
+      end)
+    else
+      []
+    end
+  end)
+
+session_records = session_records ++ staff_session_records
+
+Logger.info(
+  "Created #{length(staff_session_records)} staff-testable sessions for Wolf Musik Akademie"
+)
 
 # ==============================================================================
 # S14: PARTICIPATION RECORDS
