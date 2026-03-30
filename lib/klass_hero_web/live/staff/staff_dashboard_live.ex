@@ -12,7 +12,8 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
 
     case Provider.get_provider_profile(staff_member.provider_id) do
       {:ok, provider} ->
-        programs = assigned_programs(staff_member)
+        all_programs = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
+        programs = Provider.list_assigned_programs(staff_member, all_programs)
         assigned_ids = MapSet.new(programs, & &1.id)
 
         socket =
@@ -67,14 +68,6 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
        roster_program_name: nil,
        roster_program_id: nil
      )}
-  end
-
-  defp assigned_programs(staff_member) do
-    all = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
-
-    if staff_member.tags == [],
-      do: all,
-      else: Enum.filter(all, &(&1.category in staff_member.tags))
   end
 
   @impl true

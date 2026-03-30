@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.Staff.StaffSessionsLive do
 
   alias KlassHero.Participation
   alias KlassHero.ProgramCatalog
+  alias KlassHero.Provider
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -13,7 +14,8 @@ defmodule KlassHeroWeb.Staff.StaffSessionsLive do
     provider_id = staff_member.provider_id
     selected_date = Date.utc_today()
 
-    assigned_programs = assigned_programs(staff_member)
+    all_programs = ProgramCatalog.list_programs_for_provider(provider_id)
+    assigned_programs = Provider.list_assigned_programs(staff_member, all_programs)
     assigned_program_ids = MapSet.new(assigned_programs, & &1.id)
 
     socket =
@@ -152,14 +154,6 @@ defmodule KlassHeroWeb.Staff.StaffSessionsLive do
         socket
       ) do
     {:noreply, update_session_in_stream(socket, session_id)}
-  end
-
-  defp assigned_programs(staff_member) do
-    all = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
-
-    if staff_member.tags == [],
-      do: all,
-      else: Enum.filter(all, &(&1.category in staff_member.tags))
   end
 
   defp load_sessions(socket) do
@@ -326,7 +320,7 @@ defmodule KlassHeroWeb.Staff.StaffSessionsLive do
             Theme.shadow(:md)
           ]}>
             <.icon name="hero-calendar" class="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <h3 class="text-lg font-medium text-gray-900 mb-2">
+            <h3 class={[Theme.typography(:card_title), "mb-2"]}>
               {gettext("No sessions scheduled")}
             </h3>
             <p class="text-gray-600">

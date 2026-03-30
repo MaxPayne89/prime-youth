@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
 
   alias KlassHero.Participation
   alias KlassHero.ProgramCatalog
+  alias KlassHero.Provider
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -11,8 +12,8 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
   def mount(%{"session_id" => session_id}, _session, socket) do
     staff_member = socket.assigns.current_scope.staff_member
 
-    # Build assigned program set for authorization
-    assigned_programs = assigned_programs(staff_member)
+    all_programs = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
+    assigned_programs = Provider.list_assigned_programs(staff_member, all_programs)
     assigned_program_ids = MapSet.new(assigned_programs, & &1.id)
 
     socket =
@@ -31,14 +32,13 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
       |> assign(:record_note_map, %{})
 
     if connected?(socket) do
-      Phoenix.PubSub.subscribe(KlassHero.PubSub, "participation_record:child_checked_in")
-      Phoenix.PubSub.subscribe(KlassHero.PubSub, "participation_record:child_checked_out")
-
+      # Provider-scoped topic for participation events (check-in, check-out, absent)
       Phoenix.PubSub.subscribe(
         KlassHero.PubSub,
-        "participation_record:participation_marked_absent"
+        "participation:provider:#{staff_member.provider_id}"
       )
 
+      # Behavioral note events — global topics only (no provider-scoped version exists)
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "behavioral_note:behavioral_note_submitted")
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "behavioral_note:behavioral_note_approved")
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "behavioral_note:behavioral_note_rejected")
@@ -235,6 +235,11 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
     {:noreply, load_session_data(socket)}
   end
 
+  @impl true
+  def handle_info({:domain_event, _event}, socket) do
+    {:noreply, socket}
+  end
+
   # Form lifecycle helpers — parameterized expand/cancel/update for all form types
 
   defp expand_form(socket, id, form_name, field, initial_value, expanded_key, forms_key) do
@@ -254,14 +259,6 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
   defp update_form(socket, id, value, form_name, field, forms_key) do
     updated_form = to_form(%{field => value}, as: form_name)
     assign(socket, forms_key, Map.put(Map.get(socket.assigns, forms_key), id, updated_form))
-  end
-
-  defp assigned_programs(staff_member) do
-    all = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
-
-    if staff_member.tags == [],
-      do: all,
-      else: Enum.filter(all, &(&1.category in staff_member.tags))
   end
 
   defp load_session_data(socket) do
