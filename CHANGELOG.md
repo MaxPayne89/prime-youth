@@ -5,6 +5,32 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0](https://github.com/MaxPayne89/klass-hero/compare/v0.19.0...v0.20.0) (2026-03-30)
+
+
+### Features
+
+* add action buttons and roster modal to staff dashboard ([29c4658](https://github.com/MaxPayne89/klass-hero/commit/29c465811fe358a95f05b0712f0412f4f39700d6))
+* add staff sessions and participation routes with stub LiveViews ([e8802bf](https://github.com/MaxPayne89/klass-hero/commit/e8802bf1c7abf85320bacfef22107a43cfbf0de9))
+* extend participation_card component to accept :staff role ([5561513](https://github.com/MaxPayne89/klass-hero/commit/5561513e183ece9e20804ea6087de4276f598637))
+* implement StaffParticipationLive with check-in/check-out and behavioral notes ([bbb2f44](https://github.com/MaxPayne89/klass-hero/commit/bbb2f44b48bb277178c533783ec2133cad2d4a7f))
+* implement StaffSessionsLive with date-based session management ([375f500](https://github.com/MaxPayne89/klass-hero/commit/375f50027ff9c5edbae51d1fc1cd8d7096d0e072))
+* improve staff dashboard with sessions and participation management ([fc4c544](https://github.com/MaxPayne89/klass-hero/commit/fc4c544e70f23c2ff4415d3e09b68fd4ed91cd95))
+
+
+### Bug Fixes
+
+* narrow dashboard_path/1 catch-all to nil instead of any input ([5e9ec2c](https://github.com/MaxPayne89/klass-hero/commit/5e9ec2c4eb6fcba305cb5d6e489b74b25503dff1))
+* route staff members to correct dashboard via role-aware navigation ([f4df925](https://github.com/MaxPayne89/klass-hero/commit/f4df9256b7f7ec941bcc86b05db0c3c2278b629b))
+* route staff members to correct dashboard via role-aware navigation ([b13c98a](https://github.com/MaxPayne89/klass-hero/commit/b13c98a9fa72798055b16ebcd918979e287cad3f)), closes [#530](https://github.com/MaxPayne89/klass-hero/issues/530)
+
+
+### Code Refactoring
+
+* improve hook naming accuracy and add integration tests ([dfd7b39](https://github.com/MaxPayne89/klass-hero/commit/dfd7b395e833c086cbbdcc67ab5b6e32d63b687b))
+* move staff program filtering to Provider domain layer ([37cf2ad](https://github.com/MaxPayne89/klass-hero/commit/37cf2ad88f3a727a8bcaed3630aeff3edb0d6a4c))
+* simplify staff LiveViews — remove dead code and unused state ([65921c8](https://github.com/MaxPayne89/klass-hero/commit/65921c8a38f425b502158da3c9580816fe13fe00))
+
 ## [0.19.0](https://github.com/MaxPayne89/klass-hero/compare/v0.18.0...v0.19.0) (2026-03-29)
 
 
