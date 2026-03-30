@@ -2,7 +2,7 @@ defmodule KlassHeroWeb.Presenters.TierPresenter do
   @moduledoc """
   Shared presentation logic for subscription tier display data.
 
-  Translates canonical tier limits from `KlassHero.Entitlements` into
+  Translates canonical tier limits from `KlassHero.Shared.Entitlements` into
   UI-ready strings for subscription pages, registration selectors,
   and anywhere else tier information appears in the frontend.
 
@@ -22,7 +22,7 @@ defmodule KlassHeroWeb.Presenters.TierPresenter do
 
   use Gettext, backend: KlassHeroWeb.Gettext
 
-  alias KlassHero.Entitlements
+  alias KlassHero.Shared.Entitlements
 
   @provider_tiers Entitlements.provider_tiers()
 

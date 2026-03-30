@@ -16,8 +16,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo do
   """
 
   alias KlassHero.Enrollment
-  alias KlassHero.Entitlements
   alias KlassHero.Family
+  alias KlassHero.Shared.Entitlements
 
   require Logger
 

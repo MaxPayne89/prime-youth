@@ -4,9 +4,9 @@ defmodule KlassHeroWeb.BookingLive do
   import KlassHeroWeb.BookingComponents
 
   alias KlassHero.Enrollment
-  alias KlassHero.Entitlements
   alias KlassHero.Family
   alias KlassHero.ProgramCatalog
+  alias KlassHero.Shared.Entitlements
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme

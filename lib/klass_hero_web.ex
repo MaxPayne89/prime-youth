@@ -27,7 +27,6 @@ defmodule KlassHeroWeb do
       KlassHero.Enrollment,
       KlassHero.Messaging,
       KlassHero.Participation,
-      KlassHero.Entitlements,
       KlassHero.Shared
     ],
     exports: :all

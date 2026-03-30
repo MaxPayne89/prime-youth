@@ -4,7 +4,7 @@ defmodule KlassHero.Messaging.Application.UseCases.Shared do
   """
 
   alias KlassHero.Accounts.Scope
-  alias KlassHero.Entitlements
+  alias KlassHero.Shared.Entitlements
 
   require Logger
 

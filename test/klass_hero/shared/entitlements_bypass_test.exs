@@ -1,11 +1,11 @@
-defmodule KlassHero.EntitlementsBypassTest do
+defmodule KlassHero.Shared.EntitlementsBypassTest do
   use ExUnit.Case, async: false
 
   alias KlassHero.Accounts.Scope
-  alias KlassHero.Entitlements
   alias KlassHero.Family.Domain.Models.ParentProfile
   alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Shared.Adapters.Driven.FeatureFlags.StubFeatureFlagsAdapter
+  alias KlassHero.Shared.Entitlements
 
   defp parent_with_tier(tier) do
     %ParentProfile{

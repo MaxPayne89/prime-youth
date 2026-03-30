@@ -7,9 +7,9 @@ defmodule KlassHeroWeb.Provider.BroadcastLive do
 
   use KlassHeroWeb, :live_view
 
-  alias KlassHero.Entitlements
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
+  alias KlassHero.Shared.Entitlements
 
   require Logger
 

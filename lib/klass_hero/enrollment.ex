@@ -43,7 +43,6 @@ defmodule KlassHero.Enrollment do
     deps: [
       KlassHero,
       KlassHero.Accounts,
-      KlassHero.Entitlements,
       KlassHero.Family,
       KlassHero.Shared
     ],

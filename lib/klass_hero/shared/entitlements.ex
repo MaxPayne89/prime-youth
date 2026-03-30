@@ -1,9 +1,10 @@
-defmodule KlassHero.Entitlements do
+defmodule KlassHero.Shared.Entitlements do
   @moduledoc """
-  Pure domain service for subscription tier entitlements.
+  Subscription tier entitlements — shared domain service.
 
-  This module provides cross-context authorization checks based on subscription tiers.
-  It contains no database dependencies and operates solely on domain entities.
+  Provides cross-context authorization checks based on subscription tiers
+  for both parents and providers. Lives in the Shared kernel because it
+  serves multiple bounded contexts (Enrollment, Messaging, Provider).
 
   ## Parent Tiers
 
@@ -45,11 +46,6 @@ defmodule KlassHero.Entitlements do
       # With scope
       Entitlements.can_initiate_messaging?(scope)
   """
-
-  use Boundary,
-    top_level?: true,
-    deps: [KlassHero.Shared],
-    exports: []
 
   alias KlassHero.Shared.FeatureFlags
   alias KlassHero.Shared.SubscriptionTiers

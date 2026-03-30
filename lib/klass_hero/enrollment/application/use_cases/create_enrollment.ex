@@ -33,8 +33,8 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
 
   alias KlassHero.Enrollment
   alias KlassHero.Enrollment.Domain.Models.Enrollment, as: EnrollmentModel
-  alias KlassHero.Entitlements
   alias KlassHero.Family
+  alias KlassHero.Shared.Entitlements
 
   require Logger
 
