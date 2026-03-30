@@ -189,6 +189,38 @@ defmodule KlassHeroWeb.ConnCase do
     %{conn: log_in_user(context.conn, user), user: user, scope: scope, parent: parent}
   end
 
+  @doc """
+  Setup helper that registers and logs in a staff member.
+
+      setup :register_and_log_in_staff
+
+  It stores an updated connection, registered user, provider, staff member, and scope
+  in the test context. This is useful for tests that require staff-only routes.
+  """
+  def register_and_log_in_staff(%{conn: _conn} = context) do
+    user = AccountsFixtures.user_fixture(%{intended_roles: [:staff_provider]})
+    provider = KlassHero.Factory.insert(:provider_profile_schema)
+
+    staff =
+      KlassHero.ProviderFixtures.staff_member_fixture(%{
+        provider_id: provider.id,
+        user_id: user.id,
+        active: true,
+        invitation_status: :accepted,
+        tags: ["sports"]
+      })
+
+    scope = Scope.for_user(user) |> Scope.resolve_roles()
+
+    %{
+      conn: log_in_user(context.conn, user),
+      user: user,
+      scope: scope,
+      provider: provider,
+      staff: staff
+    }
+  end
+
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do

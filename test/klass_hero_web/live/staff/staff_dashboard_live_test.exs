@@ -2,6 +2,7 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLiveTest do
   use KlassHeroWeb.ConnCase, async: true
 
   import KlassHero.AccountsFixtures
+  import KlassHero.Factory, only: [insert: 2]
   import KlassHero.ProviderFixtures
 
   describe "staff dashboard" do
@@ -14,7 +15,8 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLiveTest do
           provider_id: provider.id,
           user_id: user.id,
           active: true,
-          invitation_status: :accepted
+          invitation_status: :accepted,
+          tags: ["sports"]
         })
 
       conn = log_in_user(conn, user)
@@ -50,6 +52,74 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLiveTest do
 
     test "unauthenticated user is redirected", %{} do
       assert {:error, {:redirect, _}} = live(build_conn(), ~p"/staff/dashboard")
+    end
+
+    test "program cards show Sessions and Roster action buttons", %{
+      conn: conn,
+      provider: provider,
+      staff: staff
+    } do
+      program =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          category: List.first(staff.tags) || "education"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+
+      assert has_element?(view, "#sessions-link-#{program.id}")
+      assert has_element?(view, "#roster-btn-#{program.id}")
+    end
+
+    test "clicking Roster opens roster modal with enrolled children", %{
+      conn: conn,
+      provider: provider,
+      staff: staff
+    } do
+      program =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          category: List.first(staff.tags) || "education"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+
+      refute has_element?(view, "#staff-roster-modal")
+
+      view |> element("#roster-btn-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#staff-roster-modal")
+      assert has_element?(view, "#staff-roster-modal", program.title)
+    end
+
+    test "closing roster modal hides it", %{conn: conn, provider: provider, staff: staff} do
+      program =
+        insert(:program_listing_schema,
+          provider_id: provider.id,
+          category: List.first(staff.tags) || "education"
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+
+      view |> element("#roster-btn-#{program.id}") |> render_click()
+      assert has_element?(view, "#staff-roster-modal")
+
+      view |> element("#close-roster-btn") |> render_click()
+      refute has_element?(view, "#staff-roster-modal")
+    end
+
+    test "roster button rejects program not in assigned set", %{
+      conn: conn,
+      provider: _provider
+    } do
+      other_program_id = Ecto.UUID.generate()
+
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+
+      view
+      |> render_hook("view_roster", %{"id" => other_program_id})
+
+      assert render(view) =~ "Unauthorized"
     end
   end
 end

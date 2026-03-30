@@ -23,6 +23,12 @@ All seed users share password: `password`
 | Julia Hoffmann | julia.hoffmann@example.com | active |
 | Stefan Schäfer | stefan.schaefer@example.com | active |
 
+### Staff
+
+| Name | Email | Provider |
+|------|-------|----------|
+| UI TestStaff | uitest-staff@example.com | Wolf Musik Akademie |
+
 ### Admin
 
 | Name | Email |
@@ -45,4 +51,5 @@ All seed users share password: `password`
 | Entitlement-gated features | Provider | lena.hartmann (starter, should be denied) |
 | Parent dashboard, enrollment, booking | Parent | anna.mueller |
 | Admin panel, Backpex | Admin | app@primeyouth.de |
+| Staff dashboard, sessions, check-in/out | Staff | uitest-staff |
 | Cross-role messaging | Both provider + parent in separate steps |

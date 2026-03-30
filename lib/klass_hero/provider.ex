@@ -45,6 +45,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.UseCases.Providers.VerifyProvider
   alias KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
   alias KlassHero.Provider.Application.UseCases.StaffMembers.DeleteStaffMember
+  alias KlassHero.Provider.Application.UseCases.StaffMembers.ListStaffAssignedPrograms
   alias KlassHero.Provider.Application.UseCases.StaffMembers.ResendStaffInvitation
   alias KlassHero.Provider.Application.UseCases.StaffMembers.UpdateStaffMember
   alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
@@ -430,4 +431,23 @@ defmodule KlassHero.Provider do
   """
   defdelegate valid_document_types,
     to: KlassHero.Provider.Domain.Models.VerificationDocument
+
+  # ============================================================================
+  # Staff Program Assignment
+  # ============================================================================
+
+  @doc """
+  Filters a list of programs to only those assigned to a staff member.
+
+  If the staff member has no tags, returns all programs unchanged.
+  If tags are set, returns only programs whose category matches a tag.
+
+  The caller is responsible for fetching the programs list (typically
+  from `ProgramCatalog.list_programs_for_provider/1`), keeping the
+  Provider context free of cross-context dependencies.
+  """
+  @spec list_assigned_programs(StaffMember.t(), [map()]) :: [map()]
+  def list_assigned_programs(%StaffMember{} = staff_member, programs) when is_list(programs) do
+    ListStaffAssignedPrograms.execute(staff_member, programs)
+  end
 end
