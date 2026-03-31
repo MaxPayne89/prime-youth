@@ -20,8 +20,6 @@ defmodule KlassHero.Application do
 
   @impl true
   def start(_type, _args) do
-    setup_opentelemetry()
-
     children = infrastructure_children() ++ domain_children() ++ [KlassHeroWeb.Endpoint]
 
     opts = [strategy: :one_for_one, name: KlassHero.Supervisor]
@@ -32,12 +30,6 @@ defmodule KlassHero.Application do
   def config_change(changed, _new, removed) do
     KlassHeroWeb.Endpoint.config_change(changed, removed)
     :ok
-  end
-
-  defp setup_opentelemetry do
-    OpentelemetryBandit.setup()
-    OpentelemetryPhoenix.setup(adapter: :bandit)
-    OpentelemetryEcto.setup([:klass_hero, :repo])
   end
 
   defp infrastructure_children do
