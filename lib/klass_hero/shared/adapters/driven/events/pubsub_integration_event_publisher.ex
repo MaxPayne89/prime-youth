@@ -33,6 +33,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
   alias KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
   alias KlassHero.Shared.Domain.Services.CriticalEventDispatcher
+  alias KlassHero.Shared.Tracing.Context
 
   require Logger
 
@@ -55,6 +56,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
 
   @impl true
   def publish(%IntegrationEvent{} = event, topic) when is_binary(topic) do
+    event = Context.inject_into_event(event)
+
     PubSubBroadcaster.broadcast(event, topic,
       config_key: :integration_event_publisher,
       message_tag: :integration_event,

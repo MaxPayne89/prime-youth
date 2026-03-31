@@ -29,6 +29,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher do
 
   alias KlassHero.Shared.Adapters.Driven.Events.PubSubBroadcaster
   alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.Tracing.Context
 
   @impl true
   def publish(%DomainEvent{} = event) do
@@ -38,6 +39,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher do
 
   @impl true
   def publish(%DomainEvent{} = event, topic) when is_binary(topic) do
+    event = Context.inject_into_event(event)
+
     PubSubBroadcaster.broadcast(event, topic,
       config_key: :event_publisher,
       message_tag: :domain_event,

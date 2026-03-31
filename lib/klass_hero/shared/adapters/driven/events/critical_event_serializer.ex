@@ -131,10 +131,17 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer do
   # Keys that carry atom values and must be atomized on deserialization
   @atom_metadata_values ~w(criticality)
 
+  # Keys that originated as atoms but were serialized as strings
+  # (all keys except trace context keys which are string-keyed by design)
+  @string_passthrough_prefixes ["traceparent", "tracestate", "baggage"]
+
   defp deserialize_metadata(metadata) when is_map(metadata) do
     Map.new(metadata, fn
       {k, v} when is_binary(k) and k in @atom_metadata_values ->
         {String.to_existing_atom(k), String.to_existing_atom(v)}
+
+      {k, v} when is_binary(k) and k in @string_passthrough_prefixes ->
+        {k, v}
 
       {k, v} when is_binary(k) ->
         {String.to_existing_atom(k), v}
