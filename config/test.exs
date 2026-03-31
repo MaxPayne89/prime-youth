@@ -71,8 +71,11 @@ config :klass_hero, start_projections: false
 # Print only warnings and errors during test
 config :logger, level: :warning
 
-# OpenTelemetry: disable tracing in tests for performance
-config :opentelemetry, traces_exporter: :none
+# OpenTelemetry: disable exporting in tests; tracing tests opt in via TracingHelpers.
+# Sampler must be always_on so tracing tests receive every span deterministically.
+config :opentelemetry,
+  traces_exporter: :none,
+  sampler: :always_on
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime

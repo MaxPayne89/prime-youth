@@ -17,7 +17,7 @@ defmodule KlassHero.TracingHelpers do
   @span_fields Record.extract(:span, from_lib: "opentelemetry/include/otel_span.hrl")
   Record.defrecord(:span, @span_fields)
 
-  @status_fields Record.extract(:status, from_lib: "opentelemetry/include/otel_span.hrl")
+  @status_fields Record.extract(:status, from_lib: "opentelemetry_api/include/opentelemetry.hrl")
   Record.defrecord(:status, @status_fields)
 
   defmacro __using__(_opts) do
@@ -26,11 +26,6 @@ defmodule KlassHero.TracingHelpers do
 
       setup do
         :otel_batch_processor.set_exporter(:otel_exporter_pid, self())
-
-        on_exit(fn ->
-          :otel_batch_processor.set_exporter(:otel_exporter_none, %{})
-        end)
-
         :ok
       end
     end
@@ -41,7 +36,7 @@ defmodule KlassHero.TracingHelpers do
   Call this after code-under-test and before assertions.
   """
   def flush_spans do
-    :otel_batch_processor.force_flush()
+    :otel_tracer_provider.force_flush()
   end
 
   @doc """
@@ -70,9 +65,19 @@ defmodule KlassHero.TracingHelpers do
       attrs = span_attributes(received_span)
 
       for {key, value} <- unquote(expected_attrs) do
-        assert Map.get(attrs, key) == value,
+        # OTel stores attribute keys as strings; keyword lists produce atom keys.
+        # Look up both forms to support either convention.
+        string_key = to_string(key)
+
+        actual =
+          case Map.fetch(attrs, key) do
+            {:ok, v} -> v
+            :error -> Map.get(attrs, string_key)
+          end
+
+        assert actual == value,
                "Expected span attribute #{inspect(key)} to be #{inspect(value)}, " <>
-                 "got #{inspect(Map.get(attrs, key))}"
+                 "got #{inspect(actual)}"
       end
 
       received_span
