@@ -19,9 +19,13 @@ defmodule KlassHero.Shared.Entitlements do
   |-----------------|--------------|------------|--------------------------|------------|----------------------|
   | `starter`       | 2            | 18%        | Avatar only              | 1          | No                   |
   | `professional`  | 5            | 12%        | Avatar, Gallery, Video   | 1          | Yes                  |
-  | `business_plus` | Unlimited    | 8%         | All (incl. Promotional)  | 3          | Yes                  |
+  | `business_plus` | Unlimited    | 8%         | All (incl. Promotional)  | Unlimited  | Yes                  |
 
   ## Early-Adopter Bypass
+
+  Two independent feature flags allow bypassing tier restrictions for early adopters:
+
+  ### Parent Bypass
 
   When the `:parent_tier_bypass` feature flag is enabled, all parent entitlement
   checks resolve as if the parent is on the `:active` tier (unlimited bookings,
@@ -30,10 +34,20 @@ defmodule KlassHero.Shared.Entitlements do
   Provider tiers and informational functions (`parent_tier_info/1`,
   `all_parent_tiers/0`) are NOT affected.
 
-  Toggle via IEx:
-
       KlassHero.Shared.FeatureFlags.enable(:parent_tier_bypass)
       KlassHero.Shared.FeatureFlags.disable(:parent_tier_bypass)
+
+  ### Provider Bypass
+
+  When the `:provider_tier_bypass` feature flag is enabled, all provider entitlement
+  checks resolve as if the provider is on the `:business_plus` tier (unlimited
+  programs, unlimited team seats, lowest commission, all media, messaging enabled).
+
+  Parent tiers and informational functions (`provider_tier_info/1`,
+  `all_provider_tiers/0`) are NOT affected.
+
+      KlassHero.Shared.FeatureFlags.enable(:provider_tier_bypass)
+      KlassHero.Shared.FeatureFlags.disable(:provider_tier_bypass)
 
   ## Usage
 
@@ -86,7 +100,7 @@ defmodule KlassHero.Shared.Entitlements do
       max_programs: :unlimited,
       commission_rate: 0.08,
       media: [:avatar, :gallery, :video, :promotional],
-      team_seats: 3,
+      team_seats: :unlimited,
       can_initiate_messaging: true
     }
   }
@@ -188,6 +202,27 @@ defmodule KlassHero.Shared.Entitlements do
   end
 
   @doc """
+  Checks if a provider can add a new team member based on their tier's seat limit.
+
+  ## Examples
+
+      iex> Entitlements.can_add_team_member?(%{subscription_tier: :starter}, 0)
+      true
+
+      iex> Entitlements.can_add_team_member?(%{subscription_tier: :starter}, 1)
+      false
+
+      iex> Entitlements.can_add_team_member?(%{subscription_tier: :business_plus}, 100)
+      true
+  """
+  @spec can_add_team_member?(tier_holder(), non_neg_integer()) :: boolean()
+  def can_add_team_member?(%{subscription_tier: tier}, current_count) do
+    tier
+    |> get_provider_limit(:team_seats)
+    |> within_limit?(current_count)
+  end
+
+  @doc """
   Returns the commission rate for a provider based on their tier.
 
   ## Examples
@@ -249,6 +284,8 @@ defmodule KlassHero.Shared.Entitlements do
   @doc """
   Returns the number of team seats allowed for a provider based on their tier.
 
+  Returns `:unlimited` for tiers with no seat limit.
+
   ## Examples
 
       iex> Entitlements.team_seats_allowed(%{subscription_tier: :starter})
@@ -258,9 +295,9 @@ defmodule KlassHero.Shared.Entitlements do
       1
 
       iex> Entitlements.team_seats_allowed(%{subscription_tier: :business_plus})
-      3
+      :unlimited
   """
-  @spec team_seats_allowed(tier_holder()) :: non_neg_integer()
+  @spec team_seats_allowed(tier_holder()) :: non_neg_integer() | :unlimited
   def team_seats_allowed(%{subscription_tier: tier}) do
     get_provider_limit(tier, :team_seats)
   end
@@ -433,19 +470,20 @@ defmodule KlassHero.Shared.Entitlements do
 
   defp get_parent_limit(tier, key) do
     tier = tier || :explorer
-    tier = if parent_tier_bypass_enabled?(), do: :active, else: tier
+    tier = if flag_enabled?(:parent_tier_bypass), do: :active, else: tier
     get_in(@parent_tier_limits, [tier, key])
-  end
-
-  defp parent_tier_bypass_enabled? do
-    case FeatureFlags.enabled?(:parent_tier_bypass) do
-      {:ok, true} -> true
-      _other -> false
-    end
   end
 
   defp get_provider_limit(tier, key) do
     tier = tier || :starter
+    tier = if flag_enabled?(:provider_tier_bypass), do: :business_plus, else: tier
     get_in(@provider_tier_limits, [tier, key])
+  end
+
+  defp flag_enabled?(flag_name) do
+    case FeatureFlags.enabled?(flag_name) do
+      {:ok, true} -> true
+      _other -> false
+    end
   end
 end

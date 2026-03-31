@@ -21,7 +21,7 @@ All functionality lives in a single module (`KlassHero.Entitlements`). There are
 | Free cancellations | Active | `free_cancellations_per_month/1` — returns monthly free cancellation allowance per parent tier |
 | Progress detail level | Active | `progress_detail_level/1` — returns `:basic` or `:detailed` based on parent tier |
 | Media type entitlements | Active | `media_entitlements/1` — returns allowed media types (avatar, gallery, video, promotional) per provider tier |
-| Team seats | Active | `team_seats_allowed/1` — returns maximum team seats per provider tier |
+| Team seat limits | Active | `can_add_team_member?/2`, `team_seats_allowed/1` — enforces team seat limits per provider tier |
 | Tier info (UI) | Active | `parent_tier_info/1`, `provider_tier_info/1`, `all_parent_tiers/0`, `all_provider_tiers/0` — full tier details for comparison pages |
 | Tier validation | Active | `valid_parent_tier?/1`, `valid_provider_tier?/1`, `parent_tiers/0`, `provider_tiers/0`, `default_parent_tier/0`, `default_provider_tier/0` — delegated to `Shared.SubscriptionTiers` |
 
@@ -54,7 +54,7 @@ All functionality lives in a single module (`KlassHero.Entitlements`). There are
 | Free Cancellations | Number of booking cancellations per month that incur no fee. Explorer = 0, Active = 1. |
 | Progress Level | Granularity of child progress data visible to a parent. `:basic` or `:detailed`. |
 | Media Types | Categories of media a provider may upload. Tiers progressively unlock: avatar, gallery, video, promotional. |
-| Team Seats | Number of staff/team member accounts a provider may invite. Starter/Professional = 1, Business Plus = 3. |
+| Team Seats | Number of staff/team member accounts a provider may invite. Starter/Professional = 1, Business Plus = unlimited. |
 | Tier Holder | Any map with a `:subscription_tier` key — the input contract for most entitlement functions. |
 | Scope | A map with `:parent` and/or `:provider` keys, used by `can_initiate_messaging?/1` for dual-profile resolution. |
 
@@ -73,7 +73,16 @@ All functionality lives in a single module (`KlassHero.Entitlements`). There are
 |---|---|---|---|---|---|
 | `starter` (default) | 2 | 18% | Avatar only | 1 | No |
 | `professional` | 5 | 12% | Avatar, Gallery, Video | 1 | Yes |
-| `business_plus` | Unlimited | 8% | All (incl. Promotional) | 3 | Yes |
+| `business_plus` | Unlimited | 8% | All (incl. Promotional) | Unlimited | Yes |
+
+### Early-Adopter Bypass Feature Flags
+
+Two independent feature flags allow bypassing tier restrictions for early adopters:
+
+- **`:parent_tier_bypass`** — All parent entitlement checks resolve as `:active` tier. Provider tiers and informational functions are unaffected.
+- **`:provider_tier_bypass`** — All provider entitlement checks resolve as `:business_plus` tier. Parent tiers and informational functions are unaffected.
+
+Both flags are fail-closed: if the feature flag system errors or is unavailable, enforcement reverts to the actual subscription tier.
 
 ### Key Rules
 

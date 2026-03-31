@@ -155,6 +155,7 @@ defmodule KlassHeroWeb.Presenters.TierPresenter do
   defp media_label(:gallery), do: gettext("Gallery")
   defp media_label(:video), do: gettext("Video")
 
+  defp format_team_seats(:unlimited), do: gettext("Unlimited team seats")
   defp format_team_seats(1), do: ngettext("1 team seat", "%{count} team seats", 1)
   defp format_team_seats(n), do: ngettext("1 team seat", "%{count} team seats", n)
 

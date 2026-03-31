@@ -381,9 +381,19 @@ defmodule KlassHeroWeb.ProviderComponents do
             {gettext("Program Slots")}
           </p>
           <p class="text-lg font-semibold text-hero-charcoal">
-            {@business.program_slots_used}/{if @business.program_slots_total,
-              do: @business.program_slots_total,
-              else: "∞"}
+            {@business.program_slots_used}/{if @business.program_slots_total == :unlimited,
+              do: "∞",
+              else: @business.program_slots_total}
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-hero-grey-500 uppercase tracking-wide">
+            {gettext("Team Members")}
+          </p>
+          <p class="text-lg font-semibold text-hero-charcoal">
+            {@business.team_seats_used}/{if @business.team_seats_total == :unlimited,
+              do: "∞",
+              else: @business.team_seats_total}
           </p>
         </div>
         <div class="relative group">

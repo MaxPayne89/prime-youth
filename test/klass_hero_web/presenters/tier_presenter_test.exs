@@ -55,6 +55,11 @@ defmodule KlassHeroWeb.Presenters.TierPresenterTest do
       features = TierPresenter.tier_features(:business_plus)
       assert "Promotional content" in features
     end
+
+    test "business_plus features include unlimited team seats" do
+      features = TierPresenter.tier_features(:business_plus)
+      assert Enum.any?(features, &(&1 =~ "Unlimited team seats"))
+    end
   end
 
   describe "subscription_tiers/0" do
