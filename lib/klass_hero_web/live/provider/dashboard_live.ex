@@ -59,11 +59,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         enrollment_data = build_enrollment_data(domain_programs)
         programs = Enum.map(domain_programs, &ProgramPresenter.to_table_view(&1, enrollment_data))
 
-        # Update business with actual program count
-        business = %{business | program_slots_used: length(programs)}
-
         staff_members = Task.await(staff_task)
         staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
+
+        # Update business with actual program and staff counts
+        business = %{
+          business
+          | program_slots_used: length(programs),
+            team_seats_used: length(staff_views)
+        }
 
         # Build staff filter options from real data
         staff_options =
@@ -182,11 +186,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     staff_members = fetch_staff_members(provider.id)
     staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
+    staff_count = length(staff_members)
+    business = %{socket.assigns.business | team_seats_used: staff_count}
 
     {:noreply,
      socket
      |> stream(:team_members, staff_views, reset: true)
-     |> assign(staff_count: length(staff_members))}
+     |> assign(staff_count: staff_count, business: business)}
   end
 
   @impl true
@@ -279,10 +285,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_event("delete_member", %{"id" => staff_id}, socket) do
     case Provider.delete_staff_member(staff_id) do
       :ok ->
+        new_count = max(0, socket.assigns.staff_count - 1)
+        business = %{socket.assigns.business | team_seats_used: new_count}
+
         {:noreply,
          socket
          |> stream_delete_by_dom_id(:team_members, "team_members-#{staff_id}")
-         |> assign(staff_count: max(0, socket.assigns.staff_count - 1))
+         |> assign(staff_count: new_count, business: business)
          |> clear_flash(:error)
          |> put_flash(:info, gettext("Team member removed."))}
 
@@ -968,12 +977,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         do: gettext("Team member added, but headshot upload failed."),
         else: gettext("Team member added.")
 
+    new_count = socket.assigns.staff_count + 1
+    business = %{socket.assigns.business | team_seats_used: new_count}
+
     {:noreply,
      socket
      |> stream_insert(:team_members, view)
      |> assign(
        show_staff_form: false,
-       staff_count: socket.assigns.staff_count + 1
+       staff_count: new_count,
+       business: business
      )
      |> clear_flash(:error)
      |> put_flash(:info, flash_msg)}

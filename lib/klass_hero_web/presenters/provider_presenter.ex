@@ -43,6 +43,8 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
       verification_badges: build_verification_badges(provider),
       program_slots_used: 0,
       program_slots_total: tier_info[:max_programs],
+      team_seats_used: 0,
+      team_seats_total: tier_info[:team_seats],
       initials: build_initials(provider.business_name),
       logo_url: provider.logo_url,
       verification_status: :not_started

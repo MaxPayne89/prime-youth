@@ -174,9 +174,34 @@ defmodule KlassHero.Shared.EntitlementsTest do
       assert Entitlements.team_seats_allowed(provider) == 1
     end
 
-    test "returns 3 for business_plus tier" do
+    test "returns :unlimited for business_plus tier" do
       provider = provider_with_tier(:business_plus)
-      assert Entitlements.team_seats_allowed(provider) == 3
+      assert Entitlements.team_seats_allowed(provider) == :unlimited
+    end
+  end
+
+  describe "provider entitlements - can_add_team_member?/2" do
+    test "starter tier allows up to 1 team member" do
+      provider = provider_with_tier(:starter)
+
+      assert Entitlements.can_add_team_member?(provider, 0)
+      refute Entitlements.can_add_team_member?(provider, 1)
+      refute Entitlements.can_add_team_member?(provider, 5)
+    end
+
+    test "professional tier allows up to 1 team member" do
+      provider = provider_with_tier(:professional)
+
+      assert Entitlements.can_add_team_member?(provider, 0)
+      refute Entitlements.can_add_team_member?(provider, 1)
+    end
+
+    test "business_plus tier allows unlimited team members" do
+      provider = provider_with_tier(:business_plus)
+
+      assert Entitlements.can_add_team_member?(provider, 0)
+      assert Entitlements.can_add_team_member?(provider, 100)
+      assert Entitlements.can_add_team_member?(provider, 1000)
     end
   end
 

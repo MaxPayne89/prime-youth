@@ -107,7 +107,98 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
     end
   end
 
-  describe "fail-closed behavior" do
+  describe "provider tier bypass enabled" do
+    setup do
+      {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
+      StubFeatureFlagsAdapter.set_enabled(:provider_tier_bypass)
+
+      on_exit(fn ->
+        if Process.whereis(StubFeatureFlagsAdapter), do: Agent.stop(StubFeatureFlagsAdapter)
+      end)
+
+      :ok
+    end
+
+    test "starter provider gets unlimited programs" do
+      provider = provider_with_tier(:starter)
+      assert Entitlements.max_programs(provider) == :unlimited
+    end
+
+    test "starter provider can create programs at any count" do
+      provider = provider_with_tier(:starter)
+
+      assert Entitlements.can_create_program?(provider, 0)
+      assert Entitlements.can_create_program?(provider, 100)
+    end
+
+    test "starter provider gets unlimited team seats" do
+      provider = provider_with_tier(:starter)
+      assert Entitlements.team_seats_allowed(provider) == :unlimited
+    end
+
+    test "starter provider can add team members at any count" do
+      provider = provider_with_tier(:starter)
+
+      assert Entitlements.can_add_team_member?(provider, 0)
+      assert Entitlements.can_add_team_member?(provider, 100)
+    end
+
+    test "starter provider gets business_plus commission rate" do
+      provider = provider_with_tier(:starter)
+      assert Entitlements.commission_rate(provider) == 0.08
+    end
+
+    test "starter provider gets all media types" do
+      provider = provider_with_tier(:starter)
+
+      assert Entitlements.media_entitlements(provider) == [
+               :avatar,
+               :gallery,
+               :video,
+               :promotional
+             ]
+    end
+
+    test "starter provider can initiate messaging" do
+      scope = %Scope{parent: nil, provider: provider_with_tier(:starter)}
+      assert Entitlements.can_initiate_messaging?(scope)
+    end
+
+    test "business_plus tier is unaffected (idempotent)" do
+      provider = provider_with_tier(:business_plus)
+
+      assert Entitlements.max_programs(provider) == :unlimited
+      assert Entitlements.can_create_program?(provider, 100)
+      assert Entitlements.team_seats_allowed(provider) == :unlimited
+      assert Entitlements.commission_rate(provider) == 0.08
+    end
+
+    test "provider_tier_info/1 is NOT affected" do
+      info = Entitlements.provider_tier_info(:starter)
+
+      assert info.max_programs == 2
+      assert info.commission_rate == 0.18
+      assert info.media == [:avatar]
+      assert info.team_seats == 1
+      assert info.can_initiate_messaging == false
+    end
+
+    test "parent tiers are NOT affected" do
+      parent = parent_with_tier(:explorer)
+
+      assert Entitlements.monthly_booking_cap(parent) == 2
+      refute Entitlements.can_create_booking?(parent, 2)
+    end
+
+    test "nil tier provider gets business_plus limits when bypass enabled" do
+      provider = provider_with_tier(nil)
+
+      assert Entitlements.max_programs(provider) == :unlimited
+      assert Entitlements.team_seats_allowed(provider) == :unlimited
+    end
+  end
+
+  describe "fail-closed behavior — parent bypass" do
     setup do
       on_exit(fn ->
         if Process.whereis(StubFeatureFlagsAdapter), do: Agent.stop(StubFeatureFlagsAdapter)
@@ -140,6 +231,42 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
 
       assert Entitlements.monthly_booking_cap(parent) == 2
       refute Entitlements.can_create_booking?(parent, 2)
+    end
+  end
+
+  describe "fail-closed behavior — provider bypass" do
+    setup do
+      on_exit(fn ->
+        if Process.whereis(StubFeatureFlagsAdapter), do: Agent.stop(StubFeatureFlagsAdapter)
+      end)
+
+      :ok
+    end
+
+    test "reverts to normal enforcement when flag is explicitly disabled" do
+      {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
+      StubFeatureFlagsAdapter.set_enabled(:provider_tier_bypass)
+
+      provider = provider_with_tier(:starter)
+      assert Entitlements.max_programs(provider) == :unlimited
+
+      StubFeatureFlagsAdapter.set_disabled(:provider_tier_bypass)
+
+      assert Entitlements.max_programs(provider) == 2
+      refute Entitlements.can_create_program?(provider, 2)
+    end
+
+    test "reverts to normal enforcement when flag system unavailable" do
+      {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
+      StubFeatureFlagsAdapter.set_enabled(:provider_tier_bypass)
+
+      provider = provider_with_tier(:starter)
+      assert Entitlements.max_programs(provider) == :unlimited
+
+      Agent.stop(StubFeatureFlagsAdapter)
+
+      assert Entitlements.max_programs(provider) == 2
+      refute Entitlements.can_create_program?(provider, 2)
     end
   end
 end
