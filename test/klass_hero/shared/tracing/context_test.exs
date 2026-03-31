@@ -57,6 +57,25 @@ defmodule KlassHero.Shared.Tracing.ContextTest.Helpers do
     end
   end
 
+  def attach_with_mixed_keys_in_child_span do
+    span "parent.operation" do
+      context = Context.inject()
+      mixed = Map.put(context, :criticality, :critical)
+
+      task =
+        Task.async(fn ->
+          Context.attach(mixed)
+
+          span "child.operation" do
+            :ok
+          end
+        end)
+
+      Task.await(task)
+      context
+    end
+  end
+
   def inject_into_args_and_attach_in_child_span do
     span "enqueue.operation" do
       args = %{"invite_id" => "abc123"}
@@ -121,6 +140,21 @@ defmodule KlassHero.Shared.Tracing.ContextTest do
 
       assert is_map(context)
       assert Map.has_key?(context, "traceparent")
+
+      flush_spans()
+      spans = collect_spans()
+
+      parent_span = find_span(spans, "parent.operation")
+      child_span = find_span(spans, "child.operation")
+
+      assert parent_span != nil, "expected parent.operation span to be exported"
+      assert child_span != nil, "expected child.operation span to be exported"
+
+      assert span(parent_span, :trace_id) == span(child_span, :trace_id)
+    end
+
+    test "filters atom keys and attaches only binary-keyed trace context" do
+      Helpers.attach_with_mixed_keys_in_child_span()
 
       flush_spans()
       spans = collect_spans()

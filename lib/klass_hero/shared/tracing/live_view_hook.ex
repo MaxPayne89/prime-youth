@@ -28,6 +28,8 @@ defmodule KlassHero.Shared.Tracing.LiveViewHook do
 
   require Logger
 
+  # Strips web-layer prefixes (KlassHeroWeb) — intentionally different from
+  # the adapter-path segments stripped in KlassHero.Shared.Tracing.@noise_segments
   @noise_segments ~w[Elixir KlassHeroWeb KlassHero]
 
   @doc """

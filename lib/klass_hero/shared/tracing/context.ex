@@ -15,6 +15,8 @@ defmodule KlassHero.Shared.Tracing.Context do
   and do NOT need explicit propagation.
   """
 
+  require Logger
+
   @trace_context_key "trace_context"
 
   @spec inject() :: map()
@@ -30,13 +32,18 @@ defmodule KlassHero.Shared.Tracing.Context do
     # W3C Trace Context keys are always binary strings. Filter out any atom-keyed
     # entries (e.g. :criticality from event metadata) before handing to the
     # Erlang propagator, which expects {binary(), binary()} 2-tuples.
-    headers =
-      context
-      |> Enum.filter(fn {k, _} -> is_binary(k) end)
+    headers = Enum.filter(context, fn {k, _} -> is_binary(k) end)
 
-    # extract/1 both deserializes the W3C Trace Context headers and attaches
-    # the resulting context to the current process, returning the old token.
-    :otel_propagator_text_map.extract(headers)
+    if headers == [] do
+      Logger.debug("[Tracing.Context] No binary keys in context map, skipping attach",
+        keys: inspect(Map.keys(context))
+      )
+    else
+      # extract/1 both deserializes the W3C Trace Context headers and attaches
+      # the resulting context to the current process, returning the old token.
+      :otel_propagator_text_map.extract(headers)
+    end
+
     :ok
   end
 

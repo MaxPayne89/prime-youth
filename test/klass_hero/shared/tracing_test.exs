@@ -35,6 +35,34 @@ defmodule KlassHero.Shared.TracingTest.TestAdapter do
       :ok
     end
   end
+
+  def traced_with_namespaced_attributes do
+    span do
+      set_attributes("db", operation: "insert", entity: "enrollment")
+      :ok
+    end
+  end
+
+  def traced_with_atom_attribute do
+    span do
+      set_attribute("status", :pending)
+      :ok
+    end
+  end
+
+  def traced_with_complex_attribute do
+    span do
+      set_attribute("debug", %{a: 1})
+      :ok
+    end
+  end
+
+  def traced_with_boolean_attribute do
+    span do
+      set_attribute("flag", true)
+      :ok
+    end
+  end
 end
 
 defmodule KlassHero.Shared.TracingTest do
@@ -76,6 +104,41 @@ defmodule KlassHero.Shared.TracingTest do
 
       assert_span("Shared.TracingTest.TestAdapter.traced_with_numeric_attribute/0",
         "http.status_code": 200
+      )
+    end
+
+    test "converts atom values to strings" do
+      TestAdapter.traced_with_atom_attribute()
+
+      assert_span("Shared.TracingTest.TestAdapter.traced_with_atom_attribute/0",
+        status: "pending"
+      )
+    end
+
+    test "inspects complex types (maps, lists)" do
+      TestAdapter.traced_with_complex_attribute()
+
+      assert_span("Shared.TracingTest.TestAdapter.traced_with_complex_attribute/0",
+        debug: inspect(%{a: 1})
+      )
+    end
+
+    test "preserves boolean values" do
+      TestAdapter.traced_with_boolean_attribute()
+
+      assert_span("Shared.TracingTest.TestAdapter.traced_with_boolean_attribute/0",
+        flag: true
+      )
+    end
+  end
+
+  describe "set_attributes/2" do
+    test "prefixes keys with namespace" do
+      TestAdapter.traced_with_namespaced_attributes()
+
+      assert_span("Shared.TracingTest.TestAdapter.traced_with_namespaced_attributes/0",
+        "db.operation": "insert",
+        "db.entity": "enrollment"
       )
     end
   end
