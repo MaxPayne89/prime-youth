@@ -12,6 +12,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   @behaviour KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.BulkEnrollmentInviteMapper,
@@ -39,33 +41,37 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   def create_batch([]), do: {:ok, 0}
 
   def create_batch(rows) when is_list(rows) do
-    rows
-    |> Enum.with_index()
-    |> Enum.reduce(Ecto.Multi.new(), fn {attrs, index}, multi ->
-      changeset =
-        BulkEnrollmentInviteSchema.import_changeset(%BulkEnrollmentInviteSchema{}, attrs)
+    span do
+      set_attributes("db", operation: "insert", entity: "bulk_enrollment_invite")
 
-      Ecto.Multi.insert(multi, {:invite, index}, changeset)
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, results} ->
-        count = map_size(results)
+      rows
+      |> Enum.with_index()
+      |> Enum.reduce(Ecto.Multi.new(), fn {attrs, index}, multi ->
+        changeset =
+          BulkEnrollmentInviteSchema.import_changeset(%BulkEnrollmentInviteSchema{}, attrs)
 
-        Logger.info("[BulkEnrollmentInvite.Repository] Batch created",
-          count: count
-        )
+        Ecto.Multi.insert(multi, {:invite, index}, changeset)
+      end)
+      |> Repo.transaction()
+      |> case do
+        {:ok, results} ->
+          count = map_size(results)
 
-        {:ok, count}
+          Logger.info("[BulkEnrollmentInvite.Repository] Batch created",
+            count: count
+          )
 
-      {:error, {:invite, index}, changeset, _changes} ->
-        Logger.error("[BulkEnrollmentInvite.Repository] Batch insert failed",
-          row_index: index,
-          batch_size: length(rows),
-          errors: inspect(changeset.errors)
-        )
+          {:ok, count}
 
-        {:error, {index, changeset}}
+        {:error, {:invite, index}, changeset, _changes} ->
+          Logger.error("[BulkEnrollmentInvite.Repository] Batch insert failed",
+            row_index: index,
+            batch_size: length(rows),
+            errors: inspect(changeset.errors)
+          )
+
+          {:error, {index, changeset}}
+      end
     end
   end
 
@@ -82,13 +88,17 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   def list_existing_keys_for_programs([]), do: MapSet.new()
 
   def list_existing_keys_for_programs(program_ids) when is_list(program_ids) do
-    BulkEnrollmentInviteSchema
-    |> where([i], i.program_id in ^program_ids)
-    |> select([i], {i.program_id, i.guardian_email, i.child_first_name, i.child_last_name})
-    |> Repo.all()
-    |> MapSet.new(fn {pid, email, first, last} ->
-      {pid, String.downcase(email), String.downcase(first), String.downcase(last)}
-    end)
+    span do
+      set_attributes("db", operation: "select", entity: "bulk_enrollment_invite")
+
+      BulkEnrollmentInviteSchema
+      |> where([i], i.program_id in ^program_ids)
+      |> select([i], {i.program_id, i.guardian_email, i.child_first_name, i.child_last_name})
+      |> Repo.all()
+      |> MapSet.new(fn {pid, email, first, last} ->
+        {pid, String.downcase(email), String.downcase(first), String.downcase(last)}
+      end)
+    end
   end
 
   @impl true
@@ -98,9 +108,13 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   Returns the invite struct or nil if not found.
   """
   def get_by_id(id) when is_binary(id) do
-    case Repo.get(BulkEnrollmentInviteSchema, id) do
-      nil -> nil
-      schema -> Mapper.to_domain(schema)
+    span do
+      set_attributes("db", operation: "select", entity: "bulk_enrollment_invite")
+
+      case Repo.get(BulkEnrollmentInviteSchema, id) do
+        nil -> nil
+        schema -> Mapper.to_domain(schema)
+      end
     end
   end
 
@@ -114,12 +128,16 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   def get_by_token(nil), do: nil
 
   def get_by_token(token) when is_binary(token) do
-    BulkEnrollmentInviteSchema
-    |> where([i], i.invite_token == ^token)
-    |> Repo.one()
-    |> case do
-      nil -> nil
-      schema -> Mapper.to_domain(schema)
+    span do
+      set_attributes("db", operation: "select", entity: "bulk_enrollment_invite")
+
+      BulkEnrollmentInviteSchema
+      |> where([i], i.invite_token == ^token)
+      |> Repo.one()
+      |> case do
+        nil -> nil
+        schema -> Mapper.to_domain(schema)
+      end
     end
   end
 
@@ -133,12 +151,16 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   def list_pending_without_token([]), do: []
 
   def list_pending_without_token(program_ids) when is_list(program_ids) do
-    BulkEnrollmentInviteSchema
-    |> where([i], i.program_id in ^program_ids)
-    |> where([i], i.status == "pending")
-    |> where([i], is_nil(i.invite_token))
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(Mapper)
+    span do
+      set_attributes("db", operation: "select", entity: "bulk_enrollment_invite")
+
+      BulkEnrollmentInviteSchema
+      |> where([i], i.program_id in ^program_ids)
+      |> where([i], i.status == "pending")
+      |> where([i], is_nil(i.invite_token))
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(Mapper)
+    end
   end
 
   @impl true
@@ -147,11 +169,15 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   by child last name then first name.
   """
   def list_by_program(program_id) when is_binary(program_id) do
-    BulkEnrollmentInviteSchema
-    |> where([i], i.program_id == ^program_id)
-    |> order_by([i], asc: i.child_last_name, asc: i.child_first_name)
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(Mapper)
+    span do
+      set_attributes("db", operation: "select", entity: "bulk_enrollment_invite")
+
+      BulkEnrollmentInviteSchema
+      |> where([i], i.program_id == ^program_id)
+      |> order_by([i], asc: i.child_last_name, asc: i.child_first_name)
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(Mapper)
+    end
   end
 
   @impl true
@@ -159,9 +185,13 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   Returns the count of invites for a given program.
   """
   def count_by_program(program_id) when is_binary(program_id) do
-    BulkEnrollmentInviteSchema
-    |> where([i], i.program_id == ^program_id)
-    |> Repo.aggregate(:count)
+    span do
+      set_attributes("db", operation: "select", entity: "bulk_enrollment_invite")
+
+      BulkEnrollmentInviteSchema
+      |> where([i], i.program_id == ^program_id)
+      |> Repo.aggregate(:count)
+    end
   end
 
   @impl true
@@ -171,25 +201,29 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
   """
   def delete(id) when is_binary(id) do
-    case Repo.get(BulkEnrollmentInviteSchema, id) do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "delete", entity: "bulk_enrollment_invite")
 
-      schema ->
-        # Trigger: Repo.delete can return {:error, changeset} on FK constraint violations
-        # Why: bare match raises MatchError and crashes the caller
-        # Outcome: log warning and surface :delete_failed to callers
-        case Repo.delete(schema) do
-          {:ok, _deleted} ->
-            :ok
+      case Repo.get(BulkEnrollmentInviteSchema, id) do
+        nil ->
+          {:error, :not_found}
 
-          {:error, changeset} ->
-            Logger.warning(
-              "[BulkEnrollmentInvite] Delete failed for #{id}: #{inspect(changeset.errors)}"
-            )
+        schema ->
+          # Trigger: Repo.delete can return {:error, changeset} on FK constraint violations
+          # Why: bare match raises MatchError and crashes the caller
+          # Outcome: log warning and surface :delete_failed to callers
+          case Repo.delete(schema) do
+            {:ok, _deleted} ->
+              :ok
 
-            {:error, :delete_failed}
-        end
+            {:error, changeset} ->
+              Logger.warning(
+                "[BulkEnrollmentInvite] Delete failed for #{id}: #{inspect(changeset.errors)}"
+              )
+
+              {:error, :delete_failed}
+          end
+      end
     end
   end
 
@@ -204,26 +238,30 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   def bulk_assign_tokens([]), do: {:ok, 0}
 
   def bulk_assign_tokens(id_token_pairs) when is_list(id_token_pairs) do
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    span do
+      set_attributes("db", operation: "update", entity: "bulk_enrollment_invite")
 
-    {ids, tokens} =
-      Enum.reduce(id_token_pairs, {[], []}, fn {id, token}, {ids, tokens} ->
-        {[id | ids], [token | tokens]}
-      end)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-    # Trigger: N pairs would cause N individual UPDATE queries (N+1 problem)
-    # Why: single UPDATE + unnest batches all token assignments into one round-trip
-    # Outcome: exactly 1 SQL statement regardless of batch size, fully static SQL
-    sql = """
-    UPDATE bulk_enrollment_invites AS b
-    SET invite_token = v.token, updated_at = $3::timestamp
-    FROM unnest($1::text[], $2::text[]) AS v(id, token)
-    WHERE b.id = v.id::uuid
-    """
+      {ids, tokens} =
+        Enum.reduce(id_token_pairs, {[], []}, fn {id, token}, {ids, tokens} ->
+          {[id | ids], [token | tokens]}
+        end)
 
-    case Repo.query(sql, [Enum.reverse(ids), Enum.reverse(tokens), now]) do
-      {:ok, %{num_rows: count}} -> {:ok, count}
-      {:error, reason} -> {:error, reason}
+      # Trigger: N pairs would cause N individual UPDATE queries (N+1 problem)
+      # Why: single UPDATE + unnest batches all token assignments into one round-trip
+      # Outcome: exactly 1 SQL statement regardless of batch size, fully static SQL
+      sql = """
+      UPDATE bulk_enrollment_invites AS b
+      SET invite_token = v.token, updated_at = $3::timestamp
+      FROM unnest($1::text[], $2::text[]) AS v(id, token)
+      WHERE b.id = v.id::uuid
+      """
+
+      case Repo.query(sql, [Enum.reverse(ids), Enum.reverse(tokens), now]) do
+        {:ok, %{num_rows: count}} -> {:ok, count}
+        {:error, reason} -> {:error, reason}
+      end
     end
   end
 
@@ -235,21 +273,25 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   validation, then persists the update.
   """
   def transition_status(%{id: id}, attrs) when is_map(attrs) do
-    # Trigger: domain model passed in — must refetch schema for Ecto changeset
-    # Why: domain models are pure structs without Ecto metadata
-    # Outcome: load schema by ID, apply transition changeset, map result back
-    case Repo.get(BulkEnrollmentInviteSchema, id) do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "bulk_enrollment_invite")
 
-      schema ->
-        schema
-        |> BulkEnrollmentInviteSchema.transition_changeset(attrs)
-        |> Repo.update()
-        |> case do
-          {:ok, updated_schema} -> {:ok, Mapper.to_domain(updated_schema)}
-          {:error, changeset} -> {:error, changeset}
-        end
+      # Trigger: domain model passed in — must refetch schema for Ecto changeset
+      # Why: domain models are pure structs without Ecto metadata
+      # Outcome: load schema by ID, apply transition changeset, map result back
+      case Repo.get(BulkEnrollmentInviteSchema, id) do
+        nil ->
+          {:error, :not_found}
+
+        schema ->
+          schema
+          |> BulkEnrollmentInviteSchema.transition_changeset(attrs)
+          |> Repo.update()
+          |> case do
+            {:ok, updated_schema} -> {:ok, Mapper.to_domain(updated_schema)}
+            {:error, changeset} -> {:error, changeset}
+          end
+      end
     end
   end
 
@@ -262,26 +304,30 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   using a plain `change/2` since it clears fields rather than transitioning forward.
   """
   def reset_for_resend(%{id: id, status: status}) when status in @resendable_statuses do
-    case Repo.get(BulkEnrollmentInviteSchema, id) do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "bulk_enrollment_invite")
 
-      schema ->
-        # Trigger: invite needs to re-enter the email pipeline
-        # Why: clearing token + invite_sent_at makes it eligible for list_pending_without_token
-        # Outcome: existing EnqueueInviteEmails picks it up on next dispatch
-        changeset =
-          Ecto.Changeset.change(schema, %{
-            status: "pending",
-            invite_token: nil,
-            invite_sent_at: nil,
-            error_details: nil
-          })
+      case Repo.get(BulkEnrollmentInviteSchema, id) do
+        nil ->
+          {:error, :not_found}
 
-        case Repo.update(changeset) do
-          {:ok, updated} -> {:ok, Mapper.to_domain(updated)}
-          {:error, changeset} -> {:error, changeset}
-        end
+        schema ->
+          # Trigger: invite needs to re-enter the email pipeline
+          # Why: clearing token + invite_sent_at makes it eligible for list_pending_without_token
+          # Outcome: existing EnqueueInviteEmails picks it up on next dispatch
+          changeset =
+            Ecto.Changeset.change(schema, %{
+              status: "pending",
+              invite_token: nil,
+              invite_sent_at: nil,
+              error_details: nil
+            })
+
+          case Repo.update(changeset) do
+            {:ok, updated} -> {:ok, Mapper.to_domain(updated)}
+            {:error, changeset} -> {:error, changeset}
+          end
+      end
     end
   end
 

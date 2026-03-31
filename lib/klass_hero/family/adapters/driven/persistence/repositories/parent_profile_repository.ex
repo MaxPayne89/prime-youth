@@ -16,6 +16,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
 
   @behaviour KlassHero.Family.Domain.Ports.ForStoringParentProfiles
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Family.Adapters.Driven.Persistence.Mappers.ParentProfileMapper
@@ -37,33 +39,37 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
   - `{:error, changeset}` - Validation failure
   """
   def create_parent_profile(attrs) when is_map(attrs) do
-    schema_attrs = MapperHelpers.normalize_subscription_tier(attrs)
+    span do
+      set_attributes("db", operation: "insert", entity: "parent_profile")
 
-    %ParentProfileSchema{}
-    |> ParentProfileSchema.changeset(schema_attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, schema} ->
-        {:ok, ParentProfileMapper.to_domain(schema)}
+      schema_attrs = MapperHelpers.normalize_subscription_tier(attrs)
 
-      {:error, %Ecto.Changeset{errors: errors} = changeset} ->
-        if EctoErrorHelpers.unique_constraint_violation?(errors, :identity_id) do
-          Logger.warning(
-            "[Family.ParentProfileRepository] Duplicate parent profile",
-            error_id: ErrorIds.parent_duplicate_identity(),
-            identity_id: attrs[:identity_id]
-          )
+      %ParentProfileSchema{}
+      |> ParentProfileSchema.changeset(schema_attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, schema} ->
+          {:ok, ParentProfileMapper.to_domain(schema)}
 
-          {:error, :duplicate_resource}
-        else
-          Logger.warning(
-            "[Family.ParentProfileRepository] Validation error creating parent profile",
-            identity_id: attrs[:identity_id],
-            errors: inspect(changeset.errors)
-          )
+        {:error, %Ecto.Changeset{errors: errors} = changeset} ->
+          if EctoErrorHelpers.unique_constraint_violation?(errors, :identity_id) do
+            Logger.warning(
+              "[Family.ParentProfileRepository] Duplicate parent profile",
+              error_id: ErrorIds.parent_duplicate_identity(),
+              identity_id: attrs[:identity_id]
+            )
 
-          {:error, changeset}
-        end
+            {:error, :duplicate_resource}
+          else
+            Logger.warning(
+              "[Family.ParentProfileRepository] Validation error creating parent profile",
+              identity_id: attrs[:identity_id],
+              errors: inspect(changeset.errors)
+            )
+
+            {:error, changeset}
+          end
+      end
     end
   end
 
@@ -76,9 +82,13 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
   - `{:error, :not_found}` when no parent profile exists with the given identity_id
   """
   def get_by_identity_id(identity_id) when is_binary(identity_id) do
-    case Repo.one(from p in ParentProfileSchema, where: p.identity_id == ^identity_id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, ParentProfileMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "parent_profile")
+
+      case Repo.one(from p in ParentProfileSchema, where: p.identity_id == ^identity_id) do
+        nil -> {:error, :not_found}
+        schema -> {:ok, ParentProfileMapper.to_domain(schema)}
+      end
     end
   end
 
@@ -89,9 +99,13 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
   Returns boolean directly.
   """
   def has_profile?(identity_id) when is_binary(identity_id) do
-    ParentProfileSchema
-    |> where([p], p.identity_id == ^identity_id)
-    |> Repo.exists?()
+    span do
+      set_attributes("db", operation: "select", entity: "parent_profile")
+
+      ParentProfileSchema
+      |> where([p], p.identity_id == ^identity_id)
+      |> Repo.exists?()
+    end
   end
 
   @impl true
@@ -103,9 +117,13 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
   def list_by_ids([]), do: []
 
   def list_by_ids(parent_ids) when is_list(parent_ids) do
-    ParentProfileSchema
-    |> where([p], p.id in ^parent_ids)
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(ParentProfileMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "parent_profile")
+
+      ParentProfileSchema
+      |> where([p], p.id in ^parent_ids)
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(ParentProfileMapper)
+    end
   end
 end

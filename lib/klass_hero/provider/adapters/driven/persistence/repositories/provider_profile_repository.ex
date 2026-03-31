@@ -16,6 +16,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
 
   @behaviour KlassHero.Provider.Domain.Ports.ForStoringProviderProfiles
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfileMapper
@@ -37,33 +39,37 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   - `{:error, changeset}` - Validation failure
   """
   def create_provider_profile(attrs) when is_map(attrs) do
-    schema_attrs = MapperHelpers.normalize_subscription_tier(attrs)
+    span do
+      set_attributes("db", operation: "insert", entity: "provider_profile")
 
-    %ProviderProfileSchema{}
-    |> ProviderProfileSchema.changeset(schema_attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, schema} ->
-        {:ok, ProviderProfileMapper.to_domain(schema)}
+      schema_attrs = MapperHelpers.normalize_subscription_tier(attrs)
 
-      {:error, %Ecto.Changeset{errors: errors} = changeset} ->
-        if EctoErrorHelpers.unique_constraint_violation?(errors, :identity_id) do
-          Logger.warning(
-            "[Provider.ProviderProfileRepository] Duplicate provider profile",
-            error_id: ErrorIds.provider_duplicate_identity(),
-            identity_id: attrs[:identity_id]
-          )
+      %ProviderProfileSchema{}
+      |> ProviderProfileSchema.changeset(schema_attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, schema} ->
+          {:ok, ProviderProfileMapper.to_domain(schema)}
 
-          {:error, :duplicate_resource}
-        else
-          Logger.warning(
-            "[Provider.ProviderProfileRepository] Validation error creating provider profile",
-            identity_id: attrs[:identity_id],
-            errors: inspect(changeset.errors)
-          )
+        {:error, %Ecto.Changeset{errors: errors} = changeset} ->
+          if EctoErrorHelpers.unique_constraint_violation?(errors, :identity_id) do
+            Logger.warning(
+              "[Provider.ProviderProfileRepository] Duplicate provider profile",
+              error_id: ErrorIds.provider_duplicate_identity(),
+              identity_id: attrs[:identity_id]
+            )
 
-          {:error, changeset}
-        end
+            {:error, :duplicate_resource}
+          else
+            Logger.warning(
+              "[Provider.ProviderProfileRepository] Validation error creating provider profile",
+              identity_id: attrs[:identity_id],
+              errors: inspect(changeset.errors)
+            )
+
+            {:error, changeset}
+          end
+      end
     end
   end
 
@@ -76,9 +82,13 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   - `{:error, :not_found}` when no provider profile exists with the given identity_id
   """
   def get_by_identity_id(identity_id) when is_binary(identity_id) do
-    case Repo.one(from p in ProviderProfileSchema, where: p.identity_id == ^identity_id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, ProviderProfileMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "provider_profile")
+
+      case Repo.one(from p in ProviderProfileSchema, where: p.identity_id == ^identity_id) do
+        nil -> {:error, :not_found}
+        schema -> {:ok, ProviderProfileMapper.to_domain(schema)}
+      end
     end
   end
 
@@ -89,9 +99,13 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   Returns boolean directly.
   """
   def has_profile?(identity_id) when is_binary(identity_id) do
-    ProviderProfileSchema
-    |> where([p], p.identity_id == ^identity_id)
-    |> Repo.exists?()
+    span do
+      set_attributes("db", operation: "select", entity: "provider_profile")
+
+      ProviderProfileSchema
+      |> where([p], p.identity_id == ^identity_id)
+      |> Repo.exists?()
+    end
   end
 
   @impl true
@@ -103,9 +117,13 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   - `{:error, :not_found}` when no provider profile exists with the given ID
   """
   def get(id) when is_binary(id) do
-    case Repo.get(ProviderProfileSchema, id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, ProviderProfileMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "provider_profile")
+
+      case Repo.get(ProviderProfileSchema, id) do
+        nil -> {:error, :not_found}
+        schema -> {:ok, ProviderProfileMapper.to_domain(schema)}
+      end
     end
   end
 
@@ -119,19 +137,23 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   - `{:error, changeset}` on validation failure
   """
   def update(provider_profile) do
-    case Repo.get(ProviderProfileSchema, provider_profile.id) do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "provider_profile")
 
-      schema ->
-        attrs = ProviderProfileMapper.to_schema(provider_profile)
+      case Repo.get(ProviderProfileSchema, provider_profile.id) do
+        nil ->
+          {:error, :not_found}
 
-        with {:ok, updated} <-
-               schema
-               |> ProviderProfileSchema.changeset(attrs)
-               |> Repo.update() do
-          {:ok, ProviderProfileMapper.to_domain(updated)}
-        end
+        schema ->
+          attrs = ProviderProfileMapper.to_schema(provider_profile)
+
+          with {:ok, updated} <-
+                 schema
+                 |> ProviderProfileSchema.changeset(attrs)
+                 |> Repo.update() do
+            {:ok, ProviderProfileMapper.to_domain(updated)}
+          end
+      end
     end
   end
 
@@ -145,12 +167,16 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   - `{:ok, [String.t()]}` - List of verified provider profile IDs (may be empty)
   """
   def list_verified_ids do
-    ids =
-      ProviderProfileSchema
-      |> where([p], p.verified == true)
-      |> select([p], p.id)
-      |> Repo.all()
+    span do
+      set_attributes("db", operation: "select", entity: "provider_profile")
 
-    {:ok, ids}
+      ids =
+        ProviderProfileSchema
+        |> where([p], p.verified == true)
+        |> select([p], p.id)
+        |> Repo.all()
+
+      {:ok, ids}
+    end
   end
 end

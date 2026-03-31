@@ -10,21 +10,31 @@ defmodule KlassHero.Enrollment.Adapters.Driven.ACL.ParticipantDetailsACL do
 
   @behaviour KlassHero.Enrollment.Domain.Ports.ForResolvingParticipantDetails
 
+  use KlassHero.Shared.Tracing
+
   alias KlassHero.Family
 
   @impl true
   def get_participant_details(child_id) do
-    case Family.get_child_by_id(child_id) do
-      {:ok, child} ->
-        {:ok,
-         %{
-           date_of_birth: child.date_of_birth,
-           gender: child.gender,
-           school_grade: child.school_grade
-         }}
+    span do
+      set_attributes("acl",
+        source: "enrollment",
+        target: "family",
+        operation: "get_participant_details"
+      )
 
-      {:error, :not_found} ->
-        {:error, :not_found}
+      case Family.get_child_by_id(child_id) do
+        {:ok, child} ->
+          {:ok,
+           %{
+             date_of_birth: child.date_of_birth,
+             gender: child.gender,
+             school_grade: child.school_grade
+           }}
+
+        {:error, :not_found} ->
+          {:error, :not_found}
+      end
     end
   end
 end

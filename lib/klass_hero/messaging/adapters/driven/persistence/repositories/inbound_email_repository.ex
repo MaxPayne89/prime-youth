@@ -7,6 +7,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEm
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingInboundEmails
 
+  use KlassHero.Shared.Tracing
+
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.InboundEmailMapper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Queries.InboundEmailQueries
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.InboundEmailSchema
@@ -16,118 +18,146 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEm
 
   @impl true
   def create(attrs) do
-    schema_attrs = InboundEmailMapper.to_create_attrs(attrs)
+    span do
+      set_attributes("db", operation: "insert", entity: "inbound_email")
 
-    %InboundEmailSchema{}
-    |> InboundEmailSchema.create_changeset(schema_attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, schema} ->
-        email = InboundEmailMapper.to_domain(schema)
+      schema_attrs = InboundEmailMapper.to_create_attrs(attrs)
 
-        Logger.info("Stored inbound email #{email.resend_id} from #{email.from_address}")
+      %InboundEmailSchema{}
+      |> InboundEmailSchema.create_changeset(schema_attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, schema} ->
+          email = InboundEmailMapper.to_domain(schema)
 
-        {:ok, email}
+          Logger.info("Stored inbound email #{email.resend_id} from #{email.from_address}")
 
-      {:error, changeset} ->
-        {:error, changeset}
+          {:ok, email}
+
+        {:error, changeset} ->
+          {:error, changeset}
+      end
     end
   end
 
   @impl true
   def get_by_id(id) do
-    InboundEmailQueries.base()
-    |> InboundEmailQueries.by_id(id)
-    |> Repo.one()
-    |> case do
-      nil -> {:error, :not_found}
-      schema -> {:ok, InboundEmailMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "inbound_email")
+
+      InboundEmailQueries.base()
+      |> InboundEmailQueries.by_id(id)
+      |> Repo.one()
+      |> case do
+        nil -> {:error, :not_found}
+        schema -> {:ok, InboundEmailMapper.to_domain(schema)}
+      end
     end
   end
 
   @impl true
   def get_by_resend_id(resend_id) do
-    InboundEmailQueries.base()
-    |> InboundEmailQueries.by_resend_id(resend_id)
-    |> Repo.one()
-    |> case do
-      nil -> {:error, :not_found}
-      schema -> {:ok, InboundEmailMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "inbound_email")
+
+      InboundEmailQueries.base()
+      |> InboundEmailQueries.by_resend_id(resend_id)
+      |> Repo.one()
+      |> case do
+        nil -> {:error, :not_found}
+        schema -> {:ok, InboundEmailMapper.to_domain(schema)}
+      end
     end
   end
 
   @impl true
   def list(opts \\ []) do
-    limit = Keyword.get(opts, :limit, 50)
-    status = Keyword.get(opts, :status)
+    span do
+      set_attributes("db", operation: "select", entity: "inbound_email")
 
-    results =
-      InboundEmailQueries.base()
-      |> InboundEmailQueries.by_status(status)
-      |> InboundEmailQueries.order_by_newest()
-      |> InboundEmailQueries.paginate(opts)
-      |> Repo.all()
+      limit = Keyword.get(opts, :limit, 50)
+      status = Keyword.get(opts, :status)
 
-    # Trigger: fetched limit+1 records so we can detect if more pages exist
-    # Why: avoids a separate COUNT query while still signalling pagination
-    # Outcome: has_more is true when results exceed the requested page size
-    has_more = length(results) > limit
-    emails = results |> Enum.take(limit) |> Enum.map(&InboundEmailMapper.to_domain/1)
+      results =
+        InboundEmailQueries.base()
+        |> InboundEmailQueries.by_status(status)
+        |> InboundEmailQueries.order_by_newest()
+        |> InboundEmailQueries.paginate(opts)
+        |> Repo.all()
 
-    {:ok, emails, has_more}
+      # Trigger: fetched limit+1 records so we can detect if more pages exist
+      # Why: avoids a separate COUNT query while still signalling pagination
+      # Outcome: has_more is true when results exceed the requested page size
+      has_more = length(results) > limit
+      emails = results |> Enum.take(limit) |> Enum.map(&InboundEmailMapper.to_domain/1)
+
+      {:ok, emails, has_more}
+    end
   end
 
   @impl true
   def update_status(id, status, attrs) do
-    InboundEmailSchema
-    |> Repo.get(id)
-    |> case do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "inbound_email")
 
-      schema ->
-        update_attrs = Map.put(attrs, :status, status)
+      InboundEmailSchema
+      |> Repo.get(id)
+      |> case do
+        nil ->
+          {:error, :not_found}
 
-        schema
-        |> InboundEmailSchema.status_changeset(update_attrs)
-        |> Repo.update()
-        |> case do
-          {:ok, updated} ->
-            Logger.debug("Updated inbound email status: #{id} -> #{status}")
-            {:ok, InboundEmailMapper.to_domain(updated)}
+        schema ->
+          update_attrs = Map.put(attrs, :status, status)
 
-          {:error, changeset} ->
-            {:error, changeset}
-        end
+          schema
+          |> InboundEmailSchema.status_changeset(update_attrs)
+          |> Repo.update()
+          |> case do
+            {:ok, updated} ->
+              Logger.debug("Updated inbound email status: #{id} -> #{status}")
+              {:ok, InboundEmailMapper.to_domain(updated)}
+
+            {:error, changeset} ->
+              {:error, changeset}
+          end
+      end
     end
   end
 
   @impl true
   def update_content(id, attrs) do
-    InboundEmailSchema
-    |> Repo.get(id)
-    |> case do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "inbound_email")
 
-      schema ->
-        schema
-        |> InboundEmailSchema.content_changeset(attrs)
-        |> Repo.update()
-        |> case do
-          {:ok, updated} ->
-            {:ok, InboundEmailMapper.to_domain(updated)}
+      InboundEmailSchema
+      |> Repo.get(id)
+      |> case do
+        nil ->
+          {:error, :not_found}
 
-          {:error, changeset} ->
-            {:error, changeset}
-        end
+        schema ->
+          schema
+          |> InboundEmailSchema.content_changeset(attrs)
+          |> Repo.update()
+          |> case do
+            {:ok, updated} ->
+              {:ok, InboundEmailMapper.to_domain(updated)}
+
+            {:error, changeset} ->
+              {:error, changeset}
+          end
+      end
     end
   end
 
   @impl true
   def count_by_status(status) do
-    InboundEmailQueries.count_by_status(status)
-    |> Repo.one()
-    |> Kernel.||(0)
+    span do
+      set_attributes("db", operation: "select", entity: "inbound_email")
+
+      InboundEmailQueries.count_by_status(status)
+      |> Repo.one()
+      |> Kernel.||(0)
+    end
   end
 end

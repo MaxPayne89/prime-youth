@@ -12,6 +12,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
 
   @behaviour KlassHero.Family.Domain.Ports.ForStoringChildren
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Family.Adapters.Driven.Persistence.Mappers.ChildMapper
@@ -25,194 +27,230 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
 
   @impl true
   def get_by_id(child_id) when is_binary(child_id) do
-    case get_schema(child_id) do
-      {:ok, schema} -> {:ok, ChildMapper.to_domain(schema)}
-      {:error, :not_found} -> {:error, :not_found}
+    span do
+      set_attributes("db", operation: "select", entity: "child")
+
+      case get_schema(child_id) do
+        {:ok, schema} -> {:ok, ChildMapper.to_domain(schema)}
+        {:error, :not_found} -> {:error, :not_found}
+      end
     end
   end
 
   @impl true
   def create(attrs) when is_map(attrs) do
-    changeset = ChildSchema.changeset(%ChildSchema{}, attrs)
+    span do
+      set_attributes("db", operation: "insert", entity: "child")
 
-    case Repo.insert(changeset) do
-      {:ok, schema} ->
-        {:ok, ChildMapper.to_domain(schema)}
+      changeset = ChildSchema.changeset(%ChildSchema{}, attrs)
 
-      {:error, changeset} ->
-        Logger.warning(
-          "[Family.ChildRepository] Changeset validation failed during create",
-          error_id: ErrorIds.child_validation_error(),
-          errors: changeset.errors
-        )
+      case Repo.insert(changeset) do
+        {:ok, schema} ->
+          {:ok, ChildMapper.to_domain(schema)}
 
-        {:error, changeset}
+        {:error, changeset} ->
+          Logger.warning(
+            "[Family.ChildRepository] Changeset validation failed during create",
+            error_id: ErrorIds.child_validation_error(),
+            errors: changeset.errors
+          )
+
+          {:error, changeset}
+      end
     end
   end
 
   @impl true
   def update(child_id, attrs) when is_binary(child_id) and is_map(attrs) do
-    case get_schema(child_id) do
-      {:ok, schema} ->
-        changeset = ChildSchema.changeset(schema, attrs)
+    span do
+      set_attributes("db", operation: "update", entity: "child")
 
-        case Repo.update(changeset) do
-          {:ok, updated} ->
-            {:ok, ChildMapper.to_domain(updated)}
+      case get_schema(child_id) do
+        {:ok, schema} ->
+          changeset = ChildSchema.changeset(schema, attrs)
 
-          {:error, changeset} ->
-            Logger.warning(
-              "[Family.ChildRepository] Changeset validation failed during update",
-              error_id: ErrorIds.child_validation_error(),
-              errors: changeset.errors
-            )
+          case Repo.update(changeset) do
+            {:ok, updated} ->
+              {:ok, ChildMapper.to_domain(updated)}
 
-            {:error, changeset}
-        end
+            {:error, changeset} ->
+              Logger.warning(
+                "[Family.ChildRepository] Changeset validation failed during update",
+                error_id: ErrorIds.child_validation_error(),
+                errors: changeset.errors
+              )
 
-      {:error, :not_found} ->
-        {:error, :not_found}
+              {:error, changeset}
+          end
+
+        {:error, :not_found} ->
+          {:error, :not_found}
+      end
     end
   end
 
   @impl true
   def delete(child_id) when is_binary(child_id) do
-    case get_schema(child_id) do
-      {:ok, schema} ->
-        # Trigger: bare Repo.delete raises Ecto.ConstraintError on FK violations
-        # Why: wrapping in a changeset with foreign_key_constraint converts
-        #      constraint errors into {:error, changeset} tagged tuples
-        # Outcome: graceful error return instead of crash
-        #
-        # Note: constraint names span contexts (Enrollment, Participation, Family).
-        # Defined in migrations: 20260226000006, 20260226000007, 20260226000008,
-        # 20260306200504. Update here if those constraints are renamed.
-        changeset =
-          schema
-          |> Ecto.Changeset.change()
-          |> Ecto.Changeset.foreign_key_constraint(:id,
-            name: "enrollments_child_id_fkey",
-            message: "has associated enrollments"
-          )
-          |> Ecto.Changeset.foreign_key_constraint(:id,
-            name: "participation_records_child_id_fkey",
-            message: "has associated participation records"
-          )
-          |> Ecto.Changeset.foreign_key_constraint(:id,
-            name: "consents_child_id_fkey",
-            message: "has associated consents"
-          )
-          |> Ecto.Changeset.foreign_key_constraint(:id,
-            name: "behavioral_notes_child_id_fkey",
-            message: "has associated behavioral notes"
-          )
+    span do
+      set_attributes("db", operation: "delete", entity: "child")
 
-        case Repo.delete(changeset) do
-          {:ok, _deleted} ->
-            :ok
-
-          {:error, changeset} ->
-            Logger.warning(
-              "[Family.ChildRepository] Delete blocked by FK constraint",
-              error_id: ErrorIds.child_validation_error(),
-              child_id: child_id,
-              errors: changeset.errors
+      case get_schema(child_id) do
+        {:ok, schema} ->
+          # Trigger: bare Repo.delete raises Ecto.ConstraintError on FK violations
+          # Why: wrapping in a changeset with foreign_key_constraint converts
+          #      constraint errors into {:error, changeset} tagged tuples
+          # Outcome: graceful error return instead of crash
+          #
+          # Note: constraint names span contexts (Enrollment, Participation, Family).
+          # Defined in migrations: 20260226000006, 20260226000007, 20260226000008,
+          # 20260306200504. Update here if those constraints are renamed.
+          changeset =
+            schema
+            |> Ecto.Changeset.change()
+            |> Ecto.Changeset.foreign_key_constraint(:id,
+              name: "enrollments_child_id_fkey",
+              message: "has associated enrollments"
+            )
+            |> Ecto.Changeset.foreign_key_constraint(:id,
+              name: "participation_records_child_id_fkey",
+              message: "has associated participation records"
+            )
+            |> Ecto.Changeset.foreign_key_constraint(:id,
+              name: "consents_child_id_fkey",
+              message: "has associated consents"
+            )
+            |> Ecto.Changeset.foreign_key_constraint(:id,
+              name: "behavioral_notes_child_id_fkey",
+              message: "has associated behavioral notes"
             )
 
-            {:error, changeset}
-        end
+          case Repo.delete(changeset) do
+            {:ok, _deleted} ->
+              :ok
 
-      {:error, :not_found} ->
-        {:error, :not_found}
+            {:error, changeset} ->
+              Logger.warning(
+                "[Family.ChildRepository] Delete blocked by FK constraint",
+                error_id: ErrorIds.child_validation_error(),
+                child_id: child_id,
+                errors: changeset.errors
+              )
+
+              {:error, changeset}
+          end
+
+        {:error, :not_found} ->
+          {:error, :not_found}
+      end
     end
   end
 
   @impl true
   def anonymize(child_id, anonymized_attrs)
       when is_binary(child_id) and is_map(anonymized_attrs) do
-    with {:ok, schema} <- get_schema(child_id),
-         {:ok, updated} <-
-           schema
-           |> ChildSchema.anonymize_changeset(anonymized_attrs)
-           |> Repo.update() do
-      {:ok, ChildMapper.to_domain(updated)}
-    else
-      {:error, :not_found} ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "child")
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        Logger.warning(
-          "[Family.ChildRepository] Changeset validation failed during anonymize",
-          error_id: ErrorIds.child_validation_error(),
-          child_id: child_id,
-          errors: changeset.errors
-        )
+      with {:ok, schema} <- get_schema(child_id),
+           {:ok, updated} <-
+             schema
+             |> ChildSchema.anonymize_changeset(anonymized_attrs)
+             |> Repo.update() do
+        {:ok, ChildMapper.to_domain(updated)}
+      else
+        {:error, :not_found} ->
+          {:error, :not_found}
 
-        {:error, changeset}
+        {:error, %Ecto.Changeset{} = changeset} ->
+          Logger.warning(
+            "[Family.ChildRepository] Changeset validation failed during anonymize",
+            error_id: ErrorIds.child_validation_error(),
+            child_id: child_id,
+            errors: changeset.errors
+          )
+
+          {:error, changeset}
+      end
     end
   end
 
   @impl true
   def list_by_ids(child_ids) when is_list(child_ids) do
-    ChildSchema
-    |> where([c], c.id in ^child_ids)
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(ChildMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "child")
+
+      ChildSchema
+      |> where([c], c.id in ^child_ids)
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(ChildMapper)
+    end
   end
 
   @impl true
   def create_with_guardian(attrs, guardian_id) when is_map(attrs) and is_binary(guardian_id) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.insert(:child, ChildSchema.changeset(%ChildSchema{}, attrs))
-    |> Ecto.Multi.insert(:guardian_link, fn %{child: child} ->
-      ChildGuardianSchema.changeset(%ChildGuardianSchema{}, %{
-        child_id: child.id,
-        guardian_id: guardian_id,
-        relationship: "parent",
-        is_primary: true
-      })
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{child: schema}} ->
-        {:ok, ChildMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "insert", entity: "child")
 
-      {:error, :child, changeset, _changes} ->
-        Logger.warning(
-          "[Family.ChildRepository] Changeset validation failed during create_with_guardian",
-          error_id: ErrorIds.child_validation_error(),
-          errors: changeset.errors
-        )
+      Ecto.Multi.new()
+      |> Ecto.Multi.insert(:child, ChildSchema.changeset(%ChildSchema{}, attrs))
+      |> Ecto.Multi.insert(:guardian_link, fn %{child: child} ->
+        ChildGuardianSchema.changeset(%ChildGuardianSchema{}, %{
+          child_id: child.id,
+          guardian_id: guardian_id,
+          relationship: "parent",
+          is_primary: true
+        })
+      end)
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{child: schema}} ->
+          {:ok, ChildMapper.to_domain(schema)}
 
-        {:error, changeset}
+        {:error, :child, changeset, _changes} ->
+          Logger.warning(
+            "[Family.ChildRepository] Changeset validation failed during create_with_guardian",
+            error_id: ErrorIds.child_validation_error(),
+            errors: changeset.errors
+          )
 
-      {:error, :guardian_link, changeset, _changes} ->
-        Logger.warning(
-          "[Family.ChildRepository] Guardian link creation failed",
-          error_id: ErrorIds.child_validation_error(),
-          errors: changeset.errors
-        )
+          {:error, changeset}
 
-        {:error, changeset}
+        {:error, :guardian_link, changeset, _changes} ->
+          Logger.warning(
+            "[Family.ChildRepository] Guardian link creation failed",
+            error_id: ErrorIds.child_validation_error(),
+            errors: changeset.errors
+          )
+
+          {:error, changeset}
+      end
     end
   end
 
   @impl true
   def child_belongs_to_guardian?(child_id, guardian_id)
       when is_binary(child_id) and is_binary(guardian_id) do
-    ChildGuardianSchema
-    |> where([cg], cg.child_id == ^child_id and cg.guardian_id == ^guardian_id)
-    |> Repo.exists?()
+    span do
+      set_attributes("db", operation: "select", entity: "child")
+
+      ChildGuardianSchema
+      |> where([cg], cg.child_id == ^child_id and cg.guardian_id == ^guardian_id)
+      |> Repo.exists?()
+    end
   end
 
   @impl true
   def list_by_guardian(guardian_id) when is_binary(guardian_id) do
-    ChildSchema
-    |> join(:inner, [c], cg in ChildGuardianSchema, on: c.id == cg.child_id)
-    |> where([_c, cg], cg.guardian_id == ^guardian_id)
-    |> order_by([c], asc: c.first_name, asc: c.last_name)
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(ChildMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "child")
+
+      ChildSchema
+      |> join(:inner, [c], cg in ChildGuardianSchema, on: c.id == cg.child_id)
+      |> where([_c, cg], cg.guardian_id == ^guardian_id)
+      |> order_by([c], asc: c.first_name, asc: c.last_name)
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(ChildMapper)
+    end
   end
 
   defp get_schema(child_id) do

@@ -7,39 +7,45 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
 
   @behaviour KlassHero.Shared.Domain.Ports.ForStoringFiles
 
+  use KlassHero.Shared.Tracing
+
   require Logger
 
   @impl true
   def upload(bucket_type, path, binary, opts) do
-    bucket = get_bucket()
-    content_type = Keyword.get(opts, :content_type, "application/octet-stream")
+    span do
+      set_attributes("http", service: "s3", operation: "upload")
 
-    # Trigger: bucket_type is :public
-    # Why: single bucket — visibility is controlled per-object via S3 ACLs
-    # Outcome: public files are directly accessible, private files require signed URLs
-    put_opts =
-      case bucket_type do
-        :public -> [content_type: content_type, acl: :public_read]
-        :private -> [content_type: content_type]
-      end
+      bucket = get_bucket()
+      content_type = Keyword.get(opts, :content_type, "application/octet-stream")
 
-    ExAws.S3.put_object(bucket, path, binary, put_opts)
-    |> ExAws.request(ex_aws_config())
-    |> case do
-      {:ok, _response} ->
+      # Trigger: bucket_type is :public
+      # Why: single bucket — visibility is controlled per-object via S3 ACLs
+      # Outcome: public files are directly accessible, private files require signed URLs
+      put_opts =
         case bucket_type do
-          :public -> {:ok, public_url(bucket, path)}
-          :private -> {:ok, path}
+          :public -> [content_type: content_type, acl: :public_read]
+          :private -> [content_type: content_type]
         end
 
-      {:error, reason} ->
-        Logger.error("S3 upload failed",
-          bucket: bucket,
-          path: path,
-          error: inspect(reason)
-        )
+      ExAws.S3.put_object(bucket, path, binary, put_opts)
+      |> ExAws.request(ex_aws_config())
+      |> case do
+        {:ok, _response} ->
+          case bucket_type do
+            :public -> {:ok, public_url(bucket, path)}
+            :private -> {:ok, path}
+          end
 
-        {:error, :upload_failed}
+        {:error, reason} ->
+          Logger.error("S3 upload failed",
+            bucket: bucket,
+            path: path,
+            error: inspect(reason)
+          )
+
+          {:error, :upload_failed}
+      end
     end
   end
 
@@ -47,23 +53,27 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   # Signed URLs are typically used for private files — public files are accessed
   # directly via their public URL, so bucket_type is intentionally ignored.
   def signed_url(_bucket_type, key, expires_in, _opts) do
-    bucket = get_bucket()
+    span do
+      set_attributes("http", service: "s3", operation: "signed_url")
 
-    # presigned_url/5 requires config as a map, not keyword list
-    config_map = ex_aws_config() |> Map.new()
+      bucket = get_bucket()
 
-    case ExAws.S3.presigned_url(config_map, :get, bucket, key, expires_in: expires_in) do
-      {:ok, url} ->
-        {:ok, url}
+      # presigned_url/5 requires config as a map, not keyword list
+      config_map = ex_aws_config() |> Map.new()
 
-      {:error, reason} ->
-        Logger.error("S3 presigned URL generation failed",
-          bucket: bucket,
-          key: key,
-          error: inspect(reason)
-        )
+      case ExAws.S3.presigned_url(config_map, :get, bucket, key, expires_in: expires_in) do
+        {:ok, url} ->
+          {:ok, url}
 
-        {:error, :signed_url_failed}
+        {:error, reason} ->
+          Logger.error("S3 presigned URL generation failed",
+            bucket: bucket,
+            key: key,
+            error: inspect(reason)
+          )
+
+          {:error, :signed_url_failed}
+      end
     end
   end
 
@@ -72,46 +82,54 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter do
   # Why: signed URLs succeed even for nonexistent files (just URL math), causing broken previews
   # Outcome: returns boolean so callers can skip URL generation for missing files
   def file_exists?(_bucket_type, key, _opts) do
-    bucket = get_bucket()
+    span do
+      set_attributes("http", service: "s3", operation: "file_exists?")
 
-    ExAws.S3.head_object(bucket, key)
-    |> ExAws.request(ex_aws_config())
-    |> case do
-      {:ok, _} ->
-        {:ok, true}
+      bucket = get_bucket()
 
-      {:error, {:http_error, 404, _}} ->
-        {:ok, false}
+      ExAws.S3.head_object(bucket, key)
+      |> ExAws.request(ex_aws_config())
+      |> case do
+        {:ok, _} ->
+          {:ok, true}
 
-      {:error, reason} ->
-        Logger.error("S3 file existence check failed",
-          bucket: bucket,
-          key: key,
-          error: inspect(reason)
-        )
+        {:error, {:http_error, 404, _}} ->
+          {:ok, false}
 
-        {:error, :storage_unavailable}
+        {:error, reason} ->
+          Logger.error("S3 file existence check failed",
+            bucket: bucket,
+            key: key,
+            error: inspect(reason)
+          )
+
+          {:error, :storage_unavailable}
+      end
     end
   end
 
   @impl true
   def delete(_bucket_type, key, _opts) do
-    bucket = get_bucket()
+    span do
+      set_attributes("http", service: "s3", operation: "delete")
 
-    ExAws.S3.delete_object(bucket, key)
-    |> ExAws.request(ex_aws_config())
-    |> case do
-      {:ok, _response} ->
-        :ok
+      bucket = get_bucket()
 
-      {:error, reason} ->
-        Logger.error("S3 delete failed",
-          bucket: bucket,
-          key: key,
-          error: inspect(reason)
-        )
+      ExAws.S3.delete_object(bucket, key)
+      |> ExAws.request(ex_aws_config())
+      |> case do
+        {:ok, _response} ->
+          :ok
 
-        {:error, :delete_failed}
+        {:error, reason} ->
+          Logger.error("S3 delete failed",
+            bucket: bucket,
+            key: key,
+            error: inspect(reason)
+          )
+
+          {:error, :delete_failed}
+      end
     end
   end
 

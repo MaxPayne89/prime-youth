@@ -11,6 +11,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
   @behaviour KlassHero.ProgramCatalog.Domain.Ports.ForListingProgramSummaries
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema
@@ -22,99 +24,115 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
   @impl true
   def list_paginated(limit, cursor, category) do
-    Logger.debug("[ProgramListingsRepository] Listing paginated program listings",
-      limit: limit,
-      has_cursor: !is_nil(cursor),
-      category: category
-    )
+    span do
+      set_attributes("db", operation: "select", entity: "program_listing")
 
-    with {:ok, cursor_data} <- decode_cursor(cursor) do
-      schemas = fetch_page(limit, cursor_data, category)
-
-      # Trigger: fetched one extra record beyond the limit
-      # Why: determines if more pages exist without a separate COUNT query
-      # Outcome: sets has_more flag and trims result to requested limit
-      {items, has_more} =
-        if length(schemas) > limit do
-          {Enum.take(schemas, limit), true}
-        else
-          {schemas, false}
-        end
-
-      next_cursor =
-        if has_more do
-          items |> List.last() |> encode_cursor()
-        end
-
-      dtos = Enum.map(items, &to_dto/1)
-      page_result = PageResult.new(dtos, next_cursor, has_more)
-
-      Logger.debug("[ProgramListingsRepository] Retrieved paginated listings",
-        returned_count: length(dtos),
-        has_more: has_more
+      Logger.debug("[ProgramListingsRepository] Listing paginated program listings",
+        limit: limit,
+        has_cursor: !is_nil(cursor),
+        category: category
       )
 
-      {:ok, page_result}
+      with {:ok, cursor_data} <- decode_cursor(cursor) do
+        schemas = fetch_page(limit, cursor_data, category)
+
+        # Trigger: fetched one extra record beyond the limit
+        # Why: determines if more pages exist without a separate COUNT query
+        # Outcome: sets has_more flag and trims result to requested limit
+        {items, has_more} =
+          if length(schemas) > limit do
+            {Enum.take(schemas, limit), true}
+          else
+            {schemas, false}
+          end
+
+        next_cursor =
+          if has_more do
+            items |> List.last() |> encode_cursor()
+          end
+
+        dtos = Enum.map(items, &to_dto/1)
+        page_result = PageResult.new(dtos, next_cursor, has_more)
+
+        Logger.debug("[ProgramListingsRepository] Retrieved paginated listings",
+          returned_count: length(dtos),
+          has_more: has_more
+        )
+
+        {:ok, page_result}
+      end
     end
   end
 
   @impl true
   def list_all do
-    Logger.debug("[ProgramListingsRepository] Listing all program listings")
+    span do
+      set_attributes("db", operation: "select", entity: "program_listing")
 
-    schemas =
-      ProgramListingSchema
-      |> order_by(asc: :title)
-      |> Repo.all()
+      Logger.debug("[ProgramListingsRepository] Listing all program listings")
 
-    dtos = Enum.map(schemas, &to_dto/1)
+      schemas =
+        ProgramListingSchema
+        |> order_by(asc: :title)
+        |> Repo.all()
 
-    Logger.debug("[ProgramListingsRepository] Retrieved all listings",
-      count: length(dtos)
-    )
+      dtos = Enum.map(schemas, &to_dto/1)
 
-    dtos
+      Logger.debug("[ProgramListingsRepository] Retrieved all listings",
+        count: length(dtos)
+      )
+
+      dtos
+    end
   end
 
   @impl true
   def list_for_provider(provider_id) when is_binary(provider_id) do
-    Logger.debug("[ProgramListingsRepository] Listing programs for provider",
-      provider_id: provider_id
-    )
+    span do
+      set_attributes("db", operation: "select", entity: "program_listing")
 
-    schemas =
-      ProgramListingSchema
-      |> where([l], l.provider_id == ^provider_id)
-      |> order_by([l], asc: l.title)
-      |> Repo.all()
+      Logger.debug("[ProgramListingsRepository] Listing programs for provider",
+        provider_id: provider_id
+      )
 
-    dtos = Enum.map(schemas, &to_dto/1)
+      schemas =
+        ProgramListingSchema
+        |> where([l], l.provider_id == ^provider_id)
+        |> order_by([l], asc: l.title)
+        |> Repo.all()
 
-    Logger.debug("[ProgramListingsRepository] Retrieved provider listings",
-      provider_id: provider_id,
-      count: length(dtos)
-    )
+      dtos = Enum.map(schemas, &to_dto/1)
 
-    dtos
+      Logger.debug("[ProgramListingsRepository] Retrieved provider listings",
+        provider_id: provider_id,
+        count: length(dtos)
+      )
+
+      dtos
+    end
   end
 
   @impl true
   def get_by_id(id) when is_binary(id) do
-    # Use dump/1 to validate UUID format — cast/1 incorrectly accepts 16-byte binaries
-    case Ecto.UUID.dump(id) do
-      {:ok, _binary} ->
-        case Repo.get(ProgramListingSchema, id) do
-          nil ->
-            Logger.debug("[ProgramListingsRepository] Listing not found", entity_id: id)
-            {:error, :not_found}
+    span do
+      set_attributes("db", operation: "select", entity: "program_listing")
 
-          schema ->
-            {:ok, to_dto(schema)}
-        end
+      # Use dump/1 to validate UUID format — cast/1 incorrectly accepts 16-byte binaries
+      case Ecto.UUID.dump(id) do
+        {:ok, _binary} ->
+          case Repo.get(ProgramListingSchema, id) do
+            nil ->
+              Logger.debug("[ProgramListingsRepository] Listing not found", entity_id: id)
+              {:error, :not_found}
 
-      :error ->
-        Logger.debug("[ProgramListingsRepository] Invalid UUID format", entity_id: id)
-        {:error, :not_found}
+            schema ->
+              {:ok, to_dto(schema)}
+          end
+
+        :error ->
+          Logger.debug("[ProgramListingsRepository] Invalid UUID format", entity_id: id)
+          {:error, :not_found}
+      end
     end
   end
 
