@@ -32,6 +32,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
     field :verified_at, :utc_datetime
     field :categories, {:array, :string}, default: []
     field :subscription_tier, :string, default: "starter"
+    field :originated_from, :string
 
     belongs_to :verified_by, User, type: :binary_id
 
@@ -70,7 +71,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
       :verified_at,
       :verified_by_id,
       :categories,
-      :subscription_tier
+      :subscription_tier,
+      :originated_from
     ])
     |> validate_required([:identity_id, :business_name])
     |> validate_length(:business_name, min: 1, max: 200)
