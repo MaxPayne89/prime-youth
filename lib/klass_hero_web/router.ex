@@ -8,6 +8,7 @@ defmodule KlassHeroWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
+    plug KlassHero.Shared.Tracing.Plug
     plug :fetch_live_flash
     plug :put_root_layout, html: {KlassHeroWeb.Layouts, :root}
     plug :protect_from_forgery
@@ -52,6 +53,7 @@ defmodule KlassHeroWeb.Router do
     live_session :public,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
+        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :mount_current_scope},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
       ] do
@@ -69,6 +71,7 @@ defmodule KlassHeroWeb.Router do
     live_session :authenticated,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
+        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :redirect_provider_or_staff_from_parent_routes},
         {KlassHeroWeb.UserAuth, :fetch_unread_count},
@@ -88,6 +91,7 @@ defmodule KlassHeroWeb.Router do
     live_session :require_provider,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
+        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_provider},
         {KlassHeroWeb.UserAuth, :fetch_unread_count},
@@ -116,6 +120,7 @@ defmodule KlassHeroWeb.Router do
     live_session :require_parent,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
+        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_parent},
         {KlassHeroWeb.UserAuth, :fetch_unread_count},
@@ -130,6 +135,7 @@ defmodule KlassHeroWeb.Router do
     live_session :require_staff_provider,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
+        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_staff_provider},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
@@ -145,6 +151,7 @@ defmodule KlassHeroWeb.Router do
     live_session :require_admin,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
+        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_admin},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
@@ -168,6 +175,7 @@ defmodule KlassHeroWeb.Router do
       # Outcome: admin layout rendered once by Backpex, no duplicates
       live_session :backpex_admin,
         on_mount: [
+          {KlassHero.Shared.Tracing.LiveViewHook, :trace},
           {KlassHeroWeb.UserAuth, :require_authenticated},
           {KlassHeroWeb.UserAuth, :require_admin},
           {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale},
@@ -186,6 +194,7 @@ defmodule KlassHeroWeb.Router do
       live_session :admin_custom,
         layout: {KlassHeroWeb.Layouts, :admin},
         on_mount: [
+          {KlassHero.Shared.Tracing.LiveViewHook, :trace},
           {KlassHeroWeb.UserAuth, :require_authenticated},
           {KlassHeroWeb.UserAuth, :require_admin},
           {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
@@ -244,6 +253,7 @@ defmodule KlassHeroWeb.Router do
     live_session :require_authenticated_user,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
+        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :fetch_unread_count},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
@@ -269,6 +279,7 @@ defmodule KlassHeroWeb.Router do
 
     live_session :current_user,
       on_mount: [
+        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :mount_current_scope},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
       ] do

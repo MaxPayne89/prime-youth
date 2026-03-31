@@ -9,6 +9,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Particip
 
   @behaviour KlassHero.Enrollment.Domain.Ports.ForManagingParticipantPolicies
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.ParticipantPolicyMapper
@@ -19,48 +21,56 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Particip
 
   @impl true
   def upsert(attrs) do
-    schema_attrs = ParticipantPolicyMapper.to_schema_attrs(attrs)
+    span do
+      set_attributes("db", operation: "upsert", entity: "participant_policy")
 
-    %ParticipantPolicySchema{}
-    |> ParticipantPolicySchema.changeset(schema_attrs)
-    |> Repo.insert(
-      on_conflict:
-        {:replace,
-         [
-           :eligibility_at,
-           :min_age_months,
-           :max_age_months,
-           :allowed_genders,
-           :min_grade,
-           :max_grade,
-           :updated_at
-         ]},
-      conflict_target: :program_id,
-      returning: true
-    )
-    |> case do
-      {:ok, schema} ->
-        Logger.info("[Enrollment.ParticipantPolicyRepository] Upserted participant policy",
-          program_id: schema.program_id
-        )
+      schema_attrs = ParticipantPolicyMapper.to_schema_attrs(attrs)
 
-        {:ok, ParticipantPolicyMapper.to_domain(schema)}
+      %ParticipantPolicySchema{}
+      |> ParticipantPolicySchema.changeset(schema_attrs)
+      |> Repo.insert(
+        on_conflict:
+          {:replace,
+           [
+             :eligibility_at,
+             :min_age_months,
+             :max_age_months,
+             :allowed_genders,
+             :min_grade,
+             :max_grade,
+             :updated_at
+           ]},
+        conflict_target: :program_id,
+        returning: true
+      )
+      |> case do
+        {:ok, schema} ->
+          Logger.info("[Enrollment.ParticipantPolicyRepository] Upserted participant policy",
+            program_id: schema.program_id
+          )
 
-      {:error, changeset} ->
-        Logger.warning(
-          "[Enrollment.ParticipantPolicyRepository] Failed to upsert participant policy",
-          errors: inspect(changeset.errors)
-        )
+          {:ok, ParticipantPolicyMapper.to_domain(schema)}
 
-        {:error, changeset}
+        {:error, changeset} ->
+          Logger.warning(
+            "[Enrollment.ParticipantPolicyRepository] Failed to upsert participant policy",
+            errors: inspect(changeset.errors)
+          )
+
+          {:error, changeset}
+      end
     end
   end
 
   @impl true
   def get_by_program_id(program_id) do
-    case Repo.get_by(ParticipantPolicySchema, program_id: program_id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, ParticipantPolicyMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "participant_policy")
+
+      case Repo.get_by(ParticipantPolicySchema, program_id: program_id) do
+        nil -> {:error, :not_found}
+        schema -> {:ok, ParticipantPolicyMapper.to_domain(schema)}
+      end
     end
   end
 
@@ -68,12 +78,16 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Particip
   def get_policies_by_program_ids([]), do: %{}
 
   def get_policies_by_program_ids(program_ids) when is_list(program_ids) do
-    from(p in ParticipantPolicySchema,
-      where: p.program_id in ^program_ids
-    )
-    |> Repo.all()
-    |> Map.new(fn schema ->
-      {to_string(schema.program_id), ParticipantPolicyMapper.to_domain(schema)}
-    end)
+    span do
+      set_attributes("db", operation: "select", entity: "participant_policy")
+
+      from(p in ParticipantPolicySchema,
+        where: p.program_id in ^program_ids
+      )
+      |> Repo.all()
+      |> Map.new(fn schema ->
+        {to_string(schema.program_id), ParticipantPolicyMapper.to_domain(schema)}
+      end)
+    end
   end
 end

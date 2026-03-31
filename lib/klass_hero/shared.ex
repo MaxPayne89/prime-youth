@@ -30,6 +30,11 @@ defmodule KlassHero.Shared do
       Adapters.Driven.Persistence.EctoErrorHelpers,
       Adapters.Driven.Persistence.MapperHelpers,
       Adapters.Driven.Persistence.RepositoryHelpers,
-      Storage
+      Storage,
+      Tracing,
+      Tracing.Context,
+      Tracing.LiveViewHook,
+      Tracing.Plug,
+      Tracing.TracedWorker
     ]
 end

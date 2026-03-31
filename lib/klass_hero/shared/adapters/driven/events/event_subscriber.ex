@@ -55,6 +55,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriber do
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
   alias KlassHero.Shared.Domain.Services.CriticalEventDispatcher
+  alias KlassHero.Shared.Tracing.Context
 
   require Logger
 
@@ -120,6 +121,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriber do
   end
 
   defp handle_event_safely(event, %{handler: handler, event_label: label}) do
+    Context.attach_from_event(event)
+
     # Trigger: integration event may be marked critical
     # Why: critical events need idempotent processing via processed_events gate
     # Outcome: critical events go through CriticalEventDispatcher, normal events

@@ -7,6 +7,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.EmailRepl
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingEmailReplies
 
+  use KlassHero.Shared.Tracing
+
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.EmailReplyMapper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Queries.EmailReplyQueries
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.EmailReplySchema
@@ -16,67 +18,83 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.EmailRepl
 
   @impl true
   def create(attrs) do
-    schema_attrs = EmailReplyMapper.to_create_attrs(attrs)
+    span do
+      set_attributes("db", operation: "insert", entity: "email_reply")
 
-    %EmailReplySchema{}
-    |> EmailReplySchema.create_changeset(schema_attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, schema} ->
-        reply = EmailReplyMapper.to_domain(schema)
-        Logger.info("Created email reply #{reply.id} for email #{reply.inbound_email_id}")
-        {:ok, reply}
+      schema_attrs = EmailReplyMapper.to_create_attrs(attrs)
 
-      {:error, changeset} ->
-        {:error, changeset}
+      %EmailReplySchema{}
+      |> EmailReplySchema.create_changeset(schema_attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, schema} ->
+          reply = EmailReplyMapper.to_domain(schema)
+          Logger.info("Created email reply #{reply.id} for email #{reply.inbound_email_id}")
+          {:ok, reply}
+
+        {:error, changeset} ->
+          {:error, changeset}
+      end
     end
   end
 
   @impl true
   def get_by_id(id) do
-    EmailReplyQueries.base()
-    |> EmailReplyQueries.by_id(id)
-    |> Repo.one()
-    |> case do
-      nil -> {:error, :not_found}
-      schema -> {:ok, EmailReplyMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "email_reply")
+
+      EmailReplyQueries.base()
+      |> EmailReplyQueries.by_id(id)
+      |> Repo.one()
+      |> case do
+        nil -> {:error, :not_found}
+        schema -> {:ok, EmailReplyMapper.to_domain(schema)}
+      end
     end
   end
 
   @impl true
   def update_status(id, status, attrs) do
-    EmailReplySchema
-    |> Repo.get(id)
-    |> case do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "email_reply")
 
-      schema ->
-        update_attrs = Map.put(attrs, :status, status)
+      EmailReplySchema
+      |> Repo.get(id)
+      |> case do
+        nil ->
+          {:error, :not_found}
 
-        schema
-        |> EmailReplySchema.status_changeset(update_attrs)
-        |> Repo.update()
-        |> case do
-          {:ok, updated} ->
-            Logger.debug("Updated email reply status: #{id} -> #{status}")
-            {:ok, EmailReplyMapper.to_domain(updated)}
+        schema ->
+          update_attrs = Map.put(attrs, :status, status)
 
-          {:error, changeset} ->
-            {:error, changeset}
-        end
+          schema
+          |> EmailReplySchema.status_changeset(update_attrs)
+          |> Repo.update()
+          |> case do
+            {:ok, updated} ->
+              Logger.debug("Updated email reply status: #{id} -> #{status}")
+              {:ok, EmailReplyMapper.to_domain(updated)}
+
+            {:error, changeset} ->
+              {:error, changeset}
+          end
+      end
     end
   end
 
   @impl true
   def list_by_email(inbound_email_id) do
-    replies =
-      EmailReplyQueries.base()
-      |> EmailReplyQueries.by_email(inbound_email_id)
-      |> EmailReplyQueries.order_by_oldest()
-      |> Repo.all()
-      |> Enum.map(&EmailReplyMapper.to_domain/1)
+    span do
+      set_attributes("db", operation: "select", entity: "email_reply")
 
-    {:ok, replies}
+      replies =
+        EmailReplyQueries.base()
+        |> EmailReplyQueries.by_email(inbound_email_id)
+        |> EmailReplyQueries.order_by_oldest()
+        |> Repo.all()
+        |> Enum.map(&EmailReplyMapper.to_domain/1)
+
+      {:ok, replies}
+    end
   end
 end

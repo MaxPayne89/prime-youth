@@ -7,6 +7,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
 
   @behaviour KlassHero.Provider.Domain.Ports.ForStoringStaffMembers
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapper
@@ -19,106 +21,138 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
 
   @impl true
   def create(attrs) when is_map(attrs) do
-    %StaffMemberSchema{}
-    |> StaffMemberSchema.create_changeset(attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, schema} ->
-        {:ok, StaffMemberMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "insert", entity: "staff_member")
 
-      {:error, changeset} ->
-        Logger.warning(
-          "[Provider.StaffMemberRepository] Validation error creating staff member",
-          provider_id: attrs[:provider_id],
-          errors: inspect(changeset.errors)
-        )
+      %StaffMemberSchema{}
+      |> StaffMemberSchema.create_changeset(attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, schema} ->
+          {:ok, StaffMemberMapper.to_domain(schema)}
 
-        {:error, changeset}
+        {:error, changeset} ->
+          Logger.warning(
+            "[Provider.StaffMemberRepository] Validation error creating staff member",
+            provider_id: attrs[:provider_id],
+            errors: inspect(changeset.errors)
+          )
+
+          {:error, changeset}
+      end
     end
   end
 
   @impl true
   def get(id) when is_binary(id) do
-    RepositoryHelpers.get_by_id(StaffMemberSchema, id, StaffMemberMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "staff_member")
+
+      RepositoryHelpers.get_by_id(StaffMemberSchema, id, StaffMemberMapper)
+    end
   end
 
   @impl true
   def list_by_provider(provider_id) when is_binary(provider_id) do
-    members =
-      StaffMemberSchema
-      |> where([s], s.provider_id == ^provider_id)
-      |> order_by([s], asc: s.inserted_at)
-      |> Repo.all()
-      |> MapperHelpers.to_domain_list(StaffMemberMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "staff_member")
 
-    {:ok, members}
+      members =
+        StaffMemberSchema
+        |> where([s], s.provider_id == ^provider_id)
+        |> order_by([s], asc: s.inserted_at)
+        |> Repo.all()
+        |> MapperHelpers.to_domain_list(StaffMemberMapper)
+
+      {:ok, members}
+    end
   end
 
   @impl true
   def list_active_by_provider(provider_id) when is_binary(provider_id) do
-    members =
-      StaffMemberSchema
-      |> where([s], s.provider_id == ^provider_id and s.active == true)
-      |> order_by([s], asc: s.inserted_at)
-      |> Repo.all()
-      |> MapperHelpers.to_domain_list(StaffMemberMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "staff_member")
 
-    {:ok, members}
+      members =
+        StaffMemberSchema
+        |> where([s], s.provider_id == ^provider_id and s.active == true)
+        |> order_by([s], asc: s.inserted_at)
+        |> Repo.all()
+        |> MapperHelpers.to_domain_list(StaffMemberMapper)
+
+      {:ok, members}
+    end
   end
 
   @impl true
   def update(staff_member) do
-    case Repo.get(StaffMemberSchema, staff_member.id) do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "staff_member")
 
-      schema ->
-        attrs = StaffMemberMapper.to_schema(staff_member)
+      case Repo.get(StaffMemberSchema, staff_member.id) do
+        nil ->
+          {:error, :not_found}
 
-        with {:ok, updated} <-
-               schema
-               |> StaffMemberSchema.edit_changeset(attrs)
-               |> Repo.update() do
-          {:ok, StaffMemberMapper.to_domain(updated)}
-        end
+        schema ->
+          attrs = StaffMemberMapper.to_schema(staff_member)
+
+          with {:ok, updated} <-
+                 schema
+                 |> StaffMemberSchema.edit_changeset(attrs)
+                 |> Repo.update() do
+            {:ok, StaffMemberMapper.to_domain(updated)}
+          end
+      end
     end
   end
 
   @impl true
   def delete(id) when is_binary(id) do
-    case Repo.get(StaffMemberSchema, id) do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "delete", entity: "staff_member")
 
-      schema ->
-        {:ok, _} = Repo.delete(schema)
-        :ok
+      case Repo.get(StaffMemberSchema, id) do
+        nil ->
+          {:error, :not_found}
+
+        schema ->
+          {:ok, _} = Repo.delete(schema)
+          :ok
+      end
     end
   end
 
   @impl true
   def get_by_token_hash(token_hash) when is_binary(token_hash) do
-    query =
-      from s in StaffMemberSchema,
-        where: s.invitation_token_hash == ^token_hash and s.invitation_status == "sent"
+    span do
+      set_attributes("db", operation: "select", entity: "staff_member")
 
-    case Repo.one(query) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, StaffMemberMapper.to_domain(schema)}
+      query =
+        from s in StaffMemberSchema,
+          where: s.invitation_token_hash == ^token_hash and s.invitation_status == "sent"
+
+      case Repo.one(query) do
+        nil -> {:error, :not_found}
+        schema -> {:ok, StaffMemberMapper.to_domain(schema)}
+      end
     end
   end
 
   @impl true
   def get_active_by_user(user_id) when is_binary(user_id) do
-    query =
-      from s in StaffMemberSchema,
-        where: s.user_id == ^user_id and s.active == true,
-        order_by: [desc: s.inserted_at],
-        limit: 1
+    span do
+      set_attributes("db", operation: "select", entity: "staff_member")
 
-    case Repo.one(query) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, StaffMemberMapper.to_domain(schema)}
+      query =
+        from s in StaffMemberSchema,
+          where: s.user_id == ^user_id and s.active == true,
+          order_by: [desc: s.inserted_at],
+          limit: 1
+
+      case Repo.one(query) do
+        nil -> {:error, :not_found}
+        schema -> {:ok, StaffMemberMapper.to_domain(schema)}
+      end
     end
   end
 end

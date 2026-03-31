@@ -15,6 +15,8 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   @behaviour KlassHero.ProgramCatalog.Domain.Ports.ForListingPrograms
   @behaviour KlassHero.ProgramCatalog.Domain.Ports.ForUpdatingPrograms
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMapper
@@ -40,33 +42,37 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
   @impl true
   def create(%Program{} = program) do
-    attrs = ProgramMapper.to_schema(program)
+    span do
+      set_attributes("db", operation: "insert", entity: "program")
 
-    Logger.info("[ProgramRepository] Creating new program",
-      provider_id: program.provider_id,
-      title: program.title
-    )
+      attrs = ProgramMapper.to_schema(program)
 
-    %ProgramSchema{}
-    |> ProgramSchema.create_changeset(attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, schema} ->
-        persisted = ProgramMapper.to_domain(schema)
+      Logger.info("[ProgramRepository] Creating new program",
+        provider_id: program.provider_id,
+        title: program.title
+      )
 
-        Logger.info("[ProgramRepository] Successfully created program",
-          program_id: persisted.id,
-          title: persisted.title
-        )
+      %ProgramSchema{}
+      |> ProgramSchema.create_changeset(attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, schema} ->
+          persisted = ProgramMapper.to_domain(schema)
 
-        {:ok, persisted}
+          Logger.info("[ProgramRepository] Successfully created program",
+            program_id: persisted.id,
+            title: persisted.title
+          )
 
-      {:error, changeset} ->
-        Logger.warning("[ProgramRepository] Program creation failed",
-          errors: inspect(changeset.errors)
-        )
+          {:ok, persisted}
 
-        {:error, changeset}
+        {:error, changeset} ->
+          Logger.warning("[ProgramRepository] Program creation failed",
+            errors: inspect(changeset.errors)
+          )
+
+          {:error, changeset}
+      end
     end
   end
 
@@ -78,19 +84,23 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   Returns list of programs directly (may be empty).
   """
   def list_all_programs do
-    Logger.info("[ProgramRepository] Starting list_all_programs query")
+    span do
+      set_attributes("db", operation: "select", entity: "program")
 
-    programs =
-      ProgramSchema
-      |> order_by([p], asc: p.title)
-      |> Repo.all()
-      |> MapperHelpers.to_domain_list(ProgramMapper)
+      Logger.info("[ProgramRepository] Starting list_all_programs query")
 
-    Logger.info(
-      "[ProgramRepository] Successfully retrieved #{length(programs)} programs from database"
-    )
+      programs =
+        ProgramSchema
+        |> order_by([p], asc: p.title)
+        |> Repo.all()
+        |> MapperHelpers.to_domain_list(ProgramMapper)
 
-    programs
+      Logger.info(
+        "[ProgramRepository] Successfully retrieved #{length(programs)} programs from database"
+      )
+
+      programs
+    end
   end
 
   @impl true
@@ -101,22 +111,26 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   Returns list of programs directly (may be empty).
   """
   def list_programs_for_provider(provider_id) when is_binary(provider_id) do
-    Logger.info(
-      "[ProgramRepository] Starting list_programs_for_provider query for provider: #{provider_id}"
-    )
+    span do
+      set_attributes("db", operation: "select", entity: "program")
 
-    programs =
-      ProgramSchema
-      |> where([p], p.provider_id == ^provider_id)
-      |> order_by([p], asc: p.title)
-      |> Repo.all()
-      |> MapperHelpers.to_domain_list(ProgramMapper)
+      Logger.info(
+        "[ProgramRepository] Starting list_programs_for_provider query for provider: #{provider_id}"
+      )
 
-    Logger.info(
-      "[ProgramRepository] Successfully retrieved #{length(programs)} programs for provider #{provider_id}"
-    )
+      programs =
+        ProgramSchema
+        |> where([p], p.provider_id == ^provider_id)
+        |> order_by([p], asc: p.title)
+        |> Repo.all()
+        |> MapperHelpers.to_domain_list(ProgramMapper)
 
-    programs
+      Logger.info(
+        "[ProgramRepository] Successfully retrieved #{length(programs)} programs for provider #{provider_id}"
+      )
+
+      programs
+    end
   end
 
   @impl true
@@ -128,29 +142,33 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   - `{:error, :not_found}` when no program exists with the given ID or ID is invalid
   """
   def get_by_id(id) when is_binary(id) do
-    Logger.info("[ProgramRepository] Starting get_by_id query for program ID: #{id}")
+    span do
+      set_attributes("db", operation: "select", entity: "program")
 
-    # Use dump/1 to validate UUID format - cast/1 incorrectly accepts 16-byte binaries
-    case Ecto.UUID.dump(id) do
-      {:ok, _binary} ->
-        case Repo.get(ProgramSchema, id) do
-          nil ->
-            Logger.info("[ProgramRepository] Program not found with ID: #{id}")
-            {:error, :not_found}
+      Logger.info("[ProgramRepository] Starting get_by_id query for program ID: #{id}")
 
-          schema ->
-            program = ProgramMapper.to_domain(schema)
+      # Use dump/1 to validate UUID format - cast/1 incorrectly accepts 16-byte binaries
+      case Ecto.UUID.dump(id) do
+        {:ok, _binary} ->
+          case Repo.get(ProgramSchema, id) do
+            nil ->
+              Logger.info("[ProgramRepository] Program not found with ID: #{id}")
+              {:error, :not_found}
 
-            Logger.info(
-              "[ProgramRepository] Successfully retrieved program '#{program.title}' (ID: #{id}) from database"
-            )
+            schema ->
+              program = ProgramMapper.to_domain(schema)
 
-            {:ok, program}
-        end
+              Logger.info(
+                "[ProgramRepository] Successfully retrieved program '#{program.title}' (ID: #{id}) from database"
+              )
 
-      :error ->
-        Logger.info("[ProgramRepository] Invalid UUID format: #{id}")
-        {:error, :not_found}
+              {:ok, program}
+          end
+
+        :error ->
+          Logger.info("[ProgramRepository] Invalid UUID format: #{id}")
+          {:error, :not_found}
+      end
     end
   end
 
@@ -181,57 +199,61 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   - `{:error, :invalid_cursor}` - Cursor decoding/validation failure
   """
   def list_programs_paginated(limit, cursor, category) do
-    Logger.info(
-      "[ProgramRepository] Starting list_programs_paginated query",
-      limit: limit,
-      has_cursor: !is_nil(cursor),
-      category: category
-    )
-
-    with {:ok, validated_limit} <- validate_limit(limit),
-         {:ok, cursor_data} <- decode_cursor(cursor) do
-      schemas = fetch_page(validated_limit, cursor_data, category)
-
-      {items, has_more} =
-        if length(schemas) > validated_limit do
-          {Enum.take(schemas, validated_limit), true}
-        else
-          {schemas, false}
-        end
-
-      next_cursor =
-        if has_more do
-          items |> List.last() |> encode_cursor()
-        end
-
-      domain_programs = Enum.map(items, &ProgramMapper.to_domain/1)
-      page_result = PageResult.new(domain_programs, next_cursor, has_more)
+    span do
+      set_attributes("db", operation: "select", entity: "program")
 
       Logger.info(
-        "[ProgramRepository] Successfully retrieved paginated programs",
-        returned_count: length(domain_programs),
-        has_more: has_more,
+        "[ProgramRepository] Starting list_programs_paginated query",
+        limit: limit,
+        has_cursor: !is_nil(cursor),
         category: category
       )
 
-      {:ok, page_result}
-    else
-      {:error, :invalid_limit} = error ->
-        Logger.warning(
-          "[ProgramRepository] Invalid pagination limit",
-          limit: inspect(limit)
+      with {:ok, validated_limit} <- validate_limit(limit),
+           {:ok, cursor_data} <- decode_cursor(cursor) do
+        schemas = fetch_page(validated_limit, cursor_data, category)
+
+        {items, has_more} =
+          if length(schemas) > validated_limit do
+            {Enum.take(schemas, validated_limit), true}
+          else
+            {schemas, false}
+          end
+
+        next_cursor =
+          if has_more do
+            items |> List.last() |> encode_cursor()
+          end
+
+        domain_programs = Enum.map(items, &ProgramMapper.to_domain/1)
+        page_result = PageResult.new(domain_programs, next_cursor, has_more)
+
+        Logger.info(
+          "[ProgramRepository] Successfully retrieved paginated programs",
+          returned_count: length(domain_programs),
+          has_more: has_more,
+          category: category
         )
 
-        error
+        {:ok, page_result}
+      else
+        {:error, :invalid_limit} = error ->
+          Logger.warning(
+            "[ProgramRepository] Invalid pagination limit",
+            limit: inspect(limit)
+          )
 
-      {:error, :invalid_cursor} = error ->
-        Logger.warning(
-          "[ProgramRepository] Invalid pagination cursor",
-          error_id: ErrorIds.program_pagination_invalid_cursor(),
-          cursor: cursor
-        )
+          error
 
-        error
+        {:error, :invalid_cursor} = error ->
+          Logger.warning(
+            "[ProgramRepository] Invalid pagination cursor",
+            error_id: ErrorIds.program_pagination_invalid_cursor(),
+            cursor: cursor
+          )
+
+          error
+      end
     end
   end
 
@@ -250,23 +272,27 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   - `{:error, changeset}` - Validation failure
   """
   def update(%Program{} = program) do
-    Logger.info(
-      "[ProgramRepository] Starting update operation for program",
-      program_id: program.id,
-      title: program.title
-    )
+    span do
+      set_attributes("db", operation: "update", entity: "program")
 
-    case Repo.get(ProgramSchema, program.id) do
-      nil ->
-        Logger.info(
-          "[ProgramRepository] Program not found during update",
-          program_id: program.id
-        )
+      Logger.info(
+        "[ProgramRepository] Starting update operation for program",
+        program_id: program.id,
+        title: program.title
+      )
 
-        {:error, :not_found}
+      case Repo.get(ProgramSchema, program.id) do
+        nil ->
+          Logger.info(
+            "[ProgramRepository] Program not found during update",
+            program_id: program.id
+          )
 
-      current_schema ->
-        do_update(current_schema, program)
+          {:error, :not_found}
+
+        current_schema ->
+          do_update(current_schema, program)
+      end
     end
   end
 
@@ -391,21 +417,29 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
   @impl true
   def list_ended_program_ids(cutoff_date) do
-    ProgramSchema
-    |> where([p], not is_nil(p.end_date))
-    |> where([p], p.end_date < ^cutoff_date)
-    |> select([p], p.id)
-    |> Repo.all()
+    span do
+      set_attributes("db", operation: "select", entity: "program")
+
+      ProgramSchema
+      |> where([p], not is_nil(p.end_date))
+      |> where([p], p.end_date < ^cutoff_date)
+      |> select([p], p.id)
+      |> Repo.all()
+    end
   end
 
   @impl true
   def get_by_ids([]), do: []
 
   def get_by_ids(ids) when is_list(ids) do
-    ProgramSchema
-    |> where([p], p.id in ^ids)
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(ProgramMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "program")
+
+      ProgramSchema
+      |> where([p], p.id in ^ids)
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(ProgramMapper)
+    end
   end
 
   defp apply_cursor_filter(query, nil), do: query

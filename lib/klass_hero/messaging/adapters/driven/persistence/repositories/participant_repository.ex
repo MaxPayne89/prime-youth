@@ -7,6 +7,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Participa
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingParticipants
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.ParticipantMapper
@@ -17,142 +19,170 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Participa
 
   @impl true
   def add(attrs) do
-    schema_attrs = ParticipantMapper.to_create_attrs(attrs)
+    span do
+      set_attributes("db", operation: "insert", entity: "messaging_participant")
 
-    %ParticipantSchema{}
-    |> ParticipantSchema.create_changeset(schema_attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, schema} ->
-        participant = ParticipantMapper.to_domain(schema)
+      schema_attrs = ParticipantMapper.to_create_attrs(attrs)
 
-        Logger.debug("Added participant",
-          participant_id: participant.id,
-          conversation_id: participant.conversation_id,
-          user_id: participant.user_id
-        )
+      %ParticipantSchema{}
+      |> ParticipantSchema.create_changeset(schema_attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, schema} ->
+          participant = ParticipantMapper.to_domain(schema)
 
-        {:ok, participant}
+          Logger.debug("Added participant",
+            participant_id: participant.id,
+            conversation_id: participant.conversation_id,
+            user_id: participant.user_id
+          )
 
-      {:error, %Ecto.Changeset{} = changeset} = result ->
-        # Check specifically for unique constraint violation (already participant)
-        case changeset.errors[:conversation_id] do
-          {"has already been taken", _} -> {:error, :already_participant}
-          _ -> result
-        end
+          {:ok, participant}
+
+        {:error, %Ecto.Changeset{} = changeset} = result ->
+          # Check specifically for unique constraint violation (already participant)
+          case changeset.errors[:conversation_id] do
+            {"has already been taken", _} -> {:error, :already_participant}
+            _ -> result
+          end
+      end
     end
   end
 
   @impl true
   def get(conversation_id, user_id) do
-    from(p in ParticipantSchema,
-      where: p.conversation_id == ^conversation_id and p.user_id == ^user_id
-    )
-    |> Repo.one()
-    |> case do
-      nil -> {:error, :not_found}
-      schema -> {:ok, ParticipantMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "messaging_participant")
+
+      from(p in ParticipantSchema,
+        where: p.conversation_id == ^conversation_id and p.user_id == ^user_id
+      )
+      |> Repo.one()
+      |> case do
+        nil -> {:error, :not_found}
+        schema -> {:ok, ParticipantMapper.to_domain(schema)}
+      end
     end
   end
 
   @impl true
   def list_for_conversation(conversation_id) do
-    from(p in ParticipantSchema,
-      where: p.conversation_id == ^conversation_id and is_nil(p.left_at),
-      order_by: [asc: p.joined_at]
-    )
-    |> Repo.all()
-    |> Enum.map(&ParticipantMapper.to_domain/1)
+    span do
+      set_attributes("db", operation: "select", entity: "messaging_participant")
+
+      from(p in ParticipantSchema,
+        where: p.conversation_id == ^conversation_id and is_nil(p.left_at),
+        order_by: [asc: p.joined_at]
+      )
+      |> Repo.all()
+      |> Enum.map(&ParticipantMapper.to_domain/1)
+    end
   end
 
   @impl true
   def mark_as_read(conversation_id, user_id, read_at) do
-    from(p in ParticipantSchema,
-      where: p.conversation_id == ^conversation_id and p.user_id == ^user_id
-    )
-    |> Repo.one()
-    |> case do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "messaging_participant")
 
-      schema ->
-        schema
-        |> ParticipantSchema.mark_read_changeset(%{last_read_at: read_at})
-        |> Repo.update()
-        |> case do
-          {:ok, updated} ->
-            Logger.debug("Marked as read",
-              conversation_id: conversation_id,
-              user_id: user_id,
-              read_at: read_at
-            )
+      from(p in ParticipantSchema,
+        where: p.conversation_id == ^conversation_id and p.user_id == ^user_id
+      )
+      |> Repo.one()
+      |> case do
+        nil ->
+          {:error, :not_found}
 
-            {:ok, ParticipantMapper.to_domain(updated)}
+        schema ->
+          schema
+          |> ParticipantSchema.mark_read_changeset(%{last_read_at: read_at})
+          |> Repo.update()
+          |> case do
+            {:ok, updated} ->
+              Logger.debug("Marked as read",
+                conversation_id: conversation_id,
+                user_id: user_id,
+                read_at: read_at
+              )
 
-          error ->
-            error
-        end
+              {:ok, ParticipantMapper.to_domain(updated)}
+
+            error ->
+              error
+          end
+      end
     end
   end
 
   @impl true
   def leave(conversation_id, user_id) do
-    now = DateTime.utc_now()
+    span do
+      set_attributes("db", operation: "update", entity: "messaging_participant")
 
-    from(p in ParticipantSchema,
-      where: p.conversation_id == ^conversation_id and p.user_id == ^user_id
-    )
-    |> Repo.one()
-    |> case do
-      nil ->
-        {:error, :not_found}
+      now = DateTime.utc_now()
 
-      schema ->
-        schema
-        |> ParticipantSchema.leave_changeset(%{left_at: now})
-        |> Repo.update()
-        |> case do
-          {:ok, updated} ->
-            Logger.info("Participant left conversation",
-              conversation_id: conversation_id,
-              user_id: user_id
-            )
+      from(p in ParticipantSchema,
+        where: p.conversation_id == ^conversation_id and p.user_id == ^user_id
+      )
+      |> Repo.one()
+      |> case do
+        nil ->
+          {:error, :not_found}
 
-            {:ok, ParticipantMapper.to_domain(updated)}
+        schema ->
+          schema
+          |> ParticipantSchema.leave_changeset(%{left_at: now})
+          |> Repo.update()
+          |> case do
+            {:ok, updated} ->
+              Logger.info("Participant left conversation",
+                conversation_id: conversation_id,
+                user_id: user_id
+              )
 
-          error ->
-            error
-        end
+              {:ok, ParticipantMapper.to_domain(updated)}
+
+            error ->
+              error
+          end
+      end
     end
   end
 
   @impl true
   def is_participant?(conversation_id, user_id) do
-    from(p in ParticipantSchema,
-      where:
-        p.conversation_id == ^conversation_id and
-          p.user_id == ^user_id and
-          is_nil(p.left_at)
-    )
-    |> Repo.exists?()
+    span do
+      set_attributes("db", operation: "select", entity: "messaging_participant")
+
+      from(p in ParticipantSchema,
+        where:
+          p.conversation_id == ^conversation_id and
+            p.user_id == ^user_id and
+            is_nil(p.left_at)
+      )
+      |> Repo.exists?()
+    end
   end
 
   @impl true
   def mark_all_as_left(user_id) do
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    span do
+      set_attributes("db", operation: "update", entity: "messaging_participant")
 
-    {count, _} =
-      from(p in ParticipantSchema,
-        where: p.user_id == ^user_id and is_nil(p.left_at)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      {count, _} =
+        from(p in ParticipantSchema,
+          where: p.user_id == ^user_id and is_nil(p.left_at)
+        )
+        |> Repo.update_all(set: [left_at: now])
+
+      Logger.debug("Marked all participations as left for user",
+        user_id: user_id,
+        count: count
       )
-      |> Repo.update_all(set: [left_at: now])
 
-    Logger.debug("Marked all participations as left for user",
-      user_id: user_id,
-      count: count
-    )
-
-    {:ok, count}
+      {:ok, count}
+    end
   rescue
     e in DBConnection.ConnectionError ->
       Logger.error("Database connection error marking participations as left",
@@ -173,34 +203,38 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Participa
 
   @impl true
   def add_batch(conversation_id, user_ids) do
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    span do
+      set_attributes("db", operation: "insert", entity: "messaging_participant")
 
-    entries =
-      Enum.map(user_ids, fn user_id ->
-        %{
-          id: Ecto.UUID.generate(),
-          conversation_id: conversation_id,
-          user_id: user_id,
-          joined_at: now,
-          inserted_at: now,
-          updated_at: now
-        }
-      end)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-    {_count, schemas} =
-      Repo.insert_all(ParticipantSchema, entries,
-        returning: true,
-        on_conflict: :nothing,
-        conflict_target: [:conversation_id, :user_id]
+      entries =
+        Enum.map(user_ids, fn user_id ->
+          %{
+            id: Ecto.UUID.generate(),
+            conversation_id: conversation_id,
+            user_id: user_id,
+            joined_at: now,
+            inserted_at: now,
+            updated_at: now
+          }
+        end)
+
+      {_count, schemas} =
+        Repo.insert_all(ParticipantSchema, entries,
+          returning: true,
+          on_conflict: :nothing,
+          conflict_target: [:conversation_id, :user_id]
+        )
+
+      participants = Enum.map(schemas, &ParticipantMapper.to_domain/1)
+
+      Logger.debug("Added batch of participants",
+        conversation_id: conversation_id,
+        count: length(participants)
       )
 
-    participants = Enum.map(schemas, &ParticipantMapper.to_domain/1)
-
-    Logger.debug("Added batch of participants",
-      conversation_id: conversation_id,
-      count: length(participants)
-    )
-
-    {:ok, participants}
+      {:ok, participants}
+    end
   end
 end

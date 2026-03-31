@@ -8,14 +8,14 @@ defmodule KlassHero.Family.Adapters.Driving.Workers.ProcessInviteClaimWorker do
   to prevent duplicate child records from concurrent events.
   """
 
-  use Oban.Worker,
+  use KlassHero.Shared.Tracing.TracedWorker,
     queue: :family,
     max_attempts: 3
 
   alias KlassHero.Family.Application.UseCases.Invites.ProcessInviteClaim
 
-  @impl Oban.Worker
-  def perform(%Oban.Job{args: args}) do
+  @impl true
+  def execute(%Oban.Job{args: args}) do
     with {:ok, attrs} <- deserialize_args(args),
          {:ok, _result} <- ProcessInviteClaim.execute(attrs) do
       :ok

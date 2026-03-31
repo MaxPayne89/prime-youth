@@ -12,6 +12,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
 
   @behaviour KlassHero.Family.Domain.Ports.ForStoringConsents
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Family.Adapters.Driven.Persistence.Mappers.ConsentMapper
@@ -24,108 +26,136 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
 
   @impl true
   def grant(attrs) when is_map(attrs) do
-    changeset = ConsentSchema.changeset(%ConsentSchema{}, attrs)
+    span do
+      set_attributes("db", operation: "insert", entity: "consent")
 
-    case Repo.insert(changeset) do
-      {:ok, schema} ->
-        {:ok, ConsentMapper.to_domain(schema)}
+      changeset = ConsentSchema.changeset(%ConsentSchema{}, attrs)
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        # Trigger: unique partial index on (child_id, consent_type) WHERE withdrawn_at IS NULL
-        # Why: prevent duplicate active consents for the same child and type
-        # Outcome: return domain-specific :already_active error
-        if EctoErrorHelpers.any_unique_constraint_violation?(changeset.errors) do
-          {:error, :already_active}
-        else
-          Logger.warning(
-            "[Family.ConsentRepository] Changeset validation failed during grant",
-            errors: changeset.errors
-          )
+      case Repo.insert(changeset) do
+        {:ok, schema} ->
+          {:ok, ConsentMapper.to_domain(schema)}
 
-          {:error, changeset}
-        end
+        {:error, %Ecto.Changeset{} = changeset} ->
+          # Trigger: unique partial index on (child_id, consent_type) WHERE withdrawn_at IS NULL
+          # Why: prevent duplicate active consents for the same child and type
+          # Outcome: return domain-specific :already_active error
+          if EctoErrorHelpers.any_unique_constraint_violation?(changeset.errors) do
+            {:error, :already_active}
+          else
+            Logger.warning(
+              "[Family.ConsentRepository] Changeset validation failed during grant",
+              errors: changeset.errors
+            )
+
+            {:error, changeset}
+          end
+      end
     end
   end
 
   @impl true
   def withdraw(consent_id, %DateTime{} = withdrawn_at) when is_binary(consent_id) do
-    case get_schema(consent_id) do
-      {:ok, schema} ->
-        changeset = ConsentSchema.withdraw_changeset(schema, withdrawn_at)
+    span do
+      set_attributes("db", operation: "update", entity: "consent")
 
-        case Repo.update(changeset) do
-          {:ok, updated} ->
-            {:ok, ConsentMapper.to_domain(updated)}
+      case get_schema(consent_id) do
+        {:ok, schema} ->
+          changeset = ConsentSchema.withdraw_changeset(schema, withdrawn_at)
 
-          {:error, changeset} ->
-            Logger.warning(
-              "[Family.ConsentRepository] Consent withdrawal update failed",
-              consent_id: consent_id,
-              errors: changeset.errors
-            )
+          case Repo.update(changeset) do
+            {:ok, updated} ->
+              {:ok, ConsentMapper.to_domain(updated)}
 
-            {:error, changeset}
-        end
+            {:error, changeset} ->
+              Logger.warning(
+                "[Family.ConsentRepository] Consent withdrawal update failed",
+                consent_id: consent_id,
+                errors: changeset.errors
+              )
 
-      {:error, :not_found} ->
-        {:error, :not_found}
+              {:error, changeset}
+          end
+
+        {:error, :not_found} ->
+          {:error, :not_found}
+      end
     end
   end
 
   @impl true
   def get_active_for_child(child_id, consent_type)
       when is_binary(child_id) and is_binary(consent_type) do
-    query =
-      ConsentSchema
-      |> where([c], c.child_id == ^child_id)
-      |> where([c], c.consent_type == ^consent_type)
-      |> where([c], is_nil(c.withdrawn_at))
-      |> limit(1)
+    span do
+      set_attributes("db", operation: "select", entity: "consent")
 
-    case Repo.one(query) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, ConsentMapper.to_domain(schema)}
+      query =
+        ConsentSchema
+        |> where([c], c.child_id == ^child_id)
+        |> where([c], c.consent_type == ^consent_type)
+        |> where([c], is_nil(c.withdrawn_at))
+        |> limit(1)
+
+      case Repo.one(query) do
+        nil -> {:error, :not_found}
+        schema -> {:ok, ConsentMapper.to_domain(schema)}
+      end
     end
   end
 
   @impl true
   def list_active_by_child(child_id) when is_binary(child_id) do
-    ConsentSchema
-    |> where([c], c.child_id == ^child_id)
-    |> where([c], is_nil(c.withdrawn_at))
-    |> order_by([c], asc: c.consent_type)
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(ConsentMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "consent")
+
+      ConsentSchema
+      |> where([c], c.child_id == ^child_id)
+      |> where([c], is_nil(c.withdrawn_at))
+      |> order_by([c], asc: c.consent_type)
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(ConsentMapper)
+    end
   end
 
   @impl true
   def list_active_for_children(child_ids, consent_type)
       when is_list(child_ids) and is_binary(consent_type) do
-    ConsentSchema
-    |> where([c], c.child_id in ^child_ids)
-    |> where([c], c.consent_type == ^consent_type)
-    |> where([c], is_nil(c.withdrawn_at))
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(ConsentMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "consent")
+
+      ConsentSchema
+      |> where([c], c.child_id in ^child_ids)
+      |> where([c], c.consent_type == ^consent_type)
+      |> where([c], is_nil(c.withdrawn_at))
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(ConsentMapper)
+    end
   end
 
   @impl true
   def list_all_by_child(child_id) when is_binary(child_id) do
-    ConsentSchema
-    |> where([c], c.child_id == ^child_id)
-    |> order_by([c], asc: c.consent_type, desc: c.granted_at)
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(ConsentMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "consent")
+
+      ConsentSchema
+      |> where([c], c.child_id == ^child_id)
+      |> order_by([c], asc: c.consent_type, desc: c.granted_at)
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(ConsentMapper)
+    end
   end
 
   @impl true
   def delete_all_for_child(child_id) when is_binary(child_id) do
-    {count, _} =
-      ConsentSchema
-      |> where([c], c.child_id == ^child_id)
-      |> Repo.delete_all()
+    span do
+      set_attributes("db", operation: "delete", entity: "consent")
 
-    {:ok, count}
+      {count, _} =
+        ConsentSchema
+        |> where([c], c.child_id == ^child_id)
+        |> Repo.delete_all()
+
+      {:ok, count}
+    end
   end
 
   defp get_schema(consent_id) do

@@ -10,19 +10,29 @@ defmodule KlassHero.Enrollment.Adapters.Driven.ACL.ParentInfoACL do
 
   @behaviour KlassHero.Enrollment.Domain.Ports.ForResolvingParentInfo
 
+  use KlassHero.Shared.Tracing
+
   alias KlassHero.Family
 
   @impl true
   def get_parents_by_ids([]), do: []
 
   def get_parents_by_ids(parent_ids) when is_list(parent_ids) do
-    parent_ids
-    |> Family.get_parents_by_ids()
-    |> Enum.map(fn parent ->
-      %{
-        id: parent.id,
-        identity_id: parent.identity_id
-      }
-    end)
+    span do
+      set_attributes("acl",
+        source: "enrollment",
+        target: "family",
+        operation: "get_parents_by_ids"
+      )
+
+      parent_ids
+      |> Family.get_parents_by_ids()
+      |> Enum.map(fn parent ->
+        %{
+          id: parent.id,
+          identity_id: parent.identity_id
+        }
+      end)
+    end
   end
 end

@@ -7,6 +7,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingMessages
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.MessageMapper
@@ -23,134 +25,166 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
 
   @impl true
   def create(attrs) do
-    schema_attrs = MessageMapper.to_create_attrs(attrs)
+    span do
+      set_attributes("db", operation: "insert", entity: "message")
 
-    %MessageSchema{}
-    |> MessageSchema.create_changeset(schema_attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, schema} ->
-        message = MessageMapper.to_domain(schema)
+      schema_attrs = MessageMapper.to_create_attrs(attrs)
 
-        Logger.debug("Created message",
-          message_id: message.id,
-          conversation_id: message.conversation_id
-        )
+      %MessageSchema{}
+      |> MessageSchema.create_changeset(schema_attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, schema} ->
+          message = MessageMapper.to_domain(schema)
 
-        {:ok, message}
+          Logger.debug("Created message",
+            message_id: message.id,
+            conversation_id: message.conversation_id
+          )
 
-      error ->
-        error
+          {:ok, message}
+
+        error ->
+          error
+      end
     end
   end
 
   @impl true
   def get_by_id(id) do
-    MessageQueries.base()
-    |> MessageQueries.by_id(id)
-    |> Repo.one()
-    |> case do
-      nil -> {:error, :not_found}
-      schema -> {:ok, MessageMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "message")
+
+      MessageQueries.base()
+      |> MessageQueries.by_id(id)
+      |> Repo.one()
+      |> case do
+        nil -> {:error, :not_found}
+        schema -> {:ok, MessageMapper.to_domain(schema)}
+      end
     end
   end
 
   @impl true
   def list_for_conversation(conversation_id, opts \\ []) do
-    limit = Keyword.get(opts, :limit, 50)
+    span do
+      set_attributes("db", operation: "select", entity: "message")
 
-    results =
-      MessageQueries.base()
-      |> MessageQueries.by_conversation(conversation_id)
-      |> MessageQueries.not_deleted()
-      |> MessageQueries.order_by_newest()
-      |> MessageQueries.paginate(opts)
-      |> Repo.all()
+      limit = Keyword.get(opts, :limit, 50)
 
-    has_more = length(results) > limit
-    messages = results |> Enum.take(limit) |> Enum.map(&MessageMapper.to_domain/1)
+      results =
+        MessageQueries.base()
+        |> MessageQueries.by_conversation(conversation_id)
+        |> MessageQueries.not_deleted()
+        |> MessageQueries.order_by_newest()
+        |> MessageQueries.paginate(opts)
+        |> Repo.all()
 
-    {:ok, messages, has_more}
+      has_more = length(results) > limit
+      messages = results |> Enum.take(limit) |> Enum.map(&MessageMapper.to_domain/1)
+
+      {:ok, messages, has_more}
+    end
   end
 
   @impl true
   def list_with_senders(conversation_id, opts \\ []) do
-    limit = Keyword.get(opts, :limit, 50)
+    span do
+      set_attributes("db", operation: "select", entity: "message")
 
-    results =
-      MessageQueries.base()
-      |> MessageQueries.by_conversation(conversation_id)
-      |> MessageQueries.not_deleted()
-      |> MessageQueries.order_by_newest()
-      |> MessageQueries.paginate(opts)
-      |> MessageQueries.preload_assocs([:sender])
-      |> Repo.all()
+      limit = Keyword.get(opts, :limit, 50)
 
-    has_more = length(results) > limit
-    schemas = Enum.take(results, limit)
+      results =
+        MessageQueries.base()
+        |> MessageQueries.by_conversation(conversation_id)
+        |> MessageQueries.not_deleted()
+        |> MessageQueries.order_by_newest()
+        |> MessageQueries.paginate(opts)
+        |> MessageQueries.preload_assocs([:sender])
+        |> Repo.all()
 
-    sender_names = MessageMapper.build_sender_names_map(schemas)
-    messages = Enum.map(schemas, &MessageMapper.to_domain/1)
+      has_more = length(results) > limit
+      schemas = Enum.take(results, limit)
 
-    {:ok, messages, sender_names, has_more}
+      sender_names = MessageMapper.build_sender_names_map(schemas)
+      messages = Enum.map(schemas, &MessageMapper.to_domain/1)
+
+      {:ok, messages, sender_names, has_more}
+    end
   end
 
   @impl true
   def get_latest(conversation_id) do
-    MessageQueries.latest_for_conversation(conversation_id)
-    |> Repo.one()
-    |> case do
-      nil -> {:error, :not_found}
-      schema -> {:ok, MessageMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "message")
+
+      MessageQueries.latest_for_conversation(conversation_id)
+      |> Repo.one()
+      |> case do
+        nil -> {:error, :not_found}
+        schema -> {:ok, MessageMapper.to_domain(schema)}
+      end
     end
   end
 
   @impl true
   def soft_delete(message) do
-    now = DateTime.utc_now()
+    span do
+      set_attributes("db", operation: "update", entity: "message")
 
-    MessageSchema
-    |> Repo.get(message.id)
-    |> case do
-      nil ->
-        {:error, :not_found}
+      now = DateTime.utc_now()
 
-      schema ->
-        schema
-        |> MessageSchema.delete_changeset(%{deleted_at: now})
-        |> Repo.update()
-        |> case do
-          {:ok, updated} ->
-            Logger.info("Soft deleted message", message_id: message.id)
-            {:ok, MessageMapper.to_domain(updated)}
+      MessageSchema
+      |> Repo.get(message.id)
+      |> case do
+        nil ->
+          {:error, :not_found}
 
-          error ->
-            error
-        end
+        schema ->
+          schema
+          |> MessageSchema.delete_changeset(%{deleted_at: now})
+          |> Repo.update()
+          |> case do
+            {:ok, updated} ->
+              Logger.info("Soft deleted message", message_id: message.id)
+              {:ok, MessageMapper.to_domain(updated)}
+
+            error ->
+              error
+          end
+      end
     end
   end
 
   @impl true
   def count_unread(conversation_id, last_read_at) do
-    MessageQueries.count_unread(conversation_id, last_read_at)
-    |> Repo.one()
-    |> Kernel.||(0)
+    span do
+      set_attributes("db", operation: "select", entity: "message")
+
+      MessageQueries.count_unread(conversation_id, last_read_at)
+      |> Repo.one()
+      |> Kernel.||(0)
+    end
   end
 
   @impl true
   def anonymize_for_sender(sender_id) do
-    {count, _} =
-      from(m in MessageSchema,
-        where: m.sender_id == ^sender_id
+    span do
+      set_attributes("db", operation: "update", entity: "message")
+
+      {count, _} =
+        from(m in MessageSchema,
+          where: m.sender_id == ^sender_id
+        )
+        |> Repo.update_all(set: [content: "[deleted]"])
+
+      Logger.debug("Anonymized messages for sender",
+        sender_id: sender_id,
+        count: count
       )
-      |> Repo.update_all(set: [content: "[deleted]"])
 
-    Logger.debug("Anonymized messages for sender",
-      sender_id: sender_id,
-      count: count
-    )
-
-    {:ok, count}
+      {:ok, count}
+    end
   rescue
     e in DBConnection.ConnectionError ->
       Logger.error("Database connection error anonymizing messages for sender",
@@ -171,29 +205,33 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
 
   @impl true
   def delete_for_expired_conversations(before) do
-    expired_conversation_ids =
-      from(c in ConversationSchema,
-        where: not is_nil(c.retention_until),
-        where: c.retention_until < ^before,
-        select: c.id
-      )
-      |> Repo.all()
+    span do
+      set_attributes("db", operation: "delete", entity: "message")
 
-    if expired_conversation_ids == [] do
-      {:ok, 0, []}
-    else
-      {count, _} =
-        from(m in MessageSchema,
-          where: m.conversation_id in ^expired_conversation_ids
+      expired_conversation_ids =
+        from(c in ConversationSchema,
+          where: not is_nil(c.retention_until),
+          where: c.retention_until < ^before,
+          select: c.id
         )
-        |> Repo.delete_all()
+        |> Repo.all()
 
-      Logger.info("Deleted messages for expired conversations",
-        count: count,
-        conversation_count: length(expired_conversation_ids)
-      )
+      if expired_conversation_ids == [] do
+        {:ok, 0, []}
+      else
+        {count, _} =
+          from(m in MessageSchema,
+            where: m.conversation_id in ^expired_conversation_ids
+          )
+          |> Repo.delete_all()
 
-      {:ok, count, expired_conversation_ids}
+        Logger.info("Deleted messages for expired conversations",
+          count: count,
+          conversation_count: length(expired_conversation_ids)
+        )
+
+        {:ok, count, expired_conversation_ids}
+      end
     end
   end
 end

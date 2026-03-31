@@ -8,6 +8,8 @@ defmodule KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACL do
 
   @behaviour KlassHero.Family.Domain.Ports.ForManagingChildEnrollments
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query, only: [from: 2]
 
   alias KlassHero.Repo
@@ -16,39 +18,55 @@ defmodule KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACL do
 
   @impl true
   def list_active_with_program_titles(child_id) when is_binary(child_id) do
-    from(e in "enrollments",
-      join: p in "programs",
-      on: e.program_id == p.id,
-      where: e.child_id == type(^child_id, :binary_id),
-      where: e.status in ^@active_statuses,
-      select: %{
-        enrollment_id: type(e.id, :binary_id),
-        program_id: type(e.program_id, :binary_id),
-        program_title: p.title,
-        status: e.status
-      }
-    )
-    |> Repo.all()
+    span do
+      set_attributes("acl",
+        source: "family",
+        target: "enrollment",
+        operation: "list_active_with_program_titles"
+      )
+
+      from(e in "enrollments",
+        join: p in "programs",
+        on: e.program_id == p.id,
+        where: e.child_id == type(^child_id, :binary_id),
+        where: e.status in ^@active_statuses,
+        select: %{
+          enrollment_id: type(e.id, :binary_id),
+          program_id: type(e.program_id, :binary_id),
+          program_title: p.title,
+          status: e.status
+        }
+      )
+      |> Repo.all()
+    end
   end
 
   @impl true
   def cancel_active_for_child(child_id) when is_binary(child_id) do
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
-
-    {count, _} =
-      from(e in "enrollments",
-        where: e.child_id == type(^child_id, :binary_id),
-        where: e.status in ^@active_statuses
-      )
-      |> Repo.update_all(
-        set: [
-          status: "cancelled",
-          cancellation_reason: "child_deleted",
-          cancelled_at: now,
-          updated_at: now
-        ]
+    span do
+      set_attributes("acl",
+        source: "family",
+        target: "enrollment",
+        operation: "cancel_active_for_child"
       )
 
-    {:ok, count}
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      {count, _} =
+        from(e in "enrollments",
+          where: e.child_id == type(^child_id, :binary_id),
+          where: e.status in ^@active_statuses
+        )
+        |> Repo.update_all(
+          set: [
+            status: "cancelled",
+            cancellation_reason: "child_deleted",
+            cancelled_at: now,
+            updated_at: now
+          ]
+        )
+
+      {:ok, count}
+    end
   end
 end

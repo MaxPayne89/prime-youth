@@ -9,6 +9,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingConversationSummaries
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationSummaryQueries
@@ -22,104 +24,120 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
 
   @impl true
   def list_for_user(user_id, opts) do
-    limit = Keyword.get(opts, :limit, @default_limit)
+    span do
+      set_attributes("db", operation: "select", entity: "conversation_summary")
 
-    Logger.debug("[ConversationSummariesRepository] Listing summaries for user",
-      user_id: user_id,
-      limit: limit
-    )
+      limit = Keyword.get(opts, :limit, @default_limit)
 
-    # Trigger: fetch limit + 1 rows
-    # Why: determines if more pages exist without a separate COUNT query
-    # Outcome: sets has_more flag and trims result to requested limit
-    schemas =
-      from(s in ConversationSummarySchema,
-        where: s.user_id == ^user_id and is_nil(s.archived_at),
-        order_by: [desc: s.latest_message_at, desc: s.id],
-        limit: ^(limit + 1)
+      Logger.debug("[ConversationSummariesRepository] Listing summaries for user",
+        user_id: user_id,
+        limit: limit
       )
-      |> Repo.all()
 
-    {items, has_more} =
-      if length(schemas) > limit do
-        {Enum.take(schemas, limit), true}
-      else
-        {schemas, false}
-      end
+      # Trigger: fetch limit + 1 rows
+      # Why: determines if more pages exist without a separate COUNT query
+      # Outcome: sets has_more flag and trims result to requested limit
+      schemas =
+        from(s in ConversationSummarySchema,
+          where: s.user_id == ^user_id and is_nil(s.archived_at),
+          order_by: [desc: s.latest_message_at, desc: s.id],
+          limit: ^(limit + 1)
+        )
+        |> Repo.all()
 
-    summaries = Enum.map(items, &to_dto/1)
+      {items, has_more} =
+        if length(schemas) > limit do
+          {Enum.take(schemas, limit), true}
+        else
+          {schemas, false}
+        end
 
-    Logger.debug("[ConversationSummariesRepository] Retrieved summaries",
-      user_id: user_id,
-      returned_count: length(summaries),
-      has_more: has_more
-    )
+      summaries = Enum.map(items, &to_dto/1)
 
-    {:ok, summaries, has_more}
+      Logger.debug("[ConversationSummariesRepository] Retrieved summaries",
+        user_id: user_id,
+        returned_count: length(summaries),
+        has_more: has_more
+      )
+
+      {:ok, summaries, has_more}
+    end
   end
 
   @impl true
   def get_total_unread_count(user_id) do
-    Logger.debug("[ConversationSummariesRepository] Getting total unread count",
-      user_id: user_id
-    )
+    span do
+      set_attributes("db", operation: "select", entity: "conversation_summary")
 
-    count =
-      from(s in ConversationSummarySchema,
-        where: s.user_id == ^user_id and is_nil(s.archived_at),
-        select: coalesce(sum(s.unread_count), 0)
+      Logger.debug("[ConversationSummariesRepository] Getting total unread count",
+        user_id: user_id
       )
-      |> Repo.one()
 
-    Logger.debug("[ConversationSummariesRepository] Total unread count",
-      user_id: user_id,
-      count: count
-    )
+      count =
+        from(s in ConversationSummarySchema,
+          where: s.user_id == ^user_id and is_nil(s.archived_at),
+          select: coalesce(sum(s.unread_count), 0)
+        )
+        |> Repo.one()
 
-    count
+      Logger.debug("[ConversationSummariesRepository] Total unread count",
+        user_id: user_id,
+        count: count
+      )
+
+      count
+    end
   end
 
   @impl true
   def has_system_note?(conversation_id, token) do
-    ConversationSummaryQueries.base()
-    |> ConversationSummaryQueries.by_conversation(conversation_id)
-    |> ConversationSummaryQueries.has_system_note_key(token)
-    |> Repo.exists?()
+    span do
+      set_attributes("db", operation: "select", entity: "conversation_summary")
+
+      ConversationSummaryQueries.base()
+      |> ConversationSummaryQueries.by_conversation(conversation_id)
+      |> ConversationSummaryQueries.has_system_note_key(token)
+      |> Repo.exists?()
+    end
   end
 
   @impl true
   def write_system_note_token(conversation_id, token) do
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
-    token_json = %{token => DateTime.to_iso8601(now)}
+    span do
+      set_attributes("db", operation: "update", entity: "conversation_summary")
 
-    {updated, _} =
-      from(s in ConversationSummarySchema,
-        where: s.conversation_id == ^conversation_id,
-        update: [
-          set: [
-            system_notes:
-              fragment(
-                "coalesce(system_notes, '{}')::jsonb || ?::jsonb",
-                ^token_json
-              ),
-            updated_at: ^now
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+      token_json = %{token => DateTime.to_iso8601(now)}
+
+      {updated, _} =
+        from(s in ConversationSummarySchema,
+          where: s.conversation_id == ^conversation_id,
+          update: [
+            set: [
+              system_notes:
+                fragment(
+                  "coalesce(system_notes, '{}')::jsonb || ?::jsonb",
+                  ^token_json
+                ),
+              updated_at: ^now
+            ]
           ]
-        ]
-      )
-      |> Repo.update_all([])
+        )
+        |> Repo.update_all([])
 
-    # Trigger: update_all affected 0 rows — summary rows don't exist yet
-    # Why: the projection creates summary rows asynchronously via the
-    #      conversation_created event. If the use case calls write-through
-    #      before the projection processes that event, there are no rows to
-    #      update and the token is silently lost.
-    # Outcome: seed minimal summary rows carrying the token; the projection's
-    #          upsert will merge the remaining fields when it catches up
-    if updated == 0 do
-      seed_summary_rows_with_token(conversation_id, token_json, now)
+      # Trigger: update_all affected 0 rows — summary rows don't exist yet
+      # Why: the projection creates summary rows asynchronously via the
+      #      conversation_created event. If the use case calls write-through
+      #      before the projection processes that event, there are no rows to
+      #      update and the token is silently lost.
+      # Outcome: seed minimal summary rows carrying the token; the projection's
+      #          upsert will merge the remaining fields when it catches up
+      if updated == 0 do
+        seed_summary_rows_with_token(conversation_id, token_json, now)
+      end
+
+      :ok
     end
-
-    :ok
   end
 
   defp seed_summary_rows_with_token(conversation_id, token_json, now) do

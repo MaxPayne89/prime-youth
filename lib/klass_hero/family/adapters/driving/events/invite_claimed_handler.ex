@@ -13,6 +13,7 @@ defmodule KlassHero.Family.Adapters.Driving.Events.InviteClaimedHandler do
 
   alias KlassHero.Family.Adapters.Driving.Workers.ProcessInviteClaimWorker
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
+  alias KlassHero.Shared.Tracing.Context
 
   require Logger
 
@@ -25,7 +26,10 @@ defmodule KlassHero.Family.Adapters.Driving.Events.InviteClaimedHandler do
         entity_id: invite_id,
         payload: payload
       }) do
-    args = build_worker_args(invite_id, payload)
+    args =
+      invite_id
+      |> build_worker_args(payload)
+      |> Context.inject_into_args()
 
     ProcessInviteClaimWorker.new(args)
     |> Oban.insert()

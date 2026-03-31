@@ -12,6 +12,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
 
   @behaviour KlassHero.Provider.Domain.Ports.ForStoringVerificationDocuments
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.VerificationDocumentMapper
@@ -30,13 +32,17 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   - `{:error, changeset}` on validation failure
   """
   def create(document) do
-    attrs = VerificationDocumentMapper.to_schema(document)
+    span do
+      set_attributes("db", operation: "insert", entity: "verification_document")
 
-    with {:ok, schema} <-
-           %VerificationDocumentSchema{}
-           |> VerificationDocumentSchema.changeset(attrs)
-           |> Repo.insert() do
-      {:ok, VerificationDocumentMapper.to_domain(schema)}
+      attrs = VerificationDocumentMapper.to_schema(document)
+
+      with {:ok, schema} <-
+             %VerificationDocumentSchema{}
+             |> VerificationDocumentSchema.changeset(attrs)
+             |> Repo.insert() do
+        {:ok, VerificationDocumentMapper.to_domain(schema)}
+      end
     end
   end
 
@@ -49,7 +55,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   - `{:error, :not_found}` when no document exists with the given ID
   """
   def get(id) do
-    RepositoryHelpers.get_by_id(VerificationDocumentSchema, id, VerificationDocumentMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "verification_document")
+
+      RepositoryHelpers.get_by_id(VerificationDocumentSchema, id, VerificationDocumentMapper)
+    end
   end
 
   @impl true
@@ -62,14 +72,18 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   - `{:ok, [VerificationDocument.t()]}` - List of documents (may be empty)
   """
   def get_by_provider(provider_id) do
-    docs =
-      VerificationDocumentSchema
-      |> where([d], d.provider_id == ^provider_id)
-      |> order_by([d], desc: d.inserted_at)
-      |> Repo.all()
-      |> MapperHelpers.to_domain_list(VerificationDocumentMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "verification_document")
 
-    {:ok, docs}
+      docs =
+        VerificationDocumentSchema
+        |> where([d], d.provider_id == ^provider_id)
+        |> order_by([d], desc: d.inserted_at)
+        |> Repo.all()
+        |> MapperHelpers.to_domain_list(VerificationDocumentMapper)
+
+      {:ok, docs}
+    end
   end
 
   @impl true
@@ -82,19 +96,23 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   - `{:error, changeset}` on validation failure
   """
   def update(document) do
-    case Repo.get(VerificationDocumentSchema, document.id) do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "verification_document")
 
-      schema ->
-        attrs = VerificationDocumentMapper.to_schema(document)
+      case Repo.get(VerificationDocumentSchema, document.id) do
+        nil ->
+          {:error, :not_found}
 
-        with {:ok, updated} <-
-               schema
-               |> VerificationDocumentSchema.changeset(attrs)
-               |> Repo.update() do
-          {:ok, VerificationDocumentMapper.to_domain(updated)}
-        end
+        schema ->
+          attrs = VerificationDocumentMapper.to_schema(document)
+
+          with {:ok, updated} <-
+                 schema
+                 |> VerificationDocumentSchema.changeset(attrs)
+                 |> Repo.update() do
+            {:ok, VerificationDocumentMapper.to_domain(updated)}
+          end
+      end
     end
   end
 
@@ -109,14 +127,18 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   - `{:ok, [VerificationDocument.t()]}` - List of pending documents (may be empty)
   """
   def list_pending do
-    docs =
-      VerificationDocumentSchema
-      |> where([d], d.status == "pending")
-      |> order_by([d], asc: d.inserted_at)
-      |> Repo.all()
-      |> MapperHelpers.to_domain_list(VerificationDocumentMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "verification_document")
 
-    {:ok, docs}
+      docs =
+        VerificationDocumentSchema
+        |> where([d], d.status == "pending")
+        |> order_by([d], asc: d.inserted_at)
+        |> Repo.all()
+        |> MapperHelpers.to_domain_list(VerificationDocumentMapper)
+
+      {:ok, docs}
+    end
   end
 
   @impl true
@@ -129,16 +151,20 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   - `{:ok, [VerificationDocument.t()]}` - List of documents with matching status (may be empty)
   """
   def list_by_status(status) when is_atom(status) do
-    status_string = Atom.to_string(status)
+    span do
+      set_attributes("db", operation: "select", entity: "verification_document")
 
-    docs =
-      VerificationDocumentSchema
-      |> where([d], d.status == ^status_string)
-      |> order_by([d], desc: d.inserted_at)
-      |> Repo.all()
-      |> MapperHelpers.to_domain_list(VerificationDocumentMapper)
+      status_string = Atom.to_string(status)
 
-    {:ok, docs}
+      docs =
+        VerificationDocumentSchema
+        |> where([d], d.status == ^status_string)
+        |> order_by([d], desc: d.inserted_at)
+        |> Repo.all()
+        |> MapperHelpers.to_domain_list(VerificationDocumentMapper)
+
+      {:ok, docs}
+    end
   end
 
   @impl true
@@ -150,25 +176,29 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   Other statuses order newest-first.
   """
   def list_for_admin_review(status) when is_atom(status) or is_nil(status) do
-    query =
-      case status do
-        nil ->
-          order_by(admin_review_base_query(), [d], desc: d.inserted_at)
+    span do
+      set_attributes("db", operation: "select", entity: "verification_document")
 
-        :pending ->
-          admin_review_base_query()
-          |> where([d], d.status == ^Atom.to_string(:pending))
-          |> order_by([d], asc: d.inserted_at)
+      query =
+        case status do
+          nil ->
+            order_by(admin_review_base_query(), [d], desc: d.inserted_at)
 
-        status when is_atom(status) ->
-          admin_review_base_query()
-          |> where([d], d.status == ^Atom.to_string(status))
-          |> order_by([d], desc: d.inserted_at)
-      end
+          :pending ->
+            admin_review_base_query()
+            |> where([d], d.status == ^Atom.to_string(:pending))
+            |> order_by([d], asc: d.inserted_at)
 
-    results = query |> Repo.all() |> Enum.map(&to_admin_review_result/1)
+          status when is_atom(status) ->
+            admin_review_base_query()
+            |> where([d], d.status == ^Atom.to_string(status))
+            |> order_by([d], desc: d.inserted_at)
+        end
 
-    {:ok, results}
+      results = query |> Repo.all() |> Enum.map(&to_admin_review_result/1)
+
+      {:ok, results}
+    end
   end
 
   @impl true
@@ -180,11 +210,15 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   - `{:error, :not_found}` when no document exists with the given ID
   """
   def get_for_admin_review(id) do
-    query = where(admin_review_base_query(), [d], d.id == ^id)
+    span do
+      set_attributes("db", operation: "select", entity: "verification_document")
 
-    case Repo.one(query) do
-      nil -> {:error, :not_found}
-      result -> {:ok, to_admin_review_result(result)}
+      query = where(admin_review_base_query(), [d], d.id == ^id)
+
+      case Repo.one(query) do
+        nil -> {:error, :not_found}
+        result -> {:ok, to_admin_review_result(result)}
+      end
     end
   end
 

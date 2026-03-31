@@ -12,7 +12,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker do
     delivery (belt-and-suspenders, idempotency gate prevents double execution)
   """
 
-  use Oban.Worker,
+  use KlassHero.Shared.Tracing.TracedWorker,
     queue: :critical_events,
     max_attempts: 3
 
@@ -51,8 +51,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker do
     end
   end
 
-  @impl Oban.Worker
-  def perform(%Oban.Job{args: args, attempt: attempt, max_attempts: max_attempts}) do
+  @impl true
+  def execute(%Oban.Job{args: args, attempt: attempt, max_attempts: max_attempts}) do
     handler_ref_str = Map.fetch!(args, "handler")
     {module, function} = CriticalEventDispatcher.parse_handler_ref(handler_ref_str)
     event = CriticalEventSerializer.deserialize(args)

@@ -117,5 +117,29 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializerTest do
       assert deserialized.metadata.causation_id == "cause-1"
       assert deserialized.metadata.user_id == 42
     end
+
+    test "preserves string keys for trace context fields after round-trip" do
+      event =
+        IntegrationEvent.new(:test_event, :enrollment, :invite, "id-1", %{}, criticality: :normal)
+
+      event_with_trace =
+        %{
+          event
+          | metadata:
+              Map.merge(event.metadata, %{
+                "traceparent" => "00-abc123-def456-01",
+                "tracestate" => ""
+              })
+        }
+
+      serialized = CriticalEventSerializer.serialize(event_with_trace)
+      json_cycled = Jason.decode!(Jason.encode!(serialized))
+      deserialized = CriticalEventSerializer.deserialize(json_cycled)
+
+      assert Map.fetch(deserialized.metadata, "traceparent") == {:ok, "00-abc123-def456-01"}
+      assert Map.fetch(deserialized.metadata, "tracestate") == {:ok, ""}
+      refute Map.has_key?(deserialized.metadata, :traceparent)
+      refute Map.has_key?(deserialized.metadata, :tracestate)
+    end
   end
 end

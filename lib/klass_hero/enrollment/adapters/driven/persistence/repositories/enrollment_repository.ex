@@ -18,6 +18,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
   @behaviour KlassHero.Enrollment.Domain.Ports.ForManagingEnrollments
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMapper
@@ -46,37 +48,41 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   - `{:error, changeset}` - Validation failure
   """
   def create(attrs) when is_map(attrs) do
-    %EnrollmentSchema{}
-    |> EnrollmentSchema.create_changeset(attrs)
-    |> Repo.insert()
-    |> case do
-      {:ok, schema} ->
-        Logger.info("[Enrollment.Repository] Created enrollment",
-          enrollment_id: schema.id,
-          program_id: attrs[:program_id],
-          child_id: attrs[:child_id],
-          parent_id: attrs[:parent_id]
-        )
+    span do
+      set_attributes("db", operation: "insert", entity: "enrollment")
 
-        {:ok, EnrollmentMapper.to_domain(schema)}
-
-      {:error, %Ecto.Changeset{errors: errors} = changeset} ->
-        if EctoErrorHelpers.unique_constraint_violation?(errors, :program_id) do
-          Logger.warning("[Enrollment.Repository] Duplicate active enrollment",
-            program_id: attrs[:program_id],
-            child_id: attrs[:child_id]
-          )
-
-          {:error, :duplicate_resource}
-        else
-          Logger.warning("[Enrollment.Repository] Validation error creating enrollment",
+      %EnrollmentSchema{}
+      |> EnrollmentSchema.create_changeset(attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, schema} ->
+          Logger.info("[Enrollment.Repository] Created enrollment",
+            enrollment_id: schema.id,
             program_id: attrs[:program_id],
             child_id: attrs[:child_id],
-            errors: inspect(changeset.errors)
+            parent_id: attrs[:parent_id]
           )
 
-          {:error, changeset}
-        end
+          {:ok, EnrollmentMapper.to_domain(schema)}
+
+        {:error, %Ecto.Changeset{errors: errors} = changeset} ->
+          if EctoErrorHelpers.unique_constraint_violation?(errors, :program_id) do
+            Logger.warning("[Enrollment.Repository] Duplicate active enrollment",
+              program_id: attrs[:program_id],
+              child_id: attrs[:child_id]
+            )
+
+            {:error, :duplicate_resource}
+          else
+            Logger.warning("[Enrollment.Repository] Validation error creating enrollment",
+              program_id: attrs[:program_id],
+              child_id: attrs[:child_id],
+              errors: inspect(changeset.errors)
+            )
+
+            {:error, changeset}
+          end
+      end
     end
   end
 
@@ -96,38 +102,42 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
   def create_with_capacity_check(attrs, program_id)
       when is_map(attrs) and is_binary(program_id) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.run(:lock_and_check, fn repo, _changes ->
-      # Trigger: lock the policy row to prevent concurrent capacity checks
-      # Why: SELECT FOR UPDATE serializes concurrent enrollment attempts
-      # Outcome: only one request proceeds at a time per program
-      query =
-        from(p in EnrollmentPolicySchema,
-          where: p.program_id == ^program_id,
-          lock: "FOR UPDATE"
-        )
+    span do
+      set_attributes("db", operation: "insert", entity: "enrollment")
 
-      case repo.one(query) do
-        nil ->
-          {:ok, :unlimited}
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:lock_and_check, fn repo, _changes ->
+        # Trigger: lock the policy row to prevent concurrent capacity checks
+        # Why: SELECT FOR UPDATE serializes concurrent enrollment attempts
+        # Outcome: only one request proceeds at a time per program
+        query =
+          from(p in EnrollmentPolicySchema,
+            where: p.program_id == ^program_id,
+            lock: "FOR UPDATE"
+          )
 
-        # Trigger: policy row exists — use domain model to check capacity
-        # Why: avoids duplicating EnrollmentPolicy.has_capacity?/2 logic inline
-        # Outcome: single source of truth for capacity rules
-        %EnrollmentPolicySchema{} = schema ->
-          policy = EnrollmentPolicyMapper.to_domain(schema)
-          active = count_active_enrollments_in_tx(repo, program_id)
-          check_capacity(policy, active)
+        case repo.one(query) do
+          nil ->
+            {:ok, :unlimited}
+
+          # Trigger: policy row exists — use domain model to check capacity
+          # Why: avoids duplicating EnrollmentPolicy.has_capacity?/2 logic inline
+          # Outcome: single source of truth for capacity rules
+          %EnrollmentPolicySchema{} = schema ->
+            policy = EnrollmentPolicyMapper.to_domain(schema)
+            active = count_active_enrollments_in_tx(repo, program_id)
+            check_capacity(policy, active)
+        end
+      end)
+      |> Ecto.Multi.run(:create, fn _repo, _changes ->
+        create(attrs)
+      end)
+      |> Repo.transaction()
+      |> case do
+        {:ok, %{create: enrollment}} -> {:ok, enrollment}
+        {:error, :lock_and_check, :program_full, _} -> {:error, :program_full}
+        {:error, :create, reason, _} -> {:error, reason}
       end
-    end)
-    |> Ecto.Multi.run(:create, fn _repo, _changes ->
-      create(attrs)
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{create: enrollment}} -> {:ok, enrollment}
-      {:error, :lock_and_check, :program_full, _} -> {:error, :program_full}
-      {:error, :create, reason, _} -> {:error, reason}
     end
   end
 
@@ -161,7 +171,10 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   - `{:error, :not_found}` when no enrollment exists with the given ID
   """
   def get_by_id(id) when is_binary(id) do
-    RepositoryHelpers.get_by_id(EnrollmentSchema, id, EnrollmentMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "enrollment")
+      RepositoryHelpers.get_by_id(EnrollmentSchema, id, EnrollmentMapper)
+    end
   end
 
   @impl true
@@ -172,11 +185,15 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   Returns empty list if no enrollments found.
   """
   def list_by_parent(parent_id) when is_binary(parent_id) do
-    EnrollmentQueries.base()
-    |> EnrollmentQueries.by_parent(parent_id)
-    |> EnrollmentQueries.order_by_enrolled_at_desc()
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(EnrollmentMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "enrollment")
+
+      EnrollmentQueries.base()
+      |> EnrollmentQueries.by_parent(parent_id)
+      |> EnrollmentQueries.order_by_enrolled_at_desc()
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(EnrollmentMapper)
+    end
   end
 
   @impl true
@@ -188,33 +205,45 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   Returns non-negative integer count.
   """
   def count_monthly_bookings(parent_id, start_date, end_date) when is_binary(parent_id) do
-    EnrollmentQueries.base()
-    |> EnrollmentQueries.by_parent(parent_id)
-    |> EnrollmentQueries.active_only()
-    |> EnrollmentQueries.by_date_range(start_date, end_date)
-    |> EnrollmentQueries.count()
-    |> Repo.one()
+    span do
+      set_attributes("db", operation: "select", entity: "enrollment")
+
+      EnrollmentQueries.base()
+      |> EnrollmentQueries.by_parent(parent_id)
+      |> EnrollmentQueries.active_only()
+      |> EnrollmentQueries.by_date_range(start_date, end_date)
+      |> EnrollmentQueries.count()
+      |> Repo.one()
+    end
   end
 
   @impl true
   def list_enrolled_identity_ids(program_id) when is_binary(program_id) do
-    EnrollmentQueries.base()
-    |> EnrollmentQueries.by_program(program_id)
-    |> EnrollmentQueries.active_only()
-    |> join(:inner, [e], p in ParentProfileSchema, on: e.parent_id == p.id)
-    |> select([e, p], p.identity_id)
-    |> distinct(true)
-    |> Repo.all()
+    span do
+      set_attributes("db", operation: "select", entity: "enrollment")
+
+      EnrollmentQueries.base()
+      |> EnrollmentQueries.by_program(program_id)
+      |> EnrollmentQueries.active_only()
+      |> join(:inner, [e], p in ParentProfileSchema, on: e.parent_id == p.id)
+      |> select([e, p], p.identity_id)
+      |> distinct(true)
+      |> Repo.all()
+    end
   end
 
   @impl true
   def enrolled?(program_id, identity_id) when is_binary(program_id) and is_binary(identity_id) do
-    EnrollmentQueries.base()
-    |> EnrollmentQueries.by_program(program_id)
-    |> EnrollmentQueries.active_only()
-    |> join(:inner, [e], p in ParentProfileSchema, on: e.parent_id == p.id)
-    |> where([e, p], p.identity_id == ^identity_id)
-    |> Repo.exists?()
+    span do
+      set_attributes("db", operation: "select", entity: "enrollment")
+
+      EnrollmentQueries.base()
+      |> EnrollmentQueries.by_program(program_id)
+      |> EnrollmentQueries.active_only()
+      |> join(:inner, [e], p in ParentProfileSchema, on: e.parent_id == p.id)
+      |> where([e, p], p.identity_id == ^identity_id)
+      |> Repo.exists?()
+    end
   end
 
   @impl true
@@ -225,12 +254,16 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   Returns empty list if no active enrollments found.
   """
   def list_by_program(program_id) when is_binary(program_id) do
-    EnrollmentQueries.base()
-    |> EnrollmentQueries.by_program(program_id)
-    |> EnrollmentQueries.active_only()
-    |> EnrollmentQueries.order_by_enrolled_at_desc()
-    |> Repo.all()
-    |> MapperHelpers.to_domain_list(EnrollmentMapper)
+    span do
+      set_attributes("db", operation: "select", entity: "enrollment")
+
+      EnrollmentQueries.base()
+      |> EnrollmentQueries.by_program(program_id)
+      |> EnrollmentQueries.active_only()
+      |> EnrollmentQueries.order_by_enrolled_at_desc()
+      |> Repo.all()
+      |> MapperHelpers.to_domain_list(EnrollmentMapper)
+    end
   end
 
   @impl true
@@ -243,31 +276,35 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   - `{:error, changeset}` on validation failure
   """
   def update(id, attrs) when is_binary(id) and is_map(attrs) do
-    case Repo.get(EnrollmentSchema, id) do
-      nil ->
-        {:error, :not_found}
+    span do
+      set_attributes("db", operation: "update", entity: "enrollment")
 
-      schema ->
-        schema
-        |> EnrollmentSchema.update_changeset(attrs)
-        |> Repo.update()
-        |> case do
-          {:ok, updated} ->
-            Logger.info("[Enrollment.Repository] Updated enrollment",
-              enrollment_id: id,
-              status: updated.status
-            )
+      case Repo.get(EnrollmentSchema, id) do
+        nil ->
+          {:error, :not_found}
 
-            {:ok, EnrollmentMapper.to_domain(updated)}
+        schema ->
+          schema
+          |> EnrollmentSchema.update_changeset(attrs)
+          |> Repo.update()
+          |> case do
+            {:ok, updated} ->
+              Logger.info("[Enrollment.Repository] Updated enrollment",
+                enrollment_id: id,
+                status: updated.status
+              )
 
-          {:error, changeset} ->
-            Logger.warning("[Enrollment.Repository] Validation error updating enrollment",
-              enrollment_id: id,
-              errors: inspect(changeset.errors)
-            )
+              {:ok, EnrollmentMapper.to_domain(updated)}
 
-            {:error, changeset}
-        end
+            {:error, changeset} ->
+              Logger.warning("[Enrollment.Repository] Validation error updating enrollment",
+                enrollment_id: id,
+                errors: inspect(changeset.errors)
+              )
+
+              {:error, changeset}
+          end
+      end
     end
   end
 end

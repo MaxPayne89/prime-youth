@@ -382,7 +382,8 @@ config :opentelemetry, :resource,
 # OpenTelemetry base configuration
 config :opentelemetry,
   span_processor: :batch,
-  traces_exporter: :otlp
+  traces_exporter: :otlp,
+  sampler: {:parent_based, %{root: {:trace_id_ratio_based, 0.5}}}
 
 # GDPR: Filter sensitive parameters from logs
 config :phoenix, :filter_parameters, [

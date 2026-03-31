@@ -9,6 +9,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
   @behaviour KlassHero.Enrollment.Domain.Ports.ForManagingEnrollmentPolicies
 
+  use KlassHero.Shared.Tracing
+
   import Ecto.Query
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentPolicyMapper
@@ -22,38 +24,46 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
 
   @impl true
   def upsert(attrs) do
-    schema_attrs = EnrollmentPolicyMapper.to_schema_attrs(attrs)
+    span do
+      set_attributes("db", operation: "upsert", entity: "enrollment_policy")
 
-    %EnrollmentPolicySchema{}
-    |> EnrollmentPolicySchema.changeset(schema_attrs)
-    |> Repo.insert(
-      on_conflict: {:replace, [:min_enrollment, :max_enrollment, :updated_at]},
-      conflict_target: :program_id,
-      returning: true
-    )
-    |> case do
-      {:ok, schema} ->
-        Logger.info(
-          "[Enrollment.PolicyRepository] Upserted enrollment policy " <>
-            "program_id=#{schema.program_id} min=#{schema.min_enrollment} max=#{schema.max_enrollment}"
-        )
+      schema_attrs = EnrollmentPolicyMapper.to_schema_attrs(attrs)
 
-        {:ok, EnrollmentPolicyMapper.to_domain(schema)}
+      %EnrollmentPolicySchema{}
+      |> EnrollmentPolicySchema.changeset(schema_attrs)
+      |> Repo.insert(
+        on_conflict: {:replace, [:min_enrollment, :max_enrollment, :updated_at]},
+        conflict_target: :program_id,
+        returning: true
+      )
+      |> case do
+        {:ok, schema} ->
+          Logger.info(
+            "[Enrollment.PolicyRepository] Upserted enrollment policy " <>
+              "program_id=#{schema.program_id} min=#{schema.min_enrollment} max=#{schema.max_enrollment}"
+          )
 
-      {:error, changeset} ->
-        Logger.warning("[Enrollment.PolicyRepository] Failed to upsert policy",
-          errors: inspect(changeset.errors)
-        )
+          {:ok, EnrollmentPolicyMapper.to_domain(schema)}
 
-        {:error, changeset}
+        {:error, changeset} ->
+          Logger.warning("[Enrollment.PolicyRepository] Failed to upsert policy",
+            errors: inspect(changeset.errors)
+          )
+
+          {:error, changeset}
+      end
     end
   end
 
   @impl true
   def get_by_program_id(program_id) do
-    case Repo.get_by(EnrollmentPolicySchema, program_id: program_id) do
-      nil -> {:error, :not_found}
-      schema -> {:ok, EnrollmentPolicyMapper.to_domain(schema)}
+    span do
+      set_attributes("db", operation: "select", entity: "enrollment_policy")
+
+      case Repo.get_by(EnrollmentPolicySchema, program_id: program_id) do
+        nil -> {:error, :not_found}
+        schema -> {:ok, EnrollmentPolicyMapper.to_domain(schema)}
+      end
     end
   end
 
@@ -61,38 +71,50 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   def get_policies_by_program_ids([]), do: %{}
 
   def get_policies_by_program_ids(program_ids) when is_list(program_ids) do
-    from(p in EnrollmentPolicySchema,
-      where: p.program_id in ^program_ids
-    )
-    |> Repo.all()
-    |> Map.new(fn schema ->
-      {to_string(schema.program_id), EnrollmentPolicyMapper.to_domain(schema)}
-    end)
+    span do
+      set_attributes("db", operation: "select", entity: "enrollment_policy")
+
+      from(p in EnrollmentPolicySchema,
+        where: p.program_id in ^program_ids
+      )
+      |> Repo.all()
+      |> Map.new(fn schema ->
+        {to_string(schema.program_id), EnrollmentPolicyMapper.to_domain(schema)}
+      end)
+    end
   end
 
   @impl true
   def count_active_enrollments(program_id) do
-    from(e in EnrollmentSchema,
-      where: e.program_id == ^program_id and e.status in ^@active_statuses,
-      select: count(e.id)
-    )
-    |> Repo.one()
+    span do
+      set_attributes("db", operation: "select", entity: "enrollment_policy")
+
+      from(e in EnrollmentSchema,
+        where: e.program_id == ^program_id and e.status in ^@active_statuses,
+        select: count(e.id)
+      )
+      |> Repo.one()
+    end
   end
 
   @impl true
   def count_active_enrollments_batch([]), do: %{}
 
   def count_active_enrollments_batch(program_ids) when is_list(program_ids) do
-    from(e in EnrollmentSchema,
-      where: e.program_id in ^program_ids and e.status in ^@active_statuses,
-      group_by: e.program_id,
-      select: {e.program_id, count(e.id)}
-    )
-    |> Repo.all()
-    |> Map.new()
-    |> then(fn counts ->
-      # Ensure all requested IDs appear in result (0 for missing)
-      Map.new(program_ids, fn id -> {id, Map.get(counts, id, 0)} end)
-    end)
+    span do
+      set_attributes("db", operation: "select", entity: "enrollment_policy")
+
+      from(e in EnrollmentSchema,
+        where: e.program_id in ^program_ids and e.status in ^@active_statuses,
+        group_by: e.program_id,
+        select: {e.program_id, count(e.id)}
+      )
+      |> Repo.all()
+      |> Map.new()
+      |> then(fn counts ->
+        # Ensure all requested IDs appear in result (0 for missing)
+        Map.new(program_ids, fn id -> {id, Map.get(counts, id, 0)} end)
+      end)
+    end
   end
 end
