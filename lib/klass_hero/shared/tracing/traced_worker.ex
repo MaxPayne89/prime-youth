@@ -27,19 +27,6 @@ defmodule KlassHero.Shared.Tracing.TracedWorker do
 
   @callback execute(Oban.Job.t()) :: :ok | {:ok, term()} | {:error, term()}
 
-  @noise_segments ~w[
-    Elixir KlassHero Adapters Driven Driving Persistence Repositories
-    Schemas Mappers Queries Events EventHandlers Workers Projections
-  ]
-
-  @doc false
-  def worker_name(module) do
-    module
-    |> Module.split()
-    |> Enum.reject(&(&1 in @noise_segments))
-    |> Enum.join(".")
-  end
-
   defmacro __using__(opts) do
     quote do
       @behaviour KlassHero.Shared.Tracing.TracedWorker
@@ -55,7 +42,7 @@ defmodule KlassHero.Shared.Tracing.TracedWorker do
         Context.attach_from_args(job.args)
 
         span_name = KlassHero.Shared.Tracing.gen_span_name_for_worker(__MODULE__)
-        worker_name = KlassHero.Shared.Tracing.TracedWorker.worker_name(__MODULE__)
+        worker_name = String.replace_suffix(span_name, ".execute/1", "")
 
         tracer = :opentelemetry.get_application_tracer(__MODULE__)
 

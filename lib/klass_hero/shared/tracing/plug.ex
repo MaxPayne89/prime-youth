@@ -34,9 +34,10 @@ defmodule KlassHero.Shared.Tracing.Plug do
 
   @impl Plug
   def call(conn, _opts) do
-    tracer = :opentelemetry.get_application_tracer(__MODULE__)
-    span_name = build_span_name(conn)
+    route = route_pattern(conn)
+    span_name = build_span_name(conn.method, route, conn.request_path)
 
+    tracer = :opentelemetry.get_application_tracer(__MODULE__)
     span_ctx = :otel_tracer.start_span(:otel_ctx.get_current(), tracer, span_name, %{})
 
     new_ctx = OpenTelemetry.Tracer.set_current_span(:otel_ctx.get_current(), span_ctx)
@@ -44,11 +45,7 @@ defmodule KlassHero.Shared.Tracing.Plug do
 
     OpenTelemetry.Span.set_attribute(span_ctx, "http.method", conn.method)
     OpenTelemetry.Span.set_attribute(span_ctx, "http.target", conn.request_path)
-
-    case route_pattern(conn) do
-      nil -> :ok
-      pattern -> OpenTelemetry.Span.set_attribute(span_ctx, "http.route", pattern)
-    end
+    if route, do: OpenTelemetry.Span.set_attribute(span_ctx, "http.route", route)
 
     register_before_send(conn, fn conn ->
       OpenTelemetry.Span.set_attribute(span_ctx, "http.status_code", conn.status)
@@ -71,10 +68,6 @@ defmodule KlassHero.Shared.Tracing.Plug do
     end
   end
 
-  defp build_span_name(conn) do
-    case route_pattern(conn) do
-      nil -> "HTTP #{conn.method} #{conn.request_path}"
-      pattern -> "HTTP #{conn.method} #{pattern}"
-    end
-  end
+  defp build_span_name(method, nil, path), do: "HTTP #{method} #{path}"
+  defp build_span_name(method, route, _path), do: "HTTP #{method} #{route}"
 end
