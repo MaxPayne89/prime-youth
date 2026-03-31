@@ -41,6 +41,7 @@ defmodule KlassHero.Shared.Tracing.TracedWorker do
         # Attach trace context BEFORE creating any spans
         Context.attach_from_args(job.args)
 
+        # credo:disable-for-next-line Credo.Check.Design.AliasUsage
         span_name = KlassHero.Shared.Tracing.gen_span_name_for_worker(__MODULE__)
         worker_name = String.replace_suffix(span_name, ".execute/1", "")
 

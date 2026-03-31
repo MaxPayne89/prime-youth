@@ -54,8 +54,7 @@ defmodule KlassHero.Shared.Tracing.LiveViewHook do
       rescue
         exception ->
           Logger.warning(
-            "[Tracing.LiveViewHook] Failed to create span: #{Exception.message(exception)}",
-            view: inspect(socket.view)
+            "[Tracing.LiveViewHook] Failed to create span for #{inspect(socket.view)}: #{Exception.message(exception)}"
           )
       end
     end
