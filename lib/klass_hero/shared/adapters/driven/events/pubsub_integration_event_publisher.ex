@@ -125,6 +125,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublishe
   end
 
   defp enqueue_critical_job(args, event, handler_ref) do
+    args = Context.inject_into_args(args)
+
     case CriticalEventWorker.insert_job(args) do
       {:ok, _job} ->
         :ok

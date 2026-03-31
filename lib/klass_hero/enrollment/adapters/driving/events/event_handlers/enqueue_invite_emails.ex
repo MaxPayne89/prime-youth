@@ -9,6 +9,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.EnqueueInvi
   alias KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorker
   alias KlassHero.Enrollment.Application.UseCases.EnqueueInviteEmails, as: UseCase
   alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHero.Shared.Tracing.Context
 
   require Logger
 
@@ -27,7 +28,8 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.EnqueueInvi
     if pairs != [] do
       jobs =
         Enum.map(pairs, fn {invite_id, program_name} ->
-          SendInviteEmailWorker.new(%{invite_id: invite_id, program_name: program_name})
+          args = Context.inject_into_args(%{invite_id: invite_id, program_name: program_name})
+          SendInviteEmailWorker.new(args)
         end)
 
       Oban.insert_all(jobs)
@@ -60,7 +62,8 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.EnqueueInvi
     if pairs_for_invite != [] do
       jobs =
         Enum.map(pairs_for_invite, fn {id, program_name} ->
-          SendInviteEmailWorker.new(%{invite_id: id, program_name: program_name})
+          args = Context.inject_into_args(%{invite_id: id, program_name: program_name})
+          SendInviteEmailWorker.new(args)
         end)
 
       Oban.insert_all(jobs)

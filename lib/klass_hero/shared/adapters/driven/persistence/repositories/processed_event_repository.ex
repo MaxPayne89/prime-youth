@@ -12,6 +12,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.Repositories.ProcessedEve
   alias KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer
   alias KlassHero.Shared.Adapters.Driven.Persistence.Schemas.ProcessedEvent
   alias KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker
+  alias KlassHero.Shared.Tracing.Context
 
   require Logger
 
@@ -61,6 +62,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.Repositories.ProcessedEve
     args =
       CriticalEventSerializer.serialize(event)
       |> Map.put("handler", handler_ref)
+      |> Context.inject_into_args()
 
     case CriticalEventWorker.insert_job(args) do
       {:ok, _job} -> :ok

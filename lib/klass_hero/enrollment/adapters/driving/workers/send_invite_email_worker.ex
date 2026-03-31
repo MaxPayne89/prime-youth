@@ -6,7 +6,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorker do
   and transitions the invite status from `pending` to `invite_sent`.
   """
 
-  use Oban.Worker, queue: :email, max_attempts: 3
+  use KlassHero.Shared.Tracing.TracedWorker, queue: :email, max_attempts: 3
 
   alias KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite
 
@@ -37,8 +37,8 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorker do
                      :for_sending_invite_emails
                    ])
 
-  @impl Oban.Worker
-  def perform(%Oban.Job{args: %{"invite_id" => invite_id, "program_name" => program_name}}) do
+  @impl true
+  def execute(%Oban.Job{args: %{"invite_id" => invite_id, "program_name" => program_name}}) do
     case @invite_repository.get_by_id(invite_id) do
       nil ->
         Logger.warning("[SendInviteEmailWorker] Invite not found", invite_id: invite_id)
