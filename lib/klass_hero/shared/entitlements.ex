@@ -470,25 +470,18 @@ defmodule KlassHero.Shared.Entitlements do
 
   defp get_parent_limit(tier, key) do
     tier = tier || :explorer
-    tier = if parent_tier_bypass_enabled?(), do: :active, else: tier
+    tier = if flag_enabled?(:parent_tier_bypass), do: :active, else: tier
     get_in(@parent_tier_limits, [tier, key])
-  end
-
-  defp parent_tier_bypass_enabled? do
-    case FeatureFlags.enabled?(:parent_tier_bypass) do
-      {:ok, true} -> true
-      _other -> false
-    end
   end
 
   defp get_provider_limit(tier, key) do
     tier = tier || :starter
-    tier = if provider_tier_bypass_enabled?(), do: :business_plus, else: tier
+    tier = if flag_enabled?(:provider_tier_bypass), do: :business_plus, else: tier
     get_in(@provider_tier_limits, [tier, key])
   end
 
-  defp provider_tier_bypass_enabled? do
-    case FeatureFlags.enabled?(:provider_tier_bypass) do
+  defp flag_enabled?(flag_name) do
+    case FeatureFlags.enabled?(flag_name) do
       {:ok, true} -> true
       _other -> false
     end
