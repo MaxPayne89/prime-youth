@@ -5,6 +5,19 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0](https://github.com/MaxPayne89/klass-hero/compare/v0.22.0...v0.23.0) (2026-03-31)
+
+
+### Features
+
+* add provider tier bypass and unlimited team seats ([8c06693](https://github.com/MaxPayne89/klass-hero/commit/8c06693aa2996f2e38ca09623e35f6d826e538c1))
+* add provider tier bypass and unlimited team seats ([#294](https://github.com/MaxPayne89/klass-hero/issues/294)) ([cad7560](https://github.com/MaxPayne89/klass-hero/commit/cad75609c7a8aa4de7868375a16c130784f5bc23))
+
+
+### Code Refactoring
+
+* simplify bypass flag helpers and staff count syncing ([e1f43a7](https://github.com/MaxPayne89/klass-hero/commit/e1f43a78a918a399299deb4ede28114cea97beb0))
+
 ## [0.22.0](https://github.com/MaxPayne89/klass-hero/compare/v0.21.0...v0.22.0) (2026-03-31)
 
 
