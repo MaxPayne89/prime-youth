@@ -26,25 +26,36 @@ defmodule KlassHero.Shared.Tracing.LiveViewHook do
       end
   """
 
+  require Logger
+
   @noise_segments ~w[Elixir KlassHeroWeb KlassHero]
 
   @doc """
   LiveView `on_mount` callback. Hook name is `:trace`.
 
   Creates a root span on connected mounts and returns `{:cont, socket}` in all cases.
+  Tracing failures are caught and logged — they never crash the mount.
   """
   def on_mount(:trace, _params, _session, socket) do
     if Phoenix.LiveView.connected?(socket) do
-      view_name = format_view_name(socket.view)
-      span_name = "LiveView.mount #{view_name}"
-      action = socket.assigns[:live_action]
+      try do
+        view_name = format_view_name(socket.view)
+        span_name = "LiveView.mount #{view_name}"
+        action = socket.assigns[:live_action]
 
-      tracer = :opentelemetry.get_application_tracer(__MODULE__)
+        tracer = :opentelemetry.get_application_tracer(__MODULE__)
 
-      :otel_tracer.with_span(tracer, span_name, %{}, fn _ctx ->
-        OpenTelemetry.Tracer.set_attribute("liveview.module", view_name)
-        OpenTelemetry.Tracer.set_attribute("liveview.action", to_string(action))
-      end)
+        :otel_tracer.with_span(tracer, span_name, %{}, fn _ctx ->
+          OpenTelemetry.Tracer.set_attribute("liveview.module", view_name)
+          OpenTelemetry.Tracer.set_attribute("liveview.action", to_string(action))
+        end)
+      rescue
+        exception ->
+          Logger.warning(
+            "[Tracing.LiveViewHook] Failed to create span: #{Exception.message(exception)}",
+            view: inspect(socket.view)
+          )
+      end
     end
 
     {:cont, socket}

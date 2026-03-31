@@ -52,7 +52,22 @@ defmodule KlassHero.Shared.Tracing.TracedWorker do
           set_attribute("oban.attempt", job.attempt)
           set_attribute("oban.max_attempts", job.max_attempts)
 
-          result = execute(job)
+          result =
+            try do
+              execute(job)
+            rescue
+              exception ->
+                set_attribute("exception.type", inspect(exception.__struct__))
+                set_attribute("exception.message", Exception.message(exception))
+
+                set_attribute(
+                  "exception.stacktrace",
+                  Exception.format_stacktrace(__STACKTRACE__)
+                )
+
+                OpenTelemetry.Tracer.set_status(:error, "exception")
+                reraise exception, __STACKTRACE__
+            end
 
           case result do
             {:error, _reason} ->

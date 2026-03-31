@@ -48,6 +48,12 @@ defmodule KlassHero.Shared.Tracing.Plug do
     if route, do: OpenTelemetry.Span.set_attribute(span_ctx, "http.route", route)
 
     register_before_send(conn, fn conn ->
+      # Update span name with route pattern if it's now available (after router matching)
+      case route_pattern(conn) do
+        nil -> :ok
+        pattern -> OpenTelemetry.Span.update_name(span_ctx, "HTTP #{conn.method} #{pattern}")
+      end
+
       OpenTelemetry.Span.set_attribute(span_ctx, "http.status_code", conn.status)
 
       if conn.status >= 500 do
