@@ -5,6 +5,34 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.0](https://github.com/MaxPayne89/klass-hero/compare/v0.21.0...v0.22.0) (2026-03-31)
+
+
+### Features
+
+* add core span macro for deliberate adapter tracing ([ffa0069](https://github.com/MaxPayne89/klass-hero/commit/ffa006986b9414bf62992d6eae506d2563e79427)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+* add LiveView on_mount hook for root spans ([55789a6](https://github.com/MaxPayne89/klass-hero/commit/55789a64cb578fb9f7e95e251d659633f73e1662)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+* add trace context propagation for cross-process continuity ([0d13136](https://github.com/MaxPayne89/klass-hero/commit/0d13136c2287b48103849cc081faca238fae903c)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+* add TracedWorker for Oban with context propagation ([192f33b](https://github.com/MaxPayne89/klass-hero/commit/192f33b8b62ce8ff806ea250253a7592e030b295)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+* add Tracing.Plug for HTTP root spans ([a093046](https://github.com/MaxPayne89/klass-hero/commit/a093046c0a0b1895477f267fbe4538049cea490a)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+* convert Oban workers to TracedWorker with context propagation ([d5a756c](https://github.com/MaxPayne89/klass-hero/commit/d5a756cc0be507a4de1157c466ab97317a264f1e)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+* instrument all adapter boundaries with deliberate tracing ([00da55b](https://github.com/MaxPayne89/klass-hero/commit/00da55b46626b51195feb5c52eb292a3eaca3688)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+* instrument exemplar adapters with deliberate tracing ([ac9f6e6](https://github.com/MaxPayne89/klass-hero/commit/ac9f6e6b68eb395ab2dc5141b313db8b891ed79a)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+* integrate root spans into router pipelines and live sessions ([541b6d1](https://github.com/MaxPayne89/klass-hero/commit/541b6d156fddf783d457b62eb7425c2873979321)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+* replace auto-instrumented OTel with deliberate adapter-only tracing ([00c7592](https://github.com/MaxPayne89/klass-hero/commit/00c7592a68cec06af9208bdaed5bc44fcf2c96e1))
+* wire trace context into event publishing and subscribing ([ad1e925](https://github.com/MaxPayne89/klass-hero/commit/ad1e9254fc98df0f13bf5cf012bfe3be56f505f6)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+
+
+### Bug Fixes
+
+* harden tracing modules against OTel failures ([80763fb](https://github.com/MaxPayne89/klass-hero/commit/80763fbd0655d0965f9a670a97d2a8546d1210d2)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+
+
+### Code Refactoring
+
+* remove auto-instrumentation and configure 50% parent-based sampler ([dec21c0](https://github.com/MaxPayne89/klass-hero/commit/dec21c0c3b2d4403412da1935be7d8ee3450a258)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+* simplify tracing modules — deduplicate noise segments and route lookup ([f4f2299](https://github.com/MaxPayne89/klass-hero/commit/f4f22993ffdb9d42748375b8f39f986c298017dd)), closes [#514](https://github.com/MaxPayne89/klass-hero/issues/514)
+
 ## [0.21.0](https://github.com/MaxPayne89/klass-hero/compare/v0.20.0...v0.21.0) (2026-03-30)
 
 
