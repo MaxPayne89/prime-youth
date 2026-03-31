@@ -8,43 +8,55 @@ defmodule KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter do
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForFetchingEmailContent
 
+  use KlassHero.Shared.Tracing
+
   require Logger
 
   @base_url "https://api.resend.com"
 
   @impl true
   def fetch_content(resend_email_id) do
-    extra_opts = Application.get_env(:klass_hero, :resend_req_options, [])
-    req = Req.new([base_url: @base_url, auth: {:bearer, api_key()}] ++ extra_opts)
+    span "resend_api.fetch_email_content" do
+      set_attributes("http", service: "resend", operation: "fetch_email_content")
 
-    case Req.get(req, url: "/emails/receiving/#{resend_email_id}") do
-      {:ok, %Req.Response{status: 200, body: body}} ->
-        headers = normalize_headers(body["headers"])
-        {:ok, %{html: body["html"], text: body["text"], headers: headers}}
+      extra_opts = Application.get_env(:klass_hero, :resend_req_options, [])
+      req = Req.new([base_url: @base_url, auth: {:bearer, api_key()}] ++ extra_opts)
 
-      {:ok, %Req.Response{status: 404}} ->
-        {:error, :not_found}
+      case Req.get(req, url: "/emails/receiving/#{resend_email_id}") do
+        {:ok, %Req.Response{status: 200, body: body}} ->
+          set_attribute("http.status_code", 200)
+          headers = normalize_headers(body["headers"])
+          {:ok, %{html: body["html"], text: body["text"], headers: headers}}
 
-      {:ok, %Req.Response{status: 429}} ->
-        {:error, :rate_limited}
+        {:ok, %Req.Response{status: 404}} ->
+          set_attribute("http.status_code", 404)
+          {:error, :not_found}
 
-      {:ok, %Req.Response{status: status}} when status >= 500 ->
-        Logger.error("Resend API server error #{status} for email #{resend_email_id}")
-        {:error, :server_error}
+        {:ok, %Req.Response{status: 429}} ->
+          set_attribute("http.status_code", 429)
+          {:error, :rate_limited}
 
-      {:ok, %Req.Response{status: status, body: body}} when status >= 400 ->
-        Logger.error(
-          "Resend API client error #{status} for email #{resend_email_id}: #{inspect(body)}"
-        )
+        {:ok, %Req.Response{status: status}} when status >= 500 ->
+          set_attribute("http.status_code", status)
+          Logger.error("Resend API server error #{status} for email #{resend_email_id}")
+          {:error, :server_error}
 
-        {:error, {:client_error, status}}
+        {:ok, %Req.Response{status: status, body: body}} when status >= 400 ->
+          set_attribute("http.status_code", status)
 
-      {:error, exception} ->
-        Logger.error(
-          "Resend API request failed for email #{resend_email_id}: #{inspect(exception)}"
-        )
+          Logger.error(
+            "Resend API client error #{status} for email #{resend_email_id}: #{inspect(body)}"
+          )
 
-        {:error, :request_failed}
+          {:error, {:client_error, status}}
+
+        {:error, exception} ->
+          Logger.error(
+            "Resend API request failed for email #{resend_email_id}: #{inspect(exception)}"
+          )
+
+          {:error, :request_failed}
+      end
     end
   end
 
