@@ -6,6 +6,9 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
   alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.ConversationMapper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
+
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
+
   alias KlassHero.Messaging.Application.UseCases.SendMessage
   alias KlassHero.Messaging.Domain.Models.Conversation
   alias KlassHero.Messaging.Domain.Models.Message
@@ -237,13 +240,11 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
 
       insert(:participant_schema, conversation_id: broadcast.id, user_id: staff_user.id)
 
-      KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository.upsert_active(
-        %{
-          provider_id: provider.id,
-          program_id: program.id,
-          staff_user_id: staff_user.id
-        }
-      )
+      ProgramStaffParticipantRepository.upsert_active(%{
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_user_id: staff_user.id
+      })
 
       assert {:ok, message} =
                SendMessage.execute(broadcast.id, staff_user.id, "Hello from staff!")

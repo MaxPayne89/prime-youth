@@ -374,7 +374,8 @@ config :logger, :default_formatter,
     :user_type,
     :broadcast_id,
     :direct_conversation_id,
-    :staff_member_id
+    :staff_member_id,
+    :staff_user_id
   ]
 
 config :opentelemetry, :resource,
