@@ -86,7 +86,7 @@ end
 
 **Conventions:**
 - `primary_key: false` on table, manual `:id` with `:binary_id`
-- `timestamps(type: :utc_datetime_usec)`
+- `timestamps(type: :utc_datetime_usec)` — older tables may use `:utc_datetime`; all new tables use microsecond precision
 - All references use `type: :binary_id` and `on_delete: :delete_all`
 - `null: false` on required fields
 - Explicit `create index` on every foreign key column
@@ -272,13 +272,11 @@ defmodule KlassHero.{Context}.Adapters.Driven.Persistence.Repositories.{Module}R
 
   use KlassHero.Shared.Tracing
 
-  import Ecto.Query
-
   alias KlassHero.{Context}.Adapters.Driven.Persistence.Mappers.{Module}Mapper
   alias KlassHero.{Context}.Adapters.Driven.Persistence.Schemas.{Module}Schema
   alias KlassHero.Repo
 
-  require Logger
+  # Add `import Ecto.Query` and `require Logger` when needed by your callbacks
 
   @impl true
   def create(attrs) do
