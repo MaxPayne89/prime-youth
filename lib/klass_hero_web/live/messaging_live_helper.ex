@@ -118,6 +118,9 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
         reversed_messages = Enum.reverse(messages)
 
+        provider_user_ids = resolve_provider_user_ids(conversation)
+        provider_name = resolve_provider_name(conversation.provider_id)
+
         socket =
           socket
           |> assign(:page_title, get_conversation_title(conversation))
@@ -125,6 +128,8 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
           |> assign(:has_more, has_more)
           |> assign(:messages_empty?, Enum.empty?(messages))
           |> assign(:sender_names, sender_names)
+          |> assign(:provider_user_ids, provider_user_ids)
+          |> assign(:provider_name, provider_name)
           |> assign(:form, Phoenix.Component.to_form(%{"content" => ""}))
           |> assign(:back_path, back_path)
           |> stream(:messages, reversed_messages)
@@ -316,6 +321,30 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   """
   def get_sender_name(sender_names, sender_id) do
     Map.get(sender_names, sender_id, "Unknown")
+  end
+
+  defp resolve_provider_user_ids(conversation) do
+    owner_ids =
+      case KlassHero.Provider.get_identity_id_for_provider(conversation.provider_id) do
+        {:ok, id} -> [id]
+        _ -> []
+      end
+
+    staff_ids =
+      if conversation.program_id do
+        Messaging.get_active_staff_user_ids(conversation.program_id)
+      else
+        []
+      end
+
+    MapSet.new(owner_ids ++ staff_ids)
+  end
+
+  defp resolve_provider_name(provider_id) do
+    case KlassHero.Provider.get_provider_profile(provider_id) do
+      {:ok, provider} -> provider.business_name
+      _ -> nil
+    end
   end
 
   defp build_message_from_event(payload) do

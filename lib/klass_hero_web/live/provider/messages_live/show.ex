@@ -31,6 +31,8 @@ defmodule KlassHeroWeb.Provider.MessagesLive.Show do
       form={@form}
       current_user_id={@current_scope.user.id}
       sender_names={@sender_names}
+      provider_user_ids={@provider_user_ids}
+      provider_name={@provider_name}
     />
     """
   end

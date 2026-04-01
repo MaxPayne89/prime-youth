@@ -64,6 +64,10 @@ defmodule KlassHero.Messaging do
 
   alias KlassHero.Messaging.Domain.Models.{Conversation, EmailReply, Message, Participant}
 
+  @staff_resolver Application.compile_env!(:klass_hero, [
+                    :messaging,
+                    :for_resolving_program_staff
+                  ])
   @inbound_email_repo Application.compile_env!(:klass_hero, [
                         :messaging,
                         :for_managing_inbound_emails
@@ -482,6 +486,23 @@ defmodule KlassHero.Messaging do
   @spec get_display_name(String.t()) :: {:ok, String.t()} | {:error, :not_found}
   def get_display_name(user_id) do
     @user_resolver.get_display_name(user_id)
+  end
+
+  @doc """
+  Returns the user IDs of active staff assigned to a program.
+
+  Used by the web layer to determine which message senders are on the
+  provider side, for branded attribution display ("Business via Staff Name").
+
+  ## Parameters
+  - program_id: The program to look up staff for
+
+  ## Returns
+  - List of user ID strings
+  """
+  @spec get_active_staff_user_ids(String.t()) :: [String.t()]
+  def get_active_staff_user_ids(program_id) do
+    @staff_resolver.get_active_staff_user_ids(program_id)
   end
 
   # ---------------------------------------------------------------------------

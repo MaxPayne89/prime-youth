@@ -152,6 +152,8 @@ defmodule KlassHeroWeb.MessagingComponents do
   attr :message, :map, required: true
   attr :is_own, :boolean, default: false
   attr :sender_name, :string, default: "Unknown"
+  attr :provider_name, :string, default: nil
+  attr :is_provider_side, :boolean, default: false
 
   def message_bubble(assigns) do
     ~H"""
@@ -169,7 +171,12 @@ defmodule KlassHeroWeb.MessagingComponents do
           :if={!@is_own && @message.message_type != :system}
           class={["text-xs font-medium mb-1", Theme.text_color(:muted)]}
         >
-          {@sender_name}
+          <%= if @is_provider_side && @provider_name do %>
+            <span>{@provider_name}</span>
+            <span class="font-normal"> via  {@sender_name}</span>
+          <% else %>
+            {@sender_name}
+          <% end %>
         </p>
         <p
           :if={@message.message_type == :system}
@@ -398,6 +405,8 @@ defmodule KlassHeroWeb.MessagingComponents do
   attr :form, :map, required: true
   attr :current_user_id, :string, required: true
   attr :sender_names, :map, required: true
+  attr :provider_user_ids, :any, default: nil
+  attr :provider_name, :string, default: nil
 
   def conversation_show(%{variant: :parent} = assigns) do
     ~H"""
@@ -426,6 +435,8 @@ defmodule KlassHeroWeb.MessagingComponents do
             current_user_id={@current_user_id}
             sender_names={@sender_names}
             conversation={@conversation}
+            provider_user_ids={@provider_user_ids}
+            provider_name={@provider_name}
             variant={:parent}
           />
         </div>
@@ -454,6 +465,8 @@ defmodule KlassHeroWeb.MessagingComponents do
           current_user_id={@current_user_id}
           sender_names={@sender_names}
           conversation={@conversation}
+          provider_user_ids={@provider_user_ids}
+          provider_name={@provider_name}
           variant={:provider}
         />
       </div>
@@ -475,6 +488,11 @@ defmodule KlassHeroWeb.MessagingComponents do
           message={message}
           is_own={MessagingLiveHelper.own_message?(message, @current_user_id)}
           sender_name={MessagingLiveHelper.get_sender_name(@sender_names, message.sender_id)}
+          provider_name={@provider_name}
+          is_provider_side={
+            @provider_user_ids != nil &&
+              MapSet.member?(@provider_user_ids, message.sender_id)
+          }
         />
       </div>
       <.messages_empty_state :if={@messages_empty?} />
