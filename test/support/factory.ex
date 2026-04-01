@@ -617,8 +617,7 @@ defmodule KlassHero.Factory do
       id: Ecto.UUID.generate(),
       provider_id: provider.id,
       document_type: "business_registration",
-      file_url:
-        "verification-docs/providers/#{provider.id}/#{System.unique_integer([:positive])}_doc.pdf",
+      file_url: "verification-docs/providers/#{provider.id}/#{System.unique_integer([:positive])}_doc.pdf",
       original_filename: "registration.pdf",
       status: "pending"
     }

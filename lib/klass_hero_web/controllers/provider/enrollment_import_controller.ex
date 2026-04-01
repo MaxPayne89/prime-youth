@@ -110,8 +110,7 @@ defmodule KlassHeroWeb.Provider.EnrollmentImportController do
          end)}
 
       {:duplicate_errors, errors} ->
-        {"duplicate_errors",
-         Enum.map(errors, fn {row, message} -> %{row: row, message: message} end)}
+        {"duplicate_errors", Enum.map(errors, fn {row, message} -> %{row: row, message: message} end)}
     end)
   end
 end

@@ -1,6 +1,7 @@
 defmodule KlassHeroWeb.Presenters.ProviderPresenterTest do
   use ExUnit.Case, async: true
 
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHeroWeb.Presenters.ProviderPresenter
 
   describe "verification_status_from_docs/2" do
@@ -48,8 +49,6 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenterTest do
   end
 
   describe "to_business_view/1" do
-    alias KlassHero.Provider.Domain.Models.ProviderProfile
-
     test "includes team seat fields for starter tier" do
       provider = %ProviderProfile{
         id: "p1",

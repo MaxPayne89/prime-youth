@@ -4,9 +4,7 @@ defmodule KlassHero.Messaging.Adapters.Driving.Events.StaffAssignmentHandlerTest
   import KlassHero.Factory
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
-
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
-
   alias KlassHero.Messaging.Adapters.Driving.Events.StaffAssignmentHandler
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 

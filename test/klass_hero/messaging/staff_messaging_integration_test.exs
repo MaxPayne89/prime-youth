@@ -14,12 +14,11 @@ defmodule KlassHero.Messaging.StaffMessagingIntegrationTest do
   import KlassHero.Factory
 
   alias KlassHero.Accounts.Scope
+  alias KlassHero.Accounts.User
   alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
-
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
-
   alias KlassHero.Messaging.Adapters.Driving.Events.StaffAssignmentHandler
   alias KlassHero.Provider
   alias KlassHero.Provider.Domain.Models.ProviderProfile
@@ -30,7 +29,7 @@ defmodule KlassHero.Messaging.StaffMessagingIntegrationTest do
       provider = insert(:provider_profile_schema)
       program = insert(:program_schema, provider_id: provider.id)
       # The factory creates a real user for the provider via identity_id
-      provider_user = KlassHero.Repo.get!(KlassHero.Accounts.User, provider.identity_id)
+      provider_user = KlassHero.Repo.get!(User, provider.identity_id)
       staff_user = AccountsFixtures.user_fixture()
       parent_user = AccountsFixtures.user_fixture()
       staff = insert(:staff_member_schema, provider_id: provider.id, user_id: staff_user.id)
@@ -76,9 +75,7 @@ defmodule KlassHero.Messaging.StaffMessagingIntegrationTest do
       scope = build_provider_scope(ctx.provider, ctx.provider_user)
 
       {:ok, conversation} =
-        Messaging.create_direct_conversation(scope, ctx.provider.id, ctx.parent_user.id,
-          program_id: ctx.program.id
-        )
+        Messaging.create_direct_conversation(scope, ctx.provider.id, ctx.parent_user.id, program_id: ctx.program.id)
 
       assert ParticipantRepository.is_participant?(conversation.id, ctx.staff_user.id)
 

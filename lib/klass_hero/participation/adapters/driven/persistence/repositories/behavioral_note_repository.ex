@@ -82,8 +82,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
   end
 
   @impl true
-  def list_by_records_and_provider(record_ids, provider_id)
-      when is_list(record_ids) and is_binary(provider_id) do
+  def list_by_records_and_provider(record_ids, provider_id) when is_list(record_ids) and is_binary(provider_id) do
     BehavioralNoteQueries.base()
     |> BehavioralNoteQueries.by_participation_records(record_ids)
     |> BehavioralNoteQueries.by_provider(provider_id)
@@ -131,8 +130,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
   end
 
   @impl true
-  def anonymize_all_for_child(child_id, anonymized_attrs)
-      when is_binary(child_id) and is_map(anonymized_attrs) do
+  def anonymize_all_for_child(child_id, anonymized_attrs) when is_binary(child_id) and is_map(anonymized_attrs) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     # Build the set list from domain-provided attrs + updated_at timestamp

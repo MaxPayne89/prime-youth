@@ -13,6 +13,8 @@ defmodule KlassHeroWeb.E2ECase do
 
   use ExUnit.CaseTemplate
 
+  alias Phoenix.Ecto.SQL.Sandbox
+
   using do
     quote do
       use Wallaby.DSL
@@ -34,7 +36,7 @@ defmodule KlassHeroWeb.E2ECase do
     pid =
       Ecto.Adapters.SQL.Sandbox.start_owner!(KlassHero.Repo, shared: not tags[:async])
 
-    metadata = Phoenix.Ecto.SQL.Sandbox.metadata_for(KlassHero.Repo, pid)
+    metadata = Sandbox.metadata_for(KlassHero.Repo, pid)
 
     on_exit(fn -> Ecto.Adapters.SQL.Sandbox.stop_owner(pid) end)
 

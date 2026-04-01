@@ -2,6 +2,7 @@ defmodule KlassHeroWeb.UserLive.Login do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Accounts
+  alias Swoosh.Adapters.Local
 
   @impl true
   def render(assigns) do
@@ -138,9 +139,7 @@ defmodule KlassHeroWeb.UserLive.Login do
     end
 
     info =
-      gettext(
-        "If your email is in our system, you will receive instructions for logging in shortly."
-      )
+      gettext("If your email is in our system, you will receive instructions for logging in shortly.")
 
     {:noreply,
      socket
@@ -149,6 +148,6 @@ defmodule KlassHeroWeb.UserLive.Login do
   end
 
   defp local_mail_adapter? do
-    Application.get_env(:klass_hero, KlassHero.Mailer)[:adapter] == Swoosh.Adapters.Local
+    Application.get_env(:klass_hero, KlassHero.Mailer)[:adapter] == Local
   end
 end

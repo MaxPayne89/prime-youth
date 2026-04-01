@@ -1,5 +1,7 @@
 import Config
 
+alias KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter
+
 config :klass_hero, KlassHero.Repo,
   username: "postgres",
   password: "postgres",
@@ -41,7 +43,7 @@ config :klass_hero, KlassHeroWeb.Endpoint,
 
 # Storage: MinIO S3-compatible storage for development (via docker-compose)
 config :klass_hero, :storage,
-  adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
+  adapter: S3StorageAdapter,
   bucket: "klass-hero-dev",
   endpoint: "http://localhost:9000",
   access_key_id: "minioadmin",

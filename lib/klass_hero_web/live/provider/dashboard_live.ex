@@ -100,12 +100,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             can_message?: false
           )
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
+          |> assign(enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"))
           |> assign(
-            enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
-          )
-          |> assign(
-            participant_policy_form:
-              to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
+            participant_policy_form: to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
           )
           |> assign(instructor_options: build_instructor_options(staff_members))
           |> assign(categories: ProgramCatalog.program_categories())
@@ -318,8 +315,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           reason: inspect(reason)
         )
 
-        {:noreply,
-         put_flash(socket, :error, gettext("Failed to resend invitation. Please try again."))}
+        {:noreply, put_flash(socket, :error, gettext("Failed to resend invitation. Please try again."))}
     end
   end
 
@@ -414,8 +410,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
            end
          end) do
       {:error, :upload_channel_died} ->
-        {:noreply,
-         put_flash(socket, :error, gettext("Upload connection lost. Please try again."))}
+        {:noreply, put_flash(socket, :error, gettext("Upload connection lost. Please try again."))}
 
       # consume_uploaded_entries unwraps {:ok, value} → value
       {:ok, [%{} = doc]} ->
@@ -460,16 +455,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      socket
      |> assign(show_program_form: true, editing_program_id: nil)
      |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
+     |> assign(enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"))
      |> assign(
-       enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
+       participant_policy_form: to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
      )
-     |> assign(
-       participant_policy_form:
-         to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
-     )
-     |> assign(
-       instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id)
-     )}
+     |> assign(instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id))}
   end
 
   @impl true
@@ -575,8 +565,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           {:noreply, put_flash(socket, :error, gettext("Upgrade your plan to send messages."))}
 
         {:error, _reason} ->
-          {:noreply,
-           put_flash(socket, :error, gettext("Could not start conversation. Please try again."))}
+          {:noreply, put_flash(socket, :error, gettext("Could not start conversation. Please try again."))}
       end
     else
       {:noreply, put_flash(socket, :error, gettext("Cannot message this parent."))}
@@ -669,8 +658,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
            {:ok, File.read(path)}
          end) do
       {:error, :upload_channel_died} ->
-        {:noreply,
-         put_flash(socket, :error, gettext("Upload connection lost. Please try again."))}
+        {:noreply, put_flash(socket, :error, gettext("Upload connection lost. Please try again."))}
 
       {:ok, []} ->
         {:noreply, put_flash(socket, :error, gettext("No file selected."))}
@@ -702,8 +690,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
        show_program_form: false,
        editing_program_id: nil,
        enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"),
-       participant_policy_form:
-         to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
+       participant_policy_form: to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
      )}
   end
 
@@ -731,9 +718,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      socket
      |> assign(program_form: to_form(changeset))
      |> assign(enrollment_form: to_form(enrollment_changeset, as: "enrollment_policy"))
-     |> assign(
-       participant_policy_form: to_form(participant_policy_changeset, as: "participant_policy")
-     )}
+     |> assign(participant_policy_form: to_form(participant_policy_changeset, as: "participant_policy"))}
   end
 
   @impl true
@@ -826,8 +811,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          editing_program_id: nil,
          programs_count: socket.assigns.programs_count + 1,
          enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"),
-         participant_policy_form:
-           to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
+         participant_policy_form: to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
        )}
     else
       {:error, :instructor_not_found} ->
@@ -877,8 +861,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          show_program_form: false,
          editing_program_id: nil,
          enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"),
-         participant_policy_form:
-           to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
+         participant_policy_form: to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
        )}
     else
       {:error, :not_found} ->
@@ -949,9 +932,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          put_flash(
            socket,
            :error,
-           gettext(
-             "Staff member created, but the invitation could not be sent. Try resending from the team list."
-           )
+           gettext("Staff member created, but the invitation could not be sent. Try resending from the team list.")
          )}
 
       {:error, changeset} ->
@@ -1697,9 +1678,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     put_flash(
       socket,
       :warning,
-      gettext(
-        "Program saved, but the cover image upload failed. You can re-upload it by editing the program."
-      )
+      gettext("Program saved, but the cover image upload failed. You can re-upload it by editing the program.")
     )
   end
 
@@ -1845,8 +1824,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # Trigger: program created, but enrollment policy may have failed
   # Why: program is already persisted — don't roll back, just adjust flash
   # Outcome: success flash if policy ok, warning flash if policy failed
-  defp resolve_capacity(:ok, enrollment_params),
-    do: parse_integer(enrollment_params["max_enrollment"])
+  defp resolve_capacity(:ok, enrollment_params), do: parse_integer(enrollment_params["max_enrollment"])
 
   defp resolve_capacity({:error, _}, _enrollment_params), do: nil
 
@@ -1863,9 +1841,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     socket
     |> put_flash(
       :error,
-      gettext(
-        "Program created, but enrollment capacity could not be saved. Edit the program to retry."
-      )
+      gettext("Program created, but enrollment capacity could not be saved. Edit the program to retry.")
     )
   end
 
@@ -1897,10 +1873,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       "meeting_end_time" => nil_safe(program.meeting_end_time, &Time.to_iso8601/1),
       "start_date" => nil_safe(program.start_date, &Date.to_iso8601/1),
       "end_date" => nil_safe(program.end_date, &Date.to_iso8601/1),
-      "registration_start_date" =>
-        nil_safe(program.registration_period.start_date, &Date.to_iso8601/1),
-      "registration_end_date" =>
-        nil_safe(program.registration_period.end_date, &Date.to_iso8601/1)
+      "registration_start_date" => nil_safe(program.registration_period.start_date, &Date.to_iso8601/1),
+      "registration_end_date" => nil_safe(program.registration_period.end_date, &Date.to_iso8601/1)
     }
   end
 

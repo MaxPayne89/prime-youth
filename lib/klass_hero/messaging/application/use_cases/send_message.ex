@@ -11,6 +11,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
 
   alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
+  alias KlassHero.Messaging.Domain.Models.Message
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
@@ -44,7 +45,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   - `{:error, reason}` - Other errors
   """
   @spec execute(String.t(), String.t(), String.t(), keyword()) ::
-          {:ok, KlassHero.Messaging.Domain.Models.Message.t()}
+          {:ok, Message.t()}
           | {:error, :not_participant | :broadcast_reply_not_allowed | term()}
   def execute(conversation_id, sender_id, content, opts \\ []) do
     message_type = Keyword.get(opts, :message_type, :text)

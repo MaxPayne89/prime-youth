@@ -16,6 +16,9 @@ import Config
 #
 # Alternatively, you can use `mix phx.gen.release` to generate a `bin/server`
 # script that automatically sets the env var above.
+alias KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter
+alias Swoosh.Adapters.Resend
+
 if System.get_env("PHX_SERVER") do
   config :klass_hero, KlassHeroWeb.Endpoint, server: true
 end
@@ -62,7 +65,7 @@ if config_env() == :prod do
   end
 
   config :klass_hero, KlassHero.Mailer,
-    adapter: Swoosh.Adapters.Resend,
+    adapter: Resend,
     api_key: System.get_env("RESEND_API_KEY") || raise("RESEND_API_KEY not set")
 
   config :klass_hero, KlassHero.Repo,
@@ -138,9 +141,8 @@ if config_env() == :prod do
   # Why: single bucket with per-object ACLs — Fly.io Tigris allows one bucket per app
   # Outcome: public files get acl: :public_read, private files use signed URLs
   config :klass_hero, :storage,
-    adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
+    adapter: S3StorageAdapter,
     bucket: System.get_env("STORAGE_BUCKET") || raise("STORAGE_BUCKET not set"),
     access_key_id: System.get_env("AWS_ACCESS_KEY_ID") || raise("AWS_ACCESS_KEY_ID not set"),
-    secret_access_key:
-      System.get_env("AWS_SECRET_ACCESS_KEY") || raise("AWS_SECRET_ACCESS_KEY not set")
+    secret_access_key: System.get_env("AWS_SECRET_ACCESS_KEY") || raise("AWS_SECRET_ACCESS_KEY not set")
 end

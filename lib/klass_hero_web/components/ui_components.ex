@@ -706,11 +706,9 @@ defmodule KlassHeroWeb.UIComponents do
 
   defp icon_button_variant("light"), do: "#{Theme.bg(:light)} hover:#{Theme.bg(:medium)}"
 
-  defp icon_button_variant("glass"),
-    do: "#{Theme.bg(:surface)}/80 backdrop-blur-sm hover:#{Theme.bg(:surface)}"
+  defp icon_button_variant("glass"), do: "#{Theme.bg(:surface)}/80 backdrop-blur-sm hover:#{Theme.bg(:surface)}"
 
-  defp icon_button_variant("solid"),
-    do: "#{Theme.bg(:surface)} hover:#{Theme.bg(:muted)} shadow-sm"
+  defp icon_button_variant("solid"), do: "#{Theme.bg(:surface)} hover:#{Theme.bg(:muted)} shadow-sm"
 
   @doc """
   Renders a unified hero section with multiple variant styles.

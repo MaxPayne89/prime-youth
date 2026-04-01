@@ -5,9 +5,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConvSumma
   import KlassHero.Factory
 
   alias KlassHero.AccountsFixtures
-
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository
-
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
   alias KlassHero.Repo
 

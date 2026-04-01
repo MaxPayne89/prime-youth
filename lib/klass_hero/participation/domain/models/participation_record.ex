@@ -194,8 +194,7 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
 
   @doc "Returns true if a behavioral note can be added to this record."
   @spec allows_behavioral_note?(t()) :: boolean()
-  def allows_behavioral_note?(%__MODULE__{status: status}),
-    do: status in [:checked_in, :checked_out]
+  def allows_behavioral_note?(%__MODULE__{status: status}), do: status in [:checked_in, :checked_out]
 
   @doc "Returns list of valid status atoms."
   @spec valid_statuses() :: [status()]
@@ -232,8 +231,7 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
     if has_status_change or has_time_change, do: :ok, else: {:error, :no_changes}
   end
 
-  defp validate_status(%{status: status}) when status not in @valid_statuses,
-    do: {:error, :invalid_status}
+  defp validate_status(%{status: status}) when status not in @valid_statuses, do: {:error, :invalid_status}
 
   defp validate_status(_attrs), do: :ok
 
@@ -294,9 +292,7 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
   # Trigger: both check_in_at and check_out_at are non-nil after corrections
   # Why: check-out cannot precede check-in — logically impossible
   # Outcome: rejects corrections that would create an impossible timeline
-  defp validate_temporal_ordering(
-         %__MODULE__{check_in_at: %DateTime{} = ci, check_out_at: %DateTime{} = co} = record
-       ) do
+  defp validate_temporal_ordering(%__MODULE__{check_in_at: %DateTime{} = ci, check_out_at: %DateTime{} = co} = record) do
     case DateTime.compare(ci, co) do
       :gt -> {:error, :check_in_must_precede_check_out}
       _ -> {:ok, record}

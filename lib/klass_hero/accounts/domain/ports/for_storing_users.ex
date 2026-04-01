@@ -12,12 +12,13 @@ defmodule KlassHero.Accounts.Domain.Ports.ForStoringUsers do
   """
 
   alias KlassHero.Accounts.Domain.Models.User
-
   # Write operations return Ecto types because callers (LiveViews, auth plugs)
   # depend on Ecto schemas for rendering and session management.
+  alias KlassHero.Accounts.UserToken
+
   @type ecto_user :: KlassHero.Accounts.User.t()
   @type ecto_changeset :: Ecto.Changeset.t()
-  @type ecto_token :: KlassHero.Accounts.UserToken.t()
+  @type ecto_token :: UserToken.t()
 
   # ============================================================================
   # Read operations

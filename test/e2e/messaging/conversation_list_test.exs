@@ -40,9 +40,7 @@ defmodule KlassHeroWeb.E2E.Messaging.ConversationListTest do
 
       parent_session
       |> visit_conversations(:parent)
-      |> assert_has(
-        Query.css("[data-role=conversation-card]", text: "Class is moved to Room 204 tomorrow")
-      )
+      |> assert_has(Query.css("[data-role=conversation-card]", text: "Class is moved to Room 204 tomorrow"))
     end
 
     test "unread count updates when new message arrives", %{

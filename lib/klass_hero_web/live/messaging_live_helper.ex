@@ -296,8 +296,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   @doc """
   Returns the title for a conversation.
   """
-  def get_conversation_title(%{type: :program_broadcast, subject: subject})
-      when not is_nil(subject) do
+  def get_conversation_title(%{type: :program_broadcast, subject: subject}) when not is_nil(subject) do
     subject
   end
 
@@ -369,8 +368,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
     end
   end
 
-  defp reply_privately_path("/provider/messages", conversation_id),
-    do: ~p"/provider/messages/#{conversation_id}"
+  defp reply_privately_path("/provider/messages", conversation_id), do: ~p"/provider/messages/#{conversation_id}"
 
   defp reply_privately_path(_back_path, conversation_id), do: ~p"/messages/#{conversation_id}"
 

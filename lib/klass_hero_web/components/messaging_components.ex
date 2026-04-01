@@ -307,11 +307,9 @@ defmodule KlassHeroWeb.MessagingComponents do
     """
   end
 
-  defp empty_state_message(:provider),
-    do: gettext("Your conversations with parents will appear here")
+  defp empty_state_message(:provider), do: gettext("Your conversations with parents will appear here")
 
-  defp empty_state_message(_parent),
-    do: gettext("Your conversations with providers will appear here")
+  defp empty_state_message(_parent), do: gettext("Your conversations with providers will appear here")
 
   # Page-level components
   # These encapsulate the full page layout for messaging views,
@@ -540,8 +538,8 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   # Helpers
 
-  @avatar_colors {"bg-hero-blue-600", "bg-rose-500", "bg-hero-yellow-500", "bg-emerald-500",
-                  "bg-blue-500", "bg-purple-500", "bg-rose-500"}
+  @avatar_colors {"bg-hero-blue-600", "bg-rose-500", "bg-hero-yellow-500", "bg-emerald-500", "bg-blue-500",
+                  "bg-purple-500", "bg-rose-500"}
 
   @doc "Returns a deterministic Tailwind background color class for a given name."
   def avatar_color(name) do

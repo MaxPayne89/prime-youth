@@ -5,6 +5,8 @@ defmodule KlassHeroWeb.UserLive.StaffInvitationTest do
   import KlassHero.ProviderFixtures
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Accounts.User
+
   defp create_staff_with_invitation(opts \\ []) do
     provider = provider_profile_fixture()
     raw_bytes = :crypto.strong_rand_bytes(32)
@@ -140,7 +142,7 @@ defmodule KlassHeroWeb.UserLive.StaffInvitationTest do
 
       assert html =~ "Account created"
 
-      user = KlassHero.Repo.get_by!(KlassHero.Accounts.User, email: staff.email)
+      user = KlassHero.Repo.get_by!(User, email: staff.email)
       assert user.intended_roles == [:staff_provider]
     end
   end

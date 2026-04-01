@@ -113,8 +113,7 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
   """
   def message_data_anonymized(user_id, payload \\ %{}, opts \\ [])
 
-  def message_data_anonymized(user_id, payload, opts)
-      when is_binary(user_id) and byte_size(user_id) > 0 do
+  def message_data_anonymized(user_id, payload, opts) when is_binary(user_id) and byte_size(user_id) > 0 do
     base_payload = %{user_id: user_id}
 
     opts = Keyword.put_new(opts, :criticality, :critical)

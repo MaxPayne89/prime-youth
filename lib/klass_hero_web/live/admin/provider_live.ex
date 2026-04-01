@@ -18,18 +18,22 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
     adapter_config: [
       schema: KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema,
       repo: KlassHero.Repo,
-      update_changeset:
-        &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema.admin_changeset/3,
-      create_changeset:
-        &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema.admin_changeset/3
+      update_changeset: &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema.admin_changeset/3,
+      create_changeset: &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema.admin_changeset/3
     ],
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
 
+  alias Backpex.Fields.Boolean
+  alias Backpex.Fields.Select
+  alias Backpex.Fields.Text
+  alias Backpex.Fields.Textarea
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
   alias KlassHero.Shared.DomainEventBus
   alias KlassHero.Shared.IntegrationEventPublishing
+  alias KlassHero.Shared.SubscriptionTiers
+  alias KlassHeroWeb.Admin.Filters.VerifiedFilter
 
   require KlassHeroWeb.BackpexCompat
 
@@ -37,7 +41,7 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
   def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
 
   @tier_options Enum.map(
-                  KlassHero.Shared.SubscriptionTiers.provider_tiers(),
+                  SubscriptionTiers.provider_tiers(),
                   fn tier ->
                     label =
                       tier
@@ -63,7 +67,7 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
 
   @impl Backpex.LiveResource
   def filters do
-    [verified: %{module: KlassHeroWeb.Admin.Filters.VerifiedFilter}]
+    [verified: %{module: VerifiedFilter}]
   end
 
   @impl Backpex.LiveResource
@@ -76,49 +80,49 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
   def fields do
     [
       business_name: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Business Name",
         searchable: true,
         orderable: true,
         readonly: true
       },
       verified: %{
-        module: Backpex.Fields.Boolean,
+        module: Boolean,
         label: "Verified",
         orderable: true
       },
       subscription_tier: %{
-        module: Backpex.Fields.Select,
+        module: Select,
         label: "Tier",
         orderable: true,
         options: @tier_options
       },
       description: %{
-        module: Backpex.Fields.Textarea,
+        module: Textarea,
         label: "Description",
         only: [:show],
         readonly: true
       },
       phone: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Phone",
         only: [:show],
         readonly: true
       },
       website: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Website",
         only: [:show],
         readonly: true
       },
       address: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Address",
         only: [:show],
         readonly: true
       },
       categories: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Categories",
         only: [:show],
         readonly: true,

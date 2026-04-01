@@ -131,9 +131,7 @@ defmodule KlassHero.Shared.EventDispatchHelperTest do
 
     test "enqueues Oban job for failed handler and marks successful one", %{context: context} do
       event =
-        DomainEvent.new(:critical_fail_test, "agg-1", :test, %{data: "val"},
-          criticality: :critical
-        )
+        DomainEvent.new(:critical_fail_test, "agg-1", :test, %{data: "val"}, criticality: :critical)
 
       assert :ok = EventDispatchHelper.dispatch(event, context)
 

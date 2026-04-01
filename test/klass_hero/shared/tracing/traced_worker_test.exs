@@ -21,6 +21,8 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
   # Drain any spans left in the mailbox from previous tests before each test.
   # Necessary because OTel uses a global singleton exporter and async: false
   # does not isolate the process mailbox between tests.
+  alias KlassHero.Shared.Tracing.TracedWorker
+
   setup do
     flush_spans()
     drain_spans()
@@ -64,23 +66,23 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
   # ---- Test workers defined inline ----
 
   defmodule SuccessWorker do
-    use KlassHero.Shared.Tracing.TracedWorker, queue: :test, max_attempts: 3
+    use TracedWorker, queue: :test, max_attempts: 3
 
-    @impl KlassHero.Shared.Tracing.TracedWorker
+    @impl TracedWorker
     def execute(_job), do: :ok
   end
 
   defmodule FailWorker do
-    use KlassHero.Shared.Tracing.TracedWorker, queue: :test, max_attempts: 3
+    use TracedWorker, queue: :test, max_attempts: 3
 
-    @impl KlassHero.Shared.Tracing.TracedWorker
+    @impl TracedWorker
     def execute(_job), do: {:error, "something went wrong"}
   end
 
   defmodule OkTupleWorker do
-    use KlassHero.Shared.Tracing.TracedWorker, queue: :test, max_attempts: 3
+    use TracedWorker, queue: :test, max_attempts: 3
 
-    @impl KlassHero.Shared.Tracing.TracedWorker
+    @impl TracedWorker
     def execute(_job), do: {:ok, :some_result}
   end
 

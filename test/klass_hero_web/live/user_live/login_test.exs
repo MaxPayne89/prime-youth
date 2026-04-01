@@ -4,6 +4,8 @@ defmodule KlassHeroWeb.UserLive.LoginTest do
   import KlassHero.AccountsFixtures
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Accounts.UserToken
+
   describe "login page" do
     test "renders login page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
@@ -27,7 +29,7 @@ defmodule KlassHeroWeb.UserLive.LoginTest do
 
       assert html =~ "If your email is in our system"
 
-      assert KlassHero.Repo.get_by!(KlassHero.Accounts.UserToken, user_id: user.id).context ==
+      assert KlassHero.Repo.get_by!(UserToken, user_id: user.id).context ==
                "login"
     end
 
@@ -53,9 +55,7 @@ defmodule KlassHeroWeb.UserLive.LoginTest do
       lv |> element("button", "Or use password") |> render_click()
 
       form =
-        form(lv, "#login_form_password",
-          user: %{email: user.email, password: valid_user_password(), remember_me: true}
-        )
+        form(lv, "#login_form_password", user: %{email: user.email, password: valid_user_password(), remember_me: true})
 
       conn = submit_form(form, conn)
 

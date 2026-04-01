@@ -1394,8 +1394,7 @@ defmodule KlassHeroWeb.ProviderComponents do
   defp status_label(:inactive), do: gettext("Inactive")
   defp status_label(_), do: gettext("Unknown")
 
-  defp enrollment_percentage(%{enrolled: e, capacity: c})
-       when is_integer(e) and is_integer(c) and c > 0 do
+  defp enrollment_percentage(%{enrolled: e, capacity: c}) when is_integer(e) and is_integer(c) and c > 0 do
     min(100, div(e * 100, c))
   end
 
@@ -1651,8 +1650,7 @@ defmodule KlassHeroWeb.ProviderComponents do
     """
   end
 
-  defp message_button_title(false = _can_message?, _entry),
-    do: gettext("Upgrade to Professional to message parents")
+  defp message_button_title(false = _can_message?, _entry), do: gettext("Upgrade to Professional to message parents")
 
   defp message_button_title(true = _can_message?, entry) do
     cond do
@@ -1909,11 +1907,9 @@ defmodule KlassHeroWeb.ProviderComponents do
   defp humanize_field(:guardian_last_name), do: dgettext("enrollment", "Guardian last name")
   defp humanize_field(:guardian2_email), do: dgettext("enrollment", "Second guardian email")
 
-  defp humanize_field(:guardian2_first_name),
-    do: dgettext("enrollment", "Second guardian first name")
+  defp humanize_field(:guardian2_first_name), do: dgettext("enrollment", "Second guardian first name")
 
-  defp humanize_field(:guardian2_last_name),
-    do: dgettext("enrollment", "Second guardian last name")
+  defp humanize_field(:guardian2_last_name), do: dgettext("enrollment", "Second guardian last name")
 
   defp humanize_field(:program_name), do: dgettext("enrollment", "Program")
   defp humanize_field(:school_grade), do: dgettext("enrollment", "Grade")

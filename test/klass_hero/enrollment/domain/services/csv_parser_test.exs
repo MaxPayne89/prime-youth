@@ -344,9 +344,7 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParserTest do
     test "parses quoted fields containing commas" do
       csv =
         build_csv([
-          row_with_overrides(
-            school_name: ~s|"2HB - BIS Kant international school, Thursday organic arts class "|
-          )
+          row_with_overrides(school_name: ~s|"2HB - BIS Kant international school, Thursday organic arts class "|)
         ])
 
       assert {:ok, [row]} = CsvParser.parse(csv)

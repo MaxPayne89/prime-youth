@@ -72,9 +72,7 @@ defmodule Mix.Tasks.Dev.Setup do
   end
 
   defp container_running?(name) do
-    case System.cmd("docker", ["ps", "--filter", "name=#{name}", "--format", "{{.Names}}"],
-           stderr_to_stdout: true
-         ) do
+    case System.cmd("docker", ["ps", "--filter", "name=#{name}", "--format", "{{.Names}}"], stderr_to_stdout: true) do
       {output, 0} -> String.trim(output) == name
       _ -> false
     end
@@ -113,9 +111,7 @@ defmodule Mix.Tasks.Dev.Setup do
     Mix.shell().info("Waiting for PostgreSQL to be ready...")
 
     wait_for_health(@postgres_container, "PostgreSQL", @max_health_check_retries, fn ->
-      System.cmd("docker", ["exec", @postgres_container, "pg_isready", "-U", "postgres"],
-        stderr_to_stdout: true
-      )
+      System.cmd("docker", ["exec", @postgres_container, "pg_isready", "-U", "postgres"], stderr_to_stdout: true)
     end)
   end
 

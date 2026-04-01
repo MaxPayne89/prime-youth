@@ -72,8 +72,7 @@ defmodule KlassHeroWeb.Telemetry do
       ),
       summary("klass_hero.repo.query.idle_time",
         unit: {:native, :millisecond},
-        description:
-          "The time the connection spent waiting before being checked out for the query"
+        description: "The time the connection spent waiting before being checked out for the query"
       ),
 
       # LiveView Metrics

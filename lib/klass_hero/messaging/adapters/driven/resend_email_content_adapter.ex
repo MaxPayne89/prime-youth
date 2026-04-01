@@ -44,16 +44,12 @@ defmodule KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter do
         {:ok, %Req.Response{status: status, body: body}} when status >= 400 ->
           set_attribute("http.status_code", status)
 
-          Logger.error(
-            "Resend API client error #{status} for email #{resend_email_id}: #{inspect(body)}"
-          )
+          Logger.error("Resend API client error #{status} for email #{resend_email_id}: #{inspect(body)}")
 
           {:error, {:client_error, status}}
 
         {:error, exception} ->
-          Logger.error(
-            "Resend API request failed for email #{resend_email_id}: #{inspect(exception)}"
-          )
+          Logger.error("Resend API request failed for email #{resend_email_id}: #{inspect(exception)}")
 
           {:error, :request_failed}
       end

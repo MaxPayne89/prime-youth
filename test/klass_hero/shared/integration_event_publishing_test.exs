@@ -64,9 +64,7 @@ defmodule KlassHero.Shared.IntegrationEventPublishingTest do
 
       log =
         capture_log([level: :warning], fn ->
-          IntegrationEventPublishing.publish_critical(event, "critical_event",
-            entity_id: "entity-123"
-          )
+          IntegrationEventPublishing.publish_critical(event, "critical_event", entity_id: "entity-123")
         end)
 
       assert log =~ "Failed to publish critical_event"

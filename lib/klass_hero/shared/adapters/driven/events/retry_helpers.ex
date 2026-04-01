@@ -125,8 +125,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
           operation :: (-> :ok | {:ok, term()} | {:error, atom() | {atom(), term()}}),
           context :: map()
         ) :: :ok | {:error, atom() | {atom(), term()}}
-  def retry_and_normalize(operation, context)
-      when is_function(operation, 0) and is_map(context) do
+  def retry_and_normalize(operation, context) when is_function(operation, 0) and is_map(context) do
     case retry_with_backoff(operation, context) do
       {:ok, _} -> :ok
       other -> other
@@ -200,8 +199,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.RetryHelpers do
   def permanent_error?({:validation_error, _}), do: true
   # Trigger: step-tagged error where the step is NOT :validation_error (already matched above)
   # Why: delegates classification to the inner reason for use case step-tagged errors
-  def permanent_error?({step, reason}) when is_atom(step) and step != :validation_error,
-    do: permanent_error?(reason)
+  def permanent_error?({step, reason}) when is_atom(step) and step != :validation_error, do: permanent_error?(reason)
 
   def permanent_error?(_), do: false
 

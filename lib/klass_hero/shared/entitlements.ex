@@ -460,13 +460,11 @@ defmodule KlassHero.Shared.Entitlements do
 
   defp parent_can_message?(nil), do: false
 
-  defp parent_can_message?(%{subscription_tier: tier}),
-    do: get_parent_limit(tier, :can_initiate_messaging)
+  defp parent_can_message?(%{subscription_tier: tier}), do: get_parent_limit(tier, :can_initiate_messaging)
 
   defp provider_can_message?(nil), do: false
 
-  defp provider_can_message?(%{subscription_tier: tier}),
-    do: get_provider_limit(tier, :can_initiate_messaging)
+  defp provider_can_message?(%{subscription_tier: tier}), do: get_provider_limit(tier, :can_initiate_messaging)
 
   defp get_parent_limit(tier, key) do
     tier = tier || :explorer

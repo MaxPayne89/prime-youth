@@ -72,12 +72,7 @@ defmodule KlassHero.Accounts.Adapters.Driving.Events.StaffInvitationHandler do
   end
 
   defp handle_existing_user(
-         %{
-           email: email,
-           staff_member_id: staff_member_id,
-           provider_id: provider_id,
-           business_name: business_name
-         },
+         %{email: email, staff_member_id: staff_member_id, provider_id: provider_id, business_name: business_name},
          user
        ) do
     dashboard_url =

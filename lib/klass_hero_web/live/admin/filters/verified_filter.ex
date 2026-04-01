@@ -5,10 +5,12 @@ defmodule KlassHeroWeb.Admin.Filters.VerifiedFilter do
 
   import Ecto.Query
 
+  alias Backpex.Filters.Boolean
+
   @impl Backpex.Filter
   def label, do: "Verification Status"
 
-  @impl Backpex.Filters.Boolean
+  @impl Boolean
   def options(_assigns) do
     [
       %{label: "Verified", key: "verified", predicate: dynamic([x], x.verified)},

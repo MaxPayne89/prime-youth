@@ -58,9 +58,7 @@ defmodule KlassHeroWeb.AboutLive do
         icon_gradient: "bg-hero-blue-400",
         title: gettext("Video Screening"),
         description:
-          gettext(
-            "Applicants complete a video screening to assess communication skills and alignment with our values."
-          )
+          gettext("Applicants complete a video screening to assess communication skills and alignment with our values.")
       },
       %{
         number: 5,

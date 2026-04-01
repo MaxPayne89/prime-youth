@@ -51,6 +51,8 @@ defmodule KlassHero.Enrollment do
       Adapters.Driven.Persistence.Schemas.EnrollmentSchema
     ]
 
+  alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentPolicySchema
+  alias KlassHero.Enrollment.Application.ParticipantPolicyForm
   alias KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin
   alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
   alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
@@ -67,6 +69,7 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.ListProgramInvites
   alias KlassHero.Enrollment.Application.UseCases.ResendInvite
   alias KlassHero.Enrollment.Application.UseCases.SetParticipantPolicy
+  alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
   alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
 
   @policy_repo Application.compile_env!(
@@ -143,8 +146,7 @@ defmodule KlassHero.Enrollment do
   - `{:error, :invalid_reason}` — reason is empty
   """
   def cancel_enrollment_by_admin(enrollment_id, admin_id, reason)
-      when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) and
-             byte_size(reason) > 0 do
+      when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) and byte_size(reason) > 0 do
     CancelEnrollmentByAdmin.execute(enrollment_id, admin_id, reason)
   end
 
@@ -282,8 +284,6 @@ defmodule KlassHero.Enrollment do
   - `{:ok, :unlimited}` — no maximum configured
   """
   def remaining_capacity(program_id) when is_binary(program_id) do
-    alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
-
     case @policy_repo.get_by_program_id(program_id) do
       {:error, :not_found} ->
         {:ok, :unlimited}
@@ -299,8 +299,6 @@ defmodule KlassHero.Enrollment do
   Returns a map of `program_id => remaining_count | :unlimited`.
   """
   def get_remaining_capacities(program_ids) when is_list(program_ids) do
-    alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
-
     {policies, active_counts} = fetch_policies_and_active_counts(program_ids)
 
     Map.new(program_ids, fn id ->
@@ -350,8 +348,6 @@ defmodule KlassHero.Enrollment do
   defp calculate_capacity(nil, _active), do: nil
 
   defp calculate_capacity(policy, active) do
-    alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
-
     case EnrollmentPolicy.remaining_capacity(policy, active) do
       :unlimited -> nil
       remaining -> active + remaining
@@ -365,8 +361,6 @@ defmodule KlassHero.Enrollment do
   before the program is created.
   """
   def new_policy_changeset(attrs \\ %{}) do
-    alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentPolicySchema
-
     EnrollmentPolicySchema.changeset(%EnrollmentPolicySchema{}, attrs)
   end
 
@@ -381,8 +375,7 @@ defmodule KlassHero.Enrollment do
   Returns `{:error, :ineligible, reasons}` with human-readable reason list.
   Returns `{:error, :not_found}` when the child does not exist.
   """
-  def check_participant_eligibility(program_id, child_id)
-      when is_binary(program_id) and is_binary(child_id) do
+  def check_participant_eligibility(program_id, child_id) when is_binary(program_id) and is_binary(child_id) do
     CheckParticipantEligibility.execute(program_id, child_id)
   end
 
@@ -409,8 +402,6 @@ defmodule KlassHero.Enrollment do
   inline before the program is created.
   """
   def new_participant_policy_changeset(attrs \\ %{}) do
-    alias KlassHero.Enrollment.Application.ParticipantPolicyForm
-
     ParticipantPolicyForm.changeset(%ParticipantPolicyForm{}, attrs)
   end
 
@@ -430,8 +421,7 @@ defmodule KlassHero.Enrollment do
   - `{:ok, %{created: count}}` on success
   - `{:error, error_report}` with parse_errors, validation_errors, or duplicate_errors
   """
-  def import_enrollment_csv(provider_id, csv_binary)
-      when is_binary(provider_id) and is_binary(csv_binary) do
+  def import_enrollment_csv(provider_id, csv_binary) when is_binary(provider_id) and is_binary(csv_binary) do
     ImportEnrollmentCsv.execute(provider_id, csv_binary)
   end
 
@@ -458,8 +448,7 @@ defmodule KlassHero.Enrollment do
 
   Returns `{:ok, invite}` on success, `{:error, :not_found}` or `{:error, :not_resendable}`.
   """
-  def resend_invite(invite_id, provider_id)
-      when is_binary(invite_id) and is_binary(provider_id) do
+  def resend_invite(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
     ResendInvite.execute(invite_id, provider_id)
   end
 
@@ -470,8 +459,7 @@ defmodule KlassHero.Enrollment do
 
   Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
   """
-  def delete_invite(invite_id, provider_id)
-      when is_binary(invite_id) and is_binary(provider_id) do
+  def delete_invite(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
     DeleteInvite.execute(invite_id, provider_id)
   end
 

@@ -7,6 +7,65 @@
 # General application configuration
 import Config
 
+alias ExAws.Request.Req
+alias FunWithFlags.Notifications.PhoenixPubSub
+alias KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
+alias KlassHero.Accounts.Adapters.Driving.Events.StaffInvitationHandler
+alias KlassHero.Accounts.Scope
+alias KlassHero.Enrollment.Adapters.Driven.Accounts.UserAccountResolver
+alias KlassHero.Enrollment.Adapters.Driven.ACL.ChildInfoACL
+alias KlassHero.Enrollment.Adapters.Driven.ACL.ParentInfoACL
+alias KlassHero.Enrollment.Adapters.Driven.ACL.ParticipantDetailsACL
+alias KlassHero.Enrollment.Adapters.Driven.ACL.ProgramCatalogACL
+alias KlassHero.Enrollment.Adapters.Driven.ACL.ProgramScheduleACL
+alias KlassHero.Enrollment.Adapters.Driven.Notifications.InviteEmailNotifier
+alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
+alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentPolicyRepository
+alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentRepository
+alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.ParticipantPolicyRepository
+alias KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler
+alias KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACL
+alias KlassHero.Family.Adapters.Driven.ACL.ChildParticipationACL
+alias KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildRepository
+alias KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepository
+alias KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfileRepository
+alias KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler
+alias KlassHero.Family.Adapters.Driving.Events.InviteClaimedHandler
+alias KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver
+alias KlassHero.Messaging.Adapters.Driven.Enrollment.EnrollmentResolver
+alias KlassHero.Messaging.Adapters.Driven.ObanEmailJobScheduler
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationRepository
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.EmailReplyRepository
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailRepository
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
+alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
+alias KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler
+alias KlassHero.Messaging.Workers.MessageCleanupWorker
+alias KlassHero.Messaging.Workers.RetentionPolicyWorker
+alias KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
+alias KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver
+alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
+alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository
+alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository
+alias KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver
+alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
+alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramStaffAssignmentRepository
+alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
+alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
+alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
+alias KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
+alias KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler
+alias KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher
+alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
+alias KlassHero.Shared.Adapters.Driven.FeatureFlags.FunWithFlagsAdapter
+alias KlassHero.Shared.Adapters.Driven.Persistence.Repositories.ProcessedEventRepository
+alias KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter
+alias Swoosh.Adapters.Local
+
 config :error_tracker, repo: KlassHero.Repo, otp_app: :klass_hero, enabled: true
 
 # Configure esbuild (the version is required)
@@ -20,12 +79,12 @@ config :esbuild,
   ]
 
 # Use Req (via Finch/Mint) instead of hackney for ExAws HTTP requests
-config :ex_aws, http_client: ExAws.Request.Req
+config :ex_aws, http_client: Req
 
 # Configure feature flags infrastructure (fun_with_flags)
 config :fun_with_flags, :cache_bust_notifications,
   enabled: true,
-  adapter: FunWithFlags.Notifications.PhoenixPubSub,
+  adapter: PhoenixPubSub,
   client: KlassHero.PubSub
 
 config :fun_with_flags, :persistence,
@@ -40,7 +99,7 @@ config :fun_with_flags, :persistence,
 # For production it's recommended to configure a different adapter
 # at the `config/runtime.exs`.
 # Configures the endpoint
-config :klass_hero, KlassHero.Mailer, adapter: Swoosh.Adapters.Local
+config :klass_hero, KlassHero.Mailer, adapter: Local
 
 config :klass_hero, KlassHeroWeb.Endpoint,
   url: [host: "localhost", port: 4000],
@@ -64,8 +123,8 @@ config :klass_hero, Oban,
     Oban.Plugins.Pruner,
     {Oban.Plugins.Cron,
      crontab: [
-       {"0 3 * * *", KlassHero.Messaging.Workers.MessageCleanupWorker},
-       {"0 4 * * *", KlassHero.Messaging.Workers.RetentionPolicyWorker}
+       {"0 3 * * *", MessageCleanupWorker},
+       {"0 4 * * *", RetentionPolicyWorker}
      ]}
   ],
   # email: 1 — serialized to stay under Resend's 2 req/sec rate limit (per-node;
@@ -73,8 +132,7 @@ config :klass_hero, Oban,
   queues: [default: 10, messaging: 5, cleanup: 2, email: 1, family: 1, critical_events: 5]
 
 # Configure Accounts bounded context
-config :klass_hero, :accounts,
-  for_storing_users: KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserRepository
+config :klass_hero, :accounts, for_storing_users: UserRepository
 
 # Base URL for constructing links in emails and event handlers
 # (avoids boundary violations from referencing KlassHeroWeb.Endpoint in domain code)
@@ -91,105 +149,89 @@ config :klass_hero, :contact,
 # are registered here; non-critical events use PubSub-only delivery.
 config :klass_hero, :critical_event_handlers, %{
   "integration:enrollment:invite_claimed" => [
-    {KlassHero.Family.Adapters.Driving.Events.InviteClaimedHandler, :handle_event}
+    {InviteClaimedHandler, :handle_event}
   ],
   "integration:family:invite_family_ready" => [
-    {KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler, :handle_event}
+    {InviteFamilyReadyHandler, :handle_event}
   ],
   "integration:provider:staff_member_invited" => [
-    {KlassHero.Accounts.Adapters.Driving.Events.StaffInvitationHandler, :handle_event}
+    {StaffInvitationHandler, :handle_event}
   ],
   "integration:accounts:staff_invitation_sent" => [
-    {KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler, :handle_event}
+    {StaffInvitationStatusHandler, :handle_event}
   ],
   "integration:accounts:staff_invitation_failed" => [
-    {KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler, :handle_event}
+    {StaffInvitationStatusHandler, :handle_event}
   ],
   "integration:accounts:staff_user_registered" => [
-    {KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler, :handle_event}
+    {StaffInvitationStatusHandler, :handle_event}
   ],
   "integration:accounts:user_registered" => [
-    {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event},
-    {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event}
+    {FamilyEventHandler, :handle_event},
+    {ProviderEventHandler, :handle_event}
   ],
   "integration:accounts:user_confirmed" => [
-    {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event},
-    {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event}
+    {FamilyEventHandler, :handle_event},
+    {ProviderEventHandler, :handle_event}
   ],
   "integration:accounts:user_anonymized" => [
-    {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event},
-    {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event},
-    {KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler, :handle_event}
+    {FamilyEventHandler, :handle_event},
+    {ProviderEventHandler, :handle_event},
+    {MessagingEventHandler, :handle_event}
   ]
 }
 
 # Configure Enrollment bounded context
 config :klass_hero, :enrollment,
-  for_managing_enrollments:
-    KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentRepository,
-  for_managing_enrollment_policies:
-    KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.EnrollmentPolicyRepository,
-  for_managing_participant_policies:
-    KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.ParticipantPolicyRepository,
-  for_resolving_participant_details:
-    KlassHero.Enrollment.Adapters.Driven.ACL.ParticipantDetailsACL,
-  for_resolving_program_schedule: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramScheduleACL,
-  for_resolving_child_info: KlassHero.Enrollment.Adapters.Driven.ACL.ChildInfoACL,
-  for_resolving_parent_info: KlassHero.Enrollment.Adapters.Driven.ACL.ParentInfoACL,
-  for_storing_bulk_enrollment_invites:
-    KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository,
-  for_resolving_program_catalog: KlassHero.Enrollment.Adapters.Driven.ACL.ProgramCatalogACL,
-  for_resolving_user_accounts: KlassHero.Enrollment.Adapters.Driven.Accounts.UserAccountResolver,
-  for_sending_invite_emails:
-    KlassHero.Enrollment.Adapters.Driven.Notifications.InviteEmailNotifier
+  for_managing_enrollments: EnrollmentRepository,
+  for_managing_enrollment_policies: EnrollmentPolicyRepository,
+  for_managing_participant_policies: ParticipantPolicyRepository,
+  for_resolving_participant_details: ParticipantDetailsACL,
+  for_resolving_program_schedule: ProgramScheduleACL,
+  for_resolving_child_info: ChildInfoACL,
+  for_resolving_parent_info: ParentInfoACL,
+  for_storing_bulk_enrollment_invites: BulkEnrollmentInviteRepository,
+  for_resolving_program_catalog: ProgramCatalogACL,
+  for_resolving_user_accounts: UserAccountResolver,
+  for_sending_invite_emails: InviteEmailNotifier
 
 # Configure Event Publisher (domain events — internal context communication)
 config :klass_hero, :event_publisher,
-  module: KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher,
+  module: PubSubEventPublisher,
   pubsub: KlassHero.PubSub
 
 # Configure Family bounded context
 config :klass_hero, :family,
   repo: KlassHero.Repo,
-  for_storing_parent_profiles:
-    KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfileRepository,
-  for_storing_children: KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildRepository,
-  for_storing_consents:
-    KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepository,
-  for_managing_child_enrollments: KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACL,
-  for_managing_child_participation: KlassHero.Family.Adapters.Driven.ACL.ChildParticipationACL
+  for_storing_parent_profiles: ParentProfileRepository,
+  for_storing_children: ChildRepository,
+  for_storing_consents: ConsentRepository,
+  for_managing_child_enrollments: ChildEnrollmentACL,
+  for_managing_child_participation: ChildParticipationACL
 
 # Configure Feature Flags bounded context
-config :klass_hero, :feature_flags,
-  adapter: KlassHero.Shared.Adapters.Driven.FeatureFlags.FunWithFlagsAdapter
+config :klass_hero, :feature_flags, adapter: FunWithFlagsAdapter
 
 # Configure Integration Event Publisher (cross-context communication)
 config :klass_hero, :integration_event_publisher,
-  module: KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher,
+  module: PubSubIntegrationEventPublisher,
   pubsub: KlassHero.PubSub
 
 config :klass_hero, :mailer_defaults, from: {"KlassHero", "noreply@mail.klasshero.com"}
 
 # Configure Messaging bounded context
 config :klass_hero, :messaging,
-  for_managing_conversations:
-    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationRepository,
-  for_managing_messages:
-    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository,
-  for_managing_participants:
-    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository,
-  for_resolving_users: KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver,
-  for_querying_enrollments: KlassHero.Messaging.Adapters.Driven.Enrollment.EnrollmentResolver,
-  for_resolving_program_staff:
-    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository,
-  for_managing_conversation_summaries:
-    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository,
-  for_managing_inbound_emails:
-    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailRepository,
-  for_fetching_email_content: KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter,
-  for_managing_email_replies:
-    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.EmailReplyRepository,
-  for_scheduling_email_jobs: KlassHero.Messaging.Adapters.Driven.ObanEmailJobScheduler,
+  for_managing_conversations: ConversationRepository,
+  for_managing_messages: MessageRepository,
+  for_managing_participants: ParticipantRepository,
+  for_resolving_users: UserResolver,
+  for_querying_enrollments: EnrollmentResolver,
+  for_resolving_program_staff: ProgramStaffParticipantRepository,
+  for_managing_conversation_summaries: ConversationSummariesRepository,
+  for_managing_inbound_emails: InboundEmailRepository,
+  for_fetching_email_content: ResendEmailContentAdapter,
+  for_managing_email_replies: EmailReplyRepository,
+  for_scheduling_email_jobs: ObanEmailJobScheduler,
   retention: [
     days_after_program_end: 30,
     retention_period_days: 30
@@ -197,42 +239,32 @@ config :klass_hero, :messaging,
 
 # Configure Participation bounded context
 config :klass_hero, :participation,
-  session_repository:
-    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
-  participation_repository:
-    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-  child_info_resolver: KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver,
-  behavioral_note_repository:
-    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository,
-  program_provider_resolver:
-    KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver,
-  enrolled_children_resolver:
-    KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
+  session_repository: SessionRepository,
+  participation_repository: ParticipationRepository,
+  child_info_resolver: ChildInfoResolver,
+  behavioral_note_repository: BehavioralNoteRepository,
+  program_provider_resolver: ProgramProviderResolver,
+  enrolled_children_resolver: EnrolledChildrenResolver
 
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,
-  repository: KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository,
-  for_listing_program_summaries:
-    KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
+  repository: ProgramRepository,
+  for_listing_program_summaries: ProgramListingsRepository
 
 # Configure Provider bounded context
 config :klass_hero, :provider,
   repo: KlassHero.Repo,
-  for_storing_provider_profiles:
-    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository,
-  for_storing_verification_documents:
-    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository,
-  for_storing_staff_members:
-    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository,
-  for_storing_program_staff_assignments:
-    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramStaffAssignmentRepository
+  for_storing_provider_profiles: ProviderProfileRepository,
+  for_storing_verification_documents: VerificationDocumentRepository,
+  for_storing_staff_members: StaffMemberRepository,
+  for_storing_program_staff_assignments: ProgramStaffAssignmentRepository
 
 config :klass_hero, :resend_req_options, []
 
 config :klass_hero, :scopes,
   user: [
     default: true,
-    module: KlassHero.Accounts.Scope,
+    module: Scope,
     assign_key: :current_scope,
     access_path: [:user, :id],
     schema_key: :user_id,
@@ -243,13 +275,11 @@ config :klass_hero, :scopes,
   ]
 
 # Configure Shared bounded context (critical event infrastructure)
-config :klass_hero, :shared,
-  for_tracking_processed_events:
-    KlassHero.Shared.Adapters.Driven.Persistence.Repositories.ProcessedEventRepository
+config :klass_hero, :shared, for_tracking_processed_events: ProcessedEventRepository
 
 # Configure Storage (defaults, overridden per environment)
 config :klass_hero, :storage,
-  adapter: KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter,
+  adapter: S3StorageAdapter,
   bucket: "klass-hero-dev"
 
 config :klass_hero,

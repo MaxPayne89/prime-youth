@@ -60,12 +60,10 @@ defmodule KlassHero.Shared.ErrorIds do
   def session_validation_error, do: "participation.session.validation.error"
 
   @doc "Session create failed due to changeset errors."
-  def session_create_failed(%Ecto.Changeset{} = _changeset),
-    do: "participation.session.create.failed"
+  def session_create_failed(%Ecto.Changeset{} = _changeset), do: "participation.session.create.failed"
 
   @doc "Session update failed due to changeset errors."
-  def session_update_failed(%Ecto.Changeset{} = _changeset),
-    do: "participation.session.update.failed"
+  def session_update_failed(%Ecto.Changeset{} = _changeset), do: "participation.session.update.failed"
 
   # Participation Context - Participation Record Domain Errors
 
@@ -73,8 +71,7 @@ defmodule KlassHero.Shared.ErrorIds do
   def participation_update_stale_error, do: "participation.record.update.stale_entry"
 
   @doc "Participation update failed due to constraint violation."
-  def participation_update_constraint_violation,
-    do: "participation.record.update.constraint_violation"
+  def participation_update_constraint_violation, do: "participation.record.update.constraint_violation"
 
   @doc "Duplicate participation record error - record already exists for session/child combination."
   def participation_duplicate_error, do: "participation.record.create.duplicate"
@@ -83,12 +80,10 @@ defmodule KlassHero.Shared.ErrorIds do
   def participation_validation_error, do: "participation.record.validation.error"
 
   @doc "Participation record create failed due to changeset errors."
-  def participation_record_create_failed(%Ecto.Changeset{} = _changeset),
-    do: "participation.record.create.failed"
+  def participation_record_create_failed(%Ecto.Changeset{} = _changeset), do: "participation.record.create.failed"
 
   @doc "Participation record update failed due to changeset errors."
-  def participation_record_update_failed(%Ecto.Changeset{} = _changeset),
-    do: "participation.record.update.failed"
+  def participation_record_update_failed(%Ecto.Changeset{} = _changeset), do: "participation.record.update.failed"
 
   # Identity Context - Domain Errors
 

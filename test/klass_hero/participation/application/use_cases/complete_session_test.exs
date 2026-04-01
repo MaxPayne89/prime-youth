@@ -9,6 +9,7 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSessionTest do
 
   import KlassHero.Factory
 
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema
   alias KlassHero.Participation.Application.UseCases.CompleteSession
   alias KlassHero.Participation.Domain.Models.ProgramSession
 
@@ -53,7 +54,7 @@ defmodule KlassHero.Participation.Application.UseCases.CompleteSessionTest do
 
       reloaded =
         KlassHero.Repo.get(
-          KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ProgramSessionSchema,
+          ProgramSessionSchema,
           session_schema.id
         )
 

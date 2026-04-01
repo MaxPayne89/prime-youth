@@ -27,6 +27,9 @@ defmodule KlassHeroWeb.Admin.AccountLive do
 
   import Ecto.Query
 
+  alias Backpex.Fields.Boolean
+  alias Backpex.Fields.Text
+
   @impl Backpex.LiveResource
   def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
 
@@ -65,21 +68,21 @@ defmodule KlassHeroWeb.Admin.AccountLive do
   def fields do
     [
       email: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Email",
         searchable: true,
         orderable: true,
         readonly: true
       },
       name: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Name",
         searchable: true,
         orderable: true,
         readonly: true
       },
       roles: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Roles",
         readonly: true,
         only: [:index, :show],
@@ -111,7 +114,7 @@ defmodule KlassHeroWeb.Admin.AccountLive do
         end
       },
       subscription: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Subscription",
         readonly: true,
         only: [:index, :show],
@@ -142,7 +145,7 @@ defmodule KlassHeroWeb.Admin.AccountLive do
         end
       },
       is_admin: %{
-        module: Backpex.Fields.Boolean,
+        module: Boolean,
         label: "Admin",
         only: [:edit]
       },

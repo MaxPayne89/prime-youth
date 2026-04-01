@@ -4,6 +4,7 @@ defmodule KlassHeroWeb.Staff.StaffSessionsLive do
   alias KlassHero.Participation
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+  alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -127,12 +128,7 @@ defmodule KlassHeroWeb.Staff.StaffSessionsLive do
   # PubSub event handlers — session lifecycle events
   @impl true
   def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: event_type,
-           aggregate_id: session_id,
-           payload: payload
-         }},
+        {:domain_event, %DomainEvent{event_type: event_type, aggregate_id: session_id, payload: payload}},
         socket
       )
       when event_type in [:session_started, :session_completed, :session_created, :roster_seeded] do
@@ -146,11 +142,7 @@ defmodule KlassHeroWeb.Staff.StaffSessionsLive do
 
   @impl true
   def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :child_checked_in,
-           payload: %{session_id: session_id}
-         }},
+        {:domain_event, %DomainEvent{event_type: :child_checked_in, payload: %{session_id: session_id}}},
         socket
       ) do
     {:noreply, update_session_in_stream(socket, session_id)}

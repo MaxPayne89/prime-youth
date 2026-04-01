@@ -212,8 +212,7 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
   defp maybe_add_filter(filters, _key, nil), do: filters
   defp maybe_add_filter(filters, key, value), do: Map.put(filters, key, value)
 
-  defp maybe_add_date_range(filters, %Date{} = from, %Date{} = to) when from == to,
-    do: Map.put(filters, :date, from)
+  defp maybe_add_date_range(filters, %Date{} = from, %Date{} = to) when from == to, do: Map.put(filters, :date, from)
 
   defp maybe_add_date_range(filters, %Date{} = from, %Date{} = to),
     do: Map.merge(filters, %{date_from: from, date_to: to})
@@ -270,14 +269,11 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
   defp error_message(:no_changes), do: gettext("No changes detected")
   defp error_message(:not_found), do: gettext("Record not found")
 
-  defp error_message(:stale_data),
-    do: gettext("Record was modified by someone else. Please refresh.")
+  defp error_message(:stale_data), do: gettext("Record was modified by someone else. Please refresh.")
 
-  defp error_message(:check_out_requires_check_in),
-    do: gettext("Cannot check out without a check-in")
+  defp error_message(:check_out_requires_check_in), do: gettext("Cannot check out without a check-in")
 
-  defp error_message(:check_in_must_precede_check_out),
-    do: gettext("Check-in time must be before check-out time")
+  defp error_message(:check_in_must_precede_check_out), do: gettext("Check-in time must be before check-out time")
 
   defp error_message(:invalid_time), do: gettext("Invalid time format")
 

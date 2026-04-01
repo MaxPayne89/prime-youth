@@ -4,6 +4,8 @@ defmodule KlassHeroWeb.Admin.BookingLiveTest do
   import KlassHero.Factory
   import Phoenix.LiveViewTest
 
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+
   describe "admin access control" do
     setup :register_and_log_in_admin
 
@@ -41,7 +43,7 @@ defmodule KlassHeroWeb.Admin.BookingLiveTest do
 
       program =
         KlassHero.Repo.get!(
-          KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema,
+          ProgramSchema,
           enrollment.program_id
         )
 

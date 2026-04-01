@@ -456,8 +456,7 @@ defmodule KlassHeroWeb.Theme do
       "font-sans text-base"
   """
   # Display font (Plus Jakarta Sans) for hero/heading text
-  def typography(:hero),
-    do: "font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
+  def typography(:hero), do: "font-display text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight"
 
   def typography(:page_title), do: "font-display text-3xl md:text-4xl font-bold tracking-tight"
 
@@ -542,8 +541,7 @@ defmodule KlassHeroWeb.Theme do
   """
   def button_variant(:primary), do: "bg-hero-blue-600 text-white hover:bg-hero-blue-700"
 
-  def button_variant(:secondary),
-    do: "bg-hero-yellow-400 text-hero-black hover:bg-hero-yellow-500"
+  def button_variant(:secondary), do: "bg-hero-yellow-400 text-hero-black hover:bg-hero-yellow-500"
 
   def button_variant(:outline), do: "border-2 border-gray-200 text-gray-700 hover:bg-gray-50"
   def button_variant(:ghost), do: "text-gray-600 hover:bg-gray-100"

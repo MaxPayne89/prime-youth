@@ -33,8 +33,10 @@ defmodule KlassHero.Shared.Tracing do
       import KlassHero.Shared.Tracing,
         only: [span: 1, span: 2, set_attribute: 2, set_attributes: 2]
 
-      require KlassHero.Shared.Tracing
+      alias KlassHero.Shared.Tracing
+
       require OpenTelemetry.Tracer
+      require Tracing
     end
   end
 

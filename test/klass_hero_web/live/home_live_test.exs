@@ -3,6 +3,8 @@ defmodule KlassHeroWeb.HomeLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema
+
   describe "home page" do
     test "renders hero section", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
@@ -357,7 +359,7 @@ defmodule KlassHeroWeb.HomeLiveTest do
       now = DateTime.truncate(DateTime.utc_now(), :second)
       program_id = Ecto.UUID.generate()
 
-      %KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema{}
+      %ProgramListingSchema{}
       |> Ecto.Changeset.change(%{
         id: program_id,
         title: "Featured Test Program",

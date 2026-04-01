@@ -135,10 +135,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
   # Why: a new program was created in the write model, the read table needs a corresponding row
   # Outcome: new row inserted into program_listings
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :program_created} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :program_created} = event}, state) do
     Logger.debug("ProgramListings projecting program_created",
       program_id: event.entity_id,
       event_id: event.event_id
@@ -152,10 +149,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
   # Why: program fields changed in the write model, the read table must reflect them
   # Outcome: existing row in program_listings updated with new field values
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :program_updated} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :program_updated} = event}, state) do
     Logger.debug("ProgramListings projecting program_updated",
       program_id: event.entity_id,
       event_id: event.event_id
@@ -169,10 +163,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
   # Why: provider gained verification status, all their listings should reflect this
   # Outcome: provider_verified set to true for all listings belonging to that provider
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :provider_verified} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :provider_verified} = event}, state) do
     provider_id = event.payload.provider_id
 
     Logger.debug("ProgramListings setting provider_verified=true",
@@ -188,10 +179,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings d
   # Why: provider lost verification status, all their listings should reflect this
   # Outcome: provider_verified set to false for all listings belonging to that provider
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :provider_unverified} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :provider_unverified} = event}, state) do
     provider_id = event.payload.provider_id
 
     Logger.debug("ProgramListings setting provider_verified=false",

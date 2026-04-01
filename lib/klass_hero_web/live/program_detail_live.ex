@@ -85,10 +85,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   end
 
   @impl true
-  def handle_info(
-        {:domain_event, %{event_type: :participant_policy_set, payload: payload}},
-        socket
-      ) do
+  def handle_info({:domain_event, %{event_type: :participant_policy_set, payload: payload}}, socket) do
     # Trigger: provider changed participant restrictions for a program
     # Why: only re-fetch if the event is for the program this LiveView is displaying
     # Outcome: participant_policy assign is refreshed, template re-renders

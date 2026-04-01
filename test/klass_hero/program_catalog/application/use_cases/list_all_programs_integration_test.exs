@@ -28,6 +28,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
   # which is not process-safe and can interfere with parallel tests
   use KlassHero.DataCase, async: false
 
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema
   alias KlassHero.ProgramCatalog.Application.UseCases.ListAllPrograms
   alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
@@ -132,7 +133,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListAllProgramsIntegrati
       repository_module = config[:for_listing_program_summaries]
 
       assert repository_module ==
-               KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
+               ProgramListingsRepository
 
       insert_listing(%{
         title: "Test Program",

@@ -147,8 +147,7 @@ defmodule KlassHero.Enrollment.Domain.Models.Enrollment do
   @spec cancel(t(), String.t() | nil) :: {:ok, t()} | {:error, :invalid_status_transition}
   def cancel(enrollment, reason \\ nil)
 
-  def cancel(%__MODULE__{status: status} = enrollment, reason)
-      when status in [:pending, :confirmed] do
+  def cancel(%__MODULE__{status: status} = enrollment, reason) when status in [:pending, :confirmed] do
     {:ok,
      %{
        enrollment

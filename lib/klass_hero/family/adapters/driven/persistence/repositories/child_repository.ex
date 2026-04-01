@@ -146,8 +146,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   end
 
   @impl true
-  def anonymize(child_id, anonymized_attrs)
-      when is_binary(child_id) and is_map(anonymized_attrs) do
+  def anonymize(child_id, anonymized_attrs) when is_binary(child_id) and is_map(anonymized_attrs) do
     span do
       set_attributes("db", operation: "update", entity: "child")
 
@@ -228,8 +227,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   end
 
   @impl true
-  def child_belongs_to_guardian?(child_id, guardian_id)
-      when is_binary(child_id) and is_binary(guardian_id) do
+  def child_belongs_to_guardian?(child_id, guardian_id) when is_binary(child_id) and is_binary(guardian_id) do
     span do
       set_attributes("db", operation: "select", entity: "child")
 

@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
 
   alias KlassHero.Family
   alias KlassHero.Participation
+  alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -120,12 +121,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
   # PubSub event handler for participation record events
   @impl true
   def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: event_type,
-           aggregate_id: record_id,
-           payload: %{child_id: child_id}
-         }},
+        {:domain_event, %DomainEvent{event_type: event_type, aggregate_id: record_id, payload: %{child_id: child_id}}},
         socket
       )
       when event_type in [:child_checked_in, :child_checked_out, :participation_marked_absent] do
@@ -144,11 +140,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
   # PubSub handler for new behavioral note — refresh pending notes if child belongs to parent
   @impl true
   def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: :behavioral_note_submitted,
-           payload: %{child_id: child_id}
-         }},
+        {:domain_event, %DomainEvent{event_type: :behavioral_note_submitted, payload: %{child_id: child_id}}},
         socket
       ) do
     socket =
@@ -179,9 +171,7 @@ defmodule KlassHeroWeb.Parent.ParticipationHistoryLive do
         {:error, reason} -> handle_history_error(socket, parent_id, reason)
       end
     else
-      Logger.warning(
-        "[ParticipationHistoryLive.load_participation_history] No parent_id available"
-      )
+      Logger.warning("[ParticipationHistoryLive.load_participation_history] No parent_id available")
 
       socket
       |> stream(:participation_records, [], reset: true)

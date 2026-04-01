@@ -2,6 +2,7 @@ defmodule KlassHeroWeb.ResendWebhookControllerTest do
   use KlassHeroWeb.ConnCase, async: true
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailRepository
+  alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
 
   @valid_payload %{
     "type" => "email.received",
@@ -18,7 +19,7 @@ defmodule KlassHeroWeb.ResendWebhookControllerTest do
   }
 
   setup do
-    Req.Test.stub(KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter, fn conn ->
+    Req.Test.stub(ResendEmailContentAdapter, fn conn ->
       Req.Test.json(conn, %{
         "html" => "<p>Fetched</p>",
         "text" => "Fetched",

@@ -29,8 +29,7 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.UnassignStaffFrom
   - `program_id` — The program to unassign the staff member from.
   - `staff_member_id` — The staff member to unassign.
   """
-  def execute(program_id, staff_member_id)
-      when is_binary(program_id) and is_binary(staff_member_id) do
+  def execute(program_id, staff_member_id) when is_binary(program_id) and is_binary(staff_member_id) do
     with {:ok, staff_member} <- @staff_repo.get(staff_member_id),
          {:ok, assignment} <- @assignment_repo.unassign(program_id, staff_member_id) do
       publish_event(assignment, staff_member)

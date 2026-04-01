@@ -74,9 +74,7 @@ defmodule KlassHeroWeb.E2E.Messaging.BroadcastTest do
 
       parent_session
       |> visit_conversations(:parent)
-      |> assert_has(
-        Query.css("[data-role=conversation-card]", text: "Field trip tomorrow at 9am!")
-      )
+      |> assert_has(Query.css("[data-role=conversation-card]", text: "Field trip tomorrow at 9am!"))
     end
 
     test "parent replies privately to broadcast and provider sees private conversation", %{
@@ -107,9 +105,7 @@ defmodule KlassHeroWeb.E2E.Messaging.BroadcastTest do
 
       provider_session
       |> visit_conversations(:provider)
-      |> assert_has(
-        Query.css("[data-role=conversation-card]", text: "Should we also bring lunch?")
-      )
+      |> assert_has(Query.css("[data-role=conversation-card]", text: "Should we also bring lunch?"))
     end
   end
 end

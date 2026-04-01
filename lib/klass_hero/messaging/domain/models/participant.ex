@@ -99,8 +99,7 @@ defmodule KlassHero.Messaging.Domain.Models.Participant do
   def has_unread?(%__MODULE__{last_read_at: nil}, nil), do: false
   def has_unread?(%__MODULE__{last_read_at: nil}, _latest_message_at), do: true
 
-  def has_unread?(%__MODULE__{last_read_at: last_read_at}, latest_message_at)
-      when not is_nil(latest_message_at) do
+  def has_unread?(%__MODULE__{last_read_at: last_read_at}, latest_message_at) when not is_nil(latest_message_at) do
     DateTime.before?(last_read_at, latest_message_at)
   end
 

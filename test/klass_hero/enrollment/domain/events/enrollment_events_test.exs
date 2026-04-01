@@ -59,9 +59,7 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEventsTest do
       correlation_id = Ecto.UUID.generate()
 
       event =
-        EnrollmentEvents.bulk_invites_imported("provider-1", ["prog-1"], 3,
-          correlation_id: correlation_id
-        )
+        EnrollmentEvents.bulk_invites_imported("provider-1", ["prog-1"], 3, correlation_id: correlation_id)
 
       assert DomainEvent.correlation_id(event) == correlation_id
     end

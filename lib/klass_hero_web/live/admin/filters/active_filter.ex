@@ -5,10 +5,12 @@ defmodule KlassHeroWeb.Admin.Filters.ActiveFilter do
 
   import Ecto.Query
 
+  alias Backpex.Filters.Boolean
+
   @impl Backpex.Filter
   def label, do: "Active Status"
 
-  @impl Backpex.Filters.Boolean
+  @impl Boolean
   def options(_assigns) do
     [
       %{label: "Active", key: "active", predicate: dynamic([x], x.active)},

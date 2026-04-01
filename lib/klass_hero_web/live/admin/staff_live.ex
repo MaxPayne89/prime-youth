@@ -16,14 +16,18 @@ defmodule KlassHeroWeb.Admin.StaffLive do
     adapter_config: [
       schema: KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema,
       repo: KlassHero.Repo,
-      update_changeset:
-        &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema.admin_changeset/3,
+      update_changeset: &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema.admin_changeset/3,
       # Required by Backpex even though :new is disabled via can?/3
-      create_changeset:
-        &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema.admin_changeset/3
+      create_changeset: &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema.admin_changeset/3
     ],
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
+
+  alias Backpex.Fields.BelongsTo
+  alias Backpex.Fields.Boolean
+  alias Backpex.Fields.Text
+  alias Backpex.Fields.Textarea
+  alias KlassHeroWeb.Admin.Filters.ActiveFilter
 
   @impl Backpex.LiveResource
   def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
@@ -41,7 +45,7 @@ defmodule KlassHeroWeb.Admin.StaffLive do
 
   @impl Backpex.LiveResource
   def filters do
-    [active: %{module: KlassHeroWeb.Admin.Filters.ActiveFilter}]
+    [active: %{module: ActiveFilter}]
   end
 
   @impl Backpex.LiveResource
@@ -54,21 +58,21 @@ defmodule KlassHeroWeb.Admin.StaffLive do
   def fields do
     [
       first_name: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "First Name",
         searchable: true,
         orderable: true,
         readonly: true
       },
       last_name: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Last Name",
         searchable: true,
         orderable: true,
         readonly: true
       },
       provider: %{
-        module: Backpex.Fields.BelongsTo,
+        module: BelongsTo,
         label: "Provider",
         display_field: :business_name,
         searchable: true,
@@ -76,31 +80,31 @@ defmodule KlassHeroWeb.Admin.StaffLive do
         only: [:index, :show]
       },
       role: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Role",
         searchable: true,
         orderable: true,
         readonly: true
       },
       email: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Email",
         searchable: true,
         readonly: true
       },
       active: %{
-        module: Backpex.Fields.Boolean,
+        module: Boolean,
         label: "Active",
         orderable: true
       },
       bio: %{
-        module: Backpex.Fields.Textarea,
+        module: Textarea,
         label: "Bio",
         only: [:show],
         readonly: true
       },
       tags: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Tags",
         only: [:show],
         readonly: true,
@@ -111,7 +115,7 @@ defmodule KlassHeroWeb.Admin.StaffLive do
         end
       },
       qualifications: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Qualifications",
         only: [:show],
         readonly: true,

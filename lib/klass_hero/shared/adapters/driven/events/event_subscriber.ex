@@ -155,8 +155,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriber do
       end
   end
 
-  defp critical_integration_event?(%IntegrationEvent{} = event),
-    do: IntegrationEvent.critical?(event)
+  defp critical_integration_event?(%IntegrationEvent{} = event), do: IntegrationEvent.critical?(event)
 
   defp critical_integration_event?(_event), do: false
 
@@ -167,9 +166,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriber do
            handler.handle_event(event)
          end) do
       :ok ->
-        Logger.debug(
-          "#{label} #{event.event_type} handled by #{inspect(handler)} (critical, processed)"
-        )
+        Logger.debug("#{label} #{event.event_type} handled by #{inspect(handler)} (critical, processed)")
 
       {:error, reason} ->
         Logger.error(

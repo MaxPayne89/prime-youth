@@ -59,10 +59,7 @@ defmodule KlassHero.Participation.Application.UseCases.SubmitBehavioralNote do
   - `{:error, :duplicate_note}` if provider already submitted a note
   """
   @spec execute(params()) :: result()
-  def execute(
-        %{participation_record_id: record_id, provider_id: provider_id, content: content} =
-          _params
-      ) do
+  def execute(%{participation_record_id: record_id, provider_id: provider_id, content: content} = _params) do
     normalized_content = Shared.normalize_notes(content)
 
     with {:content, content} when content != nil <- {:content, normalized_content},

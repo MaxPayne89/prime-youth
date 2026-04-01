@@ -4,6 +4,8 @@ defmodule KlassHeroWeb.UserLive.RegistrationTest do
   import KlassHero.AccountsFixtures
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Accounts.User
+
   describe "Registration page" do
     test "renders registration page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/register")
@@ -116,7 +118,7 @@ defmodule KlassHeroWeb.UserLive.RegistrationTest do
       assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
 
       # Verify user was created with both roles
-      user = KlassHero.Repo.get_by!(KlassHero.Accounts.User, email: email)
+      user = KlassHero.Repo.get_by!(User, email: email)
       assert :parent in user.intended_roles
       assert :provider in user.intended_roles
     end
@@ -138,7 +140,7 @@ defmodule KlassHeroWeb.UserLive.RegistrationTest do
       assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
 
       # Verify user was created with provider role only
-      user = KlassHero.Repo.get_by!(KlassHero.Accounts.User, email: email)
+      user = KlassHero.Repo.get_by!(User, email: email)
       assert user.intended_roles == [:provider]
     end
 
@@ -160,7 +162,7 @@ defmodule KlassHeroWeb.UserLive.RegistrationTest do
       assert html =~ ~r/An email was sent to .*, please access it to confirm your account/
 
       # Verify user was created with default parent role
-      user = KlassHero.Repo.get_by!(KlassHero.Accounts.User, email: email)
+      user = KlassHero.Repo.get_by!(User, email: email)
       assert user.intended_roles == [:parent]
     end
   end

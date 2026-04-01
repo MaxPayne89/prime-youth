@@ -1,12 +1,25 @@
 import Config
 
+alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
+alias KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
+alias KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver
+alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
+alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository
+alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository
+alias KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver
+alias KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher
+alias KlassHero.Shared.Adapters.Driven.Events.TestIntegrationEventPublisher
+alias KlassHero.Shared.Adapters.Driven.FeatureFlags.StubFeatureFlagsAdapter
+alias KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter
+alias Swoosh.Adapters.Test
+
 # Only in tests, remove the complexity from the password hashing algorithm
 config :bcrypt_elixir, :log_rounds, 1
 
 # Disable fun_with_flags PubSub notifications in tests
 config :fun_with_flags, :cache_bust_notifications, enabled: false
 
-config :klass_hero, KlassHero.Mailer, adapter: Swoosh.Adapters.Test
+config :klass_hero, KlassHero.Mailer, adapter: Test
 
 config :klass_hero, KlassHero.Repo,
   username: "postgres",
@@ -27,34 +40,27 @@ config :klass_hero, Oban, testing: :inline
 
 # Use test event publishers for testing
 config :klass_hero, :event_publisher,
-  module: KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher,
+  module: TestEventPublisher,
   pubsub: KlassHero.PubSub
 
-config :klass_hero, :feature_flags,
-  adapter: KlassHero.Shared.Adapters.Driven.FeatureFlags.StubFeatureFlagsAdapter
+config :klass_hero, :feature_flags, adapter: StubFeatureFlagsAdapter
 
 config :klass_hero, :integration_event_publisher,
-  module: KlassHero.Shared.Adapters.Driven.Events.TestIntegrationEventPublisher,
+  module: TestIntegrationEventPublisher,
   pubsub: KlassHero.PubSub
 
 config :klass_hero, :participation,
-  session_repository:
-    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository,
-  participation_repository:
-    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository,
-  child_info_resolver: KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver,
-  behavioral_note_repository:
-    KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository,
-  program_provider_resolver:
-    KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver,
-  enrolled_children_resolver:
-    KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
+  session_repository: SessionRepository,
+  participation_repository: ParticipationRepository,
+  child_info_resolver: ChildInfoResolver,
+  behavioral_note_repository: BehavioralNoteRepository,
+  program_provider_resolver: ProgramProviderResolver,
+  enrolled_children_resolver: EnrolledChildrenResolver
 
-config :klass_hero, :resend_req_options,
-  plug: {Req.Test, KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter}
+config :klass_hero, :resend_req_options, plug: {Req.Test, ResendEmailContentAdapter}
 
 config :klass_hero, :storage,
-  adapter: KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter,
+  adapter: StubStorageAdapter,
   bucket: "klass-hero-test"
 
 config :klass_hero, :verify_webhook_signature, false

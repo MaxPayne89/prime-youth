@@ -35,9 +35,7 @@ defmodule KlassHero.Shared.Tracing.Context do
     headers = Enum.filter(context, fn {k, _} -> is_binary(k) end)
 
     if headers == [] do
-      Logger.debug(
-        "[Tracing.Context] No binary keys in context map, skipping attach: #{inspect(Map.keys(context))}"
-      )
+      Logger.debug("[Tracing.Context] No binary keys in context map, skipping attach: #{inspect(Map.keys(context))}")
     else
       # extract/1 both deserializes the W3C Trace Context headers and attaches
       # the resulting context to the current process, returning the old token.

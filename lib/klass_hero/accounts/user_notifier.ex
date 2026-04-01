@@ -96,11 +96,7 @@ defmodule KlassHero.Accounts.UserNotifier do
   `url` must be the full registration URL (passed from the web layer to avoid
   boundary violations).
   """
-  def deliver_staff_invitation(
-        email,
-        %{business_name: business_name, first_name: first_name},
-        url
-      ) do
+  def deliver_staff_invitation(email, %{business_name: business_name, first_name: first_name}, url) do
     deliver(email, "You've been invited to join #{business_name} on Klass Hero", """
     Hi #{first_name},
 
@@ -124,10 +120,7 @@ defmodule KlassHero.Accounts.UserNotifier do
   `dashboard_url` must be the full URL to the staff dashboard (passed from the web layer
   to avoid boundary violations).
   """
-  def deliver_staff_added_notification(email, %{
-        business_name: business_name,
-        dashboard_url: dashboard_url
-      }) do
+  def deliver_staff_added_notification(email, %{business_name: business_name, dashboard_url: dashboard_url}) do
     deliver(email, "You've been added to #{business_name}'s team on Klass Hero", """
     Hi,
 

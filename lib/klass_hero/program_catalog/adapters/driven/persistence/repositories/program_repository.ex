@@ -95,9 +95,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         |> Repo.all()
         |> MapperHelpers.to_domain_list(ProgramMapper)
 
-      Logger.info(
-        "[ProgramRepository] Successfully retrieved #{length(programs)} programs from database"
-      )
+      Logger.info("[ProgramRepository] Successfully retrieved #{length(programs)} programs from database")
 
       programs
     end
@@ -114,9 +112,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     span do
       set_attributes("db", operation: "select", entity: "program")
 
-      Logger.info(
-        "[ProgramRepository] Starting list_programs_for_provider query for provider: #{provider_id}"
-      )
+      Logger.info("[ProgramRepository] Starting list_programs_for_provider query for provider: #{provider_id}")
 
       programs =
         ProgramSchema
@@ -125,9 +121,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
         |> Repo.all()
         |> MapperHelpers.to_domain_list(ProgramMapper)
 
-      Logger.info(
-        "[ProgramRepository] Successfully retrieved #{length(programs)} programs for provider #{provider_id}"
-      )
+      Logger.info("[ProgramRepository] Successfully retrieved #{length(programs)} programs for provider #{provider_id}")
 
       programs
     end

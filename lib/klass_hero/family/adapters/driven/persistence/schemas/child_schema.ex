@@ -51,8 +51,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema do
   Receives pre-defined anonymized values from the domain model and applies
   them mechanically.
   """
-  def anonymize_changeset(%__MODULE__{} = child, anonymized_attrs)
-      when is_map(anonymized_attrs) do
+  def anonymize_changeset(%__MODULE__{} = child, anonymized_attrs) when is_map(anonymized_attrs) do
     change(child, anonymized_attrs)
   end
 

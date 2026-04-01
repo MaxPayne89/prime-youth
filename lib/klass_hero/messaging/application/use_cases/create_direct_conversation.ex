@@ -15,6 +15,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   alias KlassHero.Accounts.Scope
   alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
+  alias KlassHero.Messaging.Domain.Models.Conversation
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
 
@@ -47,7 +48,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
   - `{:error, reason}` - Other errors
   """
   @spec execute(Scope.t(), String.t(), String.t(), keyword()) ::
-          {:ok, KlassHero.Messaging.Domain.Models.Conversation.t()}
+          {:ok, Conversation.t()}
           | {:error, :not_entitled | term()}
   def execute(%Scope{} = scope, provider_id, target_user_id, opts \\ []) do
     with :ok <- Shared.maybe_check_entitlement(scope, opts) do

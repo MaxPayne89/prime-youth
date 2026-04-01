@@ -1,11 +1,12 @@
 defmodule KlassHero.Messaging.Application.UseCases.ReceiveInboundEmailTest do
   use KlassHero.DataCase, async: true
 
+  alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
   alias KlassHero.Messaging.Application.UseCases.ReceiveInboundEmail
   alias KlassHero.MessagingFixtures
 
   setup do
-    Req.Test.stub(KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter, fn conn ->
+    Req.Test.stub(ResendEmailContentAdapter, fn conn ->
       Req.Test.json(conn, %{
         "html" => "<p>Fetched</p>",
         "text" => "Fetched",

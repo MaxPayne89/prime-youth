@@ -116,8 +116,7 @@ defmodule KlassHero.Enrollment.Domain.Models.ParticipantPolicy do
   # Trigger: min_age exceeds max_age when both are set
   # Why: nonsensical — no child could satisfy a range where minimum exceeds maximum
   # Outcome: rejected with descriptive error
-  defp validate_age_range(errors, min, max)
-       when is_integer(min) and is_integer(max) and min > max do
+  defp validate_age_range(errors, min, max) when is_integer(min) and is_integer(max) and min > max do
     ["minimum age must not exceed maximum age" | errors]
   end
 
@@ -126,8 +125,7 @@ defmodule KlassHero.Enrollment.Domain.Models.ParticipantPolicy do
   # Trigger: min_grade exceeds max_grade when both are set
   # Why: same as age — inverted range is meaningless
   # Outcome: rejected with descriptive error
-  defp validate_grade_range(errors, min, max)
-       when is_integer(min) and is_integer(max) and min > max do
+  defp validate_grade_range(errors, min, max) when is_integer(min) and is_integer(max) and min > max do
     ["minimum grade must not exceed maximum grade" | errors]
   end
 

@@ -75,8 +75,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
 
   @doc "Creates a roster_seeded event."
   @spec roster_seeded(String.t(), String.t(), non_neg_integer(), keyword()) :: DomainEvent.t()
-  def roster_seeded(session_id, program_id, count, opts \\ [])
-      when is_binary(session_id) and is_binary(program_id) do
+  def roster_seeded(session_id, program_id, count, opts \\ []) when is_binary(session_id) and is_binary(program_id) do
     payload = %{
       session_id: session_id,
       program_id: program_id,
@@ -165,8 +164,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
     DomainEvent.new(:child_checked_out, record.id, @aggregate_type, payload, [])
   end
 
-  @doc deprecated:
-         "Use child_marked_absent/2 with ProgramSession to include program_id in payload"
+  @doc deprecated: "Use child_marked_absent/2 with ProgramSession to include program_id in payload"
   @spec child_marked_absent(ParticipationRecord.t()) :: DomainEvent.t()
   def child_marked_absent(%ParticipationRecord{} = record) do
     child_marked_absent(record, [])
@@ -183,8 +181,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
     DomainEvent.new(:child_marked_absent, record.id, @aggregate_type, payload, opts)
   end
 
-  def child_marked_absent(%ParticipationRecord{} = record, nil),
-    do: child_marked_absent(record, [])
+  def child_marked_absent(%ParticipationRecord{} = record, nil), do: child_marked_absent(record, [])
 
   @doc "Creates a child_marked_absent event with program_id from the session."
   @spec child_marked_absent(ParticipationRecord.t(), ProgramSession.t()) :: DomainEvent.t()

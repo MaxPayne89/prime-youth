@@ -10,6 +10,9 @@ defmodule KlassHero.Shared.Tracing.LiveViewHookTest do
   #
   # Two rounds of flush+drain ensure spans that arrive asynchronously after the
   # first flush are also cleared before the test begins.
+  alias KlassHeroWeb.Provider.ProgramLive.Index
+  alias Phoenix.LiveView.Socket
+
   setup do
     flush_spans()
     drain_spans()
@@ -39,7 +42,7 @@ defmodule KlassHero.Shared.Tracing.LiveViewHookTest do
   end
 
   defp connected_socket(view_module, live_action \\ :index) do
-    %Phoenix.LiveView.Socket{
+    %Socket{
       transport_pid: self(),
       view: view_module,
       assigns: %{__changed__: %{}, live_action: live_action}
@@ -47,7 +50,7 @@ defmodule KlassHero.Shared.Tracing.LiveViewHookTest do
   end
 
   defp disconnected_socket(view_module, live_action \\ :index) do
-    %Phoenix.LiveView.Socket{
+    %Socket{
       transport_pid: nil,
       view: view_module,
       assigns: %{__changed__: %{}, live_action: live_action}
@@ -67,7 +70,7 @@ defmodule KlassHero.Shared.Tracing.LiveViewHookTest do
     end
 
     test "span name strips KlassHeroWeb and KlassHero noise segments" do
-      socket = connected_socket(KlassHeroWeb.Provider.ProgramLive.Index)
+      socket = connected_socket(Index)
       {:cont, _socket} = LiveViewHook.on_mount(:trace, %{}, %{}, socket)
 
       flush_spans()

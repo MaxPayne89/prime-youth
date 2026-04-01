@@ -10,6 +10,10 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
 
   import Ecto.Changeset
 
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
+  alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @timestamps_opts [type: :utc_datetime]
@@ -19,11 +23,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
 
   schema "enrollments" do
     belongs_to :program,
-               KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
+               ProgramSchema
 
-    belongs_to :child, KlassHero.Family.Adapters.Driven.Persistence.Schemas.ChildSchema
+    belongs_to :child, ChildSchema
 
-    belongs_to :parent, KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
+    belongs_to :parent, ParentProfileSchema
 
     field :status, :string
     field :enrolled_at, :utc_datetime

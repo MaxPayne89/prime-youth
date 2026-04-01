@@ -126,10 +126,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   # Why: a new conversation was created, each participant needs a summary row
   # Outcome: one row per participant inserted into conversation_summaries
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :conversation_created} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :conversation_created} = event}, state) do
     Logger.debug("ConversationSummaries projecting conversation_created",
       conversation_id: event.entity_id,
       event_id: event.event_id
@@ -143,10 +140,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   # Why: latest message fields must be updated, unread_count incremented for non-senders
   # Outcome: all summary rows for this conversation updated
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :message_sent} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :message_sent} = event}, state) do
     Logger.debug("ConversationSummaries projecting message_sent",
       conversation_id: event.entity_id,
       event_id: event.event_id
@@ -160,10 +154,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   # Why: the user has read all messages, unread_count should be reset
   # Outcome: summary row for {conversation_id, user_id} updated
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :messages_read} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :messages_read} = event}, state) do
     Logger.debug("ConversationSummaries projecting messages_read",
       conversation_id: event.entity_id,
       event_id: event.event_id
@@ -177,10 +168,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   # Why: conversation is being archived, all summary rows must reflect this
   # Outcome: archived_at set for all rows of the conversation
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :conversation_archived} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :conversation_archived} = event}, state) do
     Logger.debug("ConversationSummaries projecting conversation_archived",
       conversation_id: event.entity_id,
       event_id: event.event_id
@@ -194,10 +182,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   # Why: multiple conversations archived at once, all summary rows must reflect this
   # Outcome: archived_at set for all rows of the affected conversations
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :conversations_archived} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :conversations_archived} = event}, state) do
     Logger.debug("ConversationSummaries projecting conversations_archived",
       event_id: event.event_id
     )
@@ -210,10 +195,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   # Why: a user's data was anonymized (GDPR), their display name must be replaced
   # Outcome: other_participant_name set to "Deleted User" for affected rows
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :message_data_anonymized} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :message_data_anonymized} = event}, state) do
     Logger.debug("ConversationSummaries projecting message_data_anonymized",
       user_id: event.entity_id,
       event_id: event.event_id
@@ -330,14 +312,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     end
   end
 
-  defp build_conversation_entries(
-         conversation,
-         user_names,
-         latest_messages,
-         unread_counts,
-         system_notes,
-         now
-       ) do
+  defp build_conversation_entries(conversation, user_names, latest_messages, unread_counts, system_notes, now) do
     active_participants = Enum.filter(conversation.participants, &is_nil(&1.left_at))
     latest_message = Map.get(latest_messages, conversation.id)
     conv_system_notes = Map.get(system_notes, conversation.id, %{})

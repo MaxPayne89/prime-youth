@@ -39,8 +39,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin do
           {:ok, Enrollment.t()}
           | {:error, :not_found | :invalid_status_transition | :invalid_reason | term()}
   def execute(enrollment_id, admin_id, reason)
-      when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) and
-             byte_size(reason) > 0 do
+      when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) and byte_size(reason) > 0 do
     with {:ok, enrollment} <- @enrollment_repo.get_by_id(enrollment_id),
          {:ok, cancelled} <- Enrollment.cancel(enrollment, reason),
          {:ok, persisted} <-
