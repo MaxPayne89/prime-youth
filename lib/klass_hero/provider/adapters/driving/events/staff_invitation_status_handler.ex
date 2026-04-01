@@ -23,8 +23,7 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_staff_members])
 
   @impl true
-  def subscribed_events,
-    do: [:staff_invitation_sent, :staff_invitation_failed, :staff_user_registered]
+  def subscribed_events, do: [:staff_invitation_sent, :staff_invitation_failed, :staff_user_registered]
 
   @impl true
   def handle_event(%IntegrationEvent{event_type: :staff_invitation_sent, payload: payload}) do
@@ -50,9 +49,7 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
         end)
 
       :error ->
-        Logger.error(
-          "[StaffInvitationStatusHandler] Missing :user_id in staff_user_registered payload"
-        )
+        Logger.error("[StaffInvitationStatusHandler] Missing :user_id in staff_user_registered payload")
 
         {:error, :invalid_payload}
     end

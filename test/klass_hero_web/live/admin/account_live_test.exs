@@ -3,6 +3,8 @@ defmodule KlassHeroWeb.Admin.AccountLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Accounts.User
+
   describe "admin access control" do
     setup :register_and_log_in_admin
 
@@ -269,7 +271,7 @@ defmodule KlassHeroWeb.Admin.AccountLiveTest do
       |> form("#resource-form", %{change: %{is_admin: true}})
       |> render_submit(%{"save-type" => "save"})
 
-      updated = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
+      updated = KlassHero.Repo.get!(User, target_user.id)
       assert updated.is_admin == true
     end
 
@@ -285,7 +287,7 @@ defmodule KlassHeroWeb.Admin.AccountLiveTest do
       |> form("#resource-form", %{change: %{is_admin: false}})
       |> render_submit(%{"save-type" => "save"})
 
-      updated = KlassHero.Repo.get!(KlassHero.Accounts.User, target_user.id)
+      updated = KlassHero.Repo.get!(User, target_user.id)
       assert updated.is_admin == false
     end
   end

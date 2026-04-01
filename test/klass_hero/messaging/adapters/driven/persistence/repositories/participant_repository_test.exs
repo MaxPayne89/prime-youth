@@ -5,6 +5,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Participa
 
   alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
   alias KlassHero.Messaging.Domain.Models.Participant
 
   describe "add/1" do
@@ -237,7 +238,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Participa
       # Verify all now have left_at set
       participants =
         Repo.all(
-          from(p in KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema,
+          from(p in ParticipantSchema,
             where: p.user_id == ^user.id
           )
         )

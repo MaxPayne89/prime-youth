@@ -55,8 +55,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
 
   defp atomize_invitation_status(nil), do: nil
 
-  defp atomize_invitation_status(status) when is_binary(status),
-    do: String.to_existing_atom(status)
+  defp atomize_invitation_status(status) when is_binary(status), do: String.to_existing_atom(status)
 
   defp atomize_invitation_status(status) when is_atom(status), do: status
 end

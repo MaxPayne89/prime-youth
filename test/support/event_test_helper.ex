@@ -121,8 +121,7 @@ defmodule KlassHero.EventTestHelper do
       assert_event_published(:order_placed, %{total: 100, currency: "USD"})
   """
   @spec assert_event_published(atom(), map()) :: DomainEvent.t()
-  def assert_event_published(event_type, expected_payload)
-      when is_atom(event_type) and is_map(expected_payload) do
+  def assert_event_published(event_type, expected_payload) when is_atom(event_type) and is_map(expected_payload) do
     events = get_published_events()
 
     event =

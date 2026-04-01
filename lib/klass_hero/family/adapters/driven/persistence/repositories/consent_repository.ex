@@ -83,8 +83,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
   end
 
   @impl true
-  def get_active_for_child(child_id, consent_type)
-      when is_binary(child_id) and is_binary(consent_type) do
+  def get_active_for_child(child_id, consent_type) when is_binary(child_id) and is_binary(consent_type) do
     span do
       set_attributes("db", operation: "select", entity: "consent")
 
@@ -117,8 +116,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
   end
 
   @impl true
-  def list_active_for_children(child_ids, consent_type)
-      when is_list(child_ids) and is_binary(consent_type) do
+  def list_active_for_children(child_ids, consent_type) when is_list(child_ids) and is_binary(consent_type) do
     span do
       set_attributes("db", operation: "select", entity: "consent")
 

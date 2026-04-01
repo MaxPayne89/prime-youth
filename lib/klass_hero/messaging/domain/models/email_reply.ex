@@ -55,8 +55,7 @@ defmodule KlassHero.Messaging.Domain.Models.EmailReply do
   def mark_sent(%__MODULE__{status: :sent} = reply, _resend_message_id), do: {:ok, reply}
 
   def mark_sent(%__MODULE__{status: :sending} = reply, resend_message_id) do
-    {:ok,
-     %{reply | status: :sent, resend_message_id: resend_message_id, sent_at: DateTime.utc_now()}}
+    {:ok, %{reply | status: :sent, resend_message_id: resend_message_id, sent_at: DateTime.utc_now()}}
   end
 
   @spec mark_failed(t()) :: {:ok, t()}

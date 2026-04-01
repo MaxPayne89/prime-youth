@@ -190,8 +190,7 @@ defmodule KlassHeroWeb.Admin.EmailsLive do
     stream(socket, :emails, emails, reset: true)
   end
 
-  defp parse_status_filter(status) when status in @valid_status_filters,
-    do: String.to_existing_atom(status)
+  defp parse_status_filter(status) when status in @valid_status_filters, do: String.to_existing_atom(status)
 
   defp parse_status_filter(_), do: nil
 

@@ -22,11 +22,16 @@ defmodule KlassHeroWeb.Admin.AccountLive do
       create_changeset: &KlassHero.Accounts.User.admin_update_changeset/3,
       item_query: &__MODULE__.item_query/3
     ],
-    layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
 
   import Ecto.Query
+
+  alias Backpex.Fields.Boolean
+  alias Backpex.Fields.Text
+
+  @impl Backpex.LiveResource
+  def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
 
   # Trigger: :new action is denied; :delete excluded from routes
   # Why: users register themselves; deletion follows GDPR anonymization
@@ -63,21 +68,21 @@ defmodule KlassHeroWeb.Admin.AccountLive do
   def fields do
     [
       email: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Email",
         searchable: true,
         orderable: true,
         readonly: true
       },
       name: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Name",
         searchable: true,
         orderable: true,
         readonly: true
       },
       roles: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Roles",
         readonly: true,
         only: [:index, :show],
@@ -109,7 +114,7 @@ defmodule KlassHeroWeb.Admin.AccountLive do
         end
       },
       subscription: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Subscription",
         readonly: true,
         only: [:index, :show],
@@ -140,7 +145,7 @@ defmodule KlassHeroWeb.Admin.AccountLive do
         end
       },
       is_admin: %{
-        module: Backpex.Fields.Boolean,
+        module: Boolean,
         label: "Admin",
         only: [:edit]
       },

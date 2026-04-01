@@ -37,6 +37,7 @@ defmodule KlassHero.Provider do
       Adapters.Driven.Persistence.Schemas.StaffMemberSchema
     ]
 
+  alias Domain.Models.ProgramStaffAssignment
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeStaffMember
   alias KlassHero.Provider.Application.UseCases.Providers.ChangeSubscriptionTier
@@ -437,7 +438,7 @@ defmodule KlassHero.Provider do
   Returns the list of valid verification document types.
   """
   defdelegate valid_document_types,
-    to: KlassHero.Provider.Domain.Models.VerificationDocument
+    to: VerificationDocument
 
   # ============================================================================
   # Staff Program Assignment
@@ -467,7 +468,7 @@ defmodule KlassHero.Provider do
   - `{:error, :not_found}` if staff member does not exist
   """
   @spec assign_staff_to_program(map()) ::
-          {:ok, Domain.Models.ProgramStaffAssignment.t()}
+          {:ok, ProgramStaffAssignment.t()}
           | {:error, :already_assigned | :not_found | term()}
   defdelegate assign_staff_to_program(attrs), to: AssignStaffToProgram, as: :execute
 
@@ -479,7 +480,7 @@ defmodule KlassHero.Provider do
   - `{:error, :not_found}` if no active assignment exists
   """
   @spec unassign_staff_from_program(String.t(), String.t()) ::
-          {:ok, Domain.Models.ProgramStaffAssignment.t()} | {:error, :not_found | term()}
+          {:ok, ProgramStaffAssignment.t()} | {:error, :not_found | term()}
   defdelegate unassign_staff_from_program(program_id, staff_member_id),
     to: UnassignStaffFromProgram,
     as: :execute
@@ -488,7 +489,7 @@ defmodule KlassHero.Provider do
   Lists all active staff assignments for a program.
   """
   @spec list_active_assignments_for_program(String.t()) :: [
-          Domain.Models.ProgramStaffAssignment.t()
+          ProgramStaffAssignment.t()
         ]
   def list_active_assignments_for_program(program_id) when is_binary(program_id) do
     @assignment_repository.list_active_for_program(program_id)
@@ -498,7 +499,7 @@ defmodule KlassHero.Provider do
   Lists all active staff assignments for a provider.
   """
   @spec list_active_assignments_for_provider(String.t()) :: [
-          Domain.Models.ProgramStaffAssignment.t()
+          ProgramStaffAssignment.t()
         ]
   def list_active_assignments_for_provider(provider_id) when is_binary(provider_id) do
     @assignment_repository.list_active_for_provider(provider_id)
@@ -508,7 +509,7 @@ defmodule KlassHero.Provider do
   Lists all active program assignments for a staff member.
   """
   @spec list_active_assignments_for_staff_member(String.t()) :: [
-          Domain.Models.ProgramStaffAssignment.t()
+          ProgramStaffAssignment.t()
         ]
   def list_active_assignments_for_staff_member(staff_member_id) when is_binary(staff_member_id) do
     @assignment_repository.list_active_for_staff_member(staff_member_id)

@@ -6,6 +6,7 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.InvitationEmitter
   """
 
   alias KlassHero.Provider.Domain.Events.ProviderIntegrationEvents
+  alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Shared.IntegrationEventPublishing
 
   @provider_repository Application.compile_env!(
@@ -24,7 +25,7 @@ defmodule KlassHero.Provider.Application.UseCases.StaffMembers.InvitationEmitter
   JSON until job cleanup. Acceptable because the token expires in 7 days and is
   single-use (only valid when `invitation_status == "sent"`).
   """
-  @spec emit(KlassHero.Provider.Domain.Models.StaffMember.t(), String.t()) ::
+  @spec emit(StaffMember.t(), String.t()) ::
           :ok | {:error, term()}
   def emit(staff_member, raw_token) do
     with {:ok, provider} <- @provider_repository.get(staff_member.provider_id) do

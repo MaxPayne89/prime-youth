@@ -17,17 +17,22 @@ defmodule KlassHeroWeb.Admin.ConsentLive do
     adapter_config: [
       schema: KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema,
       repo: KlassHero.Repo,
-      update_changeset:
-        &KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema.admin_changeset/3,
-      create_changeset:
-        &KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema.admin_changeset/3,
+      update_changeset: &KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema.admin_changeset/3,
+      create_changeset: &KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema.admin_changeset/3,
       item_query: &__MODULE__.item_query/3
     ],
-    layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
 
   import Ecto.Query
+
+  alias Backpex.Fields.BelongsTo
+  alias Backpex.Fields.Text
+  alias KlassHeroWeb.Admin.Filters.ConsentStatusFilter
+  alias KlassHeroWeb.Admin.Filters.ConsentTypeFilter
+
+  @impl Backpex.LiveResource
+  def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
 
   # Trigger: all mutation actions denied — this is a read-only compliance view
   # Why: consents are granted/withdrawn by parents, not admins
@@ -49,8 +54,8 @@ defmodule KlassHeroWeb.Admin.ConsentLive do
   @impl Backpex.LiveResource
   def filters do
     [
-      consent_type: %{module: KlassHeroWeb.Admin.Filters.ConsentTypeFilter},
-      withdrawn_at: %{module: KlassHeroWeb.Admin.Filters.ConsentStatusFilter}
+      consent_type: %{module: ConsentTypeFilter},
+      withdrawn_at: %{module: ConsentStatusFilter}
     ]
   end
 
@@ -76,7 +81,7 @@ defmodule KlassHeroWeb.Admin.ConsentLive do
   def fields do
     [
       child: %{
-        module: Backpex.Fields.BelongsTo,
+        module: BelongsTo,
         label: "Child",
         display_field: :first_name,
         searchable: true,
@@ -94,7 +99,7 @@ defmodule KlassHeroWeb.Admin.ConsentLive do
         end
       },
       parent: %{
-        module: Backpex.Fields.BelongsTo,
+        module: BelongsTo,
         label: "Parent",
         display_field: :display_name,
         searchable: true,
@@ -112,7 +117,7 @@ defmodule KlassHeroWeb.Admin.ConsentLive do
         end
       },
       consent_type: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Type",
         searchable: true,
         orderable: true,
@@ -123,7 +128,7 @@ defmodule KlassHeroWeb.Admin.ConsentLive do
         end
       },
       status: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Status",
         only: [:index, :show],
         render: fn assigns ->

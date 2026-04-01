@@ -8,6 +8,8 @@ defmodule KlassHeroWeb.Features.LoginFeatureTest do
 
   import Ecto.Query
 
+  alias KlassHero.Accounts.UserToken
+
   describe "user login journey" do
     test "user can log in with magic link", %{conn: conn} do
       user = user_fixture()
@@ -24,7 +26,7 @@ defmodule KlassHeroWeb.Features.LoginFeatureTest do
 
       # Verify token was created
       assert KlassHero.Repo.exists?(
-               from t in KlassHero.Accounts.UserToken,
+               from t in UserToken,
                  where: t.user_id == ^user.id and t.context == "login"
              )
     end

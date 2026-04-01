@@ -72,9 +72,7 @@ defmodule KlassHero.Shared.DomainEventBus do
     handlers_spec = Keyword.get(opts, :handlers, [])
     name = process_name(context)
 
-    GenServer.start_link(__MODULE__, %{context: context, handlers_spec: handlers_spec},
-      name: name
-    )
+    GenServer.start_link(__MODULE__, %{context: context, handlers_spec: handlers_spec}, name: name)
   end
 
   @doc """
@@ -89,8 +87,7 @@ defmodule KlassHero.Shared.DomainEventBus do
   """
   @spec subscribe(module(), atom(), (DomainEvent.t() -> :ok | {:error, term()}), keyword()) ::
           :ok
-  def subscribe(context, event_type, handler_fn, opts \\ [])
-      when is_atom(event_type) and is_function(handler_fn, 1) do
+  def subscribe(context, event_type, handler_fn, opts \\ []) when is_atom(event_type) and is_function(handler_fn, 1) do
     GenServer.call(process_name(context), {:subscribe, event_type, handler_fn, opts})
   end
 

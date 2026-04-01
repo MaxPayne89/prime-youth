@@ -154,8 +154,7 @@ defmodule KlassHero.Participation.Domain.Models.ProgramSession do
 
   @doc "Returns true if session can accept new participants."
   @spec can_accept_participants?(t()) :: boolean()
-  def can_accept_participants?(%__MODULE__{status: status})
-      when status in [:scheduled, :in_progress] do
+  def can_accept_participants?(%__MODULE__{status: status}) when status in [:scheduled, :in_progress] do
     true
   end
 

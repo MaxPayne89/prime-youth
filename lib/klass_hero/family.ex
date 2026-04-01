@@ -210,8 +210,7 @@ defmodule KlassHero.Family do
   @doc """
   Returns a MapSet of child IDs that have active consent of the given type.
   """
-  def children_with_active_consents(child_ids, consent_type)
-      when is_list(child_ids) and is_binary(consent_type) do
+  def children_with_active_consents(child_ids, consent_type) when is_list(child_ids) and is_binary(consent_type) do
     @consent_repository.list_active_for_children(child_ids, consent_type)
     |> MapSet.new(& &1.child_id)
   end
@@ -228,8 +227,7 @@ defmodule KlassHero.Family do
   @doc """
   Checks if a child belongs to a specific parent.
   """
-  def child_belongs_to_parent?(child_id, parent_id)
-      when is_binary(child_id) and is_binary(parent_id) do
+  def child_belongs_to_parent?(child_id, parent_id) when is_binary(child_id) and is_binary(parent_id) do
     @child_repository.child_belongs_to_guardian?(child_id, parent_id)
   end
 
@@ -249,16 +247,14 @@ defmodule KlassHero.Family do
   @doc """
   Withdraws the active consent for a child and consent type.
   """
-  def withdraw_consent(child_id, consent_type)
-      when is_binary(child_id) and is_binary(consent_type) do
+  def withdraw_consent(child_id, consent_type) when is_binary(child_id) and is_binary(consent_type) do
     WithdrawConsent.execute(child_id, consent_type)
   end
 
   @doc """
   Checks if a child has an active consent of the given type.
   """
-  def child_has_active_consent?(child_id, consent_type)
-      when is_binary(child_id) and is_binary(consent_type) do
+  def child_has_active_consent?(child_id, consent_type) when is_binary(child_id) and is_binary(consent_type) do
     case @consent_repository.get_active_for_child(child_id, consent_type) do
       {:ok, _} ->
         true

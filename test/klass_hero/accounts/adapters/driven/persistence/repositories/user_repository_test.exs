@@ -127,7 +127,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
                UserRepository.resolve_magic_link(encoded_token)
 
       assert resolved_user.id == user.id
-      assert token_record.__struct__ == KlassHero.Accounts.UserToken
+      assert token_record.__struct__ == UserToken
     end
 
     test "returns {:unconfirmed, user} for unconfirmed user without password" do

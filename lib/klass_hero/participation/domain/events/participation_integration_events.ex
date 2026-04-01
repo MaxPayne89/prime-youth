@@ -137,11 +137,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   """
   def session_created(session_id, payload \\ %{}, opts \\ [])
 
-  def session_created(
-        session_id,
-        %{program_id: _, session_date: _, start_time: _, end_time: _} = payload,
-        opts
-      )
+  def session_created(session_id, %{program_id: _, session_date: _, start_time: _, end_time: _} = payload, opts)
       when is_binary(session_id) and byte_size(session_id) > 0 do
     base_payload = %{session_id: session_id}
 
@@ -158,8 +154,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     )
   end
 
-  def session_created(session_id, payload, _opts)
-      when is_binary(session_id) and byte_size(session_id) > 0 do
+  def session_created(session_id, payload, _opts) when is_binary(session_id) and byte_size(session_id) > 0 do
     missing = [:program_id, :session_date, :start_time, :end_time] -- Map.keys(payload)
 
     raise ArgumentError,
@@ -207,8 +202,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     )
   end
 
-  def session_started(session_id, payload, _opts)
-      when is_binary(session_id) and byte_size(session_id) > 0 do
+  def session_started(session_id, payload, _opts) when is_binary(session_id) and byte_size(session_id) > 0 do
     missing = [:program_id] -- Map.keys(payload)
 
     raise ArgumentError,
@@ -256,8 +250,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     )
   end
 
-  def session_completed(session_id, payload, _opts)
-      when is_binary(session_id) and byte_size(session_id) > 0 do
+  def session_completed(session_id, payload, _opts) when is_binary(session_id) and byte_size(session_id) > 0 do
     missing = [:program_id] -- Map.keys(payload)
 
     raise ArgumentError,
@@ -294,8 +287,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     )
   end
 
-  def roster_seeded(session_id, payload, _opts)
-      when is_binary(session_id) and byte_size(session_id) > 0 do
+  def roster_seeded(session_id, payload, _opts) when is_binary(session_id) and byte_size(session_id) > 0 do
     missing = [:program_id, :seeded_count] -- Map.keys(payload)
 
     raise ArgumentError,
@@ -343,8 +335,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     )
   end
 
-  def child_checked_in(record_id, payload, _opts)
-      when is_binary(record_id) and byte_size(record_id) > 0 do
+  def child_checked_in(record_id, payload, _opts) when is_binary(record_id) and byte_size(record_id) > 0 do
     missing = [:session_id, :child_id] -- Map.keys(payload)
 
     raise ArgumentError,
@@ -392,8 +383,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     )
   end
 
-  def child_checked_out(record_id, payload, _opts)
-      when is_binary(record_id) and byte_size(record_id) > 0 do
+  def child_checked_out(record_id, payload, _opts) when is_binary(record_id) and byte_size(record_id) > 0 do
     missing = [:session_id, :child_id] -- Map.keys(payload)
 
     raise ArgumentError,
@@ -441,8 +431,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     )
   end
 
-  def child_marked_absent(record_id, payload, _opts)
-      when is_binary(record_id) and byte_size(record_id) > 0 do
+  def child_marked_absent(record_id, payload, _opts) when is_binary(record_id) and byte_size(record_id) > 0 do
     missing = [:session_id, :child_id] -- Map.keys(payload)
 
     raise ArgumentError,
@@ -476,11 +465,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   """
   def behavioral_note_submitted(note_id, payload \\ %{}, opts \\ [])
 
-  def behavioral_note_submitted(
-        note_id,
-        %{participation_record_id: _, child_id: _, provider_id: _} = payload,
-        opts
-      )
+  def behavioral_note_submitted(note_id, %{participation_record_id: _, child_id: _, provider_id: _} = payload, opts)
       when is_binary(note_id) and byte_size(note_id) > 0 do
     base_payload = %{note_id: note_id}
 
@@ -494,8 +479,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     )
   end
 
-  def behavioral_note_submitted(note_id, payload, _opts)
-      when is_binary(note_id) and byte_size(note_id) > 0 do
+  def behavioral_note_submitted(note_id, payload, _opts) when is_binary(note_id) and byte_size(note_id) > 0 do
     missing = [:participation_record_id, :child_id, :provider_id] -- Map.keys(payload)
 
     raise ArgumentError,
@@ -529,11 +513,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   """
   def behavioral_note_approved(note_id, payload \\ %{}, opts \\ [])
 
-  def behavioral_note_approved(
-        note_id,
-        %{participation_record_id: _, child_id: _, provider_id: _} = payload,
-        opts
-      )
+  def behavioral_note_approved(note_id, %{participation_record_id: _, child_id: _, provider_id: _} = payload, opts)
       when is_binary(note_id) and byte_size(note_id) > 0 do
     base_payload = %{note_id: note_id}
 
@@ -547,8 +527,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     )
   end
 
-  def behavioral_note_approved(note_id, payload, _opts)
-      when is_binary(note_id) and byte_size(note_id) > 0 do
+  def behavioral_note_approved(note_id, payload, _opts) when is_binary(note_id) and byte_size(note_id) > 0 do
     missing = [:participation_record_id, :child_id, :provider_id] -- Map.keys(payload)
 
     raise ArgumentError,
@@ -582,11 +561,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   """
   def behavioral_note_rejected(note_id, payload \\ %{}, opts \\ [])
 
-  def behavioral_note_rejected(
-        note_id,
-        %{participation_record_id: _, child_id: _, provider_id: _} = payload,
-        opts
-      )
+  def behavioral_note_rejected(note_id, %{participation_record_id: _, child_id: _, provider_id: _} = payload, opts)
       when is_binary(note_id) and byte_size(note_id) > 0 do
     base_payload = %{note_id: note_id}
 
@@ -600,8 +575,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     )
   end
 
-  def behavioral_note_rejected(note_id, payload, _opts)
-      when is_binary(note_id) and byte_size(note_id) > 0 do
+  def behavioral_note_rejected(note_id, payload, _opts) when is_binary(note_id) and byte_size(note_id) > 0 do
     missing = [:participation_record_id, :child_id, :provider_id] -- Map.keys(payload)
 
     raise ArgumentError,

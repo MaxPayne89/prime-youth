@@ -148,9 +148,7 @@ defmodule KlassHero.Provider.StaffMemberIntegrationTest do
 
     test "clears headshot_url with nil" do
       staff =
-        ProviderFixtures.staff_member_fixture(
-          headshot_url: "headshots/providers/abc/old_photo.jpg"
-        )
+        ProviderFixtures.staff_member_fixture(headshot_url: "headshots/providers/abc/old_photo.jpg")
 
       assert {:ok, updated} = Provider.update_staff_member(staff.id, %{headshot_url: nil})
       assert updated.headshot_url == nil

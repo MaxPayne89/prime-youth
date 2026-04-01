@@ -11,6 +11,8 @@ defmodule KlassHeroWeb.Admin.Actions.CancelBookingAction do
 
   import Ecto.Changeset
 
+  alias Backpex.Fields.Textarea
+
   require KlassHeroWeb.BackpexCompat
   require Logger
 
@@ -41,7 +43,7 @@ defmodule KlassHeroWeb.Admin.Actions.CancelBookingAction do
   def fields do
     [
       reason: %{
-        module: Backpex.Fields.Textarea,
+        module: Textarea,
         label: "Cancellation Reason",
         type: :string
       }

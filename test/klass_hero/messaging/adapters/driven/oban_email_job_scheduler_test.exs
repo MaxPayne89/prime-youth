@@ -3,6 +3,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.ObanEmailJobSchedulerTest do
   use Oban.Testing, repo: KlassHero.Repo
 
   alias KlassHero.Messaging.Adapters.Driven.ObanEmailJobScheduler
+  alias KlassHero.Messaging.Workers.FetchEmailContentWorker
+  alias KlassHero.Messaging.Workers.SendEmailReplyWorker
 
   describe "schedule_content_fetch/2" do
     test "enqueues a FetchEmailContentWorker job" do
@@ -13,7 +15,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.ObanEmailJobSchedulerTest do
                  ObanEmailJobScheduler.schedule_content_fetch(email_id, "resend_123")
 
         assert_enqueued(
-          worker: KlassHero.Messaging.Workers.FetchEmailContentWorker,
+          worker: FetchEmailContentWorker,
           args: %{email_id: email_id, resend_id: "resend_123"}
         )
       end)
@@ -39,7 +41,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.ObanEmailJobSchedulerTest do
         assert {:ok, _job} = ObanEmailJobScheduler.schedule_reply_delivery(reply_id)
 
         assert_enqueued(
-          worker: KlassHero.Messaging.Workers.SendEmailReplyWorker,
+          worker: SendEmailReplyWorker,
           args: %{reply_id: reply_id}
         )
       end)

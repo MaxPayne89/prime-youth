@@ -34,6 +34,7 @@ defmodule KlassHero.Shared.Tracing.TracedWorker do
       use Oban.Worker, unquote(opts)
       use KlassHero.Shared.Tracing
 
+      alias KlassHero.Shared.Tracing
       alias KlassHero.Shared.Tracing.Context
 
       @impl Oban.Worker
@@ -42,7 +43,7 @@ defmodule KlassHero.Shared.Tracing.TracedWorker do
         Context.attach_from_args(job.args)
 
         # credo:disable-for-next-line Credo.Check.Design.AliasUsage
-        span_name = KlassHero.Shared.Tracing.gen_span_name_for_worker(__MODULE__)
+        span_name = Tracing.gen_span_name_for_worker(__MODULE__)
         worker_name = String.replace_suffix(span_name, ".execute/1", "")
 
         tracer = :opentelemetry.get_application_tracer(__MODULE__)

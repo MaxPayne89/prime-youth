@@ -7,9 +7,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversationTest 
   alias KlassHero.AccountsFixtures
   alias KlassHero.Family.Domain.Models.ParentProfile
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
-
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
-
   alias KlassHero.Messaging.Application.UseCases.CreateDirectConversation
   alias KlassHero.Messaging.Domain.Models.Conversation
   alias KlassHero.Provider.Domain.Models.ProviderProfile
@@ -131,9 +129,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversationTest 
       })
 
       assert {:ok, conversation} =
-               CreateDirectConversation.execute(scope, provider.id, target_user.id,
-                 program_id: program.id
-               )
+               CreateDirectConversation.execute(scope, provider.id, target_user.id, program_id: program.id)
 
       assert ParticipantRepository.is_participant?(conversation.id, staff_user.id)
     end
@@ -171,9 +167,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversationTest 
       })
 
       assert {:ok, _conversation} =
-               CreateDirectConversation.execute(scope, provider.id, target_user.id,
-                 program_id: program.id
-               )
+               CreateDirectConversation.execute(scope, provider.id, target_user.id, program_id: program.id)
     end
 
     test "does not add staff to existing conversations" do
@@ -197,9 +191,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversationTest 
 
       # Calling again returns the existing conversation without adding staff
       assert {:ok, second_conversation} =
-               CreateDirectConversation.execute(scope, provider.id, target_user.id,
-                 program_id: program.id
-               )
+               CreateDirectConversation.execute(scope, provider.id, target_user.id, program_id: program.id)
 
       assert first_conversation.id == second_conversation.id
       refute ParticipantRepository.is_participant?(second_conversation.id, staff_user.id)

@@ -9,6 +9,7 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
   """
 
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
+  alias KlassHero.Messaging.Domain.Models.Participant
   alias KlassHero.Shared.DomainEventBus
 
   require Logger
@@ -29,7 +30,7 @@ defmodule KlassHero.Messaging.Application.UseCases.MarkAsRead do
   - `{:error, :not_participant}` - User is not in the conversation
   """
   @spec execute(String.t(), String.t(), DateTime.t() | nil) ::
-          {:ok, KlassHero.Messaging.Domain.Models.Participant.t()}
+          {:ok, Participant.t()}
           | {:error, :not_participant}
   def execute(conversation_id, user_id, read_at \\ nil) do
     read_at = read_at || DateTime.utc_now()

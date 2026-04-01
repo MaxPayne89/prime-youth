@@ -13,6 +13,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
   alias KlassHero.Participation.Domain.Services.ParticipationCollection
   alias KlassHeroWeb.Theme
+  alias Phoenix.HTML.Form
 
   @doc """
   Renders a session participation card with check-in status information.
@@ -152,12 +153,11 @@ defmodule KlassHeroWeb.ParticipationComponents do
         on_submit="submit_participation"
       />
   """
-  attr :form, Phoenix.HTML.Form, required: true, doc: "Form struct from to_form/2"
+  attr :form, Form, required: true, doc: "Form struct from to_form/2"
 
   attr :participation_records, :list,
     required: true,
-    doc:
-      "List of enriched participation record maps with child_first_name and child_last_name fields"
+    doc: "List of enriched participation record maps with child_first_name and child_last_name fields"
 
   attr :session, :map, required: true, doc: "Session map"
   attr :on_submit, :string, required: true, doc: "Phoenix event for form submission"
@@ -280,8 +280,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   """
   attr :participation_records, :list,
     required: true,
-    doc:
-      "List of enriched participation record maps with child_first_name and child_last_name fields"
+    doc: "List of enriched participation record maps with child_first_name and child_last_name fields"
 
   attr :session, :map, required: true, doc: "Session map"
   attr :editable, :boolean, default: false, doc: "Whether to show action buttons"
@@ -503,7 +502,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
         record_id="record-id"
       />
   """
-  attr :form, Phoenix.HTML.Form, required: true, doc: "Form struct from to_form/2"
+  attr :form, Form, required: true, doc: "Form struct from to_form/2"
   attr :record_id, :string, required: true, doc: "Participation record ID"
 
   def behavioral_note_form(assigns) do
@@ -533,7 +532,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
         note_id="note-id"
       />
   """
-  attr :form, Phoenix.HTML.Form, required: true, doc: "Form struct from to_form/2"
+  attr :form, Form, required: true, doc: "Form struct from to_form/2"
   attr :note_id, :string, required: true, doc: "Behavioral note ID"
 
   def behavioral_note_revision_form(assigns) do
@@ -580,7 +579,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
   # Private components
 
-  attr :form, Phoenix.HTML.Form, required: true
+  attr :form, Form, required: true
   attr :entity_id, :string, required: true
   attr :id_prefix, :string, required: true
   attr :wrapper_id_prefix, :string, required: true
@@ -707,15 +706,13 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
   defp status_color_classes(:completed), do: "bg-green-100 text-green-700 border border-green-300"
 
-  defp status_color_classes(:checked_in),
-    do: "bg-green-100 text-green-700 border border-green-300"
+  defp status_color_classes(:checked_in), do: "bg-green-100 text-green-700 border border-green-300"
 
   defp status_color_classes(:checked_out), do: "bg-blue-100 text-blue-700 border border-blue-300"
 
   defp status_color_classes(:absent), do: "bg-orange-100 text-orange-700 border border-orange-300"
 
-  defp status_color_classes(:expected),
-    do: "bg-yellow-100 text-yellow-700 border border-yellow-300"
+  defp status_color_classes(:expected), do: "bg-yellow-100 text-yellow-700 border border-yellow-300"
 
   defp status_icon(status) when status in [:registered, :scheduled], do: "hero-clock"
   defp status_icon(:in_progress), do: "hero-play-circle"
@@ -736,8 +733,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
   # Behavioral note status helpers
 
-  defp note_status_classes(:pending_approval),
-    do: "bg-yellow-50 text-yellow-700 border border-yellow-300"
+  defp note_status_classes(:pending_approval), do: "bg-yellow-50 text-yellow-700 border border-yellow-300"
 
   defp note_status_classes(:approved), do: "bg-green-50 text-green-700 border border-green-300"
 

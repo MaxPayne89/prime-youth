@@ -22,6 +22,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
   alias KlassHero.Shared.Domain.Services.CriticalEventDispatcher
+  alias KlassHero.Test.CriticalFailingTestHandler
+  alias KlassHero.Test.CriticalTestHandler
 
   @pubsub KlassHero.PubSub
 
@@ -395,7 +397,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
 
   describe "critical integration event handling" do
     test "wraps critical event handler in CriticalEventDispatcher" do
-      handler = KlassHero.Test.CriticalTestHandler
+      handler = CriticalTestHandler
 
       {:ok, pid} =
         EventSubscriber.start_link(
@@ -413,9 +415,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
 
       # Publish a critical integration event
       event =
-        IntegrationEvent.new(:critical_test_event, :test, :entity, "ent-1", %{},
-          criticality: :critical
-        )
+        IntegrationEvent.new(:critical_test_event, :test, :entity, "ent-1", %{}, criticality: :critical)
 
       Phoenix.PubSub.broadcast(
         KlassHero.PubSub,
@@ -432,7 +432,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
     end
 
     test "subscriber stays alive and no processed row when critical handler fails" do
-      handler = KlassHero.Test.CriticalFailingTestHandler
+      handler = CriticalFailingTestHandler
 
       {:ok, pid} =
         EventSubscriber.start_link(
@@ -446,9 +446,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
       Sandbox.allow(KlassHero.Repo, self(), pid)
 
       event =
-        IntegrationEvent.new(:critical_test_event, :test, :entity, "ent-fail", %{},
-          criticality: :critical
-        )
+        IntegrationEvent.new(:critical_test_event, :test, :entity, "ent-fail", %{}, criticality: :critical)
 
       Phoenix.PubSub.broadcast(
         KlassHero.PubSub,
@@ -465,7 +463,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
     end
 
     test "logs differentiated crash message when dispatcher itself fails for critical event" do
-      handler = KlassHero.Test.CriticalTestHandler
+      handler = CriticalTestHandler
 
       {:ok, pid} =
         EventSubscriber.start_link(
@@ -511,7 +509,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.EventSubscriberIntegrationTest
     end
 
     test "normal integration events bypass CriticalEventDispatcher" do
-      handler = KlassHero.Test.CriticalTestHandler
+      handler = CriticalTestHandler
 
       {:ok, _pid} =
         EventSubscriber.start_link(

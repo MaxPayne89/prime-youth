@@ -136,12 +136,10 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
             child_id: child_id
           )
 
-          {:noreply,
-           put_flash(socket, :error, gettext("Could not check enrollments. Please try again."))}
+          {:noreply, put_flash(socket, :error, gettext("Could not check enrollments. Please try again."))}
       end
     else
-      {:noreply,
-       put_flash(socket, :error, gettext("You don't have permission to delete this child."))}
+      {:noreply, put_flash(socket, :error, gettext("You don't have permission to delete this child."))}
     end
   end
 
@@ -151,8 +149,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
   def handle_event("confirm_delete_child", _params, %{assigns: %{delete_candidate: nil}} = socket) do
     Logger.warning("[ChildrenLive] confirm_delete_child with nil delete_candidate")
 
-    {:noreply,
-     put_flash(socket, :error, gettext("This deletion request has expired. Please try again."))}
+    {:noreply, put_flash(socket, :error, gettext("This deletion request has expired. Please try again."))}
   end
 
   def handle_event("confirm_delete_child", _params, socket) do
@@ -223,8 +220,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
         {:error, reason} ->
           Logger.error("Unexpected error saving child: #{inspect(reason)}")
 
-          {:noreply,
-           put_flash(socket, :error, gettext("An unexpected error occurred. Please try again."))}
+          {:noreply, put_flash(socket, :error, gettext("An unexpected error occurred. Please try again."))}
       end
     else
       {:noreply, assign(socket, form: to_form(changeset, as: :child))}
@@ -310,13 +306,11 @@ defmodule KlassHeroWeb.Settings.ChildrenLive do
 
   defp child_saved_flash(:new, :ok), do: gettext("Child added successfully.")
 
-  defp child_saved_flash(:new, {:error, _}),
-    do: gettext("Child added, but consent update failed. Please try again.")
+  defp child_saved_flash(:new, {:error, _}), do: gettext("Child added, but consent update failed. Please try again.")
 
   defp child_saved_flash(:edit, :ok), do: gettext("Child updated successfully.")
 
-  defp child_saved_flash(:edit, {:error, _}),
-    do: gettext("Child updated, but consent update failed. Please try again.")
+  defp child_saved_flash(:edit, {:error, _}), do: gettext("Child updated, but consent update failed. Please try again.")
 
   defp child_view_data(child) do
     simple = ChildPresenter.to_simple_view(child)

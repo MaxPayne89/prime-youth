@@ -53,8 +53,7 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingMessages do
   - after: DateTime - get messages after this timestamp
   """
   @callback list_with_senders(conversation_id :: binary(), opts :: keyword()) ::
-              {:ok, [Message.t()], sender_names :: %{binary() => String.t()},
-               has_more :: boolean()}
+              {:ok, [Message.t()], sender_names :: %{binary() => String.t()}, has_more :: boolean()}
 
   @doc """
   Gets the latest message for a conversation.

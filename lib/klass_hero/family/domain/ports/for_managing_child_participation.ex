@@ -16,6 +16,5 @@ defmodule KlassHero.Family.Domain.Ports.ForManagingChildParticipation do
   Returns counts of deleted behavioral notes and participation records.
   """
   @callback delete_all_for_child(child_id :: binary()) ::
-              {:ok,
-               %{participation_records: non_neg_integer(), behavioral_notes: non_neg_integer()}}
+              {:ok, %{participation_records: non_neg_integer(), behavioral_notes: non_neg_integer()}}
 end

@@ -48,9 +48,7 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEventsTest do
       correlation_id = Ecto.UUID.generate()
 
       event =
-        ProviderEvents.subscription_tier_changed(profile, :starter,
-          correlation_id: correlation_id
-        )
+        ProviderEvents.subscription_tier_changed(profile, :starter, correlation_id: correlation_id)
 
       assert event.metadata.correlation_id == correlation_id
     end

@@ -17,12 +17,15 @@ defmodule KlassHero.Accounts.RegistrationProfileCreationIntegrationTest do
   alias Ecto.Adapters.SQL.Sandbox
   alias KlassHero.Accounts
   alias KlassHero.Family
+  alias KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler
   alias KlassHero.Provider
+  alias KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
+  alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
 
   # EventSubscriber GenServers that create profiles in response to user_registered.
   @profile_subscribers [
-    KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler,
-    KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
+    FamilyEventHandler,
+    ProviderEventHandler
   ]
 
   setup do
@@ -33,7 +36,7 @@ defmodule KlassHero.Accounts.RegistrationProfileCreationIntegrationTest do
     original_config = Application.get_env(:klass_hero, :integration_event_publisher)
 
     Application.put_env(:klass_hero, :integration_event_publisher,
-      module: KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher,
+      module: PubSubIntegrationEventPublisher,
       pubsub: KlassHero.PubSub
     )
 

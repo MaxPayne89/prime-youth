@@ -89,8 +89,7 @@ defmodule KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents do
   """
   def user_registered(user_id, payload \\ %{}, opts \\ [])
 
-  def user_registered(user_id, payload, opts)
-      when is_binary(user_id) and byte_size(user_id) > 0 do
+  def user_registered(user_id, payload, opts) when is_binary(user_id) and byte_size(user_id) > 0 do
     base_payload = %{user_id: user_id}
     opts = Keyword.put_new(opts, :criticality, :critical)
 
@@ -184,8 +183,7 @@ defmodule KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents do
   """
   def user_anonymized(user_id, payload \\ %{}, opts \\ [])
 
-  def user_anonymized(user_id, payload, opts)
-      when is_binary(user_id) and byte_size(user_id) > 0 do
+  def user_anonymized(user_id, payload, opts) when is_binary(user_id) and byte_size(user_id) > 0 do
     base_payload = %{user_id: user_id}
     opts = Keyword.put_new(opts, :criticality, :critical)
 
@@ -331,8 +329,7 @@ defmodule KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents do
   """
   def staff_user_registered(user_id, payload \\ %{}, opts \\ [])
 
-  def staff_user_registered(user_id, payload, opts)
-      when is_binary(user_id) and byte_size(user_id) > 0 do
+  def staff_user_registered(user_id, payload, opts) when is_binary(user_id) and byte_size(user_id) > 0 do
     base_payload = %{user_id: user_id}
     opts = Keyword.put_new(opts, :criticality, :critical)
 

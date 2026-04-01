@@ -159,8 +159,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
     end)
   end
 
-  defp build_instructor_from_attrs(%{instructor: instructor_attrs})
-       when is_map(instructor_attrs) do
+  defp build_instructor_from_attrs(%{instructor: instructor_attrs}) when is_map(instructor_attrs) do
     case Instructor.new(instructor_attrs) do
       {:ok, instructor} -> {:ok, instructor}
       {:error, reasons} -> {:error, Enum.map(reasons, &"Instructor: #{&1}")}
@@ -295,10 +294,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.Program do
   # Trigger: registration_period struct already constructed (mutation path)
   # Why: ensure date ordering is valid even when updating an existing program
   # Outcome: rejects updates where start_date >= end_date
-  defp validate_registration_period_struct(errors, %RegistrationPeriod{
-         start_date: nil,
-         end_date: nil
-       }), do: errors
+  defp validate_registration_period_struct(errors, %RegistrationPeriod{start_date: nil, end_date: nil}), do: errors
 
   defp validate_registration_period_struct(errors, %RegistrationPeriod{} = rp) do
     case RegistrationPeriod.new(%{start_date: rp.start_date, end_date: rp.end_date}) do

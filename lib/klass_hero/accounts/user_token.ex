@@ -11,6 +11,7 @@ defmodule KlassHero.Accounts.UserToken do
 
   import Ecto.Query
 
+  alias KlassHero.Accounts.User
   alias KlassHero.Accounts.UserToken
 
   @hash_algorithm :sha256
@@ -30,7 +31,7 @@ defmodule KlassHero.Accounts.UserToken do
     field :context, :string
     field :sent_to, :string
     field :authenticated_at, :utc_datetime
-    belongs_to :user, KlassHero.Accounts.User
+    belongs_to :user, User
 
     timestamps(type: :utc_datetime, updated_at: false)
   end

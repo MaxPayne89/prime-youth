@@ -6,9 +6,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
   alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.ConversationMapper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
-
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
-
   alias KlassHero.Messaging.Application.UseCases.SendMessage
   alias KlassHero.Messaging.Domain.Models.Conversation
   alias KlassHero.Messaging.Domain.Models.Message
@@ -183,9 +181,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
       assert %Conversation{} = domain_conversation
 
       assert {:ok, message} =
-               SendMessage.execute(broadcast.id, provider_user.id, "Fast path!",
-                 conversation: domain_conversation
-               )
+               SendMessage.execute(broadcast.id, provider_user.id, "Fast path!", conversation: domain_conversation)
 
       assert message.content == "Fast path!"
     end
@@ -218,9 +214,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
       # Why: the ID mismatch must cause a DB fetch, which correctly identifies the broadcast
       # Outcome: parent is still rejected from broadcast
       assert {:error, :broadcast_reply_not_allowed} =
-               SendMessage.execute(broadcast.id, parent_user.id, "Sneaky reply",
-                 conversation: mismatched_conversation
-               )
+               SendMessage.execute(broadcast.id, parent_user.id, "Sneaky reply", conversation: mismatched_conversation)
     end
   end
 

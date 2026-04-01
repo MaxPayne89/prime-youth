@@ -50,8 +50,7 @@ defmodule KlassHero.Family.Domain.Events.FamilyEvents do
   """
   def child_data_anonymized(child_id, payload \\ %{}, opts \\ [])
 
-  def child_data_anonymized(child_id, payload, opts)
-      when is_binary(child_id) and byte_size(child_id) > 0 do
+  def child_data_anonymized(child_id, payload, opts) when is_binary(child_id) and byte_size(child_id) > 0 do
     base_payload = %{child_id: child_id}
 
     opts = Keyword.put_new(opts, :criticality, :critical)
@@ -98,8 +97,7 @@ defmodule KlassHero.Family.Domain.Events.FamilyEvents do
   """
   def invite_family_ready(invite_id, payload \\ %{}, opts \\ [])
 
-  def invite_family_ready(invite_id, payload, opts)
-      when is_binary(invite_id) and byte_size(invite_id) > 0 do
+  def invite_family_ready(invite_id, payload, opts) when is_binary(invite_id) and byte_size(invite_id) > 0 do
     base_payload = %{invite_id: invite_id}
 
     DomainEvent.new(

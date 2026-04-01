@@ -13,11 +13,12 @@ defmodule KlassHero.Accounts.User do
 
   alias KlassHero.Accounts.Domain.Models.User, as: DomainUser
   alias KlassHero.Accounts.Types.{UserRole, UserRoles}
-
   # Cross-context references for admin dashboard preloading (read-only).
   # Pragmatic DDD boundary crossing — see AccountLive moduledoc.
+  alias KlassHero.Accounts.User
   alias KlassHero.Family.Adapters.Driven.Persistence.Schemas.ParentProfileSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Shared.SubscriptionTiers
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
@@ -67,7 +68,7 @@ defmodule KlassHero.Accounts.User do
       uniqueness of the email. Defaults to `true`.
   """
   @valid_provider_tier_strings Enum.map(
-                                 KlassHero.Shared.SubscriptionTiers.provider_tiers(),
+                                 SubscriptionTiers.provider_tiers(),
                                  &Atom.to_string/1
                                )
 
@@ -136,9 +137,7 @@ defmodule KlassHero.Accounts.User do
     changeset =
       changeset
       |> validate_required([:email])
-      |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
-        message: "must have the @ sign and no spaces"
-      )
+      |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/, message: "must have the @ sign and no spaces")
       |> validate_length(:email, max: 160)
 
     if Keyword.get(opts, :validate_unique, true) do
@@ -272,7 +271,7 @@ defmodule KlassHero.Accounts.User do
   If there is no user or the user doesn't have a password, we call
   `Bcrypt.no_user_verify/0` to avoid timing attacks.
   """
-  def valid_password?(%KlassHero.Accounts.User{hashed_password: hashed_password}, password)
+  def valid_password?(%User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
     Bcrypt.verify_pass(password, hashed_password)
   end

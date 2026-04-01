@@ -11,9 +11,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
   import Ecto.Changeset
 
   alias KlassHero.Accounts.User
+  alias KlassHero.Shared.SubscriptionTiers
 
   @valid_tier_strings Enum.map(
-                        KlassHero.Shared.SubscriptionTiers.provider_tiers(),
+                        SubscriptionTiers.provider_tiers(),
                         &Atom.to_string/1
                       )
 

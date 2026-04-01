@@ -173,17 +173,14 @@ defmodule KlassHeroWeb.BookingLive do
              )}
 
           {:error, :child_not_selected} ->
-            {:noreply,
-             put_flash(socket, :error, gettext("Please select a child for enrollment."))}
+            {:noreply, put_flash(socket, :error, gettext("Please select a child for enrollment."))}
 
           {:error, :booking_limit_exceeded} ->
             {:noreply,
              put_flash(
                socket,
                :error,
-               gettext(
-                 "You've reached your monthly booking limit. Upgrade to Active tier for unlimited bookings."
-               )
+               gettext("You've reached your monthly booking limit. Upgrade to Active tier for unlimited bookings.")
              )}
 
           {:error, :no_parent_profile} ->

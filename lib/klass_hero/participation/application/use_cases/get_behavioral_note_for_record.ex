@@ -39,8 +39,7 @@ defmodule KlassHero.Participation.Application.UseCases.GetBehavioralNoteForRecor
   Returns a flat list of notes (one per record at most).
   """
   @spec execute_batch([String.t()], String.t()) :: [BehavioralNote.t()]
-  def execute_batch(record_ids, provider_id)
-      when is_list(record_ids) and is_binary(provider_id) do
+  def execute_batch(record_ids, provider_id) when is_list(record_ids) and is_binary(provider_id) do
     @behavioral_note_repository.list_by_records_and_provider(record_ids, provider_id)
   end
 end

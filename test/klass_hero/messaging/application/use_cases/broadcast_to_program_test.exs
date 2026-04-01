@@ -6,9 +6,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgramTest do
   alias KlassHero.Accounts.Scope
   alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
-
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
-
   alias KlassHero.Messaging.Application.UseCases.BroadcastToProgram
   alias KlassHero.Messaging.Domain.Models.{Conversation, Message}
   alias KlassHero.Provider.Domain.Models.ProviderProfile

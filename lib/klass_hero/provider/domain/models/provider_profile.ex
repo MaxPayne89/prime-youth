@@ -107,8 +107,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
   def verify(%__MODULE__{} = profile, admin_id) when is_binary(admin_id) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-    {:ok,
-     %{profile | verified: true, verified_at: now, verified_by_id: admin_id, updated_at: now}}
+    {:ok, %{profile | verified: true, verified_at: now, verified_by_id: admin_id, updated_at: now}}
   end
 
   @doc """

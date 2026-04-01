@@ -51,9 +51,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     test "validates guardian_email format" do
       changeset =
         %BulkEnrollmentInviteSchema{}
-        |> BulkEnrollmentInviteSchema.changeset(
-          Map.put(@valid_attrs, :guardian_email, "not-an-email")
-        )
+        |> BulkEnrollmentInviteSchema.changeset(Map.put(@valid_attrs, :guardian_email, "not-an-email"))
         |> Map.put(:action, :validate)
 
       refute changeset.valid?
@@ -92,9 +90,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
 
       changeset =
         %BulkEnrollmentInviteSchema{}
-        |> BulkEnrollmentInviteSchema.changeset(
-          Map.put(@valid_attrs, :child_date_of_birth, future_date)
-        )
+        |> BulkEnrollmentInviteSchema.changeset(Map.put(@valid_attrs, :child_date_of_birth, future_date))
         |> Map.put(:action, :validate)
 
       refute changeset.valid?

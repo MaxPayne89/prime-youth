@@ -201,13 +201,11 @@ defmodule KlassHero.Family.Domain.Models.Child do
 
   defp validate_gender(errors, gender) when gender in @valid_genders, do: errors
 
-  defp validate_gender(errors, _),
-    do: ["Gender must be one of: #{Enum.join(@valid_genders, ", ")}" | errors]
+  defp validate_gender(errors, _), do: ["Gender must be one of: #{Enum.join(@valid_genders, ", ")}" | errors]
 
   defp validate_school_grade(errors, nil), do: errors
 
-  defp validate_school_grade(errors, grade) when is_integer(grade) and grade >= 1 and grade <= 13,
-    do: errors
+  defp validate_school_grade(errors, grade) when is_integer(grade) and grade >= 1 and grade <= 13, do: errors
 
   defp validate_school_grade(errors, _), do: ["School grade must be between 1 and 13" | errors]
 end

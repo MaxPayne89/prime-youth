@@ -260,9 +260,7 @@ provider_profiles =
     |> Repo.insert!()
   end)
 
-Logger.info(
-  "Created #{length(provider_profiles)} provider profiles (2 starter, 2 professional, 1 business_plus)"
-)
+Logger.info("Created #{length(provider_profiles)} provider profiles (2 starter, 2 professional, 1 business_plus)")
 
 # Convenient references
 [starter_1, starter_2, pro_1, pro_2, biz] = provider_profiles
@@ -329,8 +327,7 @@ child_counts = Enum.map(1..10, fn _ -> :rand.uniform(3) end)
             last_name: last_name,
             date_of_birth: dob,
             gender: gender,
-            emergency_contact:
-              "+49 170 999 #{String.pad_leading(Integer.to_string(name_idx + i), 4, "0")}"
+            emergency_contact: "+49 170 999 #{String.pad_leading(Integer.to_string(name_idx + i), 4, "0")}"
           })
           |> Repo.insert!()
 
@@ -664,13 +661,9 @@ storage_uploaded =
   end)
 
 if storage_uploaded > 0 do
-  Logger.info(
-    "Uploaded #{storage_uploaded}/#{length(verification_documents)} dummy PDFs to storage"
-  )
+  Logger.info("Uploaded #{storage_uploaded}/#{length(verification_documents)} dummy PDFs to storage")
 else
-  Logger.warning(
-    "No PDFs uploaded — storage may be unavailable (MinIO not running?). DB records are fine."
-  )
+  Logger.warning("No PDFs uploaded — storage may be unavailable (MinIO not running?). DB records are fine.")
 end
 
 # ==============================================================================
@@ -1189,9 +1182,7 @@ staff_session_records =
 
 session_records = session_records ++ staff_session_records
 
-Logger.info(
-  "Created #{length(staff_session_records)} staff-testable sessions for Wolf Musik Akademie"
-)
+Logger.info("Created #{length(staff_session_records)} staff-testable sessions for Wolf Musik Akademie")
 
 # ==============================================================================
 # S14: PARTICIPATION RECORDS

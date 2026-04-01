@@ -7,6 +7,7 @@ defmodule KlassHeroWeb.Admin.Actions.CancelBookingActionTest do
   alias KlassHero.Accounts.Scope
   alias KlassHero.AccountsFixtures
   alias KlassHeroWeb.Admin.Actions.CancelBookingAction
+  alias Phoenix.LiveView.Socket
 
   describe "changeset/3" do
     setup do
@@ -52,7 +53,7 @@ defmodule KlassHeroWeb.Admin.Actions.CancelBookingActionTest do
       admin = AccountsFixtures.user_fixture(%{is_admin: true})
       scope = Scope.for_user(admin)
 
-      socket = %Phoenix.LiveView.Socket{
+      socket = %Socket{
         assigns: %{
           __changed__: %{},
           flash: %{},

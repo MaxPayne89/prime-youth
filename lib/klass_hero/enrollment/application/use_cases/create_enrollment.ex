@@ -32,6 +32,7 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
   """
 
   alias KlassHero.Enrollment
+  alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
   alias KlassHero.Enrollment.Domain.Models.Enrollment, as: EnrollmentModel
   alias KlassHero.Family
   alias KlassHero.Shared.Entitlements
@@ -123,8 +124,6 @@ defmodule KlassHero.Enrollment.Application.UseCases.CreateEnrollment do
   # Why: enforce provider-configured eligibility rules before accepting enrollment
   # Outcome: blocks ineligible children with human-readable reasons
   defp validate_participant_eligibility(program_id, child_id) do
-    alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
-
     case CheckParticipantEligibility.execute(program_id, child_id) do
       {:ok, :eligible} ->
         :ok

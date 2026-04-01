@@ -1,7 +1,12 @@
 defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTest do
   use ExUnit.Case, async: true
 
+  alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
+  alias KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler
+  alias KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler
+  alias KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
   alias KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistry
+  alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
 
   describe "handlers_for/1" do
     test "returns handler tuples for a configured topic" do
@@ -25,8 +30,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
         CriticalEventHandlerRegistry.handlers_for("integration:accounts:user_registered")
 
       assert [
-               {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event},
-               {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event}
+               {FamilyEventHandler, :handle_event},
+               {ProviderEventHandler, :handle_event}
              ] = handlers
     end
 
@@ -35,8 +40,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
         CriticalEventHandlerRegistry.handlers_for("integration:accounts:user_confirmed")
 
       assert [
-               {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event},
-               {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event}
+               {FamilyEventHandler, :handle_event},
+               {ProviderEventHandler, :handle_event}
              ] = handlers
     end
 
@@ -45,17 +50,14 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
         CriticalEventHandlerRegistry.handlers_for("integration:accounts:user_anonymized")
 
       assert [
-               {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event},
-               {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event},
-               {KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler, :handle_event}
+               {FamilyEventHandler, :handle_event},
+               {ProviderEventHandler, :handle_event},
+               {MessagingEventHandler, :handle_event}
              ] = handlers
     end
   end
 
   describe "end-to-end wiring: AccountsIntegrationEvents factory → topic → registry" do
-    alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
-    alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
-
     test "user_registered factory produces a topic that resolves to 2 handlers" do
       event = AccountsIntegrationEvents.user_registered("user-1")
       topic = PubSubIntegrationEventPublisher.derive_topic(event)
@@ -63,9 +65,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
 
       assert length(handlers) == 2
 
-      assert {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event} in handlers
+      assert {FamilyEventHandler, :handle_event} in handlers
 
-      assert {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event} in handlers
+      assert {ProviderEventHandler, :handle_event} in handlers
     end
 
     test "user_confirmed factory produces a topic that resolves to 2 handlers" do
@@ -75,9 +77,9 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
 
       assert length(handlers) == 2
 
-      assert {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event} in handlers
+      assert {FamilyEventHandler, :handle_event} in handlers
 
-      assert {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event} in handlers
+      assert {ProviderEventHandler, :handle_event} in handlers
     end
 
     test "user_anonymized factory produces a topic that resolves to 3 handlers" do
@@ -87,11 +89,11 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventHandlerRegistryTe
 
       assert length(handlers) == 3
 
-      assert {KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler, :handle_event} in handlers
+      assert {FamilyEventHandler, :handle_event} in handlers
 
-      assert {KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler, :handle_event} in handlers
+      assert {ProviderEventHandler, :handle_event} in handlers
 
-      assert {KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler, :handle_event} in handlers
+      assert {MessagingEventHandler, :handle_event} in handlers
     end
   end
 end

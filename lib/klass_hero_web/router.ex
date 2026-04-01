@@ -5,6 +5,12 @@ defmodule KlassHeroWeb.Router do
   import KlassHeroWeb.UserAuth
   import Oban.Web.Router
 
+  alias KlassHero.Shared.Tracing.LiveViewHook
+  alias KlassHeroWeb.Hooks.RestoreLocale
+  alias KlassHeroWeb.Plugs.SetLocale
+  alias KlassHeroWeb.Plugs.VerifyWebhookSignature
+  alias Plug.Swoosh.MailboxPreview
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -15,7 +21,7 @@ defmodule KlassHeroWeb.Router do
     plug :put_secure_browser_headers
     plug :fetch_current_scope_for_user
     plug :set_error_tracker_context
-    plug KlassHeroWeb.Plugs.SetLocale
+    plug SetLocale
   end
 
   pipeline :api do
@@ -23,7 +29,7 @@ defmodule KlassHeroWeb.Router do
   end
 
   pipeline :webhook do
-    plug KlassHeroWeb.Plugs.VerifyWebhookSignature
+    plug VerifyWebhookSignature
   end
 
   scope "/webhooks", KlassHeroWeb do
@@ -53,9 +59,9 @@ defmodule KlassHeroWeb.Router do
     live_session :public,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
-        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
+        {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :mount_current_scope},
-        {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+        {RestoreLocale, :restore_locale}
       ] do
       live "/", HomeLive, :index
       live "/programs", ProgramsLive, :index
@@ -71,11 +77,11 @@ defmodule KlassHeroWeb.Router do
     live_session :authenticated,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
-        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
+        {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :redirect_provider_or_staff_from_parent_routes},
         {KlassHeroWeb.UserAuth, :fetch_unread_count},
-        {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+        {RestoreLocale, :restore_locale}
       ] do
       live "/dashboard", DashboardLive, :index
       live "/settings", SettingsLive, :index
@@ -91,11 +97,11 @@ defmodule KlassHeroWeb.Router do
     live_session :require_provider,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
-        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
+        {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_provider},
         {KlassHeroWeb.UserAuth, :fetch_unread_count},
-        {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+        {RestoreLocale, :restore_locale}
       ] do
       scope "/provider", Provider do
         live "/sessions", SessionsLive, :index
@@ -120,11 +126,11 @@ defmodule KlassHeroWeb.Router do
     live_session :require_parent,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
-        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
+        {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_parent},
         {KlassHeroWeb.UserAuth, :fetch_unread_count},
-        {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+        {RestoreLocale, :restore_locale}
       ] do
       scope "/parent", Parent do
         live "/participation", ParticipationHistoryLive, :index
@@ -135,11 +141,11 @@ defmodule KlassHeroWeb.Router do
     live_session :require_staff_provider,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
-        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
+        {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_staff_provider},
         {KlassHeroWeb.UserAuth, :fetch_unread_count},
-        {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+        {RestoreLocale, :restore_locale}
       ] do
       scope "/staff", Staff do
         live "/dashboard", StaffDashboardLive, :index
@@ -154,10 +160,10 @@ defmodule KlassHeroWeb.Router do
     live_session :require_admin,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
-        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
+        {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_admin},
-        {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+        {RestoreLocale, :restore_locale}
       ] do
       scope "/admin", Admin do
         live "/verifications", VerificationsLive, :index
@@ -178,10 +184,10 @@ defmodule KlassHeroWeb.Router do
       # Outcome: admin layout rendered once by Backpex, no duplicates
       live_session :backpex_admin,
         on_mount: [
-          {KlassHero.Shared.Tracing.LiveViewHook, :trace},
+          {LiveViewHook, :trace},
           {KlassHeroWeb.UserAuth, :require_authenticated},
           {KlassHeroWeb.UserAuth, :require_admin},
-          {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale},
+          {RestoreLocale, :restore_locale},
           Backpex.InitAssigns
         ] do
         live_resources("/accounts", AccountLive, only: [:index, :show, :edit])
@@ -197,10 +203,10 @@ defmodule KlassHeroWeb.Router do
       live_session :admin_custom,
         layout: {KlassHeroWeb.Layouts, :admin},
         on_mount: [
-          {KlassHero.Shared.Tracing.LiveViewHook, :trace},
+          {LiveViewHook, :trace},
           {KlassHeroWeb.UserAuth, :require_authenticated},
           {KlassHeroWeb.UserAuth, :require_admin},
-          {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+          {RestoreLocale, :restore_locale}
         ] do
         live "/sessions", SessionsLive, :index
         live "/sessions/:id", SessionsLive, :show
@@ -241,7 +247,7 @@ defmodule KlassHeroWeb.Router do
       pipe_through :browser
 
       live_dashboard "/dashboard", metrics: KlassHeroWeb.Telemetry
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
+      forward "/mailbox", MailboxPreview
     end
   end
 
@@ -256,10 +262,10 @@ defmodule KlassHeroWeb.Router do
     live_session :require_authenticated_user,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
-        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
+        {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :fetch_unread_count},
-        {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+        {RestoreLocale, :restore_locale}
       ] do
       live "/users/settings", UserLive.Settings, :edit
       live "/users/settings/confirm-email/:token", UserLive.Settings, :confirm_email
@@ -282,9 +288,9 @@ defmodule KlassHeroWeb.Router do
 
     live_session :current_user,
       on_mount: [
-        {KlassHero.Shared.Tracing.LiveViewHook, :trace},
+        {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :mount_current_scope},
-        {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
+        {RestoreLocale, :restore_locale}
       ] do
       live "/users/register", UserLive.Registration, :new
       live "/users/log-in", UserLive.Login, :new

@@ -52,9 +52,7 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorker do
             :ok
 
           {:error, :not_found} ->
-            Logger.warning(
-              "Inbound email #{email_id} not found while storing content; discarding job"
-            )
+            Logger.warning("Inbound email #{email_id} not found while storing content; discarding job")
 
             {:discard, :not_found}
 
@@ -64,9 +62,7 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorker do
         end
 
       {:error, reason} ->
-        Logger.warning(
-          "Content fetch failed for #{email_id} (attempt #{job.attempt}): #{inspect(reason)}"
-        )
+        Logger.warning("Content fetch failed for #{email_id} (attempt #{job.attempt}): #{inspect(reason)}")
 
         maybe_mark_permanently_failed(email_id, job)
         {:error, reason}

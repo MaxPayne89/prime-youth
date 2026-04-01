@@ -2,6 +2,8 @@ defmodule KlassHero.ProgramCatalog.UpdateProgramIntegrationTest do
   use KlassHero.DataCase
 
   alias KlassHero.ProgramCatalog
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProviderFixtures
   alias KlassHero.Shared.DomainEventBus
 
@@ -127,8 +129,6 @@ defmodule KlassHero.ProgramCatalog.UpdateProgramIntegrationTest do
     end
 
     test "repository returns stale_data on lock version conflict", %{program: program} do
-      alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
-      alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
       alias KlassHero.Repo
 
       # Simulate concurrent edit: bump lock_version in DB directly

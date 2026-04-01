@@ -65,8 +65,8 @@ asdf install
 ```
 
 This installs:
-- Erlang 28.4
-- Elixir 1.20.0-rc.3-otp-28
+- Erlang 28.4.1
+- Elixir 1.20.0-rc.4-otp-28
 
 **3. Start PostgreSQL:**
 
@@ -133,8 +133,8 @@ mix assets.build
 This project uses asdf to ensure consistent Elixir/Erlang versions across development environments.
 
 **Versions** (defined in `.tool-versions`):
-- Erlang: 28.4
-- Elixir: 1.20.0-rc.3-otp-28
+- Erlang: 28.4.1
+- Elixir: 1.20.0-rc.4-otp-28
 - PostgreSQL: 18 (Docker)
 
 After cloning, run `asdf install` to automatically install the correct versions.
@@ -296,7 +296,7 @@ docker-compose restart
 **Check Elixir/Erlang versions:**
 ```bash
 elixir --version
-# Should show: Elixir 1.20.0-rc.3 (compiled with Erlang/OTP 28)
+# Should show: Elixir 1.20.0-rc.4 (compiled with Erlang/OTP 28)
 ```
 
 **Check PostgreSQL:**

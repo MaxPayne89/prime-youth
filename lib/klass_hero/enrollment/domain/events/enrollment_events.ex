@@ -25,8 +25,7 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
 
   def participant_policy_set(program_id, payload \\ %{}, opts \\ [])
 
-  def participant_policy_set(program_id, payload, opts)
-      when is_binary(program_id) and byte_size(program_id) > 0 do
+  def participant_policy_set(program_id, payload, opts) when is_binary(program_id) and byte_size(program_id) > 0 do
     base_payload = %{program_id: program_id}
 
     DomainEvent.new(
@@ -56,8 +55,7 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
   def bulk_invites_imported(provider_id, program_ids, count, opts \\ [])
 
   def bulk_invites_imported(provider_id, program_ids, count, opts)
-      when is_binary(provider_id) and byte_size(provider_id) > 0 and is_list(program_ids) and
-             is_integer(count) do
+      when is_binary(provider_id) and byte_size(provider_id) > 0 and is_list(program_ids) and is_integer(count) do
     DomainEvent.new(
       :bulk_invites_imported,
       provider_id,
@@ -86,8 +84,8 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
   def invite_resend_requested(provider_id, invite_id, program_id, opts \\ [])
 
   def invite_resend_requested(provider_id, invite_id, program_id, opts)
-      when is_binary(provider_id) and byte_size(provider_id) > 0 and is_binary(invite_id) and
-             byte_size(invite_id) > 0 and is_binary(program_id) and byte_size(program_id) > 0 do
+      when is_binary(provider_id) and byte_size(provider_id) > 0 and is_binary(invite_id) and byte_size(invite_id) > 0 and
+             is_binary(program_id) and byte_size(program_id) > 0 do
     DomainEvent.new(
       :invite_resend_requested,
       invite_id,
@@ -114,8 +112,7 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
   """
   def invite_claimed(invite_id, payload \\ %{}, opts \\ [])
 
-  def invite_claimed(invite_id, payload, opts)
-      when is_binary(invite_id) and byte_size(invite_id) > 0 do
+  def invite_claimed(invite_id, payload, opts) when is_binary(invite_id) and byte_size(invite_id) > 0 do
     base_payload = %{invite_id: invite_id}
 
     DomainEvent.new(

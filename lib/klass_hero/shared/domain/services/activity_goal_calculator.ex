@@ -33,8 +33,7 @@ defmodule KlassHero.Shared.Domain.Services.ActivityGoalCalculator do
 
   defp extract_session_count(%{sessions: sessions}) when is_list(sessions), do: length(sessions)
 
-  defp extract_session_count(%{sessions: sessions}) when is_binary(sessions),
-    do: parse_session_string(sessions)
+  defp extract_session_count(%{sessions: sessions}) when is_binary(sessions), do: parse_session_string(sessions)
 
   defp extract_session_count(_), do: 0
 
@@ -51,8 +50,7 @@ defmodule KlassHero.Shared.Domain.Services.ActivityGoalCalculator do
     end
   end
 
-  defp calculate_percentage(current, target) when target > 0,
-    do: min(100, div(current * 100, target))
+  defp calculate_percentage(current, target) when target > 0, do: min(100, div(current * 100, target))
 
   defp calculate_percentage(_, _), do: 0
 

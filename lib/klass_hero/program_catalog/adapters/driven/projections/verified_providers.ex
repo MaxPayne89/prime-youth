@@ -132,10 +132,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   # Why: Provider context notifies other contexts when a provider is verified
   # Outcome: Provider ID added to the in-memory MapSet
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :provider_verified} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :provider_verified} = event}, state) do
     provider_id = event.payload.provider_id
 
     Logger.debug("Provider verified in projection",
@@ -151,10 +148,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   # Why: Provider context notifies other contexts when a provider loses verification
   # Outcome: Provider ID removed from the in-memory MapSet
   @impl true
-  def handle_info(
-        {:integration_event, %IntegrationEvent{event_type: :provider_unverified} = event},
-        state
-      ) do
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :provider_unverified} = event}, state) do
     provider_id = event.payload.provider_id
 
     Logger.debug("Provider unverified in projection",

@@ -173,8 +173,7 @@ defmodule KlassHero.Provider.Domain.Models.VerificationDocument do
   - `{:error, :document_not_pending}` if document is not in pending status
   """
   def reject(%__MODULE__{status: :pending} = doc, reviewer_id, reason)
-      when is_binary(reviewer_id) and byte_size(reviewer_id) > 0 and is_binary(reason) and
-             byte_size(reason) > 0 do
+      when is_binary(reviewer_id) and byte_size(reviewer_id) > 0 and is_binary(reason) and byte_size(reason) > 0 do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     {:ok,

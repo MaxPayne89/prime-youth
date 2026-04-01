@@ -5,6 +5,8 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
 
   alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
   alias KlassHero.Messaging.Domain.Models.Message
 
   describe "create/1" do
@@ -168,7 +170,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
 
   describe "get_latest/1" do
     test "returns the most recent message" do
-      alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
       alias KlassHero.Repo
 
       conversation = insert(:conversation_schema)
@@ -332,8 +333,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
 
   describe "anonymize_for_sender/1" do
     test "replaces content with [deleted] for all messages by sender and returns count" do
-      alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
-
       conversation = insert(:conversation_schema)
       user = AccountsFixtures.user_fixture()
 
@@ -362,8 +361,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
     end
 
     test "does not affect messages from other senders" do
-      alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
-
       conversation = insert(:conversation_schema)
       user = AccountsFixtures.user_fixture()
       other_user = AccountsFixtures.user_fixture()
@@ -408,7 +405,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
 
   describe "delete_for_expired_conversations/1" do
     test "deletes messages for expired conversations" do
-      alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
       alias KlassHero.Repo
 
       conversation = insert(:conversation_schema)
@@ -481,7 +477,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
     end
 
     test "does not delete messages for conversations with future retention" do
-      alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
       alias KlassHero.Repo
 
       conversation = insert(:conversation_schema)

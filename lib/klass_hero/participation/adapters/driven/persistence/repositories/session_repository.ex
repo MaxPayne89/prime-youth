@@ -143,8 +143,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
     |> maybe_filter_status(filters)
   end
 
-  defp maybe_filter_date(query, %{date: date}),
-    do: where(query, [s, _p, _pr, _prov], s.session_date == ^date)
+  defp maybe_filter_date(query, %{date: date}), do: where(query, [s, _p, _pr, _prov], s.session_date == ^date)
 
   defp maybe_filter_date(query, _), do: query
 

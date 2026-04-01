@@ -22,24 +22,27 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
 
   alias Ecto.Adapters.SQL.Sandbox
   alias KlassHero.Enrollment
-
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
-
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmentInviteSchema
+  alias KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler
   alias KlassHero.Family
-  alias KlassHero.Repo
-
   # EventSubscriber process names that participate in the saga.
   # These GenServers receive PubSub integration events and access the DB.
+  alias KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler
+  alias KlassHero.Family.Adapters.Driving.Events.InviteClaimedHandler
+  alias KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
+  alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
+
   @saga_subscribers [
     # Handles integration:enrollment:invite_claimed -> creates parent + child
-    KlassHero.Family.Adapters.Driving.Events.InviteClaimedHandler,
+    InviteClaimedHandler,
     # Handles integration:family:invite_family_ready -> creates enrollment
-    KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler,
+    InviteFamilyReadyHandler,
     # Handles integration:accounts:user_registered -> creates parent profile (may race)
-    KlassHero.Family.Adapters.Driving.Events.FamilyEventHandler,
+    FamilyEventHandler,
     # Handles integration:accounts:user_registered -> creates provider profile stub
-    KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
+    ProviderEventHandler
   ]
 
   defp create_claimable_invite(_context) do
@@ -108,7 +111,7 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
       original_config = Application.get_env(:klass_hero, :integration_event_publisher)
 
       Application.put_env(:klass_hero, :integration_event_publisher,
-        module: KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher,
+        module: PubSubIntegrationEventPublisher,
         pubsub: KlassHero.PubSub
       )
 

@@ -4,6 +4,12 @@ defmodule KlassHeroWeb.Endpoint do
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
+  alias KlassHeroWeb.Plugs.CacheRawBody
+  alias Phoenix.Ecto.CheckRepoStatus
+  alias Phoenix.Ecto.SQL.Sandbox
+  alias Phoenix.LiveDashboard.RequestLogger
+  alias Phoenix.LiveView.Socket
+
   @session_options [
     store: :cookie,
     key: "_klass_hero_key",
@@ -11,12 +17,12 @@ defmodule KlassHeroWeb.Endpoint do
     same_site: "Lax"
   ]
 
-  socket "/live", Phoenix.LiveView.Socket,
+  socket "/live", Socket,
     websocket: [connect_info: [:user_agent, session: @session_options]],
     longpoll: [connect_info: [:user_agent, session: @session_options]]
 
   if Application.compile_env(:klass_hero, :sql_sandbox) do
-    plug Phoenix.Ecto.SQL.Sandbox
+    plug Sandbox
   end
 
   # Serve at "/" the static files from "priv/static" directory.
@@ -41,10 +47,10 @@ defmodule KlassHeroWeb.Endpoint do
     socket "/phoenix/live_reload/socket", Phoenix.LiveReloader.Socket
     plug Phoenix.LiveReloader
     plug Phoenix.CodeReloader
-    plug Phoenix.Ecto.CheckRepoStatus, otp_app: :klass_hero
+    plug CheckRepoStatus, otp_app: :klass_hero
   end
 
-  plug Phoenix.LiveDashboard.RequestLogger,
+  plug RequestLogger,
     param_key: "request_logger",
     cookie_key: "request_logger"
 
@@ -54,7 +60,7 @@ defmodule KlassHeroWeb.Endpoint do
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],
-    body_reader: {KlassHeroWeb.Plugs.CacheRawBody, :read_body, []},
+    body_reader: {CacheRawBody, :read_body, []},
     json_decoder: Phoenix.json_library()
 
   plug Plug.MethodOverride

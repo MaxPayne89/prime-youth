@@ -83,9 +83,7 @@ defmodule KlassHero.Messaging.Workers.SendEmailReplyWorker do
         :ok
 
       {:error, reason} ->
-        Logger.critical(
-          "Reply #{reply_id} delivered but status update failed: #{inspect(reason)}"
-        )
+        Logger.critical("Reply #{reply_id} delivered but status update failed: #{inspect(reason)}")
     end
   end
 

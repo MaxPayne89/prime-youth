@@ -110,8 +110,7 @@ defmodule KlassHero.Enrollment.Domain.Models.EnrollmentPolicy do
   # Trigger: min exceeds max when both are set
   # Why: nonsensical policy — program could never run and accept enrollments simultaneously
   # Outcome: rejected with descriptive error
-  defp validate_min_max_relationship(errors, min, max)
-       when is_integer(min) and is_integer(max) and min > max do
+  defp validate_min_max_relationship(errors, min, max) when is_integer(min) and is_integer(max) and min > max do
     ["minimum enrollment must not exceed maximum enrollment" | errors]
   end
 

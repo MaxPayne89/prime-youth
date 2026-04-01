@@ -217,9 +217,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
               :ok
 
             {:error, changeset} ->
-              Logger.warning(
-                "[BulkEnrollmentInvite] Delete failed for #{id}: #{inspect(changeset.errors)}"
-              )
+              Logger.warning("[BulkEnrollmentInvite] Delete failed for #{id}: #{inspect(changeset.errors)}")
 
               {:error, :delete_failed}
           end

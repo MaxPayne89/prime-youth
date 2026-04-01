@@ -100,8 +100,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   # Outcome: skip capacity check, changeset will reject the enrollment
   def create_with_capacity_check(attrs, nil), do: create(attrs)
 
-  def create_with_capacity_check(attrs, program_id)
-      when is_map(attrs) and is_binary(program_id) do
+  def create_with_capacity_check(attrs, program_id) when is_map(attrs) and is_binary(program_id) do
     span do
       set_attributes("db", operation: "insert", entity: "enrollment")
 

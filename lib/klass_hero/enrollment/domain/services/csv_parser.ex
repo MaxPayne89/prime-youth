@@ -41,10 +41,8 @@ defmodule KlassHero.Enrollment.Domain.Services.CsvParser do
     {"Medical/allergy information: Do you have", :skip},
     {"Medical/allergy information: Medical", :medical_conditions},
     {"Medical/allergy information: Nut", :nut_allergy},
-    {"Photography/video release permission: I agree that photos showing",
-     :consent_photo_marketing},
-    {"Photography/video release permission: I agree that photos and films",
-     :consent_photo_social_media},
+    {"Photography/video release permission: I agree that photos showing", :consent_photo_marketing},
+    {"Photography/video release permission: I agree that photos and films", :consent_photo_social_media},
     {"Program", :program_name},
     {"Instructor", :instructor_name},
     {"Season", :season}

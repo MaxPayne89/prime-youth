@@ -56,9 +56,7 @@ defmodule KlassHeroWeb.ConnCase do
 
     cond do
       is_nil(actual) ->
-        flunk(
-          "Expected flash #{inspect(kind)} to be set, but it was nil. Flash: #{inspect(flash)}"
-        )
+        flunk("Expected flash #{inspect(kind)} to be set, but it was nil. Flash: #{inspect(flash)}")
 
       is_binary(expected) and actual == expected ->
         true

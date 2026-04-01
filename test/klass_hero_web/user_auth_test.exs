@@ -10,6 +10,7 @@ defmodule KlassHeroWeb.UserAuthTest do
   alias KlassHero.Provider
   alias KlassHeroWeb.UserAuth
   alias Phoenix.LiveView
+  alias Phoenix.Socket.Broadcast
 
   @remember_me_cookie "_klass_hero_web_user_remember_me"
   @remember_me_cookie_max_age 60 * 60 * 24 * 14
@@ -155,7 +156,7 @@ defmodule KlassHeroWeb.UserAuthTest do
       |> put_session(:live_socket_id, live_socket_id)
       |> UserAuth.log_out_user()
 
-      assert_receive %Phoenix.Socket.Broadcast{event: "disconnect", topic: ^live_socket_id}
+      assert_receive %Broadcast{event: "disconnect", topic: ^live_socket_id}
     end
 
     test "works even if user is already logged out", %{conn: conn} do
@@ -632,12 +633,12 @@ defmodule KlassHeroWeb.UserAuthTest do
 
       UserAuth.disconnect_sessions(tokens)
 
-      assert_receive %Phoenix.Socket.Broadcast{
+      assert_receive %Broadcast{
         event: "disconnect",
         topic: "users_sessions:dG9rZW4x"
       }
 
-      assert_receive %Phoenix.Socket.Broadcast{
+      assert_receive %Broadcast{
         event: "disconnect",
         topic: "users_sessions:dG9rZW4y"
       }

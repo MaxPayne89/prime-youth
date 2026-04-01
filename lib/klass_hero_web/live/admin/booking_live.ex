@@ -17,14 +17,20 @@ defmodule KlassHeroWeb.Admin.BookingLive do
     adapter_config: [
       schema: KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema,
       repo: KlassHero.Repo,
-      update_changeset:
-        &KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema.admin_changeset/3,
-      create_changeset:
-        &KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema.admin_changeset/3
+      update_changeset: &KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema.admin_changeset/3,
+      create_changeset: &KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema.admin_changeset/3
     ],
-    layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :enrolled_at, direction: :desc}
+
+  alias Backpex.Fields.BelongsTo
+  alias Backpex.Fields.Text
+  alias Backpex.Fields.Textarea
+  alias KlassHeroWeb.Admin.Actions.CancelBookingAction
+  alias KlassHeroWeb.Admin.Filters.StatusFilter
+
+  @impl Backpex.LiveResource
+  def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
 
   # Trigger: :new, :edit, and :delete are not valid operations for bookings in admin
   # Why: bookings are created by parents; cancellation goes through the cancel item action
@@ -43,7 +49,7 @@ defmodule KlassHeroWeb.Admin.BookingLive do
 
   @impl Backpex.LiveResource
   def filters do
-    [status: %{module: KlassHeroWeb.Admin.Filters.StatusFilter}]
+    [status: %{module: StatusFilter}]
   end
 
   @impl Backpex.LiveResource
@@ -58,7 +64,7 @@ defmodule KlassHeroWeb.Admin.BookingLive do
     # Why: the cancel action calls through a domain use case, not a simple Backpex edit
     # Outcome: cancel button appears per-row for eligible bookings
     Keyword.put(default_actions, :cancel_booking, %{
-      module: KlassHeroWeb.Admin.Actions.CancelBookingAction,
+      module: CancelBookingAction,
       only: [:row, :show]
     })
   end
@@ -67,7 +73,7 @@ defmodule KlassHeroWeb.Admin.BookingLive do
   def fields do
     [
       program: %{
-        module: Backpex.Fields.BelongsTo,
+        module: BelongsTo,
         label: "Program",
         display_field: :title,
         searchable: true,
@@ -75,7 +81,7 @@ defmodule KlassHeroWeb.Admin.BookingLive do
         only: [:index, :show]
       },
       child: %{
-        module: Backpex.Fields.BelongsTo,
+        module: BelongsTo,
         label: "Child",
         display_field: :first_name,
         searchable: true,
@@ -93,14 +99,14 @@ defmodule KlassHeroWeb.Admin.BookingLive do
         end
       },
       parent: %{
-        module: Backpex.Fields.BelongsTo,
+        module: BelongsTo,
         label: "Parent",
         display_field: :display_name,
         searchable: true,
         only: [:index, :show]
       },
       status: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Status",
         orderable: true,
         render: fn assigns ->
@@ -115,7 +121,7 @@ defmodule KlassHeroWeb.Admin.BookingLive do
         end
       },
       total_amount: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Total",
         orderable: true,
         render: fn assigns ->
@@ -131,7 +137,7 @@ defmodule KlassHeroWeb.Admin.BookingLive do
         end
       },
       payment_method: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Payment",
         only: [:show],
         render: fn assigns ->
@@ -141,7 +147,7 @@ defmodule KlassHeroWeb.Admin.BookingLive do
         end
       },
       enrolled_at: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Enrolled At",
         orderable: true,
         render: fn assigns ->
@@ -151,12 +157,12 @@ defmodule KlassHeroWeb.Admin.BookingLive do
         end
       },
       special_requirements: %{
-        module: Backpex.Fields.Textarea,
+        module: Textarea,
         label: "Special Requirements",
         only: [:show]
       },
       cancellation_reason: %{
-        module: Backpex.Fields.Text,
+        module: Text,
         label: "Cancellation Reason",
         only: [:show]
       },

@@ -41,6 +41,8 @@ defmodule KlassHero.ProgramCatalog do
       Domain.Services.ProgramCategories
     ]
 
+  alias KlassHero.ProgramCatalog.Adapters.Driven.ACL.EnrollmentCapacityACL
+
   alias KlassHero.ProgramCatalog.Application.UseCases.{
     CreateProgram,
     GetProgramById,
@@ -350,12 +352,12 @@ defmodule KlassHero.ProgramCatalog do
   Delegates to the Enrollment context.
   """
   defdelegate remaining_capacity(program_id),
-    to: KlassHero.ProgramCatalog.Adapters.Driven.ACL.EnrollmentCapacityACL
+    to: EnrollmentCapacityACL
 
   @doc """
   Returns remaining enrollment capacity for multiple programs via ACL.
   Returns a map of `program_id => remaining_count | :unlimited`.
   """
   defdelegate remaining_capacities(program_ids),
-    to: KlassHero.ProgramCatalog.Adapters.Driven.ACL.EnrollmentCapacityACL
+    to: EnrollmentCapacityACL
 end

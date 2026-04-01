@@ -5,13 +5,15 @@ defmodule KlassHeroWeb.Admin.Filters.ConsentStatusFilter do
 
   import Ecto.Query
 
+  alias Backpex.Filters.Select
+
   @impl Backpex.Filter
   def label, do: "Status"
 
-  @impl Backpex.Filters.Select
+  @impl Select
   def prompt, do: "All statuses..."
 
-  @impl Backpex.Filters.Select
+  @impl Select
   def options(_assigns) do
     [
       {"Active", "active"},

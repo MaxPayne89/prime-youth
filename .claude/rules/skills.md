@@ -82,3 +82,29 @@ Creates well-formed GitHub issues from findings or hypotheses. Validates against
 Test-drives code changes using Playwright and Tidewave MCP. Verifies backend logic, UI flows, responsive design, and edge cases. Includes pre-flight checks, prioritized test ordering, and structured report generation. References auth flows with seed user credentials.
 
 **Use when:** `/test-drive [branch|unstaged|<issue-number>]` or when asked to "test-drive", "verify changes", or "QA this"
+
+### gen-migration
+
+Scaffolds a complete database-backed entity (migration, domain model, schema, mapper, repository, port) following DDD/Ports & Adapters conventions. Generates 6 files and updates 2 (config + Boundary exports).
+
+**Use when:** `/gen-migration <context> <entity> [field:type ...]`
+
+### address-pr-comments
+
+Fetches, triages, and addresses PR review comments for the current branch. Classifies each as actionable, nit, question, or dismissible.
+
+**Use when:** `/address-pr-comments` or when asked to "handle review feedback", "fix PR comments"
+
+## Custom Agents (in `.claude/agents/`)
+
+### architecture-reviewer
+
+Reviews code for DDD/Ports & Adapters architecture compliance. Runs 12 checks covering port/adapter locations, naming conventions, behaviour declarations, use case structure, Boundary configuration, DI wiring, and cross-context isolation.
+
+**Use when:** Architecture review needed during PR review or after structural changes. Spawn as a subagent.
+
+### boundary-checker
+
+Detects semantic boundary violations that the `boundary` library cannot catch at compile time. Checks for cross-context adapter calls, schema leaks, port bypasses, domain layer purity, and ACL adapter correctness.
+
+**Use when:** Deep boundary analysis needed, especially after adding cross-context features. Spawn as a subagent.

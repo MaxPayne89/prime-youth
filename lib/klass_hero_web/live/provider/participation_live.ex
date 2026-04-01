@@ -2,6 +2,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
   use KlassHeroWeb, :live_view
 
   alias KlassHero.Participation
+  alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -104,11 +105,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
   end
 
   @impl true
-  def handle_event(
-        "update_checkout_notes",
-        %{"id" => record_id, "checkout" => %{"notes" => notes}},
-        socket
-      ) do
+  def handle_event("update_checkout_notes", %{"id" => record_id, "checkout" => %{"notes" => notes}}, socket) do
     {:noreply, update_form(socket, record_id, notes, "checkout", "notes", :checkout_forms)}
   end
 
@@ -157,8 +154,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
 
   @impl true
   def handle_event("expand_note_form", %{"id" => record_id}, socket) do
-    {:noreply,
-     expand_form(socket, record_id, "note", "content", "", :note_form_expanded, :note_forms)}
+    {:noreply, expand_form(socket, record_id, "note", "content", "", :note_form_expanded, :note_forms)}
   end
 
   @impl true
@@ -167,11 +163,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
   end
 
   @impl true
-  def handle_event(
-        "update_note_content",
-        %{"id" => record_id, "note" => %{"content" => content}},
-        socket
-      ) do
+  def handle_event("update_note_content", %{"id" => record_id, "note" => %{"content" => content}}, socket) do
     {:noreply, update_form(socket, record_id, content, "note", "content", :note_forms)}
   end
 
@@ -196,8 +188,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
         {:noreply, put_flash(socket, :error, gettext("Note content cannot be blank"))}
 
       {:error, :duplicate_note} ->
-        {:noreply,
-         put_flash(socket, :error, gettext("You already submitted a note for this record"))}
+        {:noreply, put_flash(socket, :error, gettext("You already submitted a note for this record"))}
 
       {:error, reason} ->
         Logger.error("[ParticipationLive.submit_note] Failed",
@@ -234,11 +225,7 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
   end
 
   @impl true
-  def handle_event(
-        "update_revision_content",
-        %{"id" => note_id, "revision" => %{"content" => content}},
-        socket
-      ) do
+  def handle_event("update_revision_content", %{"id" => note_id, "revision" => %{"content" => content}}, socket) do
     {:noreply, update_form(socket, note_id, content, "revision", "content", :revision_forms)}
   end
 
@@ -274,29 +261,15 @@ defmodule KlassHeroWeb.Provider.ParticipationLive do
 
   # PubSub event handler for participation record events
   @impl true
-  def handle_info(
-        {:domain_event,
-         %KlassHero.Shared.Domain.Events.DomainEvent{
-           event_type: event_type,
-           aggregate_id: record_id
-         }},
-        socket
-      )
+  def handle_info({:domain_event, %DomainEvent{event_type: event_type, aggregate_id: record_id}}, socket)
       when event_type in [:child_checked_in, :child_checked_out, :participation_marked_absent] do
     {:noreply, update_participation_record(socket, record_id)}
   end
 
   # PubSub handler for behavioral note events — reload session + provider notes
   @impl true
-  def handle_info(
-        {:domain_event, %KlassHero.Shared.Domain.Events.DomainEvent{event_type: event_type}},
-        socket
-      )
-      when event_type in [
-             :behavioral_note_submitted,
-             :behavioral_note_approved,
-             :behavioral_note_rejected
-           ] do
+  def handle_info({:domain_event, %DomainEvent{event_type: event_type}}, socket)
+      when event_type in [:behavioral_note_submitted, :behavioral_note_approved, :behavioral_note_rejected] do
     {:noreply, load_session_data(socket)}
   end
 

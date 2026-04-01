@@ -134,8 +134,7 @@ defmodule KlassHero.Family.Domain.Models.ParentProfile do
   defp validate_notification_preferences(errors, nil), do: errors
   defp validate_notification_preferences(errors, prefs) when is_map(prefs), do: errors
 
-  defp validate_notification_preferences(errors, _),
-    do: ["Notification preferences must be a map" | errors]
+  defp validate_notification_preferences(errors, _), do: ["Notification preferences must be a map" | errors]
 
   defp validate_subscription_tier(errors, nil), do: errors
 

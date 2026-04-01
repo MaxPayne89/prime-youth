@@ -4,6 +4,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest do
   import ExUnit.CaptureLog
 
   alias KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer
+  alias KlassHero.Shared.Adapters.Driven.Persistence.Schemas.ProcessedEvent
   alias KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorker
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
@@ -16,8 +17,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest do
       args =
         CriticalEventSerializer.serialize(event)
         |> Map.merge(%{
-          "handler" =>
-            "Elixir.KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest.SuccessHandler:handle",
+          "handler" => "Elixir.KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest.SuccessHandler:handle",
           "context" => "Elixir.KlassHero.TestContext"
         })
 
@@ -27,12 +27,11 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest do
       # Verify processed_events row was created
       ref =
         CriticalEventDispatcher.handler_ref(
-          {KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest.SuccessHandler,
-           :handle}
+          {KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest.SuccessHandler, :handle}
         )
 
       assert Repo.get_by(
-               KlassHero.Shared.Adapters.Driven.Persistence.Schemas.ProcessedEvent,
+               ProcessedEvent,
                event_id: event.event_id,
                handler_ref: ref
              )
@@ -44,8 +43,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest do
       args =
         CriticalEventSerializer.serialize(event)
         |> Map.merge(%{
-          "handler" =>
-            "Elixir.KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest.FailHandler:handle",
+          "handler" => "Elixir.KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest.FailHandler:handle",
           "context" => "Elixir.KlassHero.TestContext"
         })
 
@@ -78,8 +76,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest do
       args =
         CriticalEventSerializer.serialize(event)
         |> Map.merge(%{
-          "handler" =>
-            "Elixir.KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest.FailHandler:handle",
+          "handler" => "Elixir.KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest.FailHandler:handle",
           "context" => "Elixir.KlassHero.TestContext"
         })
 
@@ -100,8 +97,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest do
       args =
         CriticalEventSerializer.serialize(event)
         |> Map.merge(%{
-          "handler" =>
-            "Elixir.KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest.FailHandler:handle",
+          "handler" => "Elixir.KlassHero.Shared.Adapters.Driven.Workers.CriticalEventWorkerTest.FailHandler:handle",
           "context" => "Elixir.KlassHero.TestContext"
         })
 

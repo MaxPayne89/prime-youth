@@ -13,6 +13,10 @@ defmodule KlassHero.ProjectionSupervisor do
 
   use Supervisor
 
+  alias KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
+
   def start_link(init_arg) do
     Supervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
@@ -23,9 +27,9 @@ defmodule KlassHero.ProjectionSupervisor do
       # Trigger: VerifiedProviders must start before ProgramListings
       # Why: ProgramListings.bootstrap calls VerifiedProviders.verified?/1
       # Outcome: rest_for_one ensures ProgramListings restarts if VerifiedProviders crashes
-      KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders,
-      KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings,
-      KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries
+      VerifiedProviders,
+      ProgramListings,
+      ConversationSummaries
     ]
 
     Supervisor.init(children, strategy: :rest_for_one, max_restarts: 10, max_seconds: 60)

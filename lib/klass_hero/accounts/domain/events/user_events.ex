@@ -192,11 +192,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
   """
   def user_email_changed(user, payload, opts \\ [])
 
-  def user_email_changed(
-        %{id: _, email: _} = user,
-        %{previous_email: previous_email} = payload,
-        opts
-      )
+  def user_email_changed(%{id: _, email: _} = user, %{previous_email: previous_email} = payload, opts)
       when is_binary(previous_email) and byte_size(previous_email) > 0 do
     validate_user_for_email_change!(user)
 
@@ -238,8 +234,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
   defp validate_field!(_field, _value, :required, _event_name), do: :ok
 
-  defp validate_field!(field, value, :non_empty_string, event_name)
-       when is_nil(value) or value == "" do
+  defp validate_field!(field, value, :non_empty_string, event_name) when is_nil(value) or value == "" do
     raise ArgumentError, "User.#{field} cannot be nil or empty for #{event_name} event"
   end
 
@@ -251,8 +246,7 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
 
   defp validate_field!(_field, _value, :non_nil, _event_name), do: :ok
 
-  defp validate_field!(field, value, :list_or_nil, event_name)
-       when not is_list(value) and not is_nil(value) do
+  defp validate_field!(field, value, :list_or_nil, event_name) when not is_list(value) and not is_nil(value) do
     raise ArgumentError,
           "User.#{field} must be a list for #{event_name} event, got: #{inspect(value)}"
   end

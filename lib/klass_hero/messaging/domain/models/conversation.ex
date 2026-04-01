@@ -14,6 +14,9 @@ defmodule KlassHero.Messaging.Domain.Models.Conversation do
   when the conversation data is permanently deleted.
   """
 
+  alias KlassHero.Messaging.Domain.Models.Message
+  alias KlassHero.Messaging.Domain.Models.Participant
+
   @enforce_keys [:id, :type, :provider_id]
 
   defstruct [
@@ -44,8 +47,8 @@ defmodule KlassHero.Messaging.Domain.Models.Conversation do
           lock_version: integer(),
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil,
-          participants: [KlassHero.Messaging.Domain.Models.Participant.t()],
-          messages: [KlassHero.Messaging.Domain.Models.Message.t()]
+          participants: [Participant.t()],
+          messages: [Message.t()]
         }
 
   @valid_types [:direct, :program_broadcast]

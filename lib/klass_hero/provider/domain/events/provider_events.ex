@@ -20,8 +20,7 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEvents do
 
   @doc "Creates a subscription_tier_changed event."
   @spec subscription_tier_changed(ProviderProfile.t(), atom(), keyword()) :: DomainEvent.t()
-  def subscription_tier_changed(%ProviderProfile{} = profile, previous_tier, opts \\ [])
-      when is_atom(previous_tier) do
+  def subscription_tier_changed(%ProviderProfile{} = profile, previous_tier, opts \\ []) when is_atom(previous_tier) do
     payload = %{
       provider_id: profile.id,
       previous_tier: previous_tier,
@@ -34,11 +33,7 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEvents do
   @doc "Creates a staff_assigned_to_program event."
   @spec staff_assigned_to_program(ProgramStaffAssignment.t(), StaffMember.t(), keyword()) ::
           DomainEvent.t()
-  def staff_assigned_to_program(
-        %ProgramStaffAssignment{} = assignment,
-        %StaffMember{} = staff_member,
-        opts \\ []
-      ) do
+  def staff_assigned_to_program(%ProgramStaffAssignment{} = assignment, %StaffMember{} = staff_member, opts \\ []) do
     payload = %{
       provider_id: assignment.provider_id,
       program_id: assignment.program_id,
@@ -53,11 +48,7 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEvents do
   @doc "Creates a staff_unassigned_from_program event."
   @spec staff_unassigned_from_program(ProgramStaffAssignment.t(), StaffMember.t(), keyword()) ::
           DomainEvent.t()
-  def staff_unassigned_from_program(
-        %ProgramStaffAssignment{} = assignment,
-        %StaffMember{} = staff_member,
-        opts \\ []
-      ) do
+  def staff_unassigned_from_program(%ProgramStaffAssignment{} = assignment, %StaffMember{} = staff_member, opts \\ []) do
     payload = %{
       provider_id: assignment.provider_id,
       program_id: assignment.program_id,

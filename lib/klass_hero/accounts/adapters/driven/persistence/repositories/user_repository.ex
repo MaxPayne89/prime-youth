@@ -135,17 +135,13 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
     end
   end
 
-  defp normalize_email_change_result({:ok, %{update_email: updated_user}}),
-    do: {:ok, updated_user}
+  defp normalize_email_change_result({:ok, %{update_email: updated_user}}), do: {:ok, updated_user}
 
-  defp normalize_email_change_result({:error, :verify_token, _reason, _}),
-    do: {:error, :invalid_token}
+  defp normalize_email_change_result({:error, :verify_token, _reason, _}), do: {:error, :invalid_token}
 
-  defp normalize_email_change_result({:error, :fetch_token, _reason, _}),
-    do: {:error, :invalid_token}
+  defp normalize_email_change_result({:error, :fetch_token, _reason, _}), do: {:error, :invalid_token}
 
-  defp normalize_email_change_result({:error, :update_email, changeset, _}),
-    do: {:error, changeset}
+  defp normalize_email_change_result({:error, :update_email, changeset, _}), do: {:error, changeset}
 
   defp normalize_email_change_result({:error, _step, reason, _}), do: {:error, reason}
 
@@ -170,8 +166,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Repositories.UserReposi
   # Trigger: unconfirmed user has a password set
   # Why: prevents session fixation attacks via magic link
   # Outcome: returns error instead of raising (use case decides how to handle)
-  defp resolve_magic_link_query({%User{confirmed_at: nil, hashed_password: hash}, _token})
-       when not is_nil(hash) do
+  defp resolve_magic_link_query({%User{confirmed_at: nil, hashed_password: hash}, _token}) when not is_nil(hash) do
     {:error, :security_violation}
   end
 

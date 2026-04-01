@@ -10,6 +10,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
   import KlassHero.Factory
 
   alias KlassHero.AccountsFixtures
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
   alias KlassHero.Participation.Application.UseCases.RecordCheckIn
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
@@ -139,7 +140,7 @@ defmodule KlassHero.Participation.Application.UseCases.RecordCheckInTest do
 
       reloaded =
         KlassHero.Repo.get(
-          KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema,
+          ParticipationRecordSchema,
           record.id
         )
 

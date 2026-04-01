@@ -44,9 +44,7 @@ defmodule KlassHeroWeb.TrustSafetyLive do
         icon: "hero-video-camera",
         title: gettext("Video Screening"),
         description:
-          gettext(
-            "Applicants complete a video screening to assess communication skills and alignment with our values."
-          )
+          gettext("Applicants complete a video screening to assess communication skills and alignment with our values.")
       },
       %{
         icon: "hero-heart",

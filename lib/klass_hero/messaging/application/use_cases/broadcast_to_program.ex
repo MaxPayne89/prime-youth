@@ -13,6 +13,8 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   alias KlassHero.Accounts.Scope
   alias KlassHero.Messaging.Application.UseCases.Shared
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
+  alias KlassHero.Messaging.Domain.Models.Conversation
+  alias KlassHero.Messaging.Domain.Models.Message
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
 
@@ -47,8 +49,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   - `{:error, reason}` - Other errors
   """
   @spec execute(Scope.t(), String.t(), String.t(), keyword()) ::
-          {:ok, KlassHero.Messaging.Domain.Models.Conversation.t(),
-           KlassHero.Messaging.Domain.Models.Message.t(), non_neg_integer()}
+          {:ok, Conversation.t(), Message.t(), non_neg_integer()}
           | {:error, :not_entitled | :no_enrollments | term()}
   def execute(%Scope{} = scope, program_id, content, opts \\ []) do
     subject = Keyword.get(opts, :subject)

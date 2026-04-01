@@ -21,11 +21,7 @@ defmodule KlassHero.Family.Adapters.Driving.Events.InviteClaimedHandler do
   def subscribed_events, do: [:invite_claimed]
 
   @impl true
-  def handle_event(%IntegrationEvent{
-        event_type: :invite_claimed,
-        entity_id: invite_id,
-        payload: payload
-      }) do
+  def handle_event(%IntegrationEvent{event_type: :invite_claimed, entity_id: invite_id, payload: payload}) do
     args =
       invite_id
       |> build_worker_args(payload)

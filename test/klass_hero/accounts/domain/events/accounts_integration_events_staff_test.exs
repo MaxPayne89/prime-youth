@@ -60,9 +60,7 @@ defmodule KlassHero.Accounts.Domain.Events.AccountsIntegrationEventsStaffTest do
 
     test "allows overriding criticality via opts", %{staff_member_id: staff_member_id} do
       event =
-        AccountsIntegrationEvents.staff_invitation_sent(staff_member_id, %{},
-          criticality: :normal
-        )
+        AccountsIntegrationEvents.staff_invitation_sent(staff_member_id, %{}, criticality: :normal)
 
       refute IntegrationEvent.critical?(event)
     end
@@ -134,9 +132,7 @@ defmodule KlassHero.Accounts.Domain.Events.AccountsIntegrationEventsStaffTest do
 
     test "allows overriding criticality via opts", %{staff_member_id: staff_member_id} do
       event =
-        AccountsIntegrationEvents.staff_invitation_failed(staff_member_id, %{},
-          criticality: :normal
-        )
+        AccountsIntegrationEvents.staff_invitation_failed(staff_member_id, %{}, criticality: :normal)
 
       refute IntegrationEvent.critical?(event)
     end

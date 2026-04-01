@@ -110,8 +110,7 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.Repositories.ProcessedEve
 
   defp unwrap_transaction_result({:error, {:handler_failed, reason}}), do: {:error, reason}
 
-  defp unwrap_transaction_result({:error, {:handler_crashed, error}}),
-    do: {:error, {:handler_crashed, error}}
+  defp unwrap_transaction_result({:error, {:handler_crashed, error}}), do: {:error, {:handler_crashed, error}}
 
   defp unwrap_transaction_result({:error, reason}), do: {:error, reason}
 end

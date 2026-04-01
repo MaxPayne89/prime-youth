@@ -31,8 +31,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Events.ProgramCatalogIntegrationEvents
 
   def program_created(program_id, payload \\ %{}, opts \\ [])
 
-  def program_created(program_id, payload, opts)
-      when is_binary(program_id) and byte_size(program_id) > 0 do
+  def program_created(program_id, payload, opts) when is_binary(program_id) and byte_size(program_id) > 0 do
     base_payload = %{program_id: program_id}
 
     IntegrationEvent.new(
@@ -55,8 +54,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Events.ProgramCatalogIntegrationEvents
 
   def program_updated(program_id, payload \\ %{}, opts \\ [])
 
-  def program_updated(program_id, payload, opts)
-      when is_binary(program_id) and byte_size(program_id) > 0 do
+  def program_updated(program_id, payload, opts) when is_binary(program_id) and byte_size(program_id) > 0 do
     base_payload = %{program_id: program_id}
 
     IntegrationEvent.new(

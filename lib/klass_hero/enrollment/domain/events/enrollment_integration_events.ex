@@ -43,8 +43,7 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
 
   def participant_policy_set(program_id, payload \\ %{}, opts \\ [])
 
-  def participant_policy_set(program_id, payload, opts)
-      when is_binary(program_id) and byte_size(program_id) > 0 do
+  def participant_policy_set(program_id, payload, opts) when is_binary(program_id) and byte_size(program_id) > 0 do
     base_payload = %{program_id: program_id}
 
     IntegrationEvent.new(
@@ -77,8 +76,7 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
   """
   def invite_claimed(invite_id, payload \\ %{}, opts \\ [])
 
-  def invite_claimed(invite_id, payload, opts)
-      when is_binary(invite_id) and byte_size(invite_id) > 0 do
+  def invite_claimed(invite_id, payload, opts) when is_binary(invite_id) and byte_size(invite_id) > 0 do
     base_payload = %{invite_id: invite_id}
 
     IntegrationEvent.new(

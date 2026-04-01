@@ -2,6 +2,7 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorkerTest do
   use KlassHero.DataCase, async: true
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailRepository
+  alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
   alias KlassHero.Messaging.Workers.FetchEmailContentWorker
   alias KlassHero.MessagingFixtures
 
@@ -18,7 +19,7 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorkerTest do
 
   describe "perform/1" do
     test "fetches content and updates email to fetched", %{email: email} do
-      Req.Test.stub(KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter, fn conn ->
+      Req.Test.stub(ResendEmailContentAdapter, fn conn ->
         Req.Test.json(conn, %{
           "html" => "<p>Fetched body</p>",
           "text" => "Fetched body",
@@ -38,7 +39,7 @@ defmodule KlassHero.Messaging.Workers.FetchEmailContentWorkerTest do
     end
 
     test "marks email as failed when content fetch fails", %{email: email} do
-      Req.Test.stub(KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter, fn conn ->
+      Req.Test.stub(ResendEmailContentAdapter, fn conn ->
         conn
         |> Plug.Conn.put_status(404)
         |> Req.Test.json(%{"message" => "Not found"})

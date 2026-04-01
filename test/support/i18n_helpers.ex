@@ -13,8 +13,10 @@ defmodule KlassHeroWeb.I18nHelpers do
   import Phoenix.LiveViewTest
 
   alias KlassHero.Accounts
+  alias KlassHero.Accounts.User
   alias KlassHero.AccountsFixtures
   alias KlassHero.Repo
+  alias Phoenix.LiveViewTest.View
 
   @doc """
   Adds locale query parameter to a path.
@@ -185,7 +187,7 @@ defmodule KlassHeroWeb.I18nHelpers do
         %{assigns: %{locale: locale}} ->
           locale
 
-        %Phoenix.LiveViewTest.View{} ->
+        %View{} ->
           :sys.get_state(view.pid).socket.assigns[:locale]
 
         _ ->
@@ -256,7 +258,7 @@ defmodule KlassHeroWeb.I18nHelpers do
 
   # Private helper to update user locale in database if user exists
   defp update_user_locale(user, locale) do
-    if user && is_struct(user, KlassHero.Accounts.User) do
+    if user && is_struct(user, User) do
       user
       |> Accounts.User.locale_changeset(%{locale: locale})
       |> Repo.update!()
