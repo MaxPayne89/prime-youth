@@ -25,9 +25,10 @@ defmodule KlassHero.Messaging.Domain.Ports.ForResolvingProgramStaff do
   - attrs: Map with keys :provider_id, :program_id, :staff_user_id
 
   ## Returns
-  - :ok
+  - :ok on success
+  - {:error, term()} on failure
   """
-  @callback upsert_active(attrs :: map()) :: :ok
+  @callback upsert_active(attrs :: map()) :: :ok | {:error, term()}
 
   @doc """
   Marks the staff participant record for (program_id, staff_user_id) as inactive.

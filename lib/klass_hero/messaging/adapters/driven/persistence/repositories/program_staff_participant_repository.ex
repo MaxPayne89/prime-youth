@@ -34,7 +34,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramSt
 
       %ProgramStaffParticipantSchema{}
       |> ProgramStaffParticipantSchema.changeset(Map.put(attrs, :active, true))
-      |> Repo.insert!(
+      |> Repo.insert(
         on_conflict: [
           set: [
             active: true,
@@ -43,8 +43,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramSt
         ],
         conflict_target: [:program_id, :staff_user_id]
       )
-
-      :ok
+      |> case do
+        {:ok, _} -> :ok
+        {:error, changeset} -> {:error, changeset}
+      end
     end
   end
 

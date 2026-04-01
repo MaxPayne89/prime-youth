@@ -12,7 +12,7 @@ defmodule KlassHero.Provider.Domain.Ports.ForStoringProgramStaffAssignments do
               {:ok, ProgramStaffAssignment.t()} | {:error, :already_assigned | term()}
 
   @callback unassign(program_id :: String.t(), staff_member_id :: String.t()) ::
-              {:ok, ProgramStaffAssignment.t()} | {:error, :not_found}
+              {:ok, ProgramStaffAssignment.t()} | {:error, :not_found | term()}
 
   @callback list_active_for_program(program_id :: String.t()) :: [ProgramStaffAssignment.t()]
 
