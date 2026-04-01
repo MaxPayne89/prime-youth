@@ -85,10 +85,11 @@
             <.messages_indicator
               unread_count={assigns[:total_unread_count] || 0}
               href={
-                if(:provider in (@current_scope.user.intended_roles || []),
-                  do: ~p"/provider/messages",
-                  else: ~p"/messages"
-                )
+                cond do
+                  :provider in (@current_scope.user.intended_roles || []) -> ~p"/provider/messages"
+                  :staff_provider in (@current_scope.user.intended_roles || []) -> ~p"/staff/messages"
+                  true -> ~p"/messages"
+                end
               }
             />
             
@@ -258,10 +259,11 @@
             <li>
               <.link
                 navigate={
-                  if(:provider in (@current_scope.user.intended_roles || []),
-                    do: ~p"/provider/messages",
-                    else: ~p"/messages"
-                  )
+                  cond do
+                    :provider in (@current_scope.user.intended_roles || []) -> ~p"/provider/messages"
+                    :staff_provider in (@current_scope.user.intended_roles || []) -> ~p"/staff/messages"
+                    true -> ~p"/messages"
+                  end
                 }
                 class="flex items-center justify-between"
               >
