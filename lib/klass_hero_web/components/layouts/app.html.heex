@@ -86,9 +86,14 @@
               unread_count={assigns[:total_unread_count] || 0}
               href={
                 cond do
-                  :provider in (@current_scope.user.intended_roles || []) -> ~p"/provider/messages"
-                  :staff_provider in (@current_scope.user.intended_roles || []) -> ~p"/staff/messages"
-                  true -> ~p"/messages"
+                  :provider in (@current_scope.user.intended_roles || []) ->
+                    ~p"/provider/messages"
+
+                  :staff_provider in (@current_scope.user.intended_roles || []) ->
+                    ~p"/staff/messages"
+
+                  true ->
+                    ~p"/messages"
                 end
               }
             />
@@ -260,9 +265,14 @@
               <.link
                 navigate={
                   cond do
-                    :provider in (@current_scope.user.intended_roles || []) -> ~p"/provider/messages"
-                    :staff_provider in (@current_scope.user.intended_roles || []) -> ~p"/staff/messages"
-                    true -> ~p"/messages"
+                    :provider in (@current_scope.user.intended_roles || []) ->
+                      ~p"/provider/messages"
+
+                    :staff_provider in (@current_scope.user.intended_roles || []) ->
+                      ~p"/staff/messages"
+
+                    true ->
+                      ~p"/messages"
                   end
                 }
                 class="flex items-center justify-between"
