@@ -20,4 +20,26 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegr
       provider_id: event.aggregate_id
     )
   end
+
+  def handle(%DomainEvent{event_type: :staff_assigned_to_program} = event) do
+    # Trigger: staff_assigned_to_program domain event dispatched from AssignStaffToProgram use case
+    # Why: Messaging context needs to grant the staff member access to program broadcast conversations
+    # Outcome: publish integration event on topic integration:provider:staff_assigned_to_program
+    event.payload.staff_member_id
+    |> ProviderIntegrationEvents.staff_assigned_to_program(event.payload)
+    |> IntegrationEventPublishing.publish_critical("staff_assigned_to_program",
+      staff_member_id: event.payload.staff_member_id
+    )
+  end
+
+  def handle(%DomainEvent{event_type: :staff_unassigned_from_program} = event) do
+    # Trigger: staff_unassigned_from_program domain event dispatched from UnassignStaffFromProgram use case
+    # Why: Messaging context needs to revoke the staff member's access to program broadcast conversations
+    # Outcome: publish integration event on topic integration:provider:staff_unassigned_from_program
+    event.payload.staff_member_id
+    |> ProviderIntegrationEvents.staff_unassigned_from_program(event.payload)
+    |> IntegrationEventPublishing.publish_critical("staff_unassigned_from_program",
+      staff_member_id: event.payload.staff_member_id
+    )
+  end
 end

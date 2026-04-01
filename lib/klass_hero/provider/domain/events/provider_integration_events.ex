@@ -11,6 +11,12 @@ defmodule KlassHero.Provider.Domain.Events.ProviderIntegrationEvents do
 
   - `:staff_member_invited` - Emitted when a staff member is invited to join a provider.
     The Accounts context reacts to send the invitation email (critical).
+
+  - `:staff_assigned_to_program` - Emitted when a staff member is assigned to a program.
+    The Messaging context reacts to update conversation participant access (critical).
+
+  - `:staff_unassigned_from_program` - Emitted when a staff member is unassigned from a program.
+    The Messaging context reacts to revoke conversation participant access (critical).
   """
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
@@ -110,5 +116,85 @@ defmodule KlassHero.Provider.Domain.Events.ProviderIntegrationEvents do
   def staff_member_invited(staff_member_id, _payload, _opts) do
     raise ArgumentError,
           "staff_member_invited/3 requires a non-empty staff_member_id string, got: #{inspect(staff_member_id)}"
+  end
+
+  @doc """
+  Creates a `staff_assigned_to_program` integration event.
+
+  Marked `:critical` by default — the Messaging context must update conversation access.
+
+  ## Parameters
+
+  - `staff_member_id` - The ID of the assigned staff member
+  - `payload` - Additional event-specific data (provider_id, program_id, staff_user_id, assigned_at)
+  - `opts` - Metadata options (correlation_id, causation_id)
+
+  ## Raises
+
+  - `ArgumentError` if `staff_member_id` is nil or empty
+  """
+  def staff_assigned_to_program(staff_member_id, payload \\ %{}, opts \\ [])
+
+  def staff_assigned_to_program(staff_member_id, payload, opts)
+      when is_binary(staff_member_id) and byte_size(staff_member_id) > 0 do
+    base_payload = %{staff_member_id: staff_member_id}
+    opts = Keyword.put_new(opts, :criticality, :critical)
+
+    IntegrationEvent.new(
+      :staff_assigned_to_program,
+      @source_context,
+      @staff_entity_type,
+      staff_member_id,
+      # Trigger: caller may pass a conflicting key in payload
+      # Why: base_payload contains the canonical IDs from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def staff_assigned_to_program(staff_member_id, _payload, _opts) do
+    raise ArgumentError,
+          "staff_assigned_to_program/3 requires a non-empty staff_member_id string, got: #{inspect(staff_member_id)}"
+  end
+
+  @doc """
+  Creates a `staff_unassigned_from_program` integration event.
+
+  Marked `:critical` by default — the Messaging context must revoke conversation access.
+
+  ## Parameters
+
+  - `staff_member_id` - The ID of the unassigned staff member
+  - `payload` - Additional event-specific data (provider_id, program_id, staff_user_id, unassigned_at)
+  - `opts` - Metadata options (correlation_id, causation_id)
+
+  ## Raises
+
+  - `ArgumentError` if `staff_member_id` is nil or empty
+  """
+  def staff_unassigned_from_program(staff_member_id, payload \\ %{}, opts \\ [])
+
+  def staff_unassigned_from_program(staff_member_id, payload, opts)
+      when is_binary(staff_member_id) and byte_size(staff_member_id) > 0 do
+    base_payload = %{staff_member_id: staff_member_id}
+    opts = Keyword.put_new(opts, :criticality, :critical)
+
+    IntegrationEvent.new(
+      :staff_unassigned_from_program,
+      @source_context,
+      @staff_entity_type,
+      staff_member_id,
+      # Trigger: caller may pass a conflicting key in payload
+      # Why: base_payload contains the canonical IDs from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def staff_unassigned_from_program(staff_member_id, _payload, _opts) do
+    raise ArgumentError,
+          "staff_unassigned_from_program/3 requires a non-empty staff_member_id string, got: #{inspect(staff_member_id)}"
   end
 end

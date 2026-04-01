@@ -92,6 +92,12 @@ defmodule KlassHero.Application do
              :handle}},
            {:subscription_tier_changed,
             {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}},
+           {:staff_assigned_to_program,
+            {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
+             :handle}},
+           {:staff_unassigned_from_program,
+            {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}}
          ]},
         id: :provider_domain_event_bus
