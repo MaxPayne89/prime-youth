@@ -14,6 +14,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramSta
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProgramStaffAssignmentMapper
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProgramStaffAssignmentSchema
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Persistence.EctoErrorHelpers
   alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
 
   require Logger
@@ -31,7 +32,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramSta
           {:ok, ProgramStaffAssignmentMapper.to_domain(schema)}
 
         {:error, %Ecto.Changeset{} = changeset} ->
-          if has_unique_constraint_error?(changeset) do
+          if EctoErrorHelpers.any_unique_constraint_violation?(changeset.errors) do
             {:error, :already_assigned}
           else
             Logger.warning("Unexpected changeset error creating program staff assignment",
@@ -109,12 +110,5 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramSta
       |> Repo.all()
       |> MapperHelpers.to_domain_list(ProgramStaffAssignmentMapper)
     end
-  end
-
-  defp has_unique_constraint_error?(changeset) do
-    Enum.any?(changeset.errors, fn
-      {_field, {_msg, opts}} -> Keyword.get(opts, :constraint) == :unique
-      _ -> false
-    end)
   end
 end

@@ -29,7 +29,6 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
                        ])
   @message_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_messages])
   @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
-  @staff_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_program_staff])
 
   @doc """
   Sends a broadcast message to all enrolled parents of a program.
@@ -103,7 +102,8 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
                conversation_id: conversation.id,
                user_id: scope.user.id
              }),
-           :ok <- add_assigned_staff(conversation.id, conversation.program_id, scope.user.id),
+           :ok <-
+             Shared.add_assigned_staff(conversation.id, conversation.program_id, scope.user.id),
            {:ok, message} <-
              @message_repo.create(%{
                conversation_id: conversation.id,
@@ -116,21 +116,6 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
         {:error, reason} -> Repo.rollback(reason)
       end
     end)
-  end
-
-  defp add_assigned_staff(_conversation_id, nil, _owner_user_id), do: :ok
-
-  defp add_assigned_staff(conversation_id, program_id, owner_user_id) do
-    staff_user_ids = @staff_resolver.get_active_staff_user_ids(program_id)
-    new_staff_ids = Enum.reject(staff_user_ids, &(&1 == owner_user_id))
-
-    case new_staff_ids do
-      [] ->
-        :ok
-
-      ids ->
-        with {:ok, _} <- @participant_repo.add_batch(conversation_id, ids), do: :ok
-    end
   end
 
   defp get_or_create_broadcast_conversation(scope, program_id, subject) do

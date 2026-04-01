@@ -26,7 +26,6 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
                        :for_managing_conversations
                      ])
   @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
-  @staff_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_program_staff])
 
   @doc """
   Creates or retrieves a direct conversation between provider and user.
@@ -39,6 +38,8 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
     - `:skip_entitlement_check` - When `true`, bypasses the entitlement check.
       Used by ReplyPrivatelyToBroadcast so that any tier can reply when the
       provider initiated contact via a broadcast.
+    - `:program_id` - When set, associates the conversation with a program and
+      auto-adds assigned staff members as participants.
 
   ## Returns
   - `{:ok, conversation}` - New or existing conversation
@@ -75,7 +76,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
 
       with {:ok, conversation} <- @conversation_repo.create(attrs),
            :ok <- add_participants(conversation.id, scope.user.id, target_user_id),
-           :ok <- add_assigned_staff(conversation.id, program_id, scope.user.id) do
+           :ok <- Shared.add_assigned_staff(conversation.id, program_id, scope.user.id) do
         publish_event(conversation, [scope.user.id, target_user_id], provider_id)
 
         Logger.info("Created direct conversation",
@@ -101,21 +102,6 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
          {:ok, _} <-
            @participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_2}) do
       :ok
-    end
-  end
-
-  defp add_assigned_staff(_conversation_id, nil, _owner_user_id), do: :ok
-
-  defp add_assigned_staff(conversation_id, program_id, owner_user_id) do
-    staff_user_ids = @staff_resolver.get_active_staff_user_ids(program_id)
-    new_staff_ids = Enum.reject(staff_user_ids, &(&1 == owner_user_id))
-
-    case new_staff_ids do
-      [] ->
-        :ok
-
-      ids ->
-        with {:ok, _} <- @participant_repo.add_batch(conversation_id, ids), do: :ok
     end
   end
 
