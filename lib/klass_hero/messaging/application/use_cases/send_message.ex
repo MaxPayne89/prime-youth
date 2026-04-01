@@ -23,6 +23,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   @message_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_messages])
   @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
   @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
+  @staff_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_program_staff])
 
   @doc """
   Sends a message to a conversation.
@@ -66,9 +67,10 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   end
 
   # Trigger: sender is trying to post in a broadcast conversation
-  # Why: broadcast conversations are one-way — only the provider can send.
-  #      Parents replying would expose their messages to all other parents (privacy breach).
-  # Outcome: non-provider senders are rejected; direct conversations pass through unchanged.
+  # Why: broadcast conversations are one-way — only the provider owner and assigned staff
+  #      can send. Parents replying would expose their messages to all other parents
+  #      (privacy breach).
+  # Outcome: non-provider, non-staff senders are rejected; direct conversations pass through.
   defp verify_broadcast_send_permission(conversation_id, sender_id, conversation) do
     # Trigger: caller may pass a pre-fetched conversation to skip DB round-trip
     # Why: must validate conversation.id matches conversation_id to prevent
@@ -80,11 +82,11 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
         else: @conversation_repo.get_by_id(conversation_id)
 
     case result do
-      {:ok, %{type: :program_broadcast, provider_id: provider_id}} ->
-        case @user_resolver.get_user_id_for_provider(provider_id) do
-          {:ok, ^sender_id} -> :ok
-          {:ok, _other_user_id} -> {:error, :broadcast_reply_not_allowed}
-          {:error, :not_found} -> {:error, :broadcast_reply_not_allowed}
+      {:ok, %{type: :program_broadcast, provider_id: provider_id, program_id: program_id}} ->
+        cond do
+          provider_owner?(provider_id, sender_id) -> :ok
+          staff_assigned?(program_id, sender_id) -> :ok
+          true -> {:error, :broadcast_reply_not_allowed}
         end
 
       {:ok, _direct_conversation} ->
@@ -93,6 +95,20 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
       {:error, :not_found} ->
         {:error, :not_found}
     end
+  end
+
+  defp provider_owner?(provider_id, sender_id) do
+    case @user_resolver.get_user_id_for_provider(provider_id) do
+      {:ok, ^sender_id} -> true
+      _ -> false
+    end
+  end
+
+  defp staff_assigned?(nil, _sender_id), do: false
+
+  defp staff_assigned?(program_id, sender_id) do
+    staff_user_ids = @staff_resolver.get_active_staff_user_ids(program_id)
+    sender_id in staff_user_ids
   end
 
   defp create_message(conversation_id, sender_id, content, message_type) do

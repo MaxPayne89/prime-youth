@@ -6,6 +6,9 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
   alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.ConversationMapper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
+
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
+
   alias KlassHero.Messaging.Application.UseCases.SendMessage
   alias KlassHero.Messaging.Domain.Models.Conversation
   alias KlassHero.Messaging.Domain.Models.Message
@@ -218,6 +221,55 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
                SendMessage.execute(broadcast.id, parent_user.id, "Sneaky reply",
                  conversation: mismatched_conversation
                )
+    end
+  end
+
+  describe "broadcast send permission for staff" do
+    test "allows assigned staff to send in broadcast" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      staff_user = AccountsFixtures.user_fixture()
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Announcement"
+        )
+
+      insert(:participant_schema, conversation_id: broadcast.id, user_id: staff_user.id)
+
+      ProgramStaffParticipantRepository.upsert_active(%{
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_user_id: staff_user.id
+      })
+
+      assert {:ok, message} =
+               SendMessage.execute(broadcast.id, staff_user.id, "Hello from staff!")
+
+      assert message.content == "Hello from staff!"
+    end
+
+    test "rejects user who is not owner and not assigned staff in broadcast" do
+      provider_user = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: provider_user.id)
+      program = insert(:program_schema, provider_id: provider.id)
+      non_staff_user = AccountsFixtures.user_fixture()
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Announcement"
+        )
+
+      insert(:participant_schema, conversation_id: broadcast.id, user_id: non_staff_user.id)
+
+      assert {:error, :broadcast_reply_not_allowed} =
+               SendMessage.execute(broadcast.id, non_staff_user.id, "Sneaky reply")
     end
   end
 end

@@ -180,6 +180,8 @@ config :klass_hero, :messaging,
     KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository,
   for_resolving_users: KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver,
   for_querying_enrollments: KlassHero.Messaging.Adapters.Driven.Enrollment.EnrollmentResolver,
+  for_resolving_program_staff:
+    KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository,
   for_managing_conversation_summaries:
     KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository,
   for_managing_inbound_emails:
@@ -221,7 +223,9 @@ config :klass_hero, :provider,
   for_storing_verification_documents:
     KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository,
   for_storing_staff_members:
-    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository,
+  for_storing_program_staff_assignments:
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramStaffAssignmentRepository
 
 config :klass_hero, :resend_req_options, []
 
@@ -370,7 +374,8 @@ config :logger, :default_formatter,
     :user_type,
     :broadcast_id,
     :direct_conversation_id,
-    :staff_member_id
+    :staff_member_id,
+    :staff_user_id
   ]
 
 config :opentelemetry, :resource,

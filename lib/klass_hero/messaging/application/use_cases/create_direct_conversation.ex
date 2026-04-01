@@ -38,6 +38,8 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
     - `:skip_entitlement_check` - When `true`, bypasses the entitlement check.
       Used by ReplyPrivatelyToBroadcast so that any tier can reply when the
       provider initiated contact via a broadcast.
+    - `:program_id` - When set, associates the conversation with a program and
+      auto-adds assigned staff members as participants.
 
   ## Returns
   - `{:ok, conversation}` - New or existing conversation
@@ -49,30 +51,32 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
           | {:error, :not_entitled | term()}
   def execute(%Scope{} = scope, provider_id, target_user_id, opts \\ []) do
     with :ok <- Shared.maybe_check_entitlement(scope, opts) do
-      find_or_create_conversation(scope, provider_id, target_user_id)
+      find_or_create_conversation(scope, provider_id, target_user_id, opts)
     end
   end
 
-  defp find_or_create_conversation(scope, provider_id, target_user_id) do
+  defp find_or_create_conversation(scope, provider_id, target_user_id, opts) do
     case @conversation_repo.find_direct_conversation(provider_id, target_user_id) do
       {:ok, existing} ->
         Logger.debug("Found existing conversation", conversation_id: existing.id)
         {:ok, existing}
 
       {:error, :not_found} ->
-        create_new_conversation(scope, provider_id, target_user_id)
+        create_new_conversation(scope, provider_id, target_user_id, opts)
     end
   end
 
-  defp create_new_conversation(scope, provider_id, target_user_id) do
+  defp create_new_conversation(scope, provider_id, target_user_id, opts) do
+    program_id = Keyword.get(opts, :program_id)
+
     Repo.transaction(fn ->
-      attrs = %{
-        type: :direct,
-        provider_id: provider_id
-      }
+      attrs =
+        %{type: :direct, provider_id: provider_id}
+        |> maybe_put_program_id(program_id)
 
       with {:ok, conversation} <- @conversation_repo.create(attrs),
-           :ok <- add_participants(conversation.id, scope.user.id, target_user_id) do
+           :ok <- add_participants(conversation.id, scope.user.id, target_user_id),
+           :ok <- Shared.add_assigned_staff(conversation.id, program_id, scope.user.id) do
         publish_event(conversation, [scope.user.id, target_user_id], provider_id)
 
         Logger.info("Created direct conversation",
@@ -88,6 +92,9 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
       end
     end)
   end
+
+  defp maybe_put_program_id(attrs, nil), do: attrs
+  defp maybe_put_program_id(attrs, program_id), do: Map.put(attrs, :program_id, program_id)
 
   defp add_participants(conversation_id, user_id_1, user_id_2) do
     with {:ok, _} <-

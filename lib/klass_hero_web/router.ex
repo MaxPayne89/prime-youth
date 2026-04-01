@@ -138,12 +138,15 @@ defmodule KlassHeroWeb.Router do
         {KlassHero.Shared.Tracing.LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
         {KlassHeroWeb.UserAuth, :require_staff_provider},
+        {KlassHeroWeb.UserAuth, :fetch_unread_count},
         {KlassHeroWeb.Hooks.RestoreLocale, :restore_locale}
       ] do
       scope "/staff", Staff do
         live "/dashboard", StaffDashboardLive, :index
         live "/sessions", StaffSessionsLive, :index
         live "/participation/:session_id", StaffParticipationLive, :show
+        live "/messages", MessagesLive.Index, :index
+        live "/messages/:id", MessagesLive.Show, :show
       end
     end
 

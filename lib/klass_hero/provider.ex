@@ -29,6 +29,7 @@ defmodule KlassHero.Provider do
       Domain.Models.ProviderProfile,
       Domain.Models.StaffMember,
       Domain.Models.VerificationDocument,
+      Domain.Models.ProgramStaffAssignment,
       Adapters.Driven.Persistence.ChangeProviderProfile,
       Adapters.Driven.Persistence.ChangeStaffMember,
       # Pragmatic export: Backpex admin operates directly on Ecto schemas
@@ -43,10 +44,12 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.UseCases.Providers.UnverifyProvider
   alias KlassHero.Provider.Application.UseCases.Providers.UpdateProviderProfile
   alias KlassHero.Provider.Application.UseCases.Providers.VerifyProvider
+  alias KlassHero.Provider.Application.UseCases.StaffMembers.AssignStaffToProgram
   alias KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
   alias KlassHero.Provider.Application.UseCases.StaffMembers.DeleteStaffMember
   alias KlassHero.Provider.Application.UseCases.StaffMembers.ListStaffAssignedPrograms
   alias KlassHero.Provider.Application.UseCases.StaffMembers.ResendStaffInvitation
+  alias KlassHero.Provider.Application.UseCases.StaffMembers.UnassignStaffFromProgram
   alias KlassHero.Provider.Application.UseCases.StaffMembers.UpdateStaffMember
   alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.UseCases.Verification.GetVerificationDocumentPreview
@@ -69,6 +72,10 @@ defmodule KlassHero.Provider do
                       :provider,
                       :for_storing_staff_members
                     ])
+  @assignment_repository Application.compile_env!(:klass_hero, [
+                           :provider,
+                           :for_storing_program_staff_assignments
+                         ])
 
   # ============================================================================
   # Provider Profile Functions
@@ -449,5 +456,61 @@ defmodule KlassHero.Provider do
   @spec list_assigned_programs(StaffMember.t(), [map()]) :: [map()]
   def list_assigned_programs(%StaffMember{} = staff_member, programs) when is_list(programs) do
     ListStaffAssignedPrograms.execute(staff_member, programs)
+  end
+
+  @doc """
+  Assigns a staff member to a program.
+
+  Returns:
+  - `{:ok, ProgramStaffAssignment.t()}` on success
+  - `{:error, :already_assigned}` if already assigned
+  - `{:error, :not_found}` if staff member does not exist
+  """
+  @spec assign_staff_to_program(map()) ::
+          {:ok, Domain.Models.ProgramStaffAssignment.t()}
+          | {:error, :already_assigned | :not_found | term()}
+  defdelegate assign_staff_to_program(attrs), to: AssignStaffToProgram, as: :execute
+
+  @doc """
+  Unassigns a staff member from a program.
+
+  Returns:
+  - `{:ok, ProgramStaffAssignment.t()}` on success
+  - `{:error, :not_found}` if no active assignment exists
+  """
+  @spec unassign_staff_from_program(String.t(), String.t()) ::
+          {:ok, Domain.Models.ProgramStaffAssignment.t()} | {:error, :not_found | term()}
+  defdelegate unassign_staff_from_program(program_id, staff_member_id),
+    to: UnassignStaffFromProgram,
+    as: :execute
+
+  @doc """
+  Lists all active staff assignments for a program.
+  """
+  @spec list_active_assignments_for_program(String.t()) :: [
+          Domain.Models.ProgramStaffAssignment.t()
+        ]
+  def list_active_assignments_for_program(program_id) when is_binary(program_id) do
+    @assignment_repository.list_active_for_program(program_id)
+  end
+
+  @doc """
+  Lists all active staff assignments for a provider.
+  """
+  @spec list_active_assignments_for_provider(String.t()) :: [
+          Domain.Models.ProgramStaffAssignment.t()
+        ]
+  def list_active_assignments_for_provider(provider_id) when is_binary(provider_id) do
+    @assignment_repository.list_active_for_provider(provider_id)
+  end
+
+  @doc """
+  Lists all active program assignments for a staff member.
+  """
+  @spec list_active_assignments_for_staff_member(String.t()) :: [
+          Domain.Models.ProgramStaffAssignment.t()
+        ]
+  def list_active_assignments_for_staff_member(staff_member_id) when is_binary(staff_member_id) do
+    @assignment_repository.list_active_for_staff_member(staff_member_id)
   end
 end

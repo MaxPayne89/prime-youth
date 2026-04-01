@@ -102,6 +102,8 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
                conversation_id: conversation.id,
                user_id: scope.user.id
              }),
+           :ok <-
+             Shared.add_assigned_staff(conversation.id, conversation.program_id, scope.user.id),
            {:ok, message} <-
              @message_repo.create(%{
                conversation_id: conversation.id,

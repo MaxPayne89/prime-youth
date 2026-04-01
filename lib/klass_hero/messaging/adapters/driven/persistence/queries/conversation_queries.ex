@@ -76,6 +76,18 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationQu
   end
 
   @doc """
+  Filter conversations where user is NOT a participant.
+  """
+  def where_user_is_not_participant(query, user_id) do
+    query
+    |> join(:left, [conversation: c], p in ParticipantSchema,
+      on: p.conversation_id == c.id and p.user_id == ^user_id,
+      as: :excluded_participant
+    )
+    |> where([excluded_participant: p], is_nil(p.id))
+  end
+
+  @doc """
   Find direct conversation between provider and user.
   """
   def find_direct(provider_id, user_id) do

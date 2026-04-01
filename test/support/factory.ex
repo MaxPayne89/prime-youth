@@ -56,6 +56,7 @@ defmodule KlassHero.Factory do
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProgramCatalog.Domain.Models.Program
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
   alias KlassHero.Provider.Domain.Models.ProviderProfile
 
@@ -404,6 +405,29 @@ defmodule KlassHero.Factory do
 
   # Backwards-compatible alias for verified provider factory
   def verified_provider_factory, do: verified_provider_profile_factory()
+
+  @doc """
+  Factory for creating StaffMemberSchema Ecto schemas.
+
+  Used in repository and integration tests where we need database persistence.
+  Requires a provider_id FK pointing to an existing provider profile.
+
+  ## Examples
+
+      provider = insert(:provider_profile_schema)
+      staff = insert(:staff_member_schema, provider_id: provider.id)
+  """
+  def staff_member_schema_factory do
+    %StaffMemberSchema{
+      first_name: sequence(:staff_first_name, &"Staff#{&1}"),
+      last_name: "Member",
+      role: "Coach",
+      email: sequence(:staff_email, &"staff#{&1}@example.com"),
+      active: true,
+      tags: [],
+      qualifications: []
+    }
+  end
 
   # =============================================================================
   # Family Context - Child Factories

@@ -1,13 +1,9 @@
-defmodule KlassHeroWeb.MessagesLive.Show do
+defmodule KlassHeroWeb.Staff.MessagesLive.Show do
   @moduledoc """
-  LiveView for displaying a conversation with messages (parent view).
+  LiveView for displaying a conversation with messages (staff view).
 
-  Features:
-  - Displays messages in chronological order
-  - Real-time message updates via PubSub
-  - Message input and sending
-  - Auto-mark as read on view
-  - Stream-based collection for memory efficiency
+  Shares layout and behavior with the provider version via
+  `MessagingComponents.conversation_show/1` with `:provider` variant.
   """
 
   use KlassHeroWeb, :live_view
@@ -17,14 +13,16 @@ defmodule KlassHeroWeb.MessagesLive.Show do
 
   @impl true
   def mount(%{"id" => conversation_id}, _session, socket) do
-    MessagingLiveHelper.mount_conversation_show(socket, conversation_id, back_path: ~p"/messages")
+    MessagingLiveHelper.mount_conversation_show(socket, conversation_id,
+      back_path: ~p"/staff/messages"
+    )
   end
 
   @impl true
   def render(assigns) do
     ~H"""
     <.conversation_show
-      variant={:parent}
+      variant={:provider}
       streams={@streams}
       messages_empty?={@messages_empty?}
       page_title={@page_title}

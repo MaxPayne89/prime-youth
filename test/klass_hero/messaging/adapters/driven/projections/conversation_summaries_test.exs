@@ -954,8 +954,140 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummariesT
     end
   end
 
+  describe "staff participant summaries" do
+    test "rebuild creates summary rows for staff participants in 3-participant direct conversations" do
+      # Ensure initial bootstrap has completed before inserting test data
+      _ = :sys.get_state(@test_server_name)
+
+      provider = insert(:provider_profile_schema)
+      parent_user = user_fixture(name: "Parent User")
+      staff_user = user_fixture(name: "Staff Member")
+
+      conversation_id = Ecto.UUID.generate()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      Repo.insert!(%ConversationSchema{
+        id: conversation_id,
+        type: "direct",
+        provider_id: provider.id
+      })
+
+      # Insert participants: owner first, then parent, then staff
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: provider.identity_id,
+        joined_at: now
+      })
+
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: parent_user.id,
+        joined_at: now
+      })
+
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: staff_user.id,
+        joined_at: now
+      })
+
+      # Rebuild projection
+      assert :ok = ConversationSummaries.rebuild(@test_server_name)
+
+      # All 3 participants should have a summary row
+      all_summaries =
+        Repo.all(
+          from(s in ConversationSummarySchema,
+            where: s.conversation_id == ^conversation_id
+          )
+        )
+
+      assert length(all_summaries) == 3
+
+      # Staff should have a summary row (also verifiable via the list helper)
+      staff_summaries = list_summaries_for_user(staff_user.id)
+      assert length(staff_summaries) == 1
+      staff_summary = hd(staff_summaries)
+      assert staff_summary.conversation_id == conversation_id
+      assert staff_summary.conversation_type == "direct"
+      assert staff_summary.participant_count == 3
+
+      # Owner should have a summary row
+      owner_summary = Enum.find(all_summaries, &(&1.user_id == provider.identity_id))
+      assert owner_summary != nil, "Expected a summary row for the owner participant"
+
+      # Parent should have a summary row
+      parent_summary = Enum.find(all_summaries, &(&1.user_id == parent_user.id))
+      assert parent_summary != nil, "Expected a summary row for the parent participant"
+    end
+
+    test "staff participant sees parent name as other_participant_name" do
+      _ = :sys.get_state(@test_server_name)
+
+      provider = insert(:provider_profile_schema)
+      parent_user = user_fixture(name: "Parent User")
+      staff_user = user_fixture(name: "Staff Member")
+
+      conversation_id = Ecto.UUID.generate()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      Repo.insert!(%ConversationSchema{
+        id: conversation_id,
+        type: "direct",
+        provider_id: provider.id
+      })
+
+      # Insert in order: parent first, then owner, then staff
+      # This way the "first non-self" for staff is parent, and for owner is parent
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: parent_user.id,
+        joined_at: now
+      })
+
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: provider.identity_id,
+        joined_at: now
+      })
+
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: staff_user.id,
+        joined_at: now
+      })
+
+      assert :ok = ConversationSummaries.rebuild(@test_server_name)
+
+      staff_summary =
+        Repo.one(
+          from(s in ConversationSummarySchema,
+            where: s.conversation_id == ^conversation_id and s.user_id == ^staff_user.id
+          )
+        )
+
+      assert staff_summary != nil
+      # Staff sees the first non-staff participant, which is parent
+      assert staff_summary.other_participant_name == "Parent User"
+    end
+  end
+
   # Helper to create users with specific names
   defp user_fixture(attrs) do
     KlassHero.AccountsFixtures.user_fixture(attrs)
+  end
+
+  defp list_summaries_for_user(user_id) do
+    Repo.all(
+      from(s in ConversationSummarySchema,
+        where: s.user_id == ^user_id
+      )
+    )
   end
 end
