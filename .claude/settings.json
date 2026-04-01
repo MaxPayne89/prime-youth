@@ -11,6 +11,24 @@
         ]
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(cat | jq -r '.tool_input.file_path // empty') && [[ \"$FILE\" =~ \\.(ex|exs)$ ]] && mix credo \"$FILE\" --strict --mute-exit-status || true"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(cat | jq -r '.tool_input.file_path // empty') && [[ \"$FILE\" =~ \\.html\\.heex$ ]] && mix lint_typography || true"
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
