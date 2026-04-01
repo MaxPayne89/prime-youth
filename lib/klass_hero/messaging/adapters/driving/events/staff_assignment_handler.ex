@@ -14,23 +14,19 @@ defmodule KlassHero.Messaging.Adapters.Driving.Events.StaffAssignmentHandler do
 
   @behaviour KlassHero.Shared.Domain.Ports.Driving.ForHandlingIntegrationEvents
 
-  import Ecto.Query
-
-  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
-  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
-  alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Events.RetryHelpers
 
   require Logger
 
-  @staff_projection Application.compile_env!(
-                      :klass_hero,
-                      [:messaging, :for_resolving_program_staff]
-                    )
-  @participant_repo Application.compile_env!(
-                      :klass_hero,
-                      [:messaging, :for_managing_participants]
-                    )
+  @conversation_repo Application.compile_env!(:klass_hero, [
+                       :messaging,
+                       :for_managing_conversations
+                     ])
+  @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
+  @staff_projection Application.compile_env!(:klass_hero, [
+                      :messaging,
+                      :for_resolving_program_staff
+                    ])
 
   @impl true
   def subscribed_events, do: [:staff_assigned_to_program, :staff_unassigned_from_program]
@@ -94,14 +90,10 @@ defmodule KlassHero.Messaging.Adapters.Driving.Events.StaffAssignmentHandler do
 
   defp add_staff_to_existing_conversations(program_id, staff_user_id) do
     conversation_ids =
-      from(c in ConversationSchema,
-        where: c.program_id == ^program_id and is_nil(c.archived_at),
-        left_join: p in ParticipantSchema,
-        on: p.conversation_id == c.id and p.user_id == ^staff_user_id,
-        where: is_nil(p.id),
-        select: c.id
+      @conversation_repo.list_active_program_conversation_ids_without_participant(
+        program_id,
+        staff_user_id
       )
-      |> Repo.all()
 
     Enum.each(conversation_ids, fn conversation_id ->
       case @participant_repo.add(%{

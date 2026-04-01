@@ -560,4 +560,81 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
       assert {:ok, _} = ConversationRepository.get_by_id(active_conversation.id)
     end
   end
+
+  describe "list_active_program_conversation_ids_without_participant/2" do
+    test "returns conversation IDs where user is not a participant" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      user = AccountsFixtures.user_fixture()
+
+      conv1 =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          program_id: program.id,
+          type: "direct"
+        )
+
+      conv2 =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          program_id: program.id,
+          type: "direct"
+        )
+
+      # User is participant in conv1 only
+      insert(:participant_schema, conversation_id: conv1.id, user_id: user.id)
+
+      result =
+        ConversationRepository.list_active_program_conversation_ids_without_participant(
+          program.id,
+          user.id
+        )
+
+      assert result == [conv2.id]
+    end
+
+    test "excludes archived conversations" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      user = AccountsFixtures.user_fixture()
+
+      insert(:conversation_schema,
+        provider_id: provider.id,
+        program_id: program.id,
+        type: "direct",
+        archived_at: DateTime.utc_now()
+      )
+
+      result =
+        ConversationRepository.list_active_program_conversation_ids_without_participant(
+          program.id,
+          user.id
+        )
+
+      assert result == []
+    end
+
+    test "returns empty list when user is participant in all conversations" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      user = AccountsFixtures.user_fixture()
+
+      conv =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          program_id: program.id,
+          type: "direct"
+        )
+
+      insert(:participant_schema, conversation_id: conv.id, user_id: user.id)
+
+      result =
+        ConversationRepository.list_active_program_conversation_ids_without_participant(
+          program.id,
+          user.id
+        )
+
+      assert result == []
+    end
+  end
 end

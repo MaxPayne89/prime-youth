@@ -124,4 +124,18 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingConversations do
   Returns a non-negative integer count.
   """
   @callback get_total_unread_count(user_id :: binary()) :: non_neg_integer()
+
+  @doc """
+  Lists IDs of active conversations for a program where a specific user
+  is NOT yet a participant.
+
+  Used by the staff assignment handler to find conversations that need
+  a newly-assigned staff member added as a participant.
+
+  Returns a list of conversation ID strings (may be empty).
+  """
+  @callback list_active_program_conversation_ids_without_participant(
+              program_id :: binary(),
+              user_id :: binary()
+            ) :: [binary()]
 end

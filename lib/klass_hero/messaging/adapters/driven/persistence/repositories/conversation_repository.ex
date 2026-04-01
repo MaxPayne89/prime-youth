@@ -240,4 +240,18 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
       end
     end
   end
+
+  @impl true
+  def list_active_program_conversation_ids_without_participant(program_id, user_id) do
+    span do
+      set_attributes("db", operation: "select", entity: "conversation")
+
+      ConversationQueries.base()
+      |> ConversationQueries.by_program(program_id)
+      |> ConversationQueries.active_only()
+      |> ConversationQueries.where_user_is_not_participant(user_id)
+      |> ConversationQueries.select_ids()
+      |> Repo.all()
+    end
+  end
 end
