@@ -367,6 +367,18 @@ defmodule KlassHero.Application do
          message_tag: :integration_event,
          event_label: "Integration event"},
         id: :staff_invitation_status_subscriber
+      ),
+      # Messaging listens for staff assignment events from Provider
+      Supervisor.child_spec(
+        {KlassHero.Shared.Adapters.Driven.Events.EventSubscriber,
+         handler: KlassHero.Messaging.Adapters.Driving.Events.StaffAssignmentHandler,
+         topics: [
+           "integration:provider:staff_assigned_to_program",
+           "integration:provider:staff_unassigned_from_program"
+         ],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :messaging_staff_assignment_subscriber
       )
     ]
   end
