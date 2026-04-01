@@ -9,6 +9,7 @@ on:
 env:
   ELIXIR_VERSION: '1.20.0-rc.4'
   OTP_VERSION: '28.4.1'
+  MIX_OS_DEPS_COMPILE_PARTITION_COUNT: '4'
 
 jobs:
   deps:

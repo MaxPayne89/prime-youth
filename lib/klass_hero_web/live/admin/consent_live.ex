@@ -23,11 +23,13 @@ defmodule KlassHeroWeb.Admin.ConsentLive do
         &KlassHero.Family.Adapters.Driven.Persistence.Schemas.ConsentSchema.admin_changeset/3,
       item_query: &__MODULE__.item_query/3
     ],
-    layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
 
   import Ecto.Query
+
+  @impl Backpex.LiveResource
+  def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
 
   # Trigger: all mutation actions denied — this is a read-only compliance view
   # Why: consents are granted/withdrawn by parents, not admins

@@ -8,6 +8,7 @@ defmodule KlassHero.MixProject do
       elixir: "~> 1.20.0-rc.4",
       erlang: "~> 28.4.1",
       elixirc_paths: elixirc_paths(Mix.env()),
+      elixirc_options: [module_definition: :interpreted],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),

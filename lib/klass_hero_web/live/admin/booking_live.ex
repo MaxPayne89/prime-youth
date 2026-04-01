@@ -22,9 +22,11 @@ defmodule KlassHeroWeb.Admin.BookingLive do
       create_changeset:
         &KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSchema.admin_changeset/3
     ],
-    layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :enrolled_at, direction: :desc}
+
+  @impl Backpex.LiveResource
+  def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
 
   # Trigger: :new, :edit, and :delete are not valid operations for bookings in admin
   # Why: bookings are created by parents; cancellation goes through the cancel item action

@@ -37,6 +37,7 @@ RUN mix local.hex --force && \
 
 # set build ENV
 ENV MIX_ENV="prod"
+ENV MIX_OS_DEPS_COMPILE_PARTITION_COUNT=4
 
 # install mix dependencies
 COPY mix.exs mix.lock ./

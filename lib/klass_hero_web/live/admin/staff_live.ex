@@ -22,9 +22,11 @@ defmodule KlassHeroWeb.Admin.StaffLive do
       create_changeset:
         &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema.admin_changeset/3
     ],
-    layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
+
+  @impl Backpex.LiveResource
+  def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
 
   # Trigger: :new and :delete are not valid operations for staff members in admin
   # Why: staff members are created/deleted by their providers

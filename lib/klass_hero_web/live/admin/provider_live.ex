@@ -23,7 +23,6 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
       create_changeset:
         &KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema.admin_changeset/3
     ],
-    layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
 
@@ -33,6 +32,9 @@ defmodule KlassHeroWeb.Admin.ProviderLive do
   alias KlassHero.Shared.IntegrationEventPublishing
 
   require KlassHeroWeb.BackpexCompat
+
+  @impl Backpex.LiveResource
+  def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
 
   @tier_options Enum.map(
                   KlassHero.Shared.SubscriptionTiers.provider_tiers(),

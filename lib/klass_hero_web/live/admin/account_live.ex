@@ -22,11 +22,13 @@ defmodule KlassHeroWeb.Admin.AccountLive do
       create_changeset: &KlassHero.Accounts.User.admin_update_changeset/3,
       item_query: &__MODULE__.item_query/3
     ],
-    layout: {KlassHeroWeb.Layouts, :admin},
     pubsub: [server: KlassHero.PubSub],
     init_order: %{by: :inserted_at, direction: :desc}
 
   import Ecto.Query
+
+  @impl Backpex.LiveResource
+  def layout(_assigns), do: {KlassHeroWeb.Layouts, :admin}
 
   # Trigger: :new action is denied; :delete excluded from routes
   # Why: users register themselves; deletion follows GDPR anonymization
