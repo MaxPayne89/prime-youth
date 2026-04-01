@@ -221,7 +221,9 @@ config :klass_hero, :provider,
   for_storing_verification_documents:
     KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository,
   for_storing_staff_members:
-    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository,
+  for_storing_program_staff_assignments:
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramStaffAssignmentRepository
 
 config :klass_hero, :resend_req_options, []
 

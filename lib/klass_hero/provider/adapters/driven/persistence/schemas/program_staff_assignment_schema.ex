@@ -30,7 +30,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProgramStaffAss
     timestamps()
   end
 
-  @required_fields ~w(program_id assigned_at)a
+  @castable_fields ~w(program_id assigned_at)a
   @optional_fields ~w(unassigned_at)a
 
   @doc """
@@ -41,7 +41,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProgramStaffAss
   """
   def create_changeset(schema \\ %__MODULE__{}, attrs) do
     schema
-    |> cast(attrs, @required_fields ++ @optional_fields)
+    |> cast(attrs, @castable_fields ++ @optional_fields)
     |> put_change(:provider_id, attrs[:provider_id] || attrs["provider_id"])
     |> put_change(:staff_member_id, attrs[:staff_member_id] || attrs["staff_member_id"])
     |> validate_required([:provider_id, :program_id, :staff_member_id, :assigned_at])
