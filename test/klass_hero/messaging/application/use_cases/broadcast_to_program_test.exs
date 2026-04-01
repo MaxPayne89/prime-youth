@@ -5,6 +5,10 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgramTest do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.AccountsFixtures
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
+
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
+
   alias KlassHero.Messaging.Application.UseCases.BroadcastToProgram
   alias KlassHero.Messaging.Domain.Models.{Conversation, Message}
   alias KlassHero.Provider.Domain.Models.ProviderProfile
@@ -167,6 +171,61 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgramTest do
 
       assert {:ok, _conversation, _message, _count} =
                BroadcastToProgram.execute(scope, program.id, "Message")
+    end
+  end
+
+  describe "staff auto-inclusion in broadcast" do
+    test "adds assigned staff as participants alongside parents" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      scope = build_scope_with_provider(provider, :professional)
+
+      parent_user = AccountsFixtures.user_fixture()
+      parent = insert(:parent_profile_schema, identity_id: parent_user.id)
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        parent_id: parent.id,
+        status: "confirmed"
+      )
+
+      staff_user = AccountsFixtures.user_fixture()
+
+      ProgramStaffParticipantRepository.upsert_active(%{
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_user_id: staff_user.id
+      })
+
+      assert {:ok, conversation, _message, _count} =
+               BroadcastToProgram.execute(scope, program.id, "Important update!")
+
+      assert ParticipantRepository.is_participant?(conversation.id, staff_user.id)
+    end
+
+    test "does not duplicate owner when owner is also assigned as staff" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      scope = build_scope_with_provider(provider, :professional)
+
+      parent_user = AccountsFixtures.user_fixture()
+      parent = insert(:parent_profile_schema, identity_id: parent_user.id)
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        parent_id: parent.id,
+        status: "confirmed"
+      )
+
+      # Assign the broadcasting user as staff too
+      ProgramStaffParticipantRepository.upsert_active(%{
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_user_id: scope.user.id
+      })
+
+      assert {:ok, _conversation, _message, _count} =
+               BroadcastToProgram.execute(scope, program.id, "Update!")
     end
   end
 

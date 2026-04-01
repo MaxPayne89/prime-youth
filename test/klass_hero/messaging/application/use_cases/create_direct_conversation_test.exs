@@ -6,6 +6,10 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversationTest 
   alias KlassHero.Accounts.Scope
   alias KlassHero.AccountsFixtures
   alias KlassHero.Family.Domain.Models.ParentProfile
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
+
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
+
   alias KlassHero.Messaging.Application.UseCases.CreateDirectConversation
   alias KlassHero.Messaging.Domain.Models.Conversation
   alias KlassHero.Provider.Domain.Models.ProviderProfile
@@ -109,6 +113,96 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversationTest 
 
       assert {:ok, _conversation} =
                CreateDirectConversation.execute(scope, provider.id, target_user.id)
+    end
+  end
+
+  describe "staff auto-inclusion" do
+    test "adds assigned staff as participants when conversation has program context" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      scope = build_scope_with_provider(provider, :professional)
+      target_user = AccountsFixtures.user_fixture()
+      staff_user = AccountsFixtures.user_fixture()
+
+      ProgramStaffParticipantRepository.upsert_active(%{
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_user_id: staff_user.id
+      })
+
+      assert {:ok, conversation} =
+               CreateDirectConversation.execute(scope, provider.id, target_user.id,
+                 program_id: program.id
+               )
+
+      assert ParticipantRepository.is_participant?(conversation.id, staff_user.id)
+    end
+
+    test "does not add staff when no program_id provided" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      scope = build_scope_with_provider(provider, :professional)
+      target_user = AccountsFixtures.user_fixture()
+      staff_user = AccountsFixtures.user_fixture()
+
+      ProgramStaffParticipantRepository.upsert_active(%{
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_user_id: staff_user.id
+      })
+
+      assert {:ok, conversation} =
+               CreateDirectConversation.execute(scope, provider.id, target_user.id)
+
+      refute ParticipantRepository.is_participant?(conversation.id, staff_user.id)
+    end
+
+    test "does not add owner as duplicate staff participant" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      scope = build_scope_with_provider(provider, :professional)
+      target_user = AccountsFixtures.user_fixture()
+
+      # The owner (scope.user) is also assigned as staff
+      ProgramStaffParticipantRepository.upsert_active(%{
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_user_id: scope.user.id
+      })
+
+      assert {:ok, _conversation} =
+               CreateDirectConversation.execute(scope, provider.id, target_user.id,
+                 program_id: program.id
+               )
+    end
+
+    test "does not add staff to existing conversations" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      scope = build_scope_with_provider(provider, :professional)
+      target_user = AccountsFixtures.user_fixture()
+
+      # First create the conversation without staff
+      assert {:ok, first_conversation} =
+               CreateDirectConversation.execute(scope, provider.id, target_user.id)
+
+      # Now assign staff
+      staff_user = AccountsFixtures.user_fixture()
+
+      ProgramStaffParticipantRepository.upsert_active(%{
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_user_id: staff_user.id
+      })
+
+      # Calling again returns the existing conversation without adding staff
+      assert {:ok, second_conversation} =
+               CreateDirectConversation.execute(scope, provider.id, target_user.id,
+                 program_id: program.id
+               )
+
+      assert first_conversation.id == second_conversation.id
+      refute ParticipantRepository.is_participant?(second_conversation.id, staff_user.id)
     end
   end
 
