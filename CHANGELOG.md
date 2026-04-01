@@ -5,6 +5,34 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.0](https://github.com/MaxPayne89/klass-hero/compare/v0.23.0...v0.24.0) (2026-04-01)
+
+
+### Features
+
+* add assign/unassign staff use cases with integration events ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([344363a](https://github.com/MaxPayne89/klass-hero/commit/344363a075d550b3b071480114644c095da50139))
+* add messaging event handler for staff assignment changes ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([3437cdb](https://github.com/MaxPayne89/klass-hero/commit/3437cdb58506a7450016b6c5a1eeea5e449e0878))
+* add messaging projection for program staff participants ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([993d25c](https://github.com/MaxPayne89/klass-hero/commit/993d25c2c023d591eb8e7d8401e545023b78296d))
+* add program staff assignment domain model, port, and repository ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([ee90fd1](https://github.com/MaxPayne89/klass-hero/commit/ee90fd161da7786639c2fcc7f6efba51bc8c4a0e))
+* add program_staff_assignments table and schema ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([4873104](https://github.com/MaxPayne89/klass-hero/commit/487310404f65fa3a759d33aec8a08f8cf984fada))
+* add staff messaging routes and LiveViews ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([9285a7a](https://github.com/MaxPayne89/klass-hero/commit/9285a7ac969710fe9826436e104a45a4b82dbe02))
+* allow assigned staff to send in broadcast conversations ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([157af45](https://github.com/MaxPayne89/klass-hero/commit/157af452e3b3a2216ea27e7e16ee49d0e1a6a993))
+* allow program-assigned staff to message parents ([ae6750b](https://github.com/MaxPayne89/klass-hero/commit/ae6750b5cc1374527467e48543a88b6d1fe37bc1))
+* auto-include assigned staff in new conversations ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([a6c73f5](https://github.com/MaxPayne89/klass-hero/commit/a6c73f5473753d559793e10ed65ad60b307c5da4))
+* show provider-branded message attribution with staff names ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([693bca0](https://github.com/MaxPayne89/klass-hero/commit/693bca013705605e314f10e4063c3b15db93c841))
+
+
+### Bug Fixes
+
+* address PR review comments ([#571](https://github.com/MaxPayne89/klass-hero/issues/571)) ([2638727](https://github.com/MaxPayne89/klass-hero/commit/26387275014fab55709a1c7d1bf4d158d2fca4fc))
+* resolve non-idempotent HEEx formatter issue in attribution span ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([6ec71cb](https://github.com/MaxPayne89/klass-hero/commit/6ec71cb70bb7364f7bf289edc8ed1fa06a60deff))
+
+
+### Code Refactoring
+
+* extract shared staff helper and reuse EctoErrorHelpers ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([bf8851c](https://github.com/MaxPayne89/klass-hero/commit/bf8851cdc389acbb8650c75a97474da90b9dbd63))
+* move Ecto query from StaffAssignmentHandler into port/adapter ([#361](https://github.com/MaxPayne89/klass-hero/issues/361)) ([5e4228c](https://github.com/MaxPayne89/klass-hero/commit/5e4228ce27ae945c5caa9c4b05983bbbb5eef63d))
+
 ## [0.23.0](https://github.com/MaxPayne89/klass-hero/compare/v0.22.0...v0.23.0) (2026-03-31)
 
 
