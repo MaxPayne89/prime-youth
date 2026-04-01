@@ -92,7 +92,7 @@ Uses `staff_user_id` (not `staff_member_id`) because Messaging only deals in use
 
 ### Conversation Creation — Consulting the Projection
 
-**`CreateDirectConversation`:** After creating the conversation between business owner and parent, query `program_staff_participants` for active staff on the program. Add them as participants.
+**`CreateDirectConversation`:** After creating the conversation between business owner and parent, if the conversation has a program context (i.e., initiated from a program page), query `program_staff_participants` for active staff on that program. Add them as participants. Conversations without a program context (general inquiries) do not include staff.
 
 **`BroadcastToProgram`:** After adding parent and provider participants, also add active assigned staff from the projection.
 
