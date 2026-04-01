@@ -173,7 +173,7 @@ defmodule KlassHeroWeb.MessagingComponents do
         >
           <%= if @is_provider_side && @provider_name do %>
             <span>{@provider_name}</span>
-            <span class="font-normal"> via   {@sender_name}</span>
+            <span class="font-normal">{" via #{@sender_name}"}</span>
           <% else %>
             {@sender_name}
           <% end %>
