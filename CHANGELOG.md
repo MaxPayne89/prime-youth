@@ -5,6 +5,18 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.1](https://github.com/MaxPayne89/klass-hero/compare/v0.24.0...v0.24.1) (2026-04-01)
+
+
+### Bug Fixes
+
+* address PR review comments on gen-migration skill ([8b895d2](https://github.com/MaxPayne89/klass-hero/commit/8b895d2fa496ffb3de67f6b22f363ed2290896ed)), closes [#573](https://github.com/MaxPayne89/klass-hero/issues/573)
+
+
+### Performance Improvements
+
+* enable interpreted compilation and parallel dep builds ([9a35e2e](https://github.com/MaxPayne89/klass-hero/commit/9a35e2e8b4ec2d1822b90c1b1416a18b4cac8944))
+
 ## [0.24.0](https://github.com/MaxPayne89/klass-hero/compare/v0.23.0...v0.24.0) (2026-04-01)
 
 
