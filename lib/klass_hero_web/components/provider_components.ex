@@ -380,7 +380,7 @@ defmodule KlassHeroWeb.ProviderComponents do
           <p class="text-xs text-hero-grey-500 uppercase tracking-wide">
             {gettext("Program Slots")}
           </p>
-          <p class="text-lg font-semibold text-hero-charcoal">
+          <p id="program-slots-counter" class="text-lg font-semibold text-hero-charcoal">
             {@business.program_slots_used}/{if @business.program_slots_total == :unlimited,
               do: "∞",
               else: @business.program_slots_total}

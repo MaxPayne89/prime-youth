@@ -67,6 +67,28 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
       assert render(view) =~ "Program created successfully."
     end
 
+    test "updates program slots counter after creating a program", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      # Professional tier: 0 programs used out of 5 slots
+      assert has_element?(view, "#program-slots-counter", "0/5")
+
+      view |> element("#new-program-btn") |> render_click()
+
+      view
+      |> form("#program-form", %{
+        "program_schema" => %{
+          "title" => "Counter Test Program",
+          "description" => "Verifies program slots counter updates",
+          "category" => "arts",
+          "price" => "30.00"
+        }
+      })
+      |> render_submit()
+
+      assert has_element?(view, "#program-slots-counter", "1/5")
+    end
+
     test "creates program with instructor assigned", %{conn: conn, provider: provider} do
       staff =
         ProviderFixtures.staff_member_fixture(

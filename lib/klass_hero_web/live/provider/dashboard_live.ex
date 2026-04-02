@@ -61,8 +61,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
         staff_members = Task.await(staff_task)
         staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
-
-        business = %{business | program_slots_used: length(programs)}
+        programs_count = length(programs)
 
         # Build staff filter options from real data
         staff_options =
@@ -80,7 +79,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> stream(:team_members, staff_views)
           |> update_staff_count(length(staff_views))
           |> stream(:programs, programs)
-          |> assign(programs_count: length(programs))
+          |> assign(programs_count: programs_count)
+          |> update_program_slots(programs_count)
           |> assign(staff_options: staff_options)
           |> assign(search_query: "")
           |> assign(selected_staff: "all")
@@ -812,7 +812,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          programs_count: socket.assigns.programs_count + 1,
          enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"),
          participant_policy_form: to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
-       )}
+       )
+       |> update_program_slots(socket.assigns.business.program_slots_used + 1)}
     else
       {:error, :instructor_not_found} ->
         {:noreply,
@@ -1500,6 +1501,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     assign(socket, staff_count: count, business: business)
   end
 
+  defp update_program_slots(socket, count) do
+    business = %{socket.assigns.business | program_slots_used: count}
+    assign(socket, business: business)
+  end
+
   defp fetch_staff_members(provider_id) do
     case Provider.list_staff_members(provider_id) do
       {:ok, members} ->
@@ -1541,6 +1547,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     socket
     |> stream(:programs, programs, reset: true)
     |> assign(programs_count: length(programs))
+    |> update_program_slots(length(domain_programs))
   end
 
   defp build_enrollment_data(domain_programs) do
