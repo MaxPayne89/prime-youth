@@ -36,9 +36,7 @@ tools:
   bash: true
 
 source: githubnext/agentics/workflows/daily-qa.md@613b585d37d53ee994d85ad27e8e62ad0022ae32
-engine:
-  id: claude
-  model: claude-sonnet-4-6
+engine: copilot
 ---
 
 # Daily QA
