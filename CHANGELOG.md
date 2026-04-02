@@ -5,6 +5,14 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.2](https://github.com/MaxPayne89/klass-hero/compare/v0.24.1...v0.24.2) (2026-04-02)
+
+
+### Bug Fixes
+
+* keep program slots counter in sync after program changes ([c38a9c4](https://github.com/MaxPayne89/klass-hero/commit/c38a9c436d09d1ce0acfb6804af06bcc3d8c243d))
+* keep program slots counter in sync after program creation ([940eb54](https://github.com/MaxPayne89/klass-hero/commit/940eb544c46ac3cd5fcaf44a63cec5daba1b01c7)), closes [#568](https://github.com/MaxPayne89/klass-hero/issues/568)
+
 ## [0.24.1](https://github.com/MaxPayne89/klass-hero/compare/v0.24.0...v0.24.1) (2026-04-01)
 
 
