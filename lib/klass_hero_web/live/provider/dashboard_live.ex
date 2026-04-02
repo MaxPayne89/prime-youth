@@ -12,11 +12,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   import KlassHeroWeb.ProviderComponents
 
+  alias KlassHero.Accounts.Scope
   alias KlassHero.Enrollment
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+<<<<<<< HEAD
   alias KlassHero.Shared.Entitlements
+=======
+  alias KlassHero.Provider.Domain.Models.StaffMember
+>>>>>>> 1fce1118 (feat: allow one user account to hold staff member and provider roles)
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.ProviderPresenter
@@ -100,6 +105,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             import_errors: nil,
             can_message?: false
           )
+          |> assign(assigned_employer: nil)
+          |> assign(assigned_programs_empty?: true)
+          |> stream(:assigned_programs, [])
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
           |> assign(
             enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy")
@@ -162,18 +170,44 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   @impl true
   def handle_params(_params, _uri, %{assigns: %{live_action: :overview}} = socket) do
     provider = socket.assigns.current_scope.provider
+    scope = socket.assigns.current_scope
 
     # Trigger: overview tab needs verification status derived from documents
     # Why: provider.verified alone is boolean; documents give granular status
     # Outcome: business map gets :verification_status (:verified/:pending/:rejected/:not_started)
-    docs = fetch_verification_docs(provider.id)
+    docs_task = Task.async(fn -> fetch_verification_docs(provider.id) end)
+
+    # For dual-role users also load programs assigned to them by their employer.
+    # Task is nil for pure provider users to avoid unnecessary DB queries.
+    assigned_task =
+      if Scope.staff_provider?(scope),
+        do: Task.async(fn -> fetch_assigned_programs(scope.staff_member) end)
+
+    docs = Task.await(docs_task)
 
     verification_status =
       ProviderPresenter.verification_status_from_docs(provider.verified, docs)
 
     business = %{socket.assigns.business | verification_status: verification_status}
 
-    {:noreply, assign(socket, business: business)}
+    socket = assign(socket, business: business)
+
+    socket =
+      if assigned_task do
+        {employer, programs} = Task.await(assigned_task)
+
+        socket
+        |> assign(assigned_employer: employer)
+        |> stream(:assigned_programs, programs, reset: true)
+        |> assign(assigned_programs_empty?: programs == [])
+      else
+        socket
+        |> assign(assigned_employer: nil)
+        |> stream(:assigned_programs, [], reset: true)
+        |> assign(assigned_programs_empty?: true)
+      end
+
+    {:noreply, socket}
   end
 
   @impl true
@@ -1054,7 +1088,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
             <%= case @live_action do %>
               <% :overview -> %>
-                <.overview_section business={@business} />
+                <.overview_section
+                  business={@business}
+                  assigned_employer={@assigned_employer}
+                  assigned_programs={@streams.assigned_programs}
+                  assigned_programs_empty?={@assigned_programs_empty?}
+                />
               <% :team -> %>
                 <.team_section
                   team_members={@streams.team_members}
@@ -1233,6 +1272,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # Dashboard Tab Templates
   # ============================================================================
 
+  attr :business, :map, required: true
+  attr :assigned_employer, :map, default: nil
+  attr :assigned_programs, :any, default: []
+  attr :assigned_programs_empty?, :boolean, default: true
+
   defp overview_section(assigns) do
     ~H"""
     <div class="space-y-6">
@@ -1293,6 +1337,38 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           >
             {gettext("Manage Plan →")}
           </.link>
+        </div>
+      </div>
+
+      <%!-- Dual-role: programs assigned by employer business --%>
+      <div :if={@assigned_employer != nil} id="assigned-by-employer-section" class="space-y-4">
+        <h2 class={Theme.typography(:section_title)}>
+          {gettext("Programs assigned to you by %{business_name}",
+            business_name: @assigned_employer.business_name)}
+        </h2>
+
+        <p
+          :if={@assigned_programs_empty?}
+          id="assigned-programs-empty"
+          class="text-sm text-zinc-500 py-4 text-center"
+        >
+          {gettext("No programs assigned yet.")}
+        </p>
+
+        <div id="assigned-programs" phx-update="stream" class="space-y-3">
+          <div
+            :for={{dom_id, program} <- @assigned_programs}
+            id={dom_id}
+            class={[
+              "p-4 bg-white border border-hero-grey-200 shadow-sm",
+              Theme.rounded(:lg)
+            ]}
+          >
+            <p class={Theme.typography(:card_title)}>{program.title}</p>
+            <p :if={program.category} class={[Theme.typography(:body_small), "mt-1 text-zinc-500"]}>
+              {program.category}
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -1500,6 +1576,23 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       {:ok, socket} -> socket
       {:error, :no_program} -> socket
     end
+  end
+
+  defp fetch_assigned_programs(%StaffMember{} = staff) do
+    employer =
+      case Provider.get_provider_profile(staff.provider_id) do
+        {:ok, profile} -> profile
+        {:error, _} -> nil
+      end
+
+    all_programs = ProgramCatalog.list_programs_for_provider(staff.provider_id)
+
+    programs =
+      if staff.tags == [],
+        do: all_programs,
+        else: Enum.filter(all_programs, &(&1.category in staff.tags))
+
+    {employer, programs}
   end
 
   defp fetch_verification_docs(provider_id) do

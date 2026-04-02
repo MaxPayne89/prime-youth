@@ -46,6 +46,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
       verified_by_id: schema.verified_by_id && to_string(schema.verified_by_id),
       categories: schema.categories,
       subscription_tier: string_to_tier(schema.subscription_tier, :starter),
+      originated_from: string_to_originated_from(schema.originated_from),
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -71,8 +72,17 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
       verified_at: provider_profile.verified_at,
       verified_by_id: provider_profile.verified_by_id,
       categories: provider_profile.categories,
-      subscription_tier: tier_to_string(provider_profile.subscription_tier, "starter")
+      subscription_tier: tier_to_string(provider_profile.subscription_tier, "starter"),
+      originated_from: originated_from_to_string(provider_profile.originated_from)
     }
     |> maybe_add_id(provider_profile.id)
   end
+
+  defp string_to_originated_from(nil), do: nil
+  defp string_to_originated_from("staff_invite"), do: :staff_invite
+  # Safe fallback for any future values added to the DB before code is deployed
+  defp string_to_originated_from(_), do: nil
+
+  defp originated_from_to_string(nil), do: nil
+  defp originated_from_to_string(:staff_invite), do: "staff_invite"
 end
