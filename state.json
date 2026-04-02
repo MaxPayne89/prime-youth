@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-15T13:03:00Z",
+  "last_updated": "2026-04-02T21:22:00Z",
   "commands": {
     "test": "mix test",
     "test_specific": "mix test path/to/test.exs",
@@ -37,95 +37,47 @@
     "referral_code_generator_tests": "ReferralCodeGenerator.generate/2 splits name on \" \" parts:2, takes List.first, trims - so 'John Smith' -> 'JOHN'; location passed as-is; year_suffix: 2-digit string auto-derived from Date.utc_today().year rem 100 padded to 2 chars",
     "participant_policy_form_changeset": "ParticipantPolicyForm.changeset/1 (no args uses default struct) and changeset/2 (existing struct, attrs); cross-field: min_age > max_age adds error to :min_age_months; min_grade > max_grade adds error to :min_grade; allowed_genders invalid message contains 'invalid values: <val>'",
     "concurrent_enrollment_sandbox": "Use Sandbox.allow(Repo, test_pid, self()) inside Task.async_stream tasks when test module uses async: true (exclusive sandbox mode); @tag :capture_log suppresses expected duplicate warning log",
-    "reply_privately_broadcast_guards": "ReplyPrivatelyToBroadcast: insert(:conversation_schema, type: \"direct\", ...) for :not_broadcast test; create user without insert(:participant_schema) for :not_participant test; scope built from %Scope{user:, roles: [:parent], parent: %ParentProfile{...}, provider: nil}"
+    "reply_privately_broadcast_guards": "ReplyPrivatelyToBroadcast: insert(:conversation_schema, type: \"direct\", ...) for :not_broadcast test; create user without insert(:participant_schema) for :not_participant test; scope built from %Scope{user:, roles: [:parent], parent: %ParentProfile{...}, provider: nil}",
+    "verify_webhook_signature_plug_tests": "Use ExUnit.Case async: false (Application env mutation); call VerifyWebhookSignature.call/2 directly with Plug.Test.conn(); assign raw_body via assign(conn, :raw_body, body); compute HMAC as :crypto.mac(:hmac, :sha256, secret_bytes, signed_content) |> Base.encode64(); restore Application env in on_exit"
   },
   "backlog": [
     {"item": "ParticipationEvents factory tests", "priority": "low", "reason": "9 event factory functions, tests would guard payload shape contracts"},
-    {"item": "entitlements domain service property tests", "priority": "low", "reason": "already thoroughly covered by explicit tests"},
-    {"item": "admin provider_live.ex on_item_updated event publishing", "priority": "low", "reason": "existing tests verify DB state only; on_item_updated/2 publishes provider_verified/provider_unverified events - complex to test from LiveView"},
-    {"item": "PubSubIntegrationEventPublisher additional cases", "priority": "low", "reason": "only 2 tests; missing: critical event with no registered handlers, publish_all/1, build_topic/2/derive_topic/1"}
+    {"item": "Admin.Queries select queries", "priority": "low", "reason": "list_providers_for_select and list_programs_for_select - simple but untested"},
+    {"item": "admin provider_live.ex on_item_updated event publishing", "priority": "low", "reason": "existing tests verify DB state only; on_item_updated/2 publishes provider_verified/provider_unverified events - complex to test from LiveView"}
   ],
   "tasks_last_run": {
-    "task1_commands": "2026-02-26",
-    "task2_opportunities": "2026-03-15",
-    "task3_implement": "2026-03-15",
+    "task1_commands": "2026-04-02",
+    "task2_opportunities": "2026-04-02",
+    "task3_implement": "2026-04-02",
     "task4_maintain_prs": "2026-03-15",
     "task6_infrastructure": "2026-03-12",
     "task5_comments": "2026-03-13",
-    "task7_monthly_summary": "2026-03-15"
+    "task7_monthly_summary": "2026-04-02"
   },
   "completed_work": [
     {
+      "run": "2026-04-02",
+      "work": "Task 1/2: Validated commands unchanged; explored codebase for untested areas - confirmed VerifyWebhookSignature plug as security-critical zero-test target. Task 3: Created PR (branch test-assist/verify-webhook-signature-plug-tests): 15 unit tests for VerifyWebhookSignature plug - all HMAC-SHA256 branches, key rotation, missing headers, timestamp expiry, bad secret config. Task 7: Closed March 2026 issue #234; created April 2026 monthly summary."
+    },
+    {
+      "run": "2026-03-16",
+      "work": "Task 4: PR #435 (ReplyPrivatelyToBroadcast security guard tests) confirmed merged. Task 4: Issue #397 confirmed closed. Task 3/6: Created PR #443 (branch test-assist/pubsub-integration-event-publisher-tests): 8 new tests for PubSubIntegrationEventPublisher - MERGED."
+    },
+    {
       "run": "2026-03-15",
-      "work": "Task 2: Identified 2 missing security guard tests in ReplyPrivatelyToBroadcast (new v0.6.0 feature) - :not_broadcast and :not_participant access control paths. Task 3: Created PR (branch test-assist/reply-privately-security-guard-tests): 2 security guard tests for ReplyPrivatelyToBroadcast use case. Task 4: No open Test Improver PRs to maintain (concurrent enrollment PR from 2026-03-14 was merged)."
+      "work": "Task 2/4: Confirmed concurrent enrollment PR (2026-03-14) merged; no open Test Improver PRs pending. Task 2: Identified 2 missing security guard tests in new v0.6.0 ReplyPrivatelyToBroadcast use case (:not_broadcast, :not_participant paths untested). Task 3: Created PR test-assist/reply-privately-security-guard-tests: 2 access-control guard tests - merged as #435."
     },
     {
       "run": "2026-03-14",
-      "work": "Task 4: Verified PR #413 (ParticipantPolicyForm changeset tests) was merged. No open Test Improver PRs to maintain. Task 3: Created PR (branch test-assist/enrollment-concurrent-duplicate-test): 1 concurrent test for enrollment duplicate race condition using Task.async_stream + Sandbox.allow pattern, addressing issue #397 verification request."
+      "work": "Task 4: PR #413 (ParticipantPolicyForm changeset tests) confirmed merged. Task 3: Created PR (branch test-assist/enrollment-concurrent-duplicate-test): concurrent duplicate enrollment test using Task.async_stream + Sandbox.allow/3 - merged."
     },
     {
       "run": "2026-03-13",
-      "work": "Created PR (branch test-assist/participant-policy-form-changeset-tests): 28 pure async changeset tests for ParticipantPolicyForm - all validation paths. Commented on issue #397 with Task.async_stream concurrent test strategy. Confirmed PR #401 (ReferralCodeGenerator + ProgramCategories) merged. PR #413 MERGED."
+      "work": "Created PR #413: 28 pure async ParticipantPolicyForm changeset tests. Commented on #397 with Task.async_stream concurrent test strategy. PR #401 merged."
     },
     {
       "run": "2026-03-12",
-      "work": "Created PR #401 (branch test-assist/pure-domain-service-tests): ReferralCodeGenerator (11 tests) + ProgramCategories (16 tests) - both pure domain services with zero coverage. Task 6 review: existing infrastructure (EventTestHelper, DataCase, ConnCase, ProviderFixtures, factory.ex) is comprehensive; UseCaseCase exists but unused. PR #401 MERGED."
-    },
-    {
-      "run": "2026-03-11",
-      "work": "Created PR #384 for IntegrationEventPublishing unit tests - MERGED"
-    },
-    {
-      "run": "2026-03-10",
-      "work": "Created PR (branch test-assist/staff-member-use-case-tests): CreateStaffMember + UpdateStaffMember + DeleteStaffMember use case tests - 19 integration tests - MERGED as #368"
-    },
-    {
-      "run": "2026-03-09",
-      "work": "Created PR #348 for CheckEnrollment + ListEnrolledIdentityIds use case tests - MERGED"
-    },
-    {
-      "run": "2026-03-08",
-      "work": "Created PR #321 for ActivityGoalCalculator domain service tests - MERGED"
-    },
-    {
-      "run": "2026-03-07",
-      "work": "Created PR #306 for CreateParentProfile use case tests - MERGED"
-    },
-    {
-      "run": "2026-03-06",
-      "work": "Created PR #293 for GetBehavioralNoteForRecord use case integration tests - MERGED"
-    },
-    {
-      "run": "2026-03-05",
-      "work": "Created PR #285 for ParticipationCollection domain service unit tests - MERGED"
-    },
-    {
-      "run": "2026-03-04 (PM)",
-      "work": "Created PR #273: fix+test participation_live check-in/out FK integrity + 5 LiveView event tests - MERGED"
-    },
-    {
-      "run": "2026-03-04 (AM)",
-      "work": "Created PR #264 for enrollment import controller tests - MERGED"
-    },
-    {
-      "run": "2026-03-02",
-      "work": "Created PR #249 for MessagingLiveHelper unit tests + upcoming registration guard - MERGED"
-    },
-    {
-      "run": "2026-03-01",
-      "work": "Created PR: MapperHelpers unit tests - MERGED. Rolled over monthly issue to #234 (Mar 2026)."
-    },
-    {
-      "run": "2026-02-28",
-      "work": "Created PR #218 for BulkCheckIn use case tests - MERGED"
-    },
-    {
-      "run": "2026-02-27",
-      "work": "Created PR #211 for program_detail_live registration guard + settings_live smoke tests - MERGED"
-    },
-    {
-      "run": "2026-02-26",
-      "work": "Created PR #207 for SessionsLive tests - MERGED"
+      "work": "Created PR #401 (branch test-assist/pure-domain-service-tests): ReferralCodeGenerator (11 tests) + ProgramCategories (16 tests) - MERGED."
     }
   ]
 }
