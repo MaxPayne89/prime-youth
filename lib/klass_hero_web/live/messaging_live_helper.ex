@@ -164,9 +164,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
       conversation_id = socket.assigns.conversation.id
       sender_id = socket.assigns.current_scope.user.id
 
-      case Messaging.send_message(conversation_id, sender_id, content,
-             conversation: socket.assigns.conversation
-           ) do
+      case Messaging.send_message(conversation_id, sender_id, content, conversation: socket.assigns.conversation) do
         {:ok, _message} ->
           {:noreply,
            socket

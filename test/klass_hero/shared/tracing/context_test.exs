@@ -103,35 +103,20 @@ defmodule KlassHero.Shared.Tracing.ContextTest do
   alias KlassHero.Shared.Tracing.Context
   alias KlassHero.Shared.Tracing.ContextTest.Helpers
 
-  # Drain any spans left in the mailbox from previous tests before each test.
-  # Necessary because OTel uses a global singleton exporter and async: false
-  # does not isolate the process mailbox between tests.
+  # Drain leftover spans between tests. Uses a short 10ms timeout so it can
+  # collect any in-flight span messages before returning when the mailbox is empty.
   setup do
     flush_spans()
-    drain_spans()
+    drain_span_mailbox()
     :ok
   end
 
-  defp drain_spans do
+  defp drain_span_mailbox do
     receive do
-      {:span, _} -> drain_spans()
+      {:span, _} -> drain_span_mailbox()
     after
-      0 -> :ok
+      10 -> :ok
     end
-  end
-
-  # Receives all pending spans from the mailbox within `timeout` ms, returning
-  # them as a list. Used to find specific named spans amid background Ecto noise.
-  defp collect_spans(timeout \\ 500) do
-    receive do
-      {:span, s} -> [s | collect_spans(timeout)]
-    after
-      timeout -> []
-    end
-  end
-
-  defp find_span(spans, name) do
-    Enum.find(spans, fn s -> span(s, :name) == name end)
   end
 
   describe "inject/0 and attach/1" do
@@ -141,14 +126,8 @@ defmodule KlassHero.Shared.Tracing.ContextTest do
       assert is_map(context)
       assert Map.has_key?(context, "traceparent")
 
-      flush_spans()
-      spans = collect_spans()
-
-      parent_span = find_span(spans, "parent.operation")
-      child_span = find_span(spans, "child.operation")
-
-      assert parent_span != nil, "expected parent.operation span to be exported"
-      assert child_span != nil, "expected child.operation span to be exported"
+      parent_span = assert_span("parent.operation")
+      child_span = assert_span("child.operation")
 
       assert span(parent_span, :trace_id) == span(child_span, :trace_id)
     end
@@ -156,14 +135,8 @@ defmodule KlassHero.Shared.Tracing.ContextTest do
     test "filters atom keys and attaches only binary-keyed trace context" do
       Helpers.attach_with_mixed_keys_in_child_span()
 
-      flush_spans()
-      spans = collect_spans()
-
-      parent_span = find_span(spans, "parent.operation")
-      child_span = find_span(spans, "child.operation")
-
-      assert parent_span != nil, "expected parent.operation span to be exported"
-      assert child_span != nil, "expected child.operation span to be exported"
+      parent_span = assert_span("parent.operation")
+      child_span = assert_span("child.operation")
 
       assert span(parent_span, :trace_id) == span(child_span, :trace_id)
     end
@@ -194,11 +167,7 @@ defmodule KlassHero.Shared.Tracing.ContextTest do
     test "restores context from event metadata" do
       Helpers.attach_from_event_in_child_span()
 
-      flush_spans()
-      spans = collect_spans()
-
-      subscriber_span = find_span(spans, "subscriber.span")
-      assert subscriber_span != nil, "expected subscriber.span to be exported"
+      subscriber_span = assert_span("subscriber.span")
       assert span(subscriber_span, :parent_span_id) != :undefined
     end
   end
@@ -210,11 +179,7 @@ defmodule KlassHero.Shared.Tracing.ContextTest do
       assert is_map(enriched_args["trace_context"])
       assert enriched_args["invite_id"] == "abc123"
 
-      flush_spans()
-      spans = collect_spans()
-
-      worker_span = find_span(spans, "worker.operation")
-      assert worker_span != nil, "expected worker.operation span to be exported"
+      worker_span = assert_span("worker.operation")
       assert span(worker_span, :parent_span_id) != :undefined
     end
   end
