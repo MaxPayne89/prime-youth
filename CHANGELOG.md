@@ -5,6 +5,31 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.3](https://github.com/MaxPayne89/klass-hero/compare/v0.24.2...v0.24.3) (2026-04-03)
+
+
+### Bug Fixes
+
+* address PR review comments ([ae4fe39](https://github.com/MaxPayne89/klass-hero/commit/ae4fe3995e1e5da1f5a3fb28fce57e3b0346a0cc)), closes [#588](https://github.com/MaxPayne89/klass-hero/issues/588)
+* center icon and text in provider step cards ([1de2231](https://github.com/MaxPayne89/klass-hero/commit/1de2231ac6ee750e545515373703c681f10de31d))
+* center icon and text in provider step cards ([6349f03](https://github.com/MaxPayne89/klass-hero/commit/6349f032b8eab4d69847220139d0dd249f6a91cb)), closes [#544](https://github.com/MaxPayne89/klass-hero/issues/544)
+* left-align step numbers and center icons in vetting cards ([4c07ab9](https://github.com/MaxPayne89/klass-hero/commit/4c07ab987887ede38bf11b4b4009f4798beb7726))
+* left-align step numbers and center icons in vetting process cards ([334928c](https://github.com/MaxPayne89/klass-hero/commit/334928c2f44f6fcbd4a7fd5c543e0a541785a0d3)), closes [#545](https://github.com/MaxPayne89/klass-hero/issues/545)
+* shorten guard clause to satisfy credo MaxLineLength ([f4a9328](https://github.com/MaxPayne89/klass-hero/commit/f4a9328c7cb236120e92242af4f731e080711e48))
+
+
+### Performance Improvements
+
+* **messaging:** pass pre-fetched conversation to SendMessage in LiveHelper ([5ab1a8c](https://github.com/MaxPayne89/klass-hero/commit/5ab1a8c869f8a9bac231e4f4e9eec8104d6b7431))
+* **messaging:** pass pre-fetched conversation to SendMessage in LiveHelper ([60c206d](https://github.com/MaxPayne89/klass-hero/commit/60c206d1c835dfb439ef0bc6ea89c3b6ebb2be02))
+* speed up test suite by eliminating artificial delays (60s → 28s) ([d7dccc9](https://github.com/MaxPayne89/klass-hero/commit/d7dccc90bc5e85d4a520be792e0471a6ee2b27f1))
+* speed up test suite by eliminating artificial delays (60s to 28s) ([c9e7ca8](https://github.com/MaxPayne89/klass-hero/commit/c9e7ca89eb3171e17afc7e3b3388c56c166ca0d4))
+
+
+### Code Refactoring
+
+* simplify VerifyWebhookSignature plug tests ([18415c7](https://github.com/MaxPayne89/klass-hero/commit/18415c786ede63407141aede6ea03da3f28a196f))
+
 ## [0.24.2](https://github.com/MaxPayne89/klass-hero/compare/v0.24.1...v0.24.2) (2026-04-02)
 
 
