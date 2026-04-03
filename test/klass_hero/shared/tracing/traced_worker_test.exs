@@ -16,39 +16,22 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
   use ExUnit.Case, async: false
   use KlassHero.TracingHelpers
 
-  alias KlassHero.Shared.Tracing.Context
-
-  # Drain any spans left in the mailbox from previous tests before each test.
-  # Necessary because OTel uses a global singleton exporter and async: false
-  # does not isolate the process mailbox between tests.
   alias KlassHero.Shared.Tracing.TracedWorker
 
+  # Drain leftover spans between tests. Uses 0ms timeout so it returns
+  # immediately when the mailbox is empty — no overhead.
   setup do
     flush_spans()
-    drain_spans()
-    flush_spans()
-    drain_spans()
+    drain_span_mailbox()
     :ok
   end
 
-  defp drain_spans do
+  defp drain_span_mailbox do
     receive do
-      {:span, _} -> drain_spans()
+      {:span, _} -> drain_span_mailbox()
     after
-      50 -> :ok
+      10 -> :ok
     end
-  end
-
-  defp collect_spans(timeout \\ 500) do
-    receive do
-      {:span, s} -> [s | collect_spans(timeout)]
-    after
-      timeout -> []
-    end
-  end
-
-  defp find_span(spans, name) do
-    Enum.find(spans, fn s -> span(s, :name) == name end)
   end
 
   defp build_job(attrs \\ %{}) do
@@ -93,63 +76,43 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
       job = build_job()
       SuccessWorker.perform(job)
 
-      flush_spans()
-      spans = collect_spans()
-
-      assert find_span(spans, "Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1") != nil,
-             "Expected worker span, got: #{inspect(Enum.map(spans, &span(&1, :name)))}"
+      assert_span("Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1")
     end
 
     test "sets oban.queue attribute" do
       job = build_job(%{queue: "email"})
       SuccessWorker.perform(job)
 
-      flush_spans()
-      spans = collect_spans()
-      worker_span = find_span(spans, "Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1")
-      assert worker_span != nil
-
-      attrs = span_attributes(worker_span)
-      assert attrs["oban.queue"] == "email"
+      assert_span("Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1",
+        "oban.queue": "email"
+      )
     end
 
     test "sets oban.worker attribute to formatted module name" do
       job = build_job()
       SuccessWorker.perform(job)
 
-      flush_spans()
-      spans = collect_spans()
-      worker_span = find_span(spans, "Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1")
-      assert worker_span != nil
-
-      attrs = span_attributes(worker_span)
-      assert attrs["oban.worker"] == "Shared.Tracing.TracedWorkerTest.SuccessWorker"
+      assert_span("Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1",
+        "oban.worker": "Shared.Tracing.TracedWorkerTest.SuccessWorker"
+      )
     end
 
     test "sets oban.attempt attribute" do
       job = build_job(%{attempt: 2})
       SuccessWorker.perform(job)
 
-      flush_spans()
-      spans = collect_spans()
-      worker_span = find_span(spans, "Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1")
-      assert worker_span != nil
-
-      attrs = span_attributes(worker_span)
-      assert attrs["oban.attempt"] == 2
+      assert_span("Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1",
+        "oban.attempt": 2
+      )
     end
 
     test "sets oban.max_attempts attribute" do
       job = build_job(%{max_attempts: 5})
       SuccessWorker.perform(job)
 
-      flush_spans()
-      spans = collect_spans()
-      worker_span = find_span(spans, "Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1")
-      assert worker_span != nil
-
-      attrs = span_attributes(worker_span)
-      assert attrs["oban.max_attempts"] == 5
+      assert_span("Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1",
+        "oban.max_attempts": 5
+      )
     end
   end
 
@@ -190,17 +153,8 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
 
       Task.await(task)
 
-      flush_spans()
-      spans = collect_spans(1000)
-
-      enqueue_span = find_span(spans, "TracedWorkerContextHelper.enqueue")
-      worker_span = find_span(spans, "Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1")
-
-      assert enqueue_span != nil,
-             "Expected enqueue span, got: #{inspect(Enum.map(spans, &span(&1, :name)))}"
-
-      assert worker_span != nil,
-             "Expected worker span, got: #{inspect(Enum.map(spans, &span(&1, :name)))}"
+      enqueue_span = assert_span("TracedWorkerContextHelper.enqueue")
+      worker_span = assert_span("Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1")
 
       # Both spans should share the same trace_id, proving context was propagated
       assert span(enqueue_span, :trace_id) == span(worker_span, :trace_id),
@@ -214,13 +168,9 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
       job = build_job(%{attempt: 1, max_attempts: 3})
       FailWorker.perform(job)
 
-      flush_spans()
-      spans = collect_spans()
-      worker_span = find_span(spans, "Shared.Tracing.TracedWorkerTest.FailWorker.execute/1")
-      assert worker_span != nil
-
-      attrs = span_attributes(worker_span)
-      assert attrs["oban.will_retry"] == true
+      assert_span("Shared.Tracing.TracedWorkerTest.FailWorker.execute/1",
+        "oban.will_retry": true
+      )
     end
 
     test "sets oban.will_retry to false on final attempt failure" do
@@ -228,24 +178,16 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
       job = build_job(%{attempt: 3, max_attempts: 3})
       FailWorker.perform(job)
 
-      flush_spans()
-      spans = collect_spans()
-      worker_span = find_span(spans, "Shared.Tracing.TracedWorkerTest.FailWorker.execute/1")
-      assert worker_span != nil
-
-      attrs = span_attributes(worker_span)
-      assert attrs["oban.will_retry"] == false
+      assert_span("Shared.Tracing.TracedWorkerTest.FailWorker.execute/1",
+        "oban.will_retry": false
+      )
     end
 
     test "sets span status to error on failure" do
       job = build_job()
       FailWorker.perform(job)
 
-      flush_spans()
-      spans = collect_spans()
-      worker_span = find_span(spans, "Shared.Tracing.TracedWorkerTest.FailWorker.execute/1")
-      assert worker_span != nil
-
+      worker_span = assert_span("Shared.Tracing.TracedWorkerTest.FailWorker.execute/1")
       assert span_status_code(worker_span) == :error
     end
 
@@ -253,10 +195,7 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
       job = build_job()
       SuccessWorker.perform(job)
 
-      flush_spans()
-      spans = collect_spans()
-      worker_span = find_span(spans, "Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1")
-      assert worker_span != nil
+      worker_span = assert_span("Shared.Tracing.TracedWorkerTest.SuccessWorker.execute/1")
 
       # On success, status is either :unset or :ok — never :error
       raw_status = span(worker_span, :status)

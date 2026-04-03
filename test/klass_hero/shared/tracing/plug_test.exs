@@ -7,33 +7,20 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
 
   alias KlassHero.Shared.Tracing.Plug, as: TracingPlug
 
-  # Drain any spans left in the mailbox from previous tests before each test.
-  # Necessary because OTel uses a global singleton exporter and async: false
-  # does not isolate the process mailbox between tests.
+  # Drain leftover spans between tests. Uses 0ms timeout so it returns
+  # immediately when the mailbox is empty — no overhead.
   setup do
     flush_spans()
-    drain_spans()
+    drain_span_mailbox()
     :ok
   end
 
-  defp drain_spans do
+  defp drain_span_mailbox do
     receive do
-      {:span, _} -> drain_spans()
+      {:span, _} -> drain_span_mailbox()
     after
-      0 -> :ok
+      10 -> :ok
     end
-  end
-
-  defp collect_spans(timeout \\ 500) do
-    receive do
-      {:span, s} -> [s | collect_spans(timeout)]
-    after
-      timeout -> []
-    end
-  end
-
-  defp find_span(spans, name) do
-    Enum.find(spans, fn s -> span(s, :name) == name end)
   end
 
   defp run_plug(conn) do
@@ -48,10 +35,7 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
         |> run_plug()
         |> send_resp(200, "OK")
 
-      flush_spans()
-      spans = collect_spans()
-
-      assert find_span(spans, "HTTP GET /programs") != nil
+      assert_span("HTTP GET /programs")
     end
 
     test "span name uses method and route pattern when available" do
@@ -61,11 +45,7 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
         |> run_plug()
         |> send_resp(200, "OK")
 
-      flush_spans()
-      spans = collect_spans()
-
-      assert find_span(spans, "HTTP GET /programs/:id") != nil,
-             "Expected span 'HTTP GET /programs/:id', got: #{inspect(Enum.map(spans, &span(&1, :name)))}"
+      assert_span("HTTP GET /programs/:id")
     end
 
     test "sets http.method attribute" do
@@ -74,13 +54,7 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
         |> run_plug()
         |> send_resp(201, "Created")
 
-      flush_spans()
-      spans = collect_spans()
-      http_span = find_span(spans, "HTTP POST /programs")
-      assert http_span != nil
-
-      attrs = span_attributes(http_span)
-      assert attrs["http.method"] == "POST"
+      assert_span("HTTP POST /programs", "http.method": "POST")
     end
 
     test "sets http.target attribute to request path" do
@@ -89,13 +63,7 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
         |> run_plug()
         |> send_resp(200, "OK")
 
-      flush_spans()
-      spans = collect_spans()
-      http_span = find_span(spans, "HTTP GET /programs/abc")
-      assert http_span != nil
-
-      attrs = span_attributes(http_span)
-      assert attrs["http.target"] == "/programs/abc"
+      assert_span("HTTP GET /programs/abc", "http.target": "/programs/abc")
     end
 
     test "sets http.route attribute when route pattern is available" do
@@ -105,13 +73,7 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
         |> run_plug()
         |> send_resp(200, "OK")
 
-      flush_spans()
-      spans = collect_spans()
-      http_span = find_span(spans, "HTTP GET /programs/:id")
-      assert http_span != nil
-
-      attrs = span_attributes(http_span)
-      assert attrs["http.route"] == "/programs/:id"
+      assert_span("HTTP GET /programs/:id", "http.route": "/programs/:id")
     end
   end
 
@@ -122,13 +84,7 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
         |> run_plug()
         |> send_resp(200, "OK")
 
-      flush_spans()
-      spans = collect_spans()
-      http_span = find_span(spans, "HTTP GET /programs")
-      assert http_span != nil
-
-      attrs = span_attributes(http_span)
-      assert attrs["http.status_code"] == 200
+      assert_span("HTTP GET /programs", "http.status_code": 200)
     end
 
     test "records 404 status code" do
@@ -137,13 +93,7 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
         |> run_plug()
         |> send_resp(404, "Not Found")
 
-      flush_spans()
-      spans = collect_spans()
-      http_span = find_span(spans, "HTTP GET /unknown")
-      assert http_span != nil
-
-      attrs = span_attributes(http_span)
-      assert attrs["http.status_code"] == 404
+      assert_span("HTTP GET /unknown", "http.status_code": 404)
     end
   end
 
@@ -154,11 +104,7 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
         |> run_plug()
         |> send_resp(500, "Internal Server Error")
 
-      flush_spans()
-      spans = collect_spans()
-      http_span = find_span(spans, "HTTP GET /programs")
-      assert http_span != nil
-
+      http_span = assert_span("HTTP GET /programs")
       assert span_status_code(http_span) == :error
     end
 
@@ -168,11 +114,7 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
         |> run_plug()
         |> send_resp(503, "Service Unavailable")
 
-      flush_spans()
-      spans = collect_spans()
-      http_span = find_span(spans, "HTTP GET /programs")
-      assert http_span != nil
-
+      http_span = assert_span("HTTP GET /programs")
       assert span_status_code(http_span) == :error
     end
 
@@ -182,10 +124,7 @@ defmodule KlassHero.Shared.Tracing.PlugTest do
         |> run_plug()
         |> send_resp(404, "Not Found")
 
-      flush_spans()
-      spans = collect_spans()
-      http_span = find_span(spans, "HTTP GET /missing")
-      assert http_span != nil, "Expected span 'HTTP GET /missing' to be exported"
+      http_span = assert_span("HTTP GET /missing")
 
       # When no error status is set, span(:status) returns :undefined (OTel default).
       # Only a span explicitly set to :error is a failure — :undefined and :ok are fine.

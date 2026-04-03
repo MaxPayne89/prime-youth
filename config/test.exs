@@ -57,7 +57,9 @@ config :klass_hero, :participation,
   program_provider_resolver: ProgramProviderResolver,
   enrolled_children_resolver: EnrolledChildrenResolver
 
-config :klass_hero, :resend_req_options, plug: {Req.Test, ResendEmailContentAdapter}
+config :klass_hero, :resend_req_options,
+  plug: {Req.Test, ResendEmailContentAdapter},
+  retry: false
 
 config :klass_hero, :storage,
   adapter: StubStorageAdapter,
