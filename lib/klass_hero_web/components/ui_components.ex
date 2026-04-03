@@ -1222,12 +1222,12 @@ defmodule KlassHeroWeb.UIComponents do
           {@step_number}
         </div>
 
-        <div class="flex-1">
+        <div class="flex-1 text-center">
           <%!-- Icon (if provided) --%>
           <div
             :if={@icon || @icon_path}
             class={[
-              "w-12 h-12 flex items-center justify-center mb-4",
+              "w-12 h-12 flex items-center justify-center mb-4 mx-auto",
               Theme.rounded(:lg),
               Theme.gradient(:primary)
             ]}
