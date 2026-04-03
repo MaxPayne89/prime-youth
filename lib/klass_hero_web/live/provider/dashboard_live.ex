@@ -14,7 +14,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Enrollment
-  alias KlassHero.Entitlements
+  alias KlassHero.Shared.Entitlements
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
