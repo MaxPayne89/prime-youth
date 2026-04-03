@@ -219,12 +219,12 @@ defmodule KlassHeroWeb.AboutLive do
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <div :for={step <- vetting_steps()} class="bg-white rounded-xl p-6 text-center">
               <div class={[
-                "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center",
+                "w-16 h-16 mb-4 rounded-full flex items-center justify-center",
                 step.number_bg
               ]}>
                 <span class={["text-2xl font-bold", step.number_color]}>{step.number}</span>
               </div>
-              <div class="mb-4">
+              <div class="mb-4 flex justify-center">
                 <UIComponents.gradient_icon
                   gradient_class={step.icon_gradient}
                   size="md"
