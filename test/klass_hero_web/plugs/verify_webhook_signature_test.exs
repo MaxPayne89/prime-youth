@@ -81,7 +81,6 @@ defmodule KlassHeroWeb.Plugs.VerifyWebhookSignatureTest do
       svix_timestamp = current_timestamp()
       valid_sig = compute_signature(secret_bytes, svix_id, svix_timestamp, @raw_body)
 
-      # First signature is wrong; second is correct — any match should pass
       combined = "v1,#{Base.encode64("wrong_sig_bytes")} v1,#{valid_sig}"
 
       conn =
@@ -111,7 +110,6 @@ defmodule KlassHeroWeb.Plugs.VerifyWebhookSignatureTest do
       svix_id = "msg_#{System.unique_integer([:positive])}"
       svix_timestamp = current_timestamp()
 
-      # Sign a different body than what's in raw_body
       sig = compute_signature(secret_bytes, svix_id, svix_timestamp, ~s({"tampered":"payload"}))
 
       conn =
@@ -141,28 +139,26 @@ defmodule KlassHeroWeb.Plugs.VerifyWebhookSignatureTest do
   end
 
   describe "call/2 - missing required fields" do
-    test "halts with 401 when svix-id header is missing", %{secret_bytes: secret_bytes} do
+    test "halts with 401 when svix-id header is missing" do
       svix_timestamp = current_timestamp()
-      sig = compute_signature(secret_bytes, "msg_1", svix_timestamp, @raw_body)
 
       conn =
         base_conn()
         |> put_req_header("svix-timestamp", svix_timestamp)
-        |> put_req_header("svix-signature", "v1,#{sig}")
+        |> put_req_header("svix-signature", "v1,whatever")
         |> VerifyWebhookSignature.call([])
 
       assert conn.halted
       assert conn.status == 401
     end
 
-    test "halts with 401 when svix-timestamp header is missing", %{secret_bytes: secret_bytes} do
+    test "halts with 401 when svix-timestamp header is missing" do
       svix_id = "msg_#{System.unique_integer([:positive])}"
-      sig = compute_signature(secret_bytes, svix_id, "1234567890", @raw_body)
 
       conn =
         base_conn()
         |> put_req_header("svix-id", svix_id)
-        |> put_req_header("svix-signature", "v1,#{sig}")
+        |> put_req_header("svix-signature", "v1,whatever")
         |> VerifyWebhookSignature.call([])
 
       assert conn.halted
@@ -188,7 +184,6 @@ defmodule KlassHeroWeb.Plugs.VerifyWebhookSignatureTest do
       svix_timestamp = current_timestamp()
       sig = compute_signature(secret_bytes, svix_id, svix_timestamp, @raw_body)
 
-      # Intentionally no raw_body assign
       conn =
         conn(:post, "/webhooks/resend")
         |> add_svix_headers(svix_id, svix_timestamp, "v1,#{sig}")
@@ -204,7 +199,6 @@ defmodule KlassHeroWeb.Plugs.VerifyWebhookSignatureTest do
       secret_bytes: secret_bytes
     } do
       svix_id = "msg_#{System.unique_integer([:positive])}"
-      # 6 minutes ago
       old_timestamp = Integer.to_string(System.system_time(:second) - 361)
       sig = compute_signature(secret_bytes, svix_id, old_timestamp, @raw_body)
 
@@ -219,7 +213,6 @@ defmodule KlassHeroWeb.Plugs.VerifyWebhookSignatureTest do
 
     test "passes when timestamp is within the 5-minute window", %{secret_bytes: secret_bytes} do
       svix_id = "msg_#{System.unique_integer([:positive])}"
-      # 4 minutes ago — within the 5-minute window
       recent_timestamp = Integer.to_string(System.system_time(:second) - 239)
       sig = compute_signature(secret_bytes, svix_id, recent_timestamp, @raw_body)
 
@@ -273,21 +266,6 @@ defmodule KlassHeroWeb.Plugs.VerifyWebhookSignatureTest do
 
       assert conn.halted
       assert conn.status == 401
-    end
-
-    test "strips whsec_ prefix from secret before base64 decoding", %{secret_bytes: secret_bytes} do
-      svix_id = "msg_#{System.unique_integer([:positive])}"
-      svix_timestamp = current_timestamp()
-      sig = compute_signature(secret_bytes, svix_id, svix_timestamp, @raw_body)
-
-      # The secret is already stored as "whsec_<base64>" in setup
-      # This test verifies that the prefix is correctly stripped (not decoded as part of base64)
-      conn =
-        base_conn()
-        |> add_svix_headers(svix_id, svix_timestamp, "v1,#{sig}")
-        |> VerifyWebhookSignature.call([])
-
-      refute conn.halted
     end
   end
 end
