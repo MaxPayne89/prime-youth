@@ -18,8 +18,8 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
 
   alias KlassHero.Shared.Tracing.TracedWorker
 
-  # Drain leftover spans between tests. Uses 0ms timeout so it returns
-  # immediately when the mailbox is empty — no overhead.
+  # Drain leftover spans between tests. Waits briefly for any in-flight
+  # span messages, then returns once the mailbox appears empty.
   setup do
     flush_spans()
     drain_span_mailbox()

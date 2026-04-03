@@ -103,8 +103,8 @@ defmodule KlassHero.Shared.Tracing.ContextTest do
   alias KlassHero.Shared.Tracing.Context
   alias KlassHero.Shared.Tracing.ContextTest.Helpers
 
-  # Drain leftover spans between tests. Uses 0ms timeout so it returns
-  # immediately when the mailbox is empty — no overhead.
+  # Drain leftover spans between tests. Uses a short 10ms timeout so it can
+  # collect any in-flight span messages before returning when the mailbox is empty.
   setup do
     flush_spans()
     drain_span_mailbox()

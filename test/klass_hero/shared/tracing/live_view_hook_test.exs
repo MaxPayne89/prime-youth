@@ -6,8 +6,8 @@ defmodule KlassHero.Shared.Tracing.LiveViewHookTest do
   alias KlassHeroWeb.Provider.ProgramLive.Index
   alias Phoenix.LiveView.Socket
 
-  # Drain leftover spans between tests. Uses 0ms timeout so it returns
-  # immediately when the mailbox is empty — no overhead.
+  # Drain leftover spans between tests. Waits up to 10ms for any pending
+  # span messages before returning once the mailbox is empty.
   setup do
     flush_spans()
     drain_span_mailbox()
@@ -19,6 +19,21 @@ defmodule KlassHero.Shared.Tracing.LiveViewHookTest do
       {:span, _} -> drain_span_mailbox()
     after
       10 -> :ok
+    end
+  end
+
+  # Asserts no span with the given name was exported. Ignores unrelated spans
+  # from the global OTel exporter to avoid flaky failures.
+  defp refute_named_span(expected_name) do
+    receive do
+      {:span, s} ->
+        if span(s, :name) == expected_name do
+          flunk("Expected no span named #{inspect(expected_name)}, but found one")
+        else
+          refute_named_span(expected_name)
+        end
+    after
+      100 -> :ok
     end
   end
 
@@ -87,13 +102,7 @@ defmodule KlassHero.Shared.Tracing.LiveViewHookTest do
       {:cont, _socket} = LiveViewHook.on_mount(:trace, %{}, %{}, socket)
 
       flush_spans()
-
-      receive do
-        {:span, s} ->
-          flunk("Expected no span, got: #{inspect(span(s, :name))}")
-      after
-        100 -> :ok
-      end
+      refute_named_span("LiveView.mount DashboardLive")
     end
 
     test "returns {:cont, socket} unchanged" do
