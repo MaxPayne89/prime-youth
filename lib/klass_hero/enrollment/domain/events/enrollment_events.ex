@@ -84,8 +84,8 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEvents do
   def invite_resend_requested(provider_id, invite_id, program_id, opts \\ [])
 
   def invite_resend_requested(provider_id, invite_id, program_id, opts)
-      when is_binary(provider_id) and byte_size(provider_id) > 0 and is_binary(invite_id) and byte_size(invite_id) > 0 and
-             is_binary(program_id) and byte_size(program_id) > 0 do
+      when is_binary(provider_id) and provider_id != "" and is_binary(invite_id) and invite_id != "" and
+             is_binary(program_id) and program_id != "" do
     DomainEvent.new(
       :invite_resend_requested,
       invite_id,
