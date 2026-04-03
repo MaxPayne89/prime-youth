@@ -14,14 +14,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Enrollment
+  alias KlassHero.Entitlements
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
-<<<<<<< HEAD
-  alias KlassHero.Shared.Entitlements
-=======
   alias KlassHero.Provider.Domain.Models.StaffMember
->>>>>>> 1fce1118 (feat: allow one user account to hold staff member and provider roles)
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.ProviderPresenter
@@ -236,9 +233,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     {:noreply, socket}
   end
 
-  # ============================================================================
   # Staff Member CRUD Events
-  # ============================================================================
 
   @impl true
   def handle_event("add_member", _params, socket) do
@@ -358,9 +353,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end
   end
 
-  # ============================================================================
   # Edit Profile Events
-  # ============================================================================
 
   @impl true
   def handle_event("validate_profile", %{"provider_profile_schema" => params}, socket) do
@@ -485,9 +478,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     {:noreply, cancel_upload(socket, String.to_existing_atom(upload_name), ref)}
   end
 
-  # ============================================================================
   # Program Creation Events
-  # ============================================================================
 
   @impl true
   def handle_event("add_program", _params, socket) do
@@ -810,9 +801,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end
   end
 
-  # ============================================================================
   # Dashboard Tab Events
-  # ============================================================================
 
   @impl true
   def handle_event("search_programs", %{"search" => query}, socket) do
@@ -830,9 +819,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      |> reset_programs_stream()}
   end
 
-  # ============================================================================
   # Program Save Helpers
-  # ============================================================================
 
   defp create_new_program(socket, attrs, all_params, cover_result) do
     program_params = all_params["program_schema"] || %{}
@@ -946,9 +933,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end
   end
 
-  # ============================================================================
   # Staff Save Helpers
-  # ============================================================================
 
   defp save_new_staff(socket, params, provider, headshot_result) do
     {headshot_status, attrs} =
@@ -1063,9 +1048,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end
   end
 
-  # ============================================================================
   # Render
-  # ============================================================================
 
   @impl true
   def render(assigns) do
@@ -1135,9 +1118,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     """
   end
 
-  # ============================================================================
   # Edit Profile Template
-  # ============================================================================
 
   defp edit_profile_section(assigns) do
     ~H"""
@@ -1268,9 +1249,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     """
   end
 
-  # ============================================================================
   # Dashboard Tab Templates
-  # ============================================================================
 
   attr :business, :map, required: true
   attr :assigned_employer, :map, default: nil
@@ -1496,9 +1475,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     """
   end
 
-  # ============================================================================
   # Upload Helpers
-  # ============================================================================
 
   # Trigger: consume_uploaded_entries calls GenServer.call on the upload channel PID
   # Why: if the WebSocket reconnects (tab sleep, network hiccup) the PID is dead
