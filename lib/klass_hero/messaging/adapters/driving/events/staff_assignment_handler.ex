@@ -95,28 +95,6 @@ defmodule KlassHero.Messaging.Adapters.Driving.Events.StaffAssignmentHandler do
         staff_user_id
       )
 
-    Enum.each(conversation_ids, fn conversation_id ->
-      case @participant_repo.add(%{
-             conversation_id: conversation_id,
-             user_id: staff_user_id,
-             joined_at: DateTime.utc_now()
-           }) do
-        {:ok, _} ->
-          Logger.debug("Added staff to conversation",
-            conversation_id: conversation_id,
-            staff_user_id: staff_user_id
-          )
-
-        {:error, :already_participant} ->
-          :ok
-
-        {:error, reason} ->
-          Logger.warning("Failed to add staff to conversation",
-            conversation_id: conversation_id,
-            staff_user_id: staff_user_id,
-            reason: inspect(reason)
-          )
-      end
-    end)
+    {:ok, _count} = @participant_repo.add_to_conversations_batch(staff_user_id, conversation_ids)
   end
 end

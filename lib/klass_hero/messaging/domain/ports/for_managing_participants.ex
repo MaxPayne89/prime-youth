@@ -85,4 +85,15 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingParticipants do
   """
   @callback add_batch(conversation_id :: binary(), user_ids :: [binary()]) ::
               {:ok, [Participant.t()]}
+
+  @doc """
+  Adds a user as a participant to multiple conversations in a batch.
+
+  Used when adding a staff member to all existing program conversations.
+  Silently skips conversations where the user is already a participant.
+
+  Returns `{:ok, count}` — number of new participant records inserted.
+  """
+  @callback add_to_conversations_batch(user_id :: binary(), conversation_ids :: [binary()]) ::
+              {:ok, non_neg_integer()}
 end

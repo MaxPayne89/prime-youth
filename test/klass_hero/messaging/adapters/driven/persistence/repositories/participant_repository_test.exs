@@ -314,4 +314,47 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Participa
       assert participants == []
     end
   end
+
+  describe "add_to_conversations_batch/2" do
+    test "adds user to multiple conversations in a single batch" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      user = AccountsFixtures.user_fixture()
+
+      conv1 = insert(:conversation_schema, provider_id: provider.id, program_id: program.id)
+      conv2 = insert(:conversation_schema, provider_id: provider.id, program_id: program.id)
+      conv3 = insert(:conversation_schema, provider_id: provider.id, program_id: program.id)
+
+      conversation_ids = [conv1.id, conv2.id, conv3.id]
+
+      assert {:ok, 3} = ParticipantRepository.add_to_conversations_batch(user.id, conversation_ids)
+
+      assert ParticipantRepository.is_participant?(conv1.id, user.id)
+      assert ParticipantRepository.is_participant?(conv2.id, user.id)
+      assert ParticipantRepository.is_participant?(conv3.id, user.id)
+    end
+
+    test "skips conversations where user is already a participant" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      user = AccountsFixtures.user_fixture()
+
+      conv1 = insert(:conversation_schema, provider_id: provider.id, program_id: program.id)
+      conv2 = insert(:conversation_schema, provider_id: provider.id, program_id: program.id)
+
+      insert(:participant_schema, conversation_id: conv1.id, user_id: user.id)
+
+      assert {:ok, 1} =
+               ParticipantRepository.add_to_conversations_batch(user.id, [conv1.id, conv2.id])
+
+      assert ParticipantRepository.is_participant?(conv1.id, user.id)
+      assert ParticipantRepository.is_participant?(conv2.id, user.id)
+    end
+
+    test "returns {:ok, 0} for empty conversation list" do
+      user = AccountsFixtures.user_fixture()
+
+      assert {:ok, 0} = ParticipantRepository.add_to_conversations_batch(user.id, [])
+    end
+  end
 end
