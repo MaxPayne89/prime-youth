@@ -89,7 +89,7 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
         urls
 
       {:error, reason} ->
-        Logger.warning("Failed to collect attachment URLs for retention cleanup",
+        Logger.error("Failed to collect attachment URLs for retention cleanup — S3 files may be orphaned",
           reason: inspect(reason)
         )
 
@@ -100,18 +100,23 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   defp cleanup_s3_files([]), do: :ok
 
   defp cleanup_s3_files(urls) do
-    Enum.each(urls, fn url ->
-      case Storage.delete(:public, url) do
-        :ok ->
-          :ok
+    urls
+    |> Task.async_stream(
+      fn url ->
+        case Storage.delete(:public, url) do
+          :ok ->
+            :ok
 
-        {:error, reason} ->
-          Logger.warning("Failed to delete S3 file during retention cleanup",
-            file_url: url,
-            reason: inspect(reason)
-          )
-      end
-    end)
+          {:error, reason} ->
+            Logger.warning("Failed to delete S3 file during retention cleanup",
+              file_url: url,
+              reason: inspect(reason)
+            )
+        end
+      end,
+      timeout: :infinity
+    )
+    |> Stream.run()
   end
 
   defp handle_result({:ok, result}) do

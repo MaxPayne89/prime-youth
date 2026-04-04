@@ -122,39 +122,48 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   defp upload_files([], _conversation_id), do: {:ok, []}
 
   defp upload_files(files, conversation_id) do
-    files
-    |> Enum.reduce_while({:ok, []}, fn file, {:ok, acc} ->
-      ext = Path.extname(file.filename)
-      uuid = Ecto.UUID.generate()
-      path = "messaging/attachments/#{conversation_id}/#{uuid}#{ext}"
+    results =
+      files
+      |> Task.async_stream(
+        fn file ->
+          ext = Path.extname(file.filename)
+          uuid = Ecto.UUID.generate()
+          path = "messaging/attachments/#{conversation_id}/#{uuid}#{ext}"
 
-      case Storage.upload(:public, path, file.binary, content_type: file.content_type) do
-        {:ok, url} ->
-          uploaded = %{
-            file_url: url,
-            original_filename: file.filename,
-            content_type: file.content_type,
-            file_size_bytes: file.size
-          }
+          case Storage.upload(:public, path, file.binary, content_type: file.content_type) do
+            {:ok, url} ->
+              {:ok,
+               %{
+                 file_url: url,
+                 original_filename: file.filename,
+                 content_type: file.content_type,
+                 file_size_bytes: file.size
+               }}
 
-          {:cont, {:ok, [uploaded | acc]}}
+            {:error, reason} ->
+              {:error, reason}
+          end
+        end,
+        timeout: :infinity
+      )
+      |> Enum.map(fn {:ok, result} -> result end)
 
-        {:error, reason} ->
-          # Clean up already-uploaded files on partial failure
-          cleanup_uploaded_files(acc)
+    {successes, failures} = Enum.split_with(results, &match?({:ok, _}, &1))
 
-          Logger.error("Failed to upload attachment",
-            conversation_id: conversation_id,
-            filename: file.filename,
-            reason: inspect(reason)
-          )
+    case failures do
+      [] ->
+        {:ok, Enum.map(successes, fn {:ok, uploaded} -> uploaded end)}
 
-          {:halt, {:error, :upload_failed}}
-      end
-    end)
-    |> case do
-      {:ok, uploaded} -> {:ok, Enum.reverse(uploaded)}
-      error -> error
+      [{:error, reason} | _] ->
+        uploaded = Enum.map(successes, fn {:ok, uploaded} -> uploaded end)
+        cleanup_uploaded_files(uploaded)
+
+        Logger.error("Failed to upload attachment",
+          conversation_id: conversation_id,
+          reason: inspect(reason)
+        )
+
+        {:error, :upload_failed}
     end
   end
 

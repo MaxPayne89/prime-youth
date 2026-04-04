@@ -14,6 +14,7 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   import KlassHeroWeb.UIComponents, only: [icon: 1]
 
+  alias KlassHero.Messaging.Domain.Models.Attachment
   alias KlassHeroWeb.MessagingLiveHelper
   alias KlassHeroWeb.Theme
 
@@ -672,9 +673,18 @@ defmodule KlassHeroWeb.MessagingComponents do
   defp preview_content(%{content: content}) when is_binary(content), do: String.slice(content, 0, 50)
   defp preview_content(_), do: gettext("No messages yet")
 
-  defp upload_error_to_string(:too_large), do: gettext("File is too large (max 10 MB)")
+  defp upload_error_to_string(:too_large) do
+    max_mb = div(Attachment.max_file_size_bytes(), 1_048_576)
+    gettext("File is too large (max %{mb} MB)", mb: max_mb)
+  end
+
   defp upload_error_to_string(:not_accepted), do: gettext("File type not accepted (images only)")
-  defp upload_error_to_string(:too_many_files), do: gettext("Too many files (max 5)")
+
+  defp upload_error_to_string(:too_many_files) do
+    max = Attachment.max_per_message()
+    gettext("Too many files (max %{max})", max: max)
+  end
+
   defp upload_error_to_string(:external_client_failure), do: gettext("Upload failed")
   defp upload_error_to_string(_), do: gettext("Upload error")
 end
