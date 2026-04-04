@@ -332,32 +332,32 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     latest_message = Map.get(latest_messages, conversation.id)
     conv_system_notes = Map.get(system_notes, conversation.id, %{})
 
+    context = %{
+      active_participants: active_participants,
+      user_names: user_names,
+      latest_message: latest_message,
+      unread_counts: unread_counts,
+      system_notes: conv_system_notes,
+      attachment_message_ids: attachment_message_ids,
+      now: now
+    }
+
     Enum.map(active_participants, fn participant ->
-      build_summary_entry(
-        conversation,
-        participant,
-        active_participants,
-        user_names,
-        latest_message,
-        unread_counts,
-        conv_system_notes,
-        attachment_message_ids,
-        now
-      )
+      build_summary_entry(conversation, participant, context)
     end)
   end
 
-  defp build_summary_entry(
-         conversation,
-         participant,
-         active_participants,
-         user_names,
-         latest_message,
-         unread_counts,
-         conv_system_notes,
-         attachment_message_ids,
-         now
-       ) do
+  defp build_summary_entry(conversation, participant, context) do
+    %{
+      active_participants: active_participants,
+      user_names: user_names,
+      latest_message: latest_message,
+      unread_counts: unread_counts,
+      system_notes: conv_system_notes,
+      attachment_message_ids: attachment_message_ids,
+      now: now
+    } = context
+
     participant_count = length(active_participants)
 
     other_name =

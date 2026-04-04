@@ -407,7 +407,10 @@ config :logger, :default_formatter,
     :broadcast_id,
     :direct_conversation_id,
     :staff_member_id,
-    :staff_user_id
+    :staff_user_id,
+    :file_url,
+    :filename,
+    :received
   ]
 
 config :opentelemetry, :resource,
