@@ -44,9 +44,10 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
   @type message_sent_payload :: %{
           required(:conversation_id) => String.t(),
           required(:sender_id) => String.t(),
-          required(:content) => String.t(),
+          optional(:content) => String.t() | nil,
           optional(:message_type) => String.t() | nil,
           optional(:sent_at) => DateTime.t() | nil,
+          optional(:attachments) => [map()],
           optional(atom()) => term()
         }
 
@@ -207,7 +208,7 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
   """
   def message_sent(conversation_id, payload \\ %{}, opts \\ [])
 
-  def message_sent(conversation_id, %{sender_id: _, content: _} = payload, opts)
+  def message_sent(conversation_id, %{sender_id: _} = payload, opts)
       when is_binary(conversation_id) and byte_size(conversation_id) > 0 do
     base_payload = %{conversation_id: conversation_id}
 
@@ -223,7 +224,7 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingIntegrationEvents do
 
   def message_sent(conversation_id, payload, _opts)
       when is_binary(conversation_id) and byte_size(conversation_id) > 0 do
-    missing = [:sender_id, :content] -- Map.keys(payload)
+    missing = [:sender_id] -- Map.keys(payload)
 
     raise ArgumentError,
           "message_sent missing required payload keys: #{inspect(missing)}"
