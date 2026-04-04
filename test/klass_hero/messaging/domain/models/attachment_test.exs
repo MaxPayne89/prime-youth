@@ -67,6 +67,34 @@ defmodule KlassHero.Messaging.Domain.Models.AttachmentTest do
       assert {:error, errors} = Attachment.new(attrs)
       assert Enum.any?(errors, &String.contains?(&1, "original_filename"))
     end
+
+    test "rejects whitespace-only file_url" do
+      attrs = valid_attrs(%{file_url: "   "})
+
+      assert {:error, errors} = Attachment.new(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "file_url"))
+    end
+
+    test "rejects whitespace-only original_filename" do
+      attrs = valid_attrs(%{original_filename: "   "})
+
+      assert {:error, errors} = Attachment.new(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "original_filename"))
+    end
+
+    test "rejects empty id" do
+      attrs = valid_attrs(%{id: ""})
+
+      assert {:error, errors} = Attachment.new(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "id"))
+    end
+
+    test "rejects empty message_id" do
+      attrs = valid_attrs(%{message_id: ""})
+
+      assert {:error, errors} = Attachment.new(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "message_id"))
+    end
   end
 
   describe "allowed_content_types/0" do

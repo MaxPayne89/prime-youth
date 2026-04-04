@@ -83,11 +83,23 @@ defmodule KlassHero.Messaging.Domain.Models.Attachment do
 
   defp validate(%__MODULE__{} = attachment) do
     []
+    |> validate_uuid(:id, attachment.id)
+    |> validate_uuid(:message_id, attachment.message_id)
     |> validate_non_empty_string(:file_url, attachment.file_url)
     |> validate_non_empty_string(:original_filename, attachment.original_filename)
     |> validate_content_type(attachment.content_type)
     |> validate_file_size(attachment.file_size_bytes)
   end
+
+  defp validate_uuid(errors, field, value) when is_binary(value) do
+    if String.trim(value) == "" do
+      ["#{field} cannot be empty" | errors]
+    else
+      errors
+    end
+  end
+
+  defp validate_uuid(errors, field, _), do: ["#{field} must be a string" | errors]
 
   defp validate_non_empty_string(errors, field, value) when is_binary(value) do
     if String.trim(value) == "" do
