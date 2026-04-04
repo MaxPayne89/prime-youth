@@ -1,6 +1,7 @@
 defmodule KlassHero.Messaging.Domain.Models.MessageTest do
   use ExUnit.Case, async: true
 
+  alias KlassHero.Messaging.Domain.Models.Attachment
   alias KlassHero.Messaging.Domain.Models.Message
 
   describe "new/1" do
@@ -18,6 +19,7 @@ defmodule KlassHero.Messaging.Domain.Models.MessageTest do
       assert message.sender_id == attrs.sender_id
       assert message.content == "Hello, world!"
       assert message.message_type == :text
+      assert message.attachments == []
     end
 
     test "defaults message_type to :text when not provided" do
@@ -118,6 +120,90 @@ defmodule KlassHero.Messaging.Domain.Models.MessageTest do
 
       assert {:error, errors} = Message.new(attrs)
       assert Enum.any?(errors, &String.contains?(&1, "message_type must be one of:"))
+    end
+
+    test "allows nil content when attachments are present" do
+      attachment = %Attachment{
+        id: Ecto.UUID.generate(),
+        message_id: Ecto.UUID.generate(),
+        file_url: "https://example.com/photo.jpg",
+        original_filename: "photo.jpg",
+        content_type: "image/jpeg",
+        file_size_bytes: 1_000_000
+      }
+
+      attrs = %{
+        id: Ecto.UUID.generate(),
+        conversation_id: Ecto.UUID.generate(),
+        sender_id: Ecto.UUID.generate(),
+        content: nil,
+        attachments: [attachment]
+      }
+
+      assert {:ok, message} = Message.new(attrs)
+      assert message.content == nil
+      assert length(message.attachments) == 1
+    end
+
+    test "returns error when both content and attachments are empty" do
+      attrs = %{
+        id: Ecto.UUID.generate(),
+        conversation_id: Ecto.UUID.generate(),
+        sender_id: Ecto.UUID.generate(),
+        content: nil,
+        attachments: []
+      }
+
+      assert {:error, errors} = Message.new(attrs)
+      assert "message must have content or attachments" in errors
+    end
+
+    test "allows content with attachments" do
+      attachment = %Attachment{
+        id: Ecto.UUID.generate(),
+        message_id: Ecto.UUID.generate(),
+        file_url: "https://example.com/photo.jpg",
+        original_filename: "photo.jpg",
+        content_type: "image/jpeg",
+        file_size_bytes: 1_000_000
+      }
+
+      attrs = %{
+        id: Ecto.UUID.generate(),
+        conversation_id: Ecto.UUID.generate(),
+        sender_id: Ecto.UUID.generate(),
+        content: "Check out this photo!",
+        attachments: [attachment]
+      }
+
+      assert {:ok, message} = Message.new(attrs)
+      assert message.content == "Check out this photo!"
+      assert length(message.attachments) == 1
+    end
+
+    test "rejects more than 5 attachments" do
+      attachments =
+        for _ <- 1..6 do
+          %Attachment{
+            id: Ecto.UUID.generate(),
+            message_id: Ecto.UUID.generate(),
+            file_url: "https://example.com/photo.jpg",
+            original_filename: "photo.jpg",
+            content_type: "image/jpeg",
+            file_size_bytes: 1_000_000
+          }
+        end
+
+      attrs = %{
+        id: Ecto.UUID.generate(),
+        conversation_id: Ecto.UUID.generate(),
+        sender_id: Ecto.UUID.generate(),
+        content: nil,
+        attachments: attachments
+      }
+
+      assert {:error, errors} = Message.new(attrs)
+      assert Enum.any?(errors, &String.contains?(&1, "attachments"))
     end
   end
 

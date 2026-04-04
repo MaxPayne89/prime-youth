@@ -5,9 +5,14 @@ defmodule KlassHero.Messaging.Domain.Models.Message do
   Supports two message types:
   - `:text` - Regular user message
   - `:system` - System-generated message (e.g., "User joined conversation")
+
+  A message must have non-empty `content` or at least one attachment.
+  Content is optional when attachments are present.
   """
 
-  @enforce_keys [:id, :conversation_id, :sender_id, :content]
+  alias KlassHero.Messaging.Domain.Models.Attachment
+
+  @enforce_keys [:id, :conversation_id, :sender_id]
 
   defstruct [
     :id,
@@ -17,7 +22,8 @@ defmodule KlassHero.Messaging.Domain.Models.Message do
     :deleted_at,
     :inserted_at,
     :updated_at,
-    message_type: :text
+    message_type: :text,
+    attachments: []
   ]
 
   @type message_type :: :text | :system
@@ -26,8 +32,9 @@ defmodule KlassHero.Messaging.Domain.Models.Message do
           id: String.t(),
           conversation_id: String.t(),
           sender_id: String.t(),
-          content: String.t(),
+          content: String.t() | nil,
           message_type: message_type(),
+          attachments: [Attachment.t()],
           deleted_at: DateTime.t() | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
@@ -35,6 +42,7 @@ defmodule KlassHero.Messaging.Domain.Models.Message do
 
   @valid_message_types [:text, :system]
   @max_content_length 10_000
+  @max_attachments 5
 
   @doc """
   Creates a new Message with validation.
@@ -43,7 +51,12 @@ defmodule KlassHero.Messaging.Domain.Models.Message do
   - id (UUID string)
   - conversation_id (UUID string)
   - sender_id (UUID string)
-  - content (non-empty string, max 10,000 chars)
+
+  Content or attachments:
+  - content (string, max 10,000 chars) - optional when attachments present
+  - attachments (list of Attachment structs, max #{@max_attachments}) - defaults to `[]`
+
+  A message must have non-empty content or at least one attachment.
 
   Optional:
   - message_type (:text or :system, defaults to :text)
@@ -54,7 +67,10 @@ defmodule KlassHero.Messaging.Domain.Models.Message do
   """
   @spec new(map()) :: {:ok, t()} | {:error, [String.t()]}
   def new(attrs) when is_map(attrs) do
-    attrs = Map.put_new(attrs, :message_type, :text)
+    attrs =
+      attrs
+      |> Map.put_new(:message_type, :text)
+      |> Map.put_new(:attachments, [])
 
     case build_struct(attrs) do
       {:ok, message} ->
@@ -104,8 +120,9 @@ defmodule KlassHero.Messaging.Domain.Models.Message do
     |> validate_uuid(:id, message.id)
     |> validate_uuid(:conversation_id, message.conversation_id)
     |> validate_uuid(:sender_id, message.sender_id)
-    |> validate_content(message.content)
+    |> validate_content(message.content, message.attachments)
     |> validate_message_type(message.message_type)
+    |> validate_attachments_count(message.attachments)
   end
 
   defp validate_uuid(errors, field, value) when is_binary(value) do
@@ -118,12 +135,15 @@ defmodule KlassHero.Messaging.Domain.Models.Message do
 
   defp validate_uuid(errors, field, _), do: ["#{field} must be a string" | errors]
 
-  defp validate_content(errors, content) when is_binary(content) do
+  defp validate_content(errors, content, attachments) when is_binary(content) do
     trimmed = String.trim(content)
 
     cond do
-      trimmed == "" ->
+      trimmed == "" and attachments == [] ->
         ["content cannot be empty" | errors]
+
+      trimmed == "" ->
+        errors
 
       String.length(content) > @max_content_length ->
         ["content cannot exceed #{@max_content_length} characters" | errors]
@@ -133,7 +153,16 @@ defmodule KlassHero.Messaging.Domain.Models.Message do
     end
   end
 
-  defp validate_content(errors, _), do: ["content must be a string" | errors]
+  defp validate_content(errors, nil, []), do: ["message must have content or attachments" | errors]
+
+  defp validate_content(errors, nil, _attachments), do: errors
+  defp validate_content(errors, _, _), do: ["content must be a string or nil" | errors]
+
+  defp validate_attachments_count(errors, attachments) when length(attachments) > @max_attachments do
+    ["attachments cannot exceed #{@max_attachments} per message" | errors]
+  end
+
+  defp validate_attachments_count(errors, _attachments), do: errors
 
   defp validate_message_type(errors, type) when type in @valid_message_types, do: errors
 
