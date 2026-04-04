@@ -128,7 +128,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
       uuid = Ecto.UUID.generate()
       path = "messaging/attachments/#{conversation_id}/#{uuid}#{ext}"
 
-      case Storage.upload(:private, path, file.binary) do
+      case Storage.upload(:public, path, file.binary, content_type: file.content_type) do
         {:ok, url} ->
           uploaded = %{
             file_url: url,
@@ -168,21 +168,32 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
       message_type: message_type
     }
 
-    with {:ok, message} <- @message_repo.create(message_attrs) do
-      case create_attachments(message.id, uploaded_files) do
-        {:ok, attachments} ->
-          {:ok, %{message | attachments: attachments}}
+    case @message_repo.create(message_attrs) do
+      {:ok, message} ->
+        case create_attachments(message.id, uploaded_files) do
+          {:ok, attachments} ->
+            {:ok, %{message | attachments: attachments}}
 
-        {:error, reason} ->
-          cleanup_uploaded_files(uploaded_files)
+          {:error, reason} ->
+            cleanup_uploaded_files(uploaded_files)
 
-          Logger.error("Failed to persist attachments, cleaning up S3 files",
-            message_id: message.id,
-            reason: inspect(reason)
-          )
+            Logger.error("Failed to persist attachments, cleaning up S3 files",
+              message_id: message.id,
+              reason: inspect(reason)
+            )
 
-          {:error, reason}
-      end
+            {:error, reason}
+        end
+
+      {:error, reason} ->
+        cleanup_uploaded_files(uploaded_files)
+
+        Logger.error("Failed to create message, cleaning up S3 files",
+          conversation_id: conversation_id,
+          reason: inspect(reason)
+        )
+
+        {:error, reason}
     end
   end
 
@@ -203,7 +214,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
 
   defp cleanup_uploaded_files(uploaded_files) do
     Enum.each(uploaded_files, fn file ->
-      case Storage.delete(:private, file.file_url) do
+      case Storage.delete(:public, file.file_url) do
         :ok ->
           :ok
 
