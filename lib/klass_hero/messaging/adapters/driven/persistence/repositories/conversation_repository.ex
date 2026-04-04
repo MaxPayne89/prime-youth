@@ -254,4 +254,17 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
       |> Repo.all()
     end
   end
+
+  @impl true
+  def list_expired_ids(before) do
+    span do
+      set_attributes("db", operation: "select", entity: "conversation")
+
+      ConversationQueries.base()
+      |> ConversationQueries.archived_only()
+      |> ConversationQueries.retention_expired(before)
+      |> ConversationQueries.select_ids()
+      |> Repo.all()
+    end
+  end
 end

@@ -72,13 +72,18 @@ defmodule KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter do
   end
 
   @impl true
+  # Trigger: Agent may not be started in tests that don't exercise storage directly
+  # Why: retention policy and other use cases call Storage.delete; not all test setups start the agent
+  # Outcome: deletes file if agent alive, returns :ok regardless
   def delete(bucket_type, path, opts) do
     agent = Keyword.get(opts, :agent, __MODULE__)
     key = make_key(bucket_type, path)
 
-    Agent.update(agent, fn state ->
-      Map.delete(state, key)
-    end)
+    if agent_alive?(agent) do
+      Agent.update(agent, fn state ->
+        Map.delete(state, key)
+      end)
+    end
 
     :ok
   end
