@@ -1,4 +1,4 @@
-defmodule KlassHero.Messaging.Workers.SendEmailReplyWorker do
+defmodule KlassHero.Messaging.Adapters.Driving.Workers.SendEmailReplyWorker do
   @moduledoc """
   Delivers an email reply via Swoosh/Resend.
 

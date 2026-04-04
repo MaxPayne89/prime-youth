@@ -1,4 +1,4 @@
-defmodule KlassHero.Messaging.Workers.MessageCleanupWorker do
+defmodule KlassHero.Messaging.Adapters.Driving.Workers.MessageCleanupWorker do
   @moduledoc """
   Oban worker that archives conversations for programs that ended.
 

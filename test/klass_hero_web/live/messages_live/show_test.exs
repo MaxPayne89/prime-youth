@@ -274,4 +274,72 @@ defmodule KlassHeroWeb.MessagesLive.ShowTest do
       assert has_element?(view, "h1", "Important Update")
     end
   end
+
+  describe "sending messages with attachments" do
+    setup :register_and_log_in_user
+
+    test "sends message with photo attachment", %{conn: conn, user: user} do
+      conversation = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/messages/#{conversation.id}")
+
+      photo =
+        file_input(view, "#message-form", :attachments, [
+          %{
+            name: "test_photo.jpg",
+            content: <<137, 80, 78, 71, 13, 10, 26, 10>>,
+            type: "image/jpeg"
+          }
+        ])
+
+      render_upload(photo, "test_photo.jpg")
+
+      view
+      |> form("#message-form", %{"content" => "Check this out!"})
+      |> render_submit()
+
+      {:ok, messages, _} =
+        MessageRepository.list_for_conversation(conversation.id, limit: 10)
+
+      assert length(messages) == 1
+      assert hd(messages).content == "Check this out!"
+    end
+
+    test "sends photo-only message without text", %{conn: conn, user: user} do
+      conversation = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/messages/#{conversation.id}")
+
+      photo =
+        file_input(view, "#message-form", :attachments, [
+          %{
+            name: "photo.jpg",
+            content: <<137, 80, 78, 71, 13, 10, 26, 10>>,
+            type: "image/jpeg"
+          }
+        ])
+
+      render_upload(photo, "photo.jpg")
+
+      view
+      |> form("#message-form", %{"content" => ""})
+      |> render_submit()
+
+      {:ok, messages, _} =
+        MessageRepository.list_for_conversation(conversation.id, limit: 10)
+
+      assert length(messages) == 1
+      assert hd(messages).content == nil
+    end
+  end
 end

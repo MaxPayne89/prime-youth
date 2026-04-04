@@ -401,7 +401,13 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
     end)
   end
 
-  defp build_attachments_from_event(_), do: []
+  defp build_attachments_from_event(other) do
+    Logger.warning("Unexpected attachments format in event payload",
+      received: inspect(other)
+    )
+
+    []
+  end
 
   defp update_sender_names_for_new_message(socket, sender_id) do
     case Messaging.get_display_name(sender_id) do
@@ -452,7 +458,15 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   end
 
   defp upload_error_message(:empty_message), do: gettext("Please enter a message or attach a photo.")
-  defp upload_error_message(:invalid_attachments), do: gettext("Invalid attachment. Check file type and size.")
+
+  defp upload_error_message(:too_many_attachments),
+    do: gettext("Too many files (max %{max}).", max: Attachment.max_per_message())
+
+  defp upload_error_message(:invalid_attachment_type), do: gettext("Only images are accepted (JPG, PNG, GIF, WebP).")
+
+  defp upload_error_message(:attachment_too_large),
+    do: gettext("File is too large (max %{mb} MB).", mb: div(Attachment.max_file_size_bytes(), 1_048_576))
+
   defp upload_error_message(:upload_failed), do: gettext("Failed to upload files. Please try again.")
   defp upload_error_message(_), do: gettext("Something went wrong. Please try again.")
 

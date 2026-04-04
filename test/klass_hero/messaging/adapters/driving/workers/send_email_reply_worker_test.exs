@@ -1,8 +1,8 @@
-defmodule KlassHero.Messaging.Workers.SendEmailReplyWorkerTest do
+defmodule KlassHero.Messaging.Adapters.Driving.Workers.SendEmailReplyWorkerTest do
   use KlassHero.DataCase, async: true
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.EmailReplyRepository
-  alias KlassHero.Messaging.Workers.SendEmailReplyWorker
+  alias KlassHero.Messaging.Adapters.Driving.Workers.SendEmailReplyWorker
   alias KlassHero.MessagingFixtures
 
   describe "perform/1" do

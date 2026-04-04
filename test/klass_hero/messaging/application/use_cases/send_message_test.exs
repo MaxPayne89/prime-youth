@@ -320,7 +320,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
         %{binary: "fake-bytes", filename: "doc.pdf", content_type: "application/pdf", size: 1_000}
       ]
 
-      assert {:error, :invalid_attachments} =
+      assert {:error, :invalid_attachment_type} =
                SendMessage.execute(conversation.id, user.id, nil, attachments: file_data)
     end
 
@@ -333,7 +333,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
         %{binary: "fake-bytes", filename: "huge.jpg", content_type: "image/jpeg", size: 11_000_000}
       ]
 
-      assert {:error, :invalid_attachments} =
+      assert {:error, :attachment_too_large} =
                SendMessage.execute(conversation.id, user.id, nil, attachments: file_data)
     end
 
@@ -347,7 +347,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
           %{binary: "fake-bytes", filename: "photo#{i}.jpg", content_type: "image/jpeg", size: 1_000}
         end
 
-      assert {:error, :invalid_attachments} =
+      assert {:error, :too_many_attachments} =
                SendMessage.execute(conversation.id, user.id, nil, attachments: file_data)
     end
 

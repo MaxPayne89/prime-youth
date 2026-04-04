@@ -44,8 +44,8 @@ alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRe
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
 alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
 alias KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler
-alias KlassHero.Messaging.Workers.MessageCleanupWorker
-alias KlassHero.Messaging.Workers.RetentionPolicyWorker
+alias KlassHero.Messaging.Adapters.Driving.Workers.MessageCleanupWorker
+alias KlassHero.Messaging.Adapters.Driving.Workers.RetentionPolicyWorker
 alias KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
 alias KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository

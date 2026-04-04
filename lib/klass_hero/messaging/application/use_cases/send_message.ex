@@ -105,13 +105,13 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   defp validate_attachment_files(files) do
     cond do
       length(files) > Attachment.max_per_message() ->
-        {:error, :invalid_attachments}
+        {:error, :too_many_attachments}
 
       Enum.any?(files, fn f -> f.content_type not in Attachment.allowed_content_types() end) ->
-        {:error, :invalid_attachments}
+        {:error, :invalid_attachment_type}
 
       Enum.any?(files, fn f -> f.size > Attachment.max_file_size_bytes() end) ->
-        {:error, :invalid_attachments}
+        {:error, :attachment_too_large}
 
       true ->
         :ok
@@ -136,7 +136,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
               {:ok,
                %{
                  file_url: url,
-                 original_filename: file.filename,
+                 original_filename: sanitize_filename(file.filename),
                  content_type: file.content_type,
                  file_size_bytes: file.size
                }}
@@ -235,6 +235,13 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
           )
       end
     end)
+  end
+
+  defp sanitize_filename(filename) do
+    filename
+    |> Path.basename()
+    |> String.replace(~r/[^\w\s\-.]/, "")
+    |> String.slice(0, 255)
   end
 
   # --- Broadcast permission ---

@@ -1,9 +1,9 @@
-defmodule KlassHero.Messaging.Workers.FetchEmailContentWorkerTest do
+defmodule KlassHero.Messaging.Adapters.Driving.Workers.FetchEmailContentWorkerTest do
   use KlassHero.DataCase, async: true
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailRepository
   alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
-  alias KlassHero.Messaging.Workers.FetchEmailContentWorker
+  alias KlassHero.Messaging.Adapters.Driving.Workers.FetchEmailContentWorker
   alias KlassHero.MessagingFixtures
 
   setup do
