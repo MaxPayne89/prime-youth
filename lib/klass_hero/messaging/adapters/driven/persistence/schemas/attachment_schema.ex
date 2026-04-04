@@ -18,6 +18,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.AttachmentSche
 
   schema "message_attachments" do
     field :file_url, :string
+    field :storage_path, :string
     field :original_filename, :string
     field :content_type, :string
     field :file_size_bytes, :integer
@@ -27,7 +28,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.AttachmentSche
     timestamps()
   end
 
-  @required_fields ~w(message_id file_url original_filename content_type file_size_bytes)a
+  @required_fields ~w(message_id file_url storage_path original_filename content_type file_size_bytes)a
 
   @doc "Changeset for creating a new attachment."
   def create_changeset(schema \\ %__MODULE__{}, attrs) do

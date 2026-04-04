@@ -52,13 +52,23 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   ## Returns
   - `{:ok, message}` - Message sent successfully (with attachments populated)
   - `{:error, :empty_message}` - Neither content nor attachments provided
-  - `{:error, :invalid_attachments}` - Attachment validation failed
+  - `{:error, :too_many_attachments}` - Exceeds max attachments per message
+  - `{:error, :invalid_attachment_type}` - Content type not in allowed list
+  - `{:error, :attachment_too_large}` - File exceeds max size
   - `{:error, :not_participant}` - Sender is not in the conversation
   - `{:error, reason}` - Other errors
   """
   @spec execute(String.t(), String.t(), String.t() | nil, keyword()) ::
           {:ok, Message.t()}
-          | {:error, :empty_message | :invalid_attachments | :not_participant | :broadcast_reply_not_allowed | term()}
+          | {:error,
+             :empty_message
+             | :too_many_attachments
+             | :invalid_attachment_type
+             | :attachment_too_large
+             | :upload_failed
+             | :not_participant
+             | :broadcast_reply_not_allowed
+             | term()}
   def execute(conversation_id, sender_id, content, opts \\ []) do
     message_type = Keyword.get(opts, :message_type, :text)
     conversation = Keyword.get(opts, :conversation)
@@ -136,6 +146,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
               {:ok,
                %{
                  file_url: url,
+                 storage_path: path,
                  original_filename: sanitize_filename(file.filename),
                  content_type: file.content_type,
                  file_size_bytes: file.size
@@ -224,13 +235,13 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
 
   defp cleanup_uploaded_files(uploaded_files) do
     Enum.each(uploaded_files, fn file ->
-      case Storage.delete(:public, file.file_url) do
+      case Storage.delete(:public, file.storage_path) do
         :ok ->
           :ok
 
         {:error, reason} ->
           Logger.warning("Failed to clean up S3 file",
-            file_url: file.file_url,
+            storage_path: file.storage_path,
             reason: inspect(reason)
           )
       end

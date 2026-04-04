@@ -9,11 +9,12 @@ defmodule KlassHero.Repo.Migrations.CreateMessageAttachments do
         null: false
 
       add :file_url, :text, null: false
+      add :storage_path, :string, size: 500, null: false
       add :original_filename, :string, size: 255, null: false
       add :content_type, :string, size: 100, null: false
       add :file_size_bytes, :bigint, null: false
 
-      timestamps()
+      timestamps(type: :utc_datetime)
     end
 
     create index(:message_attachments, [:message_id])

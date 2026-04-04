@@ -409,6 +409,7 @@ config :logger, :default_formatter,
     :staff_member_id,
     :staff_user_id,
     :file_url,
+    :storage_path,
     :filename,
     :received
   ]

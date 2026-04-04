@@ -17,6 +17,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Attachmen
         %{
           message_id: message.id,
           file_url: "https://s3.example.com/photo1.jpg",
+          storage_path: "messaging/attachments/photo1.jpg",
           original_filename: "photo1.jpg",
           content_type: "image/jpeg",
           file_size_bytes: 1_000_000
@@ -24,6 +25,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Attachmen
         %{
           message_id: message.id,
           file_url: "https://s3.example.com/photo2.png",
+          storage_path: "messaging/attachments/photo2.png",
           original_filename: "photo2.png",
           content_type: "image/png",
           file_size_bytes: 2_000_000
@@ -47,6 +49,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Attachmen
         %{
           message_id: nonexistent_message_id,
           file_url: "https://s3.example.com/photo.jpg",
+          storage_path: "messaging/attachments/photo.jpg",
           original_filename: "photo.jpg",
           content_type: "image/jpeg",
           file_size_bytes: 1_000_000
@@ -100,23 +103,23 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Attachmen
     end
   end
 
-  describe "get_urls_for_conversations/1" do
-    test "returns file URLs for conversation attachments" do
+  describe "get_storage_paths_for_conversations/1" do
+    test "returns storage paths for conversation attachments" do
       conversation = insert(:conversation_schema)
       user = KlassHero.AccountsFixtures.user_fixture()
       message = insert(:message_schema, conversation_id: conversation.id, sender_id: user.id)
 
-      a1 = attachment_fixture(message.id, %{file_url: "https://s3.example.com/url1.jpg"})
-      a2 = attachment_fixture(message.id, %{file_url: "https://s3.example.com/url2.jpg"})
+      a1 = attachment_fixture(message.id, %{storage_path: "messaging/attachments/path1.jpg"})
+      a2 = attachment_fixture(message.id, %{storage_path: "messaging/attachments/path2.jpg"})
 
-      assert {:ok, urls} = AttachmentRepository.get_urls_for_conversations([conversation.id])
-      assert length(urls) == 2
-      assert a1.file_url in urls
-      assert a2.file_url in urls
+      assert {:ok, paths} = AttachmentRepository.get_storage_paths_for_conversations([conversation.id])
+      assert length(paths) == 2
+      assert a1.storage_path in paths
+      assert a2.storage_path in paths
     end
 
     test "returns empty list when no attachments" do
-      assert {:ok, []} = AttachmentRepository.get_urls_for_conversations([Ecto.UUID.generate()])
+      assert {:ok, []} = AttachmentRepository.get_storage_paths_for_conversations([Ecto.UUID.generate()])
     end
   end
 end

@@ -82,20 +82,20 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Attachmen
   end
 
   @impl true
-  def get_urls_for_conversations([]), do: {:ok, []}
+  def get_storage_paths_for_conversations([]), do: {:ok, []}
 
-  def get_urls_for_conversations(conversation_ids) do
+  def get_storage_paths_for_conversations(conversation_ids) do
     span do
       set_attributes("db", operation: "select", entity: "attachment")
 
-      urls =
+      paths =
         AttachmentSchema
         |> join(:inner, [a], m in MessageSchema, on: a.message_id == m.id)
         |> where([_a, m], m.conversation_id in ^conversation_ids)
-        |> select([a, _m], a.file_url)
+        |> select([a, _m], a.storage_path)
         |> Repo.all()
 
-      {:ok, urls}
+      {:ok, paths}
     end
   end
 end

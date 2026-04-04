@@ -8,9 +8,12 @@ defmodule KlassHero.MessagingFixtures do
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.AttachmentSchema
 
   def attachment_fixture(message_id, attrs \\ %{}) do
+    path = "messaging/attachments/#{Ecto.UUID.generate()}/photo.jpg"
+
     defaults = %{
       message_id: message_id,
-      file_url: "https://s3.example.com/messaging/attachments/#{Ecto.UUID.generate()}/photo.jpg",
+      file_url: "https://s3.example.com/#{path}",
+      storage_path: path,
       original_filename: "test_photo.jpg",
       content_type: "image/jpeg",
       file_size_bytes: 2_400_000

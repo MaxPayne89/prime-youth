@@ -55,9 +55,9 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   end
 
   defp run_retention_transaction(now) do
-    with {:ok, file_urls} <- collect_attachment_urls(now),
+    with {:ok, storage_paths} <- collect_attachment_storage_paths(now),
          {:ok, _} = result <- run_deletion_transaction(now) do
-      cleanup_s3_files(file_urls)
+      cleanup_s3_files(storage_paths)
       result
     end
   end
@@ -74,36 +74,37 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
     end)
   end
 
-  defp collect_attachment_urls(now) do
+  defp collect_attachment_storage_paths(now) do
     conversation_ids = @conversation_repo.list_expired_ids(now)
 
-    case @attachment_repo.get_urls_for_conversations(conversation_ids) do
-      {:ok, urls} ->
-        Logger.debug("Collected S3 URLs for retention cleanup", count: length(urls))
-        {:ok, urls}
+    case @attachment_repo.get_storage_paths_for_conversations(conversation_ids) do
+      {:ok, paths} ->
+        Logger.debug("Collected S3 storage paths for retention cleanup", count: length(paths))
+        {:ok, paths}
 
       {:error, reason} ->
-        Logger.error("Failed to collect attachment URLs — aborting retention to prevent orphaned S3 files",
+        Logger.error(
+          "Failed to collect attachment storage paths — aborting retention to prevent orphaned S3 files",
           reason: inspect(reason)
         )
 
-        {:error, :url_collection_failed}
+        {:error, :path_collection_failed}
     end
   end
 
   defp cleanup_s3_files([]), do: :ok
 
-  defp cleanup_s3_files(urls) do
-    urls
+  defp cleanup_s3_files(storage_paths) do
+    storage_paths
     |> Task.async_stream(
-      fn url ->
-        case Storage.delete(:public, url) do
+      fn path ->
+        case Storage.delete(:public, path) do
           :ok ->
             :ok
 
           {:error, reason} ->
             Logger.warning("Failed to delete S3 file during retention cleanup",
-              file_url: url,
+              storage_path: path,
               reason: inspect(reason)
             )
         end

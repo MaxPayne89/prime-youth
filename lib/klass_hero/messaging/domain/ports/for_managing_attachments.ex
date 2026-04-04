@@ -30,12 +30,13 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingAttachments do
   @callback list_for_messages([message_id :: String.t()]) :: %{String.t() => [Attachment.t()]}
 
   @doc """
-  Queries file URLs for attachments belonging to the given conversations.
+  Queries storage paths for attachments belonging to the given conversations.
 
-  Used by the retention policy to collect S3 URLs for cleanup before
+  Used by the retention policy to collect S3 object keys for cleanup before
   hard-deleting messages (which cascade-deletes attachment records).
 
   Does NOT delete records — the caller handles that via message deletion.
   """
-  @callback get_urls_for_conversations([conversation_id :: String.t()]) :: {:ok, [String.t()]} | {:error, term()}
+  @callback get_storage_paths_for_conversations([conversation_id :: String.t()]) ::
+              {:ok, [String.t()]} | {:error, term()}
 end

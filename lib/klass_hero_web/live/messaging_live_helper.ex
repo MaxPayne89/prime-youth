@@ -375,7 +375,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   end
 
   defp build_message_from_event(payload) do
-    attachments = build_attachments_from_event(Map.get(payload, :attachments, []))
+    attachments = build_attachments_from_event(payload.message_id, Map.get(payload, :attachments, []))
 
     %Message{
       id: payload.message_id,
@@ -388,11 +388,11 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
     }
   end
 
-  defp build_attachments_from_event(attachments) when is_list(attachments) do
+  defp build_attachments_from_event(message_id, attachments) when is_list(attachments) do
     Enum.map(attachments, fn att ->
       %Attachment{
         id: att.id,
-        message_id: att[:message_id] || "",
+        message_id: message_id,
         file_url: att.file_url,
         original_filename: att.original_filename,
         content_type: att.content_type,
@@ -401,7 +401,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
     end)
   end
 
-  defp build_attachments_from_event(other) do
+  defp build_attachments_from_event(_message_id, other) do
     Logger.warning("Unexpected attachments format in event payload",
       received: inspect(other)
     )

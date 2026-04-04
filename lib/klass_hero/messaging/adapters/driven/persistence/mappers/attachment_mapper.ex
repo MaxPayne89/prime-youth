@@ -22,6 +22,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.AttachmentMapp
 
   @spec to_create_attrs(map()) :: map()
   def to_create_attrs(attrs) when is_map(attrs) do
-    Map.take(attrs, [:message_id, :file_url, :original_filename, :content_type, :file_size_bytes])
+    Map.take(attrs, [:message_id, :file_url, :storage_path, :original_filename, :content_type, :file_size_bytes])
   end
 end
