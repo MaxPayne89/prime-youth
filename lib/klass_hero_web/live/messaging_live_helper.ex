@@ -426,17 +426,29 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   end
 
   defp consume_attachment_uploads(socket) do
-    consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
-      binary = File.read!(path)
+    results =
+      consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
+        case File.read(path) do
+          {:ok, binary} ->
+            {:ok,
+             %{
+               binary: binary,
+               filename: entry.client_name,
+               content_type: entry.client_type,
+               size: entry.client_size
+             }}
 
-      {:ok,
-       %{
-         binary: binary,
-         filename: entry.client_name,
-         content_type: entry.client_type,
-         size: entry.client_size
-       }}
-    end)
+          {:error, reason} ->
+            Logger.error("Failed to read uploaded file",
+              filename: entry.client_name,
+              reason: inspect(reason)
+            )
+
+            {:ok, nil}
+        end
+      end)
+
+    Enum.reject(results, &is_nil/1)
   end
 
   defp upload_error_message(:empty_message), do: gettext("Please enter a message or attach a photo.")

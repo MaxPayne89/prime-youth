@@ -85,7 +85,7 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
       content: summary.latest_message_content,
       sender_id: summary.latest_message_sender_id,
       inserted_at: summary.latest_message_at,
-      has_attachments: Map.get(summary, :has_attachments, false)
+      has_attachments: summary.has_attachments
     }
   end
 end

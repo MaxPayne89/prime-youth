@@ -37,5 +37,5 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingAttachments do
 
   Does NOT delete records — the caller handles that via message deletion.
   """
-  @callback get_urls_for_conversations([conversation_id :: String.t()]) :: {:ok, [String.t()]}
+  @callback get_urls_for_conversations([conversation_id :: String.t()]) :: {:ok, [String.t()]} | {:error, term()}
 end

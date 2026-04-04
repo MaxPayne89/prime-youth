@@ -55,29 +55,23 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   end
 
   defp run_retention_transaction(now) do
-    # Step 1: Collect S3 URLs before transaction — attachment records will be
-    # cascade-deleted when messages are deleted, so we must fetch URLs first.
-    file_urls = collect_attachment_urls(now)
-
-    # Step 2: Delete messages and conversations in a transaction.
-    result =
-      Repo.transaction(fn ->
-        with {:ok, msg_count, _conv_ids} <-
-               @message_repo.delete_for_expired_conversations(now),
-             {:ok, conv_count} <- @conversation_repo.delete_expired(now) do
-          %{messages_deleted: msg_count, conversations_deleted: conv_count}
-        else
-          {:error, reason} -> Repo.rollback(reason)
-        end
-      end)
-
-    # Step 3: Clean up S3 files only after the transaction succeeds.
-    case result do
-      {:ok, _} -> cleanup_s3_files(file_urls)
-      _ -> :ok
+    with {:ok, file_urls} <- collect_attachment_urls(now),
+         {:ok, _} = result <- run_deletion_transaction(now) do
+      cleanup_s3_files(file_urls)
+      result
     end
+  end
 
-    result
+  defp run_deletion_transaction(now) do
+    Repo.transaction(fn ->
+      with {:ok, msg_count, _conv_ids} <-
+             @message_repo.delete_for_expired_conversations(now),
+           {:ok, conv_count} <- @conversation_repo.delete_expired(now) do
+        %{messages_deleted: msg_count, conversations_deleted: conv_count}
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
   end
 
   defp collect_attachment_urls(now) do
@@ -86,14 +80,14 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
     case @attachment_repo.get_urls_for_conversations(conversation_ids) do
       {:ok, urls} ->
         Logger.debug("Collected S3 URLs for retention cleanup", count: length(urls))
-        urls
+        {:ok, urls}
 
       {:error, reason} ->
-        Logger.error("Failed to collect attachment URLs for retention cleanup — S3 files may be orphaned",
+        Logger.error("Failed to collect attachment URLs — aborting retention to prevent orphaned S3 files",
           reason: inspect(reason)
         )
 
-        []
+        {:error, :url_collection_failed}
     end
   end
 
@@ -116,7 +110,15 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
       end,
       timeout: :infinity
     )
-    |> Stream.run()
+    |> Enum.each(fn
+      {:ok, _} ->
+        :ok
+
+      {:exit, reason} ->
+        Logger.warning("S3 delete task crashed during retention cleanup",
+          reason: inspect(reason)
+        )
+    end)
   end
 
   defp handle_result({:ok, result}) do

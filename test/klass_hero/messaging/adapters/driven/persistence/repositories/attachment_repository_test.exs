@@ -39,6 +39,22 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Attachmen
     test "returns ok with empty list for no attachments" do
       assert {:ok, []} = AttachmentRepository.create_many([])
     end
+
+    test "returns error tuple for invalid foreign key instead of raising" do
+      nonexistent_message_id = Ecto.UUID.generate()
+
+      attrs_list = [
+        %{
+          message_id: nonexistent_message_id,
+          file_url: "https://s3.example.com/photo.jpg",
+          original_filename: "photo.jpg",
+          content_type: "image/jpeg",
+          file_size_bytes: 1_000_000
+        }
+      ]
+
+      assert {:error, :attachment_insert_failed} = AttachmentRepository.create_many(attrs_list)
+    end
   end
 
   describe "list_for_message/1" do

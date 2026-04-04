@@ -18,6 +18,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Messaging.Domain.Models.Attachment
   alias KlassHero.Messaging.Domain.Models.Message
+  alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
   alias KlassHero.Shared.Storage
 
@@ -146,7 +147,10 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
         end,
         timeout: :infinity
       )
-      |> Enum.map(fn {:ok, result} -> result end)
+      |> Enum.map(fn
+        {:ok, result} -> result
+        {:exit, reason} -> {:error, {:task_crashed, reason}}
+      end)
 
     {successes, failures} = Enum.split_with(results, &match?({:ok, _}, &1))
 
@@ -177,27 +181,24 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessage do
       message_type: message_type
     }
 
-    case @message_repo.create(message_attrs) do
-      {:ok, message} ->
-        case create_attachments(message.id, uploaded_files) do
-          {:ok, attachments} ->
-            {:ok, %{message | attachments: attachments}}
-
-          {:error, reason} ->
-            cleanup_uploaded_files(uploaded_files)
-
-            Logger.error("Failed to persist attachments, cleaning up S3 files",
-              message_id: message.id,
-              reason: inspect(reason)
-            )
-
-            {:error, reason}
+    result =
+      Repo.transaction(fn ->
+        with {:ok, message} <- @message_repo.create(message_attrs),
+             {:ok, attachments} <- create_attachments(message.id, uploaded_files) do
+          %{message | attachments: attachments}
+        else
+          {:error, reason} -> Repo.rollback(reason)
         end
+      end)
+
+    case result do
+      {:ok, message_with_attachments} ->
+        {:ok, message_with_attachments}
 
       {:error, reason} ->
         cleanup_uploaded_files(uploaded_files)
 
-        Logger.error("Failed to create message, cleaning up S3 files",
+        Logger.error("Failed to persist message with attachments, cleaning up S3 files",
           conversation_id: conversation_id,
           reason: inspect(reason)
         )

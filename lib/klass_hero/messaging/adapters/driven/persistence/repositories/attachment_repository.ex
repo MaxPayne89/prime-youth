@@ -42,6 +42,14 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Attachmen
 
       {:ok, Enum.map(schemas, &AttachmentMapper.to_domain/1)}
     end
+  rescue
+    e in [Ecto.ConstraintError, Postgrex.Error] ->
+      Logger.error("Failed to bulk-insert attachments",
+        count: length(attrs_list),
+        error: Exception.message(e)
+      )
+
+      {:error, :attachment_insert_failed}
   end
 
   @impl true

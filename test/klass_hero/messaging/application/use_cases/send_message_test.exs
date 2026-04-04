@@ -5,6 +5,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
 
   alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.ConversationMapper
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.AttachmentRepository
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
   alias KlassHero.Messaging.Application.UseCases.SendMessage
@@ -348,6 +349,29 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
 
       assert {:error, :invalid_attachments} =
                SendMessage.execute(conversation.id, user.id, nil, attachments: file_data)
+    end
+
+    test "message and attachments are persisted atomically" do
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+      insert(:participant_schema, conversation_id: conversation.id, user_id: user.id)
+
+      # Send a message with a valid attachment
+      file_data = [
+        %{binary: "fake-image-bytes", filename: "photo.jpg", content_type: "image/jpeg", size: 1_000}
+      ]
+
+      assert {:ok, message} =
+               SendMessage.execute(conversation.id, user.id, "With photo", attachments: file_data)
+
+      # Verify both message and attachment are persisted
+      assert message.content == "With photo"
+      assert length(message.attachments) == 1
+
+      # Verify attachment is actually in the DB
+      attachments = AttachmentRepository.list_for_message(message.id)
+      assert length(attachments) == 1
+      assert hd(attachments).original_filename == "photo.jpg"
     end
   end
 end
