@@ -1,87 +1,82 @@
 {
-  "last_updated": "2026-04-03T21:20:00Z",
-  "commands": {
+  "validated_commands": {
     "test": "mix test",
-    "test_specific": "mix test path/to/test.exs",
+    "test_file": "mix test path/to/test.exs",
     "test_failed": "mix test --failed",
     "coverage": "mix coveralls.html",
     "lint": "mix credo --strict",
     "format": "mix format",
     "precommit": "mix precommit",
-    "build": "mix compile --warnings-as-errors",
-    "ci_test": "mix ecto.create --quiet && mix ecto.migrate --quiet && mix test"
+    "ci_test": "mix ecto.create --quiet && mix ecto.migrate --quiet && mix test",
+    "note": "mix not available in CI runner; tests reviewed for correctness and validated by CI on merge"
   },
-  "test_frameworks": ["ExUnit", "ex_machina", "stream_data", "faker", "mimic", "phoenix_test", "lazy_html", "ExCoveralls"],
-  "test_patterns": {
-    "auth_provider": "setup :register_and_log_in_provider",
-    "auth_user": "setup :register_and_log_in_user",
-    "auth_admin": "setup :register_and_log_in_admin",
-    "flash_assert": "assert_flash(view, :error, \"message\") - use ConnCase helper, not DOM queries",
-    "date_event": "render_change(view, \"change_date\", %{\"date\" => iso_date})",
-    "provider_session_setup": "insert program with provider_id, then program_session with program_id and date",
-    "closed_registration": "insert(:program_schema, registration_start_date: Date.add(Date.utc_today(), -30), registration_end_date: Date.add(Date.utc_today(), -1))",
-    "upcoming_registration": "insert(:program_schema, registration_start_date: Date.add(Date.utc_today(), 7), registration_end_date: Date.add(Date.utc_today(), 14))",
-    "insert_child": "insert_child_with_guardian(parent: parent_schema, first_name: \"Alice\") - parent must be ecto schema",
-    "event_testing": "EventTestHelper.setup_test_events() in setup, then TestEventPublisher.get_events() for assertions - safe for async: true (process-local)",
-    "bulk_check_in_pattern": "participation_record_schema factory creates own session+child internally, overrides with session_id:/child_id: work fine",
-    "messaging_helper_tests": "MessagingLiveHelper pure functions (get_conversation_title/1, own_message?/2, get_sender_name/2) use ExUnit.Case async: true - no DB needed",
-    "participation_live_checkin_fk": "check_in_by and check_out_by FK to users table; use current_scope.user.id NOT provider_id; click via element(view, \"button[phx-click='check_in'][phx-value-id='#{record.id}']\")",
-    "pure_domain_service_tests": "Pure domain services (no DB) use ExUnit.Case, async: true; construct structs directly or call module functions; no setup needed",
-    "behavioral_note_schema_factory": "insert(:behavioral_note_schema) auto-creates user+provider+record via FK constraints; override provider_id explicitly when testing cross-provider isolation",
-    "parent_profile_use_case": "CreateParentProfile needs real user (unconfirmed_user_fixture) for FK; notification_preferences stored as :map type returns string keys from DB (not atom keys) - assert is_map/1 not exact equality",
-    "create_parent_profile_identity_fk": "identity_id in parent_profiles FK references users table - need real user via unconfirmed_user_fixture(intended_roles: [:parent])",
-    "activity_goal_calculator_tests": "Pure domain service, async: true, no DB; sessions field accepts list (length counted) or string 'current/total' (Integer.parse on current); percentage capped at 100; statuses: :achieved >=100%, :almost_there >=80%, :in_progress otherwise",
-    "enrollment_identity_id_pattern": "enrolled?/2 and list_enrolled_identity_ids/1 join enrollments->parent_profiles on parent_id, filter by active_only (pending+confirmed); pass parent.identity_id (user.id) not parent.id to CheckEnrollment.execute/2",
-    "staff_member_use_case_tests": "staff_member_fixture(provider_id: id) creates a staff member; Provider facade used for create/update/delete/get_staff_member; delete returns :ok or {:error, :not_found}; update ignores provider_id changes (not in @allowed_fields)",
-    "integration_event_publishing_tests": "IntegrationEventPublishing tests use ExUnit.Case async: true (no DB); call TestIntegrationEventPublisher.setup() in setup; use configure_publish_error(:reason) to simulate failures; tests cover publish_critical (propagates) vs publish_best_effort (swallows)",
-    "referral_code_generator_tests": "ReferralCodeGenerator.generate/2 splits name on \" \" parts:2, takes List.first, trims - so 'John Smith' -> 'JOHN'; location passed as-is; year_suffix: 2-digit string auto-derived from Date.utc_today().year rem 100 padded to 2 chars",
-    "participant_policy_form_changeset": "ParticipantPolicyForm.changeset/1 (no args uses default struct) and changeset/2 (existing struct, attrs); cross-field: min_age > max_age adds error to :min_age_months; min_grade > max_grade adds error to :min_grade; allowed_genders invalid message contains 'invalid values: <val>'",
-    "concurrent_enrollment_sandbox": "Use Sandbox.allow(Repo, test_pid, self()) inside Task.async_stream tasks when test module uses async: true (exclusive sandbox mode); @tag :capture_log suppresses expected duplicate warning log",
-    "reply_privately_broadcast_guards": "ReplyPrivatelyToBroadcast: insert(:conversation_schema, type: \"direct\", ...) for :not_broadcast test; create user without insert(:participant_schema) for :not_participant test; scope built from %Scope{user:, roles: [:parent], parent: %ParentProfile{...}, provider: nil}",
-    "verify_webhook_signature_plug_tests": "Use ExUnit.Case async: false (Application env mutation); call VerifyWebhookSignature.call/2 directly with Plug.Test.conn(); assign raw_body via assign(conn, :raw_body, body); compute HMAC as :crypto.mac(:hmac, :sha256, secret_bytes, signed_content) |> Base.encode64(); restore Application env in on_exit",
-    "participation_events_payload_tests": "Pure domain event factory tests, async: true, no DB; construct %ProgramSession{}, %ParticipationRecord{}, %BehavioralNote{} directly; verify event_type, aggregate_id, aggregate_type, and payload fields; deprecated child_checked_in/1 overloads intentionally not tested"
+  "testing_notes": {
+    "framework": "ExUnit with DataCase (async: true for DB tests via Sandbox), Factory via ex_machina",
+    "test_location": "test/klass_hero/ mirrors lib/klass_hero/ structure",
+    "async_pattern": "async: true with DataCase is common; async: false only for shared global state",
+    "factory": "KlassHero.Factory with build/insert_pair/etc; factory files in test/support/factories/",
+    "event_tests": "Participation domain event tests use pure struct construction, no DB needed",
+    "coverage_tool": "excoveralls (mix coveralls.html); CI does not block on coverage thresholds",
+    "mix_unavailable": "mix binary not in PATH in CI runner; must verify test correctness by reading implementation"
   },
-  "backlog": [
-    {"item": "admin provider_live.ex on_item_updated event publishing", "priority": "low", "reason": "existing tests verify DB state only; on_item_updated/2 publishes provider_verified/provider_unverified events - complex to test from LiveView"},
-    {"item": "E2E scale tests for messaging PubSub fan-out", "priority": "medium", "reason": "Issue #515 open - needs real PubSub, maintainer design decisions on CI budget and E2E infra approach"}
+  "maintainer_priorities": "No specific priorities communicated yet.",
+  "testing_backlog": [
+    {
+      "id": "admin-provider-live-event-publishing",
+      "priority": "low",
+      "description": "admin provider_live.ex on_item_updated/2 publishes provider_verified/provider_unverified integration events; existing tests verify DB state only"
+    },
+    {
+      "id": "e2e-messaging-pubsub-fanout",
+      "priority": "medium",
+      "description": "E2E scale tests for messaging PubSub fan-out (Issue #515); needs real PubSub infra and maintainer decisions on CI budget/approach"
+    }
   ],
   "tasks_last_run": {
-    "task1_commands": "2026-04-02",
-    "task2_opportunities": "2026-04-02",
-    "task3_implement": "2026-04-03",
-    "task4_maintain_prs": "2026-03-15",
-    "task6_infrastructure": "2026-04-03",
-    "task5_comments": "2026-04-03",
-    "task7_monthly_summary": "2026-04-03"
+    "task_1": "2026-04-02",
+    "task_2": "2026-04-04",
+    "task_3": "2026-04-04",
+    "task_4": "2026-04-04",
+    "task_5": "2026-04-03",
+    "task_6": "2026-04-03",
+    "task_7": "2026-04-04"
   },
+  "work_in_progress": null,
   "completed_work": [
     {
-      "run": "2026-04-03",
-      "work": "Task 3/6: Confirmed all 3 backlog items (ParticipationEvents, Admin.Queries, provider_live event publishing) - first two now have tests. Task 3: Extended participation_events_payload_test.exs with 11 new tests for session_created, session_started, session_completed, roster_seeded, behavioral_note_submitted/approved/rejected (branch test-assist/participation-events-payload-tests). Task 5: Commented on #515 (E2E scale test suggestion). Task 7: Updated April 2026 monthly summary."
+      "date": "2026-04-04",
+      "run_id": "23987764695",
+      "tasks": ["task_2", "task_3", "task_4", "task_7"],
+      "pr_branch": "test-assist/correct-attendance-status-only-branch-tests",
+      "description": "2 new DataCase tests for CorrectAttendance: status-only cond branch and empty-string append_to_field branch",
+      "tests_added": 2
     },
     {
-      "run": "2026-04-02",
-      "work": "Task 1/2: Validated commands unchanged; explored codebase for untested areas - confirmed VerifyWebhookSignature plug as security-critical zero-test target. Task 3: Created PR (branch test-assist/verify-webhook-signature-plug-tests): 15 unit tests for VerifyWebhookSignature plug - all HMAC-SHA256 branches, key rotation, missing headers, timestamp expiry, bad secret config. Merged 2026-04-03. Task 7: Closed March 2026 issue #234; created April 2026 monthly summary issue #580."
+      "date": "2026-04-03",
+      "run_id": "23962603774",
+      "pr_number": 591,
+      "pr_branch": "test-assist/participation-events-payload-tests-243c90f27895c28f",
+      "description": "11 new async unit tests extending participation_events_payload_test.exs covering 7 previously untested factory functions",
+      "tests_added": 11
     },
     {
-      "run": "2026-03-16",
-      "work": "Task 4: PR #435 (ReplyPrivatelyToBroadcast security guard tests) confirmed merged. Task 4: Issue #397 confirmed closed. Task 3/6: Created PR #443 (branch test-assist/pubsub-integration-event-publisher-tests): 8 new tests for PubSubIntegrationEventPublisher - MERGED."
-    },
-    {
-      "run": "2026-03-15",
-      "work": "Task 2/4: Confirmed concurrent enrollment PR (2026-03-14) merged; no open Test Improver PRs pending. Task 2: Identified 2 missing security guard tests in new v0.6.0 ReplyPrivatelyToBroadcast use case (:not_broadcast, :not_participant paths untested). Task 3: Created PR test-assist/reply-privately-security-guard-tests: 2 access-control guard tests - merged as #435."
-    },
-    {
-      "run": "2026-03-14",
-      "work": "Task 4: PR #413 (ParticipantPolicyForm changeset tests) confirmed merged. Task 3: Created PR (branch test-assist/enrollment-concurrent-duplicate-test): concurrent duplicate enrollment test using Task.async_stream + Sandbox.allow/3 - merged."
-    },
-    {
-      "run": "2026-03-13",
-      "work": "Created PR #413: 28 pure async ParticipantPolicyForm changeset tests. Commented on #397 with Task.async_stream concurrent test strategy. PR #401 merged."
-    },
-    {
-      "run": "2026-03-12",
-      "work": "Created PR #401 (branch test-assist/pure-domain-service-tests): ReferralCodeGenerator (11 tests) + ProgramCategories (16 tests) - MERGED."
+      "date": "2026-04-02",
+      "run_id": "23922561007",
+      "pr_number": 579,
+      "pr_branch": "test-assist/verify-webhook-signature-plug-tests",
+      "description": "15 unit tests for VerifyWebhookSignature plug (merged 2026-04-03)",
+      "tests_added": 15,
+      "merged": true
     }
-  ]
+  ],
+  "monthly_summary_issue": {
+    "number": 580,
+    "month": "2026-04",
+    "state": "open"
+  },
+  "checked_off_items": [],
+  "backlog_cursor": {
+    "task_2_last_file": "participation/application/use_cases/",
+    "task_5_last_issue": 515
+  }
 }
