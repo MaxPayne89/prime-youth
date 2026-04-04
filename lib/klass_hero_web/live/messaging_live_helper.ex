@@ -28,7 +28,10 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
   import Phoenix.LiveView,
     only: [
+      allow_upload: 3,
+      cancel_upload: 3,
       connected?: 1,
+      consume_uploaded_entries: 3,
       push_event: 3,
       put_flash: 3,
       push_navigate: 2,
@@ -38,6 +41,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
     ]
 
   alias KlassHero.Messaging
+  alias KlassHero.Messaging.Domain.Models.Attachment
   alias KlassHero.Messaging.Domain.Models.Message
   alias KlassHero.Shared.Domain.Events.DomainEvent
 
@@ -65,6 +69,16 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
       def handle_info({:domain_event, %DomainEvent{event_type: :messages_read} = event}, socket) do
         Logger.debug("Messages read by user", user_id: event.payload.user_id)
         {:noreply, socket}
+      end
+
+      @impl true
+      def handle_event("validate", _params, socket) do
+        {:noreply, socket}
+      end
+
+      @impl true
+      def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+        {:noreply, MessagingLiveHelper.cancel_attachment_upload(socket, ref)}
       end
 
       @impl true
@@ -132,6 +146,11 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
           |> assign(:provider_name, provider_name)
           |> assign(:form, Phoenix.Component.to_form(%{"content" => ""}))
           |> assign(:back_path, back_path)
+          |> allow_upload(:attachments,
+            accept: ~w(.jpg .jpeg .png .gif .webp),
+            max_entries: 5,
+            max_file_size: 10_485_760
+          )
           |> stream(:messages, reversed_messages)
 
         {:ok, socket}
@@ -153,18 +172,27 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   @doc """
   Handles the send_message event.
 
+  Consumes any pending uploads and sends the message with optional attachments.
   Returns `{:noreply, socket}` with updated form or error flash.
   """
   def handle_send_message(%{"content" => content}, socket) do
     content = String.trim(content)
+    file_data = consume_attachment_uploads(socket)
+    has_attachments = file_data != []
 
-    if content == "" do
+    if content == "" and not has_attachments do
       {:noreply, socket}
     else
       conversation_id = socket.assigns.conversation.id
       sender_id = socket.assigns.current_scope.user.id
+      message_content = if content != "", do: content
 
-      case Messaging.send_message(conversation_id, sender_id, content, conversation: socket.assigns.conversation) do
+      opts = [
+        conversation: socket.assigns.conversation,
+        attachments: file_data
+      ]
+
+      case Messaging.send_message(conversation_id, sender_id, message_content, opts) do
         {:ok, _message} ->
           {:noreply,
            socket
@@ -173,7 +201,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
         {:error, reason} ->
           Logger.error("Failed to send message", reason: reason)
-          {:noreply, put_flash(socket, :error, gettext("Failed to send message"))}
+          {:noreply, put_flash(socket, :error, upload_error_message(reason))}
       end
     end
   end
@@ -347,15 +375,33 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   end
 
   defp build_message_from_event(payload) do
+    attachments = build_attachments_from_event(Map.get(payload, :attachments, []))
+
     %Message{
       id: payload.message_id,
       conversation_id: payload.conversation_id,
       sender_id: payload.sender_id,
       content: payload.content,
       message_type: payload.message_type,
-      inserted_at: payload.sent_at
+      inserted_at: payload.sent_at,
+      attachments: attachments
     }
   end
+
+  defp build_attachments_from_event(attachments) when is_list(attachments) do
+    Enum.map(attachments, fn att ->
+      %Attachment{
+        id: att.id,
+        message_id: att[:message_id] || "",
+        file_url: att.file_url,
+        original_filename: att.original_filename,
+        content_type: att.content_type,
+        file_size_bytes: att.file_size_bytes
+      }
+    end)
+  end
+
+  defp build_attachments_from_event(_), do: []
 
   defp update_sender_names_for_new_message(socket, sender_id) do
     case Messaging.get_display_name(sender_id) do
@@ -371,6 +417,32 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   defp reply_privately_path("/provider/messages", conversation_id), do: ~p"/provider/messages/#{conversation_id}"
 
   defp reply_privately_path(_back_path, conversation_id), do: ~p"/messages/#{conversation_id}"
+
+  @doc """
+  Cancels a pending attachment upload by ref.
+  """
+  def cancel_attachment_upload(socket, ref) do
+    cancel_upload(socket, :attachments, ref)
+  end
+
+  defp consume_attachment_uploads(socket) do
+    consume_uploaded_entries(socket, :attachments, fn %{path: path}, entry ->
+      binary = File.read!(path)
+
+      {:ok,
+       %{
+         binary: binary,
+         filename: entry.client_name,
+         content_type: entry.client_type,
+         size: entry.client_size
+       }}
+    end)
+  end
+
+  defp upload_error_message(:empty_message), do: gettext("Please enter a message or attach a photo.")
+  defp upload_error_message(:invalid_attachments), do: gettext("Invalid attachment. Check file type and size.")
+  defp upload_error_message(:upload_failed), do: gettext("Failed to upload files. Please try again.")
+  defp upload_error_message(_), do: gettext("Something went wrong. Please try again.")
 
   defp subscribe_to_conversation(conversation_id) do
     topic = Messaging.conversation_topic(conversation_id)
