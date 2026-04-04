@@ -3,6 +3,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.MessageMapper 
   Maps between MessageSchema (Ecto) and Message (domain model).
   """
 
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.AttachmentMapper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
   alias KlassHero.Messaging.Domain.Models.Message
 
@@ -19,9 +20,14 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.MessageMapper 
       message_type: String.to_existing_atom(schema.message_type),
       deleted_at: schema.deleted_at,
       inserted_at: schema.inserted_at,
-      updated_at: schema.updated_at
+      updated_at: schema.updated_at,
+      attachments: map_attachments(schema.attachments)
     }
   end
+
+  defp map_attachments(%Ecto.Association.NotLoaded{}), do: []
+  defp map_attachments(nil), do: []
+  defp map_attachments(attachments), do: Enum.map(attachments, &AttachmentMapper.to_domain/1)
 
   @doc """
   Converts a domain Message to attributes for schema creation.

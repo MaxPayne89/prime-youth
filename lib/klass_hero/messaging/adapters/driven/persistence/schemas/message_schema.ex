@@ -10,6 +10,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema 
   import Ecto.Changeset
 
   alias KlassHero.Accounts.User
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.AttachmentSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -28,22 +29,25 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema 
 
     belongs_to :conversation, ConversationSchema, define_field: false
     belongs_to :sender, User, foreign_key: :sender_id, define_field: false
+    has_many :attachments, AttachmentSchema, foreign_key: :message_id
 
     timestamps()
   end
 
-  @required_fields ~w(conversation_id sender_id content)a
-  @optional_fields ~w(message_type deleted_at)a
+  @required_fields ~w(conversation_id sender_id)a
+  @optional_fields ~w(content message_type deleted_at)a
 
   @doc """
   Creates a changeset for new message creation.
+
+  Content is optional — a message may consist of attachments only.
   """
   def create_changeset(schema \\ %__MODULE__{}, attrs) do
     schema
     |> cast(attrs, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
     |> validate_inclusion(:message_type, @valid_message_types)
-    |> validate_length(:content, min: 1, max: @max_content_length)
+    |> validate_length(:content, max: @max_content_length)
     |> foreign_key_constraint(:conversation_id)
     |> foreign_key_constraint(:sender_id)
   end
