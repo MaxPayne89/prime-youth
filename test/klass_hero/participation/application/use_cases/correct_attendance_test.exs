@@ -118,5 +118,47 @@ defmodule KlassHero.Participation.Application.UseCases.CorrectAttendanceTest do
                  reason: "Mistake"
                })
     end
+
+    test "status-only correction appends reason to check_in_notes", %{record: record} do
+      assert {:ok, corrected} =
+               Participation.correct_attendance(%{
+                 record_id: record.id,
+                 status: :absent,
+                 reason: "Child did not attend"
+               })
+
+      assert corrected.status == :absent
+      assert corrected.check_in_notes =~ "[Admin correction]"
+      assert corrected.check_in_notes =~ "Child did not attend"
+      assert is_nil(corrected.check_out_notes)
+    end
+
+    test "correction reason stands alone when existing notes field is empty string", %{
+      session: session,
+      user: user
+    } do
+      {child, parent} = insert_child_with_guardian()
+
+      record_with_empty_notes =
+        insert(:participation_record_schema,
+          session_id: session.id,
+          child_id: child.id,
+          parent_id: parent.id,
+          status: :checked_in,
+          check_in_at: ~U[2026-03-13 09:00:00Z],
+          check_in_by: user.id,
+          check_in_notes: ""
+        )
+
+      assert {:ok, corrected} =
+               Participation.correct_attendance(%{
+                 record_id: record_with_empty_notes.id,
+                 check_in_at: ~U[2026-03-13 09:30:00Z],
+                 reason: "Wrong time recorded"
+               })
+
+      assert corrected.check_in_notes == "[Admin correction] Wrong time recorded"
+      refute corrected.check_in_notes =~ " | "
+    end
   end
 end
