@@ -5,6 +5,28 @@ defmodule KlassHero.MessagingFixtures do
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.EmailReplyRepository
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailRepository
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.AttachmentSchema
+
+  def attachment_fixture(message_id, attrs \\ %{}) do
+    path = "messaging/attachments/#{Ecto.UUID.generate()}/photo.jpg"
+
+    defaults = %{
+      message_id: message_id,
+      file_url: "https://s3.example.com/#{path}",
+      storage_path: path,
+      original_filename: "test_photo.jpg",
+      content_type: "image/jpeg",
+      file_size_bytes: 2_400_000
+    }
+
+    {:ok, attachment} =
+      defaults
+      |> Map.merge(attrs)
+      |> then(&AttachmentSchema.create_changeset(%AttachmentSchema{}, &1))
+      |> KlassHero.Repo.insert()
+
+    attachment
+  end
 
   def unique_resend_id, do: "resend_#{System.unique_integer([:positive])}"
 

@@ -1,4 +1,4 @@
-defmodule KlassHero.Messaging.Workers.RetentionPolicyWorker do
+defmodule KlassHero.Messaging.Adapters.Driving.Workers.RetentionPolicyWorker do
   @moduledoc """
   Oban worker that permanently deletes messages and conversations
   that have exceeded their retention period.

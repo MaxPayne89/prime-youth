@@ -138,4 +138,15 @@ defmodule KlassHero.Messaging.Domain.Ports.ForManagingConversations do
               program_id :: binary(),
               user_id :: binary()
             ) :: [binary()]
+
+  @doc """
+  Lists IDs of conversations whose retention period has expired.
+
+  Returns IDs for archived conversations where `retention_until` is
+  before the given `before` datetime. Used by the retention policy to
+  collect attachment URLs for S3 cleanup before the cascade delete.
+
+  Returns a list of conversation ID strings (may be empty).
+  """
+  @callback list_expired_ids(before :: DateTime.t()) :: [binary()]
 end

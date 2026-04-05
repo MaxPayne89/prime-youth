@@ -3,9 +3,15 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   Use case for enforcing data retention policy on messaging data.
 
   This use case:
-  1. Deletes all messages from conversations that have exceeded their retention period
-  2. Deletes the expired conversations themselves
-  3. Publishes a retention_enforced event
+  1. Collects S3 attachment URLs for expired conversations (before DB deletion)
+  2. Deletes all messages from conversations that have exceeded their retention period
+  3. Deletes the expired conversations themselves (cascade-deletes attachment records)
+  4. Cleans up S3 files for the deleted attachments
+  5. Publishes a retention_enforced event
+
+  The S3 cleanup must happen AFTER the transaction succeeds, because the attachment
+  records are cascade-deleted when messages are removed. We collect URLs before the
+  transaction so we don't lose the file references.
 
   Typically run by a background worker (Oban) on a daily schedule after
   the archive worker has run.
@@ -14,6 +20,7 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   alias KlassHero.Messaging.Domain.Events.MessagingEvents
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
+  alias KlassHero.Shared.Storage
 
   require Logger
 
@@ -23,11 +30,12 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
                        :messaging,
                        :for_managing_conversations
                      ])
+  @attachment_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_attachments])
 
   @doc """
   Enforces retention policy by deleting expired messages and conversations.
 
-  All operations are performed in a transaction to ensure consistency.
+  S3 attachment files are cleaned up after the transaction succeeds.
 
   ## Returns
   - `{:ok, %{messages_deleted: n, conversations_deleted: m}}` - Success
@@ -47,6 +55,14 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
   end
 
   defp run_retention_transaction(now) do
+    with {:ok, storage_paths} <- collect_attachment_storage_paths(now),
+         {:ok, _} = result <- run_deletion_transaction(now) do
+      cleanup_s3_files(storage_paths)
+      result
+    end
+  end
+
+  defp run_deletion_transaction(now) do
     Repo.transaction(fn ->
       with {:ok, msg_count, _conv_ids} <-
              @message_repo.delete_for_expired_conversations(now),
@@ -55,6 +71,54 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy do
       else
         {:error, reason} -> Repo.rollback(reason)
       end
+    end)
+  end
+
+  defp collect_attachment_storage_paths(now) do
+    conversation_ids = @conversation_repo.list_expired_ids(now)
+
+    case @attachment_repo.get_storage_paths_for_conversations(conversation_ids) do
+      {:ok, paths} ->
+        Logger.debug("Collected S3 storage paths for retention cleanup", count: length(paths))
+        {:ok, paths}
+
+      {:error, reason} ->
+        Logger.error(
+          "Failed to collect attachment storage paths — aborting retention to prevent orphaned S3 files",
+          reason: inspect(reason)
+        )
+
+        {:error, :path_collection_failed}
+    end
+  end
+
+  defp cleanup_s3_files([]), do: :ok
+
+  defp cleanup_s3_files(storage_paths) do
+    storage_paths
+    |> Task.async_stream(
+      fn path ->
+        case Storage.delete(:public, path) do
+          :ok ->
+            :ok
+
+          {:error, reason} ->
+            Logger.warning("Failed to delete S3 file during retention cleanup",
+              storage_path: path,
+              reason: inspect(reason)
+            )
+        end
+      end,
+      timeout: :infinity
+    )
+    |> Enum.each(fn
+      {:ok, _} ->
+        :ok
+
+      {:exit, reason} ->
+        Logger.warning("S3 delete task crashed during retention cleanup",
+          reason: inspect(reason)
+        )
     end)
   end
 

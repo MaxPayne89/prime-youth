@@ -20,6 +20,7 @@ defmodule KlassHero.Messaging.Domain.ReadModels.ConversationSummary do
           latest_message_content: String.t() | nil,
           latest_message_sender_id: String.t() | nil,
           latest_message_at: DateTime.t() | nil,
+          has_attachments: boolean(),
           unread_count: non_neg_integer(),
           last_read_at: DateTime.t() | nil,
           archived_at: DateTime.t() | nil,
@@ -45,6 +46,7 @@ defmodule KlassHero.Messaging.Domain.ReadModels.ConversationSummary do
     :archived_at,
     :inserted_at,
     :updated_at,
+    has_attachments: false,
     participant_count: 0,
     unread_count: 0
   ]

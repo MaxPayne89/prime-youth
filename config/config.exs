@@ -34,6 +34,7 @@ alias KlassHero.Family.Adapters.Driving.Events.InviteClaimedHandler
 alias KlassHero.Messaging.Adapters.Driven.Accounts.UserResolver
 alias KlassHero.Messaging.Adapters.Driven.Enrollment.EnrollmentResolver
 alias KlassHero.Messaging.Adapters.Driven.ObanEmailJobScheduler
+alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.AttachmentRepository
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationRepository
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationSummariesRepository
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.EmailReplyRepository
@@ -43,8 +44,8 @@ alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRe
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
 alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
 alias KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler
-alias KlassHero.Messaging.Workers.MessageCleanupWorker
-alias KlassHero.Messaging.Workers.RetentionPolicyWorker
+alias KlassHero.Messaging.Adapters.Driving.Workers.MessageCleanupWorker
+alias KlassHero.Messaging.Adapters.Driving.Workers.RetentionPolicyWorker
 alias KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
 alias KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
@@ -221,6 +222,7 @@ config :klass_hero, :mailer_defaults, from: {"KlassHero", "noreply@mail.klassher
 
 # Configure Messaging bounded context
 config :klass_hero, :messaging,
+  for_managing_attachments: AttachmentRepository,
   for_managing_conversations: ConversationRepository,
   for_managing_messages: MessageRepository,
   for_managing_participants: ParticipantRepository,
@@ -405,7 +407,11 @@ config :logger, :default_formatter,
     :broadcast_id,
     :direct_conversation_id,
     :staff_member_id,
-    :staff_user_id
+    :staff_user_id,
+    :file_url,
+    :storage_path,
+    :filename,
+    :received
   ]
 
 config :opentelemetry, :resource,

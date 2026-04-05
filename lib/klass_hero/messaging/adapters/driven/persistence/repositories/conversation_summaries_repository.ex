@@ -226,6 +226,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
       latest_message_content: schema.latest_message_content,
       latest_message_sender_id: schema.latest_message_sender_id,
       latest_message_at: schema.latest_message_at,
+      has_attachments: schema.has_attachments,
       unread_count: schema.unread_count,
       last_read_at: schema.last_read_at,
       archived_at: schema.archived_at,

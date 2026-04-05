@@ -7,7 +7,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.ObanEmailJobScheduler do
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForSchedulingEmailJobs
 
-  alias KlassHero.Messaging.Workers.{FetchEmailContentWorker, SendEmailReplyWorker}
+  alias KlassHero.Messaging.Adapters.Driving.Workers.{FetchEmailContentWorker, SendEmailReplyWorker}
 
   @impl true
   def schedule_content_fetch(email_id, resend_id) do

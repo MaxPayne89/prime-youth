@@ -5,6 +5,7 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
 
   alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.ConversationMapper
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.AttachmentRepository
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
   alias KlassHero.Messaging.Application.UseCases.SendMessage
@@ -264,6 +265,113 @@ defmodule KlassHero.Messaging.Application.UseCases.SendMessageTest do
 
       assert {:error, :broadcast_reply_not_allowed} =
                SendMessage.execute(broadcast.id, non_staff_user.id, "Sneaky reply")
+    end
+  end
+
+  describe "execute/4 with attachments" do
+    test "sends message with text and attachments" do
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+      insert(:participant_schema, conversation_id: conversation.id, user_id: user.id)
+
+      file_data = [
+        %{binary: "fake-image-bytes", filename: "photo.jpg", content_type: "image/jpeg", size: 1_000}
+      ]
+
+      assert {:ok, message} =
+               SendMessage.execute(conversation.id, user.id, "Check this out!", attachments: file_data)
+
+      assert message.content == "Check this out!"
+      assert length(message.attachments) == 1
+      assert hd(message.attachments).original_filename == "photo.jpg"
+    end
+
+    test "sends photo-only message (nil content)" do
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+      insert(:participant_schema, conversation_id: conversation.id, user_id: user.id)
+
+      file_data = [
+        %{binary: "fake-image-bytes", filename: "photo.jpg", content_type: "image/jpeg", size: 1_000}
+      ]
+
+      assert {:ok, message} =
+               SendMessage.execute(conversation.id, user.id, nil, attachments: file_data)
+
+      assert message.content == nil
+      assert length(message.attachments) == 1
+    end
+
+    test "rejects empty message — no content and no attachments" do
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+      insert(:participant_schema, conversation_id: conversation.id, user_id: user.id)
+
+      assert {:error, :empty_message} =
+               SendMessage.execute(conversation.id, user.id, nil, attachments: [])
+    end
+
+    test "rejects invalid attachment content type" do
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+      insert(:participant_schema, conversation_id: conversation.id, user_id: user.id)
+
+      file_data = [
+        %{binary: "fake-bytes", filename: "doc.pdf", content_type: "application/pdf", size: 1_000}
+      ]
+
+      assert {:error, :invalid_attachment_type} =
+               SendMessage.execute(conversation.id, user.id, nil, attachments: file_data)
+    end
+
+    test "rejects oversized attachment" do
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+      insert(:participant_schema, conversation_id: conversation.id, user_id: user.id)
+
+      file_data = [
+        %{binary: "fake-bytes", filename: "huge.jpg", content_type: "image/jpeg", size: 11_000_000}
+      ]
+
+      assert {:error, :attachment_too_large} =
+               SendMessage.execute(conversation.id, user.id, nil, attachments: file_data)
+    end
+
+    test "rejects more than 5 attachments" do
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+      insert(:participant_schema, conversation_id: conversation.id, user_id: user.id)
+
+      file_data =
+        for i <- 1..6 do
+          %{binary: "fake-bytes", filename: "photo#{i}.jpg", content_type: "image/jpeg", size: 1_000}
+        end
+
+      assert {:error, :too_many_attachments} =
+               SendMessage.execute(conversation.id, user.id, nil, attachments: file_data)
+    end
+
+    test "message and attachments are persisted atomically" do
+      conversation = insert(:conversation_schema)
+      user = AccountsFixtures.user_fixture()
+      insert(:participant_schema, conversation_id: conversation.id, user_id: user.id)
+
+      # Send a message with a valid attachment
+      file_data = [
+        %{binary: "fake-image-bytes", filename: "photo.jpg", content_type: "image/jpeg", size: 1_000}
+      ]
+
+      assert {:ok, message} =
+               SendMessage.execute(conversation.id, user.id, "With photo", attachments: file_data)
+
+      # Verify both message and attachment are persisted
+      assert message.content == "With photo"
+      assert length(message.attachments) == 1
+
+      # Verify attachment is actually in the DB
+      attachments = AttachmentRepository.list_for_message(message.id)
+      assert length(attachments) == 1
+      assert hd(attachments).original_filename == "photo.jpg"
     end
   end
 end

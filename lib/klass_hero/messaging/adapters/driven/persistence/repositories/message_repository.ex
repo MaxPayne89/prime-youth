@@ -78,6 +78,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
         |> MessageQueries.not_deleted()
         |> MessageQueries.order_by_newest()
         |> MessageQueries.paginate(opts)
+        |> MessageQueries.preload_assocs([:attachments])
         |> Repo.all()
 
       has_more = length(results) > limit
@@ -100,7 +101,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
         |> MessageQueries.not_deleted()
         |> MessageQueries.order_by_newest()
         |> MessageQueries.paginate(opts)
-        |> MessageQueries.preload_assocs([:sender])
+        |> MessageQueries.preload_assocs([:sender, :attachments])
         |> Repo.all()
 
       has_more = length(results) > limit

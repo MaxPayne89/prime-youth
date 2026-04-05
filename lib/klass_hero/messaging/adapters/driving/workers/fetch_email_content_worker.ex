@@ -1,4 +1,4 @@
-defmodule KlassHero.Messaging.Workers.FetchEmailContentWorker do
+defmodule KlassHero.Messaging.Adapters.Driving.Workers.FetchEmailContentWorker do
   @moduledoc """
   Fetches inbound email content from Resend's receiving API.
 

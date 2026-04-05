@@ -35,6 +35,7 @@ defmodule KlassHero.Messaging do
       KlassHero.Shared
     ],
     exports: [
+      Domain.Models.Attachment,
       Domain.Models.Message,
       Domain.Models.Conversation,
       Domain.Models.Participant,

@@ -1,11 +1,11 @@
-defmodule KlassHero.Messaging.Workers.MessageCleanupWorkerTest do
+defmodule KlassHero.Messaging.Adapters.Driving.Workers.MessageCleanupWorkerTest do
   use KlassHero.DataCase, async: true
 
   import KlassHero.Factory
 
   alias KlassHero.EventTestHelper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationRepository
-  alias KlassHero.Messaging.Workers.MessageCleanupWorker
+  alias KlassHero.Messaging.Adapters.Driving.Workers.MessageCleanupWorker
 
   setup do
     EventTestHelper.setup_test_events()

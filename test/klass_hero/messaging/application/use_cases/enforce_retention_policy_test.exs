@@ -8,6 +8,7 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicyTest do
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationRepository
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
   alias KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicy
+  alias KlassHero.MessagingFixtures
 
   setup do
     EventTestHelper.setup_test_events()
@@ -212,6 +213,69 @@ defmodule KlassHero.Messaging.Application.UseCases.EnforceRetentionPolicyTest do
       # Verify both conversations are deleted
       assert {:error, :not_found} = ConversationRepository.get_by_id(expired1.id)
       assert {:error, :not_found} = ConversationRepository.get_by_id(expired2.id)
+    end
+
+    test "collects and attempts S3 deletion for attachments in expired conversations" do
+      provider = insert(:provider_profile_schema)
+      user = AccountsFixtures.user_fixture()
+
+      expired_conversation =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          archived_at: DateTime.utc_now() |> DateTime.add(-35, :day),
+          retention_until: DateTime.utc_now() |> DateTime.add(-5, :day)
+        )
+
+      insert(:participant_schema,
+        conversation_id: expired_conversation.id,
+        user_id: user.id
+      )
+
+      {:ok, message} =
+        MessageRepository.create(%{
+          conversation_id: expired_conversation.id,
+          sender_id: user.id,
+          content: "Message with attachment"
+        })
+
+      # Create an attachment with a known S3 URL
+      file_url = "https://bucket.fly.storage.tigris.dev/messaging/attachments/#{message.id}/photo.jpg"
+      MessagingFixtures.attachment_fixture(message.id, %{file_url: file_url})
+
+      # Retention enforcement must succeed even with attachments present.
+      # The stub storage adapter gracefully handles delete calls without a running agent.
+      assert {:ok, result} = EnforceRetentionPolicy.execute()
+      assert result.messages_deleted >= 1
+      assert result.conversations_deleted >= 1
+    end
+
+    test "succeeds when expired conversations have no attachments" do
+      provider = insert(:provider_profile_schema)
+      user = AccountsFixtures.user_fixture()
+
+      expired_conversation =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          archived_at: DateTime.utc_now() |> DateTime.add(-35, :day),
+          retention_until: DateTime.utc_now() |> DateTime.add(-5, :day)
+        )
+
+      insert(:participant_schema,
+        conversation_id: expired_conversation.id,
+        user_id: user.id
+      )
+
+      {:ok, _message} =
+        MessageRepository.create(%{
+          conversation_id: expired_conversation.id,
+          sender_id: user.id,
+          content: "Message without attachment"
+        })
+
+      # No attachments created — S3 cleanup should be a no-op
+      assert {:ok, result} = EnforceRetentionPolicy.execute()
+      assert result.messages_deleted >= 1
+      assert result.conversations_deleted >= 1
     end
   end
 end

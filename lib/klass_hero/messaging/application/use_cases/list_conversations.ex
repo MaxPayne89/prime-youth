@@ -77,13 +77,15 @@ defmodule KlassHero.Messaging.Application.UseCases.ListConversations do
     :direct
   end
 
-  defp build_latest_message(%{latest_message_content: nil}), do: nil
+  defp build_latest_message(%{latest_message_content: nil, has_attachments: false}), do: nil
+  defp build_latest_message(summary), do: do_build_latest_message(summary)
 
-  defp build_latest_message(summary) do
+  defp do_build_latest_message(summary) do
     %{
       content: summary.latest_message_content,
       sender_id: summary.latest_message_sender_id,
-      inserted_at: summary.latest_message_at
+      inserted_at: summary.latest_message_at,
+      has_attachments: summary.has_attachments
     }
   end
 end

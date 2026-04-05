@@ -38,6 +38,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
   import Ecto.Query
 
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.AttachmentSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
@@ -281,6 +282,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       # Outcome: conversation_id -> %{token => iso8601_timestamp} lookup map
       system_notes = fetch_system_notes(conversation_ids)
 
+      # Trigger: need to know which latest messages have attachments
+      # Why: inbox preview shows an attachment indicator for messages with files
+      # Outcome: MapSet of message_ids that have at least one attachment
+      attachment_message_ids = fetch_attachment_message_ids(latest_messages)
+
       now = DateTime.utc_now() |> DateTime.truncate(:second)
 
       entries =
@@ -291,6 +297,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
             latest_messages,
             unread_counts,
             system_notes,
+            attachment_message_ids,
             now
           )
         end)
@@ -312,35 +319,45 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     end
   end
 
-  defp build_conversation_entries(conversation, user_names, latest_messages, unread_counts, system_notes, now) do
+  defp build_conversation_entries(
+         conversation,
+         user_names,
+         latest_messages,
+         unread_counts,
+         system_notes,
+         attachment_message_ids,
+         now
+       ) do
     active_participants = Enum.filter(conversation.participants, &is_nil(&1.left_at))
     latest_message = Map.get(latest_messages, conversation.id)
     conv_system_notes = Map.get(system_notes, conversation.id, %{})
 
+    context = %{
+      active_participants: active_participants,
+      user_names: user_names,
+      latest_message: latest_message,
+      unread_counts: unread_counts,
+      system_notes: conv_system_notes,
+      attachment_message_ids: attachment_message_ids,
+      now: now
+    }
+
     Enum.map(active_participants, fn participant ->
-      build_summary_entry(
-        conversation,
-        participant,
-        active_participants,
-        user_names,
-        latest_message,
-        unread_counts,
-        conv_system_notes,
-        now
-      )
+      build_summary_entry(conversation, participant, context)
     end)
   end
 
-  defp build_summary_entry(
-         conversation,
-         participant,
-         active_participants,
-         user_names,
-         latest_message,
-         unread_counts,
-         conv_system_notes,
-         now
-       ) do
+  defp build_summary_entry(conversation, participant, context) do
+    %{
+      active_participants: active_participants,
+      user_names: user_names,
+      latest_message: latest_message,
+      unread_counts: unread_counts,
+      system_notes: conv_system_notes,
+      attachment_message_ids: attachment_message_ids,
+      now: now
+    } = context
+
     participant_count = length(active_participants)
 
     other_name =
@@ -352,6 +369,9 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       )
 
     unread_count = Map.get(unread_counts, {conversation.id, participant.user_id}, 0)
+
+    has_attachments =
+      latest_message != nil and MapSet.member?(attachment_message_ids, latest_message.id)
 
     %{
       id: Ecto.UUID.generate(),
@@ -366,6 +386,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       latest_message_content: latest_message && latest_message.content,
       latest_message_sender_id: latest_message && latest_message.sender_id,
       latest_message_at: latest_message && latest_message.inserted_at,
+      has_attachments: has_attachments,
       unread_count: unread_count,
       last_read_at: participant.last_read_at,
       archived_at: conversation.archived_at,
@@ -442,6 +463,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     content = Map.get(payload, :content)
     now = DateTime.utc_now() |> DateTime.truncate(:second)
     sent_at = Map.get(payload, :sent_at) || now
+    has_attachments = (Map.get(payload, :attachments) || []) != []
 
     Repo.transaction(fn ->
       # Update latest_message fields for all participants of this conversation
@@ -453,6 +475,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
           latest_message_content: content,
           latest_message_sender_id: sender_id,
           latest_message_at: sent_at,
+          has_attachments: has_attachments,
           updated_at: now
         ]
       )
@@ -650,7 +673,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
 
   # Trigger: bootstrap needs latest message per conversation without loading all messages
   # Why: preloading :messages loads N×M rows; this fetches N rows (one per conversation)
-  # Outcome: map of conversation_id -> %{content, sender_id, inserted_at}
+  # Outcome: map of conversation_id -> %{id, content, sender_id, inserted_at}
   defp fetch_latest_messages(conversation_ids) when conversation_ids != [] do
     # Subquery finds the max inserted_at per conversation
     latest_times =
@@ -664,6 +687,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       join: lt in subquery(latest_times),
       on: m.conversation_id == lt.conversation_id and m.inserted_at == lt.max_at,
       select: %{
+        id: m.id,
         conversation_id: m.conversation_id,
         content: m.content,
         sender_id: m.sender_id,
@@ -675,6 +699,23 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   end
 
   defp fetch_latest_messages(_), do: %{}
+
+  # Trigger: bootstrap needs to know which latest messages have file attachments
+  # Why: inbox preview displays an attachment indicator when the latest message has files
+  # Outcome: MapSet of message_ids that have at least one attachment row
+  defp fetch_attachment_message_ids(latest_messages) when map_size(latest_messages) > 0 do
+    message_ids = latest_messages |> Map.values() |> Enum.map(& &1.id)
+
+    from(a in AttachmentSchema,
+      where: a.message_id in ^message_ids,
+      distinct: a.message_id,
+      select: a.message_id
+    )
+    |> Repo.all()
+    |> MapSet.new()
+  end
+
+  defp fetch_attachment_message_ids(_), do: MapSet.new()
 
   # Trigger: bootstrap needs to pre-populate system note tokens from existing system messages
   # Why: system messages with broadcast tokens must be tracked in the read table for dedup

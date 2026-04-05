@@ -49,11 +49,12 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
           conversation_id :: String.t(),
           message_id :: String.t(),
           sender_id :: String.t(),
-          content :: String.t(),
+          content :: String.t() | nil,
           message_type :: :text | :system,
-          sent_at :: DateTime.t()
+          sent_at :: DateTime.t() | nil,
+          attachments :: [map()]
         ) :: DomainEvent.t()
-  def message_sent(conversation_id, message_id, sender_id, content, message_type, sent_at \\ nil) do
+  def message_sent(conversation_id, message_id, sender_id, content, message_type, sent_at \\ nil, attachments \\ []) do
     DomainEvent.new(
       :message_sent,
       conversation_id,
@@ -64,9 +65,14 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
         sender_id: sender_id,
         content: content,
         message_type: message_type,
-        sent_at: sent_at || DateTime.utc_now()
+        sent_at: sent_at || DateTime.utc_now(),
+        attachments: Enum.map(attachments, &serialize_attachment/1)
       }
     )
+  end
+
+  defp serialize_attachment(%{id: id, file_url: url, original_filename: name, content_type: ct, file_size_bytes: size}) do
+    %{id: id, file_url: url, original_filename: name, content_type: ct, file_size_bytes: size}
   end
 
   @doc """

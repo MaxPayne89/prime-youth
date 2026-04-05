@@ -31,6 +31,7 @@ defmodule KlassHeroWeb.Staff.MessagesLive.Show do
       sender_names={@sender_names}
       provider_user_ids={@provider_user_ids}
       provider_name={@provider_name}
+      uploads={@uploads}
     />
     """
   end

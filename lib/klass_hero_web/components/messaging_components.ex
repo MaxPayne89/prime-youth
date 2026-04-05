@@ -14,6 +14,7 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   import KlassHeroWeb.UIComponents, only: [icon: 1]
 
+  alias KlassHero.Messaging.Domain.Models.Attachment
   alias KlassHeroWeb.MessagingLiveHelper
   alias KlassHeroWeb.Theme
 
@@ -85,10 +86,15 @@ defmodule KlassHeroWeb.MessagingComponents do
 
           <div class="flex items-center justify-between gap-2 mt-1">
             <p class={[
-              "text-sm truncate",
+              "text-sm truncate flex items-center gap-1",
               @unread_count > 0 && Theme.text_color(:body),
               @unread_count == 0 && Theme.text_color(:muted)
             ]}>
+              <.icon
+                :if={@latest_message && Map.get(@latest_message, :has_attachments, false)}
+                name="hero-camera-mini"
+                class="w-4 h-4 flex-shrink-0"
+              />
               {preview_content(@latest_message)}
             </p>
             <.unread_badge :if={@unread_count > 0} count={@unread_count} />
@@ -184,9 +190,27 @@ defmodule KlassHeroWeb.MessagingComponents do
         >
           {@message.content}
         </p>
-        <p :if={@message.message_type != :system} class="text-sm whitespace-pre-wrap break-words">
+        <p
+          :if={@message.message_type != :system && @message.content}
+          class="text-sm whitespace-pre-wrap break-words"
+        >
           {@message.content}
         </p>
+        <div
+          :if={@message.attachments != []}
+          class={[
+            "grid gap-1 mt-1",
+            if(length(@message.attachments) == 1, do: "grid-cols-1", else: "grid-cols-2")
+          ]}
+        >
+          <img
+            :for={attachment <- @message.attachments}
+            src={attachment.file_url}
+            alt={attachment.original_filename}
+            loading="lazy"
+            class="rounded-lg w-full h-auto max-h-64 object-cover"
+          />
+        </div>
         <p class={[
           "text-xs mt-1",
           @is_own && "text-white/80",
@@ -200,53 +224,121 @@ defmodule KlassHeroWeb.MessagingComponents do
   end
 
   @doc """
-  Renders a message input form.
+  Renders a message input form with optional upload support.
+
+  When `uploads` is provided, renders attachment previews, a file input button,
+  and error display for upload validation errors.
   """
   attr :form, :map, required: true
   attr :disabled, :boolean, default: false
+  attr :uploads, :any, default: nil
 
   def message_input(assigns) do
     ~H"""
-    <.form
-      for={@form}
-      phx-submit="send_message"
-      id="message-form"
-      class={["flex items-end gap-2 p-4 border-t", Theme.border_color(:light), Theme.bg(:surface)]}
-    >
-      <div class="flex-1">
-        <textarea
-          name="content"
-          id="message-input"
-          rows="1"
+    <div id="message-input-area" class={["border-t", Theme.border_color(:light), Theme.bg(:surface)]}>
+      <%!-- Upload error display --%>
+      <div
+        :if={@uploads && upload_errors(@uploads.attachments) != []}
+        class="px-4 pt-2"
+      >
+        <p
+          :for={err <- upload_errors(@uploads.attachments)}
+          class="text-xs text-red-600"
+        >
+          {upload_error_to_string(err)}
+        </p>
+      </div>
+      <%!-- Attachment previews --%>
+      <div
+        :if={@uploads && @uploads.attachments.entries != []}
+        class="px-4 pt-3 flex gap-2 overflow-x-auto"
+      >
+        <div
+          :for={entry <- @uploads.attachments.entries}
+          class="relative flex-shrink-0"
+        >
+          <.live_img_preview
+            entry={entry}
+            class={[
+              "w-16 h-16 rounded-lg object-cover",
+              upload_errors(@uploads.attachments, entry) != [] && "ring-2 ring-red-400"
+            ]}
+          />
+          <button
+            type="button"
+            phx-click="cancel-upload"
+            phx-value-ref={entry.ref}
+            aria-label={gettext("Remove attachment")}
+            class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-xs shadow-sm"
+          >
+            &times;
+          </button>
+          <%!-- Upload progress indicator --%>
+          <div
+            :if={entry.progress > 0 and entry.progress < 100}
+            class="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 rounded-b-lg overflow-hidden"
+          >
+            <div class="h-full bg-hero-blue-600 transition-all" style={"width: #{entry.progress}%"} />
+          </div>
+        </div>
+      </div>
+      <%!-- Form with input and buttons --%>
+      <.form
+        for={@form}
+        phx-submit="send_message"
+        phx-change="validate"
+        id="message-form"
+        class="flex items-end gap-2 p-4"
+      >
+        <%!-- Attachment button --%>
+        <label
+          :if={@uploads}
+          for={@uploads.attachments.ref}
           class={[
-            "w-full px-4 py-2 border resize-none focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:border-transparent",
-            Theme.border_color(:medium),
+            "w-10 h-10 flex items-center justify-center cursor-pointer transition-colors",
+            Theme.text_color(:muted),
+            "hover:text-hero-blue-600",
             Theme.rounded(:full)
           ]}
-          placeholder={gettext("Type a message...")}
-          phx-hook="AutoResizeTextarea"
+        >
+          <.icon name="hero-paper-clip" class="w-5 h-5" />
+          <.live_file_input upload={@uploads.attachments} class="hidden" />
+        </label>
+        <div class="flex-1">
+          <textarea
+            name="content"
+            id="message-input"
+            rows="1"
+            class={[
+              "w-full px-4 py-2 border resize-none focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:border-transparent",
+              Theme.border_color(:medium),
+              Theme.rounded(:full)
+            ]}
+            placeholder={gettext("Type a message...")}
+            phx-hook="AutoResizeTextarea"
+            disabled={@disabled}
+          >{Phoenix.HTML.Form.input_value(@form, :content)}</textarea>
+        </div>
+        <button
+          type="submit"
           disabled={@disabled}
-        >{Phoenix.HTML.Form.input_value(@form, :content)}</textarea>
-      </div>
-      <button
-        type="submit"
-        disabled={@disabled}
-        data-role="send-message-btn"
-        class={[
-          "w-10 h-10 flex items-center justify-center bg-hero-blue-600 text-white hover:bg-hero-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
-          Theme.rounded(:full)
-        ]}
-      >
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-          />
-        </svg>
-      </button>
-    </.form>
+          data-role="send-message-btn"
+          class={[
+            "w-10 h-10 flex items-center justify-center bg-hero-blue-600 text-white hover:bg-hero-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+            Theme.rounded(:full)
+          ]}
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+            />
+          </svg>
+        </button>
+      </.form>
+    </div>
     """
   end
 
@@ -405,6 +497,7 @@ defmodule KlassHeroWeb.MessagingComponents do
   attr :sender_names, :map, required: true
   attr :provider_user_ids, :any, default: nil
   attr :provider_name, :string, default: nil
+  attr :uploads, :any, default: nil
 
   def conversation_show(%{variant: :parent} = assigns) do
     ~H"""
@@ -435,6 +528,7 @@ defmodule KlassHeroWeb.MessagingComponents do
             conversation={@conversation}
             provider_user_ids={@provider_user_ids}
             provider_name={@provider_name}
+            uploads={@uploads}
             variant={:parent}
           />
         </div>
@@ -465,6 +559,7 @@ defmodule KlassHeroWeb.MessagingComponents do
           conversation={@conversation}
           provider_user_ids={@provider_user_ids}
           provider_name={@provider_name}
+          uploads={@uploads}
           variant={:provider}
         />
       </div>
@@ -497,11 +592,11 @@ defmodule KlassHeroWeb.MessagingComponents do
     </div>
     <%= cond do %>
       <% @variant == :provider -> %>
-        <.message_input form={@form} />
+        <.message_input form={@form} uploads={@uploads} />
       <% @conversation.type == :program_broadcast -> %>
         <.broadcast_reply_bar />
       <% true -> %>
-        <.message_input form={@form} />
+        <.message_input form={@form} uploads={@uploads} />
     <% end %>
     """
   end
@@ -566,5 +661,30 @@ defmodule KlassHeroWeb.MessagingComponents do
   defp format_message_time(datetime), do: Calendar.strftime(datetime, "%H:%M")
 
   defp preview_content(nil), do: gettext("No messages yet")
-  defp preview_content(%{content: content}), do: String.slice(content, 0, 50)
+
+  defp preview_content(%{has_attachments: true, content: nil}) do
+    gettext("Photo")
+  end
+
+  defp preview_content(%{has_attachments: true, content: content}) when is_binary(content) do
+    gettext("Photo") <> " - " <> String.slice(content, 0, 40)
+  end
+
+  defp preview_content(%{content: content}) when is_binary(content), do: String.slice(content, 0, 50)
+  defp preview_content(_), do: gettext("No messages yet")
+
+  defp upload_error_to_string(:too_large) do
+    max_mb = div(Attachment.max_file_size_bytes(), 1_048_576)
+    gettext("File is too large (max %{mb} MB)", mb: max_mb)
+  end
+
+  defp upload_error_to_string(:not_accepted), do: gettext("File type not accepted (images only)")
+
+  defp upload_error_to_string(:too_many_files) do
+    max = Attachment.max_per_message()
+    gettext("Too many files (max %{max})", max: max)
+  end
+
+  defp upload_error_to_string(:external_client_failure), do: gettext("Upload failed")
+  defp upload_error_to_string(_), do: gettext("Upload error")
 end

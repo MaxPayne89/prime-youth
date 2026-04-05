@@ -1,4 +1,4 @@
-defmodule KlassHero.Messaging.Workers.RetentionPolicyWorkerTest do
+defmodule KlassHero.Messaging.Adapters.Driving.Workers.RetentionPolicyWorkerTest do
   use KlassHero.DataCase, async: true
 
   import KlassHero.Factory
@@ -7,7 +7,7 @@ defmodule KlassHero.Messaging.Workers.RetentionPolicyWorkerTest do
   alias KlassHero.EventTestHelper
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ConversationRepository
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
-  alias KlassHero.Messaging.Workers.RetentionPolicyWorker
+  alias KlassHero.Messaging.Adapters.Driving.Workers.RetentionPolicyWorker
 
   setup do
     EventTestHelper.setup_test_events()
