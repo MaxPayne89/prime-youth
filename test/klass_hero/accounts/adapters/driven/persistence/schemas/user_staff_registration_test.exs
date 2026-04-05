@@ -83,4 +83,37 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Schemas.UserStaffRegist
       refute changeset.valid?
     end
   end
+
+  describe "staff_registration_changeset/3 dual-role support" do
+    test "sets [:staff_provider] when also_provider is not set" do
+      attrs = %{"name" => "Test", "email" => "test@example.com", "password" => "long_password123"}
+
+      changeset = User.staff_registration_changeset(%User{}, attrs, hash_password: false)
+      assert Ecto.Changeset.get_field(changeset, :intended_roles) == [:staff_provider]
+    end
+
+    test "sets [:staff_provider, :provider] when also_provider is 'true'" do
+      attrs = %{
+        "name" => "Test",
+        "email" => "test@example.com",
+        "password" => "long_password123",
+        "also_provider" => "true"
+      }
+
+      changeset = User.staff_registration_changeset(%User{}, attrs, hash_password: false)
+      assert Ecto.Changeset.get_field(changeset, :intended_roles) == [:staff_provider, :provider]
+    end
+
+    test "sets [:staff_provider] when also_provider is 'false'" do
+      attrs = %{
+        "name" => "Test",
+        "email" => "test@example.com",
+        "password" => "long_password123",
+        "also_provider" => "false"
+      }
+
+      changeset = User.staff_registration_changeset(%User{}, attrs, hash_password: false)
+      assert Ecto.Changeset.get_field(changeset, :intended_roles) == [:staff_provider]
+    end
+  end
 end
