@@ -7,12 +7,6 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
   alias KlassHero.Shared.Adapters.Driven.FeatureFlags.StubFeatureFlagsAdapter
   alias KlassHero.Shared.Entitlements
 
-  defp stop_stub_adapter do
-    Agent.stop(StubFeatureFlagsAdapter)
-  catch
-    :exit, _ -> :ok
-  end
-
   defp parent_with_tier(tier) do
     %ParentProfile{
       id: "parent-123",
@@ -32,11 +26,8 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
 
   describe "parent tier bypass enabled" do
     setup do
-      {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
+      start_supervised!({StubFeatureFlagsAdapter, name: StubFeatureFlagsAdapter})
       StubFeatureFlagsAdapter.set_enabled(:parent_tier_bypass)
-
-      on_exit(fn -> stop_stub_adapter() end)
-
       :ok
     end
 
@@ -113,11 +104,8 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
 
   describe "provider tier bypass enabled" do
     setup do
-      {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
+      start_supervised!({StubFeatureFlagsAdapter, name: StubFeatureFlagsAdapter})
       StubFeatureFlagsAdapter.set_enabled(:provider_tier_bypass)
-
-      on_exit(fn -> stop_stub_adapter() end)
-
       :ok
     end
 
@@ -201,14 +189,8 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
   end
 
   describe "fail-closed behavior — parent bypass" do
-    setup do
-      on_exit(fn -> stop_stub_adapter() end)
-
-      :ok
-    end
-
     test "reverts to normal enforcement when flag is explicitly disabled" do
-      {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
+      start_supervised!({StubFeatureFlagsAdapter, name: StubFeatureFlagsAdapter})
       StubFeatureFlagsAdapter.set_enabled(:parent_tier_bypass)
 
       parent = parent_with_tier(:explorer)
@@ -221,7 +203,7 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
     end
 
     test "reverts to normal enforcement when flag system unavailable" do
-      {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
+      start_supervised!({StubFeatureFlagsAdapter, name: StubFeatureFlagsAdapter})
       StubFeatureFlagsAdapter.set_enabled(:parent_tier_bypass)
 
       parent = parent_with_tier(:explorer)
@@ -235,14 +217,8 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
   end
 
   describe "fail-closed behavior — provider bypass" do
-    setup do
-      on_exit(fn -> stop_stub_adapter() end)
-
-      :ok
-    end
-
     test "reverts to normal enforcement when flag is explicitly disabled" do
-      {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
+      start_supervised!({StubFeatureFlagsAdapter, name: StubFeatureFlagsAdapter})
       StubFeatureFlagsAdapter.set_enabled(:provider_tier_bypass)
 
       provider = provider_with_tier(:starter)
@@ -255,7 +231,7 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
     end
 
     test "reverts to normal enforcement when flag system unavailable" do
-      {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
+      start_supervised!({StubFeatureFlagsAdapter, name: StubFeatureFlagsAdapter})
       StubFeatureFlagsAdapter.set_enabled(:provider_tier_bypass)
 
       provider = provider_with_tier(:starter)
