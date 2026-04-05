@@ -17,14 +17,16 @@
     "factory": "KlassHero.Factory with build/insert_pair/etc; factory files in test/support/factories/",
     "event_tests": "Participation domain event tests use pure struct construction, no DB needed",
     "coverage_tool": "excoveralls (mix coveralls.html); CI does not block on coverage thresholds",
-    "mix_unavailable": "mix binary not in PATH in CI runner; must verify test correctness by reading implementation"
+    "mix_unavailable": "mix binary not in PATH in CI runner; must verify test correctness by reading implementation",
+    "mapper_test_pattern": "Use ExUnit.Case async:true with struct!() helper + override map; ChildMapperTest is the canonical reference",
+    "struct_helper_pattern": "Use struct!(ModuleName, Map.merge(defaults, overrides)) NOT Map.merge on a struct (latter returns plain map, breaking pattern matches in tested code)"
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
     {
       "id": "admin-provider-live-event-publishing",
       "priority": "low",
-      "description": "admin provider_live.ex on_item_updated/2 publishes provider_verified/provider_unverified integration events; existing tests verify DB state only"
+      "description": "admin provider_live.ex on_item_updated/2 publishes provider_verified/provider_unverified integration events; existing tests verify DB state only; architecturally constrained (TestIntegrationEventPublisher stores in calling process's dict, not LiveView process)"
     },
     {
       "id": "e2e-messaging-pubsub-fanout",
@@ -34,30 +36,40 @@
   ],
   "tasks_last_run": {
     "task_1": "2026-04-02",
-    "task_2": "2026-04-04",
-    "task_3": "2026-04-04",
+    "task_2": "2026-04-05",
+    "task_3": "2026-04-05",
     "task_4": "2026-04-04",
     "task_5": "2026-04-03",
     "task_6": "2026-04-03",
-    "task_7": "2026-04-04"
+    "task_7": "2026-04-05"
   },
   "work_in_progress": null,
   "completed_work": [
     {
+      "date": "2026-04-05",
+      "run_id": "24010668874",
+      "tasks": ["task_3", "task_7"],
+      "pr_branch": "test-assist/family-mapper-unit-tests",
+      "description": "17 pure unit tests for ConsentMapper (5) and ParentProfileMapper (12) — tier string/atom conversion, UUID casting, id inclusion/exclusion, timestamps",
+      "tests_added": 17
+    },
+    {
       "date": "2026-04-04",
       "run_id": "23987764695",
-      "tasks": ["task_2", "task_3", "task_4", "task_7"],
+      "pr_number": 596,
       "pr_branch": "test-assist/correct-attendance-status-only-branch-tests",
       "description": "2 new DataCase tests for CorrectAttendance: status-only cond branch and empty-string append_to_field branch",
-      "tests_added": 2
+      "tests_added": 2,
+      "merged": true
     },
     {
       "date": "2026-04-03",
       "run_id": "23962603774",
       "pr_number": 591,
-      "pr_branch": "test-assist/participation-events-payload-tests-243c90f27895c28f",
+      "pr_branch": "test-assist/participation-events-payload-tests",
       "description": "11 new async unit tests extending participation_events_payload_test.exs covering 7 previously untested factory functions",
-      "tests_added": 11
+      "tests_added": 11,
+      "merged": true
     },
     {
       "date": "2026-04-02",
@@ -76,7 +88,7 @@
   },
   "checked_off_items": [],
   "backlog_cursor": {
-    "task_2_last_file": "participation/application/use_cases/",
+    "task_2_last_file": "family/adapters/driven/persistence/mappers/",
     "task_5_last_issue": 515
   }
 }
