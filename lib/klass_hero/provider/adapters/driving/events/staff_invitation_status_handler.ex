@@ -51,10 +51,14 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
           end)
 
         if result == :ok and payload[:create_provider_profile] do
-          maybe_create_provider_profile(user_id, payload)
+          case maybe_create_provider_profile(user_id, payload) do
+            :ok -> result
+            {:error, :duplicate_resource} -> result
+            {:error, reason} -> {:error, reason}
+          end
+        else
+          result
         end
-
-        result
 
       :error ->
         Logger.error("[StaffInvitationStatusHandler] Missing :user_id in staff_user_registered payload")
@@ -79,16 +83,22 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
           provider_id: profile.id
         )
 
-      {:error, :duplicate_resource} ->
+        :ok
+
+      {:error, :duplicate_resource} = error ->
         Logger.info("[StaffInvitationStatusHandler] Provider profile already exists",
           user_id: user_id
         )
+
+        error
 
       {:error, reason} ->
         Logger.error("[StaffInvitationStatusHandler] Failed to create provider profile",
           user_id: user_id,
           reason: inspect(reason)
         )
+
+        {:error, reason}
     end
   end
 

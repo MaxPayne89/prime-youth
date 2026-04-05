@@ -109,6 +109,11 @@ defmodule KlassHero.Accounts.Scope do
   def staff_provider?(%__MODULE__{staff_member: staff_member}), do: staff_member != nil
 
   @doc """
+  Returns true if the scope has both a provider and staff provider profile.
+  """
+  def dual_role?(%__MODULE__{} = scope), do: provider?(scope) and staff_provider?(scope)
+
+  @doc """
   Returns the parent's subscription tier from the scope.
 
   Returns nil if no parent profile exists.

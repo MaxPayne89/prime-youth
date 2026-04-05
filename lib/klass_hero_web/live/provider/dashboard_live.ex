@@ -12,6 +12,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   import KlassHeroWeb.ProviderComponents
 
+  alias KlassHero.Accounts.Scope
   alias KlassHero.Enrollment
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
@@ -76,7 +77,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           socket
           |> assign(page_title: gettext("Provider Dashboard"))
           |> assign(business: business)
-          |> assign(:dual_role?, socket.assigns.current_scope.staff_member != nil)
+          |> assign(:dual_role?, Scope.dual_role?(socket.assigns.current_scope))
           |> stream(:team_members, staff_views)
           |> update_staff_count(length(staff_views))
           |> stream(:programs, programs)

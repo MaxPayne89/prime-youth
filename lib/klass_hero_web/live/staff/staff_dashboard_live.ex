@@ -1,6 +1,7 @@
 defmodule KlassHeroWeb.Staff.StaffDashboardLive do
   use KlassHeroWeb, :live_view
 
+  alias KlassHero.Accounts.Scope
   alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
@@ -23,7 +24,7 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
           |> assign(:staff_member, staff_member)
           |> assign(:assigned_program_ids, assigned_ids)
           |> assign(:programs_empty?, programs == [])
-          |> assign(:dual_role?, socket.assigns.current_scope.provider != nil)
+          |> assign(:dual_role?, Scope.dual_role?(socket.assigns.current_scope))
           |> assign(:show_roster, false)
           |> assign(:roster_entries, [])
           |> assign(:roster_program_name, nil)
