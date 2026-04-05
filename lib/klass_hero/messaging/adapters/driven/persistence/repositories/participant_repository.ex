@@ -237,4 +237,41 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Participa
       {:ok, participants}
     end
   end
+
+  @impl true
+  def add_to_conversations_batch(_user_id, []), do: {:ok, 0}
+
+  def add_to_conversations_batch(user_id, conversation_ids) do
+    span do
+      set_attributes("db", operation: "insert", entity: "messaging_participant")
+
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      entries =
+        Enum.map(conversation_ids, fn conversation_id ->
+          %{
+            id: Ecto.UUID.generate(),
+            conversation_id: conversation_id,
+            user_id: user_id,
+            joined_at: now,
+            inserted_at: now,
+            updated_at: now
+          }
+        end)
+
+      {count, _} =
+        Repo.insert_all(ParticipantSchema, entries,
+          on_conflict: :nothing,
+          conflict_target: [:conversation_id, :user_id]
+        )
+
+      Logger.debug("Added staff user to conversations in batch",
+        user_id: user_id,
+        conversation_count: length(conversation_ids),
+        added_count: count
+      )
+
+      {:ok, count}
+    end
+  end
 end
