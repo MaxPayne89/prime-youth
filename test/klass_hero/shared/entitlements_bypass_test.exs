@@ -7,6 +7,12 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
   alias KlassHero.Shared.Adapters.Driven.FeatureFlags.StubFeatureFlagsAdapter
   alias KlassHero.Shared.Entitlements
 
+  defp stop_stub_adapter do
+    Agent.stop(StubFeatureFlagsAdapter)
+  catch
+    :exit, _ -> :ok
+  end
+
   defp parent_with_tier(tier) do
     %ParentProfile{
       id: "parent-123",
@@ -29,9 +35,7 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
       {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
       StubFeatureFlagsAdapter.set_enabled(:parent_tier_bypass)
 
-      on_exit(fn ->
-        if Process.whereis(StubFeatureFlagsAdapter), do: Agent.stop(StubFeatureFlagsAdapter)
-      end)
+      on_exit(fn -> stop_stub_adapter() end)
 
       :ok
     end
@@ -112,9 +116,7 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
       {:ok, _pid} = StubFeatureFlagsAdapter.start_link(name: StubFeatureFlagsAdapter)
       StubFeatureFlagsAdapter.set_enabled(:provider_tier_bypass)
 
-      on_exit(fn ->
-        if Process.whereis(StubFeatureFlagsAdapter), do: Agent.stop(StubFeatureFlagsAdapter)
-      end)
+      on_exit(fn -> stop_stub_adapter() end)
 
       :ok
     end
@@ -200,9 +202,7 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
 
   describe "fail-closed behavior — parent bypass" do
     setup do
-      on_exit(fn ->
-        if Process.whereis(StubFeatureFlagsAdapter), do: Agent.stop(StubFeatureFlagsAdapter)
-      end)
+      on_exit(fn -> stop_stub_adapter() end)
 
       :ok
     end
@@ -236,9 +236,7 @@ defmodule KlassHero.Shared.EntitlementsBypassTest do
 
   describe "fail-closed behavior — provider bypass" do
     setup do
-      on_exit(fn ->
-        if Process.whereis(StubFeatureFlagsAdapter), do: Agent.stop(StubFeatureFlagsAdapter)
-      end)
+      on_exit(fn -> stop_stub_adapter() end)
 
       :ok
     end
