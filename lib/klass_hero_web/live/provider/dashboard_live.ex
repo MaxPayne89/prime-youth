@@ -76,6 +76,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           socket
           |> assign(page_title: gettext("Provider Dashboard"))
           |> assign(business: business)
+          |> assign(:dual_role?, socket.assigns.current_scope.staff_member != nil)
           |> stream(:team_members, staff_views)
           |> update_staff_count(length(staff_views))
           |> stream(:programs, programs)
@@ -1029,6 +1030,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             />
           <% _ -> %>
             <.provider_dashboard_header business={@business} />
+            <.link
+              :if={@dual_role?}
+              id="cross-nav-staff-link"
+              navigate={~p"/staff/dashboard"}
+              class="inline-flex items-center gap-1 text-sm text-brand hover:text-brand/80"
+            >
+              {gettext("View your assignments")} →
+            </.link>
             <.provider_nav_tabs live_action={@live_action} />
 
             <%= case @live_action do %>

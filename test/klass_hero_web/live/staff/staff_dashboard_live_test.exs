@@ -122,4 +122,50 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLiveTest do
       assert render(view) =~ "Unauthorized"
     end
   end
+
+  describe "cross-navigation for dual-role users" do
+    setup %{conn: conn} do
+      user =
+        KlassHero.AccountsFixtures.user_fixture(intended_roles: [:staff_provider, :provider])
+
+      provider = KlassHero.ProviderFixtures.provider_profile_fixture(identity_id: user.id)
+
+      staff =
+        KlassHero.ProviderFixtures.staff_member_fixture(
+          provider_id: provider.id,
+          user_id: user.id,
+          invitation_status: :accepted
+        )
+
+      conn = log_in_user(conn, user)
+      %{conn: conn, user: user, provider: provider, staff: staff}
+    end
+
+    test "shows link to provider dashboard for dual-role users", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+      assert has_element?(view, "#cross-nav-provider-link")
+    end
+  end
+
+  describe "cross-navigation for staff-only users" do
+    setup %{conn: conn} do
+      user = KlassHero.AccountsFixtures.user_fixture(intended_roles: [:staff_provider])
+      provider = KlassHero.ProviderFixtures.provider_profile_fixture()
+
+      staff =
+        KlassHero.ProviderFixtures.staff_member_fixture(
+          provider_id: provider.id,
+          user_id: user.id,
+          invitation_status: :accepted
+        )
+
+      conn = log_in_user(conn, user)
+      %{conn: conn, user: user, staff: staff}
+    end
+
+    test "does NOT show link to provider dashboard for staff-only users", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+      refute has_element?(view, "#cross-nav-provider-link")
+    end
+  end
 end
