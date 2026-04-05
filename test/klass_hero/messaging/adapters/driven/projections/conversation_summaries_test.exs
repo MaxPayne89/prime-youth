@@ -1040,8 +1040,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummariesT
         provider_id: provider.id
       })
 
-      # Insert in order: parent first, then owner, then staff
-      # This way the "first non-self" for staff is parent, and for owner is parent
+      # Use distinct joined_at timestamps to guarantee ordering via preload_order
       Repo.insert!(%ParticipantSchema{
         id: Ecto.UUID.generate(),
         conversation_id: conversation_id,
@@ -1053,14 +1052,14 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummariesT
         id: Ecto.UUID.generate(),
         conversation_id: conversation_id,
         user_id: provider.identity_id,
-        joined_at: now
+        joined_at: DateTime.add(now, 1, :second)
       })
 
       Repo.insert!(%ParticipantSchema{
         id: Ecto.UUID.generate(),
         conversation_id: conversation_id,
         user_id: staff_user.id,
-        joined_at: now
+        joined_at: DateTime.add(now, 2, :second)
       })
 
       assert :ok = ConversationSummaries.rebuild(@test_server_name)

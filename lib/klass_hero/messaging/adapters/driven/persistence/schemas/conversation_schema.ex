@@ -29,7 +29,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSc
     # Virtual fields for query results
     field :unread_count, :integer, virtual: true, default: 0
 
-    has_many :participants, ParticipantSchema, foreign_key: :conversation_id
+    has_many :participants, ParticipantSchema,
+      foreign_key: :conversation_id,
+      preload_order: [asc: :joined_at]
+
     has_many :messages, MessageSchema, foreign_key: :conversation_id
 
     timestamps()
