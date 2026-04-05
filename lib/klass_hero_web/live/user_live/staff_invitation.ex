@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
 
   alias KlassHero.Accounts
   alias KlassHero.Provider
+  alias KlassHeroWeb.Theme
 
   require Logger
 
@@ -69,6 +70,17 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
                 autocomplete="new-password"
                 required
               />
+              <label class="flex items-center gap-2 mt-4 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="user[also_provider]"
+                  value="true"
+                  class="rounded border-zinc-300 text-brand focus:ring-brand"
+                />
+                <span class={Theme.typography(:body_small)}>
+                  {gettext("I also want to offer my own programs")}
+                </span>
+              </label>
               <.button
                 phx-disable-with={gettext("Creating account...")}
                 class="btn btn-primary w-full mt-6"
@@ -114,15 +126,21 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
     staff = socket.assigns.staff_member
+    also_provider = Map.get(user_params, "also_provider") == "true"
     params = Map.put(user_params, "email", staff.email)
 
     case Accounts.register_staff_user(params) do
       {:ok, user} ->
+        event_opts =
+          if also_provider,
+            do: %{create_provider_profile: true, user_name: user.name},
+            else: %{}
+
         # Trigger: emit_staff_user_registered may fail (PubSub/Oban enqueue)
         # Why: the user account IS created; the critical event infrastructure
         #   guarantees eventual delivery via Oban durable retry
         # Outcome: proceed with success UX; the staff linkage self-heals
-        case Accounts.emit_staff_user_registered(user.id, staff.id, staff.provider_id) do
+        case Accounts.emit_staff_user_registered(user.id, staff.id, staff.provider_id, event_opts) do
           :ok ->
             :ok
 
