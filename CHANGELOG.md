@@ -5,6 +5,48 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.0](https://github.com/MaxPayne89/klass-hero/compare/v0.24.3...v0.25.0) (2026-04-05)
+
+
+### Features
+
+* add Attachment domain model with validation ([047fdf9](https://github.com/MaxPayne89/klass-hero/commit/047fdf9f31abdb51405e54cde27a68bde267b962))
+* add AttachmentSchema, AttachmentMapper, update MessageSchema ([6b37faf](https://github.com/MaxPayne89/klass-hero/commit/6b37faf3d361256905af0d91f50ce8ee1f1beb10))
+* add ForManagingAttachments port, wire DI, update boundary exports ([bca432d](https://github.com/MaxPayne89/klass-hero/commit/bca432df63bee0a4d5e7b4344f738a5105b1a0fa))
+* add photo upload UI and attachment rendering in messages ([473697f](https://github.com/MaxPayne89/klass-hero/commit/473697f3f6be2a1cddc9ba1dfc0ead7fc65f4086))
+* clean up S3 attachment files during retention enforcement ([ad7499f](https://github.com/MaxPayne89/klass-hero/commit/ad7499f5e128d7a18c530f35ad837914573132da))
+* create message_attachments table and add has_attachments to summaries ([e81cb92](https://github.com/MaxPayne89/klass-hero/commit/e81cb92aa707c20a62c67164094dc8ba88862942))
+* enrich message_sent event with attachment metadata ([c381454](https://github.com/MaxPayne89/klass-hero/commit/c3814542b6cdb01c26ea58c18a3c03f845ffb167))
+* implement AttachmentRepository with TDD ([1187f76](https://github.com/MaxPayne89/klass-hero/commit/1187f76b002b1986f025b012b9757e8c4512b066))
+* make message content optional when attachments present ([3e65f6d](https://github.com/MaxPayne89/klass-hero/commit/3e65f6d075b26a8e7a83f3e1db95aee43aa81469))
+* project has_attachments in conversation summaries ([b568c44](https://github.com/MaxPayne89/klass-hero/commit/b568c44cd8a1835bc162c4358a075839ba57ea8a))
+* support attachments in SendMessage use case with S3 upload ([8635c1c](https://github.com/MaxPayne89/klass-hero/commit/8635c1c1f5169d5347b772540d9eac013cd00230))
+* support photo attachments in messages ([c9526cb](https://github.com/MaxPayne89/klass-hero/commit/c9526cbb52446786b745051cf9de721b18bac16f))
+
+
+### Bug Fixes
+
+* add UUID validation to Attachment model ([1632944](https://github.com/MaxPayne89/klass-hero/commit/1632944328a7c4453adcce86a8e90e15d0669783))
+* address PR review comments for photo attachments ([bc4dfd0](https://github.com/MaxPayne89/klass-hero/commit/bc4dfd087630ea7e2402ca83e7a027381098e680)), closes [#594](https://github.com/MaxPayne89/klass-hero/issues/594)
+* address review findings for photo attachments robustness ([a5abd17](https://github.com/MaxPayne89/klass-hero/commit/a5abd17b769fb6e5f741cead210d28bd8688529e))
+* eliminate flaky tests caused by TOCTOU race and non-deterministic ordering ([ccb8a4b](https://github.com/MaxPayne89/klass-hero/commit/ccb8a4bb914b6350b7db748aba0de95f1cdc5ef4))
+* register added_count Logger metadata key ([500283b](https://github.com/MaxPayne89/klass-hero/commit/500283bbc96e69b4b5ae9384e4c8dd84eea555ab))
+* resolve credo strict issues for photo attachments ([93422cd](https://github.com/MaxPayne89/klass-hero/commit/93422cd491bd18a1a7294e8e3492e09b8a00d38a))
+* resolve flaky EntitlementsBypassTest via start_supervised! ([4c61ad0](https://github.com/MaxPayne89/klass-hero/commit/4c61ad09e445e82077d5bdf73cc3709bb04e0bbb))
+* use public S3 bucket and add cleanup on message creation failure ([45363f8](https://github.com/MaxPayne89/klass-hero/commit/45363f87f1ad17fbf00292104065c6c4163391ed))
+
+
+### Performance Improvements
+
+* **messaging:** batch-insert staff participants via insert_all in StaffAssignmentHandler ([742e66d](https://github.com/MaxPayne89/klass-hero/commit/742e66d4e4fa313396103db9a933e099e9bbc02a))
+* **messaging:** batch-insert staff participants via insert_all in StaffAssignmentHandler ([6b5e6cd](https://github.com/MaxPayne89/klass-hero/commit/6b5e6cd1d9016cb18ad8e95a6b47dc35a07bf6b3))
+
+
+### Code Refactoring
+
+* address review suggestions and move workers to canonical location ([5fb7530](https://github.com/MaxPayne89/klass-hero/commit/5fb7530226bdd93e4d8c98733597f32b54836115))
+* simplify photo attachments code ([98b9a1c](https://github.com/MaxPayne89/klass-hero/commit/98b9a1ceeebe29f6bb12f055c2f5e03377e29b93))
+
 ## [0.24.3](https://github.com/MaxPayne89/klass-hero/compare/v0.24.2...v0.24.3) (2026-04-03)
 
 
