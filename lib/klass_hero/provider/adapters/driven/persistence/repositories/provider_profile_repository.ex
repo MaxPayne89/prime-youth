@@ -42,7 +42,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
     span do
       set_attributes("db", operation: "insert", entity: "provider_profile")
 
-      schema_attrs = MapperHelpers.normalize_subscription_tier(attrs)
+      schema_attrs =
+        attrs
+        |> MapperHelpers.normalize_subscription_tier()
+        |> normalize_originated_from()
 
       %ProviderProfileSchema{}
       |> ProviderProfileSchema.changeset(schema_attrs)
@@ -177,6 +180,16 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
         |> Repo.all()
 
       {:ok, ids}
+    end
+  end
+
+  defp normalize_originated_from(attrs) do
+    case Map.get(attrs, :originated_from) do
+      from when is_atom(from) and not is_nil(from) ->
+        Map.put(attrs, :originated_from, Atom.to_string(from))
+
+      _ ->
+        attrs
     end
   end
 end
