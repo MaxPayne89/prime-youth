@@ -2,7 +2,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ConsentMapperTest
   @moduledoc """
   Unit tests for ConsentMapper.
 
-  Tests round-trip mapping between ConsentSchema and Consent domain entities.
+  Tests schema-to-domain mapping from ConsentSchema to Consent domain entities.
   No database required — schemas are constructed inline.
   """
 
@@ -77,7 +77,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ConsentMapperTest
 
       consent = ConsentMapper.to_domain(schema)
 
-      assert is_binary(consent.id)
+      assert consent.id == Ecto.UUID.cast!(schema.id)
       assert {:ok, _} = Ecto.UUID.cast(consent.id)
     end
   end
