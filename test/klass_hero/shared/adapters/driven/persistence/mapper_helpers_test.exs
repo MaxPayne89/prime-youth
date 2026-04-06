@@ -99,6 +99,40 @@ defmodule KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpersTest do
     end
   end
 
+  describe "normalize_atom_field/2" do
+    test "converts atom value to string for arbitrary key" do
+      attrs = %{originated_from: :staff_invite, name: "Alice"}
+
+      assert MapperHelpers.normalize_atom_field(attrs, :originated_from) == %{
+               originated_from: "staff_invite",
+               name: "Alice"
+             }
+    end
+
+    test "leaves attrs unchanged when key is absent" do
+      attrs = %{name: "Alice"}
+
+      assert MapperHelpers.normalize_atom_field(attrs, :originated_from) == %{name: "Alice"}
+    end
+
+    test "leaves attrs unchanged when value is nil" do
+      attrs = %{originated_from: nil, name: "Alice"}
+
+      assert MapperHelpers.normalize_atom_field(attrs, :originated_from) == %{
+               originated_from: nil,
+               name: "Alice"
+             }
+    end
+
+    test "leaves attrs unchanged when value is already a string" do
+      attrs = %{originated_from: "direct"}
+
+      assert MapperHelpers.normalize_atom_field(attrs, :originated_from) == %{
+               originated_from: "direct"
+             }
+    end
+  end
+
   describe "maybe_add_id/2" do
     test "adds the id to the attrs map when id is present" do
       attrs = %{name: "Alice"}

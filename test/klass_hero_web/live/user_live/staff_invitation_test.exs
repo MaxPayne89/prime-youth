@@ -170,6 +170,62 @@ defmodule KlassHeroWeb.UserLive.StaffInvitationTest do
     end
   end
 
+  describe "also_provider checkbox" do
+    test "renders the opt-in checkbox", %{conn: conn} do
+      {raw_token, _staff, _provider} = create_staff_with_invitation()
+
+      {:ok, view, _html} = live(conn, ~p"/users/staff-invitation/#{raw_token}")
+
+      assert has_element?(view, "#staff-registration-form input[name='user[also_provider]']")
+    end
+
+    test "submitting with checkbox checked creates account", %{conn: conn} do
+      {raw_token, staff, _provider} = create_staff_with_invitation()
+
+      {:ok, lv, _html} = live(conn, ~p"/users/staff-invitation/#{raw_token}")
+
+      {:ok, _lv, html} =
+        lv
+        |> form("#staff-registration-form",
+          user: %{
+            name: "Jane Doe",
+            password: "verylongpassword123!",
+            also_provider: "true"
+          }
+        )
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/users/log-in")
+
+      assert html =~ "Account created"
+
+      user = KlassHero.Repo.get_by!(User, email: staff.email)
+      assert :staff_provider in user.intended_roles
+      assert :provider in user.intended_roles
+    end
+
+    test "submitting without checkbox works normally", %{conn: conn} do
+      {raw_token, staff, _provider} = create_staff_with_invitation()
+
+      {:ok, lv, _html} = live(conn, ~p"/users/staff-invitation/#{raw_token}")
+
+      {:ok, _lv, html} =
+        lv
+        |> form("#staff-registration-form",
+          user: %{
+            name: "Jane Doe",
+            password: "verylongpassword123!"
+          }
+        )
+        |> render_submit()
+        |> follow_redirect(conn, ~p"/users/log-in")
+
+      assert html =~ "Account created"
+
+      user = KlassHero.Repo.get_by!(User, email: staff.email)
+      assert user.intended_roles == [:staff_provider]
+    end
+  end
+
   describe "form validation errors" do
     test "shows error when password is too short", %{conn: conn} do
       {raw_token, _staff, _provider} = create_staff_with_invitation()
