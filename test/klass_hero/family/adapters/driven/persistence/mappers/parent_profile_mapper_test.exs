@@ -80,8 +80,8 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ParentProfileMapp
 
       parent = ParentProfileMapper.to_domain(schema)
 
-      assert parent.id == to_string(schema.id)
-      assert parent.identity_id == to_string(schema.identity_id)
+      assert parent.id == schema.id
+      assert parent.identity_id == schema.identity_id
     end
 
     test "preserves timestamps from schema" do

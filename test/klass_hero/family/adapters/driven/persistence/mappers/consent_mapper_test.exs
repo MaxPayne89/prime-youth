@@ -78,7 +78,6 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Mappers.ConsentMapperTest
       consent = ConsentMapper.to_domain(schema)
 
       assert consent.id == Ecto.UUID.cast!(schema.id)
-      assert {:ok, _} = Ecto.UUID.cast(consent.id)
     end
   end
 end
