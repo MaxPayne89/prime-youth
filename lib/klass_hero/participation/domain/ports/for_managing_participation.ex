@@ -58,4 +58,15 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingParticipation do
   """
   @callback seed_batch(session_id :: String.t(), child_ids :: [String.t()]) ::
               {:ok, non_neg_integer()}
+
+  @doc """
+  Bulk-marks a set of participation records as absent using a single UPDATE WHERE id IN (...) AND status = :registered.
+
+  Only records with status `:registered` are updated — already checked-in or
+  checked-out records are naturally skipped by the WHERE guard.
+
+  Returns `{:ok, count}` where count is the number of actually updated records.
+  Returns `{:ok, 0}` immediately when the list is empty.
+  """
+  @callback mark_absent_batch(record_ids :: [String.t()]) :: {:ok, non_neg_integer()}
 end

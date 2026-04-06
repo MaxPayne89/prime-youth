@@ -132,6 +132,21 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
   end
 
   @impl true
+  def mark_absent_batch([]), do: {:ok, 0}
+
+  def mark_absent_batch(record_ids) when is_list(record_ids) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    {count, _} =
+      from(r in ParticipationRecordSchema,
+        where: r.id in ^record_ids and r.status == :registered
+      )
+      |> Repo.update_all(inc: [lock_version: 1], set: [status: :absent, updated_at: now])
+
+    {:ok, count}
+  end
+
+  @impl true
   def seed_batch(_session_id, []), do: {:ok, 0}
 
   def seed_batch(session_id, child_ids) when is_binary(session_id) and is_list(child_ids) do
