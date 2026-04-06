@@ -5,6 +5,44 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.0](https://github.com/MaxPayne89/klass-hero/compare/v0.25.0...v0.26.0) (2026-04-06)
+
+
+### Features
+
+* add cross-navigation links between staff and provider dashboards ([cde4c4d](https://github.com/MaxPayne89/klass-hero/commit/cde4c4d75c9040a284f5cc7c5b2ec6436e1b39ea))
+* add opt-in provider checkbox to staff invitation form ([65399ea](https://github.com/MaxPayne89/klass-hero/commit/65399ea010e24bb309bfaeb60a546b7cc88ea0b6))
+* add originated_from column to providers table ([bbdcb5e](https://github.com/MaxPayne89/klass-hero/commit/bbdcb5e6c265842e4c6a8edf4213cb236f41e7c5))
+* add originated_from field to ProviderProfile domain model ([62d3806](https://github.com/MaxPayne89/klass-hero/commit/62d38064b537164d228ba452415cafe4096b95d9))
+* add originated_from field to ProviderProfileSchema ([36b53f3](https://github.com/MaxPayne89/klass-hero/commit/36b53f35b0c47ef2bf478477161a0384b620524c))
+* allow staff members to opt-in as independent providers ([8004357](https://github.com/MaxPayne89/klass-hero/commit/8004357288c37937809d73295a628bb0a88810f1))
+* create provider profile on staff registration when opted in ([c6eab3c](https://github.com/MaxPayne89/klass-hero/commit/c6eab3ccaffcf683ab93b0e8d506743b43894c79))
+* extend emit_staff_user_registered with optional payload ([26f41da](https://github.com/MaxPayne89/klass-hero/commit/26f41da7cd77a820962b3326226aa6cad563b8fd))
+* map originated_from in ProviderProfileMapper ([78ce898](https://github.com/MaxPayne89/klass-hero/commit/78ce898cdd2e58c5e2cdda920458bfe32bbd34a5))
+* support dual-role in staff registration changeset ([244e7c9](https://github.com/MaxPayne89/klass-hero/commit/244e7c96c5ef2a6ab93a77850b9cddd11a23f136))
+* swap router precedence so provider takes priority over staff ([96043ea](https://github.com/MaxPayne89/klass-hero/commit/96043ea2ebb86536638e09c378f376afdbaf992e))
+
+
+### Bug Fixes
+
+* address PR review comments ([5c3fa29](https://github.com/MaxPayne89/klass-hero/commit/5c3fa293e475002cef287c762b92d4b83110499b)), closes [#603](https://github.com/MaxPayne89/klass-hero/issues/603)
+* preserve checkbox state through LiveView re-renders ([5e9caa6](https://github.com/MaxPayne89/klass-hero/commit/5e9caa69175a381f2d85cc313ad61663f504d5b5))
+* prevent race between ProviderEventHandler and StaffInvitationStatusHandler ([bd7d2b5](https://github.com/MaxPayne89/klass-hero/commit/bd7d2b5ef5c5b830a724a4fda7fac49f5f1f58f0))
+* simplify test name for empty-list batch absent guard ([ae2a542](https://github.com/MaxPayne89/klass-hero/commit/ae2a5429185f3f8f57e5109515dd4b3c21a52334)), closes [#602](https://github.com/MaxPayne89/klass-hero/issues/602)
+* strengthen mapper test assertions and fix moduledoc ([c5b7ce4](https://github.com/MaxPayne89/klass-hero/commit/c5b7ce4b3104ba3b8497e4ca0536e4bc08d6fa1b)), closes [#600](https://github.com/MaxPayne89/klass-hero/issues/600)
+
+
+### Performance Improvements
+
+* **participation:** batch-update absent records via update_all in CompleteSession ([47788ef](https://github.com/MaxPayne89/klass-hero/commit/47788ef50ced323da6fcaf6a9f46b997d12d8766))
+* **participation:** batch-update absent records via update_all in CompleteSession ([04758f9](https://github.com/MaxPayne89/klass-hero/commit/04758f91964747bc9d898bd93c31eec8399b4537))
+
+
+### Code Refactoring
+
+* simplify dual-role implementation after code review ([d946272](https://github.com/MaxPayne89/klass-hero/commit/d946272c75598dd9d39e21aabddaa2360c46a29f))
+* simplify redundant mapper test assertions ([86ad154](https://github.com/MaxPayne89/klass-hero/commit/86ad1540093c2136624690d5aa9ba29ea4298cfa)), closes [#600](https://github.com/MaxPayne89/klass-hero/issues/600)
+
 ## [0.25.0](https://github.com/MaxPayne89/klass-hero/compare/v0.24.3...v0.25.0) (2026-04-05)
 
 
