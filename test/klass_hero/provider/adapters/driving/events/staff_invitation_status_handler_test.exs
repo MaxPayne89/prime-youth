@@ -237,6 +237,36 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
       # Verify NO provider profile was created
       assert {:error, :not_found} = KlassHero.Provider.get_provider_by_identity(user.id)
     end
+
+    test "returns :ok when provider profile already exists (idempotent)" do
+      user = KlassHero.AccountsFixtures.user_fixture(intended_roles: [:staff_provider, :provider])
+      _existing_profile = KlassHero.ProviderFixtures.provider_profile_fixture(identity_id: user.id)
+      provider = KlassHero.ProviderFixtures.provider_profile_fixture()
+
+      staff =
+        KlassHero.ProviderFixtures.staff_member_fixture(
+          provider_id: provider.id,
+          email: "dup@test.com",
+          first_name: "Test",
+          last_name: "Staff",
+          invitation_status: :sent,
+          invitation_token_hash: :crypto.hash(:sha256, "dup-token"),
+          invitation_sent_at: DateTime.utc_now()
+        )
+
+      event =
+        AccountsIntegrationEvents.staff_user_registered(
+          user.id,
+          %{
+            staff_member_id: staff.id,
+            provider_id: provider.id,
+            create_provider_profile: true,
+            user_name: user.name
+          }
+        )
+
+      assert :ok = StaffInvitationStatusHandler.handle_event(event)
+    end
   end
 
   describe "handle_event/1 for unknown events" do

@@ -24,6 +24,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Provider.Domain.Models.ProviderProfile
 
+  require Logger
+
   @doc """
   Converts an Ecto ProviderProfileSchema to a domain ProviderProfile entity.
 
@@ -79,7 +81,13 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
   end
 
   defp string_to_origin("staff_invite"), do: :staff_invite
-  defp string_to_origin(_), do: :direct
+  defp string_to_origin("direct"), do: :direct
+  defp string_to_origin(nil), do: :direct
+
+  defp string_to_origin(other) do
+    Logger.warning("[ProviderProfileMapper] Unknown originated_from value: #{inspect(other)}")
+    :direct
+  end
 
   defp origin_to_string(:staff_invite), do: "staff_invite"
   defp origin_to_string(_), do: "direct"

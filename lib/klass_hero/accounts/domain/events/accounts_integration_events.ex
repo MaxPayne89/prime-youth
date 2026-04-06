@@ -50,6 +50,10 @@ defmodule KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents do
   @typedoc "Payload for `:staff_user_registered` events."
   @type staff_user_registered_payload :: %{
           required(:user_id) => String.t(),
+          required(:staff_member_id) => String.t(),
+          required(:provider_id) => String.t(),
+          optional(:create_provider_profile) => boolean(),
+          optional(:user_name) => String.t(),
           optional(atom()) => term()
         }
 

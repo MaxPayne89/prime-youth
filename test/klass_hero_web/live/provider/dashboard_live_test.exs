@@ -1078,4 +1078,11 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       assert has_element?(view, "#cross-nav-staff-link")
     end
   end
+
+  describe "cross-navigation for provider-only users" do
+    test "does NOT show link to staff dashboard", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+      refute has_element?(view, "#cross-nav-staff-link")
+    end
+  end
 end

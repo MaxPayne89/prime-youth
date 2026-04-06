@@ -569,6 +569,26 @@ defmodule KlassHeroWeb.UserAuthTest do
 
       assert updated_socket.assigns.current_scope.user.id == user.id
     end
+
+    test "redirects dual-role user to provider dashboard (provider takes precedence)", %{
+      conn: conn
+    } do
+      %{user: user} = dual_role_user_fixture()
+
+      user_token = Accounts.generate_user_session_token(user)
+      session = conn |> put_session(:user_token, user_token) |> get_session()
+
+      socket = %LiveView.Socket{
+        endpoint: KlassHeroWeb.Endpoint,
+        assigns: %{__changed__: %{}, flash: %{}}
+      }
+
+      {:halt, updated_socket} =
+        UserAuth.on_mount(:redirect_provider_or_staff_from_parent_routes, %{}, session, socket)
+
+      assert {:redirect, redirect_opts} = updated_socket.redirected
+      assert redirect_opts.to == "/provider/dashboard"
+    end
   end
 
   describe "require_authenticated_user/2" do
