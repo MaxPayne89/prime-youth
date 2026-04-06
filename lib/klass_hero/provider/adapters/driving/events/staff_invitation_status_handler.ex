@@ -53,7 +53,6 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
         if result == :ok and payload[:create_provider_profile] do
           case maybe_create_provider_profile(user_id, payload) do
             :ok -> result
-            {:error, :duplicate_resource} -> result
             {:error, reason} -> {:error, reason}
           end
         else
@@ -70,35 +69,46 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
   def handle_event(_event), do: :ignore
 
   defp maybe_create_provider_profile(user_id, payload) do
-    business_name = payload[:user_name] || "My Business"
+    # Check existence first to avoid a failed INSERT that taints the
+    # wrapping Repo.transaction (Postgres constraint errors are not recoverable
+    # within the same transaction, even if we catch them in Elixir).
+    if KlassHero.Provider.has_provider_profile?(user_id) do
+      Logger.info("[StaffInvitationStatusHandler] Provider profile already exists",
+        user_id: user_id
+      )
 
-    case CreateProviderProfile.execute(%{
-           identity_id: user_id,
-           business_name: business_name,
-           originated_from: :staff_invite
-         }) do
-      {:ok, profile} ->
-        Logger.info("[StaffInvitationStatusHandler] Created provider profile for staff user",
-          user_id: user_id,
-          provider_id: profile.id
-        )
+      :ok
+    else
+      business_name = payload[:user_name] || "My Business"
 
-        :ok
+      case CreateProviderProfile.execute(%{
+             identity_id: user_id,
+             business_name: business_name,
+             originated_from: :staff_invite
+           }) do
+        {:ok, profile} ->
+          Logger.info("[StaffInvitationStatusHandler] Created provider profile for staff user",
+            user_id: user_id,
+            provider_id: profile.id
+          )
 
-      {:error, :duplicate_resource} = error ->
-        Logger.info("[StaffInvitationStatusHandler] Provider profile already exists",
-          user_id: user_id
-        )
+          :ok
 
-        error
+        {:error, :duplicate_resource} ->
+          Logger.info("[StaffInvitationStatusHandler] Provider profile already exists (race)",
+            user_id: user_id
+          )
 
-      {:error, reason} ->
-        Logger.error("[StaffInvitationStatusHandler] Failed to create provider profile",
-          user_id: user_id,
-          reason: inspect(reason)
-        )
+          :ok
 
-        {:error, reason}
+        {:error, reason} ->
+          Logger.error("[StaffInvitationStatusHandler] Failed to create provider profile",
+            user_id: user_id,
+            reason: inspect(reason)
+          )
+
+          {:error, reason}
+      end
     end
   end
 
