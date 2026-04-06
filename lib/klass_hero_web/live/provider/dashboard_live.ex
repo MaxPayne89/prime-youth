@@ -14,11 +14,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Enrollment
-  alias KlassHero.Shared.Entitlements
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
   alias KlassHero.Provider.Domain.Models.StaffMember
+  alias KlassHero.Shared.Entitlements
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.ProviderPresenter
@@ -1323,7 +1323,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       <div :if={@assigned_employer != nil} id="assigned-by-employer-section" class="space-y-4">
         <h2 class={Theme.typography(:section_title)}>
           {gettext("Programs assigned to you by %{business_name}",
-            business_name: @assigned_employer.business_name)}
+            business_name: @assigned_employer.business_name
+          )}
         </h2>
 
         <p

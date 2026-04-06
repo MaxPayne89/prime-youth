@@ -37,7 +37,8 @@ defmodule KlassHeroWeb.DashboardLive.FamilyProgramsTest do
     end
 
     test "active card has contact button", %{conn: conn, parent: parent, child: child} do
-      program = insert(:program_schema, end_date: ~D[2027-06-30])
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, end_date: ~D[2027-06-30], provider_id: provider.id)
 
       insert(:enrollment_schema,
         parent_id: parent.id,
@@ -48,7 +49,7 @@ defmodule KlassHeroWeb.DashboardLive.FamilyProgramsTest do
 
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      assert has_element?(view, "#family-programs a[href='/messages']")
+      assert has_element?(view, "#family-programs button[phx-click='contact_provider']")
     end
 
     test "expired enrollment by status renders", %{conn: conn, parent: parent, child: child} do

@@ -235,6 +235,11 @@ defmodule KlassHeroWeb.ProgramComponents do
   attr :class, :string, default: ""
   attr :expired, :boolean, default: false, doc: "Greyed-out styling for expired programs"
   attr :contact_url, :string, default: nil, doc: "URL for contact button (e.g. /messages)"
+
+  attr :contact_provider_id, :string,
+    default: nil,
+    doc: "Provider profile ID — triggers server-side conversation creation"
+
   attr :rest, :global, include: ~w(phx-click phx-value-*)
 
   def program_card(assigns) do
@@ -398,20 +403,33 @@ defmodule KlassHeroWeb.ProgramComponents do
         </div>
       </div>
       <%!-- Contact Button --%>
-      <div :if={@contact_url} class="px-6 pb-6">
-        <.link
-          navigate={@contact_url}
-          class={[
-            "block w-full text-center px-4 py-2 text-sm font-medium",
-            Theme.rounded(:lg),
-            "bg-hero-blue-50 text-hero-blue-600 hover:bg-hero-blue-100",
-            Theme.transition(:normal)
-          ]}
-          onclick="event.stopPropagation();"
-        >
-          <.icon name="hero-chat-bubble-left-right-mini" class="w-4 h-4 inline mr-1" />
-          {gettext("Contact Provider")}
-        </.link>
+      <% contact_class = [
+        "block w-full text-center px-4 py-2 text-sm font-medium",
+        Theme.rounded(:lg),
+        "bg-hero-blue-50 text-hero-blue-600 hover:bg-hero-blue-100",
+        Theme.transition(:normal)
+      ] %>
+      <div :if={@contact_url || @contact_provider_id} class="px-6 pb-6">
+        <%= if @contact_provider_id do %>
+          <button
+            phx-click="contact_provider"
+            phx-value-provider-id={@contact_provider_id}
+            class={contact_class}
+            onclick="event.stopPropagation();"
+          >
+            <.icon name="hero-chat-bubble-left-right-mini" class="w-4 h-4 inline mr-1" />
+            {gettext("Contact Provider")}
+          </button>
+        <% else %>
+          <.link
+            navigate={@contact_url}
+            class={contact_class}
+            onclick="event.stopPropagation();"
+          >
+            <.icon name="hero-chat-bubble-left-right-mini" class="w-4 h-4 inline mr-1" />
+            {gettext("Contact Provider")}
+          </.link>
+        <% end %>
       </div>
     </div>
     """

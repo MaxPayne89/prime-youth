@@ -26,6 +26,7 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
                        :for_managing_conversations
                      ])
   @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
+  @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
 
   @doc """
   Creates or retrieves a direct conversation between provider and user.
@@ -49,6 +50,23 @@ defmodule KlassHero.Messaging.Application.UseCases.CreateDirectConversation do
           | {:error, :not_entitled | term()}
   def execute(%Scope{} = scope, provider_id, target_user_id, opts \\ []) do
     with :ok <- Shared.maybe_check_entitlement(scope, opts) do
+      find_or_create_conversation(scope, provider_id, target_user_id)
+    end
+  end
+
+  @doc """
+  Creates or retrieves a direct conversation with a provider, resolving the
+  provider's user identity internally.
+
+  Use this variant when the caller only has a `provider_id` (e.g. from a program
+  record) and does not need to supply the provider's user ID explicitly.
+  """
+  @spec execute(Scope.t(), String.t()) ::
+          {:ok, KlassHero.Messaging.Domain.Models.Conversation.t()}
+          | {:error, :not_entitled | :not_found | term()}
+  def execute(%Scope{} = scope, provider_id) when is_binary(provider_id) do
+    with :ok <- Shared.maybe_check_entitlement(scope, []),
+         {:ok, target_user_id} <- @user_resolver.get_user_id_for_provider(provider_id) do
       find_or_create_conversation(scope, provider_id, target_user_id)
     end
   end

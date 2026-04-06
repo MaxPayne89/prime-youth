@@ -7,6 +7,7 @@ defmodule KlassHeroWeb.DashboardLive do
 
   alias KlassHero.Enrollment
   alias KlassHero.Family
+  alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Shared.Entitlements
   alias KlassHeroWeb.Presenters.ChildPresenter
@@ -46,6 +47,9 @@ defmodule KlassHeroWeb.DashboardLive do
     children_for_view = Enum.map(children, &ChildPresenter.to_profile_view/1)
     children_extended = Enum.map(children, &ChildPresenter.to_extended_view/1)
 
+    active_provider_ids =
+      MapSet.new(active_programs, fn {_enrollment, program} -> program.provider_id end)
+
     socket =
       socket
       |> assign(
@@ -53,7 +57,8 @@ defmodule KlassHeroWeb.DashboardLive do
         user: user,
         children_count: length(children_for_view),
         activity_goal: calculate_activity_goal(children_extended),
-        family_programs_empty?: active_programs == [] and expired_programs == []
+        family_programs_empty?: active_programs == [] and expired_programs == [],
+        active_provider_ids: active_provider_ids
       )
       |> stream(:children, children_for_view)
       |> stream(:family_programs, build_family_program_items(active_programs, expired_programs))
@@ -143,6 +148,27 @@ defmodule KlassHeroWeb.DashboardLive do
   @impl true
   def handle_event("program_click", %{"program-id" => program_id}, socket) do
     {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
+  end
+
+  @impl true
+  def handle_event("contact_provider", %{"provider-id" => provider_id}, socket) do
+    scope = socket.assigns.current_scope
+
+    if MapSet.member?(socket.assigns.active_provider_ids, provider_id) do
+      case Messaging.create_direct_conversation(scope, provider_id) do
+        {:ok, conversation} ->
+          {:noreply, push_navigate(socket, to: ~p"/messages/#{conversation.id}")}
+
+        {:error, :not_entitled} ->
+          {:noreply, put_flash(socket, :error, gettext("Upgrade your plan to send messages."))}
+
+        {:error, _} ->
+          {:noreply,
+           put_flash(socket, :error, gettext("Could not start conversation. Please try again."))}
+      end
+    else
+      {:noreply, socket}
+    end
   end
 
   @impl true
@@ -263,7 +289,7 @@ defmodule KlassHeroWeb.DashboardLive do
                 program={ProgramPresenter.to_card_view(item.program)}
                 variant={:detailed}
                 expired={item.expired}
-                contact_url={if(!item.expired, do: ~p"/messages")}
+                contact_provider_id={if(!item.expired, do: item.program.provider_id)}
                 phx-click="program_click"
                 phx-value-program-id={item.program.id}
               />

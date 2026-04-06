@@ -86,6 +86,7 @@ defmodule KlassHeroWeb.Presenters.ProgramPresenter do
   def to_card_view(%Program{} = program) do
     %{
       id: program.id,
+      provider_id: program.provider_id,
       title: program.title,
       description: program.description,
       category: humanize_category(program.category),

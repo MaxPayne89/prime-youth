@@ -106,6 +106,25 @@ defmodule KlassHero.Messaging do
   end
 
   @doc """
+  Creates or retrieves a direct conversation with a provider, resolving the
+  provider's user identity internally from `provider_id`.
+
+  Use this when the caller only holds a `provider_id` (e.g. a parent clicking
+  "Contact Provider" from a program card). The provider's user ID is resolved
+  via the `ForResolvingUsers` port inside the Messaging context.
+
+  ## Returns
+  - `{:ok, conversation}` - The new or existing conversation
+  - `{:error, :not_entitled}` - User cannot initiate messaging
+  - `{:error, :not_found}` - No provider profile found for `provider_id`
+  """
+  @spec create_direct_conversation(Scope.t(), String.t()) ::
+          {:ok, Conversation.t()} | {:error, :not_entitled | :not_found | term()}
+  def create_direct_conversation(scope, provider_id) do
+    CreateDirectConversation.execute(scope, provider_id)
+  end
+
+  @doc """
   Retrieves a conversation with its messages.
 
   ## Parameters

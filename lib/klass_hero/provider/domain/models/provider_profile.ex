@@ -303,5 +303,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
 
   defp validate_originated_from(errors, nil), do: errors
   defp validate_originated_from(errors, :staff_invite), do: errors
-  defp validate_originated_from(errors, _), do: ["Originated from must be :staff_invite or nil" | errors]
+
+  defp validate_originated_from(errors, _),
+    do: ["Originated from must be :staff_invite or nil" | errors]
 end
