@@ -125,8 +125,8 @@ defmodule KlassHero.Accounts do
   def emit_staff_user_registered(user_id, staff_member_id, provider_id, opts)
       when is_binary(user_id) and is_binary(staff_member_id) and is_binary(provider_id) do
     payload =
-      %{staff_member_id: staff_member_id, provider_id: provider_id}
-      |> Map.merge(opts)
+      opts
+      |> Map.merge(%{staff_member_id: staff_member_id, provider_id: provider_id})
 
     user_id
     |> AccountsIntegrationEvents.staff_user_registered(payload)

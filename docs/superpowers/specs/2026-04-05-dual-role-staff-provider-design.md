@@ -48,7 +48,7 @@ When a dual-role user logs in, they land on `/provider/dashboard`. The precedenc
 
 ### 2. Provider Profile Creation via Event Handler
 
-**File:** `lib/klass_hero/accounts/adapters/driving/events/staff_invitation_handler.ex`
+**File:** `lib/klass_hero/provider/adapters/driving/events/staff_invitation_status_handler.ex`
 
 - On `:staff_user_registered` event, check for `create_provider_profile: true` in payload
 - If present, create a starter provider profile with:
@@ -62,7 +62,7 @@ When a dual-role user logs in, they land on `/provider/dashboard`. The precedenc
 **New migration file**
 
 ```elixir
-alter table(:provider_profiles) do
+alter table(:providers) do
   add :originated_from, :string, default: "direct", null: false
 end
 ```
