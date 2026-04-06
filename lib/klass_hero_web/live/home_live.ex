@@ -160,7 +160,7 @@ defmodule KlassHeroWeb.HomeLive do
     <!-- Featured Programs Section -->
       <div id="featured-programs-section" class={[Theme.bg(:muted), "py-16 lg:py-24"]}>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center mb-12">
+          <div phx-hook="ScrollReveal" id="featured-heading" class="text-center mb-12">
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
               {gettext("Featured Programs")}
             </h2>
@@ -184,7 +184,7 @@ defmodule KlassHeroWeb.HomeLive do
             />
           </div>
 
-          <div class="text-center">
+          <div phx-hook="ScrollReveal" id="featured-cta" class="text-center">
             <button
               phx-click="explore_programs"
               class={[
@@ -204,7 +204,7 @@ defmodule KlassHeroWeb.HomeLive do
     <!-- Features Section -->
       <div id="why-klass-hero-section" class={Theme.bg(:surface)}>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
-          <div class="text-center mb-12">
+          <div phx-hook="ScrollReveal" id="features-heading" class="text-center mb-12">
             <div class="text-center mb-4">
               <.section_label>{gettext("For Families")}</.section_label>
             </div>
@@ -216,7 +216,12 @@ defmodule KlassHeroWeb.HomeLive do
             </p>
           </div>
 
-          <div class="grid md:grid-cols-3 gap-8 lg:gap-12">
+          <div
+            phx-hook="ScrollReveal"
+            id="features-grid"
+            data-reveal-stagger="150"
+            class="grid md:grid-cols-3 gap-8 lg:gap-12"
+          >
             <.feature_card
               gradient_class={Theme.gradient(:cool)}
               icon="hero-shield-check"
@@ -255,12 +260,11 @@ defmodule KlassHeroWeb.HomeLive do
       <div id="grow-passion-business-section" class={[Theme.bg(:muted), "py-16 lg:py-24"]}>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <!-- Label Badge -->
-          <div class="text-center mb-4">
-            <.section_label>{gettext("For Providers")}</.section_label>
-          </div>
-          
-    <!-- Section Heading -->
-          <div class="text-center mb-12">
+          <div phx-hook="ScrollReveal" id="providers-heading" class="text-center mb-12">
+            <div class="text-center mb-4">
+              <.section_label>{gettext("For Providers")}</.section_label>
+            </div>
+
             <h2 class={[Theme.typography(:page_title), "mb-4", Theme.text_color(:heading)]}>
               {gettext("How to Grow Your Youth Program: Let's Build Together.")}
             </h2>
@@ -272,7 +276,12 @@ defmodule KlassHeroWeb.HomeLive do
           </div>
           
     <!-- Provider Steps Grid -->
-          <div class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8">
+          <div
+            phx-hook="ScrollReveal"
+            id="providers-grid"
+            data-reveal-stagger="150"
+            class="grid md:grid-cols-3 gap-6 lg:gap-8 mb-8"
+          >
             <.provider_step_card
               step_number={1}
               title={gettext("Create a Program")}
@@ -306,7 +315,7 @@ defmodule KlassHeroWeb.HomeLive do
           </div>
           
     <!-- CTA Button -->
-          <div class="text-center">
+          <div phx-hook="ScrollReveal" id="providers-cta" class="text-center">
             <button class={[
               "bg-hero-yellow-400 text-hero-black px-8 py-3 font-semibold hover:bg-hero-yellow-500",
               Theme.transition(:normal),

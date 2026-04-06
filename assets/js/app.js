@@ -27,6 +27,7 @@ import topbar from "../vendor/topbar"
 import DebounceHook from "./hooks/debounce_hook"
 import ScrollToBottomHook from "./hooks/scroll_to_bottom_hook"
 import AutoResizeTextareaHook from "./hooks/auto_resize_textarea_hook"
+import ScrollRevealHook from "./hooks/scroll_reveal_hook"
 import { Hooks as BackpexHooks } from "backpex"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
@@ -38,7 +39,8 @@ const liveSocket = new LiveSocket("/live", Socket, {
     ...BackpexHooks,
     Debounce: DebounceHook,
     ScrollToBottom: ScrollToBottomHook,
-    AutoResizeTextarea: AutoResizeTextareaHook
+    AutoResizeTextarea: AutoResizeTextareaHook,
+    ScrollReveal: ScrollRevealHook
   },
 })
 

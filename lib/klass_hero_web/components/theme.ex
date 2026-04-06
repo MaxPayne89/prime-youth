@@ -441,7 +441,7 @@ defmodule KlassHeroWeb.Theme do
   - `:section_title` - Section headings
   - `:cta` - Call-to-action button text
 
-  ### Sans Font (Inter)
+  ### Sans Font (Outfit)
   - `:card_title` - Card/component headings
   - `:body` - Default body text
   - `:body_small` - Smaller body text
@@ -464,7 +464,7 @@ defmodule KlassHeroWeb.Theme do
 
   def typography(:cta), do: "font-display text-lg md:text-xl font-bold tracking-tight"
 
-  # Sans font (Inter) for functional text
+  # Sans font (Outfit) for functional text
   def typography(:card_title), do: "font-sans text-lg font-semibold"
   def typography(:body), do: "font-sans text-base"
   def typography(:body_small), do: "font-sans text-sm"
