@@ -415,7 +415,6 @@ defmodule KlassHeroWeb.ProgramComponents do
             phx-click="contact_provider"
             phx-value-provider-id={@contact_provider_id}
             class={contact_class}
-            onclick="event.stopPropagation();"
           >
             <.icon name="hero-chat-bubble-left-right-mini" class="w-4 h-4 inline mr-1" />
             {gettext("Contact Provider")}
