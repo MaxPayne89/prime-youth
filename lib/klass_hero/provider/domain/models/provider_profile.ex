@@ -27,6 +27,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     :verified_by_id,
     :categories,
     :subscription_tier,
+    :originated_from,
     :inserted_at,
     :updated_at
   ]
@@ -45,6 +46,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
           verified_by_id: String.t() | nil,
           categories: [String.t()] | nil,
           subscription_tier: :starter | :professional | :business_plus | nil,
+          originated_from: :direct | :staff_invite | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -83,6 +85,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     |> Map.put_new(:verified, false)
     |> Map.put_new(:categories, [])
     |> Map.put_new(:subscription_tier, SubscriptionTiers.default_provider_tier())
+    |> Map.put_new(:originated_from, :direct)
   end
 
   @doc """
@@ -162,6 +165,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     |> validate_verified_at(provider_profile.verified_at)
     |> validate_categories(provider_profile.categories)
     |> validate_subscription_tier(provider_profile.subscription_tier)
+    |> validate_originated_from(provider_profile.originated_from)
   end
 
   defp validate_identity_id(errors, identity_id) when is_binary(identity_id) do
@@ -296,4 +300,10 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
       ["Subscription tier must be one of: #{valid}" | errors]
     end
   end
+
+  @valid_originated_from [:direct, :staff_invite]
+
+  defp validate_originated_from(errors, from) when from in @valid_originated_from, do: errors
+
+  defp validate_originated_from(errors, _), do: ["originated_from must be :direct or :staff_invite" | errors]
 end

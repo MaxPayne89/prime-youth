@@ -24,6 +24,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Provider.Domain.Models.ProviderProfile
 
+  require Logger
+
   @doc """
   Converts an Ecto ProviderProfileSchema to a domain ProviderProfile entity.
 
@@ -46,6 +48,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
       verified_by_id: schema.verified_by_id && to_string(schema.verified_by_id),
       categories: schema.categories,
       subscription_tier: string_to_tier(schema.subscription_tier, :starter),
+      originated_from: string_to_origin(schema.originated_from),
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -71,8 +74,21 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
       verified_at: provider_profile.verified_at,
       verified_by_id: provider_profile.verified_by_id,
       categories: provider_profile.categories,
-      subscription_tier: tier_to_string(provider_profile.subscription_tier, "starter")
+      subscription_tier: tier_to_string(provider_profile.subscription_tier, "starter"),
+      originated_from: origin_to_string(provider_profile.originated_from)
     }
     |> maybe_add_id(provider_profile.id)
   end
+
+  defp string_to_origin("staff_invite"), do: :staff_invite
+  defp string_to_origin("direct"), do: :direct
+  defp string_to_origin(nil), do: :direct
+
+  defp string_to_origin(other) do
+    Logger.warning("[ProviderProfileMapper] Unknown originated_from value: #{inspect(other)}")
+    :direct
+  end
+
+  defp origin_to_string(:staff_invite), do: "staff_invite"
+  defp origin_to_string(_), do: "direct"
 end
