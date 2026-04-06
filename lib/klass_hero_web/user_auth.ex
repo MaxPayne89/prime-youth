@@ -318,7 +318,7 @@ defmodule KlassHeroWeb.UserAuth do
   end
 
   # Redirects users with a provider or staff profile to their role's dashboard.
-  # Staff takes precedence over provider. Parent-only users pass through.
+  # Provider takes precedence over staff. Parent-only users pass through.
   def on_mount(:redirect_provider_or_staff_from_parent_routes, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
@@ -327,11 +327,11 @@ defmodule KlassHeroWeb.UserAuth do
       socket = Phoenix.Component.assign(socket, :current_scope, scope)
 
       cond do
-        Scope.staff_provider?(scope) ->
-          {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/staff/dashboard")}
-
         Scope.provider?(scope) ->
           {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/provider/dashboard")}
+
+        Scope.staff_provider?(scope) ->
+          {:halt, Phoenix.LiveView.redirect(socket, to: ~p"/staff/dashboard")}
 
         true ->
           {:cont, socket}
@@ -387,8 +387,8 @@ defmodule KlassHeroWeb.UserAuth do
   @doc "Returns the path to redirect to after log in, based on the user's intended roles."
   def signed_in_path(%Accounts.User{intended_roles: roles}) do
     cond do
-      :staff_provider in roles -> ~p"/staff/dashboard"
       :provider in roles -> ~p"/provider/dashboard"
+      :staff_provider in roles -> ~p"/staff/dashboard"
       true -> ~p"/users/settings"
     end
   end
@@ -398,8 +398,8 @@ defmodule KlassHeroWeb.UserAuth do
   @doc "Returns the correct dashboard path based on the user's intended roles."
   def dashboard_path(%Accounts.User{intended_roles: roles}) do
     cond do
-      :staff_provider in roles -> ~p"/staff/dashboard"
       :provider in roles -> ~p"/provider/dashboard"
+      :staff_provider in roles -> ~p"/staff/dashboard"
       true -> ~p"/dashboard"
     end
   end

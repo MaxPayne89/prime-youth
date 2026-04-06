@@ -146,4 +146,29 @@ defmodule KlassHero.ProviderFixtures do
     {:ok, persisted} = VerificationDocumentRepository.update(rejected)
     persisted
   end
+
+  @doc """
+  Creates a dual-role user with both provider profile and staff member.
+
+  Returns `%{user: user, provider: provider, staff: staff}`.
+  """
+  def dual_role_user_fixture(attrs \\ %{}) do
+    attrs_map = Map.new(attrs)
+
+    user =
+      KlassHero.AccountsFixtures.user_fixture(
+        intended_roles: attrs_map[:intended_roles] || [:staff_provider, :provider]
+      )
+
+    provider = provider_profile_fixture(identity_id: attrs_map[:identity_id] || user.id)
+
+    staff =
+      staff_member_fixture(
+        provider_id: provider.id,
+        user_id: user.id,
+        invitation_status: :accepted
+      )
+
+    %{user: user, provider: provider, staff: staff}
+  end
 end

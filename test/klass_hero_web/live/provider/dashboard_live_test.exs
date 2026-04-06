@@ -1066,4 +1066,23 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       assert has_element?(view, "#send-message-#{enrollment.id}[disabled]")
     end
   end
+
+  describe "cross-navigation for dual-role users" do
+    setup %{conn: conn} do
+      %{user: user} = fixtures = KlassHero.ProviderFixtures.dual_role_user_fixture()
+      Map.put(fixtures, :conn, log_in_user(conn, user))
+    end
+
+    test "shows link to staff dashboard for dual-role users", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+      assert has_element?(view, "#cross-nav-staff-link")
+    end
+  end
+
+  describe "cross-navigation for provider-only users" do
+    test "does NOT show link to staff dashboard", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+      refute has_element?(view, "#cross-nav-staff-link")
+    end
+  end
 end

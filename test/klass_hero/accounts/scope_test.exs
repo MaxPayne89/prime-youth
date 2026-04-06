@@ -170,6 +170,32 @@ defmodule KlassHero.Accounts.ScopeTest do
     end
   end
 
+  describe "dual_role?/1" do
+    test "returns true when scope has both provider and staff_member" do
+      scope = %Scope{provider: %{id: "p1"}, staff_member: %{id: "s1"}}
+
+      assert Scope.dual_role?(scope)
+    end
+
+    test "returns false when scope has only provider" do
+      scope = %Scope{provider: %{id: "p1"}, staff_member: nil}
+
+      refute Scope.dual_role?(scope)
+    end
+
+    test "returns false when scope has only staff_member" do
+      scope = %Scope{provider: nil, staff_member: %{id: "s1"}}
+
+      refute Scope.dual_role?(scope)
+    end
+
+    test "returns false when scope has neither" do
+      scope = %Scope{}
+
+      refute Scope.dual_role?(scope)
+    end
+  end
+
   # Test helper
   defp user_fixture(attrs \\ %{}) do
     unique_email = "user#{System.unique_integer()}@example.com"

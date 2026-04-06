@@ -44,9 +44,11 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler do
     provider_tier = Map.get(payload, :provider_subscription_tier)
 
     # Trigger: user_registered event with role list
-    # Why: only create provider profile if "provider" role requested
+    # Why: only create provider profile if "provider" role requested AND
+    #   the user didn't register via staff invitation (staff flow handles its own
+    #   profile creation with originated_from: :staff_invite)
     # Outcome: provider profile created with selected tier or default starter
-    if "provider" in intended_roles do
+    if "provider" in intended_roles and "staff_provider" not in intended_roles do
       create_provider_profile_with_retry(user_id, business_name, provider_tier)
     else
       :ignore
@@ -61,9 +63,11 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler do
 
     # Trigger: user_confirmed event — compensation path for profile creation
     # Why: if user_registered delivery was delayed, this ensures the profile
-    #      exists before the user's first authenticated session
+    #      exists before the user's first authenticated session.
+    #      Staff registrations are excluded — their flow creates the profile
+    #      with originated_from: :staff_invite via StaffInvitationStatusHandler.
     # Outcome: creates profile or returns :ok if already exists (idempotent)
-    if "provider" in intended_roles do
+    if "provider" in intended_roles and "staff_provider" not in intended_roles do
       create_provider_profile_with_retry(user_id, business_name, provider_tier)
     else
       :ignore

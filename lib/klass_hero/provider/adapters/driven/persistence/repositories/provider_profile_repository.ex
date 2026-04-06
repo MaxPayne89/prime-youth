@@ -42,7 +42,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
     span do
       set_attributes("db", operation: "insert", entity: "provider_profile")
 
-      schema_attrs = MapperHelpers.normalize_subscription_tier(attrs)
+      schema_attrs =
+        attrs
+        |> MapperHelpers.normalize_atom_field(:subscription_tier)
+        |> MapperHelpers.normalize_atom_field(:originated_from)
 
       %ProviderProfileSchema{}
       |> ProviderProfileSchema.changeset(schema_attrs)
