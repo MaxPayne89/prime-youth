@@ -8,7 +8,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
   alias KlassHero.Repo
 
   describe "mark_absent_batch/1" do
-    test "returns {:ok, 0} for empty list without hitting the database" do
+    test "returns {:ok, 0} for empty list" do
       assert {:ok, 0} = ParticipationRepository.mark_absent_batch([])
     end
 
