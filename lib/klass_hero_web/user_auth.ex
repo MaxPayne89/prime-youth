@@ -386,7 +386,7 @@ defmodule KlassHeroWeb.UserAuth do
   end
 
   @doc "Returns the path to redirect to after log in, based on the user's intended roles."
-  def signed_in_path(%Accounts.User{intended_roles: roles}) do
+  def signed_in_path(%Accounts.User{intended_roles: roles}) when is_list(roles) do
     cond do
       :staff_provider in roles -> ~p"/staff/dashboard"
       :provider in roles -> ~p"/provider/dashboard"
@@ -394,10 +394,12 @@ defmodule KlassHeroWeb.UserAuth do
     end
   end
 
+  # Fallback when intended_roles is not a list (data integrity issue)
+  def signed_in_path(%Accounts.User{}), do: ~p"/users/settings"
   def signed_in_path(_), do: ~p"/"
 
   @doc "Returns the correct dashboard path based on the user's intended roles."
-  def dashboard_path(%Accounts.User{intended_roles: roles}) do
+  def dashboard_path(%Accounts.User{intended_roles: roles}) when is_list(roles) do
     cond do
       :staff_provider in roles -> ~p"/staff/dashboard"
       :provider in roles -> ~p"/provider/dashboard"
@@ -405,6 +407,8 @@ defmodule KlassHeroWeb.UserAuth do
     end
   end
 
+  # Fallback when intended_roles is not a list (data integrity issue)
+  def dashboard_path(%Accounts.User{}), do: ~p"/dashboard"
   def dashboard_path(nil), do: ~p"/dashboard"
 
   @doc """

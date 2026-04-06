@@ -144,7 +144,11 @@ defmodule KlassHero.Accounts.Domain.Events.UserEvents do
       email: user.email,
       name: Map.get(user, :name),
       confirmed_at: user.confirmed_at,
-      intended_roles: Enum.map(Map.get(user, :intended_roles) || [], &Atom.to_string/1),
+      intended_roles:
+        case Map.get(user, :intended_roles) do
+          roles when is_list(roles) -> Enum.map(roles, &Atom.to_string/1)
+          _ -> []
+        end,
       provider_subscription_tier: Map.get(user, :provider_subscription_tier)
     }
 

@@ -8,6 +8,8 @@ defmodule KlassHero.Accounts.Application.UseCases.LoginByMagicLink do
   3. Unconfirmed user (has password) — security violation error
   """
 
+  require Logger
+
   alias KlassHero.Accounts.Domain.Events.UserEvents
   alias KlassHero.Shared.EventDispatchHelper
 
@@ -44,6 +46,13 @@ defmodule KlassHero.Accounts.Application.UseCases.LoginByMagicLink do
   defp handle_unconfirmed(user) do
     case @user_repository.confirm_and_cleanup_tokens(user) do
       {:ok, {confirmed_user, tokens}} ->
+        unless is_list(confirmed_user.intended_roles) do
+          Logger.error(
+            "[LoginByMagicLink] confirmed_user.intended_roles is not a list — " <>
+              "got: #{inspect(confirmed_user.intended_roles)}, user_id: #{confirmed_user.id}"
+          )
+        end
+
         UserEvents.user_confirmed(confirmed_user, %{confirmation_method: :magic_link})
         |> EventDispatchHelper.dispatch(KlassHero.Accounts)
 
