@@ -132,8 +132,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
         reversed_messages = Enum.reverse(messages)
 
-        provider_user_ids = resolve_provider_user_ids(conversation)
-        provider_name = resolve_provider_name(conversation.provider_id)
+        {provider_user_ids, provider_name} = resolve_provider_info(conversation)
 
         socket =
           socket
@@ -350,13 +349,10 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
     Map.get(sender_names, sender_id, "Unknown")
   end
 
-  defp resolve_provider_user_ids(conversation) do
-    owner_ids =
-      case KlassHero.Provider.get_identity_id_for_provider(conversation.provider_id) do
-        {:ok, id} -> [id]
-        _ -> []
-      end
-
+  # Fetches the provider profile once to extract both the owner's identity_id
+  # (for provider_user_ids) and business_name (for provider_name), avoiding
+  # a second providers-table round-trip that the old split approach incurred.
+  defp resolve_provider_info(conversation) do
     staff_ids =
       if conversation.program_id do
         Messaging.get_active_staff_user_ids(conversation.program_id)
@@ -364,13 +360,12 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
         []
       end
 
-    MapSet.new(owner_ids ++ staff_ids)
-  end
+    case KlassHero.Provider.get_provider_profile(conversation.provider_id) do
+      {:ok, provider} ->
+        {MapSet.new([provider.identity_id | staff_ids]), provider.business_name}
 
-  defp resolve_provider_name(provider_id) do
-    case KlassHero.Provider.get_provider_profile(provider_id) do
-      {:ok, provider} -> provider.business_name
-      _ -> nil
+      _ ->
+        {MapSet.new(staff_ids), nil}
     end
   end
 
