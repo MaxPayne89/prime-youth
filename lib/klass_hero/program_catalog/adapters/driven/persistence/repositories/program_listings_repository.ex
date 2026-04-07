@@ -155,10 +155,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     where(query, [l], l.category == ^category)
   end
 
-  # Trigger: every public listing query
-  # Why: programs that have already ended should not appear in /programs (issue #610);
+  # Trigger: paginated public listing queries via fetch_page/3 (list_paginated/3)
+  # Why: programs that have already ended should not appear on the /programs page (issue #610);
   #      programs without an end_date are open-ended and continue to appear
   # Outcome: excludes rows where end_date < today, keeps end_date >= today and nil end_date
+  # Scope: list_all/0 and list_for_provider/1 intentionally bypass this filter so the
+  #        provider dashboard and admin tooling still surface expired programs.
   defp apply_end_date_filter(query) do
     today = Date.utc_today()
     where(query, [l], is_nil(l.end_date) or l.end_date >= ^today)
