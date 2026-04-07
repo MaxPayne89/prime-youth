@@ -1,7 +1,7 @@
 # Perf Improver Memory — klass-hero
 
 ## Last Updated
-2026-04-06
+2026-04-07
 
 ## Build / Test / Lint Commands (validated from mix.exs + CI)
 - **Build**: `mix compile --warnings-as-errors`
@@ -15,7 +15,8 @@
 ## Run History
 | Date | Tasks | Output |
 |------|-------|--------|
-| 2026-04-06 | T3, T7 | T3: Implemented N+1 fix for CompleteSession.mark_remaining_as_absent — new mark_absent_batch/1 callback + update_all impl; reduces 1+2N queries to 2 per session completion. PR submitted (branch: perf-assist/batch-mark-absent-on-complete-session). T7: Updated April 2026 monthly summary. |
+| 2026-04-07 | T4, T2, T3, T7 | T4: PR #602 confirmed merged (batch absent). T2: Found redundant provider DB query in mount_conversation_show — get_identity_id_for_provider + get_provider_profile both hit providers table for same provider_id. T3: PR submitted — merge into single resolve_provider_info/1 call using get_provider_profile; saves 1 DB round-trip per conversation open. T7: Updated April 2026 monthly summary. |
+| 2026-04-06 | T3, T7 | T3: Implemented N+1 fix for CompleteSession.mark_remaining_as_absent — new mark_absent_batch/1 callback + update_all impl; reduces 1+2N queries to 2 per session completion. PR submitted (merged as #602). T7: Updated April 2026 monthly summary. |
 | 2026-04-05 | T5, T2, T4, T7 | T4: PR #592 CI clean. T2: Identified N+1 in CompleteSession.mark_remaining_as_absent (list_by_session + N×Repo.get+Repo.update). T5: Commented on #515 with PubSub fan-out measurement guidance. T7: Updated April 2026 monthly summary. |
 | 2026-04-04 | T4, T2, T3, T7 | T4: PR #583 confirmed merged. T2: Confirmed N+1 in StaffAssignmentHandler — N inserts per staff assignment event. T3: Created PR #592 perf-assist/batch-staff-participant-inserts — new add_to_conversations_batch/2 port callback + insert_all impl; reduces N+1 to 2 queries per staff assignment. T7: Updated April 2026 monthly summary. |
 | 2026-04-03 | T1, T2, T6, T3, T7 | T1: Commands unchanged. T6: Maintainer already enabled Elixir 1.20 interpreted compilation + parallel dep builds (PR merged 2026-04-01). T2: Found MessagingLiveHelper.handle_send_message doesn't pass conversation to SendMessage — redundant DB fetch on every message send. T3: Created PR perf-assist/pass-conversation-to-send-message-in-live-helper — merged same day as PR #583. T7: Closed March 2026 (#284), created April 2026 monthly summary. |
@@ -23,12 +24,12 @@
 
 ## Task Last Run (Round-Robin)
 - T1 (Discover commands): 2026-04-03
-- T2 (Identify opportunities): 2026-04-05
-- T3 (Implement improvement): 2026-04-06
-- T4 (Maintain PRs): 2026-04-05
+- T2 (Identify opportunities): 2026-04-07
+- T3 (Implement improvement): 2026-04-07
+- T4 (Maintain PRs): 2026-04-07
 - T5 (Comment on issues): 2026-04-05
 - T6 (Measurement infra): 2026-04-03
-- T7 (Activity summary): 2026-04-06
+- T7 (Activity summary): 2026-04-07
 
 ## Optimization Backlog (prioritized)
 1. **[MERGED]** N+1 in DashboardLive — PR #290 merged ✓
@@ -44,12 +45,14 @@
 11. **[MERGED]** Skip redundant conversations.get_by_id in SendMessage (ReplyPrivatelyToBroadcast) — PR #441 merged ✓
 12. **[MERGED]** Pass conversation to SendMessage in MessagingLiveHelper hot path — PR #583 merged 2026-04-03 ✓
 13. **[MERGED]** N+1 in StaffAssignmentHandler.add_staff_to_existing_conversations — PR #592 merged 2026-04-05 ✓
-14. **[IN REVIEW]** N+1 in CompleteSession.mark_remaining_as_absent — PR submitted 2026-04-06 (branch: perf-assist/batch-mark-absent-on-complete-session); mark_absent_batch/1 + update_all WHERE status=:registered; reduces 1+2N to 2 queries
-15. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
-16. **[LOW]** program_sessions.status index — verify query patterns first
+14. **[MERGED]** N+1 in CompleteSession.mark_remaining_as_absent — PR #602 merged 2026-04-06 ✓
+15. **[IN REVIEW]** Redundant providers table query in mount_conversation_show — PR submitted 2026-04-07; merge get_identity_id_for_provider + get_provider_profile into single resolve_provider_info/1 call; saves 1 DB round-trip per conversation open
+16. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
+17. **[LOW]** program_sessions.status index — verify query patterns first
+18. **[LOW]** Parallelize list_programs_for_provider + list_provider_sessions in Provider.SessionsLive.mount — 2 sequential independent queries; low latency so savings modest
 
 ## Backlog Cursor
-- Next run: T1 (revalidate commands), T6 (measurement infra), T4 (maintain PRs — check CompleteSession PR CI status)
+- Next run: T1 (revalidate if needed), T5 (comment on issues), T6 (measurement infra)
 
 ## Performance Notes
 - Phoenix app with OpenTelemetry + Honeycomb configured for production tracing
@@ -63,15 +66,17 @@
 - Index PRs pattern: only accepted when backed by production Honeycomb evidence AND non-trivial table size
 - add_batch/2 on ParticipantRepository handles (one conversation, many users) via insert_all
 - add_to_conversations_batch/2 (PR #592, merged) handles (one user, many conversations) via insert_all
-- mark_absent_batch/1 (PR pending) handles bulk absent-marking via update_all WHERE status=:registered AND id IN (:ids)
+- mark_absent_batch/1 (PR #602, merged) handles bulk absent-marking via update_all WHERE status=:registered AND id IN (:ids)
 - ParticipationRepository.update/1 always does Repo.get before Repo.update (for changeset generation); creates hidden N+1 in callers that already hold loaded records
 - PubSubIntegrationEventPublisher uses Phoenix.PubSub.broadcast!/3; PubSub partition count is a tuning lever for fan-out under load
 - CompleteSession domain events are published from in-memory records (struct update to :absent) — safe because child_marked_absent payload only needs record.id, session_id, child_id, and program_id from session
+- Provider.get_provider_profile returns ProviderProfile with identity_id AND business_name; get_identity_id_for_provider is a convenience wrapper that queries the same table row
 
 ## Active PRs
-- `perf-assist/batch-mark-absent-on-complete-session` — created 2026-04-06; new mark_absent_batch/1 + update_all impl; reduces 1+2N queries to 2 per session completion
+- `perf-assist/merge-provider-queries-in-conversation-show` — created 2026-04-07; merge get_identity_id_for_provider + get_provider_profile into single resolve_provider_info/1; saves 1 DB round-trip per conversation page open
 
 ## Completed Work
+- PR #602 (N+1 in CompleteSession — batch update via update_all) — merged 2026-04-06 ✓
 - PR #592 (N+1 in StaffAssignmentHandler — batch insert via insert_all) — merged 2026-04-05 ✓
 - PR #583 (pass conversation to MessagingLiveHelper SendMessage) — merged 2026-04-03 ✓
 - PR #441 (skip conversation fetch in SendMessage for ReplyPrivatelyToBroadcast) — merged 2026-03-16 ✓
