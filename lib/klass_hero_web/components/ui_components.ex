@@ -523,7 +523,10 @@ defmodule KlassHeroWeb.UIComponents do
   def feature_card(assigns) do
     ~H"""
     <div class={[
-      "text-center group hover:transform hover:scale-105",
+      "text-center group",
+      "bg-white p-8 shadow-md border border-hero-grey-100",
+      Theme.rounded(:xl),
+      "hover:shadow-lg hover:scale-105",
       Theme.transition(:normal),
       @class
     ]}>
@@ -624,9 +627,9 @@ defmodule KlassHeroWeb.UIComponents do
       <div class={[
         "w-16 h-16 flex items-center justify-center mx-auto mb-4",
         Theme.rounded(:full),
-        Theme.bg(:light)
+        "bg-hero-blue-50"
       ]}>
-        <.icon name={@icon} class={"w-8 h-8 #{Theme.text_color(:subtle)}"} />
+        <.icon name={@icon} class="w-8 h-8 text-hero-blue-400" />
       </div>
       <h3 class={[Theme.typography(:card_title), "mb-2", Theme.text_color(:heading)]}>{@title}</h3>
       <p class={Theme.text_color(:secondary)}>
@@ -638,6 +641,46 @@ defmodule KlassHeroWeb.UIComponents do
       </p>
       <div :if={@action != []}>
         {render_slot(@action)}
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a skeleton placeholder card with pulsing animation.
+
+  Mimics the layout of a program card to show during loading states.
+  Uses `animate-pulse` for a subtle breathing effect.
+
+  ## Examples
+
+      <.skeleton_card />
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <.skeleton_card :for={_ <- 1..3} />
+      </div>
+  """
+  attr :class, :string, default: ""
+
+  def skeleton_card(assigns) do
+    ~H"""
+    <div class={[
+      "animate-pulse bg-white overflow-hidden shadow-sm border border-hero-grey-100",
+      Theme.rounded(:xl),
+      @class
+    ]}>
+      <div class="h-48 bg-hero-grey-200"></div>
+      <div class="p-6 space-y-3">
+        <div class="h-5 bg-hero-grey-200 rounded w-3/4"></div>
+        <div class="h-4 bg-hero-grey-100 rounded w-full"></div>
+        <div class="h-4 bg-hero-grey-100 rounded w-2/3"></div>
+        <div class="space-y-2 pt-2">
+          <div class="h-3 bg-hero-grey-100 rounded w-1/2"></div>
+          <div class="h-3 bg-hero-grey-100 rounded w-2/5"></div>
+        </div>
+        <div class="pt-4 border-t border-hero-grey-100">
+          <div class="h-5 bg-hero-grey-200 rounded w-1/3"></div>
+        </div>
       </div>
     </div>
     """

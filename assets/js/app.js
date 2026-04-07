@@ -17,6 +17,12 @@
 // If you have dependencies that try to import CSS, esbuild will generate a separate `app.css` file.
 // To load it, simply add a second `<link>` to your `root.html.heex` file.
 
+// Mark JS as enabled so progressive-enhancement CSS rules can apply.
+// If this file fails to load, the class is never added and any CSS rule
+// scoped under `.js` (e.g. the ScrollReveal hidden state) simply won't apply,
+// leaving content visible for no-JS/failed-JS users.
+document.documentElement.classList.add("js")
+
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
@@ -27,6 +33,7 @@ import topbar from "../vendor/topbar"
 import DebounceHook from "./hooks/debounce_hook"
 import ScrollToBottomHook from "./hooks/scroll_to_bottom_hook"
 import AutoResizeTextareaHook from "./hooks/auto_resize_textarea_hook"
+import ScrollRevealHook from "./hooks/scroll_reveal_hook"
 import { Hooks as BackpexHooks } from "backpex"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
@@ -38,7 +45,8 @@ const liveSocket = new LiveSocket("/live", Socket, {
     ...BackpexHooks,
     Debounce: DebounceHook,
     ScrollToBottom: ScrollToBottomHook,
-    AutoResizeTextarea: AutoResizeTextareaHook
+    AutoResizeTextarea: AutoResizeTextareaHook,
+    ScrollReveal: ScrollRevealHook
   },
 })
 
