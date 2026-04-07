@@ -20,7 +20,9 @@
     "mix_unavailable": "mix binary not in PATH in CI runner; must verify test correctness by reading implementation",
     "mapper_test_pattern": "Use ExUnit.Case async:true with struct!() helper + override map; ChildMapperTest is the canonical reference",
     "struct_helper_pattern": "Use struct!(ModuleName, Map.merge(defaults, overrides)) NOT Map.merge on a struct (latter returns plain map, breaking pattern matches in tested code)",
-    "use_case_integration_test_pattern": "Use DataCase + insert factory + Repo.get for DB-level assertions; alias schema modules directly in test for Repo.get calls"
+    "use_case_integration_test_pattern": "Use DataCase + insert factory + Repo.get for DB-level assertions; alias schema modules directly in test for Repo.get calls",
+    "provider_use_case_pattern": "Call through Provider context module (Provider.create_provider_profile/1), not use case directly; fixtures bypass use case via schema insert",
+    "create_provider_profile_note": "ProviderFixtures.provider_profile_fixture bypasses CreateProviderProfile use case; creates directly via schema. Use create_provider_profile_test.exs for use case wiring tests."
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -37,22 +39,31 @@
   ],
   "tasks_last_run": {
     "task_1": "2026-04-06",
-    "task_2": "2026-04-06",
-    "task_3": "2026-04-06",
-    "task_4": "2026-04-04",
-    "task_5": "2026-04-03",
-    "task_6": "2026-04-03",
-    "task_7": "2026-04-06"
+    "task_2": "2026-04-07",
+    "task_3": "2026-04-07",
+    "task_4": "2026-04-07",
+    "task_5": "2026-04-07",
+    "task_6": "2026-04-06",
+    "task_7": "2026-04-07"
   },
   "work_in_progress": null,
   "completed_work": [
+    {
+      "date": "2026-04-07",
+      "run_id": "24105203330",
+      "tasks": ["task_3", "task_4", "task_5", "task_7"],
+      "pr_branch": "test-assist/create-provider-profile-tests",
+      "description": "7 DataCase integration tests for CreateProviderProfile use case covering success path, ID auto-generation, provided ID preservation, validation error wrapping (empty name, oversized name), duplicate_resource error, and DB persistence",
+      "tests_added": 7
+    },
     {
       "date": "2026-04-06",
       "run_id": "24051867542",
       "tasks": ["task_1", "task_2", "task_3", "task_7"],
       "pr_branch": "test-assist/complete-session-absent-assertions",
-      "description": "2 integration tests for CompleteSession: 'persists registered participants as absent in the database' and 'leaves checked_in and checked_out participants unchanged when completing'",
-      "tests_added": 2
+      "description": "2 integration tests for CompleteSession: 'persists registered participants as absent in the database' and 'leaves checked_in and checked_out participants unchanged when completing' — confirmed merged into main",
+      "tests_added": 2,
+      "merged": true
     },
     {
       "date": "2026-04-05",
@@ -99,7 +110,7 @@
   },
   "checked_off_items": [],
   "backlog_cursor": {
-    "task_2_last_file": "participation/application/use_cases/",
+    "task_2_last_file": "provider/application/use_cases/providers/",
     "task_5_last_issue": 515
   }
 }
