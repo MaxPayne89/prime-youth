@@ -45,7 +45,8 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
       program_slots_total: tier_info[:max_programs],
       initials: build_initials(provider.business_name),
       logo_url: provider.logo_url,
-      verification_status: :not_started
+      verification_status: :not_started,
+      stripe_identity_status: provider.stripe_identity_status
     }
   end
 

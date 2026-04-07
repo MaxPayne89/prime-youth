@@ -33,6 +33,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
     field :categories, {:array, :string}, default: []
     field :subscription_tier, :string, default: "starter"
     field :originated_from, :string
+    field :stripe_identity_session_id, :string
+    field :stripe_identity_status, :string, default: "not_started"
 
     belongs_to :verified_by, User, type: :binary_id
 
@@ -72,9 +74,13 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
       :verified_by_id,
       :categories,
       :subscription_tier,
-      :originated_from
+      :originated_from,
+      :stripe_identity_session_id,
+      :stripe_identity_status
     ])
     |> validate_required([:identity_id, :business_name])
+    |> validate_inclusion(:stripe_identity_status,
+      ~w(not_started pending verified requires_input canceled))
     |> validate_length(:business_name, min: 1, max: 200)
     |> validate_length(:description, min: 1, max: 1000)
     |> validate_length(:phone, min: 1, max: 20)

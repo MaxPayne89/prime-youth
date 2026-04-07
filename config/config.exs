@@ -221,9 +221,12 @@ config :klass_hero, :provider,
   for_storing_verification_documents:
     KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository,
   for_storing_staff_members:
-    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
+    KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository,
+  for_calling_stripe_identity:
+    KlassHero.Provider.Adapters.Driven.Stripe.StripeIdentityAdapter
 
 config :klass_hero, :resend_req_options, []
+config :klass_hero, :stripe_req_options, []
 
 config :klass_hero, :scopes,
   user: [
@@ -370,7 +373,9 @@ config :logger, :default_formatter,
     :user_type,
     :broadcast_id,
     :direct_conversation_id,
-    :staff_member_id
+    :staff_member_id,
+    :stripe_session_id,
+    :stripe_status
   ]
 
 config :opentelemetry, :resource,

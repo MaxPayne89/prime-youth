@@ -50,6 +50,10 @@ config :klass_hero, :participation,
   enrolled_children_resolver:
     KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
 
+config :klass_hero, :provider,
+  for_calling_stripe_identity:
+    KlassHero.Provider.Adapters.Driven.Stripe.StubStripeIdentityAdapter
+
 config :klass_hero, :resend_req_options,
   plug: {Req.Test, KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter}
 

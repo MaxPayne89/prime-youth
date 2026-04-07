@@ -90,6 +90,12 @@ defmodule KlassHero.Application do
            {:verification_document_rejected,
             {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProviderVerificationStatus,
              :handle}},
+           {:stripe_identity_verified,
+            {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProviderVerificationStatus,
+             :handle}},
+           {:stripe_identity_failed,
+            {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProviderVerificationStatus,
+             :handle}},
            {:subscription_tier_changed,
             {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents,
              :handle}}

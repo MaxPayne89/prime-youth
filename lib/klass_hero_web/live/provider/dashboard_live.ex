@@ -38,6 +38,13 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         {:ok, redirect(socket, to: ~p"/")}
 
       provider_profile ->
+        if connected?(socket) do
+          Phoenix.PubSub.subscribe(
+            KlassHero.PubSub,
+            "provider:#{provider_profile.id}:stripe_identity"
+          )
+        end
+
         business = ProviderPresenter.to_business_view(provider_profile)
 
         # Trigger: to_business_view defaults verification_status to :not_started
@@ -80,6 +87,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           socket
           |> assign(page_title: gettext("Provider Dashboard"))
           |> assign(business: business)
+          |> assign(stripe_identity_status: provider_profile.stripe_identity_status)
           |> stream(:team_members, staff_views)
           |> assign(staff_count: length(staff_views))
           |> stream(:programs, programs)
@@ -476,6 +484,23 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   @impl true
   def handle_event("cancel_upload", %{"ref" => ref, "upload" => upload_name}, socket) do
     {:noreply, cancel_upload(socket, String.to_existing_atom(upload_name), ref)}
+  end
+
+  @impl true
+  def handle_event("start_stripe_identity", _params, socket) do
+    provider = socket.assigns.current_scope.provider
+    return_url = url(~p"/provider/stripe-identity/return")
+
+    case Provider.initiate_stripe_identity_verification(provider.id, return_url) do
+      {:ok, %{url: stripe_url}} ->
+        {:noreply, redirect(socket, external: stripe_url)}
+
+      {:error, :already_verified} ->
+        {:noreply, put_flash(socket, :info, gettext("Your identity has already been verified."))}
+
+      {:error, _reason} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to start identity verification. Please try again."))}
+    end
   end
 
   # Program Creation Events
@@ -1048,6 +1073,11 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     end
   end
 
+  @impl true
+  def handle_info({:stripe_identity_updated, %{status: status}}, socket) do
+    {:noreply, assign(socket, stripe_identity_status: status)}
+  end
+
   # Render
 
   @impl true
@@ -1064,6 +1094,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
               verification_docs={@streams.verification_docs}
               doc_type={@doc_type}
               document_types={@document_types}
+              stripe_identity_status={@stripe_identity_status}
             />
           <% _ -> %>
             <.provider_dashboard_header business={@business} />
@@ -1239,12 +1270,72 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         </.form>
       </div>
 
+      <%!-- Identity Verification --%>
+      <.stripe_identity_panel stripe_identity_status={@stripe_identity_status} />
+
       <.verification_documents_panel
         verification_docs={@verification_docs}
         uploads={@uploads}
         doc_type={@doc_type}
         document_types={@document_types}
       />
+    </div>
+    """
+  end
+
+  attr :stripe_identity_status, :atom, required: true
+
+  defp stripe_identity_panel(assigns) do
+    ~H"""
+    <div class={["bg-white p-6 shadow-sm border border-hero-grey-200", Theme.rounded(:xl)]}>
+      <h2 class="text-lg font-semibold text-hero-charcoal mb-4">
+        {gettext("Identity Verification")}
+      </h2>
+
+      <p class="text-sm text-hero-grey-500 mb-4">
+        {gettext(
+          "Verify your identity and confirm you are 18 or older using Stripe Identity (a quick ID scan + selfie)."
+        )}
+      </p>
+
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <%= case @stripe_identity_status do %>
+            <% :verified -> %>
+              <.icon name="hero-check-circle-mini" class="w-5 h-5 text-green-500" />
+              <span class="text-sm font-medium text-green-700">{gettext("Verified")}</span>
+            <% :pending -> %>
+              <.icon name="hero-clock-mini" class="w-5 h-5 text-yellow-500" />
+              <span class="text-sm font-medium text-yellow-700">{gettext("Verification in progress")}</span>
+            <% :requires_input -> %>
+              <.icon name="hero-exclamation-circle-mini" class="w-5 h-5 text-red-500" />
+              <span class="text-sm font-medium text-red-700">
+                {gettext("Verification requires action — please contact support")}
+              </span>
+            <% :canceled -> %>
+              <.icon name="hero-x-circle-mini" class="w-5 h-5 text-hero-grey-400" />
+              <span class="text-sm font-medium text-hero-grey-500">{gettext("Verification canceled")}</span>
+            <% _ -> %>
+              <.icon name="hero-identification-mini" class="w-5 h-5 text-hero-grey-400" />
+              <span class="text-sm font-medium text-hero-grey-500">{gettext("Not started")}</span>
+          <% end %>
+        </div>
+
+        <button
+          :if={@stripe_identity_status not in [:verified, :pending]}
+          type="button"
+          phx-click="start_stripe_identity"
+          class={[
+            "flex items-center gap-2 px-4 py-2 bg-hero-yellow hover:bg-hero-yellow-dark",
+            "text-hero-charcoal text-sm font-semibold",
+            Theme.rounded(:lg),
+            Theme.transition(:normal)
+          ]}
+        >
+          <.icon name="hero-identification-mini" class="w-4 h-4" />
+          {gettext("Verify Identity")}
+        </button>
+      </div>
     </div>
     """
   end

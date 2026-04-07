@@ -50,6 +50,8 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.UseCases.StaffMembers.UpdateStaffMember
   alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.UseCases.Verification.GetVerificationDocumentPreview
+  alias KlassHero.Provider.Application.UseCases.Verification.InitiateStripeIdentityVerification
+  alias KlassHero.Provider.Application.UseCases.Verification.ProcessStripeIdentityWebhook
   alias KlassHero.Provider.Application.UseCases.Verification.RejectVerificationDocument
   alias KlassHero.Provider.Application.UseCases.Verification.SubmitVerificationDocument
   alias KlassHero.Provider.Domain.Models.ProviderProfile
@@ -237,6 +239,46 @@ defmodule KlassHero.Provider do
           | {:error, :not_found}
   def get_verification_document_preview(document_id) do
     GetVerificationDocumentPreview.execute(document_id)
+  end
+
+  # ============================================================================
+  # Stripe Identity Verification
+  # ============================================================================
+
+  @doc """
+  Initiates a Stripe Identity Verification Session for a provider.
+
+  Returns `{:ok, %{url: String.t(), session_id: String.t()}}` on success.
+  The caller should redirect the provider to the returned URL.
+
+  Returns `{:error, :already_verified}` if the provider's identity is already verified.
+  """
+  @spec initiate_stripe_identity_verification(String.t(), String.t()) ::
+          {:ok, %{url: String.t(), session_id: String.t()}}
+          | {:error, :not_found | :already_verified | term()}
+  def initiate_stripe_identity_verification(provider_id, return_url)
+      when is_binary(provider_id) and is_binary(return_url) do
+    InitiateStripeIdentityVerification.execute(%{
+      provider_id: provider_id,
+      return_url: return_url
+    })
+  end
+
+  @doc """
+  Processes a Stripe Identity webhook outcome.
+
+  Called by the StripeWebhookController after signature verification.
+  Applies the 18+ age gate and dispatches domain events.
+  """
+  @spec process_stripe_identity_verification(String.t(), atom(), map() | nil) ::
+          :ok | {:error, :not_found | term()}
+  def process_stripe_identity_verification(session_id, status, verified_outputs)
+      when is_binary(session_id) do
+    ProcessStripeIdentityWebhook.execute(%{
+      session_id: session_id,
+      status: status,
+      verified_outputs: verified_outputs
+    })
   end
 
   # ============================================================================

@@ -16,7 +16,10 @@ defmodule KlassHero.Provider.Application.UseCases.Verification.AutoVerifyIntegra
 
   setup do
     setup_test_integration_events()
-    provider = ProviderFixtures.provider_profile_fixture()
+
+    provider =
+      ProviderFixtures.provider_profile_fixture(%{stripe_identity_status: "verified"})
+
     admin = AccountsFixtures.user_fixture(%{is_admin: true})
     %{provider: provider, admin: admin}
   end

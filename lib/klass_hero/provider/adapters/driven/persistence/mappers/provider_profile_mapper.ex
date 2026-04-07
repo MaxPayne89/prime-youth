@@ -47,6 +47,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
       categories: schema.categories,
       subscription_tier: string_to_tier(schema.subscription_tier, :starter),
       originated_from: string_to_originated_from(schema.originated_from),
+      stripe_identity_session_id: schema.stripe_identity_session_id,
+      stripe_identity_status: string_to_stripe_status(schema.stripe_identity_status),
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -73,7 +75,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
       verified_by_id: provider_profile.verified_by_id,
       categories: provider_profile.categories,
       subscription_tier: tier_to_string(provider_profile.subscription_tier, "starter"),
-      originated_from: originated_from_to_string(provider_profile.originated_from)
+      originated_from: originated_from_to_string(provider_profile.originated_from),
+      stripe_identity_session_id: provider_profile.stripe_identity_session_id,
+      stripe_identity_status: stripe_status_to_string(provider_profile.stripe_identity_status)
     }
     |> maybe_add_id(provider_profile.id)
   end
@@ -85,4 +89,20 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
 
   defp originated_from_to_string(nil), do: nil
   defp originated_from_to_string(:staff_invite), do: "staff_invite"
+
+  defp string_to_stripe_status(nil), do: :not_started
+  defp string_to_stripe_status("not_started"), do: :not_started
+  defp string_to_stripe_status("pending"), do: :pending
+  defp string_to_stripe_status("verified"), do: :verified
+  defp string_to_stripe_status("requires_input"), do: :requires_input
+  defp string_to_stripe_status("canceled"), do: :canceled
+  # Safe fallback for unexpected values
+  defp string_to_stripe_status(_), do: :not_started
+
+  defp stripe_status_to_string(:not_started), do: "not_started"
+  defp stripe_status_to_string(:pending), do: "pending"
+  defp stripe_status_to_string(:verified), do: "verified"
+  defp stripe_status_to_string(:requires_input), do: "requires_input"
+  defp stripe_status_to_string(:canceled), do: "canceled"
+  defp stripe_status_to_string(nil), do: "not_started"
 end

@@ -76,4 +76,14 @@ defmodule KlassHero.Provider.Domain.Ports.ForStoringProviderProfiles do
   - `{:ok, [String.t()]}` - List of verified provider profile IDs (may be empty)
   """
   @callback list_verified_ids() :: {:ok, [String.t()]}
+
+  @doc """
+  Retrieves a provider profile by its Stripe Identity session ID.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` - Provider profile found
+  - `{:error, :not_found}` - No provider profile with this session ID
+  """
+  @callback get_by_stripe_session_id(session_id :: String.t()) ::
+              {:ok, ProviderProfile.t()} | {:error, :not_found}
 end
