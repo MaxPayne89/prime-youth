@@ -20,6 +20,8 @@
  */
 const ScrollRevealHook = {
   mounted() {
+    this.timeout = null
+
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       this.revealImmediately()
       return
@@ -32,7 +34,10 @@ const ScrollRevealHook = {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setTimeout(() => this.reveal(stagger), delay)
+            this.timeout = setTimeout(() => {
+              this.timeout = null
+              this.reveal(stagger)
+            }, delay)
             this.observer.unobserve(this.el)
           }
         })
@@ -65,6 +70,10 @@ const ScrollRevealHook = {
   },
 
   destroyed() {
+    if (this.timeout) {
+      clearTimeout(this.timeout)
+      this.timeout = null
+    }
     if (this.observer) {
       this.observer.disconnect()
       this.observer = null

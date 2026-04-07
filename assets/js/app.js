@@ -17,6 +17,12 @@
 // If you have dependencies that try to import CSS, esbuild will generate a separate `app.css` file.
 // To load it, simply add a second `<link>` to your `root.html.heex` file.
 
+// Mark JS as enabled so progressive-enhancement CSS rules can apply.
+// If this file fails to load, the class is never added and any CSS rule
+// scoped under `.js` (e.g. the ScrollReveal hidden state) simply won't apply,
+// leaving content visible for no-JS/failed-JS users.
+document.documentElement.classList.add("js")
+
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
