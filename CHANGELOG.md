@@ -5,6 +5,25 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.27.0](https://github.com/MaxPayne89/klass-hero/compare/v0.26.1...v0.27.0) (2026-04-07)
+
+
+### Features
+
+* hide expired programs from public listing page ([6f94876](https://github.com/MaxPayne89/klass-hero/commit/6f948768128c939fb8ad4f958c1aa84e65a61aad))
+* polish frontend with typography, scroll animations, and component cleanup ([6f5d3be](https://github.com/MaxPayne89/klass-hero/commit/6f5d3be704e59af54430dcf646392b9b1e8fa475))
+* **program_catalog:** hide expired programs from public listing ([f29015f](https://github.com/MaxPayne89/klass-hero/commit/f29015f67cb68b987df91d743271d62f96fcb6fa)), closes [#610](https://github.com/MaxPayne89/klass-hero/issues/610)
+
+
+### Bug Fixes
+
+* harden ScrollReveal hook against timeout races and JS failures ([d6c28d2](https://github.com/MaxPayne89/klass-hero/commit/d6c28d22e92c142ec7ce568ae650d9b100f5e50d)), closes [#615](https://github.com/MaxPayne89/klass-hero/issues/615)
+
+
+### Performance Improvements
+
+* **program_catalog:** index program_listings.end_date ([a6d79f7](https://github.com/MaxPayne89/klass-hero/commit/a6d79f7712df05441bfe4330b084957d303c6fa5))
+
 ## [0.26.1](https://github.com/MaxPayne89/klass-hero/compare/v0.26.0...v0.26.1) (2026-04-07)
 
 
