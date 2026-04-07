@@ -141,6 +141,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   defp fetch_page(limit, cursor_data, category) do
     ProgramListingSchema
     |> apply_category_filter(category)
+    |> apply_end_date_filter()
     |> apply_cursor_filter(cursor_data)
     |> order_by([l], desc: l.inserted_at, desc: l.id)
     |> limit(^(limit + 1))
@@ -152,6 +153,15 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
   defp apply_category_filter(query, category) when is_binary(category) do
     where(query, [l], l.category == ^category)
+  end
+
+  # Trigger: every public listing query
+  # Why: programs that have already ended should not appear in /programs (issue #610);
+  #      programs without an end_date are open-ended and continue to appear
+  # Outcome: excludes rows where end_date < today, keeps end_date >= today and nil end_date
+  defp apply_end_date_filter(query) do
+    today = Date.utc_today()
+    where(query, [l], is_nil(l.end_date) or l.end_date >= ^today)
   end
 
   defp apply_cursor_filter(query, nil), do: query

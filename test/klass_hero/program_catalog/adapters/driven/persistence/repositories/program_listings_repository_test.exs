@@ -89,6 +89,35 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       titles = Enum.map(page.items, & &1.title)
       assert hd(titles) == "New Program"
     end
+
+    test "excludes programs whose end_date is in the past" do
+      insert_listing(%{title: "Expired Program", end_date: Date.add(Date.utc_today(), -1)})
+      insert_listing(%{title: "Active Program", end_date: Date.add(Date.utc_today(), 7)})
+
+      {:ok, page} = ProgramListingsRepository.list_paginated(10, nil, nil)
+
+      titles = Enum.map(page.items, & &1.title)
+      refute "Expired Program" in titles
+      assert "Active Program" in titles
+    end
+
+    test "includes programs with nil end_date" do
+      insert_listing(%{title: "Ongoing Program", end_date: nil})
+
+      {:ok, page} = ProgramListingsRepository.list_paginated(10, nil, nil)
+
+      titles = Enum.map(page.items, & &1.title)
+      assert "Ongoing Program" in titles
+    end
+
+    test "includes programs ending today (inclusive boundary)" do
+      insert_listing(%{title: "Last Day Program", end_date: Date.utc_today()})
+
+      {:ok, page} = ProgramListingsRepository.list_paginated(10, nil, nil)
+
+      titles = Enum.map(page.items, & &1.title)
+      assert "Last Day Program" in titles
+    end
   end
 
   describe "get_by_id/1" do
@@ -138,6 +167,21 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
 
       titles = Enum.map(results, & &1.title)
       assert titles == ["Art Class", "Zebra Club"]
+    end
+
+    test "returns expired programs (provider dashboard must show them)" do
+      provider_id = Ecto.UUID.generate()
+
+      insert_listing(%{
+        title: "Expired Provider Program",
+        provider_id: provider_id,
+        end_date: Date.add(Date.utc_today(), -30)
+      })
+
+      results = ProgramListingsRepository.list_for_provider(provider_id)
+
+      titles = Enum.map(results, & &1.title)
+      assert "Expired Provider Program" in titles
     end
   end
 
