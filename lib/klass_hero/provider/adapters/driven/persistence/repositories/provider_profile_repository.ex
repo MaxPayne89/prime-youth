@@ -182,4 +182,26 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
       {:ok, ids}
     end
   end
+
+  @impl true
+  @doc """
+  Retrieves a provider profile by its Stripe Identity session ID.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` when a matching profile is found
+  - `{:error, :not_found}` when no profile has this session ID
+  """
+  def get_by_stripe_session_id(session_id) when is_binary(session_id) do
+    span do
+      set_attributes("db", operation: "select", entity: "provider_profile")
+
+      case Repo.one(
+             from p in ProviderProfileSchema,
+             where: p.stripe_identity_session_id == ^session_id
+           ) do
+        nil -> {:error, :not_found}
+        schema -> {:ok, ProviderProfileMapper.to_domain(schema)}
+      end
+    end
+  end
 end

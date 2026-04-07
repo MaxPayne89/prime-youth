@@ -13,6 +13,8 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
 
   @enforce_keys [:id, :identity_id, :business_name]
 
+  @valid_stripe_identity_statuses ~w(not_started pending verified requires_input canceled)a
+
   defstruct [
     :id,
     :identity_id,
@@ -28,9 +30,14 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     :categories,
     :subscription_tier,
     :originated_from,
+    :stripe_identity_session_id,
     :inserted_at,
-    :updated_at
+    :updated_at,
+    stripe_identity_status: :not_started
   ]
+
+  @type stripe_identity_status ::
+          :not_started | :pending | :verified | :requires_input | :canceled
 
   @type t :: %__MODULE__{
           id: String.t(),
@@ -47,6 +54,8 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
           categories: [String.t()] | nil,
           subscription_tier: :starter | :professional | :business_plus | nil,
           originated_from: :direct | :staff_invite | nil,
+          stripe_identity_session_id: String.t() | nil,
+          stripe_identity_status: stripe_identity_status(),
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -86,6 +95,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     |> Map.put_new(:categories, [])
     |> Map.put_new(:subscription_tier, SubscriptionTiers.default_provider_tier())
     |> Map.put_new(:originated_from, :direct)
+    |> Map.put_new(:stripe_identity_status, :not_started)
   end
 
   @doc """
@@ -166,6 +176,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     |> validate_categories(provider_profile.categories)
     |> validate_subscription_tier(provider_profile.subscription_tier)
     |> validate_originated_from(provider_profile.originated_from)
+    |> validate_stripe_identity_status(provider_profile.stripe_identity_status)
   end
 
   defp validate_identity_id(errors, identity_id) when is_binary(identity_id) do
@@ -306,4 +317,49 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
   defp validate_originated_from(errors, from) when from in @valid_originated_from, do: errors
 
   defp validate_originated_from(errors, _), do: ["originated_from must be :direct or :staff_invite" | errors]
+
+  defp validate_stripe_identity_status(errors, status)
+       when status in @valid_stripe_identity_statuses,
+       do: errors
+
+  defp validate_stripe_identity_status(errors, _) do
+    valid = Enum.join(@valid_stripe_identity_statuses, ", ")
+    ["Stripe identity status must be one of: #{valid}" | errors]
+  end
+
+  @doc """
+  Records that a Stripe Identity session has been initiated (status → :pending).
+
+  Called when the provider is redirected to the Stripe-hosted verification flow.
+  """
+  @spec stripe_identity_initiated(t(), String.t()) :: {:ok, t()}
+  def stripe_identity_initiated(%__MODULE__{} = profile, session_id)
+      when is_binary(session_id) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    {:ok,
+     %{profile | stripe_identity_session_id: session_id, stripe_identity_status: :pending, updated_at: now}}
+  end
+
+  @doc """
+  Records the outcome of a Stripe Identity verification session.
+
+  Status must be one of: :verified, :requires_input, :canceled
+  """
+  @spec record_stripe_identity_result(t(), String.t(), stripe_identity_status()) :: {:ok, t()}
+  def record_stripe_identity_result(%__MODULE__{} = profile, session_id, status)
+      when is_binary(session_id) and
+             status in [:verified, :requires_input, :canceled] do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    {:ok,
+     %{profile | stripe_identity_session_id: session_id, stripe_identity_status: status, updated_at: now}}
+  end
+
+  @doc """
+  Returns true if the Stripe Identity step has been successfully verified.
+  """
+  @spec stripe_identity_verified?(t()) :: boolean()
+  def stripe_identity_verified?(%__MODULE__{stripe_identity_status: :verified}), do: true
+  def stripe_identity_verified?(_), do: false
 end

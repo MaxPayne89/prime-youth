@@ -259,9 +259,12 @@ config :klass_hero, :provider,
   for_storing_provider_profiles: ProviderProfileRepository,
   for_storing_verification_documents: VerificationDocumentRepository,
   for_storing_staff_members: StaffMemberRepository,
-  for_storing_program_staff_assignments: ProgramStaffAssignmentRepository
+  for_storing_program_staff_assignments: ProgramStaffAssignmentRepository,
+  for_calling_stripe_identity:
+    KlassHero.Provider.Adapters.Driven.Stripe.StripeIdentityAdapter
 
 config :klass_hero, :resend_req_options, []
+config :klass_hero, :stripe_req_options, []
 
 config :klass_hero, :scopes,
   user: [
@@ -412,7 +415,9 @@ config :logger, :default_formatter,
     :file_url,
     :storage_path,
     :filename,
-    :received
+    :received,
+    :stripe_session_id,
+    :stripe_status
   ]
 
 config :opentelemetry, :resource,

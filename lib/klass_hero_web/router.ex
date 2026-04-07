@@ -32,10 +32,20 @@ defmodule KlassHeroWeb.Router do
     plug VerifyWebhookSignature
   end
 
+  pipeline :stripe_webhook do
+    plug KlassHeroWeb.Plugs.VerifyStripeWebhookSignature
+  end
+
   scope "/webhooks", KlassHeroWeb do
     pipe_through [:api, :webhook]
 
     post "/resend", ResendWebhookController, :handle
+  end
+
+  scope "/webhooks", KlassHeroWeb do
+    pipe_through [:api, :stripe_webhook]
+
+    post "/stripe", StripeWebhookController, :handle
   end
 
   # Trigger: ThemeSelectorPlug reads session["backpex"]["theme"] for @theme assign
@@ -120,6 +130,12 @@ defmodule KlassHeroWeb.Router do
         live "/programs/:program_id/broadcast", BroadcastLive, :new
         live "/subscription", SubscriptionLive, :index
       end
+    end
+
+    # Stripe Identity return URL — provider is redirected here after Stripe-hosted flow
+    # No strict auth required: redirect to /provider/dashboard handles the rest
+    scope "/provider" do
+      get "/stripe-identity/return", StripeIdentityReturnController, :show
     end
 
     # Parent routes - parent role required

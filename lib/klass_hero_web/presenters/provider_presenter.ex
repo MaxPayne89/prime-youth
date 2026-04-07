@@ -47,7 +47,8 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
       team_seats_total: tier_info[:team_seats],
       initials: build_initials(provider.business_name),
       logo_url: provider.logo_url,
-      verification_status: :not_started
+      verification_status: :not_started,
+      stripe_identity_status: provider.stripe_identity_status
     }
   end
 

@@ -1,12 +1,25 @@
 ---
 description: Review PR for DDD/Ports & Adapters architecture compliance
+argument-hint: "[pr-number]"
 ---
 
-Run the `/pr-review-toolkit:review-pr` skill with the following review criteria:
+Review the current PR for DDD/Ports & Adapters architecture compliance.
 
-## Architecture Review Focus Areas
+## Setup
 
-Review the current PR diff against these DDD/Ports & Adapters standards specific to this project:
+1. **Resolve the PR number:**
+   - If `$ARGUMENTS` is provided and is a number, use it directly
+   - Otherwise run `gh pr view --json number --jq '.number'` to auto-detect from the current branch
+2. **Fetch the diff:** `gh pr diff <number>`
+3. **Fetch PR context:** `gh pr view <number> --json title,body,headRefName`
+4. **Read project architecture rules:** `.claude/rules/domain-architecture.md`
+
+## Review
+
+Analyze the diff against each focus area below. For each area report one of:
+- `✅ PASS` — no violations found
+- `⚠️ WARNING` — potential issue worth discussing (not a hard breach)
+- `❌ VIOLATION` — clear architecture breach — cite `file:line` and describe the fix
 
 ### 1. Bounded Context Boundaries
 - Domain logic stays within its bounded context (no cross-context imports of internal modules)
@@ -20,7 +33,7 @@ Review the current PR diff against these DDD/Ports & Adapters standards specific
 - **Web layer** (`lib/klass_hero_web/`): LiveViews, components, presenters — drives use cases, never touches domain internals directly
 
 ### 3. Dependency Direction
-- Dependencies point inward: Web -> Application -> Domain
+- Dependencies point inward: Web → Application → Domain
 - Domain never depends on Application or Adapters
 - Use cases depend on port behaviors, not concrete adapter modules
 - Configuration-based dependency injection via module attributes (e.g., `@repository Application.compile_env!(...)`)
@@ -31,7 +44,7 @@ Review the current PR diff against these DDD/Ports & Adapters standards specific
 - No Ecto changesets or Repo calls in domain logic
 
 ### 5. Event Classification
-Assess in detail whether each event uses the correct type(s). An event can be multiple kinds simultaneously:
+Assess whether each event uses the correct type(s). An event can be multiple kinds simultaneously:
 - **Domain Events**: Concern only the originating bounded context (internal state changes, invariant enforcement). Stay within the context boundary.
 - **Integration Events**: Must propagate past the context boundary to another bounded context (e.g., triggering a workflow in Enrollment when a Program is created in Program Catalog).
 - **UI Events**: Must be communicated to the LiveView layer, so they also cross the context boundary (e.g., notifying the provider dashboard of a new enrollment).
@@ -41,9 +54,11 @@ Assess in detail whether each event uses the correct type(s). An event can be mu
 ### 6. Naming & Structure Conventions
 - Context directory structure follows `context/{domain,application,adapters}/` pattern
 - Port modules named `ForDoingSomething` (e.g., `ForStoringPrograms`)
-- Use case modules are single-purpose with a `call/N` function
+- Use case modules are single-purpose with an `execute/1` function
 - Ecto schemas live only in `adapters/driven/persistence/`
 - Mappers convert between domain models and Ecto schemas
+- Driving adapters (event handlers, Oban workers) live under `adapters/driving/`
+- Driven adapters (repositories, external APIs) live under `adapters/driven/`
 
 ### 7. Web Layer Patterns
 - LiveViews use `@current_scope` (never `@current_user`)
@@ -57,3 +72,28 @@ Assess in detail whether each event uses the correct type(s). An event can be mu
 - Cross-context database joins
 - Business logic in controllers/LiveViews
 - Infrastructure concerns leaking into domain layer
+
+## Output Format
+
+```
+## Architecture Review — PR #<number>: <title>
+
+### 1. Bounded Context Boundaries — ✅ PASS / ⚠️ WARNING / ❌ VIOLATION
+<findings or "No issues found.">
+
+### 2. Ports & Adapters Layering — ✅ PASS / ...
+...
+
+[repeat for all 8 areas]
+
+---
+## Summary
+
+**Violations (must fix):**
+- <list or "None">
+
+**Warnings (worth discussing):**
+- <list or "None">
+
+**Overall:** ✅ Architecture compliant / ❌ Requires changes before merge
+```

@@ -129,6 +129,14 @@ if config_env() == :prod do
   config :klass_hero, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
   config :klass_hero, :resend_webhook_secret, System.get_env("RESEND_WEBHOOK_SECRET")
 
+  config :klass_hero, :stripe_secret_key,
+    System.get_env("STRIPE_SECRET_KEY") ||
+      raise("STRIPE_SECRET_KEY environment variable is not set")
+
+  config :klass_hero, :stripe_webhook_secret,
+    System.get_env("STRIPE_WEBHOOK_SECRET") ||
+      raise("STRIPE_WEBHOOK_SECRET environment variable is not set")
+
   # Trigger: dev Fly.io instance needs to receive test webhook payloads via curl
   # Why: Svix signature verification requires a live webhook secret and real headers
   # Outcome: set VERIFY_WEBHOOK_SIGNATURE=false on dev instance to skip verification
