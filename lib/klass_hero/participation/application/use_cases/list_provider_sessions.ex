@@ -5,8 +5,6 @@ defmodule KlassHero.Participation.Application.UseCases.ListProviderSessions do
   Used by provider dashboard to show their assigned sessions.
   """
 
-  alias KlassHero.Participation.Domain.Models.ProgramSession
-
   @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
 
   @type params :: %{
@@ -14,7 +12,7 @@ defmodule KlassHero.Participation.Application.UseCases.ListProviderSessions do
           optional(:date) => Date.t()
         }
 
-  @type result :: {:ok, [ProgramSession.t()]}
+  @type result :: {:ok, [map()]}
 
   @doc """
   Lists sessions for a provider on a specific date.

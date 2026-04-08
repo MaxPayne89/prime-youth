@@ -32,13 +32,21 @@ defmodule KlassHero.Participation.Domain.Ports.ForManagingSessions do
   @callback update(ProgramSession.t()) ::
               {:ok, ProgramSession.t()} | {:error, :stale_data | :not_found | :validation_failed}
 
-  @doc """
-  Lists sessions for a provider on a specific date, ordered by start_time.
+  @type provider_session :: %{
+          id: String.t(),
+          program_id: String.t(),
+          program_name: String.t() | nil,
+          session_date: Date.t(),
+          start_time: Time.t(),
+          end_time: Time.t(),
+          status: ProgramSession.status(),
+          location: String.t() | nil,
+          notes: String.t() | nil,
+          max_capacity: pos_integer() | nil
+        }
 
-  Note: Requires provider-program relationship in schema for full filtering.
-  Currently filters by date only until schema is updated.
-  """
-  @callback list_by_provider_and_date(binary(), Date.t()) :: [ProgramSession.t()]
+  @doc "Lists sessions for a provider on a specific date, ordered by start_time. Returns enriched maps including program_name."
+  @callback list_by_provider_and_date(binary(), Date.t()) :: [provider_session()]
 
   @doc "Retrieves multiple sessions by their IDs (batch fetch)."
   @callback get_many_by_ids([binary()]) :: [ProgramSession.t()]

@@ -289,6 +289,18 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
       assert Enum.all?(sessions, &(&1.session_date == target_date))
     end
 
+    test "includes program_name from joined programs table" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      target_date = ~D[2025-02-15]
+
+      insert(:program_session_schema, program_id: program.id, session_date: target_date)
+
+      [session] = SessionRepository.list_by_provider_and_date(provider.id, target_date)
+
+      assert session.program_name == program.title
+    end
+
     test "does not return sessions from other providers" do
       provider = insert(:provider_profile_schema)
       other_provider = insert(:provider_profile_schema)

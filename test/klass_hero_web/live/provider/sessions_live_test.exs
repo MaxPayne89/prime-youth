@@ -53,6 +53,20 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
       assert has_element?(view, "button", "Start Session")
     end
 
+    test "shows program name in session card", %{conn: conn, provider: provider} do
+      program = insert(:program_schema, provider_id: provider.id, title: "Morning Yoga")
+
+      insert(:program_session_schema,
+        program_id: program.id,
+        session_date: Date.utc_today(),
+        status: :scheduled
+      )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/sessions")
+
+      assert has_element?(view, "h3", "Morning Yoga")
+    end
+
     test "does not show sessions for other providers", %{conn: conn} do
       other_provider = insert(:provider_profile_schema)
       program = insert(:program_schema, provider_id: other_provider.id)

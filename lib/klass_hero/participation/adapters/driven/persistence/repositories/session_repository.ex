@@ -78,10 +78,22 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Sessi
       join: p in "programs",
       on: p.id == s.program_id,
       where: p.provider_id == type(^provider_id, Ecto.UUID) and s.session_date == ^date,
+      select: %{
+        id: s.id,
+        program_id: s.program_id,
+        program_name: p.title,
+        session_date: s.session_date,
+        start_time: s.start_time,
+        end_time: s.end_time,
+        status: s.status,
+        location: s.location,
+        notes: s.notes,
+        max_capacity: s.max_capacity
+      },
       order_by: [asc: s.start_time]
     )
     |> Repo.all()
-    |> Enum.map(&ProgramSessionMapper.to_domain/1)
+    |> Enum.map(&atomize_status/1)
   end
 
   @impl true
