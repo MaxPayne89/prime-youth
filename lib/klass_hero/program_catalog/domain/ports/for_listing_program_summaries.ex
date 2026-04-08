@@ -64,8 +64,7 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingProgramSummaries do
 
   Returns program listings whose `end_date` is in the future or nil
   (open-ended programs), ordered by title ascending. Programs whose
-  `end_date` has already passed are excluded. Intended for public-facing
-  surfaces such as the home page featured programs section (issue #610).
+  `end_date` has already passed are excluded (issue #610).
 
   Returns an empty list if no active listings exist.
   """
