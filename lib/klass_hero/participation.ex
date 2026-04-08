@@ -201,6 +201,24 @@ defmodule KlassHero.Participation do
   end
 
   @doc """
+  Retrieves a session enriched with program_name for list views.
+
+  Fetches only the session and its program name — no roster or child data.
+
+  ## Parameters
+
+  - `session_id` - ID of the session
+
+  ## Returns
+
+  - `{:ok, session_map}` where session_map includes all session fields + program_name
+  - `{:error, :not_found}` if session doesn't exist
+  """
+  def get_session_for_list(session_id) when is_binary(session_id) do
+    GetSessionWithRoster.execute_for_list(session_id)
+  end
+
+  @doc """
   Retrieves a session with participation records attached for UI display.
 
   Returns the session with a `participation_records` field containing

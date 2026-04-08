@@ -71,6 +71,34 @@ defmodule KlassHero.Participation.Application.UseCases.GetSessionWithRoster do
   end
 
   @doc """
+  Retrieves a session enriched with program_name for list views.
+
+  Fetches only the session and its program name — no roster or child data.
+  Use this when only basic display fields are needed (e.g. the sessions list card).
+
+  ## Parameters
+
+  - `session_id` - ID of the session
+
+  ## Returns
+
+  - `{:ok, session_map}` where session_map includes all session fields + program_name
+  - `{:error, :not_found}` if session doesn't exist
+  """
+  @spec execute_for_list(String.t()) :: {:ok, map()} | {:error, :not_found}
+  def execute_for_list(session_id) when is_binary(session_id) do
+    with {:ok, session} <- @session_repository.get_by_id(session_id) do
+      program_name = @session_repository.get_program_name(session.program_id)
+
+      enriched =
+        Map.from_struct(session)
+        |> Map.put(:program_name, program_name)
+
+      {:ok, enriched}
+    end
+  end
+
+  @doc """
   Retrieves a session with participation records attached for UI display.
 
   Returns the session with a `participation_records` field containing

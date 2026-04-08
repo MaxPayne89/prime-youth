@@ -335,7 +335,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   defp humanize_error(reason), do: inspect(reason)
 
   defp update_session_in_stream(socket, session_id) do
-    case Participation.get_session_with_roster_enriched(session_id) do
+    case Participation.get_session_for_list(session_id) do
       {:ok, enriched_session} ->
         stream_insert(socket, :sessions, enriched_session)
 
