@@ -13,7 +13,11 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     provider_id = socket.assigns.current_scope.provider.id
     selected_date = Date.utc_today()
 
-    provider_programs = ProgramCatalog.list_programs_for_provider(provider_id)
+    # Both queries are independent — run them in parallel
+    programs_task = Task.async(fn -> ProgramCatalog.list_programs_for_provider(provider_id) end)
+    sessions_task = Task.async(fn -> Participation.list_provider_sessions(provider_id, selected_date) end)
+
+    provider_programs = Task.await(programs_task)
     provider_program_ids = MapSet.new(provider_programs, & &1.id)
 
     socket =
@@ -37,7 +41,25 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
       )
     end
 
-    {:ok, load_sessions(socket)}
+    sessions_result = Task.await(sessions_task)
+
+    socket =
+      case sessions_result do
+        {:ok, sessions} ->
+          socket
+          |> stream(:sessions, sessions, reset: true)
+          |> assign(:sessions_error, nil)
+
+        {:error, reason} ->
+          Logger.error("[SessionsLive] Failed to load sessions for date #{selected_date}",
+            provider_id: provider_id,
+            reason: inspect(reason)
+          )
+
+          assign(socket, :sessions_error, reason)
+      end
+
+    {:ok, socket}
   end
 
   @impl true
