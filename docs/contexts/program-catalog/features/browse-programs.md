@@ -13,7 +13,7 @@ Lets parents discover afterschool activities, camps, and class trips by browsing
 - **Category filtering** -- database-level filtering against a closed set of categories (`sports`, `arts`, `music`, `education`, `life-skills`, `camps`, `workshops`)
 - **In-memory search** -- word-boundary matching on program titles (any word that starts with the query, case-insensitive, special characters stripped)
 - **Trending searches** -- hardcoded list of popular search suggestions (`Swimming`, `Math Tutor`, `Summer Camp`, `Piano`, `Soccer`)
-- **Featured programs** -- first 2 programs by title order from the read model, displayed on the home page
+- **Featured programs** -- first 2 non-expired programs by title order from the read model, displayed on the home page (expired programs are hidden, issue #610)
 
 ## What It Does NOT Do
 
@@ -68,7 +68,9 @@ THEN  the query is truncated to 100 characters before matching
 ```
 GIVEN the home page loads
 WHEN  featured programs are requested
-THEN  the first 2 programs ordered by title are returned from the read model
+THEN  the first 2 non-expired programs ordered by title are returned from
+      the read model; programs with end_date in the past are excluded,
+      programs with a nil end_date are treated as open-ended
 ```
 
 ```
@@ -134,8 +136,8 @@ sequenceDiagram
     participant ProgramListingsRepository
 
     HomePage->>ListFeaturedPrograms: execute()
-    ListFeaturedPrograms->>ProgramListingsRepository: list_all()
-    ProgramListingsRepository-->>ListFeaturedPrograms: [ProgramListing] (ordered by title)
+    ListFeaturedPrograms->>ProgramListingsRepository: list_active()
+    ProgramListingsRepository-->>ListFeaturedPrograms: [ProgramListing] (active, ordered by title)
     ListFeaturedPrograms->>ListFeaturedPrograms: Enum.take(2)
     ListFeaturedPrograms-->>HomePage: up to 2 ProgramListing DTOs
 ```
@@ -158,6 +160,7 @@ sequenceDiagram
 - **Search query exceeding 100 characters** -- truncated to 100 characters by `ProgramFilter.sanitize_query/1`
 - **Nil search query** -- `sanitize_query(nil)` returns `""`, which means no filtering
 - **No programs in database** -- `list_all/0` returns `[]`; featured returns `[]`; paginated returns empty `PageResult`
+- **All programs have expired `end_date`** -- featured programs returns `[]` because `list_active/0` excludes them
 - **Fewer than 2 programs** -- featured programs returns only what exists (0 or 1)
 
 ## Roles & Permissions
