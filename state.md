@@ -1,7 +1,7 @@
 # Perf Improver Memory — klass-hero
 
 ## Last Updated
-2026-04-08
+2026-04-09
 
 ## Build / Test / Lint Commands (validated from mix.exs + CI)
 - **Build**: `mix compile --warnings-as-errors`
@@ -15,7 +15,8 @@
 ## Run History
 | Date | Tasks | Output |
 |------|-------|--------|
-| 2026-04-08 | T4, T5, T3, T7 | T4: PR #609 confirmed merged. T5: Commented on #478 (ETS cache, read_concurrency flag + warm-up race advice). T3: PR #620 submitted — parallelize list_programs_for_provider + list_provider_sessions in SessionsLive.mount; saves ~5–15ms per page load. T7: Updated April 2026 monthly summary. |
+| 2026-04-09 | T4, T2, T3, T7 | T4: PR #622 (parallelize SessionsLive mount) confirmed open + CI clean. T2: Identified over-fetching in ListFeaturedPrograms — maintainer noted Enum.take(2) on full catalog; add SQL LIMIT + composite index. T3: New PR submitted — parallelize Family.get_children + load_family_programs in parent DashboardLive.mount; saves ~5–10ms per parent /dashboard load. T7: Updated April 2026 monthly summary. |
+| 2026-04-08 | T4, T5, T3, T7 | T4: PR #609 confirmed merged. T5: Commented on #478 (ETS cache, read_concurrency flag + warm-up race advice). T3: PR #622 submitted — parallelize list_programs_for_provider + list_provider_sessions in SessionsLive.mount; saves ~5–15ms per page load. T7: Updated April 2026 monthly summary. |
 | 2026-04-07 | T4, T2, T3, T7 | T4: PR #602 confirmed merged (batch absent). T2: Found redundant provider DB query in mount_conversation_show — get_identity_id_for_provider + get_provider_profile both hit providers table for same provider_id. T3: PR #609 submitted — merge into single resolve_provider_info/1 call; saves 1 DB round-trip per conversation open. T7: Updated April 2026 monthly summary. |
 | 2026-04-06 | T3, T7 | T3: Implemented N+1 fix for CompleteSession.mark_remaining_as_absent — new mark_absent_batch/1 callback + update_all impl; reduces 1+2N queries to 2 per session completion. PR submitted (merged as #602). T7: Updated April 2026 monthly summary. |
 | 2026-04-05 | T5, T2, T4, T7 | T4: PR #592 CI clean. T2: Identified N+1 in CompleteSession.mark_remaining_as_absent. T5: Commented on #515 with PubSub fan-out measurement guidance. T7: Updated April 2026 monthly summary. |
@@ -24,12 +25,12 @@
 
 ## Task Last Run (Round-Robin)
 - T1 (Discover commands): 2026-04-03
-- T2 (Identify opportunities): 2026-04-08
-- T3 (Implement improvement): 2026-04-08
-- T4 (Maintain PRs): 2026-04-08
+- T2 (Identify opportunities): 2026-04-09
+- T3 (Implement improvement): 2026-04-09
+- T4 (Maintain PRs): 2026-04-09
 - T5 (Comment on issues): 2026-04-08
 - T6 (Measurement infra): 2026-04-03
-- T7 (Activity summary): 2026-04-08
+- T7 (Activity summary): 2026-04-09
 
 ## Optimization Backlog (prioritized)
 1. **[MERGED]** N+1 in DashboardLive — PR #290 merged ✓
@@ -47,13 +48,15 @@
 13. **[MERGED]** N+1 in StaffAssignmentHandler.add_staff_to_existing_conversations — PR #592 merged 2026-04-05 ✓
 14. **[MERGED]** N+1 in CompleteSession.mark_remaining_as_absent — PR #602 merged 2026-04-06 ✓
 15. **[MERGED]** Redundant providers table query in mount_conversation_show — PR #609 merged 2026-04-07 ✓
-16. **[IN REVIEW]** Parallelize list_programs_for_provider + list_provider_sessions in SessionsLive.mount — PR #620 submitted 2026-04-08
-17. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
-18. **[LOW]** program_sessions.status index — verify query patterns first
-19. **[PLANNED]** ETS projection cache for program→provider ACL resolution — issue #478, maintainer-designed
+16. **[IN REVIEW]** Parallelize list_programs_for_provider + list_provider_sessions in SessionsLive.mount — PR #622 submitted 2026-04-08
+17. **[IN REVIEW]** Parallelize Family.get_children + load_family_programs in parent DashboardLive.mount — PR submitted 2026-04-09 (number pending)
+18. **[BACKLOG HIGH]** Over-fetching in ListFeaturedPrograms.execute/0 — Enum.take(2) on full active catalog; push LIMIT 2 to SQL + composite (end_date, title) index; maintainer confirmed in PR #625
+19. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
+20. **[LOW]** program_sessions.status index — verify query patterns first
+21. **[PLANNED]** ETS projection cache for program→provider ACL resolution — issue #478, maintainer-designed
 
 ## Backlog Cursor
-- Next run: T1 (revalidate if needed), T6 (measurement infra — last run 2026-04-03)
+- Next run: T5 (comment on issues, last run 2026-04-08) or T6 (measurement infra, last run 2026-04-03)
 
 ## Performance Notes
 - Phoenix app with OpenTelemetry + Honeycomb configured for production tracing
