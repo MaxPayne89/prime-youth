@@ -43,26 +43,24 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
   def handle_event(%IntegrationEvent{event_type: :staff_user_registered, payload: payload}) do
     payload = MapperHelpers.normalize_keys(payload)
 
-    case Map.fetch(payload, :user_id) do
-      {:ok, user_id} ->
-        result =
-          transition_and_persist(payload, :accepted, fn transitioned ->
-            %{transitioned | user_id: user_id}
-          end)
-
-        if result == :ok and payload[:create_provider_profile] do
-          case maybe_create_provider_profile(user_id, payload) do
-            :ok -> result
-            {:error, reason} -> {:error, reason}
-          end
-        else
-          result
-        end
-
+    with {:ok, user_id} <- Map.fetch(payload, :user_id),
+         :ok <-
+           transition_and_persist(payload, :accepted, fn transitioned ->
+             %{transitioned | user_id: user_id}
+           end) do
+      if payload[:create_provider_profile] do
+        maybe_create_provider_profile(user_id, payload)
+      else
+        :ok
+      end
+    else
       :error ->
         Logger.error("[StaffInvitationStatusHandler] Missing :user_id in staff_user_registered payload")
 
         {:error, :invalid_payload}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
