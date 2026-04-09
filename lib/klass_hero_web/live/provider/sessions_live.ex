@@ -41,23 +41,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
       )
     end
 
-    sessions_result = Task.await(sessions_task)
-
-    socket =
-      case sessions_result do
-        {:ok, sessions} ->
-          socket
-          |> stream(:sessions, sessions, reset: true)
-          |> assign(:sessions_error, nil)
-
-        {:error, reason} ->
-          Logger.error("[SessionsLive] Failed to load sessions for date #{selected_date}",
-            provider_id: provider_id,
-            reason: inspect(reason)
-          )
-
-          assign(socket, :sessions_error, reason)
-      end
+    socket = apply_sessions_result(socket, Task.await(sessions_task))
 
     {:ok, socket}
   end
@@ -208,23 +192,29 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   end
 
   defp load_sessions(socket) do
-    provider_id = socket.assigns.provider_id
-    selected_date = socket.assigns.selected_date
+    result =
+      Participation.list_provider_sessions(
+        socket.assigns.provider_id,
+        socket.assigns.selected_date
+      )
 
-    case Participation.list_provider_sessions(provider_id, selected_date) do
-      {:ok, sessions} ->
-        socket
-        |> stream(:sessions, sessions, reset: true)
-        |> assign(:sessions_error, nil)
+    apply_sessions_result(socket, result)
+  end
 
-      {:error, reason} ->
-        Logger.error("[SessionsLive] Failed to load sessions for date #{selected_date}",
-          provider_id: provider_id,
-          reason: inspect(reason)
-        )
+  defp apply_sessions_result(socket, {:ok, sessions}) do
+    socket
+    |> stream(:sessions, sessions, reset: true)
+    |> assign(:sessions_error, nil)
+  end
 
-        assign(socket, :sessions_error, reason)
-    end
+  defp apply_sessions_result(socket, {:error, reason}) do
+    Logger.error(
+      "[SessionsLive] Failed to load sessions for date #{socket.assigns.selected_date}",
+      provider_id: socket.assigns.provider_id,
+      reason: inspect(reason)
+    )
+
+    assign(socket, :sessions_error, reason)
   end
 
   defp maybe_prefill_from_program(params, programs) do
