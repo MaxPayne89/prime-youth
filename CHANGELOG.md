@@ -5,6 +5,28 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.29.0](https://github.com/MaxPayne89/klass-hero/compare/v0.28.0...v0.29.0) (2026-04-09)
+
+
+### Features
+
+* **program_catalog:** hide expired programs from featured section ([0fa9aed](https://github.com/MaxPayne89/klass-hero/commit/0fa9aeda1407e14486f1720c9b5abc99464afa54))
+
+
+### Bug Fixes
+
+* remove free cancellation line from program detail page ([ccbb2f2](https://github.com/MaxPayne89/klass-hero/commit/ccbb2f27554b47854d55108edd2f0a2553cbfedd))
+
+
+### Performance Improvements
+
+* **sessions_live:** parallelize programs + sessions DB queries in mount ([0331c7e](https://github.com/MaxPayne89/klass-hero/commit/0331c7e95f340daffe84d43ad22e0223a6f6503c))
+
+
+### Code Refactoring
+
+* **sessions_live:** extract apply_sessions_result/2 helper ([ec93742](https://github.com/MaxPayne89/klass-hero/commit/ec937420f019d015c9b12d8f7253bdd608aff86e)), closes [#622](https://github.com/MaxPayne89/klass-hero/issues/622)
+
 ## [0.28.0](https://github.com/MaxPayne89/klass-hero/compare/v0.27.0...v0.28.0) (2026-04-09)
 
 
