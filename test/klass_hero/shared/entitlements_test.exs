@@ -253,6 +253,30 @@ defmodule KlassHero.Shared.EntitlementsTest do
       scope = %Scope{parent: nil, provider: nil}
       refute Entitlements.can_initiate_messaging?(scope)
     end
+
+    test "returns false for pure staff_member scope (provider: nil)" do
+      scope = %Scope{
+        staff_member: %{provider_id: "some-provider-id"},
+        parent: nil,
+        provider: nil
+      }
+
+      refute Entitlements.can_initiate_messaging?(scope)
+    end
+
+    test "returns true for staff_member scope with professional provider (dual role)" do
+      scope = %Scope{
+        staff_member: %{provider_id: "some-provider-id"},
+        parent: nil,
+        provider: provider_with_tier(:professional)
+      }
+
+      assert Entitlements.can_initiate_messaging?(scope)
+    end
+
+    test "catch-all returns false for unknown scope shape" do
+      refute Entitlements.can_initiate_messaging?(%{unknown: :shape})
+    end
   end
 
   describe "tier info functions" do

@@ -1,0 +1,121 @@
+defmodule KlassHeroWeb.Staff.StaffBroadcastLiveTest do
+  use KlassHeroWeb.ConnCase, async: true
+
+  import KlassHero.AccountsFixtures
+  import KlassHero.Factory, only: [insert: 2]
+  import KlassHero.ProviderFixtures
+
+  describe "staff broadcast (entitled)" do
+    setup %{conn: conn} do
+      parent_user = user_fixture(intended_roles: [:parent])
+      provider = provider_profile_fixture(subscription_tier: "professional")
+      user = user_fixture(intended_roles: [:staff_provider])
+
+      staff =
+        staff_member_fixture(%{
+          provider_id: provider.id,
+          user_id: user.id,
+          active: true,
+          invitation_status: :accepted,
+          tags: ["sports"]
+        })
+
+      # Write model (programs table) for enrollment FK
+      program_write =
+        insert(:program_schema, provider_id: provider.id, category: "sports")
+
+      # Read model (program_listings table) for dashboard/catalog queries
+      program =
+        insert(:program_listing_schema,
+          id: program_write.id,
+          provider_id: provider.id,
+          category: "sports"
+        )
+
+      parent_profile = insert(:parent_profile_schema, identity_id: parent_user.id)
+      {child, _parent} = KlassHero.Factory.insert_child_with_guardian(parent: parent_profile)
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child.id,
+        parent_id: parent_profile.id,
+        status: "confirmed",
+        confirmed_at: DateTime.utc_now()
+      )
+
+      conn = log_in_user(conn, user)
+
+      %{conn: conn, user: user, provider: provider, staff: staff, program: program}
+    end
+
+    test "renders broadcast form for entitled staff member", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/staff/programs/#{program.id}/broadcast")
+
+      assert has_element?(view, "#staff-broadcast-form")
+      assert has_element?(view, "#send-broadcast-btn")
+    end
+
+    test "sends broadcast and navigates to staff messages", %{conn: conn, program: program} do
+      {:ok, view, _html} = live(conn, ~p"/staff/programs/#{program.id}/broadcast")
+
+      view
+      |> form("#staff-broadcast-form", %{
+        "subject" => "Test Subject",
+        "content" => "Hello enrolled parents!"
+      })
+      |> render_submit()
+
+      {path, _flash} = assert_redirect(view)
+      assert path =~ "/staff/messages/"
+    end
+
+    test "rejects broadcast for non-assigned program", %{conn: conn, provider: provider} do
+      # Write model needed for ProgramCatalog.get_program_by_id
+      unassigned_program =
+        insert(:program_schema,
+          provider_id: provider.id,
+          category: "music"
+        )
+
+      # Read model needed for list_programs_for_provider (tag matching)
+      insert(:program_listing_schema,
+        id: unassigned_program.id,
+        provider_id: provider.id,
+        category: "music"
+      )
+
+      assert {:error, {:live_redirect, %{to: "/staff/dashboard", flash: flash}}} =
+               live(conn, ~p"/staff/programs/#{unassigned_program.id}/broadcast")
+
+      assert flash["error"] =~ "not assigned"
+    end
+  end
+
+  describe "staff broadcast (not entitled)" do
+    setup %{conn: conn} do
+      provider = provider_profile_fixture(subscription_tier: "starter")
+      user = user_fixture(intended_roles: [:staff_provider])
+
+      staff_member_fixture(%{
+        provider_id: provider.id,
+        user_id: user.id,
+        active: true,
+        invitation_status: :accepted,
+        tags: ["sports"]
+      })
+
+      program =
+        insert(:program_schema, provider_id: provider.id, category: "sports")
+
+      conn = log_in_user(conn, user)
+      %{conn: conn, program: program}
+    end
+
+    test "redirects non-entitled staff member with error", %{conn: conn, program: program} do
+      assert {:error, {:live_redirect, %{to: "/staff/dashboard", flash: flash}}} =
+               live(conn, ~p"/staff/programs/#{program.id}/broadcast")
+
+      assert flash["error"] =~ "subscription tier"
+    end
+  end
+end
