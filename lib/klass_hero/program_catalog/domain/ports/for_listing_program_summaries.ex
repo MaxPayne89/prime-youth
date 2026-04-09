@@ -58,4 +58,15 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingProgramSummaries do
   Returns an empty list if no listings exist.
   """
   @callback list_all() :: [ProgramListing.t()]
+
+  @doc """
+  Lists all currently active program listings ordered by title.
+
+  Returns program listings whose `end_date` is in the future or nil
+  (open-ended programs), ordered by title ascending. Programs whose
+  `end_date` has already passed are excluded (issue #610).
+
+  Returns an empty list if no active listings exist.
+  """
+  @callback list_active() :: [ProgramListing.t()]
 end

@@ -212,4 +212,61 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       assert titles == ["Art Class", "Zebra Club"]
     end
   end
+
+  describe "list_active/0" do
+    test "returns listings as ProgramListing DTOs" do
+      insert_listing(%{title: "Soccer Camp"})
+      insert_listing(%{title: "Art Class"})
+
+      results = ProgramListingsRepository.list_active()
+
+      assert length(results) == 2
+      assert Enum.all?(results, &match?(%ProgramListing{}, &1))
+    end
+
+    test "returns empty list when no listings exist" do
+      results = ProgramListingsRepository.list_active()
+
+      assert results == []
+    end
+
+    test "orders by title ascending" do
+      insert_listing(%{title: "Zebra Club"})
+      insert_listing(%{title: "Art Class"})
+
+      results = ProgramListingsRepository.list_active()
+
+      titles = Enum.map(results, & &1.title)
+      assert titles == ["Art Class", "Zebra Club"]
+    end
+
+    test "excludes programs whose end_date is in the past" do
+      insert_listing(%{title: "Expired Program", end_date: Date.add(Date.utc_today(), -1)})
+      insert_listing(%{title: "Active Program", end_date: Date.add(Date.utc_today(), 7)})
+
+      results = ProgramListingsRepository.list_active()
+
+      titles = Enum.map(results, & &1.title)
+      refute "Expired Program" in titles
+      assert "Active Program" in titles
+    end
+
+    test "includes programs with nil end_date" do
+      insert_listing(%{title: "Ongoing Program", end_date: nil})
+
+      results = ProgramListingsRepository.list_active()
+
+      titles = Enum.map(results, & &1.title)
+      assert "Ongoing Program" in titles
+    end
+
+    test "includes programs ending today (inclusive boundary)" do
+      insert_listing(%{title: "Last Day Program", end_date: Date.utc_today()})
+
+      results = ProgramListingsRepository.list_active()
+
+      titles = Enum.map(results, & &1.title)
+      assert "Last Day Program" in titles
+    end
+  end
 end

@@ -51,6 +51,26 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListFeaturedProgramsInte
 
       assert Enum.all?(result, &match?(%ProgramListing{}, &1))
     end
+
+    test "excludes programs whose end_date is in the past" do
+      insert_listing(%{title: "Expired Program", end_date: Date.add(Date.utc_today(), -1)})
+      insert_listing(%{title: "Active Program", end_date: Date.add(Date.utc_today(), 7)})
+
+      result = ListFeaturedPrograms.execute()
+
+      titles = Enum.map(result, & &1.title)
+      refute "Expired Program" in titles
+      assert "Active Program" in titles
+    end
+
+    test "includes programs with nil end_date" do
+      insert_listing(%{title: "Ongoing Program", end_date: nil})
+
+      result = ListFeaturedPrograms.execute()
+
+      titles = Enum.map(result, & &1.title)
+      assert "Ongoing Program" in titles
+    end
   end
 
   defp insert_listing(attrs) do
