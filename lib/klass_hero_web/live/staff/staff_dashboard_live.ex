@@ -84,25 +84,29 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
 
   @impl true
   def handle_event("send_message_to_parent", %{"parent-user-id" => parent_user_id}, socket) do
-    provider_id = socket.assigns.provider.id
-    roster_entries = socket.assigns.roster_entries
-    scope = socket.assigns.current_scope
+    if socket.assigns.can_message? do
+      provider_id = socket.assigns.provider.id
+      roster_entries = socket.assigns.roster_entries
+      scope = socket.assigns.current_scope
 
-    valid_confirmed? =
-      Enum.any?(roster_entries, fn entry ->
-        entry.parent_user_id == parent_user_id and entry.status == :confirmed
-      end)
+      valid_confirmed? =
+        Enum.any?(roster_entries, fn entry ->
+          entry.parent_user_id == parent_user_id and entry.status == :confirmed
+        end)
 
-    if valid_confirmed? do
-      case Messaging.create_direct_conversation(scope, provider_id, parent_user_id, skip_entitlement_check: true) do
-        {:ok, conversation} ->
-          {:noreply, push_navigate(socket, to: ~p"/staff/messages/#{conversation.id}")}
+      if valid_confirmed? do
+        case Messaging.create_direct_conversation(scope, provider_id, parent_user_id, skip_entitlement_check: true) do
+          {:ok, conversation} ->
+            {:noreply, push_navigate(socket, to: ~p"/staff/messages/#{conversation.id}")}
 
-        {:error, _reason} ->
-          {:noreply, put_flash(socket, :error, gettext("Could not start conversation. Please try again."))}
+          {:error, _reason} ->
+            {:noreply, put_flash(socket, :error, gettext("Could not start conversation. Please try again."))}
+        end
+      else
+        {:noreply, put_flash(socket, :error, gettext("Cannot message this parent."))}
       end
     else
-      {:noreply, put_flash(socket, :error, gettext("Cannot message this parent."))}
+      {:noreply, put_flash(socket, :error, gettext("Upgrade your plan to send messages."))}
     end
   end
 

@@ -69,9 +69,7 @@ defmodule KlassHeroWeb.Staff.StaffBroadcastLive do
   end
 
   defp staff_assigned?(staff_member, program) do
-    all_programs = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
-    assigned = Provider.list_assigned_programs(staff_member, all_programs)
-    Enum.any?(assigned, &(&1.id == program.id))
+    staff_member.tags == [] or program.category in staff_member.tags
   end
 
   @impl true

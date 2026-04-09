@@ -57,7 +57,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
           | {:error, :not_entitled | :no_enrollments | term()}
   def execute(%Scope{} = scope, program_id, content, opts \\ []) do
     subject = Keyword.get(opts, :subject)
-    provider_id = Keyword.get(opts, :provider_id) || scope.provider.id
+    provider_id = Keyword.get(opts, :provider_id) || (scope.provider && scope.provider.id)
 
     with :ok <- Shared.maybe_check_entitlement(scope, opts, provider_id: provider_id),
          {:ok, parent_user_ids} <- get_enrolled_parent_user_ids(program_id),
