@@ -9,6 +9,8 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
   alias KlassHero.Shared.Entitlements
   alias KlassHeroWeb.Theme
 
+  require Logger
+
   @impl true
   def mount(_params, _session, socket) do
     staff_member = socket.assigns.current_scope.staff_member
@@ -99,7 +101,13 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
           {:ok, conversation} ->
             {:noreply, push_navigate(socket, to: ~p"/staff/messages/#{conversation.id}")}
 
-          {:error, _reason} ->
+          {:error, reason} ->
+            Logger.error("Failed to create direct conversation from staff roster",
+              reason: inspect(reason),
+              provider_id: provider_id,
+              parent_user_id: parent_user_id
+            )
+
             {:noreply, put_flash(socket, :error, gettext("Could not start conversation. Please try again."))}
         end
       else

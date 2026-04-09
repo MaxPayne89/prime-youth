@@ -59,6 +59,19 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
     subject = Keyword.get(opts, :subject)
     provider_id = Keyword.get(opts, :provider_id) || (scope.provider && scope.provider.id)
 
+    if is_nil(provider_id) do
+      Logger.error("BroadcastToProgram called without provider_id",
+        user_id: scope.user.id,
+        program_id: program_id
+      )
+
+      {:error, :missing_provider_id}
+    else
+      execute_broadcast(scope, program_id, subject, content, provider_id, opts)
+    end
+  end
+
+  defp execute_broadcast(scope, program_id, subject, content, provider_id, opts) do
     with :ok <- Shared.maybe_check_entitlement(scope, opts, provider_id: provider_id),
          {:ok, parent_user_ids} <- get_enrolled_parent_user_ids(program_id),
          :ok <- verify_has_recipients(parent_user_ids),
