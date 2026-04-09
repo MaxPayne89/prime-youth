@@ -335,14 +335,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
               </button>
             </div>
           </div>
-          <p class={[
-            "text-center text-sm mt-4 pt-4 border-t",
-            Theme.border_color(:light),
-            Theme.text_color(:secondary)
-          ]}>
-            <.icon name="hero-check-circle" class="w-4 h-4 inline mr-1 text-green-500" />
-            {gettext("Free cancellation up to 48 hours before start date")}
-          </p>
         </div>
       </div>
 

@@ -5,6 +5,14 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.28.0](https://github.com/MaxPayne89/klass-hero/compare/v0.27.0...v0.28.0) (2026-04-09)
+
+
+### Features
+
+* hide expired programs from home page featured section ([3b79f3c](https://github.com/MaxPayne89/klass-hero/commit/3b79f3c8eb9fb51e86478cbf20c132187ef28649))
+* **program_catalog:** hide expired programs from featured section ([baa991e](https://github.com/MaxPayne89/klass-hero/commit/baa991e1619fcdda7c73efb5b4624c54eafc1141))
+
 ## [0.27.0](https://github.com/MaxPayne89/klass-hero/compare/v0.26.1...v0.27.0) (2026-04-07)
 
 
