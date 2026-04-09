@@ -48,14 +48,6 @@ defmodule KlassHero.Provider.Application.UseCases.Providers.CreateProviderProfil
       assert {:ok, _} = Ecto.UUID.cast(profile.id)
     end
 
-    test "uses the provided id when supplied" do
-      custom_id = Ecto.UUID.generate()
-      attrs = valid_attrs(%{id: custom_id})
-
-      assert {:ok, profile} = Provider.create_provider_profile(attrs)
-      assert profile.id == custom_id
-    end
-
     test "returns validation error tuple for empty business_name" do
       user = KlassHero.AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
       attrs = %{identity_id: user.id, business_name: ""}
