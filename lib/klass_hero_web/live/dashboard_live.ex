@@ -21,13 +21,15 @@ defmodule KlassHeroWeb.DashboardLive do
 
     # Trigger: enrollments are stored with parent_id (Family context), not identity_id (Accounts)
     # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
-    # Outcome: resolve parent profile once, then query children + enrollments sequentially
+    # Outcome: resolve parent profile once, then fetch children + programs in parallel
     {parent, children, active_programs, expired_programs} =
       try do
         case Family.get_parent_by_identity(user.id) do
           {:ok, parent} ->
-            children = Family.get_children(parent.id)
-            {active, expired} = load_family_programs(parent.id)
+            children_task = Task.async(fn -> Family.get_children(parent.id) end)
+            programs_task = Task.async(fn -> load_family_programs(parent.id) end)
+            children = Task.await(children_task)
+            {active, expired} = Task.await(programs_task)
             {parent, children, active, expired}
 
           {:error, _} ->
