@@ -41,6 +41,10 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   - content: The message content
   - opts: Optional parameters
     - subject: Subject line for the broadcast
+    - provider_id: Explicit provider ID (defaults to scope.provider.id).
+      Required when scope.provider is nil (e.g. staff member scopes).
+    - skip_entitlement_check: When true, skips the entitlement check.
+      Caller is responsible for verifying entitlements before calling.
 
   ## Returns
   - `{:ok, conversation, message, recipient_count}` - Broadcast sent
@@ -53,14 +57,28 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
           | {:error, :not_entitled | :no_enrollments | term()}
   def execute(%Scope{} = scope, program_id, content, opts \\ []) do
     subject = Keyword.get(opts, :subject)
+    provider_id = Keyword.get(opts, :provider_id) || (scope.provider && scope.provider.id)
 
-    with :ok <- Shared.check_entitlement(scope, provider_id: scope.provider.id),
+    if is_nil(provider_id) do
+      Logger.error("BroadcastToProgram called without provider_id",
+        user_id: scope.user.id,
+        program_id: program_id
+      )
+
+      {:error, :missing_provider_id}
+    else
+      execute_broadcast(scope, program_id, subject, content, provider_id, opts)
+    end
+  end
+
+  defp execute_broadcast(scope, program_id, subject, content, provider_id, opts) do
+    with :ok <- Shared.maybe_check_entitlement(scope, opts, provider_id: provider_id),
          {:ok, parent_user_ids} <- get_enrolled_parent_user_ids(program_id),
          :ok <- verify_has_recipients(parent_user_ids),
          {:ok, conversation, message} <-
-           create_broadcast(scope, program_id, subject, content, parent_user_ids) do
+           create_broadcast(scope, program_id, subject, content, parent_user_ids, provider_id) do
       recipient_count = length(parent_user_ids)
-      publish_event(conversation, program_id, scope.provider.id, message.id, recipient_count)
+      publish_event(conversation, program_id, provider_id, message.id, recipient_count)
 
       Logger.info("Broadcast sent to program",
         program_id: program_id,
@@ -80,14 +98,14 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
   defp verify_has_recipients([]), do: {:error, :no_enrollments}
   defp verify_has_recipients(_), do: :ok
 
-  defp create_broadcast(scope, program_id, subject, content, parent_user_ids) do
+  defp create_broadcast(scope, program_id, subject, content, parent_user_ids, provider_id) do
     # Trigger: get-or-create runs OUTSIDE the transaction
     # Why: unique constraint violation inside Repo.transaction aborts the Postgres
     #      transaction — subsequent queries fail with 25P02 (in_failed_sql_transaction)
     # Outcome: conversation lookup/creation is isolated; only participant + message
     #          creation needs transactional consistency
     with {:ok, conversation} <-
-           get_or_create_broadcast_conversation(scope, program_id, subject),
+           get_or_create_broadcast_conversation(provider_id, program_id, subject),
          {:ok, {conversation, message}} <-
            execute_broadcast_transaction(conversation, scope, content, parent_user_ids) do
       {:ok, conversation, message}
@@ -119,18 +137,18 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
     end)
   end
 
-  defp get_or_create_broadcast_conversation(scope, program_id, subject) do
+  defp get_or_create_broadcast_conversation(provider_id, program_id, subject) do
     # Trigger: check for existing broadcast BEFORE attempting insert
     # Why: avoids unique constraint violation that would abort a parent transaction
     # Outcome: existing conversation reused; new one created only if none exists
-    case @conversation_repo.find_active_broadcast_for_program(scope.provider.id, program_id) do
+    case @conversation_repo.find_active_broadcast_for_program(provider_id, program_id) do
       {:ok, conversation} ->
         {:ok, conversation}
 
       {:error, :not_found} ->
         attrs = %{
           type: :program_broadcast,
-          provider_id: scope.provider.id,
+          provider_id: provider_id,
           program_id: program_id,
           subject: subject
         }
@@ -144,7 +162,7 @@ defmodule KlassHero.Messaging.Application.UseCases.BroadcastToProgram do
           # Why: unique constraint fires; handle gracefully by re-querying
           # Outcome: return the conversation that won the race
           {:error, :duplicate_broadcast} ->
-            @conversation_repo.find_active_broadcast_for_program(scope.provider.id, program_id)
+            @conversation_repo.find_active_broadcast_for_program(provider_id, program_id)
         end
     end
   end

@@ -153,6 +153,7 @@ defmodule KlassHeroWeb.Router do
         live "/participation/:session_id", StaffParticipationLive, :show
         live "/messages", MessagesLive.Index, :index
         live "/messages/:id", MessagesLive.Show, :show
+        live "/programs/:program_id/broadcast", StaffBroadcastLive, :new
       end
     end
 
