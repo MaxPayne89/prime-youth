@@ -1,7 +1,7 @@
 # Perf Improver Memory — klass-hero
 
 ## Last Updated
-2026-04-09
+2026-04-10
 
 ## Build / Test / Lint Commands (validated from mix.exs + CI)
 - **Build**: `mix compile --warnings-as-errors`
@@ -15,6 +15,7 @@
 ## Run History
 | Date | Tasks | Output |
 |------|-------|--------|
+| 2026-04-10 | T3, T7 | T3: PR submitted — push SQL LIMIT in ListFeaturedPrograms; adds list_active_limited/1 port callback + repo impl; home page query goes from N rows → 2 rows. T7: Updated April 2026 monthly summary. |
 | 2026-04-09 | T4, T2, T3, T7 | T4: PR #622 (parallelize SessionsLive mount) confirmed open + CI clean. T2: Identified over-fetching in ListFeaturedPrograms — maintainer noted Enum.take(2) on full catalog; add SQL LIMIT + composite index. T3: New PR submitted — parallelize Family.get_children + load_family_programs in parent DashboardLive.mount; saves ~5–10ms per parent /dashboard load. T7: Updated April 2026 monthly summary. |
 | 2026-04-08 | T4, T5, T3, T7 | T4: PR #609 confirmed merged. T5: Commented on #478 (ETS cache, read_concurrency flag + warm-up race advice). T3: PR #622 submitted — parallelize list_programs_for_provider + list_provider_sessions in SessionsLive.mount; saves ~5–15ms per page load. T7: Updated April 2026 monthly summary. |
 | 2026-04-07 | T4, T2, T3, T7 | T4: PR #602 confirmed merged (batch absent). T2: Found redundant provider DB query in mount_conversation_show — get_identity_id_for_provider + get_provider_profile both hit providers table for same provider_id. T3: PR #609 submitted — merge into single resolve_provider_info/1 call; saves 1 DB round-trip per conversation open. T7: Updated April 2026 monthly summary. |
@@ -26,7 +27,7 @@
 ## Task Last Run (Round-Robin)
 - T1 (Discover commands): 2026-04-03
 - T2 (Identify opportunities): 2026-04-09
-- T3 (Implement improvement): 2026-04-09
+- T3 (Implement improvement): 2026-04-10
 - T4 (Maintain PRs): 2026-04-09
 - T5 (Comment on issues): 2026-04-08
 - T6 (Measurement infra): 2026-04-03
@@ -50,7 +51,7 @@
 15. **[MERGED]** Redundant providers table query in mount_conversation_show — PR #609 merged 2026-04-07 ✓
 16. **[IN REVIEW]** Parallelize list_programs_for_provider + list_provider_sessions in SessionsLive.mount — PR #622 submitted 2026-04-08
 17. **[IN REVIEW]** Parallelize Family.get_children + load_family_programs in parent DashboardLive.mount — PR submitted 2026-04-09 (number pending)
-18. **[BACKLOG HIGH]** Over-fetching in ListFeaturedPrograms.execute/0 — Enum.take(2) on full active catalog; push LIMIT 2 to SQL + composite (end_date, title) index; maintainer confirmed in PR #625
+18. **[IN REVIEW]** Over-fetching in ListFeaturedPrograms.execute/0 — PR submitted 2026-04-10; adds list_active_limited/1 port + repo impl + SQL LIMIT; home page query drops from N to 2 rows
 19. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
 20. **[LOW]** program_sessions.status index — verify query patterns first
 21. **[PLANNED]** ETS projection cache for program→provider ACL resolution — issue #478, maintainer-designed
@@ -77,6 +78,7 @@
 
 ## Active PRs
 - `perf-assist/parallelize-sessions-live-mount` — PR #620, created 2026-04-08; parallelize list_programs_for_provider + list_provider_sessions in SessionsLive.mount; saves ~5–15ms per page load
+- `perf-assist/limit-featured-programs-query` — PR submitted 2026-04-10; push SQL LIMIT in ListFeaturedPrograms; home page query drops from N rows → 2 rows
 
 ## Completed Work
 - PR #609 (eliminate redundant provider query in conversation show) — merged 2026-04-07 ✓
