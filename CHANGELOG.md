@@ -5,6 +5,26 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.0](https://github.com/MaxPayne89/klass-hero/compare/v0.29.0...v0.30.0) (2026-04-10)
+
+
+### Features
+
+* add message and broadcast buttons to staff roster view ([9fb0b21](https://github.com/MaxPayne89/klass-hero/commit/9fb0b21486b6d5e50c23bba5bd63e253223287b1))
+* add message and broadcast buttons to staff roster view ([98d41f5](https://github.com/MaxPayne89/klass-hero/commit/98d41f5092d15c118f406431238a831e77d7cbaf)), closes [#620](https://github.com/MaxPayne89/klass-hero/issues/620)
+
+
+### Bug Fixes
+
+* add server-side entitlement guard and simplify staff assignment check ([94f1187](https://github.com/MaxPayne89/klass-hero/commit/94f1187663ca29c606225d3f810cb202a88e88f6))
+* harden error handling and tighten entitlement clause ([077b4a0](https://github.com/MaxPayne89/klass-hero/commit/077b4a01c172919d039d6bbc3c31f0c7a8de636e))
+
+
+### Code Refactoring
+
+* fix credo strict issues in staff messaging ([6163bd1](https://github.com/MaxPayne89/klass-hero/commit/6163bd19bf5cfee134afbbdab286dbddcf00d44c))
+* fix remaining credo strict issues ([c77524d](https://github.com/MaxPayne89/klass-hero/commit/c77524d146a80121659c1a86f18d2ecf50800c41))
+
 ## [0.29.0](https://github.com/MaxPayne89/klass-hero/compare/v0.28.0...v0.29.0) (2026-04-09)
 
 
