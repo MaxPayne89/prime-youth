@@ -39,28 +39,28 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListEnrolledChildFirstNamesF
       parent_user_id: parent_user_id
     )
 
-    enrollments = @enrollment_repository.list_by_program(program_id)
+    case @enrollment_repository.list_by_program(program_id) do
+      [] ->
+        []
 
-    if enrollments == [] do
-      []
-    else
-      parent_ids = enrollments |> Enum.map(& &1.parent_id) |> Enum.uniq()
-      parents = @parent_info_adapter.get_parents_by_ids(parent_ids)
+      enrollments ->
+        parent_ids = enrollments |> Enum.map(& &1.parent_id) |> Enum.uniq()
+        parents = @parent_info_adapter.get_parents_by_ids(parent_ids)
 
-      case Enum.find(parents, fn p -> p.identity_id == parent_user_id end) do
-        nil ->
-          []
+        case Enum.find(parents, fn p -> p.identity_id == parent_user_id end) do
+          nil ->
+            []
 
-        matching_parent ->
-          child_ids =
-            enrollments
-            |> Enum.filter(fn e -> e.parent_id == matching_parent.id end)
-            |> Enum.map(& &1.child_id)
-            |> Enum.uniq()
+          matching_parent ->
+            child_ids =
+              enrollments
+              |> Enum.filter(fn e -> e.parent_id == matching_parent.id end)
+              |> Enum.map(& &1.child_id)
+              |> Enum.uniq()
 
-          @child_info_adapter.get_children_by_ids(child_ids)
-          |> Enum.map(& &1.first_name)
-      end
+            @child_info_adapter.get_children_by_ids(child_ids)
+            |> Enum.map(& &1.first_name)
+        end
     end
   end
 end

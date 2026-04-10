@@ -387,37 +387,26 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
         p.user_id != current_user_id and not MapSet.member?(provider_user_ids, p.user_id)
       end)
 
-    case parent_participant do
-      nil ->
-        gettext("Conversation")
-
-      %{user_id: parent_user_id} ->
-        case Messaging.get_display_name(parent_user_id) do
-          {:error, _} ->
-            gettext("Conversation")
-
-          {:ok, name} ->
-            child_names =
-              if conversation.program_id do
-                Enrollment.list_enrolled_child_first_names_for_parent(
-                  conversation.program_id,
-                  parent_user_id
-                )
-              else
-                []
-              end
-
-            case child_names do
-              [] ->
-                name
-
-              names ->
-                gettext("%{parent_name}  for  %{child_names}",
-                  parent_name: name,
-                  child_names: Enum.join(names, ", ")
-                )
-            end
+    with %{user_id: parent_user_id} <- parent_participant,
+         {:ok, name} <- Messaging.get_display_name(parent_user_id) do
+      child_names =
+        case conversation.program_id do
+          nil -> []
+          program_id -> Enrollment.list_enrolled_child_first_names_for_parent(program_id, parent_user_id)
         end
+
+      case child_names do
+        [] ->
+          name
+
+        names ->
+          gettext("%{parent_name}  for  %{child_names}",
+            parent_name: name,
+            child_names: Enum.join(names, ", ")
+          )
+      end
+    else
+      _ -> gettext("Conversation")
     end
   end
 
