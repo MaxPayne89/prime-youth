@@ -769,6 +769,16 @@ defmodule KlassHeroWeb.HomeLive do
                 )
               }
             />
+
+            <.faq_item
+              id="faq-13"
+              question={gettext("What types of activities can I find on Klass Hero?")}
+              answer={
+                gettext(
+                  "Tutoring (math, English, German, science), music lessons (piano, guitar, violin), sports coaching (football, tennis, swimming), arts & crafts, STEM workshops, language classes, summer camps, and after-school programmes — all in Berlin."
+                )
+              }
+            />
           </div>
         </div>
       </div>
