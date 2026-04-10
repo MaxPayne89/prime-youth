@@ -384,9 +384,8 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   defp resolve_direct_title(conversation, current_user_id, provider_user_ids) do
     parent_participant =
       Enum.find(conversation.participants, fn p ->
-        not MapSet.member?(provider_user_ids, p.user_id)
-      end) ||
-        Enum.find(conversation.participants, fn p -> p.user_id != current_user_id end)
+        p.user_id != current_user_id and not MapSet.member?(provider_user_ids, p.user_id)
+      end)
 
     case parent_participant do
       nil ->
@@ -409,8 +408,14 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
               end
 
             case child_names do
-              [] -> name
-              names -> "#{name}  #{gettext("for")}  #{Enum.join(names, ", ")}"
+              [] ->
+                name
+
+              names ->
+                gettext("%{parent_name}  for  %{child_names}",
+                  parent_name: name,
+                  child_names: Enum.join(names, ", ")
+                )
             end
         end
     end
