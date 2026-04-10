@@ -63,6 +63,7 @@ defmodule KlassHero.Enrollment do
   alias KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo
   alias KlassHero.Enrollment.Application.UseCases.GetEnrollment
   alias KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv
+  alias KlassHero.Enrollment.Application.UseCases.ListEnrolledChildFirstNamesForParent
   alias KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIds
   alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
   alias KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments
@@ -247,6 +248,21 @@ defmodule KlassHero.Enrollment do
   @spec enrolled?(String.t(), String.t()) :: boolean()
   def enrolled?(program_id, identity_id) when is_binary(program_id) and is_binary(identity_id) do
     CheckEnrollment.execute(program_id, identity_id)
+  end
+
+  @doc """
+  Returns the first names of children enrolled by a specific parent in a program.
+
+  `parent_user_id` is the parent's user identity ID (i.e. `user.id`).
+  Used by the Messaging context to enrich direct conversation headers.
+
+  Returns [] when the parent has no enrolled children in the program,
+  or when any ACL resolution fails (graceful degradation).
+  """
+  @spec list_enrolled_child_first_names_for_parent(String.t(), String.t()) :: [String.t()]
+  def list_enrolled_child_first_names_for_parent(program_id, parent_user_id)
+      when is_binary(program_id) and is_binary(parent_user_id) do
+    ListEnrolledChildFirstNamesForParent.execute(program_id, parent_user_id)
   end
 
   # ============================================================================

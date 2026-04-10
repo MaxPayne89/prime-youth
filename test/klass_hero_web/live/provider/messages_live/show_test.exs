@@ -4,6 +4,7 @@ defmodule KlassHeroWeb.Provider.MessagesLive.ShowTest do
   import KlassHero.Factory
   import Phoenix.LiveViewTest
 
+  alias KlassHero.AccountsFixtures
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
 
   describe "authentication and authorization" do
@@ -164,6 +165,122 @@ defmodule KlassHeroWeb.Provider.MessagesLive.ShowTest do
 
       html = render(view)
       refute html =~ "Hello from provider!"
+    end
+  end
+
+  describe "direct conversation title" do
+    setup :register_and_log_in_provider
+
+    test "shows parent name and enrolled child first name in header", %{
+      conn: conn,
+      user: provider_user,
+      provider: provider
+    } do
+      parent_user =
+        AccountsFixtures.user_fixture(%{
+          name: "Sarah Johnson",
+          intended_roles: [:parent]
+        })
+
+      parent = insert(:parent_profile_schema, identity_id: parent_user.id)
+      {child, _} = insert_child_with_guardian(first_name: "Emma", last_name: "Smith", parent: parent)
+      program = insert(:program_schema)
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: "pending"
+      )
+
+      conversation =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          program_id: program.id,
+          type: "direct"
+        )
+
+      insert(:participant_schema, conversation_id: conversation.id, user_id: provider_user.id)
+      insert(:participant_schema, conversation_id: conversation.id, user_id: parent_user.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/messages/#{conversation.id}")
+
+      assert has_element?(view, "h1", "Sarah Johnson")
+      assert has_element?(view, "h1", "Emma")
+    end
+
+    test "shows only parent name when no enrolled children", %{
+      conn: conn,
+      user: provider_user,
+      provider: provider
+    } do
+      parent_user =
+        AccountsFixtures.user_fixture(%{
+          name: "Sarah Johnson",
+          intended_roles: [:parent]
+        })
+
+      program = insert(:program_schema)
+
+      conversation =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          program_id: program.id,
+          type: "direct"
+        )
+
+      insert(:participant_schema, conversation_id: conversation.id, user_id: provider_user.id)
+      insert(:participant_schema, conversation_id: conversation.id, user_id: parent_user.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/messages/#{conversation.id}")
+
+      assert has_element?(view, "h1", "Sarah Johnson")
+      refute render(view) =~ "  for  "
+    end
+
+    test "shows parent name when conversation has no program_id", %{
+      conn: conn,
+      user: provider_user,
+      provider: provider
+    } do
+      parent_user =
+        AccountsFixtures.user_fixture(%{
+          name: "Sarah Johnson",
+          intended_roles: [:parent]
+        })
+
+      conversation =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          program_id: nil,
+          type: "direct"
+        )
+
+      insert(:participant_schema, conversation_id: conversation.id, user_id: provider_user.id)
+      insert(:participant_schema, conversation_id: conversation.id, user_id: parent_user.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/messages/#{conversation.id}")
+
+      assert has_element?(view, "h1", "Sarah Johnson")
+    end
+
+    test "falls back to 'Conversation' when there is no other participant", %{
+      conn: conn,
+      user: provider_user,
+      provider: provider
+    } do
+      conversation =
+        insert(:conversation_schema,
+          provider_id: provider.id,
+          type: "direct"
+        )
+
+      # Only the provider is a participant — no parent to resolve
+      insert(:participant_schema, conversation_id: conversation.id, user_id: provider_user.id)
+
+      {:ok, view, _html} = live(conn, ~p"/provider/messages/#{conversation.id}")
+
+      assert has_element?(view, "h1", "Conversation")
     end
   end
 

@@ -40,6 +40,8 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
       stream_insert: 4
     ]
 
+  alias KlassHero.Accounts.Scope
+  alias KlassHero.Enrollment
   alias KlassHero.Messaging
   alias KlassHero.Messaging.Domain.Models.Attachment
   alias KlassHero.Messaging.Domain.Models.Message
@@ -134,9 +136,19 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
         {provider_user_ids, provider_name} = resolve_provider_info(conversation)
 
+        scope = socket.assigns.current_scope
+
+        page_title =
+          if (Scope.provider?(scope) or Scope.staff_provider?(scope)) and
+               conversation.type == :direct do
+            resolve_direct_title(conversation, user_id, provider_user_ids)
+          else
+            get_conversation_title(conversation)
+          end
+
         socket =
           socket
-          |> assign(:page_title, get_conversation_title(conversation))
+          |> assign(:page_title, page_title)
           |> assign(:conversation, conversation)
           |> assign(:has_more, has_more)
           |> assign(:messages_empty?, Enum.empty?(messages))
@@ -366,6 +378,41 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
       _ ->
         {MapSet.new(staff_ids), nil}
+    end
+  end
+
+  defp resolve_direct_title(conversation, current_user_id, provider_user_ids) do
+    parent_participant =
+      Enum.find(conversation.participants, fn p ->
+        not MapSet.member?(provider_user_ids, p.user_id)
+      end) ||
+        Enum.find(conversation.participants, fn p -> p.user_id != current_user_id end)
+
+    case parent_participant do
+      nil ->
+        gettext("Conversation")
+
+      %{user_id: parent_user_id} ->
+        case Messaging.get_display_name(parent_user_id) do
+          {:error, _} ->
+            gettext("Conversation")
+
+          {:ok, name} ->
+            child_names =
+              if conversation.program_id do
+                Enrollment.list_enrolled_child_first_names_for_parent(
+                  conversation.program_id,
+                  parent_user_id
+                )
+              else
+                []
+              end
+
+            case child_names do
+              [] -> name
+              names -> "#{name}  #{gettext("for")}  #{Enum.join(names, ", ")}"
+            end
+        end
     end
   end
 
