@@ -180,8 +180,8 @@ msgstr "Buchen Sie Camps, Nachhilfe und Workshops sofort. Unser integrierter Pla
 
 #: lib/klass_hero_web/live/home_live.ex:245
 #, elixir-autogen, elixir-format
-msgid "Built for the Berlin international community. Connect with local families and trusted educators nearby."
-msgstr "Entwickelt für die internationale Berliner Gemeinschaft. Verbinden Sie sich mit lokalen Familien und vertrauenswürdigen Pädagogen in Ihrer Nähe."
+msgid "Built for the Berlin international community. Integrated secure encrypted messaging to connect with local families and trusted educators nearby."
+msgstr "Entwickelt für die internationale Berliner Gemeinschaft. Integriertes sicheres verschlüsseltes Messaging, um sich mit lokalen Familien und vertrauenswürdigen Pädagogen in Ihrer Nähe zu verbinden."
 
 #: lib/klass_hero_web/live/booking_live.ex:508
 #, elixir-autogen, elixir-format
