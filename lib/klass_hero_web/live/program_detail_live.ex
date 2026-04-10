@@ -26,13 +26,26 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           )
         end
 
-        # Run two independent DB queries in parallel to reduce total mount latency.
+        # Run three independent DB queries in parallel to reduce total mount latency.
         team_task = Task.async(fn -> load_team_members(program.provider_id) end)
-
         policy_task = Task.async(fn -> load_participant_policy(program.id) end)
+
+        provider_task =
+          Task.async(fn ->
+            case program.provider_id do
+              nil -> {:error, :not_found}
+              id -> Provider.get_provider_profile(id)
+            end
+          end)
 
         team_members = Task.await(team_task)
         participant_policy = Task.await(policy_task)
+
+        provider_business_name =
+          case Task.await(provider_task) do
+            {:ok, provider} -> provider.business_name
+            _ -> nil
+          end
 
         socket =
           socket
@@ -42,6 +55,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           |> assign(team_members: team_members)
           |> assign(registration_status: ProgramCatalog.registration_status(program))
           |> assign(participant_policy: participant_policy)
+          |> assign(provider_business_name: provider_business_name)
 
         {:ok, socket}
 
@@ -161,11 +175,15 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   attr :program, :map, required: true
   attr :wrapper_class, :string, required: true
+  attr :provider_business_name, :string, default: nil
 
   defp hero_info_overlay(assigns) do
     ~H"""
     <div class={@wrapper_class}>
       <div class="max-w-4xl mx-auto text-center text-white">
+        <p :if={@provider_business_name} class="text-sm text-white/90 mb-1">
+          {@provider_business_name}
+        </p>
         <h1 class={[Theme.typography(:page_title), "mb-3"]}>
           {@program.title}
         </h1>
@@ -236,6 +254,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
           <.hero_info_overlay
             program={@program}
+            provider_business_name={@provider_business_name}
             wrapper_class="absolute bottom-0 left-0 right-0 pb-8 px-4"
           />
         </div>
@@ -262,6 +281,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
           <.hero_info_overlay
             program={@program}
+            provider_business_name={@provider_business_name}
             wrapper_class="relative pb-12 px-4"
           />
         </div>

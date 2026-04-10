@@ -136,6 +136,16 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
   end
 
   describe "hero info overlay" do
+    test "renders provider business name above program title", %{conn: conn} do
+      provider = provider_profile_fixture(business_name: "Prime Youth Sports")
+      program = insert(:program_schema, provider_id: provider.id, title: "Football Camp")
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "p", "Prime Youth Sports")
+      assert has_element?(view, "h1", "Football Camp")
+    end
+
     test "renders title and schedule info with cover image", %{conn: conn} do
       program =
         insert(:program_schema,
