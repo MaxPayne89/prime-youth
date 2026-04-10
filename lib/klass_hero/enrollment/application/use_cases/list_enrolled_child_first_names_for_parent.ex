@@ -5,6 +5,15 @@ defmodule KlassHero.Enrollment.Application.UseCases.ListEnrolledChildFirstNamesF
   Used by the Messaging context to enrich the direct conversation header
   with context about which children the conversation relates to.
 
+  ## Return type
+
+  Returns a plain `[String.t()]` rather than the `{:ok, _} | {:error, _}` tuple
+  used by most use cases. This is intentional: the function is a best-effort UI
+  enrichment query with no meaningful error distinction. All failure modes
+  (unknown parent, no enrollments, ACL resolution error) are treated the same
+  way by callers — by showing less context, not by failing. A tagged tuple would
+  add branching overhead with no benefit.
+
   Returns [] when:
   - The program has no enrollments
   - The parent has no enrollments in the program
