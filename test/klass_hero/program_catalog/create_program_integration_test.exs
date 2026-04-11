@@ -5,6 +5,7 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
 
   alias KlassHero.ProgramCatalog
   alias KlassHero.ProviderFixtures
+  alias KlassHero.Shared.Adapters.Driven.FeatureFlags.StubFeatureFlagsAdapter
 
   describe "create_program/2" do
     setup do
@@ -194,6 +195,27 @@ defmodule KlassHero.ProgramCatalog.CreateProgramIntegrationTest do
 
     test "allows creation for professional provider beyond starter limit" do
       provider = ProviderFixtures.provider_profile_fixture(%{subscription_tier: "professional"})
+
+      for i <- 1..3 do
+        assert {:ok, _} =
+                 ProgramCatalog.create_program(
+                   %{
+                     provider_id: provider.id,
+                     title: "Program #{i}",
+                     description: "A valid program",
+                     category: "arts",
+                     price: Decimal.new("50.00")
+                   },
+                   provider
+                 )
+      end
+    end
+
+    test "allows starter provider to exceed limit when provider_tier_bypass is active" do
+      start_supervised!({StubFeatureFlagsAdapter, name: StubFeatureFlagsAdapter})
+      StubFeatureFlagsAdapter.set_enabled(:provider_tier_bypass)
+
+      provider = ProviderFixtures.provider_profile_fixture(%{subscription_tier: "starter"})
 
       for i <- 1..3 do
         assert {:ok, _} =

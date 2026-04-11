@@ -2,10 +2,11 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.CreateProgram do
   @moduledoc """
   Use case for creating a new program.
 
-  Orchestrates domain validation and persistence:
-  1. Builds and validates the Program aggregate via Program.create/1
-  2. Persists via the repository adapter
-  3. Dispatches domain events on success
+  Orchestrates entitlement checking, domain validation, and persistence:
+  1. Checks program limit against provider's subscription tier
+  2. Builds and validates the Program aggregate via Program.create/1
+  3. Persists via the repository adapter
+  4. Dispatches domain events on success
   """
 
   alias KlassHero.ProgramCatalog.Domain.Events.ProgramEvents
