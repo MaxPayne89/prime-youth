@@ -271,15 +271,18 @@ defmodule KlassHero.ProgramCatalog do
 
   - `attrs` - Map with: title, description, category, price, provider_id.
     Optional: location, cover_image_url, instructor_id, instructor_name, instructor_headshot_url.
+  - `tier_holder` - Provider domain model (must have `:subscription_tier` field).
+    Used to check program creation entitlement.
 
   ## Returns
 
   - `{:ok, Program.t()}` on success
+  - `{:error, :program_limit_reached}` if provider has reached their tier's program limit
   - `{:error, changeset}` on validation failure
   """
-  @spec create_program(map()) :: {:ok, Program.t()} | {:error, term()}
-  def create_program(attrs) when is_map(attrs) do
-    CreateProgram.execute(attrs)
+  @spec create_program(map(), map()) :: {:ok, Program.t()} | {:error, term()}
+  def create_program(attrs, tier_holder) when is_map(attrs) do
+    CreateProgram.execute(attrs, tier_holder)
   end
 
   @doc """
@@ -310,6 +313,22 @@ defmodule KlassHero.ProgramCatalog do
   """
   def new_program_changeset(attrs \\ %{}) do
     @repository.new_changeset(attrs)
+  end
+
+  # ============================================================================
+  # Program Counting
+  # ============================================================================
+
+  @doc """
+  Counts self-posted programs for a provider.
+
+  Used by the provider dashboard to display accurate program slot usage.
+  Only programs with `origin: :self_posted` are counted — business-assigned
+  programs do not count toward the tier limit.
+  """
+  @spec count_self_posted_programs(String.t()) :: non_neg_integer()
+  def count_self_posted_programs(provider_id) do
+    @repository.count_by_provider_and_origin(provider_id, :self_posted)
   end
 
   # ============================================================================

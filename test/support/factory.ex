@@ -115,7 +115,8 @@ defmodule KlassHero.Factory do
       age_range: "6-10 years",
       price: Decimal.new("100.00"),
       pricing_period: "per month",
-      end_date: nil
+      end_date: nil,
+      origin: "self_posted"
     }
   end
 

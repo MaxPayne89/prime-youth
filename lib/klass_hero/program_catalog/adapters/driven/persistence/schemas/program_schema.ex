@@ -33,6 +33,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     field :provider_id, :binary_id
     field :location, :string
     field :cover_image_url, :string
+    field :origin, :string, default: "self_posted"
     field :instructor_id, :binary_id
     field :instructor_name, :string
     field :instructor_headshot_url, :string
@@ -61,6 +62,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
           provider_id: Ecto.UUID.t() | nil,
           location: String.t() | nil,
           cover_image_url: String.t() | nil,
+          origin: String.t() | nil,
           instructor_id: Ecto.UUID.t() | nil,
           instructor_name: String.t() | nil,
           instructor_headshot_url: String.t() | nil,
@@ -162,7 +164,9 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> maybe_put_change(:instructor_id, attrs)
     |> maybe_put_change(:instructor_name, attrs)
     |> maybe_put_change(:instructor_headshot_url, attrs)
+    |> maybe_put_change(:origin, attrs)
     |> validate_required([:title, :description, :category, :price, :provider_id])
+    |> validate_inclusion(:origin, ["self_posted", "business_assigned"])
     |> validate_length(:title, min: 1, max: 100)
     |> validate_length(:description, min: 1, max: 500)
     |> validate_length(:location, max: 255)
