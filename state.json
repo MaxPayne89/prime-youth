@@ -42,15 +42,28 @@
   ],
   "tasks_last_run": {
     "task_1": "2026-04-06",
-    "task_2": "2026-04-08",
-    "task_3": "2026-04-10",
-    "task_4": "2026-04-10",
+    "task_2": "2026-04-11",
+    "task_3": "2026-04-11",
+    "task_4": "2026-04-11",
     "task_5": "2026-04-07",
     "task_6": "2026-04-10",
-    "task_7": "2026-04-10"
+    "task_7": "2026-04-11"
   },
   "work_in_progress": null,
   "completed_work": [
+    {
+      "date": "2026-04-11",
+      "run_id": "24291816929",
+      "tasks": [
+        "task_2",
+        "task_3",
+        "task_4",
+        "task_7"
+      ],
+      "pr_branch": "test-assist/messaging-mapper-unit-tests",
+      "description": "57 pure unit tests for 4 messaging persistence mappers: MessageMapper (22 - build_sender_names_map NotLoaded/nil filtering), ConversationMapper (13 - NotLoaded association guards), InboundEmailMapper (14 - all status/content_status branches), EmailReplyMapper (8 - all status branches). No DB required.",
+      "tests_added": 57
+    },
     {
       "date": "2026-04-10",
       "run_id": "24264705002",
@@ -61,6 +74,7 @@
         "task_7"
       ],
       "pr_branch": "test-assist/behavioral-note-mapper-unit-tests",
+      "pr_number": 644,
       "description": "14 pure unit tests for BehavioralNoteMapper - to_domain/1 (5), to_persistence/1 (5), update_schema/1 (4). Completes participation mapper test trilogy alongside PR #626.",
       "tests_added": 14
     },
