@@ -166,6 +166,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSc
     |> maybe_put_change(:instructor_headshot_url, attrs)
     |> maybe_put_change(:origin, attrs)
     |> validate_required([:title, :description, :category, :price, :provider_id])
+    |> validate_inclusion(:origin, ["self_posted", "business_assigned"])
     |> validate_length(:title, min: 1, max: 100)
     |> validate_length(:description, min: 1, max: 500)
     |> validate_length(:location, max: 255)

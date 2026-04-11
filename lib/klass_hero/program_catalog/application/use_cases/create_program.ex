@@ -17,6 +17,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.CreateProgram do
   require Logger
 
   @repository Application.compile_env!(:klass_hero, [:program_catalog, :repository])
+  @listing_repository Application.compile_env!(:klass_hero, [:program_catalog, :for_listing_programs])
 
   def execute(attrs, tier_holder) when is_map(attrs) do
     with :ok <- check_program_limit(attrs[:provider_id], tier_holder),
@@ -34,7 +35,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.CreateProgram do
   defp check_program_limit(nil, _tier_holder), do: :ok
 
   defp check_program_limit(provider_id, tier_holder) do
-    current_count = @repository.count_by_provider_and_origin(provider_id, :self_posted)
+    current_count = @listing_repository.count_by_provider_and_origin(provider_id, :self_posted)
 
     if Entitlements.can_create_program?(tier_holder, current_count) do
       :ok
