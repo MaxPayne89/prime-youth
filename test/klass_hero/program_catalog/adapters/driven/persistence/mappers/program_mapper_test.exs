@@ -229,6 +229,59 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
     end
   end
 
+  describe "origin field mapping" do
+    test "to_domain/1 maps origin string to atom" do
+      schema = %ProgramSchema{
+        id: Ecto.UUID.generate(),
+        title: "Test",
+        description: "Test desc",
+        category: "sports",
+        price: Decimal.new("50.00"),
+        origin: "self_posted",
+        meeting_days: [],
+        lock_version: 1,
+        inserted_at: DateTime.utc_now(),
+        updated_at: DateTime.utc_now()
+      }
+
+      program = ProgramMapper.to_domain(schema)
+      assert program.origin == :self_posted
+    end
+
+    test "to_domain/1 maps business_assigned origin" do
+      schema = %ProgramSchema{
+        id: Ecto.UUID.generate(),
+        title: "Test",
+        description: "Test desc",
+        category: "sports",
+        price: Decimal.new("50.00"),
+        origin: "business_assigned",
+        meeting_days: [],
+        lock_version: 1,
+        inserted_at: DateTime.utc_now(),
+        updated_at: DateTime.utc_now()
+      }
+
+      program = ProgramMapper.to_domain(schema)
+      assert program.origin == :business_assigned
+    end
+
+    test "to_schema/1 maps origin atom to string" do
+      program = %Program{
+        title: "Test",
+        description: "Test desc",
+        category: "sports",
+        price: Decimal.new("50.00"),
+        origin: :self_posted,
+        meeting_days: [],
+        registration_period: %RegistrationPeriod{}
+      }
+
+      attrs = ProgramMapper.to_schema(program)
+      assert attrs.origin == "self_posted"
+    end
+  end
+
   describe "to_schema/1" do
     test "includes provider_id in output" do
       program = %Program{
