@@ -163,4 +163,12 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
   defp origin_to_atom("self_posted"), do: :self_posted
   defp origin_to_atom("business_assigned"), do: :business_assigned
   defp origin_to_atom(nil), do: :self_posted
+
+  defp origin_to_atom(unknown) do
+    Logger.warning("[ProgramMapper] Unknown origin value, defaulting to :self_posted",
+      origin: inspect(unknown)
+    )
+
+    :self_posted
+  end
 end
