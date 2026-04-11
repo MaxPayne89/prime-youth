@@ -5,6 +5,32 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.31.0](https://github.com/MaxPayne89/klass-hero/compare/v0.30.0...v0.31.0) (2026-04-11)
+
+
+### Features
+
+* add count_by_provider_and_origin to program repository ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([d04c58d](https://github.com/MaxPayne89/klass-hero/commit/d04c58d8754ed7f5064911f1a9d88c60a8b7a068))
+* add origin column to programs table ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([69f9b3e](https://github.com/MaxPayne89/klass-hero/commit/69f9b3e6b0799431babdf0dac48cc4e21b303487))
+* add origin field to Program domain model ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([7582893](https://github.com/MaxPayne89/klass-hero/commit/7582893554bde4c554d4b2e0c6c1ea6dbdaaabf4))
+* add origin field to program schema and mapper ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([443fa6e](https://github.com/MaxPayne89/klass-hero/commit/443fa6ea425cf7e31ff4aa5fb20c664987e03afa))
+* enforce program limit in CreateProgram use case ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([d5eaa14](https://github.com/MaxPayne89/klass-hero/commit/d5eaa14723d14c0e538e466f9cd75c4b7801a622))
+* enforce program limit in provider dashboard UI ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([79f14b0](https://github.com/MaxPayne89/klass-hero/commit/79f14b087f31060a0060d0e70e0b69e4edb452f6))
+* enforce starter tier 2-program limit with origin tracking ([21fa805](https://github.com/MaxPayne89/klass-hero/commit/21fa8050e97bf5737e765795e726ebc19bc8f140))
+
+
+### Bug Fixes
+
+* address code review suggestions for program limit ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([9cb1541](https://github.com/MaxPayne89/klass-hero/commit/9cb154110b714986290ba31f1a829d9e9c7258bc))
+* use configured Logger metadata key in ProgramMapper ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([03441ce](https://github.com/MaxPayne89/klass-hero/commit/03441ce416d6fd7b6b34ae4643a5c98c42b81c0d))
+* use self-posted count for program slots in dashboard ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([965de6f](https://github.com/MaxPayne89/klass-hero/commit/965de6f28ec4c7d18cf9fdd37331f1f8408ef4bc))
+
+
+### Code Refactoring
+
+* move count query to ForListingPrograms port and add origin validation ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([52e94e1](https://github.com/MaxPayne89/klass-hero/commit/52e94e18ea41358a3ec4e23c862bb494789a0467))
+* simplify program limit tests and harden mapper ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([0d42914](https://github.com/MaxPayne89/klass-hero/commit/0d4291477f620506a58829f73e1f05147e1c7527))
+
 ## [0.30.0](https://github.com/MaxPayne89/klass-hero/compare/v0.29.0...v0.30.0) (2026-04-10)
 
 
