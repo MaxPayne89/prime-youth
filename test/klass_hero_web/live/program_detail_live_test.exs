@@ -274,9 +274,9 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
         provider_profile_fixture(%{business_name: "Kinder Sports", logo_url: nil})
 
       program = insert(:program_schema, provider_id: provider.id)
-      {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}")
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
 
-      assert html =~ "KS"
+      assert has_element?(view, "#provider-logo-placeholder", "KS")
     end
 
     test "hides provider section when program has no provider_id", %{conn: conn} do

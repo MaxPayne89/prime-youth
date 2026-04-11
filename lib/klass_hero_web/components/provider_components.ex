@@ -257,6 +257,7 @@ defmodule KlassHeroWeb.ProviderComponents do
           />
           <div
             :if={!@provider.logo_url}
+            id="provider-logo-placeholder"
             class={[
               "w-16 h-16 flex items-center justify-center text-white text-xl font-bold flex-shrink-0",
               Theme.rounded(:full),

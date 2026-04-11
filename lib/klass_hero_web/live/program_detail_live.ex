@@ -513,7 +513,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         </section>
         --%>
 
-        <%!-- Provider Profile Card --%>
         <.provider_public_card :if={@provider_profile} provider={@provider_profile} />
 
         <%!-- Bottom CTA (Hidden on Mobile - Mobile has sticky footer) --%>
