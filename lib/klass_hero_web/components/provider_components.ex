@@ -231,6 +231,52 @@ defmodule KlassHeroWeb.ProviderComponents do
     """
   end
 
+  @doc """
+  Renders a public-facing read-only provider profile card for program detail pages.
+
+  Shows logo (or initials avatar), business name, and description.
+  """
+  attr :provider, :map, required: true
+
+  def provider_public_card(assigns) do
+    ~H"""
+    <div class={[Theme.bg(:surface), Theme.rounded(:xl), "shadow-sm border overflow-hidden", Theme.border_color(:light)]}>
+      <div class={["p-4 border-b", Theme.border_color(:light)]}>
+        <h3 class={["font-semibold flex items-center gap-2", Theme.text_color(:heading)]}>
+          <.icon name="hero-building-storefront" class="w-5 h-5 text-hero-blue-500" />
+          {gettext("About the Provider")}
+        </h3>
+      </div>
+      <div class="p-6">
+        <div class="flex items-start space-x-4">
+          <img
+            :if={@provider.logo_url}
+            src={@provider.logo_url}
+            alt={@provider.name}
+            class={["w-16 h-16 object-cover flex-shrink-0", Theme.rounded(:full)]}
+          />
+          <div
+            :if={!@provider.logo_url}
+            class={[
+              "w-16 h-16 flex items-center justify-center text-white text-xl font-bold flex-shrink-0",
+              Theme.rounded(:full),
+              Theme.gradient(:primary)
+            ]}
+          >
+            {@provider.initials}
+          </div>
+          <div class="flex-1">
+            <h4 class={["font-semibold mb-1", Theme.text_color(:heading)]}>{@provider.name}</h4>
+            <p :if={@provider.description} class={["text-sm leading-relaxed", Theme.text_color(:secondary)]}>
+              {@provider.description}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
   attr :status, :atom, required: true
 
   defp verification_status_badge(%{status: :verified} = assigns) do

@@ -2,6 +2,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   use KlassHeroWeb, :live_view
 
   import KlassHeroWeb.ProgramComponents
+  import KlassHeroWeb.ProviderComponents
   import KlassHeroWeb.UIComponents
 
   alias KlassHero.Enrollment
@@ -9,6 +10,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   alias KlassHero.Provider
   alias KlassHeroWeb.Presenters.ParticipantPolicyPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
+  alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Presenters.StaffMemberPresenter
   alias KlassHeroWeb.Theme
 
@@ -26,13 +28,14 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           )
         end
 
-        # Run two independent DB queries in parallel to reduce total mount latency.
+        # Run three independent DB queries in parallel to reduce total mount latency.
         team_task = Task.async(fn -> load_team_members(program.provider_id) end)
-
         policy_task = Task.async(fn -> load_participant_policy(program.id) end)
+        provider_task = Task.async(fn -> load_provider_profile(program.provider_id) end)
 
         team_members = Task.await(team_task)
         participant_policy = Task.await(policy_task)
+        provider_profile = Task.await(provider_task)
 
         socket =
           socket
@@ -42,6 +45,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           |> assign(team_members: team_members)
           |> assign(registration_status: ProgramCatalog.registration_status(program))
           |> assign(participant_policy: participant_policy)
+          |> assign(provider_profile: provider_profile)
 
         {:ok, socket}
 
@@ -108,6 +112,15 @@ defmodule KlassHeroWeb.ProgramDetailLive do
     case Provider.list_staff_members(provider_id) do
       {:ok, members} -> StaffMemberPresenter.to_card_view_list(members)
       {:error, _} -> []
+    end
+  end
+
+  defp load_provider_profile(nil), do: nil
+
+  defp load_provider_profile(provider_id) do
+    case Provider.get_provider_profile(provider_id) do
+      {:ok, profile} -> ProviderPresenter.to_public_card_view(profile)
+      {:error, _} -> nil
     end
   end
 
@@ -499,6 +512,9 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           </div>
         </section>
         --%>
+
+        <%!-- Provider Profile Card --%>
+        <.provider_public_card :if={@provider_profile} provider={@provider_profile} />
 
         <%!-- Bottom CTA (Hidden on Mobile - Mobile has sticky footer) --%>
         <div class="hidden md:block mt-8">

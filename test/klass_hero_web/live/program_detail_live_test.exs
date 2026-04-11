@@ -253,6 +253,40 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
     end
   end
 
+  describe "provider profile display" do
+    test "shows provider name and description when provider profile exists", %{conn: conn} do
+      provider =
+        provider_profile_fixture(%{
+          business_name: "Kinder Sports GmbH",
+          description: "We run great camps for kids"
+        })
+
+      program = insert(:program_schema, provider_id: provider.id)
+      {:ok, view, html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert html =~ "Kinder Sports GmbH"
+      assert html =~ "We run great camps for kids"
+      assert has_element?(view, "h3", "About the Provider")
+    end
+
+    test "shows initials avatar when provider has no logo", %{conn: conn} do
+      provider =
+        provider_profile_fixture(%{business_name: "Kinder Sports", logo_url: nil})
+
+      program = insert(:program_schema, provider_id: provider.id)
+      {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert html =~ "KS"
+    end
+
+    test "hides provider section when program has no provider_id", %{conn: conn} do
+      program = insert(:program_schema, provider_id: nil)
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      refute has_element?(view, "h3", "About the Provider")
+    end
+  end
+
   describe "pricing display" do
     test "renders formatted program price", %{conn: conn} do
       program = insert(:program_schema, price: Decimal.new("149.99"))

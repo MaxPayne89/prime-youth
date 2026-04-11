@@ -52,6 +52,24 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
   end
 
   @doc """
+  Transforms a Provider domain model to a minimal public card format.
+
+  Used for the read-only provider card on program detail pages.
+
+  Returns a map with: id, name, description, logo_url, initials
+  """
+  @spec to_public_card_view(ProviderProfile.t()) :: map()
+  def to_public_card_view(%ProviderProfile{} = provider) do
+    %{
+      id: provider.id,
+      name: provider.business_name,
+      description: provider.description,
+      logo_url: provider.logo_url,
+      initials: build_initials(provider.business_name)
+    }
+  end
+
+  @doc """
   Derives the aggregate verification status from a list of verification documents.
 
   Status priority:
