@@ -346,6 +346,7 @@ defmodule KlassHeroWeb.ProviderComponents do
       <.provider_dashboard_header business={@business} />
   """
   attr :business, :map, required: true
+  attr :can_create_program?, :boolean, default: true
 
   def provider_dashboard_header(assigns) do
     ~H"""
@@ -401,10 +402,10 @@ defmodule KlassHeroWeb.ProviderComponents do
             type="button"
             id="new-program-btn"
             phx-click="add_program"
-            disabled={@business.verification_status != :verified}
+            disabled={@business.verification_status != :verified or not @can_create_program?}
             class={[
               "flex items-center gap-2 px-4 py-2 font-semibold",
-              if(@business.verification_status == :verified,
+              if(@business.verification_status == :verified and @can_create_program?,
                 do: "bg-hero-yellow hover:bg-hero-yellow-dark text-hero-charcoal",
                 else: "bg-hero-grey-200 text-hero-grey-400 cursor-not-allowed"
               ),
@@ -417,7 +418,7 @@ defmodule KlassHeroWeb.ProviderComponents do
           </button>
           <%!-- Tooltip: shown only when button is disabled --%>
           <div
-            :if={@business.verification_status != :verified}
+            :if={@business.verification_status != :verified or not @can_create_program?}
             id="new-program-tooltip"
             class={[
               "absolute right-0 top-full mt-2 w-64 p-3 bg-hero-charcoal text-white text-xs",
@@ -426,7 +427,13 @@ defmodule KlassHeroWeb.ProviderComponents do
               Theme.transition(:normal)
             ]}
           >
-            {gettext("Complete business verification to create programs.")}
+            <%= cond do %>
+              <% @business.verification_status != :verified -> %>
+                {gettext("Complete business verification to create programs.")}
+              <% not @can_create_program? -> %>
+                {gettext("You've reached your program limit. Upgrade your plan to add more programs.")}
+              <% true -> %>
+            <% end %>
           </div>
         </div>
       </div>

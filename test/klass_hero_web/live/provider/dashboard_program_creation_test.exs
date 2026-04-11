@@ -3,6 +3,8 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
 
   import Phoenix.LiveViewTest
 
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema
+  alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProviderFixtures
   alias KlassHero.Repo
 
@@ -428,6 +430,102 @@ defmodule KlassHeroWeb.Provider.DashboardProgramCreationTest do
       html = render(view)
       assert html =~ "Program created successfully."
       refute html =~ "enrollment capacity could not be saved"
+    end
+  end
+
+  describe "program limit enforcement" do
+    test "disables new program button when at starter limit", %{conn: conn, provider: provider} do
+      # Override provider to starter tier (limit: 2 programs)
+      provider
+      |> Ecto.Changeset.change(%{subscription_tier: "starter"})
+      |> Repo.update!()
+
+      # Create 2 programs to reach the starter limit.
+      # Insert into both programs (for server-side guard) and
+      # program_listings (for dashboard UI count) tables.
+      for i <- 1..2 do
+        id = Ecto.UUID.generate()
+
+        Repo.insert!(%ProgramSchema{
+          id: id,
+          title: "Program #{i}",
+          description: "Description for program #{i}",
+          category: "arts",
+          price: Decimal.new("50.00"),
+          provider_id: provider.id,
+          origin: "self_posted"
+        })
+
+        Repo.insert!(%ProgramListingSchema{
+          id: id,
+          title: "Program #{i}",
+          description: "Description for program #{i}",
+          category: "arts",
+          price: Decimal.new("50.00"),
+          provider_id: provider.id
+        })
+      end
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      assert has_element?(view, "#new-program-btn[disabled]")
+    end
+
+    test "shows error when creation is rejected at limit", %{conn: conn, provider: provider} do
+      provider
+      |> Ecto.Changeset.change(%{subscription_tier: "starter"})
+      |> Repo.update!()
+
+      for i <- 1..2 do
+        id = Ecto.UUID.generate()
+
+        Repo.insert!(%ProgramSchema{
+          id: id,
+          title: "Program #{i}",
+          description: "Description for program #{i}",
+          category: "arts",
+          price: Decimal.new("50.00"),
+          provider_id: provider.id,
+          origin: "self_posted"
+        })
+
+        Repo.insert!(%ProgramListingSchema{
+          id: id,
+          title: "Program #{i}",
+          description: "Description for program #{i}",
+          category: "arts",
+          price: Decimal.new("50.00"),
+          provider_id: provider.id
+        })
+      end
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      # Force-send the add_program event (bypassing disabled button)
+      render_hook(view, "add_program")
+
+      view
+      |> form("#program-form", %{
+        "program_schema" => %{
+          "title" => "Third Program",
+          "description" => "Should be rejected",
+          "category" => "arts",
+          "price" => "50.00"
+        }
+      })
+      |> render_submit()
+
+      assert render(view) =~ "program limit"
+    end
+
+    test "enables new program button when under limit", %{conn: conn, provider: provider} do
+      provider
+      |> Ecto.Changeset.change(%{subscription_tier: "starter"})
+      |> Repo.update!()
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      refute has_element?(view, "#new-program-btn[disabled]")
     end
   end
 end

@@ -792,7 +792,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     participant_policy_params = all_params["participant_policy"] || %{}
 
     with {:ok, attrs} <- maybe_add_instructor(attrs, program_params["instructor_id"], socket),
-         {:ok, program} <- ProgramCatalog.create_program(attrs) do
+         {:ok, program} <- ProgramCatalog.create_program(attrs, socket.assigns.current_scope.provider) do
       policy_result = maybe_set_enrollment_policy(program.id, enrollment_params)
       maybe_set_participant_policy(program.id, participant_policy_params)
       capacity = resolve_capacity(policy_result, enrollment_params)
@@ -817,6 +817,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
        )
        |> update_program_slots(socket.assigns.business.program_slots_used + 1)}
     else
+      {:error, :program_limit_reached} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("You've reached your program limit. Upgrade your plan to add more programs.")
+         )}
+
       {:error, :instructor_not_found} ->
         {:noreply,
          put_flash(
@@ -1030,7 +1038,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
               document_types={@document_types}
             />
           <% _ -> %>
-            <.provider_dashboard_header business={@business} />
+            <.provider_dashboard_header
+              business={@business}
+              can_create_program?={@can_create_program?}
+            />
             <.link
               :if={@dual_role?}
               id="cross-nav-staff-link"
@@ -1513,7 +1524,17 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp update_program_slots(socket, count) do
     business = %{socket.assigns.business | program_slots_used: count}
-    assign(socket, business: business)
+
+    socket
+    |> assign(business: business)
+    |> update_can_create_program()
+  end
+
+  defp update_can_create_program(socket) do
+    provider = socket.assigns.current_scope.provider
+    used = socket.assigns.business.program_slots_used
+    can_create? = Entitlements.can_create_program?(provider, used)
+    assign(socket, can_create_program?: can_create?)
   end
 
   defp fetch_staff_members(provider_id) do
