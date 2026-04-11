@@ -63,6 +63,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         staff_members = Task.await(staff_task)
         staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
         programs_count = length(programs)
+        self_posted_count = ProgramCatalog.count_self_posted_programs(provider_profile.id)
 
         # Build staff filter options from real data
         staff_options =
@@ -82,7 +83,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> update_staff_count(length(staff_views))
           |> stream(:programs, programs)
           |> assign(programs_count: programs_count)
-          |> update_program_slots(programs_count)
+          |> update_program_slots(self_posted_count)
           |> assign(staff_options: staff_options)
           |> assign(search_query: "")
           |> assign(selected_staff: "all")
@@ -1578,7 +1579,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     socket
     |> stream(:programs, programs, reset: true)
     |> assign(programs_count: length(programs))
-    |> update_program_slots(length(domain_programs))
+    |> update_program_slots(ProgramCatalog.count_self_posted_programs(socket.assigns.current_scope.provider.id))
   end
 
   defp build_enrollment_data(domain_programs) do

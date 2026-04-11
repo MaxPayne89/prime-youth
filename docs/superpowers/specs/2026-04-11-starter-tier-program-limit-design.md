@@ -62,8 +62,8 @@ The `can_create_program?/2` function already respects the `:provider_tier_bypass
 
 ### New Port & Adapter
 
-- `ForStoringPrograms` port: add `count_by_provider_and_origin(provider_id, origin)` callback returning `non_neg_integer()`
-- Ecto repository adapter: `SELECT COUNT(*) FROM programs WHERE provider_id = $1 AND origin = $2`
+- `ForListingPrograms` port: add `count_by_provider_and_origin(provider_id, origin)` callback returning `non_neg_integer()`
+- Ecto repository adapter implements this listing callback with `SELECT COUNT(*) FROM programs WHERE provider_id = $1 AND origin = $2`
 
 ### Client-Side: Provider Dashboard
 

@@ -316,6 +316,22 @@ defmodule KlassHero.ProgramCatalog do
   end
 
   # ============================================================================
+  # Program Counting
+  # ============================================================================
+
+  @doc """
+  Counts self-posted programs for a provider.
+
+  Used by the provider dashboard to display accurate program slot usage.
+  Only programs with `origin: :self_posted` are counted — business-assigned
+  programs do not count toward the tier limit.
+  """
+  @spec count_self_posted_programs(String.t()) :: non_neg_integer()
+  def count_self_posted_programs(provider_id) do
+    @repository.count_by_provider_and_origin(provider_id, :self_posted)
+  end
+
+  # ============================================================================
   # Cross-Context Query Functions
   # ============================================================================
 
