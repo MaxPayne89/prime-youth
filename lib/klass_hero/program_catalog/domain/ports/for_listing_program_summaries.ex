@@ -69,4 +69,15 @@ defmodule KlassHero.ProgramCatalog.Domain.Ports.ForListingProgramSummaries do
   Returns an empty list if no active listings exist.
   """
   @callback list_active() :: [ProgramListing.t()]
+
+  @doc """
+  Lists up to `limit` currently active program listings ordered by title.
+
+  Applies the same `end_date` filter as `list_active/0` but pushes the
+  row limit into the SQL query, avoiding a full-table scan when only a
+  small number of results is needed (e.g. the home page featured section).
+
+  Returns an empty list if no active listings exist.
+  """
+  @callback list_active_limited(limit :: pos_integer()) :: [ProgramListing.t()]
 end

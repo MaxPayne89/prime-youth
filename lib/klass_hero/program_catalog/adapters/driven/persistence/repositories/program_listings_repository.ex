@@ -110,6 +110,33 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   end
 
   @impl true
+  def list_active_limited(limit) when is_integer(limit) and limit > 0 do
+    span do
+      set_attributes("db", operation: "select", entity: "program_listing")
+
+      Logger.debug("[ProgramListingsRepository] Listing active program listings (limited)",
+        limit: limit
+      )
+
+      schemas =
+        ProgramListingSchema
+        |> apply_end_date_filter()
+        |> order_by(asc: :title)
+        |> limit(^limit)
+        |> Repo.all()
+
+      dtos = Enum.map(schemas, &to_dto/1)
+
+      Logger.debug("[ProgramListingsRepository] Retrieved active listings (limited)",
+        limit: limit,
+        count: length(dtos)
+      )
+
+      dtos
+    end
+  end
+
+  @impl true
   def list_for_provider(provider_id) when is_binary(provider_id) do
     span do
       set_attributes("db", operation: "select", entity: "program_listing")

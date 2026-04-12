@@ -12,7 +12,7 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListFeaturedPrograms do
 
   This use case follows the Application Layer pattern in DDD/Ports & Adapters:
   - Coordinates domain operations (via read repository port)
-  - Simple post-processing (limiting to first 2 programs)
+  - Delegates the LIMIT to SQL via `list_active_limited/1` to avoid over-fetching
   - No logging (that belongs in adapter layer)
   - Returns read model DTOs (ProgramListing structs)
 
@@ -44,11 +44,10 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListFeaturedPrograms do
   @doc """
   Executes the use case to list featured programs.
 
-  Retrieves active program listings from the read model and returns the
-  first #{@featured_count} ordered by title. Programs whose `end_date`
-  has passed are excluded; programs with a nil `end_date` are treated as
-  open-ended. This provides a consistent set of featured programs for the
-  home page (see issue #610).
+  Retrieves at most #{@featured_count} active program listings from the read model
+  using a SQL `LIMIT` clause, ordered by title ascending. Programs whose `end_date`
+  has passed are excluded; programs with a nil `end_date` are treated as open-ended.
+  This provides a consistent set of featured programs for the home page (see issue #610).
 
   Returns:
   - `[ProgramListing.t()]` - List of featured program listings (up to #{@featured_count}, may be empty)
@@ -66,7 +65,6 @@ defmodule KlassHero.ProgramCatalog.Application.UseCases.ListFeaturedPrograms do
   """
   @spec execute() :: [ProgramListing.t()]
   def execute do
-    @read_repository.list_active()
-    |> Enum.take(@featured_count)
+    @read_repository.list_active_limited(@featured_count)
   end
 end

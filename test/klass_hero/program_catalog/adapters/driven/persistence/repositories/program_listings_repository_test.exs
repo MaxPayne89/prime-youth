@@ -269,4 +269,51 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
       assert "Last Day Program" in titles
     end
   end
+
+  describe "list_active_limited/1" do
+    test "returns at most `limit` listings ordered by title" do
+      insert_listing(%{title: "Art Class"})
+      insert_listing(%{title: "Music Lessons"})
+      insert_listing(%{title: "Soccer Camp"})
+
+      results = ProgramListingsRepository.list_active_limited(2)
+
+      assert length(results) == 2
+      titles = Enum.map(results, & &1.title)
+      assert titles == ["Art Class", "Music Lessons"]
+    end
+
+    test "returns all listings when count is below limit" do
+      insert_listing(%{title: "Art Class"})
+
+      results = ProgramListingsRepository.list_active_limited(2)
+
+      assert length(results) == 1
+    end
+
+    test "excludes programs whose end_date is in the past" do
+      insert_listing(%{title: "Expired Program", end_date: Date.add(Date.utc_today(), -1)})
+      insert_listing(%{title: "Active Program", end_date: Date.add(Date.utc_today(), 7)})
+
+      results = ProgramListingsRepository.list_active_limited(10)
+
+      titles = Enum.map(results, & &1.title)
+      refute "Expired Program" in titles
+      assert "Active Program" in titles
+    end
+
+    test "returns empty list when no listings exist" do
+      results = ProgramListingsRepository.list_active_limited(2)
+
+      assert results == []
+    end
+
+    test "returns ProgramListing DTOs" do
+      insert_listing(%{title: "Soccer Camp"})
+
+      results = ProgramListingsRepository.list_active_limited(5)
+
+      assert Enum.all?(results, &match?(%ProgramListing{}, &1))
+    end
+  end
 end
