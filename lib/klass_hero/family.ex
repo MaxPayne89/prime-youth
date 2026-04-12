@@ -34,13 +34,13 @@ defmodule KlassHero.Family do
     ]
 
   alias KlassHero.Family.Adapters.Driven.Persistence.ChangeChild
-  alias KlassHero.Family.Application.UseCases.Children.CreateChild
-  alias KlassHero.Family.Application.UseCases.Children.DeleteChild
-  alias KlassHero.Family.Application.UseCases.Children.PrepareChildDeletion
-  alias KlassHero.Family.Application.UseCases.Children.UpdateChild
-  alias KlassHero.Family.Application.UseCases.Consents.GrantConsent
-  alias KlassHero.Family.Application.UseCases.Consents.WithdrawConsent
-  alias KlassHero.Family.Application.UseCases.Parents.CreateParentProfile
+  alias KlassHero.Family.Application.Commands.Children.CreateChild
+  alias KlassHero.Family.Application.Commands.Children.DeleteChild
+  alias KlassHero.Family.Application.Commands.Children.UpdateChild
+  alias KlassHero.Family.Application.Commands.Consents.GrantConsent
+  alias KlassHero.Family.Application.Commands.Consents.WithdrawConsent
+  alias KlassHero.Family.Application.Commands.Parents.CreateParentProfile
+  alias KlassHero.Family.Application.Queries.Children.PrepareChildDeletion
   alias KlassHero.Family.Domain.Events.FamilyEvents
   alias KlassHero.Family.Domain.Models.Child
   alias KlassHero.Family.Domain.Services.ReferralCodeGenerator

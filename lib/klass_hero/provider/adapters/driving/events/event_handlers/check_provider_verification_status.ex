@@ -13,8 +13,8 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProvider
   - :verification_document_rejected
   """
 
-  alias KlassHero.Provider.Application.UseCases.Providers.UnverifyProvider
-  alias KlassHero.Provider.Application.UseCases.Providers.VerifyProvider
+  alias KlassHero.Provider.Application.Commands.Providers.UnverifyProvider
+  alias KlassHero.Provider.Application.Commands.Providers.VerifyProvider
   alias KlassHero.Shared.Domain.Events.DomainEvent
 
   require Logger

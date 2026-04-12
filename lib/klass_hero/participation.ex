@@ -48,25 +48,31 @@ defmodule KlassHero.Participation do
     ],
     exports: [Domain.Services.ParticipationCollection]
 
-  alias KlassHero.Participation.Application.UseCases.AnonymizeBehavioralNotesForChild
-  alias KlassHero.Participation.Application.UseCases.BulkCheckIn
-  alias KlassHero.Participation.Application.UseCases.CompleteSession
-  alias KlassHero.Participation.Application.UseCases.CorrectAttendance
-  alias KlassHero.Participation.Application.UseCases.CreateSession
-  alias KlassHero.Participation.Application.UseCases.GetApprovedBehavioralNotes
-  alias KlassHero.Participation.Application.UseCases.GetBehavioralNoteForRecord
-  alias KlassHero.Participation.Application.UseCases.GetParticipationHistory
-  alias KlassHero.Participation.Application.UseCases.GetParticipationRecord
-  alias KlassHero.Participation.Application.UseCases.GetSessionWithRoster
-  alias KlassHero.Participation.Application.UseCases.ListPendingBehavioralNotes
-  alias KlassHero.Participation.Application.UseCases.ListProviderSessions
-  alias KlassHero.Participation.Application.UseCases.ListSessions
-  alias KlassHero.Participation.Application.UseCases.RecordCheckIn
-  alias KlassHero.Participation.Application.UseCases.RecordCheckOut
-  alias KlassHero.Participation.Application.UseCases.ReviewBehavioralNote
-  alias KlassHero.Participation.Application.UseCases.ReviseBehavioralNote
-  alias KlassHero.Participation.Application.UseCases.StartSession
-  alias KlassHero.Participation.Application.UseCases.SubmitBehavioralNote
+  alias KlassHero.Participation.Application.Commands.{
+    AnonymizeBehavioralNotesForChild,
+    BulkCheckIn,
+    CompleteSession,
+    CorrectAttendance,
+    CreateSession,
+    RecordCheckIn,
+    RecordCheckOut,
+    ReviewBehavioralNote,
+    ReviseBehavioralNote,
+    StartSession,
+    SubmitBehavioralNote
+  }
+
+  alias KlassHero.Participation.Application.Queries.{
+    GetApprovedBehavioralNotes,
+    GetBehavioralNoteForRecord,
+    GetParticipationHistory,
+    GetParticipationRecord,
+    GetSessionWithRoster,
+    ListPendingBehavioralNotes,
+    ListProviderSessions,
+    ListSessions
+  }
+
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.Domain.Models.ProgramSession
 

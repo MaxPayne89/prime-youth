@@ -47,20 +47,23 @@ defmodule KlassHero.Messaging do
   alias KlassHero.Messaging.Adapters.Driven.EmailSanitizer
   alias KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.NotifyLiveViews
 
-  alias KlassHero.Messaging.Application.UseCases.{
+  alias KlassHero.Messaging.Application.Commands.{
     AnonymizeUserData,
     BroadcastToProgram,
     CreateDirectConversation,
-    GetConversation,
-    GetInboundEmail,
-    GetTotalUnreadCount,
-    ListConversations,
-    ListInboundEmails,
     MarkAsRead,
     ReceiveInboundEmail,
     ReplyPrivatelyToBroadcast,
     ReplyToEmail,
     SendMessage
+  }
+
+  alias KlassHero.Messaging.Application.Queries.{
+    GetConversation,
+    GetInboundEmail,
+    GetTotalUnreadCount,
+    ListConversations,
+    ListInboundEmails
   }
 
   alias KlassHero.Messaging.Domain.Models.{Conversation, EmailReply, Message, Participant}

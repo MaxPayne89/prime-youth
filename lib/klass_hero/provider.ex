@@ -40,22 +40,22 @@ defmodule KlassHero.Provider do
   alias Domain.Models.ProgramStaffAssignment
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeStaffMember
-  alias KlassHero.Provider.Application.UseCases.Providers.ChangeSubscriptionTier
-  alias KlassHero.Provider.Application.UseCases.Providers.CreateProviderProfile
-  alias KlassHero.Provider.Application.UseCases.Providers.UnverifyProvider
-  alias KlassHero.Provider.Application.UseCases.Providers.UpdateProviderProfile
-  alias KlassHero.Provider.Application.UseCases.Providers.VerifyProvider
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.AssignStaffToProgram
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.DeleteStaffMember
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.ListStaffAssignedPrograms
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.ResendStaffInvitation
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.UnassignStaffFromProgram
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.UpdateStaffMember
-  alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
-  alias KlassHero.Provider.Application.UseCases.Verification.GetVerificationDocumentPreview
-  alias KlassHero.Provider.Application.UseCases.Verification.RejectVerificationDocument
-  alias KlassHero.Provider.Application.UseCases.Verification.SubmitVerificationDocument
+  alias KlassHero.Provider.Application.Commands.Providers.ChangeSubscriptionTier
+  alias KlassHero.Provider.Application.Commands.Providers.CreateProviderProfile
+  alias KlassHero.Provider.Application.Commands.Providers.UnverifyProvider
+  alias KlassHero.Provider.Application.Commands.Providers.UpdateProviderProfile
+  alias KlassHero.Provider.Application.Commands.Providers.VerifyProvider
+  alias KlassHero.Provider.Application.Commands.StaffMembers.AssignStaffToProgram
+  alias KlassHero.Provider.Application.Commands.StaffMembers.CreateStaffMember
+  alias KlassHero.Provider.Application.Commands.StaffMembers.DeleteStaffMember
+  alias KlassHero.Provider.Application.Commands.StaffMembers.ResendStaffInvitation
+  alias KlassHero.Provider.Application.Commands.StaffMembers.UnassignStaffFromProgram
+  alias KlassHero.Provider.Application.Commands.StaffMembers.UpdateStaffMember
+  alias KlassHero.Provider.Application.Commands.Verification.ApproveVerificationDocument
+  alias KlassHero.Provider.Application.Commands.Verification.RejectVerificationDocument
+  alias KlassHero.Provider.Application.Commands.Verification.SubmitVerificationDocument
+  alias KlassHero.Provider.Application.Queries.StaffMembers.ListStaffAssignedPrograms
+  alias KlassHero.Provider.Application.Queries.Verification.GetVerificationDocumentPreview
   alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Provider.Domain.Models.VerificationDocument

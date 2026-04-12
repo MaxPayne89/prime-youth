@@ -12,14 +12,14 @@ defmodule KlassHero.Accounts do
 
   alias KlassHero.Accounts.Adapters.Driven.Persistence.TokenCleanup
 
-  alias KlassHero.Accounts.Application.UseCases.{
+  alias KlassHero.Accounts.Application.Commands.{
     AnonymizeUser,
     ChangeEmail,
-    ExportUserData,
     LoginByMagicLink,
     RegisterUser
   }
 
+  alias KlassHero.Accounts.Application.Queries.ExportUserData
   alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.Accounts.{User, UserNotifier, UserToken}
   alias KlassHero.Repo

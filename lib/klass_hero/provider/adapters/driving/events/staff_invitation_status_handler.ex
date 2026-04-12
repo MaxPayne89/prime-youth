@@ -14,7 +14,7 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
 
   @behaviour KlassHero.Shared.Domain.Ports.Driving.ForHandlingIntegrationEvents
 
-  alias KlassHero.Provider.Application.UseCases.Providers.CreateProviderProfile
+  alias KlassHero.Provider.Application.Commands.Providers.CreateProviderProfile
   alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
   alias KlassHero.Shared.Domain.Events.IntegrationEvent

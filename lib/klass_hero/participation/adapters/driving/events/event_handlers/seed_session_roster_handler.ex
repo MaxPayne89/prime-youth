@@ -21,7 +21,7 @@ defmodule KlassHero.Participation.Adapters.Driving.Events.EventHandlers.SeedSess
 
   @behaviour KlassHero.Shared.Domain.Ports.Driving.ForHandlingIntegrationEvents
 
-  alias KlassHero.Participation.Application.UseCases.SeedSessionRoster
+  alias KlassHero.Participation.Application.Commands.SeedSessionRoster
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   @impl true

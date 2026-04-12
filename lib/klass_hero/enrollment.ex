@@ -52,23 +52,31 @@ defmodule KlassHero.Enrollment do
     ]
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentPolicySchema
+
+  alias KlassHero.Enrollment.Application.Commands.{
+    CancelEnrollmentByAdmin,
+    ClaimInvite,
+    CreateEnrollment,
+    DeleteInvite,
+    ImportEnrollmentCsv,
+    ResendInvite,
+    SetParticipantPolicy
+  }
+
   alias KlassHero.Enrollment.Application.ParticipantPolicyForm
-  alias KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin
-  alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
-  alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
-  alias KlassHero.Enrollment.Application.UseCases.ClaimInvite
-  alias KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings
-  alias KlassHero.Enrollment.Application.UseCases.CreateEnrollment
-  alias KlassHero.Enrollment.Application.UseCases.DeleteInvite
-  alias KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo
-  alias KlassHero.Enrollment.Application.UseCases.GetEnrollment
-  alias KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv
-  alias KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIds
-  alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
-  alias KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments
-  alias KlassHero.Enrollment.Application.UseCases.ListProgramInvites
-  alias KlassHero.Enrollment.Application.UseCases.ResendInvite
-  alias KlassHero.Enrollment.Application.UseCases.SetParticipantPolicy
+
+  alias KlassHero.Enrollment.Application.Queries.{
+    CheckEnrollment,
+    CheckParticipantEligibility,
+    CountMonthlyBookings,
+    GetBookingUsageInfo,
+    GetEnrollment,
+    ListEnrolledIdentityIds,
+    ListParentEnrollments,
+    ListProgramEnrollments,
+    ListProgramInvites
+  }
+
   alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
   alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
 

@@ -43,14 +43,17 @@ defmodule KlassHero.ProgramCatalog do
 
   alias KlassHero.ProgramCatalog.Adapters.Driven.ACL.EnrollmentCapacityACL
 
-  alias KlassHero.ProgramCatalog.Application.UseCases.{
+  alias KlassHero.ProgramCatalog.Application.Commands.{
     CreateProgram,
+    UpdateProgram
+  }
+
+  alias KlassHero.ProgramCatalog.Application.Queries.{
     GetProgramById,
     ListAllPrograms,
     ListFeaturedPrograms,
     ListProgramsPaginated,
-    ListProviderPrograms,
-    UpdateProgram
+    ListProviderPrograms
   }
 
   alias KlassHero.ProgramCatalog.Domain.Models.Program
