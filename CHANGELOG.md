@@ -5,6 +5,13 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.0](https://github.com/MaxPayne89/klass-hero/compare/v0.32.0...v0.33.0) (2026-04-12)
+
+
+### Features
+
+* update Community Focused homepage section with secure messaging copy ([9f8a0dd](https://github.com/MaxPayne89/klass-hero/commit/9f8a0dd5fc134ac0a31a4758c38bc3373199c079))
+
 ## [0.32.0](https://github.com/MaxPayne89/klass-hero/compare/v0.31.0...v0.32.0) (2026-04-12)
 
 
