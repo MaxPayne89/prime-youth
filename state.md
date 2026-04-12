@@ -1,7 +1,7 @@
 # Perf Improver Memory — klass-hero
 
 ## Last Updated
-2026-04-11
+2026-04-12
 
 ## Build / Test / Lint Commands (validated from mix.exs + CI)
 - **Build**: `mix compile --warnings-as-errors`
@@ -15,6 +15,7 @@
 ## Run History
 | Date | Tasks | Output |
 |------|-------|--------|
+| 2026-04-12 | T1, T6, T5, T3, T7 | T1: Commands unchanged. T6: Telemetry/OTel configured; no Benchee, no CI perf regression. T5: #478 + #515 checked — no new human comments, nothing posted. T3: PR submitted — parallelize Provider.get_provider_profile + list_programs_for_provider in StaffDashboardLive.mount. T3: PR submitted — push SQL LIMIT in ListFeaturedPrograms via list_active_limited/1 with tests. T7: Updated April 2026 monthly summary. |
 | 2026-04-11 | T4, T3, T7 | T4: PR #622 merged; PR #628 (parallelize DashboardLive) open + CI passing. T3: PR submitted — push SQL LIMIT in ListFeaturedPrograms via list_active_limited/1; home page query drops from N rows → 2 rows. T7: Updated April 2026 monthly summary. |
 | 2026-04-10 | T3, T7 | T3: PR submitted — push SQL LIMIT in ListFeaturedPrograms; adds list_active_limited/1 port callback + repo impl; home page query goes from N rows → 2 rows. T7: Updated April 2026 monthly summary. |
 | 2026-04-09 | T4, T2, T3, T7 | T4: PR #622 (parallelize SessionsLive mount) confirmed open + CI clean. T2: Identified over-fetching in ListFeaturedPrograms — maintainer noted Enum.take(2) on full catalog; add SQL LIMIT + composite index. T3: New PR submitted — parallelize Family.get_children + load_family_programs in parent DashboardLive.mount; saves ~5–10ms per parent /dashboard load. T7: Updated April 2026 monthly summary. |
@@ -26,13 +27,13 @@
 | 2026-04-03 | T1, T2, T6, T3, T7 | T1: Commands unchanged. T6: No new infra gaps. T2: Found MessagingLiveHelper redundant conversation fetch. T3: PR merged as #583. T7: Closed March 2026 (#284), created April 2026 monthly summary. |
 
 ## Task Last Run (Round-Robin)
-- T1 (Discover commands): 2026-04-03
+- T1 (Discover commands): 2026-04-12
 - T2 (Identify opportunities): 2026-04-09
-- T3 (Implement improvement): 2026-04-11
+- T3 (Implement improvement): 2026-04-12
 - T4 (Maintain PRs): 2026-04-11
-- T5 (Comment on issues): 2026-04-08
-- T6 (Measurement infra): 2026-04-03
-- T7 (Activity summary): 2026-04-11
+- T5 (Comment on issues): 2026-04-12
+- T6 (Measurement infra): 2026-04-12
+- T7 (Activity summary): 2026-04-12
 
 ## Optimization Backlog (prioritized)
 1. **[MERGED]** N+1 in DashboardLive — PR #290 merged ✓
@@ -52,13 +53,14 @@
 15. **[MERGED]** Redundant providers table query in mount_conversation_show — PR #609 merged 2026-04-07 ✓
 16. **[MERGED]** Parallelize list_programs_for_provider + list_provider_sessions in SessionsLive.mount — PR #622 merged 2026-04-11 ✓
 17. **[IN REVIEW]** Parallelize Family.get_children + load_family_programs in parent DashboardLive.mount — PR #628, submitted 2026-04-09
-18. **[IN REVIEW]** Over-fetching in ListFeaturedPrograms.execute/0 — list_active_limited/1 with SQL LIMIT; PR submitted 2026-04-11 (number pending)
-19. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
-20. **[LOW]** program_sessions.status index — verify query patterns first
-21. **[PLANNED]** ETS projection cache for program→provider ACL resolution — issue #478, maintainer-designed
+18. **[IN REVIEW]** Parallelize Provider.get_provider_profile + list_programs_for_provider in StaffDashboardLive.mount — PR submitted 2026-04-12 (number pending)
+19. **[IN REVIEW]** Over-fetching in ListFeaturedPrograms.execute/0 — list_active_limited/1 with SQL LIMIT + tests; PR submitted 2026-04-12 (number pending)
+20. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
+21. **[LOW]** program_sessions.status index — verify query patterns first
+22. **[PLANNED]** ETS projection cache for program→provider ACL resolution — issue #478, maintainer-designed
 
 ## Backlog Cursor
-- Next run: T1 (commands, last run 2026-04-03) + T6 (measurement infra, last run 2026-04-03) + T5 (comment on issues, last run 2026-04-08)
+- Next run: T2 (identify opportunities, last run 2026-04-09) + T4 (maintain PRs, last run 2026-04-11)
 
 ## Performance Notes
 - Phoenix app with OpenTelemetry + Honeycomb configured for production tracing
@@ -80,7 +82,8 @@
 
 ## Active PRs
 - `perf-assist/parallelize-dashboard-children-programs-0ad9699a12b5c639` — PR #628, created 2026-04-09; parallelize Family.get_children + load_family_programs in parent DashboardLive.mount; saves ~5–10ms per page load; CI passing
-- `perf-assist/limit-featured-programs-query` — PR submitted 2026-04-11 (number pending); push SQL LIMIT in ListFeaturedPrograms via list_active_limited/1; home page query drops from N rows → 2 rows
+- `perf-assist/parallelize-staff-dashboard-mount` — PR submitted 2026-04-12 (number pending); parallelize Provider.get_provider_profile + list_programs_for_provider in StaffDashboardLive.mount; saves ~5–10ms per staff dashboard load
+- `perf-assist/limit-featured-programs-query` — PR submitted 2026-04-12 (number pending, replaces failed 2026-04-11 submission); push SQL LIMIT in ListFeaturedPrograms via list_active_limited/1 with tests; home page query drops from N rows → 2 rows
 
 ## Completed Work
 - PR #622 (parallelize list_programs_for_provider + list_provider_sessions in SessionsLive) — merged 2026-04-11 ✓
