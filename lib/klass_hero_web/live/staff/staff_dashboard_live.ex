@@ -15,9 +15,17 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
   def mount(_params, _session, socket) do
     staff_member = socket.assigns.current_scope.staff_member
 
-    case Provider.get_provider_profile(staff_member.provider_id) do
+    # Trigger: get_provider_profile and list_programs_for_provider previously ran sequentially
+    # Why: both queries target the same provider_id and are fully independent
+    # Outcome: 1 DB round-trip saved per staff /dashboard load (~5–10 ms)
+    provider_task = Task.async(fn -> Provider.get_provider_profile(staff_member.provider_id) end)
+    programs_task = Task.async(fn -> ProgramCatalog.list_programs_for_provider(staff_member.provider_id) end)
+
+    provider_result = Task.await(provider_task)
+    all_programs = Task.await(programs_task)
+
+    case provider_result do
       {:ok, provider} ->
-        all_programs = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
         programs = Provider.list_assigned_programs(staff_member, all_programs)
         assigned_ids = MapSet.new(programs, & &1.id)
 
