@@ -14,13 +14,14 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
 
   @behaviour KlassHero.Shared.Domain.Ports.Driving.ForHandlingIntegrationEvents
 
-  alias KlassHero.Provider.Application.UseCases.Providers.CreateProviderProfile
+  alias KlassHero.Provider.Application.Commands.Providers.CreateProviderProfile
   alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   require Logger
 
+  @staff_query Application.compile_env!(:klass_hero, [:provider, :for_querying_staff_members])
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_staff_members])
 
   @impl true
@@ -43,26 +44,24 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
   def handle_event(%IntegrationEvent{event_type: :staff_user_registered, payload: payload}) do
     payload = MapperHelpers.normalize_keys(payload)
 
-    case Map.fetch(payload, :user_id) do
-      {:ok, user_id} ->
-        result =
-          transition_and_persist(payload, :accepted, fn transitioned ->
-            %{transitioned | user_id: user_id}
-          end)
-
-        if result == :ok and payload[:create_provider_profile] do
-          case maybe_create_provider_profile(user_id, payload) do
-            :ok -> result
-            {:error, reason} -> {:error, reason}
-          end
-        else
-          result
-        end
-
+    with {:ok, user_id} <- Map.fetch(payload, :user_id),
+         :ok <-
+           transition_and_persist(payload, :accepted, fn transitioned ->
+             %{transitioned | user_id: user_id}
+           end) do
+      if payload[:create_provider_profile] do
+        maybe_create_provider_profile(user_id, payload)
+      else
+        :ok
+      end
+    else
       :error ->
         Logger.error("[StaffInvitationStatusHandler] Missing :user_id in staff_user_registered payload")
 
         {:error, :invalid_payload}
+
+      {:error, reason} ->
+        {:error, reason}
     end
   end
 
@@ -114,7 +113,7 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
 
   defp transition_and_persist(payload, new_status, update_fn \\ &Function.identity/1) do
     with {:ok, staff_member_id} <- Map.fetch(payload, :staff_member_id),
-         {:ok, staff} <- @repository.get(staff_member_id),
+         {:ok, staff} <- @staff_query.get(staff_member_id),
          {:ok, transitioned} <- StaffMember.transition_invitation(staff, new_status),
          updated = update_fn.(transitioned),
          {:ok, _persisted} <- @repository.update(updated) do

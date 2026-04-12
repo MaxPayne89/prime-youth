@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Readability.MaxLineLength
 defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository.MarkAbsentBatchTest do
   use KlassHero.DataCase, async: true
 

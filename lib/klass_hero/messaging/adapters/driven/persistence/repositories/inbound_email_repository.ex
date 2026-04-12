@@ -2,10 +2,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEm
   @moduledoc """
   Ecto-based repository for managing inbound emails.
 
-  Implements ForManagingInboundEmails port.
+  Implements ForManagingInboundEmails (writes) and ForQueryingInboundEmails (reads) ports.
   """
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingInboundEmails
+  @behaviour KlassHero.Messaging.Domain.Ports.ForQueryingInboundEmails
 
   use KlassHero.Shared.Tracing
 

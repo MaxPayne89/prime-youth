@@ -15,6 +15,17 @@ Detect semantic boundary violations that compile-time tools miss.
 
 ---
 
+## Scope
+
+This agent supports two scan modes, specified by the caller:
+
+- **`full`** (default) — Scan the entire codebase. Use for comprehensive audits.
+- **`changed-files`** — Scan only the provided list of changed files, plus any files they directly reference (aliases, imports). Use for PR reviews where a full scan would be too slow.
+
+When running in `changed-files` mode, the caller provides the list of files to check. For each check, apply the rules only to those files and their immediate dependencies. If a changed file imports a module from another context, follow that reference to verify it's valid, but don't recursively scan the entire target context.
+
+---
+
 ## Context
 
 The `boundary` library enforces module-level dependency rules at compile time via
@@ -190,7 +201,8 @@ KlassHero.Provider.assign_staff_to_program(attrs)
 
 ## Rules
 
-- Scan the ENTIRE codebase, not just changed files — boundary violations can be pre-existing
+- In `full` mode, scan the ENTIRE codebase — boundary violations can be pre-existing
+- In `changed-files` mode, scan only the provided files and their immediate references
 - The Accounts.User schema reference is a KNOWN exception — do not flag it
 - Shared context exports are accessible to all — check `lib/klass_hero/shared.ex` exports list
 - Boundary `exports:` are pragmatic exceptions — note them but flag as warnings, not errors

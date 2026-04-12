@@ -44,6 +44,26 @@ Ports and adapters are split by **direction of control flow**:
 
 The shared context's `adapters/driven/events/` directory contains event **infrastructure** (publishers, subscriber, registry, serializers, retry helpers, test doubles) — these are driven because the application calls them outward. Individual context event **handlers** live under their own `adapters/driving/events/`.
 
+## CQRS Direction
+
+The codebase is moving toward Command Query Responsibility Segregation:
+
+- New use cases go under `application/commands/` or `application/queries/`
+- New ports should separate read contracts (`ForQuerying*`, `ForListing*`) from write contracts (`ForStoring*`, `ForCreating*`, `ForUpdating*`)
+- Existing mixed `ForManaging*` ports will be split incrementally
+- `ForResolving*` ports (ACL) are already read-only — no change needed
+
+**Naming conventions:**
+- Commands: `Application.Commands.CreateEnrollment` — state-changing operations
+- Queries: `Application.Queries.ListParentEnrollments` — read-only operations
+- Mixed use cases that read then write: classify as Commands
+- Utility/shared modules stay at `application/` level (not in commands/ or queries/)
+
+**Existing CQRS infrastructure:**
+- Program Catalog and Messaging have event-driven projections with denormalized read tables
+- Projection GenServers in `adapters/driven/projections/` maintain read models
+- Read model DTOs in `domain/read_models/` are display-optimized structs with no business logic
+
 ## Key Patterns for Future Contexts
 
 - Domain entities and value objects (pure Elixir structs)

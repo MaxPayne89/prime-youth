@@ -5,6 +5,82 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.31.0](https://github.com/MaxPayne89/klass-hero/compare/v0.30.0...v0.31.0) (2026-04-11)
+
+
+### Features
+
+* add count_by_provider_and_origin to program repository ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([d04c58d](https://github.com/MaxPayne89/klass-hero/commit/d04c58d8754ed7f5064911f1a9d88c60a8b7a068))
+* add origin column to programs table ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([69f9b3e](https://github.com/MaxPayne89/klass-hero/commit/69f9b3e6b0799431babdf0dac48cc4e21b303487))
+* add origin field to Program domain model ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([7582893](https://github.com/MaxPayne89/klass-hero/commit/7582893554bde4c554d4b2e0c6c1ea6dbdaaabf4))
+* add origin field to program schema and mapper ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([443fa6e](https://github.com/MaxPayne89/klass-hero/commit/443fa6ea425cf7e31ff4aa5fb20c664987e03afa))
+* enforce program limit in CreateProgram use case ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([d5eaa14](https://github.com/MaxPayne89/klass-hero/commit/d5eaa14723d14c0e538e466f9cd75c4b7801a622))
+* enforce program limit in provider dashboard UI ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([79f14b0](https://github.com/MaxPayne89/klass-hero/commit/79f14b087f31060a0060d0e70e0b69e4edb452f6))
+* enforce starter tier 2-program limit with origin tracking ([21fa805](https://github.com/MaxPayne89/klass-hero/commit/21fa8050e97bf5737e765795e726ebc19bc8f140))
+
+
+### Bug Fixes
+
+* address code review suggestions for program limit ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([9cb1541](https://github.com/MaxPayne89/klass-hero/commit/9cb154110b714986290ba31f1a829d9e9c7258bc))
+* use configured Logger metadata key in ProgramMapper ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([03441ce](https://github.com/MaxPayne89/klass-hero/commit/03441ce416d6fd7b6b34ae4643a5c98c42b81c0d))
+* use self-posted count for program slots in dashboard ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([965de6f](https://github.com/MaxPayne89/klass-hero/commit/965de6f28ec4c7d18cf9fdd37331f1f8408ef4bc))
+
+
+### Code Refactoring
+
+* move count query to ForListingPrograms port and add origin validation ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([52e94e1](https://github.com/MaxPayne89/klass-hero/commit/52e94e18ea41358a3ec4e23c862bb494789a0467))
+* simplify program limit tests and harden mapper ([#360](https://github.com/MaxPayne89/klass-hero/issues/360)) ([0d42914](https://github.com/MaxPayne89/klass-hero/commit/0d4291477f620506a58829f73e1f05147e1c7527))
+
+## [0.30.0](https://github.com/MaxPayne89/klass-hero/compare/v0.29.0...v0.30.0) (2026-04-10)
+
+
+### Features
+
+* add message and broadcast buttons to staff roster view ([9fb0b21](https://github.com/MaxPayne89/klass-hero/commit/9fb0b21486b6d5e50c23bba5bd63e253223287b1))
+* add message and broadcast buttons to staff roster view ([98d41f5](https://github.com/MaxPayne89/klass-hero/commit/98d41f5092d15c118f406431238a831e77d7cbaf)), closes [#620](https://github.com/MaxPayne89/klass-hero/issues/620)
+
+
+### Bug Fixes
+
+* add server-side entitlement guard and simplify staff assignment check ([94f1187](https://github.com/MaxPayne89/klass-hero/commit/94f1187663ca29c606225d3f810cb202a88e88f6))
+* harden error handling and tighten entitlement clause ([077b4a0](https://github.com/MaxPayne89/klass-hero/commit/077b4a01c172919d039d6bbc3c31f0c7a8de636e))
+
+
+### Code Refactoring
+
+* fix credo strict issues in staff messaging ([6163bd1](https://github.com/MaxPayne89/klass-hero/commit/6163bd19bf5cfee134afbbdab286dbddcf00d44c))
+* fix remaining credo strict issues ([c77524d](https://github.com/MaxPayne89/klass-hero/commit/c77524d146a80121659c1a86f18d2ecf50800c41))
+
+## [0.29.0](https://github.com/MaxPayne89/klass-hero/compare/v0.28.0...v0.29.0) (2026-04-09)
+
+
+### Features
+
+* **program_catalog:** hide expired programs from featured section ([0fa9aed](https://github.com/MaxPayne89/klass-hero/commit/0fa9aeda1407e14486f1720c9b5abc99464afa54))
+
+
+### Bug Fixes
+
+* remove free cancellation line from program detail page ([ccbb2f2](https://github.com/MaxPayne89/klass-hero/commit/ccbb2f27554b47854d55108edd2f0a2553cbfedd))
+
+
+### Performance Improvements
+
+* **sessions_live:** parallelize programs + sessions DB queries in mount ([0331c7e](https://github.com/MaxPayne89/klass-hero/commit/0331c7e95f340daffe84d43ad22e0223a6f6503c))
+
+
+### Code Refactoring
+
+* **sessions_live:** extract apply_sessions_result/2 helper ([ec93742](https://github.com/MaxPayne89/klass-hero/commit/ec937420f019d015c9b12d8f7253bdd608aff86e)), closes [#622](https://github.com/MaxPayne89/klass-hero/issues/622)
+
+## [0.28.0](https://github.com/MaxPayne89/klass-hero/compare/v0.27.0...v0.28.0) (2026-04-09)
+
+
+### Features
+
+* hide expired programs from home page featured section ([3b79f3c](https://github.com/MaxPayne89/klass-hero/commit/3b79f3c8eb9fb51e86478cbf20c132187ef28649))
+* **program_catalog:** hide expired programs from featured section ([baa991e](https://github.com/MaxPayne89/klass-hero/commit/baa991e1619fcdda7c73efb5b4624c54eafc1141))
+
 ## [0.27.0](https://github.com/MaxPayne89/klass-hero/compare/v0.26.1...v0.27.0) (2026-04-07)
 
 

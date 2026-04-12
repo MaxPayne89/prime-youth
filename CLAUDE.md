@@ -12,7 +12,7 @@ Klass Hero is a platform for afterschool activities, camps, and class trips mana
 
 ```bash
 # Development
-mix setup                    # Complete setup (deps, database, assets)
+mix setup                    # Complete setup (deps, database, seeds, assets)
 mix phx.server               # Start dev server (localhost:4000)
 iex -S mix phx.server        # Start with interactive console
 
@@ -21,11 +21,17 @@ mix test                     # Run all tests
 mix test path/to/test.exs    # Run specific file
 mix test path/to/test.exs:42 # Run specific test at line
 mix test --failed            # Re-run failed tests
-mix precommit                # Pre-commit checks (compile --warnings-as-errors, format, test)
+mix test.e2e                 # Run end-to-end tests (Wallaby)
+
+# Quality
+mix precommit                # Full pre-commit: compile --warnings-as-errors, deps.unlock --unused, format, lint_typography, test
+mix credo --strict           # Elixir linting (runs in CI)
+mix lint_typography          # Check font/typography usage in templates
 
 # Database
 mix ecto.migrate             # Run migrations
 mix ecto.reset               # Drop, create, migrate
+mix run priv/repo/seeds.exs  # Seed development data
 mix test.setup               # Setup Docker test database
 mix test.clean               # Clean test database (removes volumes)
 
@@ -70,7 +76,32 @@ context/
 - **Participation** (`participation/`) - Session tracking, check-in/out, attendance rosters
 - **Shared** (`shared/`) - Event publishing, Ecto helpers, pagination, domain events
 
-See `.claude/rules/domain-architecture.md` for patterns and `docs/contexts/` for per-context documentation.
+See `.claude/rules/domain-architecture.md` for patterns and `docs/contexts/` for per-context documentation (living docs with feature specs, context canvases, and cross-context flows — use `/doc` to regenerate).
+
+### Dependency Injection (Port Wiring)
+
+Each bounded context's port-to-adapter bindings are configured in `config/config.exs` using a naming convention that mirrors the port behaviour names:
+
+```elixir
+# config/config.exs — each context gets a key with port → adapter mappings
+config :klass_hero, :enrollment,
+  for_managing_enrollments: EnrollmentRepository,
+  for_resolving_participant_details: ParticipantDetailsACL,
+  for_sending_invite_emails: InviteEmailNotifier
+
+# config/test.exs can override with test doubles
+```
+
+When adding a new port: define the behaviour in `domain/ports/`, implement the adapter in `adapters/driven/`, then wire it in `config/config.exs` under the context's key.
+
+### Event System (Two-Tier)
+
+- **Domain events** (non-critical): Published via PubSub (`PubSubEventPublisher`). Used for real-time UI updates and non-essential side effects.
+- **Integration events** (critical): Routed through `critical_event_handlers` registry in `config/config.exs` to Oban-backed handlers for durable, at-least-once delivery. Used for cross-context workflows (e.g., `invite_claimed`, `user_registered`).
+
+### Feature Flags
+
+Uses `FunWithFlags` for runtime feature toggling. Adapter is configurable per environment (`StubFeatureFlagsAdapter` in test).
 
 ### Authentication & Role-Based Routing
 
@@ -118,6 +149,21 @@ Use semantic commit messages: `type: description`
 Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, `perf`
 
 Examples: `feat: add staff invitation flow`, `fix: correct enrollment fee calculation`, `ci: split test workflow into parallel jobs`
+
+## CI Pipeline
+
+These checks run automatically on every PR — don't manually recheck what CI catches:
+
+| Check | Catches |
+|---|---|
+| `mix compile --warnings-as-errors` | Unused vars/imports, deprecations, Boundary violations |
+| `mix format --check-formatted` | Formatting issues |
+| `mix credo --min-priority=high` | Style violations, code smells |
+| `mix lint_typography` | Font/typography usage violations |
+| `mix test` | Functional regressions (full suite with PostgreSQL) |
+| Sobelow | Common Phoenix security vulnerabilities |
+| `mix deps.audit` | Known dependency vulnerabilities |
+| Conventional commits | PR title format validation |
 
 ## Ecto Anti-Patterns
 

@@ -10,6 +10,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.Verificati
   are handled by the supervision tree.
   """
 
+  @behaviour KlassHero.Provider.Domain.Ports.ForQueryingVerificationDocuments
   @behaviour KlassHero.Provider.Domain.Ports.ForStoringVerificationDocuments
 
   use KlassHero.Shared.Tracing

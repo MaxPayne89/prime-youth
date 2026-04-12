@@ -859,6 +859,28 @@ defmodule KlassHero.ProgramCatalog.Domain.Models.ProgramTest do
     end
   end
 
+  describe "origin field" do
+    test "create/1 defaults origin to :self_posted" do
+      attrs = %{
+        provider_id: "550e8400-e29b-41d4-a716-446655440000",
+        title: "Test Program",
+        description: "A test program",
+        category: "sports",
+        price: Decimal.new("50.00")
+      }
+
+      assert {:ok, program} = Program.create(attrs)
+      assert program.origin == :self_posted
+    end
+
+    test "new/1 preserves origin from trusted data" do
+      attrs = valid_attrs(%{origin: :business_assigned})
+
+      assert {:ok, program} = Program.new(attrs)
+      assert program.origin == :business_assigned
+    end
+  end
+
   describe "apply_changes/2 scheduling" do
     test "updates scheduling fields" do
       program = existing_program()

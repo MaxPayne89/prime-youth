@@ -1,15 +1,12 @@
 defmodule KlassHero.Family.Domain.Ports.ForStoringParentProfiles do
   @moduledoc """
-  Repository port for storing and retrieving parent profiles in the Family bounded context.
+  Write-only port for storing parent profiles in the Family bounded context.
 
-  This is a behaviour (interface) that defines the contract for parent profile persistence.
-  It is implemented by adapters in the infrastructure layer (e.g., Ecto repositories).
+  Read operations have been moved to `ForQueryingParentProfiles`.
 
   ## Expected Return Values
 
   - `create_parent_profile/1` - Returns `{:ok, ParentProfile.t()}` or domain errors
-  - `get_by_identity_id/1` - Returns `{:ok, ParentProfile.t()}` or `{:error, :not_found}`
-  - `has_profile?/1` - Returns boolean directly
 
   Infrastructure errors (connection, query) are not caught - they crash and
   are handled by the supervision tree.
@@ -27,28 +24,4 @@ defmodule KlassHero.Family.Domain.Ports.ForStoringParentProfiles do
   """
   @callback create_parent_profile(attrs :: map()) ::
               {:ok, term()} | {:error, :duplicate_resource | term()}
-
-  @doc """
-  Retrieves a parent profile by identity ID.
-
-  Returns:
-  - `{:ok, ParentProfile.t()}` - Parent profile found with matching identity_id
-  - `{:error, :not_found}` - No parent profile exists for this identity_id
-  """
-  @callback get_by_identity_id(identity_id :: binary()) ::
-              {:ok, term()} | {:error, :not_found}
-
-  @doc """
-  Checks if a parent profile exists for the given identity ID.
-
-  Returns boolean directly (no error tuple for simple existence check).
-  """
-  @callback has_profile?(identity_id :: binary()) :: boolean()
-
-  @doc """
-  Retrieves multiple parent profiles by their IDs.
-
-  Missing or invalid IDs are silently excluded from the result.
-  """
-  @callback list_by_ids(parent_ids :: [binary()]) :: [term()]
 end

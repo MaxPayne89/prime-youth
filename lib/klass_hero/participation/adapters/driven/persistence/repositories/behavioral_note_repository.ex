@@ -6,6 +6,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Behav
   """
 
   @behaviour KlassHero.Participation.Domain.Ports.ForManagingBehavioralNotes
+  @behaviour KlassHero.Participation.Domain.Ports.ForQueryingBehavioralNotes
 
   import Ecto.Query
 
