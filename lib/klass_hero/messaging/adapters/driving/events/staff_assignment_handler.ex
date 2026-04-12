@@ -18,10 +18,10 @@ defmodule KlassHero.Messaging.Adapters.Driving.Events.StaffAssignmentHandler do
 
   require Logger
 
-  @conversation_repo Application.compile_env!(:klass_hero, [
-                       :messaging,
-                       :for_managing_conversations
-                     ])
+  @conversation_reader Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_querying_conversations
+                       ])
   @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
   @staff_projection Application.compile_env!(:klass_hero, [
                       :messaging,
@@ -90,7 +90,7 @@ defmodule KlassHero.Messaging.Adapters.Driving.Events.StaffAssignmentHandler do
 
   defp add_staff_to_existing_conversations(program_id, staff_user_id) do
     conversation_ids =
-      @conversation_repo.list_active_program_conversation_ids_without_participant(
+      @conversation_reader.list_active_program_conversation_ids_without_participant(
         program_id,
         staff_user_id
       )

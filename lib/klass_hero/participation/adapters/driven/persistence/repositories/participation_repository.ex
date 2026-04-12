@@ -6,6 +6,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Repositories.Parti
   """
 
   @behaviour KlassHero.Participation.Domain.Ports.ForManagingParticipation
+  @behaviour KlassHero.Participation.Domain.Ports.ForQueryingParticipation
 
   import Ecto.Query
 

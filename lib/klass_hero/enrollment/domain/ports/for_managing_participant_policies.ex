@@ -1,9 +1,9 @@
 defmodule KlassHero.Enrollment.Domain.Ports.ForManagingParticipantPolicies do
   @moduledoc """
-  Port defining the contract for participant policy persistence.
+  Write-only port for managing participant policies in the Enrollment bounded context.
 
-  Implementations handle storing and retrieving participant eligibility
-  restrictions (age, gender, grade) for programs.
+  Defines the contract for participant policy write operations (CQRS command side).
+  Read operations have been moved to `ForQueryingParticipantPolicies`.
   """
 
   alias KlassHero.Enrollment.Domain.Models.ParticipantPolicy
@@ -14,19 +14,4 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForManagingParticipantPolicies do
   """
   @callback upsert(attrs :: map()) ::
               {:ok, ParticipantPolicy.t()} | {:error, term()}
-
-  @doc """
-  Retrieves the participant policy for a program.
-  """
-  @callback get_by_program_id(program_id :: binary()) ::
-              {:ok, ParticipantPolicy.t()} | {:error, :not_found}
-
-  @doc """
-  Retrieves participant policies for multiple programs in a single batch query.
-
-  Returns a map of `program_id => ParticipantPolicy.t()`.
-  Programs without a policy are not included in the result.
-  """
-  @callback get_policies_by_program_ids(program_ids :: [binary()]) ::
-              %{binary() => ParticipantPolicy.t()}
 end

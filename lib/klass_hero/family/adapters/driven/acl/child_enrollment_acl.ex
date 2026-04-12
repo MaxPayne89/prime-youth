@@ -7,6 +7,7 @@ defmodule KlassHero.Family.Adapters.Driven.ACL.ChildEnrollmentACL do
   """
 
   @behaviour KlassHero.Family.Domain.Ports.ForManagingChildEnrollments
+  @behaviour KlassHero.Family.Domain.Ports.ForQueryingChildEnrollments
 
   use KlassHero.Shared.Tracing
 

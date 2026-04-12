@@ -2,10 +2,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Participa
   @moduledoc """
   Ecto-based repository for managing conversation participants.
 
-  Implements ForManagingParticipants port.
+  Implements ForManagingParticipants (writes) and ForQueryingParticipants (reads) ports.
   """
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingParticipants
+  @behaviour KlassHero.Messaging.Domain.Ports.ForQueryingParticipants
 
   use KlassHero.Shared.Tracing
 

@@ -5,6 +5,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
   Implements the ForStoringStaffMembers port.
   """
 
+  @behaviour KlassHero.Provider.Domain.Ports.ForQueryingStaffMembers
   @behaviour KlassHero.Provider.Domain.Ports.ForStoringStaffMembers
 
   use KlassHero.Shared.Tracing

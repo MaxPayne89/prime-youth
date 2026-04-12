@@ -27,6 +27,10 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler 
 
   require Logger
 
+  @invite_reader Application.compile_env!(
+                   :klass_hero,
+                   [:enrollment, :for_querying_bulk_enrollment_invites]
+                 )
   @invite_repository Application.compile_env!(
                        :klass_hero,
                        [:enrollment, :for_storing_bulk_enrollment_invites]
@@ -86,7 +90,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler 
   # Why: prevents double-processing or regressing an already-enrolled invite
   # Outcome: returns {:ok, invite} or {:error, :not_found/:not_registered}
   defp fetch_registered_invite(invite_id) do
-    case @invite_repository.get_by_id(invite_id) do
+    case @invite_reader.get_by_id(invite_id) do
       nil -> {:error, :not_found}
       %{status: "registered"} = invite -> {:ok, invite}
       _other -> {:error, :not_registered}
@@ -119,7 +123,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler 
   # Outcome: transitions invite without enrollment_id; logs result but always returns :ok
   #          since enrollment exists and invite status is secondary
   defp handle_existing_enrollment(invite_id) do
-    case @invite_repository.get_by_id(invite_id) do
+    case @invite_reader.get_by_id(invite_id) do
       %{status: "registered"} = invite ->
         case @invite_repository.transition_status(invite, %{
                status: "enrolled",
@@ -147,7 +151,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler 
   end
 
   defp transition_to_failed(invite_id, reason) do
-    case @invite_repository.get_by_id(invite_id) do
+    case @invite_reader.get_by_id(invite_id) do
       nil ->
         :ok
 

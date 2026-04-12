@@ -11,6 +11,10 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteR
 
   require Logger
 
+  @invite_reader Application.compile_env!(
+                   :klass_hero,
+                   [:enrollment, :for_querying_bulk_enrollment_invites]
+                 )
   @invite_repository Application.compile_env!(
                        :klass_hero,
                        [:enrollment, :for_storing_bulk_enrollment_invites]
@@ -20,7 +24,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteR
   def handle(%DomainEvent{event_type: :invite_claimed} = event) do
     %{invite_id: invite_id} = event.payload
 
-    case @invite_repository.get_by_id(invite_id) do
+    case @invite_reader.get_by_id(invite_id) do
       nil ->
         Logger.warning("[MarkInviteRegistered] Invite not found", invite_id: invite_id)
         :ok

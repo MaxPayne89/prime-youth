@@ -12,71 +12,22 @@ defmodule KlassHero.Accounts do
 
   alias KlassHero.Accounts.Adapters.Driven.Persistence.TokenCleanup
 
-  alias KlassHero.Accounts.Application.UseCases.{
+  alias KlassHero.Accounts.Application.Commands.{
     AnonymizeUser,
     ChangeEmail,
-    ExportUserData,
     LoginByMagicLink,
     RegisterUser
   }
 
+  alias KlassHero.Accounts.Application.Queries.ExportUserData
   alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.Accounts.{User, UserNotifier, UserToken}
   alias KlassHero.Repo
   alias KlassHero.Shared.IntegrationEventPublishing
 
-  ## Database getters
-
-  @doc """
-  Gets a user by email.
-
-  ## Examples
-
-      iex> get_user_by_email("foo@example.com")
-      %User{}
-
-      iex> get_user_by_email("unknown@example.com")
-      nil
-
-  """
-  def get_user_by_email(email) when is_binary(email) do
-    Repo.get_by(User, email: email)
-  end
-
-  @doc """
-  Gets a user by email and password.
-
-  ## Examples
-
-      iex> get_user_by_email_and_password("foo@example.com", "correct_password")
-      %User{}
-
-      iex> get_user_by_email_and_password("foo@example.com", "invalid_password")
-      nil
-
-  """
-  def get_user_by_email_and_password(email, password) when is_binary(email) and is_binary(password) do
-    user = Repo.get_by(User, email: email)
-    if User.valid_password?(user, password), do: user
-  end
-
-  @doc """
-  Gets a single user.
-
-  Raises `Ecto.NoResultsError` if the User does not exist.
-
-  ## Examples
-
-      iex> get_user!(123)
-      %User{}
-
-      iex> get_user!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_user!(id), do: Repo.get!(User, id)
-
-  ## User registration
+  # ===========================================================================
+  # Commands
+  # ===========================================================================
 
   @doc """
   Registers a user.
@@ -137,81 +88,12 @@ defmodule KlassHero.Accounts do
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking user registration changes.
-
-  ## Examples
-
-      iex> change_user_registration(user)
-      %Ecto.Changeset{data: %User{}}
-
-  """
-  def change_user_registration(user, attrs \\ %{}, opts \\ []) do
-    User.registration_changeset(user, attrs, opts)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking staff registration changes.
-
-  Uses `staff_registration_changeset` which locks intended_roles to
-  `[:staff_provider]` and does not require `provider_subscription_tier`.
-  """
-  def change_staff_registration(attrs, opts \\ []) do
-    User.staff_registration_changeset(%User{}, attrs, opts)
-  end
-
-  ## Settings
-
-  @doc """
-  Checks whether the user is in sudo mode.
-
-  The user is in sudo mode when the last authentication was done no further
-  than 20 minutes ago. The limit can be given as second argument in minutes.
-  """
-  def sudo_mode?(user, minutes \\ -20)
-
-  def sudo_mode?(%User{authenticated_at: ts}, minutes) when is_struct(ts, DateTime) do
-    DateTime.after?(ts, DateTime.utc_now() |> DateTime.add(minutes, :minute))
-  end
-
-  def sudo_mode?(_user, _minutes), do: false
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for changing the user email.
-
-  See `KlassHero.Accounts.User.email_changeset/3` for a list of supported options.
-
-  ## Examples
-
-      iex> change_user_email(user)
-      %Ecto.Changeset{data: %User{}}
-
-  """
-  def change_user_email(user, attrs \\ %{}, opts \\ []) do
-    User.email_changeset(user, attrs, opts)
-  end
-
-  @doc """
   Updates the user email using the given token.
 
   If the token matches, the user email is updated and the token is deleted.
   """
   def update_user_email(user, token) do
     ChangeEmail.execute(user, token)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for changing the user password.
-
-  See `KlassHero.Accounts.User.password_changeset/3` for a list of supported options.
-
-  ## Examples
-
-      iex> change_user_password(user)
-      %Ecto.Changeset{data: %User{}}
-
-  """
-  def change_user_password(user, attrs \\ %{}, opts \\ []) do
-    User.password_changeset(user, attrs, opts)
   end
 
   @doc """
@@ -258,19 +140,6 @@ defmodule KlassHero.Accounts do
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for changing the user locale.
-
-  ## Examples
-
-      iex> change_user_locale(user)
-      %Ecto.Changeset{data: %User{}}
-
-  """
-  def change_user_locale(user, attrs \\ %{}) do
-    User.locale_changeset(user, attrs)
-  end
-
-  @doc """
   Updates the user locale preference.
 
   ## Examples
@@ -288,8 +157,6 @@ defmodule KlassHero.Accounts do
     |> Repo.update()
   end
 
-  ## Session
-
   @doc """
   Generates a session token.
   """
@@ -297,28 +164,6 @@ defmodule KlassHero.Accounts do
     {token, user_token} = UserToken.build_session_token(user)
     Repo.insert!(user_token)
     token
-  end
-
-  @doc """
-  Gets the user with the given signed token.
-
-  If the token is valid `{user, token_inserted_at}` is returned, otherwise `nil` is returned.
-  """
-  def get_user_by_session_token(token) do
-    {:ok, query} = UserToken.verify_session_token_query(token)
-    Repo.one(query)
-  end
-
-  @doc """
-  Gets the user with the given magic link token.
-  """
-  def get_user_by_magic_link_token(token) do
-    with {:ok, query} <- UserToken.verify_magic_link_token_query(token),
-         {user, _token} <- Repo.one(query) do
-      user
-    else
-      _ -> nil
-    end
   end
 
   @doc """
@@ -391,19 +236,6 @@ defmodule KlassHero.Accounts do
     :ok
   end
 
-  ## GDPR Data Export
-
-  @doc """
-  Exports all personal data for the given user in GDPR-compliant format.
-
-  Returns a map containing all user data that can be serialized to JSON.
-  """
-  def export_user_data(%User{} = user) do
-    ExportUserData.execute(user)
-  end
-
-  ## GDPR Account Anonymization
-
   @doc """
   Anonymizes a user account for GDPR deletion requests.
 
@@ -464,6 +296,178 @@ defmodule KlassHero.Accounts do
       AnonymizeUser.execute(user)
     end
   end
+
+  # ===========================================================================
+  # Queries
+  # ===========================================================================
+
+  @doc """
+  Gets a user by email.
+
+  ## Examples
+
+      iex> get_user_by_email("foo@example.com")
+      %User{}
+
+      iex> get_user_by_email("unknown@example.com")
+      nil
+
+  """
+  def get_user_by_email(email) when is_binary(email) do
+    Repo.get_by(User, email: email)
+  end
+
+  @doc """
+  Gets a user by email and password.
+
+  ## Examples
+
+      iex> get_user_by_email_and_password("foo@example.com", "correct_password")
+      %User{}
+
+      iex> get_user_by_email_and_password("foo@example.com", "invalid_password")
+      nil
+
+  """
+  def get_user_by_email_and_password(email, password) when is_binary(email) and is_binary(password) do
+    user = Repo.get_by(User, email: email)
+    if User.valid_password?(user, password), do: user
+  end
+
+  @doc """
+  Gets a single user.
+
+  Raises `Ecto.NoResultsError` if the User does not exist.
+
+  ## Examples
+
+      iex> get_user!(123)
+      %User{}
+
+      iex> get_user!(456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_user!(id), do: Repo.get!(User, id)
+
+  @doc """
+  Checks whether the user is in sudo mode.
+
+  The user is in sudo mode when the last authentication was done no further
+  than 20 minutes ago. The limit can be given as second argument in minutes.
+  """
+  def sudo_mode?(user, minutes \\ -20)
+
+  def sudo_mode?(%User{authenticated_at: ts}, minutes) when is_struct(ts, DateTime) do
+    DateTime.after?(ts, DateTime.utc_now() |> DateTime.add(minutes, :minute))
+  end
+
+  def sudo_mode?(_user, _minutes), do: false
+
+  @doc """
+  Gets the user with the given signed token.
+
+  If the token is valid `{user, token_inserted_at}` is returned, otherwise `nil` is returned.
+  """
+  def get_user_by_session_token(token) do
+    {:ok, query} = UserToken.verify_session_token_query(token)
+    Repo.one(query)
+  end
+
+  @doc """
+  Gets the user with the given magic link token.
+  """
+  def get_user_by_magic_link_token(token) do
+    with {:ok, query} <- UserToken.verify_magic_link_token_query(token),
+         {user, _token} <- Repo.one(query) do
+      user
+    else
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Exports all personal data for the given user in GDPR-compliant format.
+
+  Returns a map containing all user data that can be serialized to JSON.
+  """
+  def export_user_data(%User{} = user) do
+    ExportUserData.execute(user)
+  end
+
+  # ===========================================================================
+  # Forms
+  # ===========================================================================
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking user registration changes.
+
+  ## Examples
+
+      iex> change_user_registration(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_registration(user, attrs \\ %{}, opts \\ []) do
+    User.registration_changeset(user, attrs, opts)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking staff registration changes.
+
+  Uses `staff_registration_changeset` which locks intended_roles to
+  `[:staff_provider]` and does not require `provider_subscription_tier`.
+  """
+  def change_staff_registration(attrs, opts \\ []) do
+    User.staff_registration_changeset(%User{}, attrs, opts)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user email.
+
+  See `KlassHero.Accounts.User.email_changeset/3` for a list of supported options.
+
+  ## Examples
+
+      iex> change_user_email(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_email(user, attrs \\ %{}, opts \\ []) do
+    User.email_changeset(user, attrs, opts)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user password.
+
+  See `KlassHero.Accounts.User.password_changeset/3` for a list of supported options.
+
+  ## Examples
+
+      iex> change_user_password(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_password(user, attrs \\ %{}, opts \\ []) do
+    User.password_changeset(user, attrs, opts)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for changing the user locale.
+
+  ## Examples
+
+      iex> change_user_locale(user)
+      %Ecto.Changeset{data: %User{}}
+
+  """
+  def change_user_locale(user, attrs \\ %{}) do
+    User.locale_changeset(user, attrs)
+  end
+
+  # ===========================================================================
+  # Private
+  # ===========================================================================
 
   # Trigger: user's last authentication is older than sudo timeout
   # Why: sudo mode prevents account deletion without recent auth

@@ -51,9 +51,12 @@ config :klass_hero, :integration_event_publisher,
 
 config :klass_hero, :participation,
   session_repository: SessionRepository,
+  session_query_repository: SessionRepository,
   participation_repository: ParticipationRepository,
+  participation_query_repository: ParticipationRepository,
   child_info_resolver: ChildInfoResolver,
   behavioral_note_repository: BehavioralNoteRepository,
+  behavioral_note_query_repository: BehavioralNoteRepository,
   program_provider_resolver: ProgramProviderResolver,
   enrolled_children_resolver: EnrolledChildrenResolver
 

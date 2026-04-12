@@ -2,10 +2,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRe
   @moduledoc """
   Ecto-based repository for managing messages.
 
-  Implements ForManagingMessages port.
+  Implements ForManagingMessages (writes) and ForQueryingMessages (reads) ports.
   """
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingMessages
+  @behaviour KlassHero.Messaging.Domain.Ports.ForQueryingMessages
 
   use KlassHero.Shared.Tracing
 

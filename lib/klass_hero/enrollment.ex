@@ -52,44 +52,40 @@ defmodule KlassHero.Enrollment do
     ]
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentPolicySchema
+
+  alias KlassHero.Enrollment.Application.Commands.{
+    CancelEnrollmentByAdmin,
+    ClaimInvite,
+    CreateEnrollment,
+    DeleteInvite,
+    ImportEnrollmentCsv,
+    ResendInvite,
+    SetParticipantPolicy,
+    UpsertEnrollmentPolicy
+  }
+
   alias KlassHero.Enrollment.Application.ParticipantPolicyForm
-  alias KlassHero.Enrollment.Application.UseCases.CancelEnrollmentByAdmin
-  alias KlassHero.Enrollment.Application.UseCases.CheckEnrollment
-  alias KlassHero.Enrollment.Application.UseCases.CheckParticipantEligibility
-  alias KlassHero.Enrollment.Application.UseCases.ClaimInvite
-  alias KlassHero.Enrollment.Application.UseCases.CountMonthlyBookings
-  alias KlassHero.Enrollment.Application.UseCases.CreateEnrollment
-  alias KlassHero.Enrollment.Application.UseCases.DeleteInvite
-  alias KlassHero.Enrollment.Application.UseCases.GetBookingUsageInfo
-  alias KlassHero.Enrollment.Application.UseCases.GetEnrollment
-  alias KlassHero.Enrollment.Application.UseCases.ImportEnrollmentCsv
-  alias KlassHero.Enrollment.Application.UseCases.ListEnrolledIdentityIds
-  alias KlassHero.Enrollment.Application.UseCases.ListParentEnrollments
-  alias KlassHero.Enrollment.Application.UseCases.ListProgramEnrollments
-  alias KlassHero.Enrollment.Application.UseCases.ListProgramInvites
-  alias KlassHero.Enrollment.Application.UseCases.ResendInvite
-  alias KlassHero.Enrollment.Application.UseCases.SetParticipantPolicy
-  alias KlassHero.Enrollment.Domain.Models.EnrollmentPolicy
+
+  alias KlassHero.Enrollment.Application.Queries.{
+    CheckEnrollment,
+    CheckParticipantEligibility,
+    CountMonthlyBookings,
+    CountProgramInvites,
+    EnrollmentPolicyQueries,
+    GetBookingUsageInfo,
+    GetEnrollment,
+    GetParticipantPolicy,
+    ListEnrolledIdentityIds,
+    ListParentEnrollments,
+    ListProgramEnrollments,
+    ListProgramInvites
+  }
+
   alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
 
-  @policy_repo Application.compile_env!(
-                 :klass_hero,
-                 [:enrollment, :for_managing_enrollment_policies]
-               )
-
-  @participant_policy_repo Application.compile_env!(
-                             :klass_hero,
-                             [:enrollment, :for_managing_participant_policies]
-                           )
-
-  @invite_repository Application.compile_env!(
-                       :klass_hero,
-                       [:enrollment, :for_storing_bulk_enrollment_invites]
-                     )
-
-  # ============================================================================
-  # Enrollment Management Functions
-  # ============================================================================
+  # ===========================================================================
+  # Commands
+  # ===========================================================================
 
   @doc """
   Creates a new enrollment.
@@ -116,17 +112,6 @@ defmodule KlassHero.Enrollment do
   end
 
   @doc """
-  Retrieves an enrollment by ID.
-
-  Returns:
-  - `{:ok, Enrollment.t()}` - Enrollment found
-  - `{:error, :not_found}` - No enrollment exists with the given ID
-  """
-  def get_enrollment(id) when is_binary(id) do
-    GetEnrollment.execute(id)
-  end
-
-  @doc """
   Cancels an enrollment by admin action.
 
   Enforces domain lifecycle guards (only pending/confirmed can be cancelled),
@@ -148,6 +133,98 @@ defmodule KlassHero.Enrollment do
   def cancel_enrollment_by_admin(enrollment_id, admin_id, reason)
       when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) and byte_size(reason) > 0 do
     CancelEnrollmentByAdmin.execute(enrollment_id, admin_id, reason)
+  end
+
+  @doc """
+  Creates or updates enrollment capacity policy for a program.
+
+  ## Parameters
+  - attrs: Map with :program_id (required), :min_enrollment, :max_enrollment (at least one required)
+
+  ## Returns
+  - `{:ok, EnrollmentPolicy.t()}` on success
+  - `{:error, term()}` on validation failure
+  """
+  def set_enrollment_policy(attrs) when is_map(attrs) do
+    UpsertEnrollmentPolicy.execute(attrs)
+  end
+
+  @doc """
+  Creates or updates a participant eligibility policy for a program.
+
+  Uses upsert semantics -- if a policy already exists for the program_id, it is updated.
+  """
+  def set_participant_policy(attrs) when is_map(attrs) do
+    SetParticipantPolicy.execute(attrs)
+  end
+
+  @doc """
+  Imports enrollment invites from a CSV file for a provider.
+
+  Parses the CSV, validates each row, checks for duplicates, and persists
+  all valid rows as BulkEnrollmentInvite records with status "pending".
+
+  All-or-nothing: if any row fails validation, nothing is persisted.
+
+  Returns:
+  - `{:ok, %{created: count}}` on success
+  - `{:error, error_report}` with parse_errors, validation_errors, or duplicate_errors
+  """
+  def import_enrollment_csv(provider_id, csv_binary) when is_binary(provider_id) and is_binary(csv_binary) do
+    ImportEnrollmentCsv.execute(provider_id, csv_binary)
+  end
+
+  @doc """
+  Resets an invite to pending and re-dispatches the email pipeline.
+
+  Verifies the invite belongs to the given provider before resending.
+
+  Returns `{:ok, invite}` on success, `{:error, :not_found}` or `{:error, :not_resendable}`.
+  """
+  def resend_invite(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
+    ResendInvite.execute(invite_id, provider_id)
+  end
+
+  @doc """
+  Deletes a bulk enrollment invite by ID.
+
+  Verifies the invite belongs to the given provider before deleting.
+
+  Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
+  """
+  def delete_invite(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
+    DeleteInvite.execute(invite_id, provider_id)
+  end
+
+  @doc """
+  Claims a bulk enrollment invite by token.
+
+  Validates the token, resolves or creates the user account, and publishes
+  the :invite_claimed event to trigger the async saga (child creation → enrollment).
+
+  Returns:
+  - `{:ok, :new_user, user, invite}` — new account created
+  - `{:ok, :existing_user, user, invite}` — existing account found
+  - `{:error, :not_found}` — invalid or expired token
+  - `{:error, :already_claimed}` — invite already processed
+  """
+  def claim_invite(token) when is_binary(token) do
+    ClaimInvite.execute(token)
+  end
+
+  # ===========================================================================
+  # Queries
+  # ===========================================================================
+
+  @doc """
+  Retrieves an enrollment by ID.
+
+  Returns:
+  - `{:ok, Enrollment.t()}` - Enrollment found
+  - `{:error, :not_found}` - No enrollment exists with the given ID
+  """
+  def get_enrollment(id) when is_binary(id) do
+    GetEnrollment.execute(id)
   end
 
   @doc """
@@ -222,10 +299,6 @@ defmodule KlassHero.Enrollment do
     GetBookingUsageInfo.execute(identity_id)
   end
 
-  # ============================================================================
-  # Cross-Context Query Functions
-  # ============================================================================
-
   @doc """
   Returns identity IDs of parents with active enrollments in a program.
 
@@ -249,29 +322,11 @@ defmodule KlassHero.Enrollment do
     CheckEnrollment.execute(program_id, identity_id)
   end
 
-  # ============================================================================
-  # Enrollment Policy Functions
-  # ============================================================================
-
-  @doc """
-  Creates or updates enrollment capacity policy for a program.
-
-  ## Parameters
-  - attrs: Map with :program_id (required), :min_enrollment, :max_enrollment (at least one required)
-
-  ## Returns
-  - `{:ok, EnrollmentPolicy.t()}` on success
-  - `{:error, term()}` on validation failure
-  """
-  def set_enrollment_policy(attrs) when is_map(attrs) do
-    @policy_repo.upsert(attrs)
-  end
-
   @doc """
   Returns the enrollment policy for a program.
   """
   def get_enrollment_policy(program_id) when is_binary(program_id) do
-    @policy_repo.get_by_program_id(program_id)
+    EnrollmentPolicyQueries.get_enrollment_policy(program_id)
   end
 
   @doc """
@@ -284,14 +339,7 @@ defmodule KlassHero.Enrollment do
   - `{:ok, :unlimited}` — no maximum configured
   """
   def remaining_capacity(program_id) when is_binary(program_id) do
-    case @policy_repo.get_by_program_id(program_id) do
-      {:error, :not_found} ->
-        {:ok, :unlimited}
-
-      {:ok, policy} ->
-        count = @policy_repo.count_active_enrollments(program_id)
-        {:ok, EnrollmentPolicy.remaining_capacity(policy, count)}
-    end
+    EnrollmentPolicyQueries.remaining_capacity(program_id)
   end
 
   @doc """
@@ -299,25 +347,14 @@ defmodule KlassHero.Enrollment do
   Returns a map of `program_id => remaining_count | :unlimited`.
   """
   def get_remaining_capacities(program_ids) when is_list(program_ids) do
-    {policies, active_counts} = fetch_policies_and_active_counts(program_ids)
-
-    Map.new(program_ids, fn id ->
-      case Map.get(policies, id) do
-        nil ->
-          {id, :unlimited}
-
-        policy ->
-          count = Map.get(active_counts, id, 0)
-          {id, EnrollmentPolicy.remaining_capacity(policy, count)}
-      end
-    end)
+    EnrollmentPolicyQueries.get_remaining_capacities(program_ids)
   end
 
   @doc """
   Returns the count of active (pending/confirmed) enrollments for a program.
   """
   def count_active_enrollments(program_id) when is_binary(program_id) do
-    @policy_repo.count_active_enrollments(program_id)
+    EnrollmentPolicyQueries.count_active_enrollments(program_id)
   end
 
   @doc """
@@ -325,7 +362,7 @@ defmodule KlassHero.Enrollment do
   Returns a map of `program_id => count`.
   """
   def count_active_enrollments_batch(program_ids) when is_list(program_ids) do
-    @policy_repo.count_active_enrollments_batch(program_ids)
+    EnrollmentPolicyQueries.count_active_enrollments_batch(program_ids)
   end
 
   @doc """
@@ -336,37 +373,8 @@ defmodule KlassHero.Enrollment do
   separately — doing so would issue 3 DB queries for the same data.
   """
   def get_enrollment_summary_batch(program_ids) when is_list(program_ids) do
-    {policies, active_counts} = fetch_policies_and_active_counts(program_ids)
-
-    Map.new(program_ids, fn id ->
-      active = Map.get(active_counts, id, 0)
-      capacity = calculate_capacity(Map.get(policies, id), active)
-      {id, %{enrolled: active, capacity: capacity}}
-    end)
+    EnrollmentPolicyQueries.get_enrollment_summary_batch(program_ids)
   end
-
-  defp calculate_capacity(nil, _active), do: nil
-
-  defp calculate_capacity(policy, active) do
-    case EnrollmentPolicy.remaining_capacity(policy, active) do
-      :unlimited -> nil
-      remaining -> active + remaining
-    end
-  end
-
-  @doc """
-  Returns a changeset for enrollment policy form validation.
-
-  Used by the provider dashboard to validate capacity fields inline
-  before the program is created.
-  """
-  def new_policy_changeset(attrs \\ %{}) do
-    EnrollmentPolicySchema.changeset(%EnrollmentPolicySchema{}, attrs)
-  end
-
-  # ============================================================================
-  # Participant Policy Functions
-  # ============================================================================
 
   @doc """
   Checks whether a child is eligible for a program based on participant restrictions.
@@ -380,49 +388,10 @@ defmodule KlassHero.Enrollment do
   end
 
   @doc """
-  Creates or updates a participant eligibility policy for a program.
-
-  Uses upsert semantics -- if a policy already exists for the program_id, it is updated.
-  """
-  def set_participant_policy(attrs) when is_map(attrs) do
-    SetParticipantPolicy.execute(attrs)
-  end
-
-  @doc """
   Returns the participant policy for a program.
   """
   def get_participant_policy(program_id) when is_binary(program_id) do
-    @participant_policy_repo.get_by_program_id(program_id)
-  end
-
-  @doc """
-  Returns a changeset for participant policy form validation.
-
-  Used by the provider dashboard to validate eligibility restriction fields
-  inline before the program is created.
-  """
-  def new_participant_policy_changeset(attrs \\ %{}) do
-    ParticipantPolicyForm.changeset(%ParticipantPolicyForm{}, attrs)
-  end
-
-  # ============================================================================
-  # Bulk Enrollment Import
-  # ============================================================================
-
-  @doc """
-  Imports enrollment invites from a CSV file for a provider.
-
-  Parses the CSV, validates each row, checks for duplicates, and persists
-  all valid rows as BulkEnrollmentInvite records with status "pending".
-
-  All-or-nothing: if any row fails validation, nothing is persisted.
-
-  Returns:
-  - `{:ok, %{created: count}}` on success
-  - `{:error, error_report}` with parse_errors, validation_errors, or duplicate_errors
-  """
-  def import_enrollment_csv(provider_id, csv_binary) when is_binary(provider_id) and is_binary(csv_binary) do
-    ImportEnrollmentCsv.execute(provider_id, csv_binary)
+    GetParticipantPolicy.execute(program_id)
   end
 
   @doc """
@@ -438,56 +407,30 @@ defmodule KlassHero.Enrollment do
   Returns the count of bulk enrollment invites for a program.
   """
   def count_program_invites(program_id) when is_binary(program_id) do
-    @invite_repository.count_by_program(program_id)
+    CountProgramInvites.execute(program_id)
+  end
+
+  # ===========================================================================
+  # Forms
+  # ===========================================================================
+
+  @doc """
+  Returns a changeset for enrollment policy form validation.
+
+  Used by the provider dashboard to validate capacity fields inline
+  before the program is created.
+  """
+  def new_policy_changeset(attrs \\ %{}) do
+    EnrollmentPolicySchema.changeset(%EnrollmentPolicySchema{}, attrs)
   end
 
   @doc """
-  Resets an invite to pending and re-dispatches the email pipeline.
+  Returns a changeset for participant policy form validation.
 
-  Verifies the invite belongs to the given provider before resending.
-
-  Returns `{:ok, invite}` on success, `{:error, :not_found}` or `{:error, :not_resendable}`.
+  Used by the provider dashboard to validate eligibility restriction fields
+  inline before the program is created.
   """
-  def resend_invite(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
-    ResendInvite.execute(invite_id, provider_id)
-  end
-
-  @doc """
-  Deletes a bulk enrollment invite by ID.
-
-  Verifies the invite belongs to the given provider before deleting.
-
-  Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
-  """
-  def delete_invite(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
-    DeleteInvite.execute(invite_id, provider_id)
-  end
-
-  # ============================================================================
-  # Invite Claim Functions
-  # ============================================================================
-
-  @doc """
-  Claims a bulk enrollment invite by token.
-
-  Validates the token, resolves or creates the user account, and publishes
-  the :invite_claimed event to trigger the async saga (child creation → enrollment).
-
-  Returns:
-  - `{:ok, :new_user, user, invite}` — new account created
-  - `{:ok, :existing_user, user, invite}` — existing account found
-  - `{:error, :not_found}` — invalid or expired token
-  - `{:error, :already_claimed}` — invite already processed
-  """
-  def claim_invite(token) when is_binary(token) do
-    ClaimInvite.execute(token)
-  end
-
-  # Shared data fetching for get_remaining_capacities/1 and get_enrollment_summary_batch/1.
-  # Both need the same two queries — centralising prevents drift if repo contracts change.
-  defp fetch_policies_and_active_counts(program_ids) do
-    policies = @policy_repo.get_policies_by_program_ids(program_ids)
-    active_counts = @policy_repo.count_active_enrollments_batch(program_ids)
-    {policies, active_counts}
+  def new_participant_policy_changeset(attrs \\ %{}) do
+    ParticipantPolicyForm.changeset(%ParticipantPolicyForm{}, attrs)
   end
 end

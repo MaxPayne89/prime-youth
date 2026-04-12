@@ -10,6 +10,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ChildReposit
   are handled by the supervision tree.
   """
 
+  @behaviour KlassHero.Family.Domain.Ports.ForQueryingChildren
   @behaviour KlassHero.Family.Domain.Ports.ForStoringChildren
 
   use KlassHero.Shared.Tracing
