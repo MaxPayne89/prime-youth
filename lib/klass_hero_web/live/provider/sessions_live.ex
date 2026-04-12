@@ -4,6 +4,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
   alias KlassHero.Participation
   alias KlassHero.ProgramCatalog
   alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHeroWeb.Helpers.TaskHelpers
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -14,10 +15,19 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     selected_date = Date.utc_today()
 
     # Both queries are independent — run them in parallel
-    programs_task = Task.async(fn -> ProgramCatalog.list_programs_for_provider(provider_id) end)
-    sessions_task = Task.async(fn -> Participation.list_provider_sessions(provider_id, selected_date) end)
+    programs_task =
+      Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+        ProgramCatalog.list_programs_for_provider(provider_id)
+      end)
 
-    provider_programs = Task.await(programs_task)
+    sessions_task =
+      Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+        Participation.list_provider_sessions(provider_id, selected_date)
+      end)
+
+    provider_programs =
+      TaskHelpers.safe_await(programs_task, [], label: "SessionsLive.programs")
+
     provider_program_ids = MapSet.new(provider_programs, & &1.id)
 
     socket =
@@ -41,7 +51,10 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
       )
     end
 
-    socket = apply_sessions_result(socket, Task.await(sessions_task))
+    sessions_result =
+      TaskHelpers.safe_await(sessions_task, {:ok, []}, label: "SessionsLive.sessions")
+
+    socket = apply_sessions_result(socket, sessions_result)
 
     {:ok, socket}
   end

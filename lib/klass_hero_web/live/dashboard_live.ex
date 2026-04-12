@@ -9,6 +9,7 @@ defmodule KlassHeroWeb.DashboardLive do
   alias KlassHero.Family
   alias KlassHero.ProgramCatalog
   alias KlassHero.Shared.Entitlements
+  alias KlassHeroWeb.Helpers.TaskHelpers
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
@@ -21,25 +22,28 @@ defmodule KlassHeroWeb.DashboardLive do
 
     # Trigger: enrollments are stored with parent_id (Family context), not identity_id (Accounts)
     # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
-    # Outcome: resolve parent profile once, then query children + enrollments sequentially
+    # Outcome: resolve parent profile once, then fetch children + programs in parallel
     {parent, children, active_programs, expired_programs} =
-      try do
-        case Family.get_parent_by_identity(user.id) do
-          {:ok, parent} ->
-            children = Family.get_children(parent.id)
-            {active, expired} = load_family_programs(parent.id)
-            {parent, children, active, expired}
+      case Family.get_parent_by_identity(user.id) do
+        {:ok, parent} ->
+          children_task =
+            Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+              Family.get_children(parent.id)
+            end)
 
-          {:error, _} ->
-            {nil, [], [], []}
-        end
-      rescue
-        # Trigger: database failure during dashboard data loading
-        # Why: a failing section should not crash the entire dashboard
-        # Outcome: gracefully degrade to empty state if any load fails
-        e ->
-          Logger.error("[DashboardLive] Failed to load dashboard data: #{Exception.message(e)}")
+          programs_task =
+            Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+              load_family_programs(parent.id)
+            end)
 
+          children = TaskHelpers.safe_await(children_task, [], label: "DashboardLive.children")
+
+          {active, expired} =
+            TaskHelpers.safe_await(programs_task, {[], []}, label: "DashboardLive.programs")
+
+          {parent, children, active, expired}
+
+        {:error, _} ->
           {nil, [], [], []}
       end
 
