@@ -14,6 +14,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ParentProfil
   are handled by the supervision tree.
   """
 
+  @behaviour KlassHero.Family.Domain.Ports.ForQueryingParentProfiles
   @behaviour KlassHero.Family.Domain.Ports.ForStoringParentProfiles
 
   use KlassHero.Shared.Tracing

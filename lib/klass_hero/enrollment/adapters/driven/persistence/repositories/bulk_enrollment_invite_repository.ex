@@ -10,6 +10,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   If any row fails changeset validation, the entire batch rolls back.
   """
 
+  @behaviour KlassHero.Enrollment.Domain.Ports.ForQueryingBulkEnrollmentInvites
   @behaviour KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites
 
   use KlassHero.Shared.Tracing

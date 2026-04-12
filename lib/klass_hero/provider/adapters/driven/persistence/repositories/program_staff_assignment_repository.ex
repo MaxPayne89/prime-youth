@@ -5,6 +5,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramSta
   Implements the ForStoringProgramStaffAssignments port.
   """
 
+  @behaviour KlassHero.Provider.Domain.Ports.ForQueryingProgramStaffAssignments
   @behaviour KlassHero.Provider.Domain.Ports.ForStoringProgramStaffAssignments
 
   use KlassHero.Shared.Tracing

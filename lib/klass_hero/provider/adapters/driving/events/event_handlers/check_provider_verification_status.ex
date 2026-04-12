@@ -13,20 +13,20 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProvider
   - :verification_document_rejected
   """
 
-  alias KlassHero.Provider.Application.UseCases.Providers.UnverifyProvider
-  alias KlassHero.Provider.Application.UseCases.Providers.VerifyProvider
+  alias KlassHero.Provider.Application.Commands.Providers.UnverifyProvider
+  alias KlassHero.Provider.Application.Commands.Providers.VerifyProvider
   alias KlassHero.Shared.Domain.Events.DomainEvent
 
   require Logger
 
   @doc_repository Application.compile_env!(:klass_hero, [
                     :provider,
-                    :for_storing_verification_documents
+                    :for_querying_verification_documents
                   ])
 
   @profile_repository Application.compile_env!(:klass_hero, [
                         :provider,
-                        :for_storing_provider_profiles
+                        :for_querying_provider_profiles
                       ])
 
   @doc """

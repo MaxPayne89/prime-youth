@@ -28,6 +28,10 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorker do
   defp rate_limit_error?(%{reason: {429, _}}), do: true
   defp rate_limit_error?(_), do: false
 
+  @invite_reader Application.compile_env!(:klass_hero, [
+                   :enrollment,
+                   :for_querying_bulk_enrollment_invites
+                 ])
   @invite_repository Application.compile_env!(:klass_hero, [
                        :enrollment,
                        :for_storing_bulk_enrollment_invites
@@ -39,7 +43,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorker do
 
   @impl true
   def execute(%Oban.Job{args: %{"invite_id" => invite_id, "program_name" => program_name}}) do
-    case @invite_repository.get_by_id(invite_id) do
+    case @invite_reader.get_by_id(invite_id) do
       nil ->
         Logger.warning("[SendInviteEmailWorker] Invite not found", invite_id: invite_id)
         :ok

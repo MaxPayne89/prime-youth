@@ -8,6 +8,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.Enrollme
   """
 
   @behaviour KlassHero.Enrollment.Domain.Ports.ForManagingEnrollmentPolicies
+  @behaviour KlassHero.Enrollment.Domain.Ports.ForQueryingEnrollmentPolicies
 
   use KlassHero.Shared.Tracing
 

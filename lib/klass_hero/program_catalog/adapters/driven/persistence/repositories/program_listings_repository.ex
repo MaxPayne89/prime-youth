@@ -87,6 +87,29 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
   end
 
   @impl true
+  def list_active do
+    span do
+      set_attributes("db", operation: "select", entity: "program_listing")
+
+      Logger.debug("[ProgramListingsRepository] Listing active program listings")
+
+      schemas =
+        ProgramListingSchema
+        |> apply_end_date_filter()
+        |> order_by(asc: :title)
+        |> Repo.all()
+
+      dtos = Enum.map(schemas, &to_dto/1)
+
+      Logger.debug("[ProgramListingsRepository] Retrieved active listings",
+        count: length(dtos)
+      )
+
+      dtos
+    end
+  end
+
+  @impl true
   def list_for_provider(provider_id) when is_binary(provider_id) do
     span do
       set_attributes("db", operation: "select", entity: "program_listing")
@@ -155,8 +178,9 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.Prog
     where(query, [l], l.category == ^category)
   end
 
-  # Trigger: paginated public listing queries via fetch_page/3 (list_paginated/3)
-  # Why: programs that have already ended should not appear on the /programs page (issue #610);
+  # Trigger: public listing queries -- fetch_page/3 (list_paginated/3) and list_active/0
+  # Why: programs that have already ended should not appear on public-facing surfaces
+  #      such as the /programs catalog (issue #610) or the home page featured section;
   #      programs without an end_date are open-ended and continue to appear
   # Outcome: excludes rows where end_date < today, keeps end_date >= today and nil end_date
   # Scope: list_all/0 and list_for_provider/1 intentionally bypass this filter so the

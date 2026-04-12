@@ -123,6 +123,175 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLiveTest do
     end
   end
 
+  describe "staff roster messaging controls" do
+    setup %{conn: conn} do
+      parent_user = user_fixture(intended_roles: [:parent])
+
+      provider =
+        provider_profile_fixture(subscription_tier: "professional")
+
+      user = user_fixture(intended_roles: [:staff_provider])
+
+      staff =
+        staff_member_fixture(%{
+          provider_id: provider.id,
+          user_id: user.id,
+          active: true,
+          invitation_status: :accepted,
+          tags: ["sports"]
+        })
+
+      # Write model (programs table) — needed for enrollment FK
+      program_write =
+        insert(:program_schema,
+          provider_id: provider.id,
+          category: "sports"
+        )
+
+      # Read model (program_listings table) — needed for dashboard display
+      program =
+        insert(:program_listing_schema,
+          id: program_write.id,
+          provider_id: provider.id,
+          category: "sports"
+        )
+
+      parent_profile = insert(:parent_profile_schema, identity_id: parent_user.id)
+
+      {child, _parent} = KlassHero.Factory.insert_child_with_guardian(parent: parent_profile)
+
+      enrollment =
+        insert(:enrollment_schema,
+          program_id: program.id,
+          child_id: child.id,
+          parent_id: parent_profile.id,
+          status: "confirmed",
+          confirmed_at: DateTime.utc_now()
+        )
+
+      conn = log_in_user(conn, user)
+
+      %{
+        conn: conn,
+        user: user,
+        parent_user: parent_user,
+        provider: provider,
+        staff: staff,
+        program: program,
+        enrollment: enrollment
+      }
+    end
+
+    test "roster modal shows enabled message button for confirmed enrollment", %{
+      conn: conn,
+      program: program,
+      enrollment: enrollment
+    } do
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+
+      view |> element("#roster-btn-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#staff-roster-modal")
+      assert has_element?(view, "#staff-msg-#{enrollment.id}")
+      refute has_element?(view, "#staff-msg-#{enrollment.id}[disabled]")
+    end
+
+    test "roster modal shows broadcast link when entitled and enrollments exist", %{
+      conn: conn,
+      program: program
+    } do
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+
+      view |> element("#roster-btn-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#staff-broadcast-#{program.id}")
+      # Should be a link, not a disabled button
+      assert has_element?(view, "a#staff-broadcast-#{program.id}")
+    end
+
+    test "send_message_to_parent creates conversation and navigates to staff messages", %{
+      conn: conn,
+      program: program,
+      parent_user: parent_user
+    } do
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+
+      view |> element("#roster-btn-#{program.id}") |> render_click()
+
+      view
+      |> render_hook("send_message_to_parent", %{"parent-user-id" => parent_user.id})
+
+      {path, _flash} = assert_redirect(view)
+      assert path =~ "/staff/messages/"
+    end
+
+    test "send_message_to_parent rejects tampered parent_user_id", %{
+      conn: conn,
+      program: program
+    } do
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+
+      view |> element("#roster-btn-#{program.id}") |> render_click()
+
+      view
+      |> render_hook("send_message_to_parent", %{"parent-user-id" => Ecto.UUID.generate()})
+
+      assert render(view) =~ "Cannot message this parent"
+    end
+  end
+
+  describe "staff roster messaging controls (starter tier)" do
+    setup %{conn: conn} do
+      provider = provider_profile_fixture(subscription_tier: "starter")
+      user = user_fixture(intended_roles: [:staff_provider])
+
+      staff =
+        staff_member_fixture(%{
+          provider_id: provider.id,
+          user_id: user.id,
+          active: true,
+          invitation_status: :accepted,
+          tags: ["sports"]
+        })
+
+      program_write =
+        insert(:program_schema, provider_id: provider.id, category: "sports")
+
+      program =
+        insert(:program_listing_schema,
+          id: program_write.id,
+          provider_id: provider.id,
+          category: "sports"
+        )
+
+      {child, parent} = KlassHero.Factory.insert_child_with_guardian()
+
+      insert(:enrollment_schema,
+        program_id: program.id,
+        child_id: child.id,
+        parent_id: parent.id,
+        status: "confirmed",
+        confirmed_at: DateTime.utc_now()
+      )
+
+      conn = log_in_user(conn, user)
+      %{conn: conn, provider: provider, staff: staff, program: program}
+    end
+
+    test "roster modal shows disabled message buttons when provider tier is starter", %{
+      conn: conn,
+      program: program
+    } do
+      {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
+
+      view |> element("#roster-btn-#{program.id}") |> render_click()
+
+      assert has_element?(view, "#staff-roster-modal")
+      # Broadcast should be a disabled button, not a link
+      assert has_element?(view, "button#staff-broadcast-#{program.id}[disabled]")
+    end
+  end
+
   describe "cross-navigation for dual-role users" do
     setup %{conn: conn} do
       %{user: user} = fixtures = KlassHero.ProviderFixtures.dual_role_user_fixture()

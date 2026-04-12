@@ -3,9 +3,13 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
 
   alias KlassHero.Accounts.Scope
   alias KlassHero.Enrollment
+  alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+  alias KlassHero.Shared.Entitlements
   alias KlassHeroWeb.Theme
+
+  require Logger
 
   @impl true
   def mount(_params, _session, socket) do
@@ -29,6 +33,8 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
           |> assign(:roster_entries, [])
           |> assign(:roster_program_name, nil)
           |> assign(:roster_program_id, nil)
+          |> assign(:can_message?, false)
+          |> assign(:roster_enrolled_count, 0)
           |> stream(:programs, programs)
 
         {:ok, socket}
@@ -48,13 +54,17 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
   def handle_event("view_roster", %{"id" => program_id} = params, socket) do
     if MapSet.member?(socket.assigns.assigned_program_ids, program_id) do
       roster = Enrollment.list_program_enrollments(program_id)
+      can_message? = Entitlements.can_initiate_messaging?(%{provider: socket.assigns.provider})
+      enrolled_count = Enum.count(roster, &(&1.status == :confirmed))
 
       {:noreply,
        assign(socket,
          show_roster: true,
          roster_program_name: Map.get(params, "title", program_id),
          roster_program_id: program_id,
-         roster_entries: roster
+         roster_entries: roster,
+         can_message?: can_message?,
+         roster_enrolled_count: enrolled_count
        )}
     else
       {:noreply, put_flash(socket, :error, gettext("Unauthorized"))}
@@ -68,8 +78,49 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
        show_roster: false,
        roster_entries: [],
        roster_program_name: nil,
-       roster_program_id: nil
+       roster_program_id: nil,
+       can_message?: false,
+       roster_enrolled_count: 0
      )}
+  end
+
+  @impl true
+  def handle_event("send_message_to_parent", %{"parent-user-id" => parent_user_id}, socket) do
+    cond do
+      not socket.assigns.can_message? ->
+        {:noreply, put_flash(socket, :error, gettext("Upgrade your plan to send messages."))}
+
+      not roster_confirmed?(socket.assigns.roster_entries, parent_user_id) ->
+        {:noreply, put_flash(socket, :error, gettext("Cannot message this parent."))}
+
+      true ->
+        create_staff_conversation(socket, parent_user_id)
+    end
+  end
+
+  defp roster_confirmed?(roster_entries, parent_user_id) do
+    Enum.any?(roster_entries, fn entry ->
+      entry.parent_user_id == parent_user_id and entry.status == :confirmed
+    end)
+  end
+
+  defp create_staff_conversation(socket, parent_user_id) do
+    scope = socket.assigns.current_scope
+    provider_id = socket.assigns.provider.id
+
+    case Messaging.create_direct_conversation(scope, provider_id, parent_user_id, skip_entitlement_check: true) do
+      {:ok, conversation} ->
+        {:noreply, push_navigate(socket, to: ~p"/staff/messages/#{conversation.id}")}
+
+      {:error, reason} ->
+        Logger.error("Failed to create direct conversation from staff roster",
+          reason: inspect(reason),
+          provider_id: provider_id,
+          parent_user_id: parent_user_id
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Could not start conversation. Please try again."))}
+    end
   end
 
   @impl true
@@ -163,13 +214,44 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
             <h2 class="text-lg font-semibold text-hero-charcoal">
               {gettext("Roster: %{name}", name: @roster_program_name)}
             </h2>
-            <button
-              id="close-roster-btn"
-              phx-click="close_roster"
-              class="p-1 text-hero-grey-400 hover:text-hero-grey-600"
-            >
-              <.icon name="hero-x-mark" class="w-5 h-5" />
-            </button>
+            <div class="flex items-center gap-1">
+              <%= if @can_message? and @roster_enrolled_count > 0 do %>
+                <.link
+                  id={"staff-broadcast-#{@roster_program_id}"}
+                  navigate={~p"/staff/programs/#{@roster_program_id}/broadcast"}
+                  title={gettext("Send Broadcast")}
+                  aria-label={gettext("Send Broadcast")}
+                  class={[
+                    "p-2 rounded-lg transition-colors",
+                    "text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100"
+                  ]}
+                >
+                  <.icon name="hero-megaphone-mini" class="w-5 h-5" />
+                </.link>
+              <% else %>
+                <button
+                  id={"staff-broadcast-#{@roster_program_id}"}
+                  type="button"
+                  disabled
+                  title={
+                    if(!@can_message?,
+                      do: gettext("Upgrade plan to send broadcasts"),
+                      else: gettext("No enrolled parents")
+                    )
+                  }
+                  class="p-2 rounded-lg text-hero-grey-300 cursor-not-allowed"
+                >
+                  <.icon name="hero-megaphone-mini" class="w-5 h-5" />
+                </button>
+              <% end %>
+              <button
+                id="close-roster-btn"
+                phx-click="close_roster"
+                class="p-1 text-hero-grey-400 hover:text-hero-grey-600"
+              >
+                <.icon name="hero-x-mark" class="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <div class="p-4">
@@ -186,9 +268,38 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
                         {Map.get(entry, :child_name, gettext("Unknown"))}
                       </span>
                     </div>
-                    <span class="text-sm text-hero-grey-500">
-                      {Map.get(entry, :status, "")}
-                    </span>
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm text-hero-grey-500">
+                        {Map.get(entry, :status, "")}
+                      </span>
+                      <%= if @can_message? and entry.status == :confirmed and entry.parent_user_id do %>
+                        <button
+                          id={"staff-msg-#{entry.enrollment_id}"}
+                          type="button"
+                          phx-click="send_message_to_parent"
+                          phx-value-parent-user-id={entry.parent_user_id}
+                          title={gettext("Send Message")}
+                          aria-label={gettext("Send Message")}
+                          class={[
+                            "p-2 inline-flex rounded-lg transition-colors",
+                            "text-hero-grey-400 hover:text-hero-charcoal hover:bg-hero-grey-100"
+                          ]}
+                        >
+                          <.icon name="hero-chat-bubble-left-mini" class="w-5 h-5" />
+                        </button>
+                      <% else %>
+                        <button
+                          id={"staff-msg-#{entry.enrollment_id}"}
+                          type="button"
+                          disabled
+                          title={staff_message_button_title(@can_message?, entry)}
+                          aria-label={staff_message_button_title(@can_message?, entry)}
+                          class="p-2 inline-flex rounded-lg text-hero-grey-300 cursor-not-allowed"
+                        >
+                          <.icon name="hero-chat-bubble-left-mini" class="w-5 h-5" />
+                        </button>
+                      <% end %>
+                    </div>
                   </li>
                 <% end %>
               </ul>
@@ -198,5 +309,15 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
       <% end %>
     </div>
     """
+  end
+
+  defp staff_message_button_title(false = _can_message?, _entry), do: gettext("Upgrade plan to message parents")
+
+  defp staff_message_button_title(true = _can_message?, entry) do
+    cond do
+      entry.parent_user_id == nil -> gettext("Parent account not available")
+      entry.status != :confirmed -> gettext("Enrollment not confirmed")
+      true -> gettext("Send Message")
+    end
   end
 end

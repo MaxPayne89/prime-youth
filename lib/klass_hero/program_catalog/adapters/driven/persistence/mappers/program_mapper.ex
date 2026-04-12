@@ -58,6 +58,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       lock_version: schema.lock_version,
       location: schema.location,
       cover_image_url: schema.cover_image_url,
+      origin: origin_to_atom(schema.origin),
       instructor: build_instructor(schema),
       registration_period: build_registration_period(schema),
       inserted_at: schema.inserted_at,
@@ -103,6 +104,7 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       end_date: program.end_date,
       location: program.location,
       cover_image_url: program.cover_image_url,
+      origin: program.origin && to_string(program.origin),
       provider_id: program.provider_id,
       registration_start_date: program.registration_period && program.registration_period.start_date,
       registration_end_date: program.registration_period && program.registration_period.end_date
@@ -156,5 +158,17 @@ defmodule KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Mappers.ProgramMa
       instructor_name: instructor.name,
       instructor_headshot_url: instructor.headshot_url
     })
+  end
+
+  defp origin_to_atom("self_posted"), do: :self_posted
+  defp origin_to_atom("business_assigned"), do: :business_assigned
+  defp origin_to_atom(nil), do: :self_posted
+
+  defp origin_to_atom(unknown) do
+    Logger.warning("[ProgramMapper] Unknown origin value, defaulting to :self_posted",
+      reason: inspect(unknown)
+    )
+
+    :self_posted
   end
 end
