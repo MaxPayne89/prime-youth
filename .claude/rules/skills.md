@@ -95,6 +95,18 @@ Fetches, triages, and addresses PR review comments for the current branch. Class
 
 **Use when:** `/address-pr-comments` or when asked to "handle review feedback", "fix PR comments"
 
+### dep-upgrade
+
+Upgrades Hex dependencies with semver classification, changelog review, and test verification. Handles single-package or all-packages mode with confirmation gates.
+
+**Use when:** `/dep-upgrade [package-name|--all]` or when asked to "upgrade deps", "update dependencies", "check outdated"
+
+### review-architecture
+
+Runs a comprehensive 18-check architecture review by spawning the `architecture-reviewer` (12 structural checks) and `boundary-checker` (6 semantic checks) agents in parallel, scoped to changed files. Consolidates findings into a unified report.
+
+**Use when:** `/review-architecture` or when reviewing a PR, checking architecture before merge, or after modifying bounded context code
+
 ## Custom Agents (in `.claude/agents/`)
 
 ### architecture-reviewer
@@ -105,6 +117,6 @@ Reviews code for DDD/Ports & Adapters architecture compliance. Runs 12 checks co
 
 ### boundary-checker
 
-Detects semantic boundary violations that the `boundary` library cannot catch at compile time. Checks for cross-context adapter calls, schema leaks, port bypasses, domain layer purity, and ACL adapter correctness.
+Detects semantic boundary violations that the `boundary` library cannot catch at compile time. Checks for cross-context adapter calls, schema leaks, port bypasses, domain layer purity, and ACL adapter correctness. Supports `changed-files` or `full` scan scope.
 
 **Use when:** Deep boundary analysis needed, especially after adding cross-context features. Spawn as a subagent.
