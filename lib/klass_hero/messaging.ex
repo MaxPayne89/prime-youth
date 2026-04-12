@@ -55,36 +55,23 @@ defmodule KlassHero.Messaging do
     ReceiveInboundEmail,
     ReplyPrivatelyToBroadcast,
     ReplyToEmail,
-    SendMessage
+    ScheduleEmailContentFetch,
+    SendMessage,
+    UpdateInboundEmailContent,
+    UpdateInboundEmailStatus
   }
 
   alias KlassHero.Messaging.Application.Queries.{
     GetConversation,
     GetInboundEmail,
     GetTotalUnreadCount,
+    InboundEmailQueries,
     ListConversations,
-    ListInboundEmails
+    ListInboundEmails,
+    ResolverQueries
   }
 
   alias KlassHero.Messaging.Domain.Models.{Conversation, EmailReply, Message, Participant}
-
-  @staff_resolver Application.compile_env!(:klass_hero, [
-                    :messaging,
-                    :for_resolving_program_staff
-                  ])
-  @inbound_email_repo Application.compile_env!(:klass_hero, [
-                        :messaging,
-                        :for_managing_inbound_emails
-                      ])
-  @email_reply_repo Application.compile_env!(:klass_hero, [
-                      :messaging,
-                      :for_managing_email_replies
-                    ])
-  @email_job_scheduler Application.compile_env!(:klass_hero, [
-                         :messaging,
-                         :for_scheduling_email_jobs
-                       ])
-  @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
 
   # ===========================================================================
   # Commands
@@ -302,16 +289,16 @@ defmodule KlassHero.Messaging do
   - `resend_id` - The Resend email ID for the API call
   """
   @spec schedule_content_fetch(String.t(), String.t()) :: {:ok, term()} | {:error, term()}
-  def schedule_content_fetch(email_id, resend_id) do
-    @email_job_scheduler.schedule_content_fetch(email_id, resend_id)
-  end
+  defdelegate schedule_content_fetch(email_id, resend_id),
+    to: ScheduleEmailContentFetch,
+    as: :execute
 
   @doc "Updates inbound email content fields (body, headers, content_status)."
   @spec update_inbound_email_content(String.t(), map()) ::
           {:ok, struct()} | {:error, term()}
-  def update_inbound_email_content(id, attrs) do
-    @inbound_email_repo.update_content(id, attrs)
-  end
+  defdelegate update_inbound_email_content(id, attrs),
+    to: UpdateInboundEmailContent,
+    as: :execute
 
   @doc """
   Updates the status of an inbound email.
@@ -327,9 +314,9 @@ defmodule KlassHero.Messaging do
   """
   @spec update_inbound_email_status(String.t(), String.t(), map()) ::
           {:ok, struct()} | {:error, term()}
-  def update_inbound_email_status(id, status, attrs \\ %{}) do
-    @inbound_email_repo.update_status(id, status, attrs)
-  end
+  defdelegate update_inbound_email_status(id, status, attrs \\ %{}),
+    to: UpdateInboundEmailStatus,
+    as: :execute
 
   @doc """
   Subscribes to real-time updates for a conversation.
@@ -485,9 +472,9 @@ defmodule KlassHero.Messaging do
   - `{:ok, replies}` - List of email replies
   """
   @spec list_email_replies(String.t()) :: {:ok, [EmailReply.t()]}
-  def list_email_replies(inbound_email_id) do
-    @email_reply_repo.list_by_email(inbound_email_id)
-  end
+  defdelegate list_email_replies(inbound_email_id),
+    to: InboundEmailQueries,
+    as: :list_replies
 
   @doc """
   Sanitizes inbound email HTML for safe rendering.
@@ -514,9 +501,9 @@ defmodule KlassHero.Messaging do
 
   """
   @spec count_inbound_emails_by_status(atom()) :: non_neg_integer()
-  def count_inbound_emails_by_status(status) do
-    @inbound_email_repo.count_by_status(status)
-  end
+  defdelegate count_inbound_emails_by_status(status),
+    to: InboundEmailQueries,
+    as: :count_by_status
 
   @doc """
   Returns the display name for a user.
@@ -524,9 +511,7 @@ defmodule KlassHero.Messaging do
   Used by LiveView helpers to resolve sender names for real-time messages.
   """
   @spec get_display_name(String.t()) :: {:ok, String.t()} | {:error, :not_found}
-  def get_display_name(user_id) do
-    @user_resolver.get_display_name(user_id)
-  end
+  defdelegate get_display_name(user_id), to: ResolverQueries
 
   @doc """
   Returns the user IDs of active staff assigned to a program.
@@ -541,9 +526,7 @@ defmodule KlassHero.Messaging do
   - List of user ID strings
   """
   @spec get_active_staff_user_ids(String.t()) :: [String.t()]
-  def get_active_staff_user_ids(program_id) do
-    @staff_resolver.get_active_staff_user_ids(program_id)
-  end
+  defdelegate get_active_staff_user_ids(program_id), to: ResolverQueries
 
   @doc """
   Returns the PubSub topic for a conversation.

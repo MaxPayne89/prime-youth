@@ -53,7 +53,8 @@ defmodule KlassHero.ProgramCatalog do
     ListAllPrograms,
     ListFeaturedPrograms,
     ListProgramsPaginated,
-    ListProviderPrograms
+    ListProviderPrograms,
+    ProgramCatalogQueries
   }
 
   alias KlassHero.ProgramCatalog.Domain.Models.Program
@@ -65,8 +66,6 @@ defmodule KlassHero.ProgramCatalog do
     ProgramPricing,
     TrendingSearches
   }
-
-  @repository Application.compile_env!(:klass_hero, [:program_catalog, :repository])
 
   # ===========================================================================
   # Commands
@@ -300,7 +299,7 @@ defmodule KlassHero.ProgramCatalog do
   """
   @spec count_self_posted_programs(String.t()) :: non_neg_integer()
   def count_self_posted_programs(provider_id) do
-    @repository.count_by_provider_and_origin(provider_id, :self_posted)
+    ProgramCatalogQueries.count_self_posted_programs(provider_id)
   end
 
   @doc """
@@ -311,7 +310,7 @@ defmodule KlassHero.ProgramCatalog do
   """
   @spec list_ended_program_ids(Date.t()) :: [String.t()]
   def list_ended_program_ids(cutoff_date) do
-    @repository.list_ended_program_ids(cutoff_date)
+    ProgramCatalogQueries.list_ended_program_ids(cutoff_date)
   end
 
   @doc """
@@ -327,7 +326,7 @@ defmodule KlassHero.ProgramCatalog do
   """
   @spec get_programs_by_ids([String.t()]) :: [Program.t()]
   def get_programs_by_ids(ids) when is_list(ids) do
-    @repository.get_by_ids(ids)
+    ProgramCatalogQueries.get_programs_by_ids(ids)
   end
 
   @doc """
@@ -352,6 +351,6 @@ defmodule KlassHero.ProgramCatalog do
   Returns an empty changeset for the program creation form.
   """
   def new_program_changeset(attrs \\ %{}) do
-    @repository.new_changeset(attrs)
+    ProgramCatalogQueries.new_program_changeset(attrs)
   end
 end

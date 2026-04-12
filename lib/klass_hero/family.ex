@@ -34,33 +34,21 @@ defmodule KlassHero.Family do
     ]
 
   alias KlassHero.Family.Adapters.Driven.Persistence.ChangeChild
+  alias KlassHero.Family.Application.Commands.AnonymizeUserData
   alias KlassHero.Family.Application.Commands.Children.CreateChild
   alias KlassHero.Family.Application.Commands.Children.DeleteChild
   alias KlassHero.Family.Application.Commands.Children.UpdateChild
   alias KlassHero.Family.Application.Commands.Consents.GrantConsent
   alias KlassHero.Family.Application.Commands.Consents.WithdrawConsent
   alias KlassHero.Family.Application.Commands.Parents.CreateParentProfile
+  alias KlassHero.Family.Application.Queries.Children.ChildQueries
   alias KlassHero.Family.Application.Queries.Children.PrepareChildDeletion
-  alias KlassHero.Family.Domain.Events.FamilyEvents
+  alias KlassHero.Family.Application.Queries.Consents.ConsentQueries
+  alias KlassHero.Family.Application.Queries.ExportUserData
+  alias KlassHero.Family.Application.Queries.Parents.ParentProfileQueries
   alias KlassHero.Family.Domain.Models.Child
   alias KlassHero.Family.Domain.Services.ReferralCodeGenerator
   alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
-  alias KlassHero.Shared.EventDispatchHelper
-
-  require Logger
-
-  @parent_repository Application.compile_env!(:klass_hero, [
-                       :family,
-                       :for_storing_parent_profiles
-                     ])
-  @child_repository Application.compile_env!(:klass_hero, [
-                      :family,
-                      :for_storing_children
-                    ])
-  @consent_repository Application.compile_env!(:klass_hero, [
-                        :family,
-                        :for_storing_consents
-                      ])
 
   # ===========================================================================
   # Commands
@@ -143,16 +131,7 @@ defmodule KlassHero.Family do
   - `{:ok, :no_data}` if user has no parent profile
   - `{:ok, %{children_anonymized: count, consents_deleted: count}}`
   """
-  def anonymize_data_for_user(identity_id) when is_binary(identity_id) do
-    case @parent_repository.get_by_identity_id(identity_id) do
-      {:ok, parent} ->
-        children = @child_repository.list_by_guardian(parent.id)
-        anonymize_children_data(children)
-
-      {:error, :not_found} ->
-        {:ok, :no_data}
-    end
-  end
+  defdelegate anonymize_data_for_user(identity_id), to: AnonymizeUserData, as: :execute
 
   @doc """
   Generates a referral code for a user.
@@ -177,14 +156,14 @@ defmodule KlassHero.Family do
   - `{:error, :not_found}` - No parent profile exists
   """
   def get_parent_by_identity(identity_id) when is_binary(identity_id) do
-    @parent_repository.get_by_identity_id(identity_id)
+    ParentProfileQueries.get_by_identity(identity_id)
   end
 
   @doc """
   Checks if a parent profile exists for the given identity ID.
   """
   def has_parent_profile?(identity_id) when is_binary(identity_id) do
-    @parent_repository.has_profile?(identity_id)
+    ParentProfileQueries.has_profile?(identity_id)
   end
 
   @doc """
@@ -193,14 +172,14 @@ defmodule KlassHero.Family do
   Missing or invalid IDs are silently excluded from the result.
   """
   def get_parents_by_ids(parent_ids) when is_list(parent_ids) do
-    @parent_repository.list_by_ids(parent_ids)
+    ParentProfileQueries.get_by_ids(parent_ids)
   end
 
   @doc """
   Lists all children for a parent, ordered by first name then last name.
   """
   def get_children(parent_id) when is_binary(parent_id) do
-    @child_repository.list_by_guardian(parent_id)
+    ChildQueries.list_by_guardian(parent_id)
   end
 
   @doc """
@@ -211,7 +190,7 @@ defmodule KlassHero.Family do
   - `{:error, :not_found}` - No child exists or invalid UUID
   """
   def get_child_by_id(child_id) when is_binary(child_id) do
-    @child_repository.get_by_id(child_id)
+    ChildQueries.get_by_id(child_id)
   end
 
   @doc """
@@ -232,44 +211,35 @@ defmodule KlassHero.Family do
   Missing or invalid IDs are silently excluded from the result.
   """
   def get_children_by_ids(child_ids) when is_list(child_ids) do
-    @child_repository.list_by_ids(child_ids)
+    ChildQueries.list_by_ids(child_ids)
   end
 
   @doc """
   Returns a MapSet of child IDs that have active consent of the given type.
   """
   def children_with_active_consents(child_ids, consent_type) when is_list(child_ids) and is_binary(consent_type) do
-    @consent_repository.list_active_for_children(child_ids, consent_type)
-    |> MapSet.new(& &1.child_id)
+    ConsentQueries.children_with_active_consents(child_ids, consent_type)
   end
 
   @doc """
   Returns a MapSet of child IDs for a given parent.
   """
   def get_child_ids_for_parent(parent_id) when is_binary(parent_id) do
-    parent_id
-    |> get_children()
-    |> MapSet.new(& &1.id)
+    ChildQueries.child_ids_for_guardian(parent_id)
   end
 
   @doc """
   Checks if a child belongs to a specific parent.
   """
   def child_belongs_to_parent?(child_id, parent_id) when is_binary(child_id) and is_binary(parent_id) do
-    @child_repository.child_belongs_to_guardian?(child_id, parent_id)
+    ChildQueries.belongs_to_guardian?(child_id, parent_id)
   end
 
   @doc """
   Checks if a child has an active consent of the given type.
   """
   def child_has_active_consent?(child_id, consent_type) when is_binary(child_id) and is_binary(consent_type) do
-    case @consent_repository.get_active_for_child(child_id, consent_type) do
-      {:ok, _} ->
-        true
-
-      {:error, :not_found} ->
-        false
-    end
+    ConsentQueries.child_has_active_consent?(child_id, consent_type)
   end
 
   @doc """
@@ -278,23 +248,7 @@ defmodule KlassHero.Family do
   Returns `%{children: [...]}` when the user has a parent profile,
   or `%{}` when no parent profile exists.
   """
-  def export_data_for_user(identity_id) when is_binary(identity_id) do
-    case @parent_repository.get_by_identity_id(identity_id) do
-      {:ok, parent} ->
-        children = @child_repository.list_by_guardian(parent.id)
-
-        children_data =
-          Enum.map(children, fn child ->
-            consents = @consent_repository.list_all_by_child(child.id)
-            format_child_export(child, consents)
-          end)
-
-        %{children: children_data}
-
-      {:error, :not_found} ->
-        %{}
-    end
-  end
+  defdelegate export_data_for_user(identity_id), to: ExportUserData, as: :execute
 
   @doc """
   Calculates the weekly activity goal progress for a family's children.
@@ -331,76 +285,4 @@ defmodule KlassHero.Family do
   def change_child(%Child{} = child, attrs) when is_map(attrs) do
     ChangeChild.execute(child, attrs)
   end
-
-  # ===========================================================================
-  # Private
-  # ===========================================================================
-
-  defp anonymize_children_data(children) do
-    anonymized_child_attrs = Child.anonymized_attrs()
-
-    Enum.reduce_while(
-      children,
-      {:ok, %{children_anonymized: 0, consents_deleted: 0}},
-      fn child, {:ok, acc} ->
-        with {:ok, consent_count} <- @consent_repository.delete_all_for_child(child.id),
-             {:ok, _anonymized_child} <-
-               @child_repository.anonymize(child.id, anonymized_child_attrs),
-             # Trigger: child PII anonymized and consents deleted
-             # Why: downstream contexts own their own child data and must clean it
-             # Outcome: Participation context will anonymize behavioral notes
-             :ok <- dispatch_child_anonymized(child.id) do
-          {:cont,
-           {:ok,
-            %{
-              acc
-              | children_anonymized: acc.children_anonymized + 1,
-                consents_deleted: acc.consents_deleted + consent_count
-            }}}
-        else
-          {:error, reason} ->
-            Logger.error("[Family] anonymize_children_data failed",
-              child_id: child.id,
-              reason: inspect(reason)
-            )
-
-            {:halt, {:error, reason}}
-        end
-      end
-    )
-  end
-
-  defp dispatch_child_anonymized(child_id) do
-    FamilyEvents.child_data_anonymized(child_id)
-    |> EventDispatchHelper.dispatch_or_error(KlassHero.Family)
-  end
-
-  defp format_child_export(child, consents) do
-    %{
-      id: child.id,
-      first_name: child.first_name,
-      last_name: child.last_name,
-      date_of_birth: Date.to_iso8601(child.date_of_birth),
-      emergency_contact: child.emergency_contact,
-      support_needs: child.support_needs,
-      allergies: child.allergies,
-      created_at: format_datetime(child.inserted_at),
-      updated_at: format_datetime(child.updated_at),
-      consents: Enum.map(consents, &format_consent_export/1)
-    }
-  end
-
-  defp format_consent_export(consent) do
-    %{
-      id: consent.id,
-      consent_type: consent.consent_type,
-      granted_at: format_datetime(consent.granted_at),
-      withdrawn_at: format_datetime(consent.withdrawn_at),
-      created_at: format_datetime(consent.inserted_at),
-      updated_at: format_datetime(consent.updated_at)
-    }
-  end
-
-  defp format_datetime(nil), do: nil
-  defp format_datetime(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
 end

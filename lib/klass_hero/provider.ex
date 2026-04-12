@@ -37,7 +37,6 @@ defmodule KlassHero.Provider do
       Adapters.Driven.Persistence.Schemas.StaffMemberSchema
     ]
 
-  alias Domain.Models.ProgramStaffAssignment
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeStaffMember
   alias KlassHero.Provider.Application.Commands.Providers.ChangeSubscriptionTier
@@ -48,35 +47,24 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.Commands.StaffMembers.AssignStaffToProgram
   alias KlassHero.Provider.Application.Commands.StaffMembers.CreateStaffMember
   alias KlassHero.Provider.Application.Commands.StaffMembers.DeleteStaffMember
+  alias KlassHero.Provider.Application.Commands.StaffMembers.ExpireStaffInvitation
   alias KlassHero.Provider.Application.Commands.StaffMembers.ResendStaffInvitation
   alias KlassHero.Provider.Application.Commands.StaffMembers.UnassignStaffFromProgram
   alias KlassHero.Provider.Application.Commands.StaffMembers.UpdateStaffMember
   alias KlassHero.Provider.Application.Commands.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.Commands.Verification.RejectVerificationDocument
   alias KlassHero.Provider.Application.Commands.Verification.SubmitVerificationDocument
+  alias KlassHero.Provider.Application.Queries.ProgramStaffAssignmentQueries
+  alias KlassHero.Provider.Application.Queries.ProviderProfileQueries
+  alias KlassHero.Provider.Application.Queries.StaffMemberQueries
   alias KlassHero.Provider.Application.Queries.StaffMembers.ListStaffAssignedPrograms
   alias KlassHero.Provider.Application.Queries.Verification.GetVerificationDocumentPreview
+  alias KlassHero.Provider.Application.Queries.VerificationDocumentQueries
+  alias KlassHero.Provider.Domain.Models.ProgramStaffAssignment
   alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.Provider.Domain.Ports.ForStoringVerificationDocuments
-
-  @provider_repository Application.compile_env!(:klass_hero, [
-                         :provider,
-                         :for_storing_provider_profiles
-                       ])
-  @verification_document_repository Application.compile_env!(:klass_hero, [
-                                      :provider,
-                                      :for_storing_verification_documents
-                                    ])
-  @staff_repository Application.compile_env!(:klass_hero, [
-                      :provider,
-                      :for_storing_staff_members
-                    ])
-  @assignment_repository Application.compile_env!(:klass_hero, [
-                           :provider,
-                           :for_storing_program_staff_assignments
-                         ])
 
   # ===========================================================================
   # Commands
@@ -227,15 +215,11 @@ defmodule KlassHero.Provider do
   @spec expire_staff_invitation(StaffMember.t() | String.t()) ::
           {:ok, StaffMember.t()} | {:error, term()}
   def expire_staff_invitation(%StaffMember{} = staff) do
-    with {:ok, updated} <- StaffMember.transition_invitation(staff, :expired) do
-      @staff_repository.update(updated)
-    end
+    ExpireStaffInvitation.execute(staff)
   end
 
   def expire_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
-    with {:ok, staff} <- @staff_repository.get(staff_member_id) do
-      expire_staff_invitation(staff)
-    end
+    ExpireStaffInvitation.execute(staff_member_id)
   end
 
   @doc """
@@ -276,14 +260,14 @@ defmodule KlassHero.Provider do
   - `{:error, :not_found}` - No provider profile exists
   """
   def get_provider_by_identity(identity_id) when is_binary(identity_id) do
-    @provider_repository.get_by_identity_id(identity_id)
+    ProviderProfileQueries.get_by_identity(identity_id)
   end
 
   @doc """
   Checks if a provider profile exists for the given identity ID.
   """
   def has_provider_profile?(identity_id) when is_binary(identity_id) do
-    @provider_repository.has_profile?(identity_id)
+    ProviderProfileQueries.has_profile?(identity_id)
   end
 
   @doc """
@@ -291,7 +275,7 @@ defmodule KlassHero.Provider do
   """
   @spec get_provider_profile(String.t()) :: {:ok, ProviderProfile.t()} | {:error, :not_found}
   def get_provider_profile(provider_id) when is_binary(provider_id) do
-    @provider_repository.get(provider_id)
+    ProviderProfileQueries.get_profile(provider_id)
   end
 
   @doc """
@@ -307,31 +291,28 @@ defmodule KlassHero.Provider do
   """
   @spec get_identity_id_for_provider(String.t()) :: {:ok, String.t()} | {:error, :not_found}
   def get_identity_id_for_provider(provider_id) when is_binary(provider_id) do
-    case @provider_repository.get(provider_id) do
-      {:ok, %ProviderProfile{identity_id: identity_id}} -> {:ok, identity_id}
-      {:error, :not_found} -> {:error, :not_found}
-    end
+    ProviderProfileQueries.get_identity_id_for_provider(provider_id)
   end
 
   @doc """
   List all verified provider IDs (for projections).
   """
   def list_verified_provider_ids do
-    @provider_repository.list_verified_ids()
+    ProviderProfileQueries.list_verified_ids()
   end
 
   @doc """
   Get all verification documents for a provider.
   """
   def get_provider_verification_documents(provider_profile_id) do
-    @verification_document_repository.get_by_provider(provider_profile_id)
+    VerificationDocumentQueries.get_by_provider(provider_profile_id)
   end
 
   @doc """
   List all pending verification documents (admin).
   """
   def list_pending_verification_documents do
-    @verification_document_repository.list_pending()
+    VerificationDocumentQueries.list_pending()
   end
 
   @doc """
@@ -346,7 +327,7 @@ defmodule KlassHero.Provider do
   @spec list_verification_documents_for_admin(VerificationDocument.status() | nil) ::
           {:ok, [ForStoringVerificationDocuments.admin_review_result()]}
   def list_verification_documents_for_admin(status \\ nil) do
-    @verification_document_repository.list_for_admin_review(status)
+    VerificationDocumentQueries.list_for_admin_review(status)
   end
 
   @doc """
@@ -355,7 +336,7 @@ defmodule KlassHero.Provider do
   @spec get_verification_document_for_admin(String.t()) ::
           {:ok, ForStoringVerificationDocuments.admin_review_result()} | {:error, :not_found}
   def get_verification_document_for_admin(document_id) do
-    @verification_document_repository.get_for_admin_review(document_id)
+    VerificationDocumentQueries.get_for_admin_review(document_id)
   end
 
   @doc """
@@ -384,21 +365,21 @@ defmodule KlassHero.Provider do
   Retrieves a single staff member by ID.
   """
   def get_staff_member(staff_id) when is_binary(staff_id) do
-    @staff_repository.get(staff_id)
+    StaffMemberQueries.get(staff_id)
   end
 
   @doc """
   Lists all staff members for a provider, ordered by insertion date.
   """
   def list_staff_members(provider_id) when is_binary(provider_id) do
-    @staff_repository.list_by_provider(provider_id)
+    StaffMemberQueries.list_by_provider(provider_id)
   end
 
   @doc """
   Lists active staff members for a provider.
   """
   def list_active_staff_members(provider_id) when is_binary(provider_id) do
-    @staff_repository.list_active_by_provider(provider_id)
+    StaffMemberQueries.list_active_by_provider(provider_id)
   end
 
   @doc """
@@ -416,7 +397,7 @@ defmodule KlassHero.Provider do
   @spec get_active_staff_member_by_user(String.t()) ::
           {:ok, StaffMember.t()} | {:error, :not_found}
   def get_active_staff_member_by_user(user_id) when is_binary(user_id) do
-    @staff_repository.get_active_by_user(user_id)
+    StaffMemberQueries.get_active_by_user(user_id)
   end
 
   @doc """
@@ -425,7 +406,7 @@ defmodule KlassHero.Provider do
   """
   @spec get_staff_member_by_token_hash(binary()) :: {:ok, StaffMember.t()} | {:error, :not_found}
   def get_staff_member_by_token_hash(token_hash) when is_binary(token_hash) do
-    @staff_repository.get_by_token_hash(token_hash)
+    StaffMemberQueries.get_by_token_hash(token_hash)
   end
 
   @doc """
@@ -456,7 +437,7 @@ defmodule KlassHero.Provider do
           ProgramStaffAssignment.t()
         ]
   def list_active_assignments_for_program(program_id) when is_binary(program_id) do
-    @assignment_repository.list_active_for_program(program_id)
+    ProgramStaffAssignmentQueries.list_active_for_program(program_id)
   end
 
   @doc """
@@ -466,7 +447,7 @@ defmodule KlassHero.Provider do
           ProgramStaffAssignment.t()
         ]
   def list_active_assignments_for_provider(provider_id) when is_binary(provider_id) do
-    @assignment_repository.list_active_for_provider(provider_id)
+    ProgramStaffAssignmentQueries.list_active_for_provider(provider_id)
   end
 
   @doc """
@@ -476,7 +457,7 @@ defmodule KlassHero.Provider do
           ProgramStaffAssignment.t()
         ]
   def list_active_assignments_for_staff_member(staff_member_id) when is_binary(staff_member_id) do
-    @assignment_repository.list_active_for_staff_member(staff_member_id)
+    ProgramStaffAssignmentQueries.list_active_for_staff_member(staff_member_id)
   end
 
   # ===========================================================================
