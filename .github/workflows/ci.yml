@@ -43,6 +43,14 @@ jobs:
       - name: Install dependencies
         run: mix deps.get
 
+      # Force-recompile NIF deps to prevent stale cache issues.
+      # The restore-keys fallback can provide a NIF binary from a
+      # previous version that doesn't match the current mix.lock.
+      - name: Recompile NIF dependencies
+        run: mix deps.compile lazy_html --force
+        env:
+          MIX_ENV: test
+
       # Compile both envs so downstream jobs get cache hits.
       # Dev: needed by quality job (includes boundary checker).
       # Test: needed by test job (avoids recompilation).
