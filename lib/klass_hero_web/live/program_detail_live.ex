@@ -7,6 +7,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+  alias KlassHeroWeb.Helpers.TaskHelpers
   alias KlassHeroWeb.Presenters.ParticipantPolicyPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.StaffMemberPresenter
@@ -27,12 +28,21 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         end
 
         # Run two independent DB queries in parallel to reduce total mount latency.
-        team_task = Task.async(fn -> load_team_members(program.provider_id) end)
+        team_task =
+          Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+            load_team_members(program.provider_id)
+          end)
 
-        policy_task = Task.async(fn -> load_participant_policy(program.id) end)
+        policy_task =
+          Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+            load_participant_policy(program.id)
+          end)
 
-        team_members = Task.await(team_task)
-        participant_policy = Task.await(policy_task)
+        team_members =
+          TaskHelpers.safe_await(team_task, [], label: "ProgramDetailLive.team_members")
+
+        participant_policy =
+          TaskHelpers.safe_await(policy_task, nil, label: "ProgramDetailLive.participant_policy")
 
         socket =
           socket

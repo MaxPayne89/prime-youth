@@ -19,6 +19,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   alias KlassHero.Provider
   alias KlassHero.Shared.Entitlements
   alias KlassHero.Shared.Storage
+  alias KlassHeroWeb.Helpers.TaskHelpers
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Presenters.StaffMemberPresenter
@@ -52,15 +53,24 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
         # Load programs and staff in parallel — both are independent DB queries
         programs_task =
-          Task.async(fn -> ProgramCatalog.list_programs_for_provider(provider_profile.id) end)
+          Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+            ProgramCatalog.list_programs_for_provider(provider_profile.id)
+          end)
 
-        staff_task = Task.async(fn -> fetch_staff_members(provider_profile.id) end)
+        staff_task =
+          Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+            fetch_staff_members(provider_profile.id)
+          end)
 
-        domain_programs = Task.await(programs_task)
+        domain_programs =
+          TaskHelpers.safe_await(programs_task, [], label: "Provider.DashboardLive.programs")
+
         enrollment_data = build_enrollment_data(domain_programs)
         programs = Enum.map(domain_programs, &ProgramPresenter.to_table_view(&1, enrollment_data))
 
-        staff_members = Task.await(staff_task)
+        staff_members =
+          TaskHelpers.safe_await(staff_task, [], label: "Provider.DashboardLive.staff")
+
         staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
         programs_count = length(programs)
         self_posted_count = ProgramCatalog.count_self_posted_programs(provider_profile.id)

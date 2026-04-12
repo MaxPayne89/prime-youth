@@ -57,7 +57,8 @@ defmodule KlassHero.Application do
       KlassHero.Repo,
       {DNSCluster, query: Application.get_env(:klass_hero, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: KlassHero.PubSub},
-      {Oban, Application.fetch_env!(:klass_hero, Oban)}
+      {Oban, Application.fetch_env!(:klass_hero, Oban)},
+      {Task.Supervisor, name: KlassHero.TaskSupervisor}
     ]
   end
 
