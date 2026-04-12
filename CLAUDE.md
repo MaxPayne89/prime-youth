@@ -21,7 +21,7 @@ mix test                     # Run all tests
 mix test path/to/test.exs    # Run specific file
 mix test path/to/test.exs:42 # Run specific test at line
 mix test --failed            # Re-run failed tests
-mix test.e2e                 # Run end-to-end tests (Wallaby/Playwright)
+mix test.e2e                 # Run end-to-end tests (Wallaby)
 
 # Quality
 mix precommit                # Full pre-commit: compile --warnings-as-errors, deps.unlock --unused, format, lint_typography, test
