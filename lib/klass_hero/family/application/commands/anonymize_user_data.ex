@@ -14,10 +14,14 @@ defmodule KlassHero.Family.Application.Commands.AnonymizeUserData do
 
   require Logger
 
-  @parent_repository Application.compile_env!(:klass_hero, [
-                       :family,
-                       :for_storing_parent_profiles
-                     ])
+  @parent_query Application.compile_env!(:klass_hero, [
+                  :family,
+                  :for_querying_parent_profiles
+                ])
+  @child_query Application.compile_env!(:klass_hero, [
+                 :family,
+                 :for_querying_children
+               ])
   @child_repository Application.compile_env!(:klass_hero, [
                       :family,
                       :for_storing_children
@@ -35,9 +39,9 @@ defmodule KlassHero.Family.Application.Commands.AnonymizeUserData do
   - `{:ok, %{children_anonymized: count, consents_deleted: count}}`
   """
   def execute(identity_id) do
-    case @parent_repository.get_by_identity_id(identity_id) do
+    case @parent_query.get_by_identity_id(identity_id) do
       {:ok, parent} ->
-        children = @child_repository.list_by_guardian(parent.id)
+        children = @child_query.list_by_guardian(parent.id)
         anonymize_children_data(children)
 
       {:error, :not_found} ->

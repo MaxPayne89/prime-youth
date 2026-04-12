@@ -23,10 +23,10 @@ defmodule KlassHero.Participation.Application.Commands.SubmitBehavioralNote do
 
   @context KlassHero.Participation
 
-  @participation_repository Application.compile_env!(:klass_hero, [
-                              :participation,
-                              :participation_repository
-                            ])
+  @participation_reader Application.compile_env!(:klass_hero, [
+                          :participation,
+                          :participation_query_repository
+                        ])
   @behavioral_note_repository Application.compile_env!(:klass_hero, [
                                 :participation,
                                 :behavioral_note_repository
@@ -63,7 +63,7 @@ defmodule KlassHero.Participation.Application.Commands.SubmitBehavioralNote do
     normalized_content = Shared.normalize_notes(content)
 
     with {:content, content} when content != nil <- {:content, normalized_content},
-         {:ok, record} <- @participation_repository.get_by_id(record_id),
+         {:ok, record} <- @participation_reader.get_by_id(record_id),
          true <- ParticipationRecord.allows_behavioral_note?(record),
          {:ok, note} <- build_note(record, provider_id, content),
          {:ok, persisted} <- @behavioral_note_repository.create(note) do

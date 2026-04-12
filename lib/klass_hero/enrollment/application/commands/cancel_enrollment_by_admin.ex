@@ -14,6 +14,10 @@ defmodule KlassHero.Enrollment.Application.Commands.CancelEnrollmentByAdmin do
 
   @context KlassHero.Enrollment
 
+  @enrollment_reader Application.compile_env!(
+                       :klass_hero,
+                       [:enrollment, :for_querying_enrollments]
+                     )
   @enrollment_repo Application.compile_env!(
                      :klass_hero,
                      [:enrollment, :for_managing_enrollments]
@@ -40,7 +44,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CancelEnrollmentByAdmin do
           | {:error, :not_found | :invalid_status_transition | :invalid_reason | term()}
   def execute(enrollment_id, admin_id, reason)
       when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) and byte_size(reason) > 0 do
-    with {:ok, enrollment} <- @enrollment_repo.get_by_id(enrollment_id),
+    with {:ok, enrollment} <- @enrollment_reader.get_by_id(enrollment_id),
          {:ok, cancelled} <- Enrollment.cancel(enrollment, reason),
          {:ok, persisted} <-
            @enrollment_repo.update(enrollment_id, %{

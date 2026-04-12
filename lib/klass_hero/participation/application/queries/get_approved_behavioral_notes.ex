@@ -10,7 +10,7 @@ defmodule KlassHero.Participation.Application.Queries.GetApprovedBehavioralNotes
 
   @behavioral_note_repository Application.compile_env!(:klass_hero, [
                                 :participation,
-                                :behavioral_note_repository
+                                :behavioral_note_query_repository
                               ])
 
   @type result :: {:ok, [BehavioralNote.t()]}

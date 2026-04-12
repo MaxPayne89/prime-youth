@@ -14,6 +14,10 @@ defmodule KlassHero.Provider.Application.Commands.Verification.ApproveVerificati
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHero.Shared.EventDispatchHelper
 
+  @query Application.compile_env!(:klass_hero, [
+           :provider,
+           :for_querying_verification_documents
+         ])
   @repository Application.compile_env!(:klass_hero, [
                 :provider,
                 :for_storing_verification_documents
@@ -34,7 +38,7 @@ defmodule KlassHero.Provider.Application.Commands.Verification.ApproveVerificati
   - `{:error, :document_not_pending}` if document is not in pending status
   """
   def execute(%{document_id: document_id, reviewer_id: reviewer_id}) do
-    with {:ok, document} <- @repository.get(document_id),
+    with {:ok, document} <- @query.get(document_id),
          {:ok, approved} <- VerificationDocument.approve(document, reviewer_id),
          {:ok, persisted} <- @repository.update(approved) do
       # Trigger: document successfully approved and persisted

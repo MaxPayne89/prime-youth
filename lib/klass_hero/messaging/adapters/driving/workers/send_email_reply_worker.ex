@@ -11,14 +11,18 @@ defmodule KlassHero.Messaging.Adapters.Driving.Workers.SendEmailReplyWorker do
   require Logger
 
   @from Application.compile_env!(:klass_hero, [:mailer_defaults, :from])
+  @email_reply_reader Application.compile_env!(:klass_hero, [
+                        :messaging,
+                        :for_querying_email_replies
+                      ])
   @email_reply_repo Application.compile_env!(:klass_hero, [
                       :messaging,
                       :for_managing_email_replies
                     ])
-  @inbound_email_repo Application.compile_env!(:klass_hero, [
-                        :messaging,
-                        :for_managing_inbound_emails
-                      ])
+  @inbound_email_reader Application.compile_env!(:klass_hero, [
+                          :messaging,
+                          :for_querying_inbound_emails
+                        ])
 
   # Trigger: Resend API enforces rate limits
   # Why: default Oban backoff doesn't account for 429 responses — retries
@@ -38,8 +42,8 @@ defmodule KlassHero.Messaging.Adapters.Driving.Workers.SendEmailReplyWorker do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: %{"reply_id" => reply_id}} = job) do
-    with {:ok, reply} <- @email_reply_repo.get_by_id(reply_id),
-         {:ok, email} <- @inbound_email_repo.get_by_id(reply.inbound_email_id) do
+    with {:ok, reply} <- @email_reply_reader.get_by_id(reply_id),
+         {:ok, email} <- @inbound_email_reader.get_by_id(reply.inbound_email_id) do
       swoosh_email =
         Swoosh.Email.new()
         |> Swoosh.Email.to(email.from_address)

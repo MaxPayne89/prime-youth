@@ -6,6 +6,10 @@ defmodule KlassHero.Enrollment.Application.Commands.DeleteInvite do
   sent, the link becomes invalid (claim controller returns :not_found).
   """
 
+  @invite_reader Application.compile_env!(:klass_hero, [
+                   :enrollment,
+                   :for_querying_bulk_enrollment_invites
+                 ])
   @invite_repository Application.compile_env!(:klass_hero, [
                        :enrollment,
                        :for_storing_bulk_enrollment_invites
@@ -16,7 +20,7 @@ defmodule KlassHero.Enrollment.Application.Commands.DeleteInvite do
     # Trigger: invite_id comes from untrusted client params
     # Why: without ownership check, any provider could delete another's invite
     # Outcome: verify provider_id matches before deleting; return :not_found on mismatch
-    case @invite_repository.get_by_id(invite_id) do
+    case @invite_reader.get_by_id(invite_id) do
       nil ->
         {:error, :not_found}
 

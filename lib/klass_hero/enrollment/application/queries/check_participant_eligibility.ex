@@ -14,7 +14,7 @@ defmodule KlassHero.Enrollment.Application.Queries.CheckParticipantEligibility d
 
   @participant_policy_repository Application.compile_env!(:klass_hero, [
                                    :enrollment,
-                                   :for_managing_participant_policies
+                                   :for_querying_participant_policies
                                  ])
   @participant_details_adapter Application.compile_env!(:klass_hero, [
                                  :enrollment,

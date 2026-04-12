@@ -22,7 +22,7 @@ defmodule KlassHero.Provider.Application.Commands.StaffMembers.AssignStaffToProg
                      :provider,
                      :for_storing_program_staff_assignments
                    ])
-  @staff_repo Application.compile_env!(:klass_hero, [:provider, :for_storing_staff_members])
+  @staff_repo Application.compile_env!(:klass_hero, [:provider, :for_querying_staff_members])
 
   @doc """
   Assigns a staff member to a program.

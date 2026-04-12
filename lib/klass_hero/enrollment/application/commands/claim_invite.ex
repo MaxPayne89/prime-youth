@@ -12,10 +12,10 @@ defmodule KlassHero.Enrollment.Application.Commands.ClaimInvite do
 
   require Logger
 
-  @invite_repository Application.compile_env!(
-                       :klass_hero,
-                       [:enrollment, :for_storing_bulk_enrollment_invites]
-                     )
+  @invite_reader Application.compile_env!(
+                   :klass_hero,
+                   [:enrollment, :for_querying_bulk_enrollment_invites]
+                 )
   @user_accounts Application.compile_env!(
                    :klass_hero,
                    [:enrollment, :for_resolving_user_accounts]
@@ -46,7 +46,7 @@ defmodule KlassHero.Enrollment.Application.Commands.ClaimInvite do
   end
 
   defp find_invite(token) do
-    case @invite_repository.get_by_token(token) do
+    case @invite_reader.get_by_token(token) do
       nil -> {:error, :not_found}
       invite -> {:ok, invite}
     end

@@ -1,17 +1,14 @@
 defmodule KlassHero.Family.Domain.Ports.ForStoringConsents do
   @moduledoc """
-  Port for consent persistence operations in the Family bounded context.
+  Write-only port for consent persistence operations in the Family bounded context.
 
-  Defines the contract for storing and querying parental consents without
-  exposing infrastructure details. Implementations will be provided by
-  repository adapters.
+  Read operations have been moved to `ForQueryingConsents`.
 
   ## Expected Return Values
 
   - `grant/1` - Returns `{:ok, Consent.t()}` or `{:error, changeset}`
-  - `withdraw/1` - Returns `{:ok, Consent.t()}` or `{:error, :not_found}`
-  - `get_active_for_child/2` - Returns `{:ok, Consent.t()}` or `{:error, :not_found}`
-  - `list_active_by_child/1` - Returns list of consents directly
+  - `withdraw/2` - Returns `{:ok, Consent.t()}` or `{:error, :not_found}`
+  - `delete_all_for_child/1` - Returns `{:ok, count}`
 
   Infrastructure errors (connection, query) are not caught - they crash and
   are handled by the supervision tree.
@@ -43,41 +40,6 @@ defmodule KlassHero.Family.Domain.Ports.ForStoringConsents do
   """
   @callback withdraw(binary(), DateTime.t()) ::
               {:ok, Consent.t()} | {:error, :not_found} | {:error, Ecto.Changeset.t()}
-
-  @doc """
-  Retrieves the active consent for a child and consent type.
-
-  Active means withdrawn_at is nil.
-
-  Returns:
-  - `{:ok, Consent.t()}` - Active consent found
-  - `{:error, :not_found}` - No active consent exists
-  """
-  @callback get_active_for_child(binary(), String.t()) ::
-              {:ok, Consent.t()} | {:error, :not_found}
-
-  @doc """
-  Lists all active consents for a given child.
-
-  Returns list of consents (may be empty).
-  """
-  @callback list_active_by_child(binary()) :: [Consent.t()]
-
-  @doc """
-  Lists active consents of a specific type for multiple children.
-
-  Returns list of consents where child_id is in the given list and consent_type matches.
-  Used for batch consent checking across multiple children.
-  """
-  @callback list_active_for_children([binary()], String.t()) :: [Consent.t()]
-
-  @doc """
-  Lists all consents (including withdrawn) for a given child.
-
-  Used for GDPR data export where full audit history is required.
-  Returns list of consents ordered by consent_type asc, granted_at desc.
-  """
-  @callback list_all_by_child(binary()) :: [Consent.t()]
 
   @doc """
   Deletes all consent records for a given child.

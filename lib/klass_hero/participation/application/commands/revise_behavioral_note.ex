@@ -20,6 +20,10 @@ defmodule KlassHero.Participation.Application.Commands.ReviseBehavioralNote do
 
   @context KlassHero.Participation
 
+  @behavioral_note_reader Application.compile_env!(:klass_hero, [
+                            :participation,
+                            :behavioral_note_query_repository
+                          ])
   @behavioral_note_repository Application.compile_env!(:klass_hero, [
                                 :participation,
                                 :behavioral_note_repository
@@ -58,7 +62,7 @@ defmodule KlassHero.Participation.Application.Commands.ReviseBehavioralNote do
     # Why: DB-enforced ownership — no separate authorization check needed
     # Outcome: returns :not_found if note doesn't belong to provider
     with {:content, content} when content != nil <- {:content, normalized_content},
-         {:ok, note} <- @behavioral_note_repository.get_by_id_and_provider(note_id, provider_id),
+         {:ok, note} <- @behavioral_note_reader.get_by_id_and_provider(note_id, provider_id),
          {:ok, revised} <- BehavioralNote.revise(note, content),
          {:ok, persisted} <- @behavioral_note_repository.update(revised) do
       Shared.log_publish_result(publish_event(persisted), persisted.id)

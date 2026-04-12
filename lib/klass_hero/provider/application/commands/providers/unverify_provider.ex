@@ -15,6 +15,7 @@ defmodule KlassHero.Provider.Application.Commands.Providers.UnverifyProvider do
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
   alias KlassHero.Shared.IntegrationEventPublishing
 
+  @query Application.compile_env!(:klass_hero, [:provider, :for_querying_provider_profiles])
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_provider_profiles])
 
   @doc """
@@ -31,7 +32,7 @@ defmodule KlassHero.Provider.Application.Commands.Providers.UnverifyProvider do
   - `{:error, :not_found}` if provider profile doesn't exist
   """
   def execute(%{provider_id: provider_id, admin_id: admin_id}) do
-    with {:ok, profile} <- @repository.get(provider_id),
+    with {:ok, profile} <- @query.get(provider_id),
          {:ok, unverified} <- ProviderProfile.unverify(profile),
          {:ok, persisted} <- @repository.update(unverified),
          :ok <- publish_event(persisted, admin_id) do

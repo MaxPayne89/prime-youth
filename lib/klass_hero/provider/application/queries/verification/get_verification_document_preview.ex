@@ -18,7 +18,7 @@ defmodule KlassHero.Provider.Application.Queries.Verification.GetVerificationDoc
 
   @repository Application.compile_env!(:klass_hero, [
                 :provider,
-                :for_storing_verification_documents
+                :for_querying_verification_documents
               ])
 
   @doc """

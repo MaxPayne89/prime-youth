@@ -1,30 +1,20 @@
 defmodule KlassHero.Family.Domain.Ports.ForStoringChildren do
   @moduledoc """
-  Port for child persistence operations in the Family bounded context.
+  Write-only port for child persistence operations in the Family bounded context.
 
-  Defines the contract for storing and retrieving children without exposing
-  infrastructure details. Implementations will be provided by repository adapters.
+  Read operations have been moved to `ForQueryingChildren`.
 
   ## Expected Return Values
 
-  - `get_by_id/1` - Returns `{:ok, Child.t()}` or `{:error, :not_found}`
   - `create/1` - Returns `{:ok, Child.t()}` or `{:error, changeset}`
-  - `list_by_guardian/1` - Returns list of children for a guardian
+  - `update/2` - Returns `{:ok, Child.t()}` or errors
+  - `delete/1` - Returns `:ok` or errors
 
   Infrastructure errors (connection, query) are not caught - they crash and
   are handled by the supervision tree.
   """
 
   alias KlassHero.Family.Domain.Models.Child
-
-  @doc """
-  Retrieves a child by their unique identifier.
-
-  Returns:
-  - `{:ok, Child.t()}` - Child found successfully
-  - `{:error, :not_found}` - Child ID doesn't exist
-  """
-  @callback get_by_id(binary()) :: {:ok, Child.t()} | {:error, :not_found}
 
   @doc """
   Creates a new child record.
@@ -68,27 +58,6 @@ defmodule KlassHero.Family.Domain.Ports.ForStoringChildren do
   """
   @callback create_with_guardian(map(), binary()) ::
               {:ok, Child.t()} | {:error, Ecto.Changeset.t()}
-
-  @doc """
-  Checks if a guardian link exists between a child and a guardian.
-
-  Returns `true` if the link exists, `false` otherwise.
-  """
-  @callback child_belongs_to_guardian?(binary(), binary()) :: boolean()
-
-  @doc """
-  Lists all children for a given guardian.
-
-  Returns list of children (may be empty).
-  """
-  @callback list_by_guardian(binary()) :: [Child.t()]
-
-  @doc """
-  Retrieves multiple children by their IDs.
-
-  Returns list of children found (may be shorter than input if some IDs don't exist).
-  """
-  @callback list_by_ids([binary()]) :: [Child.t()]
 
   @doc """
   Anonymizes a child record for GDPR account deletion.

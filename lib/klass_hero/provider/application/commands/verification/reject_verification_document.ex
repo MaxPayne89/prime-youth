@@ -15,6 +15,10 @@ defmodule KlassHero.Provider.Application.Commands.Verification.RejectVerificatio
   alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHero.Shared.EventDispatchHelper
 
+  @query Application.compile_env!(:klass_hero, [
+           :provider,
+           :for_querying_verification_documents
+         ])
   @repository Application.compile_env!(:klass_hero, [
                 :provider,
                 :for_storing_verification_documents
@@ -41,7 +45,7 @@ defmodule KlassHero.Provider.Application.Commands.Verification.RejectVerificatio
     # Why: rejection requires explanation for provider to understand and fix
     # Outcome: early validation prevents rejecting without reason
     with :ok <- validate_reason(reason),
-         {:ok, document} <- @repository.get(document_id),
+         {:ok, document} <- @query.get(document_id),
          {:ok, rejected} <- VerificationDocument.reject(document, reviewer_id, reason),
          {:ok, persisted} <- @repository.update(rejected) do
       # Trigger: document successfully rejected and persisted

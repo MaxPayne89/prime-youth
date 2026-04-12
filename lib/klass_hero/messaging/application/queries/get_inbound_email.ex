@@ -5,6 +5,10 @@ defmodule KlassHero.Messaging.Application.Queries.GetInboundEmail do
 
   alias KlassHero.Messaging.Domain.Models.InboundEmail
 
+  @inbound_email_reader Application.compile_env!(:klass_hero, [
+                          :messaging,
+                          :for_querying_inbound_emails
+                        ])
   @inbound_email_repo Application.compile_env!(:klass_hero, [
                         :messaging,
                         :for_managing_inbound_emails
@@ -15,7 +19,7 @@ defmodule KlassHero.Messaging.Application.Queries.GetInboundEmail do
     mark_read = Keyword.get(opts, :mark_read, false)
     reader_id = Keyword.get(opts, :reader_id)
 
-    with {:ok, email} <- @inbound_email_repo.get_by_id(id) do
+    with {:ok, email} <- @inbound_email_reader.get_by_id(id) do
       maybe_mark_read(email, mark_read && reader_id, reader_id)
     end
   end

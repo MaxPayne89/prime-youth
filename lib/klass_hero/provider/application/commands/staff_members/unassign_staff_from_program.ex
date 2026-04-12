@@ -21,7 +21,7 @@ defmodule KlassHero.Provider.Application.Commands.StaffMembers.UnassignStaffFrom
                      :provider,
                      :for_storing_program_staff_assignments
                    ])
-  @staff_repo Application.compile_env!(:klass_hero, [:provider, :for_storing_staff_members])
+  @staff_repo Application.compile_env!(:klass_hero, [:provider, :for_querying_staff_members])
 
   @doc """
   Unassigns a staff member from a program.

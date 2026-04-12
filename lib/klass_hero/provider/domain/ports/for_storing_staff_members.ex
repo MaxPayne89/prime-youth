@@ -1,8 +1,10 @@
 defmodule KlassHero.Provider.Domain.Ports.ForStoringStaffMembers do
   @moduledoc """
-  Repository port for storing and retrieving staff members in the Provider bounded context.
+  Write-only port for storing staff members in the Provider bounded context.
 
-  Defines the contract for staff member persistence.
+  Read operations have been moved to `ForQueryingStaffMembers`.
+
+  Defines the contract for staff member write operations.
   Implemented by adapters in the infrastructure layer.
   """
 
@@ -11,24 +13,9 @@ defmodule KlassHero.Provider.Domain.Ports.ForStoringStaffMembers do
   @callback create(attrs :: map()) ::
               {:ok, StaffMember.t()} | {:error, term()}
 
-  @callback get(id :: binary()) ::
-              {:ok, StaffMember.t()} | {:error, :not_found}
-
-  @callback list_by_provider(provider_id :: binary()) ::
-              {:ok, [StaffMember.t()]}
-
-  @callback list_active_by_provider(provider_id :: binary()) ::
-              {:ok, [StaffMember.t()]}
-
   @callback update(staff_member :: StaffMember.t()) ::
               {:ok, StaffMember.t()} | {:error, :not_found | term()}
 
   @callback delete(id :: binary()) ::
               :ok | {:error, :not_found}
-
-  @callback get_by_token_hash(token_hash :: binary()) ::
-              {:ok, StaffMember.t()} | {:error, :not_found}
-
-  @callback get_active_by_user(user_id :: String.t()) ::
-              {:ok, StaffMember.t()} | {:error, :not_found}
 end

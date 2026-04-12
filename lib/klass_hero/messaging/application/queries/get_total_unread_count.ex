@@ -7,10 +7,10 @@ defmodule KlassHero.Messaging.Application.Queries.GetTotalUnreadCount do
   notification badges in the navigation.
   """
 
-  @conversation_summaries_repo Application.compile_env!(:klass_hero, [
-                                 :messaging,
-                                 :for_managing_conversation_summaries
-                               ])
+  @conversation_summaries_reader Application.compile_env!(:klass_hero, [
+                                   :messaging,
+                                   :for_querying_conversation_summaries
+                                 ])
 
   @doc """
   Gets total unread count for a user.
@@ -25,6 +25,6 @@ defmodule KlassHero.Messaging.Application.Queries.GetTotalUnreadCount do
   """
   @spec execute(String.t()) :: non_neg_integer()
   def execute(user_id) do
-    @conversation_summaries_repo.get_total_unread_count(user_id)
+    @conversation_summaries_reader.get_total_unread_count(user_id)
   end
 end

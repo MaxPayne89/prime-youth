@@ -22,12 +22,16 @@ defmodule KlassHero.Participation.Application.Commands.BulkCheckIn do
 
   @context KlassHero.Participation
 
+  @participation_reader Application.compile_env!(:klass_hero, [
+                          :participation,
+                          :participation_query_repository
+                        ])
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
                               :participation_repository
                             ])
 
-  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+  @session_reader Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
 
   @type params :: %{
           required(:record_ids) => [String.t()],
@@ -85,7 +89,7 @@ defmodule KlassHero.Participation.Application.Commands.BulkCheckIn do
   end
 
   defp check_in_record(record_id, checked_in_by, notes, session) do
-    with {:ok, record} <- @participation_repository.get_by_id(record_id),
+    with {:ok, record} <- @participation_reader.get_by_id(record_id),
          {:ok, checked_in} <- ParticipationRecord.check_in(record, checked_in_by, notes),
          {:ok, persisted} <- @participation_repository.update(checked_in) do
       session = resolve_session_best_effort(session, persisted.session_id)
@@ -99,7 +103,7 @@ defmodule KlassHero.Participation.Application.Commands.BulkCheckIn do
   defp resolve_session_best_effort(%ProgramSession{} = session, _session_id), do: session
 
   defp resolve_session_best_effort(nil, session_id) do
-    case @session_repository.get_by_id(session_id) do
+    case @session_reader.get_by_id(session_id) do
       {:ok, session} ->
         session
 

@@ -5,14 +5,14 @@ defmodule KlassHero.Messaging.Application.Queries.InboundEmailQueries do
 
   alias KlassHero.Messaging.Domain.Models.EmailReply
 
-  @inbound_email_repo Application.compile_env!(:klass_hero, [
+  @inbound_email_reader Application.compile_env!(:klass_hero, [
+                          :messaging,
+                          :for_querying_inbound_emails
+                        ])
+  @email_reply_reader Application.compile_env!(:klass_hero, [
                         :messaging,
-                        :for_managing_inbound_emails
+                        :for_querying_email_replies
                       ])
-  @email_reply_repo Application.compile_env!(:klass_hero, [
-                      :messaging,
-                      :for_managing_email_replies
-                    ])
 
   @doc """
   Returns the count of inbound emails with the given status.
@@ -25,7 +25,7 @@ defmodule KlassHero.Messaging.Application.Queries.InboundEmailQueries do
   """
   @spec count_by_status(atom()) :: non_neg_integer()
   def count_by_status(status) do
-    @inbound_email_repo.count_by_status(status)
+    @inbound_email_reader.count_by_status(status)
   end
 
   @doc """
@@ -39,6 +39,6 @@ defmodule KlassHero.Messaging.Application.Queries.InboundEmailQueries do
   """
   @spec list_replies(String.t()) :: {:ok, [EmailReply.t()]}
   def list_replies(inbound_email_id) do
-    @email_reply_repo.list_by_email(inbound_email_id)
+    @email_reply_reader.list_by_email(inbound_email_id)
   end
 end

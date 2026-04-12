@@ -25,12 +25,13 @@ defmodule KlassHero.Messaging.Application.Commands.SendMessage do
   require Logger
 
   @context KlassHero.Messaging
-  @conversation_repo Application.compile_env!(:klass_hero, [
-                       :messaging,
-                       :for_managing_conversations
-                     ])
+  @conversation_reader Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_querying_conversations
+                       ])
   @message_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_messages])
   @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
+  @participant_reader Application.compile_env!(:klass_hero, [:messaging, :for_querying_participants])
   @attachment_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_attachments])
   @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
   @staff_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_program_staff])
@@ -77,7 +78,7 @@ defmodule KlassHero.Messaging.Application.Commands.SendMessage do
 
     with :ok <- validate_message_content(trimmed_content, attachment_files),
          :ok <- validate_attachment_files(attachment_files),
-         :ok <- Shared.verify_participant(conversation_id, sender_id, @participant_repo),
+         :ok <- Shared.verify_participant(conversation_id, sender_id, @participant_reader),
          :ok <- verify_broadcast_send_permission(conversation_id, sender_id, conversation),
          {:ok, uploaded_files} <- upload_files(attachment_files, conversation_id),
          {:ok, message_with_attachments} <-
@@ -270,7 +271,7 @@ defmodule KlassHero.Messaging.Application.Commands.SendMessage do
     result =
       if conversation && conversation.id == conversation_id,
         do: {:ok, conversation},
-        else: @conversation_repo.get_by_id(conversation_id)
+        else: @conversation_reader.get_by_id(conversation_id)
 
     case result do
       {:ok, %{type: :program_broadcast, provider_id: provider_id, program_id: program_id}} ->

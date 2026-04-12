@@ -5,7 +5,7 @@ defmodule KlassHero.Enrollment.Application.Queries.GetParticipantPolicy do
 
   @participant_policy_repo Application.compile_env!(:klass_hero, [
                              :enrollment,
-                             :for_managing_participant_policies
+                             :for_querying_participant_policies
                            ])
 
   @doc """

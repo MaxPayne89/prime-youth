@@ -8,6 +8,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
   """
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingConversationSummaries
+  @behaviour KlassHero.Messaging.Domain.Ports.ForQueryingConversationSummaries
 
   use KlassHero.Shared.Tracing
 

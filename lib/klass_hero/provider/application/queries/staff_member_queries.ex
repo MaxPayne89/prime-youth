@@ -10,7 +10,7 @@ defmodule KlassHero.Provider.Application.Queries.StaffMemberQueries do
 
   @staff_repository Application.compile_env!(:klass_hero, [
                       :provider,
-                      :for_storing_staff_members
+                      :for_querying_staff_members
                     ])
 
   @doc """

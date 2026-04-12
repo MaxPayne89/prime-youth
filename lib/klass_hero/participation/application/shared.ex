@@ -12,12 +12,16 @@ defmodule KlassHero.Participation.Application.Shared do
 
   @context KlassHero.Participation
 
+  @participation_reader Application.compile_env!(:klass_hero, [
+                          :participation,
+                          :participation_query_repository
+                        ])
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
                               :participation_repository
                             ])
 
-  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+  @session_reader Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
 
   @doc """
   Normalizes notes by trimming whitespace and converting empty strings to nil.
@@ -63,7 +67,7 @@ defmodule KlassHero.Participation.Application.Shared do
   def run_attendance_action(record_id, actor_id, notes, domain_fn, event_fn) do
     notes = normalize_notes(notes)
 
-    with {:ok, record} <- @participation_repository.get_by_id(record_id),
+    with {:ok, record} <- @participation_reader.get_by_id(record_id),
          {:ok, updated} <- domain_fn.(record, actor_id, notes),
          {:ok, persisted} <- @participation_repository.update(updated) do
       # Trigger: session fetch is best-effort for event enrichment
@@ -72,7 +76,7 @@ defmodule KlassHero.Participation.Application.Shared do
       # Outcome: if session found, event includes program_id; if not, event
       #          still dispatched without it (NotifyLiveViews handles gracefully)
       session =
-        case @session_repository.get_by_id(persisted.session_id) do
+        case @session_reader.get_by_id(persisted.session_id) do
           {:ok, session} ->
             session
 

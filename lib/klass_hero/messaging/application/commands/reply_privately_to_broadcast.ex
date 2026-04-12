@@ -23,12 +23,21 @@ defmodule KlassHero.Messaging.Application.Commands.ReplyPrivatelyToBroadcast do
                        :messaging,
                        :for_managing_conversations
                      ])
+  @conversation_reader Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_querying_conversations
+                       ])
   @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
+  @participant_reader Application.compile_env!(:klass_hero, [:messaging, :for_querying_participants])
   @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
   @conversation_summaries_repo Application.compile_env!(:klass_hero, [
                                  :messaging,
                                  :for_managing_conversation_summaries
                                ])
+  @conversation_summaries_reader Application.compile_env!(:klass_hero, [
+                                   :messaging,
+                                   :for_querying_conversation_summaries
+                                 ])
 
   @doc """
   Orchestrates a private reply to a broadcast.
@@ -49,7 +58,7 @@ defmodule KlassHero.Messaging.Application.Commands.ReplyPrivatelyToBroadcast do
     #      on :program_broadcast and check participation for defense in depth
     # Outcome: only broadcast participants can initiate private replies
     with {:ok, broadcast} <- fetch_broadcast(broadcast_conversation_id),
-         :ok <- Shared.verify_participant(broadcast.id, scope.user.id, @participant_repo),
+         :ok <- Shared.verify_participant(broadcast.id, scope.user.id, @participant_reader),
          {:ok, provider_user_id} <- @user_resolver.get_user_id_for_provider(broadcast.provider_id),
          {:ok, direct_conversation} <-
            find_or_create_direct_conversation(
@@ -74,7 +83,7 @@ defmodule KlassHero.Messaging.Application.Commands.ReplyPrivatelyToBroadcast do
   end
 
   defp fetch_broadcast(conversation_id) do
-    case @conversation_repo.get_by_id(conversation_id) do
+    case @conversation_reader.get_by_id(conversation_id) do
       {:ok, %{type: :program_broadcast} = broadcast} -> {:ok, broadcast}
       {:ok, _non_broadcast} -> {:error, :not_broadcast}
       {:error, :not_found} -> {:error, :not_found}
@@ -90,7 +99,7 @@ defmodule KlassHero.Messaging.Application.Commands.ReplyPrivatelyToBroadcast do
   #      We handle find and create separately to get the correct lookup semantics.
   # Outcome: returns the unique direct conversation between this parent and provider
   defp find_or_create_direct_conversation(scope, provider_id, provider_user_id) do
-    case @conversation_repo.find_direct_conversation(provider_id, scope.user.id) do
+    case @conversation_reader.find_direct_conversation(provider_id, scope.user.id) do
       {:ok, existing} ->
         {:ok, existing}
 
@@ -177,6 +186,6 @@ defmodule KlassHero.Messaging.Application.Commands.ReplyPrivatelyToBroadcast do
   end
 
   defp system_note_exists?(conversation_id, token) do
-    @conversation_summaries_repo.has_system_note?(conversation_id, token)
+    @conversation_summaries_reader.has_system_note?(conversation_id, token)
   end
 end

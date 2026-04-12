@@ -14,6 +14,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   are handled by the supervision tree.
   """
 
+  @behaviour KlassHero.Provider.Domain.Ports.ForQueryingProviderProfiles
   @behaviour KlassHero.Provider.Domain.Ports.ForStoringProviderProfiles
 
   use KlassHero.Shared.Tracing

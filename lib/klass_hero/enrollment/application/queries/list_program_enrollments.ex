@@ -11,7 +11,7 @@ defmodule KlassHero.Enrollment.Application.Queries.ListProgramEnrollments do
 
   @enrollment_repository Application.compile_env!(:klass_hero, [
                            :enrollment,
-                           :for_managing_enrollments
+                           :for_querying_enrollments
                          ])
   @child_info_adapter Application.compile_env!(:klass_hero, [
                         :enrollment,

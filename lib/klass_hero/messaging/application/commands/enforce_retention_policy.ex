@@ -30,7 +30,11 @@ defmodule KlassHero.Messaging.Application.Commands.EnforceRetentionPolicy do
                        :messaging,
                        :for_managing_conversations
                      ])
-  @attachment_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_attachments])
+  @conversation_reader Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_querying_conversations
+                       ])
+  @attachment_reader Application.compile_env!(:klass_hero, [:messaging, :for_querying_attachments])
 
   @doc """
   Enforces retention policy by deleting expired messages and conversations.
@@ -75,9 +79,9 @@ defmodule KlassHero.Messaging.Application.Commands.EnforceRetentionPolicy do
   end
 
   defp collect_attachment_storage_paths(now) do
-    conversation_ids = @conversation_repo.list_expired_ids(now)
+    conversation_ids = @conversation_reader.list_expired_ids(now)
 
-    case @attachment_repo.get_storage_paths_for_conversations(conversation_ids) do
+    case @attachment_reader.get_storage_paths_for_conversations(conversation_ids) do
       {:ok, paths} ->
         Logger.debug("Collected S3 storage paths for retention cleanup", count: length(paths))
         {:ok, paths}

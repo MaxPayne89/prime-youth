@@ -11,6 +11,10 @@ defmodule KlassHero.Enrollment.Application.Commands.ImportEnrollmentCsv do
   alias KlassHero.Enrollment.Domain.Services.ImportRowValidator
   alias KlassHero.Shared.EventDispatchHelper
 
+  @invite_reader Application.compile_env!(:klass_hero, [
+                   :enrollment,
+                   :for_querying_bulk_enrollment_invites
+                 ])
   @invite_repository Application.compile_env!(:klass_hero, [
                        :enrollment,
                        :for_storing_bulk_enrollment_invites
@@ -158,7 +162,7 @@ defmodule KlassHero.Enrollment.Application.Commands.ImportEnrollmentCsv do
   # Outcome: already-imported rows flagged with a clear message
   defp check_existing_duplicates(rows) do
     program_ids = rows |> Enum.map(& &1.program_id) |> Enum.uniq()
-    existing_keys = @invite_repository.list_existing_keys_for_programs(program_ids)
+    existing_keys = @invite_reader.list_existing_keys_for_programs(program_ids)
 
     duplicates =
       rows

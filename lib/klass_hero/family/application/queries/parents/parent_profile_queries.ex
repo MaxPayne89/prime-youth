@@ -5,7 +5,7 @@ defmodule KlassHero.Family.Application.Queries.Parents.ParentProfileQueries do
 
   @parent_repository Application.compile_env!(:klass_hero, [
                        :family,
-                       :for_storing_parent_profiles
+                       :for_querying_parent_profiles
                      ])
 
   @doc """

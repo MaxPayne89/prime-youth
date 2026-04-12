@@ -10,7 +10,7 @@ defmodule KlassHero.Enrollment.Application.Queries.EnrollmentPolicyQueries do
 
   @policy_repo Application.compile_env!(:klass_hero, [
                  :enrollment,
-                 :for_managing_enrollment_policies
+                 :for_querying_enrollment_policies
                ])
 
   @doc """

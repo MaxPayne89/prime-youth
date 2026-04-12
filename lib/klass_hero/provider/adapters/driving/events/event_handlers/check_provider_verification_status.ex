@@ -21,12 +21,12 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProvider
 
   @doc_repository Application.compile_env!(:klass_hero, [
                     :provider,
-                    :for_storing_verification_documents
+                    :for_querying_verification_documents
                   ])
 
   @profile_repository Application.compile_env!(:klass_hero, [
                         :provider,
-                        :for_storing_provider_profiles
+                        :for_querying_provider_profiles
                       ])
 
   @doc """

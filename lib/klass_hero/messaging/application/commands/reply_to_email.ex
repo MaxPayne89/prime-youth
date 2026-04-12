@@ -8,10 +8,10 @@ defmodule KlassHero.Messaging.Application.Commands.ReplyToEmail do
 
   require Logger
 
-  @inbound_email_repo Application.compile_env!(:klass_hero, [
-                        :messaging,
-                        :for_managing_inbound_emails
-                      ])
+  @inbound_email_reader Application.compile_env!(:klass_hero, [
+                          :messaging,
+                          :for_querying_inbound_emails
+                        ])
   @email_reply_repo Application.compile_env!(:klass_hero, [
                       :messaging,
                       :for_managing_email_replies
@@ -24,7 +24,7 @@ defmodule KlassHero.Messaging.Application.Commands.ReplyToEmail do
   @spec execute(String.t(), String.t(), String.t(), keyword()) ::
           {:ok, struct()} | {:error, term()}
   def execute(email_id, reply_body, sent_by_id, _opts \\ []) do
-    with {:ok, _email} <- @inbound_email_repo.get_by_id(email_id),
+    with {:ok, _email} <- @inbound_email_reader.get_by_id(email_id),
          {:ok, reply} <-
            @email_reply_repo.create(%{
              inbound_email_id: email_id,

@@ -5,7 +5,7 @@ defmodule KlassHero.Family.Application.Queries.Consents.ConsentQueries do
 
   @consent_repository Application.compile_env!(:klass_hero, [
                         :family,
-                        :for_storing_consents
+                        :for_querying_consents
                       ])
 
   @doc """

@@ -13,6 +13,10 @@ defmodule KlassHero.Enrollment.Application.Commands.EnqueueInviteEmails do
 
   require Logger
 
+  @invite_reader Application.compile_env!(:klass_hero, [
+                   :enrollment,
+                   :for_querying_bulk_enrollment_invites
+                 ])
   @invite_repository Application.compile_env!(:klass_hero, [
                        :enrollment,
                        :for_storing_bulk_enrollment_invites
@@ -24,7 +28,7 @@ defmodule KlassHero.Enrollment.Application.Commands.EnqueueInviteEmails do
 
   @spec execute([binary()], binary()) :: {:ok, [{binary(), String.t()}]}
   def execute(program_ids, provider_id) when is_list(program_ids) and is_binary(provider_id) do
-    pending_invites = @invite_repository.list_pending_without_token(program_ids)
+    pending_invites = @invite_reader.list_pending_without_token(program_ids)
 
     if pending_invites == [] do
       Logger.info("[Enrollment.EnqueueInviteEmails] No pending invites to process")

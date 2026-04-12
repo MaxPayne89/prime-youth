@@ -10,7 +10,7 @@ defmodule KlassHero.Provider.Application.Queries.ProgramStaffAssignmentQueries d
 
   @assignment_repository Application.compile_env!(:klass_hero, [
                            :provider,
-                           :for_storing_program_staff_assignments
+                           :for_querying_program_staff_assignments
                          ])
 
   @doc """

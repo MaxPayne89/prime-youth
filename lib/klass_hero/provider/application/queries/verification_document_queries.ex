@@ -7,11 +7,11 @@ defmodule KlassHero.Provider.Application.Queries.VerificationDocumentQueries do
   """
 
   alias KlassHero.Provider.Domain.Models.VerificationDocument
-  alias KlassHero.Provider.Domain.Ports.ForStoringVerificationDocuments
+  alias KlassHero.Provider.Domain.Ports.ForQueryingVerificationDocuments
 
   @verification_document_repository Application.compile_env!(:klass_hero, [
                                       :provider,
-                                      :for_storing_verification_documents
+                                      :for_querying_verification_documents
                                     ])
 
   @doc """
@@ -40,7 +40,7 @@ defmodule KlassHero.Provider.Application.Queries.VerificationDocumentQueries do
   - `:rejected` - Rejected documents (newest first)
   """
   @spec list_for_admin_review(VerificationDocument.status() | nil) ::
-          {:ok, [ForStoringVerificationDocuments.admin_review_result()]}
+          {:ok, [ForQueryingVerificationDocuments.admin_review_result()]}
   def list_for_admin_review(status \\ nil) do
     @verification_document_repository.list_for_admin_review(status)
   end
@@ -49,7 +49,7 @@ defmodule KlassHero.Provider.Application.Queries.VerificationDocumentQueries do
   Get a single verification document with provider info for admin review.
   """
   @spec get_for_admin_review(String.t()) ::
-          {:ok, ForStoringVerificationDocuments.admin_review_result()} | {:error, :not_found}
+          {:ok, ForQueryingVerificationDocuments.admin_review_result()} | {:error, :not_found}
   def get_for_admin_review(document_id) do
     @verification_document_repository.get_for_admin_review(document_id)
   end

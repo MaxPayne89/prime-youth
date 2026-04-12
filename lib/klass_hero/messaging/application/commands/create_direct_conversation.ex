@@ -26,6 +26,10 @@ defmodule KlassHero.Messaging.Application.Commands.CreateDirectConversation do
                        :messaging,
                        :for_managing_conversations
                      ])
+  @conversation_reader Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_querying_conversations
+                       ])
   @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
 
   @doc """
@@ -57,7 +61,7 @@ defmodule KlassHero.Messaging.Application.Commands.CreateDirectConversation do
   end
 
   defp find_or_create_conversation(scope, provider_id, target_user_id, opts) do
-    case @conversation_repo.find_direct_conversation(provider_id, target_user_id) do
+    case @conversation_reader.find_direct_conversation(provider_id, target_user_id) do
       {:ok, existing} ->
         Logger.debug("Found existing conversation", conversation_id: existing.id)
         {:ok, existing}

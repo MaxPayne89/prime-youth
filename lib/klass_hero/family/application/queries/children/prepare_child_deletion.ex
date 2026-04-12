@@ -10,7 +10,7 @@ defmodule KlassHero.Family.Application.Queries.Children.PrepareChildDeletion do
 
   @enrollment_acl Application.compile_env!(:klass_hero, [
                     :family,
-                    :for_managing_child_enrollments
+                    :for_querying_child_enrollments
                   ])
 
   @doc """

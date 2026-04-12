@@ -18,6 +18,7 @@ defmodule KlassHero.Participation.Application.Commands.StartSession do
 
   @context KlassHero.Participation
 
+  @session_reader Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
   @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
 
   @type result :: {:ok, ProgramSession.t()} | {:error, term()}
@@ -38,7 +39,7 @@ defmodule KlassHero.Participation.Application.Commands.StartSession do
   """
   @spec execute(String.t()) :: result()
   def execute(session_id) when is_binary(session_id) do
-    with {:ok, session} <- @session_repository.get_by_id(session_id),
+    with {:ok, session} <- @session_reader.get_by_id(session_id),
          {:ok, started} <- ProgramSession.start(session),
          {:ok, persisted} <- @session_repository.update(started) do
       publish_event(persisted)

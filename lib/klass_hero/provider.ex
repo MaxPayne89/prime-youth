@@ -64,7 +64,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Provider.Domain.Models.VerificationDocument
-  alias KlassHero.Provider.Domain.Ports.ForStoringVerificationDocuments
+  alias KlassHero.Provider.Domain.Ports.ForQueryingVerificationDocuments
 
   # ===========================================================================
   # Commands
@@ -325,7 +325,7 @@ defmodule KlassHero.Provider do
   - `:rejected` - Rejected documents (newest first)
   """
   @spec list_verification_documents_for_admin(VerificationDocument.status() | nil) ::
-          {:ok, [ForStoringVerificationDocuments.admin_review_result()]}
+          {:ok, [ForQueryingVerificationDocuments.admin_review_result()]}
   def list_verification_documents_for_admin(status \\ nil) do
     VerificationDocumentQueries.list_for_admin_review(status)
   end
@@ -334,7 +334,7 @@ defmodule KlassHero.Provider do
   Get a single verification document with provider info for admin review.
   """
   @spec get_verification_document_for_admin(String.t()) ::
-          {:ok, ForStoringVerificationDocuments.admin_review_result()} | {:error, :not_found}
+          {:ok, ForQueryingVerificationDocuments.admin_review_result()} | {:error, :not_found}
   def get_verification_document_for_admin(document_id) do
     VerificationDocumentQueries.get_for_admin_review(document_id)
   end

@@ -22,6 +22,10 @@ defmodule KlassHero.Participation.Application.Commands.ReviewBehavioralNote do
 
   @context KlassHero.Participation
 
+  @behavioral_note_reader Application.compile_env!(:klass_hero, [
+                            :participation,
+                            :behavioral_note_query_repository
+                          ])
   @behavioral_note_repository Application.compile_env!(:klass_hero, [
                                 :participation,
                                 :behavioral_note_repository
@@ -60,7 +64,7 @@ defmodule KlassHero.Participation.Application.Commands.ReviewBehavioralNote do
     # Trigger: scoped query ensures note belongs to this parent
     # Why: DB-enforced ownership — no separate authorization check needed
     # Outcome: returns :not_found if note doesn't belong to parent
-    with {:ok, note} <- @behavioral_note_repository.get_by_id_and_parent(note_id, parent_id),
+    with {:ok, note} <- @behavioral_note_reader.get_by_id_and_parent(note_id, parent_id),
          {:ok, reviewed} <- apply_decision(note, decision, reason),
          {:ok, persisted} <- @behavioral_note_repository.update(reviewed) do
       Shared.log_publish_result(publish_event(persisted, decision), persisted.id)

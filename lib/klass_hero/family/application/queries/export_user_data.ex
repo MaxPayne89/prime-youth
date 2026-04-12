@@ -8,15 +8,15 @@ defmodule KlassHero.Family.Application.Queries.ExportUserData do
 
   @parent_repository Application.compile_env!(:klass_hero, [
                        :family,
-                       :for_storing_parent_profiles
+                       :for_querying_parent_profiles
                      ])
   @child_repository Application.compile_env!(:klass_hero, [
                       :family,
-                      :for_storing_children
+                      :for_querying_children
                     ])
   @consent_repository Application.compile_env!(:klass_hero, [
                         :family,
-                        :for_storing_consents
+                        :for_querying_consents
                       ])
 
   @doc """

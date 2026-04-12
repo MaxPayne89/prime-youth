@@ -8,6 +8,7 @@ defmodule KlassHero.Provider.Application.Commands.Providers.UpdateProviderProfil
 
   alias KlassHero.Provider.Domain.Models.ProviderProfile
 
+  @query Application.compile_env!(:klass_hero, [:provider, :for_querying_provider_profiles])
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_provider_profiles])
 
   @allowed_fields ~w(description logo_url)a
@@ -26,7 +27,7 @@ defmodule KlassHero.Provider.Application.Commands.Providers.UpdateProviderProfil
   def execute(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
     attrs = Map.take(attrs, @allowed_fields)
 
-    with {:ok, existing} <- @repository.get(provider_id),
+    with {:ok, existing} <- @query.get(provider_id),
          merged = Map.merge(Map.from_struct(existing), attrs),
          {:ok, _validated} <- ProviderProfile.new(merged),
          # Trigger: domain validation passed, now persist

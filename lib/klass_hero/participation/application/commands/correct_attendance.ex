@@ -9,6 +9,10 @@ defmodule KlassHero.Participation.Application.Commands.CorrectAttendance do
 
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
 
+  @participation_reader Application.compile_env!(
+                          :klass_hero,
+                          [:participation, :participation_query_repository]
+                        )
   @participation_repository Application.compile_env!(
                               :klass_hero,
                               [:participation, :participation_repository]
@@ -28,7 +32,7 @@ defmodule KlassHero.Participation.Application.Commands.CorrectAttendance do
   def execute(%{record_id: record_id, reason: reason} = params) do
     with :ok <- validate_reason(reason),
          correction_attrs = build_correction_attrs(params),
-         {:ok, record} <- @participation_repository.get_by_id(record_id),
+         {:ok, record} <- @participation_reader.get_by_id(record_id),
          {:ok, corrected} <- ParticipationRecord.admin_correct(record, correction_attrs) do
       corrected_with_notes = append_correction_reason(corrected, record, params)
       @participation_repository.update(corrected_with_notes)

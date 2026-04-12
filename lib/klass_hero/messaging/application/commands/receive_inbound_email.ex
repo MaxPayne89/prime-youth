@@ -7,6 +7,10 @@ defmodule KlassHero.Messaging.Application.Commands.ReceiveInboundEmail do
 
   require Logger
 
+  @inbound_email_reader Application.compile_env!(:klass_hero, [
+                          :messaging,
+                          :for_querying_inbound_emails
+                        ])
   @inbound_email_repo Application.compile_env!(:klass_hero, [
                         :messaging,
                         :for_managing_inbound_emails
@@ -21,7 +25,7 @@ defmodule KlassHero.Messaging.Application.Commands.ReceiveInboundEmail do
     # Trigger: same email may arrive multiple times (Resend retries on non-2xx)
     # Why: idempotent handling prevents duplicate storage
     # Outcome: duplicate silently acknowledged, new emails persisted
-    case @inbound_email_repo.get_by_resend_id(attrs.resend_id) do
+    case @inbound_email_reader.get_by_resend_id(attrs.resend_id) do
       {:ok, _existing} ->
         Logger.debug("Duplicate inbound email ignored: #{attrs.resend_id}")
         {:ok, :duplicate}

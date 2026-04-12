@@ -25,6 +25,10 @@ defmodule KlassHero.Messaging.Application.Commands.BroadcastToProgram do
                        :messaging,
                        :for_managing_conversations
                      ])
+  @conversation_reader Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_querying_conversations
+                       ])
   @enrollment_resolver Application.compile_env!(:klass_hero, [
                          :messaging,
                          :for_querying_enrollments
@@ -141,7 +145,7 @@ defmodule KlassHero.Messaging.Application.Commands.BroadcastToProgram do
     # Trigger: check for existing broadcast BEFORE attempting insert
     # Why: avoids unique constraint violation that would abort a parent transaction
     # Outcome: existing conversation reused; new one created only if none exists
-    case @conversation_repo.find_active_broadcast_for_program(provider_id, program_id) do
+    case @conversation_reader.find_active_broadcast_for_program(provider_id, program_id) do
       {:ok, conversation} ->
         {:ok, conversation}
 
@@ -162,7 +166,7 @@ defmodule KlassHero.Messaging.Application.Commands.BroadcastToProgram do
           # Why: unique constraint fires; handle gracefully by re-querying
           # Outcome: return the conversation that won the race
           {:error, :duplicate_broadcast} ->
-            @conversation_repo.find_active_broadcast_for_program(provider_id, program_id)
+            @conversation_reader.find_active_broadcast_for_program(provider_id, program_id)
         end
     end
   end

@@ -11,7 +11,7 @@ defmodule KlassHero.Provider.Application.InvitationEmitter do
 
   @provider_repository Application.compile_env!(
                          :klass_hero,
-                         [:provider, :for_storing_provider_profiles]
+                         [:provider, :for_querying_provider_profiles]
                        )
 
   @doc """

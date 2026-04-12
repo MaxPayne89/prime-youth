@@ -5,7 +5,7 @@ defmodule KlassHero.Family.Application.Queries.Children.ChildQueries do
 
   @child_repository Application.compile_env!(:klass_hero, [
                       :family,
-                      :for_storing_children
+                      :for_querying_children
                     ])
 
   @doc """

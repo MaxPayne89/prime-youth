@@ -7,6 +7,10 @@ defmodule KlassHero.Provider.Application.Commands.StaffMembers.ExpireStaffInvita
 
   alias KlassHero.Provider.Domain.Models.StaffMember
 
+  @staff_query Application.compile_env!(:klass_hero, [
+                 :provider,
+                 :for_querying_staff_members
+               ])
   @staff_repository Application.compile_env!(:klass_hero, [
                       :provider,
                       :for_storing_staff_members
@@ -26,7 +30,7 @@ defmodule KlassHero.Provider.Application.Commands.StaffMembers.ExpireStaffInvita
   end
 
   def execute(staff_member_id) when is_binary(staff_member_id) do
-    with {:ok, staff} <- @staff_repository.get(staff_member_id) do
+    with {:ok, staff} <- @staff_query.get(staff_member_id) do
       execute(staff)
     end
   end

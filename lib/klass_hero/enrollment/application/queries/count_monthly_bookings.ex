@@ -16,7 +16,7 @@ defmodule KlassHero.Enrollment.Application.Queries.CountMonthlyBookings do
 
   @enrollment_repository Application.compile_env!(:klass_hero, [
                            :enrollment,
-                           :for_managing_enrollments
+                           :for_querying_enrollments
                          ])
 
   @doc """

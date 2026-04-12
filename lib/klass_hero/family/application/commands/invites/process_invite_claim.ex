@@ -14,7 +14,9 @@ defmodule KlassHero.Family.Application.Commands.Invites.ProcessInviteClaim do
 
   require Logger
 
+  @child_query Application.compile_env!(:klass_hero, [:family, :for_querying_children])
   @child_repository Application.compile_env!(:klass_hero, [:family, :for_storing_children])
+  @parent_query Application.compile_env!(:klass_hero, [:family, :for_querying_parent_profiles])
   @parent_repository Application.compile_env!(:klass_hero, [:family, :for_storing_parent_profiles])
 
   @doc """
@@ -67,7 +69,7 @@ defmodule KlassHero.Family.Application.Commands.Invites.ProcessInviteClaim do
       {:ok, parent}
     else
       {:error, :duplicate_resource} ->
-        @parent_repository.get_by_identity_id(user_id)
+        @parent_query.get_by_identity_id(user_id)
 
       {:error, errors} when is_list(errors) ->
         {:error, {:validation_error, errors}}
@@ -143,7 +145,7 @@ defmodule KlassHero.Family.Application.Commands.Invites.ProcessInviteClaim do
   # Outcome: returns matching child or nil
   defp find_existing_child(parent_id, first_name, last_name, date_of_birth) do
     parent_id
-    |> @child_repository.list_by_guardian()
+    |> @child_query.list_by_guardian()
     |> Enum.find(fn child ->
       String.downcase(child.first_name) == String.downcase(first_name) &&
         String.downcase(child.last_name) == String.downcase(last_name) &&

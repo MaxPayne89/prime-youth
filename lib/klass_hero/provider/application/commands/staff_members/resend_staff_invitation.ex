@@ -13,13 +13,14 @@ defmodule KlassHero.Provider.Application.Commands.StaffMembers.ResendStaffInvita
 
   require Logger
 
+  @staff_query Application.compile_env!(:klass_hero, [:provider, :for_querying_staff_members])
   @staff_repository Application.compile_env!(:klass_hero, [:provider, :for_storing_staff_members])
 
   @spec execute(String.t()) ::
           {:ok, StaffMember.t(), String.t()}
           | {:error, :not_found | :invalid_invitation_transition | :invitation_emission_failed}
   def execute(staff_member_id) when is_binary(staff_member_id) do
-    with {:ok, staff} <- @staff_repository.get(staff_member_id),
+    with {:ok, staff} <- @staff_query.get(staff_member_id),
          {:ok, transitioned} <- StaffMember.transition_invitation(staff, :pending),
          {raw_token, token_hash} = StaffMember.generate_invitation_token(),
          updated = %{transitioned | invitation_token_hash: token_hash},

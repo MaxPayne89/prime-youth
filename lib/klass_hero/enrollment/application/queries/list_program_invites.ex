@@ -7,7 +7,7 @@ defmodule KlassHero.Enrollment.Application.Queries.ListProgramInvites do
 
   @invite_repository Application.compile_env!(:klass_hero, [
                        :enrollment,
-                       :for_storing_bulk_enrollment_invites
+                       :for_querying_bulk_enrollment_invites
                      ])
 
   @spec execute(binary()) :: {:ok, [struct()]}
