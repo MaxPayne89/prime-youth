@@ -172,7 +172,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Mappers.Participat
     end
   end
 
-  describe "update_schema/1" do
+  describe "update_schema/2" do
     test "returns a map with mutable check-in/check-out fields" do
       schema = valid_schema()
       check_in_at = ~U[2025-07-01 09:10:00Z]

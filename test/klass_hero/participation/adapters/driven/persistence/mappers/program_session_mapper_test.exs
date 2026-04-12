@@ -154,10 +154,12 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Mappers.ProgramSes
     end
   end
 
-  describe "update_schema/1" do
+  describe "update_schema/2" do
     test "returns a map with mutable fields only" do
       schema = valid_schema()
-      session = valid_session(%{status: :in_progress, location: "Gym", notes: "Updated", max_capacity: 25, lock_version: 2})
+
+      session =
+        valid_session(%{status: :in_progress, location: "Gym", notes: "Updated", max_capacity: 25, lock_version: 2})
 
       attrs = ProgramSessionMapper.update_schema(schema, session)
 
