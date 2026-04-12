@@ -180,7 +180,7 @@ msgstr ""
 
 #: lib/klass_hero_web/live/home_live.ex:245
 #, elixir-autogen, elixir-format
-msgid "Built for the Berlin international community. Connect with local families and trusted educators nearby."
+msgid "Built for the Berlin international community. Integrated secure encrypted messaging to connect with local families and trusted educators nearby."
 msgstr ""
 
 #: lib/klass_hero_web/live/booking_live.ex:508
