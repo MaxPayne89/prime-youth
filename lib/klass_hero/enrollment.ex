@@ -87,9 +87,9 @@ defmodule KlassHero.Enrollment do
                        [:enrollment, :for_storing_bulk_enrollment_invites]
                      )
 
-  # ============================================================================
-  # Enrollment Management Functions
-  # ============================================================================
+  # ===========================================================================
+  # Commands
+  # ===========================================================================
 
   @doc """
   Creates a new enrollment.
@@ -116,17 +116,6 @@ defmodule KlassHero.Enrollment do
   end
 
   @doc """
-  Retrieves an enrollment by ID.
-
-  Returns:
-  - `{:ok, Enrollment.t()}` - Enrollment found
-  - `{:error, :not_found}` - No enrollment exists with the given ID
-  """
-  def get_enrollment(id) when is_binary(id) do
-    GetEnrollment.execute(id)
-  end
-
-  @doc """
   Cancels an enrollment by admin action.
 
   Enforces domain lifecycle guards (only pending/confirmed can be cancelled),
@@ -148,6 +137,98 @@ defmodule KlassHero.Enrollment do
   def cancel_enrollment_by_admin(enrollment_id, admin_id, reason)
       when is_binary(enrollment_id) and is_binary(admin_id) and is_binary(reason) and byte_size(reason) > 0 do
     CancelEnrollmentByAdmin.execute(enrollment_id, admin_id, reason)
+  end
+
+  @doc """
+  Creates or updates enrollment capacity policy for a program.
+
+  ## Parameters
+  - attrs: Map with :program_id (required), :min_enrollment, :max_enrollment (at least one required)
+
+  ## Returns
+  - `{:ok, EnrollmentPolicy.t()}` on success
+  - `{:error, term()}` on validation failure
+  """
+  def set_enrollment_policy(attrs) when is_map(attrs) do
+    @policy_repo.upsert(attrs)
+  end
+
+  @doc """
+  Creates or updates a participant eligibility policy for a program.
+
+  Uses upsert semantics -- if a policy already exists for the program_id, it is updated.
+  """
+  def set_participant_policy(attrs) when is_map(attrs) do
+    SetParticipantPolicy.execute(attrs)
+  end
+
+  @doc """
+  Imports enrollment invites from a CSV file for a provider.
+
+  Parses the CSV, validates each row, checks for duplicates, and persists
+  all valid rows as BulkEnrollmentInvite records with status "pending".
+
+  All-or-nothing: if any row fails validation, nothing is persisted.
+
+  Returns:
+  - `{:ok, %{created: count}}` on success
+  - `{:error, error_report}` with parse_errors, validation_errors, or duplicate_errors
+  """
+  def import_enrollment_csv(provider_id, csv_binary) when is_binary(provider_id) and is_binary(csv_binary) do
+    ImportEnrollmentCsv.execute(provider_id, csv_binary)
+  end
+
+  @doc """
+  Resets an invite to pending and re-dispatches the email pipeline.
+
+  Verifies the invite belongs to the given provider before resending.
+
+  Returns `{:ok, invite}` on success, `{:error, :not_found}` or `{:error, :not_resendable}`.
+  """
+  def resend_invite(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
+    ResendInvite.execute(invite_id, provider_id)
+  end
+
+  @doc """
+  Deletes a bulk enrollment invite by ID.
+
+  Verifies the invite belongs to the given provider before deleting.
+
+  Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
+  """
+  def delete_invite(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
+    DeleteInvite.execute(invite_id, provider_id)
+  end
+
+  @doc """
+  Claims a bulk enrollment invite by token.
+
+  Validates the token, resolves or creates the user account, and publishes
+  the :invite_claimed event to trigger the async saga (child creation → enrollment).
+
+  Returns:
+  - `{:ok, :new_user, user, invite}` — new account created
+  - `{:ok, :existing_user, user, invite}` — existing account found
+  - `{:error, :not_found}` — invalid or expired token
+  - `{:error, :already_claimed}` — invite already processed
+  """
+  def claim_invite(token) when is_binary(token) do
+    ClaimInvite.execute(token)
+  end
+
+  # ===========================================================================
+  # Queries
+  # ===========================================================================
+
+  @doc """
+  Retrieves an enrollment by ID.
+
+  Returns:
+  - `{:ok, Enrollment.t()}` - Enrollment found
+  - `{:error, :not_found}` - No enrollment exists with the given ID
+  """
+  def get_enrollment(id) when is_binary(id) do
+    GetEnrollment.execute(id)
   end
 
   @doc """
@@ -222,10 +303,6 @@ defmodule KlassHero.Enrollment do
     GetBookingUsageInfo.execute(identity_id)
   end
 
-  # ============================================================================
-  # Cross-Context Query Functions
-  # ============================================================================
-
   @doc """
   Returns identity IDs of parents with active enrollments in a program.
 
@@ -247,24 +324,6 @@ defmodule KlassHero.Enrollment do
   @spec enrolled?(String.t(), String.t()) :: boolean()
   def enrolled?(program_id, identity_id) when is_binary(program_id) and is_binary(identity_id) do
     CheckEnrollment.execute(program_id, identity_id)
-  end
-
-  # ============================================================================
-  # Enrollment Policy Functions
-  # ============================================================================
-
-  @doc """
-  Creates or updates enrollment capacity policy for a program.
-
-  ## Parameters
-  - attrs: Map with :program_id (required), :min_enrollment, :max_enrollment (at least one required)
-
-  ## Returns
-  - `{:ok, EnrollmentPolicy.t()}` on success
-  - `{:error, term()}` on validation failure
-  """
-  def set_enrollment_policy(attrs) when is_map(attrs) do
-    @policy_repo.upsert(attrs)
   end
 
   @doc """
@@ -345,29 +404,6 @@ defmodule KlassHero.Enrollment do
     end)
   end
 
-  defp calculate_capacity(nil, _active), do: nil
-
-  defp calculate_capacity(policy, active) do
-    case EnrollmentPolicy.remaining_capacity(policy, active) do
-      :unlimited -> nil
-      remaining -> active + remaining
-    end
-  end
-
-  @doc """
-  Returns a changeset for enrollment policy form validation.
-
-  Used by the provider dashboard to validate capacity fields inline
-  before the program is created.
-  """
-  def new_policy_changeset(attrs \\ %{}) do
-    EnrollmentPolicySchema.changeset(%EnrollmentPolicySchema{}, attrs)
-  end
-
-  # ============================================================================
-  # Participant Policy Functions
-  # ============================================================================
-
   @doc """
   Checks whether a child is eligible for a program based on participant restrictions.
 
@@ -380,49 +416,10 @@ defmodule KlassHero.Enrollment do
   end
 
   @doc """
-  Creates or updates a participant eligibility policy for a program.
-
-  Uses upsert semantics -- if a policy already exists for the program_id, it is updated.
-  """
-  def set_participant_policy(attrs) when is_map(attrs) do
-    SetParticipantPolicy.execute(attrs)
-  end
-
-  @doc """
   Returns the participant policy for a program.
   """
   def get_participant_policy(program_id) when is_binary(program_id) do
     @participant_policy_repo.get_by_program_id(program_id)
-  end
-
-  @doc """
-  Returns a changeset for participant policy form validation.
-
-  Used by the provider dashboard to validate eligibility restriction fields
-  inline before the program is created.
-  """
-  def new_participant_policy_changeset(attrs \\ %{}) do
-    ParticipantPolicyForm.changeset(%ParticipantPolicyForm{}, attrs)
-  end
-
-  # ============================================================================
-  # Bulk Enrollment Import
-  # ============================================================================
-
-  @doc """
-  Imports enrollment invites from a CSV file for a provider.
-
-  Parses the CSV, validates each row, checks for duplicates, and persists
-  all valid rows as BulkEnrollmentInvite records with status "pending".
-
-  All-or-nothing: if any row fails validation, nothing is persisted.
-
-  Returns:
-  - `{:ok, %{created: count}}` on success
-  - `{:error, error_report}` with parse_errors, validation_errors, or duplicate_errors
-  """
-  def import_enrollment_csv(provider_id, csv_binary) when is_binary(provider_id) and is_binary(csv_binary) do
-    ImportEnrollmentCsv.execute(provider_id, csv_binary)
   end
 
   @doc """
@@ -441,46 +438,41 @@ defmodule KlassHero.Enrollment do
     @invite_repository.count_by_program(program_id)
   end
 
+  # ===========================================================================
+  # Forms
+  # ===========================================================================
+
   @doc """
-  Resets an invite to pending and re-dispatches the email pipeline.
+  Returns a changeset for enrollment policy form validation.
 
-  Verifies the invite belongs to the given provider before resending.
-
-  Returns `{:ok, invite}` on success, `{:error, :not_found}` or `{:error, :not_resendable}`.
+  Used by the provider dashboard to validate capacity fields inline
+  before the program is created.
   """
-  def resend_invite(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
-    ResendInvite.execute(invite_id, provider_id)
+  def new_policy_changeset(attrs \\ %{}) do
+    EnrollmentPolicySchema.changeset(%EnrollmentPolicySchema{}, attrs)
   end
 
   @doc """
-  Deletes a bulk enrollment invite by ID.
+  Returns a changeset for participant policy form validation.
 
-  Verifies the invite belongs to the given provider before deleting.
-
-  Returns `:ok` on success, `{:error, :not_found}`, or `{:error, :delete_failed}`.
+  Used by the provider dashboard to validate eligibility restriction fields
+  inline before the program is created.
   """
-  def delete_invite(invite_id, provider_id) when is_binary(invite_id) and is_binary(provider_id) do
-    DeleteInvite.execute(invite_id, provider_id)
+  def new_participant_policy_changeset(attrs \\ %{}) do
+    ParticipantPolicyForm.changeset(%ParticipantPolicyForm{}, attrs)
   end
 
-  # ============================================================================
-  # Invite Claim Functions
-  # ============================================================================
+  # ---------------------------------------------------------------------------
+  # Private helpers
+  # ---------------------------------------------------------------------------
 
-  @doc """
-  Claims a bulk enrollment invite by token.
+  defp calculate_capacity(nil, _active), do: nil
 
-  Validates the token, resolves or creates the user account, and publishes
-  the :invite_claimed event to trigger the async saga (child creation → enrollment).
-
-  Returns:
-  - `{:ok, :new_user, user, invite}` — new account created
-  - `{:ok, :existing_user, user, invite}` — existing account found
-  - `{:error, :not_found}` — invalid or expired token
-  - `{:error, :already_claimed}` — invite already processed
-  """
-  def claim_invite(token) when is_binary(token) do
-    ClaimInvite.execute(token)
+  defp calculate_capacity(policy, active) do
+    case EnrollmentPolicy.remaining_capacity(policy, active) do
+      :unlimited -> nil
+      remaining -> active + remaining
+    end
   end
 
   # Shared data fetching for get_remaining_capacities/1 and get_enrollment_summary_batch/1.

@@ -65,9 +65,57 @@ defmodule KlassHero.ProgramCatalog do
 
   @repository Application.compile_env!(:klass_hero, [:program_catalog, :repository])
 
-  # ============================================================================
-  # Program Queries
-  # ============================================================================
+  # ===========================================================================
+  # Commands
+  # ===========================================================================
+
+  @doc """
+  Creates a new program.
+
+  ## Parameters
+
+  - `attrs` - Map with: title, description, category, price, provider_id.
+    Optional: location, cover_image_url, instructor_id, instructor_name, instructor_headshot_url.
+  - `tier_holder` - Provider domain model (must have `:subscription_tier` field).
+    Used to check program creation entitlement.
+
+  ## Returns
+
+  - `{:ok, Program.t()}` on success
+  - `{:error, :program_limit_reached}` if provider has reached their tier's program limit
+  - `{:error, changeset}` on validation failure
+  """
+  @spec create_program(map(), map()) :: {:ok, Program.t()} | {:error, term()}
+  def create_program(attrs, tier_holder) when is_map(attrs) do
+    CreateProgram.execute(attrs, tier_holder)
+  end
+
+  @doc """
+  Updates an existing program.
+
+  Loads the current program, applies changes through the domain model,
+  and persists with optimistic locking.
+
+  ## Parameters
+
+  - `id` - Program UUID
+  - `changes` - Map of fields to update
+
+  ## Returns
+
+  - `{:ok, Program.t()}` on success
+  - `{:error, :not_found}` if program doesn't exist
+  - `{:error, :stale_data}` if concurrent modification detected
+  - `{:error, errors}` on validation failure
+  """
+  @spec update_program(String.t(), map()) :: {:ok, Program.t()} | {:error, term()}
+  def update_program(id, changes) when is_binary(id) and is_map(changes) do
+    UpdateProgram.execute(id, changes)
+  end
+
+  # ===========================================================================
+  # Queries
+  # ===========================================================================
 
   @doc """
   Lists all available programs.
@@ -136,10 +184,6 @@ defmodule KlassHero.ProgramCatalog do
   @spec list_programs_for_provider(String.t()) :: [ProgramListing.t()]
   defdelegate list_programs_for_provider(provider_id), to: ListProviderPrograms, as: :execute
 
-  # ============================================================================
-  # Program Filtering
-  # ============================================================================
-
   @doc """
   Filters programs by search query using word-boundary matching.
 
@@ -164,10 +208,6 @@ defmodule KlassHero.ProgramCatalog do
   """
   @spec sanitize_query(String.t() | nil) :: String.t()
   defdelegate sanitize_query(query), to: ProgramFilter
-
-  # ============================================================================
-  # Categories
-  # ============================================================================
 
   @doc """
   Returns all valid category identifiers including "all".
@@ -213,10 +253,6 @@ defmodule KlassHero.ProgramCatalog do
   @spec valid_program_category?(String.t()) :: boolean()
   defdelegate valid_program_category?(category), to: ProgramCategories
 
-  # ============================================================================
-  # Pricing
-  # ============================================================================
-
   @doc """
   Formats a price for display with currency symbol.
 
@@ -226,10 +262,6 @@ defmodule KlassHero.ProgramCatalog do
   """
   @spec format_price(Decimal.t() | number() | nil) :: String.t()
   defdelegate format_price(price), to: ProgramPricing
-
-  # ============================================================================
-  # Registration Period
-  # ============================================================================
 
   @doc """
   Checks if the program's registration is currently open.
@@ -242,10 +274,6 @@ defmodule KlassHero.ProgramCatalog do
   """
   @spec registration_status(Program.t()) :: atom()
   defdelegate registration_status(program), to: Program
-
-  # ============================================================================
-  # Trending Searches
-  # ============================================================================
 
   @doc """
   Returns trending search terms.
@@ -260,65 +288,6 @@ defmodule KlassHero.ProgramCatalog do
   def trending_searches(nil), do: TrendingSearches.list()
   def trending_searches(limit), do: TrendingSearches.list(limit)
 
-  # ============================================================================
-  # Program Creation
-  # ============================================================================
-
-  @doc """
-  Creates a new program.
-
-  ## Parameters
-
-  - `attrs` - Map with: title, description, category, price, provider_id.
-    Optional: location, cover_image_url, instructor_id, instructor_name, instructor_headshot_url.
-  - `tier_holder` - Provider domain model (must have `:subscription_tier` field).
-    Used to check program creation entitlement.
-
-  ## Returns
-
-  - `{:ok, Program.t()}` on success
-  - `{:error, :program_limit_reached}` if provider has reached their tier's program limit
-  - `{:error, changeset}` on validation failure
-  """
-  @spec create_program(map(), map()) :: {:ok, Program.t()} | {:error, term()}
-  def create_program(attrs, tier_holder) when is_map(attrs) do
-    CreateProgram.execute(attrs, tier_holder)
-  end
-
-  @doc """
-  Updates an existing program.
-
-  Loads the current program, applies changes through the domain model,
-  and persists with optimistic locking.
-
-  ## Parameters
-
-  - `id` - Program UUID
-  - `changes` - Map of fields to update
-
-  ## Returns
-
-  - `{:ok, Program.t()}` on success
-  - `{:error, :not_found}` if program doesn't exist
-  - `{:error, :stale_data}` if concurrent modification detected
-  - `{:error, errors}` on validation failure
-  """
-  @spec update_program(String.t(), map()) :: {:ok, Program.t()} | {:error, term()}
-  def update_program(id, changes) when is_binary(id) and is_map(changes) do
-    UpdateProgram.execute(id, changes)
-  end
-
-  @doc """
-  Returns an empty changeset for the program creation form.
-  """
-  def new_program_changeset(attrs \\ %{}) do
-    @repository.new_changeset(attrs)
-  end
-
-  # ============================================================================
-  # Program Counting
-  # ============================================================================
-
   @doc """
   Counts self-posted programs for a provider.
 
@@ -330,10 +299,6 @@ defmodule KlassHero.ProgramCatalog do
   def count_self_posted_programs(provider_id) do
     @repository.count_by_provider_and_origin(provider_id, :self_posted)
   end
-
-  # ============================================================================
-  # Cross-Context Query Functions
-  # ============================================================================
 
   @doc """
   Returns IDs of programs whose end_date is before the given cutoff date.
@@ -362,10 +327,6 @@ defmodule KlassHero.ProgramCatalog do
     @repository.get_by_ids(ids)
   end
 
-  # ============================================================================
-  # Enrollment Capacity (via ACL)
-  # ============================================================================
-
   @doc """
   Returns remaining enrollment capacity for a program via ACL.
   Delegates to the Enrollment context.
@@ -379,4 +340,15 @@ defmodule KlassHero.ProgramCatalog do
   """
   defdelegate remaining_capacities(program_ids),
     to: EnrollmentCapacityACL
+
+  # ===========================================================================
+  # Forms
+  # ===========================================================================
+
+  @doc """
+  Returns an empty changeset for the program creation form.
+  """
+  def new_program_changeset(attrs \\ %{}) do
+    @repository.new_changeset(attrs)
+  end
 end

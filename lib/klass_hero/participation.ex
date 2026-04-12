@@ -70,9 +70,9 @@ defmodule KlassHero.Participation do
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.Domain.Models.ProgramSession
 
-  # ============================================================================
-  # Session Management
-  # ============================================================================
+  # ===========================================================================
+  # Commands
+  # ===========================================================================
 
   @doc """
   Creates a new program session.
@@ -133,6 +133,145 @@ defmodule KlassHero.Participation do
   def complete_session(session_id) when is_binary(session_id) do
     CompleteSession.execute(session_id)
   end
+
+  @doc """
+  Checks in a child to a session.
+
+  ## Parameters
+
+  - `params` - Map containing:
+    - `record_id` - ID of the participation record
+    - `checked_in_by` - ID of the user performing check-in
+    - `notes` - Optional check-in notes
+
+  ## Returns
+
+  - `{:ok, record}` on success
+  - `{:error, :not_found}` if record doesn't exist
+  - `{:error, :invalid_status_transition}` if not in :registered status
+  """
+  def record_check_in(params) when is_map(params) do
+    RecordCheckIn.execute(params)
+  end
+
+  @doc """
+  Checks out a child from a session.
+
+  ## Parameters
+
+  - `params` - Map containing:
+    - `record_id` - ID of the participation record
+    - `checked_out_by` - ID of the user performing check-out
+    - `notes` - Optional check-out notes
+
+  ## Returns
+
+  - `{:ok, record}` on success
+  - `{:error, :not_found}` if record doesn't exist
+  - `{:error, :invalid_status_transition}` if not in :checked_in status
+  """
+  def record_check_out(params) when is_map(params) do
+    RecordCheckOut.execute(params)
+  end
+
+  @doc """
+  Checks in multiple children to a session at once.
+
+  ## Parameters
+
+  - `params` - Map containing:
+    - `record_ids` - List of participation record IDs to check in
+    - `checked_in_by` - ID of the user performing check-ins
+    - `notes` - Optional notes to apply to all check-ins
+
+  ## Returns
+
+  Map with:
+  - `successful` - List of successfully checked-in records
+  - `failed` - List of {record_id, error_reason} tuples
+  """
+  def bulk_check_in(params) when is_map(params) do
+    BulkCheckIn.execute(params)
+  end
+
+  @doc "Admin-corrects a participation record's attendance data."
+  def correct_attendance(params) when is_map(params) do
+    CorrectAttendance.execute(params)
+  end
+
+  @doc """
+  Submits a behavioral note for a participation record.
+
+  ## Parameters
+
+  - `params` - Map containing:
+    - `participation_record_id` - ID of the participation record
+    - `provider_id` - ID of the provider
+    - `content` - Note content (max 1000 chars)
+
+  ## Returns
+
+  - `{:ok, note}` on success
+  - `{:error, reason}` on failure
+  """
+  def submit_behavioral_note(params) when is_map(params) do
+    SubmitBehavioralNote.execute(params)
+  end
+
+  @doc """
+  Reviews a behavioral note (approve or reject).
+
+  ## Parameters
+
+  - `params` - Map containing:
+    - `note_id` - ID of the note
+    - `parent_id` - ID of the parent (ownership enforced at DB level)
+    - `decision` - `:approve` or `:reject`
+    - `reason` - Optional rejection reason
+
+  ## Returns
+
+  - `{:ok, note}` on success
+  - `{:error, reason}` on failure
+  """
+  def review_behavioral_note(params) when is_map(params) do
+    ReviewBehavioralNote.execute(params)
+  end
+
+  @doc """
+  Revises a rejected behavioral note with new content.
+
+  ## Parameters
+
+  - `params` - Map containing:
+    - `note_id` - ID of the note
+    - `provider_id` - ID of the provider (ownership enforced at DB level)
+    - `content` - New content
+
+  ## Returns
+
+  - `{:ok, note}` on success
+  - `{:error, reason}` on failure
+  """
+  def revise_behavioral_note(params) when is_map(params) do
+    ReviseBehavioralNote.execute(params)
+  end
+
+  @doc """
+  Anonymizes all behavioral notes for a child during GDPR account deletion.
+
+  Replaces note content with "[Removed - account deleted]", clears rejection
+  reasons, and sets status to :rejected. Uses bulk update_all for efficiency.
+
+  Returns `{:ok, count}` with the number of notes anonymized.
+  """
+  def anonymize_behavioral_notes_for_child(child_id) when is_binary(child_id) do
+    AnonymizeBehavioralNotesForChild.execute(child_id)
+  end
+
+  # ===========================================================================
+  # Queries
+  # ===========================================================================
 
   @doc """
   Lists sessions based on filter criteria.
@@ -219,70 +358,6 @@ defmodule KlassHero.Participation do
     GetSessionWithRoster.execute_enriched(session_id)
   end
 
-  # ============================================================================
-  # Participation Records
-  # ============================================================================
-
-  @doc """
-  Checks in a child to a session.
-
-  ## Parameters
-
-  - `params` - Map containing:
-    - `record_id` - ID of the participation record
-    - `checked_in_by` - ID of the user performing check-in
-    - `notes` - Optional check-in notes
-
-  ## Returns
-
-  - `{:ok, record}` on success
-  - `{:error, :not_found}` if record doesn't exist
-  - `{:error, :invalid_status_transition}` if not in :registered status
-  """
-  def record_check_in(params) when is_map(params) do
-    RecordCheckIn.execute(params)
-  end
-
-  @doc """
-  Checks out a child from a session.
-
-  ## Parameters
-
-  - `params` - Map containing:
-    - `record_id` - ID of the participation record
-    - `checked_out_by` - ID of the user performing check-out
-    - `notes` - Optional check-out notes
-
-  ## Returns
-
-  - `{:ok, record}` on success
-  - `{:error, :not_found}` if record doesn't exist
-  - `{:error, :invalid_status_transition}` if not in :checked_in status
-  """
-  def record_check_out(params) when is_map(params) do
-    RecordCheckOut.execute(params)
-  end
-
-  @doc """
-  Checks in multiple children to a session at once.
-
-  ## Parameters
-
-  - `params` - Map containing:
-    - `record_ids` - List of participation record IDs to check in
-    - `checked_in_by` - ID of the user performing check-ins
-    - `notes` - Optional notes to apply to all check-ins
-
-  ## Returns
-
-  Map with:
-  - `successful` - List of successfully checked-in records
-  - `failed` - List of {record_id, error_reason} tuples
-  """
-  def bulk_check_in(params) when is_map(params) do
-    BulkCheckIn.execute(params)
-  end
-
   @doc """
   Retrieves a participation record by ID.
 
@@ -316,73 +391,6 @@ defmodule KlassHero.Participation do
   """
   def get_participation_history(params) when is_map(params) do
     GetParticipationHistory.execute(params)
-  end
-
-  @doc "Admin-corrects a participation record's attendance data."
-  def correct_attendance(params) when is_map(params) do
-    CorrectAttendance.execute(params)
-  end
-
-  # ============================================================================
-  # Behavioral Notes
-  # ============================================================================
-
-  @doc """
-  Submits a behavioral note for a participation record.
-
-  ## Parameters
-
-  - `params` - Map containing:
-    - `participation_record_id` - ID of the participation record
-    - `provider_id` - ID of the provider
-    - `content` - Note content (max 1000 chars)
-
-  ## Returns
-
-  - `{:ok, note}` on success
-  - `{:error, reason}` on failure
-  """
-  def submit_behavioral_note(params) when is_map(params) do
-    SubmitBehavioralNote.execute(params)
-  end
-
-  @doc """
-  Reviews a behavioral note (approve or reject).
-
-  ## Parameters
-
-  - `params` - Map containing:
-    - `note_id` - ID of the note
-    - `parent_id` - ID of the parent (ownership enforced at DB level)
-    - `decision` - `:approve` or `:reject`
-    - `reason` - Optional rejection reason
-
-  ## Returns
-
-  - `{:ok, note}` on success
-  - `{:error, reason}` on failure
-  """
-  def review_behavioral_note(params) when is_map(params) do
-    ReviewBehavioralNote.execute(params)
-  end
-
-  @doc """
-  Revises a rejected behavioral note with new content.
-
-  ## Parameters
-
-  - `params` - Map containing:
-    - `note_id` - ID of the note
-    - `provider_id` - ID of the provider (ownership enforced at DB level)
-    - `content` - New content
-
-  ## Returns
-
-  - `{:ok, note}` on success
-  - `{:error, reason}` on failure
-  """
-  def revise_behavioral_note(params) when is_map(params) do
-    ReviseBehavioralNote.execute(params)
   end
 
   @doc """
@@ -429,21 +437,5 @@ defmodule KlassHero.Participation do
   def list_behavioral_notes_by_records_and_provider(record_ids, provider_id)
       when is_list(record_ids) and is_binary(provider_id) do
     GetBehavioralNoteForRecord.execute_batch(record_ids, provider_id)
-  end
-
-  # ============================================================================
-  # GDPR Anonymization
-  # ============================================================================
-
-  @doc """
-  Anonymizes all behavioral notes for a child during GDPR account deletion.
-
-  Replaces note content with "[Removed - account deleted]", clears rejection
-  reasons, and sets status to :rejected. Uses bulk update_all for efficiency.
-
-  Returns `{:ok, count}` with the number of notes anonymized.
-  """
-  def anonymize_behavioral_notes_for_child(child_id) when is_binary(child_id) do
-    AnonymizeBehavioralNotesForChild.execute(child_id)
   end
 end

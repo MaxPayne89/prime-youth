@@ -62,9 +62,9 @@ defmodule KlassHero.Family do
                         :for_storing_consents
                       ])
 
-  # ============================================================================
-  # Parent Profile Functions
-  # ============================================================================
+  # ===========================================================================
+  # Commands
+  # ===========================================================================
 
   @doc """
   Creates a new parent profile.
@@ -77,55 +77,6 @@ defmodule KlassHero.Family do
   """
   def create_parent_profile(attrs) when is_map(attrs) do
     CreateParentProfile.execute(attrs)
-  end
-
-  @doc """
-  Retrieves a parent profile by identity ID.
-
-  Returns:
-  - `{:ok, ParentProfile.t()}` - Parent profile found
-  - `{:error, :not_found}` - No parent profile exists
-  """
-  def get_parent_by_identity(identity_id) when is_binary(identity_id) do
-    @parent_repository.get_by_identity_id(identity_id)
-  end
-
-  @doc """
-  Checks if a parent profile exists for the given identity ID.
-  """
-  def has_parent_profile?(identity_id) when is_binary(identity_id) do
-    @parent_repository.has_profile?(identity_id)
-  end
-
-  @doc """
-  Retrieves multiple parent profiles by their IDs.
-
-  Missing or invalid IDs are silently excluded from the result.
-  """
-  def get_parents_by_ids(parent_ids) when is_list(parent_ids) do
-    @parent_repository.list_by_ids(parent_ids)
-  end
-
-  # ============================================================================
-  # Children Functions
-  # ============================================================================
-
-  @doc """
-  Lists all children for a parent, ordered by first name then last name.
-  """
-  def get_children(parent_id) when is_binary(parent_id) do
-    @child_repository.list_by_guardian(parent_id)
-  end
-
-  @doc """
-  Retrieves a single child by ID.
-
-  Returns:
-  - `{:ok, Child.t()}` - Child found
-  - `{:error, :not_found}` - No child exists or invalid UUID
-  """
-  def get_child_by_id(child_id) when is_binary(child_id) do
-    @child_repository.get_by_id(child_id)
   end
 
   @doc """
@@ -165,6 +116,105 @@ defmodule KlassHero.Family do
   end
 
   @doc """
+  Grants a new consent for a child.
+
+  Expects a map with :parent_id, :child_id, and :consent_type.
+  """
+  def grant_consent(attrs) when is_map(attrs) do
+    GrantConsent.execute(attrs)
+  end
+
+  @doc """
+  Withdraws the active consent for a child and consent type.
+  """
+  def withdraw_consent(child_id, consent_type) when is_binary(child_id) and is_binary(consent_type) do
+    WithdrawConsent.execute(child_id, consent_type)
+  end
+
+  @doc """
+  Anonymizes all Family-owned data for a user during GDPR account deletion.
+
+  Looks up the user's parent profile, then for each child:
+  1. Deletes all consent records
+  2. Anonymizes child PII (names, emergency contact, support needs, allergies)
+  3. Publishes `child_data_anonymized` event for downstream contexts
+
+  Returns:
+  - `{:ok, :no_data}` if user has no parent profile
+  - `{:ok, %{children_anonymized: count, consents_deleted: count}}`
+  """
+  def anonymize_data_for_user(identity_id) when is_binary(identity_id) do
+    case @parent_repository.get_by_identity_id(identity_id) do
+      {:ok, parent} ->
+        children = @child_repository.list_by_guardian(parent.id)
+        anonymize_children_data(children)
+
+      {:error, :not_found} ->
+        {:ok, :no_data}
+    end
+  end
+
+  @doc """
+  Generates a referral code for a user.
+
+  Options:
+  - `:location` - Location string (default: "BERLIN")
+  - `:year_suffix` - Year suffix string (default: current year's last 2 digits)
+  """
+  def generate_referral_code(name, opts \\ []) when is_binary(name) do
+    ReferralCodeGenerator.generate(name, opts)
+  end
+
+  # ===========================================================================
+  # Queries
+  # ===========================================================================
+
+  @doc """
+  Retrieves a parent profile by identity ID.
+
+  Returns:
+  - `{:ok, ParentProfile.t()}` - Parent profile found
+  - `{:error, :not_found}` - No parent profile exists
+  """
+  def get_parent_by_identity(identity_id) when is_binary(identity_id) do
+    @parent_repository.get_by_identity_id(identity_id)
+  end
+
+  @doc """
+  Checks if a parent profile exists for the given identity ID.
+  """
+  def has_parent_profile?(identity_id) when is_binary(identity_id) do
+    @parent_repository.has_profile?(identity_id)
+  end
+
+  @doc """
+  Retrieves multiple parent profiles by their IDs.
+
+  Missing or invalid IDs are silently excluded from the result.
+  """
+  def get_parents_by_ids(parent_ids) when is_list(parent_ids) do
+    @parent_repository.list_by_ids(parent_ids)
+  end
+
+  @doc """
+  Lists all children for a parent, ordered by first name then last name.
+  """
+  def get_children(parent_id) when is_binary(parent_id) do
+    @child_repository.list_by_guardian(parent_id)
+  end
+
+  @doc """
+  Retrieves a single child by ID.
+
+  Returns:
+  - `{:ok, Child.t()}` - Child found
+  - `{:error, :not_found}` - No child exists or invalid UUID
+  """
+  def get_child_by_id(child_id) when is_binary(child_id) do
+    @child_repository.get_by_id(child_id)
+  end
+
+  @doc """
   Checks if a child has active enrollments before deletion.
 
   Returns:
@@ -174,28 +224,6 @@ defmodule KlassHero.Family do
   """
   def prepare_child_deletion(child_id) when is_binary(child_id) do
     PrepareChildDeletion.execute(child_id)
-  end
-
-  @doc """
-  Returns a changeset for tracking child form changes.
-
-  Used by LiveView forms for `to_form()` and `phx-change` validation.
-  """
-  def change_child(attrs \\ %{})
-
-  def change_child(attrs) when is_map(attrs) and not is_struct(attrs) do
-    ChangeChild.execute(attrs)
-  end
-
-  def change_child(%Child{} = child) do
-    ChangeChild.execute(child)
-  end
-
-  @doc """
-  Returns a changeset for tracking child form changes on an existing child.
-  """
-  def change_child(%Child{} = child, attrs) when is_map(attrs) do
-    ChangeChild.execute(child, attrs)
   end
 
   @doc """
@@ -231,26 +259,6 @@ defmodule KlassHero.Family do
     @child_repository.child_belongs_to_guardian?(child_id, parent_id)
   end
 
-  # ============================================================================
-  # Consent Functions
-  # ============================================================================
-
-  @doc """
-  Grants a new consent for a child.
-
-  Expects a map with :parent_id, :child_id, and :consent_type.
-  """
-  def grant_consent(attrs) when is_map(attrs) do
-    GrantConsent.execute(attrs)
-  end
-
-  @doc """
-  Withdraws the active consent for a child and consent type.
-  """
-  def withdraw_consent(child_id, consent_type) when is_binary(child_id) and is_binary(consent_type) do
-    WithdrawConsent.execute(child_id, consent_type)
-  end
-
   @doc """
   Checks if a child has an active consent of the given type.
   """
@@ -264,32 +272,69 @@ defmodule KlassHero.Family do
     end
   end
 
-  # ============================================================================
-  # GDPR Account Anonymization
-  # ============================================================================
-
   @doc """
-  Anonymizes all Family-owned data for a user during GDPR account deletion.
+  Exports all Family-owned personal data for a user.
 
-  Looks up the user's parent profile, then for each child:
-  1. Deletes all consent records
-  2. Anonymizes child PII (names, emergency contact, support needs, allergies)
-  3. Publishes `child_data_anonymized` event for downstream contexts
-
-  Returns:
-  - `{:ok, :no_data}` if user has no parent profile
-  - `{:ok, %{children_anonymized: count, consents_deleted: count}}`
+  Returns `%{children: [...]}` when the user has a parent profile,
+  or `%{}` when no parent profile exists.
   """
-  def anonymize_data_for_user(identity_id) when is_binary(identity_id) do
+  def export_data_for_user(identity_id) when is_binary(identity_id) do
     case @parent_repository.get_by_identity_id(identity_id) do
       {:ok, parent} ->
         children = @child_repository.list_by_guardian(parent.id)
-        anonymize_children_data(children)
+
+        children_data =
+          Enum.map(children, fn child ->
+            consents = @consent_repository.list_all_by_child(child.id)
+            format_child_export(child, consents)
+          end)
+
+        %{children: children_data}
 
       {:error, :not_found} ->
-        {:ok, :no_data}
+        %{}
     end
   end
+
+  @doc """
+  Calculates the weekly activity goal progress for a family's children.
+
+  Options:
+  - `:target` - Weekly session target (default: 5)
+  """
+  def calculate_activity_goal(children, opts \\ []) when is_list(children) do
+    ActivityGoalCalculator.calculate(children, opts)
+  end
+
+  # ===========================================================================
+  # Forms
+  # ===========================================================================
+
+  @doc """
+  Returns a changeset for tracking child form changes.
+
+  Used by LiveView forms for `to_form()` and `phx-change` validation.
+  """
+  def change_child(attrs \\ %{})
+
+  def change_child(attrs) when is_map(attrs) and not is_struct(attrs) do
+    ChangeChild.execute(attrs)
+  end
+
+  def change_child(%Child{} = child) do
+    ChangeChild.execute(child)
+  end
+
+  @doc """
+  Returns a changeset for tracking child form changes on an existing child.
+  """
+  def change_child(%Child{} = child, attrs) when is_map(attrs) do
+    ChangeChild.execute(child, attrs)
+  end
+
+  # ===========================================================================
+  # Private
+  # ===========================================================================
 
   defp anonymize_children_data(children) do
     anonymized_child_attrs = Child.anonymized_attrs()
@@ -330,34 +375,6 @@ defmodule KlassHero.Family do
     |> EventDispatchHelper.dispatch_or_error(KlassHero.Family)
   end
 
-  # ============================================================================
-  # GDPR Data Export
-  # ============================================================================
-
-  @doc """
-  Exports all Family-owned personal data for a user.
-
-  Returns `%{children: [...]}` when the user has a parent profile,
-  or `%{}` when no parent profile exists.
-  """
-  def export_data_for_user(identity_id) when is_binary(identity_id) do
-    case @parent_repository.get_by_identity_id(identity_id) do
-      {:ok, parent} ->
-        children = @child_repository.list_by_guardian(parent.id)
-
-        children_data =
-          Enum.map(children, fn child ->
-            consents = @consent_repository.list_all_by_child(child.id)
-            format_child_export(child, consents)
-          end)
-
-        %{children: children_data}
-
-      {:error, :not_found} ->
-        %{}
-    end
-  end
-
   defp format_child_export(child, consents) do
     %{
       id: child.id,
@@ -386,29 +403,4 @@ defmodule KlassHero.Family do
 
   defp format_datetime(nil), do: nil
   defp format_datetime(%DateTime{} = dt), do: DateTime.to_iso8601(dt)
-
-  # ============================================================================
-  # Activity & Referral Functions
-  # ============================================================================
-
-  @doc """
-  Calculates the weekly activity goal progress for a family's children.
-
-  Options:
-  - `:target` - Weekly session target (default: 5)
-  """
-  def calculate_activity_goal(children, opts \\ []) when is_list(children) do
-    ActivityGoalCalculator.calculate(children, opts)
-  end
-
-  @doc """
-  Generates a referral code for a user.
-
-  Options:
-  - `:location` - Location string (default: "BERLIN")
-  - `:year_suffix` - Year suffix string (default: current year's last 2 digits)
-  """
-  def generate_referral_code(name, opts \\ []) when is_binary(name) do
-    ReferralCodeGenerator.generate(name, opts)
-  end
 end

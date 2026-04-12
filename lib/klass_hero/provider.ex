@@ -78,9 +78,9 @@ defmodule KlassHero.Provider do
                            :for_storing_program_staff_assignments
                          ])
 
-  # ============================================================================
-  # Provider Profile Functions
-  # ============================================================================
+  # ===========================================================================
+  # Commands
+  # ===========================================================================
 
   @doc """
   Creates a new provider profile.
@@ -93,34 +93,6 @@ defmodule KlassHero.Provider do
   """
   def create_provider_profile(attrs) when is_map(attrs) do
     CreateProviderProfile.execute(attrs)
-  end
-
-  @doc """
-  Retrieves a provider profile by identity ID.
-
-  Returns:
-  - `{:ok, ProviderProfile.t()}` - Provider profile found
-  - `{:error, :not_found}` - No provider profile exists
-  """
-  def get_provider_by_identity(identity_id) when is_binary(identity_id) do
-    @provider_repository.get_by_identity_id(identity_id)
-  end
-
-  @doc """
-  Checks if a provider profile exists for the given identity ID.
-  """
-  def has_provider_profile?(identity_id) when is_binary(identity_id) do
-    @provider_repository.has_profile?(identity_id)
-  end
-
-  @doc """
-  Returns a changeset for tracking provider profile form changes.
-
-  Used by LiveView forms for `to_form()` and `phx-change` validation.
-  """
-  @spec change_provider_profile(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
-  def change_provider_profile(%ProviderProfile{} = provider, attrs \\ %{}) do
-    ChangeProviderProfile.execute(provider, attrs)
   end
 
   @doc """
@@ -152,10 +124,6 @@ defmodule KlassHero.Provider do
   def change_subscription_tier(%ProviderProfile{} = profile, new_tier) when is_atom(new_tier) do
     ChangeSubscriptionTier.execute(profile, new_tier)
   end
-
-  # ============================================================================
-  # Verification Documents
-  # ============================================================================
 
   @doc """
   Submit a verification document for a provider.
@@ -191,6 +159,165 @@ defmodule KlassHero.Provider do
       reviewer_id: reviewer_id,
       reason: reason
     })
+  end
+
+  @doc """
+  Verify a provider (admin only).
+  """
+  def verify_provider(provider_id, admin_id) do
+    VerifyProvider.execute(%{
+      provider_id: provider_id,
+      admin_id: admin_id
+    })
+  end
+
+  @doc """
+  Unverify a provider (admin only).
+  """
+  def unverify_provider(provider_id, admin_id) do
+    UnverifyProvider.execute(%{
+      provider_id: provider_id,
+      admin_id: admin_id
+    })
+  end
+
+  @doc """
+  Creates a new staff member for a provider.
+  """
+  def create_staff_member(attrs) when is_map(attrs) do
+    CreateStaffMember.execute(attrs)
+  end
+
+  @doc """
+  Updates an existing staff member.
+  """
+  def update_staff_member(staff_id, attrs) when is_binary(staff_id) and is_map(attrs) do
+    UpdateStaffMember.execute(staff_id, attrs)
+  end
+
+  @doc """
+  Deletes a staff member by ID.
+  """
+  def delete_staff_member(staff_id) when is_binary(staff_id) do
+    DeleteStaffMember.execute(staff_id)
+  end
+
+  @doc """
+  Resends a staff invitation for a staff member in :failed or :expired status.
+
+  Generates a fresh token, transitions status back to :pending, and re-emits
+  :staff_member_invited to restart the invitation saga.
+
+  Returns:
+  - `{:ok, StaffMember.t(), raw_token}` on success
+  - `{:error, :not_found}` if the staff member does not exist
+  - `{:error, :invalid_invitation_transition}` if the current status does not allow resend
+  """
+  @spec resend_staff_invitation(String.t()) ::
+          {:ok, StaffMember.t(), String.t()}
+          | {:error, :not_found | :invalid_invitation_transition}
+  def resend_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
+    ResendStaffInvitation.execute(staff_member_id)
+  end
+
+  @doc """
+  Transitions a staff member's invitation status to :expired.
+  Called by the invitation LiveView on lazy expiry detection.
+  """
+  @spec expire_staff_invitation(StaffMember.t() | String.t()) ::
+          {:ok, StaffMember.t()} | {:error, term()}
+  def expire_staff_invitation(%StaffMember{} = staff) do
+    with {:ok, updated} <- StaffMember.transition_invitation(staff, :expired) do
+      @staff_repository.update(updated)
+    end
+  end
+
+  def expire_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
+    with {:ok, staff} <- @staff_repository.get(staff_member_id) do
+      expire_staff_invitation(staff)
+    end
+  end
+
+  @doc """
+  Assigns a staff member to a program.
+
+  Returns:
+  - `{:ok, ProgramStaffAssignment.t()}` on success
+  - `{:error, :already_assigned}` if already assigned
+  - `{:error, :not_found}` if staff member does not exist
+  """
+  @spec assign_staff_to_program(map()) ::
+          {:ok, ProgramStaffAssignment.t()}
+          | {:error, :already_assigned | :not_found | term()}
+  defdelegate assign_staff_to_program(attrs), to: AssignStaffToProgram, as: :execute
+
+  @doc """
+  Unassigns a staff member from a program.
+
+  Returns:
+  - `{:ok, ProgramStaffAssignment.t()}` on success
+  - `{:error, :not_found}` if no active assignment exists
+  """
+  @spec unassign_staff_from_program(String.t(), String.t()) ::
+          {:ok, ProgramStaffAssignment.t()} | {:error, :not_found | term()}
+  defdelegate unassign_staff_from_program(program_id, staff_member_id),
+    to: UnassignStaffFromProgram,
+    as: :execute
+
+  # ===========================================================================
+  # Queries
+  # ===========================================================================
+
+  @doc """
+  Retrieves a provider profile by identity ID.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` - Provider profile found
+  - `{:error, :not_found}` - No provider profile exists
+  """
+  def get_provider_by_identity(identity_id) when is_binary(identity_id) do
+    @provider_repository.get_by_identity_id(identity_id)
+  end
+
+  @doc """
+  Checks if a provider profile exists for the given identity ID.
+  """
+  def has_provider_profile?(identity_id) when is_binary(identity_id) do
+    @provider_repository.has_profile?(identity_id)
+  end
+
+  @doc """
+  Returns the provider profile by ID.
+  """
+  @spec get_provider_profile(String.t()) :: {:ok, ProviderProfile.t()} | {:error, :not_found}
+  def get_provider_profile(provider_id) when is_binary(provider_id) do
+    @provider_repository.get(provider_id)
+  end
+
+  @doc """
+  Gets the user (identity) ID for a provider profile ID.
+
+  Used by cross-context consumers (e.g. Messaging) to resolve
+  `conversation.provider_id` (provider profile ID) back to a user ID
+  for permission and authorization checks.
+
+  Returns:
+  - `{:ok, identity_id}` - The user ID that owns this provider profile
+  - `{:error, :not_found}` - No provider profile exists with this ID
+  """
+  @spec get_identity_id_for_provider(String.t()) :: {:ok, String.t()} | {:error, :not_found}
+  def get_identity_id_for_provider(provider_id) when is_binary(provider_id) do
+    case @provider_repository.get(provider_id) do
+      {:ok, %ProviderProfile{identity_id: identity_id}} -> {:ok, identity_id}
+      {:error, :not_found} -> {:error, :not_found}
+    end
+  end
+
+  @doc """
+  List all verified provider IDs (for projections).
+  """
+  def list_verified_provider_ids do
+    @provider_repository.list_verified_ids()
   end
 
   @doc """
@@ -247,98 +374,11 @@ defmodule KlassHero.Provider do
     GetVerificationDocumentPreview.execute(document_id)
   end
 
-  # ============================================================================
-  # Provider Verification
-  # ============================================================================
-
   @doc """
-  Verify a provider (admin only).
+  Returns the list of valid verification document types.
   """
-  def verify_provider(provider_id, admin_id) do
-    VerifyProvider.execute(%{
-      provider_id: provider_id,
-      admin_id: admin_id
-    })
-  end
-
-  @doc """
-  Unverify a provider (admin only).
-  """
-  def unverify_provider(provider_id, admin_id) do
-    UnverifyProvider.execute(%{
-      provider_id: provider_id,
-      admin_id: admin_id
-    })
-  end
-
-  @doc """
-  Gets the user (identity) ID for a provider profile ID.
-
-  Used by cross-context consumers (e.g. Messaging) to resolve
-  `conversation.provider_id` (provider profile ID) back to a user ID
-  for permission and authorization checks.
-
-  Returns:
-  - `{:ok, identity_id}` - The user ID that owns this provider profile
-  - `{:error, :not_found}` - No provider profile exists with this ID
-  """
-  @spec get_identity_id_for_provider(String.t()) :: {:ok, String.t()} | {:error, :not_found}
-  def get_identity_id_for_provider(provider_id) when is_binary(provider_id) do
-    case @provider_repository.get(provider_id) do
-      {:ok, %ProviderProfile{identity_id: identity_id}} -> {:ok, identity_id}
-      {:error, :not_found} -> {:error, :not_found}
-    end
-  end
-
-  @doc """
-  List all verified provider IDs (for projections).
-  """
-  def list_verified_provider_ids do
-    @provider_repository.list_verified_ids()
-  end
-
-  # ============================================================================
-  # Staff Members
-  # ============================================================================
-
-  @doc """
-  Creates a new staff member for a provider.
-  """
-  def create_staff_member(attrs) when is_map(attrs) do
-    CreateStaffMember.execute(attrs)
-  end
-
-  @doc """
-  Updates an existing staff member.
-  """
-  def update_staff_member(staff_id, attrs) when is_binary(staff_id) and is_map(attrs) do
-    UpdateStaffMember.execute(staff_id, attrs)
-  end
-
-  @doc """
-  Deletes a staff member by ID.
-  """
-  def delete_staff_member(staff_id) when is_binary(staff_id) do
-    DeleteStaffMember.execute(staff_id)
-  end
-
-  @doc """
-  Resends a staff invitation for a staff member in :failed or :expired status.
-
-  Generates a fresh token, transitions status back to :pending, and re-emits
-  :staff_member_invited to restart the invitation saga.
-
-  Returns:
-  - `{:ok, StaffMember.t(), raw_token}` on success
-  - `{:error, :not_found}` if the staff member does not exist
-  - `{:error, :invalid_invitation_transition}` if the current status does not allow resend
-  """
-  @spec resend_staff_invitation(String.t()) ::
-          {:ok, StaffMember.t(), String.t()}
-          | {:error, :not_found | :invalid_invitation_transition}
-  def resend_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
-    ResendStaffInvitation.execute(staff_member_id)
-  end
+  defdelegate valid_document_types,
+    to: VerificationDocument
 
   @doc """
   Retrieves a single staff member by ID.
@@ -362,25 +402,11 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
-  Returns a changeset for tracking staff member form changes.
-  """
-  def change_staff_member(%StaffMember{} = staff, attrs \\ %{}) do
-    ChangeStaffMember.execute(staff, attrs)
-  end
-
-  @doc """
   Returns the full name of a staff member.
   """
   @spec staff_member_full_name(StaffMember.t()) :: String.t()
   def staff_member_full_name(%StaffMember{} = staff) do
     StaffMember.full_name(staff)
-  end
-
-  @doc """
-  Returns an empty changeset for a new staff member form.
-  """
-  def new_staff_member_changeset(attrs \\ %{}) do
-    ChangeStaffMember.new_changeset(attrs)
   end
 
   @doc """
@@ -403,46 +429,10 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
-  Returns the provider profile by ID.
-  """
-  @spec get_provider_profile(String.t()) :: {:ok, ProviderProfile.t()} | {:error, :not_found}
-  def get_provider_profile(provider_id) when is_binary(provider_id) do
-    @provider_repository.get(provider_id)
-  end
-
-  @doc """
   Checks whether a staff member's invitation has expired.
   Delegates to the domain model.
   """
   defdelegate invitation_expired?(staff_member), to: StaffMember
-
-  @doc """
-  Transitions a staff member's invitation status to :expired.
-  Called by the invitation LiveView on lazy expiry detection.
-  """
-  @spec expire_staff_invitation(StaffMember.t() | String.t()) ::
-          {:ok, StaffMember.t()} | {:error, term()}
-  def expire_staff_invitation(%StaffMember{} = staff) do
-    with {:ok, updated} <- StaffMember.transition_invitation(staff, :expired) do
-      @staff_repository.update(updated)
-    end
-  end
-
-  def expire_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
-    with {:ok, staff} <- @staff_repository.get(staff_member_id) do
-      expire_staff_invitation(staff)
-    end
-  end
-
-  @doc """
-  Returns the list of valid verification document types.
-  """
-  defdelegate valid_document_types,
-    to: VerificationDocument
-
-  # ============================================================================
-  # Staff Program Assignment
-  # ============================================================================
 
   @doc """
   Filters a list of programs to only those assigned to a staff member.
@@ -458,32 +448,6 @@ defmodule KlassHero.Provider do
   def list_assigned_programs(%StaffMember{} = staff_member, programs) when is_list(programs) do
     ListStaffAssignedPrograms.execute(staff_member, programs)
   end
-
-  @doc """
-  Assigns a staff member to a program.
-
-  Returns:
-  - `{:ok, ProgramStaffAssignment.t()}` on success
-  - `{:error, :already_assigned}` if already assigned
-  - `{:error, :not_found}` if staff member does not exist
-  """
-  @spec assign_staff_to_program(map()) ::
-          {:ok, ProgramStaffAssignment.t()}
-          | {:error, :already_assigned | :not_found | term()}
-  defdelegate assign_staff_to_program(attrs), to: AssignStaffToProgram, as: :execute
-
-  @doc """
-  Unassigns a staff member from a program.
-
-  Returns:
-  - `{:ok, ProgramStaffAssignment.t()}` on success
-  - `{:error, :not_found}` if no active assignment exists
-  """
-  @spec unassign_staff_from_program(String.t(), String.t()) ::
-          {:ok, ProgramStaffAssignment.t()} | {:error, :not_found | term()}
-  defdelegate unassign_staff_from_program(program_id, staff_member_id),
-    to: UnassignStaffFromProgram,
-    as: :execute
 
   @doc """
   Lists all active staff assignments for a program.
@@ -513,5 +477,33 @@ defmodule KlassHero.Provider do
         ]
   def list_active_assignments_for_staff_member(staff_member_id) when is_binary(staff_member_id) do
     @assignment_repository.list_active_for_staff_member(staff_member_id)
+  end
+
+  # ===========================================================================
+  # Forms
+  # ===========================================================================
+
+  @doc """
+  Returns a changeset for tracking provider profile form changes.
+
+  Used by LiveView forms for `to_form()` and `phx-change` validation.
+  """
+  @spec change_provider_profile(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
+  def change_provider_profile(%ProviderProfile{} = provider, attrs \\ %{}) do
+    ChangeProviderProfile.execute(provider, attrs)
+  end
+
+  @doc """
+  Returns a changeset for tracking staff member form changes.
+  """
+  def change_staff_member(%StaffMember{} = staff, attrs \\ %{}) do
+    ChangeStaffMember.execute(staff, attrs)
+  end
+
+  @doc """
+  Returns an empty changeset for a new staff member form.
+  """
+  def new_staff_member_changeset(attrs \\ %{}) do
+    ChangeStaffMember.new_changeset(attrs)
   end
 end

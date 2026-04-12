@@ -83,6 +83,10 @@ defmodule KlassHero.Messaging do
                        ])
   @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
 
+  # ===========================================================================
+  # Commands
+  # ===========================================================================
+
   @doc """
   Creates or retrieves a direct conversation between provider and user.
 
@@ -109,69 +113,6 @@ defmodule KlassHero.Messaging do
   def create_direct_conversation(scope, provider_id, target_user_id, opts \\ []) do
     CreateDirectConversation.execute(scope, provider_id, target_user_id, opts)
   end
-
-  @doc """
-  Retrieves a conversation with its messages.
-
-  ## Parameters
-  - conversation_id: The conversation to retrieve
-  - user_id: The requesting user (for access control)
-  - opts: Optional parameters
-    - limit: Number of messages (default 50)
-    - before: Get messages before this timestamp
-    - mark_as_read: Whether to mark messages as read (default false)
-
-  ## Returns
-  - `{:ok, result_map}` - Success, with keys:
-    - `:conversation` - The conversation entity
-    - `:messages` - List of messages
-    - `:has_more` - Whether there are more messages
-    - `:sender_names` - Map of sender_id => display name
-  - `{:error, :not_found}` - Conversation doesn't exist
-  - `{:error, :not_participant}` - User is not in the conversation
-
-  ## Examples
-
-      iex> Messaging.get_conversation(conversation_id, user_id)
-      {:ok, %{conversation: %Conversation{}, messages: [...], has_more: false, sender_names: %{}}}
-
-  """
-  @spec get_conversation(String.t(), String.t(), keyword()) ::
-          {:ok, map()}
-          | {:error, :not_found | :not_participant}
-  defdelegate get_conversation(conversation_id, user_id, opts \\ []),
-    to: GetConversation,
-    as: :execute
-
-  @doc """
-  Lists conversations for a user with unread counts.
-
-  Returns conversations ordered by most recent message.
-
-  ## Parameters
-  - user_id: The user to list conversations for
-  - opts: Optional parameters
-    - limit: Number of conversations (default 50)
-
-  ## Returns
-  - `{:ok, conversations, has_more}` - List of enriched conversations
-
-  Each conversation includes:
-  - `:conversation` - The conversation entity
-  - `:unread_count` - Number of unread messages
-  - `:latest_message` - The most recent message
-  - `:last_read_at` - When user last read
-
-  ## Examples
-
-      iex> Messaging.list_conversations(user_id)
-      {:ok, [%{conversation: %Conversation{}, unread_count: 2, ...}], false}
-
-  """
-  @spec list_conversations(String.t(), keyword()) :: {:ok, [map()], boolean()}
-  defdelegate list_conversations(user_id, opts \\ []),
-    to: ListConversations,
-    as: :execute
 
   @doc """
   Sends a message to a conversation.
@@ -287,28 +228,6 @@ defmodule KlassHero.Messaging do
     as: :execute
 
   @doc """
-  Gets the total unread message count across all conversations for a user.
-
-  This is useful for displaying an unread badge in the navigation.
-
-  ## Parameters
-  - user_id: The user to get unread count for
-
-  ## Returns
-  - Non-negative integer count of unread messages
-
-  ## Examples
-
-      iex> Messaging.get_total_unread_count(user_id)
-      5
-
-  """
-  @spec get_total_unread_count(String.t()) :: non_neg_integer()
-  defdelegate get_total_unread_count(user_id),
-    to: GetTotalUnreadCount,
-    as: :execute
-
-  @doc """
   Anonymizes all messaging data for a user as part of GDPR deletion.
 
   Replaces message content with `"[deleted]"` and marks all active
@@ -355,6 +274,178 @@ defmodule KlassHero.Messaging do
   defdelegate receive_inbound_email(attrs), to: ReceiveInboundEmail, as: :execute
 
   @doc """
+  Replies to an inbound email by sending a response via Swoosh/Resend.
+
+  ## Parameters
+  - `email_id` - The inbound email to reply to
+  - `reply_body` - The reply text content
+  - `sent_by_id` - The ID of the user sending the reply
+
+  ## Returns
+  - `{:ok, email_reply}` - Reply sent and recorded successfully
+  - `{:error, reason}` - Failed to send
+  """
+  @spec reply_to_inbound_email(String.t(), String.t(), String.t(), keyword()) ::
+          {:ok, EmailReply.t()} | {:error, term()}
+  defdelegate reply_to_inbound_email(email_id, reply_body, sent_by_id, opts \\ []),
+    to: ReplyToEmail,
+    as: :execute
+
+  @doc """
+  Schedules a content fetch retry for an inbound email.
+
+  ## Parameters
+  - `email_id` - The inbound email ID
+  - `resend_id` - The Resend email ID for the API call
+  """
+  @spec schedule_content_fetch(String.t(), String.t()) :: {:ok, term()} | {:error, term()}
+  def schedule_content_fetch(email_id, resend_id) do
+    @email_job_scheduler.schedule_content_fetch(email_id, resend_id)
+  end
+
+  @doc "Updates inbound email content fields (body, headers, content_status)."
+  @spec update_inbound_email_content(String.t(), map()) ::
+          {:ok, struct()} | {:error, term()}
+  def update_inbound_email_content(id, attrs) do
+    @inbound_email_repo.update_content(id, attrs)
+  end
+
+  @doc """
+  Updates the status of an inbound email.
+
+  ## Parameters
+  - `id` - The email ID
+  - `status` - The new status string ("unread", "read", "archived")
+  - `attrs` - Additional attributes to update
+
+  ## Returns
+  - `{:ok, email}` - Updated email
+  - `{:error, reason}` - Failure
+  """
+  @spec update_inbound_email_status(String.t(), String.t(), map()) ::
+          {:ok, struct()} | {:error, term()}
+  def update_inbound_email_status(id, status, attrs \\ %{}) do
+    @inbound_email_repo.update_status(id, status, attrs)
+  end
+
+  @doc """
+  Subscribes to real-time updates for a conversation.
+
+  ## Examples
+
+      iex> Messaging.subscribe_to_conversation(conversation_id)
+      :ok
+
+  """
+  @spec subscribe_to_conversation(String.t()) :: :ok | {:error, term()}
+  def subscribe_to_conversation(conversation_id) do
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, conversation_topic(conversation_id))
+  end
+
+  @doc """
+  Subscribes to real-time updates for a user's messages.
+
+  ## Examples
+
+      iex> Messaging.subscribe_to_user_messages(user_id)
+      :ok
+
+  """
+  @spec subscribe_to_user_messages(String.t()) :: :ok | {:error, term()}
+  def subscribe_to_user_messages(user_id) do
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, user_messages_topic(user_id))
+  end
+
+  # ===========================================================================
+  # Queries
+  # ===========================================================================
+
+  @doc """
+  Retrieves a conversation with its messages.
+
+  ## Parameters
+  - conversation_id: The conversation to retrieve
+  - user_id: The requesting user (for access control)
+  - opts: Optional parameters
+    - limit: Number of messages (default 50)
+    - before: Get messages before this timestamp
+    - mark_as_read: Whether to mark messages as read (default false)
+
+  ## Returns
+  - `{:ok, result_map}` - Success, with keys:
+    - `:conversation` - The conversation entity
+    - `:messages` - List of messages
+    - `:has_more` - Whether there are more messages
+    - `:sender_names` - Map of sender_id => display name
+  - `{:error, :not_found}` - Conversation doesn't exist
+  - `{:error, :not_participant}` - User is not in the conversation
+
+  ## Examples
+
+      iex> Messaging.get_conversation(conversation_id, user_id)
+      {:ok, %{conversation: %Conversation{}, messages: [...], has_more: false, sender_names: %{}}}
+
+  """
+  @spec get_conversation(String.t(), String.t(), keyword()) ::
+          {:ok, map()}
+          | {:error, :not_found | :not_participant}
+  defdelegate get_conversation(conversation_id, user_id, opts \\ []),
+    to: GetConversation,
+    as: :execute
+
+  @doc """
+  Lists conversations for a user with unread counts.
+
+  Returns conversations ordered by most recent message.
+
+  ## Parameters
+  - user_id: The user to list conversations for
+  - opts: Optional parameters
+    - limit: Number of conversations (default 50)
+
+  ## Returns
+  - `{:ok, conversations, has_more}` - List of enriched conversations
+
+  Each conversation includes:
+  - `:conversation` - The conversation entity
+  - `:unread_count` - Number of unread messages
+  - `:latest_message` - The most recent message
+  - `:last_read_at` - When user last read
+
+  ## Examples
+
+      iex> Messaging.list_conversations(user_id)
+      {:ok, [%{conversation: %Conversation{}, unread_count: 2, ...}], false}
+
+  """
+  @spec list_conversations(String.t(), keyword()) :: {:ok, [map()], boolean()}
+  defdelegate list_conversations(user_id, opts \\ []),
+    to: ListConversations,
+    as: :execute
+
+  @doc """
+  Gets the total unread message count across all conversations for a user.
+
+  This is useful for displaying an unread badge in the navigation.
+
+  ## Parameters
+  - user_id: The user to get unread count for
+
+  ## Returns
+  - Non-negative integer count of unread messages
+
+  ## Examples
+
+      iex> Messaging.get_total_unread_count(user_id)
+      5
+
+  """
+  @spec get_total_unread_count(String.t()) :: non_neg_integer()
+  defdelegate get_total_unread_count(user_id),
+    to: GetTotalUnreadCount,
+    as: :execute
+
+  @doc """
   Lists inbound emails with optional filtering.
 
   ## Options
@@ -382,24 +473,6 @@ defmodule KlassHero.Messaging do
   defdelegate get_inbound_email(id, opts \\ []), to: GetInboundEmail, as: :execute
 
   @doc """
-  Replies to an inbound email by sending a response via Swoosh/Resend.
-
-  ## Parameters
-  - `email_id` - The inbound email to reply to
-  - `reply_body` - The reply text content
-  - `sent_by_id` - The ID of the user sending the reply
-
-  ## Returns
-  - `{:ok, email_reply}` - Reply sent and recorded successfully
-  - `{:error, reason}` - Failed to send
-  """
-  @spec reply_to_inbound_email(String.t(), String.t(), String.t(), keyword()) ::
-          {:ok, EmailReply.t()} | {:error, term()}
-  defdelegate reply_to_inbound_email(email_id, reply_body, sent_by_id, opts \\ []),
-    to: ReplyToEmail,
-    as: :execute
-
-  @doc """
   Lists all email replies for a given inbound email.
 
   ## Parameters
@@ -411,25 +484,6 @@ defmodule KlassHero.Messaging do
   @spec list_email_replies(String.t()) :: {:ok, [EmailReply.t()]}
   def list_email_replies(inbound_email_id) do
     @email_reply_repo.list_by_email(inbound_email_id)
-  end
-
-  @doc """
-  Schedules a content fetch retry for an inbound email.
-
-  ## Parameters
-  - `email_id` - The inbound email ID
-  - `resend_id` - The Resend email ID for the API call
-  """
-  @spec schedule_content_fetch(String.t(), String.t()) :: {:ok, term()} | {:error, term()}
-  def schedule_content_fetch(email_id, resend_id) do
-    @email_job_scheduler.schedule_content_fetch(email_id, resend_id)
-  end
-
-  @doc "Updates inbound email content fields (body, headers, content_status)."
-  @spec update_inbound_email_content(String.t(), map()) ::
-          {:ok, struct()} | {:error, term()}
-  def update_inbound_email_content(id, attrs) do
-    @inbound_email_repo.update_content(id, attrs)
   end
 
   @doc """
@@ -462,24 +516,6 @@ defmodule KlassHero.Messaging do
   end
 
   @doc """
-  Updates the status of an inbound email.
-
-  ## Parameters
-  - `id` - The email ID
-  - `status` - The new status string ("unread", "read", "archived")
-  - `attrs` - Additional attributes to update
-
-  ## Returns
-  - `{:ok, email}` - Updated email
-  - `{:error, reason}` - Failure
-  """
-  @spec update_inbound_email_status(String.t(), String.t(), map()) ::
-          {:ok, struct()} | {:error, term()}
-  def update_inbound_email_status(id, status, attrs \\ %{}) do
-    @inbound_email_repo.update_status(id, status, attrs)
-  end
-
-  @doc """
   Returns the display name for a user.
 
   Used by LiveView helpers to resolve sender names for real-time messages.
@@ -506,10 +542,6 @@ defmodule KlassHero.Messaging do
     @staff_resolver.get_active_staff_user_ids(program_id)
   end
 
-  # ---------------------------------------------------------------------------
-  # Topic helpers & subscriptions
-  # ---------------------------------------------------------------------------
-
   @doc """
   Returns the PubSub topic for a conversation.
 
@@ -525,32 +557,4 @@ defmodule KlassHero.Messaging do
   """
   @spec user_messages_topic(String.t()) :: String.t()
   defdelegate user_messages_topic(user_id), to: NotifyLiveViews
-
-  @doc """
-  Subscribes to real-time updates for a conversation.
-
-  ## Examples
-
-      iex> Messaging.subscribe_to_conversation(conversation_id)
-      :ok
-
-  """
-  @spec subscribe_to_conversation(String.t()) :: :ok | {:error, term()}
-  def subscribe_to_conversation(conversation_id) do
-    Phoenix.PubSub.subscribe(KlassHero.PubSub, conversation_topic(conversation_id))
-  end
-
-  @doc """
-  Subscribes to real-time updates for a user's messages.
-
-  ## Examples
-
-      iex> Messaging.subscribe_to_user_messages(user_id)
-      :ok
-
-  """
-  @spec subscribe_to_user_messages(String.t()) :: :ok | {:error, term()}
-  def subscribe_to_user_messages(user_id) do
-    Phoenix.PubSub.subscribe(KlassHero.PubSub, user_messages_topic(user_id))
-  end
 end
