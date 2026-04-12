@@ -5,6 +5,34 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.32.0](https://github.com/MaxPayne89/klass-hero/compare/v0.31.0...v0.32.0) (2026-04-12)
+
+
+### Features
+
+* add /dream skill for memory consolidation ([8ef9a08](https://github.com/MaxPayne89/klass-hero/commit/8ef9a089a9eb64d9d27fc648109eb296f1f0041d))
+
+
+### Bug Fixes
+
+* correct describe block arity for update_schema in mapper tests ([2661bfa](https://github.com/MaxPayne89/klass-hero/commit/2661bfacda6bcd79bce3c34ae9b5aaf8f0c16d77)), closes [#626](https://github.com/MaxPayne89/klass-hero/issues/626)
+* correct e2e test description to Wallaby only ([931022d](https://github.com/MaxPayne89/klass-hero/commit/931022de85fb945302a2de6a528d66f84e8f22ee)), closes [#660](https://github.com/MaxPayne89/klass-hero/issues/660)
+* force recompile lazy_html NIF in CI to prevent stale cache ([40e5b11](https://github.com/MaxPayne89/klass-hero/commit/40e5b11ebe47f20831df51de06332b80ddb7d77c)), closes [#660](https://github.com/MaxPayne89/klass-hero/issues/660)
+* replace Task.async with Task.Supervisor.async_nolink in all LiveViews ([451353e](https://github.com/MaxPayne89/klass-hero/commit/451353eb6b653a82e462c933ade88338bfaf4206)), closes [#628](https://github.com/MaxPayne89/klass-hero/issues/628)
+
+
+### Performance Improvements
+
+* **dashboard_live:** parallelize children + programs queries in parent mount ([6e3739f](https://github.com/MaxPayne89/klass-hero/commit/6e3739f8065927cf546d7c7d399dcb3e0ccb03c7))
+
+
+### Code Refactoring
+
+* document CQRS direction and add command/query section headers to facades ([55e25c1](https://github.com/MaxPayne89/klass-hero/commit/55e25c1f958131614158e06784283347a5c5b690))
+* extract direct repo calls from facades into command/query modules ([f70341d](https://github.com/MaxPayne89/klass-hero/commit/f70341d673bddadc86fb337f28ca3a28a1fc6312))
+* reorganize use cases into commands/ and queries/ directories ([598bdf3](https://github.com/MaxPayne89/klass-hero/commit/598bdf3d2bea28f96c22c043045becd8f206496a))
+* split mixed ports into read/write pairs for CQRS ([5ea551d](https://github.com/MaxPayne89/klass-hero/commit/5ea551d74c066f61f33a609fce4f750f1db5627a))
+
 ## [0.31.0](https://github.com/MaxPayne89/klass-hero/compare/v0.30.0...v0.31.0) (2026-04-11)
 
 
