@@ -101,6 +101,12 @@ Upgrades Hex dependencies with semver classification, changelog review, and test
 
 **Use when:** `/dep-upgrade [package-name|--all]` or when asked to "upgrade deps", "update dependencies", "check outdated"
 
+### dream
+
+Performs memory consolidation — a reflective pass that synthesizes recent learnings into durable, well-organized memories. Supports full 4-phase consolidation (orient, gather, consolidate, prune) or a lighter prune-only mode.
+
+**Use when:** `/dream [consolidate|prune]` or when asked to "consolidate memories", "clean up memories", or at the end of a productive session
+
 ### review-architecture
 
 Runs a comprehensive 18-check architecture review by spawning the `architecture-reviewer` (12 structural checks) and `boundary-checker` (6 semantic checks) agents in parallel, scoped to changed files. Consolidates findings into a unified report.
