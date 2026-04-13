@@ -30,32 +30,38 @@
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
     {
-      "id": "provider-mapper-unit-tests",
+      "id": "e2e-messaging-pubsub-fanout",
       "priority": "medium",
-      "description": "StaffMemberMapper (atomize_invitation_status/1 non-trivial logic) and ProgramStaffAssignmentMapper have no unit tests; pattern established by PR #657/#644"
+      "description": "E2E scale tests for messaging PubSub fan-out (Issue #515); needs real PubSub infra and maintainer decisions on CI budget/approach"
     },
     {
       "id": "admin-provider-live-event-publishing",
       "priority": "low",
       "description": "admin provider_live.ex on_item_updated/2 publishes provider_verified/provider_unverified integration events; existing tests verify DB state only; architecturally constrained (TestIntegrationEventPublisher stores in calling process's dict, not LiveView process)"
-    },
-    {
-      "id": "e2e-messaging-pubsub-fanout",
-      "priority": "medium",
-      "description": "E2E scale tests for messaging PubSub fan-out (Issue #515); needs real PubSub infra and maintainer decisions on CI budget/approach"
     }
   ],
   "tasks_last_run": {
     "task_1": "2026-04-06",
     "task_2": "2026-04-11",
-    "task_3": "2026-04-11",
+    "task_3": "2026-04-13",
     "task_4": "2026-04-12",
     "task_5": "2026-04-12",
     "task_6": "2026-04-10",
-    "task_7": "2026-04-12"
+    "task_7": "2026-04-13"
   },
   "work_in_progress": null,
   "completed_work": [
+    {
+      "date": "2026-04-13",
+      "run_id": "24367711970",
+      "tasks": [
+        "task_3",
+        "task_7"
+      ],
+      "pr_branch": "test-assist/provider-mapper-unit-tests",
+      "description": "26 pure unit tests: StaffMemberMapper (21) covering atomize_invitation_status nil/binary/atom branches, nil-guards for tags/qualifications/user_id, maybe_add_id with/without id, atom->string for to_schema; ProgramStaffAssignmentMapper (5) covering UUID conversions, active vs unassigned state, timestamps.",
+      "tests_added": 26
+    },
     {
       "date": "2026-04-12",
       "run_id": "24316649437",
