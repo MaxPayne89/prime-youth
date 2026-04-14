@@ -97,18 +97,29 @@ defmodule KlassHero.Accounts.UserNotifier do
   boundary violations).
   """
   def deliver_staff_invitation(email, %{business_name: business_name, first_name: first_name}, url) do
-    deliver(email, "You've been invited to join #{business_name} on Klass Hero", """
+    deliver(email, "#{business_name} has invited you to join Klass Hero", """
     Hi #{first_name},
 
-    #{business_name} has invited you to join their team on Klass Hero.
+    #{business_name} has added you to their team on Klass Hero — and you're set up
+    to start earning with your own programs too.
 
-    Klass Hero is a platform for managing afterschool activities, camps, and class trips.
+    You'll get a free starter account, linked to #{business_name}'s programs and
+    ready for your own.
 
-    Click the link below to complete your registration:
+    Claim your account & get started:
 
     #{url}
 
+    Here's how it works:
+    1. Click the link above
+    2. Your name is already filled in — just confirm it and set a password
+    3. You'll have a free starter account, linked to #{business_name}'s programs
+
+    No monthly fees. No setup costs.
+
     This invitation expires in 7 days.
+
+    By claiming your account you agree to our terms of service.
 
     If you did not expect this invitation, you can ignore this email.
     """)
@@ -117,18 +128,24 @@ defmodule KlassHero.Accounts.UserNotifier do
   @doc """
   Delivers a notification email when an existing user is added as a staff member.
 
-  `dashboard_url` must be the full URL to the staff dashboard (passed from the web layer
-  to avoid boundary violations).
+  Requires a map with `business_name`, `name`, and `dashboard_url`. URLs must be
+  full URLs (passed from the web layer to avoid boundary violations).
   """
-  def deliver_staff_added_notification(email, %{business_name: business_name, dashboard_url: dashboard_url}) do
-    deliver(email, "You've been added to #{business_name}'s team on Klass Hero", """
-    Hi,
+  def deliver_staff_added_notification(email, %{business_name: business_name, name: name, dashboard_url: dashboard_url}) do
+    deliver(email, "#{business_name} has invited you to join Klass Hero", """
+    Hi #{name},
 
-    #{business_name} has added you to their team on Klass Hero.
+    #{business_name} has added you to their team on Klass Hero — and you now have
+    a free starter account of your own, ready for your programs.
 
-    You can view your assigned programs on your staff dashboard:
+    You're linked to #{business_name}'s programs and can start managing your own
+    activities right away.
+
+    View your staff dashboard:
 
     #{dashboard_url}
+
+    By continuing to use your account you agree to our terms of service.
 
     If you did not expect this, please contact #{business_name} directly.
     """)

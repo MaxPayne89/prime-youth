@@ -66,6 +66,7 @@ defmodule KlassHero.Accounts do
 
   - `create_provider_profile: true` — signals the Provider context to
     create a starter provider profile for this user.
+  - `user_name` — used as the default business name for the provider profile.
 
   Returns `:ok` on success or `{:error, reason}` on publish failure.
   """
