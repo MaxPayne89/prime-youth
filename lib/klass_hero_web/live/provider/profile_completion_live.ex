@@ -127,7 +127,13 @@ defmodule KlassHeroWeb.Provider.ProfileCompletionLive do
   defp blank_to_nil(value), do: value
 
   defp parse_categories(nil), do: []
-  defp parse_categories(cats) when is_list(cats), do: cats
+
+  defp parse_categories(cats) when is_list(cats) do
+    cats
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.uniq()
+  end
+
   defp parse_categories(_), do: []
 
   defp maybe_put_logo(attrs, :no_upload), do: attrs
