@@ -5,6 +5,24 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.34.0](https://github.com/MaxPayne89/klass-hero/compare/v0.33.0...v0.34.0) (2026-04-14)
+
+
+### Features
+
+* add provider profile completion flow after activation ([5d48801](https://github.com/MaxPayne89/klass-hero/commit/5d48801002f2198e649993062984a19107635e6e))
+* add provider profile completion flow after staff activation ([a2f6c91](https://github.com/MaxPayne89/klass-hero/commit/a2f6c91c7b06a794f02c40f40ecf541bcf97593a)), closes [#364](https://github.com/MaxPayne89/klass-hero/issues/364)
+
+
+### Bug Fixes
+
+* filter empty strings from categories hidden input ([1913533](https://github.com/MaxPayne89/klass-hero/commit/1913533e6fd457647472bdb8c60fdf537851b7f4)), closes [#667](https://github.com/MaxPayne89/klass-hero/issues/667)
+
+
+### Code Refactoring
+
+* move StaffInvitationStatusHandler into event_handlers/ subdirectory ([d1bd8d3](https://github.com/MaxPayne89/klass-hero/commit/d1bd8d37224b53869282d3b95abcc98b83f022b1))
+
 ## [0.33.0](https://github.com/MaxPayne89/klass-hero/compare/v0.32.0...v0.33.0) (2026-04-12)
 
 
