@@ -55,10 +55,12 @@ defmodule KlassHero.Factory do
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProgramCatalog.Domain.Models.Program
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProgramStaffAssignmentSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
   alias KlassHero.Provider.Domain.Models.ProviderProfile
+  alias KlassHero.Provider.Domain.Models.StaffMember
 
   @doc """
   Factory for creating Program domain entities (pure Elixir structs).
@@ -455,6 +457,85 @@ defmodule KlassHero.Factory do
       tags: [],
       qualifications: []
     }
+  end
+
+  @doc """
+  Factory for creating StaffMember domain entities (pure Elixir structs).
+
+  Used in domain model and use case tests where we don't need database persistence.
+
+  ## Examples
+
+      staff = build(:staff_member)
+      staff = build(:staff_member, role: "Head Coach", tags: ["sports"])
+  """
+  def staff_member_factory do
+    %StaffMember{
+      id:
+        sequence(
+          :staff_member_id,
+          &"aa0e8400-e29b-41d4-a716-55665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      provider_id:
+        sequence(
+          :staff_member_provider_id,
+          &"770e8400-e29b-41d4-a716-aa665544#{String.pad_leading("#{&1}", 4, "0")}"
+        ),
+      first_name: sequence(:staff_member_first_name, &"Staff#{&1}"),
+      last_name: "Member",
+      role: "Coach",
+      email: sequence(:staff_member_email, &"staff#{&1}@example.com"),
+      tags: [],
+      qualifications: [],
+      active: true,
+      invitation_status: nil,
+      invitation_token_hash: nil,
+      invitation_sent_at: nil,
+      inserted_at: ~U[2025-01-01 12:00:00Z],
+      updated_at: ~U[2025-01-01 12:00:00Z]
+    }
+  end
+
+  @doc """
+  Factory for creating ProgramStaffAssignmentSchema Ecto schemas.
+
+  Inserts a provider profile, a program, and a staff member as prerequisites.
+  Used in repository and integration tests that need a persisted staff assignment.
+
+  ## Examples
+
+      assignment = insert(:program_staff_assignment_schema)
+      assignment = insert(:program_staff_assignment_schema, assigned_at: ~U[2025-03-01 10:00:00Z])
+
+      # Override with pre-existing provider/program/staff to avoid extra inserts:
+      assignment = insert(:program_staff_assignment_schema,
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_member_id: staff.id
+      )
+  """
+  def program_staff_assignment_schema_factory do
+    provider = insert(:provider_profile_schema)
+    program = insert(:program_schema, provider_id: provider.id)
+    staff = insert(:staff_member_schema, provider_id: provider.id)
+
+    %ProgramStaffAssignmentSchema{
+      id: Ecto.UUID.generate(),
+      provider_id: provider.id,
+      program_id: program.id,
+      staff_member_id: staff.id,
+      assigned_at: DateTime.utc_now() |> DateTime.truncate(:microsecond)
+    }
+  end
+
+  @doc """
+  Unassigned variant — staff member has been removed from the program.
+  """
+  def unassigned_program_staff_assignment_schema_factory do
+    struct!(
+      program_staff_assignment_schema_factory(),
+      %{unassigned_at: ~U[2025-06-01 09:00:00Z]}
+    )
   end
 
   # =============================================================================
