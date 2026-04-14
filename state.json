@@ -44,35 +44,13 @@
     "task_1": "2026-04-06",
     "task_2": "2026-04-11",
     "task_3": "2026-04-13",
-    "task_4": "2026-04-12",
+    "task_4": "2026-04-14",
     "task_5": "2026-04-12",
-    "task_6": "2026-04-10",
-    "task_7": "2026-04-13"
+    "task_6": "2026-04-14",
+    "task_7": "2026-04-14"
   },
   "work_in_progress": null,
   "completed_work": [
-    {
-      "date": "2026-04-13",
-      "run_id": "24367711970",
-      "tasks": [
-        "task_3",
-        "task_7"
-      ],
-      "pr_branch": "test-assist/provider-mapper-unit-tests",
-      "description": "26 pure unit tests: StaffMemberMapper (21) covering atomize_invitation_status nil/binary/atom branches, nil-guards for tags/qualifications/user_id, maybe_add_id with/without id, atom->string for to_schema; ProgramStaffAssignmentMapper (5) covering UUID conversions, active vs unassigned state, timestamps.",
-      "tests_added": 26
-    },
-    {
-      "date": "2026-04-12",
-      "run_id": "24316649437",
-      "tasks": [
-        "task_4",
-        "task_5",
-        "task_7"
-      ],
-      "description": "Commented on issue #636 (TOCTOU testing guidance), commented on PR #634 (arity mismatch + superseded by main tests). No new PR this run.",
-      "comments_added": 2
-    },
     {
       "date": "2026-04-11",
       "run_id": "24291816929",
@@ -186,6 +164,19 @@
       "description": "11 new async unit tests extending participation_events_payload_test.exs",
       "tests_added": 11,
       "merged": true
+    },
+    {
+      "date": "2026-04-14",
+      "run_id": "24423787754",
+      "tasks": [
+        "task_4",
+        "task_6",
+        "task_7"
+      ],
+      "description": "Task 6: Created PR (test-assist/provider-factory-completeness) adding :staff_member domain factory, :program_staff_assignment_schema factory, :unassigned_program_staff_assignment_schema variant to test/support/factory.ex. Task 4: Verified PRs #666, #657, #644 conflict-free; #634 still awaits human close.",
+      "prs_created": [
+        "test-assist/provider-factory-completeness-1776202626"
+      ]
     }
   ],
   "monthly_summary_issue": {
@@ -197,5 +188,6 @@
   "backlog_cursor": {
     "task_2_last_file": "participation/adapters/driven/persistence/mappers/ (complete)",
     "task_5_last_issue": 636
-  }
+  },
+  "open_prs": []
 }
