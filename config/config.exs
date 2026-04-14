@@ -58,8 +58,8 @@ alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramStaffAs
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
+alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler
 alias KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
-alias KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler
 alias KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher
 alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
 alias KlassHero.Shared.Adapters.Driven.FeatureFlags.FunWithFlagsAdapter

@@ -1085,4 +1085,21 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       refute has_element?(view, "#cross-nav-staff-link")
     end
   end
+
+  describe "profile completion banner" do
+    test "does NOT show banner for active (complete) profile", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+      refute has_element?(view, "#profile-completion-banner")
+    end
+  end
+
+  describe "profile completion banner for draft profile" do
+    setup :register_and_log_in_draft_provider
+
+    test "shows banner for draft profile", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+      assert has_element?(view, "#profile-completion-banner")
+      assert has_element?(view, ~s(a[href="/provider/complete-profile"]))
+    end
+  end
 end

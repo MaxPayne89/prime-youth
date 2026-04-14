@@ -1,4 +1,4 @@
-defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler do
+defmodule KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler do
   @moduledoc """
   Integration event handler for staff invitation status updates from Accounts context.
 
@@ -83,7 +83,8 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
       case CreateProviderProfile.execute(%{
              identity_id: user_id,
              business_name: business_name,
-             originated_from: :staff_invite
+             originated_from: :staff_invite,
+             profile_status: :draft
            }) do
         {:ok, profile} ->
           Logger.info("[StaffInvitationStatusHandler] Created provider profile for staff user",

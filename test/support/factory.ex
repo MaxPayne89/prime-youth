@@ -384,7 +384,34 @@ defmodule KlassHero.Factory do
       verified: false,
       verified_at: nil,
       categories: ["sports", "outdoor"],
-      subscription_tier: "professional"
+      subscription_tier: "professional",
+      profile_status: "active"
+    }
+  end
+
+  @doc """
+  Draft provider profile variant — simulates a profile auto-created by
+  StaffInvitationStatusHandler when a staff member opts into provider role.
+  All optional fields are nil (provider hasn't filled them in yet).
+  """
+  def draft_provider_profile_schema_factory do
+    user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:staff_provider, :provider])
+
+    %ProviderProfileSchema{
+      id: Ecto.UUID.generate(),
+      identity_id: user.id,
+      business_name: sequence(:draft_provider_business_name, &"Draft Provider #{&1}"),
+      description: nil,
+      phone: nil,
+      website: nil,
+      address: nil,
+      logo_url: nil,
+      verified: false,
+      verified_at: nil,
+      categories: [],
+      subscription_tier: "starter",
+      originated_from: "staff_invite",
+      profile_status: "draft"
     }
   end
 

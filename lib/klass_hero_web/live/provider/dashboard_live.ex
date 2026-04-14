@@ -17,6 +17,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Shared.Entitlements
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Helpers.TaskHelpers
@@ -88,6 +89,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           socket
           |> assign(page_title: gettext("Provider Dashboard"))
           |> assign(business: business)
+          |> assign(:profile_draft?, ProviderProfile.draft?(provider_profile))
           |> assign(:dual_role?, Scope.dual_role?(socket.assigns.current_scope))
           |> stream(:team_members, staff_views)
           |> update_staff_count(length(staff_views))
@@ -1049,6 +1051,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
               document_types={@document_types}
             />
           <% _ -> %>
+            <.profile_completion_banner :if={@profile_draft?} />
             <.provider_dashboard_header
               business={@business}
               can_create_program?={@can_create_program?}
@@ -1102,6 +1105,48 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                 />
             <% end %>
         <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  # ============================================================================
+  # Profile Completion Banner
+  # ============================================================================
+
+  defp profile_completion_banner(assigns) do
+    ~H"""
+    <div
+      id="profile-completion-banner"
+      class={[
+        "mb-6 p-4 border-2 border-amber-300 bg-amber-50",
+        Theme.rounded(:xl)
+      ]}
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <.icon name="hero-exclamation-triangle" class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 class={["font-semibold", Theme.typography(:card_title)]}>
+              {gettext("Complete your provider profile")}
+            </h3>
+            <p class="text-sm text-gray-500 mt-0.5">
+              {gettext(
+                "Fill in your business details so parents can find you. Your profile will be reviewed by Klass Hero before going live."
+              )}
+            </p>
+          </div>
+        </div>
+        <.link
+          navigate={~p"/provider/complete-profile"}
+          class={[
+            "inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white whitespace-nowrap",
+            Theme.rounded(:lg),
+            Theme.gradient(:primary)
+          ]}
+        >
+          {gettext("Complete Profile")}
+        </.link>
       </div>
     </div>
     """

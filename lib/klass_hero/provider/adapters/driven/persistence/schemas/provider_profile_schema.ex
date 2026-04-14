@@ -34,6 +34,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
     field :categories, {:array, :string}, default: []
     field :subscription_tier, :string, default: "starter"
     field :originated_from, :string, default: "direct"
+    field :profile_status, :string, default: "active"
 
     belongs_to :verified_by, User, type: :binary_id
 
@@ -73,15 +74,12 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
       :verified_by_id,
       :categories,
       :subscription_tier,
-      :originated_from
+      :originated_from,
+      :profile_status
     ])
     |> validate_required([:identity_id, :business_name])
-    |> validate_length(:business_name, min: 1, max: 200)
-    |> validate_length(:description, min: 1, max: 1000)
-    |> validate_length(:phone, min: 1, max: 20)
-    |> validate_length(:website, min: 1, max: 500)
-    |> validate_website_protocol()
-    |> validate_length(:address, min: 1, max: 500)
+    |> validate_inclusion(:profile_status, ~w(draft active))
+    |> validate_profile_fields()
     |> validate_length(:logo_url, min: 1, max: 500)
     |> validate_inclusion(:subscription_tier, @valid_tier_strings)
     |> validate_inclusion(:originated_from, ~w(direct staff_invite), message: "is not a valid origin")
@@ -101,6 +99,22 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
     schema
     |> cast(attrs, [:description])
     |> validate_length(:description, max: 1000)
+  end
+
+  @doc """
+  Form changeset for provider profile completion by staff-invite providers.
+
+  Casts all fields a provider needs to fill during profile completion:
+  business_name, description, phone, website, address, categories.
+  Logo URL is set programmatically after upload (not in this changeset).
+  """
+  @completion_fields ~w(business_name description phone website address categories)a
+
+  def completion_changeset(schema, attrs) do
+    schema
+    |> cast(attrs, @completion_fields)
+    |> validate_required([:business_name, :description])
+    |> validate_profile_fields()
   end
 
   @doc """
@@ -143,6 +157,16 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
       nil ->
         changeset
     end
+  end
+
+  defp validate_profile_fields(changeset) do
+    changeset
+    |> validate_length(:business_name, min: 1, max: 200)
+    |> validate_length(:description, min: 1, max: 1000)
+    |> validate_length(:phone, min: 1, max: 20)
+    |> validate_length(:website, min: 1, max: 500)
+    |> validate_website_protocol()
+    |> validate_length(:address, min: 1, max: 500)
   end
 
   defp validate_website_protocol(changeset) do

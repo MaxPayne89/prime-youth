@@ -49,6 +49,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
       categories: schema.categories,
       subscription_tier: string_to_tier(schema.subscription_tier, :starter),
       originated_from: string_to_origin(schema.originated_from),
+      profile_status: string_to_profile_status(schema.profile_status),
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -75,7 +76,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
       verified_by_id: provider_profile.verified_by_id,
       categories: provider_profile.categories,
       subscription_tier: tier_to_string(provider_profile.subscription_tier, "starter"),
-      originated_from: origin_to_string(provider_profile.originated_from)
+      originated_from: origin_to_string(provider_profile.originated_from),
+      profile_status: profile_status_to_string(provider_profile.profile_status)
     }
     |> maybe_add_id(provider_profile.id)
   end
@@ -91,4 +93,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
 
   defp origin_to_string(:staff_invite), do: "staff_invite"
   defp origin_to_string(_), do: "direct"
+
+  defp string_to_profile_status("draft"), do: :draft
+  defp string_to_profile_status("active"), do: :active
+  defp string_to_profile_status(_), do: :active
+
+  defp profile_status_to_string(:draft), do: "draft"
+  defp profile_status_to_string(_), do: "active"
 end
