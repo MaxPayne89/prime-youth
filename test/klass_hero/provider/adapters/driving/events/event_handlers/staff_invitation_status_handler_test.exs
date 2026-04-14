@@ -1,10 +1,10 @@
-defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandlerTest do
+defmodule KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandlerTest do
   use KlassHero.DataCase, async: true
 
   alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.AccountsFixtures
   alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
-  alias KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler
+  alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler
   alias KlassHero.ProviderFixtures
 
   describe "subscribed_events/0" do

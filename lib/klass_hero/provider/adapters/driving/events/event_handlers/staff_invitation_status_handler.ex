@@ -1,4 +1,4 @@
-defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler do
+defmodule KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler do
   @moduledoc """
   Integration event handler for staff invitation status updates from Accounts context.
 

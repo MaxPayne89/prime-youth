@@ -30,7 +30,7 @@ defmodule KlassHero.Integration.StaffInvitationSagaTest do
   alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.Accounts.Scope
   alias KlassHero.Provider
-  alias KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler
+  alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler
   alias KlassHero.Provider.Domain.Events.ProviderIntegrationEvents
 
   defp build_invited_event(staff, provider, raw_token) do

@@ -32,8 +32,8 @@ defmodule KlassHero.Application do
   alias KlassHero.Participation.Adapters.Driving.Events.ParticipationEventHandler
   alias KlassHero.ProgramCatalog.Adapters.Driving.Events.EnrollmentEventHandler
   alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProviderVerificationStatus
+  alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler
   alias KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
-  alias KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler
   alias KlassHero.Shared.Adapters.Driven.Events.EventSubscriber
   alias KlassHero.Shared.DomainEventBus
 
