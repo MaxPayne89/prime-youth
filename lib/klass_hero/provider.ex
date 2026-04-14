@@ -40,6 +40,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeStaffMember
   alias KlassHero.Provider.Application.Commands.Providers.ChangeSubscriptionTier
+  alias KlassHero.Provider.Application.Commands.Providers.CompleteProviderProfile
   alias KlassHero.Provider.Application.Commands.Providers.CreateProviderProfile
   alias KlassHero.Provider.Application.Commands.Providers.UnverifyProvider
   alias KlassHero.Provider.Application.Commands.Providers.UpdateProviderProfile
@@ -97,6 +98,25 @@ defmodule KlassHero.Provider do
           | {:error, :not_found | {:validation_error, list()} | Ecto.Changeset.t()}
   def update_provider_profile(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
     UpdateProviderProfile.execute(provider_id, attrs)
+  end
+
+  @doc """
+  Completes a draft provider profile with all required business information.
+
+  Only profiles with profile_status: :draft can be completed.
+  Sets profile_status to :active on success.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` on success
+  - `{:error, :not_found}` if provider doesn't exist
+  - `{:error, :already_active}` if profile is not in draft status
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  """
+  @spec complete_provider_profile(String.t(), map()) ::
+          {:ok, ProviderProfile.t()}
+          | {:error, :not_found | :already_active | {:validation_error, list()} | Ecto.Changeset.t()}
+  def complete_provider_profile(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
+    CompleteProviderProfile.execute(provider_id, attrs)
   end
 
   @doc """
@@ -472,6 +492,17 @@ defmodule KlassHero.Provider do
   @spec change_provider_profile(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
   def change_provider_profile(%ProviderProfile{} = provider, attrs \\ %{}) do
     ChangeProviderProfile.execute(provider, attrs)
+  end
+
+  @doc """
+  Returns a changeset for tracking provider profile completion form changes.
+
+  Used by ProfileCompletionLive for `to_form()` and `phx-change` validation.
+  Casts a broader set of fields than `change_provider_profile/2`.
+  """
+  @spec change_provider_profile_completion(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
+  def change_provider_profile_completion(%ProviderProfile{} = provider, attrs \\ %{}) do
+    ChangeProviderProfile.completion_changeset(provider, attrs)
   end
 
   @doc """

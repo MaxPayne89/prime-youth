@@ -108,6 +108,8 @@ defmodule KlassHeroWeb.Router do
         live "/sessions/new", SessionsLive, :new
         live "/participation/:session_id", ParticipationLive, :show
 
+        live "/complete-profile", ProfileCompletionLive, :complete
+
         # Provider dashboard routes
         live "/dashboard", DashboardLive, :overview
         live "/dashboard/team", DashboardLive, :team

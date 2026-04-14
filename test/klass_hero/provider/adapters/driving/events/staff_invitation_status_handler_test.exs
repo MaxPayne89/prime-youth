@@ -202,9 +202,10 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandle
 
       assert :ok = StaffInvitationStatusHandler.handle_event(event)
 
-      # Verify provider profile was created
+      # Verify provider profile was created in draft status
       assert {:ok, created_profile} = KlassHero.Provider.get_provider_by_identity(user.id)
       assert created_profile.originated_from == :staff_invite
+      assert created_profile.profile_status == :draft
       assert created_profile.business_name == user.name
     end
 

@@ -219,6 +219,43 @@ defmodule KlassHeroWeb.ConnCase do
     }
   end
 
+  @doc """
+  Setup helper that registers and logs in a dual-role user with a draft provider profile.
+
+      setup :register_and_log_in_draft_provider
+
+  Simulates a staff member who opted into provider role during activation.
+  The provider profile is in draft status (needs completion).
+  Includes a linked staff member with bio and tags for pre-fill testing.
+  """
+  def register_and_log_in_draft_provider(%{conn: _conn} = context) do
+    user = AccountsFixtures.user_fixture(%{intended_roles: [:staff_provider, :provider]})
+
+    provider =
+      KlassHero.Factory.insert(:draft_provider_profile_schema, identity_id: user.id)
+
+    staff =
+      KlassHero.ProviderFixtures.staff_member_fixture(%{
+        provider_id: provider.id,
+        user_id: user.id,
+        active: true,
+        invitation_status: :accepted,
+        bio: "Experienced youth sports coach",
+        tags: ["sports", "arts"],
+        headshot_url: "https://example.com/headshot.jpg"
+      })
+
+    scope = Scope.for_user(user) |> Scope.resolve_roles()
+
+    %{
+      conn: log_in_user(context.conn, user),
+      user: user,
+      scope: scope,
+      provider: provider,
+      staff: staff
+    }
+  end
+
   defp maybe_set_token_authenticated_at(_token, nil), do: nil
 
   defp maybe_set_token_authenticated_at(token, authenticated_at) do
