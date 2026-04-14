@@ -13,19 +13,19 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Schemas.UserStaffRegist
         })
 
       assert changeset.valid?
-      assert get_change(changeset, :intended_roles) == [:staff_provider]
+      assert get_change(changeset, :intended_roles) == [:staff_provider, :provider]
     end
 
-    test "locks intended_roles to [:staff_provider]" do
+    test "locks intended_roles to [:staff_provider, :provider]" do
       changeset =
         User.staff_registration_changeset(%User{}, %{
           name: "Jane Doe",
           email: "jane@example.com",
           password: "valid_password_123",
-          intended_roles: [:provider]
+          intended_roles: [:parent]
         })
 
-      assert get_change(changeset, :intended_roles) == [:staff_provider]
+      assert get_change(changeset, :intended_roles) == [:staff_provider, :provider]
     end
 
     test "does not require provider_subscription_tier" do
@@ -84,27 +84,15 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Schemas.UserStaffRegist
     end
   end
 
-  describe "staff_registration_changeset/3 dual-role support" do
-    test "sets [:staff_provider] when also_provider is not set" do
+  describe "staff_registration_changeset/3 always includes :provider role" do
+    test "sets [:staff_provider, :provider] by default" do
       attrs = %{"name" => "Test", "email" => "test@example.com", "password" => "long_password123"}
-
-      changeset = User.staff_registration_changeset(%User{}, attrs, hash_password: false)
-      assert Ecto.Changeset.get_field(changeset, :intended_roles) == [:staff_provider]
-    end
-
-    test "sets [:staff_provider, :provider] when also_provider is 'true'" do
-      attrs = %{
-        "name" => "Test",
-        "email" => "test@example.com",
-        "password" => "long_password123",
-        "also_provider" => "true"
-      }
 
       changeset = User.staff_registration_changeset(%User{}, attrs, hash_password: false)
       assert Ecto.Changeset.get_field(changeset, :intended_roles) == [:staff_provider, :provider]
     end
 
-    test "sets [:staff_provider] when also_provider is 'false'" do
+    test "ignores also_provider param — always includes :provider" do
       attrs = %{
         "name" => "Test",
         "email" => "test@example.com",
@@ -113,7 +101,7 @@ defmodule KlassHero.Accounts.Adapters.Driven.Persistence.Schemas.UserStaffRegist
       }
 
       changeset = User.staff_registration_changeset(%User{}, attrs, hash_password: false)
-      assert Ecto.Changeset.get_field(changeset, :intended_roles) == [:staff_provider]
+      assert Ecto.Changeset.get_field(changeset, :intended_roles) == [:staff_provider, :provider]
     end
   end
 end
