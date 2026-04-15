@@ -3,6 +3,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionStatsTes
 
   import Ecto.Query
 
+  alias Ecto.Adapters.SQL.Sandbox
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.SessionStatsSchema
   alias KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionStats
   alias KlassHero.Repo
@@ -34,7 +35,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionStatsTes
         skip_bootstrap: true
       )
 
-    Ecto.Adapters.SQL.Sandbox.allow(Repo, self(), pid)
+    Sandbox.allow(Repo, self(), pid)
     pid
   end
 
