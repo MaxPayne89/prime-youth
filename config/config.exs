@@ -54,8 +54,10 @@ alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRe
 alias KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+alias KlassHero.Provider.Adapters.Driven.ACL.ParticipationSessionStatsACL
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramStaffAssignmentRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
+alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.SessionStatsRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
 alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler
@@ -282,7 +284,9 @@ config :klass_hero, :provider,
   for_storing_staff_members: StaffMemberRepository,
   for_querying_staff_members: StaffMemberRepository,
   for_storing_program_staff_assignments: ProgramStaffAssignmentRepository,
-  for_querying_program_staff_assignments: ProgramStaffAssignmentRepository
+  for_querying_program_staff_assignments: ProgramStaffAssignmentRepository,
+  for_querying_session_stats: SessionStatsRepository,
+  for_resolving_session_stats: ParticipationSessionStatsACL
 
 config :klass_hero, :resend_req_options, []
 
