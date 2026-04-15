@@ -24,11 +24,11 @@ defmodule KlassHero.Participation.Application.Commands.ReviewBehavioralNote do
 
   @behavioral_note_reader Application.compile_env!(:klass_hero, [
                             :participation,
-                            :behavioral_note_query_repository
+                            :for_querying_behavioral_notes
                           ])
   @behavioral_note_repository Application.compile_env!(:klass_hero, [
                                 :participation,
-                                :behavioral_note_repository
+                                :for_storing_behavioral_notes
                               ])
 
   @type params :: %{

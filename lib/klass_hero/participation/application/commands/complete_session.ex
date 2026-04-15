@@ -22,19 +22,19 @@ defmodule KlassHero.Participation.Application.Commands.CompleteSession do
 
   @context KlassHero.Participation
 
-  @session_reader Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
-  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+  @session_reader Application.compile_env!(:klass_hero, [:participation, :for_querying_sessions])
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :for_storing_sessions])
   @participation_reader Application.compile_env!(:klass_hero, [
                           :participation,
-                          :participation_query_repository
+                          :for_querying_participation_records
                         ])
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
-                              :participation_repository
+                              :for_storing_participation_records
                             ])
   @program_provider_resolver Application.compile_env!(:klass_hero, [
                                :participation,
-                               :program_provider_resolver
+                               :for_resolving_program_provider
                              ])
 
   @type result :: {:ok, ProgramSession.t()} | {:error, term()}

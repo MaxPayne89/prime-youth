@@ -9,7 +9,7 @@ defmodule KlassHero.Participation.Application.Queries.ListPendingBehavioralNotes
 
   @behavioral_note_repository Application.compile_env!(:klass_hero, [
                                 :participation,
-                                :behavioral_note_query_repository
+                                :for_querying_behavioral_notes
                               ])
 
   @type result :: {:ok, [BehavioralNote.t()]}

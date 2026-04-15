@@ -258,15 +258,15 @@ config :klass_hero, :messaging,
 
 # Configure Participation bounded context
 config :klass_hero, :participation,
-  session_repository: SessionRepository,
-  session_query_repository: SessionRepository,
-  participation_repository: ParticipationRepository,
-  participation_query_repository: ParticipationRepository,
-  child_info_resolver: ChildInfoResolver,
-  behavioral_note_repository: BehavioralNoteRepository,
-  behavioral_note_query_repository: BehavioralNoteRepository,
-  program_provider_resolver: ProgramProviderResolver,
-  enrolled_children_resolver: EnrolledChildrenResolver
+  for_storing_sessions: SessionRepository,
+  for_querying_sessions: SessionRepository,
+  for_storing_participation_records: ParticipationRepository,
+  for_querying_participation_records: ParticipationRepository,
+  for_resolving_child_info: ChildInfoResolver,
+  for_storing_behavioral_notes: BehavioralNoteRepository,
+  for_querying_behavioral_notes: BehavioralNoteRepository,
+  for_resolving_program_provider: ProgramProviderResolver,
+  for_resolving_enrolled_children: EnrolledChildrenResolver
 
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,

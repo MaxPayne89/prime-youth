@@ -10,7 +10,7 @@ defmodule KlassHero.Participation.Application.Queries.GetParticipationHistory do
 
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
-                              :participation_query_repository
+                              :for_querying_participation_records
                             ])
 
   @type single_child_params :: %{

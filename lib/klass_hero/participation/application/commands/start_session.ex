@@ -18,8 +18,8 @@ defmodule KlassHero.Participation.Application.Commands.StartSession do
 
   @context KlassHero.Participation
 
-  @session_reader Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
-  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+  @session_reader Application.compile_env!(:klass_hero, [:participation, :for_querying_sessions])
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :for_storing_sessions])
 
   @type result :: {:ok, ProgramSession.t()} | {:error, term()}
 
