@@ -25,7 +25,8 @@
     "program_catalog_test_note": "program_catalog use case tests call use case directly (CreateProgram.execute/1) OR through ProgramCatalog context; async: true safe as long as no Application config mutation and no program_listings cleanup",
     "program_catalog_async_false": "list_all_programs_integration_test.exs and list_provider_programs_test.exs use async:false because they delete all ProgramListingSchema rows in setup",
     "program_schema_valid_attrs": "CreateProgram needs: title (non-empty string), description (non-empty string), category (from shared categories), price (Decimal non-negative), pricing_period (string), provider_id (non-empty UUID string), age_range optional",
-    "safeoutputs_mcp_workaround": "safeoutputs tools not in tool list; call via HTTP at host.docker.internal:80/mcp/safeoutputs with auth from /home/runner/.copilot/mcp-config.json; use Python script pattern from /tmp/gh-aw/agent/mcp_call.py"
+    "safeoutputs_mcp_workaround": "safeoutputs tools not in tool list; call via HTTP at host.docker.internal:80/mcp/safeoutputs with auth from /home/runner/.copilot/mcp-config.json; use Python script pattern from /tmp/gh-aw/agent/mcp_call.py",
+    "query_builder_test_pattern": "Query builder tests use DataCase async:true; inspect query.from.source (table name + schema), length(query.wheres), length(query.order_bys). No DB execution needed. ParticipationQueriesTest is canonical reference."
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -38,19 +39,38 @@
       "id": "admin-provider-live-event-publishing",
       "priority": "low",
       "description": "admin provider_live.ex on_item_updated/2 publishes provider_verified/provider_unverified integration events; existing tests verify DB state only; architecturally constrained (TestIntegrationEventPublisher stores in calling process's dict, not LiveView process)"
+    },
+    {
+      "id": "bulk-enrollment-invite-mapper",
+      "priority": "low",
+      "description": "BulkEnrollmentInviteMapper.to_domain/1: success path testable; error path unreachable in practice (attrs map always complete). Low value."
     }
   ],
   "tasks_last_run": {
-    "task_1": "2026-04-06",
-    "task_2": "2026-04-11",
-    "task_3": "2026-04-13",
+    "task_1": "2026-04-15",
+    "task_2": "2026-04-15",
+    "task_3": "2026-04-15",
     "task_4": "2026-04-14",
     "task_5": "2026-04-12",
     "task_6": "2026-04-14",
-    "task_7": "2026-04-14"
+    "task_7": "2026-04-15"
   },
   "work_in_progress": null,
   "completed_work": [
+    {
+      "date": "2026-04-15",
+      "run_id": "24479292553",
+      "tasks": [
+        "task_1",
+        "task_2",
+        "task_3",
+        "task_7"
+      ],
+      "pr_branch": "test-assist/behavioral-note-queries-test-1776289061",
+      "description": "18 unit tests for all 10 BehavioralNoteQueries composable query builder functions: base, by_participation_record, by_child, by_parent, by_status (3 statuses), approved, pending, order_by_submitted_desc, by_provider, by_participation_records (multi/single/empty), plus 4 composition tests. Follows ParticipationQueriesTest pattern exactly.",
+      "tests_added": 18,
+      "pr_number": null
+    },
     {
       "date": "2026-04-11",
       "run_id": "24291816929",
@@ -164,19 +184,6 @@
       "description": "11 new async unit tests extending participation_events_payload_test.exs",
       "tests_added": 11,
       "merged": true
-    },
-    {
-      "date": "2026-04-14",
-      "run_id": "24423787754",
-      "tasks": [
-        "task_4",
-        "task_6",
-        "task_7"
-      ],
-      "description": "Task 6: Created PR (test-assist/provider-factory-completeness) adding :staff_member domain factory, :program_staff_assignment_schema factory, :unassigned_program_staff_assignment_schema variant to test/support/factory.ex. Task 4: Verified PRs #666, #657, #644 conflict-free; #634 still awaits human close.",
-      "prs_created": [
-        "test-assist/provider-factory-completeness-1776202626"
-      ]
     }
   ],
   "monthly_summary_issue": {
