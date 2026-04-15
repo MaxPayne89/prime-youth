@@ -10,18 +10,18 @@ defmodule KlassHero.Participation.Application.Queries.GetSessionWithRoster do
   alias KlassHero.Participation.Domain.Models.ParticipationRecord
   alias KlassHero.Participation.Domain.Models.ProgramSession
 
-  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :for_querying_sessions])
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
-                              :participation_query_repository
+                              :for_querying_participation_records
                             ])
   @child_info_resolver Application.compile_env!(:klass_hero, [
                          :participation,
-                         :child_info_resolver
+                         :for_resolving_child_info
                        ])
   @behavioral_note_repository Application.compile_env!(:klass_hero, [
                                 :participation,
-                                :behavioral_note_query_repository
+                                :for_querying_behavioral_notes
                               ])
 
   @type roster_entry :: %{

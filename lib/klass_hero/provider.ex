@@ -30,6 +30,8 @@ defmodule KlassHero.Provider do
       Domain.Models.StaffMember,
       Domain.Models.VerificationDocument,
       Domain.Models.ProgramStaffAssignment,
+      Domain.ReadModels.SessionStats,
+      Adapters.Driven.Persistence.Repositories.SessionStatsRepository,
       Adapters.Driven.Persistence.ChangeProviderProfile,
       Adapters.Driven.Persistence.ChangeStaffMember,
       # Pragmatic export: Backpex admin operates directly on Ecto schemas
@@ -478,6 +480,16 @@ defmodule KlassHero.Provider do
         ]
   def list_active_assignments_for_staff_member(staff_member_id) when is_binary(staff_member_id) do
     ProgramStaffAssignmentQueries.list_active_for_staff_member(staff_member_id)
+  end
+
+  @session_stats_repo Application.compile_env!(:klass_hero, [:provider, :for_querying_session_stats])
+
+  @doc """
+  Returns the total completed session count across all programs for a provider.
+  """
+  @spec get_total_session_count(String.t()) :: non_neg_integer()
+  def get_total_session_count(provider_id) when is_binary(provider_id) do
+    @session_stats_repo.get_total_count(provider_id)
   end
 
   # ===========================================================================

@@ -52,6 +52,8 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   @type session_completed_payload :: %{
           required(:session_id) => String.t(),
           required(:program_id) => String.t(),
+          required(:provider_id) => String.t(),
+          required(:program_title) => String.t(),
           optional(atom()) => term()
         }
 
@@ -226,7 +228,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   ## Parameters
 
   - `session_id` - The ID of the completed session
-  - `payload` - Event-specific data (program_id)
+  - `payload` - Event-specific data (program_id, provider_id, program_title)
   - `opts` - Metadata options (correlation_id, causation_id)
 
   ## Raises
@@ -236,7 +238,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   """
   def session_completed(session_id, payload \\ %{}, opts \\ [])
 
-  def session_completed(session_id, %{program_id: _} = payload, opts)
+  def session_completed(session_id, %{program_id: _, provider_id: _, program_title: _} = payload, opts)
       when is_binary(session_id) and byte_size(session_id) > 0 do
     base_payload = %{session_id: session_id}
 
@@ -251,7 +253,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   end
 
   def session_completed(session_id, payload, _opts) when is_binary(session_id) and byte_size(session_id) > 0 do
-    missing = [:program_id] -- Map.keys(payload)
+    missing = [:program_id, :provider_id, :program_title] -- Map.keys(payload)
 
     raise ArgumentError,
           "session_completed missing required payload keys: #{inspect(missing)}"

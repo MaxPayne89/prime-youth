@@ -95,6 +95,19 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEventsPayloadTest d
       assert event.payload.program_id == session.program_id
       assert %DateTime{} = event.payload.completed_at
     end
+
+    test "merges extra_payload into session_completed event" do
+      session = %{build_session() | status: :completed}
+
+      event =
+        ParticipationEvents.session_completed(session,
+          extra_payload: %{provider_id: "prov-1", program_title: "Art Class"}
+        )
+
+      assert event.payload.provider_id == "prov-1"
+      assert event.payload.program_title == "Art Class"
+      assert event.payload.program_id == session.program_id
+    end
   end
 
   describe "roster_seeded/4" do

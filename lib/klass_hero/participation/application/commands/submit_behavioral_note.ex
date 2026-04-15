@@ -25,11 +25,11 @@ defmodule KlassHero.Participation.Application.Commands.SubmitBehavioralNote do
 
   @participation_reader Application.compile_env!(:klass_hero, [
                           :participation,
-                          :participation_query_repository
+                          :for_querying_participation_records
                         ])
   @behavioral_note_repository Application.compile_env!(:klass_hero, [
                                 :participation,
-                                :behavioral_note_repository
+                                :for_storing_behavioral_notes
                               ])
 
   @type params :: %{

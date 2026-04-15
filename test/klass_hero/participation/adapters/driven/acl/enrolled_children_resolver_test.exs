@@ -1,9 +1,9 @@
-defmodule KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolverTest do
+defmodule KlassHero.Participation.Adapters.Driven.ACL.EnrolledChildrenResolverTest do
   use KlassHero.DataCase, async: true
 
   import KlassHero.Factory
 
-  alias KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
+  alias KlassHero.Participation.Adapters.Driven.ACL.EnrolledChildrenResolver
 
   describe "list_enrolled_child_ids/1" do
     test "returns child IDs for children with active enrollments in the program" do

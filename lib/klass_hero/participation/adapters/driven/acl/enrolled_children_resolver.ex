@@ -1,4 +1,4 @@
-defmodule KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver do
+defmodule KlassHero.Participation.Adapters.Driven.ACL.EnrolledChildrenResolver do
   @moduledoc """
   ACL adapter that resolves enrolled child IDs from the Enrollment context.
 

@@ -24,7 +24,7 @@ defmodule KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLi
 
   @program_provider_resolver Application.compile_env!(
                                :klass_hero,
-                               [:participation, :program_provider_resolver]
+                               [:participation, :for_resolving_program_provider]
                              )
 
   @doc "Handles a domain event by publishing to generic and provider-specific topics."
