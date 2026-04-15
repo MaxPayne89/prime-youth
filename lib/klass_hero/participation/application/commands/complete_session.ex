@@ -94,12 +94,12 @@ defmodule KlassHero.Participation.Application.Commands.CompleteSession do
         details
 
       {:error, reason} ->
-        Logger.warning("[CompleteSession] Could not resolve provider details",
+        Logger.warning("Could not resolve provider details for session_completed event",
           program_id: program_id,
-          error: reason
+          reason: inspect(reason)
         )
 
-        %{}
+        %{provider_id: "unknown", program_title: "Unknown Program"}
     end
   end
 

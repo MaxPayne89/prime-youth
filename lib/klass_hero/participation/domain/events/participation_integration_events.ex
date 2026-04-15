@@ -228,7 +228,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   ## Parameters
 
   - `session_id` - The ID of the completed session
-  - `payload` - Event-specific data (program_id)
+  - `payload` - Event-specific data (program_id, provider_id, program_title)
   - `opts` - Metadata options (correlation_id, causation_id)
 
   ## Raises
