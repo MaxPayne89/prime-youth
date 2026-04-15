@@ -46,12 +46,12 @@ alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
 alias KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler
 alias KlassHero.Messaging.Adapters.Driving.Workers.MessageCleanupWorker
 alias KlassHero.Messaging.Adapters.Driving.Workers.RetentionPolicyWorker
-alias KlassHero.Participation.Adapters.Driven.ACL.EnrolledChildrenResolver
 alias KlassHero.Participation.Adapters.Driven.ACL.ChildInfoResolver
+alias KlassHero.Participation.Adapters.Driven.ACL.EnrolledChildrenResolver
+alias KlassHero.Participation.Adapters.Driven.ACL.ProgramProviderResolver
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository
-alias KlassHero.Participation.Adapters.Driven.ACL.ProgramProviderResolver
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
 alias KlassHero.Provider.Adapters.Driven.ACL.ParticipationSessionStatsACL

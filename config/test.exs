@@ -1,12 +1,12 @@
 import Config
 
 alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
-alias KlassHero.Participation.Adapters.Driven.ACL.EnrolledChildrenResolver
 alias KlassHero.Participation.Adapters.Driven.ACL.ChildInfoResolver
+alias KlassHero.Participation.Adapters.Driven.ACL.EnrolledChildrenResolver
+alias KlassHero.Participation.Adapters.Driven.ACL.ProgramProviderResolver
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository
-alias KlassHero.Participation.Adapters.Driven.ACL.ProgramProviderResolver
 alias KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher
 alias KlassHero.Shared.Adapters.Driven.Events.TestIntegrationEventPublisher
 alias KlassHero.Shared.Adapters.Driven.FeatureFlags.StubFeatureFlagsAdapter
