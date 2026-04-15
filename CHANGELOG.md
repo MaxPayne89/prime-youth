@@ -5,6 +5,14 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.35.0](https://github.com/MaxPayne89/klass-hero/compare/v0.34.0...v0.35.0) (2026-04-14)
+
+
+### Features
+
+* unify staff invitation email and auto-create provider profile ([24fc2db](https://github.com/MaxPayne89/klass-hero/commit/24fc2dba963e3a8b8cf4e49e57189f227cee78d2))
+* unify staff invitation email and auto-create provider profile ([8d3afec](https://github.com/MaxPayne89/klass-hero/commit/8d3afec722e137c1348f6659b86685bdaac545be)), closes [#363](https://github.com/MaxPayne89/klass-hero/issues/363)
+
 ## [0.34.0](https://github.com/MaxPayne89/klass-hero/compare/v0.33.0...v0.34.0) (2026-04-14)
 
 
