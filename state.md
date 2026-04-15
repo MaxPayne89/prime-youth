@@ -1,7 +1,7 @@
 # Perf Improver Memory — klass-hero
 
 ## Last Updated
-2026-04-14
+2026-04-15
 
 ## Build / Test / Lint Commands (validated from mix.exs + CI)
 - **Build**: `mix compile --warnings-as-errors`
@@ -15,6 +15,7 @@
 ## Run History
 | Date | Tasks | Output |
 |------|-------|--------|
+| 2026-04-15 | T3, T7 | T3: Re-created branch perf-assist/limit-featured-programs-sql (commit f8eb334); safeoutputs MCP unavailable prevented PR creation again. Monthly summary not updated (safeoutputs MCP unavailable). |
 | 2026-04-14 | T4, T2, T3 | T4: No open perf-assist branches — all previous PRs merged/closed. T2: SQL LIMIT opt + StaffDashboardLive parallelization still unmerged. T3: Committed SQL LIMIT to branch perf-assist/limit-featured-programs-sql; safeoutputs MCP unavailable prevented PR creation. Monthly summary not updated (safeoutputs MCP unavailable). |
 | 2026-04-12 | T1, T6, T5, T3, T7 | T1: Commands unchanged. T6: No new infra gaps. T5: #478 + #515 — no new comments. T3: PR submitted — parallelize StaffDashboardLive + SQL LIMIT for ListFeaturedPrograms. T7: Updated April 2026 monthly summary. |
 | 2026-04-11 | T4, T3, T7 | T4: PR #622 merged; PR #628 open + CI passing. T3: SQL LIMIT PR submitted again. T7: Updated. |
@@ -27,7 +28,7 @@
 ## Task Last Run (Round-Robin)
 - T1 (Discover commands): 2026-04-12
 - T2 (Identify opportunities): 2026-04-14
-- T3 (Implement improvement): 2026-04-14
+- T3 (Implement improvement): 2026-04-15
 - T4 (Maintain PRs): 2026-04-14
 - T5 (Comment on issues): 2026-04-12
 - T6 (Measurement infra): 2026-04-12
@@ -50,9 +51,9 @@
 14. **[MERGED]** N+1 in CompleteSession.mark_remaining_as_absent — PR #602 merged 2026-04-06 ✓
 15. **[MERGED]** Redundant providers table query in mount_conversation_show — PR #609 merged 2026-04-07 ✓
 16. **[MERGED]** Parallelize list_programs_for_provider + list_provider_sessions in SessionsLive.mount — PR #622 merged 2026-04-11 ✓
-17. **[MERGED]** Parallelize Family.get_children + load_family_programs in parent DashboardLive.mount — PR #628, confirmed merged (Task.Supervisor.async_nolink pattern in DashboardLive.mount) ✓
-18. **[NEEDS PR]** Parallelize Provider.get_provider_profile + list_programs_for_provider in StaffDashboardLive.mount — still sequential; previous branch gone from remote
-19. **[BRANCH READY, NEEDS PR]** Over-fetching in ListFeaturedPrograms.execute/0 — branch perf-assist/limit-featured-programs-sql committed locally; safeoutputs MCP unavailable prevented PR creation
+17. **[MERGED]** Parallelize Family.get_children + load_family_programs in parent DashboardLive.mount — PR #628, confirmed merged ✓
+18. **[BRANCH READY, NEEDS PR]** Over-fetching in ListFeaturedPrograms.execute/0 — branch perf-assist/limit-featured-programs-sql (commit f8eb334); safeoutputs MCP unavailable twice (2026-04-14, 2026-04-15); push + create PR when MCP available
+19. **[NEEDS PR]** Parallelize Provider.get_provider_profile + list_programs_for_provider in StaffDashboardLive.mount — still sequential; no branch yet
 20. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
 21. **[LOW]** program_sessions.status index — verify query patterns first
 22. **[PLANNED]** ETS projection cache for program→provider ACL resolution — issue #478, maintainer-designed
@@ -60,7 +61,7 @@
 
 ## Backlog Cursor
 - Next run: T5 (comment on issues, last run 2026-04-12) + T6 (measurement infra, last run 2026-04-12)
-- NOTE: Push branch perf-assist/limit-featured-programs-sql and create PR when safeoutputs MCP is available
+- CRITICAL: Push branch perf-assist/limit-featured-programs-sql and create PR when safeoutputs MCP is available (tried twice — 2026-04-14 and 2026-04-15)
 
 ## Performance Notes
 - Phoenix app with OpenTelemetry + Honeycomb configured for production tracing
@@ -79,10 +80,10 @@
 - ETS table for read-heavy cross-context caches: use [:set, :public, :named_table, {:read_concurrency, true}]
 - list_active/0 in ProgramListingsRepository is left unchanged; list_active_limited/1 adds LIMIT capability as a separate port callback
 - trending_searches/0 is a hardcoded in-memory list — no DB call, not parallelizable
-- safeoutputs MCP server was unavailable on 2026-04-14 run — could not create PRs or update monthly summary
+- safeoutputs MCP server was unavailable on 2026-04-14 AND 2026-04-15 runs — could not create PRs or update monthly summary
 
 ## Active PRs
-- `perf-assist/limit-featured-programs-sql` — branch committed 2026-04-14 (commit a9d78b61); PR not yet created (safeoutputs MCP unavailable); push SQL LIMIT in ListFeaturedPrograms via list_active_limited/1 with 7 new tests; home page query drops from N rows → 2 rows
+- `perf-assist/limit-featured-programs-sql` — branch committed 2026-04-15 (commit f8eb334) but CANNOT be pushed (safeoutputs MCP unavailable x2, git creds blocked by AWF_ONE_SHOT_TOKENS); branch will be LOST when runner cleans up. MUST recreate from scratch next run. Changes: add list_active_limited/1 to port + repo, call from ListFeaturedPrograms.execute/0, 6 new tests.
 
 ## Completed Work
 - PR #628 (parallelize Family.get_children + load_family_programs in parent DashboardLive) — confirmed merged 2026-04-14 ✓
