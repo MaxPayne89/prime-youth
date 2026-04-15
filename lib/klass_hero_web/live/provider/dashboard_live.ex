@@ -28,6 +28,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   require Logger
 
+  @session_stats_repo Application.compile_env!(:klass_hero, [:provider, :for_querying_session_stats])
+
   @impl true
   def mount(_params, _session, socket) do
     case socket.assigns.current_scope.provider do
@@ -122,6 +124,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(instructor_options: build_instructor_options(staff_members))
           |> assign(categories: ProgramCatalog.program_categories())
           |> assign(document_types: Provider.valid_document_types())
+          |> assign(total_sessions_completed: 0)
           |> allow_upload(:logo,
             accept: ~w(.jpg .jpeg .png .webp),
             max_entries: 1,
@@ -184,7 +187,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     business = %{socket.assigns.business | verification_status: verification_status}
 
-    {:noreply, assign(socket, business: business)}
+    total_sessions = @session_stats_repo.get_total_count(provider.id)
+
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(KlassHero.PubSub, "provider:#{provider.id}:stats_updated")
+    end
+
+    {:noreply,
+     socket
+     |> assign(business: business)
+     |> assign(total_sessions_completed: total_sessions)}
   end
 
   @impl true
@@ -212,6 +224,20 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_params(_params, _uri, socket) do
     {:noreply, socket}
   end
+
+  # ============================================================================
+  # PubSub Handlers
+  # ============================================================================
+
+  @impl true
+  def handle_info(:session_stats_updated, socket) do
+    provider = socket.assigns.current_scope.provider
+    total_sessions = @session_stats_repo.get_total_count(provider.id)
+
+    {:noreply, assign(socket, total_sessions_completed: total_sessions)}
+  end
+
+  def handle_info(_message, socket), do: {:noreply, socket}
 
   # ============================================================================
   # Staff Member CRUD Events
@@ -1068,7 +1094,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
             <%= case @live_action do %>
               <% :overview -> %>
-                <.overview_section business={@business} />
+                <.overview_section
+                  business={@business}
+                  total_sessions_completed={@total_sessions_completed}
+                />
               <% :team -> %>
                 <.team_section
                   team_members={@streams.team_members}
@@ -1292,40 +1321,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp overview_section(assigns) do
     ~H"""
     <div class="space-y-6">
-      <%!-- TODO: Stats cards — re-enable when analytics backend is implemented.
-           Dependencies: @stats assign, format_currency/1, format_number/1 helpers (all removed). --%>
-      <%!--
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <.provider_stat_card
-          label={gettext("Total Revenue")}
-          value={format_currency(@stats.total_revenue)}
-          icon="hero-currency-euro-mini"
+          label={gettext("Sessions Completed")}
+          value={to_string(@total_sessions_completed)}
+          icon="hero-check-badge-mini"
           icon_bg="bg-green-100"
           icon_color="text-green-600"
         />
-        <.provider_stat_card
-          label={gettext("Active Bookings")}
-          value={to_string(@stats.active_bookings)}
-          icon="hero-calendar-days-mini"
-          icon_bg="bg-hero-cyan-100"
-          icon_color="text-hero-cyan"
-        />
-        <.provider_stat_card
-          label={gettext("Profile Views")}
-          value={format_number(@stats.profile_views)}
-          icon="hero-eye-mini"
-          icon_bg="bg-purple-100"
-          icon_color="text-purple-600"
-        />
-        <.provider_stat_card
-          label={gettext("Avg Rating")}
-          value={to_string(@stats.average_rating)}
-          icon="hero-star-mini"
-          icon_bg="bg-hero-yellow-100"
-          icon_color="text-hero-yellow"
-        />
       </div>
-      --%>
 
       <.business_profile_card business={@business} />
 

@@ -31,6 +31,7 @@ defmodule KlassHero.Provider do
       Domain.Models.VerificationDocument,
       Domain.Models.ProgramStaffAssignment,
       Domain.ReadModels.SessionStats,
+      Adapters.Driven.Persistence.Repositories.SessionStatsRepository,
       Adapters.Driven.Persistence.ChangeProviderProfile,
       Adapters.Driven.Persistence.ChangeStaffMember,
       # Pragmatic export: Backpex admin operates directly on Ecto schemas
