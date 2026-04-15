@@ -28,8 +28,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   require Logger
 
-  @session_stats_repo Application.compile_env!(:klass_hero, [:provider, :for_querying_session_stats])
-
   @impl true
   def mount(_params, _session, socket) do
     case socket.assigns.current_scope.provider do
@@ -187,7 +185,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     business = %{socket.assigns.business | verification_status: verification_status}
 
-    total_sessions = @session_stats_repo.get_total_count(provider.id)
+    total_sessions = Provider.get_total_session_count(provider.id)
 
     if connected?(socket) do
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "provider:#{provider.id}:stats_updated")
@@ -232,7 +230,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   @impl true
   def handle_info(:session_stats_updated, %{assigns: %{live_action: :overview}} = socket) do
     provider = socket.assigns.current_scope.provider
-    new_count = @session_stats_repo.get_total_count(provider.id)
+    new_count = Provider.get_total_session_count(provider.id)
 
     if new_count == socket.assigns.total_sessions_completed do
       {:noreply, socket}

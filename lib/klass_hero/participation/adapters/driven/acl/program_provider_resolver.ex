@@ -1,4 +1,4 @@
-defmodule KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver do
+defmodule KlassHero.Participation.Adapters.Driven.ACL.ProgramProviderResolver do
   @moduledoc """
   Adapter for resolving program ownership from ProgramCatalog context.
 

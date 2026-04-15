@@ -1,7 +1,7 @@
-defmodule KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolverTest do
+defmodule KlassHero.Participation.Adapters.Driven.ACL.ProgramProviderResolverTest do
   use KlassHero.DataCase, async: true
 
-  alias KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver
+  alias KlassHero.Participation.Adapters.Driven.ACL.ProgramProviderResolver
 
   describe "resolve_provider_id/1" do
     test "returns provider_id for an existing program" do
