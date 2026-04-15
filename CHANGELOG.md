@@ -5,6 +5,39 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.0](https://github.com/MaxPayne89/klass-hero/compare/v0.35.0...v0.36.0) (2026-04-15)
+
+
+### Features
+
+* add bootstrap ACL for session completion counts ([f2726d7](https://github.com/MaxPayne89/klass-hero/commit/f2726d78f6ae0c859ad13a3b463e059a030b7e72))
+* add provider_session_stats read model table and schema ([88e6cc8](https://github.com/MaxPayne89/klass-hero/commit/88e6cc8a31d304b4f756ffd73db7680ce703cc87))
+* add ProviderSessionStats projection GenServer ([ad2f120](https://github.com/MaxPayne89/klass-hero/commit/ad2f1209dcf51ea5e6237b87ab50fa9cb6cc1725))
+* add session counter to provider overview dashboard ([623f1ad](https://github.com/MaxPayne89/klass-hero/commit/623f1adae70d892c8121d8fc7f23453e89a9d54b))
+* add SessionStats read model DTO and query port ([37f7016](https://github.com/MaxPayne89/klass-hero/commit/37f70161995d8ec435fab46fa347c120ce732cfa))
+* add SessionStats read repository with query port wiring ([5f7520d](https://github.com/MaxPayne89/klass-hero/commit/5f7520d243799dcec6ec8d1af72a96e814df5a04))
+* display session counter on provider overview dashboard ([6ddb94a](https://github.com/MaxPayne89/klass-hero/commit/6ddb94ac0412b487abafd71ad3f265de32d66756))
+* enrich session_completed event with provider_id and program_title ([51e3775](https://github.com/MaxPayne89/klass-hero/commit/51e3775423f4950fe41296961574fb5b70de3f7b)), closes [#372](https://github.com/MaxPayne89/klass-hero/issues/372)
+
+
+### Bug Fixes
+
+* address PR review comments ([8927105](https://github.com/MaxPayne89/klass-hero/commit/892710506e8150624a35eef47647f6f6705a9bbe)), closes [#675](https://github.com/MaxPayne89/klass-hero/issues/675)
+* use fallback values in session_completed event resolution ([7d421ee](https://github.com/MaxPayne89/klass-hero/commit/7d421eefa6fb18b3375d1c1a698b38e21511f5d0))
+
+
+### Performance Improvements
+
+* guard session stats refresh by tab and change detection ([e2a2c49](https://github.com/MaxPayne89/klass-hero/commit/e2a2c49a336c716fbf64fb89d9036529b5f9d7ae))
+
+
+### Code Refactoring
+
+* extract shared fetch_program in ProgramProviderResolver ([0d0bb27](https://github.com/MaxPayne89/klass-hero/commit/0d0bb2721ca89858edeb8941037a7c0e66e909eb))
+* rename Participation config keys to for_ convention ([30c6e30](https://github.com/MaxPayne89/klass-hero/commit/30c6e307c4307fe36b5dbc5cbed7471c6f74ba69))
+* standardize Participation ACL directory naming ([8c7f147](https://github.com/MaxPayne89/klass-hero/commit/8c7f147d42a8b3d2809c94981e0fb918b5cb9a0e))
+* switch ProjectionSupervisor to one_for_one strategy ([38e5786](https://github.com/MaxPayne89/klass-hero/commit/38e5786afbef8b34b8413279f1f1f25e1cee6a9f))
+
 ## [0.35.0](https://github.com/MaxPayne89/klass-hero/compare/v0.34.0...v0.35.0) (2026-04-14)
 
 
