@@ -66,13 +66,13 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
   def session_completed(%ProgramSession{} = session, opts \\ []) do
     {extra, event_opts} = Keyword.pop(opts, :extra_payload, %{})
 
-    payload =
-      %{
-        session_id: session.id,
-        program_id: session.program_id,
-        completed_at: DateTime.utc_now()
-      }
-      |> Map.merge(extra)
+    base_payload = %{
+      session_id: session.id,
+      program_id: session.program_id,
+      completed_at: DateTime.utc_now()
+    }
+
+    payload = Map.merge(extra, base_payload)
 
     DomainEvent.new(:session_completed, session.id, @aggregate_type, payload, event_opts)
   end

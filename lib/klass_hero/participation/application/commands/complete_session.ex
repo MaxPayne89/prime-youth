@@ -99,7 +99,7 @@ defmodule KlassHero.Participation.Application.Commands.CompleteSession do
           reason: inspect(reason)
         )
 
-        %{provider_id: "unknown", program_title: "Unknown Program"}
+        %{provider_id: "00000000-0000-0000-0000-000000000000", program_title: "Unknown Program"}
     end
   end
 

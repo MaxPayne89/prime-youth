@@ -21,8 +21,8 @@ As a prerequisite, refactor the `ProjectionSupervisor` to use `:one_for_one` str
 | `program_id`               | `binary_id`        | Not a DB-level FK (read model)             |
 | `program_title`            | `string`           | Denormalized for display                   |
 | `sessions_completed_count` | `integer`          | Default 0                                  |
-| `inserted_at`              | `utc_datetime_usec`|                                            |
-| `updated_at`               | `utc_datetime_usec`|                                            |
+| `inserted_at`              | `utc_datetime`|                                            |
+| `updated_at`               | `utc_datetime`|                                            |
 
 - Unique index on `(provider_id, program_id)` — upsert key.
 
@@ -79,7 +79,7 @@ Returns a list of `%{provider_id, program_id, program_title, sessions_completed_
 `Provider.Adapters.Driven.ACL.ParticipationSessionStatsACL`
 
 Cross-context bootstrap query (acceptable for one-time startup):
-- Queries Participation's `sessions` table for completed sessions, grouped by `program_id`.
+- Queries Participation's `program_sessions` table for completed sessions, grouped by `program_id`.
 - Joins Program Catalog's `programs` table to resolve `provider_id` and `program_title` for each program.
 
 ### Bootstrap flow
