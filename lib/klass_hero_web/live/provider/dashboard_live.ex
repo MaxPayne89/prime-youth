@@ -230,11 +230,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # ============================================================================
 
   @impl true
-  def handle_info(:session_stats_updated, socket) do
+  def handle_info(:session_stats_updated, %{assigns: %{live_action: :overview}} = socket) do
     provider = socket.assigns.current_scope.provider
-    total_sessions = @session_stats_repo.get_total_count(provider.id)
+    new_count = @session_stats_repo.get_total_count(provider.id)
 
-    {:noreply, assign(socket, total_sessions_completed: total_sessions)}
+    if new_count == socket.assigns.total_sessions_completed do
+      {:noreply, socket}
+    else
+      {:noreply, assign(socket, total_sessions_completed: new_count)}
+    end
   end
 
   def handle_info(_message, socket), do: {:noreply, socket}
