@@ -18,6 +18,8 @@ defmodule KlassHero.Participation.Application.Commands.CompleteSession do
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.Shared.DomainEventBus
 
+  require Logger
+
   @context KlassHero.Participation
 
   @session_reader Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
@@ -30,6 +32,10 @@ defmodule KlassHero.Participation.Application.Commands.CompleteSession do
                               :participation,
                               :participation_repository
                             ])
+  @program_provider_resolver Application.compile_env!(:klass_hero, [
+                               :participation,
+                               :program_provider_resolver
+                             ])
 
   @type result :: {:ok, ProgramSession.t()} | {:error, term()}
 
@@ -77,8 +83,24 @@ defmodule KlassHero.Participation.Application.Commands.CompleteSession do
   end
 
   defp publish_session_completed(session) do
-    event = ParticipationEvents.session_completed(session)
+    extra_payload = resolve_provider_details(session.program_id)
+    event = ParticipationEvents.session_completed(session, extra_payload: extra_payload)
     DomainEventBus.dispatch(@context, event)
+  end
+
+  defp resolve_provider_details(program_id) do
+    case @program_provider_resolver.resolve_provider_details(program_id) do
+      {:ok, details} ->
+        details
+
+      {:error, reason} ->
+        Logger.warning("[CompleteSession] Could not resolve provider details",
+          program_id: program_id,
+          error: reason
+        )
+
+        %{}
+    end
   end
 
   defp publish_child_absent(record, session) do

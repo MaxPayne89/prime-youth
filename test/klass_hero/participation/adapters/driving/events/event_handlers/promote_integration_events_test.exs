@@ -100,11 +100,14 @@ defmodule KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteI
     test "promotes to session_completed integration event" do
       session_id = Ecto.UUID.generate()
       program_id = Ecto.UUID.generate()
+      provider_id = Ecto.UUID.generate()
 
       domain_event =
         DomainEvent.new(:session_completed, session_id, :participation, %{
           session_id: session_id,
           program_id: program_id,
+          provider_id: provider_id,
+          program_title: "Art Class",
           completed_at: DateTime.utc_now()
         })
 
@@ -122,6 +125,8 @@ defmodule KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteI
         DomainEvent.new(:session_completed, session_id, :participation, %{
           session_id: session_id,
           program_id: Ecto.UUID.generate(),
+          provider_id: Ecto.UUID.generate(),
+          program_title: "Art Class",
           completed_at: DateTime.utc_now()
         })
 

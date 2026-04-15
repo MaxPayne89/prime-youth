@@ -64,13 +64,17 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationEvents do
   @doc "Creates a session_completed event."
   @spec session_completed(ProgramSession.t(), keyword()) :: DomainEvent.t()
   def session_completed(%ProgramSession{} = session, opts \\ []) do
-    payload = %{
-      session_id: session.id,
-      program_id: session.program_id,
-      completed_at: DateTime.utc_now()
-    }
+    {extra, event_opts} = Keyword.pop(opts, :extra_payload, %{})
 
-    DomainEvent.new(:session_completed, session.id, @aggregate_type, payload, opts)
+    payload =
+      %{
+        session_id: session.id,
+        program_id: session.program_id,
+        completed_at: DateTime.utc_now()
+      }
+      |> Map.merge(extra)
+
+    DomainEvent.new(:session_completed, session.id, @aggregate_type, payload, event_opts)
   end
 
   @doc "Creates a roster_seeded event."

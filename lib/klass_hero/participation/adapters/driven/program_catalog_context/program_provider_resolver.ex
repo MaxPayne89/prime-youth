@@ -39,4 +39,23 @@ defmodule KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramP
 
       {:error, :program_not_found}
   end
+
+  @impl true
+  def resolve_provider_details(program_id) when is_binary(program_id) do
+    case ProgramCatalog.get_programs_by_ids([program_id]) do
+      [program] ->
+        {:ok, %{provider_id: program.provider_id, program_title: program.title}}
+
+      _other ->
+        {:error, :program_not_found}
+    end
+  rescue
+    error ->
+      Logger.warning("[ProgramProviderResolver] Failed to resolve provider details",
+        program_id: program_id,
+        error: Exception.message(error)
+      )
+
+      {:error, :program_not_found}
+  end
 end
