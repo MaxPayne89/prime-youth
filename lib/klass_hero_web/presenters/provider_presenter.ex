@@ -52,6 +52,25 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenter do
   end
 
   @doc """
+  Transforms a Provider domain model to a slim, public-facing view.
+
+  Used for surfaces shown to parents (e.g. the program detail page) where
+  tier/verification/slot data is not relevant — only the business identity.
+
+  Returns a map with: id, business_name, description, logo_url, initials.
+  """
+  @spec to_public_view(ProviderProfile.t()) :: map()
+  def to_public_view(%ProviderProfile{} = provider) do
+    %{
+      id: provider.id,
+      business_name: provider.business_name,
+      description: provider.description,
+      logo_url: provider.logo_url,
+      initials: build_initials(provider.business_name)
+    }
+  end
+
+  @doc """
   Derives the aggregate verification status from a list of verification documents.
 
   Status priority:

@@ -1,6 +1,7 @@
 defmodule KlassHeroWeb.ProgramDetailLive do
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.CompositeComponents
   import KlassHeroWeb.ProgramComponents
   import KlassHeroWeb.UIComponents
 
@@ -10,6 +11,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
   alias KlassHeroWeb.Helpers.TaskHelpers
   alias KlassHeroWeb.Presenters.ParticipantPolicyPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
+  alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Presenters.StaffMemberPresenter
   alias KlassHeroWeb.Theme
 
@@ -27,7 +29,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           )
         end
 
-        # Run two independent DB queries in parallel to reduce total mount latency.
+        # Run independent DB queries in parallel to reduce total mount latency.
         team_task =
           Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
             load_team_members(program.provider_id)
@@ -38,11 +40,19 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             load_participant_policy(program.id)
           end)
 
+        provider_task =
+          Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+            load_provider_profile(program.provider_id)
+          end)
+
         team_members =
           TaskHelpers.safe_await(team_task, [], label: "ProgramDetailLive.team_members")
 
         participant_policy =
           TaskHelpers.safe_await(policy_task, nil, label: "ProgramDetailLive.participant_policy")
+
+        provider_profile =
+          TaskHelpers.safe_await(provider_task, nil, label: "ProgramDetailLive.provider_profile")
 
         socket =
           socket
@@ -52,6 +62,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           |> assign(team_members: team_members)
           |> assign(registration_status: ProgramCatalog.registration_status(program))
           |> assign(participant_policy: participant_policy)
+          |> assign(provider_profile: provider_profile)
 
         {:ok, socket}
 
@@ -118,6 +129,21 @@ defmodule KlassHeroWeb.ProgramDetailLive do
     case Provider.list_staff_members(provider_id) do
       {:ok, members} -> StaffMemberPresenter.to_card_view_list(members)
       {:error, _} -> []
+    end
+  end
+
+  defp load_provider_profile(nil), do: nil
+
+  defp load_provider_profile(provider_id) do
+    case Provider.get_provider_profile(provider_id) do
+      # Trigger: provider exists and is publicly visible
+      # Why: only :active providers should be surfaced to parents; drafts are incomplete
+      # Outcome: presenter view returned for the template
+      {:ok, %{profile_status: :active} = provider} -> ProviderPresenter.to_public_view(provider)
+      # Trigger: provider is :draft, missing, or in any other non-public state
+      # Why: nil lets the :if guard in the template suppress the card
+      # Outcome: no card is rendered
+      _ -> nil
     end
   end
 
@@ -467,6 +493,9 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             </div>
           </div>
         </section>
+
+        <%!-- Provider Profile Card — rendered only when an active provider profile is available --%>
+        <.provider_profile_card :if={@provider_profile} provider={@provider_profile} />
 
         <%!-- TODO: "What Other Parents Say" reviews section — re-enable when review data is available.
              Dependencies: <.review_card> component import (removed), @reviews assign. --%>
