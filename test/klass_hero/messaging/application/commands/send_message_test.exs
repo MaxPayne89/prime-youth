@@ -266,6 +266,42 @@ defmodule KlassHero.Messaging.Application.Commands.SendMessageTest do
       assert {:error, :broadcast_reply_not_allowed} =
                SendMessage.execute(broadcast.id, non_staff_user.id, "Sneaky reply")
     end
+
+    # Bug #669: a staff_member of the provider should be able to follow up in a
+    # broadcast even if their staff record is not in the per-program
+    # `program_staff_participants` projection. The projection is only populated
+    # when staff is explicitly assigned to a program, but staff are still
+    # authorised to broadcast for any program owned by their provider, so the
+    # follow-up permission must be aligned with that.
+    test "allows active staff_member of provider to send in broadcast even without program assignment" do
+      staff_user = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+
+      insert(:staff_member_schema,
+        provider_id: provider.id,
+        user_id: staff_user.id,
+        active: true
+      )
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Announcement"
+        )
+
+      insert(:participant_schema, conversation_id: broadcast.id, user_id: staff_user.id)
+
+      # Note: NO call to ProgramStaffParticipantRepository.upsert_active/1 — the
+      # projection is intentionally empty for this staff/program combo.
+
+      assert {:ok, message} =
+               SendMessage.execute(broadcast.id, staff_user.id, "Hello from provider staff!")
+
+      assert message.content == "Hello from provider staff!"
+    end
   end
 
   describe "execute/4 with attachments" do

@@ -42,6 +42,7 @@ alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailR
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
+alias KlassHero.Messaging.Adapters.Driven.Provider.ProviderStaffResolver
 alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
 alias KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler
 alias KlassHero.Messaging.Adapters.Driving.Workers.MessageCleanupWorker
@@ -243,6 +244,7 @@ config :klass_hero, :messaging,
   for_resolving_users: UserResolver,
   for_querying_enrollments: EnrollmentResolver,
   for_resolving_program_staff: ProgramStaffParticipantRepository,
+  for_resolving_provider_staff: ProviderStaffResolver,
   for_managing_conversation_summaries: ConversationSummariesRepository,
   for_querying_conversation_summaries: ConversationSummariesRepository,
   for_managing_inbound_emails: InboundEmailRepository,
