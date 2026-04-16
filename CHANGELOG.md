@@ -5,6 +5,21 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.37.0](https://github.com/MaxPayne89/klass-hero/compare/v0.36.0...v0.37.0) (2026-04-16)
+
+
+### Features
+
+* add provider business profile card to program detail page ([b56b0b3](https://github.com/MaxPayne89/klass-hero/commit/b56b0b35b6cdd0cf47f0079b22db20b23fa9e03e))
+* add provider business profile card to program detail page ([17c05dd](https://github.com/MaxPayne89/klass-hero/commit/17c05dd85371dbdc23e7e688c8484ebdf2dc9a35)), closes [#550](https://github.com/MaxPayne89/klass-hero/issues/550)
+
+
+### Bug Fixes
+
+* allow provider staff to send follow-ups in broadcasts ([882d48b](https://github.com/MaxPayne89/klass-hero/commit/882d48bf072d8a53fae6532a76e762b0c8ff89b8))
+* allow provider staff to send follow-ups in broadcasts ([d77fcb2](https://github.com/MaxPayne89/klass-hero/commit/d77fcb27bf89223217b153d586e8d192c546ef52)), closes [#669](https://github.com/MaxPayne89/klass-hero/issues/669)
+* filter active staff lookup by both provider_id and user_id ([ae3821d](https://github.com/MaxPayne89/klass-hero/commit/ae3821d06fc149d8939591ad2331f720f2446774)), closes [#669](https://github.com/MaxPayne89/klass-hero/issues/669)
+
 ## [0.36.0](https://github.com/MaxPayne89/klass-hero/compare/v0.35.0...v0.36.0) (2026-04-15)
 
 
