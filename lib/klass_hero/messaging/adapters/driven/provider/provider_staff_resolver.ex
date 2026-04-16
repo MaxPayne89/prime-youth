@@ -20,10 +20,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Provider.ProviderStaffResolver do
         operation: "active_staff_for_provider?"
       )
 
-      case KlassHero.Provider.get_active_staff_member_by_user(user_id) do
-        {:ok, %{provider_id: ^provider_id}} -> true
-        _ -> false
-      end
+      KlassHero.Provider.active_staff_for_provider?(provider_id, user_id)
     end
   end
 end

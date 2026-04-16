@@ -302,6 +302,54 @@ defmodule KlassHero.Messaging.Application.Commands.SendMessageTest do
 
       assert message.content == "Hello from provider staff!"
     end
+
+    # Regression for PR #678 review: a user with active staff_member rows at
+    # multiple providers must be authorised for *each* provider's broadcasts —
+    # not just the most recently inserted one. The pre-fix adapter delegated to
+    # `Provider.get_active_staff_member_by_user/1`, which returns the latest
+    # row only and would wrongly deny posts in older providers' broadcasts.
+    test "allows staff active at multiple providers to send in non-latest provider's broadcast" do
+      staff_user = AccountsFixtures.user_fixture()
+
+      # Older active staff_member at provider A
+      provider_a = insert(:provider_profile_schema)
+      program_a = insert(:program_schema, provider_id: provider_a.id)
+
+      insert(:staff_member_schema,
+        provider_id: provider_a.id,
+        user_id: staff_user.id,
+        active: true
+      )
+
+      # Newer active staff_member at provider B (will be returned first by
+      # `get_active_staff_member_by_user/1` due to `order_by: desc(inserted_at)`)
+      provider_b = insert(:provider_profile_schema)
+
+      insert(:staff_member_schema,
+        provider_id: provider_b.id,
+        user_id: staff_user.id,
+        active: true
+      )
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider_a.id,
+          program_id: program_a.id,
+          subject: "Announcement"
+        )
+
+      insert(:participant_schema, conversation_id: broadcast.id, user_id: staff_user.id)
+
+      assert {:ok, message} =
+               SendMessage.execute(
+                 broadcast.id,
+                 staff_user.id,
+                 "Hello from staff of provider A"
+               )
+
+      assert message.content == "Hello from staff of provider A"
+    end
   end
 
   describe "execute/4 with attachments" do
