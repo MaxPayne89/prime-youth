@@ -814,4 +814,74 @@ defmodule KlassHeroWeb.CompositeComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders a public, read-only provider business profile card.
+
+  Used on parent-facing pages (e.g. program detail) to surface the provider's
+  business identity. Takes a plain view map so the component stays decoupled
+  from any domain struct.
+
+  ## Examples
+
+      <.provider_profile_card provider={%{
+        business_name: "Starlight Coaching",
+        description: "Empowering kids through play-based learning.",
+        logo_url: nil,
+        initials: "SC"
+      }} />
+  """
+  attr :provider, :map,
+    required: true,
+    doc: "Public provider view: %{business_name, description, logo_url, initials}"
+
+  def provider_profile_card(assigns) do
+    ~H"""
+    <section
+      id="provider-profile-card"
+      class={[
+        Theme.bg(:surface),
+        Theme.rounded(:xl),
+        "shadow-sm border overflow-hidden",
+        Theme.border_color(:light)
+      ]}
+    >
+      <div class={["p-4 border-b", Theme.border_color(:light)]}>
+        <h3 class={["font-semibold flex items-center gap-2", Theme.text_color(:heading)]}>
+          <.icon name="hero-building-storefront" class="w-5 h-5 text-hero-blue-500" />
+          {gettext("About the Provider")}
+        </h3>
+      </div>
+      <div class="p-6 flex items-start gap-4">
+        <img
+          :if={@provider.logo_url}
+          src={@provider.logo_url}
+          alt={@provider.business_name}
+          class={["w-16 h-16 object-cover flex-shrink-0", Theme.rounded(:full)]}
+        />
+        <div
+          :if={!@provider.logo_url}
+          class={[
+            "w-16 h-16 flex items-center justify-center text-white text-xl font-bold flex-shrink-0",
+            Theme.rounded(:full),
+            Theme.gradient(:primary)
+          ]}
+        >
+          {@provider.initials}
+        </div>
+        <div class="flex-1">
+          <h4 class={[Theme.typography(:card_title), Theme.text_color(:heading)]}>
+            {@provider.business_name}
+          </h4>
+          <p
+            :if={@provider.description}
+            class={["text-sm leading-relaxed mt-1", Theme.text_color(:secondary)]}
+          >
+            {@provider.description}
+          </p>
+        </div>
+      </div>
+    </section>
+    """
+  end
 end

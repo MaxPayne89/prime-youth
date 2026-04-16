@@ -253,6 +253,64 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
     end
   end
 
+  describe "provider profile card" do
+    test "renders business name and description for an active provider", %{conn: conn} do
+      provider =
+        provider_profile_fixture(
+          business_name: "Starlight Coaching",
+          description: "Empowering kids through play-based learning."
+        )
+
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "#provider-profile-card h4", "Starlight Coaching")
+      assert render(view) =~ "Empowering kids through play-based learning."
+    end
+
+    test "renders logo image when logo_url is present", %{conn: conn} do
+      provider =
+        provider_profile_fixture(
+          business_name: "Starlight Coaching",
+          logo_url: "https://cdn.example.com/starlight.png"
+        )
+
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(
+               view,
+               "#provider-profile-card img[src='https://cdn.example.com/starlight.png']"
+             )
+    end
+
+    test "renders initials avatar when logo_url is missing", %{conn: conn} do
+      provider = provider_profile_fixture(business_name: "Tiger Academy", logo_url: nil)
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      refute has_element?(view, "#provider-profile-card img")
+      assert has_element?(view, "#provider-profile-card", "TA")
+    end
+
+    test "does not render the card when the provider is in draft status", %{conn: conn} do
+      provider =
+        provider_profile_fixture(
+          business_name: "Not Ready Yet",
+          profile_status: "draft"
+        )
+
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      refute has_element?(view, "#provider-profile-card")
+    end
+  end
+
   describe "pricing display" do
     test "renders formatted program price", %{conn: conn} do
       program = insert(:program_schema, price: Decimal.new("149.99"))
