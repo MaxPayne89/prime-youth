@@ -423,6 +423,18 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
+  Returns true if the given user has any active staff_member row for the given provider.
+
+  Use this for permission checks scoped to a specific provider — unlike
+  `get_active_staff_member_by_user/1`, this correctly identifies users who are
+  active staff at multiple providers.
+  """
+  @spec active_staff_for_provider?(String.t(), String.t()) :: boolean()
+  def active_staff_for_provider?(provider_id, user_id) when is_binary(provider_id) and is_binary(user_id) do
+    StaffMemberQueries.active_for_provider_and_user?(provider_id, user_id)
+  end
+
+  @doc """
   Returns the staff member matching the given invitation token hash,
   only if invitation_status is :sent. Used by the invitation registration flow.
   """

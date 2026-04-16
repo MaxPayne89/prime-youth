@@ -266,6 +266,90 @@ defmodule KlassHero.Messaging.Application.Commands.SendMessageTest do
       assert {:error, :broadcast_reply_not_allowed} =
                SendMessage.execute(broadcast.id, non_staff_user.id, "Sneaky reply")
     end
+
+    # Bug #669: a staff_member of the provider should be able to follow up in a
+    # broadcast even if their staff record is not in the per-program
+    # `program_staff_participants` projection. The projection is only populated
+    # when staff is explicitly assigned to a program, but staff are still
+    # authorised to broadcast for any program owned by their provider, so the
+    # follow-up permission must be aligned with that.
+    test "allows active staff_member of provider to send in broadcast even without program assignment" do
+      staff_user = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+
+      insert(:staff_member_schema,
+        provider_id: provider.id,
+        user_id: staff_user.id,
+        active: true
+      )
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider.id,
+          program_id: program.id,
+          subject: "Announcement"
+        )
+
+      insert(:participant_schema, conversation_id: broadcast.id, user_id: staff_user.id)
+
+      # Note: NO call to ProgramStaffParticipantRepository.upsert_active/1 — the
+      # projection is intentionally empty for this staff/program combo.
+
+      assert {:ok, message} =
+               SendMessage.execute(broadcast.id, staff_user.id, "Hello from provider staff!")
+
+      assert message.content == "Hello from provider staff!"
+    end
+
+    # Regression for PR #678 review: a user with active staff_member rows at
+    # multiple providers must be authorised for *each* provider's broadcasts —
+    # not just the most recently inserted one. The pre-fix adapter delegated to
+    # `Provider.get_active_staff_member_by_user/1`, which returns the latest
+    # row only and would wrongly deny posts in older providers' broadcasts.
+    test "allows staff active at multiple providers to send in non-latest provider's broadcast" do
+      staff_user = AccountsFixtures.user_fixture()
+
+      # Older active staff_member at provider A
+      provider_a = insert(:provider_profile_schema)
+      program_a = insert(:program_schema, provider_id: provider_a.id)
+
+      insert(:staff_member_schema,
+        provider_id: provider_a.id,
+        user_id: staff_user.id,
+        active: true
+      )
+
+      # Newer active staff_member at provider B (will be returned first by
+      # `get_active_staff_member_by_user/1` due to `order_by: desc(inserted_at)`)
+      provider_b = insert(:provider_profile_schema)
+
+      insert(:staff_member_schema,
+        provider_id: provider_b.id,
+        user_id: staff_user.id,
+        active: true
+      )
+
+      broadcast =
+        insert(:conversation_schema,
+          type: "program_broadcast",
+          provider_id: provider_a.id,
+          program_id: program_a.id,
+          subject: "Announcement"
+        )
+
+      insert(:participant_schema, conversation_id: broadcast.id, user_id: staff_user.id)
+
+      assert {:ok, message} =
+               SendMessage.execute(
+                 broadcast.id,
+                 staff_user.id,
+                 "Hello from staff of provider A"
+               )
+
+      assert message.content == "Hello from staff of provider A"
+    end
   end
 
   describe "execute/4 with attachments" do
