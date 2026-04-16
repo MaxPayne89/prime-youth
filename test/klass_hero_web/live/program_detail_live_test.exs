@@ -174,6 +174,29 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       assert has_element?(view, "#program-hero")
       assert has_element?(view, "[phx-click='back_to_programs']")
     end
+
+    test "renders provider business name above the program title", %{conn: conn} do
+      provider = provider_profile_fixture(business_name: "Starlight Coaching")
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "#hero-business-name", "Starlight Coaching")
+    end
+
+    test "omits business name when provider profile is draft", %{conn: conn} do
+      provider =
+        provider_profile_fixture(
+          business_name: "Not Ready Yet",
+          profile_status: "draft"
+        )
+
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      refute has_element?(view, "#hero-business-name")
+    end
   end
 
   describe "staff member display" do

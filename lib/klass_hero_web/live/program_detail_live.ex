@@ -197,11 +197,15 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   attr :program, :map, required: true
   attr :wrapper_class, :string, required: true
+  attr :business_name, :string, default: nil
 
   defp hero_info_overlay(assigns) do
     ~H"""
     <div class={@wrapper_class}>
       <div class="max-w-4xl mx-auto text-center text-white">
+        <p :if={@business_name} id="hero-business-name" class="text-sm text-white/90 mb-1">
+          {@business_name}
+        </p>
         <h1 class={[Theme.typography(:page_title), "mb-3"]}>
           {@program.title}
         </h1>
@@ -272,6 +276,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
           <.hero_info_overlay
             program={@program}
+            business_name={@provider_profile && @provider_profile.business_name}
             wrapper_class="absolute bottom-0 left-0 right-0 pb-8 px-4"
           />
         </div>
@@ -298,6 +303,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
           <.hero_info_overlay
             program={@program}
+            business_name={@provider_profile && @provider_profile.business_name}
             wrapper_class="relative pb-12 px-4"
           />
         </div>
