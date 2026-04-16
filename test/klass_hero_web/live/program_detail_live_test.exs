@@ -290,10 +290,10 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       provider = provider_profile_fixture(business_name: "Tiger Academy", logo_url: nil)
       program = insert(:program_schema, provider_id: provider.id)
 
-      {:ok, view, html} = live(conn, ~p"/programs/#{program.id}")
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
 
       refute has_element?(view, "#provider-profile-card img")
-      assert html =~ "TA"
+      assert has_element?(view, "#provider-profile-card", "TA")
     end
 
     test "does not render the card when the provider is in draft status", %{conn: conn} do
