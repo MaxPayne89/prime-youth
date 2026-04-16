@@ -5,6 +5,14 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.38.0](https://github.com/MaxPayne89/klass-hero/compare/v0.37.0...v0.38.0) (2026-04-16)
+
+
+### Features
+
+* show provider business name above program title on program detail page ([5809ff3](https://github.com/MaxPayne89/klass-hero/commit/5809ff3a8d41dfe6789153baac596a8b838db837)), closes [#549](https://github.com/MaxPayne89/klass-hero/issues/549)
+* show provider business name in hero on program detail page ([c7e343d](https://github.com/MaxPayne89/klass-hero/commit/c7e343db24eaa522a536342719b22cc82dc60ead))
+
 ## [0.37.0](https://github.com/MaxPayne89/klass-hero/compare/v0.36.0...v0.37.0) (2026-04-16)
 
 
