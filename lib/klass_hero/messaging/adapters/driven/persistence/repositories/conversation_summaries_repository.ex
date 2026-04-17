@@ -231,6 +231,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
       unread_count: schema.unread_count,
       last_read_at: schema.last_read_at,
       archived_at: schema.archived_at,
+      enrolled_child_names: schema.enrolled_child_names || [],
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     })

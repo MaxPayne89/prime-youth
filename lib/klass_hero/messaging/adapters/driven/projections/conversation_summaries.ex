@@ -41,8 +41,10 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.AttachmentSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.EnrolledChildrenSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
   alias KlassHero.Repo
+  alias KlassHero.Shared.Domain.Events.DomainEvent
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
 
   require Logger
@@ -55,6 +57,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   @conversation_archived_topic "integration:messaging:conversation_archived"
   @conversations_archived_topic "integration:messaging:conversations_archived"
   @message_data_anonymized_topic "integration:messaging:message_data_anonymized"
+  @enrolled_children_changed_topic "messaging:enrolled_children_changed"
   @broadcast_token_regex ~r/\[broadcast:[^\]]+\]/
 
   # Client API
@@ -96,6 +99,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     Phoenix.PubSub.subscribe(KlassHero.PubSub, @conversation_archived_topic)
     Phoenix.PubSub.subscribe(KlassHero.PubSub, @conversations_archived_topic)
     Phoenix.PubSub.subscribe(KlassHero.PubSub, @message_data_anonymized_topic)
+    Phoenix.PubSub.subscribe(KlassHero.PubSub, @enrolled_children_changed_topic)
 
     {:ok, %{bootstrapped: false}, {:continue, :bootstrap}}
   end
@@ -203,6 +207,19 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     )
 
     project_message_data_anonymized(event)
+    {:noreply, state}
+  end
+
+  # Trigger: Received an enrolled_children_changed domain event from EnrolledChildren projection
+  # Why: conversation summary needs updated child names for display
+  # Outcome: enrolled_child_names column updated for all rows of the conversation
+  @impl true
+  def handle_info({:domain_event, %DomainEvent{event_type: :enrolled_children_changed} = event}, state) do
+    Logger.debug("ConversationSummaries projecting enrolled_children_changed",
+      conversation_id: event.aggregate_id
+    )
+
+    project_enrolled_children_changed(event)
     {:noreply, state}
   end
 
@@ -391,6 +408,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       last_read_at: participant.last_read_at,
       archived_at: conversation.archived_at,
       system_notes: conv_system_notes,
+      enrolled_child_names: resolve_enrolled_child_names(conversation, participant.user_id),
       inserted_at: now,
       updated_at: now
     }
@@ -595,6 +613,25 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
     end
   end
 
+  # Trigger: enrolled_children_changed domain event received
+  # Why: update the enrolled_child_names for all participant rows of this conversation
+  # Outcome: simple field update — projection stays dumb
+  defp project_enrolled_children_changed(event) do
+    conversation_id = event.payload.conversation_id
+    child_names = Map.get(event.payload, :enrolled_child_names, [])
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    from(s in ConversationSummarySchema,
+      where: s.conversation_id == ^conversation_id
+    )
+    |> Repo.update_all(
+      set: [
+        enrolled_child_names: child_names,
+        updated_at: now
+      ]
+    )
+  end
+
   # Private Functions — System Note Projection
 
   # Trigger: a message_sent event was received
@@ -634,6 +671,24 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   end
 
   defp maybe_project_system_note(_payload), do: :ok
+
+  # Trigger: bootstrap needs enrolled child names from the EnrolledChildren projection table
+  # Why: direct conversations with a program_id should display child context
+  # Outcome: list of child first names or empty list
+  defp resolve_enrolled_child_names(%{type: type, program_id: program_id}, user_id)
+       when type in ["direct", :direct] and not is_nil(program_id) do
+    from(e in EnrolledChildrenSchema,
+      where:
+        e.parent_user_id == ^user_id and
+          e.program_id == ^program_id and
+          not is_nil(e.child_first_name),
+      select: e.child_first_name,
+      order_by: e.child_first_name
+    )
+    |> Repo.all()
+  end
+
+  defp resolve_enrolled_child_names(_, _), do: []
 
   # Private Functions — Helpers
 
