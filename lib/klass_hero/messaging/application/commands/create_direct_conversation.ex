@@ -116,7 +116,8 @@ defmodule KlassHero.Messaging.Application.Commands.CreateDirectConversation do
         conversation.id,
         conversation.type,
         provider_id,
-        participant_ids
+        participant_ids,
+        conversation.program_id
       )
 
     DomainEventBus.dispatch(@context, event)
