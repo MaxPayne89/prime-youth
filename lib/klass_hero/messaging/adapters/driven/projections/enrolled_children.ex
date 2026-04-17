@@ -277,24 +277,21 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.EnrolledChildren do
     child_id = payload.child_id
     program_id = payload.program_id
 
-    rows =
+    parent_user_id =
       from(e in EnrolledChildrenSchema,
         where: e.child_id == ^child_id and e.program_id == ^program_id,
-        select: e
+        select: e.parent_user_id,
+        limit: 1
       )
-      |> Repo.all()
+      |> Repo.one()
 
-    case rows do
-      [row | _] ->
-        from(e in EnrolledChildrenSchema,
-          where: e.child_id == ^child_id and e.program_id == ^program_id
-        )
-        |> Repo.delete_all()
+    if parent_user_id do
+      from(e in EnrolledChildrenSchema,
+        where: e.child_id == ^child_id and e.program_id == ^program_id
+      )
+      |> Repo.delete_all()
 
-        re_derive_and_emit(row.parent_user_id, program_id)
-
-      [] ->
-        :ok
+      re_derive_and_emit(parent_user_id, program_id)
     end
   end
 
@@ -357,8 +354,6 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.EnrolledChildren do
   # Why: downstream consumers (ConversationSummaries) need the updated child name list
   # Outcome: enrolled_children_changed domain event emitted for each affected conversation
   defp re_derive_and_emit(parent_user_id, program_id) do
-    child_names = get_child_names(parent_user_id, program_id)
-
     conversation_ids =
       from(s in ConversationSummarySchema,
         where:
@@ -370,9 +365,13 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.EnrolledChildren do
       )
       |> Repo.all()
 
-    Enum.each(conversation_ids, fn conversation_id ->
-      emit_enrolled_children_changed(conversation_id, child_names)
-    end)
+    if conversation_ids != [] do
+      child_names = get_child_names(parent_user_id, program_id)
+
+      Enum.each(conversation_ids, fn conversation_id ->
+        emit_enrolled_children_changed(conversation_id, child_names)
+      end)
+    end
   end
 
   # Trigger: need sorted child names for a (parent_user, program) pair
