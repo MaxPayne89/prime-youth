@@ -136,6 +136,9 @@ defmodule KlassHero.Application do
             priority: 10},
            {:enrollment_cancelled,
             {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
+            priority: 10},
+           {:enrollment_created,
+            {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
             priority: 10}
          ]},
         id: :enrollment_domain_event_bus
