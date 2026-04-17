@@ -213,6 +213,31 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Conversat
     end
   end
 
+  @impl true
+  def get_conversation_context(conversation_id, user_id) do
+    span do
+      set_attributes("db", operation: "select", entity: "conversation_summary")
+
+      result =
+        from(s in ConversationSummarySchema,
+          where: s.conversation_id == ^conversation_id and s.user_id == ^user_id,
+          select: %{
+            enrolled_child_names: s.enrolled_child_names,
+            other_participant_name: s.other_participant_name
+          }
+        )
+        |> Repo.one()
+
+      case result do
+        nil ->
+          %{enrolled_child_names: [], other_participant_name: nil}
+
+        %{enrolled_child_names: names, other_participant_name: other} ->
+          %{enrolled_child_names: names || [], other_participant_name: other}
+      end
+    end
+  end
+
   defp to_dto(%ConversationSummarySchema{} = schema) do
     ConversationSummary.new(%{
       id: schema.id,

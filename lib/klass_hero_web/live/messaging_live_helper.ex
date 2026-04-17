@@ -136,7 +136,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
         socket =
           socket
-          |> assign(:page_title, get_conversation_title(conversation))
+          |> assign(:page_title, build_page_title(conversation, user_id))
           |> assign(:conversation, conversation)
           |> assign(:has_more, has_more)
           |> assign(:messages_empty?, Enum.empty?(messages))
@@ -322,16 +322,31 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
   @doc """
   Returns the title for a conversation.
+
+  For direct conversations with enrolled children (provider view):
+  "Sarah Johnson for Emma, Liam"
   """
-  def get_conversation_title(%{type: :program_broadcast, subject: subject}) when not is_nil(subject) do
+  def get_conversation_title(conversation, enrolled_child_names \\ [], other_participant_name \\ nil)
+
+  def get_conversation_title(%{type: :direct}, child_names, other_name)
+      when child_names != [] and not is_nil(other_name) do
+    formatted = Enum.join(child_names, ", ")
+    "#{other_name} #{gettext("for")} #{formatted}"
+  end
+
+  def get_conversation_title(%{type: :direct}, _child_names, other_name) when not is_nil(other_name) do
+    other_name
+  end
+
+  def get_conversation_title(%{type: :program_broadcast, subject: subject}, _, _) when not is_nil(subject) do
     subject
   end
 
-  def get_conversation_title(%{type: :program_broadcast}) do
+  def get_conversation_title(%{type: :program_broadcast}, _, _) do
     gettext("Program Broadcast")
   end
 
-  def get_conversation_title(_conversation) do
+  def get_conversation_title(_conversation, _, _) do
     gettext("Conversation")
   end
 
@@ -347,6 +362,15 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   """
   def get_sender_name(sender_names, sender_id) do
     Map.get(sender_names, sender_id, "Unknown")
+  end
+
+  defp build_page_title(conversation, user_id) do
+    context = fetch_conversation_context(conversation.id, user_id)
+    get_conversation_title(conversation, context.enrolled_child_names, context.other_participant_name)
+  end
+
+  defp fetch_conversation_context(conversation_id, user_id) do
+    Messaging.get_conversation_context(conversation_id, user_id)
   end
 
   # Fetches the provider profile once to extract both the owner's identity_id

@@ -45,4 +45,14 @@ defmodule KlassHero.Messaging.Domain.Ports.ForQueryingConversationSummaries do
   DTO entirely.
   """
   @callback has_system_note?(conversation_id :: String.t(), token :: String.t()) :: boolean()
+
+  @doc """
+  Returns enrolled child names and other participant name for a conversation/user pair.
+
+  Used by the web layer to build enriched conversation titles (e.g. "Sarah for Emma, Liam").
+  Returns a map with `:enrolled_child_names` (list) and `:other_participant_name` (string or nil).
+  Falls back to empty defaults when no summary row exists yet.
+  """
+  @callback get_conversation_context(conversation_id :: String.t(), user_id :: String.t()) ::
+              %{enrolled_child_names: [String.t()], other_participant_name: String.t() | nil}
 end
