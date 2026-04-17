@@ -11,6 +11,7 @@ defmodule KlassHero.ProjectionSupervisor do
   use Supervisor
 
   alias KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries
+  alias KlassHero.Messaging.Adapters.Driven.Projections.EnrolledChildren
   alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings
   alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
   alias KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionStats
@@ -24,6 +25,7 @@ defmodule KlassHero.ProjectionSupervisor do
     children = [
       VerifiedProviders,
       ProgramListings,
+      EnrolledChildren,
       ConversationSummaries,
       ProviderSessionStats
     ]
