@@ -131,9 +131,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
     {:noreply, state}
   end
 
-  # Trigger: participation seeded the roster for a session (expected attendees known)
-  # Why: dashboard needs total_count to render "X / Y checked in" denominators
-  # Outcome: row's total_count column is set to the seeded_count from the payload
+  # Participation seeded the roster for a session — set total_count so the
+  # dashboard can render "X / Y checked in" denominators.
   @impl true
   def handle_info(
         {:integration_event,
@@ -142,25 +141,16 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
       ) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-    {updated, _} =
-      from(d in ProviderSessionDetailSchema, where: d.session_id == ^event.entity_id)
-      |> Repo.update_all(set: [total_count: seeded_count, updated_at: now])
-
-    if updated == 0 do
-      Logger.warning("ProviderSessionDetails roster_seeded skipped: session not found",
-        session_id: event.entity_id,
-        seeded_count: seeded_count
-      )
-    end
+    from(d in ProviderSessionDetailSchema, where: d.session_id == ^event.entity_id)
+    |> Repo.update_all(set: [total_count: seeded_count, updated_at: now])
+    |> warn_if_missing("roster_seeded", session_id: event.entity_id, seeded_count: seeded_count)
 
     {:noreply, state}
   end
 
-  # Trigger: attendance taker checked a child in for a session
-  # Why: dashboard shows "X / Y checked in" — bump the counter monotonically
-  # Outcome: row's checked_in_count is incremented by 1; if the session row
-  #          does not exist, a warning is logged (mirrors roster_seeded/status
-  #          transition handlers)
+  # Bump the monotonic checked_in counter. Check-outs and absences are
+  # intentionally not reflected (see below) — once counted on check-in, a child
+  # stays counted for the "how many showed up" view.
   @impl true
   def handle_info(
         {:integration_event,
@@ -169,16 +159,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
       ) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-    {updated, _} =
-      from(d in ProviderSessionDetailSchema, where: d.session_id == ^session_id)
-      |> Repo.update_all(inc: [checked_in_count: 1], set: [updated_at: now])
-
-    if updated == 0 do
-      Logger.warning("ProviderSessionDetails child_checked_in skipped: session not found",
-        session_id: session_id,
-        record_id: event.entity_id
-      )
-    end
+    from(d in ProviderSessionDetailSchema, where: d.session_id == ^session_id)
+    |> Repo.update_all(inc: [checked_in_count: 1], set: [updated_at: now])
+    |> warn_if_missing("child_checked_in", session_id: session_id, record_id: event.entity_id)
 
     {:noreply, state}
   end
@@ -441,28 +424,26 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
     end
   end
 
-  # Trigger: any of the session_started/completed/cancelled handlers
-  # Why: the three status-transition handlers share the same update shape;
-  #      centralising keeps the transitions uniform and easy to audit
-  # Outcome: the row's status column (and updated_at) is updated in place.
-  #          If the session row is missing (unknown session_id), a warning is
-  #          logged per spec.
+  # Shared by session_started/completed/cancelled handlers. Missing rows
+  # (unknown session_id) are logged per spec.
   defp update_status(session_id, status) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-    {updated, _} =
-      from(d in ProviderSessionDetailSchema, where: d.session_id == ^session_id)
-      |> Repo.update_all(set: [status: status, updated_at: now])
-
-    if updated == 0 do
-      Logger.warning("ProviderSessionDetails status transition skipped: session not found",
-        session_id: session_id,
-        target_status: status
-      )
-    end
-
-    :ok
+    from(d in ProviderSessionDetailSchema, where: d.session_id == ^session_id)
+    |> Repo.update_all(set: [status: status, updated_at: now])
+    |> warn_if_missing("status transition", session_id: session_id, target_status: status)
   end
+
+  # Surfaces zero-row UPDATE results from event handlers so that events arriving
+  # for unknown session_ids are observable rather than silently dropped.
+  defp warn_if_missing({0, _}, event_name, metadata) do
+    Logger.warning(
+      "ProviderSessionDetails #{event_name} skipped: session not found",
+      metadata
+    )
+  end
+
+  defp warn_if_missing(_result, _event_name, _metadata), do: :ok
 
   # Trigger: session_created handler needs program_title + provider_id
   # Why: the programs write table is the source of truth; reading it directly
