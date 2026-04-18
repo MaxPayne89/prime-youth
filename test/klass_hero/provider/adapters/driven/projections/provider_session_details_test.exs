@@ -371,6 +371,119 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsT
     end
   end
 
+  describe "staff assignment" do
+    test "staff_assigned_to_program updates scheduled sessions for the program and skips non-scheduled ones" do
+      # Trigger: AssignStaffToProgram publishes an integration event and the
+      #          projection must bulk-update all scheduled rows for that program.
+      # Why: cover staff on the bulk update path — only :scheduled rows flip to
+      #      the new staff; already-started/completed rows retain their state.
+      # Outcome: scheduled row carries new staff_id + "First Last" name;
+      #          completed row's staff fields stay untouched.
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+
+      staff =
+        insert(:staff_member_schema,
+          provider_id: provider.id,
+          first_name: "Alice",
+          last_name: "Smith"
+        )
+
+      scheduled_session_id = Ecto.UUID.generate()
+      completed_session_id = Ecto.UUID.generate()
+
+      insert_program_session(
+        session_id: scheduled_session_id,
+        program_id: program.id,
+        provider_id: provider.id,
+        status: :scheduled
+      )
+
+      insert_program_session(
+        session_id: completed_session_id,
+        program_id: program.id,
+        provider_id: provider.id,
+        status: :completed
+      )
+
+      broadcast_provider(:staff_assigned_to_program, staff.id, %{
+        staff_member_id: staff.id,
+        program_id: program.id,
+        provider_id: provider.id,
+        staff_user_id: Ecto.UUID.generate()
+      })
+
+      # Synchronize: ensure GenServer has processed the broadcast
+      _ = :sys.get_state(@test_server_name)
+
+      scheduled = reload(scheduled_session_id)
+      completed = reload(completed_session_id)
+
+      assert scheduled.current_assigned_staff_id == staff.id
+      assert scheduled.current_assigned_staff_name == "Alice Smith"
+      assert completed.current_assigned_staff_id == nil
+      assert completed.current_assigned_staff_name == nil
+    end
+
+    test "staff_unassigned_from_program clears staff fields on scheduled rows for the program" do
+      # Trigger: UnassignStaffFromProgram publishes an integration event and the
+      #          projection must bulk-clear staff fields on all :scheduled rows
+      #          for that program (non-scheduled rows remain untouched).
+      # Why: once a session starts/ends, its historical staff attribution
+      #      persists; only upcoming (:scheduled) sessions lose the assignment.
+      # Outcome: scheduled row's staff_id/name are nil; completed row keeps its
+      #          pre-existing staff attribution.
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+
+      staff =
+        insert(:staff_member_schema,
+          provider_id: provider.id,
+          first_name: "Bob",
+          last_name: "Jones"
+        )
+
+      scheduled_session_id = Ecto.UUID.generate()
+      completed_session_id = Ecto.UUID.generate()
+
+      insert_program_session(
+        session_id: scheduled_session_id,
+        program_id: program.id,
+        provider_id: provider.id,
+        status: :scheduled,
+        current_assigned_staff_id: staff.id,
+        current_assigned_staff_name: "Bob Jones"
+      )
+
+      insert_program_session(
+        session_id: completed_session_id,
+        program_id: program.id,
+        provider_id: provider.id,
+        status: :completed,
+        current_assigned_staff_id: staff.id,
+        current_assigned_staff_name: "Bob Jones"
+      )
+
+      broadcast_provider(:staff_unassigned_from_program, staff.id, %{
+        staff_member_id: staff.id,
+        program_id: program.id,
+        provider_id: provider.id,
+        staff_user_id: Ecto.UUID.generate()
+      })
+
+      # Synchronize: ensure GenServer has processed the broadcast
+      _ = :sys.get_state(@test_server_name)
+
+      scheduled = reload(scheduled_session_id)
+      completed = reload(completed_session_id)
+
+      assert scheduled.current_assigned_staff_id == nil
+      assert scheduled.current_assigned_staff_name == nil
+      assert completed.current_assigned_staff_id == staff.id
+      assert completed.current_assigned_staff_name == "Bob Jones"
+    end
+  end
+
   defp broadcast(event_type, entity_id, payload) do
     event = IntegrationEvent.new(event_type, :participation, :session, entity_id, payload)
 
@@ -379,6 +492,37 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsT
       "integration:participation:#{event_type}",
       {:integration_event, event}
     )
+  end
+
+  defp broadcast_provider(event_type, entity_id, payload) do
+    event = IntegrationEvent.new(event_type, :provider, :staff, entity_id, payload)
+
+    Phoenix.PubSub.broadcast(
+      KlassHero.PubSub,
+      "integration:provider:#{event_type}",
+      {:integration_event, event}
+    )
+  end
+
+  defp insert_program_session(attrs) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    base = %{
+      session_id: Ecto.UUID.generate(),
+      program_id: Ecto.UUID.generate(),
+      program_title: "P",
+      provider_id: Ecto.UUID.generate(),
+      session_date: ~D[2026-05-01],
+      start_time: ~T[09:00:00],
+      end_time: ~T[10:00:00],
+      status: :scheduled,
+      checked_in_count: 0,
+      total_count: 0,
+      inserted_at: now,
+      updated_at: now
+    }
+
+    Repo.insert_all(ProviderSessionDetailSchema, [Map.merge(base, Map.new(attrs))])
   end
 
   defp reload(session_id) do

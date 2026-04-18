@@ -193,11 +193,75 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
     {:noreply, state}
   end
 
+  # Trigger: staff_assigned_to_program integration event (provider assigned a
+  #          new staff member to one of their programs)
+  # Why: upcoming sessions should reflect the new assignment on the dashboard.
+  #      Historical (in_progress/completed/cancelled) rows retain their
+  #      pre-existing attribution — bulk update is intentionally scoped to
+  #      :scheduled rows only.
+  # Outcome: all :scheduled rows for the program get current_assigned_staff_id
+  #          and current_assigned_staff_name set to the new staff values.
   @impl true
-  def handle_info({:integration_event, _event}, state) do
-    # remaining event clauses come in Task 12; final catch-all removed there
+  def handle_info(
+        {:integration_event,
+         %IntegrationEvent{
+           event_type: :staff_assigned_to_program,
+           payload: %{staff_member_id: staff_id, program_id: program_id}
+         }},
+        state
+      ) do
+    staff_name = lookup_staff_name(staff_id)
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    from(d in ProviderSessionDetailSchema,
+      where: d.program_id == ^program_id and d.status == :scheduled
+    )
+    |> Repo.update_all(
+      set: [
+        current_assigned_staff_id: staff_id,
+        current_assigned_staff_name: staff_name,
+        updated_at: now
+      ]
+    )
+
     {:noreply, state}
   end
+
+  # Trigger: staff_unassigned_from_program integration event (provider removed
+  #          a staff member's assignment from one of their programs)
+  # Why: upcoming sessions must drop the stale attribution. Historical rows
+  #      intentionally retain their pre-existing staff_id/name as part of the
+  #      session's audit trail — bulk clear is scoped to :scheduled rows only.
+  # Outcome: all :scheduled rows for the program have current_assigned_staff_*
+  #          columns cleared to nil.
+  @impl true
+  def handle_info(
+        {:integration_event,
+         %IntegrationEvent{event_type: :staff_unassigned_from_program, payload: %{program_id: program_id}}},
+        state
+      ) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    from(d in ProviderSessionDetailSchema,
+      where: d.program_id == ^program_id and d.status == :scheduled
+    )
+    |> Repo.update_all(
+      set: [
+        current_assigned_staff_id: nil,
+        current_assigned_staff_name: nil,
+        updated_at: now
+      ]
+    )
+
+    {:noreply, state}
+  end
+
+  # Final catch-all: the projection subscribes to multiple topics, and some
+  # carry unrelated event types we explicitly do not care about. Silently drop
+  # them — matching the no-op discipline used for child_checked_out and
+  # child_marked_absent above.
+  @impl true
+  def handle_info({:integration_event, _event}, state), do: {:noreply, state}
 
   defp project_session_created(%{
          session_id: session_id,
@@ -308,6 +372,22 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
 
       _ ->
         {nil, nil}
+    end
+  end
+
+  # Trigger: staff_assigned_to_program handler needs the staff display name
+  # Why: the integration event payload carries only ids — the name is looked up
+  #      from the staff_members write table (source of truth); reusing
+  #      build_staff_name/2 keeps the display convention identical to
+  #      resolve_current_assigned_staff/1.
+  # Outcome: "First Last" string, or nil if the staff row cannot be found
+  defp lookup_staff_name(staff_id) do
+    case Repo.query(
+           "SELECT first_name, last_name FROM staff_members WHERE id = $1",
+           [Ecto.UUID.dump!(staff_id)]
+         ) do
+      {:ok, %{rows: [[first_name, last_name]]}} -> build_staff_name(first_name, last_name)
+      _ -> nil
     end
   end
 
