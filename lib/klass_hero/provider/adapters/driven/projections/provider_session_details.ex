@@ -56,14 +56,38 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
 
   @impl true
   def handle_continue(:bootstrap, state) do
-    # implementation comes in Task 13
-    {:noreply, %{state | bootstrapped: true}}
+    # Trigger: GenServer init complete
+    # Why: self-heal the read table from the authoritative write tables on every
+    #      boot. Transient DB failures reschedule via :retry_bootstrap (Task 7);
+    #      persistent failures propagate through repeated retries until the
+    #      supervisor intervenes.
+    # Outcome: read table converges toward a projection of the current write
+    #          state; `bootstrapped: true` marks the projection ready.
+    case do_bootstrap() do
+      {:ok, count} ->
+        Logger.info("ProviderSessionDetails bootstrap complete", count: count)
+        {:noreply, %{state | bootstrapped: true}}
+
+      {:error, reason} ->
+        Logger.warning("ProviderSessionDetails bootstrap failed; retrying",
+          reason: inspect(reason)
+        )
+
+        Process.send_after(self(), :retry_bootstrap, 1_000)
+        {:noreply, state}
+    end
   end
 
+  # Trigger: external caller requests a full rebuild (e.g. after seeds insert
+  #          into write tables without emitting integration events)
+  # Why: seeds bypass the event bus, so the read table must be refreshed from
+  #      the write tables via the same bootstrap path used on init
+  # Outcome: read table refreshed from write tables; projection marked ready
   @impl true
   def handle_call(:rebuild, _from, state) do
-    # implementation comes in Task 13
-    {:reply, :ok, state}
+    {:ok, count} = do_bootstrap()
+    Logger.info("ProviderSessionDetails rebuilt", count: count)
+    {:reply, :ok, %{state | bootstrapped: true}}
   end
 
   @impl true
@@ -308,6 +332,120 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
          ]},
       conflict_target: [:session_id]
     )
+  end
+
+  # Trigger: handle_continue(:bootstrap) or handle_call(:rebuild)
+  # Why: self-heal the read table from the authoritative write tables. Seeds
+  #      bypass the event bus, and long-running event drift can leave the read
+  #      table out of sync — a single bootstrap query rebuilds every row from
+  #      programs + program_sessions + program_staff_assignments + staff_members
+  #      + aggregated participation_records counts.
+  #
+  # Design notes:
+  #
+  # * The SQL casts UUIDs to ::text so Postgrex returns them as string UUIDs
+  #   (Ecto's :binary_id fields accept the string form directly on insert).
+  # * Staff display uses first_name/last_name columns (staff_members has no
+  #   display_name); we concatenate in Elixir via build_staff_name/2 to match
+  #   the event-handler resolution path.
+  # * Status comes back from SQL as text ("scheduled", "in_progress", ...);
+  #   the schema is Ecto.Enum, so inserting via the schema module requires an
+  #   atom — we convert via String.to_existing_atom/1 (safe: values are the
+  #   fixed four enum members).
+  # * Upsert preserves only identity-ish fields (session_id, inserted_at) and
+  #   cover_staff_* (which cannot be derived from write tables yet — rebuilding
+  #   would otherwise clobber whatever was evolved by a future cover handler).
+  #   Everything else (status, counts, assigned staff) is intentionally
+  #   refreshed, which is the whole point of rebuild/0.
+  #
+  # Outcome: {:ok, count} on success or {:error, reason} on DB failure; the
+  #          caller decides whether to retry (handle_continue) or raise (rebuild).
+  defp do_bootstrap do
+    sql = """
+    SELECT
+      ps.id::text                            AS session_id,
+      ps.program_id::text                    AS program_id,
+      p.title                                AS program_title,
+      p.provider_id::text                    AS provider_id,
+      ps.session_date,
+      ps.start_time,
+      ps.end_time,
+      ps.status::text                        AS status,
+      psa.staff_member_id::text              AS current_assigned_staff_id,
+      sm.first_name                          AS staff_first_name,
+      sm.last_name                           AS staff_last_name,
+      COALESCE(counts.checked_in, 0)         AS checked_in_count,
+      COALESCE(counts.total, 0)              AS total_count
+    FROM program_sessions ps
+    JOIN programs p ON p.id = ps.program_id
+    LEFT JOIN program_staff_assignments psa
+           ON psa.program_id = ps.program_id
+          AND psa.unassigned_at IS NULL
+    LEFT JOIN staff_members sm
+           ON sm.id = psa.staff_member_id
+    LEFT JOIN (
+      SELECT session_id,
+             COUNT(*) FILTER (WHERE status IN ('checked_in','checked_out')) AS checked_in,
+             COUNT(*) AS total
+      FROM participation_records
+      GROUP BY session_id
+    ) counts ON counts.session_id = ps.id
+    """
+
+    case Repo.query(sql) do
+      {:ok, %{rows: []}} ->
+        {:ok, 0}
+
+      {:ok, %{rows: rows}} ->
+        now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+        attrs_list =
+          Enum.map(rows, fn [
+                              session_id,
+                              program_id,
+                              program_title,
+                              provider_id,
+                              session_date,
+                              start_time,
+                              end_time,
+                              status,
+                              staff_id,
+                              staff_first,
+                              staff_last,
+                              checked_in_count,
+                              total_count
+                            ] ->
+            %{
+              session_id: session_id,
+              program_id: program_id,
+              program_title: program_title,
+              provider_id: provider_id,
+              session_date: session_date,
+              start_time: start_time,
+              end_time: end_time,
+              status: String.to_existing_atom(status),
+              current_assigned_staff_id: staff_id,
+              current_assigned_staff_name: build_staff_name(staff_first, staff_last),
+              checked_in_count: checked_in_count,
+              total_count: total_count,
+              inserted_at: now,
+              updated_at: now
+            }
+          end)
+
+        {count, _} =
+          Repo.insert_all(
+            ProviderSessionDetailSchema,
+            attrs_list,
+            on_conflict: {:replace_all_except, [:session_id, :inserted_at, :cover_staff_id, :cover_staff_name]},
+            conflict_target: [:session_id]
+          )
+
+        {:ok, count}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   # Trigger: any of the session_started/completed/cancelled handlers
