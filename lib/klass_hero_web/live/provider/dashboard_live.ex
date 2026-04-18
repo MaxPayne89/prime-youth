@@ -114,6 +114,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             import_errors: nil,
             can_message?: false
           )
+          |> assign(:sessions_modal, nil)
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
           |> assign(enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"))
           |> assign(
@@ -583,6 +584,29 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
        import_errors: nil,
        can_message?: false
      )}
+  end
+
+  # Trigger: "View sessions" action button on a row in the programs table
+  # Why: program_id comes from client params (untrusted) — list_by_program is
+  #      scoped to the provider_id from the server-side scope, so cross-provider
+  #      peeking is impossible even if the client spoofs the id
+  # Outcome: modal opens with the program's sessions (empty list is valid)
+  @impl true
+  def handle_event("view_sessions", %{"program-id" => program_id, "program-title" => program_title}, socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+    sessions = Provider.list_program_sessions(provider_id, program_id)
+
+    {:noreply,
+     assign(socket, :sessions_modal, %{
+       program_id: program_id,
+       program_title: program_title,
+       sessions: sessions
+     })}
+  end
+
+  @impl true
+  def handle_event("close_sessions", _params, socket) do
+    {:noreply, assign(socket, :sessions_modal, nil)}
   end
 
   @impl true
@@ -1133,6 +1157,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   roster_invite_count={@roster_invite_count}
                   import_errors={@import_errors}
                   can_message?={@can_message?}
+                  sessions_modal={@sessions_modal}
                 />
             <% end %>
         <% end %>
@@ -1442,6 +1467,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :roster_invite_count, :integer, default: 0
   attr :import_errors, :any, default: nil
   attr :can_message?, :boolean, default: false
+  attr :sessions_modal, :any, default: nil
 
   defp programs_section(assigns) do
     ~H"""
@@ -1478,6 +1504,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         import_errors={@import_errors}
         can_message?={@can_message?}
       />
+
+      <.sessions_modal :if={@sessions_modal} modal={@sessions_modal} />
     </div>
     """
   end
