@@ -270,8 +270,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
          start_time: start_time,
          end_time: end_time
        }) do
-    {program_title, provider_id} = resolve_program(program_id)
-    {staff_id, staff_name} = resolve_current_assigned_staff(program_id)
+    %{program_title: program_title, provider_id: provider_id, staff_id: staff_id, staff_name: staff_name} =
+      resolve_program_context(program_id)
 
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
@@ -445,47 +445,43 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
 
   defp warn_if_missing(_result, _event_name, _metadata), do: :ok
 
-  # Trigger: session_created handler needs program_title + provider_id
-  # Why: the programs write table is the source of truth; reading it directly
-  #      avoids adding a new ACL port just for two fields. Symmetric with the
-  #      bootstrap query that will live in this module (Task 13).
-  # Outcome: {title, provider_id_string} tuple, or {nil, nil} on miss
-  defp resolve_program(program_id) do
-    case Repo.query(
-           "SELECT title, provider_id FROM programs WHERE id = $1",
-           [Ecto.UUID.dump!(program_id)]
-         ) do
-      {:ok, %{rows: [[title, provider_id_bin]]}} ->
-        {title, Ecto.UUID.cast!(provider_id_bin)}
+  # Single LEFT JOIN resolves program title/provider + (optionally) the earliest
+  # active staff assignment's id + name. Returns nil fields when the program is
+  # missing or has no active assignment.
+  defp resolve_program_context(program_id) do
+    sql = """
+    SELECT p.title,
+           p.provider_id,
+           psa.staff_member_id,
+           sm.first_name,
+           sm.last_name
+    FROM programs p
+    LEFT JOIN program_staff_assignments psa
+           ON psa.program_id = p.id
+          AND psa.unassigned_at IS NULL
+    LEFT JOIN staff_members sm ON sm.id = psa.staff_member_id
+    WHERE p.id = $1
+    ORDER BY psa.assigned_at ASC NULLS LAST
+    LIMIT 1
+    """
+
+    case Repo.query(sql, [Ecto.UUID.dump!(program_id)]) do
+      {:ok, %{rows: [[title, provider_id_bin, staff_id_bin, first_name, last_name]]}} ->
+        %{
+          program_title: title,
+          provider_id: Ecto.UUID.cast!(provider_id_bin),
+          staff_id: cast_uuid_or_nil(staff_id_bin),
+          staff_name: build_staff_name(first_name, last_name)
+        }
 
       _ ->
         Logger.warning("session_created: program not found", program_id: program_id)
-        {nil, nil}
+        %{program_title: nil, provider_id: nil, staff_id: nil, staff_name: nil}
     end
   end
 
-  # Trigger: session_created handler needs the currently assigned staff
-  # Why: display at session creation uses the program's active assignment
-  # Outcome: {staff_id_string, "First Last"} tuple, or {nil, nil} if no assignment
-  defp resolve_current_assigned_staff(program_id) do
-    case Repo.query(
-           """
-           SELECT psa.staff_member_id, sm.first_name, sm.last_name
-           FROM program_staff_assignments psa
-           JOIN staff_members sm ON sm.id = psa.staff_member_id
-           WHERE psa.program_id = $1 AND psa.unassigned_at IS NULL
-           ORDER BY psa.assigned_at ASC
-           LIMIT 1
-           """,
-           [Ecto.UUID.dump!(program_id)]
-         ) do
-      {:ok, %{rows: [[staff_id_bin, first_name, last_name]]}} ->
-        {Ecto.UUID.cast!(staff_id_bin), build_staff_name(first_name, last_name)}
-
-      _ ->
-        {nil, nil}
-    end
-  end
+  defp cast_uuid_or_nil(nil), do: nil
+  defp cast_uuid_or_nil(bin), do: Ecto.UUID.cast!(bin)
 
   # Trigger: staff_assigned_to_program handler needs the staff display name
   # Why: the integration event payload carries only ids — the name is looked up
