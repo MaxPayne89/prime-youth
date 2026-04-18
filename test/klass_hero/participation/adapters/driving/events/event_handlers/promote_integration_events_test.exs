@@ -154,6 +154,7 @@ defmodule KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteI
       event = assert_integration_event_published(:session_cancelled)
       assert event.entity_id == session_id
       assert event.source_context == :participation
+      assert event.payload.program_id == program_id
     end
 
     test "swallows publish failures with :ok" do
