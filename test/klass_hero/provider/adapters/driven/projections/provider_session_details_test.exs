@@ -199,4 +199,78 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsT
       assert row.cover_staff_name == "Cover Person"
     end
   end
+
+  describe "status transitions" do
+    setup :insert_seed_session
+
+    test "session_started sets status=:in_progress", %{session_id: session_id} do
+      broadcast(:session_started, session_id, %{session_id: session_id, program_id: "prog"})
+
+      # Synchronize: ensure GenServer has processed the broadcast
+      _ = :sys.get_state(@test_server_name)
+
+      assert %{status: :in_progress} = reload(session_id)
+    end
+
+    test "session_completed sets status=:completed", %{session_id: session_id} do
+      broadcast(:session_completed, session_id, %{
+        session_id: session_id,
+        program_id: "prog",
+        provider_id: "prv",
+        program_title: "Judo"
+      })
+
+      # Synchronize: ensure GenServer has processed the broadcast
+      _ = :sys.get_state(@test_server_name)
+
+      assert %{status: :completed} = reload(session_id)
+    end
+
+    test "session_cancelled sets status=:cancelled", %{session_id: session_id} do
+      broadcast(:session_cancelled, session_id, %{session_id: session_id, program_id: "prog"})
+
+      # Synchronize: ensure GenServer has processed the broadcast
+      _ = :sys.get_state(@test_server_name)
+
+      assert %{status: :cancelled} = reload(session_id)
+    end
+  end
+
+  defp broadcast(event_type, entity_id, payload) do
+    event = IntegrationEvent.new(event_type, :participation, :session, entity_id, payload)
+
+    Phoenix.PubSub.broadcast(
+      KlassHero.PubSub,
+      "integration:participation:#{event_type}",
+      {:integration_event, event}
+    )
+  end
+
+  defp reload(session_id) do
+    Repo.get(ProviderSessionDetailSchema, session_id)
+  end
+
+  defp insert_seed_session(_ctx) do
+    session_id = Ecto.UUID.generate()
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    Repo.insert_all(ProviderSessionDetailSchema, [
+      %{
+        session_id: session_id,
+        program_id: Ecto.UUID.generate(),
+        program_title: "X",
+        provider_id: Ecto.UUID.generate(),
+        session_date: ~D[2026-05-01],
+        start_time: ~T[09:00:00],
+        end_time: ~T[10:00:00],
+        status: :scheduled,
+        checked_in_count: 0,
+        total_count: 0,
+        inserted_at: now,
+        updated_at: now
+      }
+    ])
+
+    %{session_id: session_id}
+  end
 end
