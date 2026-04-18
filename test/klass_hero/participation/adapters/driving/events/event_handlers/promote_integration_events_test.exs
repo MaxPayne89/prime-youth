@@ -137,6 +137,42 @@ defmodule KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteI
     end
   end
 
+  describe "handle/1 — :session_cancelled" do
+    test "promotes to session_cancelled integration event" do
+      session_id = Ecto.UUID.generate()
+      program_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:session_cancelled, session_id, :participation, %{
+          session_id: session_id,
+          program_id: program_id,
+          cancelled_at: DateTime.utc_now()
+        })
+
+      assert :ok = PromoteIntegrationEvents.handle(domain_event)
+
+      event = assert_integration_event_published(:session_cancelled)
+      assert event.entity_id == session_id
+      assert event.source_context == :participation
+    end
+
+    test "swallows publish failures with :ok" do
+      session_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:session_cancelled, session_id, :participation, %{
+          session_id: session_id,
+          program_id: Ecto.UUID.generate(),
+          cancelled_at: DateTime.utc_now()
+        })
+
+      TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)
+
+      assert :ok = PromoteIntegrationEvents.handle(domain_event)
+      assert_no_integration_events_published()
+    end
+  end
+
   # ---------------------------------------------------------------------------
   # Check-in/out events (aggregate_type: :participation)
   # ---------------------------------------------------------------------------
