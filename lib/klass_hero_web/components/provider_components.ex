@@ -11,6 +11,7 @@ defmodule KlassHeroWeb.ProviderComponents do
     statics: KlassHeroWeb.static_paths()
 
   import KlassHeroWeb.CoreComponents, only: [input: 1]
+  import KlassHeroWeb.ParticipationComponents, only: [participation_status: 1]
   import KlassHeroWeb.UIComponents
 
   alias KlassHeroWeb.Presenters.ProviderPresenter
@@ -1567,6 +1568,92 @@ defmodule KlassHeroWeb.ProviderComponents do
               </div>
             <% end %>
           </div>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a modal listing every session of a program with date/time, assigned
+  staff, cover staff (reserved), attendance count, and status.
+
+  ## Example
+
+      <.sessions_modal :if={@sessions_modal} modal={@sessions_modal} />
+  """
+  attr :modal, :map, required: true
+
+  def sessions_modal(assigns) do
+    ~H"""
+    <div
+      id="sessions-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sessions-modal-title"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      phx-window-keydown="close_sessions"
+      phx-key="escape"
+    >
+      <div
+        class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col"
+        phx-click-away="close_sessions"
+      >
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+          <h2 id="sessions-modal-title" class={Theme.typography(:section_title)}>
+            {gettext("Sessions — %{title}", title: @modal.program_title)}
+          </h2>
+          <button type="button" phx-click="close_sessions" aria-label={gettext("Close")}>
+            <.icon name="hero-x-mark" class="w-5 h-5" />
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto">
+          <%= if @modal.sessions == [] do %>
+            <div class="text-center py-12">
+              <.icon name="hero-calendar-days" class="w-12 h-12 text-hero-grey-300 mx-auto" />
+              <p class="mt-4 text-hero-grey-500">{gettext("No sessions scheduled yet.")}</p>
+            </div>
+          <% else %>
+            <table class="w-full text-sm">
+              <thead class="bg-hero-grey-50 text-left">
+                <tr>
+                  <th class="px-4 py-3">{gettext("Date / time")}</th>
+                  <th class="px-4 py-3">{gettext("Assigned staff")}</th>
+                  <th class="px-4 py-3">{gettext("Cover")}</th>
+                  <th class="px-4 py-3">{gettext("Attendance")}</th>
+                  <th class="px-4 py-3">{gettext("Status")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr :for={s <- @modal.sessions} class="border-t">
+                  <td class="px-4 py-3">
+                    {Calendar.strftime(s.session_date, "%a, %d %b")}
+                    <span class="text-hero-grey-500">
+                      · {Calendar.strftime(s.start_time, "%H:%M")}–{Calendar.strftime(
+                        s.end_time,
+                        "%H:%M"
+                      )}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3">
+                    {s.current_assigned_staff_name || gettext("Unassigned")}
+                  </td>
+                  <td class="px-4 py-3 text-hero-grey-500">
+                    {s.cover_staff_name || "—"}
+                  </td>
+                  <td class="px-4 py-3">
+                    <span :if={s.status != :cancelled}>
+                      {s.checked_in_count} / {s.total_count}
+                    </span>
+                  </td>
+                  <td class="px-4 py-3">
+                    <.participation_status status={s.status} size={:sm} />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          <% end %>
         </div>
       </div>
     </div>
