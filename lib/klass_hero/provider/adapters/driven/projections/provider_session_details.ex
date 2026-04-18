@@ -8,6 +8,12 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
 
   use GenServer
 
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderSessionDetailSchema
+  alias KlassHero.Repo
+  alias KlassHero.Shared.Domain.Events.IntegrationEvent
+
+  require Logger
+
   @session_created_topic "integration:participation:session_created"
   @session_started_topic "integration:participation:session_started"
   @session_completed_topic "integration:participation:session_completed"
@@ -63,9 +69,109 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
     {:noreply, state, {:continue, :bootstrap}}
   end
 
+  # Trigger: Received a session_created integration event
+  # Why: a new session exists — project a row with defaults, resolving
+  #      program_title/provider_id from the programs write table and the
+  #      currently assigned staff from program_staff_assignments
+  # Outcome: one row upserted into provider_session_details
   @impl true
-  def handle_info({:integration_event, _event}, state) do
-    # event clauses come in Tasks 8–12
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :session_created} = event}, state) do
+    Logger.debug("ProviderSessionDetails projecting session_created",
+      session_id: event.entity_id,
+      event_id: event.event_id
+    )
+
+    project_session_created(event.payload)
     {:noreply, state}
   end
+
+  @impl true
+  def handle_info({:integration_event, _event}, state) do
+    # other event clauses come in Tasks 9–12
+    {:noreply, state}
+  end
+
+  defp project_session_created(%{
+         session_id: session_id,
+         program_id: program_id,
+         session_date: session_date,
+         start_time: start_time,
+         end_time: end_time
+       }) do
+    {program_title, provider_id} = resolve_program(program_id)
+    {staff_id, staff_name} = resolve_current_assigned_staff(program_id)
+
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    attrs = %{
+      session_id: session_id,
+      program_id: program_id,
+      program_title: program_title,
+      provider_id: provider_id,
+      session_date: session_date,
+      start_time: start_time,
+      end_time: end_time,
+      status: :scheduled,
+      current_assigned_staff_id: staff_id,
+      current_assigned_staff_name: staff_name,
+      checked_in_count: 0,
+      total_count: 0,
+      inserted_at: now,
+      updated_at: now
+    }
+
+    Repo.insert_all(
+      ProviderSessionDetailSchema,
+      [attrs],
+      on_conflict: {:replace_all_except, [:session_id, :inserted_at]},
+      conflict_target: [:session_id]
+    )
+  end
+
+  # Trigger: session_created handler needs program_title + provider_id
+  # Why: the programs write table is the source of truth; reading it directly
+  #      avoids adding a new ACL port just for two fields. Symmetric with the
+  #      bootstrap query that will live in this module (Task 13).
+  # Outcome: {title, provider_id_string} tuple, or {nil, nil} on miss
+  defp resolve_program(program_id) do
+    case Repo.query(
+           "SELECT title, provider_id FROM programs WHERE id = $1",
+           [Ecto.UUID.dump!(program_id)]
+         ) do
+      {:ok, %{rows: [[title, provider_id_bin]]}} ->
+        {title, Ecto.UUID.cast!(provider_id_bin)}
+
+      _ ->
+        Logger.warning("session_created: program not found", program_id: program_id)
+        {nil, nil}
+    end
+  end
+
+  # Trigger: session_created handler needs the currently assigned staff
+  # Why: display at session creation uses the program's active assignment
+  # Outcome: {staff_id_string, "First Last"} tuple, or {nil, nil} if no assignment
+  defp resolve_current_assigned_staff(program_id) do
+    case Repo.query(
+           """
+           SELECT psa.staff_member_id, sm.first_name, sm.last_name
+           FROM program_staff_assignments psa
+           JOIN staff_members sm ON sm.id = psa.staff_member_id
+           WHERE psa.program_id = $1 AND psa.unassigned_at IS NULL
+           ORDER BY psa.assigned_at ASC
+           LIMIT 1
+           """,
+           [Ecto.UUID.dump!(program_id)]
+         ) do
+      {:ok, %{rows: [[staff_id_bin, first_name, last_name]]}} ->
+        {Ecto.UUID.cast!(staff_id_bin), build_staff_name(first_name, last_name)}
+
+      _ ->
+        {nil, nil}
+    end
+  end
+
+  defp build_staff_name(nil, nil), do: nil
+  defp build_staff_name(first, nil), do: first
+  defp build_staff_name(nil, last), do: last
+  defp build_staff_name(first, last), do: "#{first} #{last}"
 end
