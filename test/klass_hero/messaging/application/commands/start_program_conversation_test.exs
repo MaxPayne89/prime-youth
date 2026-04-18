@@ -74,6 +74,30 @@ defmodule KlassHero.Messaging.Application.Commands.StartProgramConversationTest 
     end
   end
 
+  describe "cross-parent isolation" do
+    test "two parents contacting the same provider get distinct conversations" do
+      owner = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: owner.id)
+      program = insert(:program_schema, provider_id: provider.id)
+      parent_a_scope = build_scope_with_parent(:active)
+      parent_b_scope = build_scope_with_parent(:active)
+
+      assert {:ok, conv_a} =
+               StartProgramConversation.execute(parent_a_scope, provider.id, program.id)
+
+      assert {:ok, conv_b} =
+               StartProgramConversation.execute(parent_b_scope, provider.id, program.id)
+
+      assert conv_a.id != conv_b.id
+
+      assert ParticipantRepository.is_participant?(conv_a.id, parent_a_scope.user.id)
+      refute ParticipantRepository.is_participant?(conv_a.id, parent_b_scope.user.id)
+
+      assert ParticipantRepository.is_participant?(conv_b.id, parent_b_scope.user.id)
+      refute ParticipantRepository.is_participant?(conv_b.id, parent_a_scope.user.id)
+    end
+  end
+
   defp build_scope_with_parent(tier) do
     user = AccountsFixtures.user_fixture()
 
