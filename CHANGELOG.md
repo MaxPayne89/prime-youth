@@ -5,6 +5,34 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.39.0](https://github.com/MaxPayne89/klass-hero/compare/v0.38.0...v0.39.0) (2026-04-18)
+
+
+### Features
+
+* add child_created and child_updated domain and integration events ([73da49f](https://github.com/MaxPayne89/klass-hero/commit/73da49f84b6e0d38a3f2414e98801729b71c3382))
+* add EnrolledChildren projection with schema and bootstrap ([04090ff](https://github.com/MaxPayne89/klass-hero/commit/04090fffe066d9a1ce128415c762ba5123cfc5d0))
+* add EnrolledChildren to ProjectionSupervisor ([e0b4858](https://github.com/MaxPayne89/klass-hero/commit/e0b4858e885bd6037f91e8750c29d5cd68c31a5f))
+* add enrollment_created domain and integration events ([189043e](https://github.com/MaxPayne89/klass-hero/commit/189043ecf55557055a9ea65ffe3b6b7dba86d076))
+* add messaging_enrolled_children table and enrolled_child_names column ([fa6fef4](https://github.com/MaxPayne89/klass-hero/commit/fa6fef45ded14f7fbee8527d4abbd1f50a70a05b))
+* extend ConversationSummaries with enrolled_child_names ([f0ae90c](https://github.com/MaxPayne89/klass-hero/commit/f0ae90c3de9855c3cd6361de4a5f95b7e2456883))
+* show enrolled child names in conversation card subtitle ([39b607f](https://github.com/MaxPayne89/klass-hero/commit/39b607f2ad42386877cfab80b072df55c111efd0))
+* show enrolled child names in conversation cards and titles ([361380c](https://github.com/MaxPayne89/klass-hero/commit/361380c15f12795d9edae4710e768bd4de5b9aff))
+* update get_conversation_title to show parent name with child names ([ae7a9bf](https://github.com/MaxPayne89/klass-hero/commit/ae7a9bffa758553ba7875c13980b9ac8b66f1136))
+* wire enrollment_created event promotion and dispatch ([5ef06b8](https://github.com/MaxPayne89/klass-hero/commit/5ef06b887aa41c61fadb9d8aa92ac2e8cfa45e6a))
+
+
+### Bug Fixes
+
+* include program_id in conversation_created event payload ([34c4c63](https://github.com/MaxPayne89/klass-hero/commit/34c4c63096585984ce5933972393243094b1ba4d))
+* resolve child_first_name from children table on enrollment_created ([8dc8749](https://github.com/MaxPayne89/klass-hero/commit/8dc87496211a60fa02e5a469e3ff5d22aec7e4af))
+* scope enrolled child names to provider and staff viewers only ([6547725](https://github.com/MaxPayne89/klass-hero/commit/65477255a5a3eb674e729b7ca45644b8bffe63d2)), closes [#688](https://github.com/MaxPayne89/klass-hero/issues/688)
+
+
+### Code Refactoring
+
+* simplify EnrolledChildren projection queries ([be2181e](https://github.com/MaxPayne89/klass-hero/commit/be2181eaf9585a60172ff93e48376cb56ca79129))
+
 ## [0.38.0](https://github.com/MaxPayne89/klass-hero/compare/v0.37.0...v0.38.0) (2026-04-16)
 
 
