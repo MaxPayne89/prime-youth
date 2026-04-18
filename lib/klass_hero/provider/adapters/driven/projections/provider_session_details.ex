@@ -90,6 +90,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
   # Trigger: session entered the live window (instructor started it)
   # Why: dashboard badge flips from scheduled → in_progress
   # Outcome: row's status column updated to :in_progress
+  @impl true
   def handle_info({:integration_event, %IntegrationEvent{event_type: :session_started} = event}, state) do
     update_status(event.entity_id, :in_progress)
     {:noreply, state}
@@ -98,6 +99,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
   # Trigger: session finished (end-of-session finalization)
   # Why: dashboard badge flips from in_progress → completed
   # Outcome: row's status column updated to :completed
+  @impl true
   def handle_info({:integration_event, %IntegrationEvent{event_type: :session_completed} = event}, state) do
     update_status(event.entity_id, :completed)
     {:noreply, state}
@@ -106,6 +108,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
   # Trigger: session cancelled (by provider or system)
   # Why: dashboard badge reflects cancellation, independent of prior status
   # Outcome: row's status column updated to :cancelled
+  @impl true
   def handle_info({:integration_event, %IntegrationEvent{event_type: :session_cancelled} = event}, state) do
     update_status(event.entity_id, :cancelled)
     {:noreply, state}
@@ -167,12 +170,24 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
   # Trigger: any of the session_started/completed/cancelled handlers
   # Why: the three status-transition handlers share the same update shape;
   #      centralising keeps the transitions uniform and easy to audit
-  # Outcome: the row's status column (and updated_at) is updated in place
+  # Outcome: the row's status column (and updated_at) is updated in place.
+  #          If the session row is missing (unknown session_id), a warning is
+  #          logged per spec.
   defp update_status(session_id, status) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-    from(d in ProviderSessionDetailSchema, where: d.session_id == ^session_id)
-    |> Repo.update_all(set: [status: status, updated_at: now])
+    {updated, _} =
+      from(d in ProviderSessionDetailSchema, where: d.session_id == ^session_id)
+      |> Repo.update_all(set: [status: status, updated_at: now])
+
+    if updated == 0 do
+      Logger.warning("ProviderSessionDetails status transition skipped: session not found",
+        session_id: session_id,
+        target_status: status
+      )
+    end
+
+    :ok
   end
 
   # Trigger: session_created handler needs program_title + provider_id

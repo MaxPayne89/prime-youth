@@ -2,6 +2,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsT
   use KlassHero.DataCase, async: false
 
   import Ecto.Query
+  import ExUnit.CaptureLog
   import KlassHero.Factory
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProgramStaffAssignmentSchema
@@ -233,6 +234,19 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsT
       _ = :sys.get_state(@test_server_name)
 
       assert %{status: :cancelled} = reload(session_id)
+    end
+
+    test "logs a warning when the session row is missing" do
+      unknown_id = Ecto.UUID.generate()
+
+      log =
+        capture_log(fn ->
+          broadcast(:session_started, unknown_id, %{session_id: unknown_id, program_id: "prog"})
+          _ = :sys.get_state(@test_server_name)
+        end)
+
+      assert log =~ "status transition skipped"
+      assert log =~ unknown_id
     end
   end
 
