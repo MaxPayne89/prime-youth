@@ -114,9 +114,34 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
     {:noreply, state}
   end
 
+  # Trigger: participation seeded the roster for a session (expected attendees known)
+  # Why: dashboard needs total_count to render "X / Y checked in" denominators
+  # Outcome: row's total_count column is set to the seeded_count from the payload
+  @impl true
+  def handle_info(
+        {:integration_event,
+         %IntegrationEvent{event_type: :roster_seeded, payload: %{seeded_count: seeded_count}} = event},
+        state
+      ) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    {updated, _} =
+      from(d in ProviderSessionDetailSchema, where: d.session_id == ^event.entity_id)
+      |> Repo.update_all(set: [total_count: seeded_count, updated_at: now])
+
+    if updated == 0 do
+      Logger.warning("ProviderSessionDetails roster_seeded skipped: session not found",
+        session_id: event.entity_id,
+        seeded_count: seeded_count
+      )
+    end
+
+    {:noreply, state}
+  end
+
   @impl true
   def handle_info({:integration_event, _event}, state) do
-    # remaining event clauses come in Tasks 10–12; final catch-all arrives in Task 12
+    # remaining event clauses come in Tasks 11–12; final catch-all arrives in Task 12
     {:noreply, state}
   end
 

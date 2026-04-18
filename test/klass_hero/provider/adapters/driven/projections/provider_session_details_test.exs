@@ -250,6 +250,41 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsT
     end
   end
 
+  describe "roster_seeded" do
+    setup :insert_seed_session
+
+    test "sets total_count from seeded_count", %{session_id: session_id} do
+      broadcast(:roster_seeded, session_id, %{
+        session_id: session_id,
+        program_id: "prog",
+        seeded_count: 7
+      })
+
+      # Synchronize: ensure GenServer has processed the broadcast
+      _ = :sys.get_state(@test_server_name)
+
+      assert %{total_count: 7} = reload(session_id)
+    end
+
+    test "logs a warning when the session row is missing" do
+      unknown_id = Ecto.UUID.generate()
+
+      log =
+        capture_log(fn ->
+          broadcast(:roster_seeded, unknown_id, %{
+            session_id: unknown_id,
+            program_id: "prog",
+            seeded_count: 3
+          })
+
+          _ = :sys.get_state(@test_server_name)
+        end)
+
+      assert log =~ "roster_seeded skipped"
+      assert log =~ unknown_id
+    end
+  end
+
   defp broadcast(event_type, entity_id, payload) do
     event = IntegrationEvent.new(event_type, :participation, :session, entity_id, payload)
 
