@@ -5,6 +5,31 @@ defmodule KlassHeroWeb.ProviderComponentsTest do
 
   alias KlassHero.Provider.Domain.ReadModels.SessionDetail
 
+  describe "programs_table/1" do
+    test "renders a Sessions button per row" do
+      program = %{
+        id: "prog-1",
+        name: "Judo",
+        category: "Sports",
+        price: "120",
+        assigned_staff: nil,
+        status: :active,
+        enrolled: 5,
+        capacity: 10
+      }
+
+      html =
+        render_component(&KlassHeroWeb.ProviderComponents.programs_table/1,
+          programs: [{"programs-prog-1", program}],
+          staff_options: [%{value: "all", label: "All Staff"}]
+        )
+
+      assert html =~ "phx-click=\"view_sessions\""
+      assert html =~ "phx-value-program-id=\"prog-1\""
+      assert html =~ ~s|aria-label="View sessions"|
+    end
+  end
+
   describe "sessions_modal/1" do
     test "renders the provided sessions in order" do
       modal = %{
