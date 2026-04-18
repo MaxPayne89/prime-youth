@@ -1,6 +1,7 @@
 defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsTest do
   use KlassHero.DataCase, async: false
 
+  import Ecto.Query
   import KlassHero.Factory
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProgramStaffAssignmentSchema
@@ -126,6 +127,76 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsT
       assert row != nil
       assert row.current_assigned_staff_id == staff.id
       assert row.current_assigned_staff_name == "Ada Lovelace"
+    end
+
+    test "duplicate delivery preserves evolved state written by other handlers" do
+      # Trigger: session_created is replayed (at-least-once delivery) after other
+      #          handlers (session_started/completed, roster_seeded, child_checked_in,
+      #          and a future cover-staff handler) have mutated the row
+      # Why: spec requires session_created to be a no-op on duplicate delivery —
+      #      it must NOT stomp evolved state owned by other handlers
+      # Outcome: after a second broadcast, status/checked_in_count/total_count and
+      #          cover_staff_* fields retain the evolved values
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id, title: "Aikido")
+      session_id = Ecto.UUID.generate()
+
+      event =
+        IntegrationEvent.new(
+          :session_created,
+          :participation,
+          :session,
+          session_id,
+          %{
+            session_id: session_id,
+            program_id: program.id,
+            session_date: ~D[2026-05-03],
+            start_time: ~T[09:00:00],
+            end_time: ~T[10:00:00]
+          }
+        )
+
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:participation:session_created",
+        {:integration_event, event}
+      )
+
+      # Synchronize: ensure GenServer has processed the first broadcast
+      _ = :sys.get_state(@test_server_name)
+
+      # Simulate evolved state written by other handlers between deliveries
+      cover_staff_id = Ecto.UUID.generate()
+
+      Repo.update_all(
+        from(d in ProviderSessionDetailSchema, where: d.session_id == ^session_id),
+        set: [
+          status: :in_progress,
+          checked_in_count: 5,
+          total_count: 10,
+          cover_staff_id: cover_staff_id,
+          cover_staff_name: "Cover Person"
+        ]
+      )
+
+      # Replay the same event (at-least-once delivery)
+      Phoenix.PubSub.broadcast(
+        KlassHero.PubSub,
+        "integration:participation:session_created",
+        {:integration_event, event}
+      )
+
+      # Synchronize: ensure GenServer has processed the replay
+      _ = :sys.get_state(@test_server_name)
+
+      row = Repo.get(ProviderSessionDetailSchema, session_id)
+
+      assert row != nil
+      assert row.status == :in_progress
+      assert row.checked_in_count == 5
+      assert row.total_count == 10
+      assert row.cover_staff_id == cover_staff_id
+      assert row.cover_staff_name == "Cover Person"
     end
   end
 end

@@ -123,7 +123,17 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
     Repo.insert_all(
       ProviderSessionDetailSchema,
       [attrs],
-      on_conflict: {:replace_all_except, [:session_id, :inserted_at]},
+      on_conflict:
+        {:replace_all_except,
+         [
+           :session_id,
+           :inserted_at,
+           :status,
+           :checked_in_count,
+           :total_count,
+           :cover_staff_id,
+           :cover_staff_name
+         ]},
       conflict_target: [:session_id]
     )
   end
