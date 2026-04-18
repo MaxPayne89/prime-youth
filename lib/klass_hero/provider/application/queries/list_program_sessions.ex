@@ -8,6 +8,6 @@ defmodule KlassHero.Provider.Application.Queries.ListProgramSessions do
                                   [:provider, :for_querying_session_details]
                                 )
 
-  @spec run(binary(), binary()) :: [SessionDetail.t()]
-  def run(provider_id, program_id), do: @for_querying_session_details.list_by_program(provider_id, program_id)
+  @spec execute(binary(), binary()) :: [SessionDetail.t()]
+  def execute(provider_id, program_id), do: @for_querying_session_details.list_by_program(provider_id, program_id)
 end

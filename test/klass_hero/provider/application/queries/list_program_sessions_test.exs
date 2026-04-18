@@ -12,7 +12,7 @@ defmodule KlassHero.Provider.Application.Queries.ListProgramSessionsTest do
   alias KlassHero.Provider.Domain.ReadModels.SessionDetail
   alias KlassHero.Repo
 
-  describe "run/2" do
+  describe "execute/2" do
     test "returns sessions for the provider's program ordered by date and start time" do
       provider_id = Ecto.UUID.generate()
       program_id = Ecto.UUID.generate()
@@ -39,14 +39,14 @@ defmodule KlassHero.Provider.Application.Queries.ListProgramSessionsTest do
         status: :scheduled
       })
 
-      [first, second] = ListProgramSessions.run(provider_id, program_id)
+      [first, second] = ListProgramSessions.execute(provider_id, program_id)
 
       assert %SessionDetail{session_date: ~D[2026-05-01]} = first
       assert %SessionDetail{session_date: ~D[2026-05-02]} = second
     end
 
     test "returns [] when the program has no sessions" do
-      assert [] == ListProgramSessions.run(Ecto.UUID.generate(), Ecto.UUID.generate())
+      assert [] == ListProgramSessions.execute(Ecto.UUID.generate(), Ecto.UUID.generate())
     end
 
     test "does not leak sessions across providers" do
@@ -65,7 +65,7 @@ defmodule KlassHero.Provider.Application.Queries.ListProgramSessionsTest do
         status: :scheduled
       })
 
-      assert [] == ListProgramSessions.run(mine, program_id)
+      assert [] == ListProgramSessions.execute(mine, program_id)
     end
   end
 

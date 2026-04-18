@@ -518,7 +518,7 @@ defmodule KlassHero.Provider do
           SessionDetail.t()
         ]
   def list_program_sessions(provider_id, program_id) when is_binary(provider_id) and is_binary(program_id) do
-    ListProgramSessions.run(provider_id, program_id)
+    ListProgramSessions.execute(provider_id, program_id)
   end
 
   # ===========================================================================
