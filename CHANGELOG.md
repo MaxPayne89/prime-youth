@@ -5,6 +5,19 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.0](https://github.com/MaxPayne89/klass-hero/compare/v0.39.0...v0.40.0) (2026-04-18)
+
+
+### Features
+
+* initialize conversation on Contact Provider click ([#586](https://github.com/MaxPayne89/klass-hero/issues/586)) ([5f8956e](https://github.com/MaxPayne89/klass-hero/commit/5f8956ef96efa67e009461af60e3d5ca2671e1fd))
+* initialize conversation when parent clicks Contact Provider ([#586](https://github.com/MaxPayne89/klass-hero/issues/586)) ([741dcb1](https://github.com/MaxPayne89/klass-hero/commit/741dcb1cdc11f8421110e845fdbe2a6ab0a68903))
+
+
+### Bug Fixes
+
+* isolate cross-parent conversations in StartProgramConversation ([d4bbca3](https://github.com/MaxPayne89/klass-hero/commit/d4bbca363e1576d04a34519b8ca03d159fc5a816)), closes [#691](https://github.com/MaxPayne89/klass-hero/issues/691)
+
 ## [0.39.0](https://github.com/MaxPayne89/klass-hero/compare/v0.38.0...v0.39.0) (2026-04-18)
 
 
