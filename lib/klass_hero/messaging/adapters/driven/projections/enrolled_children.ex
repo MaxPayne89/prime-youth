@@ -387,17 +387,22 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.EnrolledChildren do
     conversation_type = payload |> Map.get(:type, "direct") |> to_string()
 
     if conversation_type == "direct" and program_id do
-      participant_ids = Map.get(payload, :participant_ids, [])
-      conversation_id = payload.conversation_id
-
-      Enum.each(participant_ids, fn user_id ->
-        child_names = get_child_names(user_id, program_id)
-
-        if child_names != [] do
-          emit_enrolled_children_changed(conversation_id, child_names)
-        end
-      end)
+      emit_enrolled_children_for_direct_participants(
+        payload.conversation_id,
+        Map.get(payload, :participant_ids, []),
+        program_id
+      )
     end
+  end
+
+  defp emit_enrolled_children_for_direct_participants(conversation_id, participant_ids, program_id) do
+    Enum.each(participant_ids, fn user_id ->
+      child_names = get_child_names(user_id, program_id)
+
+      if child_names != [] do
+        emit_enrolled_children_changed(conversation_id, child_names)
+      end
+    end)
   end
 
   # Private — Re-derivation
