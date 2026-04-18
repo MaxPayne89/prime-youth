@@ -1,8 +1,11 @@
 defmodule KlassHeroWeb.DashboardLiveTest do
   use KlassHeroWeb.ConnCase, async: true
 
+  import KlassHero.Factory
   import KlassHero.ProviderFixtures
   import Phoenix.LiveViewTest
+
+  alias KlassHero.AccountsFixtures
 
   describe "DashboardLive" do
     setup :register_and_log_in_user
@@ -76,6 +79,36 @@ defmodule KlassHeroWeb.DashboardLiveTest do
 
       assert html =~ "overflow-x-auto"
       assert html =~ "snap-x"
+    end
+  end
+
+  describe "Contact Provider flow" do
+    test "clicking contact_provider starts a conversation and navigates to it", %{conn: conn} do
+      user = AccountsFixtures.user_fixture(intended_roles: [:parent])
+      parent = insert(:parent_profile_schema, identity_id: user.id, subscription_tier: "active")
+      owner = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: owner.id)
+      program = insert(:program_schema, provider_id: provider.id)
+      {child, _parent} = insert_child_with_guardian(parent: parent)
+
+      insert(:enrollment_schema,
+        parent_id: parent.id,
+        program_id: program.id,
+        child_id: child.id,
+        status: "confirmed",
+        confirmed_at: DateTime.utc_now() |> DateTime.truncate(:second)
+      )
+
+      conn = log_in_user(conn, user)
+      {:ok, view, _html} = live(conn, ~p"/dashboard")
+
+      selector =
+        ~s|button[phx-click="contact_provider"][phx-value-program-id="#{program.id}"]|
+
+      assert {:error, {:live_redirect, %{to: path}}} =
+               view |> element(selector) |> render_click()
+
+      assert path =~ ~r"^/messages/[0-9a-f-]+$"
     end
   end
 

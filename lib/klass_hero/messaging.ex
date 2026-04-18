@@ -57,6 +57,7 @@ defmodule KlassHero.Messaging do
     ReplyToEmail,
     ScheduleEmailContentFetch,
     SendMessage,
+    StartProgramConversation,
     UpdateInboundEmailContent,
     UpdateInboundEmailStatus
   }
@@ -104,6 +105,30 @@ defmodule KlassHero.Messaging do
   def create_direct_conversation(scope, provider_id, target_user_id, opts \\ []) do
     CreateDirectConversation.execute(scope, provider_id, target_user_id, opts)
   end
+
+  @doc """
+  Starts (or retrieves) a direct conversation between a parent and a provider
+  in the context of a specific program.
+
+  Resolves the provider owner automatically and auto-adds program-assigned
+  staff as participants. Intended for parent-initiated flows where the UI
+  only knows the `program_id` and `provider_id`.
+
+  ## Parameters
+  - scope: The parent's scope (for entitlement checks)
+  - provider_id: The provider profile ID
+  - program_id: The program being discussed
+
+  ## Returns
+  - `{:ok, conversation}` - New or existing direct conversation
+  - `{:error, :not_found}` - Provider does not exist
+  - `{:error, :not_entitled}` - Parent cannot initiate messaging
+  """
+  @spec start_program_conversation(Scope.t(), String.t(), String.t()) ::
+          {:ok, Conversation.t()} | {:error, :not_found | :not_entitled | term()}
+  defdelegate start_program_conversation(scope, provider_id, program_id),
+    to: StartProgramConversation,
+    as: :execute
 
   @doc """
   Sends a message to a conversation.

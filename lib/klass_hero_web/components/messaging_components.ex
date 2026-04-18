@@ -17,6 +17,7 @@ defmodule KlassHeroWeb.MessagingComponents do
   alias KlassHero.Messaging.Domain.Models.Attachment
   alias KlassHeroWeb.MessagingLiveHelper
   alias KlassHeroWeb.Theme
+  alias Phoenix.LiveView.JS
 
   @doc """
   Renders a conversation card for the conversation list.
@@ -320,6 +321,7 @@ defmodule KlassHeroWeb.MessagingComponents do
             ]}
             placeholder={gettext("Type a message...")}
             phx-hook="AutoResizeTextarea"
+            phx-mounted={JS.focus()}
             disabled={@disabled}
           >{Phoenix.HTML.Form.input_value(@form, :content)}</textarea>
         </div>
@@ -696,4 +698,44 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   defp upload_error_to_string(:external_client_failure), do: gettext("Upload failed")
   defp upload_error_to_string(_), do: gettext("Upload error")
+
+  @doc """
+  Renders a "Contact Provider" button that emits a phx-click event
+  carrying the program_id and provider_id as phx-values.
+
+  Designed for use inside the `:actions` slot of `<.program_card>`, so the
+  card stays purely presentational while the caller owns the event handler.
+
+  ## Examples
+
+      <.contact_provider_button
+        program_id={program.id}
+        provider_id={program.provider_id}
+        phx-click="contact_provider"
+      />
+  """
+  attr :program_id, :string, required: true
+  attr :provider_id, :string, required: true
+  attr :rest, :global, include: ~w(phx-click disabled)
+
+  def contact_provider_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      phx-value-program-id={@program_id}
+      phx-value-provider-id={@provider_id}
+      class={[
+        "block w-full text-center px-4 py-2 text-sm font-medium",
+        Theme.rounded(:lg),
+        "bg-hero-blue-50 text-hero-blue-600 hover:bg-hero-blue-100",
+        Theme.transition(:normal)
+      ]}
+      onclick="event.stopPropagation();"
+      {@rest}
+    >
+      <.icon name="hero-chat-bubble-left-right-mini" class="w-4 h-4 inline mr-1" />
+      {gettext("Contact Provider")}
+    </button>
+    """
+  end
 end
