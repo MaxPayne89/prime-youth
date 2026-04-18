@@ -15,6 +15,30 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.EnrolledChildren do
   - `integration:family:child_created` — updates child_first_name
   - `integration:family:child_updated` — updates child_first_name
   - `integration:messaging:conversation_created` — triggers name resolution for new conversations
+
+  ## Cross-Context Coupling
+
+  Two paths in this module query Enrollment/Family tables directly via raw
+  string names:
+
+  - `bootstrap_from_write_tables/0` joins `enrollments`, `children`, and
+    `parents` to recover from a cold start where the read table is empty but
+    write tables already contain data (e.g. after seeding or a projection reset).
+  - `resolve_child_first_name/1` (called by `project_enrollment_created/1`)
+    looks up `children.first_name` because the `enrollment_created` integration
+    event payload does not carry the child's name.
+
+  These are **pragmatic cross-context couplings** at the adapter layer: raw
+  string table references (rather than schema-module aliases) sidestep
+  Boundary's compile-time isolation, but Messaging still gains runtime
+  knowledge of Enrollment's and Family's physical schema — a rename in those
+  contexts will silently break these paths.
+
+  Both paths mirror the precedent set by
+  `Family.Adapters.Driven.ACL.ChildEnrollmentACL` and
+  `Enrollment.Adapters.Driven.ACL.ProgramCatalogACL`, which adopt the same
+  raw-string workaround to avoid hard Boundary dependencies. Issue #685
+  tracks replacing all of these with dedicated cross-context ports.
   """
 
   use GenServer
@@ -248,22 +272,50 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.EnrolledChildren do
     child_id = payload.child_id
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
+    # Trigger: event payload lacks child_first_name
+    # Why: Enrollment context doesn't know the name; without this, rows stay nil
+    #      until a child_updated event fires — which never happens for enrollments
+    #      of pre-existing, unedited children
+    # Outcome: name resolved from children table (nil only if child concurrently deleted)
+    child_first_name = resolve_child_first_name(child_id)
+
     %EnrolledChildrenSchema{}
     |> Ecto.Changeset.change(%{
       id: Ecto.UUID.generate(),
       parent_user_id: parent_user_id,
       program_id: program_id,
       child_id: child_id,
-      child_first_name: nil,
+      child_first_name: child_first_name,
       inserted_at: now,
       updated_at: now
     })
     |> Repo.insert!(
-      on_conflict: {:replace, [:updated_at]},
+      on_conflict: {:replace, [:child_first_name, :updated_at]},
       conflict_target: [:parent_user_id, :program_id, :child_id]
     )
 
     re_derive_and_emit(parent_user_id, program_id)
+  end
+
+  # Trigger: project_enrollment_created needs child's first_name
+  # Why: the enrollment_created event payload does not carry the name
+  # Outcome: children.first_name for the given child_id, or nil if the row is missing
+  defp resolve_child_first_name(child_id) do
+    name =
+      Repo.one(
+        from(c in "children",
+          where: c.id == type(^child_id, :binary_id),
+          select: c.first_name
+        )
+      )
+
+    if is_nil(name) do
+      Logger.warning("EnrolledChildren: child row not found when resolving first_name",
+        child_id: child_id
+      )
+    end
+
+    name
   end
 
   # Trigger: enrollment_cancelled event received
