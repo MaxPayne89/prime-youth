@@ -51,22 +51,18 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
   @impl true
   def init(_opts) do
     Enum.each(@topics, &Phoenix.PubSub.subscribe(KlassHero.PubSub, &1))
-    {:ok, %{bootstrapped: false}, {:continue, :bootstrap}}
+    {:ok, %{}, {:continue, :bootstrap}}
   end
 
   @impl true
   def handle_continue(:bootstrap, state) do
-    # Trigger: GenServer init complete
-    # Why: self-heal the read table from the authoritative write tables on every
-    #      boot. Transient DB failures reschedule via :retry_bootstrap (Task 7);
-    #      persistent failures propagate through repeated retries until the
-    #      supervisor intervenes.
-    # Outcome: read table converges toward a projection of the current write
-    #          state; `bootstrapped: true` marks the projection ready.
+    # Self-heal the read table from write tables on every boot. Transient DB
+    # failures reschedule via :retry_bootstrap; persistent failures propagate
+    # through repeated retries until the supervisor intervenes.
     case do_bootstrap() do
       {:ok, count} ->
         Logger.info("ProviderSessionDetails bootstrap complete", count: count)
-        {:noreply, %{state | bootstrapped: true}}
+        {:noreply, state}
 
       {:error, reason} ->
         Logger.warning("ProviderSessionDetails bootstrap failed; retrying",
@@ -78,16 +74,13 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
     end
   end
 
-  # Trigger: external caller requests a full rebuild (e.g. after seeds insert
-  #          into write tables without emitting integration events)
-  # Why: seeds bypass the event bus, so the read table must be refreshed from
-  #      the write tables via the same bootstrap path used on init
-  # Outcome: read table refreshed from write tables; projection marked ready
+  # Seeds bypass the event bus, so `rebuild/1` refreshes the read table from
+  # write tables via the same bootstrap path used on init.
   @impl true
   def handle_call(:rebuild, _from, state) do
     {:ok, count} = do_bootstrap()
     Logger.info("ProviderSessionDetails rebuilt", count: count)
-    {:reply, :ok, %{state | bootstrapped: true}}
+    {:reply, :ok, state}
   end
 
   @impl true
