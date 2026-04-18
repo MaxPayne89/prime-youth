@@ -48,6 +48,24 @@ defmodule KlassHeroWeb.MessagingLiveHelperTest do
     end
   end
 
+  describe "enrolled_child_names_for/2" do
+    test "returns [] for :parent variant (suffix is suppressed in title)" do
+      assert MessagingLiveHelper.enrolled_child_names_for(:parent, ["Emma", "Liam"]) == []
+      assert MessagingLiveHelper.enrolled_child_names_for(:parent, []) == []
+    end
+
+    test "passes the names through unchanged for :provider variant" do
+      assert MessagingLiveHelper.enrolled_child_names_for(:provider, ["Emma", "Liam"]) ==
+               ["Emma", "Liam"]
+
+      assert MessagingLiveHelper.enrolled_child_names_for(:provider, []) == []
+    end
+
+    test "passes the names through unchanged for :staff variant" do
+      assert MessagingLiveHelper.enrolled_child_names_for(:staff, ["Emma"]) == ["Emma"]
+    end
+  end
+
   describe "own_message?/2" do
     test "returns true when the message sender is the given user" do
       user_id = Ecto.UUID.generate()

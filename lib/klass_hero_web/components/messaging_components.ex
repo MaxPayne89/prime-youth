@@ -475,7 +475,11 @@ defmodule KlassHeroWeb.MessagingComponents do
         unread_count={conv_data.unread_count}
         latest_message={conv_data.latest_message}
         other_participant_name={conv_data.other_participant_name}
-        enrolled_child_names={Map.get(conv_data, :enrolled_child_names, [])}
+        enrolled_child_names={
+          if @user_type == :parent,
+            do: [],
+            else: Map.get(conv_data, :enrolled_child_names, [])
+        }
         navigate={@navigate_base <> "/" <> conv_data.conversation.id}
       />
       <div :if={@conversations_empty?} id="conversations-empty-state" class="p-4">

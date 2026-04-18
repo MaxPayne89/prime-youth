@@ -408,7 +408,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
       last_read_at: participant.last_read_at,
       archived_at: conversation.archived_at,
       system_notes: conv_system_notes,
-      enrolled_child_names: resolve_enrolled_child_names(conversation, participant.user_id),
+      enrolled_child_names: resolve_enrolled_child_names(conversation, Enum.map(active_participants, & &1.user_id)),
       inserted_at: now,
       updated_at: now
     }
@@ -673,16 +673,19 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries 
   defp maybe_project_system_note(_payload), do: :ok
 
   # Trigger: bootstrap needs enrolled child names from the EnrolledChildren projection table
-  # Why: direct conversations with a program_id should display child context
-  # Outcome: list of child first names or empty list
-  defp resolve_enrolled_child_names(%{type: type, program_id: program_id}, user_id)
-       when type in ["direct", :direct] and not is_nil(program_id) do
+  # Why: direct conversations with a program_id should display child context — query across
+  #      all participant user_ids (not just the current row's) so provider-side summary rows
+  #      receive the same list as parent-side rows, matching the event-driven path's semantics
+  # Outcome: list of child first names (deduped + sorted) or empty list
+  defp resolve_enrolled_child_names(%{type: type, program_id: program_id}, participant_user_ids)
+       when type in ["direct", :direct] and not is_nil(program_id) and participant_user_ids != [] do
     from(e in EnrolledChildrenSchema,
       where:
-        e.parent_user_id == ^user_id and
+        e.parent_user_id in ^participant_user_ids and
           e.program_id == ^program_id and
           not is_nil(e.child_first_name),
       select: e.child_first_name,
+      distinct: true,
       order_by: e.child_first_name
     )
     |> Repo.all()
