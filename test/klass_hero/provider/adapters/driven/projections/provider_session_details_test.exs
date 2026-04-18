@@ -285,6 +285,92 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsT
     end
   end
 
+  describe "attendance counters" do
+    setup :insert_seed_session
+
+    test "child_checked_in increments checked_in_count", %{session_id: session_id} do
+      broadcast(:child_checked_in, "rec-1", %{
+        record_id: "rec-1",
+        session_id: session_id,
+        child_id: "c-1"
+      })
+
+      # Synchronize: ensure GenServer has processed the broadcast
+      _ = :sys.get_state(@test_server_name)
+
+      assert %{checked_in_count: 1} = reload(session_id)
+    end
+
+    test "two check-ins increment to 2", %{session_id: session_id} do
+      broadcast(:child_checked_in, "rec-1", %{
+        record_id: "rec-1",
+        session_id: session_id,
+        child_id: "c-1"
+      })
+
+      broadcast(:child_checked_in, "rec-2", %{
+        record_id: "rec-2",
+        session_id: session_id,
+        child_id: "c-2"
+      })
+
+      # Synchronize: ensure GenServer has processed both broadcasts
+      _ = :sys.get_state(@test_server_name)
+
+      assert %{checked_in_count: 2} = reload(session_id)
+    end
+
+    test "child_checked_out does not decrement", %{session_id: session_id} do
+      broadcast(:child_checked_in, "rec-1", %{
+        record_id: "rec-1",
+        session_id: session_id,
+        child_id: "c-1"
+      })
+
+      _ = :sys.get_state(@test_server_name)
+      assert %{checked_in_count: 1} = reload(session_id)
+
+      broadcast(:child_checked_out, "rec-1", %{
+        record_id: "rec-1",
+        session_id: session_id,
+        child_id: "c-1"
+      })
+
+      _ = :sys.get_state(@test_server_name)
+      assert %{checked_in_count: 1} = reload(session_id)
+    end
+
+    test "child_marked_absent does not change count", %{session_id: session_id} do
+      broadcast(:child_marked_absent, "rec-1", %{
+        record_id: "rec-1",
+        session_id: session_id,
+        child_id: "c-1"
+      })
+
+      _ = :sys.get_state(@test_server_name)
+
+      assert %{checked_in_count: 0} = reload(session_id)
+    end
+
+    test "logs a warning when child_checked_in arrives for an unknown session" do
+      unknown_id = Ecto.UUID.generate()
+
+      log =
+        capture_log(fn ->
+          broadcast(:child_checked_in, "rec-ghost", %{
+            record_id: "rec-ghost",
+            session_id: unknown_id,
+            child_id: "c-1"
+          })
+
+          _ = :sys.get_state(@test_server_name)
+        end)
+
+      assert log =~ "child_checked_in skipped"
+      assert log =~ unknown_id
+    end
+  end
+
   defp broadcast(event_type, entity_id, payload) do
     event = IntegrationEvent.new(event_type, :participation, :session, entity_id, payload)
 

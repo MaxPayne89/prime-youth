@@ -139,9 +139,63 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
     {:noreply, state}
   end
 
+  # Trigger: attendance taker checked a child in for a session
+  # Why: dashboard shows "X / Y checked in" — bump the counter monotonically
+  # Outcome: row's checked_in_count is incremented by 1; if the session row
+  #          does not exist, a warning is logged (mirrors roster_seeded/status
+  #          transition handlers)
+  @impl true
+  def handle_info(
+        {:integration_event,
+         %IntegrationEvent{event_type: :child_checked_in, payload: %{session_id: session_id}} = event},
+        state
+      ) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    {updated, _} =
+      from(d in ProviderSessionDetailSchema, where: d.session_id == ^session_id)
+      |> Repo.update_all(inc: [checked_in_count: 1], set: [updated_at: now])
+
+    if updated == 0 do
+      Logger.warning("ProviderSessionDetails child_checked_in skipped: session not found",
+        session_id: session_id,
+        record_id: event.entity_id
+      )
+    end
+
+    {:noreply, state}
+  end
+
+  # Trigger: attendance taker undid a check-in (child_checked_out)
+  # Why: once a child is counted on check-in, they stay counted for the day's
+  #      "how many showed up" view; undo events are intentionally not reflected
+  #      in checked_in_count. Logged at debug to confirm the no-op is deliberate.
+  # Outcome: no state change.
+  @impl true
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :child_checked_out} = event}, state) do
+    Logger.debug("ProviderSessionDetails ignoring child_checked_out (counter is monotonic)",
+      record_id: event.entity_id
+    )
+
+    {:noreply, state}
+  end
+
+  # Trigger: attendance taker marked a child absent
+  # Why: absence is the complement of check-in and does not change the "how
+  #      many showed up" count. Logged at debug to confirm the no-op is deliberate.
+  # Outcome: no state change.
+  @impl true
+  def handle_info({:integration_event, %IntegrationEvent{event_type: :child_marked_absent} = event}, state) do
+    Logger.debug("ProviderSessionDetails ignoring child_marked_absent (no effect on checked_in_count)",
+      record_id: event.entity_id
+    )
+
+    {:noreply, state}
+  end
+
   @impl true
   def handle_info({:integration_event, _event}, state) do
-    # remaining event clauses come in Tasks 11–12; final catch-all arrives in Task 12
+    # remaining event clauses come in Task 12; final catch-all removed there
     {:noreply, state}
   end
 
