@@ -3,10 +3,12 @@ defmodule KlassHeroWeb.DashboardLive do
 
   import KlassHeroWeb.BookingComponents, only: [info_box: 1]
   import KlassHeroWeb.CompositeComponents
+  import KlassHeroWeb.MessagingComponents, only: [contact_provider_button: 1]
   import KlassHeroWeb.ProgramComponents, only: [program_card: 1]
 
   alias KlassHero.Enrollment
   alias KlassHero.Family
+  alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Shared.Entitlements
   alias KlassHeroWeb.Helpers.TaskHelpers
@@ -149,6 +151,34 @@ defmodule KlassHeroWeb.DashboardLive do
     {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
   end
 
+  def handle_event("contact_provider", %{"program-id" => program_id, "provider-id" => provider_id}, socket) do
+    case Messaging.start_program_conversation(
+           socket.assigns.current_scope,
+           provider_id,
+           program_id
+         ) do
+      {:ok, conversation} ->
+        {:noreply, push_navigate(socket, to: ~p"/messages/#{conversation.id}")}
+
+      {:error, :not_entitled} ->
+        {:noreply, put_flash(socket, :error, gettext("Upgrade your plan to send messages."))}
+
+      {:error, reason} ->
+        Logger.error("Failed to start program conversation from dashboard",
+          reason: inspect(reason),
+          provider_id: provider_id,
+          program_id: program_id
+        )
+
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Could not start conversation. Please try again.")
+         )}
+    end
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -267,10 +297,17 @@ defmodule KlassHeroWeb.DashboardLive do
                 program={ProgramPresenter.to_card_view(item.program)}
                 variant={:detailed}
                 expired={item.expired}
-                contact_url={if(!item.expired, do: ~p"/messages")}
                 phx-click="program_click"
                 phx-value-program-id={item.program.id}
-              />
+              >
+                <:actions :if={!item.expired}>
+                  <.contact_provider_button
+                    program_id={item.program.id}
+                    provider_id={item.program.provider_id}
+                    phx-click="contact_provider"
+                  />
+                </:actions>
+              </.program_card>
             </div>
           <% end %>
         </section>

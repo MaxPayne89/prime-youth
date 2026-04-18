@@ -1,0 +1,94 @@
+defmodule KlassHero.Messaging.Application.Commands.StartProgramConversationTest do
+  use KlassHero.DataCase, async: true
+
+  import KlassHero.Factory
+
+  alias KlassHero.Accounts.Scope
+  alias KlassHero.AccountsFixtures
+  alias KlassHero.Family.Domain.Models.ParentProfile
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
+  alias KlassHero.Messaging.Application.Commands.StartProgramConversation
+  alias KlassHero.Messaging.Domain.Models.Conversation
+
+  describe "execute/3" do
+    test "creates a direct conversation with provider owner and assigned staff as participants" do
+      owner = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: owner.id)
+      program = insert(:program_schema, provider_id: provider.id)
+      staff_user = AccountsFixtures.user_fixture()
+
+      ProgramStaffParticipantRepository.upsert_active(%{
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_user_id: staff_user.id
+      })
+
+      parent_scope = build_scope_with_parent(:active)
+
+      assert {:ok, conversation} =
+               StartProgramConversation.execute(parent_scope, provider.id, program.id)
+
+      assert %Conversation{type: :direct} = conversation
+      assert conversation.provider_id == provider.id
+      assert conversation.program_id == program.id
+      assert ParticipantRepository.is_participant?(conversation.id, parent_scope.user.id)
+      assert ParticipantRepository.is_participant?(conversation.id, owner.id)
+      assert ParticipantRepository.is_participant?(conversation.id, staff_user.id)
+    end
+
+    test "returns existing conversation on repeat call" do
+      owner = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: owner.id)
+      program = insert(:program_schema, provider_id: provider.id)
+      parent_scope = build_scope_with_parent(:active)
+
+      assert {:ok, first} =
+               StartProgramConversation.execute(parent_scope, provider.id, program.id)
+
+      assert {:ok, second} =
+               StartProgramConversation.execute(parent_scope, provider.id, program.id)
+
+      assert first.id == second.id
+    end
+
+    test "returns not_found when provider does not exist" do
+      parent_scope = build_scope_with_parent(:active)
+
+      assert {:error, :not_found} =
+               StartProgramConversation.execute(
+                 parent_scope,
+                 Ecto.UUID.generate(),
+                 Ecto.UUID.generate()
+               )
+    end
+
+    test "returns not_entitled for free-tier parent" do
+      owner = AccountsFixtures.user_fixture()
+      provider = insert(:provider_profile_schema, identity_id: owner.id)
+      program = insert(:program_schema, provider_id: provider.id)
+      parent_scope = build_scope_with_parent(:explorer)
+
+      assert {:error, :not_entitled} =
+               StartProgramConversation.execute(parent_scope, provider.id, program.id)
+    end
+  end
+
+  defp build_scope_with_parent(tier) do
+    user = AccountsFixtures.user_fixture()
+
+    parent_profile = %ParentProfile{
+      id: Ecto.UUID.generate(),
+      identity_id: user.id,
+      display_name: "Test Parent",
+      subscription_tier: tier
+    }
+
+    %Scope{
+      user: user,
+      roles: [:parent],
+      parent: parent_profile,
+      provider: nil
+    }
+  end
+end
