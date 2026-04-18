@@ -42,4 +42,15 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteInte
       enrollment_id: event.payload.enrollment_id
     )
   end
+
+  def handle(%DomainEvent{event_type: :enrollment_created} = event) do
+    # Trigger: enrollment_created domain event dispatched from CreateEnrollment use case
+    # Why: downstream contexts (e.g., Messaging) need to react to new enrollments
+    # Outcome: publish integration event on topic integration:enrollment:enrollment_created
+    event.payload.enrollment_id
+    |> EnrollmentIntegrationEvents.enrollment_created(event.payload)
+    |> IntegrationEventPublishing.publish_critical("enrollment_created",
+      enrollment_id: event.payload.enrollment_id
+    )
+  end
 end

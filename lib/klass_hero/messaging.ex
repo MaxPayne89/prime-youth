@@ -63,6 +63,7 @@ defmodule KlassHero.Messaging do
 
   alias KlassHero.Messaging.Application.Queries.{
     GetConversation,
+    GetConversationContext,
     GetInboundEmail,
     GetTotalUnreadCount,
     InboundEmailQueries,
@@ -433,6 +434,25 @@ defmodule KlassHero.Messaging do
   @spec get_total_unread_count(String.t()) :: non_neg_integer()
   defdelegate get_total_unread_count(user_id),
     to: GetTotalUnreadCount,
+    as: :execute
+
+  @doc """
+  Returns enrolled child names and other participant name for a conversation/user pair.
+
+  Used by the web layer to build enriched conversation titles, e.g. "Sarah for Emma, Liam".
+  Reads from the denormalized conversation_summaries read model.
+
+  ## Parameters
+  - conversation_id: The conversation to look up
+  - user_id: The requesting user's ID
+
+  ## Returns
+  - Map with `:enrolled_child_names` (list) and `:other_participant_name` (string or nil)
+  """
+  @spec get_conversation_context(String.t(), String.t()) ::
+          %{enrolled_child_names: [String.t()], other_participant_name: String.t() | nil}
+  defdelegate get_conversation_context(conversation_id, user_id),
+    to: GetConversationContext,
     as: :execute
 
   @doc """

@@ -45,6 +45,7 @@ defmodule KlassHeroWeb.MessagingComponents do
   attr :unread_count, :integer, default: 0
   attr :latest_message, :map, default: nil
   attr :other_participant_name, :string, default: nil
+  attr :enrolled_child_names, :list, default: []
   attr :navigate, :string, default: nil
 
   def conversation_card(assigns) do
@@ -83,6 +84,9 @@ defmodule KlassHeroWeb.MessagingComponents do
               {format_timestamp(@latest_message && @latest_message.inserted_at)}
             </span>
           </div>
+          <p :if={@enrolled_child_names != []} class={["text-xs mt-0.5", Theme.text_color(:muted)]}>
+            {gettext("for")} {Enum.join(@enrolled_child_names, ", ")}
+          </p>
 
           <div class="flex items-center justify-between gap-2 mt-1">
             <p class={[
@@ -471,6 +475,11 @@ defmodule KlassHeroWeb.MessagingComponents do
         unread_count={conv_data.unread_count}
         latest_message={conv_data.latest_message}
         other_participant_name={conv_data.other_participant_name}
+        enrolled_child_names={
+          if @user_type == :parent,
+            do: [],
+            else: Map.get(conv_data, :enrolled_child_names, [])
+        }
         navigate={@navigate_base <> "/" <> conv_data.conversation.id}
       />
       <div :if={@conversations_empty?} id="conversations-empty-state" class="p-4">
