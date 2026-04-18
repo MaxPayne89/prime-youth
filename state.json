@@ -50,38 +50,67 @@
   ],
   "tasks_last_run": {
     "task_1": "2026-04-15",
-    "task_2": "2026-04-15",
-    "task_3": "2026-04-17",
+    "task_2": "2026-04-18",
+    "task_3": "2026-04-18",
     "task_4": "2026-04-16",
     "task_5": "2026-04-16",
     "task_6": "2026-04-14",
-    "task_7": "2026-04-17"
+    "task_7": "2026-04-18"
   },
   "work_in_progress": null,
   "completed_work": [
     {
+      "date": "2026-04-18",
+      "run_id": "24614128772",
+      "tasks": [
+        "task_2",
+        "task_3",
+        "task_7"
+      ],
+      "pr_branch": "test-assist/mapper-unit-tests-1776547550",
+      "description": "14 unit tests for AttachmentMapper (8) and BulkEnrollmentInviteMapper (6)",
+      "tests_added": 14,
+      "pr_number": null
+    },
+    {
       "date": "2026-04-17",
       "run_id": "24587339665",
-      "tasks": ["task_3", "task_7"],
+      "tasks": [
+        "task_3",
+        "task_7"
+      ],
       "pr_branch": "test-assist/conversation-queries-unit-tests-1776461357",
       "description": "23 pure unit tests for ConversationQueries query builders (all functions except cross-context with_ended_program/2)",
       "tests_added": 23,
-      "pr_number": null
+      "pr_number": 686
     },
     {
       "date": "2026-04-16",
       "run_id": "24534786300",
-      "tasks": ["task_3", "task_4", "task_5", "task_7"],
+      "tasks": [
+        "task_3",
+        "task_4",
+        "task_5",
+        "task_7"
+      ],
       "pr_branch": "test-assist/messaging-persistence-query-tests-1776375293",
       "description": "40 pure unit tests for 3 untested messaging persistence query builders: MessageQueries (20), InboundEmailQueries (15), EmailReplyQueries (5). Nil guards and type coercion covered. Also commented on #645 and #627.",
       "tests_added": 40,
       "pr_number": 683,
-      "comments": ["#645", "#627"]
+      "comments": [
+        "#645",
+        "#627"
+      ]
     },
     {
       "date": "2026-04-15",
       "run_id": "24479292553",
-      "tasks": ["task_1", "task_2", "task_3", "task_7"],
+      "tasks": [
+        "task_1",
+        "task_2",
+        "task_3",
+        "task_7"
+      ],
       "pr_branch": "test-assist/behavioral-note-queries-test-1776289061",
       "description": "18 unit tests for all 10 BehavioralNoteQueries composable query builder functions",
       "tests_added": 18,
@@ -90,7 +119,12 @@
     {
       "date": "2026-04-11",
       "run_id": "24291816929",
-      "tasks": ["task_2", "task_3", "task_4", "task_7"],
+      "tasks": [
+        "task_2",
+        "task_3",
+        "task_4",
+        "task_7"
+      ],
       "pr_branch": "test-assist/messaging-mapper-unit-tests",
       "description": "57 pure unit tests for 4 messaging persistence mappers",
       "tests_added": 57,
@@ -99,7 +133,12 @@
     {
       "date": "2026-04-10",
       "run_id": "24264705002",
-      "tasks": ["task_3", "task_4", "task_6", "task_7"],
+      "tasks": [
+        "task_3",
+        "task_4",
+        "task_6",
+        "task_7"
+      ],
       "pr_branch": "test-assist/behavioral-note-mapper-unit-tests",
       "pr_number": 644,
       "description": "14 pure unit tests for BehavioralNoteMapper",
@@ -108,7 +147,10 @@
     {
       "date": "2026-04-09",
       "run_id": "24214125970",
-      "tasks": ["task_3", "task_7"],
+      "tasks": [
+        "task_3",
+        "task_7"
+      ],
       "pr_branch": "test-assist/program-catalog-use-case-tests",
       "description": "14 DataCase integration tests for CreateProgram, GetProgramById, UpdateProgram",
       "tests_added": 14,
@@ -117,7 +159,11 @@
     {
       "date": "2026-04-08",
       "run_id": "24159540034",
-      "tasks": ["task_3", "task_4", "task_7"],
+      "tasks": [
+        "task_3",
+        "task_4",
+        "task_7"
+      ],
       "pr_branch": "test-assist/participation-mapper-unit-tests",
       "description": "23 pure unit tests for ProgramSessionMapper and ParticipationRecordMapper",
       "tests_added": 23,
@@ -126,7 +172,12 @@
     {
       "date": "2026-04-07",
       "run_id": "24105203330",
-      "tasks": ["task_3", "task_4", "task_5", "task_7"],
+      "tasks": [
+        "task_3",
+        "task_4",
+        "task_5",
+        "task_7"
+      ],
       "pr_branch": "test-assist/create-provider-profile-tests",
       "pr_number": 618,
       "description": "7 DataCase integration tests for CreateProviderProfile use case",
@@ -141,8 +192,22 @@
   },
   "checked_off_items": [],
   "backlog_cursor": {
-    "task_2_last_file": "messaging/adapters/driven/persistence/queries/conversation_queries.ex (complete)",
+    "task_2_last_file": "enrollment/adapters/driven/persistence/mappers/bulk_enrollment_invite_mapper.ex (complete - all mapper files surveyed)",
     "task_5_last_issue": 645
   },
-  "open_prs": [634, 644, 657, 666, 672, 677, 683]
+  "open_prs": [
+    644,
+    657,
+    666,
+    672,
+    677,
+    683,
+    686
+  ],
+  "pending_prs": [
+    {
+      "branch": "test-assist/mapper-unit-tests-1776547550",
+      "description": "14 unit tests for AttachmentMapper and BulkEnrollmentInviteMapper"
+    }
+  ]
 }
