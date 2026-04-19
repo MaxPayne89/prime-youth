@@ -25,17 +25,30 @@ defmodule KlassHero.Shared.Tracing.TracedWorker do
   The `backoff/1` and `timeout/1` callbacks remain overridable by concrete workers.
   """
 
+  alias KlassHero.Shared.Tracing
+
   @callback execute(Oban.Job.t()) :: :ok | {:ok, term()} | {:error, term()}
+
+  @doc false
+  @spec record_result(term(), Oban.Job.t()) :: :ok
+  def record_result({:error, _reason}, %Oban.Job{} = job) do
+    will_retry = job.attempt < job.max_attempts
+    Tracing.set_attribute("oban.will_retry", will_retry)
+    OpenTelemetry.Tracer.set_status(:error, "job failed")
+    :ok
+  end
+
+  def record_result(_result, %Oban.Job{} = _job), do: :ok
 
   defmacro __using__(opts) do
     quote do
       @behaviour KlassHero.Shared.Tracing.TracedWorker
 
       use Oban.Worker, unquote(opts)
-      use KlassHero.Shared.Tracing
+      use Tracing
 
-      alias KlassHero.Shared.Tracing
       alias KlassHero.Shared.Tracing.Context
+      alias KlassHero.Shared.Tracing.TracedWorker
 
       @impl Oban.Worker
       def perform(%Oban.Job{} = job) do
@@ -71,16 +84,7 @@ defmodule KlassHero.Shared.Tracing.TracedWorker do
                 reraise exception, __STACKTRACE__
             end
 
-          case result do
-            {:error, _reason} ->
-              will_retry = job.attempt < job.max_attempts
-              set_attribute("oban.will_retry", will_retry)
-              OpenTelemetry.Tracer.set_status(:error, "job failed")
-
-            _ ->
-              :ok
-          end
-
+          TracedWorker.record_result(result, job)
           result
         end)
       end

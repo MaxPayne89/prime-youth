@@ -4,6 +4,8 @@ defmodule KlassHero.AccountsFixtures do
   entities via the `KlassHero.Accounts` context.
   """
 
+  use Boundary, top_level?: true, check: [in: false, out: false]
+
   import Ecto.Query
 
   alias KlassHero.Accounts

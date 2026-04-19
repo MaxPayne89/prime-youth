@@ -25,6 +25,7 @@ defmodule KlassHero.Factory do
       programs = build_list(3, :program)
   """
 
+  use Boundary, top_level?: true, check: [in: false, out: false]
   use ExMachina.Ecto, repo: KlassHero.Repo
 
   alias KlassHero.AccountsFixtures
