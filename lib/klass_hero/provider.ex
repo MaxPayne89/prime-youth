@@ -57,6 +57,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.Commands.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.Commands.Verification.RejectVerificationDocument
   alias KlassHero.Provider.Application.Commands.Verification.SubmitVerificationDocument
+  alias KlassHero.Provider.Application.Queries.ListProgramSessions
   alias KlassHero.Provider.Application.Queries.ProgramStaffAssignmentQueries
   alias KlassHero.Provider.Application.Queries.ProviderProfileQueries
   alias KlassHero.Provider.Application.Queries.StaffMemberQueries
@@ -72,6 +73,8 @@ defmodule KlassHero.Provider do
   # ===========================================================================
   # Commands
   # ===========================================================================
+
+  alias KlassHero.Provider.Domain.ReadModels.SessionDetail
 
   @doc """
   Creates a new provider profile.
@@ -502,6 +505,20 @@ defmodule KlassHero.Provider do
   @spec get_total_session_count(String.t()) :: non_neg_integer()
   def get_total_session_count(provider_id) when is_binary(provider_id) do
     @session_stats_repo.get_total_count(provider_id)
+  end
+
+  @doc """
+  Lists per-session detail rows for a provider's program.
+
+  Returns a list of `SessionDetail` read-model structs from the
+  `provider_session_details` projection. Scoped to the given provider;
+  cross-provider lookups return `[]`.
+  """
+  @spec list_program_sessions(String.t(), String.t()) :: [
+          SessionDetail.t()
+        ]
+  def list_program_sessions(provider_id, program_id) when is_binary(provider_id) and is_binary(program_id) do
+    ListProgramSessions.execute(provider_id, program_id)
   end
 
   # ===========================================================================
