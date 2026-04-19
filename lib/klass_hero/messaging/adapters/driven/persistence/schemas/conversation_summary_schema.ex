@@ -29,6 +29,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSu
     field :archived_at, :utc_datetime
     field :has_attachments, :boolean, default: false
     field :system_notes, :map, default: %{}
+    field :enrolled_child_names, {:array, :string}, default: []
 
     timestamps()
   end

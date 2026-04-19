@@ -110,6 +110,9 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
   ## Options
   - `:back_path` - The path to navigate back to (required)
+  - `:variant` - Viewer role (`:parent`, `:provider`, or `:staff`). Defaults to
+    `:parent` as the least-privileged default. Controls whether the page title
+    includes the enrolled-child suffix (only non-parent variants see it).
 
   ## Returns
   - `{:ok, socket}` on success
@@ -117,6 +120,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   """
   def mount_conversation_show(socket, conversation_id, opts) do
     back_path = Keyword.fetch!(opts, :back_path)
+    variant = Keyword.get(opts, :variant, :parent)
     user_id = socket.assigns.current_scope.user.id
     mark_as_read? = connected?(socket)
 
@@ -136,7 +140,7 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
         socket =
           socket
-          |> assign(:page_title, get_conversation_title(conversation))
+          |> assign(:page_title, build_page_title(conversation, user_id, variant))
           |> assign(:conversation, conversation)
           |> assign(:has_more, has_more)
           |> assign(:messages_empty?, Enum.empty?(messages))
@@ -322,16 +326,31 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
 
   @doc """
   Returns the title for a conversation.
+
+  For direct conversations with enrolled children (provider view):
+  "Sarah Johnson for Emma, Liam"
   """
-  def get_conversation_title(%{type: :program_broadcast, subject: subject}) when not is_nil(subject) do
+  def get_conversation_title(conversation, enrolled_child_names \\ [], other_participant_name \\ nil)
+
+  def get_conversation_title(%{type: :direct}, child_names, other_name)
+      when child_names != [] and not is_nil(other_name) do
+    formatted = Enum.join(child_names, ", ")
+    "#{other_name} #{gettext("for")} #{formatted}"
+  end
+
+  def get_conversation_title(%{type: :direct}, _child_names, other_name) when not is_nil(other_name) do
+    other_name
+  end
+
+  def get_conversation_title(%{type: :program_broadcast, subject: subject}, _, _) when not is_nil(subject) do
     subject
   end
 
-  def get_conversation_title(%{type: :program_broadcast}) do
+  def get_conversation_title(%{type: :program_broadcast}, _, _) do
     gettext("Program Broadcast")
   end
 
-  def get_conversation_title(_conversation) do
+  def get_conversation_title(_conversation, _, _) do
     gettext("Conversation")
   end
 
@@ -347,6 +366,26 @@ defmodule KlassHeroWeb.MessagingLiveHelper do
   """
   def get_sender_name(sender_names, sender_id) do
     Map.get(sender_names, sender_id, "Unknown")
+  end
+
+  # Trigger: page title is being assembled for a conversation show view
+  # Why: parents already know which of their own children are involved — suppress the
+  #      "for {names}" suffix for them; show it for provider and staff viewers
+  # Outcome: title string with or without the enrolled-child suffix
+  defp build_page_title(conversation, user_id, variant) do
+    context = fetch_conversation_context(conversation.id, user_id)
+    child_names = enrolled_child_names_for(variant, context.enrolled_child_names)
+    get_conversation_title(conversation, child_names, context.other_participant_name)
+  end
+
+  @doc false
+  # Suppresses enrolled-child names for the parent viewer, passes them through for
+  # provider/staff viewers. Exposed so the variant-gating rule can be tested directly.
+  def enrolled_child_names_for(:parent, _names), do: []
+  def enrolled_child_names_for(_variant, names), do: names
+
+  defp fetch_conversation_context(conversation_id, user_id) do
+    Messaging.get_conversation_context(conversation_id, user_id)
   end
 
   # Fetches the provider profile once to extract both the owner's identity_id

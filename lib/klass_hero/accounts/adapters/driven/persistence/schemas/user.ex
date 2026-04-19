@@ -89,9 +89,8 @@ defmodule KlassHero.Accounts.User do
   @doc """
   A user changeset for staff provider registration.
 
-  Locks intended_roles to [:staff_provider] by default. When `"also_provider"`
-  is `"true"` in attrs, sets intended_roles to [:staff_provider, :provider]
-  to support dual-role users who want to also offer their own programs.
+  Always sets intended_roles to [:staff_provider, :provider] — every invited
+  staff member automatically gets a starter provider account.
 
   Does not require provider_subscription_tier. Used when a staff member
   registers via an invitation link.
@@ -102,14 +101,11 @@ defmodule KlassHero.Accounts.User do
       uniqueness of the email. Defaults to `true`.
   """
   def staff_registration_changeset(user, attrs, opts \\ []) do
-    also_provider = Map.get(attrs, "also_provider") == "true"
-    roles = if also_provider, do: [:staff_provider, :provider], else: [:staff_provider]
-
     user
     |> cast(attrs, [:name, :email])
     |> validate_required([:name, :email])
     |> validate_length(:name, min: 2, max: 100)
-    |> put_change(:intended_roles, roles)
+    |> put_change(:intended_roles, [:staff_provider, :provider])
     |> validate_email(opts)
     |> password_changeset(attrs, opts)
   end

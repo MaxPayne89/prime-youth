@@ -3,7 +3,6 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
 
   alias KlassHero.Accounts
   alias KlassHero.Provider
-  alias KlassHeroWeb.Theme
 
   require Logger
 
@@ -70,19 +69,6 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
                 autocomplete="new-password"
                 required
               />
-              <label class="flex items-center gap-2 mt-4 cursor-pointer">
-                <input type="hidden" name="user[also_provider]" value="false" />
-                <input
-                  type="checkbox"
-                  name="user[also_provider]"
-                  value="true"
-                  checked={@also_provider}
-                  class="rounded border-zinc-300 text-brand focus:ring-brand"
-                />
-                <span class={Theme.typography(:body_small)}>
-                  {gettext("I also want to offer my own programs")}
-                </span>
-              </label>
               <.button
                 phx-disable-with={gettext("Creating account...")}
                 class="btn btn-primary w-full mt-6"
@@ -128,15 +114,11 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
     staff = socket.assigns.staff_member
-    also_provider = Map.get(user_params, "also_provider") == "true"
     params = Map.put(user_params, "email", staff.email)
 
     case Accounts.register_staff_user(params) do
       {:ok, user} ->
-        event_opts =
-          if also_provider,
-            do: %{create_provider_profile: true, user_name: user.name},
-            else: %{}
+        event_opts = %{create_provider_profile: true, user_name: user.name}
 
         # Trigger: emit_staff_user_registered may fail (PubSub/Oban enqueue)
         # Why: the user account IS created; the critical event infrastructure
@@ -178,17 +160,13 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
   @impl true
   def handle_event("validate", %{"user" => user_params}, socket) do
     staff = socket.assigns.staff_member
-    also_provider = Map.get(user_params, "also_provider") == "true"
     params = Map.put(user_params, "email", staff.email)
 
     changeset =
       Accounts.change_staff_registration(params, validate_unique: false)
       |> Map.put(:action, :validate)
 
-    {:noreply,
-     socket
-     |> assign(:also_provider, also_provider)
-     |> assign_form(changeset)}
+    {:noreply, assign_form(socket, changeset)}
   end
 
   defp maybe_persist_expiry(socket, staff_member) do
@@ -221,7 +199,6 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
      |> assign(
        staff_member: staff_member,
        error: nil,
-       also_provider: false,
        page_title: gettext("Complete Registration")
      )
      |> assign_form(changeset), temporary_assigns: [form: nil]}

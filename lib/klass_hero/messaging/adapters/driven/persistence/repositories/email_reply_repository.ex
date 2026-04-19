@@ -2,10 +2,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.EmailRepl
   @moduledoc """
   Ecto-based repository for managing email replies.
 
-  Implements ForManagingEmailReplies port.
+  Implements ForManagingEmailReplies (writes) and ForQueryingEmailReplies (reads) ports.
   """
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingEmailReplies
+  @behaviour KlassHero.Messaging.Domain.Ports.ForQueryingEmailReplies
 
   use KlassHero.Shared.Tracing
 

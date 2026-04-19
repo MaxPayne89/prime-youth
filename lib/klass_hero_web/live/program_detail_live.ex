@@ -1,14 +1,17 @@
 defmodule KlassHeroWeb.ProgramDetailLive do
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.CompositeComponents
   import KlassHeroWeb.ProgramComponents
   import KlassHeroWeb.UIComponents
 
   alias KlassHero.Enrollment
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+  alias KlassHeroWeb.Helpers.TaskHelpers
   alias KlassHeroWeb.Presenters.ParticipantPolicyPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
+  alias KlassHeroWeb.Presenters.ProviderPresenter
   alias KlassHeroWeb.Presenters.StaffMemberPresenter
   alias KlassHeroWeb.Theme
 
@@ -26,13 +29,30 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           )
         end
 
-        # Run two independent DB queries in parallel to reduce total mount latency.
-        team_task = Task.async(fn -> load_team_members(program.provider_id) end)
+        # Run independent DB queries in parallel to reduce total mount latency.
+        team_task =
+          Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+            load_team_members(program.provider_id)
+          end)
 
-        policy_task = Task.async(fn -> load_participant_policy(program.id) end)
+        policy_task =
+          Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+            load_participant_policy(program.id)
+          end)
 
-        team_members = Task.await(team_task)
-        participant_policy = Task.await(policy_task)
+        provider_task =
+          Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+            load_provider_profile(program.provider_id)
+          end)
+
+        team_members =
+          TaskHelpers.safe_await(team_task, [], label: "ProgramDetailLive.team_members")
+
+        participant_policy =
+          TaskHelpers.safe_await(policy_task, nil, label: "ProgramDetailLive.participant_policy")
+
+        provider_profile =
+          TaskHelpers.safe_await(provider_task, nil, label: "ProgramDetailLive.provider_profile")
 
         socket =
           socket
@@ -42,6 +62,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
           |> assign(team_members: team_members)
           |> assign(registration_status: ProgramCatalog.registration_status(program))
           |> assign(participant_policy: participant_policy)
+          |> assign(provider_profile: provider_profile)
 
         {:ok, socket}
 
@@ -111,6 +132,21 @@ defmodule KlassHeroWeb.ProgramDetailLive do
     end
   end
 
+  defp load_provider_profile(nil), do: nil
+
+  defp load_provider_profile(provider_id) do
+    case Provider.get_provider_profile(provider_id) do
+      # Trigger: provider exists and is publicly visible
+      # Why: only :active providers should be surfaced to parents; drafts are incomplete
+      # Outcome: presenter view returned for the template
+      {:ok, %{profile_status: :active} = provider} -> ProviderPresenter.to_public_view(provider)
+      # Trigger: provider is :draft, missing, or in any other non-public state
+      # Why: nil lets the :if guard in the template suppress the card
+      # Outcome: no card is rendered
+      _ -> nil
+    end
+  end
+
   defp load_participant_policy(program_id) do
     case Enrollment.get_participant_policy(program_id) do
       {:ok, policy} -> ParticipantPolicyPresenter.to_view(policy)
@@ -161,11 +197,15 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
   attr :program, :map, required: true
   attr :wrapper_class, :string, required: true
+  attr :business_name, :string, default: nil
 
   defp hero_info_overlay(assigns) do
     ~H"""
     <div class={@wrapper_class}>
       <div class="max-w-4xl mx-auto text-center text-white">
+        <p :if={@business_name} id="hero-business-name" class="text-sm text-white/90 mb-1">
+          {@business_name}
+        </p>
         <h1 class={[Theme.typography(:page_title), "mb-3"]}>
           {@program.title}
         </h1>
@@ -236,6 +276,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
           <.hero_info_overlay
             program={@program}
+            business_name={@provider_profile && @provider_profile.business_name}
             wrapper_class="absolute bottom-0 left-0 right-0 pb-8 px-4"
           />
         </div>
@@ -262,6 +303,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
 
           <.hero_info_overlay
             program={@program}
+            business_name={@provider_profile && @provider_profile.business_name}
             wrapper_class="relative pb-12 px-4"
           />
         </div>
@@ -457,6 +499,9 @@ defmodule KlassHeroWeb.ProgramDetailLive do
             </div>
           </div>
         </section>
+
+        <%!-- Provider Profile Card — rendered only when an active provider profile is available --%>
+        <.provider_profile_card :if={@provider_profile} provider={@provider_profile} />
 
         <%!-- TODO: "What Other Parents Say" reviews section — re-enable when review data is available.
              Dependencies: <.review_card> component import (removed), @reviews assign. --%>

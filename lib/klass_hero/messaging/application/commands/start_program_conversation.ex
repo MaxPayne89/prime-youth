@@ -1,0 +1,103 @@
+defmodule KlassHero.Messaging.Application.Commands.StartProgramConversation do
+  @moduledoc """
+  Use case for a parent initiating a direct conversation about a specific program.
+
+  Looks up by the initiating parent's user_id (uniquely 1:1 with a
+  (parent, provider) direct conversation), and on miss creates a new
+  conversation with program context — auto-adding program-assigned staff
+  as participants and publishing a `conversation_created` event.
+  """
+
+  alias KlassHero.Accounts.Scope
+  alias KlassHero.Messaging.Application.Shared
+  alias KlassHero.Messaging.Domain.Events.MessagingEvents
+  alias KlassHero.Messaging.Domain.Models.Conversation
+  alias KlassHero.Repo
+  alias KlassHero.Shared.DomainEventBus
+
+  require Logger
+
+  @context KlassHero.Messaging
+  @conversation_repo Application.compile_env!(:klass_hero, [
+                       :messaging,
+                       :for_managing_conversations
+                     ])
+  @conversation_reader Application.compile_env!(:klass_hero, [
+                         :messaging,
+                         :for_querying_conversations
+                       ])
+  @participant_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_participants])
+  @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
+
+  @spec execute(Scope.t(), String.t(), String.t()) ::
+          {:ok, Conversation.t()} | {:error, :not_found | :not_entitled | term()}
+  def execute(%Scope{} = scope, provider_id, program_id) do
+    with :ok <- Shared.maybe_check_entitlement(scope, []),
+         {:ok, owner_user_id} <- @user_resolver.get_user_id_for_provider(provider_id) do
+      find_or_create(scope, provider_id, program_id, owner_user_id)
+    end
+  end
+
+  # Trigger: parent wants a direct conversation with the provider for a program
+  # Why: find_direct_conversation/2 requires the user_id to be a participant.
+  #      The provider owner participates in every direct conversation for this
+  #      provider, so using owner_user_id as the lookup key would collide
+  #      across parents. The parent's user_id is uniquely 1:1 with this
+  #      conversation — see ReplyPrivatelyToBroadcast for the same pattern.
+  # Outcome: each (parent, provider) pair maps to exactly one conversation.
+  defp find_or_create(scope, provider_id, program_id, owner_user_id) do
+    case @conversation_reader.find_direct_conversation(provider_id, scope.user.id) do
+      {:ok, existing} ->
+        {:ok, existing}
+
+      {:error, :not_found} ->
+        create_new_conversation(scope, provider_id, program_id, owner_user_id)
+    end
+  end
+
+  defp create_new_conversation(scope, provider_id, program_id, owner_user_id) do
+    attrs = %{type: :direct, provider_id: provider_id, program_id: program_id}
+
+    Repo.transaction(fn ->
+      with {:ok, conversation} <- @conversation_repo.create(attrs),
+           :ok <- add_participants(conversation.id, scope.user.id, owner_user_id),
+           :ok <- Shared.add_assigned_staff(conversation.id, program_id, scope.user.id) do
+        publish_event(conversation, [scope.user.id, owner_user_id], provider_id)
+
+        Logger.info("Created program-scoped direct conversation",
+          conversation_id: conversation.id,
+          provider_id: provider_id,
+          program_id: program_id,
+          initiator_id: scope.user.id
+        )
+
+        conversation
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
+  end
+
+  defp add_participants(conversation_id, user_id_1, user_id_2) do
+    with {:ok, _} <-
+           @participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_1}),
+         {:ok, _} <-
+           @participant_repo.add(%{conversation_id: conversation_id, user_id: user_id_2}) do
+      :ok
+    end
+  end
+
+  defp publish_event(conversation, participant_ids, provider_id) do
+    event =
+      MessagingEvents.conversation_created(
+        conversation.id,
+        conversation.type,
+        provider_id,
+        participant_ids,
+        conversation.program_id
+      )
+
+    DomainEventBus.dispatch(@context, event)
+    :ok
+  end
+end

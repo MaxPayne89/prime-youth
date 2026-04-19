@@ -7,6 +7,12 @@ defmodule KlassHero.Family.Domain.Events.FamilyIntegrationEvents do
 
   ## Events
 
+  - `:child_created` - Emitted when a new child record is created. Downstream
+    contexts (e.g. Messaging) react to maintain local child name lookups.
+    Topic: `integration:family:child_created`
+  - `:child_updated` - Emitted when an existing child record is updated.
+    Downstream contexts (e.g. Messaging) react to refresh local child name lookups.
+    Topic: `integration:family:child_updated`
   - `:child_data_anonymized` - Emitted when a child's PII is anonymized during
     GDPR account deletion (critical). Downstream contexts (e.g. Participation)
     react to this event to anonymize their own child-related data.
@@ -16,6 +22,23 @@ defmodule KlassHero.Family.Domain.Events.FamilyIntegrationEvents do
   """
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
+
+  @typedoc "Payload for `:child_created` events."
+  @type child_created_payload :: %{
+          required(:child_id) => String.t(),
+          optional(:parent_id) => String.t(),
+          optional(:first_name) => String.t(),
+          optional(:last_name) => String.t(),
+          optional(atom()) => term()
+        }
+
+  @typedoc "Payload for `:child_updated` events."
+  @type child_updated_payload :: %{
+          required(:child_id) => String.t(),
+          optional(:first_name) => String.t(),
+          optional(:last_name) => String.t(),
+          optional(atom()) => term()
+        }
 
   @typedoc "Payload for `:child_data_anonymized` events."
   @type child_data_anonymized_payload :: %{
@@ -31,6 +54,104 @@ defmodule KlassHero.Family.Domain.Events.FamilyIntegrationEvents do
 
   @source_context :family
   @entity_type :child
+
+  @doc """
+  Creates a `child_created` integration event.
+
+  Emitted when a new child record is created. Published on topic
+  `integration:family:child_created`.
+
+  ## Parameters
+
+  - `child_id` - The ID of the newly created child
+  - `payload` - Event-specific data (child_id, parent_id, first_name, last_name)
+  - `opts` - Metadata options (correlation_id, causation_id)
+
+  ## Raises
+
+  - `ArgumentError` if `child_id` is nil or empty
+
+  ## Examples
+
+      iex> event = FamilyIntegrationEvents.child_created("child-uuid", %{first_name: "Emma"})
+      iex> event.event_type
+      :child_created
+      iex> event.source_context
+      :family
+      iex> event.entity_type
+      :child
+  """
+  def child_created(child_id, payload \\ %{}, opts \\ [])
+
+  def child_created(child_id, payload, opts) when is_binary(child_id) and byte_size(child_id) > 0 do
+    base_payload = %{child_id: child_id}
+
+    IntegrationEvent.new(
+      :child_created,
+      @source_context,
+      @entity_type,
+      child_id,
+      # Trigger: caller may pass a conflicting :child_id in payload
+      # Why: base_payload contains the canonical child_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def child_created(child_id, _payload, _opts) do
+    raise ArgumentError,
+          "child_created/3 requires a non-empty child_id string, got: #{inspect(child_id)}"
+  end
+
+  @doc """
+  Creates a `child_updated` integration event.
+
+  Emitted when an existing child record is updated. Published on topic
+  `integration:family:child_updated`.
+
+  ## Parameters
+
+  - `child_id` - The ID of the updated child
+  - `payload` - Event-specific data (child_id, first_name, last_name)
+  - `opts` - Metadata options (correlation_id, causation_id)
+
+  ## Raises
+
+  - `ArgumentError` if `child_id` is nil or empty
+
+  ## Examples
+
+      iex> event = FamilyIntegrationEvents.child_updated("child-uuid", %{first_name: "Emily"})
+      iex> event.event_type
+      :child_updated
+      iex> event.source_context
+      :family
+      iex> event.entity_type
+      :child
+  """
+  def child_updated(child_id, payload \\ %{}, opts \\ [])
+
+  def child_updated(child_id, payload, opts) when is_binary(child_id) and byte_size(child_id) > 0 do
+    base_payload = %{child_id: child_id}
+
+    IntegrationEvent.new(
+      :child_updated,
+      @source_context,
+      @entity_type,
+      child_id,
+      # Trigger: caller may pass a conflicting :child_id in payload
+      # Why: base_payload contains the canonical child_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def child_updated(child_id, _payload, _opts) do
+    raise ArgumentError,
+          "child_updated/3 requires a non-empty child_id string, got: #{inspect(child_id)}"
+  end
 
   @doc """
   Creates a `child_data_anonymized` integration event.

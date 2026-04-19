@@ -80,6 +80,7 @@ defmodule KlassHero.Accounts.Adapters.Driving.Events.StaffInvitationHandler do
 
     case UserNotifier.deliver_staff_added_notification(email, %{
            business_name: business_name,
+           name: user.name,
            dashboard_url: dashboard_url
          }) do
       {:ok, _} ->
@@ -94,10 +95,12 @@ defmodule KlassHero.Accounts.Adapters.Driving.Events.StaffInvitationHandler do
         )
     end
 
-    # Emit unconditionally: the user exists, linking user_id is correct
-    # regardless of notification delivery. The user will discover staff
-    # access on next login even without the notification email.
-    Accounts.emit_staff_user_registered(user.id, staff_member_id, provider_id)
+    # Emit unconditionally regardless of notification delivery.
+    # Triggers staff linkage and provider profile creation downstream.
+    Accounts.emit_staff_user_registered(user.id, staff_member_id, provider_id, %{
+      create_provider_profile: true,
+      user_name: user.name
+    })
   end
 
   defp emit_sent(staff_member_id, provider_id) do

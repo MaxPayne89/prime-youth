@@ -1,0 +1,92 @@
+defmodule KlassHero.Messaging.Application.Queries.ListConversations do
+  @moduledoc """
+  Use case for listing a user's conversations.
+
+  Reads from the denormalized conversation_summaries read model (CQRS read side).
+  Returns conversations ordered by most recent message, with unread counts
+  and other participant info pre-computed in the read model.
+  """
+
+  require Logger
+
+  @conversation_summaries_reader Application.compile_env!(:klass_hero, [
+                                   :messaging,
+                                   :for_querying_conversation_summaries
+                                 ])
+
+  @doc """
+  Lists conversations for a user.
+
+  ## Parameters
+  - user_id: The user to list conversations for
+  - opts: Optional parameters
+    - limit: Number of conversations to return (default 25)
+
+  ## Returns
+  - `{:ok, conversations, has_more}` - List of conversations with unread counts
+
+  Each conversation map includes:
+  - `:conversation` - Map with id, type, provider_id, program_id, subject
+  - `:unread_count` - Number of unread messages
+  - `:latest_message` - The most recent message (map or nil)
+  - `:last_read_at` - When user last read
+  - `:other_participant_name` - Display name of other participant (for direct) or subject (for broadcast)
+  """
+  @spec execute(String.t(), keyword()) ::
+          {:ok, [map()], boolean()}
+  def execute(user_id, opts \\ []) do
+    {:ok, summaries, has_more} = @conversation_summaries_reader.list_for_user(user_id, opts)
+
+    enriched = Enum.map(summaries, &to_enriched_map/1)
+
+    Logger.debug("Listed conversations",
+      user_id: user_id,
+      count: length(enriched)
+    )
+
+    {:ok, enriched, has_more}
+  end
+
+  # Trigger: ConversationSummary DTO needs to be mapped to the enriched map shape
+  # Why: LiveView templates expect the old enriched map structure with .conversation, .latest_message
+  # Outcome: backward-compatible map that works with existing templates
+  defp to_enriched_map(summary) do
+    %{
+      conversation: %{
+        id: summary.conversation_id,
+        type: parse_conversation_type(summary.conversation_type),
+        provider_id: summary.provider_id,
+        program_id: summary.program_id,
+        subject: summary.subject
+      },
+      unread_count: summary.unread_count,
+      latest_message: build_latest_message(summary),
+      last_read_at: summary.last_read_at,
+      other_participant_name: summary.other_participant_name,
+      enrolled_child_names: summary.enrolled_child_names
+    }
+  end
+
+  defp parse_conversation_type("direct"), do: :direct
+  defp parse_conversation_type("program_broadcast"), do: :program_broadcast
+
+  defp parse_conversation_type(unknown) do
+    Logger.warning("[ListConversations] Unknown conversation_type in read model",
+      conversation_type: unknown
+    )
+
+    :direct
+  end
+
+  defp build_latest_message(%{latest_message_content: nil, has_attachments: false}), do: nil
+  defp build_latest_message(summary), do: do_build_latest_message(summary)
+
+  defp do_build_latest_message(summary) do
+    %{
+      content: summary.latest_message_content,
+      sender_id: summary.latest_message_sender_id,
+      inserted_at: summary.latest_message_at,
+      has_attachments: summary.has_attachments
+    }
+  end
+end

@@ -32,8 +32,8 @@ defmodule KlassHero.Application do
   alias KlassHero.Participation.Adapters.Driving.Events.ParticipationEventHandler
   alias KlassHero.ProgramCatalog.Adapters.Driving.Events.EnrollmentEventHandler
   alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProviderVerificationStatus
+  alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler
   alias KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
-  alias KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler
   alias KlassHero.Shared.Adapters.Driven.Events.EventSubscriber
   alias KlassHero.Shared.DomainEventBus
 
@@ -57,7 +57,8 @@ defmodule KlassHero.Application do
       KlassHero.Repo,
       {DNSCluster, query: Application.get_env(:klass_hero, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: KlassHero.PubSub},
-      {Oban, Application.fetch_env!(:klass_hero, Oban)}
+      {Oban, Application.fetch_env!(:klass_hero, Oban)},
+      {Task.Supervisor, name: KlassHero.TaskSupervisor}
     ]
   end
 
@@ -87,7 +88,11 @@ defmodule KlassHero.Application do
            {:child_data_anonymized,
             {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle}, priority: 10},
            {:invite_family_ready,
-            {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle}, priority: 10}
+            {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle}, priority: 10},
+           {:child_created, {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
+            priority: 10},
+           {:child_updated, {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
+            priority: 10}
          ]},
         id: :family_domain_event_bus
       ),
@@ -134,6 +139,9 @@ defmodule KlassHero.Application do
             {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
             priority: 10},
            {:enrollment_cancelled,
+            {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
+            priority: 10},
+           {:enrollment_created,
             {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
             priority: 10}
          ]},

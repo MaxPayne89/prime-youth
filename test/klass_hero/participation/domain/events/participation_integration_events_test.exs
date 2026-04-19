@@ -149,13 +149,33 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEventsTe
 
       event =
         ParticipationIntegrationEvents.session_completed(session_id, %{
-          program_id: Ecto.UUID.generate()
+          program_id: Ecto.UUID.generate(),
+          provider_id: Ecto.UUID.generate(),
+          program_title: "Art Class"
         })
 
       assert event.event_type == :session_completed
       assert event.source_context == :participation
       assert event.entity_type == :session
       assert event.entity_id == session_id
+    end
+
+    test "includes provider_id and program_title in payload" do
+      session_id = Ecto.UUID.generate()
+      provider_id = Ecto.UUID.generate()
+      program_id = Ecto.UUID.generate()
+
+      event =
+        ParticipationIntegrationEvents.session_completed(session_id, %{
+          program_id: program_id,
+          provider_id: provider_id,
+          program_title: "Art Class"
+        })
+
+      assert event.payload.provider_id == provider_id
+      assert event.payload.program_title == "Art Class"
+      assert event.payload.program_id == program_id
+      assert event.payload.session_id == session_id
     end
 
     test "base_payload session_id wins over caller-supplied" do
@@ -165,6 +185,8 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEventsTe
         ParticipationIntegrationEvents.session_completed(real_id, %{
           session_id: "should-be-overridden",
           program_id: Ecto.UUID.generate(),
+          provider_id: Ecto.UUID.generate(),
+          program_title: "Art Class",
           extra: "data"
         })
 
@@ -172,7 +194,33 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEventsTe
       assert event.payload.extra == "data"
     end
 
-    test "raises when required payload keys are missing" do
+    test "raises when provider_id is missing" do
+      session_id = Ecto.UUID.generate()
+
+      assert_raise ArgumentError,
+                   ~r/session_completed missing required payload keys/,
+                   fn ->
+                     ParticipationIntegrationEvents.session_completed(session_id, %{
+                       program_id: Ecto.UUID.generate(),
+                       program_title: "Art Class"
+                     })
+                   end
+    end
+
+    test "raises when program_title is missing" do
+      session_id = Ecto.UUID.generate()
+
+      assert_raise ArgumentError,
+                   ~r/session_completed missing required payload keys/,
+                   fn ->
+                     ParticipationIntegrationEvents.session_completed(session_id, %{
+                       program_id: Ecto.UUID.generate(),
+                       provider_id: Ecto.UUID.generate()
+                     })
+                   end
+    end
+
+    test "raises when all required payload keys are missing" do
       session_id = Ecto.UUID.generate()
 
       assert_raise ArgumentError,
@@ -183,7 +231,11 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEventsTe
     end
 
     test "raises for nil or empty session_id" do
-      valid_payload = %{program_id: Ecto.UUID.generate()}
+      valid_payload = %{
+        program_id: Ecto.UUID.generate(),
+        provider_id: Ecto.UUID.generate(),
+        program_title: "Art Class"
+      }
 
       assert_raise ArgumentError,
                    ~r/requires a non-empty session_id string/,
@@ -574,6 +626,31 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEventsTe
                    fn ->
                      ParticipationIntegrationEvents.behavioral_note_rejected("", valid_payload)
                    end
+    end
+  end
+
+  describe "session_cancelled/3" do
+    test "creates a session_cancelled integration event" do
+      event = ParticipationIntegrationEvents.session_cancelled("session-1", %{program_id: "program-1"})
+
+      assert event.event_type == :session_cancelled
+      assert event.source_context == :participation
+      assert event.entity_type == :session
+      assert event.entity_id == "session-1"
+      assert event.payload.session_id == "session-1"
+      assert event.payload.program_id == "program-1"
+    end
+
+    test "raises when session_id is nil" do
+      assert_raise ArgumentError, fn ->
+        ParticipationIntegrationEvents.session_cancelled(nil, %{program_id: "p"})
+      end
+    end
+
+    test "raises when program_id is missing" do
+      assert_raise ArgumentError, fn ->
+        ParticipationIntegrationEvents.session_cancelled("session-1", %{})
+      end
     end
   end
 end

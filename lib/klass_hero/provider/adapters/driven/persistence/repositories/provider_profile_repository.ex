@@ -14,6 +14,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
   are handled by the supervision tree.
   """
 
+  @behaviour KlassHero.Provider.Domain.Ports.ForQueryingProviderProfiles
   @behaviour KlassHero.Provider.Domain.Ports.ForStoringProviderProfiles
 
   use KlassHero.Shared.Tracing
@@ -46,6 +47,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderPr
         attrs
         |> MapperHelpers.normalize_atom_field(:subscription_tier)
         |> MapperHelpers.normalize_atom_field(:originated_from)
+        |> MapperHelpers.normalize_atom_field(:profile_status)
 
       %ProviderProfileSchema{}
       |> ProviderProfileSchema.changeset(schema_attrs)

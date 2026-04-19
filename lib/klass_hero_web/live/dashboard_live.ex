@@ -3,12 +3,15 @@ defmodule KlassHeroWeb.DashboardLive do
 
   import KlassHeroWeb.BookingComponents, only: [info_box: 1]
   import KlassHeroWeb.CompositeComponents
+  import KlassHeroWeb.MessagingComponents, only: [contact_provider_button: 1]
   import KlassHeroWeb.ProgramComponents, only: [program_card: 1]
 
   alias KlassHero.Enrollment
   alias KlassHero.Family
+  alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Shared.Entitlements
+  alias KlassHeroWeb.Helpers.TaskHelpers
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
   alias KlassHeroWeb.Theme
@@ -21,25 +24,28 @@ defmodule KlassHeroWeb.DashboardLive do
 
     # Trigger: enrollments are stored with parent_id (Family context), not identity_id (Accounts)
     # Why: user.id is the Accounts identity_id, but enrollment.parent_id is the Family parent profile ID
-    # Outcome: resolve parent profile once, then query children + enrollments sequentially
+    # Outcome: resolve parent profile once, then fetch children + programs in parallel
     {parent, children, active_programs, expired_programs} =
-      try do
-        case Family.get_parent_by_identity(user.id) do
-          {:ok, parent} ->
-            children = Family.get_children(parent.id)
-            {active, expired} = load_family_programs(parent.id)
-            {parent, children, active, expired}
+      case Family.get_parent_by_identity(user.id) do
+        {:ok, parent} ->
+          children_task =
+            Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+              Family.get_children(parent.id)
+            end)
 
-          {:error, _} ->
-            {nil, [], [], []}
-        end
-      rescue
-        # Trigger: database failure during dashboard data loading
-        # Why: a failing section should not crash the entire dashboard
-        # Outcome: gracefully degrade to empty state if any load fails
-        e ->
-          Logger.error("[DashboardLive] Failed to load dashboard data: #{Exception.message(e)}")
+          programs_task =
+            Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+              load_family_programs(parent.id)
+            end)
 
+          children = TaskHelpers.safe_await(children_task, [], label: "DashboardLive.children")
+
+          {active, expired} =
+            TaskHelpers.safe_await(programs_task, {[], []}, label: "DashboardLive.programs")
+
+          {parent, children, active, expired}
+
+        {:error, _} ->
           {nil, [], [], []}
       end
 
@@ -143,6 +149,34 @@ defmodule KlassHeroWeb.DashboardLive do
   @impl true
   def handle_event("program_click", %{"program-id" => program_id}, socket) do
     {:noreply, push_navigate(socket, to: ~p"/programs/#{program_id}")}
+  end
+
+  def handle_event("contact_provider", %{"program-id" => program_id, "provider-id" => provider_id}, socket) do
+    case Messaging.start_program_conversation(
+           socket.assigns.current_scope,
+           provider_id,
+           program_id
+         ) do
+      {:ok, conversation} ->
+        {:noreply, push_navigate(socket, to: ~p"/messages/#{conversation.id}")}
+
+      {:error, :not_entitled} ->
+        {:noreply, put_flash(socket, :error, gettext("Upgrade your plan to send messages."))}
+
+      {:error, reason} ->
+        Logger.error("Failed to start program conversation from dashboard",
+          reason: inspect(reason),
+          provider_id: provider_id,
+          program_id: program_id
+        )
+
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("Could not start conversation. Please try again.")
+         )}
+    end
   end
 
   @impl true
@@ -263,10 +297,17 @@ defmodule KlassHeroWeb.DashboardLive do
                 program={ProgramPresenter.to_card_view(item.program)}
                 variant={:detailed}
                 expired={item.expired}
-                contact_url={if(!item.expired, do: ~p"/messages")}
                 phx-click="program_click"
                 phx-value-program-id={item.program.id}
-              />
+              >
+                <:actions :if={!item.expired}>
+                  <.contact_provider_button
+                    program_id={item.program.id}
+                    provider_id={item.program.provider_id}
+                    phx-click="contact_provider"
+                  />
+                </:actions>
+              </.program_card>
             </div>
           <% end %>
         </section>

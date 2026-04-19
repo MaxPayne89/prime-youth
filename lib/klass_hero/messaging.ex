@@ -47,41 +47,37 @@ defmodule KlassHero.Messaging do
   alias KlassHero.Messaging.Adapters.Driven.EmailSanitizer
   alias KlassHero.Messaging.Adapters.Driving.Events.EventHandlers.NotifyLiveViews
 
-  alias KlassHero.Messaging.Application.UseCases.{
+  alias KlassHero.Messaging.Application.Commands.{
     AnonymizeUserData,
     BroadcastToProgram,
     CreateDirectConversation,
-    GetConversation,
-    GetInboundEmail,
-    GetTotalUnreadCount,
-    ListConversations,
-    ListInboundEmails,
     MarkAsRead,
     ReceiveInboundEmail,
     ReplyPrivatelyToBroadcast,
     ReplyToEmail,
-    SendMessage
+    ScheduleEmailContentFetch,
+    SendMessage,
+    StartProgramConversation,
+    UpdateInboundEmailContent,
+    UpdateInboundEmailStatus
+  }
+
+  alias KlassHero.Messaging.Application.Queries.{
+    GetConversation,
+    GetConversationContext,
+    GetInboundEmail,
+    GetTotalUnreadCount,
+    InboundEmailQueries,
+    ListConversations,
+    ListInboundEmails,
+    ResolverQueries
   }
 
   alias KlassHero.Messaging.Domain.Models.{Conversation, EmailReply, Message, Participant}
 
-  @staff_resolver Application.compile_env!(:klass_hero, [
-                    :messaging,
-                    :for_resolving_program_staff
-                  ])
-  @inbound_email_repo Application.compile_env!(:klass_hero, [
-                        :messaging,
-                        :for_managing_inbound_emails
-                      ])
-  @email_reply_repo Application.compile_env!(:klass_hero, [
-                      :messaging,
-                      :for_managing_email_replies
-                    ])
-  @email_job_scheduler Application.compile_env!(:klass_hero, [
-                         :messaging,
-                         :for_scheduling_email_jobs
-                       ])
-  @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
+  # ===========================================================================
+  # Commands
+  # ===========================================================================
 
   @doc """
   Creates or retrieves a direct conversation between provider and user.
@@ -111,66 +107,27 @@ defmodule KlassHero.Messaging do
   end
 
   @doc """
-  Retrieves a conversation with its messages.
+  Starts (or retrieves) a direct conversation between a parent and a provider
+  in the context of a specific program.
+
+  Resolves the provider owner automatically and auto-adds program-assigned
+  staff as participants. Intended for parent-initiated flows where the UI
+  only knows the `program_id` and `provider_id`.
 
   ## Parameters
-  - conversation_id: The conversation to retrieve
-  - user_id: The requesting user (for access control)
-  - opts: Optional parameters
-    - limit: Number of messages (default 50)
-    - before: Get messages before this timestamp
-    - mark_as_read: Whether to mark messages as read (default false)
+  - scope: The parent's scope (for entitlement checks)
+  - provider_id: The provider profile ID
+  - program_id: The program being discussed
 
   ## Returns
-  - `{:ok, result_map}` - Success, with keys:
-    - `:conversation` - The conversation entity
-    - `:messages` - List of messages
-    - `:has_more` - Whether there are more messages
-    - `:sender_names` - Map of sender_id => display name
-  - `{:error, :not_found}` - Conversation doesn't exist
-  - `{:error, :not_participant}` - User is not in the conversation
-
-  ## Examples
-
-      iex> Messaging.get_conversation(conversation_id, user_id)
-      {:ok, %{conversation: %Conversation{}, messages: [...], has_more: false, sender_names: %{}}}
-
+  - `{:ok, conversation}` - New or existing direct conversation
+  - `{:error, :not_found}` - Provider does not exist
+  - `{:error, :not_entitled}` - Parent cannot initiate messaging
   """
-  @spec get_conversation(String.t(), String.t(), keyword()) ::
-          {:ok, map()}
-          | {:error, :not_found | :not_participant}
-  defdelegate get_conversation(conversation_id, user_id, opts \\ []),
-    to: GetConversation,
-    as: :execute
-
-  @doc """
-  Lists conversations for a user with unread counts.
-
-  Returns conversations ordered by most recent message.
-
-  ## Parameters
-  - user_id: The user to list conversations for
-  - opts: Optional parameters
-    - limit: Number of conversations (default 50)
-
-  ## Returns
-  - `{:ok, conversations, has_more}` - List of enriched conversations
-
-  Each conversation includes:
-  - `:conversation` - The conversation entity
-  - `:unread_count` - Number of unread messages
-  - `:latest_message` - The most recent message
-  - `:last_read_at` - When user last read
-
-  ## Examples
-
-      iex> Messaging.list_conversations(user_id)
-      {:ok, [%{conversation: %Conversation{}, unread_count: 2, ...}], false}
-
-  """
-  @spec list_conversations(String.t(), keyword()) :: {:ok, [map()], boolean()}
-  defdelegate list_conversations(user_id, opts \\ []),
-    to: ListConversations,
+  @spec start_program_conversation(Scope.t(), String.t(), String.t()) ::
+          {:ok, Conversation.t()} | {:error, :not_found | :not_entitled | term()}
+  defdelegate start_program_conversation(scope, provider_id, program_id),
+    to: StartProgramConversation,
     as: :execute
 
   @doc """
@@ -287,28 +244,6 @@ defmodule KlassHero.Messaging do
     as: :execute
 
   @doc """
-  Gets the total unread message count across all conversations for a user.
-
-  This is useful for displaying an unread badge in the navigation.
-
-  ## Parameters
-  - user_id: The user to get unread count for
-
-  ## Returns
-  - Non-negative integer count of unread messages
-
-  ## Examples
-
-      iex> Messaging.get_total_unread_count(user_id)
-      5
-
-  """
-  @spec get_total_unread_count(String.t()) :: non_neg_integer()
-  defdelegate get_total_unread_count(user_id),
-    to: GetTotalUnreadCount,
-    as: :execute
-
-  @doc """
   Anonymizes all messaging data for a user as part of GDPR deletion.
 
   Replaces message content with `"[deleted]"` and marks all active
@@ -355,33 +290,6 @@ defmodule KlassHero.Messaging do
   defdelegate receive_inbound_email(attrs), to: ReceiveInboundEmail, as: :execute
 
   @doc """
-  Lists inbound emails with optional filtering.
-
-  ## Options
-  - `:limit` - Max emails to return (default 50)
-  - `:status` - Filter by status atom (:unread, :read, :archived)
-
-  ## Returns
-  - `{:ok, emails, has_more}` - List of inbound emails with pagination flag
-  """
-  @spec list_inbound_emails(keyword()) :: {:ok, [struct()], boolean()}
-  defdelegate list_inbound_emails(opts \\ []), to: ListInboundEmails, as: :execute
-
-  @doc """
-  Retrieves an inbound email by ID, optionally marking it as read.
-
-  ## Options
-  - `:mark_read` - Whether to mark the email as read (default false)
-  - `:reader_id` - The ID of the user reading the email
-
-  ## Returns
-  - `{:ok, email}` - The inbound email
-  - `{:error, :not_found}` - Email not found
-  """
-  @spec get_inbound_email(String.t(), keyword()) :: {:ok, struct()} | {:error, :not_found}
-  defdelegate get_inbound_email(id, opts \\ []), to: GetInboundEmail, as: :execute
-
-  @doc """
   Replies to an inbound email by sending a response via Swoosh/Resend.
 
   ## Parameters
@@ -400,20 +308,6 @@ defmodule KlassHero.Messaging do
     as: :execute
 
   @doc """
-  Lists all email replies for a given inbound email.
-
-  ## Parameters
-  - `inbound_email_id` - The ID of the inbound email
-
-  ## Returns
-  - `{:ok, replies}` - List of email replies
-  """
-  @spec list_email_replies(String.t()) :: {:ok, [EmailReply.t()]}
-  def list_email_replies(inbound_email_id) do
-    @email_reply_repo.list_by_email(inbound_email_id)
-  end
-
-  @doc """
   Schedules a content fetch retry for an inbound email.
 
   ## Parameters
@@ -421,45 +315,16 @@ defmodule KlassHero.Messaging do
   - `resend_id` - The Resend email ID for the API call
   """
   @spec schedule_content_fetch(String.t(), String.t()) :: {:ok, term()} | {:error, term()}
-  def schedule_content_fetch(email_id, resend_id) do
-    @email_job_scheduler.schedule_content_fetch(email_id, resend_id)
-  end
+  defdelegate schedule_content_fetch(email_id, resend_id),
+    to: ScheduleEmailContentFetch,
+    as: :execute
 
   @doc "Updates inbound email content fields (body, headers, content_status)."
   @spec update_inbound_email_content(String.t(), map()) ::
           {:ok, struct()} | {:error, term()}
-  def update_inbound_email_content(id, attrs) do
-    @inbound_email_repo.update_content(id, attrs)
-  end
-
-  @doc """
-  Sanitizes inbound email HTML for safe rendering.
-
-  Strips dangerous tags (script, iframe, style) and event handlers.
-  By default blocks external images to prevent tracking pixels.
-
-  ## Options
-  - `:allow_images` - Whether to allow external images (default false)
-
-  ## Returns
-  - Sanitized HTML string
-  """
-  @spec sanitize_email_html(String.t() | nil, keyword()) :: String.t()
-  defdelegate sanitize_email_html(html, opts \\ []), to: EmailSanitizer, as: :sanitize
-
-  @doc """
-  Returns the count of inbound emails with the given status.
-
-  ## Examples
-
-      iex> Messaging.count_inbound_emails_by_status(:unread)
-      3
-
-  """
-  @spec count_inbound_emails_by_status(atom()) :: non_neg_integer()
-  def count_inbound_emails_by_status(status) do
-    @inbound_email_repo.count_by_status(status)
-  end
+  defdelegate update_inbound_email_content(id, attrs),
+    to: UpdateInboundEmailContent,
+    as: :execute
 
   @doc """
   Updates the status of an inbound email.
@@ -475,56 +340,9 @@ defmodule KlassHero.Messaging do
   """
   @spec update_inbound_email_status(String.t(), String.t(), map()) ::
           {:ok, struct()} | {:error, term()}
-  def update_inbound_email_status(id, status, attrs \\ %{}) do
-    @inbound_email_repo.update_status(id, status, attrs)
-  end
-
-  @doc """
-  Returns the display name for a user.
-
-  Used by LiveView helpers to resolve sender names for real-time messages.
-  """
-  @spec get_display_name(String.t()) :: {:ok, String.t()} | {:error, :not_found}
-  def get_display_name(user_id) do
-    @user_resolver.get_display_name(user_id)
-  end
-
-  @doc """
-  Returns the user IDs of active staff assigned to a program.
-
-  Used by the web layer to determine which message senders are on the
-  provider side, for branded attribution display ("Business via Staff Name").
-
-  ## Parameters
-  - program_id: The program to look up staff for
-
-  ## Returns
-  - List of user ID strings
-  """
-  @spec get_active_staff_user_ids(String.t()) :: [String.t()]
-  def get_active_staff_user_ids(program_id) do
-    @staff_resolver.get_active_staff_user_ids(program_id)
-  end
-
-  # ---------------------------------------------------------------------------
-  # Topic helpers & subscriptions
-  # ---------------------------------------------------------------------------
-
-  @doc """
-  Returns the PubSub topic for a conversation.
-
-  Used by LiveViews to subscribe to real-time updates for a specific conversation.
-  """
-  @spec conversation_topic(String.t()) :: String.t()
-  defdelegate conversation_topic(conversation_id), to: NotifyLiveViews
-
-  @doc """
-  Returns the PubSub topic for a user's message notifications.
-
-  Used by LiveViews to subscribe to new conversation and message notifications.
-  """
-  @spec user_messages_topic(String.t()) :: String.t()
-  defdelegate user_messages_topic(user_id), to: NotifyLiveViews
+  defdelegate update_inbound_email_status(id, status, attrs \\ %{}),
+    to: UpdateInboundEmailStatus,
+    as: :execute
 
   @doc """
   Subscribes to real-time updates for a conversation.
@@ -553,4 +371,221 @@ defmodule KlassHero.Messaging do
   def subscribe_to_user_messages(user_id) do
     Phoenix.PubSub.subscribe(KlassHero.PubSub, user_messages_topic(user_id))
   end
+
+  # ===========================================================================
+  # Queries
+  # ===========================================================================
+
+  @doc """
+  Retrieves a conversation with its messages.
+
+  ## Parameters
+  - conversation_id: The conversation to retrieve
+  - user_id: The requesting user (for access control)
+  - opts: Optional parameters
+    - limit: Number of messages (default 50)
+    - before: Get messages before this timestamp
+    - mark_as_read: Whether to mark messages as read (default false)
+
+  ## Returns
+  - `{:ok, result_map}` - Success, with keys:
+    - `:conversation` - The conversation entity
+    - `:messages` - List of messages
+    - `:has_more` - Whether there are more messages
+    - `:sender_names` - Map of sender_id => display name
+  - `{:error, :not_found}` - Conversation doesn't exist
+  - `{:error, :not_participant}` - User is not in the conversation
+
+  ## Examples
+
+      iex> Messaging.get_conversation(conversation_id, user_id)
+      {:ok, %{conversation: %Conversation{}, messages: [...], has_more: false, sender_names: %{}}}
+
+  """
+  @spec get_conversation(String.t(), String.t(), keyword()) ::
+          {:ok, map()}
+          | {:error, :not_found | :not_participant}
+  defdelegate get_conversation(conversation_id, user_id, opts \\ []),
+    to: GetConversation,
+    as: :execute
+
+  @doc """
+  Lists conversations for a user with unread counts.
+
+  Returns conversations ordered by most recent message.
+
+  ## Parameters
+  - user_id: The user to list conversations for
+  - opts: Optional parameters
+    - limit: Number of conversations (default 50)
+
+  ## Returns
+  - `{:ok, conversations, has_more}` - List of enriched conversations
+
+  Each conversation includes:
+  - `:conversation` - The conversation entity
+  - `:unread_count` - Number of unread messages
+  - `:latest_message` - The most recent message
+  - `:last_read_at` - When user last read
+
+  ## Examples
+
+      iex> Messaging.list_conversations(user_id)
+      {:ok, [%{conversation: %Conversation{}, unread_count: 2, ...}], false}
+
+  """
+  @spec list_conversations(String.t(), keyword()) :: {:ok, [map()], boolean()}
+  defdelegate list_conversations(user_id, opts \\ []),
+    to: ListConversations,
+    as: :execute
+
+  @doc """
+  Gets the total unread message count across all conversations for a user.
+
+  This is useful for displaying an unread badge in the navigation.
+
+  ## Parameters
+  - user_id: The user to get unread count for
+
+  ## Returns
+  - Non-negative integer count of unread messages
+
+  ## Examples
+
+      iex> Messaging.get_total_unread_count(user_id)
+      5
+
+  """
+  @spec get_total_unread_count(String.t()) :: non_neg_integer()
+  defdelegate get_total_unread_count(user_id),
+    to: GetTotalUnreadCount,
+    as: :execute
+
+  @doc """
+  Returns enrolled child names and other participant name for a conversation/user pair.
+
+  Used by the web layer to build enriched conversation titles, e.g. "Sarah for Emma, Liam".
+  Reads from the denormalized conversation_summaries read model.
+
+  ## Parameters
+  - conversation_id: The conversation to look up
+  - user_id: The requesting user's ID
+
+  ## Returns
+  - Map with `:enrolled_child_names` (list) and `:other_participant_name` (string or nil)
+  """
+  @spec get_conversation_context(String.t(), String.t()) ::
+          %{enrolled_child_names: [String.t()], other_participant_name: String.t() | nil}
+  defdelegate get_conversation_context(conversation_id, user_id),
+    to: GetConversationContext,
+    as: :execute
+
+  @doc """
+  Lists inbound emails with optional filtering.
+
+  ## Options
+  - `:limit` - Max emails to return (default 50)
+  - `:status` - Filter by status atom (:unread, :read, :archived)
+
+  ## Returns
+  - `{:ok, emails, has_more}` - List of inbound emails with pagination flag
+  """
+  @spec list_inbound_emails(keyword()) :: {:ok, [struct()], boolean()}
+  defdelegate list_inbound_emails(opts \\ []), to: ListInboundEmails, as: :execute
+
+  @doc """
+  Retrieves an inbound email by ID, optionally marking it as read.
+
+  ## Options
+  - `:mark_read` - Whether to mark the email as read (default false)
+  - `:reader_id` - The ID of the user reading the email
+
+  ## Returns
+  - `{:ok, email}` - The inbound email
+  - `{:error, :not_found}` - Email not found
+  """
+  @spec get_inbound_email(String.t(), keyword()) :: {:ok, struct()} | {:error, :not_found}
+  defdelegate get_inbound_email(id, opts \\ []), to: GetInboundEmail, as: :execute
+
+  @doc """
+  Lists all email replies for a given inbound email.
+
+  ## Parameters
+  - `inbound_email_id` - The ID of the inbound email
+
+  ## Returns
+  - `{:ok, replies}` - List of email replies
+  """
+  @spec list_email_replies(String.t()) :: {:ok, [EmailReply.t()]}
+  defdelegate list_email_replies(inbound_email_id),
+    to: InboundEmailQueries,
+    as: :list_replies
+
+  @doc """
+  Sanitizes inbound email HTML for safe rendering.
+
+  Strips dangerous tags (script, iframe, style) and event handlers.
+  By default blocks external images to prevent tracking pixels.
+
+  ## Options
+  - `:allow_images` - Whether to allow external images (default false)
+
+  ## Returns
+  - Sanitized HTML string
+  """
+  @spec sanitize_email_html(String.t() | nil, keyword()) :: String.t()
+  defdelegate sanitize_email_html(html, opts \\ []), to: EmailSanitizer, as: :sanitize
+
+  @doc """
+  Returns the count of inbound emails with the given status.
+
+  ## Examples
+
+      iex> Messaging.count_inbound_emails_by_status(:unread)
+      3
+
+  """
+  @spec count_inbound_emails_by_status(atom()) :: non_neg_integer()
+  defdelegate count_inbound_emails_by_status(status),
+    to: InboundEmailQueries,
+    as: :count_by_status
+
+  @doc """
+  Returns the display name for a user.
+
+  Used by LiveView helpers to resolve sender names for real-time messages.
+  """
+  @spec get_display_name(String.t()) :: {:ok, String.t()} | {:error, :not_found}
+  defdelegate get_display_name(user_id), to: ResolverQueries
+
+  @doc """
+  Returns the user IDs of active staff assigned to a program.
+
+  Used by the web layer to determine which message senders are on the
+  provider side, for branded attribution display ("Business via Staff Name").
+
+  ## Parameters
+  - program_id: The program to look up staff for
+
+  ## Returns
+  - List of user ID strings
+  """
+  @spec get_active_staff_user_ids(String.t()) :: [String.t()]
+  defdelegate get_active_staff_user_ids(program_id), to: ResolverQueries
+
+  @doc """
+  Returns the PubSub topic for a conversation.
+
+  Used by LiveViews to subscribe to real-time updates for a specific conversation.
+  """
+  @spec conversation_topic(String.t()) :: String.t()
+  defdelegate conversation_topic(conversation_id), to: NotifyLiveViews
+
+  @doc """
+  Returns the PubSub topic for a user's message notifications.
+
+  Used by LiveViews to subscribe to new conversation and message notifications.
+  """
+  @spec user_messages_topic(String.t()) :: String.t()
+  defdelegate user_messages_topic(user_id), to: NotifyLiveViews
 end

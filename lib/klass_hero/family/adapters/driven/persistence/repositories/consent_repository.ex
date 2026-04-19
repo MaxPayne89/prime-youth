@@ -10,6 +10,7 @@ defmodule KlassHero.Family.Adapters.Driven.Persistence.Repositories.ConsentRepos
   are handled by the supervision tree.
   """
 
+  @behaviour KlassHero.Family.Domain.Ports.ForQueryingConsents
   @behaviour KlassHero.Family.Domain.Ports.ForStoringConsents
 
   use KlassHero.Shared.Tracing

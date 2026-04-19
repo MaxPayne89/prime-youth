@@ -4,7 +4,7 @@ defmodule KlassHero.MixProject do
   def project do
     [
       app: :klass_hero,
-      version: "0.31.0",
+      version: "0.40.0",
       elixir: "~> 1.20.0-rc.4",
       erlang: "~> 28.4.1",
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -85,6 +85,7 @@ defmodule KlassHero.MixProject do
       {:tidewave, "~> 0.5", only: :dev},
       {:quokka, "~> 2.11", only: [:dev, :test], runtime: false},
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
+      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       # Testing infrastructure
       {:excoveralls, "~> 0.18", only: :test},

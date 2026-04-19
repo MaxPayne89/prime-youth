@@ -87,6 +87,23 @@ defmodule KlassHeroWeb.MessagesLive.ShowTest do
       html = render(view)
       assert html =~ "/messages"
     end
+
+    test "autofocuses the message composer on mount", %{conn: conn, user: user} do
+      conversation = insert(:conversation_schema)
+
+      insert(:participant_schema,
+        conversation_id: conversation.id,
+        user_id: user.id
+      )
+
+      {:ok, _view, html} = live(conn, ~p"/messages/#{conversation.id}")
+
+      doc = LazyHTML.from_fragment(html)
+      textarea = LazyHTML.query(doc, "#message-input")
+      assert Enum.count(textarea) == 1
+      assert [mounted] = LazyHTML.attribute(textarea, "phx-mounted")
+      assert mounted =~ "focus"
+    end
   end
 
   describe "sending messages" do

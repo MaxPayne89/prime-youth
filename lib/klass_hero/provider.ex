@@ -30,6 +30,8 @@ defmodule KlassHero.Provider do
       Domain.Models.StaffMember,
       Domain.Models.VerificationDocument,
       Domain.Models.ProgramStaffAssignment,
+      Domain.ReadModels.SessionStats,
+      Adapters.Driven.Persistence.Repositories.SessionStatsRepository,
       Adapters.Driven.Persistence.ChangeProviderProfile,
       Adapters.Driven.Persistence.ChangeStaffMember,
       # Pragmatic export: Backpex admin operates directly on Ecto schemas
@@ -37,50 +39,42 @@ defmodule KlassHero.Provider do
       Adapters.Driven.Persistence.Schemas.StaffMemberSchema
     ]
 
-  alias Domain.Models.ProgramStaffAssignment
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeStaffMember
-  alias KlassHero.Provider.Application.UseCases.Providers.ChangeSubscriptionTier
-  alias KlassHero.Provider.Application.UseCases.Providers.CreateProviderProfile
-  alias KlassHero.Provider.Application.UseCases.Providers.UnverifyProvider
-  alias KlassHero.Provider.Application.UseCases.Providers.UpdateProviderProfile
-  alias KlassHero.Provider.Application.UseCases.Providers.VerifyProvider
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.AssignStaffToProgram
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.CreateStaffMember
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.DeleteStaffMember
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.ListStaffAssignedPrograms
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.ResendStaffInvitation
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.UnassignStaffFromProgram
-  alias KlassHero.Provider.Application.UseCases.StaffMembers.UpdateStaffMember
-  alias KlassHero.Provider.Application.UseCases.Verification.ApproveVerificationDocument
-  alias KlassHero.Provider.Application.UseCases.Verification.GetVerificationDocumentPreview
-  alias KlassHero.Provider.Application.UseCases.Verification.RejectVerificationDocument
-  alias KlassHero.Provider.Application.UseCases.Verification.SubmitVerificationDocument
+  alias KlassHero.Provider.Application.Commands.Providers.ChangeSubscriptionTier
+  alias KlassHero.Provider.Application.Commands.Providers.CompleteProviderProfile
+  alias KlassHero.Provider.Application.Commands.Providers.CreateProviderProfile
+  alias KlassHero.Provider.Application.Commands.Providers.UnverifyProvider
+  alias KlassHero.Provider.Application.Commands.Providers.UpdateProviderProfile
+  alias KlassHero.Provider.Application.Commands.Providers.VerifyProvider
+  alias KlassHero.Provider.Application.Commands.StaffMembers.AssignStaffToProgram
+  alias KlassHero.Provider.Application.Commands.StaffMembers.CreateStaffMember
+  alias KlassHero.Provider.Application.Commands.StaffMembers.DeleteStaffMember
+  alias KlassHero.Provider.Application.Commands.StaffMembers.ExpireStaffInvitation
+  alias KlassHero.Provider.Application.Commands.StaffMembers.ResendStaffInvitation
+  alias KlassHero.Provider.Application.Commands.StaffMembers.UnassignStaffFromProgram
+  alias KlassHero.Provider.Application.Commands.StaffMembers.UpdateStaffMember
+  alias KlassHero.Provider.Application.Commands.Verification.ApproveVerificationDocument
+  alias KlassHero.Provider.Application.Commands.Verification.RejectVerificationDocument
+  alias KlassHero.Provider.Application.Commands.Verification.SubmitVerificationDocument
+  alias KlassHero.Provider.Application.Queries.ListProgramSessions
+  alias KlassHero.Provider.Application.Queries.ProgramStaffAssignmentQueries
+  alias KlassHero.Provider.Application.Queries.ProviderProfileQueries
+  alias KlassHero.Provider.Application.Queries.StaffMemberQueries
+  alias KlassHero.Provider.Application.Queries.StaffMembers.ListStaffAssignedPrograms
+  alias KlassHero.Provider.Application.Queries.Verification.GetVerificationDocumentPreview
+  alias KlassHero.Provider.Application.Queries.VerificationDocumentQueries
+  alias KlassHero.Provider.Domain.Models.ProgramStaffAssignment
   alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Provider.Domain.Models.VerificationDocument
-  alias KlassHero.Provider.Domain.Ports.ForStoringVerificationDocuments
+  alias KlassHero.Provider.Domain.Ports.ForQueryingVerificationDocuments
 
-  @provider_repository Application.compile_env!(:klass_hero, [
-                         :provider,
-                         :for_storing_provider_profiles
-                       ])
-  @verification_document_repository Application.compile_env!(:klass_hero, [
-                                      :provider,
-                                      :for_storing_verification_documents
-                                    ])
-  @staff_repository Application.compile_env!(:klass_hero, [
-                      :provider,
-                      :for_storing_staff_members
-                    ])
-  @assignment_repository Application.compile_env!(:klass_hero, [
-                           :provider,
-                           :for_storing_program_staff_assignments
-                         ])
+  # ===========================================================================
+  # Commands
+  # ===========================================================================
 
-  # ============================================================================
-  # Provider Profile Functions
-  # ============================================================================
+  alias KlassHero.Provider.Domain.ReadModels.SessionDetail
 
   @doc """
   Creates a new provider profile.
@@ -93,34 +87,6 @@ defmodule KlassHero.Provider do
   """
   def create_provider_profile(attrs) when is_map(attrs) do
     CreateProviderProfile.execute(attrs)
-  end
-
-  @doc """
-  Retrieves a provider profile by identity ID.
-
-  Returns:
-  - `{:ok, ProviderProfile.t()}` - Provider profile found
-  - `{:error, :not_found}` - No provider profile exists
-  """
-  def get_provider_by_identity(identity_id) when is_binary(identity_id) do
-    @provider_repository.get_by_identity_id(identity_id)
-  end
-
-  @doc """
-  Checks if a provider profile exists for the given identity ID.
-  """
-  def has_provider_profile?(identity_id) when is_binary(identity_id) do
-    @provider_repository.has_profile?(identity_id)
-  end
-
-  @doc """
-  Returns a changeset for tracking provider profile form changes.
-
-  Used by LiveView forms for `to_form()` and `phx-change` validation.
-  """
-  @spec change_provider_profile(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
-  def change_provider_profile(%ProviderProfile{} = provider, attrs \\ %{}) do
-    ChangeProviderProfile.execute(provider, attrs)
   end
 
   @doc """
@@ -140,6 +106,25 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
+  Completes a draft provider profile with all required business information.
+
+  Only profiles with profile_status: :draft can be completed.
+  Sets profile_status to :active on success.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` on success
+  - `{:error, :not_found}` if provider doesn't exist
+  - `{:error, :already_active}` if profile is not in draft status
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  """
+  @spec complete_provider_profile(String.t(), map()) ::
+          {:ok, ProviderProfile.t()}
+          | {:error, :not_found | :already_active | {:validation_error, list()} | Ecto.Changeset.t()}
+  def complete_provider_profile(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
+    CompleteProviderProfile.execute(provider_id, attrs)
+  end
+
+  @doc """
   Changes the subscription tier for a provider profile.
 
   Returns:
@@ -152,10 +137,6 @@ defmodule KlassHero.Provider do
   def change_subscription_tier(%ProviderProfile{} = profile, new_tier) when is_atom(new_tier) do
     ChangeSubscriptionTier.execute(profile, new_tier)
   end
-
-  # ============================================================================
-  # Verification Documents
-  # ============================================================================
 
   @doc """
   Submit a verification document for a provider.
@@ -194,64 +175,6 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
-  Get all verification documents for a provider.
-  """
-  def get_provider_verification_documents(provider_profile_id) do
-    @verification_document_repository.get_by_provider(provider_profile_id)
-  end
-
-  @doc """
-  List all pending verification documents (admin).
-  """
-  def list_pending_verification_documents do
-    @verification_document_repository.list_pending()
-  end
-
-  @doc """
-  List verification documents with provider info for admin review.
-
-  Accepts an optional status filter atom:
-  - `nil` - All documents (newest first)
-  - `:pending` - Pending documents (oldest first, FIFO)
-  - `:approved` - Approved documents (newest first)
-  - `:rejected` - Rejected documents (newest first)
-  """
-  @spec list_verification_documents_for_admin(VerificationDocument.status() | nil) ::
-          {:ok, [ForStoringVerificationDocuments.admin_review_result()]}
-  def list_verification_documents_for_admin(status \\ nil) do
-    @verification_document_repository.list_for_admin_review(status)
-  end
-
-  @doc """
-  Get a single verification document with provider info for admin review.
-  """
-  @spec get_verification_document_for_admin(String.t()) ::
-          {:ok, ForStoringVerificationDocuments.admin_review_result()} | {:error, :not_found}
-  def get_verification_document_for_admin(document_id) do
-    @verification_document_repository.get_for_admin_review(document_id)
-  end
-
-  @doc """
-  Get a verification document with a verified preview URL for admin review.
-  """
-  @spec get_verification_document_preview(String.t()) ::
-          {:ok,
-           %{
-             document: VerificationDocument.t(),
-             provider_business_name: String.t(),
-             signed_url: String.t() | nil,
-             preview_type: :image | :pdf | :other
-           }}
-          | {:error, :not_found}
-  def get_verification_document_preview(document_id) do
-    GetVerificationDocumentPreview.execute(document_id)
-  end
-
-  # ============================================================================
-  # Provider Verification
-  # ============================================================================
-
-  @doc """
   Verify a provider (admin only).
   """
   def verify_provider(provider_id, admin_id) do
@@ -270,36 +193,6 @@ defmodule KlassHero.Provider do
       admin_id: admin_id
     })
   end
-
-  @doc """
-  Gets the user (identity) ID for a provider profile ID.
-
-  Used by cross-context consumers (e.g. Messaging) to resolve
-  `conversation.provider_id` (provider profile ID) back to a user ID
-  for permission and authorization checks.
-
-  Returns:
-  - `{:ok, identity_id}` - The user ID that owns this provider profile
-  - `{:error, :not_found}` - No provider profile exists with this ID
-  """
-  @spec get_identity_id_for_provider(String.t()) :: {:ok, String.t()} | {:error, :not_found}
-  def get_identity_id_for_provider(provider_id) when is_binary(provider_id) do
-    case @provider_repository.get(provider_id) do
-      {:ok, %ProviderProfile{identity_id: identity_id}} -> {:ok, identity_id}
-      {:error, :not_found} -> {:error, :not_found}
-    end
-  end
-
-  @doc """
-  List all verified provider IDs (for projections).
-  """
-  def list_verified_provider_ids do
-    @provider_repository.list_verified_ids()
-  end
-
-  # ============================================================================
-  # Staff Members
-  # ============================================================================
 
   @doc """
   Creates a new staff member for a provider.
@@ -341,122 +234,17 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
-  Retrieves a single staff member by ID.
-  """
-  def get_staff_member(staff_id) when is_binary(staff_id) do
-    @staff_repository.get(staff_id)
-  end
-
-  @doc """
-  Lists all staff members for a provider, ordered by insertion date.
-  """
-  def list_staff_members(provider_id) when is_binary(provider_id) do
-    @staff_repository.list_by_provider(provider_id)
-  end
-
-  @doc """
-  Lists active staff members for a provider.
-  """
-  def list_active_staff_members(provider_id) when is_binary(provider_id) do
-    @staff_repository.list_active_by_provider(provider_id)
-  end
-
-  @doc """
-  Returns a changeset for tracking staff member form changes.
-  """
-  def change_staff_member(%StaffMember{} = staff, attrs \\ %{}) do
-    ChangeStaffMember.execute(staff, attrs)
-  end
-
-  @doc """
-  Returns the full name of a staff member.
-  """
-  @spec staff_member_full_name(StaffMember.t()) :: String.t()
-  def staff_member_full_name(%StaffMember{} = staff) do
-    StaffMember.full_name(staff)
-  end
-
-  @doc """
-  Returns an empty changeset for a new staff member form.
-  """
-  def new_staff_member_changeset(attrs \\ %{}) do
-    ChangeStaffMember.new_changeset(attrs)
-  end
-
-  @doc """
-  Returns the active staff member record linked to the given user ID.
-  Used by Scope to resolve :staff_provider role.
-  """
-  @spec get_active_staff_member_by_user(String.t()) ::
-          {:ok, StaffMember.t()} | {:error, :not_found}
-  def get_active_staff_member_by_user(user_id) when is_binary(user_id) do
-    @staff_repository.get_active_by_user(user_id)
-  end
-
-  @doc """
-  Returns the staff member matching the given invitation token hash,
-  only if invitation_status is :sent. Used by the invitation registration flow.
-  """
-  @spec get_staff_member_by_token_hash(binary()) :: {:ok, StaffMember.t()} | {:error, :not_found}
-  def get_staff_member_by_token_hash(token_hash) when is_binary(token_hash) do
-    @staff_repository.get_by_token_hash(token_hash)
-  end
-
-  @doc """
-  Returns the provider profile by ID.
-  """
-  @spec get_provider_profile(String.t()) :: {:ok, ProviderProfile.t()} | {:error, :not_found}
-  def get_provider_profile(provider_id) when is_binary(provider_id) do
-    @provider_repository.get(provider_id)
-  end
-
-  @doc """
-  Checks whether a staff member's invitation has expired.
-  Delegates to the domain model.
-  """
-  defdelegate invitation_expired?(staff_member), to: StaffMember
-
-  @doc """
   Transitions a staff member's invitation status to :expired.
   Called by the invitation LiveView on lazy expiry detection.
   """
   @spec expire_staff_invitation(StaffMember.t() | String.t()) ::
           {:ok, StaffMember.t()} | {:error, term()}
   def expire_staff_invitation(%StaffMember{} = staff) do
-    with {:ok, updated} <- StaffMember.transition_invitation(staff, :expired) do
-      @staff_repository.update(updated)
-    end
+    ExpireStaffInvitation.execute(staff)
   end
 
   def expire_staff_invitation(staff_member_id) when is_binary(staff_member_id) do
-    with {:ok, staff} <- @staff_repository.get(staff_member_id) do
-      expire_staff_invitation(staff)
-    end
-  end
-
-  @doc """
-  Returns the list of valid verification document types.
-  """
-  defdelegate valid_document_types,
-    to: VerificationDocument
-
-  # ============================================================================
-  # Staff Program Assignment
-  # ============================================================================
-
-  @doc """
-  Filters a list of programs to only those assigned to a staff member.
-
-  If the staff member has no tags, returns all programs unchanged.
-  If tags are set, returns only programs whose category matches a tag.
-
-  The caller is responsible for fetching the programs list (typically
-  from `ProgramCatalog.list_programs_for_provider/1`), keeping the
-  Provider context free of cross-context dependencies.
-  """
-  @spec list_assigned_programs(StaffMember.t(), [map()]) :: [map()]
-  def list_assigned_programs(%StaffMember{} = staff_member, programs) when is_list(programs) do
-    ListStaffAssignedPrograms.execute(staff_member, programs)
+    ExpireStaffInvitation.execute(staff_member_id)
   end
 
   @doc """
@@ -485,6 +273,200 @@ defmodule KlassHero.Provider do
     to: UnassignStaffFromProgram,
     as: :execute
 
+  # ===========================================================================
+  # Queries
+  # ===========================================================================
+
+  @doc """
+  Retrieves a provider profile by identity ID.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` - Provider profile found
+  - `{:error, :not_found}` - No provider profile exists
+  """
+  def get_provider_by_identity(identity_id) when is_binary(identity_id) do
+    ProviderProfileQueries.get_by_identity(identity_id)
+  end
+
+  @doc """
+  Checks if a provider profile exists for the given identity ID.
+  """
+  def has_provider_profile?(identity_id) when is_binary(identity_id) do
+    ProviderProfileQueries.has_profile?(identity_id)
+  end
+
+  @doc """
+  Returns the provider profile by ID.
+  """
+  @spec get_provider_profile(String.t()) :: {:ok, ProviderProfile.t()} | {:error, :not_found}
+  def get_provider_profile(provider_id) when is_binary(provider_id) do
+    ProviderProfileQueries.get_profile(provider_id)
+  end
+
+  @doc """
+  Gets the user (identity) ID for a provider profile ID.
+
+  Used by cross-context consumers (e.g. Messaging) to resolve
+  `conversation.provider_id` (provider profile ID) back to a user ID
+  for permission and authorization checks.
+
+  Returns:
+  - `{:ok, identity_id}` - The user ID that owns this provider profile
+  - `{:error, :not_found}` - No provider profile exists with this ID
+  """
+  @spec get_identity_id_for_provider(String.t()) :: {:ok, String.t()} | {:error, :not_found}
+  def get_identity_id_for_provider(provider_id) when is_binary(provider_id) do
+    ProviderProfileQueries.get_identity_id_for_provider(provider_id)
+  end
+
+  @doc """
+  List all verified provider IDs (for projections).
+  """
+  def list_verified_provider_ids do
+    ProviderProfileQueries.list_verified_ids()
+  end
+
+  @doc """
+  Get all verification documents for a provider.
+  """
+  def get_provider_verification_documents(provider_profile_id) do
+    VerificationDocumentQueries.get_by_provider(provider_profile_id)
+  end
+
+  @doc """
+  List all pending verification documents (admin).
+  """
+  def list_pending_verification_documents do
+    VerificationDocumentQueries.list_pending()
+  end
+
+  @doc """
+  List verification documents with provider info for admin review.
+
+  Accepts an optional status filter atom:
+  - `nil` - All documents (newest first)
+  - `:pending` - Pending documents (oldest first, FIFO)
+  - `:approved` - Approved documents (newest first)
+  - `:rejected` - Rejected documents (newest first)
+  """
+  @spec list_verification_documents_for_admin(VerificationDocument.status() | nil) ::
+          {:ok, [ForQueryingVerificationDocuments.admin_review_result()]}
+  def list_verification_documents_for_admin(status \\ nil) do
+    VerificationDocumentQueries.list_for_admin_review(status)
+  end
+
+  @doc """
+  Get a single verification document with provider info for admin review.
+  """
+  @spec get_verification_document_for_admin(String.t()) ::
+          {:ok, ForQueryingVerificationDocuments.admin_review_result()} | {:error, :not_found}
+  def get_verification_document_for_admin(document_id) do
+    VerificationDocumentQueries.get_for_admin_review(document_id)
+  end
+
+  @doc """
+  Get a verification document with a verified preview URL for admin review.
+  """
+  @spec get_verification_document_preview(String.t()) ::
+          {:ok,
+           %{
+             document: VerificationDocument.t(),
+             provider_business_name: String.t(),
+             signed_url: String.t() | nil,
+             preview_type: :image | :pdf | :other
+           }}
+          | {:error, :not_found}
+  def get_verification_document_preview(document_id) do
+    GetVerificationDocumentPreview.execute(document_id)
+  end
+
+  @doc """
+  Returns the list of valid verification document types.
+  """
+  defdelegate valid_document_types,
+    to: VerificationDocument
+
+  @doc """
+  Retrieves a single staff member by ID.
+  """
+  def get_staff_member(staff_id) when is_binary(staff_id) do
+    StaffMemberQueries.get(staff_id)
+  end
+
+  @doc """
+  Lists all staff members for a provider, ordered by insertion date.
+  """
+  def list_staff_members(provider_id) when is_binary(provider_id) do
+    StaffMemberQueries.list_by_provider(provider_id)
+  end
+
+  @doc """
+  Lists active staff members for a provider.
+  """
+  def list_active_staff_members(provider_id) when is_binary(provider_id) do
+    StaffMemberQueries.list_active_by_provider(provider_id)
+  end
+
+  @doc """
+  Returns the full name of a staff member.
+  """
+  @spec staff_member_full_name(StaffMember.t()) :: String.t()
+  def staff_member_full_name(%StaffMember{} = staff) do
+    StaffMember.full_name(staff)
+  end
+
+  @doc """
+  Returns the active staff member record linked to the given user ID.
+  Used by Scope to resolve :staff_provider role.
+  """
+  @spec get_active_staff_member_by_user(String.t()) ::
+          {:ok, StaffMember.t()} | {:error, :not_found}
+  def get_active_staff_member_by_user(user_id) when is_binary(user_id) do
+    StaffMemberQueries.get_active_by_user(user_id)
+  end
+
+  @doc """
+  Returns true if the given user has any active staff_member row for the given provider.
+
+  Use this for permission checks scoped to a specific provider — unlike
+  `get_active_staff_member_by_user/1`, this correctly identifies users who are
+  active staff at multiple providers.
+  """
+  @spec active_staff_for_provider?(String.t(), String.t()) :: boolean()
+  def active_staff_for_provider?(provider_id, user_id) when is_binary(provider_id) and is_binary(user_id) do
+    StaffMemberQueries.active_for_provider_and_user?(provider_id, user_id)
+  end
+
+  @doc """
+  Returns the staff member matching the given invitation token hash,
+  only if invitation_status is :sent. Used by the invitation registration flow.
+  """
+  @spec get_staff_member_by_token_hash(binary()) :: {:ok, StaffMember.t()} | {:error, :not_found}
+  def get_staff_member_by_token_hash(token_hash) when is_binary(token_hash) do
+    StaffMemberQueries.get_by_token_hash(token_hash)
+  end
+
+  @doc """
+  Checks whether a staff member's invitation has expired.
+  Delegates to the domain model.
+  """
+  defdelegate invitation_expired?(staff_member), to: StaffMember
+
+  @doc """
+  Filters a list of programs to only those assigned to a staff member.
+
+  If the staff member has no tags, returns all programs unchanged.
+  If tags are set, returns only programs whose category matches a tag.
+
+  The caller is responsible for fetching the programs list (typically
+  from `ProgramCatalog.list_programs_for_provider/1`), keeping the
+  Provider context free of cross-context dependencies.
+  """
+  @spec list_assigned_programs(StaffMember.t(), [map()]) :: [map()]
+  def list_assigned_programs(%StaffMember{} = staff_member, programs) when is_list(programs) do
+    ListStaffAssignedPrograms.execute(staff_member, programs)
+  end
+
   @doc """
   Lists all active staff assignments for a program.
   """
@@ -492,7 +474,7 @@ defmodule KlassHero.Provider do
           ProgramStaffAssignment.t()
         ]
   def list_active_assignments_for_program(program_id) when is_binary(program_id) do
-    @assignment_repository.list_active_for_program(program_id)
+    ProgramStaffAssignmentQueries.list_active_for_program(program_id)
   end
 
   @doc """
@@ -502,7 +484,7 @@ defmodule KlassHero.Provider do
           ProgramStaffAssignment.t()
         ]
   def list_active_assignments_for_provider(provider_id) when is_binary(provider_id) do
-    @assignment_repository.list_active_for_provider(provider_id)
+    ProgramStaffAssignmentQueries.list_active_for_provider(provider_id)
   end
 
   @doc """
@@ -512,6 +494,69 @@ defmodule KlassHero.Provider do
           ProgramStaffAssignment.t()
         ]
   def list_active_assignments_for_staff_member(staff_member_id) when is_binary(staff_member_id) do
-    @assignment_repository.list_active_for_staff_member(staff_member_id)
+    ProgramStaffAssignmentQueries.list_active_for_staff_member(staff_member_id)
+  end
+
+  @session_stats_repo Application.compile_env!(:klass_hero, [:provider, :for_querying_session_stats])
+
+  @doc """
+  Returns the total completed session count across all programs for a provider.
+  """
+  @spec get_total_session_count(String.t()) :: non_neg_integer()
+  def get_total_session_count(provider_id) when is_binary(provider_id) do
+    @session_stats_repo.get_total_count(provider_id)
+  end
+
+  @doc """
+  Lists per-session detail rows for a provider's program.
+
+  Returns a list of `SessionDetail` read-model structs from the
+  `provider_session_details` projection. Scoped to the given provider;
+  cross-provider lookups return `[]`.
+  """
+  @spec list_program_sessions(String.t(), String.t()) :: [
+          SessionDetail.t()
+        ]
+  def list_program_sessions(provider_id, program_id) when is_binary(provider_id) and is_binary(program_id) do
+    ListProgramSessions.execute(provider_id, program_id)
+  end
+
+  # ===========================================================================
+  # Forms
+  # ===========================================================================
+
+  @doc """
+  Returns a changeset for tracking provider profile form changes.
+
+  Used by LiveView forms for `to_form()` and `phx-change` validation.
+  """
+  @spec change_provider_profile(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
+  def change_provider_profile(%ProviderProfile{} = provider, attrs \\ %{}) do
+    ChangeProviderProfile.execute(provider, attrs)
+  end
+
+  @doc """
+  Returns a changeset for tracking provider profile completion form changes.
+
+  Used by ProfileCompletionLive for `to_form()` and `phx-change` validation.
+  Casts a broader set of fields than `change_provider_profile/2`.
+  """
+  @spec change_provider_profile_completion(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
+  def change_provider_profile_completion(%ProviderProfile{} = provider, attrs \\ %{}) do
+    ChangeProviderProfile.completion_changeset(provider, attrs)
+  end
+
+  @doc """
+  Returns a changeset for tracking staff member form changes.
+  """
+  def change_staff_member(%StaffMember{} = staff, attrs \\ %{}) do
+    ChangeStaffMember.execute(staff, attrs)
+  end
+
+  @doc """
+  Returns an empty changeset for a new staff member form.
+  """
+  def new_staff_member_changeset(attrs \\ %{}) do
+    ChangeStaffMember.new_changeset(attrs)
   end
 end

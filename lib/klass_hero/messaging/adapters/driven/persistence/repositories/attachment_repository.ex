@@ -2,10 +2,11 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.Attachmen
   @moduledoc """
   Ecto-based repository for managing message attachments.
 
-  Implements ForManagingAttachments port.
+  Implements ForManagingAttachments (writes) and ForQueryingAttachments (reads) ports.
   """
 
   @behaviour KlassHero.Messaging.Domain.Ports.ForManagingAttachments
+  @behaviour KlassHero.Messaging.Domain.Ports.ForQueryingAttachments
 
   use KlassHero.Shared.Tracing
 

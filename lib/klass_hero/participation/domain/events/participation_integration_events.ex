@@ -13,6 +13,8 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
     Entity type: `:session`.
   - `:session_completed` - Emitted when a session ends (all check-outs done).
     Entity type: `:session`.
+  - `:session_cancelled` - Emitted when a session is cancelled (e.g. provider cancels a scheduled session).
+    Entity type: `:session`.
   - `:roster_seeded` - Emitted after participation records are bulk-seeded for a session.
     Entity type: `:session`.
   - `:child_checked_in` - Emitted when a child is checked into a session.
@@ -52,6 +54,8 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   @type session_completed_payload :: %{
           required(:session_id) => String.t(),
           required(:program_id) => String.t(),
+          required(:provider_id) => String.t(),
+          required(:program_title) => String.t(),
           optional(atom()) => term()
         }
 
@@ -226,7 +230,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   ## Parameters
 
   - `session_id` - The ID of the completed session
-  - `payload` - Event-specific data (program_id)
+  - `payload` - Event-specific data (program_id, provider_id, program_title)
   - `opts` - Metadata options (correlation_id, causation_id)
 
   ## Raises
@@ -236,7 +240,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   """
   def session_completed(session_id, payload \\ %{}, opts \\ [])
 
-  def session_completed(session_id, %{program_id: _} = payload, opts)
+  def session_completed(session_id, %{program_id: _, provider_id: _, program_title: _} = payload, opts)
       when is_binary(session_id) and byte_size(session_id) > 0 do
     base_payload = %{session_id: session_id}
 
@@ -251,7 +255,7 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   end
 
   def session_completed(session_id, payload, _opts) when is_binary(session_id) and byte_size(session_id) > 0 do
-    missing = [:program_id] -- Map.keys(payload)
+    missing = [:program_id, :provider_id, :program_title] -- Map.keys(payload)
 
     raise ArgumentError,
           "session_completed missing required payload keys: #{inspect(missing)}"
@@ -585,5 +589,49 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEvents d
   def behavioral_note_rejected(note_id, _payload, _opts) do
     raise ArgumentError,
           "behavioral_note_rejected/3 requires a non-empty note_id string, got: #{inspect(note_id)}"
+  end
+
+  # ---------------------------------------------------------------------------
+  # session_cancelled (entity type: :session)
+  # ---------------------------------------------------------------------------
+
+  @typedoc "Payload for `:session_cancelled` events."
+  @type session_cancelled_payload :: %{
+          required(:session_id) => String.t(),
+          required(:program_id) => String.t(),
+          optional(atom()) => term()
+        }
+
+  @doc """
+  Creates a `session_cancelled` integration event.
+
+  Published when a session is cancelled (e.g. provider cancels a scheduled session).
+  """
+  def session_cancelled(session_id, payload \\ %{}, opts \\ [])
+
+  def session_cancelled(session_id, %{program_id: _} = payload, opts)
+      when is_binary(session_id) and byte_size(session_id) > 0 do
+    base_payload = %{session_id: session_id}
+
+    IntegrationEvent.new(
+      :session_cancelled,
+      @source_context,
+      :session,
+      session_id,
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def session_cancelled(session_id, payload, _opts) when is_binary(session_id) and byte_size(session_id) > 0 do
+    missing = [:program_id] -- Map.keys(payload)
+
+    raise ArgumentError,
+          "session_cancelled missing required payload keys: #{inspect(missing)}"
+  end
+
+  def session_cancelled(session_id, _payload, _opts) do
+    raise ArgumentError,
+          "session_cancelled/3 requires a non-empty session_id string, got: #{inspect(session_id)}"
   end
 end

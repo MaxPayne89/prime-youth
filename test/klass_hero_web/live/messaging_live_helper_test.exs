@@ -4,22 +4,65 @@ defmodule KlassHeroWeb.MessagingLiveHelperTest do
   alias KlassHero.Messaging.Domain.Models.Message
   alias KlassHeroWeb.MessagingLiveHelper
 
-  describe "get_conversation_title/1" do
-    test "returns subject for a program_broadcast conversation with a subject" do
+  describe "get_conversation_title/3" do
+    test "returns parent name with child names for direct conversation with enrolled children" do
+      conversation = %{type: :direct}
+      child_names = ["Emma", "Liam"]
+      other_name = "Sarah Johnson"
+
+      assert MessagingLiveHelper.get_conversation_title(conversation, child_names, other_name) ==
+               "Sarah Johnson for Emma, Liam"
+    end
+
+    test "returns parent name with single child for direct conversation" do
+      conversation = %{type: :direct}
+
+      assert MessagingLiveHelper.get_conversation_title(conversation, ["Emma"], "Sarah Johnson") ==
+               "Sarah Johnson for Emma"
+    end
+
+    test "returns other participant name when no enrolled children" do
+      conversation = %{type: :direct}
+
+      assert MessagingLiveHelper.get_conversation_title(conversation, [], "Sarah Johnson") ==
+               "Sarah Johnson"
+    end
+
+    test "returns subject for program_broadcast with subject" do
       conversation = %{type: :program_broadcast, subject: "Summer Camp Update"}
 
-      assert MessagingLiveHelper.get_conversation_title(conversation) == "Summer Camp Update"
+      assert MessagingLiveHelper.get_conversation_title(conversation, [], nil) ==
+               "Summer Camp Update"
     end
 
-    test "returns 'Program Broadcast' for a program_broadcast conversation without a subject" do
+    test "returns 'Program Broadcast' for broadcast without subject" do
       conversation = %{type: :program_broadcast, subject: nil}
 
-      assert MessagingLiveHelper.get_conversation_title(conversation) == "Program Broadcast"
+      assert MessagingLiveHelper.get_conversation_title(conversation, [], nil) ==
+               "Program Broadcast"
     end
 
-    test "returns 'Conversation' for any other conversation type" do
-      assert MessagingLiveHelper.get_conversation_title(%{type: :direct}) == "Conversation"
-      assert MessagingLiveHelper.get_conversation_title(%{type: :group}) == "Conversation"
+    test "returns 'Conversation' as fallback" do
+      assert MessagingLiveHelper.get_conversation_title(%{type: :direct}, [], nil) ==
+               "Conversation"
+    end
+  end
+
+  describe "enrolled_child_names_for/2" do
+    test "returns [] for :parent variant (suffix is suppressed in title)" do
+      assert MessagingLiveHelper.enrolled_child_names_for(:parent, ["Emma", "Liam"]) == []
+      assert MessagingLiveHelper.enrolled_child_names_for(:parent, []) == []
+    end
+
+    test "passes the names through unchanged for :provider variant" do
+      assert MessagingLiveHelper.enrolled_child_names_for(:provider, ["Emma", "Liam"]) ==
+               ["Emma", "Liam"]
+
+      assert MessagingLiveHelper.enrolled_child_names_for(:provider, []) == []
+    end
+
+    test "passes the names through unchanged for :staff variant" do
+      assert MessagingLiveHelper.enrolled_child_names_for(:staff, ["Emma"]) == ["Emma"]
     end
   end
 

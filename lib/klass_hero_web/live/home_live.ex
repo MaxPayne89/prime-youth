@@ -248,7 +248,7 @@ defmodule KlassHeroWeb.HomeLive do
               title={gettext("Community Focused")}
               description={
                 gettext(
-                  "Built for the Berlin international community. Connect with local families and trusted educators nearby."
+                  "Built for the Berlin international community. Integrated secure encrypted messaging to connect with local families and trusted educators nearby."
                 )
               }
             />

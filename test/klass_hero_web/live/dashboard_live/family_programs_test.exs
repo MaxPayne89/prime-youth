@@ -48,7 +48,10 @@ defmodule KlassHeroWeb.DashboardLive.FamilyProgramsTest do
 
       {:ok, view, _html} = live(conn, ~p"/dashboard")
 
-      assert has_element?(view, "#family-programs a[href='/messages']")
+      assert has_element?(
+               view,
+               ~s|#family-programs button[phx-click="contact_provider"][phx-value-program-id="#{program.id}"]|
+             )
     end
 
     test "expired enrollment by status renders", %{conn: conn, parent: parent, child: child} do

@@ -5,6 +5,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
   Implements the ForStoringStaffMembers port.
   """
 
+  @behaviour KlassHero.Provider.Domain.Ports.ForQueryingStaffMembers
   @behaviour KlassHero.Provider.Domain.Ports.ForStoringStaffMembers
 
   use KlassHero.Shared.Tracing
@@ -153,6 +154,18 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
         nil -> {:error, :not_found}
         schema -> {:ok, StaffMemberMapper.to_domain(schema)}
       end
+    end
+  end
+
+  @impl true
+  def active_for_provider_and_user?(provider_id, user_id) when is_binary(provider_id) and is_binary(user_id) do
+    span do
+      set_attributes("db", operation: "exists", entity: "staff_member")
+
+      from(s in StaffMemberSchema,
+        where: s.provider_id == ^provider_id and s.user_id == ^user_id and s.active == true
+      )
+      |> Repo.exists?()
     end
   end
 end

@@ -42,24 +42,28 @@ alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailR
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
+alias KlassHero.Messaging.Adapters.Driven.Provider.ProviderStaffResolver
 alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
 alias KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler
 alias KlassHero.Messaging.Adapters.Driving.Workers.MessageCleanupWorker
 alias KlassHero.Messaging.Adapters.Driving.Workers.RetentionPolicyWorker
-alias KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
-alias KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver
+alias KlassHero.Participation.Adapters.Driven.ACL.ChildInfoResolver
+alias KlassHero.Participation.Adapters.Driven.ACL.EnrolledChildrenResolver
+alias KlassHero.Participation.Adapters.Driven.ACL.ProgramProviderResolver
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository
-alias KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
+alias KlassHero.Provider.Adapters.Driven.ACL.ParticipationSessionStatsACL
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramStaffAssignmentRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
+alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.SessionDetailsRepository
+alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.SessionStatsRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
+alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler
 alias KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
-alias KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler
 alias KlassHero.Shared.Adapters.Driven.Events.PubSubEventPublisher
 alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
 alias KlassHero.Shared.Adapters.Driven.FeatureFlags.FunWithFlagsAdapter
@@ -185,13 +189,17 @@ config :klass_hero, :critical_event_handlers, %{
 # Configure Enrollment bounded context
 config :klass_hero, :enrollment,
   for_managing_enrollments: EnrollmentRepository,
+  for_querying_enrollments: EnrollmentRepository,
   for_managing_enrollment_policies: EnrollmentPolicyRepository,
+  for_querying_enrollment_policies: EnrollmentPolicyRepository,
   for_managing_participant_policies: ParticipantPolicyRepository,
+  for_querying_participant_policies: ParticipantPolicyRepository,
   for_resolving_participant_details: ParticipantDetailsACL,
   for_resolving_program_schedule: ProgramScheduleACL,
   for_resolving_child_info: ChildInfoACL,
   for_resolving_parent_info: ParentInfoACL,
   for_storing_bulk_enrollment_invites: BulkEnrollmentInviteRepository,
+  for_querying_bulk_enrollment_invites: BulkEnrollmentInviteRepository,
   for_resolving_program_catalog: ProgramCatalogACL,
   for_resolving_user_accounts: UserAccountResolver,
   for_sending_invite_emails: InviteEmailNotifier
@@ -205,9 +213,13 @@ config :klass_hero, :event_publisher,
 config :klass_hero, :family,
   repo: KlassHero.Repo,
   for_storing_parent_profiles: ParentProfileRepository,
+  for_querying_parent_profiles: ParentProfileRepository,
   for_storing_children: ChildRepository,
+  for_querying_children: ChildRepository,
   for_storing_consents: ConsentRepository,
+  for_querying_consents: ConsentRepository,
   for_managing_child_enrollments: ChildEnrollmentACL,
+  for_querying_child_enrollments: ChildEnrollmentACL,
   for_managing_child_participation: ChildParticipationACL
 
 # Configure Feature Flags bounded context
@@ -223,16 +235,24 @@ config :klass_hero, :mailer_defaults, from: {"KlassHero", "noreply@mail.klassher
 # Configure Messaging bounded context
 config :klass_hero, :messaging,
   for_managing_attachments: AttachmentRepository,
+  for_querying_attachments: AttachmentRepository,
   for_managing_conversations: ConversationRepository,
+  for_querying_conversations: ConversationRepository,
   for_managing_messages: MessageRepository,
+  for_querying_messages: MessageRepository,
   for_managing_participants: ParticipantRepository,
+  for_querying_participants: ParticipantRepository,
   for_resolving_users: UserResolver,
   for_querying_enrollments: EnrollmentResolver,
   for_resolving_program_staff: ProgramStaffParticipantRepository,
+  for_resolving_provider_staff: ProviderStaffResolver,
   for_managing_conversation_summaries: ConversationSummariesRepository,
+  for_querying_conversation_summaries: ConversationSummariesRepository,
   for_managing_inbound_emails: InboundEmailRepository,
+  for_querying_inbound_emails: InboundEmailRepository,
   for_fetching_email_content: ResendEmailContentAdapter,
   for_managing_email_replies: EmailReplyRepository,
+  for_querying_email_replies: EmailReplyRepository,
   for_scheduling_email_jobs: ObanEmailJobScheduler,
   retention: [
     days_after_program_end: 30,
@@ -241,12 +261,15 @@ config :klass_hero, :messaging,
 
 # Configure Participation bounded context
 config :klass_hero, :participation,
-  session_repository: SessionRepository,
-  participation_repository: ParticipationRepository,
-  child_info_resolver: ChildInfoResolver,
-  behavioral_note_repository: BehavioralNoteRepository,
-  program_provider_resolver: ProgramProviderResolver,
-  enrolled_children_resolver: EnrolledChildrenResolver
+  for_storing_sessions: SessionRepository,
+  for_querying_sessions: SessionRepository,
+  for_storing_participation_records: ParticipationRepository,
+  for_querying_participation_records: ParticipationRepository,
+  for_resolving_child_info: ChildInfoResolver,
+  for_storing_behavioral_notes: BehavioralNoteRepository,
+  for_querying_behavioral_notes: BehavioralNoteRepository,
+  for_resolving_program_provider: ProgramProviderResolver,
+  for_resolving_enrolled_children: EnrolledChildrenResolver
 
 # Configure Program Catalog bounded context
 config :klass_hero, :program_catalog,
@@ -258,9 +281,16 @@ config :klass_hero, :program_catalog,
 config :klass_hero, :provider,
   repo: KlassHero.Repo,
   for_storing_provider_profiles: ProviderProfileRepository,
+  for_querying_provider_profiles: ProviderProfileRepository,
   for_storing_verification_documents: VerificationDocumentRepository,
+  for_querying_verification_documents: VerificationDocumentRepository,
   for_storing_staff_members: StaffMemberRepository,
-  for_storing_program_staff_assignments: ProgramStaffAssignmentRepository
+  for_querying_staff_members: StaffMemberRepository,
+  for_storing_program_staff_assignments: ProgramStaffAssignmentRepository,
+  for_querying_program_staff_assignments: ProgramStaffAssignmentRepository,
+  for_querying_session_details: SessionDetailsRepository,
+  for_querying_session_stats: SessionStatsRepository,
+  for_resolving_session_stats: ParticipationSessionStatsACL
 
 config :klass_hero, :resend_req_options, []
 

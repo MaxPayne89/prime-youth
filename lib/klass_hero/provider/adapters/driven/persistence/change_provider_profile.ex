@@ -19,6 +19,16 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile d
     provider |> provider_to_schema() |> ProviderProfileSchema.edit_changeset(attrs)
   end
 
+  @doc """
+  Returns a changeset for provider profile completion form tracking.
+
+  Uses the completion_changeset (broader field set than edit_changeset)
+  for the profile completion flow.
+  """
+  def completion_changeset(%ProviderProfile{} = provider, attrs \\ %{}) do
+    provider |> provider_to_schema() |> ProviderProfileSchema.completion_changeset(attrs)
+  end
+
   defp provider_to_schema(%ProviderProfile{} = provider) do
     %ProviderProfileSchema{
       id: provider.id,
@@ -37,6 +47,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile d
         if(is_atom(provider.subscription_tier),
           do: to_string(provider.subscription_tier),
           else: provider.subscription_tier
+        ),
+      profile_status:
+        if(is_atom(provider.profile_status),
+          do: to_string(provider.profile_status),
+          else: provider.profile_status
         )
     }
   end
