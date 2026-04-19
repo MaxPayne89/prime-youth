@@ -105,7 +105,7 @@ defmodule KlassHero.Provider.Domain.Models.VerificationDocumentTest do
 
       assert approved.status == :approved
       assert approved.reviewed_by_id == reviewer_id
-      assert approved.reviewed_at != nil
+      assert %DateTime{} = approved.reviewed_at
     end
 
     test "fails when document is not pending" do
@@ -171,7 +171,7 @@ defmodule KlassHero.Provider.Domain.Models.VerificationDocumentTest do
       assert rejected.status == :rejected
       assert rejected.rejection_reason == "Document expired"
       assert rejected.reviewed_by_id == reviewer_id
-      assert rejected.reviewed_at != nil
+      assert %DateTime{} = rejected.reviewed_at
     end
 
     test "fails when document is not pending" do

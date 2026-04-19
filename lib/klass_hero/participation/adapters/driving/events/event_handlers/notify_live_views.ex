@@ -74,9 +74,12 @@ defmodule KlassHero.Participation.Adapters.Driving.Events.EventHandlers.NotifyLi
 
       {:error, reason} ->
         # Trigger: program_id resolution failed (not found, DB error, etc.)
-        # Why: provider-specific publish is best-effort; generic topic already succeeded
-        # Outcome: log warning, skip provider-specific publish
-        Logger.warning(
+        # Why: provider-specific publish is best-effort; generic topic already succeeded.
+        #      Demoted from :warning to :debug — sustained failures should be caught by
+        #      metrics/alerts, not per-event warns. See issue about test-isolation race
+        #      where this fires intermittently due to EventSubscriber GenServers running
+        #      outside the test sandbox after global Application.put_env config leaks.
+        Logger.debug(
           "[Participation.NotifyLiveViews] Could not resolve provider for program",
           program_id: program_id,
           event_type: event.event_type,

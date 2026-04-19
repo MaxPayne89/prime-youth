@@ -61,7 +61,7 @@ defmodule KlassHero.Integration.StaffInvitationSagaTest do
     )
   end
 
-  defp build_registered_event(user_id, staff, opts \\ %{}) do
+  defp build_registered_event(user_id, staff, opts) do
     AccountsIntegrationEvents.staff_user_registered(
       user_id,
       Map.merge(%{staff_member_id: staff.id, provider_id: staff.provider_id}, opts)

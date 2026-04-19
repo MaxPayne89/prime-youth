@@ -69,6 +69,6 @@ Use this structure for all test-drive reports. Sections with no findings should 
 
 ## Report Naming
 
-- Default: `docs/reports/test-drive-{YYYY-MM-DD}.md`
-- If exists for today: `docs/reports/test-drive-{YYYY-MM-DD}-{HHmm}.md`
-- For issue-specific: `docs/reports/test-drive-{YYYY-MM-DD}-{issue-number}.md`
+- Default: `.test-drive-reports/test-drive-{YYYY-MM-DD}.md`
+- If exists for today: `.test-drive-reports/test-drive-{YYYY-MM-DD}-{HHmm}.md`
+- For issue-specific: `.test-drive-reports/test-drive-{YYYY-MM-DD}-{issue-number}.md`

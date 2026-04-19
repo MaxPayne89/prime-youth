@@ -43,7 +43,7 @@ defmodule KlassHeroWeb.Admin.EmailsLiveTest do
           body_html: "<p>Hello <strong>world</strong></p><script>evil()</script>"
         })
 
-      {:ok, view, html} = live(conn, ~p"/admin/emails/#{email.id}")
+      {:ok, _view, html} = live(conn, ~p"/admin/emails/#{email.id}")
       assert html =~ "Important Message"
       assert html =~ "<strong>world</strong>"
       refute html =~ "<script>"

@@ -52,6 +52,7 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
     use TracedWorker, queue: :test, max_attempts: 3
 
     @impl TracedWorker
+    @spec execute(Oban.Job.t()) :: :ok | {:ok, term()} | {:error, term()}
     def execute(_job), do: :ok
   end
 
@@ -66,6 +67,7 @@ defmodule KlassHero.Shared.Tracing.TracedWorkerTest do
     use TracedWorker, queue: :test, max_attempts: 3
 
     @impl TracedWorker
+    @spec execute(Oban.Job.t()) :: :ok | {:ok, term()} | {:error, term()}
     def execute(_job), do: {:ok, :some_result}
   end
 

@@ -118,6 +118,15 @@ defmodule KlassHeroWeb.CoreComponents do
   end
 
   @doc """
+  Translates a Backpex message through our Gettext backend using the "backpex" domain.
+  Wired into `:backpex, :translator_function` in config.exs to silence the fallback warning
+  and let us override strings via `priv/gettext/<locale>/LC_MESSAGES/backpex.po`.
+  """
+  def translate_backpex({msg, opts}) do
+    Gettext.dgettext(KlassHeroWeb.Gettext, "backpex", msg, opts)
+  end
+
+  @doc """
   Translates the errors for a field from a keyword list of errors.
   """
   def translate_errors(errors, field) when is_list(errors) do

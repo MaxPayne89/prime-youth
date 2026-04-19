@@ -24,6 +24,15 @@ This guide explains how to create pull requests using GitHub CLI in our project.
 
 ## Creating a New Pull Request
 
+0. **Rebase onto `main` first** — before doing anything else:
+
+   ```bash
+   git fetch origin
+   git rebase origin/main
+   ```
+
+   If the rebase has conflicts, STOP and hand back to the user — don't attempt to auto-resolve. (Human reader: resolve conflicts, `git add <files>`, `git rebase --continue` as normal.) If the rebase succeeds and rewrites commits, push with `git push --force-with-lease` before creating the PR — otherwise GitHub won't see the rebased commits. PRs on this repo merge squash-only (see `.claude/rules/workflow.md#merge-strategy`), so starting from current `main` keeps the squash diff clean.
+
 1. First, prepare your PR description following the template in `.github/pull_request_template.md`
 
 2. Use the `gh pr create` command to create a new pull request:

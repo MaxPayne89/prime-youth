@@ -71,6 +71,10 @@ alias KlassHero.Shared.Adapters.Driven.Persistence.Repositories.ProcessedEventRe
 alias KlassHero.Shared.Adapters.Driven.Storage.S3StorageAdapter
 alias Swoosh.Adapters.Local
 
+config :backpex,
+  translator_function: {KlassHeroWeb.CoreComponents, :translate_backpex},
+  error_translator_function: {KlassHeroWeb.CoreComponents, :translate_error}
+
 config :error_tracker, repo: KlassHero.Repo, otp_app: :klass_hero, enabled: true
 
 # Configure esbuild (the version is required)

@@ -76,7 +76,7 @@ context/
 - **Participation** (`participation/`) - Session tracking, check-in/out, attendance rosters
 - **Shared** (`shared/`) - Event publishing, Ecto helpers, pagination, domain events
 
-See `.claude/rules/domain-architecture.md` for patterns and `docs/contexts/` for per-context documentation (living docs with feature specs, context canvases, and cross-context flows — use `/doc` to regenerate).
+See `.claude/rules/domain-architecture.md` for patterns. For context-specific details, read the code under `lib/klass_hero/<context>/` directly — Claude Code explores on-demand.
 
 ### Dependency Injection (Port Wiring)
 
@@ -149,6 +149,8 @@ Use semantic commit messages: `type: description`
 Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, `perf`
 
 Examples: `feat: add staff invitation flow`, `fix: correct enrollment fee calculation`, `ci: split test workflow into parallel jobs`
+
+**Merge strategy:** Squash-merge all PRs onto `main`; always rebase the branch onto `origin/main` before opening or updating a PR. See `.claude/rules/workflow.md#merge-strategy`.
 
 ## CI Pipeline
 
@@ -236,10 +238,11 @@ _A config-driven dev tool for Elixir projects to manage AGENTS.md files and agen
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+4. **PUSH TO REMOTE** - This is MANDATORY. Session-end work lands via PR from a feature branch; direct pushes to `main` are blocked by the ruleset. Rebase onto `origin/main` before the final push so the PR is fresh against current main:
    ```bash
-   git pull --rebase
-   git push
+   git fetch origin
+   git rebase origin/main
+   git push --force-with-lease
    git status  # MUST show "up to date with origin"
    ```
 5. **Clean up** - Clear stashes, prune remote branches
@@ -251,3 +254,4 @@ _A config-driven dev tool for Elixir projects to manage AGENTS.md files and agen
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
+- Force-push ONLY with `--force-with-lease` — and ONLY on your own feature branch after a rebase, never on `main` (the ruleset blocks it anyway)

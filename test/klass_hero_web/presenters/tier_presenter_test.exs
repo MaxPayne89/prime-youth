@@ -12,7 +12,7 @@ defmodule KlassHeroWeb.Presenters.TierPresenterTest do
 
     test "raises FunctionClauseError for unknown tier" do
       assert_raise FunctionClauseError, fn ->
-        TierPresenter.tier_label(:unknown)
+        apply(TierPresenter, :tier_label, [:unknown])
       end
     end
   end

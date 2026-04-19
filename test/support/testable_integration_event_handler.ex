@@ -20,6 +20,8 @@ defmodule KlassHero.TestableIntegrationEventHandler do
 
   @behaviour KlassHero.Shared.Domain.Ports.Driving.ForHandlingIntegrationEvents
 
+  use Boundary, top_level?: true, check: [in: false, out: false]
+
   alias KlassHero.TestableEventHandler
 
   @impl true

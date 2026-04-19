@@ -19,11 +19,6 @@ This is a Phoenix application with standard directory structure:
 - `priv/` - Database migrations, seeds, and static files
 - `test/` - Test files
 - `config/` - Application configuration
-- `docs/` - Domain documentation and architecture specifications
-
-### Key Directories
-
-- `docs/` - Domain-driven design documentation including business domain stories, technical architecture with DDD/Ports & Adapters patterns, and bounded context definitions
 
 ## Development Commands
 
