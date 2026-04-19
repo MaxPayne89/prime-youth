@@ -1,7 +1,7 @@
 # Perf Improver Memory — klass-hero
 
 ## Last Updated
-2026-04-17
+2026-04-19
 
 ## Build / Test / Lint Commands (validated from mix.exs + CI)
 - **Build**: `mix compile --warnings-as-errors`
@@ -15,22 +15,18 @@
 ## Run History
 | Date | Tasks | Output |
 |------|-------|--------|
+| 2026-04-19 | T3, T4, T6, T7 | T3: Implemented parallelize StaffParticipationLive.mount (programs+session tasks). Branch committed locally: perf-assist/parallelize-staff-participation-mount (commit c988b08). safeoutputs MCP unavailable — branch not pushed, PR not created. T4: PRs #658, #659 confirmed open, no CI failures. T6: No new infra gaps — same state (no Benchee, no CI perf jobs). T7: monthly summary update blocked (safeoutputs unavailable). |
 | 2026-04-17 | T2, T3, T7 | T3: Implemented parallelize StaffParticipationLive.mount (programs+session tasks). Branch committed locally: perf-assist/parallelize-staff-participation-mount-1776400161. safeoutputs MCP + git push BOTH unavailable — branch not pushed yet. T7: monthly summary update blocked (safeoutputs unavailable). |
 | 2026-04-16 | T4, T5, T7 | T4: Confirmed PR #659 (SQL LIMIT) and PR #658 (StaffDashboardLive) open, awaiting review; PR #628 merged 2026-04-12. T5: No new human comments on #478/#515; no comments posted. T7: Updated monthly summary #584 (PR numbers resolved, #628 marked merged). |
-| 2026-04-15 | T3, T7 | T3: Re-created branch perf-assist/limit-featured-programs-sql (commit f8eb334); safeoutputs MCP unavailable prevented PR creation again. Monthly summary not updated (safeoutputs MCP unavailable). |
-| 2026-04-14 | T4, T2, T3 | T4: No open perf-assist branches — all previous PRs merged/closed. T2: SQL LIMIT opt + StaffDashboardLive parallelization still unmerged. T3: Committed SQL LIMIT to branch; safeoutputs MCP unavailable prevented PR creation. |
 | 2026-04-12 | T1, T6, T5, T3, T7 | T3: PR #659 (SQL LIMIT for ListFeaturedPrograms) + PR #658 (parallelize StaffDashboardLive). T7: Updated April 2026 monthly summary. |
-| 2026-04-11 | T4, T3, T7 | T4: PR #622 merged; PR #628 open + CI passing. T3: SQL LIMIT PR submitted again. T7: Updated. |
-| 2026-04-09 | T4, T2, T3, T7 | T3: PR #628 submitted — parallelize DashboardLive children+programs. T4: PR #622 CI clean. |
-| 2026-04-08 | T4, T5, T3, T7 | T4: PR #609 merged. T5: Commented on #478. T3: PR #622 submitted — parallelize SessionsLive. |
 
 ## Task Last Run (Round-Robin)
 - T1 (Discover commands): 2026-04-12
 - T2 (Identify opportunities): 2026-04-17
-- T3 (Implement improvement): 2026-04-17
-- T4 (Maintain PRs): 2026-04-16
+- T3 (Implement improvement): 2026-04-19
+- T4 (Maintain PRs): 2026-04-19
 - T5 (Comment on issues): 2026-04-16
-- T6 (Measurement infra): 2026-04-12
+- T6 (Measurement infra): 2026-04-19
 - T7 (Activity summary): 2026-04-16
 
 ## Optimization Backlog (prioritized)
@@ -53,15 +49,16 @@
 17. **[MERGED]** Parallelize parent DashboardLive.mount — PR #628 ✓
 18. **[IN REVIEW]** Over-fetching in ListFeaturedPrograms.execute/0 — PR #659 (open)
 19. **[IN REVIEW]** Parallelize Provider.get_provider_profile + list_programs_for_provider in StaffDashboardLive.mount — PR #658 (open)
-20. **[PENDING PUSH]** Parallelize list_programs_for_provider + get_session_with_roster_enriched in StaffParticipationLive.mount — branch: perf-assist/parallelize-staff-participation-mount-1776400161 (committed, not pushed — safeoutputs + git push unavailable 2026-04-17)
-21. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
-22. **[LOW]** program_sessions.status index — verify query patterns first
-23. **[PLANNED]** ETS projection cache for program→provider ACL resolution — issue #478, maintainer-designed
-24. **[NEW]** Admin sessions live: list_providers_for_select + list_programs_for_select in mount are sequential and independent — could parallelize; admin-only page, lower priority
+20. **[PENDING PUSH]** Parallelize list_programs_for_provider + get_session_with_roster_enriched in StaffParticipationLive.mount — branch: perf-assist/parallelize-staff-participation-mount (commit c988b08, 2026-04-19). PUSH + PR CREATION PENDING (safeoutputs unavailable 2026-04-19). Use push_to_pull_request_branch on next run.
+21. **[NEW]** StaffBroadcastLive.mount: Provider.get_provider_profile + ProgramCatalog.get_program_by_id are sequential + independent — could parallelize; low-traffic page but same pattern as other merged PRs.
+22. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
+23. **[LOW]** program_sessions.status index — verify query patterns first
+24. **[PLANNED]** ETS projection cache for program→provider ACL resolution — issue #478, maintainer-designed
+25. **[LOW]** Admin sessions live: list_providers_for_select + list_programs_for_select in mount are sequential and independent — admin-only page
 
 ## Backlog Cursor
-- Next run: T4 (maintain PRs — check PRs #658, #659; push branch for item 20 above) + T7 (monthly summary)
-- URGENT: On next run, push branch perf-assist/parallelize-staff-participation-mount-1776400161 via push_to_pull_request_branch tool and create PR
+- URGENT: On next run, push branch perf-assist/parallelize-staff-participation-mount via push_to_pull_request_branch tool (commit c988b08) and create PR for item 20 above
+- Next tasks after that: T5 (comment on issues), T1, T7 (monthly summary)
 
 ## Performance Notes
 - Phoenix app with OpenTelemetry + Honeycomb configured for production tracing
@@ -72,10 +69,11 @@
 - Elixir/mix is not in PATH in the CI runner environment — cannot run `mix compile` or `mix test` locally
 - SendMessage.execute accepts optional :conversation opt — when provided, skips the conversations.get_by_id fetch
 - Index PRs pattern: only accepted when backed by production Honeycomb evidence AND non-trivial table size
-- Task.async/await parallel pattern is accepted by maintainer (used in DashboardLive PR #393, SessionsLive PR #620)
+- Task.async/await parallel pattern is accepted by maintainer (used in DashboardLive PR #393, SessionsLive PR #622, DashboardLive PR #628)
 - list_active/0 in ProgramListingsRepository is left unchanged; list_active_limited/1 adds LIMIT capability
-- safeoutputs MCP tools intermittently unavailable (failed 2026-04-14, 2026-04-15, 2026-04-17; worked 2026-04-12)
-- git push also requires auth not available — branches can only be pushed via push_to_pull_request_branch safeoutputs tool
+- safeoutputs MCP tools intermittently unavailable (failed 2026-04-14, 2026-04-15, 2026-04-17, 2026-04-19; worked 2026-04-12, 2026-04-16)
+- git push requires auth not available — branches can only be pushed via push_to_pull_request_branch safeoutputs tool
+- T6 infra state: no Benchee, no CI perf regression jobs; OTel + Honeycomb in prod; LiveDashboard in dev
 
 ## Active PRs
 - PR #659: perf-assist/limit-featured-programs-query-c89d47071b72a9cb — open, awaiting review
