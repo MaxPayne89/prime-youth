@@ -234,8 +234,8 @@ defmodule KlassHeroWeb.ProgramComponents do
   attr :variant, :atom, default: :detailed, values: [:compact, :detailed]
   attr :class, :string, default: ""
   attr :expired, :boolean, default: false, doc: "Greyed-out styling for expired programs"
-  attr :contact_url, :string, default: nil, doc: "URL for contact button (e.g. /messages)"
   attr :rest, :global, include: ~w(phx-click phx-value-*)
+  slot :actions, doc: "Optional action buttons rendered at the bottom of the card"
 
   def program_card(assigns) do
     ~H"""
@@ -397,22 +397,12 @@ defmodule KlassHeroWeb.ProgramComponents do
           <div class="text-sm text-hero-grey-500">{@program.period}</div>
         </div>
       </div>
-      <%!-- Contact Button --%>
-      <div :if={@contact_url} class="px-6 pb-6">
-        <.link
-          navigate={@contact_url}
-          class={[
-            "block w-full text-center px-4 py-2 text-sm font-medium",
-            Theme.rounded(:lg),
-            "bg-hero-blue-50 text-hero-blue-600 hover:bg-hero-blue-100",
-            Theme.transition(:normal)
-          ]}
-          onclick="event.stopPropagation();"
-        >
-          <.icon name="hero-chat-bubble-left-right-mini" class="w-4 h-4 inline mr-1" />
-          {gettext("Contact Provider")}
-        </.link>
-      </div>
+      <%!-- Actions slot --%>
+      <%= if @actions != [] do %>
+        <div class="px-6 pb-6">
+          {render_slot(@actions)}
+        </div>
+      <% end %>
     </div>
     """
   end

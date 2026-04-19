@@ -24,6 +24,7 @@ defmodule KlassHero.Messaging.Domain.ReadModels.ConversationSummary do
           unread_count: non_neg_integer(),
           last_read_at: DateTime.t() | nil,
           archived_at: DateTime.t() | nil,
+          enrolled_child_names: [String.t()],
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -48,7 +49,8 @@ defmodule KlassHero.Messaging.Domain.ReadModels.ConversationSummary do
     :updated_at,
     has_attachments: false,
     participant_count: 0,
-    unread_count: 0
+    unread_count: 0,
+    enrolled_child_names: []
   ]
 
   @spec new(map()) :: t()

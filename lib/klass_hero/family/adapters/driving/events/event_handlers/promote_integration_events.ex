@@ -40,4 +40,22 @@ defmodule KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrat
     |> FamilyIntegrationEvents.invite_family_ready(event.payload)
     |> IntegrationEventPublishing.publish()
   end
+
+  def handle(%DomainEvent{event_type: :child_created} = event) do
+    # Trigger: child record created in Family context
+    # Why: downstream contexts (e.g. Messaging) need to maintain local child name lookups
+    # Outcome: publish integration event on topic integration:family:child_created
+    event.payload.child_id
+    |> FamilyIntegrationEvents.child_created(event.payload)
+    |> IntegrationEventPublishing.publish()
+  end
+
+  def handle(%DomainEvent{event_type: :child_updated} = event) do
+    # Trigger: child record updated in Family context
+    # Why: downstream contexts (e.g. Messaging) need to refresh local child name lookups
+    # Outcome: publish integration event on topic integration:family:child_updated
+    event.payload.child_id
+    |> FamilyIntegrationEvents.child_updated(event.payload)
+    |> IntegrationEventPublishing.publish()
+  end
 end

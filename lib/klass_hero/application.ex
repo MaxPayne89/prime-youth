@@ -88,7 +88,11 @@ defmodule KlassHero.Application do
            {:child_data_anonymized,
             {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle}, priority: 10},
            {:invite_family_ready,
-            {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle}, priority: 10}
+            {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle}, priority: 10},
+           {:child_created, {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
+            priority: 10},
+           {:child_updated, {KlassHero.Family.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
+            priority: 10}
          ]},
         id: :family_domain_event_bus
       ),
@@ -135,6 +139,9 @@ defmodule KlassHero.Application do
             {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
             priority: 10},
            {:enrollment_cancelled,
+            {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
+            priority: 10},
+           {:enrollment_created,
             {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
             priority: 10}
          ]},

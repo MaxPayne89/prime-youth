@@ -56,6 +56,16 @@ defmodule KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteI
     )
   end
 
+  def handle(%DomainEvent{event_type: :session_cancelled} = event) do
+    # Trigger: session_cancelled domain event dispatched when a session is cancelled
+    # Why: downstream projections (e.g. ProviderSessionDetails) must mark it cancelled
+    # Outcome: best-effort publish; swallow failures since cancellation is already persisted
+    ParticipationIntegrationEvents.session_cancelled(event.aggregate_id, event.payload)
+    |> IntegrationEventPublishing.publish_best_effort("session_cancelled",
+      session_id: event.aggregate_id
+    )
+  end
+
   def handle(%DomainEvent{event_type: :roster_seeded} = event) do
     # Trigger: roster_seeded domain event dispatched from SeedSessionRoster use case
     # Why: downstream contexts may need to know roster is ready (e.g. notifications)

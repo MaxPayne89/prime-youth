@@ -628,4 +628,29 @@ defmodule KlassHero.Participation.Domain.Events.ParticipationIntegrationEventsTe
                    end
     end
   end
+
+  describe "session_cancelled/3" do
+    test "creates a session_cancelled integration event" do
+      event = ParticipationIntegrationEvents.session_cancelled("session-1", %{program_id: "program-1"})
+
+      assert event.event_type == :session_cancelled
+      assert event.source_context == :participation
+      assert event.entity_type == :session
+      assert event.entity_id == "session-1"
+      assert event.payload.session_id == "session-1"
+      assert event.payload.program_id == "program-1"
+    end
+
+    test "raises when session_id is nil" do
+      assert_raise ArgumentError, fn ->
+        ParticipationIntegrationEvents.session_cancelled(nil, %{program_id: "p"})
+      end
+    end
+
+    test "raises when program_id is missing" do
+      assert_raise ArgumentError, fn ->
+        ParticipationIntegrationEvents.session_cancelled("session-1", %{})
+      end
+    end
+  end
 end
