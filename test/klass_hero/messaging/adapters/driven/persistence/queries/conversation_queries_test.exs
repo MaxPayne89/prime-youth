@@ -247,13 +247,13 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.ConversationQu
   end
 
   describe "total_unread_count/1" do
-    test "returns a query based on participants table" do
+    test "returns a query based on conversation_participants table" do
       user_id = Ecto.UUID.generate()
 
       query = ConversationQueries.total_unread_count(user_id)
 
       assert %Ecto.Query{} = query
-      assert query.from.source == {"participants", ParticipantSchema}
+      assert query.from.source == {"conversation_participants", ParticipantSchema}
     end
 
     test "includes JOIN to conversations and messages" do
