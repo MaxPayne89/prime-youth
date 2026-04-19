@@ -150,6 +150,8 @@ Types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`, `ci`, `perf`
 
 Examples: `feat: add staff invitation flow`, `fix: correct enrollment fee calculation`, `ci: split test workflow into parallel jobs`
 
+**Merge strategy:** Squash-merge all PRs onto `main`; always rebase the branch onto `origin/main` before opening or updating a PR. See `.claude/rules/workflow.md#merge-strategy`.
+
 ## CI Pipeline
 
 These checks run automatically on every PR — don't manually recheck what CI catches:
@@ -236,10 +238,16 @@ _A config-driven dev tool for Elixir projects to manage AGENTS.md files and agen
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+4. **PUSH TO REMOTE** - This is MANDATORY. On a feature branch, rebase onto `origin/main` before the final push so the PR is fresh against current main:
    ```bash
-   git pull --rebase
-   git push
+   git fetch origin
+   if [ "$(git branch --show-current)" = "main" ]; then
+     git pull --rebase
+     git push
+   else
+     git rebase origin/main
+     git push --force-with-lease
+   fi
    git status  # MUST show "up to date with origin"
    ```
 5. **Clean up** - Clear stashes, prune remote branches
@@ -251,3 +259,4 @@ _A config-driven dev tool for Elixir projects to manage AGENTS.md files and agen
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
+- Force-push ONLY with `--force-with-lease` — and ONLY on your own feature branch after a rebase, never on `main` (the ruleset blocks it anyway)
