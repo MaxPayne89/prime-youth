@@ -6,8 +6,11 @@ defmodule KlassHero.Family.Application.Commands.Children.UpdateChild do
   then persists via the repository port.
   """
 
+  alias KlassHero.Family.Domain.Events.FamilyEvents
   alias KlassHero.Family.Domain.Models.Child
+  alias KlassHero.Shared.EventDispatchHelper
 
+  @context KlassHero.Family
   @repository Application.compile_env!(:klass_hero, [:family, :for_storing_children])
 
   @doc """
@@ -24,10 +27,23 @@ defmodule KlassHero.Family.Application.Commands.Children.UpdateChild do
          merged = Map.merge(Map.from_struct(existing), attrs),
          {:ok, _validated} <- Child.new(merged),
          {:ok, updated} <- @repository.update(child_id, attrs) do
+      dispatch_child_updated(updated)
       {:ok, updated}
     else
       {:error, errors} when is_list(errors) -> {:error, {:validation_error, errors}}
       {:error, _} = error -> error
     end
+  end
+
+  defp dispatch_child_updated(child) do
+    # Trigger: child record successfully updated
+    # Why: downstream contexts (e.g. Messaging) need to refresh local child name lookups
+    # Outcome: fire-and-forget dispatch; parent_id omitted (not on child struct)
+    FamilyEvents.child_updated(child.id, %{
+      child_id: child.id,
+      first_name: child.first_name,
+      last_name: child.last_name
+    })
+    |> EventDispatchHelper.dispatch(@context)
   end
 end

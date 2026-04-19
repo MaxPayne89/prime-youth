@@ -23,9 +23,10 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
           conversation_id :: String.t(),
           type :: :direct | :program_broadcast,
           provider_id :: String.t(),
-          participant_ids :: [String.t()]
+          participant_ids :: [String.t()],
+          program_id :: String.t() | nil
         ) :: DomainEvent.t()
-  def conversation_created(conversation_id, type, provider_id, participant_ids) do
+  def conversation_created(conversation_id, type, provider_id, participant_ids, program_id \\ nil) do
     DomainEvent.new(
       :conversation_created,
       conversation_id,
@@ -34,7 +35,8 @@ defmodule KlassHero.Messaging.Domain.Events.MessagingEvents do
         conversation_id: conversation_id,
         type: type,
         provider_id: provider_id,
-        participant_ids: participant_ids
+        participant_ids: participant_ids,
+        program_id: program_id
       }
     )
   end

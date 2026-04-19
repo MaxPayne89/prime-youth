@@ -279,18 +279,22 @@ defmodule KlassHero.Messaging.Application.Commands.SendMessage do
 
     case result do
       {:ok, %{type: :program_broadcast, provider_id: provider_id, program_id: program_id}} ->
-        cond do
-          provider_owner?(provider_id, sender_id) -> :ok
-          staff_assigned?(program_id, sender_id) -> :ok
-          active_staff_for_provider?(provider_id, sender_id) -> :ok
-          true -> {:error, :broadcast_reply_not_allowed}
-        end
+        check_broadcast_reply_permission(provider_id, program_id, sender_id)
 
       {:ok, _direct_conversation} ->
         :ok
 
       {:error, :not_found} ->
         {:error, :not_found}
+    end
+  end
+
+  defp check_broadcast_reply_permission(provider_id, program_id, sender_id) do
+    cond do
+      provider_owner?(provider_id, sender_id) -> :ok
+      staff_assigned?(program_id, sender_id) -> :ok
+      active_staff_for_provider?(provider_id, sender_id) -> :ok
+      true -> {:error, :broadcast_reply_not_allowed}
     end
   end
 

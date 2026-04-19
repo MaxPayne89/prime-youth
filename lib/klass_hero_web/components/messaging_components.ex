@@ -17,6 +17,7 @@ defmodule KlassHeroWeb.MessagingComponents do
   alias KlassHero.Messaging.Domain.Models.Attachment
   alias KlassHeroWeb.MessagingLiveHelper
   alias KlassHeroWeb.Theme
+  alias Phoenix.LiveView.JS
 
   @doc """
   Renders a conversation card for the conversation list.
@@ -45,6 +46,7 @@ defmodule KlassHeroWeb.MessagingComponents do
   attr :unread_count, :integer, default: 0
   attr :latest_message, :map, default: nil
   attr :other_participant_name, :string, default: nil
+  attr :enrolled_child_names, :list, default: []
   attr :navigate, :string, default: nil
 
   def conversation_card(assigns) do
@@ -83,6 +85,9 @@ defmodule KlassHeroWeb.MessagingComponents do
               {format_timestamp(@latest_message && @latest_message.inserted_at)}
             </span>
           </div>
+          <p :if={@enrolled_child_names != []} class={["text-xs mt-0.5", Theme.text_color(:muted)]}>
+            {gettext("for")} {Enum.join(@enrolled_child_names, ", ")}
+          </p>
 
           <div class="flex items-center justify-between gap-2 mt-1">
             <p class={[
@@ -316,6 +321,7 @@ defmodule KlassHeroWeb.MessagingComponents do
             ]}
             placeholder={gettext("Type a message...")}
             phx-hook="AutoResizeTextarea"
+            phx-mounted={JS.focus()}
             disabled={@disabled}
           >{Phoenix.HTML.Form.input_value(@form, :content)}</textarea>
         </div>
@@ -471,6 +477,11 @@ defmodule KlassHeroWeb.MessagingComponents do
         unread_count={conv_data.unread_count}
         latest_message={conv_data.latest_message}
         other_participant_name={conv_data.other_participant_name}
+        enrolled_child_names={
+          if @user_type == :parent,
+            do: [],
+            else: Map.get(conv_data, :enrolled_child_names, [])
+        }
         navigate={@navigate_base <> "/" <> conv_data.conversation.id}
       />
       <div :if={@conversations_empty?} id="conversations-empty-state" class="p-4">
@@ -687,4 +698,44 @@ defmodule KlassHeroWeb.MessagingComponents do
 
   defp upload_error_to_string(:external_client_failure), do: gettext("Upload failed")
   defp upload_error_to_string(_), do: gettext("Upload error")
+
+  @doc """
+  Renders a "Contact Provider" button that emits a phx-click event
+  carrying the program_id and provider_id as phx-values.
+
+  Designed for use inside the `:actions` slot of `<.program_card>`, so the
+  card stays purely presentational while the caller owns the event handler.
+
+  ## Examples
+
+      <.contact_provider_button
+        program_id={program.id}
+        provider_id={program.provider_id}
+        phx-click="contact_provider"
+      />
+  """
+  attr :program_id, :string, required: true
+  attr :provider_id, :string, required: true
+  attr :rest, :global, include: ~w(phx-click disabled)
+
+  def contact_provider_button(assigns) do
+    ~H"""
+    <button
+      type="button"
+      phx-value-program-id={@program_id}
+      phx-value-provider-id={@provider_id}
+      class={[
+        "block w-full text-center px-4 py-2 text-sm font-medium",
+        Theme.rounded(:lg),
+        "bg-hero-blue-50 text-hero-blue-600 hover:bg-hero-blue-100",
+        Theme.transition(:normal)
+      ]}
+      onclick="event.stopPropagation();"
+      {@rest}
+    >
+      <.icon name="hero-chat-bubble-left-right-mini" class="w-4 h-4 inline mr-1" />
+      {gettext("Contact Provider")}
+    </button>
+    """
+  end
 end

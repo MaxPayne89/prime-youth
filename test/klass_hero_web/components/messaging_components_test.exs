@@ -32,4 +32,24 @@ defmodule KlassHeroWeb.MessagingComponentsTest do
       assert html =~ "Jane Doe"
     end
   end
+
+  describe "contact_provider_button/1" do
+    test "renders a button carrying program_id and provider_id as phx-values" do
+      html =
+        render_component(&MessagingComponents.contact_provider_button/1, %{
+          program_id: "prog-42",
+          provider_id: "prov-7",
+          "phx-click": "contact_provider"
+        })
+
+      doc = LazyHTML.from_fragment(html)
+      button = LazyHTML.query(doc, "button")
+
+      assert Enum.count(button) == 1
+      assert LazyHTML.attribute(button, "phx-click") == ["contact_provider"]
+      assert LazyHTML.attribute(button, "phx-value-program-id") == ["prog-42"]
+      assert LazyHTML.attribute(button, "phx-value-provider-id") == ["prov-7"]
+      assert LazyHTML.text(button) =~ "Contact Provider"
+    end
+  end
 end

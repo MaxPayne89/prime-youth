@@ -6,6 +6,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummariesT
 
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ConversationSummarySchema
+  alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.EnrolledChildrenSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.MessageSchema
   alias KlassHero.Messaging.Adapters.Driven.Persistence.Schemas.ParticipantSchema
   alias KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries
@@ -203,6 +204,86 @@ defmodule KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummariesT
 
       assert Map.has_key?(summary.system_notes, token),
              "Expected system_notes to contain key #{token}, got: #{inspect(summary.system_notes)}"
+    end
+
+    test "populates enrolled_child_names uniformly across parent and provider summary rows" do
+      # Trigger: regression test for a bootstrap asymmetry bug —
+      #          resolve_enrolled_child_names used to filter by the current row's
+      #          user_id, which matched only the parent's row.
+      # Why: event-driven path updates all participant rows of a conversation with
+      #      the same list; bootstrap must do the same to stay consistent after restart.
+      # Outcome: both the parent's and the provider's summary rows carry ["Emma"].
+      parent_user = user_fixture(name: "Sarah Johnson")
+      provider_user = user_fixture(name: "Claudia Wolf")
+
+      parent = insert(:parent_profile_schema, identity_id: parent_user.id)
+      child = insert(:child_schema, first_name: "Emma")
+      insert(:child_guardian_schema, child_id: child.id, guardian_id: parent.id)
+
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+
+      conversation_id = Ecto.UUID.generate()
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      Repo.insert!(%ConversationSchema{
+        id: conversation_id,
+        type: "direct",
+        provider_id: provider.id,
+        program_id: program.id
+      })
+
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: parent_user.id,
+        joined_at: now
+      })
+
+      Repo.insert!(%ParticipantSchema{
+        id: Ecto.UUID.generate(),
+        conversation_id: conversation_id,
+        user_id: provider_user.id,
+        joined_at: now
+      })
+
+      Repo.insert!(%EnrolledChildrenSchema{
+        id: Ecto.UUID.generate(),
+        parent_user_id: parent_user.id,
+        program_id: program.id,
+        child_id: child.id,
+        child_first_name: "Emma",
+        inserted_at: now,
+        updated_at: now
+      })
+
+      stop_supervised!(ConversationSummaries)
+
+      bootstrap_name = :"bootstrap_enrolled_children_#{System.unique_integer([:positive])}"
+
+      bootstrap_pid =
+        start_supervised!({ConversationSummaries, name: bootstrap_name},
+          id: :bootstrap_enrolled_children
+        )
+
+      _ = :sys.get_state(bootstrap_pid)
+
+      parent_summary =
+        Repo.one(
+          from(s in ConversationSummarySchema,
+            where: s.conversation_id == ^conversation_id and s.user_id == ^parent_user.id
+          )
+        )
+
+      provider_summary =
+        Repo.one(
+          from(s in ConversationSummarySchema,
+            where: s.conversation_id == ^conversation_id and s.user_id == ^provider_user.id
+          )
+        )
+
+      assert parent_summary.enrolled_child_names == ["Emma"]
+      assert provider_summary.enrolled_child_names == ["Emma"]
     end
   end
 
