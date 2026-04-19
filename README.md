@@ -346,7 +346,6 @@ This project follows Domain-Driven Design with Ports & Adapters architecture. Ke
 - **Review & Rating** - Program reviews and feedback
 
 **Documentation:**
-- `docs/contexts/` - Per-bounded-context documentation (purpose, features, communication patterns)
 - `.claude/rules/domain-architecture.md` - DDD patterns and key conventions
 
 ## Project Structure
@@ -358,5 +357,4 @@ lib/
 assets/                   # CSS, JavaScript
 priv/                     # Migrations, seeds, static files
 test/                     # Test files
-docs/                     # Architecture documentation
 ```

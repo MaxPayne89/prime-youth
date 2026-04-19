@@ -124,7 +124,7 @@ Note what was changed and why.
 
 ## Step 7: Compile Report
 
-Read `references/report-template.md` for the exact format. Save to `docs/reports/test-drive-{YYYY-MM-DD}.md`. If a report exists for today, use suffix: `test-drive-{YYYY-MM-DD}-{HHmm}.md`.
+Read `references/report-template.md` for the exact format. Save to `.test-drive-reports/test-drive-{YYYY-MM-DD}.md`. If a report exists for today, use suffix: `test-drive-{YYYY-MM-DD}-{HHmm}.md`.
 
 ## Step 8: File Issues (Optional)
 

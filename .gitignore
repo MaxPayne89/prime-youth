@@ -58,5 +58,6 @@ npm-debug.log
 # Override global gitignore to track Claude config
 !CLAUDE.md
 !.claude/
-!docs/superpowers/specs/
-docs/reports/screenshots/
+
+# Local-only test-drive reports
+.test-drive-reports/

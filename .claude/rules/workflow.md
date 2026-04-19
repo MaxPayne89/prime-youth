@@ -13,8 +13,8 @@
 
 When implementing features, reference:
 
-- `docs/contexts/` - Per-bounded-context documentation and communication patterns
 - `.claude/rules/domain-architecture.md` - DDD patterns and key conventions
+- Existing context implementations under `lib/klass_hero/<context>/` - Follow established patterns
 - Existing LiveView pages - Established UI patterns and component usage
 
 ## Pre-commit Checklist

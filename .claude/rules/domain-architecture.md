@@ -15,7 +15,6 @@ The project follows Domain-Driven Design with Ports & Adapters architecture (Hex
 
 **Start here for architectural guidance:**
 
-- `docs/contexts/` - Per-bounded-context documentation (purpose, features, communication patterns)
 - Existing context implementations under `lib/klass_hero/` - Follow established patterns
 
 ## Authentication Note

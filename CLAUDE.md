@@ -76,7 +76,7 @@ context/
 - **Participation** (`participation/`) - Session tracking, check-in/out, attendance rosters
 - **Shared** (`shared/`) - Event publishing, Ecto helpers, pagination, domain events
 
-See `.claude/rules/domain-architecture.md` for patterns and `docs/contexts/` for per-context documentation (living docs with feature specs, context canvases, and cross-context flows — use `/doc` to regenerate).
+See `.claude/rules/domain-architecture.md` for patterns. For context-specific details, read the code under `lib/klass_hero/<context>/` directly — Claude Code explores on-demand.
 
 ### Dependency Injection (Port Wiring)
 
