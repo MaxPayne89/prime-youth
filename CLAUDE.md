@@ -238,16 +238,11 @@ _A config-driven dev tool for Elixir projects to manage AGENTS.md files and agen
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY. On a feature branch, rebase onto `origin/main` before the final push so the PR is fresh against current main:
+4. **PUSH TO REMOTE** - This is MANDATORY. Session-end work lands via PR from a feature branch; direct pushes to `main` are blocked by the ruleset. Rebase onto `origin/main` before the final push so the PR is fresh against current main:
    ```bash
    git fetch origin
-   if [ "$(git branch --show-current)" = "main" ]; then
-     git pull --rebase
-     git push
-   else
-     git rebase origin/main
-     git push --force-with-lease
-   fi
+   git rebase origin/main
+   git push --force-with-lease
    git status  # MUST show "up to date with origin"
    ```
 5. **Clean up** - Clear stashes, prune remote branches

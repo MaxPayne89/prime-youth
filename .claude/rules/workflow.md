@@ -46,7 +46,7 @@ This command:
    git push --force-with-lease
    ```
 
-   Never use `git merge origin/main` inside a feature branch; it creates a merge commit that survives the squash and pollutes `main`'s log.
+   Never use `git merge origin/main` inside a feature branch; it adds noisy merge commits to the branch and PR diff, makes future rebases harder, and clutters `git blame` walks during review.
 
 2. **Squash-merge all PRs** — the "Squash and merge" button is the only merge button the UI exposes. The squashed commit message should use the semantic format from `CLAUDE.md`'s "Git Conventions" section (e.g. `feat: add staff invitation flow`). If the PR body has useful context, keep it in the squash-commit body; don't paste individual branch commits.
 
