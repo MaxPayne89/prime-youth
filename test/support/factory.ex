@@ -507,13 +507,6 @@ defmodule KlassHero.Factory do
 
       assignment = insert(:program_staff_assignment_schema)
       assignment = insert(:program_staff_assignment_schema, assigned_at: ~U[2025-03-01 10:00:00Z])
-
-      # Override with pre-existing provider/program/staff to avoid extra inserts:
-      assignment = insert(:program_staff_assignment_schema,
-        provider_id: provider.id,
-        program_id: program.id,
-        staff_member_id: staff.id
-      )
   """
   def program_staff_assignment_schema_factory do
     provider = insert(:provider_profile_schema)
@@ -533,9 +526,11 @@ defmodule KlassHero.Factory do
   Unassigned variant — staff member has been removed from the program.
   """
   def unassigned_program_staff_assignment_schema_factory do
+    assignment = program_staff_assignment_schema_factory()
+
     struct!(
-      program_staff_assignment_schema_factory(),
-      %{unassigned_at: ~U[2025-06-01 09:00:00Z]}
+      assignment,
+      %{unassigned_at: DateTime.add(assignment.assigned_at, 3600, :second)}
     )
   end
 
