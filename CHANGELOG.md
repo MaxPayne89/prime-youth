@@ -5,6 +5,50 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.0](https://github.com/MaxPayne89/klass-hero/compare/v0.40.0...v0.41.0) (2026-04-19)
+
+
+### Features
+
+* add ForQueryingSessionDetails port ([52980df](https://github.com/MaxPayne89/klass-hero/commit/52980df05b9060db7fa8f6cf940a1f94bd546aab))
+* add ListProgramSessions query use case ([d0a3d2b](https://github.com/MaxPayne89/klass-hero/commit/d0a3d2b9dd851287f0e07e0856a44c520ff5240f))
+* add provider_session_details read table ([1ab282c](https://github.com/MaxPayne89/klass-hero/commit/1ab282c3e8a259526dac422bf391971d3af9a1c5))
+* add session_cancelled integration event ([5f1e144](https://github.com/MaxPayne89/klass-hero/commit/5f1e1443a7eba524e53d881efeb78a40fefbc512))
+* add SessionDetail DTO, schema, and mapper ([ae1785a](https://github.com/MaxPayne89/klass-hero/commit/ae1785aad12cbca2b43a895218a338813aed212d))
+* add SessionDetailsRepository (implements port) ([7e5ffb6](https://github.com/MaxPayne89/klass-hero/commit/7e5ffb68c86edbb6ee100e143398d871c9488676))
+* add Sessions button to programs_table Actions ([40cf579](https://github.com/MaxPayne89/klass-hero/commit/40cf579a884fc9ad681e86242ac2845fc21289ea))
+* add sessions_modal component ([1002ed8](https://github.com/MaxPayne89/klass-hero/commit/1002ed8a2f13174ce5fe5eca0e580a4e51a80ad5))
+* bootstrap ProviderSessionDetails from write tables ([e70a96a](https://github.com/MaxPayne89/klass-hero/commit/e70a96ac15887a60a9725a07f98c59ac4f4922b0))
+* extend participation_status with :cancelled variant ([0f0e19d](https://github.com/MaxPayne89/klass-hero/commit/0f0e19db80d485e8d058649554cac9b94ad04851))
+* per-session view in provider dashboard ([#373](https://github.com/MaxPayne89/klass-hero/issues/373)) ([14ef096](https://github.com/MaxPayne89/klass-hero/commit/14ef09699c6afab8f611a29a5f27ce39e213ac00))
+* project attendance counters ([18b2f70](https://github.com/MaxPayne89/klass-hero/commit/18b2f70ae34b3738768735520837a0f97c220a3b))
+* project roster_seeded total_count ([83f7dc3](https://github.com/MaxPayne89/klass-hero/commit/83f7dc3e5c2d49a41e08bbd9f80097861524066a))
+* project session status transitions ([aba4e42](https://github.com/MaxPayne89/klass-hero/commit/aba4e42ecc6f9ac2d61d73ad12edd40ae0c06e8b))
+* project session_created into provider_session_details ([7aed9dc](https://github.com/MaxPayne89/klass-hero/commit/7aed9dcee45a6754eabfad79a42b9e0a163718e1))
+* project staff assignment changes for scheduled sessions ([76fc559](https://github.com/MaxPayne89/klass-hero/commit/76fc5593b6973ea1bcd3345999b17b7be1ccddb9))
+* promote session_cancelled domain event to integration event ([81936a8](https://github.com/MaxPayne89/klass-hero/commit/81936a880311a62deff535262806f40d333535b8))
+* scaffold ProviderSessionDetails projection GenServer ([93b4855](https://github.com/MaxPayne89/klass-hero/commit/93b485520e0d2832c013b4c6437e7d83bff56d01))
+* wire sessions modal into provider dashboard ([f9300ad](https://github.com/MaxPayne89/klass-hero/commit/f9300ad140c28a04cea91d9d27eddc4de3d8ff5b))
+
+
+### Bug Fixes
+
+* address PR review comments ([fb4cc47](https://github.com/MaxPayne89/klass-hero/commit/fb4cc47d07e692e061152439f4a49a294b74a1c4))
+* address PR review comments on program staff assignment factory ([31f97f0](https://github.com/MaxPayne89/klass-hero/commit/31f97f06fe93ec4a5bbcf9d4ccb06d143bd1d69f)), closes [#672](https://github.com/MaxPayne89/klass-hero/issues/672)
+* correct table name in ConversationQueries total_unread_count test ([4e6385d](https://github.com/MaxPayne89/klass-hero/commit/4e6385d0b7d1cf28c7b066bfd042d78ddc399d79)), closes [#686](https://github.com/MaxPayne89/klass-hero/issues/686)
+* preserve evolved state on session_created replay ([f186092](https://github.com/MaxPayne89/klass-hero/commit/f1860926346e20bcaa2fbffe065e0e2d2aa1552b))
+* preserve nil type in ConversationMapper.to_create_attrs/1 ([64464d4](https://github.com/MaxPayne89/klass-hero/commit/64464d4c4e31c29651327503c8acd8b34a7b3860))
+* warn when status transition targets unknown session ([2d91593](https://github.com/MaxPayne89/klass-hero/commit/2d915939a6c8916af7cdeee0ec829cffdee293d5))
+
+
+### Code Refactoring
+
+* drop unused bootstrapped flag from ProviderSessionDetails state ([1d7c135](https://github.com/MaxPayne89/klass-hero/commit/1d7c135d1072a0908e45ef5b7c3a632825904324))
+* extract warn_if_missing helper for projection zero-row updates ([7bf4b63](https://github.com/MaxPayne89/klass-hero/commit/7bf4b631c0ca8fa8eee4f6094752f8a7581a2abc))
+* merge resolve_program + staff lookup into one query ([f0e07ad](https://github.com/MaxPayne89/klass-hero/commit/f0e07ad41f770bfd31c178b33da0f6781c0414af))
+* rename ListProgramSessions.run to execute for convention consistency ([df3cf2d](https://github.com/MaxPayne89/klass-hero/commit/df3cf2d190d75fb8ef3a676ead02a71eb76a7b92))
+* resolve credo strict warnings in messaging ([6dc8b7f](https://github.com/MaxPayne89/klass-hero/commit/6dc8b7f12db35858ac96cd4a77a0dec757a652f3))
+
 ## [0.40.0](https://github.com/MaxPayne89/klass-hero/compare/v0.39.0...v0.40.0) (2026-04-18)
 
 
