@@ -186,7 +186,7 @@ defmodule KlassHero.Participation.Adapters.Driven.Persistence.Mappers.Behavioral
     end
   end
 
-  describe "update_schema/1" do
+  describe "update_schema/2" do
     test "returns mutable field subset from domain model" do
       note = valid_domain()
 
