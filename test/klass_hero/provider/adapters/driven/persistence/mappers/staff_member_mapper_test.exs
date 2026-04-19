@@ -88,9 +88,9 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
 
       staff = StaffMemberMapper.to_domain(schema)
 
-      assert is_binary(staff.id)
-      assert is_binary(staff.provider_id)
-      assert is_binary(staff.user_id)
+      assert staff.id == to_string(schema.id)
+      assert staff.provider_id == to_string(schema.provider_id)
+      assert staff.user_id == to_string(schema.user_id)
     end
 
     test "converts string invitation_status to atom" do

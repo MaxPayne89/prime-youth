@@ -54,10 +54,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProgramStaffAss
 
       assignment = ProgramStaffAssignmentMapper.to_domain(schema)
 
-      assert is_binary(assignment.id)
-      assert is_binary(assignment.provider_id)
-      assert is_binary(assignment.program_id)
-      assert is_binary(assignment.staff_member_id)
+      assert assignment.id == to_string(schema.id)
+      assert assignment.provider_id == to_string(schema.provider_id)
+      assert assignment.program_id == to_string(schema.program_id)
+      assert assignment.staff_member_id == to_string(schema.staff_member_id)
     end
 
     test "preserves timestamps from schema" do
