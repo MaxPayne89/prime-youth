@@ -65,7 +65,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.MessageQueries
         |> MessageQueries.before(nil)
 
       assert %Ecto.Query{} = query
-      assert length(query.wheres) == 0
+      assert Enum.empty?(query.wheres)
     end
 
     test "adds WHERE clause when timestamp is given" do
@@ -87,7 +87,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.MessageQueries
         |> MessageQueries.after_timestamp(nil)
 
       assert %Ecto.Query{} = query
-      assert length(query.wheres) == 0
+      assert Enum.empty?(query.wheres)
     end
 
     test "adds WHERE clause when timestamp is given" do
@@ -172,7 +172,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.MessageQueries
 
       assert %Ecto.Query{} = query
       assert query.limit != nil
-      assert length(query.wheres) == 0
+      assert Enum.empty?(query.wheres)
     end
 
     test "applies before timestamp filter when :before opt is given" do
@@ -207,7 +207,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.MessageQueries
         |> MessageQueries.preload_assocs([])
 
       assert %Ecto.Query{} = query
-      assert length(query.preloads) == 0
+      assert Enum.empty?(query.preloads)
     end
 
     test "adds preloads for non-empty list" do
