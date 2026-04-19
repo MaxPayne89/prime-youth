@@ -19,7 +19,7 @@ defmodule KlassHero.Participation.Application.Commands.CreateSession do
 
   @context KlassHero.Participation
 
-  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :for_storing_sessions])
 
   @type params :: %{
           required(:program_id) => String.t(),

@@ -57,6 +57,7 @@ defmodule KlassHero.Factory do
   alias KlassHero.ProgramCatalog.Domain.Models.Program
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProgramStaffAssignmentSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.SessionStatsSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
   alias KlassHero.Provider.Domain.Models.ProviderProfile
@@ -536,6 +537,30 @@ defmodule KlassHero.Factory do
       program_staff_assignment_schema_factory(),
       %{unassigned_at: ~U[2025-06-01 09:00:00Z]}
     )
+  end
+
+  # =============================================================================
+  # Provider Context - Session Stats Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating SessionStatsSchema Ecto schemas (read model, no FK constraints).
+
+  Used in repository tests for the denormalized provider_session_stats table.
+
+  ## Examples
+
+      schema = insert(:session_stats_schema)
+      schema = insert(:session_stats_schema, sessions_completed_count: 5)
+  """
+  def session_stats_schema_factory do
+    %SessionStatsSchema{
+      id: Ecto.UUID.generate(),
+      provider_id: Ecto.UUID.generate(),
+      program_id: Ecto.UUID.generate(),
+      program_title: sequence(:session_stats_title, &"Program #{&1}"),
+      sessions_completed_count: 0
+    }
   end
 
   # =============================================================================

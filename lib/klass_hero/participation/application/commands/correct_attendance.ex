@@ -11,11 +11,11 @@ defmodule KlassHero.Participation.Application.Commands.CorrectAttendance do
 
   @participation_reader Application.compile_env!(
                           :klass_hero,
-                          [:participation, :participation_query_repository]
+                          [:participation, :for_querying_participation_records]
                         )
   @participation_repository Application.compile_env!(
                               :klass_hero,
-                              [:participation, :participation_repository]
+                              [:participation, :for_storing_participation_records]
                             )
 
   @type params :: %{

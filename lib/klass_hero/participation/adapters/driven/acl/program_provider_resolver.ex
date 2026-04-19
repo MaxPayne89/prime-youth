@@ -1,4 +1,4 @@
-defmodule KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver do
+defmodule KlassHero.Participation.Adapters.Driven.ACL.ProgramProviderResolver do
   @moduledoc """
   Adapter for resolving program ownership from ProgramCatalog context.
 
@@ -26,13 +26,24 @@ defmodule KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramP
 
   @impl true
   def resolve_provider_id(program_id) when is_binary(program_id) do
+    with {:ok, program} <- fetch_program(program_id), do: {:ok, program.provider_id}
+  end
+
+  @impl true
+  def resolve_provider_details(program_id) when is_binary(program_id) do
+    with {:ok, program} <- fetch_program(program_id) do
+      {:ok, %{provider_id: program.provider_id, program_title: program.title}}
+    end
+  end
+
+  defp fetch_program(program_id) do
     case ProgramCatalog.get_programs_by_ids([program_id]) do
-      [program] -> {:ok, program.provider_id}
+      [program] -> {:ok, program}
       _other -> {:error, :program_not_found}
     end
   rescue
     error ->
-      Logger.warning("[ProgramProviderResolver] Failed to resolve provider",
+      Logger.warning("[ProgramProviderResolver] Failed to fetch program",
         program_id: program_id,
         error: Exception.message(error)
       )

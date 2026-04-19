@@ -7,7 +7,7 @@ defmodule KlassHero.Participation.Application.Queries.ListProviderSessions do
 
   alias KlassHero.Participation.Domain.Models.ProgramSession
 
-  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :for_querying_sessions])
 
   @type params :: %{
           required(:provider_id) => String.t(),

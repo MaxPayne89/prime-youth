@@ -33,11 +33,15 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
 
   alias KlassHero.Enrollment
   alias KlassHero.Enrollment.Application.Queries.CheckParticipantEligibility
+  alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
   alias KlassHero.Enrollment.Domain.Models.Enrollment, as: EnrollmentModel
   alias KlassHero.Family
   alias KlassHero.Shared.Entitlements
+  alias KlassHero.Shared.EventDispatchHelper
 
   require Logger
+
+  @context KlassHero.Enrollment
 
   @enrollment_repository Application.compile_env!(:klass_hero, [
                            :enrollment,
@@ -69,19 +73,11 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
   defp create_enrollment_with_validation(identity_id, params) do
     with {:ok, parent} <- validate_parent_profile(identity_id),
          :ok <- validate_booking_entitlement(parent),
-         :ok <- validate_participant_eligibility(params[:program_id], params[:child_id]) do
-      attrs = build_enrollment_attrs(params, parent.id)
-
-      Logger.info("[Enrollment.CreateEnrollment] Creating enrollment with validation",
-        program_id: attrs[:program_id],
-        child_id: attrs[:child_id],
-        parent_id: attrs[:parent_id]
-      )
-
-      # Trigger: capacity check and enrollment creation happen atomically
-      # Why: prevents TOCTOU race where concurrent requests both pass check
-      # Outcome: SELECT FOR UPDATE on policy row serializes concurrent attempts
-      @enrollment_repository.create_with_capacity_check(attrs, params[:program_id])
+         :ok <- validate_participant_eligibility(params[:program_id], params[:child_id]),
+         attrs = build_enrollment_attrs(params, parent.id),
+         {:ok, enrollment} <- @enrollment_repository.create_with_capacity_check(attrs, params[:program_id]) do
+      dispatch_enrollment_created(enrollment, identity_id)
+      {:ok, enrollment}
     end
   end
 
@@ -94,7 +90,14 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
       parent_id: attrs[:parent_id]
     )
 
-    @enrollment_repository.create_with_capacity_check(attrs, params[:program_id])
+    case @enrollment_repository.create_with_capacity_check(attrs, params[:program_id]) do
+      {:ok, enrollment} ->
+        dispatch_enrollment_created(enrollment, params[:identity_id])
+        {:ok, enrollment}
+
+      error ->
+        error
+    end
   end
 
   defp validate_parent_profile(identity_id) do
@@ -159,5 +162,17 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
       payment_method: params[:payment_method],
       special_requirements: params[:special_requirements]
     }
+  end
+
+  defp dispatch_enrollment_created(enrollment, identity_id) do
+    EnrollmentEvents.enrollment_created(enrollment.id, %{
+      enrollment_id: enrollment.id,
+      child_id: enrollment.child_id,
+      parent_id: enrollment.parent_id,
+      parent_user_id: identity_id,
+      program_id: enrollment.program_id,
+      status: Atom.to_string(enrollment.status)
+    })
+    |> EventDispatchHelper.dispatch(@context)
   end
 end

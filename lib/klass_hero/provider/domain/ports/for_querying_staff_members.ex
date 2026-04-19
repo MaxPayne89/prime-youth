@@ -22,4 +22,7 @@ defmodule KlassHero.Provider.Domain.Ports.ForQueryingStaffMembers do
 
   @callback get_active_by_user(user_id :: String.t()) ::
               {:ok, StaffMember.t()} | {:error, :not_found}
+
+  @callback active_for_provider_and_user?(provider_id :: String.t(), user_id :: String.t()) ::
+              boolean()
 end

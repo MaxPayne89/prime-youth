@@ -30,6 +30,8 @@ defmodule KlassHero.Provider do
       Domain.Models.StaffMember,
       Domain.Models.VerificationDocument,
       Domain.Models.ProgramStaffAssignment,
+      Domain.ReadModels.SessionStats,
+      Adapters.Driven.Persistence.Repositories.SessionStatsRepository,
       Adapters.Driven.Persistence.ChangeProviderProfile,
       Adapters.Driven.Persistence.ChangeStaffMember,
       # Pragmatic export: Backpex admin operates directly on Ecto schemas
@@ -55,6 +57,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.Commands.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.Commands.Verification.RejectVerificationDocument
   alias KlassHero.Provider.Application.Commands.Verification.SubmitVerificationDocument
+  alias KlassHero.Provider.Application.Queries.ListProgramSessions
   alias KlassHero.Provider.Application.Queries.ProgramStaffAssignmentQueries
   alias KlassHero.Provider.Application.Queries.ProviderProfileQueries
   alias KlassHero.Provider.Application.Queries.StaffMemberQueries
@@ -70,6 +73,8 @@ defmodule KlassHero.Provider do
   # ===========================================================================
   # Commands
   # ===========================================================================
+
+  alias KlassHero.Provider.Domain.ReadModels.SessionDetail
 
   @doc """
   Creates a new provider profile.
@@ -421,6 +426,18 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
+  Returns true if the given user has any active staff_member row for the given provider.
+
+  Use this for permission checks scoped to a specific provider — unlike
+  `get_active_staff_member_by_user/1`, this correctly identifies users who are
+  active staff at multiple providers.
+  """
+  @spec active_staff_for_provider?(String.t(), String.t()) :: boolean()
+  def active_staff_for_provider?(provider_id, user_id) when is_binary(provider_id) and is_binary(user_id) do
+    StaffMemberQueries.active_for_provider_and_user?(provider_id, user_id)
+  end
+
+  @doc """
   Returns the staff member matching the given invitation token hash,
   only if invitation_status is :sent. Used by the invitation registration flow.
   """
@@ -478,6 +495,30 @@ defmodule KlassHero.Provider do
         ]
   def list_active_assignments_for_staff_member(staff_member_id) when is_binary(staff_member_id) do
     ProgramStaffAssignmentQueries.list_active_for_staff_member(staff_member_id)
+  end
+
+  @session_stats_repo Application.compile_env!(:klass_hero, [:provider, :for_querying_session_stats])
+
+  @doc """
+  Returns the total completed session count across all programs for a provider.
+  """
+  @spec get_total_session_count(String.t()) :: non_neg_integer()
+  def get_total_session_count(provider_id) when is_binary(provider_id) do
+    @session_stats_repo.get_total_count(provider_id)
+  end
+
+  @doc """
+  Lists per-session detail rows for a provider's program.
+
+  Returns a list of `SessionDetail` read-model structs from the
+  `provider_session_details` projection. Scoped to the given provider;
+  cross-provider lookups return `[]`.
+  """
+  @spec list_program_sessions(String.t(), String.t()) :: [
+          SessionDetail.t()
+        ]
+  def list_program_sessions(provider_id, program_id) when is_binary(provider_id) and is_binary(program_id) do
+    ListProgramSessions.execute(provider_id, program_id)
   end
 
   # ===========================================================================

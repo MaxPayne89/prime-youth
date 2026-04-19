@@ -65,6 +65,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.ConversationMa
     attrs
     |> Map.take([:type, :provider_id, :program_id, :subject])
     |> Map.update(:type, nil, fn
+      nil -> nil
       type when is_atom(type) -> to_string(type)
       type -> type
     end)

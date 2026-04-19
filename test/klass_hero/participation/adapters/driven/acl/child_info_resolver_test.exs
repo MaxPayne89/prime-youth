@@ -1,7 +1,7 @@
-defmodule KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolverTest do
+defmodule KlassHero.Participation.Adapters.Driven.ACL.ChildInfoResolverTest do
   use KlassHero.DataCase, async: true
 
-  alias KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver
+  alias KlassHero.Participation.Adapters.Driven.ACL.ChildInfoResolver
 
   describe "resolve_child_info/1" do
     test "returns name and safety info when child has active provider_data_sharing consent" do

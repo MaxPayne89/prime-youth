@@ -1,4 +1,4 @@
-defmodule KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver do
+defmodule KlassHero.Participation.Adapters.Driven.ACL.ChildInfoResolver do
   @moduledoc """
   Adapter for resolving child info (name + consent-gated safety data) from Family context.
 

@@ -24,14 +24,14 @@ defmodule KlassHero.Participation.Application.Commands.BulkCheckIn do
 
   @participation_reader Application.compile_env!(:klass_hero, [
                           :participation,
-                          :participation_query_repository
+                          :for_querying_participation_records
                         ])
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
-                              :participation_repository
+                              :for_storing_participation_records
                             ])
 
-  @session_reader Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
+  @session_reader Application.compile_env!(:klass_hero, [:participation, :for_querying_sessions])
 
   @type params :: %{
           required(:record_ids) => [String.t()],
