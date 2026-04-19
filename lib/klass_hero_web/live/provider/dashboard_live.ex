@@ -589,12 +589,21 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # Trigger: "View sessions" action button on a row in the programs table
   # Why: program_id comes from client params (untrusted) — list_by_program is
   #      scoped to the provider_id from the server-side scope, so cross-provider
-  #      peeking is impossible even if the client spoofs the id
-  # Outcome: modal opens with the program's sessions (empty list is valid)
+  #      peeking is impossible even if the client spoofs the id. The modal's
+  #      title is derived from the authoritative projection result (not client
+  #      params) to avoid displaying a spoofed title.
+  # Outcome: modal opens with the program's sessions (empty list is valid);
+  #          title falls back to a generic label when the program has zero sessions.
   @impl true
-  def handle_event("view_sessions", %{"program-id" => program_id, "program-title" => program_title}, socket) do
+  def handle_event("view_sessions", %{"program-id" => program_id}, socket) do
     provider_id = socket.assigns.current_scope.provider.id
     sessions = Provider.list_program_sessions(provider_id, program_id)
+
+    program_title =
+      case List.first(sessions) do
+        %{program_title: title} -> title
+        nil -> gettext("Program")
+      end
 
     {:noreply,
      assign(socket, :sessions_modal, %{

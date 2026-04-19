@@ -199,6 +199,49 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsT
       assert row.cover_staff_id == cover_staff_id
       assert row.cover_staff_name == "Cover Person"
     end
+
+    test "skips the insert and warns when the program does not exist" do
+      # Trigger: a session_created event arrives whose program_id is not in the
+      #          programs write table (e.g., event reordering, replay before
+      #          the program row has been created, or a deleted program)
+      # Why: program_title and provider_id are NOT NULL in provider_session_details,
+      #      so projecting with nil values would crash the GenServer; bootstrap
+      #      will reconcile later if/when the program appears
+      # Outcome: no row inserted; warning logged with session + program context
+      unknown_program_id = Ecto.UUID.generate()
+      session_id = Ecto.UUID.generate()
+
+      event =
+        IntegrationEvent.new(
+          :session_created,
+          :participation,
+          :session,
+          session_id,
+          %{
+            session_id: session_id,
+            program_id: unknown_program_id,
+            session_date: ~D[2026-05-01],
+            start_time: ~T[09:00:00],
+            end_time: ~T[10:00:00]
+          }
+        )
+
+      log =
+        capture_log(fn ->
+          Phoenix.PubSub.broadcast(
+            KlassHero.PubSub,
+            "integration:participation:session_created",
+            {:integration_event, event}
+          )
+
+          _ = :sys.get_state(@test_server_name)
+        end)
+
+      assert Repo.get(ProviderSessionDetailSchema, session_id) == nil
+      assert log =~ "session_created skipped: program not found"
+      assert log =~ session_id
+      assert log =~ unknown_program_id
+    end
   end
 
   describe "status transitions" do

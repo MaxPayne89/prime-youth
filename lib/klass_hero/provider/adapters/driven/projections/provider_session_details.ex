@@ -263,16 +263,33 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
   @impl true
   def handle_info({:integration_event, _event}, state), do: {:noreply, state}
 
-  defp project_session_created(%{
-         session_id: session_id,
-         program_id: program_id,
-         session_date: session_date,
-         start_time: start_time,
-         end_time: end_time
-       }) do
-    %{program_title: program_title, provider_id: provider_id, staff_id: staff_id, staff_name: staff_name} =
-      resolve_program_context(program_id)
+  defp project_session_created(%{session_id: session_id, program_id: program_id} = payload) do
+    case resolve_program_context(program_id) do
+      %{program_title: title, provider_id: provider_id} = ctx
+      when not is_nil(title) and not is_nil(provider_id) ->
+        do_insert_session(payload, ctx)
 
+      _ ->
+        Logger.warning(
+          "ProviderSessionDetails session_created skipped: program not found",
+          session_id: session_id,
+          program_id: program_id
+        )
+
+        :ok
+    end
+  end
+
+  defp do_insert_session(
+         %{
+           session_id: session_id,
+           program_id: program_id,
+           session_date: session_date,
+           start_time: start_time,
+           end_time: end_time
+         },
+         %{program_title: program_title, provider_id: provider_id, staff_id: staff_id, staff_name: staff_name}
+       ) do
     now = DateTime.utc_now() |> DateTime.truncate(:second)
 
     attrs = %{
@@ -337,6 +354,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
   # Outcome: {:ok, count} on success or {:error, reason} on DB failure; the
   #          caller decides whether to retry (handle_continue) or raise (rebuild).
   defp do_bootstrap do
+    # LATERAL subquery picks exactly one active staff assignment per program
+    # (earliest-assigned wins, matching resolve_program_context/1). Without it,
+    # a program with N active staff members would produce N rows per session
+    # and break the upsert's ON CONFLICT target.
     sql = """
     SELECT
       ps.id::text                            AS session_id,
@@ -347,18 +368,22 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
       ps.start_time,
       ps.end_time,
       ps.status::text                        AS status,
-      psa.staff_member_id::text              AS current_assigned_staff_id,
-      sm.first_name                          AS staff_first_name,
-      sm.last_name                           AS staff_last_name,
+      staff.staff_member_id::text            AS current_assigned_staff_id,
+      staff.first_name                       AS staff_first_name,
+      staff.last_name                        AS staff_last_name,
       COALESCE(counts.checked_in, 0)         AS checked_in_count,
       COALESCE(counts.total, 0)              AS total_count
     FROM program_sessions ps
     JOIN programs p ON p.id = ps.program_id
-    LEFT JOIN program_staff_assignments psa
-           ON psa.program_id = ps.program_id
-          AND psa.unassigned_at IS NULL
-    LEFT JOIN staff_members sm
-           ON sm.id = psa.staff_member_id
+    LEFT JOIN LATERAL (
+      SELECT psa.staff_member_id, sm.first_name, sm.last_name
+      FROM program_staff_assignments psa
+      LEFT JOIN staff_members sm ON sm.id = psa.staff_member_id
+      WHERE psa.program_id = ps.program_id
+        AND psa.unassigned_at IS NULL
+      ORDER BY psa.assigned_at ASC
+      LIMIT 1
+    ) staff ON TRUE
     LEFT JOIN (
       SELECT session_id,
              COUNT(*) FILTER (WHERE status IN ('checked_in','checked_out')) AS checked_in,
@@ -475,7 +500,6 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails 
         }
 
       _ ->
-        Logger.warning("session_created: program not found", program_id: program_id)
         %{program_title: nil, provider_id: nil, staff_id: nil, staff_name: nil}
     end
   end

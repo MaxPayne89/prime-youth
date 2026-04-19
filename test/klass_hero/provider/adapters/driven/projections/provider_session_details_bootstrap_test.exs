@@ -1,6 +1,7 @@
 defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsBootstrapTest do
   use KlassHero.DataCase, async: false
 
+  import Ecto.Query
   import KlassHero.Factory
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProgramStaffAssignmentSchema
@@ -87,5 +88,76 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetailsB
     assert row != nil
     assert row.current_assigned_staff_id == staff.id
     assert row.current_assigned_staff_name == "Ada Lovelace"
+  end
+
+  @tag :bootstrap
+  test "bootstrap produces one row per session even when a program has multiple active staff" do
+    # Trigger: a program has two active staff assignments (different staff_member_ids).
+    #          The partial unique index program_staff_assignments_active_unique is
+    #          (program_id, staff_member_id) WHERE unassigned_at IS NULL, so this
+    #          is a legitimate state — not a data error.
+    # Why: without the LATERAL LIMIT 1 subquery, the LEFT JOIN on
+    #      program_staff_assignments would return N rows per session (one per
+    #      active staff), and Repo.insert_all would trip Postgres's
+    #      "ON CONFLICT DO UPDATE command cannot affect row a second time" error.
+    # Outcome: bootstrap succeeds; exactly one row per session; the earliest-assigned
+    #          staff wins (matching resolve_program_context/1's tie-breaker).
+    provider = insert(:provider_profile_schema)
+    program = insert(:program_schema, provider_id: provider.id, title: "Yoga")
+
+    first_staff =
+      insert(:staff_member_schema, provider_id: provider.id, first_name: "Grace", last_name: "Hopper")
+
+    second_staff =
+      insert(:staff_member_schema, provider_id: provider.id, first_name: "Margaret", last_name: "Hamilton")
+
+    first_assigned_at = ~U[2026-04-01 09:00:00Z]
+    second_assigned_at = ~U[2026-04-02 09:00:00Z]
+
+    {:ok, _} =
+      %ProgramStaffAssignmentSchema{}
+      |> ProgramStaffAssignmentSchema.create_changeset(%{
+        provider_id: provider.id,
+        staff_member_id: first_staff.id,
+        program_id: program.id,
+        assigned_at: first_assigned_at
+      })
+      |> Repo.insert()
+
+    {:ok, _} =
+      %ProgramStaffAssignmentSchema{}
+      |> ProgramStaffAssignmentSchema.create_changeset(%{
+        provider_id: provider.id,
+        staff_member_id: second_staff.id,
+        program_id: program.id,
+        assigned_at: second_assigned_at
+      })
+      |> Repo.insert()
+
+    session_schema =
+      insert(:program_session_schema,
+        program_id: program.id,
+        session_date: ~D[2026-05-10],
+        start_time: ~T[09:00:00],
+        end_time: ~T[10:00:00],
+        status: "scheduled"
+      )
+
+    start_supervised!({ProviderSessionDetails, name: :bootstrap_test_multi_staff})
+    :ok = ProviderSessionDetails.rebuild(:bootstrap_test_multi_staff)
+
+    # Only one row for the session (no duplicate-conflict crash)
+    rows =
+      Repo.all(
+        from d in ProviderSessionDetailSchema,
+          where: d.session_id == ^session_schema.id
+      )
+
+    assert length(rows) == 1
+    [row] = rows
+
+    # Earliest-assigned staff wins (ORDER BY assigned_at ASC LIMIT 1)
+    assert row.current_assigned_staff_id == first_staff.id
+    assert row.current_assigned_staff_name == "Grace Hopper"
   end
 end

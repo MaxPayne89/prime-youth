@@ -1374,7 +1374,6 @@ defmodule KlassHeroWeb.ProviderComponents do
                     title={gettext("View sessions")}
                     phx-click="view_sessions"
                     phx-value-program-id={program.id}
-                    phx-value-program-title={program.name}
                   />
                   <.action_button
                     id={"view-roster-#{program.id}"}
@@ -1421,7 +1420,7 @@ defmodule KlassHeroWeb.ProviderComponents do
   attr :icon, :string, required: true
   attr :title, :string, required: true
   attr :disabled, :boolean, default: false
-  attr :rest, :global, include: ~w(id phx-click phx-value-id phx-value-program-id phx-value-program-title)
+  attr :rest, :global, include: ~w(id phx-click phx-value-id phx-value-program-id)
 
   defp action_button(assigns) do
     ~H"""
