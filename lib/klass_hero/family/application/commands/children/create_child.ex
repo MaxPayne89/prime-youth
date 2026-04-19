@@ -6,8 +6,11 @@ defmodule KlassHero.Family.Application.Commands.Children.CreateChild do
   When a parent_id is provided, the child is atomically linked to the guardian.
   """
 
+  alias KlassHero.Family.Domain.Events.FamilyEvents
   alias KlassHero.Family.Domain.Models.Child
+  alias KlassHero.Shared.EventDispatchHelper
 
+  @context KlassHero.Family
   @repository Application.compile_env!(:klass_hero, [:family, :for_storing_children])
 
   @doc """
@@ -31,11 +34,22 @@ defmodule KlassHero.Family.Application.Commands.Children.CreateChild do
 
     with {:ok, _validated} <- Child.new(child_attrs),
          {:ok, persisted} <- persist_child(child_attrs, parent_id) do
+      dispatch_child_created(persisted, parent_id)
       {:ok, persisted}
     else
       {:error, errors} when is_list(errors) -> {:error, {:validation_error, errors}}
       {:error, _} = error -> error
     end
+  end
+
+  defp dispatch_child_created(child, parent_id) do
+    FamilyEvents.child_created(child.id, %{
+      child_id: child.id,
+      parent_id: parent_id,
+      first_name: child.first_name,
+      last_name: child.last_name
+    })
+    |> EventDispatchHelper.dispatch(@context)
   end
 
   # Trigger: no guardian specified

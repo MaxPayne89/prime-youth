@@ -42,6 +42,7 @@ alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.InboundEmailR
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.MessageRepository
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ParticipantRepository
 alias KlassHero.Messaging.Adapters.Driven.Persistence.Repositories.ProgramStaffParticipantRepository
+alias KlassHero.Messaging.Adapters.Driven.Provider.ProviderStaffResolver
 alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
 alias KlassHero.Messaging.Adapters.Driving.Events.MessagingEventHandler
 alias KlassHero.Messaging.Adapters.Driving.Workers.MessageCleanupWorker
@@ -57,6 +58,7 @@ alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramR
 alias KlassHero.Provider.Adapters.Driven.ACL.ParticipationSessionStatsACL
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramStaffAssignmentRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
+alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.SessionDetailsRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.SessionStatsRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
@@ -243,6 +245,7 @@ config :klass_hero, :messaging,
   for_resolving_users: UserResolver,
   for_querying_enrollments: EnrollmentResolver,
   for_resolving_program_staff: ProgramStaffParticipantRepository,
+  for_resolving_provider_staff: ProviderStaffResolver,
   for_managing_conversation_summaries: ConversationSummariesRepository,
   for_querying_conversation_summaries: ConversationSummariesRepository,
   for_managing_inbound_emails: InboundEmailRepository,
@@ -285,6 +288,7 @@ config :klass_hero, :provider,
   for_querying_staff_members: StaffMemberRepository,
   for_storing_program_staff_assignments: ProgramStaffAssignmentRepository,
   for_querying_program_staff_assignments: ProgramStaffAssignmentRepository,
+  for_querying_session_details: SessionDetailsRepository,
   for_querying_session_stats: SessionStatsRepository,
   for_resolving_session_stats: ParticipationSessionStatsACL
 

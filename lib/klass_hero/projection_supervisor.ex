@@ -11,8 +11,10 @@ defmodule KlassHero.ProjectionSupervisor do
   use Supervisor
 
   alias KlassHero.Messaging.Adapters.Driven.Projections.ConversationSummaries
+  alias KlassHero.Messaging.Adapters.Driven.Projections.EnrolledChildren
   alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings
   alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
+  alias KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails
   alias KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionStats
 
   def start_link(init_arg) do
@@ -24,8 +26,10 @@ defmodule KlassHero.ProjectionSupervisor do
     children = [
       VerifiedProviders,
       ProgramListings,
+      EnrolledChildren,
       ConversationSummaries,
-      ProviderSessionStats
+      ProviderSessionStats,
+      ProviderSessionDetails
     ]
 
     Supervisor.init(children, strategy: :one_for_one, max_restarts: 10, max_seconds: 60)
