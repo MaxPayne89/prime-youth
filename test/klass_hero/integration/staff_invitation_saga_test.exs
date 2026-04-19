@@ -30,7 +30,7 @@ defmodule KlassHero.Integration.StaffInvitationSagaTest do
   alias KlassHero.Accounts.Domain.Events.AccountsIntegrationEvents
   alias KlassHero.Accounts.Scope
   alias KlassHero.Provider
-  alias KlassHero.Provider.Adapters.Driving.Events.StaffInvitationStatusHandler
+  alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler
   alias KlassHero.Provider.Domain.Events.ProviderIntegrationEvents
 
   defp build_invited_event(staff, provider, raw_token) do
@@ -61,10 +61,10 @@ defmodule KlassHero.Integration.StaffInvitationSagaTest do
     )
   end
 
-  defp build_registered_event(user_id, staff) do
+  defp build_registered_event(user_id, staff, opts \\ %{}) do
     AccountsIntegrationEvents.staff_user_registered(
       user_id,
-      %{staff_member_id: staff.id, provider_id: staff.provider_id}
+      Map.merge(%{staff_member_id: staff.id, provider_id: staff.provider_id}, opts)
     )
   end
 
@@ -132,24 +132,31 @@ defmodule KlassHero.Integration.StaffInvitationSagaTest do
                  password: "hello world!"
                })
 
-      assert user.intended_roles == [:staff_provider]
+      assert user.intended_roles == [:staff_provider, :provider]
 
       # Step 5: StaffInvitationStatusHandler handles :staff_user_registered
-      # → status :sent → :accepted, user_id linked
-      registered_event = build_registered_event(to_string(user.id), staff)
+      # → status :sent → :accepted, user_id linked, provider profile created
+      registered_event =
+        build_registered_event(to_string(user.id), staff, %{
+          create_provider_profile: true,
+          user_name: user.name
+        })
+
       assert :ok = StaffInvitationStatusHandler.handle_event(registered_event)
 
       assert {:ok, staff_accepted} = Provider.get_staff_member(staff.id)
       assert staff_accepted.invitation_status == :accepted
       assert staff_accepted.user_id == user.id
 
-      # Step 6: No ProviderProfile was created for the new staff user
-      assert {:error, :not_found} = Provider.get_provider_by_identity(to_string(user.id))
+      # Step 6: ProviderProfile is now created automatically for staff users
+      assert {:ok, profile} = Provider.get_provider_by_identity(to_string(user.id))
+      assert profile.originated_from == :staff_invite
+      assert profile.profile_status == :draft
 
-      # Step 7: Scope resolution gives the user :staff_provider role
-      # Note: staff_member must be active (default) for the role to resolve
+      # Step 7: Scope resolution gives the user both :staff_provider and :provider roles
       scope = Scope.for_user(user) |> Scope.resolve_roles()
       assert :staff_provider in scope.roles
+      assert :provider in scope.roles
     end
   end
 
@@ -195,10 +202,12 @@ defmodule KlassHero.Integration.StaffInvitationSagaTest do
           String.contains?(email_msg.text_body, "/staff/dashboard")
       end)
 
-      # :staff_user_registered is emitted immediately (no :staff_invitation_sent)
+      # :staff_user_registered is emitted immediately with create_provider_profile flag
       registered_ie = assert_integration_event_published(:staff_user_registered)
       assert registered_ie.payload.staff_member_id == staff.id
       assert registered_ie.payload.user_id == to_string(existing_user.id)
+      assert registered_ie.payload.create_provider_profile == true
+      assert registered_ie.payload.user_name == existing_user.name
 
       events = get_published_integration_events()
       types = Enum.map(events, & &1.event_type)
@@ -206,12 +215,23 @@ defmodule KlassHero.Integration.StaffInvitationSagaTest do
 
       # Step 4: StaffInvitationStatusHandler handles :staff_user_registered
       # Staff is still :pending (skipped :sent step on the fast path)
-      registered_event = build_registered_event(to_string(existing_user.id), staff)
+      # Provider profile is created automatically
+      registered_event =
+        build_registered_event(to_string(existing_user.id), staff, %{
+          create_provider_profile: true,
+          user_name: existing_user.name
+        })
+
       assert :ok = StaffInvitationStatusHandler.handle_event(registered_event)
 
       assert {:ok, staff_accepted} = Provider.get_staff_member(staff.id)
       assert staff_accepted.invitation_status == :accepted
       assert staff_accepted.user_id == existing_user.id
+
+      # Step 5: ProviderProfile is created automatically for existing users
+      assert {:ok, profile} = Provider.get_provider_by_identity(to_string(existing_user.id))
+      assert profile.originated_from == :staff_invite
+      assert profile.profile_status == :draft
     end
   end
 

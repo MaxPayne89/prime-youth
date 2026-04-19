@@ -3,9 +3,12 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
 
   import Phoenix.LiveViewTest
 
+  alias Ecto.Adapters.SQL.Sandbox
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramListingSchema
+  alias KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails
   alias KlassHero.ProviderFixtures
+  alias KlassHero.Repo
 
   setup :register_and_log_in_provider
 
@@ -43,6 +46,43 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
       updated_at: program.updated_at || now
     })
     |> KlassHero.Repo.insert!()
+
+    program
+  end
+
+  # Trigger: sessions modal reads from provider_session_details (event-driven projection)
+  # Why: projections are disabled in the test env (start_projections: false); we start
+  #      a per-test named projection, grant it sandbox access, then rebuild from the
+  #      write tables — the same path the supervisor uses in non-test envs.
+  # Outcome: read table converges to the write-table state so ListProgramSessions
+  #          returns the inserted session.
+  defp seed_program_with_session!(provider, attrs) do
+    attrs_map = Map.new(attrs)
+    title = Map.get(attrs_map, :title, "Test Program")
+
+    program = insert_program_with_listing(provider_id: provider.id, title: title)
+
+    KlassHero.Factory.insert(:program_session_schema,
+      program_id: program.id,
+      session_date: ~D[2026-05-01],
+      start_time: ~T[15:00:00],
+      end_time: ~T[16:00:00],
+      status: "scheduled"
+    )
+
+    name = :"provider_session_details_#{System.unique_integer([:positive])}"
+    pid = start_supervised!({ProviderSessionDetails, name: name})
+    # Trigger: the GenServer's handle_continue/handle_call callbacks run in its
+    #          own process, which the Ecto sandbox doesn't own by default (async
+    #          test connection is owned by the test pid).
+    # Why: grant the projection access to the same checked-out connection so its
+    #      bootstrap query can see the write rows we just inserted. The initial
+    #      handle_continue(:bootstrap) may race ahead of this allow and fail —
+    #      the projection self-heals via :retry_bootstrap after 1s, but we also
+    #      force a synchronous rebuild below to avoid that wait.
+    # Outcome: the projection can read from and write to the test's sandboxed DB.
+    :ok = Sandbox.allow(Repo, self(), pid)
+    :ok = ProviderSessionDetails.rebuild(name)
 
     program
   end
@@ -533,6 +573,27 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
 
       view |> element("button[phx-click=close_roster]") |> render_click()
       refute has_element?(view, "#roster-modal")
+    end
+  end
+
+  describe "sessions modal" do
+    test "clicking Sessions opens the modal with the program's sessions", %{
+      conn: conn,
+      provider: provider
+    } do
+      program = seed_program_with_session!(provider, title: "Judo")
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+
+      view
+      |> element(~s|button[phx-click="view_sessions"][phx-value-program-id="#{program.id}"]|)
+      |> render_click()
+
+      assert has_element?(view, "#sessions-modal")
+      assert render(view) =~ "Judo"
+
+      view |> element("#sessions-modal button[phx-click='close_sessions']") |> render_click()
+      refute has_element?(view, "#sessions-modal")
     end
   end
 
@@ -1083,6 +1144,23 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
     test "does NOT show link to staff dashboard", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
       refute has_element?(view, "#cross-nav-staff-link")
+    end
+  end
+
+  describe "profile completion banner" do
+    test "does NOT show banner for active (complete) profile", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+      refute has_element?(view, "#profile-completion-banner")
+    end
+  end
+
+  describe "profile completion banner for draft profile" do
+    setup :register_and_log_in_draft_provider
+
+    test "shows banner for draft profile", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard")
+      assert has_element?(view, "#profile-completion-banner")
+      assert has_element?(view, ~s(a[href="/provider/complete-profile"]))
     end
   end
 end

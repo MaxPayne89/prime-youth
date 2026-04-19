@@ -174,6 +174,29 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       assert has_element?(view, "#program-hero")
       assert has_element?(view, "[phx-click='back_to_programs']")
     end
+
+    test "renders provider business name above the program title", %{conn: conn} do
+      provider = provider_profile_fixture(business_name: "Starlight Coaching")
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "#hero-business-name", "Starlight Coaching")
+    end
+
+    test "omits business name when provider profile is draft", %{conn: conn} do
+      provider =
+        provider_profile_fixture(
+          business_name: "Not Ready Yet",
+          profile_status: "draft"
+        )
+
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      refute has_element?(view, "#hero-business-name")
+    end
   end
 
   describe "staff member display" do
@@ -250,6 +273,64 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       # Why: public program pages should not expose staff email addresses
       # Outcome: email should NOT appear in rendered HTML
       refute html =~ "jane.secret@example.com"
+    end
+  end
+
+  describe "provider profile card" do
+    test "renders business name and description for an active provider", %{conn: conn} do
+      provider =
+        provider_profile_fixture(
+          business_name: "Starlight Coaching",
+          description: "Empowering kids through play-based learning."
+        )
+
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(view, "#provider-profile-card h4", "Starlight Coaching")
+      assert render(view) =~ "Empowering kids through play-based learning."
+    end
+
+    test "renders logo image when logo_url is present", %{conn: conn} do
+      provider =
+        provider_profile_fixture(
+          business_name: "Starlight Coaching",
+          logo_url: "https://cdn.example.com/starlight.png"
+        )
+
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert has_element?(
+               view,
+               "#provider-profile-card img[src='https://cdn.example.com/starlight.png']"
+             )
+    end
+
+    test "renders initials avatar when logo_url is missing", %{conn: conn} do
+      provider = provider_profile_fixture(business_name: "Tiger Academy", logo_url: nil)
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      refute has_element?(view, "#provider-profile-card img")
+      assert has_element?(view, "#provider-profile-card", "TA")
+    end
+
+    test "does not render the card when the provider is in draft status", %{conn: conn} do
+      provider =
+        provider_profile_fixture(
+          business_name: "Not Ready Yet",
+          profile_status: "draft"
+        )
+
+      program = insert(:program_schema, provider_id: provider.id)
+
+      {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
+
+      refute has_element?(view, "#provider-profile-card")
     end
   end
 

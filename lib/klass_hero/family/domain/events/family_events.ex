@@ -7,6 +7,10 @@ defmodule KlassHero.Family.Domain.Events.FamilyEvents do
 
   ## Events
 
+  - `:child_created` - Emitted when a new child record is created. Downstream
+    contexts (e.g. Messaging) react to maintain local child name lookups.
+  - `:child_updated` - Emitted when an existing child record is updated.
+    Downstream contexts (e.g. Messaging) react to refresh local child name lookups.
   - `:child_data_anonymized` - Emitted when a child's PII is anonymized during
     GDPR account deletion (critical). Downstream contexts (e.g. Participation)
     react to this event to anonymize their own child-related data.
@@ -18,6 +22,94 @@ defmodule KlassHero.Family.Domain.Events.FamilyEvents do
   alias KlassHero.Shared.Domain.Events.DomainEvent
 
   @aggregate_type :child
+
+  @doc """
+  Creates a `child_created` event.
+
+  Emitted when a new child record is created. Downstream contexts (e.g.
+  Messaging) react to maintain a local lookup of child names.
+
+  ## Parameters
+
+  - `child_id` - The ID of the newly created child
+  - `payload` - Additional event-specific data (child_id, parent_id, first_name, last_name)
+  - `opts` - Metadata options (correlation_id, causation_id, user_id)
+
+  ## Raises
+
+  - `ArgumentError` if `child_id` is nil or empty
+
+  ## Examples
+
+      iex> event = FamilyEvents.child_created("child-uuid", %{first_name: "Emma"})
+      iex> event.event_type
+      :child_created
+  """
+  def child_created(child_id, payload \\ %{}, opts \\ [])
+
+  def child_created(child_id, payload, opts) when is_binary(child_id) and byte_size(child_id) > 0 do
+    base_payload = %{child_id: child_id}
+
+    DomainEvent.new(
+      :child_created,
+      child_id,
+      @aggregate_type,
+      # Trigger: caller may pass a conflicting :child_id in payload
+      # Why: base_payload contains the canonical child_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def child_created(child_id, _payload, _opts) do
+    raise ArgumentError,
+          "child_created/3 requires a non-empty child_id string, got: #{inspect(child_id)}"
+  end
+
+  @doc """
+  Creates a `child_updated` event.
+
+  Emitted when an existing child record is updated. Downstream contexts (e.g.
+  Messaging) react to refresh their local lookup of child names.
+
+  ## Parameters
+
+  - `child_id` - The ID of the updated child
+  - `payload` - Additional event-specific data (child_id, first_name, last_name)
+  - `opts` - Metadata options (correlation_id, causation_id, user_id)
+
+  ## Raises
+
+  - `ArgumentError` if `child_id` is nil or empty
+
+  ## Examples
+
+      iex> event = FamilyEvents.child_updated("child-uuid", %{first_name: "Emily"})
+      iex> event.event_type
+      :child_updated
+  """
+  def child_updated(child_id, payload \\ %{}, opts \\ [])
+
+  def child_updated(child_id, payload, opts) when is_binary(child_id) and byte_size(child_id) > 0 do
+    base_payload = %{child_id: child_id}
+
+    DomainEvent.new(
+      :child_updated,
+      child_id,
+      @aggregate_type,
+      # Trigger: caller may pass a conflicting :child_id in payload
+      # Why: base_payload contains the canonical child_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def child_updated(child_id, _payload, _opts) do
+    raise ArgumentError,
+          "child_updated/3 requires a non-empty child_id string, got: #{inspect(child_id)}"
+  end
 
   @doc """
   Creates a `child_data_anonymized` event.

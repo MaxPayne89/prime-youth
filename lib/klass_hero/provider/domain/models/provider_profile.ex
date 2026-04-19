@@ -28,6 +28,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     :categories,
     :subscription_tier,
     :originated_from,
+    :profile_status,
     :inserted_at,
     :updated_at
   ]
@@ -47,6 +48,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
           categories: [String.t()] | nil,
           subscription_tier: :starter | :professional | :business_plus | nil,
           originated_from: :direct | :staff_invite | nil,
+          profile_status: :draft | :active | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
@@ -86,6 +88,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     |> Map.put_new(:categories, [])
     |> Map.put_new(:subscription_tier, SubscriptionTiers.default_provider_tier())
     |> Map.put_new(:originated_from, :direct)
+    |> Map.put_new(:profile_status, :active)
   end
 
   @doc """
@@ -166,6 +169,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     |> validate_categories(provider_profile.categories)
     |> validate_subscription_tier(provider_profile.subscription_tier)
     |> validate_originated_from(provider_profile.originated_from)
+    |> validate_profile_status(provider_profile.profile_status)
   end
 
   defp validate_identity_id(errors, identity_id) when is_binary(identity_id) do
@@ -306,4 +310,50 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
   defp validate_originated_from(errors, from) when from in @valid_originated_from, do: errors
 
   defp validate_originated_from(errors, _), do: ["originated_from must be :direct or :staff_invite" | errors]
+
+  @valid_profile_statuses [:draft, :active]
+
+  defp validate_profile_status(errors, status) when status in @valid_profile_statuses, do: errors
+
+  defp validate_profile_status(errors, _), do: ["profile_status must be :draft or :active" | errors]
+
+  # -------------------------------------------------------------------
+  # Profile Completion
+  # -------------------------------------------------------------------
+
+  @doc """
+  Returns true if the profile is in draft status (needs completion).
+  """
+  def draft?(%__MODULE__{profile_status: :draft}), do: true
+  def draft?(_), do: false
+
+  @doc """
+  Completes a draft provider profile with the given fields.
+
+  Only allowed when profile_status is :draft. Sets status to :active.
+  Accepts: business_name, description, phone, website, address, logo_url, categories.
+
+  Returns:
+  - `{:ok, updated_profile}` on success
+  - `{:error, :already_active}` if profile_status is not :draft
+  - `{:error, errors}` if validation fails
+  """
+  @completion_fields ~w(business_name description phone website address logo_url categories)a
+
+  def complete_profile(%__MODULE__{profile_status: :draft} = profile, attrs) when is_map(attrs) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    updated =
+      profile
+      |> struct(Map.take(attrs, @completion_fields))
+      |> Map.put(:profile_status, :active)
+      |> Map.put(:updated_at, now)
+
+    case validate(updated) do
+      [] -> {:ok, updated}
+      errors -> {:error, errors}
+    end
+  end
+
+  def complete_profile(%__MODULE__{profile_status: :active}, _attrs), do: {:error, :already_active}
 end

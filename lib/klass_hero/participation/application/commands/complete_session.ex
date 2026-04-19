@@ -18,18 +18,24 @@ defmodule KlassHero.Participation.Application.Commands.CompleteSession do
   alias KlassHero.Participation.Domain.Models.ProgramSession
   alias KlassHero.Shared.DomainEventBus
 
+  require Logger
+
   @context KlassHero.Participation
 
-  @session_reader Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
-  @session_repository Application.compile_env!(:klass_hero, [:participation, :session_repository])
+  @session_reader Application.compile_env!(:klass_hero, [:participation, :for_querying_sessions])
+  @session_repository Application.compile_env!(:klass_hero, [:participation, :for_storing_sessions])
   @participation_reader Application.compile_env!(:klass_hero, [
                           :participation,
-                          :participation_query_repository
+                          :for_querying_participation_records
                         ])
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
-                              :participation_repository
+                              :for_storing_participation_records
                             ])
+  @program_provider_resolver Application.compile_env!(:klass_hero, [
+                               :participation,
+                               :for_resolving_program_provider
+                             ])
 
   @type result :: {:ok, ProgramSession.t()} | {:error, term()}
 
@@ -77,8 +83,24 @@ defmodule KlassHero.Participation.Application.Commands.CompleteSession do
   end
 
   defp publish_session_completed(session) do
-    event = ParticipationEvents.session_completed(session)
+    extra_payload = resolve_provider_details(session.program_id)
+    event = ParticipationEvents.session_completed(session, extra_payload: extra_payload)
     DomainEventBus.dispatch(@context, event)
+  end
+
+  defp resolve_provider_details(program_id) do
+    case @program_provider_resolver.resolve_provider_details(program_id) do
+      {:ok, details} ->
+        details
+
+      {:error, reason} ->
+        Logger.warning("Could not resolve provider details for session_completed event",
+          program_id: program_id,
+          reason: inspect(reason)
+        )
+
+        %{provider_id: "00000000-0000-0000-0000-000000000000", program_title: "Unknown Program"}
+    end
   end
 
   defp publish_child_absent(record, session) do

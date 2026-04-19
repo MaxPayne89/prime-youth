@@ -27,11 +27,11 @@ defmodule KlassHero.Participation.Application.Commands.SeedSessionRoster do
 
   @enrolled_children_resolver Application.compile_env!(:klass_hero, [
                                 :participation,
-                                :enrolled_children_resolver
+                                :for_resolving_enrolled_children
                               ])
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
-                              :participation_repository
+                              :for_storing_participation_records
                             ])
 
   @doc """

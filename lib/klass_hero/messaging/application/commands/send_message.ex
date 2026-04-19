@@ -35,6 +35,10 @@ defmodule KlassHero.Messaging.Application.Commands.SendMessage do
   @attachment_repo Application.compile_env!(:klass_hero, [:messaging, :for_managing_attachments])
   @user_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_users])
   @staff_resolver Application.compile_env!(:klass_hero, [:messaging, :for_resolving_program_staff])
+  @provider_staff_resolver Application.compile_env!(:klass_hero, [
+                             :messaging,
+                             :for_resolving_provider_staff
+                           ])
 
   @doc """
   Sends a message to a conversation.
@@ -275,17 +279,22 @@ defmodule KlassHero.Messaging.Application.Commands.SendMessage do
 
     case result do
       {:ok, %{type: :program_broadcast, provider_id: provider_id, program_id: program_id}} ->
-        cond do
-          provider_owner?(provider_id, sender_id) -> :ok
-          staff_assigned?(program_id, sender_id) -> :ok
-          true -> {:error, :broadcast_reply_not_allowed}
-        end
+        check_broadcast_reply_permission(provider_id, program_id, sender_id)
 
       {:ok, _direct_conversation} ->
         :ok
 
       {:error, :not_found} ->
         {:error, :not_found}
+    end
+  end
+
+  defp check_broadcast_reply_permission(provider_id, program_id, sender_id) do
+    cond do
+      provider_owner?(provider_id, sender_id) -> :ok
+      staff_assigned?(program_id, sender_id) -> :ok
+      active_staff_for_provider?(provider_id, sender_id) -> :ok
+      true -> {:error, :broadcast_reply_not_allowed}
     end
   end
 
@@ -301,6 +310,19 @@ defmodule KlassHero.Messaging.Application.Commands.SendMessage do
   defp staff_assigned?(program_id, sender_id) do
     staff_user_ids = @staff_resolver.get_active_staff_user_ids(program_id)
     sender_id in staff_user_ids
+  end
+
+  # Trigger: program-staff projection check above returned false
+  # Why: any active staff member of the broadcast's provider should be able to
+  #      post follow-ups, even if they aren't assigned to the specific program.
+  #      The `program_staff_participants` projection only covers explicit
+  #      program assignments, but staff are authorised to broadcast for any
+  #      program of their provider (see `StaffBroadcastLive.mount/3`); the two
+  #      permission checks must agree to avoid bug #669.
+  # Outcome: staff of the provider can send; everyone else still falls through
+  #          to `:broadcast_reply_not_allowed`.
+  defp active_staff_for_provider?(provider_id, sender_id) do
+    @provider_staff_resolver.active_staff_for_provider?(provider_id, sender_id)
   end
 
   # --- Read status ---

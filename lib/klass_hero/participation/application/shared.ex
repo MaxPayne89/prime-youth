@@ -14,14 +14,14 @@ defmodule KlassHero.Participation.Application.Shared do
 
   @participation_reader Application.compile_env!(:klass_hero, [
                           :participation,
-                          :participation_query_repository
+                          :for_querying_participation_records
                         ])
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
-                              :participation_repository
+                              :for_storing_participation_records
                             ])
 
-  @session_reader Application.compile_env!(:klass_hero, [:participation, :session_query_repository])
+  @session_reader Application.compile_env!(:klass_hero, [:participation, :for_querying_sessions])
 
   @doc """
   Normalizes notes by trimming whitespace and converting empty strings to nil.

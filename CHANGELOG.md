@@ -5,6 +5,129 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.0](https://github.com/MaxPayne89/klass-hero/compare/v0.39.0...v0.40.0) (2026-04-18)
+
+
+### Features
+
+* initialize conversation on Contact Provider click ([#586](https://github.com/MaxPayne89/klass-hero/issues/586)) ([5f8956e](https://github.com/MaxPayne89/klass-hero/commit/5f8956ef96efa67e009461af60e3d5ca2671e1fd))
+* initialize conversation when parent clicks Contact Provider ([#586](https://github.com/MaxPayne89/klass-hero/issues/586)) ([741dcb1](https://github.com/MaxPayne89/klass-hero/commit/741dcb1cdc11f8421110e845fdbe2a6ab0a68903))
+
+
+### Bug Fixes
+
+* isolate cross-parent conversations in StartProgramConversation ([d4bbca3](https://github.com/MaxPayne89/klass-hero/commit/d4bbca363e1576d04a34519b8ca03d159fc5a816)), closes [#691](https://github.com/MaxPayne89/klass-hero/issues/691)
+
+## [0.39.0](https://github.com/MaxPayne89/klass-hero/compare/v0.38.0...v0.39.0) (2026-04-18)
+
+
+### Features
+
+* add child_created and child_updated domain and integration events ([73da49f](https://github.com/MaxPayne89/klass-hero/commit/73da49f84b6e0d38a3f2414e98801729b71c3382))
+* add EnrolledChildren projection with schema and bootstrap ([04090ff](https://github.com/MaxPayne89/klass-hero/commit/04090fffe066d9a1ce128415c762ba5123cfc5d0))
+* add EnrolledChildren to ProjectionSupervisor ([e0b4858](https://github.com/MaxPayne89/klass-hero/commit/e0b4858e885bd6037f91e8750c29d5cd68c31a5f))
+* add enrollment_created domain and integration events ([189043e](https://github.com/MaxPayne89/klass-hero/commit/189043ecf55557055a9ea65ffe3b6b7dba86d076))
+* add messaging_enrolled_children table and enrolled_child_names column ([fa6fef4](https://github.com/MaxPayne89/klass-hero/commit/fa6fef45ded14f7fbee8527d4abbd1f50a70a05b))
+* extend ConversationSummaries with enrolled_child_names ([f0ae90c](https://github.com/MaxPayne89/klass-hero/commit/f0ae90c3de9855c3cd6361de4a5f95b7e2456883))
+* show enrolled child names in conversation card subtitle ([39b607f](https://github.com/MaxPayne89/klass-hero/commit/39b607f2ad42386877cfab80b072df55c111efd0))
+* show enrolled child names in conversation cards and titles ([361380c](https://github.com/MaxPayne89/klass-hero/commit/361380c15f12795d9edae4710e768bd4de5b9aff))
+* update get_conversation_title to show parent name with child names ([ae7a9bf](https://github.com/MaxPayne89/klass-hero/commit/ae7a9bffa758553ba7875c13980b9ac8b66f1136))
+* wire enrollment_created event promotion and dispatch ([5ef06b8](https://github.com/MaxPayne89/klass-hero/commit/5ef06b887aa41c61fadb9d8aa92ac2e8cfa45e6a))
+
+
+### Bug Fixes
+
+* include program_id in conversation_created event payload ([34c4c63](https://github.com/MaxPayne89/klass-hero/commit/34c4c63096585984ce5933972393243094b1ba4d))
+* resolve child_first_name from children table on enrollment_created ([8dc8749](https://github.com/MaxPayne89/klass-hero/commit/8dc87496211a60fa02e5a469e3ff5d22aec7e4af))
+* scope enrolled child names to provider and staff viewers only ([6547725](https://github.com/MaxPayne89/klass-hero/commit/65477255a5a3eb674e729b7ca45644b8bffe63d2)), closes [#688](https://github.com/MaxPayne89/klass-hero/issues/688)
+
+
+### Code Refactoring
+
+* simplify EnrolledChildren projection queries ([be2181e](https://github.com/MaxPayne89/klass-hero/commit/be2181eaf9585a60172ff93e48376cb56ca79129))
+
+## [0.38.0](https://github.com/MaxPayne89/klass-hero/compare/v0.37.0...v0.38.0) (2026-04-16)
+
+
+### Features
+
+* show provider business name above program title on program detail page ([5809ff3](https://github.com/MaxPayne89/klass-hero/commit/5809ff3a8d41dfe6789153baac596a8b838db837)), closes [#549](https://github.com/MaxPayne89/klass-hero/issues/549)
+* show provider business name in hero on program detail page ([c7e343d](https://github.com/MaxPayne89/klass-hero/commit/c7e343db24eaa522a536342719b22cc82dc60ead))
+
+## [0.37.0](https://github.com/MaxPayne89/klass-hero/compare/v0.36.0...v0.37.0) (2026-04-16)
+
+
+### Features
+
+* add provider business profile card to program detail page ([b56b0b3](https://github.com/MaxPayne89/klass-hero/commit/b56b0b35b6cdd0cf47f0079b22db20b23fa9e03e))
+* add provider business profile card to program detail page ([17c05dd](https://github.com/MaxPayne89/klass-hero/commit/17c05dd85371dbdc23e7e688c8484ebdf2dc9a35)), closes [#550](https://github.com/MaxPayne89/klass-hero/issues/550)
+
+
+### Bug Fixes
+
+* allow provider staff to send follow-ups in broadcasts ([882d48b](https://github.com/MaxPayne89/klass-hero/commit/882d48bf072d8a53fae6532a76e762b0c8ff89b8))
+* allow provider staff to send follow-ups in broadcasts ([d77fcb2](https://github.com/MaxPayne89/klass-hero/commit/d77fcb27bf89223217b153d586e8d192c546ef52)), closes [#669](https://github.com/MaxPayne89/klass-hero/issues/669)
+* filter active staff lookup by both provider_id and user_id ([ae3821d](https://github.com/MaxPayne89/klass-hero/commit/ae3821d06fc149d8939591ad2331f720f2446774)), closes [#669](https://github.com/MaxPayne89/klass-hero/issues/669)
+
+## [0.36.0](https://github.com/MaxPayne89/klass-hero/compare/v0.35.0...v0.36.0) (2026-04-15)
+
+
+### Features
+
+* add bootstrap ACL for session completion counts ([f2726d7](https://github.com/MaxPayne89/klass-hero/commit/f2726d78f6ae0c859ad13a3b463e059a030b7e72))
+* add provider_session_stats read model table and schema ([88e6cc8](https://github.com/MaxPayne89/klass-hero/commit/88e6cc8a31d304b4f756ffd73db7680ce703cc87))
+* add ProviderSessionStats projection GenServer ([ad2f120](https://github.com/MaxPayne89/klass-hero/commit/ad2f1209dcf51ea5e6237b87ab50fa9cb6cc1725))
+* add session counter to provider overview dashboard ([623f1ad](https://github.com/MaxPayne89/klass-hero/commit/623f1adae70d892c8121d8fc7f23453e89a9d54b))
+* add SessionStats read model DTO and query port ([37f7016](https://github.com/MaxPayne89/klass-hero/commit/37f70161995d8ec435fab46fa347c120ce732cfa))
+* add SessionStats read repository with query port wiring ([5f7520d](https://github.com/MaxPayne89/klass-hero/commit/5f7520d243799dcec6ec8d1af72a96e814df5a04))
+* display session counter on provider overview dashboard ([6ddb94a](https://github.com/MaxPayne89/klass-hero/commit/6ddb94ac0412b487abafd71ad3f265de32d66756))
+* enrich session_completed event with provider_id and program_title ([51e3775](https://github.com/MaxPayne89/klass-hero/commit/51e3775423f4950fe41296961574fb5b70de3f7b)), closes [#372](https://github.com/MaxPayne89/klass-hero/issues/372)
+
+
+### Bug Fixes
+
+* address PR review comments ([8927105](https://github.com/MaxPayne89/klass-hero/commit/892710506e8150624a35eef47647f6f6705a9bbe)), closes [#675](https://github.com/MaxPayne89/klass-hero/issues/675)
+* use fallback values in session_completed event resolution ([7d421ee](https://github.com/MaxPayne89/klass-hero/commit/7d421eefa6fb18b3375d1c1a698b38e21511f5d0))
+
+
+### Performance Improvements
+
+* guard session stats refresh by tab and change detection ([e2a2c49](https://github.com/MaxPayne89/klass-hero/commit/e2a2c49a336c716fbf64fb89d9036529b5f9d7ae))
+
+
+### Code Refactoring
+
+* extract shared fetch_program in ProgramProviderResolver ([0d0bb27](https://github.com/MaxPayne89/klass-hero/commit/0d0bb2721ca89858edeb8941037a7c0e66e909eb))
+* rename Participation config keys to for_ convention ([30c6e30](https://github.com/MaxPayne89/klass-hero/commit/30c6e307c4307fe36b5dbc5cbed7471c6f74ba69))
+* standardize Participation ACL directory naming ([8c7f147](https://github.com/MaxPayne89/klass-hero/commit/8c7f147d42a8b3d2809c94981e0fb918b5cb9a0e))
+* switch ProjectionSupervisor to one_for_one strategy ([38e5786](https://github.com/MaxPayne89/klass-hero/commit/38e5786afbef8b34b8413279f1f1f25e1cee6a9f))
+
+## [0.35.0](https://github.com/MaxPayne89/klass-hero/compare/v0.34.0...v0.35.0) (2026-04-14)
+
+
+### Features
+
+* unify staff invitation email and auto-create provider profile ([24fc2db](https://github.com/MaxPayne89/klass-hero/commit/24fc2dba963e3a8b8cf4e49e57189f227cee78d2))
+* unify staff invitation email and auto-create provider profile ([8d3afec](https://github.com/MaxPayne89/klass-hero/commit/8d3afec722e137c1348f6659b86685bdaac545be)), closes [#363](https://github.com/MaxPayne89/klass-hero/issues/363)
+
+## [0.34.0](https://github.com/MaxPayne89/klass-hero/compare/v0.33.0...v0.34.0) (2026-04-14)
+
+
+### Features
+
+* add provider profile completion flow after activation ([5d48801](https://github.com/MaxPayne89/klass-hero/commit/5d48801002f2198e649993062984a19107635e6e))
+* add provider profile completion flow after staff activation ([a2f6c91](https://github.com/MaxPayne89/klass-hero/commit/a2f6c91c7b06a794f02c40f40ecf541bcf97593a)), closes [#364](https://github.com/MaxPayne89/klass-hero/issues/364)
+
+
+### Bug Fixes
+
+* filter empty strings from categories hidden input ([1913533](https://github.com/MaxPayne89/klass-hero/commit/1913533e6fd457647472bdb8c60fdf537851b7f4)), closes [#667](https://github.com/MaxPayne89/klass-hero/issues/667)
+
+
+### Code Refactoring
+
+* move StaffInvitationStatusHandler into event_handlers/ subdirectory ([d1bd8d3](https://github.com/MaxPayne89/klass-hero/commit/d1bd8d37224b53869282d3b95abcc98b83f022b1))
+
 ## [0.33.0](https://github.com/MaxPayne89/klass-hero/compare/v0.32.0...v0.33.0) (2026-04-12)
 
 

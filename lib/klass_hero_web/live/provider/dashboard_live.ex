@@ -17,6 +17,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Shared.Entitlements
   alias KlassHero.Shared.Storage
   alias KlassHeroWeb.Helpers.TaskHelpers
@@ -88,6 +89,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           socket
           |> assign(page_title: gettext("Provider Dashboard"))
           |> assign(business: business)
+          |> assign(:profile_draft?, ProviderProfile.draft?(provider_profile))
           |> assign(:dual_role?, Scope.dual_role?(socket.assigns.current_scope))
           |> stream(:team_members, staff_views)
           |> update_staff_count(length(staff_views))
@@ -112,6 +114,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             import_errors: nil,
             can_message?: false
           )
+          |> assign(:sessions_modal, nil)
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
           |> assign(enrollment_form: to_form(Enrollment.new_policy_changeset(), as: "enrollment_policy"))
           |> assign(
@@ -120,6 +123,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(instructor_options: build_instructor_options(staff_members))
           |> assign(categories: ProgramCatalog.program_categories())
           |> assign(document_types: Provider.valid_document_types())
+          |> assign(total_sessions_completed: 0)
           |> allow_upload(:logo,
             accept: ~w(.jpg .jpeg .png .webp),
             max_entries: 1,
@@ -182,7 +186,16 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     business = %{socket.assigns.business | verification_status: verification_status}
 
-    {:noreply, assign(socket, business: business)}
+    total_sessions = Provider.get_total_session_count(provider.id)
+
+    if connected?(socket) do
+      Phoenix.PubSub.subscribe(KlassHero.PubSub, "provider:#{provider.id}:stats_updated")
+    end
+
+    {:noreply,
+     socket
+     |> assign(business: business)
+     |> assign(total_sessions_completed: total_sessions)}
   end
 
   @impl true
@@ -210,6 +223,24 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_params(_params, _uri, socket) do
     {:noreply, socket}
   end
+
+  # ============================================================================
+  # PubSub Handlers
+  # ============================================================================
+
+  @impl true
+  def handle_info(:session_stats_updated, %{assigns: %{live_action: :overview}} = socket) do
+    provider = socket.assigns.current_scope.provider
+    new_count = Provider.get_total_session_count(provider.id)
+
+    if new_count == socket.assigns.total_sessions_completed do
+      {:noreply, socket}
+    else
+      {:noreply, assign(socket, total_sessions_completed: new_count)}
+    end
+  end
+
+  def handle_info(_message, socket), do: {:noreply, socket}
 
   # ============================================================================
   # Staff Member CRUD Events
@@ -553,6 +584,38 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
        import_errors: nil,
        can_message?: false
      )}
+  end
+
+  # Trigger: "View sessions" action button on a row in the programs table
+  # Why: program_id comes from client params (untrusted) — list_by_program is
+  #      scoped to the provider_id from the server-side scope, so cross-provider
+  #      peeking is impossible even if the client spoofs the id. The modal's
+  #      title is derived from the authoritative projection result (not client
+  #      params) to avoid displaying a spoofed title.
+  # Outcome: modal opens with the program's sessions (empty list is valid);
+  #          title falls back to a generic label when the program has zero sessions.
+  @impl true
+  def handle_event("view_sessions", %{"program-id" => program_id}, socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+    sessions = Provider.list_program_sessions(provider_id, program_id)
+
+    program_title =
+      case List.first(sessions) do
+        %{program_title: title} -> title
+        nil -> gettext("Program")
+      end
+
+    {:noreply,
+     assign(socket, :sessions_modal, %{
+       program_id: program_id,
+       program_title: program_title,
+       sessions: sessions
+     })}
+  end
+
+  @impl true
+  def handle_event("close_sessions", _params, socket) do
+    {:noreply, assign(socket, :sessions_modal, nil)}
   end
 
   @impl true
@@ -1049,6 +1112,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
               document_types={@document_types}
             />
           <% _ -> %>
+            <.profile_completion_banner :if={@profile_draft?} />
             <.provider_dashboard_header
               business={@business}
               can_create_program?={@can_create_program?}
@@ -1065,7 +1129,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
             <%= case @live_action do %>
               <% :overview -> %>
-                <.overview_section business={@business} />
+                <.overview_section
+                  business={@business}
+                  total_sessions_completed={@total_sessions_completed}
+                />
               <% :team -> %>
                 <.team_section
                   team_members={@streams.team_members}
@@ -1099,9 +1166,52 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   roster_invite_count={@roster_invite_count}
                   import_errors={@import_errors}
                   can_message?={@can_message?}
+                  sessions_modal={@sessions_modal}
                 />
             <% end %>
         <% end %>
+      </div>
+    </div>
+    """
+  end
+
+  # ============================================================================
+  # Profile Completion Banner
+  # ============================================================================
+
+  defp profile_completion_banner(assigns) do
+    ~H"""
+    <div
+      id="profile-completion-banner"
+      class={[
+        "mb-6 p-4 border-2 border-amber-300 bg-amber-50",
+        Theme.rounded(:xl)
+      ]}
+    >
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <.icon name="hero-exclamation-triangle" class="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 class={["font-semibold", Theme.typography(:card_title)]}>
+              {gettext("Complete your provider profile")}
+            </h3>
+            <p class="text-sm text-gray-500 mt-0.5">
+              {gettext(
+                "Fill in your business details so parents can find you. Your profile will be reviewed by Klass Hero before going live."
+              )}
+            </p>
+          </div>
+        </div>
+        <.link
+          navigate={~p"/provider/complete-profile"}
+          class={[
+            "inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white whitespace-nowrap",
+            Theme.rounded(:lg),
+            Theme.gradient(:primary)
+          ]}
+        >
+          {gettext("Complete Profile")}
+        </.link>
       </div>
     </div>
     """
@@ -1247,40 +1357,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp overview_section(assigns) do
     ~H"""
     <div class="space-y-6">
-      <%!-- TODO: Stats cards — re-enable when analytics backend is implemented.
-           Dependencies: @stats assign, format_currency/1, format_number/1 helpers (all removed). --%>
-      <%!--
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <.provider_stat_card
-          label={gettext("Total Revenue")}
-          value={format_currency(@stats.total_revenue)}
-          icon="hero-currency-euro-mini"
+          label={gettext("Sessions Completed")}
+          value={to_string(@total_sessions_completed)}
+          icon="hero-check-badge-mini"
           icon_bg="bg-green-100"
           icon_color="text-green-600"
         />
-        <.provider_stat_card
-          label={gettext("Active Bookings")}
-          value={to_string(@stats.active_bookings)}
-          icon="hero-calendar-days-mini"
-          icon_bg="bg-hero-cyan-100"
-          icon_color="text-hero-cyan"
-        />
-        <.provider_stat_card
-          label={gettext("Profile Views")}
-          value={format_number(@stats.profile_views)}
-          icon="hero-eye-mini"
-          icon_bg="bg-purple-100"
-          icon_color="text-purple-600"
-        />
-        <.provider_stat_card
-          label={gettext("Avg Rating")}
-          value={to_string(@stats.average_rating)}
-          icon="hero-star-mini"
-          icon_bg="bg-hero-yellow-100"
-          icon_color="text-hero-yellow"
-        />
       </div>
-      --%>
 
       <.business_profile_card business={@business} />
 
@@ -1391,6 +1476,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :roster_invite_count, :integer, default: 0
   attr :import_errors, :any, default: nil
   attr :can_message?, :boolean, default: false
+  attr :sessions_modal, :any, default: nil
 
   defp programs_section(assigns) do
     ~H"""
@@ -1427,6 +1513,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         import_errors={@import_errors}
         can_message?={@can_message?}
       />
+
+      <.sessions_modal :if={@sessions_modal} modal={@sessions_modal} />
     </div>
     """
   end

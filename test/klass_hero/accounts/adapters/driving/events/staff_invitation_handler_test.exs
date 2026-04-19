@@ -116,7 +116,7 @@ defmodule KlassHero.Accounts.Adapters.Driving.Events.StaffInvitationHandlerTest 
       end)
     end
 
-    test "emits :staff_user_registered for existing user" do
+    test "emits :staff_user_registered with create_provider_profile for existing user" do
       user = user_fixture()
       staff_member_id = Ecto.UUID.generate()
       provider_id = Ecto.UUID.generate()
@@ -138,6 +138,8 @@ defmodule KlassHero.Accounts.Adapters.Driving.Events.StaffInvitationHandlerTest 
       assert ie.payload.user_id == to_string(user.id)
       assert ie.payload.staff_member_id == staff_member_id
       assert ie.payload.provider_id == provider_id
+      assert ie.payload.create_provider_profile == true
+      assert ie.payload.user_name == user.name
       assert ie.source_context == :accounts
     end
 

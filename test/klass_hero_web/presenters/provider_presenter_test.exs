@@ -78,6 +78,59 @@ defmodule KlassHeroWeb.Presenters.ProviderPresenterTest do
     end
   end
 
+  describe "to_public_view/1" do
+    test "maps business_name, description, and logo_url through to the view" do
+      provider = %ProviderProfile{
+        id: "p-1",
+        identity_id: "i-1",
+        business_name: "Starlight Coaching",
+        description: "Empowering kids through play-based learning.",
+        logo_url: "https://cdn.example.com/starlight.png"
+      }
+
+      view = ProviderPresenter.to_public_view(provider)
+
+      assert view.id == "p-1"
+      assert view.business_name == "Starlight Coaching"
+      assert view.description == "Empowering kids through play-based learning."
+      assert view.logo_url == "https://cdn.example.com/starlight.png"
+    end
+
+    test "derives two-letter initials from a multi-word business name" do
+      provider = %ProviderProfile{
+        id: "p-2",
+        identity_id: "i-2",
+        business_name: "Tiger Academy"
+      }
+
+      assert ProviderPresenter.to_public_view(provider).initials == "TA"
+    end
+
+    test "derives a single-letter initial from a one-word business name" do
+      provider = %ProviderProfile{
+        id: "p-3",
+        identity_id: "i-3",
+        business_name: "Starlight"
+      }
+
+      assert ProviderPresenter.to_public_view(provider).initials == "S"
+    end
+
+    test "passes through nil description and logo_url" do
+      provider = %ProviderProfile{
+        id: "p-4",
+        identity_id: "i-4",
+        business_name: "Minimal Biz"
+      }
+
+      view = ProviderPresenter.to_public_view(provider)
+
+      assert view.description == nil
+      assert view.logo_url == nil
+      assert view.initials == "MB"
+    end
+  end
+
   describe "tier_label/1" do
     test "returns label for each valid tier" do
       assert ProviderPresenter.tier_label(:starter) == "Starter Plan"

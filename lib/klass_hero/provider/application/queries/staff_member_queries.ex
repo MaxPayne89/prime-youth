@@ -47,6 +47,19 @@ defmodule KlassHero.Provider.Application.Queries.StaffMemberQueries do
   end
 
   @doc """
+  Returns true if the given user has any active staff_member row for the given provider.
+
+  Used by Messaging to authorise broadcast follow-ups for staff who work for
+  the broadcast's provider, without depending on the per-program staff
+  projection. Filters by both `provider_id` and `user_id` so a user with
+  active staff_members at multiple providers is correctly identified for each.
+  """
+  @spec active_for_provider_and_user?(String.t(), String.t()) :: boolean()
+  def active_for_provider_and_user?(provider_id, user_id) when is_binary(provider_id) and is_binary(user_id) do
+    @staff_repository.active_for_provider_and_user?(provider_id, user_id)
+  end
+
+  @doc """
   Returns the staff member matching the given invitation token hash,
   only if invitation_status is :sent. Used by the invitation registration flow.
   """

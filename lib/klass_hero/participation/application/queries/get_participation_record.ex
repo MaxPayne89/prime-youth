@@ -7,7 +7,7 @@ defmodule KlassHero.Participation.Application.Queries.GetParticipationRecord do
 
   @participation_repository Application.compile_env!(:klass_hero, [
                               :participation,
-                              :participation_query_repository
+                              :for_querying_participation_records
                             ])
 
   @type result :: {:ok, ParticipationRecord.t()} | {:error, :not_found}

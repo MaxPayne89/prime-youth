@@ -100,11 +100,14 @@ defmodule KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteI
     test "promotes to session_completed integration event" do
       session_id = Ecto.UUID.generate()
       program_id = Ecto.UUID.generate()
+      provider_id = Ecto.UUID.generate()
 
       domain_event =
         DomainEvent.new(:session_completed, session_id, :participation, %{
           session_id: session_id,
           program_id: program_id,
+          provider_id: provider_id,
+          program_title: "Art Class",
           completed_at: DateTime.utc_now()
         })
 
@@ -122,7 +125,46 @@ defmodule KlassHero.Participation.Adapters.Driving.Events.EventHandlers.PromoteI
         DomainEvent.new(:session_completed, session_id, :participation, %{
           session_id: session_id,
           program_id: Ecto.UUID.generate(),
+          provider_id: Ecto.UUID.generate(),
+          program_title: "Art Class",
           completed_at: DateTime.utc_now()
+        })
+
+      TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)
+
+      assert :ok = PromoteIntegrationEvents.handle(domain_event)
+      assert_no_integration_events_published()
+    end
+  end
+
+  describe "handle/1 — :session_cancelled" do
+    test "promotes to session_cancelled integration event" do
+      session_id = Ecto.UUID.generate()
+      program_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:session_cancelled, session_id, :participation, %{
+          session_id: session_id,
+          program_id: program_id,
+          cancelled_at: DateTime.utc_now()
+        })
+
+      assert :ok = PromoteIntegrationEvents.handle(domain_event)
+
+      event = assert_integration_event_published(:session_cancelled)
+      assert event.entity_id == session_id
+      assert event.source_context == :participation
+      assert event.payload.program_id == program_id
+    end
+
+    test "swallows publish failures with :ok" do
+      session_id = Ecto.UUID.generate()
+
+      domain_event =
+        DomainEvent.new(:session_cancelled, session_id, :participation, %{
+          session_id: session_id,
+          program_id: Ecto.UUID.generate(),
+          cancelled_at: DateTime.utc_now()
         })
 
       TestIntegrationEventPublisher.configure_publish_error(:pubsub_down)

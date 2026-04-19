@@ -16,6 +16,9 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
   - `:enrollment_cancelled` - Emitted when an admin cancels an enrollment.
     Downstream contexts can react to notify affected parties or
     update reporting data.
+  - `:enrollment_created` - Emitted when a new enrollment is persisted.
+    Downstream contexts can react to link enrolled children or
+    update conversation participant data.
   """
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
@@ -134,5 +137,44 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentIntegrationEvents do
   def enrollment_cancelled(enrollment_id, _payload, _opts) do
     raise ArgumentError,
           "enrollment_cancelled/3 requires a non-empty enrollment_id string, got: #{inspect(enrollment_id)}"
+  end
+
+  @typedoc "Payload for `:enrollment_created` events."
+  @type enrollment_created_payload :: %{
+          required(:enrollment_id) => String.t(),
+          optional(atom()) => term()
+        }
+
+  @doc """
+  Creates an `:enrollment_created` integration event.
+
+  ## Parameters
+
+  - `enrollment_id` - the new enrollment's ID
+  - `payload` - event data including child_id, parent_id, parent_user_id, program_id, status
+  - `opts` - metadata options (correlation_id, causation_id)
+
+  ## Raises
+
+  - `ArgumentError` if `enrollment_id` is nil or empty
+  """
+  def enrollment_created(enrollment_id, payload \\ %{}, opts \\ [])
+
+  def enrollment_created(enrollment_id, payload, opts) when is_binary(enrollment_id) and byte_size(enrollment_id) > 0 do
+    base_payload = %{enrollment_id: enrollment_id}
+
+    IntegrationEvent.new(
+      :enrollment_created,
+      @source_context,
+      :enrollment,
+      enrollment_id,
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def enrollment_created(enrollment_id, _payload, _opts) do
+    raise ArgumentError,
+          "enrollment_created/3 requires a non-empty enrollment_id string, got: #{inspect(enrollment_id)}"
   end
 end

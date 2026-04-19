@@ -116,7 +116,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
       :completed,
       :checked_in,
       :checked_out,
-      :absent
+      :absent,
+      :cancelled
     ],
     doc: "Status to display"
 
@@ -714,6 +715,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
 
   defp status_color_classes(:expected), do: "bg-yellow-100 text-yellow-700 border border-yellow-300"
 
+  defp status_color_classes(:cancelled), do: "bg-red-100 text-red-700 border border-red-300"
+
   defp status_icon(status) when status in [:registered, :scheduled], do: "hero-clock"
   defp status_icon(:in_progress), do: "hero-play-circle"
   defp status_icon(:completed), do: "hero-check-circle"
@@ -721,6 +724,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp status_icon(:checked_out), do: "hero-arrow-left-circle"
   defp status_icon(:absent), do: "hero-x-circle"
   defp status_icon(:expected), do: "hero-clock"
+  defp status_icon(:cancelled), do: "hero-x-circle"
 
   defp status_label(:registered), do: gettext("Registered")
   defp status_label(:scheduled), do: gettext("Scheduled")
@@ -730,6 +734,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp status_label(:checked_out), do: gettext("Checked Out")
   defp status_label(:absent), do: gettext("Absent")
   defp status_label(:expected), do: gettext("Expected")
+  defp status_label(:cancelled), do: gettext("Cancelled")
 
   # Behavioral note status helpers
 

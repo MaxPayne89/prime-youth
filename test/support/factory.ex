@@ -56,6 +56,7 @@ defmodule KlassHero.Factory do
   alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Schemas.ProgramSchema
   alias KlassHero.ProgramCatalog.Domain.Models.Program
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.SessionStatsSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.VerificationDocumentSchema
   alias KlassHero.Provider.Domain.Models.ProviderProfile
@@ -384,7 +385,34 @@ defmodule KlassHero.Factory do
       verified: false,
       verified_at: nil,
       categories: ["sports", "outdoor"],
-      subscription_tier: "professional"
+      subscription_tier: "professional",
+      profile_status: "active"
+    }
+  end
+
+  @doc """
+  Draft provider profile variant — simulates a profile auto-created by
+  StaffInvitationStatusHandler when a staff member opts into provider role.
+  All optional fields are nil (provider hasn't filled them in yet).
+  """
+  def draft_provider_profile_schema_factory do
+    user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:staff_provider, :provider])
+
+    %ProviderProfileSchema{
+      id: Ecto.UUID.generate(),
+      identity_id: user.id,
+      business_name: sequence(:draft_provider_business_name, &"Draft Provider #{&1}"),
+      description: nil,
+      phone: nil,
+      website: nil,
+      address: nil,
+      logo_url: nil,
+      verified: false,
+      verified_at: nil,
+      categories: [],
+      subscription_tier: "starter",
+      originated_from: "staff_invite",
+      profile_status: "draft"
     }
   end
 
@@ -427,6 +455,30 @@ defmodule KlassHero.Factory do
       active: true,
       tags: [],
       qualifications: []
+    }
+  end
+
+  # =============================================================================
+  # Provider Context - Session Stats Factories
+  # =============================================================================
+
+  @doc """
+  Factory for creating SessionStatsSchema Ecto schemas (read model, no FK constraints).
+
+  Used in repository tests for the denormalized provider_session_stats table.
+
+  ## Examples
+
+      schema = insert(:session_stats_schema)
+      schema = insert(:session_stats_schema, sessions_completed_count: 5)
+  """
+  def session_stats_schema_factory do
+    %SessionStatsSchema{
+      id: Ecto.UUID.generate(),
+      provider_id: Ecto.UUID.generate(),
+      program_id: Ecto.UUID.generate(),
+      program_title: sequence(:session_stats_title, &"Program #{&1}"),
+      sessions_completed_count: 0
     }
   end
 

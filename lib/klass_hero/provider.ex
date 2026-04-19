@@ -30,6 +30,8 @@ defmodule KlassHero.Provider do
       Domain.Models.StaffMember,
       Domain.Models.VerificationDocument,
       Domain.Models.ProgramStaffAssignment,
+      Domain.ReadModels.SessionStats,
+      Adapters.Driven.Persistence.Repositories.SessionStatsRepository,
       Adapters.Driven.Persistence.ChangeProviderProfile,
       Adapters.Driven.Persistence.ChangeStaffMember,
       # Pragmatic export: Backpex admin operates directly on Ecto schemas
@@ -40,6 +42,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeStaffMember
   alias KlassHero.Provider.Application.Commands.Providers.ChangeSubscriptionTier
+  alias KlassHero.Provider.Application.Commands.Providers.CompleteProviderProfile
   alias KlassHero.Provider.Application.Commands.Providers.CreateProviderProfile
   alias KlassHero.Provider.Application.Commands.Providers.UnverifyProvider
   alias KlassHero.Provider.Application.Commands.Providers.UpdateProviderProfile
@@ -54,6 +57,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.Commands.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.Commands.Verification.RejectVerificationDocument
   alias KlassHero.Provider.Application.Commands.Verification.SubmitVerificationDocument
+  alias KlassHero.Provider.Application.Queries.ListProgramSessions
   alias KlassHero.Provider.Application.Queries.ProgramStaffAssignmentQueries
   alias KlassHero.Provider.Application.Queries.ProviderProfileQueries
   alias KlassHero.Provider.Application.Queries.StaffMemberQueries
@@ -69,6 +73,8 @@ defmodule KlassHero.Provider do
   # ===========================================================================
   # Commands
   # ===========================================================================
+
+  alias KlassHero.Provider.Domain.ReadModels.SessionDetail
 
   @doc """
   Creates a new provider profile.
@@ -97,6 +103,25 @@ defmodule KlassHero.Provider do
           | {:error, :not_found | {:validation_error, list()} | Ecto.Changeset.t()}
   def update_provider_profile(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
     UpdateProviderProfile.execute(provider_id, attrs)
+  end
+
+  @doc """
+  Completes a draft provider profile with all required business information.
+
+  Only profiles with profile_status: :draft can be completed.
+  Sets profile_status to :active on success.
+
+  Returns:
+  - `{:ok, ProviderProfile.t()}` on success
+  - `{:error, :not_found}` if provider doesn't exist
+  - `{:error, :already_active}` if profile is not in draft status
+  - `{:error, {:validation_error, errors}}` for domain validation failures
+  """
+  @spec complete_provider_profile(String.t(), map()) ::
+          {:ok, ProviderProfile.t()}
+          | {:error, :not_found | :already_active | {:validation_error, list()} | Ecto.Changeset.t()}
+  def complete_provider_profile(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
+    CompleteProviderProfile.execute(provider_id, attrs)
   end
 
   @doc """
@@ -401,6 +426,18 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
+  Returns true if the given user has any active staff_member row for the given provider.
+
+  Use this for permission checks scoped to a specific provider — unlike
+  `get_active_staff_member_by_user/1`, this correctly identifies users who are
+  active staff at multiple providers.
+  """
+  @spec active_staff_for_provider?(String.t(), String.t()) :: boolean()
+  def active_staff_for_provider?(provider_id, user_id) when is_binary(provider_id) and is_binary(user_id) do
+    StaffMemberQueries.active_for_provider_and_user?(provider_id, user_id)
+  end
+
+  @doc """
   Returns the staff member matching the given invitation token hash,
   only if invitation_status is :sent. Used by the invitation registration flow.
   """
@@ -460,6 +497,30 @@ defmodule KlassHero.Provider do
     ProgramStaffAssignmentQueries.list_active_for_staff_member(staff_member_id)
   end
 
+  @session_stats_repo Application.compile_env!(:klass_hero, [:provider, :for_querying_session_stats])
+
+  @doc """
+  Returns the total completed session count across all programs for a provider.
+  """
+  @spec get_total_session_count(String.t()) :: non_neg_integer()
+  def get_total_session_count(provider_id) when is_binary(provider_id) do
+    @session_stats_repo.get_total_count(provider_id)
+  end
+
+  @doc """
+  Lists per-session detail rows for a provider's program.
+
+  Returns a list of `SessionDetail` read-model structs from the
+  `provider_session_details` projection. Scoped to the given provider;
+  cross-provider lookups return `[]`.
+  """
+  @spec list_program_sessions(String.t(), String.t()) :: [
+          SessionDetail.t()
+        ]
+  def list_program_sessions(provider_id, program_id) when is_binary(provider_id) and is_binary(program_id) do
+    ListProgramSessions.execute(provider_id, program_id)
+  end
+
   # ===========================================================================
   # Forms
   # ===========================================================================
@@ -472,6 +533,17 @@ defmodule KlassHero.Provider do
   @spec change_provider_profile(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
   def change_provider_profile(%ProviderProfile{} = provider, attrs \\ %{}) do
     ChangeProviderProfile.execute(provider, attrs)
+  end
+
+  @doc """
+  Returns a changeset for tracking provider profile completion form changes.
+
+  Used by ProfileCompletionLive for `to_form()` and `phx-change` validation.
+  Casts a broader set of fields than `change_provider_profile/2`.
+  """
+  @spec change_provider_profile_completion(ProviderProfile.t(), map()) :: Ecto.Changeset.t()
+  def change_provider_profile_completion(%ProviderProfile{} = provider, attrs \\ %{}) do
+    ChangeProviderProfile.completion_changeset(provider, attrs)
   end
 
   @doc """

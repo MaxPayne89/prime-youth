@@ -1,12 +1,12 @@
 import Config
 
 alias KlassHero.Messaging.Adapters.Driven.ResendEmailContentAdapter
-alias KlassHero.Participation.Adapters.Driven.EnrollmentContext.EnrolledChildrenResolver
-alias KlassHero.Participation.Adapters.Driven.FamilyContext.ChildInfoResolver
+alias KlassHero.Participation.Adapters.Driven.ACL.ChildInfoResolver
+alias KlassHero.Participation.Adapters.Driven.ACL.EnrolledChildrenResolver
+alias KlassHero.Participation.Adapters.Driven.ACL.ProgramProviderResolver
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.BehavioralNoteRepository
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.ParticipationRepository
 alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRepository
-alias KlassHero.Participation.Adapters.Driven.ProgramCatalogContext.ProgramProviderResolver
 alias KlassHero.Shared.Adapters.Driven.Events.TestEventPublisher
 alias KlassHero.Shared.Adapters.Driven.Events.TestIntegrationEventPublisher
 alias KlassHero.Shared.Adapters.Driven.FeatureFlags.StubFeatureFlagsAdapter
@@ -50,15 +50,15 @@ config :klass_hero, :integration_event_publisher,
   pubsub: KlassHero.PubSub
 
 config :klass_hero, :participation,
-  session_repository: SessionRepository,
-  session_query_repository: SessionRepository,
-  participation_repository: ParticipationRepository,
-  participation_query_repository: ParticipationRepository,
-  child_info_resolver: ChildInfoResolver,
-  behavioral_note_repository: BehavioralNoteRepository,
-  behavioral_note_query_repository: BehavioralNoteRepository,
-  program_provider_resolver: ProgramProviderResolver,
-  enrolled_children_resolver: EnrolledChildrenResolver
+  for_storing_sessions: SessionRepository,
+  for_querying_sessions: SessionRepository,
+  for_storing_participation_records: ParticipationRepository,
+  for_querying_participation_records: ParticipationRepository,
+  for_resolving_child_info: ChildInfoResolver,
+  for_storing_behavioral_notes: BehavioralNoteRepository,
+  for_querying_behavioral_notes: BehavioralNoteRepository,
+  for_resolving_program_provider: ProgramProviderResolver,
+  for_resolving_enrolled_children: EnrolledChildrenResolver
 
 config :klass_hero, :resend_req_options,
   plug: {Req.Test, ResendEmailContentAdapter},
