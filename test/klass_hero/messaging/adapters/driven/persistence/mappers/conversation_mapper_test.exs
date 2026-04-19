@@ -38,7 +38,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Mappers.ConversationMa
     struct!(ConversationSchema, Map.merge(defaults, overrides))
   end
 
-  defp participant_schema(overrides \\ %{}) do
+  defp participant_schema(overrides) do
     defaults = %{
       id: Ecto.UUID.generate(),
       conversation_id: Ecto.UUID.generate(),
