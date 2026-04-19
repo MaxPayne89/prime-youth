@@ -54,13 +54,13 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.InboundEmailQu
         |> InboundEmailQueries.by_status(nil)
 
       assert %Ecto.Query{} = query
-      assert length(query.wheres) == 0
+      assert Enum.empty?(query.wheres)
     end
 
     test "adds WHERE clause for atom status" do
       query =
         InboundEmailQueries.base()
-        |> InboundEmailQueries.by_status(:pending)
+        |> InboundEmailQueries.by_status(:unread)
 
       assert %Ecto.Query{} = query
       assert length(query.wheres) == 1
@@ -69,7 +69,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.InboundEmailQu
     test "adds WHERE clause for string status" do
       query =
         InboundEmailQueries.base()
-        |> InboundEmailQueries.by_status("processed")
+        |> InboundEmailQueries.by_status("archived")
 
       assert %Ecto.Query{} = query
       assert length(query.wheres) == 1
@@ -94,7 +94,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.InboundEmailQu
         |> InboundEmailQueries.before(nil)
 
       assert %Ecto.Query{} = query
-      assert length(query.wheres) == 0
+      assert Enum.empty?(query.wheres)
     end
 
     test "adds WHERE clause when timestamp is given" do
@@ -117,7 +117,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.InboundEmailQu
 
       assert %Ecto.Query{} = query
       assert query.limit != nil
-      assert length(query.wheres) == 0
+      assert Enum.empty?(query.wheres)
     end
 
     test "applies before timestamp filter when :before opt is given" do
@@ -135,7 +135,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.InboundEmailQu
 
   describe "count_by_status/1" do
     test "returns query with base source, WHERE clause, and select" do
-      query = InboundEmailQueries.count_by_status(:pending)
+      query = InboundEmailQueries.count_by_status(:unread)
 
       assert %Ecto.Query{} = query
       assert query.from.source == {"inbound_emails", InboundEmailSchema}
@@ -144,7 +144,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.InboundEmailQu
     end
 
     test "accepts string status" do
-      query = InboundEmailQueries.count_by_status("processed")
+      query = InboundEmailQueries.count_by_status("archived")
 
       assert %Ecto.Query{} = query
       assert length(query.wheres) == 1
@@ -157,7 +157,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.InboundEmailQu
 
       query =
         InboundEmailQueries.base()
-        |> InboundEmailQueries.by_status(:pending)
+        |> InboundEmailQueries.by_status(:unread)
         |> InboundEmailQueries.order_by_newest()
         |> InboundEmailQueries.paginate(before: timestamp)
 
@@ -175,7 +175,7 @@ defmodule KlassHero.Messaging.Adapters.Driven.Persistence.Queries.InboundEmailQu
         |> InboundEmailQueries.order_by_newest()
 
       assert %Ecto.Query{} = query
-      assert length(query.wheres) == 0
+      assert Enum.empty?(query.wheres)
       assert length(query.order_bys) == 1
     end
   end
