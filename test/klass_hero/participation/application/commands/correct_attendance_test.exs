@@ -160,5 +160,58 @@ defmodule KlassHero.Participation.Application.Commands.CorrectAttendanceTest do
       assert corrected.check_in_notes == "[Admin correction] Wrong time recorded"
       refute corrected.check_in_notes =~ " | "
     end
+
+    for role <- [:provider, :staff] do
+      test "actor_role #{role}: patches check_in_notes without requiring a reason", %{
+        record: record
+      } do
+        assert {:ok, corrected} =
+                 Participation.correct_attendance(%{
+                   record_id: record.id,
+                   actor_role: unquote(role),
+                   check_in_notes: "Updated by #{unquote(role)}"
+                 })
+
+        assert corrected.check_in_notes == "Updated by #{unquote(role)}"
+        refute corrected.check_in_notes =~ "[Admin correction]"
+      end
+
+      test "actor_role #{role}: records a retroactive check-out time and notes", %{
+        record: record
+      } do
+        assert {:ok, corrected} =
+                 Participation.correct_attendance(%{
+                   record_id: record.id,
+                   actor_role: unquote(role),
+                   status: :checked_out,
+                   check_out_at: ~U[2026-03-13 10:30:00Z],
+                   check_out_notes: "Picked up by mom"
+                 })
+
+        assert corrected.status == :checked_out
+        assert corrected.check_out_at == ~U[2026-03-13 10:30:00Z]
+        assert corrected.check_out_notes == "Picked up by mom"
+        refute (corrected.check_out_notes || "") =~ "[Admin correction]"
+      end
+
+      test "actor_role #{role}: rejects edits with no actual changes", %{record: record} do
+        assert {:error, :no_changes} =
+                 Participation.correct_attendance(%{
+                   record_id: record.id,
+                   actor_role: unquote(role)
+                 })
+      end
+
+      test "actor_role #{role}: treats notes-equal-to-existing as no_changes", %{
+        record: record
+      } do
+        assert {:error, :no_changes} =
+                 Participation.correct_attendance(%{
+                   record_id: record.id,
+                   actor_role: unquote(role),
+                   check_in_notes: record.check_in_notes
+                 })
+      end
+    end
   end
 end

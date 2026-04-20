@@ -228,7 +228,13 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
       (Map.has_key?(attrs, :check_in_at) and attrs.check_in_at != record.check_in_at) or
         (Map.has_key?(attrs, :check_out_at) and attrs.check_out_at != record.check_out_at)
 
-    if has_status_change or has_time_change, do: :ok, else: {:error, :no_changes}
+    has_notes_change =
+      (Map.has_key?(attrs, :check_in_notes) and attrs.check_in_notes != record.check_in_notes) or
+        (Map.has_key?(attrs, :check_out_notes) and attrs.check_out_notes != record.check_out_notes)
+
+    if has_status_change or has_time_change or has_notes_change,
+      do: :ok,
+      else: {:error, :no_changes}
   end
 
   defp validate_status(%{status: status}) when status not in @valid_statuses, do: {:error, :invalid_status}
@@ -256,6 +262,8 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
     |> maybe_update(:check_in_at, attrs)
     |> maybe_update(:check_out_at, attrs)
     |> clear_downstream_fields(attrs)
+    |> maybe_update(:check_in_notes, attrs)
+    |> maybe_update(:check_out_notes, attrs)
   end
 
   defp maybe_update(record, field, attrs) do

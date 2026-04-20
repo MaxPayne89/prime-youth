@@ -549,4 +549,176 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       refute has_element?(view, "#checkout-form-#{record.id}")
     end
   end
+
+  describe "edit-after-check-in flow" do
+    setup [:create_session_with_child]
+
+    defp check_in!(record, user) do
+      {:ok, updated} =
+        KlassHero.Participation.record_check_in(%{
+          record_id: record.id,
+          checked_in_by: user.id
+        })
+
+      updated
+    end
+
+    test "shows Edit and 'Record departure' buttons for a checked-in child", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      _checked_in = check_in!(record, user)
+      {:ok, view, html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      assert has_element?(view, "#edit-btn-#{record.id}")
+
+      assert has_element?(
+               view,
+               "button[phx-click='expand_checkout_form'][phx-value-id='#{record.id}']",
+               "Record departure"
+             )
+
+      # Status pill flipped to "Present" rather than the prior "Checked In" wording.
+      assert html =~ "Present"
+      refute html =~ "Checked In"
+    end
+
+    test "expand_edit_form opens the inline edit form pre-filled with check-in notes", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      _checked_in = check_in!(record, user)
+
+      # Seed an existing check-in note so we can confirm pre-fill behaviour.
+      record
+      |> Ecto.Changeset.change(check_in_notes: "Forgot raincoat")
+      |> KlassHero.Repo.update!()
+
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      view
+      |> element("#edit-btn-#{record.id}")
+      |> render_click()
+
+      assert has_element?(view, "#edit-record-form-#{record.id}")
+      html = render(view)
+      assert html =~ "Forgot raincoat"
+    end
+
+    test "submitting notes-only update calls correct_attendance and updates the row", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      _checked_in = check_in!(record, user)
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      view |> element("#edit-btn-#{record.id}") |> render_click()
+
+      view
+      |> form("#edit-record-form-#{record.id}", edit: %{notes: "Was a bit shy today"})
+      |> render_submit()
+
+      assert KlassHero.Repo.get!(ParticipationRecordSchema, record.id).check_in_notes ==
+               "Was a bit shy today"
+
+      # Form collapsed after successful submit.
+      refute has_element?(view, "#edit-record-form-#{record.id}")
+    end
+
+    test "submitting departure time records check-out via correct_attendance", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      _checked_in = check_in!(record, user)
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      view |> element("#edit-btn-#{record.id}") |> render_click()
+
+      view
+      |> form("#edit-record-form-#{record.id}",
+        edit: %{notes: "Picked up by dad", check_out_at: "2026-04-20T15:30"}
+      )
+      |> render_submit()
+
+      reloaded = KlassHero.Repo.get!(ParticipationRecordSchema, record.id)
+      assert reloaded.status == :checked_out
+      assert reloaded.check_out_at == ~U[2026-04-20 15:30:00Z]
+      assert reloaded.check_out_notes == "Picked up by dad"
+    end
+
+    test "Edit button is available for already-checked-out rows", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      checked_in = check_in!(record, user)
+
+      {:ok, _checked_out} =
+        KlassHero.Participation.record_check_out(%{
+          record_id: checked_in.id,
+          checked_out_by: user.id,
+          notes: "left at 3pm"
+        })
+
+      {:ok, view, html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      assert has_element?(view, "#edit-btn-#{record.id}")
+      # Pill reads "Departed" once the child has gone.
+      assert html =~ "Departed"
+    end
+
+    # Regression for PR #709 review (Copilot): when a record is :checked_out but
+    # check_out_notes is nil (record_check_out accepts optional notes), the edit
+    # form must NOT pre-fill the textarea with check_in_notes — that value
+    # would silently get copied into check_out_notes on save.
+    test "edit form starts empty when record is checked-out without check-out notes",
+         %{conn: conn, session: session, record: record, user: user} do
+      record
+      |> Ecto.Changeset.change(check_in_notes: "Brought hat and gloves")
+      |> KlassHero.Repo.update!()
+
+      checked_in = check_in!(record, user)
+
+      {:ok, _} =
+        KlassHero.Participation.record_check_out(%{
+          record_id: checked_in.id,
+          checked_out_by: user.id
+          # no :notes — leaves check_out_notes as nil
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+      view |> element("#edit-btn-#{record.id}") |> render_click()
+
+      html = render(view)
+      refute html =~ "Brought hat and gloves"
+    end
+
+    test "cancel_edit collapses the form without changes", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      _checked_in = check_in!(record, user)
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+
+      view |> element("#edit-btn-#{record.id}") |> render_click()
+      assert has_element?(view, "#edit-record-form-#{record.id}")
+
+      view
+      |> element("button[phx-click='cancel_edit'][phx-value-id='#{record.id}']")
+      |> render_click()
+
+      refute has_element?(view, "#edit-record-form-#{record.id}")
+    end
+  end
 end

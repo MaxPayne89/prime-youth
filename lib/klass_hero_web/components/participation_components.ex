@@ -554,6 +554,86 @@ defmodule KlassHeroWeb.ParticipationComponents do
   end
 
   @doc """
+  Inline edit form for a participation record (provider/staff).
+
+  Lets the caller patch the record's primary notes field and, when the child
+  hasn't departed yet, optionally record a departure time. Submits the
+  `submit_edit` event with the form values; the LiveView wires that to
+  `Participation.correct_attendance/1` with the appropriate `actor_role`.
+
+  ## Examples
+
+      <.edit_record_form
+        form={@edit_forms[record.id]}
+        record={record}
+      />
+  """
+  attr :form, Form, required: true, doc: "Form struct from to_form/2"
+  attr :record, :map, required: true, doc: "Participation record being edited"
+
+  def edit_record_form(assigns) do
+    ~H"""
+    <div class="mt-4 border-t border-hero-grey-200 pt-4" id={"edit-form-#{@record.id}"}>
+      <.form
+        for={@form}
+        id={"edit-record-form-#{@record.id}"}
+        phx-change="update_edit_form"
+        phx-submit="submit_edit"
+        phx-value-id={@record.id}
+      >
+        <div class="space-y-3">
+          <.input
+            field={@form[:notes]}
+            type="textarea"
+            label={edit_notes_label(@record)}
+            placeholder={gettext("Update the note for this child (e.g. clarify what happened)")}
+            rows="3"
+          />
+
+          <%= if is_nil(@record.check_out_at) do %>
+            <.input
+              field={@form[:check_out_at]}
+              type="datetime-local"
+              label={gettext("Record departure time (optional)")}
+            />
+            <p class="text-xs text-hero-grey-500 -mt-2">
+              {gettext("Leave blank to keep this child marked as present.")}
+            </p>
+          <% end %>
+
+          <div class="flex gap-2 flex-wrap">
+            <button
+              type="submit"
+              class={[
+                "flex-1 px-4 py-2 bg-hero-blue-600 text-white font-medium hover:bg-hero-blue-700",
+                "focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
+                Theme.rounded(:md),
+                Theme.transition(:normal)
+              ]}
+            >
+              {gettext("Save changes")}
+            </button>
+            <button
+              type="button"
+              phx-click="cancel_edit"
+              phx-value-id={@record.id}
+              class={[
+                "px-4 py-2 bg-white text-hero-black-100 font-medium border border-hero-grey-300",
+                "hover:bg-hero-grey-50 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
+                Theme.rounded(:md),
+                Theme.transition(:normal)
+              ]}
+            >
+              {gettext("Cancel")}
+            </button>
+          </div>
+        </div>
+      </.form>
+    </div>
+    """
+  end
+
+  @doc """
   Renders a list of approved behavioral notes for a child.
 
   ## Examples
@@ -730,8 +810,8 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp status_label(:scheduled), do: gettext("Scheduled")
   defp status_label(:in_progress), do: gettext("In Progress")
   defp status_label(:completed), do: gettext("Completed")
-  defp status_label(:checked_in), do: gettext("Checked In")
-  defp status_label(:checked_out), do: gettext("Checked Out")
+  defp status_label(:checked_in), do: gettext("Present")
+  defp status_label(:checked_out), do: gettext("Departed")
   defp status_label(:absent), do: gettext("Absent")
   defp status_label(:expected), do: gettext("Expected")
   defp status_label(:cancelled), do: gettext("Cancelled")
@@ -751,4 +831,7 @@ defmodule KlassHeroWeb.ParticipationComponents do
   defp note_status_label(:pending_approval), do: gettext("Pending Review")
   defp note_status_label(:approved), do: gettext("Approved")
   defp note_status_label(:rejected), do: gettext("Rejected")
+
+  defp edit_notes_label(%{check_out_at: %DateTime{}}), do: gettext("Departure notes")
+  defp edit_notes_label(_record), do: gettext("Notes")
 end

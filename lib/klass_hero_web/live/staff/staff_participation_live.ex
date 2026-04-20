@@ -5,6 +5,7 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
   alias KlassHero.Shared.Domain.Events.DomainEvent
+  alias KlassHeroWeb.Helpers.ParticipationEditHelpers
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -30,6 +31,8 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
       |> assign(:checkout_forms, %{})
       |> assign(:note_form_expanded, nil)
       |> assign(:note_forms, %{})
+      |> assign(:edit_form_expanded, nil)
+      |> assign(:edit_forms, %{})
       |> assign(:record_note_map, %{})
 
     if connected?(socket) do
@@ -195,6 +198,74 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
         )
 
         {:noreply, put_flash(socket, :error, gettext("Failed to submit note"))}
+    end
+  end
+
+  @impl true
+  def handle_event("expand_edit_form", %{"id" => record_id}, socket) do
+    case find_participation_record(socket, record_id) do
+      nil ->
+        {:noreply, put_flash(socket, :error, gettext("Record not found"))}
+
+      record ->
+        form =
+          to_form(
+            %{"notes" => ParticipationEditHelpers.default_edit_notes(record), "check_out_at" => ""},
+            as: "edit"
+          )
+
+        {:noreply,
+         socket
+         |> assign(:edit_form_expanded, record_id)
+         |> assign(:edit_forms, Map.put(socket.assigns.edit_forms, record_id, form))}
+    end
+  end
+
+  @impl true
+  def handle_event("cancel_edit", %{"id" => record_id}, socket) do
+    {:noreply,
+     socket
+     |> assign(:edit_form_expanded, nil)
+     |> assign(:edit_forms, Map.delete(socket.assigns.edit_forms, record_id))}
+  end
+
+  @impl true
+  def handle_event("update_edit_form", %{"id" => record_id, "edit" => params}, socket) do
+    form = to_form(params, as: "edit")
+
+    {:noreply, assign(socket, :edit_forms, Map.put(socket.assigns.edit_forms, record_id, form))}
+  end
+
+  @impl true
+  def handle_event("submit_edit", %{"id" => record_id, "edit" => params}, socket) do
+    record = find_participation_record(socket, record_id)
+
+    with {:record, record} when not is_nil(record) <- {:record, record},
+         {:ok, correction} <- ParticipationEditHelpers.build_edit_correction(record, params, :staff),
+         {:ok, _} <- Participation.correct_attendance(correction) do
+      {:noreply,
+       socket
+       |> put_flash(:info, gettext("Record updated"))
+       |> assign(:edit_form_expanded, nil)
+       |> assign(:edit_forms, Map.delete(socket.assigns.edit_forms, record_id))
+       |> load_session_data()}
+    else
+      {:record, nil} ->
+        {:noreply, put_flash(socket, :error, gettext("Record not found"))}
+
+      {:error, :invalid_datetime} ->
+        {:noreply, put_flash(socket, :error, gettext("Departure time is not a valid date and time"))}
+
+      {:error, :no_changes} ->
+        {:noreply, put_flash(socket, :info, gettext("Nothing to update"))}
+
+      {:error, reason} ->
+        Logger.error("[StaffParticipationLive.submit_edit] Failed",
+          record_id: record_id,
+          reason: inspect(reason)
+        )
+
+        {:noreply, put_flash(socket, :error, gettext("Failed to update record"))}
     end
   end
 
