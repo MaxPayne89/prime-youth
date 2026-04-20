@@ -28,10 +28,18 @@
     "safeoutputs_mcp_workaround": "safeoutputs tools not in tool list; call via HTTP at host.docker.internal:80/mcp/safeoutputs with auth from /home/runner/.copilot/mcp-config.json; use Python script with SSE format",
     "query_builder_test_pattern": "Query builder tests use DataCase async:true; inspect query.from.source (table name + schema), length(query.wheres), length(query.order_bys). No DB execution needed. ParticipationQueriesTest is canonical reference.",
     "nil_guard_test_pattern": "For functions with nil guards (e.g. before(query, nil)), use length(query.wheres) == 0 rather than query == base to test no-op behavior; both work but length check is more readable and consistent with canonical pattern",
-    "conversation_queries_note": "ConversationQueries.with_ended_program/2 calls KlassHero.ProgramCatalog.list_ended_program_ids/1 (cross-context); excluded from pure query builder tests; needs integration test with real/stub ProgramCatalog adapter"
+    "conversation_queries_note": "ConversationQueries.with_ended_program/2 calls KlassHero.ProgramCatalog.list_ended_program_ids/1 (cross-context); excluded from pure query builder tests; needs integration test with real/stub ProgramCatalog adapter",
+    "mcp_github_tools": "GitHub MCP tools use different param names: issue_read needs method+issue_number, pull_request_read needs method+pullNumber",
+    "all_persistence_query_builders_tested": "As of 2026-04-20, all adapters/driven/persistence/queries/*.ex files have corresponding test files",
+    "all_messaging_mappers_tested": "As of 2026-04-20 (pending PR), all messaging persistence mappers have tests: ParticipantMapper in test branch test-assist/participant-mapper-unit-tests-1776720751"
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
+    {
+      "id": "enrollment-policy-queries-capacity",
+      "priority": "medium",
+      "description": "EnrollmentPolicyQueries.get_remaining_capacities/1 and get_enrollment_summary_batch/1 have real orchestration logic worth DataCase integration tests; policy_repo needs stubbing or real DB inserts"
+    },
     {
       "id": "conversation-queries-with-ended-program",
       "priority": "low",
@@ -51,14 +59,23 @@
   "tasks_last_run": {
     "task_1": "2026-04-15",
     "task_2": "2026-04-18",
-    "task_3": "2026-04-19",
-    "task_4": "2026-04-19",
+    "task_3": "2026-04-20",
+    "task_4": "2026-04-20",
     "task_5": "2026-04-16",
     "task_6": "2026-04-14",
-    "task_7": "2026-04-19"
+    "task_7": "2026-04-20"
   },
   "work_in_progress": null,
   "completed_work": [
+    {
+      "date": "2026-04-20",
+      "run_id": "24691216946",
+      "tasks": ["task_3", "task_4", "task_7"],
+      "pr_branch": "test-assist/participant-mapper-unit-tests-1776720751",
+      "description": "8 unit tests for ParticipantMapper (to_domain/1, to_schema_attrs/1, to_create_attrs/1)",
+      "tests_added": 8,
+      "pr_number": null
+    },
     {
       "date": "2026-04-19",
       "run_id": "24639393088",
@@ -66,7 +83,7 @@
       "pr_branch": "test-assist/program-queries-filter-category-1776634092",
       "description": "5 unit tests for ProgramQueries.filter_by_category/2 (nil pass-through, all pass-through, specific category, loop, composition)",
       "tests_added": 5,
-      "pr_number": null
+      "pr_number": 707
     },
     {
       "date": "2026-04-18",
@@ -116,10 +133,10 @@
   },
   "checked_off_items": [],
   "backlog_cursor": {
-    "task_2_last_file": "enrollment/adapters/driven/persistence/mappers/bulk_enrollment_invite_mapper.ex (complete - all mapper files surveyed)",
+    "task_2_last_file": "all persistence mappers and query builders surveyed (2026-04-20)",
     "task_5_last_issue": 645
   },
-  "open_prs": [696],
+  "open_prs": [707, 696],
   "pending_prs": [
     {
       "branch": "test-assist/mapper-unit-tests-1776547550",
@@ -128,7 +145,13 @@
     },
     {
       "branch": "test-assist/program-queries-filter-category-1776634092",
-      "description": "5 unit tests for ProgramQueries.filter_by_category/2"
+      "description": "5 unit tests for ProgramQueries.filter_by_category/2",
+      "pr_number": 707
+    },
+    {
+      "branch": "test-assist/participant-mapper-unit-tests-1776720751",
+      "description": "8 unit tests for ParticipantMapper",
+      "pr_number": null
     }
   ]
 }
