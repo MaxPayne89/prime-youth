@@ -21,6 +21,10 @@ defmodule KlassHeroWeb.Helpers.ParticipationEditHelpers do
   @spec default_edit_notes(ParticipationRecord.t() | map()) :: String.t()
   def default_edit_notes(%{check_out_at: %DateTime{}, check_out_notes: notes}) when is_binary(notes), do: notes
 
+  # Departed but no check-out note yet — start the textarea empty so we don't
+  # silently copy `check_in_notes` into `check_out_notes` on save.
+  def default_edit_notes(%{check_out_at: %DateTime{}}), do: ""
+
   def default_edit_notes(%{check_in_notes: notes}) when is_binary(notes), do: notes
   def default_edit_notes(_), do: ""
 

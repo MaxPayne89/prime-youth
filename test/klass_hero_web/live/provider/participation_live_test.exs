@@ -676,6 +676,32 @@ defmodule KlassHeroWeb.Provider.ParticipationLiveTest do
       assert html =~ "Departed"
     end
 
+    # Regression for PR #709 review (Copilot): when a record is :checked_out but
+    # check_out_notes is nil (record_check_out accepts optional notes), the edit
+    # form must NOT pre-fill the textarea with check_in_notes — that value
+    # would silently get copied into check_out_notes on save.
+    test "edit form starts empty when record is checked-out without check-out notes",
+         %{conn: conn, session: session, record: record, user: user} do
+      record
+      |> Ecto.Changeset.change(check_in_notes: "Brought hat and gloves")
+      |> KlassHero.Repo.update!()
+
+      checked_in = check_in!(record, user)
+
+      {:ok, _} =
+        KlassHero.Participation.record_check_out(%{
+          record_id: checked_in.id,
+          checked_out_by: user.id
+          # no :notes — leaves check_out_notes as nil
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/provider/participation/#{session.id}")
+      view |> element("#edit-btn-#{record.id}") |> render_click()
+
+      html = render(view)
+      refute html =~ "Brought hat and gloves"
+    end
+
     test "cancel_edit collapses the form without changes", %{
       conn: conn,
       session: session,
