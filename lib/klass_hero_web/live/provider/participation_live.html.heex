@@ -33,26 +33,50 @@
       >
         <:actions :let={record}>
           <%= cond do %>
-            <%!-- Checked In: Show "Check Out" button (hide when form expanded) --%>
-            <% record.status == :checked_in && @checkout_form_expanded != to_string(record.id) -> %>
+            <% record.status == :checked_in && @edit_form_expanded != to_string(record.id) && @checkout_form_expanded != to_string(record.id) -> %>
               <button
-                phx-click="expand_checkout_form"
+                id={"edit-btn-#{record.id}"}
+                phx-click="expand_edit_form"
                 phx-value-id={record.id}
                 class={[
-                  "px-3 py-1.5 text-sm bg-blue-600 text-white font-medium hover:bg-blue-700",
-                  "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                  "inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-white text-hero-charcoal font-medium border border-hero-grey-300",
+                  "hover:bg-hero-grey-50 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
                   Theme.rounded(:md),
                   Theme.transition(:normal)
                 ]}
               >
-                {gettext("Check Out")}
+                <.icon name="hero-pencil-square-mini" class="w-4 h-4" />
+                {gettext("Edit")}
               </button>
-              <%!-- Checked Out: Show status text --%>
-            <% record.status == :checked_out -> %>
-              <span class="px-3 py-1.5 text-sm text-gray-500">
-                {gettext("Checked Out")}
-              </span>
-              <%!-- Expected: Show Check In button --%>
+              <button
+                phx-click="expand_checkout_form"
+                phx-value-id={record.id}
+                class={[
+                  "px-3 py-1.5 text-sm bg-white text-hero-grey-700 font-medium border border-hero-grey-300",
+                  "hover:bg-hero-grey-50 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
+                  Theme.rounded(:md),
+                  Theme.transition(:normal)
+                ]}
+              >
+                {gettext("Record departure")}
+              </button>
+            <% record.status == :checked_out && @edit_form_expanded != to_string(record.id) -> %>
+              <button
+                id={"edit-btn-#{record.id}"}
+                phx-click="expand_edit_form"
+                phx-value-id={record.id}
+                class={[
+                  "inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-white text-hero-charcoal font-medium border border-hero-grey-300",
+                  "hover:bg-hero-grey-50 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
+                  Theme.rounded(:md),
+                  Theme.transition(:normal)
+                ]}
+              >
+                <.icon name="hero-pencil-square-mini" class="w-4 h-4" />
+                {gettext("Edit")}
+              </button>
+              <%!-- A form for this record is expanded — suppress row actions while editing. --%>
+            <% record.status in [:checked_in, :checked_out] -> %>
             <% true -> %>
               <button
                 phx-click="check_in"
@@ -126,6 +150,14 @@
         </:actions>
 
         <:expanded_content :let={record}>
+          <%!-- Inline edit form (notes + optional departure time) --%>
+          <%= if @edit_form_expanded == to_string(record.id) do %>
+            <.edit_record_form
+              form={Map.get(@edit_forms, to_string(record.id))}
+              record={record}
+            />
+          <% end %>
+
           <%!-- Inline note form (full-width below record row) --%>
           <%= if @note_form_expanded == to_string(record.id) do %>
             <.behavioral_note_form

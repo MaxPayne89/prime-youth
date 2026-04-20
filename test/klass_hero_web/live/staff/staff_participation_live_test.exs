@@ -4,6 +4,8 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLiveTest do
   import KlassHero.Factory
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Participation.Adapters.Driven.Persistence.Schemas.ParticipationRecordSchema
+
   describe "authentication and authorization" do
     test "redirects unauthenticated users to login", %{conn: conn} do
       session_id = Ecto.UUID.generate()
@@ -137,7 +139,7 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLiveTest do
 
       {:ok, view, _html} = live(conn, ~p"/staff/participation/#{session.id}")
 
-      # Expand checkout form
+      # Expand "Record departure" form
       view
       |> element("button[phx-click='expand_checkout_form'][phx-value-id='#{record.id}']")
       |> render_click()
@@ -151,6 +153,91 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLiveTest do
 
       assert_flash(view, :info, "Child checked out successfully")
       refute has_element?(view, "#checkout-form-#{record.id}")
+    end
+
+    test "shows Edit and 'Record departure' buttons for a checked-in child; pill reads Present",
+         %{conn: conn, session: session, record: record, user: user} do
+      {:ok, _} =
+        KlassHero.Participation.record_check_in(%{
+          record_id: record.id,
+          checked_in_by: user.id
+        })
+
+      {:ok, view, html} = live(conn, ~p"/staff/participation/#{session.id}")
+
+      assert has_element?(view, "#edit-btn-#{record.id}")
+
+      assert has_element?(
+               view,
+               "button[phx-click='expand_checkout_form'][phx-value-id='#{record.id}']",
+               "Record departure"
+             )
+
+      assert html =~ "Present"
+      refute html =~ "Checked In"
+    end
+
+    test "submitting notes-only edit updates the check-in note", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      {:ok, _} =
+        KlassHero.Participation.record_check_in(%{
+          record_id: record.id,
+          checked_in_by: user.id
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/staff/participation/#{session.id}")
+
+      view |> element("#edit-btn-#{record.id}") |> render_click()
+
+      view
+      |> form("#edit-record-form-#{record.id}", edit: %{notes: "Brought a snack"})
+      |> render_submit()
+
+      reloaded =
+        KlassHero.Repo.get!(
+          ParticipationRecordSchema,
+          record.id
+        )
+
+      assert reloaded.check_in_notes == "Brought a snack"
+      refute has_element?(view, "#edit-record-form-#{record.id}")
+    end
+
+    test "submitting departure time records check-out via correct_attendance", %{
+      conn: conn,
+      session: session,
+      record: record,
+      user: user
+    } do
+      {:ok, _} =
+        KlassHero.Participation.record_check_in(%{
+          record_id: record.id,
+          checked_in_by: user.id
+        })
+
+      {:ok, view, _html} = live(conn, ~p"/staff/participation/#{session.id}")
+
+      view |> element("#edit-btn-#{record.id}") |> render_click()
+
+      view
+      |> form("#edit-record-form-#{record.id}",
+        edit: %{notes: "Mum collected", check_out_at: "2026-04-20T16:15"}
+      )
+      |> render_submit()
+
+      reloaded =
+        KlassHero.Repo.get!(
+          ParticipationRecordSchema,
+          record.id
+        )
+
+      assert reloaded.status == :checked_out
+      assert reloaded.check_out_at == ~U[2026-04-20 16:15:00Z]
+      assert reloaded.check_out_notes == "Mum collected"
     end
   end
 end
