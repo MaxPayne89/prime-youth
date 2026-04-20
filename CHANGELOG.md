@@ -5,6 +5,13 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.0](https://github.com/MaxPayne89/klass-hero/compare/v0.41.0...v0.42.0) (2026-04-20)
+
+
+### Features
+
+* optional checkout + edit-after-check-in on attendance roster ([#709](https://github.com/MaxPayne89/klass-hero/issues/709)) ([6bf170a](https://github.com/MaxPayne89/klass-hero/commit/6bf170a3be3412f7db959b0d1b4ecce715ce98e8))
+
 ## [0.41.0](https://github.com/MaxPayne89/klass-hero/compare/v0.40.0...v0.41.0) (2026-04-19)
 
 
