@@ -113,4 +113,23 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite do
   def generate_token do
     :crypto.strong_rand_bytes(32) |> Base.url_encode64(padding: false)
   end
+
+  @doc """
+  Natural dedup key for an invite — program_id plus downcased guardian
+  email and child name. The DB unique index is case-insensitive via
+  downcased tuple matching, and both write paths use this shape so the
+  key in application code always equals the key materialised from the DB.
+  """
+  @spec dedup_key(binary(), String.t(), String.t(), String.t()) ::
+          {binary(), String.t(), String.t(), String.t()}
+  def dedup_key(program_id, guardian_email, child_first_name, child_last_name)
+      when is_binary(program_id) and is_binary(guardian_email) and is_binary(child_first_name) and
+             is_binary(child_last_name) do
+    {
+      program_id,
+      String.downcase(guardian_email),
+      String.downcase(child_first_name),
+      String.downcase(child_last_name)
+    }
+  end
 end

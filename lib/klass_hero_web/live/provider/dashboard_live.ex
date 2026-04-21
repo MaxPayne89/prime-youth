@@ -112,7 +112,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             roster_enrolled_count: 0,
             roster_invite_count: 0,
             import_errors: nil,
-            can_message?: false
+            can_message?: false,
+            invite_mode: "single",
+            single_invite_form: blank_single_invite_form()
           )
           |> assign(:sessions_modal, nil)
           |> assign(program_form: to_form(ProgramCatalog.new_program_changeset()))
@@ -554,7 +556,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
          roster_enrolled_count: length(roster),
          roster_invite_count: invite_count,
          import_errors: nil,
-         can_message?: Entitlements.can_initiate_messaging?(socket.assigns.current_scope)
+         can_message?: Entitlements.can_initiate_messaging?(socket.assigns.current_scope),
+         invite_mode: "single",
+         single_invite_form: blank_single_invite_form()
        )}
     else
       false ->
@@ -582,7 +586,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
        roster_invite_count: 0,
        roster_enrolled_count: 0,
        import_errors: nil,
-       can_message?: false
+       can_message?: false,
+       invite_mode: "single",
+       single_invite_form: blank_single_invite_form()
      )}
   end
 
@@ -756,6 +762,51 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           {:error, error_report} ->
             {:noreply, assign(socket, import_errors: error_report)}
         end
+    end
+  end
+
+  @impl true
+  def handle_event("switch_invite_mode", %{"mode" => mode}, socket) when mode in ~w(single csv) do
+    {:noreply, assign(socket, invite_mode: mode)}
+  end
+
+  @impl true
+  def handle_event("validate_single_invite", %{"single_invite" => params}, socket) do
+    changeset = params |> Enrollment.change_single_invite() |> Map.put(:action, :validate)
+    {:noreply, assign(socket, single_invite_form: to_form(changeset, as: "single_invite"))}
+  end
+
+  @impl true
+  def handle_event("submit_single_invite", %{"single_invite" => params}, socket) do
+    provider_id = socket.assigns.current_scope.provider.id
+
+    case Enrollment.invite_single_participant(provider_id, params) do
+      {:ok, _} ->
+        socket = refresh_invites_silent(socket, socket.assigns.roster_program_id)
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Invite sent."))
+         |> assign(single_invite_form: blank_single_invite_form())}
+
+      {:error, :no_programs} ->
+        {:noreply, put_flash(socket, :error, gettext("Create a program before inviting participants."))}
+
+      {:error, :duplicate} ->
+        {:noreply,
+         put_flash(
+           socket,
+           :error,
+           gettext("An invite for this child and program already exists.")
+         )}
+
+      {:error, %{validation_errors: field_errors}} ->
+        changeset =
+          params
+          |> Enrollment.change_single_invite()
+          |> Enrollment.apply_single_invite_domain_errors(field_errors)
+
+        {:noreply, assign(socket, single_invite_form: to_form(changeset, as: "single_invite"))}
     end
   end
 
@@ -1167,6 +1218,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                   import_errors={@import_errors}
                   can_message?={@can_message?}
                   sessions_modal={@sessions_modal}
+                  invite_mode={@invite_mode}
+                  single_invite_form={@single_invite_form}
                 />
             <% end %>
         <% end %>
@@ -1477,6 +1530,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   attr :import_errors, :any, default: nil
   attr :can_message?, :boolean, default: false
   attr :sessions_modal, :any, default: nil
+  attr :invite_mode, :string, default: "single"
+  attr :single_invite_form, :any, default: nil
 
   defp programs_section(assigns) do
     ~H"""
@@ -1512,6 +1567,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         uploads={@uploads}
         import_errors={@import_errors}
         can_message?={@can_message?}
+        invite_mode={@invite_mode}
+        single_invite_form={@single_invite_form}
       />
 
       <.sessions_modal :if={@sessions_modal} modal={@sessions_modal} />
@@ -1599,6 +1656,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       {:ok, socket} -> socket
       {:error, :no_program} -> socket
     end
+  end
+
+  defp blank_single_invite_form do
+    to_form(Enrollment.change_single_invite(), as: "single_invite")
   end
 
   defp fetch_verification_docs(provider_id) do

@@ -95,6 +95,93 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     end
   end
 
+  describe "create_one/1" do
+    setup :setup_program
+
+    test "inserts a single row and returns the persisted domain struct", %{
+      program: program,
+      provider: provider
+    } do
+      attrs = valid_invite_attrs(program, provider)
+
+      assert {:ok, invite} = BulkEnrollmentInviteRepository.create_one(attrs)
+      assert is_binary(invite.id)
+      assert invite.program_id == program.id
+      assert invite.provider_id == provider.id
+      assert invite.guardian_email == "parent@example.com"
+      assert invite.status == "pending"
+      assert Repo.aggregate(BulkEnrollmentInviteSchema, :count) == 1
+    end
+
+    test "returns {:error, changeset} when required fields are missing", %{
+      program: program,
+      provider: provider
+    } do
+      attrs = valid_invite_attrs(program, provider, %{child_last_name: nil})
+
+      assert {:error, %Ecto.Changeset{valid?: false} = changeset} =
+               BulkEnrollmentInviteRepository.create_one(attrs)
+
+      assert %{child_last_name: ["can't be blank"]} = errors_on(changeset)
+      assert Repo.aggregate(BulkEnrollmentInviteSchema, :count) == 0
+    end
+
+    test "rejects duplicate (program, email, first, last) via unique constraint", %{
+      program: program,
+      provider: provider
+    } do
+      attrs = valid_invite_attrs(program, provider)
+      assert {:ok, _} = BulkEnrollmentInviteRepository.create_one(attrs)
+
+      assert {:error, %Ecto.Changeset{valid?: false}} =
+               BulkEnrollmentInviteRepository.create_one(attrs)
+
+      assert Repo.aggregate(BulkEnrollmentInviteSchema, :count) == 1
+    end
+  end
+
+  describe "invite_exists?/4" do
+    setup :setup_program
+
+    test "returns false when no invite exists", %{program: program} do
+      refute BulkEnrollmentInviteRepository.invite_exists?(
+               program.id,
+               "new@example.com",
+               "Emma",
+               "Schmidt"
+             )
+    end
+
+    test "returns true for an exact-case-insensitive match", %{
+      program: program,
+      provider: provider
+    } do
+      {:ok, _} = BulkEnrollmentInviteRepository.create_one(valid_invite_attrs(program, provider))
+
+      assert BulkEnrollmentInviteRepository.invite_exists?(
+               program.id,
+               "PARENT@example.com",
+               "emma",
+               "SCHMIDT"
+             )
+    end
+
+    test "returns false for the same names under a different program_id", %{
+      program: program,
+      provider: provider
+    } do
+      other_program = insert(:program_schema, provider_id: provider.id, title: "Other")
+      {:ok, _} = BulkEnrollmentInviteRepository.create_one(valid_invite_attrs(program, provider))
+
+      refute BulkEnrollmentInviteRepository.invite_exists?(
+               other_program.id,
+               "parent@example.com",
+               "Emma",
+               "Schmidt"
+             )
+    end
+  end
+
   describe "list_existing_keys_for_programs/1" do
     setup :setup_program
 

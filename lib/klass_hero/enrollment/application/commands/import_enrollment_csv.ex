@@ -6,7 +6,10 @@ defmodule KlassHero.Enrollment.Application.Commands.ImportEnrollmentCsv do
   All-or-nothing: if any row fails, nothing is persisted.
   """
 
+  alias KlassHero.Enrollment.Application.ChangesetErrors
+  alias KlassHero.Enrollment.Application.ProviderProgramContext
   alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
+  alias KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite
   alias KlassHero.Enrollment.Domain.Services.CsvParser
   alias KlassHero.Enrollment.Domain.Services.ImportRowValidator
   alias KlassHero.Shared.EventDispatchHelper
@@ -19,10 +22,6 @@ defmodule KlassHero.Enrollment.Application.Commands.ImportEnrollmentCsv do
                        :enrollment,
                        :for_storing_bulk_enrollment_invites
                      ])
-  @program_catalog_acl Application.compile_env!(:klass_hero, [
-                         :enrollment,
-                         :for_resolving_program_catalog
-                       ])
 
   @spec execute(binary(), binary()) ::
           {:ok, %{created: non_neg_integer()}}
@@ -58,55 +57,27 @@ defmodule KlassHero.Enrollment.Application.Commands.ImportEnrollmentCsv do
     end
   end
 
+  # LiveView renders parse_errors in the CSV uploader; wrap the shared
+  # helper's generic errors into that shape so no new UI paths are needed.
   defp build_context(provider_id) do
-    programs_by_title = @program_catalog_acl.list_program_titles_for_provider(provider_id)
+    case ProviderProgramContext.for_provider(provider_id) do
+      {:ok, context} ->
+        {:ok, context}
 
-    # Trigger: provider has no programs in the catalog
-    # Why: every CSV row requires a valid program reference; importing with
-    #      zero programs would fail on every row with a confusing per-row error
-    # Outcome: single clear error telling the provider to create programs first
-    if programs_by_title == %{} do
-      {:error,
-       %{
-         parse_errors: [
-           {0, "No programs found for this provider. Create programs before importing."}
-         ]
-       }}
-    else
-      with {:ok, downcased} <- check_title_collisions(programs_by_title) do
-        {:ok, %{provider_id: provider_id, programs_by_title: downcased}}
-      end
-    end
-  end
+      {:error, :no_programs} ->
+        {:error,
+         %{
+           parse_errors: [
+             {0, "No programs found for this provider. Create programs before importing."}
+           ]
+         }}
 
-  # Trigger: two programs whose titles differ only by case (e.g. "Yoga" vs "YOGA")
-  # Why: downcasing would silently collapse them into one key, mapping rows
-  #      to the wrong program_id without any error
-  # Outcome: early error listing the conflicting titles so the provider can rename
-  defp check_title_collisions(programs_by_title) do
-    collisions =
-      programs_by_title
-      |> Map.keys()
-      |> Enum.group_by(&String.downcase/1)
-      |> Enum.filter(fn {_downcased, titles} -> length(titles) > 1 end)
+      {:error, {:title_collisions, titles}} ->
+        msg =
+          "Program titles must be unique ignoring case. Conflicting titles: " <>
+            Enum.join(titles, ", ")
 
-    if collisions == [] do
-      # Trigger: CSV program names may differ in casing from the catalog
-      # Why: spreadsheet apps may auto-capitalize or users may type lowercase
-      # Outcome: downcased keys allow case-insensitive lookup in the validator
-      downcased =
-        Map.new(programs_by_title, fn {title, id} -> {String.downcase(title), id} end)
-
-      {:ok, downcased}
-    else
-      conflicting =
-        Enum.flat_map(collisions, fn {_downcased, titles} -> titles end)
-
-      msg =
-        "Program titles must be unique ignoring case. Conflicting titles: " <>
-          Enum.join(conflicting, ", ")
-
-      {:error, %{parse_errors: [{0, msg}]}}
+        {:error, %{parse_errors: [{0, msg}]}}
     end
   end
 
@@ -128,16 +99,14 @@ defmodule KlassHero.Enrollment.Application.Commands.ImportEnrollmentCsv do
     end
   end
 
-  # Trigger: two rows in the same CSV have the same program + email + child name
-  # Why: the DB unique constraint would reject the batch anyway, but catching
-  #      it here gives a better error message with row numbers
-  # Outcome: duplicate rows flagged before hitting the database
+  # Catching duplicates in-batch gives the user row-number errors; the DB
+  # unique constraint would also reject them but with a less helpful shape.
   defp check_batch_duplicates(rows) do
     {_seen, duplicates} =
       rows
       |> Enum.with_index(1)
       |> Enum.reduce({MapSet.new(), []}, fn {row, row_num}, {seen, dupes} ->
-        key = duplicate_key(row)
+        key = dedup_key(row)
 
         if MapSet.member?(seen, key) do
           {seen,
@@ -157,9 +126,6 @@ defmodule KlassHero.Enrollment.Application.Commands.ImportEnrollmentCsv do
     end
   end
 
-  # Trigger: rows match invites already in the database
-  # Why: re-importing the same children would violate the unique constraint
-  # Outcome: already-imported rows flagged with a clear message
   defp check_existing_duplicates(rows) do
     program_ids = rows |> Enum.map(& &1.program_id) |> Enum.uniq()
     existing_keys = @invite_reader.list_existing_keys_for_programs(program_ids)
@@ -168,9 +134,7 @@ defmodule KlassHero.Enrollment.Application.Commands.ImportEnrollmentCsv do
       rows
       |> Enum.with_index(1)
       |> Enum.reduce([], fn {row, row_num}, dupes ->
-        key = duplicate_key(row)
-
-        if MapSet.member?(existing_keys, key) do
+        if MapSet.member?(existing_keys, dedup_key(row)) do
           [{row_num, "Invite already exists for this child and program"} | dupes]
         else
           dupes
@@ -184,41 +148,27 @@ defmodule KlassHero.Enrollment.Application.Commands.ImportEnrollmentCsv do
     end
   end
 
-  # Trigger: create_batch returns {index, changeset} on failure
-  # Why: callers expect structured error maps, not raw changesets
-  # Outcome: changeset errors formatted into the standard error report shape
   defp persist_batch(validated_rows) do
     case @invite_repository.create_batch(validated_rows) do
       {:ok, count} ->
         {:ok, count}
 
       {:error, {index, %Ecto.Changeset{} = changeset}} ->
-        errors = Ecto.Changeset.traverse_errors(changeset, fn {msg, _opts} -> msg end)
-
-        formatted =
-          Enum.map(errors, fn {field, messages} ->
-            {field, Enum.join(messages, ", ")}
-          end)
-
-        {:error, %{validation_errors: [{index + 1, formatted}]}}
+        {:error, %{validation_errors: [{index + 1, ChangesetErrors.field_list(changeset)}]}}
     end
   end
 
-  # Trigger: CSV import persisted successfully
-  # Why: downstream handlers (e.g. invite email sending) need to know
-  #      that new invites exist and should be processed
-  # Outcome: DomainEventBus delivers to registered handlers (fire-and-forget)
   defp publish_event(provider_id, program_ids, count) do
     EnrollmentEvents.bulk_invites_imported(provider_id, program_ids, count)
     |> EventDispatchHelper.dispatch(KlassHero.Enrollment)
   end
 
-  defp duplicate_key(row) do
-    {
+  defp dedup_key(row) do
+    BulkEnrollmentInvite.dedup_key(
       row.program_id,
-      String.downcase(row.guardian_email),
-      String.downcase(row.child_first_name),
-      String.downcase(row.child_last_name)
-    }
+      row.guardian_email,
+      row.child_first_name,
+      row.child_last_name
+    )
   end
 end

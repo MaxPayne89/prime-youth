@@ -6,6 +6,8 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   Read operations have been moved to `ForQueryingBulkEnrollmentInvites`.
   """
 
+  alias KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite
+
   @doc """
   Inserts all invite records atomically in a single transaction.
 
@@ -16,6 +18,22 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForStoringBulkEnrollmentInvites do
   - `{:error, term()}` — first changeset error from the batch
   """
   @callback create_batch([map()]) :: {:ok, non_neg_integer()} | {:error, term()}
+
+  @doc """
+  Inserts a single invite record and returns the persisted domain struct.
+
+  Used by the manual single-invite flow where the caller needs the created
+  invite's id (e.g. to acknowledge which row was created, to drive UI
+  focus, or for tests). The batch path stays strictly count-returning to
+  preserve its existing contract.
+
+  Returns:
+  - `{:ok, BulkEnrollmentInvite.t()}` on success
+  - `{:error, Ecto.Changeset.t()}` if the row fails schema validation
+  """
+  @callback create_one(map()) ::
+              {:ok, BulkEnrollmentInvite.t()}
+              | {:error, Ecto.Changeset.t()}
 
   @doc """
   Assigns invite tokens to multiple invites in bulk.
