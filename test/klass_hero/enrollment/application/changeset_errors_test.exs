@@ -51,7 +51,7 @@ defmodule KlassHero.Enrollment.Application.ChangesetErrorsTest do
 
       # validate_length returns one 'should be at most' error
       length_errors = Enum.filter(errors, fn {field, _} -> field == :name end)
-      assert length(length_errors) >= 1
+      assert length_errors != []
       assert Enum.all?(length_errors, fn {:name, msg} -> is_binary(msg) end)
     end
 
