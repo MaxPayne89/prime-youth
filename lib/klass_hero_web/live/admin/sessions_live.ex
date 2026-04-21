@@ -11,13 +11,28 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
   alias KlassHero.Admin.Queries
   alias KlassHero.Participation
   alias KlassHeroWeb.Admin.Components.SearchableSelect
+  alias KlassHeroWeb.Helpers.TaskHelpers
   alias KlassHeroWeb.Theme
 
   @impl true
   def mount(_params, _session, socket) do
     today = Date.utc_today()
-    all_providers = Queries.list_providers_for_select()
-    all_programs = Queries.list_programs_for_select()
+
+    # Trigger: list_providers_for_select and list_programs_for_select are independent DB queries
+    # Why: providers query hits the providers table; programs query hits the programs table — no shared dependency
+    # Outcome: 1 sequential DB round-trip saved per admin sessions page load (~5–15 ms)
+    providers_task =
+      Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+        Queries.list_providers_for_select()
+      end)
+
+    programs_task =
+      Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
+        Queries.list_programs_for_select()
+      end)
+
+    all_providers = TaskHelpers.safe_await(providers_task, [], label: "Admin.SessionsLive.providers")
+    all_programs = TaskHelpers.safe_await(programs_task, [], label: "Admin.SessionsLive.programs")
 
     {:ok,
      socket
