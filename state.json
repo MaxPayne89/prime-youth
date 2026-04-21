@@ -31,7 +31,9 @@
     "conversation_queries_note": "ConversationQueries.with_ended_program/2 calls KlassHero.ProgramCatalog.list_ended_program_ids/1 (cross-context); excluded from pure query builder tests; needs integration test with real/stub ProgramCatalog adapter",
     "mcp_github_tools": "GitHub MCP tools use different param names: issue_read needs method+issue_number, pull_request_read needs method+pullNumber",
     "all_persistence_query_builders_tested": "As of 2026-04-20, all adapters/driven/persistence/queries/*.ex files have corresponding test files",
-    "all_messaging_mappers_tested": "As of 2026-04-20 (pending PR), all messaging persistence mappers have tests: ParticipantMapper in test branch test-assist/participant-mapper-unit-tests-1776720751"
+    "all_messaging_mappers_tested": "As of 2026-04-20 (pending PR), all messaging persistence mappers have tests: ParticipantMapper in test branch test-assist/participant-mapper-unit-tests-1776720751",
+    "invite_field_validations_note": "InviteFieldValidations tested via embedded_schema in ExUnit.Case async:true; test file: test/klass_hero/enrollment/domain/services/invite_field_validations_test.exs; 18 tests",
+    "global_publisher_race_705": "Issue #705: :participation_seed_roster_subscriber causes race; Mox fix recommended for Option 1 (DI injection); Option 3 partial fix: add :participation_seed_roster_subscriber to saga_subscribers"
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -59,18 +61,22 @@
   "tasks_last_run": {
     "task_1": "2026-04-15",
     "task_2": "2026-04-18",
-    "task_3": "2026-04-20",
+    "task_3": "2026-04-21",
     "task_4": "2026-04-20",
-    "task_5": "2026-04-16",
-    "task_6": "2026-04-14",
-    "task_7": "2026-04-20"
+    "task_5": "2026-04-21",
+    "task_6": "2026-04-21",
+    "task_7": "2026-04-21"
   },
   "work_in_progress": null,
   "completed_work": [
     {
       "date": "2026-04-20",
       "run_id": "24691216946",
-      "tasks": ["task_3", "task_4", "task_7"],
+      "tasks": [
+        "task_3",
+        "task_4",
+        "task_7"
+      ],
       "pr_branch": "test-assist/participant-mapper-unit-tests-1776720751",
       "description": "8 unit tests for ParticipantMapper (to_domain/1, to_schema_attrs/1, to_create_attrs/1)",
       "tests_added": 8,
@@ -79,7 +85,11 @@
     {
       "date": "2026-04-19",
       "run_id": "24639393088",
-      "tasks": ["task_3", "task_4", "task_7"],
+      "tasks": [
+        "task_3",
+        "task_4",
+        "task_7"
+      ],
       "pr_branch": "test-assist/program-queries-filter-category-1776634092",
       "description": "5 unit tests for ProgramQueries.filter_by_category/2 (nil pass-through, all pass-through, specific category, loop, composition)",
       "tests_added": 5,
@@ -88,7 +98,11 @@
     {
       "date": "2026-04-18",
       "run_id": "24614128772",
-      "tasks": ["task_2", "task_3", "task_7"],
+      "tasks": [
+        "task_2",
+        "task_3",
+        "task_7"
+      ],
       "pr_branch": "test-assist/mapper-unit-tests-1776547550",
       "description": "14 unit tests for AttachmentMapper (8) and BulkEnrollmentInviteMapper (6)",
       "tests_added": 14,
@@ -97,7 +111,10 @@
     {
       "date": "2026-04-17",
       "run_id": "24587339665",
-      "tasks": ["task_3", "task_7"],
+      "tasks": [
+        "task_3",
+        "task_7"
+      ],
       "pr_branch": "test-assist/conversation-queries-unit-tests-1776461357",
       "description": "23 pure unit tests for ConversationQueries query builders (all functions except cross-context with_ended_program/2)",
       "tests_added": 23,
@@ -107,23 +124,52 @@
     {
       "date": "2026-04-16",
       "run_id": "24534786300",
-      "tasks": ["task_3", "task_4", "task_5", "task_7"],
+      "tasks": [
+        "task_3",
+        "task_4",
+        "task_5",
+        "task_7"
+      ],
       "pr_branch": "test-assist/messaging-persistence-query-tests-1776375293",
       "description": "40 pure unit tests for 3 untested messaging persistence query builders: MessageQueries (20), InboundEmailQueries (15), EmailReplyQueries (5). Nil guards and type coercion covered. Also commented on #645 and #627.",
       "tests_added": 40,
       "pr_number": 683,
       "merged": true,
-      "comments": ["#645", "#627"]
+      "comments": [
+        "#645",
+        "#627"
+      ]
     },
     {
       "date": "2026-04-15",
       "run_id": "24479292553",
-      "tasks": ["task_1", "task_2", "task_3", "task_7"],
+      "tasks": [
+        "task_1",
+        "task_2",
+        "task_3",
+        "task_7"
+      ],
       "pr_branch": "test-assist/behavioral-note-queries-test-1776289061",
       "description": "18 unit tests for all 10 BehavioralNoteQueries composable query builder functions",
       "tests_added": 18,
       "pr_number": 677,
       "merged": true
+    },
+    {
+      "date": "2026-04-21",
+      "run_id": "24747211178",
+      "tasks": [
+        "task_3",
+        "task_5",
+        "task_7"
+      ],
+      "pr_branch": "test-assist/invite-field-validations-tests-1776807241",
+      "description": "18 unit tests for InviteFieldValidations (guardian2_email conditional, date-in-past, school_grade bounds, name lengths)",
+      "tests_added": 18,
+      "pr_number": null,
+      "comment_on": [
+        "#705"
+      ]
     }
   ],
   "monthly_summary_issue": {
@@ -134,9 +180,13 @@
   "checked_off_items": [],
   "backlog_cursor": {
     "task_2_last_file": "all persistence mappers and query builders surveyed (2026-04-20)",
-    "task_5_last_issue": 645
+    "task_5_last_issue": 705
   },
-  "open_prs": [707, 696],
+  "open_prs": [
+    696,
+    707,
+    713
+  ],
   "pending_prs": [
     {
       "branch": "test-assist/mapper-unit-tests-1776547550",
@@ -151,6 +201,11 @@
     {
       "branch": "test-assist/participant-mapper-unit-tests-1776720751",
       "description": "8 unit tests for ParticipantMapper",
+      "pr_number": 713
+    },
+    {
+      "branch": "test-assist/invite-field-validations-tests-1776807241",
+      "description": "18 unit tests for InviteFieldValidations domain service",
       "pr_number": null
     }
   ]
