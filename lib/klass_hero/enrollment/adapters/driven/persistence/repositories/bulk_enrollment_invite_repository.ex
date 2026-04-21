@@ -21,6 +21,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     as: Mapper
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmentInviteSchema
+  alias KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
 
@@ -78,6 +79,40 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   @impl true
   @doc """
+  Inserts a single invite and returns the persisted domain struct.
+
+  Runs the same `import_changeset/2` used by `create_batch/1`, so a row that
+  passes one would pass the other. Kept separate from the batch path so
+  callers who need the created id don't pay for a `{_, index}` lookup or a
+  follow-up read.
+  """
+  def create_one(attrs) when is_map(attrs) do
+    span do
+      set_attributes("db", operation: "insert", entity: "bulk_enrollment_invite")
+
+      %BulkEnrollmentInviteSchema{}
+      |> BulkEnrollmentInviteSchema.import_changeset(attrs)
+      |> Repo.insert()
+      |> case do
+        {:ok, schema} ->
+          Logger.info("[BulkEnrollmentInvite.Repository] Single invite created",
+            invite_id: schema.id
+          )
+
+          {:ok, Mapper.to_domain(schema)}
+
+        {:error, changeset} ->
+          Logger.error("[BulkEnrollmentInvite.Repository] Single invite insert failed",
+            errors: inspect(changeset.errors)
+          )
+
+          {:error, changeset}
+      end
+    end
+  end
+
+  @impl true
+  @doc """
   Returns existing invite keys for the given program IDs.
 
   Used for duplicate detection before batch insert. Keys are
@@ -97,8 +132,28 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       |> select([i], {i.program_id, i.guardian_email, i.child_first_name, i.child_last_name})
       |> Repo.all()
       |> MapSet.new(fn {pid, email, first, last} ->
-        {pid, String.downcase(email), String.downcase(first), String.downcase(last)}
+        BulkEnrollmentInvite.dedup_key(pid, email, first, last)
       end)
+    end
+  end
+
+  @impl true
+  def invite_exists?(program_id, guardian_email, child_first_name, child_last_name)
+      when is_binary(program_id) and is_binary(guardian_email) and is_binary(child_first_name) and
+             is_binary(child_last_name) do
+    span do
+      set_attributes("db", operation: "select", entity: "bulk_enrollment_invite")
+
+      email_down = String.downcase(guardian_email)
+      first_down = String.downcase(child_first_name)
+      last_down = String.downcase(child_last_name)
+
+      BulkEnrollmentInviteSchema
+      |> where([i], i.program_id == ^program_id)
+      |> where([i], fragment("lower(?)", i.guardian_email) == ^email_down)
+      |> where([i], fragment("lower(?)", i.child_first_name) == ^first_down)
+      |> where([i], fragment("lower(?)", i.child_last_name) == ^last_down)
+      |> Repo.exists?()
     end
   end
 

@@ -11,6 +11,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
 
   import Ecto.Changeset
 
+  alias KlassHero.Enrollment.Domain.Services.InviteFieldValidations
+
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   @timestamps_opts [type: :utc_datetime]
@@ -82,19 +84,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     schema
     |> cast(attrs, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
-    |> validate_length(:child_first_name, min: 1, max: 100)
-    |> validate_length(:child_last_name, min: 1, max: 100)
-    |> validate_length(:guardian_email, max: 160)
-    |> validate_format(:guardian_email, ~r/^[^@,;\s]+@[^@,;\s]+$/, message: "must be a valid email")
-    |> validate_length(:guardian_first_name, max: 100)
-    |> validate_length(:guardian_last_name, max: 100)
-    |> validate_length(:guardian2_email, max: 160)
-    |> maybe_validate_guardian2_email()
-    |> validate_length(:guardian2_first_name, max: 100)
-    |> validate_length(:guardian2_last_name, max: 100)
-    |> validate_length(:school_name, max: 255)
-    |> validate_number(:school_grade, greater_than_or_equal_to: 1, less_than_or_equal_to: 13)
-    |> validate_date_in_past(:child_date_of_birth)
+    |> InviteFieldValidations.apply()
     |> validate_inclusion(:status, @valid_statuses)
     |> unique_constraint([:program_id, :guardian_email, :child_first_name, :child_last_name],
       name: :bulk_invites_program_guardian_child_unique
@@ -123,19 +113,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     schema
     |> cast(attrs, @import_fields)
     |> validate_required(@required_fields)
-    |> validate_length(:child_first_name, min: 1, max: 100)
-    |> validate_length(:child_last_name, min: 1, max: 100)
-    |> validate_length(:guardian_email, max: 160)
-    |> validate_format(:guardian_email, ~r/^[^@,;\s]+@[^@,;\s]+$/, message: "must be a valid email")
-    |> validate_length(:guardian_first_name, max: 100)
-    |> validate_length(:guardian_last_name, max: 100)
-    |> validate_length(:guardian2_email, max: 160)
-    |> maybe_validate_guardian2_email()
-    |> validate_length(:guardian2_first_name, max: 100)
-    |> validate_length(:guardian2_last_name, max: 100)
-    |> validate_length(:school_name, max: 255)
-    |> validate_number(:school_grade, greater_than_or_equal_to: 1, less_than_or_equal_to: 13)
-    |> validate_date_in_past(:child_date_of_birth)
+    |> InviteFieldValidations.apply()
     |> unique_constraint([:program_id, :guardian_email, :child_first_name, :child_last_name],
       name: :bulk_invites_program_guardian_child_unique
     )
@@ -159,32 +137,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     |> unique_constraint(:invite_token)
     |> foreign_key_constraint(:enrollment_id)
     |> check_constraint(:status, name: :valid_status)
-  end
-
-  # Trigger: guardian2_email is present and non-nil
-  # Why: if a second guardian email is provided, it must be valid
-  # Outcome: format validation applied only when field has a value
-  defp maybe_validate_guardian2_email(changeset) do
-    case get_field(changeset, :guardian2_email) do
-      nil ->
-        changeset
-
-      "" ->
-        changeset
-
-      _email ->
-        validate_format(changeset, :guardian2_email, ~r/^[^@,;\s]+@[^@,;\s]+$/, message: "must be a valid email")
-    end
-  end
-
-  defp validate_date_in_past(changeset, field) do
-    validate_change(changeset, field, fn ^field, date ->
-      if Date.before?(date, Date.utc_today()) do
-        []
-      else
-        [{field, "must be in the past"}]
-      end
-    end)
   end
 
   # Trigger: status is being changed

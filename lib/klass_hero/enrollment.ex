@@ -59,6 +59,7 @@ defmodule KlassHero.Enrollment do
     CreateEnrollment,
     DeleteInvite,
     ImportEnrollmentCsv,
+    InviteSingleParticipant,
     ResendInvite,
     SetParticipantPolicy,
     UpsertEnrollmentPolicy
@@ -81,6 +82,7 @@ defmodule KlassHero.Enrollment do
     ListProgramInvites
   }
 
+  alias KlassHero.Enrollment.Application.SingleInviteForm
   alias KlassHero.Enrollment.Domain.Services.EnrollmentClassifier
 
   # ===========================================================================
@@ -172,6 +174,42 @@ defmodule KlassHero.Enrollment do
   """
   def import_enrollment_csv(provider_id, csv_binary) when is_binary(provider_id) and is_binary(csv_binary) do
     ImportEnrollmentCsv.execute(provider_id, csv_binary)
+  end
+
+  @doc """
+  Creates a single enrollment invite from the provider's manual form.
+
+  Unlike `import_enrollment_csv/2`, the caller supplies a pre-resolved
+  `program_id` (picked from the provider's own catalog). Runs the same
+  `:bulk_invites_imported` event path with `count: 1`, so the downstream
+  email worker pipeline is reused verbatim.
+
+  Returns:
+  - `{:ok, %{invite_id: id}}` on success
+  - `{:error, :no_programs}` if the provider has no catalog entries
+  - `{:error, :duplicate}` when the same child+email is already invited
+  - `{:error, %{validation_errors: [{field, msg}]}}` for form/authorisation errors
+  """
+  def invite_single_participant(provider_id, attrs) when is_binary(provider_id) and is_map(attrs) do
+    InviteSingleParticipant.execute(provider_id, attrs)
+  end
+
+  @doc """
+  Returns a changeset for the single-invite form. The LiveView is responsible
+  for setting `:action` to `:validate` when it wants `<.input>` to render
+  errors, matching the Phoenix generator convention.
+  """
+  def change_single_invite(attrs \\ %{}) do
+    SingleInviteForm.changeset(%SingleInviteForm{}, attrs)
+  end
+
+  @doc """
+  Attaches domain-layer `[{field, msg}]` errors returned by
+  `invite_single_participant/2` onto a single-invite changeset so the web
+  layer can re-render the form without reaching into context internals.
+  """
+  def apply_single_invite_domain_errors(%Ecto.Changeset{} = changeset, field_errors) when is_list(field_errors) do
+    SingleInviteForm.apply_domain_errors(changeset, field_errors)
   end
 
   @doc """

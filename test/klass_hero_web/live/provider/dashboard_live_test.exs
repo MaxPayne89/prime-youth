@@ -551,6 +551,154 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
   end
 
   # ===========================================================================
+  # Issue #546: manual single-invite form
+  # ===========================================================================
+
+  describe "single invite form" do
+    setup %{provider: provider} do
+      program =
+        insert_program_with_listing(
+          provider_id: provider.id,
+          title: "Single Invite Program"
+        )
+
+      %{program: program}
+    end
+
+    defp open_invites_tab(conn, program_id) do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/programs")
+      view |> element("#view-roster-#{program_id}") |> render_click()
+      view |> element("#roster-tab-invites") |> render_click()
+      view
+    end
+
+    test "defaults to single-invite mode with the form rendered", %{conn: conn, program: program} do
+      view = open_invites_tab(conn, program.id)
+
+      assert has_element?(view, "#invite-mode-single[aria-pressed=true]")
+      assert has_element?(view, "#invite-mode-csv[aria-pressed=false]")
+      assert has_element?(view, "#single-invite-form")
+      # CSV upload form should NOT be present in single mode
+      refute has_element?(view, "#csv-upload-form")
+    end
+
+    test "switches to CSV mode and back", %{conn: conn, program: program} do
+      view = open_invites_tab(conn, program.id)
+
+      view |> element("#invite-mode-csv") |> render_click()
+
+      assert has_element?(view, "#invite-mode-csv[aria-pressed=true]")
+      assert has_element?(view, "#csv-upload-form")
+      refute has_element?(view, "#single-invite-form")
+
+      view |> element("#invite-mode-single") |> render_click()
+
+      assert has_element?(view, "#invite-mode-single[aria-pressed=true]")
+      assert has_element?(view, "#single-invite-form")
+    end
+
+    test "ignores switch_invite_mode with an unknown mode without crashing", %{
+      conn: conn,
+      program: program
+    } do
+      view = open_invites_tab(conn, program.id)
+
+      # Bypass the markup (which only emits "single"/"csv") and push a
+      # raw event, simulating a buggy Hook or a crafted channel message.
+      render_hook(view, "switch_invite_mode", %{"mode" => "hacked"})
+
+      # Socket stays alive and the mode is unchanged from its default.
+      assert has_element?(view, "#invite-mode-single[aria-pressed=true]")
+      assert has_element?(view, "#single-invite-form")
+    end
+
+    test "shows inline error on invalid email via phx-change", %{conn: conn, program: program} do
+      view = open_invites_tab(conn, program.id)
+
+      html =
+        view
+        |> form("#single-invite-form",
+          single_invite: %{
+            "program_id" => program.id,
+            "child_first_name" => "Emma",
+            "child_last_name" => "Schmidt",
+            "child_date_of_birth" => "2016-03-15",
+            "guardian_email" => "not-an-email"
+          }
+        )
+        |> render_change()
+
+      assert html =~ "must be a valid email"
+    end
+
+    test "successful submit adds the invite to the table and flashes", %{
+      conn: conn,
+      program: program
+    } do
+      view = open_invites_tab(conn, program.id)
+
+      html =
+        view
+        |> form("#single-invite-form",
+          single_invite: %{
+            "program_id" => program.id,
+            "child_first_name" => "Emma",
+            "child_last_name" => "Schmidt",
+            "child_date_of_birth" => "2016-03-15",
+            "guardian_email" => "new-parent@example.com"
+          }
+        )
+        |> render_submit()
+
+      assert html =~ "Invite sent"
+      assert has_element?(view, "#invites-table")
+      assert render(view) =~ "Emma"
+      assert render(view) =~ "new-parent@example.com"
+    end
+
+    test "duplicate submit surfaces an error flash and adds no new row", %{
+      conn: conn,
+      provider: provider,
+      program: program
+    } do
+      # Seed an existing invite matching the form submission
+      {:ok, _} =
+        BulkEnrollmentInviteRepository.create_batch([
+          %{
+            program_id: program.id,
+            provider_id: provider.id,
+            child_first_name: "Emma",
+            child_last_name: "Schmidt",
+            child_date_of_birth: ~D[2016-03-15],
+            guardian_email: "existing@example.com"
+          }
+        ])
+
+      view = open_invites_tab(conn, program.id)
+
+      html =
+        view
+        |> form("#single-invite-form",
+          single_invite: %{
+            "program_id" => program.id,
+            "child_first_name" => "Emma",
+            "child_last_name" => "Schmidt",
+            "child_date_of_birth" => "2016-03-15",
+            "guardian_email" => "existing@example.com"
+          }
+        )
+        |> render_submit()
+
+      assert html =~ "already exists"
+
+      # Still only one invite in the table
+      rendered = render(view)
+      existing_count = rendered |> String.split("existing@example.com") |> length() |> Kernel.-(1)
+      assert existing_count == 1
+    end
+  end
+
+  # ===========================================================================
   # T3: close_roster handler
   # ===========================================================================
 
@@ -808,6 +956,9 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
     defp navigate_to_invites_tab(view, program) do
       view |> element("#view-roster-#{program.id}") |> render_click()
       view |> element("#roster-tab-invites") |> render_click()
+      # Issue #546: Invites tab now defaults to the single-invite form; switch to
+      # CSV mode so the upload form is present for these CSV-specific tests.
+      view |> element("#invite-mode-csv") |> render_click()
     end
 
     test "successful import shows flash and refreshes invites", %{

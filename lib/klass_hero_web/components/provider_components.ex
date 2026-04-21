@@ -1459,6 +1459,8 @@ defmodule KlassHeroWeb.ProviderComponents do
   attr :uploads, :map, required: true
   attr :import_errors, :any, default: nil
   attr :can_message?, :boolean, default: false
+  attr :invite_mode, :string, default: "single"
+  attr :single_invite_form, :any, default: nil
 
   def roster_modal(assigns) do
     ~H"""
@@ -1570,6 +1572,8 @@ defmodule KlassHeroWeb.ProviderComponents do
                   program_id={@program_id}
                   uploads={@uploads}
                   import_errors={@import_errors}
+                  invite_mode={@invite_mode}
+                  single_invite_form={@single_invite_form}
                 />
               </div>
             <% end %>
@@ -1764,90 +1768,143 @@ defmodule KlassHeroWeb.ProviderComponents do
   attr :program_id, :string, required: true
   attr :uploads, :map, required: true
   attr :import_errors, :any, default: nil
+  attr :invite_mode, :string, default: "single"
+  attr :single_invite_form, :any, default: nil
 
   defp invites_tab(assigns) do
     ~H"""
     <div>
-      <%!-- Upload + Template buttons --%>
-      <div class="flex items-center gap-3 mb-4">
-        <form
-          id="csv-upload-form"
-          phx-change="validate_csv_upload"
-          phx-submit="import_csv"
-          class="inline"
+      <%!-- Two mutually-exclusive toggle buttons, not a true tablist.
+            Uses role=group + aria-pressed rather than role=tablist/tab
+            because the content panels aren't siblings — they replace each
+            other — so aria-controls/tabpanel wiring would be misleading. --%>
+      <div
+        id="invite-mode-toggle"
+        role="group"
+        aria-label={gettext("Invite mode")}
+        class="flex flex-col sm:flex-row gap-2 mb-5 sm:max-w-md"
+      >
+        <button
+          id="invite-mode-single"
+          type="button"
+          aria-pressed={to_string(@invite_mode == "single")}
+          phx-click="switch_invite_mode"
+          phx-value-mode="single"
+          class={[
+            "flex-1 px-4 py-2 text-sm font-medium border text-center",
+            Theme.rounded(:lg),
+            Theme.transition(:normal),
+            if(@invite_mode == "single",
+              do: "border-hero-primary bg-hero-primary/5 text-hero-primary",
+              else: "border-hero-grey-300 text-hero-grey-600 hover:bg-hero-grey-50"
+            )
+          ]}
         >
-          <label
-            for={@uploads.csv_file.ref}
-            class={[
-              "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white cursor-pointer",
-              Theme.rounded(:lg),
-              Theme.gradient(:primary)
-            ]}
-          >
-            <.icon name="hero-arrow-up-tray-mini" class="w-4 h-4" />
-            {gettext("Upload CSV")}
-          </label>
-          <.live_file_input upload={@uploads.csv_file} class="hidden" />
+          {gettext("Invite one person")}
+        </button>
+        <button
+          id="invite-mode-csv"
+          type="button"
+          aria-pressed={to_string(@invite_mode == "csv")}
+          phx-click="switch_invite_mode"
+          phx-value-mode="csv"
+          class={[
+            "flex-1 px-4 py-2 text-sm font-medium border text-center",
+            Theme.rounded(:lg),
+            Theme.transition(:normal),
+            if(@invite_mode == "csv",
+              do: "border-hero-primary bg-hero-primary/5 text-hero-primary",
+              else: "border-hero-grey-300 text-hero-grey-600 hover:bg-hero-grey-50"
+            )
+          ]}
+        >
+          {gettext("Upload a list")}
+        </button>
+      </div>
 
-          <%!-- Show selected file + import button --%>
-          <div :for={entry <- @uploads.csv_file.entries} class="mt-3 flex items-center gap-3">
-            <span class="text-sm text-hero-charcoal">{entry.client_name}</span>
-            <button
-              type="submit"
+      <%= if @invite_mode == "single" and @single_invite_form do %>
+        <.single_invite_form form={@single_invite_form} program_id={@program_id} />
+      <% else %>
+        <div class="flex items-center gap-3 mb-4">
+          <form
+            id="csv-upload-form"
+            phx-change="validate_csv_upload"
+            phx-submit="import_csv"
+            class="inline"
+          >
+            <label
+              for={@uploads.csv_file.ref}
               class={[
-                "px-3 py-1.5 text-sm font-medium text-white",
+                "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white cursor-pointer",
                 Theme.rounded(:lg),
                 Theme.gradient(:primary)
               ]}
             >
-              {gettext("Import")}
-            </button>
-            <button
-              type="button"
-              phx-click="cancel_csv_upload"
-              phx-value-ref={entry.ref}
-              class="text-sm text-hero-grey-500 hover:text-hero-charcoal"
-            >
-              {gettext("Cancel")}
-            </button>
-          </div>
+              <.icon name="hero-arrow-up-tray-mini" class="w-4 h-4" />
+              {gettext("Upload CSV")}
+            </label>
+            <.live_file_input upload={@uploads.csv_file} class="hidden" />
 
-          <%!-- Upload errors --%>
-          <div :for={err <- upload_errors(@uploads.csv_file)} class="mt-2 text-sm text-red-600">
-            {upload_error_to_string(err)}
-          </div>
-        </form>
+            <%!-- Show selected file + import button --%>
+            <div :for={entry <- @uploads.csv_file.entries} class="mt-3 flex items-center gap-3">
+              <span class="text-sm text-hero-charcoal">{entry.client_name}</span>
+              <button
+                type="submit"
+                class={[
+                  "px-3 py-1.5 text-sm font-medium text-white",
+                  Theme.rounded(:lg),
+                  Theme.gradient(:primary)
+                ]}
+              >
+                {gettext("Import")}
+              </button>
+              <button
+                type="button"
+                phx-click="cancel_csv_upload"
+                phx-value-ref={entry.ref}
+                class="text-sm text-hero-grey-500 hover:text-hero-charcoal"
+              >
+                {gettext("Cancel")}
+              </button>
+            </div>
 
-        <a
-          href="/downloads/enrollment-import-template.csv"
-          download="enrollment-import-template.csv"
+            <%!-- Upload errors --%>
+            <div :for={err <- upload_errors(@uploads.csv_file)} class="mt-2 text-sm text-red-600">
+              {upload_error_to_string(err)}
+            </div>
+          </form>
+
+          <a
+            href="/downloads/enrollment-import-template.csv"
+            download="enrollment-import-template.csv"
+            class={[
+              "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-hero-grey-600",
+              "border border-hero-grey-300 hover:bg-hero-grey-50",
+              Theme.rounded(:lg)
+            ]}
+          >
+            <.icon name="hero-arrow-down-tray-mini" class="w-4 h-4" />
+            {gettext("Download Template")}
+          </a>
+        </div>
+
+        <%!-- Import errors (CSV path only) --%>
+        <div
+          :if={@import_errors}
+          id="import-errors"
           class={[
-            "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-hero-grey-600",
-            "border border-hero-grey-300 hover:bg-hero-grey-50",
+            "mt-3 p-3 bg-red-50 border border-red-200 text-sm text-red-700",
             Theme.rounded(:lg)
           ]}
         >
-          <.icon name="hero-arrow-down-tray-mini" class="w-4 h-4" />
-          {gettext("Download Template")}
-        </a>
-      </div>
-
-      <%!-- Import errors --%>
-      <div
-        :if={@import_errors}
-        id="import-errors"
-        class={[
-          "mt-3 p-3 bg-red-50 border border-red-200 text-sm text-red-700",
-          Theme.rounded(:lg)
-        ]}
-      >
-        <p class="font-semibold mb-2">{gettext("Import failed")}</p>
-        <ul class="list-disc pl-5 space-y-1">
-          <li :for={msg <- format_import_errors(@import_errors)}>
-            {msg}
-          </li>
-        </ul>
-      </div>
+          <p class="font-semibold mb-2">{gettext("Import failed")}</p>
+          <ul class="list-disc pl-5 space-y-1">
+            <li :for={msg <- format_import_errors(@import_errors)}>
+              {msg}
+            </li>
+          </ul>
+        </div>
+      <% end %>
 
       <%!-- Empty state --%>
       <div :if={@invites == []} id="invites-empty" class="text-center py-8">
@@ -1912,6 +1969,146 @@ defmodule KlassHeroWeb.ProviderComponents do
         </table>
       </div>
     </div>
+    """
+  end
+
+  @doc false
+  attr :form, :any, required: true
+  attr :program_id, :string, required: true
+
+  defp single_invite_form(assigns) do
+    ~H"""
+    <.form
+      id="single-invite-form"
+      for={@form}
+      phx-change="validate_single_invite"
+      phx-submit="submit_single_invite"
+      class="space-y-6"
+    >
+      <%!-- Program is implicit from the roster modal; set as hidden so the
+            changeset still casts and validates it. --%>
+      <input type="hidden" name={@form[:program_id].name} value={@program_id} />
+
+      <section aria-labelledby="single-invite-child-heading">
+        <h4
+          id="single-invite-child-heading"
+          class={[Theme.typography(:card_title), "mb-3 text-hero-charcoal"]}
+        >
+          {gettext("Child")}
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <.input field={@form[:child_first_name]} label={gettext("First name")} required />
+          <.input field={@form[:child_last_name]} label={gettext("Last name")} required />
+          <div class="md:col-span-2">
+            <.input
+              field={@form[:child_date_of_birth]}
+              type="date"
+              label={gettext("Date of birth")}
+              required
+            />
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="single-invite-guardian-heading">
+        <h4
+          id="single-invite-guardian-heading"
+          class={[Theme.typography(:card_title), "mb-3 text-hero-charcoal"]}
+        >
+          {gettext("Primary guardian")}
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <.input
+              field={@form[:guardian_email]}
+              type="email"
+              label={gettext("Email")}
+              required
+            />
+          </div>
+          <.input field={@form[:guardian_first_name]} label={gettext("First name")} />
+          <.input field={@form[:guardian_last_name]} label={gettext("Last name")} />
+        </div>
+      </section>
+
+      <section aria-labelledby="single-invite-guardian2-heading">
+        <h4
+          id="single-invite-guardian2-heading"
+          class={[Theme.typography(:card_title), "mb-3 text-hero-charcoal"]}
+        >
+          {gettext("Second guardian (optional)")}
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="md:col-span-2">
+            <.input field={@form[:guardian2_email]} type="email" label={gettext("Email")} />
+          </div>
+          <.input field={@form[:guardian2_first_name]} label={gettext("First name")} />
+          <.input field={@form[:guardian2_last_name]} label={gettext("Last name")} />
+        </div>
+      </section>
+
+      <section aria-labelledby="single-invite-school-heading">
+        <h4
+          id="single-invite-school-heading"
+          class={[Theme.typography(:card_title), "mb-3 text-hero-charcoal"]}
+        >
+          {gettext("School (optional)")}
+        </h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <.input
+            field={@form[:school_grade]}
+            type="number"
+            label={gettext("Grade")}
+            min="1"
+            max="13"
+          />
+          <.input field={@form[:school_name]} label={gettext("School name")} />
+        </div>
+      </section>
+
+      <section aria-labelledby="single-invite-medical-heading">
+        <h4
+          id="single-invite-medical-heading"
+          class={[Theme.typography(:card_title), "mb-3 text-hero-charcoal"]}
+        >
+          {gettext("Medical & consents (optional)")}
+        </h4>
+        <div class="space-y-3">
+          <.input
+            field={@form[:medical_conditions]}
+            type="textarea"
+            label={gettext("Medical conditions")}
+          />
+          <.input field={@form[:nut_allergy]} type="checkbox" label={gettext("Nut allergy")} />
+          <.input
+            field={@form[:consent_photo_marketing]}
+            type="checkbox"
+            label={gettext("Photos may appear in marketing materials")}
+          />
+          <.input
+            field={@form[:consent_photo_social_media]}
+            type="checkbox"
+            label={gettext("Photos may appear on social media")}
+          />
+        </div>
+      </section>
+
+      <div class="flex justify-end pt-2">
+        <button
+          id="single-invite-submit"
+          type="submit"
+          phx-disable-with={gettext("Sending...")}
+          class={[
+            "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white",
+            Theme.rounded(:lg),
+            Theme.gradient(:primary)
+          ]}
+        >
+          <.icon name="hero-paper-airplane-mini" class="w-4 h-4" />
+          {gettext("Send invite")}
+        </button>
+      </div>
+    </.form>
     """
   end
 

@@ -46,4 +46,12 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForQueryingBulkEnrollmentInvites do
   of `{program_id, guardian_email, child_first_name, child_last_name}` tuples.
   """
   @callback list_existing_keys_for_programs([binary()]) :: MapSet.t()
+
+  @doc """
+  Returns true if an invite already exists for the given dedup tuple.
+
+  Used on the single-invite path where a full `list_existing_keys_*` scan
+  would transfer O(n) invites only to check one membership.
+  """
+  @callback invite_exists?(binary(), String.t(), String.t(), String.t()) :: boolean()
 end

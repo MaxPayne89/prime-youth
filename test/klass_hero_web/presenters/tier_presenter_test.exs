@@ -11,7 +11,10 @@ defmodule KlassHeroWeb.Presenters.TierPresenterTest do
     end
 
     test "raises FunctionClauseError for unknown tier" do
+      # apply/3 defeats the compile-time type tracker, which otherwise
+      # warns that :unknown can never match the function's clauses
       assert_raise FunctionClauseError, fn ->
+        # credo:disable-for-next-line Credo.Check.Refactor.Apply
         apply(TierPresenter, :tier_label, [:unknown])
       end
     end
