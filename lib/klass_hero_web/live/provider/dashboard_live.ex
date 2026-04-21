@@ -770,6 +770,12 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     {:noreply, assign(socket, invite_mode: mode)}
   end
 
+  # Catch-all: ignore unknown modes rather than crash the LV. The pills
+  # above only emit "single" / "csv", but a buggy Hook or crafted channel
+  # message could send anything; we want the socket to stay alive.
+  @impl true
+  def handle_event("switch_invite_mode", _params, socket), do: {:noreply, socket}
+
   @impl true
   def handle_event("validate_single_invite", %{"single_invite" => params}, socket) do
     changeset = params |> Enrollment.change_single_invite() |> Map.put(:action, :validate)

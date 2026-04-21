@@ -1774,17 +1774,20 @@ defmodule KlassHeroWeb.ProviderComponents do
   defp invites_tab(assigns) do
     ~H"""
     <div>
+      <%!-- Two mutually-exclusive toggle buttons, not a true tablist.
+            Uses role=group + aria-pressed rather than role=tablist/tab
+            because the content panels aren't siblings — they replace each
+            other — so aria-controls/tabpanel wiring would be misleading. --%>
       <div
         id="invite-mode-toggle"
-        role="tablist"
+        role="group"
         aria-label={gettext("Invite mode")}
         class="flex flex-col sm:flex-row gap-2 mb-5 sm:max-w-md"
       >
         <button
           id="invite-mode-single"
           type="button"
-          role="tab"
-          aria-selected={to_string(@invite_mode == "single")}
+          aria-pressed={to_string(@invite_mode == "single")}
           phx-click="switch_invite_mode"
           phx-value-mode="single"
           class={[
@@ -1802,8 +1805,7 @@ defmodule KlassHeroWeb.ProviderComponents do
         <button
           id="invite-mode-csv"
           type="button"
-          role="tab"
-          aria-selected={to_string(@invite_mode == "csv")}
+          aria-pressed={to_string(@invite_mode == "csv")}
           phx-click="switch_invite_mode"
           phx-value-mode="csv"
           class={[

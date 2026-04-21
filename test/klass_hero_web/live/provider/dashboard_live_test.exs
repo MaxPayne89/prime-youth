@@ -575,8 +575,8 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
     test "defaults to single-invite mode with the form rendered", %{conn: conn, program: program} do
       view = open_invites_tab(conn, program.id)
 
-      assert has_element?(view, "#invite-mode-single[aria-selected=true]")
-      assert has_element?(view, "#invite-mode-csv[aria-selected=false]")
+      assert has_element?(view, "#invite-mode-single[aria-pressed=true]")
+      assert has_element?(view, "#invite-mode-csv[aria-pressed=false]")
       assert has_element?(view, "#single-invite-form")
       # CSV upload form should NOT be present in single mode
       refute has_element?(view, "#csv-upload-form")
@@ -587,13 +587,28 @@ defmodule KlassHeroWeb.Provider.DashboardLiveTest do
 
       view |> element("#invite-mode-csv") |> render_click()
 
-      assert has_element?(view, "#invite-mode-csv[aria-selected=true]")
+      assert has_element?(view, "#invite-mode-csv[aria-pressed=true]")
       assert has_element?(view, "#csv-upload-form")
       refute has_element?(view, "#single-invite-form")
 
       view |> element("#invite-mode-single") |> render_click()
 
-      assert has_element?(view, "#invite-mode-single[aria-selected=true]")
+      assert has_element?(view, "#invite-mode-single[aria-pressed=true]")
+      assert has_element?(view, "#single-invite-form")
+    end
+
+    test "ignores switch_invite_mode with an unknown mode without crashing", %{
+      conn: conn,
+      program: program
+    } do
+      view = open_invites_tab(conn, program.id)
+
+      # Bypass the markup (which only emits "single"/"csv") and push a
+      # raw event, simulating a buggy Hook or a crafted channel message.
+      render_hook(view, "switch_invite_mode", %{"mode" => "hacked"})
+
+      # Socket stays alive and the mode is unchanged from its default.
+      assert has_element?(view, "#invite-mode-single[aria-pressed=true]")
       assert has_element?(view, "#single-invite-form")
     end
 

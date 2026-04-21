@@ -5,6 +5,10 @@ defmodule KlassHero.Enrollment.Application.ChangesetErrors do
   surface to the LiveView layer. Expands `%{count}`-style placeholders so
   messages like `"should be at most %{count} character(s)"` don't leak to
   end users.
+
+  Formatting must never raise — this helper is called on the error path
+  where throwing would swallow the real validation errors. Unknown
+  placeholders fall through unchanged.
   """
 
   @doc """
@@ -20,8 +24,20 @@ defmodule KlassHero.Enrollment.Application.ChangesetErrors do
   end
 
   defp expand({msg, opts}) do
-    Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-      opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
-    end)
+    Regex.replace(~r"%{(\w+)}", msg, fn match, key -> lookup(opts, key, match) end)
+  end
+
+  # Returns the opts value for `key` as a string, or `default` when the atom
+  # isn't loaded or the key is absent. Catches ArgumentError narrowly; any
+  # other failure would still surface.
+  defp lookup(opts, key, default) do
+    atom = String.to_existing_atom(key)
+
+    case Keyword.fetch(opts, atom) do
+      {:ok, value} -> to_string(value)
+      :error -> default
+    end
+  rescue
+    ArgumentError -> default
   end
 end
