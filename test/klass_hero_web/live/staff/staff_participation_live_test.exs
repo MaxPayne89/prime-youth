@@ -223,9 +223,19 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLiveTest do
 
       view |> element("#edit-btn-#{record.id}") |> render_click()
 
+      # Pick a check-out time strictly after check_in_at (which was just set
+      # to DateTime.utc_now/0). HTML datetime-local drops seconds, so we align
+      # to minute precision to get an exact round-trip through the parser.
+      expected_check_out =
+        DateTime.utc_now()
+        |> DateTime.add(60, :second)
+        |> Map.merge(%{second: 0, microsecond: {0, 0}})
+
+      form_value = Calendar.strftime(expected_check_out, "%Y-%m-%dT%H:%M")
+
       view
       |> form("#edit-record-form-#{record.id}",
-        edit: %{notes: "Mum collected", check_out_at: "2026-04-20T16:15"}
+        edit: %{notes: "Mum collected", check_out_at: form_value}
       )
       |> render_submit()
 
@@ -236,7 +246,7 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLiveTest do
         )
 
       assert reloaded.status == :checked_out
-      assert reloaded.check_out_at == ~U[2026-04-20 16:15:00Z]
+      assert reloaded.check_out_at == expected_check_out
       assert reloaded.check_out_notes == "Mum collected"
     end
   end
