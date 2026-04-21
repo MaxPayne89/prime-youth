@@ -222,19 +222,23 @@ defmodule KlassHero.Participation.Domain.Models.ParticipationRecord do
   end
 
   defp validate_has_changes(record, attrs) do
-    has_status_change = Map.has_key?(attrs, :status) and attrs.status != record.status
+    if any_change?(record, attrs), do: :ok, else: {:error, :no_changes}
+  end
 
-    has_time_change =
-      (Map.has_key?(attrs, :check_in_at) and attrs.check_in_at != record.check_in_at) or
-        (Map.has_key?(attrs, :check_out_at) and attrs.check_out_at != record.check_out_at)
+  defp any_change?(record, attrs) do
+    status_changed?(record, attrs) or
+      field_changed?(record, attrs, :check_in_at) or
+      field_changed?(record, attrs, :check_out_at) or
+      field_changed?(record, attrs, :check_in_notes) or
+      field_changed?(record, attrs, :check_out_notes)
+  end
 
-    has_notes_change =
-      (Map.has_key?(attrs, :check_in_notes) and attrs.check_in_notes != record.check_in_notes) or
-        (Map.has_key?(attrs, :check_out_notes) and attrs.check_out_notes != record.check_out_notes)
+  defp status_changed?(record, attrs) do
+    Map.has_key?(attrs, :status) and attrs.status != record.status
+  end
 
-    if has_status_change or has_time_change or has_notes_change,
-      do: :ok,
-      else: {:error, :no_changes}
+  defp field_changed?(record, attrs, field) do
+    Map.has_key?(attrs, field) and Map.get(attrs, field) != Map.get(record, field)
   end
 
   defp validate_status(%{status: status}) when status not in @valid_statuses, do: {:error, :invalid_status}
