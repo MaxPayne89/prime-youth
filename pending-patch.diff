@@ -1,141 +1,35 @@
-diff --git a/lib/klass_hero_web/live/staff/staff_participation_live.ex b/lib/klass_hero_web/live/staff/staff_participation_live.ex
-index da0bf8fe..2936c18a 100644
---- a/lib/klass_hero_web/live/staff/staff_participation_live.ex
-+++ b/lib/klass_hero_web/live/staff/staff_participation_live.ex
-@@ -5,6 +5,7 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
-   alias KlassHero.ProgramCatalog
-   alias KlassHero.Provider
-   alias KlassHero.Shared.Domain.Events.DomainEvent
+diff --git a/lib/klass_hero_web/live/admin/sessions_live.ex b/lib/klass_hero_web/live/admin/sessions_live.ex
+index f57036fa..492d8e6a 100644
+--- a/lib/klass_hero_web/live/admin/sessions_live.ex
++++ b/lib/klass_hero_web/live/admin/sessions_live.ex
+@@ -11,13 +11,28 @@ defmodule KlassHeroWeb.Admin.SessionsLive do
+   alias KlassHero.Admin.Queries
+   alias KlassHero.Participation
+   alias KlassHeroWeb.Admin.Components.SearchableSelect
 +  alias KlassHeroWeb.Helpers.TaskHelpers
    alias KlassHeroWeb.Theme
  
-   require Logger
-@@ -13,7 +14,20 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
-   def mount(%{"session_id" => session_id}, _session, socket) do
-     staff_member = socket.assigns.current_scope.staff_member
- 
--    all_programs = ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
-+    # Trigger: list_programs_for_provider and get_session_with_roster_enriched are independent
-+    # Why: programs query uses provider_id; session query uses session_id — no shared dependency
-+    # Outcome: 1 sequential DB round-trip saved per staff session page load (~10–20 ms)
+   @impl true
+   def mount(_params, _session, socket) do
+     today = Date.utc_today()
+-    all_providers = Queries.list_providers_for_select()
+-    all_programs = Queries.list_programs_for_select()
++
++    # Trigger: list_providers_for_select and list_programs_for_select are independent DB queries
++    # Why: providers query hits the providers table; programs query hits the programs table — no shared dependency
++    # Outcome: 1 sequential DB round-trip saved per admin sessions page load (~5–15 ms)
++    providers_task =
++      Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
++        Queries.list_providers_for_select()
++      end)
++
 +    programs_task =
 +      Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
-+        ProgramCatalog.list_programs_for_provider(staff_member.provider_id)
++        Queries.list_programs_for_select()
 +      end)
 +
-+    session_task =
-+      Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
-+        Participation.get_session_with_roster_enriched(session_id)
-+      end)
-+
-+    all_programs = TaskHelpers.safe_await(programs_task, [], label: "StaffParticipationLive.programs")
-     assigned_programs = Provider.list_assigned_programs(staff_member, all_programs)
-     assigned_program_ids = MapSet.new(assigned_programs, & &1.id)
++    all_providers = TaskHelpers.safe_await(providers_task, [], label: "Admin.SessionsLive.providers")
++    all_programs = TaskHelpers.safe_await(programs_task, [], label: "Admin.SessionsLive.programs")
  
-@@ -45,7 +59,12 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
-       Phoenix.PubSub.subscribe(KlassHero.PubSub, "behavioral_note:behavioral_note_rejected")
-     end
- 
--    {:ok, load_session_data(socket)}
-+    session_result =
-+      TaskHelpers.safe_await(session_task, {:error, :task_failed},
-+        label: "StaffParticipationLive.session"
-+      )
-+
-+    {:ok, apply_session_result(socket, session_result)}
-   end
- 
-   @impl true
-@@ -239,50 +258,54 @@ defmodule KlassHeroWeb.Staff.StaffParticipationLive do
-   end
- 
-   defp load_session_data(socket) do
-+    result = Participation.get_session_with_roster_enriched(socket.assigns.session_id)
-+    apply_session_result(socket, result)
-+  end
-+
-+  defp apply_session_result(socket, {:ok, session}) do
-     session_id = socket.assigns.session_id
- 
--    case Participation.get_session_with_roster_enriched(session_id) do
--      {:ok, session} ->
--        # Authorization: verify session's program is in assigned set
--        if MapSet.member?(socket.assigns.assigned_program_ids, session.program_id) do
--          socket
--          |> assign(:session, session)
--          |> assign(:participation_records, session.participation_records || [])
--          |> assign(:session_error, nil)
--          |> load_provider_notes()
--        else
--          Logger.warning(
--            "[StaffParticipationLive] Unauthorized access to session",
--            session_id: session_id,
--            staff_member_id: socket.assigns.staff_member.id
--          )
--
--          socket
--          |> put_flash(:error, gettext("You are not assigned to this program"))
--          |> push_navigate(to: ~p"/staff/sessions")
--        end
-+    # Authorization: verify session's program is in assigned set
-+    if MapSet.member?(socket.assigns.assigned_program_ids, session.program_id) do
-+      socket
-+      |> assign(:session, session)
-+      |> assign(:participation_records, session.participation_records || [])
-+      |> assign(:session_error, nil)
-+      |> load_provider_notes()
-+    else
-+      Logger.warning(
-+        "[StaffParticipationLive] Unauthorized access to session",
-+        session_id: session_id,
-+        staff_member_id: socket.assigns.staff_member.id
-+      )
- 
--      {:error, :not_found} ->
--        Logger.warning(
--          "[StaffParticipationLive.load_session_data] Session not found",
--          session_id: session_id
--        )
-+      socket
-+      |> put_flash(:error, gettext("You are not assigned to this program"))
-+      |> push_navigate(to: ~p"/staff/sessions")
-+    end
-+  end
- 
--        socket
--        |> put_flash(:error, gettext("Session not found"))
--        |> push_navigate(to: ~p"/staff/sessions")
-+  defp apply_session_result(socket, {:error, :not_found}) do
-+    Logger.warning(
-+      "[StaffParticipationLive.load_session_data] Session not found",
-+      session_id: socket.assigns.session_id
-+    )
- 
--      {:error, reason} ->
--        Logger.error(
--          "[StaffParticipationLive.load_session_data] Failed to load session data",
--          session_id: session_id,
--          reason: inspect(reason)
--        )
-+    socket
-+    |> put_flash(:error, gettext("Session not found"))
-+    |> push_navigate(to: ~p"/staff/sessions")
-+  end
- 
--        socket
--        |> assign(:session_error, gettext("Failed to load session data"))
--        |> put_flash(:error, gettext("Failed to load session data"))
--    end
-+  defp apply_session_result(socket, {:error, reason}) do
-+    Logger.error(
-+      "[StaffParticipationLive.load_session_data] Failed to load session data",
-+      session_id: socket.assigns.session_id,
-+      reason: inspect(reason)
-+    )
-+
-+    socket
-+    |> assign(:session_error, gettext("Failed to load session data"))
-+    |> put_flash(:error, gettext("Failed to load session data"))
-   end
- 
-   defp update_participation_record(socket, record_id) do
+     {:ok,
+      socket

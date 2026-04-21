@@ -1,3 +1,3 @@
-10bfb62677a1bf69e7d2a63cebd4f55d8ef7edd3 perf(staff_participation_live): parallelize programs + session queries in mount
-Branch: perf-assist/parallelize-staff-participation-mount-1776400161
-Target file: lib/klass_hero_web/live/staff/staff_participation_live.ex
+8841a28 perf(admin_sessions_live): parallelize providers + programs queries in mount
+Branch: perf-assist/parallelize-admin-sessions-mount
+Target file: lib/klass_hero_web/live/admin/sessions_live.ex
