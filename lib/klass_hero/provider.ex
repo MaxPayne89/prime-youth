@@ -28,6 +28,7 @@ defmodule KlassHero.Provider do
     exports: [
       Domain.Models.ProviderProfile,
       Domain.Models.StaffMember,
+      Domain.Models.PayRate,
       Domain.Models.VerificationDocument,
       Domain.Models.ProgramStaffAssignment,
       Domain.ReadModels.SessionStats,

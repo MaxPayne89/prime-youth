@@ -2,6 +2,7 @@ defmodule KlassHero.Provider.Application.Commands.StaffMembers.CreateStaffMember
   use KlassHero.DataCase, async: true
 
   alias KlassHero.Provider.Application.Commands.StaffMembers.CreateStaffMember
+  alias KlassHero.Provider.Domain.Models.PayRate
   alias KlassHero.ProviderFixtures
 
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_staff_members])
@@ -96,6 +97,29 @@ defmodule KlassHero.Provider.Application.Commands.StaffMembers.CreateStaffMember
       assert {:ok, fetched} = @repository.get(staff.id)
       assert fetched.id == staff.id
       assert fetched.first_name == "Dave"
+    end
+
+    test "creates a staff member with an hourly pay_rate", %{provider_id: provider_id} do
+      {:ok, pay_rate} = PayRate.hourly(Decimal.new("25.00"))
+
+      attrs = %{
+        provider_id: provider_id,
+        first_name: "Ivy",
+        last_name: "Pay",
+        pay_rate: pay_rate
+      }
+
+      assert {:ok, staff} = CreateStaffMember.execute(attrs)
+      assert staff.pay_rate.type == :hourly
+      assert Decimal.equal?(staff.pay_rate.money.amount, Decimal.new("25.00"))
+      assert staff.pay_rate.money.currency == :EUR
+    end
+
+    test "defaults pay_rate to nil when not provided", %{provider_id: provider_id} do
+      attrs = %{provider_id: provider_id, first_name: "Ken", last_name: "Norate"}
+
+      assert {:ok, staff} = CreateStaffMember.execute(attrs)
+      assert is_nil(staff.pay_rate)
     end
   end
 end

@@ -19,6 +19,7 @@ defmodule KlassHero.Shared do
       Domain.Ports.Driving.ForHandlingEvents,
       Domain.Ports.Driving.ForHandlingIntegrationEvents,
       Domain.Services.ActivityGoalCalculator,
+      Domain.Types.Money,
       Domain.Types.Pagination.PageResult,
       DomainEventBus,
       EventPublishing,

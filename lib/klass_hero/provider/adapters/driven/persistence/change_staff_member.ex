@@ -21,6 +21,14 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.ChangeStaffMember do
   end
 
   defp staff_to_schema(%StaffMember{} = staff) do
+    # Flatten pay_rate so the form renders current values. Without this the Edit
+    # form always shows "None" and a no-touch save would wipe the persisted rate.
+    {rate_type, rate_amount, rate_currency} =
+      case staff.pay_rate do
+        nil -> {nil, nil, nil}
+        %{type: type, money: %{amount: amount, currency: currency}} -> {type, amount, currency}
+      end
+
     %StaffMemberSchema{
       id: staff.id,
       provider_id: staff.provider_id,
@@ -32,7 +40,10 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.ChangeStaffMember do
       headshot_url: staff.headshot_url,
       tags: staff.tags,
       qualifications: staff.qualifications,
-      active: staff.active
+      active: staff.active,
+      rate_type: rate_type,
+      rate_amount: rate_amount,
+      rate_currency: rate_currency
     }
   end
 end

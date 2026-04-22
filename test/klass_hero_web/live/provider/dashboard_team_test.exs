@@ -3,6 +3,7 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
 
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Provider.Domain.Models.PayRate
   alias KlassHero.ProviderFixtures
 
   setup :register_and_log_in_provider
@@ -350,6 +351,161 @@ defmodule KlassHeroWeb.Provider.DashboardTeamTest do
       # No cast error on qualifications — the comma string was parsed to a list
       refute html =~ "is invalid"
       assert has_element?(view, "#staff-member-form")
+    end
+  end
+
+  describe "pay rate flow" do
+    alias KlassHero.Provider
+
+    test "form submission with an hourly rate persists the rate", %{conn: conn, provider: provider} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view |> element("#add-member-btn") |> render_click()
+
+      view
+      |> form("#staff-form", %{
+        "staff_member_schema" => %{
+          "first_name" => "Rena",
+          "last_name" => "Ratepayer",
+          "rate_type" => "hourly",
+          "rate_amount" => "25.00",
+          "rate_currency" => "EUR"
+        }
+      })
+      |> render_submit()
+
+      refute has_element?(view, "#staff-member-form")
+
+      {:ok, [staff]} = Provider.list_staff_members(provider.id)
+      assert staff.pay_rate.type == :hourly
+      assert Decimal.equal?(staff.pay_rate.money.amount, Decimal.new("25.00"))
+      assert staff.pay_rate.money.currency == :EUR
+    end
+
+    test "form submission with per_session rate persists the rate", %{conn: conn, provider: provider} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view |> element("#add-member-btn") |> render_click()
+
+      view
+      |> form("#staff-form", %{
+        "staff_member_schema" => %{
+          "first_name" => "Sonia",
+          "last_name" => "Session",
+          "rate_type" => "per_session",
+          "rate_amount" => "80.00",
+          "rate_currency" => "EUR"
+        }
+      })
+      |> render_submit()
+
+      {:ok, [staff]} = Provider.list_staff_members(provider.id)
+      assert staff.pay_rate.type == :per_session
+    end
+
+    test "form submission without rate_type leaves pay_rate as nil", %{conn: conn, provider: provider} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view |> element("#add-member-btn") |> render_click()
+
+      view
+      |> form("#staff-form", %{
+        "staff_member_schema" => %{
+          "first_name" => "No",
+          "last_name" => "Rate",
+          "rate_type" => "",
+          "rate_amount" => ""
+        }
+      })
+      |> render_submit()
+
+      {:ok, [staff]} = Provider.list_staff_members(provider.id)
+      assert is_nil(staff.pay_rate)
+    end
+
+    test "editing can clear an existing rate back to nil", %{conn: conn, provider: provider} do
+      {:ok, pay_rate} = PayRate.hourly(Decimal.new("25.00"))
+
+      staff =
+        ProviderFixtures.staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Carla",
+          last_name: "Clear",
+          pay_rate: pay_rate
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view
+      |> element(~s(button[phx-click="edit_member"][phx-value-id="#{staff.id}"]))
+      |> render_click()
+
+      view
+      |> form("#staff-form", %{
+        "staff_member_schema" => %{
+          "first_name" => "Carla",
+          "last_name" => "Clear",
+          "rate_type" => "",
+          "rate_amount" => ""
+        }
+      })
+      |> render_submit()
+
+      {:ok, updated} = Provider.get_staff_member(staff.id)
+      assert is_nil(updated.pay_rate)
+    end
+
+    test "invalid rate_amount keeps the form open with a field error", %{conn: conn, provider: provider} do
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view |> element("#add-member-btn") |> render_click()
+
+      html =
+        view
+        |> form("#staff-form", %{
+          "staff_member_schema" => %{
+            "first_name" => "Bad",
+            "last_name" => "Amount",
+            "rate_type" => "hourly",
+            "rate_amount" => "abc"
+          }
+        })
+        |> render_submit()
+
+      # Form stays open (didn't save)
+      assert has_element?(view, "#staff-member-form")
+      assert html =~ "is invalid"
+      assert Provider.list_staff_members(provider.id) == {:ok, []}
+    end
+
+    test "editing an unrelated field preserves an existing pay rate", %{conn: conn, provider: provider} do
+      {:ok, pay_rate} = PayRate.hourly(Decimal.new("25.00"))
+
+      staff =
+        ProviderFixtures.staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Pia",
+          last_name: "Preserve",
+          role: "Coach",
+          pay_rate: pay_rate
+        )
+
+      {:ok, view, _html} = live(conn, ~p"/provider/dashboard/team")
+
+      view
+      |> element(~s(button[phx-click="edit_member"][phx-value-id="#{staff.id}"]))
+      |> render_click()
+
+      # Form should render pre-populated with the existing rate — submit only a
+      # role change and the pre-populated rate fields flow through unchanged.
+      view
+      |> form("#staff-form", %{"staff_member_schema" => %{"role" => "Head Coach"}})
+      |> render_submit()
+
+      {:ok, updated} = Provider.get_staff_member(staff.id)
+      assert updated.role == "Head Coach"
+      assert updated.pay_rate.type == :hourly
+      assert Decimal.equal?(updated.pay_rate.money.amount, Decimal.new("25.00"))
     end
   end
 end

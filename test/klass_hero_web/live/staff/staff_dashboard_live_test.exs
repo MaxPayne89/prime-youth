@@ -5,6 +5,8 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLiveTest do
   import KlassHero.Factory, only: [insert: 2]
   import KlassHero.ProviderFixtures
 
+  alias KlassHero.Provider.Domain.Models.PayRate
+
   describe "staff dashboard" do
     setup %{conn: conn} do
       user = user_fixture(intended_roles: [:staff_provider])
@@ -41,6 +43,23 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLiveTest do
       {:ok, view, _html} = live(conn, ~p"/staff/dashboard")
 
       assert render(view) =~ staff.first_name
+    end
+
+    test "shows the staff member's own hourly pay rate when set", %{conn: conn, staff: staff} do
+      {:ok, pay_rate} = PayRate.hourly(Decimal.new("25.00"))
+      {:ok, _updated} = KlassHero.Provider.update_staff_member(staff.id, %{pay_rate: pay_rate})
+
+      {:ok, _view, html} = live(conn, ~p"/staff/dashboard")
+
+      assert html =~ "€25.00 / hour"
+    end
+
+    test "hides pay rate section when no rate is set", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/staff/dashboard")
+
+      refute html =~ "rate-label"
+      refute html =~ "/ hour"
+      refute html =~ "/ session"
     end
 
     test "non-staff user is redirected", %{} do

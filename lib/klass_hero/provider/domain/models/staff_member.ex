@@ -9,6 +9,7 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
   Qualifications are freeform text entries (e.g., "First Aid", "UEFA B License").
   """
 
+  alias KlassHero.Provider.Domain.Models.PayRate
   alias KlassHero.Shared.Categories
 
   @enforce_keys [:id, :provider_id, :first_name, :last_name]
@@ -26,6 +27,7 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
     :invitation_status,
     :invitation_token_hash,
     :invitation_sent_at,
+    :pay_rate,
     tags: [],
     qualifications: [],
     active: true,
@@ -46,6 +48,7 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
           invitation_status: :pending | :sent | :failed | :accepted | :expired | nil,
           invitation_token_hash: binary() | nil,
           invitation_sent_at: DateTime.t() | nil,
+          pay_rate: PayRate.t() | nil,
           tags: [String.t()],
           qualifications: [String.t()],
           active: boolean(),
@@ -114,6 +117,7 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
     |> validate_headshot_url(staff.headshot_url)
     |> validate_tags(staff.tags)
     |> validate_qualifications(staff.qualifications)
+    |> validate_pay_rate(staff.pay_rate)
   end
 
   defp validate_provider_id(errors, id) when is_binary(id) do
@@ -209,6 +213,16 @@ defmodule KlassHero.Provider.Domain.Models.StaffMember do
   end
 
   defp validate_qualifications(errors, _), do: ["Qualifications must be a list" | errors]
+
+  defp validate_pay_rate(errors, nil), do: errors
+
+  defp validate_pay_rate(errors, %PayRate{} = pay_rate) do
+    if PayRate.valid?(pay_rate),
+      do: errors,
+      else: ["Pay rate is invalid" | errors]
+  end
+
+  defp validate_pay_rate(errors, _), do: ["Pay rate must be a %PayRate{} struct or nil" | errors]
 
   @doc """
   Generates a URL-safe invitation token and its SHA-256 hash.

@@ -10,7 +10,7 @@ defmodule KlassHero.Provider.Application.Commands.StaffMembers.UpdateStaffMember
   @query Application.compile_env!(:klass_hero, [:provider, :for_querying_staff_members])
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_staff_members])
 
-  @allowed_fields ~w(first_name last_name role email bio headshot_url tags qualifications active)a
+  @allowed_fields ~w(first_name last_name role email bio headshot_url tags qualifications active pay_rate)a
 
   def execute(staff_id, attrs) when is_binary(staff_id) and is_map(attrs) do
     attrs = Map.take(attrs, @allowed_fields)

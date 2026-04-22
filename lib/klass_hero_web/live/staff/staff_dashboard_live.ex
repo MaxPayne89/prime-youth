@@ -7,6 +7,7 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
   alias KlassHero.Shared.Entitlements
+  alias KlassHeroWeb.Presenters.StaffMemberPresenter
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -26,6 +27,7 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
           |> assign(:page_title, gettext("Staff Dashboard"))
           |> assign(:provider, provider)
           |> assign(:staff_member, staff_member)
+          |> assign(:self_view, StaffMemberPresenter.to_self_view(staff_member))
           |> assign(:assigned_program_ids, assigned_ids)
           |> assign(:programs_empty?, programs == [])
           |> assign(:dual_role?, Scope.dual_role?(socket.assigns.current_scope))
@@ -133,6 +135,13 @@ defmodule KlassHeroWeb.Staff.StaffDashboardLive do
         </h1>
         <p class={Theme.typography(:body)}>
           {gettext("Welcome, %{name}", name: @staff_member.first_name)}
+        </p>
+        <p
+          :if={@self_view.rate_label}
+          id="staff-rate-label"
+          class="text-sm text-hero-grey-600 mt-1"
+        >
+          {gettext("Your pay rate")}: {@self_view.rate_label}
         </p>
         <.link
           :if={@dual_role?}

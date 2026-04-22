@@ -1,7 +1,7 @@
 defmodule KlassHero.Provider.Domain.Models.StaffMemberTest do
   use ExUnit.Case, async: true
 
-  alias KlassHero.Provider.Domain.Models.StaffMember
+  alias KlassHero.Provider.Domain.Models.{PayRate, StaffMember}
 
   @valid_attrs %{
     id: "550e8400-e29b-41d4-a716-446655440000",
@@ -143,6 +143,57 @@ defmodule KlassHero.Provider.Domain.Models.StaffMemberTest do
     test "errors on missing enforce key" do
       assert {:error, :invalid_persistence_data} =
                StaffMember.from_persistence(%{id: "abc", first_name: "X"})
+    end
+  end
+
+  describe "new/1 with pay_rate" do
+    test "defaults pay_rate to nil when omitted" do
+      assert {:ok, staff} = StaffMember.new(@valid_attrs)
+      assert is_nil(staff.pay_rate)
+    end
+
+    test "accepts an hourly pay_rate" do
+      {:ok, pay_rate} = PayRate.hourly(Decimal.new("25.00"))
+
+      assert {:ok, staff} = StaffMember.new(Map.put(@valid_attrs, :pay_rate, pay_rate))
+      assert staff.pay_rate == pay_rate
+    end
+
+    test "accepts a per_session pay_rate" do
+      {:ok, pay_rate} = PayRate.per_session(Decimal.new("80.00"))
+
+      assert {:ok, staff} = StaffMember.new(Map.put(@valid_attrs, :pay_rate, pay_rate))
+      assert staff.pay_rate.type == :per_session
+    end
+
+    test "accepts explicit nil pay_rate" do
+      assert {:ok, staff} = StaffMember.new(Map.put(@valid_attrs, :pay_rate, nil))
+      assert is_nil(staff.pay_rate)
+    end
+
+    test "rejects a non-PayRate value for pay_rate" do
+      assert {:error, errors} =
+               StaffMember.new(Map.put(@valid_attrs, :pay_rate, %{type: :hourly}))
+
+      assert Enum.any?(errors, &String.contains?(&1, "Pay rate"))
+    end
+  end
+
+  describe "from_persistence/1 with pay_rate" do
+    test "reconstructs a StaffMember with a pre-built PayRate" do
+      {:ok, pay_rate} = PayRate.hourly(Decimal.new("30.00"))
+
+      attrs =
+        @valid_attrs
+        |> Map.merge(%{
+          tags: [],
+          qualifications: [],
+          active: true,
+          pay_rate: pay_rate
+        })
+
+      assert {:ok, staff} = StaffMember.from_persistence(attrs)
+      assert staff.pay_rate == pay_rate
     end
   end
 end
