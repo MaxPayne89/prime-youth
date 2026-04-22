@@ -22,12 +22,12 @@ defmodule KlassHero.Provider.Domain.Models.PayRate do
   def valid_types, do: @valid_types
 
   @doc "Smart constructor for an hourly rate."
-  @spec hourly(Decimal.t() | number() | String.t(), atom()) ::
+  @spec hourly(Decimal.t() | integer() | String.t(), atom() | String.t()) ::
           {:ok, t()} | {:error, [String.t()]}
   def hourly(amount, currency \\ :EUR), do: build(:hourly, amount, currency)
 
   @doc "Smart constructor for a per-session rate."
-  @spec per_session(Decimal.t() | number() | String.t(), atom()) ::
+  @spec per_session(Decimal.t() | integer() | String.t(), atom() | String.t()) ::
           {:ok, t()} | {:error, [String.t()]}
   def per_session(amount, currency \\ :EUR), do: build(:per_session, amount, currency)
 

@@ -1802,13 +1802,19 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp build_pay_rate_from_params(_params), do: nil
 
+  # When rate_type is present but construction fails (bad amount, unknown currency, etc.),
+  # return the `:invalid` sentinel rather than `nil`. Domain validation via
+  # `StaffMember.validate_pay_rate/2` rejects non-PayRate non-nil values, which surfaces
+  # an `{:error, {:validation_error, _}}` tuple from the use case. The LiveView's
+  # existing error branch then re-renders the form via the schema's changeset, which
+  # flags bad `rate_amount` strings (Decimal cast failure) directly on the field.
   defp build_pay_rate(constructor, params) do
     amount = presence(params["rate_amount"])
     currency = presence(params["rate_currency"]) || "EUR"
 
     case amount && constructor.(amount, currency) do
       {:ok, pay_rate} -> pay_rate
-      _ -> nil
+      _ -> :invalid
     end
   end
 
