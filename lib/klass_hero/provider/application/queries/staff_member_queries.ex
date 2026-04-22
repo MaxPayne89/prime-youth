@@ -38,6 +38,15 @@ defmodule KlassHero.Provider.Application.Queries.StaffMemberQueries do
   end
 
   @doc """
+  Lists active staff members assigned to a program, hydrated from the join table
+  in a single query.
+  """
+  @spec list_active_by_program(String.t()) :: {:ok, [StaffMember.t()]}
+  def list_active_by_program(program_id) when is_binary(program_id) do
+    @staff_repository.list_active_by_program(program_id)
+  end
+
+  @doc """
   Returns the active staff member record linked to the given user ID.
   Used by Scope to resolve :staff_provider role.
   """

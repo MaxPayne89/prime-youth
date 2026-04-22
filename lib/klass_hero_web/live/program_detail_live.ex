@@ -32,7 +32,7 @@ defmodule KlassHeroWeb.ProgramDetailLive do
         # Run independent DB queries in parallel to reduce total mount latency.
         team_task =
           Task.Supervisor.async_nolink(KlassHero.TaskSupervisor, fn ->
-            load_team_members(program.provider_id)
+            load_team_members(program.id)
           end)
 
         policy_task =
@@ -123,13 +123,10 @@ defmodule KlassHeroWeb.ProgramDetailLive do
     end
   end
 
-  defp load_team_members(nil), do: []
-
-  defp load_team_members(provider_id) do
-    case Provider.list_staff_members(provider_id) do
-      {:ok, members} -> StaffMemberPresenter.to_card_view_list(members)
-      {:error, _} -> []
-    end
+  defp load_team_members(program_id) when is_binary(program_id) do
+    program_id
+    |> Provider.list_active_staff_for_program()
+    |> StaffMemberPresenter.to_card_view_list()
   end
 
   defp load_provider_profile(nil), do: nil
@@ -353,7 +350,6 @@ defmodule KlassHeroWeb.ProgramDetailLive do
                   {date_range}
                 </p>
               <% end %>
-              <%!-- TODO: show instructor name when instructor data is wired to programs --%>
             </div>
             <div class="flex flex-col sm:flex-row gap-3">
               <.enroll_button

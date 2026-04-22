@@ -206,11 +206,18 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       program =
         insert(:program_schema, provider_id: provider.id, title: "Soccer Academy")
 
-      staff_member_fixture(
+      staff =
+        staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Coach",
+          last_name: "Smith",
+          role: "Head Coach"
+        )
+
+      insert(:program_staff_assignment_schema,
         provider_id: provider.id,
-        first_name: "Coach",
-        last_name: "Smith",
-        role: "Head Coach"
+        program_id: program.id,
+        staff_member_id: staff.id
       )
 
       {:ok, view, html} = live(conn, ~p"/programs/#{program.id}")
@@ -226,19 +233,29 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       program =
         insert(:program_schema, provider_id: provider.id, title: "STEM Camp")
 
-      staff_member_fixture(
-        provider_id: provider.id,
-        first_name: "Alice",
-        last_name: "Johnson",
-        role: "Instructor"
-      )
+      alice =
+        staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Alice",
+          last_name: "Johnson",
+          role: "Instructor"
+        )
 
-      staff_member_fixture(
-        provider_id: provider.id,
-        first_name: "Bob",
-        last_name: "Williams",
-        role: "Assistant Instructor"
-      )
+      bob =
+        staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Bob",
+          last_name: "Williams",
+          role: "Assistant Instructor"
+        )
+
+      for staff <- [alice, bob] do
+        insert(:program_staff_assignment_schema,
+          provider_id: provider.id,
+          program_id: program.id,
+          staff_member_id: staff.id
+        )
+      end
 
       {:ok, view, _html} = live(conn, ~p"/programs/#{program.id}")
 
@@ -260,19 +277,53 @@ defmodule KlassHeroWeb.ProgramDetailLiveTest do
       provider = provider_profile_fixture()
       program = insert(:program_schema, provider_id: provider.id)
 
-      staff_member_fixture(
+      staff =
+        staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Jane",
+          last_name: "Doe",
+          email: "jane.secret@example.com"
+        )
+
+      insert(:program_staff_assignment_schema,
         provider_id: provider.id,
-        first_name: "Jane",
-        last_name: "Doe",
-        email: "jane.secret@example.com"
+        program_id: program.id,
+        staff_member_id: staff.id
       )
 
       {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}")
 
-      # Trigger: staff email is included in presenter output
-      # Why: public program pages should not expose staff email addresses
-      # Outcome: email should NOT appear in rendered HTML
+      assert html =~ "Jane Doe"
       refute html =~ "jane.secret@example.com"
+    end
+
+    test "shows only staff assigned to the program, not other provider staff", %{conn: conn} do
+      provider = provider_profile_fixture()
+      program = insert(:program_schema, provider_id: provider.id)
+
+      assigned =
+        staff_member_fixture(
+          provider_id: provider.id,
+          first_name: "Assigned",
+          last_name: "Coach"
+        )
+
+      staff_member_fixture(
+        provider_id: provider.id,
+        first_name: "Unassigned",
+        last_name: "Bystander"
+      )
+
+      insert(:program_staff_assignment_schema,
+        provider_id: provider.id,
+        program_id: program.id,
+        staff_member_id: assigned.id
+      )
+
+      {:ok, _view, html} = live(conn, ~p"/programs/#{program.id}")
+
+      assert html =~ "Assigned Coach"
+      refute html =~ "Unassigned Bystander"
     end
   end
 
