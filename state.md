@@ -1,7 +1,7 @@
 # Perf Improver Memory — klass-hero
 
 ## Last Updated
-2026-04-21
+2026-04-22
 
 ## Build / Test / Lint Commands (validated from mix.exs + CI)
 - **Build**: `mix compile --warnings-as-errors`
@@ -11,12 +11,18 @@
 - **Assets**: `mix assets.build` / `mix assets.deploy` (tailwind + esbuild)
 - **Linting**: `mix credo --strict` (credo dep), `mix sobelow` (security)
 - **Note**: Elixir/mix not available in CI runner environment — compile check not runnable
-- **safeoutputs MCP**: `http://host.docker.internal:80/mcp/safeoutputs` with Authorization header from `/home/runner/.copilot/mcp-config.json`
+
+## Workflow Status
+- **PR #718 OPEN**: "ci: recompile agentic workflows to gh-aw v0.68.3 and remove daily-perf-improver"
+- The maintainer has signaled the daily-perf-improver is no longer needed at current repo scale
+- PRs #658, #659, #708, #714 all closed without merge (cleanup before removal)
+- **Do NOT create new PRs** — workflow is being removed
 
 ## Run History
 | Date | Tasks | Output |
 |------|-------|--------|
-| 2026-04-21 | T1, T2, T3, T7 | T1: mix/Elixir not in PATH confirmed. T2: Identified Admin.SessionsLive parallel opportunity. T3: Implemented parallelize Admin.SessionsLive.mount (providers+programs tasks), PR staged (branch perf-assist/parallelize-admin-sessions-mount). T7: Updated monthly summary #584 (PR #708 number resolved, new admin sessions PR added). |
+| 2026-04-22 | T4, T7 | T4: PRs #658/#659/#708/#714 all closed without merge. PR #718 open to remove workflow. T7: Updated monthly summary #584 — removed closed PRs, noted workflow removal. |
+| 2026-04-21 | T1, T2, T3, T7 | T1: mix/Elixir not in PATH confirmed. T2: Identified Admin.SessionsLive parallel opportunity. T3: Implemented parallelize Admin.SessionsLive.mount (providers+programs tasks), PR #714 submitted. T7: Updated monthly summary #584. |
 | 2026-04-20 | T3, T4, T7 | T3: PR created for StaffParticipationLive parallelize (branch perf-assist/parallelize-staff-participation-mount, PR #708). T4: PRs #658 and #659 confirmed open, no CI issues. T7: Updated monthly summary #584. |
 | 2026-04-19 | T3, T4, T6, T7 | T3: Implemented parallelize StaffParticipationLive.mount. T4: PRs #658, #659 confirmed open. T6: No new infra gaps. T7: monthly summary update blocked (safeoutputs unavailable). |
 | 2026-04-16 | T4, T5, T7 | T4: Confirmed PR #659 and PR #658 open, PR #628 merged. T5: No new human comments on #478/#515. T7: Updated monthly summary #584. |
@@ -26,10 +32,10 @@
 - T1 (Discover commands): 2026-04-21
 - T2 (Identify opportunities): 2026-04-21
 - T3 (Implement improvement): 2026-04-21
-- T4 (Maintain PRs): 2026-04-20
+- T4 (Maintain PRs): 2026-04-22
 - T5 (Comment on issues): 2026-04-16
 - T6 (Measurement infra): 2026-04-19
-- T7 (Activity summary): 2026-04-21
+- T7 (Activity summary): 2026-04-22
 
 ## Optimization Backlog (prioritized)
 1. **[MERGED]** N+1 in DashboardLive — PR #290 ✓
@@ -49,18 +55,10 @@
 15. **[MERGED]** Redundant providers table query in mount_conversation_show — PR #609 ✓
 16. **[MERGED]** Parallelize SessionsLive.mount — PR #622 ✓
 17. **[MERGED]** Parallelize parent DashboardLive.mount — PR #628 ✓
-18. **[IN REVIEW]** Over-fetching in ListFeaturedPrograms.execute/0 — PR #659 (open)
-19. **[IN REVIEW]** Parallelize Provider.get_provider_profile + list_programs_for_provider in StaffDashboardLive.mount — PR #658 (open)
-20. **[IN REVIEW]** Parallelize list_programs_for_provider + get_session_with_roster_enriched in StaffParticipationLive.mount — PR #708 (open)
-21. **[IN REVIEW]** Parallelize list_providers_for_select + list_programs_for_select in Admin.SessionsLive.mount — PR submitted 2026-04-21 (branch perf-assist/parallelize-admin-sessions-mount)
-22. **[LOW]** StaffBroadcastLive.mount: Provider.get_provider_profile + ProgramCatalog.get_program_by_id are sequential but entitlements check depends on provider — not a simple parallelize
-23. **[LOW]** Two-step query in `with_ended_program/2` — background job only; crosses DDD boundaries
-24. **[LOW]** program_sessions.status index — verify query patterns first
-25. **[PLANNED]** ETS projection cache for program→provider ACL resolution — issue #478, maintainer-designed
-
-## Backlog Cursor
-- Next tasks: T5 (comment on issues, last 2026-04-16), T4 (maintain PRs, last 2026-04-20), T6 (measurement infra, last 2026-04-19)
-- Admin sessions PR number TBD (branch submitted 2026-04-21)
+18. **[CLOSED]** Over-fetching in ListFeaturedPrograms.execute/0 — PR #659 (closed without merge)
+19. **[CLOSED]** Parallelize Provider.get_provider_profile + list_programs_for_provider in StaffDashboardLive.mount — PR #658 (closed without merge)
+20. **[CLOSED]** Parallelize list_programs_for_provider + get_session_with_roster_enriched in StaffParticipationLive.mount — PR #708 (closed without merge)
+21. **[CLOSED]** Parallelize list_providers_for_select + list_programs_for_select in Admin.SessionsLive.mount — PR #714 (closed without merge)
 
 ## Performance Notes
 - Phoenix app with OpenTelemetry + Honeycomb configured for production tracing
@@ -70,15 +68,11 @@
 - Maintainer is active and merges PRs quickly
 - Elixir/mix is not in PATH in the CI runner environment — cannot run `mix compile` or `mix test` locally
 - Task.async/await parallel pattern is accepted by maintainer (multiple PRs merged)
-- safeoutputs MCP: POST to http://host.docker.internal:80/mcp/safeoutputs with Authorization header; must send notifications/initialized after initialize before calling tools/call; session ID in Mcp-Session-Id header
 - Index PRs pattern: only accepted when backed by production Honeycomb evidence AND non-trivial table size
 - T6 infra state: no Benchee, no CI perf regression jobs; OTel + Honeycomb in prod; LiveDashboard in dev
 
 ## Active PRs
-- PR #659: perf-assist/limit-featured-programs-query-c89d47071b72a9cb — open, awaiting review
-- PR #658: perf-assist/parallelize-staff-dashboard-mount-99272bde2e3c3f24 — open, awaiting review
-- PR #708: perf-assist/parallelize-staff-participation-mount — open, awaiting review
-- PR (TBD): perf-assist/parallelize-admin-sessions-mount — submitted 2026-04-21, number TBD
+- None (all perf-assist PRs closed; PR #718 by maintainer removes the workflow itself)
 
 ## Completed Work
 - PR #628 (parallelize Family.get_children + load_family_programs in parent DashboardLive) — merged 2026-04-12 ✓
