@@ -1,11 +1,19 @@
 defmodule KlassHeroWeb.Presenters.StaffMemberPresenter do
   @moduledoc """
   Transforms StaffMember domain models to view-ready formats.
+
+  Three view variants exist to enforce a visibility boundary around pay rates:
+
+    * `to_card_view/1` — parent/public-facing (program detail pages). MUST NOT include
+      pay_rate. Any addition here leaks confidential compensation data.
+    * `to_admin_view/1` — business-owner-facing (Team tab). Includes pay_rate.
+    * `to_self_view/1` — staff-member-facing (their own dashboard). Includes pay_rate.
   """
 
   use Gettext, backend: KlassHeroWeb.Gettext
 
-  alias KlassHero.Provider.Domain.Models.StaffMember
+  alias KlassHero.Provider.Domain.Models.{PayRate, StaffMember}
+  alias KlassHero.Shared.Domain.Types.Money
 
   @spec to_card_view(StaffMember.t()) :: map()
   def to_card_view(%StaffMember{} = staff) do
@@ -32,6 +40,38 @@ defmodule KlassHeroWeb.Presenters.StaffMemberPresenter do
   def to_card_view_list(staff_members) when is_list(staff_members) do
     Enum.map(staff_members, &to_card_view/1)
   end
+
+  @doc """
+  Business-owner-facing view. Extends the card view with pay_rate + formatted rate_label.
+  """
+  @spec to_admin_view(StaffMember.t()) :: map()
+  def to_admin_view(%StaffMember{} = staff), do: with_pay_rate(staff)
+
+  @spec to_admin_view_list([StaffMember.t()]) :: [map()]
+  def to_admin_view_list(staff_members) when is_list(staff_members) do
+    Enum.map(staff_members, &to_admin_view/1)
+  end
+
+  @doc """
+  Staff-member's own view of themselves. Includes their own pay_rate + formatted label.
+  """
+  @spec to_self_view(StaffMember.t()) :: map()
+  def to_self_view(%StaffMember{} = staff), do: with_pay_rate(staff)
+
+  defp with_pay_rate(%StaffMember{} = staff) do
+    staff
+    |> to_card_view()
+    |> Map.merge(%{pay_rate: staff.pay_rate, rate_label: rate_label(staff.pay_rate)})
+  end
+
+  defp rate_label(nil), do: nil
+
+  defp rate_label(%PayRate{type: type, money: %Money{} = money}) do
+    "#{Money.format(money)} / #{rate_suffix(type)}"
+  end
+
+  defp rate_suffix(:hourly), do: gettext("hour")
+  defp rate_suffix(:per_session), do: gettext("session")
 
   defp invitation_status_label(nil), do: nil
   defp invitation_status_label(:pending), do: gettext("Invitation Pending")

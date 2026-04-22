@@ -7,7 +7,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
     only: [maybe_add_id: 2]
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
-  alias KlassHero.Provider.Domain.Models.StaffMember
+  alias KlassHero.Provider.Domain.Models.{PayRate, StaffMember}
+  alias KlassHero.Shared.Domain.Types.Money
 
   @spec to_domain(StaffMemberSchema.t()) :: StaffMember.t()
   def to_domain(%StaffMemberSchema{} = schema) do
@@ -27,6 +28,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
       invitation_status: atomize_invitation_status(schema.invitation_status),
       invitation_token_hash: schema.invitation_token_hash,
       invitation_sent_at: schema.invitation_sent_at,
+      pay_rate: build_pay_rate(schema),
       inserted_at: schema.inserted_at,
       updated_at: schema.updated_at
     }
@@ -50,6 +52,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
       invitation_token_hash: staff.invitation_token_hash,
       invitation_sent_at: staff.invitation_sent_at
     }
+    |> Map.merge(flatten_pay_rate(staff.pay_rate))
     |> maybe_add_id(staff.id)
   end
 
@@ -58,4 +61,22 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
   defp atomize_invitation_status(status) when is_binary(status), do: String.to_existing_atom(status)
 
   defp atomize_invitation_status(status) when is_atom(status), do: status
+
+  defp build_pay_rate(%StaffMemberSchema{rate_type: type, rate_amount: %Decimal{} = amount, rate_currency: currency})
+       when is_atom(type) and is_atom(currency) and not is_nil(type) and not is_nil(currency) do
+    with {:ok, money} <- Money.from_persistence(%{amount: amount, currency: currency}),
+         {:ok, pay_rate} <- PayRate.from_persistence(%{type: type, money: money}) do
+      pay_rate
+    else
+      _ -> nil
+    end
+  end
+
+  defp build_pay_rate(_), do: nil
+
+  defp flatten_pay_rate(nil), do: %{rate_type: nil, rate_amount: nil, rate_currency: nil}
+
+  defp flatten_pay_rate(%PayRate{type: type, money: %Money{amount: amount, currency: currency}}) do
+    %{rate_type: type, rate_amount: amount, rate_currency: currency}
+  end
 end

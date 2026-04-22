@@ -17,6 +17,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Provider
+  alias KlassHero.Provider.Domain.Models.PayRate
   alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Shared.Entitlements
   alias KlassHero.Shared.Storage
@@ -72,7 +73,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         staff_members =
           TaskHelpers.safe_await(staff_task, [], label: "Provider.DashboardLive.staff")
 
-        staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
+        staff_views = StaffMemberPresenter.to_admin_view_list(staff_members)
         programs_count = length(programs)
         self_posted_count = ProgramCatalog.count_self_posted_programs(provider_profile.id)
 
@@ -205,7 +206,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     provider = socket.assigns.current_scope.provider
 
     staff_members = fetch_staff_members(provider.id)
-    staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
+    staff_views = StaffMemberPresenter.to_admin_view_list(staff_members)
 
     {:noreply,
      socket
@@ -337,7 +338,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_event("resend_invitation", %{"id" => staff_member_id}, socket) do
     case Provider.resend_staff_invitation(staff_member_id) do
       {:ok, updated, _raw_token} ->
-        staff_view = StaffMemberPresenter.to_card_view(updated)
+        staff_view = StaffMemberPresenter.to_admin_view(updated)
 
         {:noreply,
          socket
@@ -1083,7 +1084,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   defp handle_staff_created(socket, staff, headshot_status) do
-    view = StaffMemberPresenter.to_card_view(staff)
+    view = StaffMemberPresenter.to_admin_view(staff)
 
     flash_msg =
       if headshot_status == :headshot_failed,
@@ -1107,7 +1108,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     case Provider.update_staff_member(staff_id, attrs) do
       {:ok, staff} ->
-        view = StaffMemberPresenter.to_card_view(staff)
+        view = StaffMemberPresenter.to_admin_view(staff)
 
         flash_msg =
           if headshot_status == :headshot_failed,
@@ -1506,7 +1507,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           />
         </div>
         <div :for={{id, member} <- @team_members} id={id}>
-          <.team_member_card member={member} />
+          <.team_member_card member={member} rate_label={member.rate_label} />
         </div>
       </div>
     </div>
@@ -1721,7 +1722,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp refresh_staff_options(socket) do
     provider_id = socket.assigns.current_scope.provider.id
     staff_members = fetch_staff_members(provider_id)
-    staff_views = StaffMemberPresenter.to_card_view_list(staff_members)
+    staff_views = StaffMemberPresenter.to_admin_view_list(staff_members)
 
     staff_options =
       [%{value: "all", label: gettext("All Staff")}] ++
@@ -1786,8 +1787,29 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
       email: presence(params["email"]),
       bio: presence(params["bio"]),
       tags: (params["tags"] || []) |> Enum.reject(&(&1 == "")),
-      qualifications: parse_qualifications(params["qualifications"])
+      qualifications: parse_qualifications(params["qualifications"]),
+      pay_rate: build_pay_rate_from_params(params)
     }
+  end
+
+  defp build_pay_rate_from_params(%{"rate_type" => "hourly"} = params) do
+    build_pay_rate(&PayRate.hourly/2, params)
+  end
+
+  defp build_pay_rate_from_params(%{"rate_type" => "per_session"} = params) do
+    build_pay_rate(&PayRate.per_session/2, params)
+  end
+
+  defp build_pay_rate_from_params(_params), do: nil
+
+  defp build_pay_rate(constructor, params) do
+    amount = presence(params["rate_amount"])
+    currency = presence(params["rate_currency"]) || "EUR"
+
+    case amount && constructor.(amount, currency) do
+      {:ok, pay_rate} -> pay_rate
+      _ -> nil
+    end
   end
 
   defp presence(""), do: nil

@@ -11,7 +11,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapper
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
-  alias KlassHero.Provider.Domain.Models.StaffMember
+  alias KlassHero.Provider.Domain.Models.{PayRate, StaffMember}
+  alias KlassHero.Shared.Domain.Types.Money
 
   @id Ecto.UUID.generate()
   @provider_id Ecto.UUID.generate()
@@ -228,6 +229,64 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapp
 
       refute Map.has_key?(attrs, :inserted_at)
       refute Map.has_key?(attrs, :updated_at)
+    end
+  end
+
+  describe "pay_rate round-trip" do
+    test "to_domain builds a %PayRate{} from three rate columns" do
+      schema =
+        valid_schema(%{
+          rate_type: :hourly,
+          rate_amount: Decimal.new("25.00"),
+          rate_currency: :EUR
+        })
+
+      staff = StaffMemberMapper.to_domain(schema)
+
+      assert %PayRate{type: :hourly, money: %Money{currency: :EUR} = money} = staff.pay_rate
+      assert Decimal.equal?(money.amount, Decimal.new("25.00"))
+    end
+
+    test "to_domain yields pay_rate: nil when all rate columns are nil" do
+      schema = valid_schema(%{rate_type: nil, rate_amount: nil, rate_currency: nil})
+
+      staff = StaffMemberMapper.to_domain(schema)
+
+      assert is_nil(staff.pay_rate)
+    end
+
+    test "to_schema flattens a %PayRate{} into three fields" do
+      {:ok, pay_rate} = PayRate.per_session(Decimal.new("80.00"))
+      domain = valid_domain(%{pay_rate: pay_rate})
+
+      attrs = StaffMemberMapper.to_schema(domain)
+
+      assert attrs.rate_type == :per_session
+      assert attrs.rate_currency == :EUR
+      assert Decimal.equal?(attrs.rate_amount, Decimal.new("80.00"))
+    end
+
+    test "to_schema flattens nil pay_rate into three nil fields" do
+      domain = valid_domain(%{pay_rate: nil})
+
+      attrs = StaffMemberMapper.to_schema(domain)
+
+      assert is_nil(attrs.rate_type)
+      assert is_nil(attrs.rate_amount)
+      assert is_nil(attrs.rate_currency)
+    end
+
+    test "round-trip: domain → schema → domain preserves the PayRate" do
+      {:ok, pay_rate} = PayRate.hourly(Decimal.new("42.50"))
+      domain_before = valid_domain(%{pay_rate: pay_rate})
+
+      attrs = StaffMemberMapper.to_schema(domain_before)
+      schema = struct!(StaffMemberSchema, valid_schema() |> Map.from_struct() |> Map.merge(attrs))
+      domain_after = StaffMemberMapper.to_domain(schema)
+
+      assert domain_after.pay_rate.type == :hourly
+      assert Decimal.equal?(domain_after.pay_rate.money.amount, Decimal.new("42.50"))
+      assert domain_after.pay_rate.money.currency == :EUR
     end
   end
 end

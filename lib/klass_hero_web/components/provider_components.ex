@@ -445,11 +445,18 @@ defmodule KlassHeroWeb.ProviderComponents do
   @doc """
   Renders a team member card.
 
+  `rate_label` is an explicit attr so the parent-facing caller (program detail page)
+  passes nothing and the admin caller passes `@member.rate_label`. Never sniff the
+  presence of a key on `@member` to decide whether to show the rate — that would
+  re-enable the leak path the presenter split was designed to close.
+
   ## Examples
 
       <.team_member_card member={member} />
+      <.team_member_card member={member} rate_label={member.rate_label} />
   """
   attr :member, :map, required: true
+  attr :rate_label, :string, default: nil
 
   def team_member_card(assigns) do
     ~H"""
@@ -524,6 +531,11 @@ defmodule KlassHeroWeb.ProviderComponents do
             {qual}
           </span>
         </div>
+
+        <%!-- Pay rate (admin-only — caller passes the label explicitly) --%>
+        <p :if={@rate_label} class="text-sm text-hero-charcoal mb-3">
+          <span class="font-semibold">{gettext("Pay rate")}:</span> {@rate_label}
+        </p>
 
         <div class="flex items-center gap-2">
           <button
@@ -687,6 +699,58 @@ defmodule KlassHeroWeb.ProviderComponents do
           {gettext("Separate multiple qualifications with commas")}
         </p>
 
+        <%!-- Pay Rate (visible only to the business account; not rendered in parent-facing views) --%>
+        <div>
+          <label class="block text-sm font-semibold text-hero-charcoal mb-2">
+            {gettext("Pay Rate")}
+          </label>
+          <div class="flex flex-wrap items-center gap-4">
+            <label class="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="staff_member_schema[rate_type]"
+                value=""
+                checked={empty_rate_type?(@form[:rate_type])}
+                class="border-hero-grey-300 text-hero-cyan focus:ring-hero-cyan"
+              />
+              {gettext("None")}
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="staff_member_schema[rate_type]"
+                value="hourly"
+                checked={rate_type_is?(@form[:rate_type], "hourly")}
+                class="border-hero-grey-300 text-hero-cyan focus:ring-hero-cyan"
+              />
+              {gettext("Hourly")}
+            </label>
+            <label class="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="staff_member_schema[rate_type]"
+                value="per_session"
+                checked={rate_type_is?(@form[:rate_type], "per_session")}
+                class="border-hero-grey-300 text-hero-cyan focus:ring-hero-cyan"
+              />
+              {gettext("Per Session")}
+            </label>
+          </div>
+          <div class="mt-2 flex items-center gap-2">
+            <span class="text-hero-charcoal font-medium" aria-hidden="true">€</span>
+            <.input
+              field={@form[:rate_amount]}
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+              label=""
+            />
+            <%!-- Single-currency MVP for Berlin; extend via Money.valid_currencies/0 when we expand regions. --%>
+            <input type="hidden" name="staff_member_schema[rate_currency]" value="EUR" />
+          </div>
+        </div>
+
         <%!-- Headshot upload --%>
         <div>
           <label class="block text-sm font-semibold text-hero-charcoal mb-2">
@@ -773,6 +837,12 @@ defmodule KlassHeroWeb.ProviderComponents do
   defp qualifications_to_string(nil), do: ""
   defp qualifications_to_string(quals) when is_list(quals), do: Enum.join(quals, ", ")
   defp qualifications_to_string(quals) when is_binary(quals), do: quals
+
+  defp empty_rate_type?(nil), do: true
+  defp empty_rate_type?(field), do: field.value in [nil, ""]
+
+  defp rate_type_is?(nil, _value), do: false
+  defp rate_type_is?(field, value), do: to_string(field.value) == value
 
   @doc """
   Renders the program create/edit form.

@@ -2,6 +2,7 @@ defmodule KlassHero.Provider.Application.Commands.StaffMembers.UpdateStaffMember
   use KlassHero.DataCase, async: true
 
   alias KlassHero.Provider.Application.Commands.StaffMembers.UpdateStaffMember
+  alias KlassHero.Provider.Domain.Models.PayRate
   alias KlassHero.ProviderFixtures
 
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_staff_members])
@@ -92,6 +93,30 @@ defmodule KlassHero.Provider.Application.Commands.StaffMembers.UpdateStaffMember
       assert {:ok, updated} = UpdateStaffMember.execute(staff.id, attrs)
       assert updated.first_name == "Bob"
       assert updated.provider_id == staff.provider_id
+    end
+
+    test "sets an hourly pay_rate", %{staff: staff} do
+      {:ok, pay_rate} = PayRate.hourly(Decimal.new("30.00"))
+
+      assert {:ok, updated} = UpdateStaffMember.execute(staff.id, %{pay_rate: pay_rate})
+      assert updated.pay_rate.type == :hourly
+      assert Decimal.equal?(updated.pay_rate.money.amount, Decimal.new("30.00"))
+    end
+
+    test "sets a per_session pay_rate", %{staff: staff} do
+      {:ok, pay_rate} = PayRate.per_session(Decimal.new("80.00"))
+
+      assert {:ok, updated} = UpdateStaffMember.execute(staff.id, %{pay_rate: pay_rate})
+      assert updated.pay_rate.type == :per_session
+    end
+
+    test "clears pay_rate when set to nil", %{staff: staff} do
+      {:ok, pay_rate} = PayRate.hourly(Decimal.new("25.00"))
+      {:ok, staff_with_rate} = UpdateStaffMember.execute(staff.id, %{pay_rate: pay_rate})
+      assert staff_with_rate.pay_rate
+
+      assert {:ok, cleared} = UpdateStaffMember.execute(staff.id, %{pay_rate: nil})
+      assert is_nil(cleared.pay_rate)
     end
   end
 end
