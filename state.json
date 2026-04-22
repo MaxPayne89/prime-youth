@@ -25,7 +25,6 @@
     "program_catalog_test_note": "program_catalog use case tests call use case directly (CreateProgram.execute/1) OR through ProgramCatalog context; async: true safe as long as no Application config mutation and no program_listings cleanup",
     "program_catalog_async_false": "list_all_programs_integration_test.exs and list_provider_programs_test.exs use async:false because they delete all ProgramListingSchema rows in setup",
     "program_schema_valid_attrs": "CreateProgram needs: title (non-empty string), description (non-empty string), category (from shared categories), price (Decimal non-negative), pricing_period (string), provider_id (non-empty UUID string), age_range optional",
-    "safeoutputs_mcp_workaround": "safeoutputs tools not in tool list; call via HTTP at host.docker.internal:80/mcp/safeoutputs with auth from /home/runner/.copilot/mcp-config.json; use Python script with SSE format",
     "query_builder_test_pattern": "Query builder tests use DataCase async:true; inspect query.from.source (table name + schema), length(query.wheres), length(query.order_bys). No DB execution needed. ParticipationQueriesTest is canonical reference.",
     "nil_guard_test_pattern": "For functions with nil guards (e.g. before(query, nil)), use length(query.wheres) == 0 rather than query == base to test no-op behavior; both work but length check is more readable and consistent with canonical pattern",
     "conversation_queries_note": "ConversationQueries.with_ended_program/2 calls KlassHero.ProgramCatalog.list_ended_program_ids/1 (cross-context); excluded from pure query builder tests; needs integration test with real/stub ProgramCatalog adapter",
@@ -33,7 +32,8 @@
     "all_persistence_query_builders_tested": "As of 2026-04-20, all adapters/driven/persistence/queries/*.ex files have corresponding test files",
     "all_messaging_mappers_tested": "As of 2026-04-20 (pending PR), all messaging persistence mappers have tests: ParticipantMapper in test branch test-assist/participant-mapper-unit-tests-1776720751",
     "invite_field_validations_note": "InviteFieldValidations tested via embedded_schema in ExUnit.Case async:true; test file: test/klass_hero/enrollment/domain/services/invite_field_validations_test.exs; 18 tests",
-    "global_publisher_race_705": "Issue #705: :participation_seed_roster_subscriber causes race; Mox fix recommended for Option 1 (DI injection); Option 3 partial fix: add :participation_seed_roster_subscriber to saga_subscribers"
+    "global_publisher_race_705": "Issue #705: :participation_seed_roster_subscriber causes race; Mox fix recommended for Option 1 (DI injection); Option 3 partial fix: add :participation_seed_roster_subscriber to saga_subscribers",
+    "expire_staff_invitation_note": "ExpireStaffInvitation accepts %StaffMember{} or binary ID; state machine: only :sent->:expired valid; others return {:error, :invalid_invitation_transition}; no events published unlike ResendStaffInvitation"
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -56,120 +56,79 @@
       "id": "admin-provider-live-event-publishing",
       "priority": "low",
       "description": "admin provider_live.ex on_item_updated/2 publishes provider_verified/provider_unverified integration events; existing tests verify DB state only; architecturally constrained (TestIntegrationEventPublisher stores in calling process's dict, not LiveView process)"
+    },
+    {
+      "id": "other-staff-invitation-commands",
+      "priority": "medium",
+      "description": "Other StaffInvitation commands are testable: AcceptStaffInvitation, ResendStaffInvitation, MarkInvitationAsFailed - all have state machine transitions worth testing"
     }
   ],
   "tasks_last_run": {
     "task_1": "2026-04-15",
     "task_2": "2026-04-18",
-    "task_3": "2026-04-21",
-    "task_4": "2026-04-20",
+    "task_3": "2026-04-22",
+    "task_4": "2026-04-22",
     "task_5": "2026-04-21",
     "task_6": "2026-04-21",
-    "task_7": "2026-04-21"
+    "task_7": "2026-04-22"
   },
   "work_in_progress": null,
   "completed_work": [
     {
+      "date": "2026-04-22",
+      "run_id": "24803562728",
+      "tasks": ["task_3", "task_4", "task_7"],
+      "pr_branch": "test-assist/expire-staff-invitation-tests-1776893330",
+      "description": "7 DataCase tests for ExpireStaffInvitation (both dispatch paths: ID and struct; 4 invalid transitions; not_found)",
+      "tests_added": 7,
+      "pr_number": null
+    },
+    {
+      "date": "2026-04-21",
+      "run_id": "24747211178",
+      "tasks": ["task_3", "task_5", "task_7"],
+      "pr_branch": "test-assist/invite-field-validations-tests-1776807241",
+      "description": "18 unit tests for InviteFieldValidations (guardian2_email conditional, date-in-past, school_grade bounds, name lengths)",
+      "tests_added": 18,
+      "pr_number": 719,
+      "comment_on": ["#705"]
+    },
+    {
       "date": "2026-04-20",
       "run_id": "24691216946",
-      "tasks": [
-        "task_3",
-        "task_4",
-        "task_7"
-      ],
+      "tasks": ["task_3", "task_4", "task_7"],
       "pr_branch": "test-assist/participant-mapper-unit-tests-1776720751",
       "description": "8 unit tests for ParticipantMapper (to_domain/1, to_schema_attrs/1, to_create_attrs/1)",
       "tests_added": 8,
-      "pr_number": null
+      "pr_number": 713
     },
     {
       "date": "2026-04-19",
       "run_id": "24639393088",
-      "tasks": [
-        "task_3",
-        "task_4",
-        "task_7"
-      ],
+      "tasks": ["task_3", "task_4", "task_7"],
       "pr_branch": "test-assist/program-queries-filter-category-1776634092",
-      "description": "5 unit tests for ProgramQueries.filter_by_category/2 (nil pass-through, all pass-through, specific category, loop, composition)",
+      "description": "5 unit tests for ProgramQueries.filter_by_category/2",
       "tests_added": 5,
       "pr_number": 707
     },
     {
       "date": "2026-04-18",
       "run_id": "24614128772",
-      "tasks": [
-        "task_2",
-        "task_3",
-        "task_7"
-      ],
+      "tasks": ["task_2", "task_3", "task_7"],
       "pr_branch": "test-assist/mapper-unit-tests-1776547550",
-      "description": "14 unit tests for AttachmentMapper (8) and BulkEnrollmentInviteMapper (6)",
+      "description": "14 unit tests for AttachmentMapper and BulkEnrollmentInviteMapper",
       "tests_added": 14,
       "pr_number": 696
     },
     {
       "date": "2026-04-17",
       "run_id": "24587339665",
-      "tasks": [
-        "task_3",
-        "task_7"
-      ],
+      "tasks": ["task_3", "task_7"],
       "pr_branch": "test-assist/conversation-queries-unit-tests-1776461357",
-      "description": "23 pure unit tests for ConversationQueries query builders (all functions except cross-context with_ended_program/2)",
+      "description": "23 pure unit tests for ConversationQueries",
       "tests_added": 23,
       "pr_number": 686,
       "merged": true
-    },
-    {
-      "date": "2026-04-16",
-      "run_id": "24534786300",
-      "tasks": [
-        "task_3",
-        "task_4",
-        "task_5",
-        "task_7"
-      ],
-      "pr_branch": "test-assist/messaging-persistence-query-tests-1776375293",
-      "description": "40 pure unit tests for 3 untested messaging persistence query builders: MessageQueries (20), InboundEmailQueries (15), EmailReplyQueries (5). Nil guards and type coercion covered. Also commented on #645 and #627.",
-      "tests_added": 40,
-      "pr_number": 683,
-      "merged": true,
-      "comments": [
-        "#645",
-        "#627"
-      ]
-    },
-    {
-      "date": "2026-04-15",
-      "run_id": "24479292553",
-      "tasks": [
-        "task_1",
-        "task_2",
-        "task_3",
-        "task_7"
-      ],
-      "pr_branch": "test-assist/behavioral-note-queries-test-1776289061",
-      "description": "18 unit tests for all 10 BehavioralNoteQueries composable query builder functions",
-      "tests_added": 18,
-      "pr_number": 677,
-      "merged": true
-    },
-    {
-      "date": "2026-04-21",
-      "run_id": "24747211178",
-      "tasks": [
-        "task_3",
-        "task_5",
-        "task_7"
-      ],
-      "pr_branch": "test-assist/invite-field-validations-tests-1776807241",
-      "description": "18 unit tests for InviteFieldValidations (guardian2_email conditional, date-in-past, school_grade bounds, name lengths)",
-      "tests_added": 18,
-      "pr_number": null,
-      "comment_on": [
-        "#705"
-      ]
     }
   ],
   "monthly_summary_issue": {
@@ -179,14 +138,10 @@
   },
   "checked_off_items": [],
   "backlog_cursor": {
-    "task_2_last_file": "all persistence mappers and query builders surveyed (2026-04-20)",
+    "task_2_last_file": "all persistence mappers and query builders surveyed; provider commands partially surveyed (2026-04-22)",
     "task_5_last_issue": 705
   },
-  "open_prs": [
-    696,
-    707,
-    713
-  ],
+  "open_prs": [696, 707, 713, 719],
   "pending_prs": [
     {
       "branch": "test-assist/mapper-unit-tests-1776547550",
@@ -206,6 +161,11 @@
     {
       "branch": "test-assist/invite-field-validations-tests-1776807241",
       "description": "18 unit tests for InviteFieldValidations domain service",
+      "pr_number": 719
+    },
+    {
+      "branch": "test-assist/expire-staff-invitation-tests-1776893330",
+      "description": "7 DataCase tests for ExpireStaffInvitation command",
       "pr_number": null
     }
   ]
