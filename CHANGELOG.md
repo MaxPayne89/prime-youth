@@ -5,6 +5,13 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.44.0](https://github.com/MaxPayne89/klass-hero/compare/v0.43.0...v0.44.0) (2026-04-22)
+
+
+### Features
+
+* pay rates per staff member with Money value object ([#720](https://github.com/MaxPayne89/klass-hero/issues/720)) ([e41f6cd](https://github.com/MaxPayne89/klass-hero/commit/e41f6cdf2d15271d2ae8a2ea4e1ec22ed5070d92))
+
 ## [0.43.0](https://github.com/MaxPayne89/klass-hero/compare/v0.42.0...v0.43.0) (2026-04-21)
 
 
