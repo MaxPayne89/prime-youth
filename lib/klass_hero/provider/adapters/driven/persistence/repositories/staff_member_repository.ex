@@ -94,8 +94,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
       members =
         from(s in StaffMemberSchema,
           join: a in ProgramStaffAssignmentSchema,
-          on: a.staff_member_id == s.id,
-          where: a.program_id == ^program_id and is_nil(a.unassigned_at),
+          on: a.staff_member_id == s.id and a.provider_id == s.provider_id,
+          where: a.program_id == ^program_id and is_nil(a.unassigned_at) and s.active == true,
           order_by: [asc: a.assigned_at],
           select: s
         )

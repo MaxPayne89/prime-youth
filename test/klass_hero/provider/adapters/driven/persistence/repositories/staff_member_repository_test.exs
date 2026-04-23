@@ -140,5 +140,51 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
       assert length(members) == 1
       assert hd(members).id == to_string(staff.id)
     end
+
+    test "excludes deactivated staff even when their assignment is active" do
+      provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: provider.id)
+      active_staff = insert(:staff_member_schema, provider_id: provider.id, first_name: "Active", active: true)
+      deactivated = insert(:staff_member_schema, provider_id: provider.id, first_name: "Deactivated", active: false)
+
+      {:ok, _} =
+        ProgramStaffAssignmentRepository.create(%{
+          provider_id: provider.id,
+          program_id: program.id,
+          staff_member_id: active_staff.id,
+          assigned_at: DateTime.utc_now()
+        })
+
+      {:ok, _} =
+        ProgramStaffAssignmentRepository.create(%{
+          provider_id: provider.id,
+          program_id: program.id,
+          staff_member_id: deactivated.id,
+          assigned_at: DateTime.utc_now()
+        })
+
+      {:ok, members} = StaffMemberRepository.list_active_by_program(program.id)
+      assert length(members) == 1
+      assert hd(members).first_name == "Active"
+    end
+
+    test "excludes rows where assignment provider_id mismatches staff provider_id" do
+      owning_provider = insert(:provider_profile_schema)
+      other_provider = insert(:provider_profile_schema)
+      program = insert(:program_schema, provider_id: owning_provider.id)
+      staff = insert(:staff_member_schema, provider_id: owning_provider.id, first_name: "Rightful")
+
+      # Malformed row: assignment.provider_id points at a DIFFERENT provider
+      # than the staff member's actual provider. Bypasses the write-side
+      # invariant in AssignStaffToProgram by inserting via factory directly.
+      insert(:program_staff_assignment_schema,
+        provider_id: other_provider.id,
+        program_id: program.id,
+        staff_member_id: staff.id
+      )
+
+      {:ok, members} = StaffMemberRepository.list_active_by_program(program.id)
+      assert members == []
+    end
   end
 end
