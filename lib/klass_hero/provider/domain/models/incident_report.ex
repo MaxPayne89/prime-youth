@@ -78,7 +78,7 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReport do
   @type t :: %__MODULE__{
           id: String.t(),
           provider_profile_id: String.t(),
-          reporter_user_id: integer() | String.t(),
+          reporter_user_id: String.t(),
           program_id: String.t() | nil,
           session_id: String.t() | nil,
           category: category(),
@@ -111,7 +111,22 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReport do
          :ok <- validate_description(attrs),
          :ok <- validate_occurred_at(attrs),
          :ok <- validate_photo_pair(attrs) do
-      {:ok, struct!(__MODULE__, Map.to_list(attrs))}
+      {:ok,
+       %__MODULE__{
+         id: attrs[:id],
+         provider_profile_id: attrs[:provider_profile_id],
+         reporter_user_id: attrs[:reporter_user_id],
+         program_id: attrs[:program_id],
+         session_id: attrs[:session_id],
+         category: attrs[:category],
+         severity: attrs[:severity],
+         description: attrs[:description],
+         occurred_at: attrs[:occurred_at],
+         photo_url: attrs[:photo_url],
+         original_filename: attrs[:original_filename],
+         inserted_at: attrs[:inserted_at],
+         updated_at: attrs[:updated_at]
+       }}
     end
   end
 
@@ -132,8 +147,13 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReport do
   defp validate_severity(%{severity: severity}) when severity in @valid_severities, do: :ok
   defp validate_severity(_attrs), do: {:error, [severity: "is invalid"]}
 
-  defp validate_description(%{description: description})
-       when is_binary(description) and byte_size(description) >= @min_description_length, do: :ok
+  defp validate_description(%{description: d}) when is_binary(d) do
+    if String.length(d) >= @min_description_length do
+      :ok
+    else
+      {:error, [description: "must be at least #{@min_description_length} characters"]}
+    end
+  end
 
   defp validate_description(_attrs),
     do: {:error, [description: "must be at least #{@min_description_length} characters"]}

@@ -6,7 +6,7 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReportTest do
   @valid_program_attrs %{
     id: Ecto.UUID.generate(),
     provider_profile_id: Ecto.UUID.generate(),
-    reporter_user_id: 42,
+    reporter_user_id: Ecto.UUID.generate(),
     program_id: Ecto.UUID.generate(),
     category: :safety_concern,
     severity: :high,
@@ -73,6 +73,31 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReportTest do
       attrs = Map.put(@valid_program_attrs, :photo_url, "some/key")
       assert {:error, errors} = IncidentReport.new(attrs)
       assert errors[:original_filename] == "is required when photo_url is set"
+    end
+
+    test "accepts photo_url with original_filename" do
+      attrs =
+        Map.merge(@valid_program_attrs, %{
+          photo_url: "incident-reports/photo.jpg",
+          original_filename: "photo.jpg"
+        })
+
+      assert {:ok, report} = IncidentReport.new(attrs)
+      assert report.photo_url == "incident-reports/photo.jpg"
+      assert report.original_filename == "photo.jpg"
+    end
+
+    test "accepts original_filename without photo_url (unpaired but harmless)" do
+      attrs = Map.put(@valid_program_attrs, :original_filename, "photo.jpg")
+
+      assert {:ok, report} = IncidentReport.new(attrs)
+      assert is_nil(report.photo_url)
+      assert report.original_filename == "photo.jpg"
+    end
+
+    test "ignores unknown attrs keys rather than raising" do
+      attrs = Map.put(@valid_program_attrs, :bogus, "value")
+      assert {:ok, _report} = IncidentReport.new(attrs)
     end
 
     test "valid_categories/0 exposes the full category atom list" do
