@@ -5,6 +5,13 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.45.0](https://github.com/MaxPayne89/klass-hero/compare/v0.44.0...v0.45.0) (2026-04-23)
+
+
+### Features
+
+* filter "Meet the Heroes" to program-assigned staff only ([#722](https://github.com/MaxPayne89/klass-hero/issues/722)) ([ee9323b](https://github.com/MaxPayne89/klass-hero/commit/ee9323b3efa84676ef6f9ba07b75fe9fe310a353))
+
 ## [0.44.0](https://github.com/MaxPayne89/klass-hero/compare/v0.43.0...v0.44.0) (2026-04-22)
 
 
