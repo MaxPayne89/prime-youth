@@ -479,6 +479,18 @@ defmodule KlassHero.Provider do
   end
 
   @doc """
+  Lists active staff members assigned to a program.
+
+  Uses a JOIN through `program_staff_assignments` so staff details arrive in a
+  single round-trip, ordered by when each assignment was created.
+  """
+  @spec list_active_staff_for_program(String.t()) :: [StaffMember.t()]
+  def list_active_staff_for_program(program_id) when is_binary(program_id) do
+    {:ok, members} = StaffMemberQueries.list_active_by_program(program_id)
+    members
+  end
+
+  @doc """
   Lists all active staff assignments for a provider.
   """
   @spec list_active_assignments_for_provider(String.t()) :: [

@@ -13,6 +13,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
   import Ecto.Query
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapper
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProgramStaffAssignmentSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
   alias KlassHero.Repo
   alias KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers
@@ -78,6 +79,26 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMembe
         StaffMemberSchema
         |> where([s], s.provider_id == ^provider_id and s.active == true)
         |> order_by([s], asc: s.inserted_at)
+        |> Repo.all()
+        |> MapperHelpers.to_domain_list(StaffMemberMapper)
+
+      {:ok, members}
+    end
+  end
+
+  @impl true
+  def list_active_by_program(program_id) when is_binary(program_id) do
+    span do
+      set_attributes("db", operation: "select", entity: "staff_member")
+
+      members =
+        from(s in StaffMemberSchema,
+          join: a in ProgramStaffAssignmentSchema,
+          on: a.staff_member_id == s.id and a.provider_id == s.provider_id,
+          where: a.program_id == ^program_id and is_nil(a.unassigned_at) and s.active == true,
+          order_by: [asc: a.assigned_at],
+          select: s
+        )
         |> Repo.all()
         |> MapperHelpers.to_domain_list(StaffMemberMapper)
 

@@ -17,6 +17,9 @@ defmodule KlassHero.Provider.Domain.Ports.ForQueryingStaffMembers do
   @callback list_active_by_provider(provider_id :: binary()) ::
               {:ok, [StaffMember.t()]}
 
+  @callback list_active_by_program(program_id :: binary()) ::
+              {:ok, [StaffMember.t()]}
+
   @callback get_by_token_hash(token_hash :: binary()) ::
               {:ok, StaffMember.t()} | {:error, :not_found}
 
