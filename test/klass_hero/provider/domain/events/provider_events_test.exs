@@ -113,5 +113,27 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEventsTest do
 
       assert %DomainEvent{payload: %{has_photo: false}} = ProviderEvents.incident_reported(report)
     end
+
+    test "forwards opts to DomainEvent.new/5 (e.g., correlation_id)" do
+      report = %IncidentReport{
+        id: "r3",
+        provider_profile_id: "prov-1",
+        reporter_user_id: "user-uuid",
+        program_id: "prog-1",
+        session_id: nil,
+        category: :other,
+        severity: :low,
+        description: "Just checking opts forwarding.",
+        occurred_at: ~U[2026-04-20 10:00:00Z],
+        photo_url: nil,
+        original_filename: nil
+      }
+
+      correlation_id = Ecto.UUID.generate()
+
+      event = ProviderEvents.incident_reported(report, correlation_id: correlation_id)
+
+      assert event.metadata.correlation_id == correlation_id
+    end
   end
 end
