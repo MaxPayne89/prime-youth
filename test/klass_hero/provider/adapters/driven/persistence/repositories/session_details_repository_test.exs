@@ -68,4 +68,32 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.SessionDet
       assert [] == SessionDetailsRepository.list_by_program(mine, program_id)
     end
   end
+
+  describe "get_by_id/1" do
+    test "returns {:ok, session_detail} for a known session_id" do
+      provider_id = Ecto.UUID.generate()
+      program_id = Ecto.UUID.generate()
+      session_id = Ecto.UUID.generate()
+
+      insert_row(%{
+        session_id: session_id,
+        program_id: program_id,
+        program_title: "Judo",
+        provider_id: provider_id,
+        session_date: ~D[2026-05-01],
+        start_time: ~T[09:00:00],
+        end_time: ~T[10:00:00],
+        status: :scheduled
+      })
+
+      assert {:ok, %SessionDetail{} = detail} = SessionDetailsRepository.get_by_id(session_id)
+      assert detail.session_id == session_id
+      assert detail.provider_id == provider_id
+      assert detail.program_id == program_id
+    end
+
+    test "returns {:error, :not_found} for an unknown session_id" do
+      assert {:error, :not_found} = SessionDetailsRepository.get_by_id(Ecto.UUID.generate())
+    end
+  end
 end
