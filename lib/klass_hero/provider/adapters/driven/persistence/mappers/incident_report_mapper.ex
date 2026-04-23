@@ -3,7 +3,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.IncidentReportM
   Maps between IncidentReport domain model and Ecto schema.
 
   Provides bidirectional conversion:
-  - to_schema_attrs/1: IncidentReport -> map of attrs (for changeset/insert)
+  - to_schema/1: IncidentReport -> map of attrs (for changeset/insert)
   - to_domain/1: IncidentReportSchema -> IncidentReport (for reading)
 
   ## Field Name Translation
@@ -22,8 +22,8 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.IncidentReportM
 
   Field translation: provider_profile_id (domain) -> provider_id (DB).
   """
-  @spec to_schema_attrs(IncidentReport.t()) :: map()
-  def to_schema_attrs(%IncidentReport{} = report) do
+  @spec to_schema(IncidentReport.t()) :: map()
+  def to_schema(%IncidentReport{} = report) do
     %{
       id: report.id,
       provider_id: report.provider_profile_id,

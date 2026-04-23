@@ -30,7 +30,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.IncidentRe
     span do
       set_attributes("db", operation: "insert", entity: "incident_report")
 
-      attrs = IncidentReportMapper.to_schema_attrs(report)
+      attrs = IncidentReportMapper.to_schema(report)
       changeset = IncidentReportSchema.changeset(%IncidentReportSchema{}, attrs)
 
       with {:ok, saved} <- Repo.insert(changeset) do

@@ -5,7 +5,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.IncidentRe
   Follows TDD approach: tests written first, then implementation.
   """
 
-  use KlassHero.DataCase, async: false
+  use KlassHero.DataCase, async: true
 
   import KlassHero.AccountsFixtures
   import KlassHero.Factory
@@ -43,19 +43,22 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.IncidentRe
 
     test "returns changeset error when provider FK is invalid" do
       reporter = unconfirmed_user_fixture(intended_roles: [:provider])
+      # Use a real program so only the provider FK is bogus — this guarantees
+      # the provider_id FK violation is the sole cause of the changeset error.
+      provider = provider_profile_fixture()
+      program = insert(:program_schema, provider_id: provider.id)
 
       report =
         build_report(%{
           provider_profile_id: Ecto.UUID.generate(),
           reporter_user_id: reporter.id,
-          program_id: Ecto.UUID.generate()
+          program_id: program.id
         })
 
-      assert {:error, %Ecto.Changeset{valid?: false} = changeset} =
+      assert {:error, %Ecto.Changeset{valid?: false} = cs} =
                IncidentReportRepository.create(report)
 
-      assert {:provider_id, _} =
-               Enum.find(changeset.errors, fn {field, _} -> field == :provider_id end)
+      assert {"does not exist", _} = cs.errors[:provider_id]
     end
   end
 
