@@ -66,6 +66,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.Queries.ListProgramSessions
   alias KlassHero.Provider.Application.Queries.ProgramStaffAssignmentQueries
   alias KlassHero.Provider.Application.Queries.ProviderProfileQueries
+  alias KlassHero.Provider.Application.Queries.ProviderProgramQueries
   alias KlassHero.Provider.Application.Queries.StaffMemberQueries
   alias KlassHero.Provider.Application.Queries.StaffMembers.ListStaffAssignedPrograms
   alias KlassHero.Provider.Application.Queries.Verification.GetVerificationDocumentPreview
@@ -75,6 +76,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.Provider.Domain.Ports.ForQueryingVerificationDocuments
+  alias KlassHero.Provider.Domain.ReadModels.ProviderProgram
 
   # ===========================================================================
   # Commands
@@ -554,6 +556,25 @@ defmodule KlassHero.Provider do
         ]
   def list_program_sessions(provider_id, program_id) when is_binary(provider_id) and is_binary(program_id) do
     ListProgramSessions.execute(provider_id, program_id)
+  end
+
+  @doc """
+  Returns the provider-owned program by ID.
+
+  Reads from the `provider_programs` projection. Useful for ownership
+  verification and dashboard display.
+  """
+  @spec get_provider_program(String.t()) :: {:ok, ProviderProgram.t()} | {:error, :not_found}
+  def get_provider_program(program_id) when is_binary(program_id) do
+    ProviderProgramQueries.get_by_id(program_id)
+  end
+
+  @doc """
+  Lists all programs owned by the given provider, ordered by name asc.
+  """
+  @spec list_provider_programs(String.t()) :: [ProviderProgram.t()]
+  def list_provider_programs(provider_id) when is_binary(provider_id) do
+    ProviderProgramQueries.list_by_provider(provider_id)
   end
 
   # ===========================================================================

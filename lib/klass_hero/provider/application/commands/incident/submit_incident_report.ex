@@ -8,6 +8,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
   `incident_reported` domain event.
   """
 
+  alias KlassHero.Provider.Application.Queries.ProviderProgramQueries
   alias KlassHero.Provider.Domain.Events.ProviderEvents
   alias KlassHero.Provider.Domain.Models.IncidentReport
   alias KlassHero.Shared.DomainEventBus
@@ -16,7 +17,6 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
   @context KlassHero.Provider
 
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_incident_reports])
-  @programs_query Application.compile_env!(:klass_hero, [:provider, :for_querying_provider_programs])
   @sessions_query Application.compile_env!(:klass_hero, [:provider, :for_querying_session_details])
 
   @doc """
@@ -55,20 +55,21 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
   # Trigger: params carry program_id or session_id (one-of scope)
   # Why: ownership is enforced via Provider-local projection — no cross-context sync read
   # Outcome: :ok when the resource belongs to the provider, error otherwise
-  defp validate_ownership(%{program_id: pid, provider_profile_id: prov_id}) when is_binary(pid),
-    do: ownership_check(@programs_query, pid, prov_id, :program_id)
-
-  defp validate_ownership(%{session_id: sid, provider_profile_id: prov_id}) when is_binary(sid),
-    do: ownership_check(@sessions_query, sid, prov_id, :session_id)
-
-  defp validate_ownership(_), do: {:error, [target: "exactly one of program_id or session_id must be set"]}
-
-  defp ownership_check(query_module, id, provider_id, field) do
-    case query_module.get_by_id(id) do
-      {:ok, %{provider_id: ^provider_id}} -> :ok
-      _ -> {:error, [{field, "does not belong to this provider"}]}
+  defp validate_ownership(%{program_id: pid, provider_profile_id: prov_id}) when is_binary(pid) do
+    case ProviderProgramQueries.get_by_id(pid) do
+      {:ok, %{provider_id: ^prov_id}} -> :ok
+      _ -> {:error, [program_id: "does not belong to this provider"]}
     end
   end
+
+  defp validate_ownership(%{session_id: sid, provider_profile_id: prov_id}) when is_binary(sid) do
+    case @sessions_query.get_by_id(sid) do
+      {:ok, %{provider_id: ^prov_id}} -> :ok
+      _ -> {:error, [session_id: "does not belong to this provider"]}
+    end
+  end
+
+  defp validate_ownership(_), do: {:error, [target: "exactly one of program_id or session_id must be set"]}
 
   # Trigger: no photo binary supplied
   # Why: photo is optional; skip storage entirely when nothing to upload

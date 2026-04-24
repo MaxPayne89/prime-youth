@@ -21,8 +21,6 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
 
   require Logger
 
-  @programs_query Application.compile_env!(:klass_hero, [:provider, :for_querying_provider_programs])
-
   @impl true
   def mount(params, _session, socket) do
     case socket.assigns.current_scope.provider do
@@ -40,7 +38,7 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
   defp mount_for_provider(socket, provider, params) do
     case resolve_preselection(params, provider.id) do
       {:ok, preselected} ->
-        programs = @programs_query.list_by_provider(provider.id)
+        programs = Provider.list_provider_programs(provider.id)
 
         socket =
           socket
@@ -68,7 +66,7 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
   end
 
   defp resolve_preselection(%{"program_id" => program_id}, provider_id) when is_binary(program_id) do
-    case @programs_query.get_by_id(program_id) do
+    case Provider.get_provider_program(program_id) do
       {:ok, %{provider_id: ^provider_id} = program} -> {:ok, {:program, program}}
       _ -> {:error, :preselection_invalid}
     end
