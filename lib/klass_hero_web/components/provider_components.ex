@@ -1458,6 +1458,15 @@ defmodule KlassHeroWeb.ProviderComponents do
                     phx-click="edit_program"
                     phx-value-id={program.id}
                   />
+                  <.link
+                    navigate={~p"/provider/incidents/new?program_id=#{program.id}"}
+                    class="inline-block"
+                  >
+                    <.action_button
+                      icon="hero-exclamation-triangle-mini"
+                      title={gettext("Report Incident")}
+                    />
+                  </.link>
                 </div>
               </td>
             </tr>

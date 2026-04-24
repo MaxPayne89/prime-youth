@@ -28,6 +28,28 @@ defmodule KlassHeroWeb.ProviderComponentsTest do
       assert html =~ "phx-value-program-id=\"prog-1\""
       assert html =~ ~s|aria-label="View sessions"|
     end
+
+    test "renders a Report Incident link per row that targets the new incident page" do
+      program = %{
+        id: "prog-123",
+        name: "Art Club",
+        category: "Arts",
+        price: "50",
+        assigned_staff: nil,
+        status: :active,
+        enrolled: 5,
+        capacity: 10
+      }
+
+      html =
+        render_component(&KlassHeroWeb.ProviderComponents.programs_table/1,
+          programs: [{"programs-prog-123", program}],
+          staff_options: [%{value: "all", label: "All Staff"}]
+        )
+
+      assert html =~ ~s|href="/provider/incidents/new?program_id=prog-123"|
+      assert html =~ ~s|aria-label="Report Incident"|
+    end
   end
 
   describe "sessions_modal/1" do
