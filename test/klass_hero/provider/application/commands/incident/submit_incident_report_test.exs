@@ -7,8 +7,10 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.IncidentReportSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProgramProjectionSchema
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderSessionDetailSchema
   alias KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter
   alias KlassHero.Shared.DomainEventBus
 
   setup do
@@ -83,6 +85,83 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       assert {:error, errors} = SubmitIncidentReport.execute(params)
       assert errors[:description] =~ "at least 10"
       refute Repo.exists?(from r in IncidentReportSchema, select: r.id, limit: 1)
+    end
+  end
+
+  describe "execute/1 — session scope" do
+    test "persists the report and emits an incident_reported domain event", %{
+      provider: p,
+      program_id: pg,
+      user: u
+    } do
+      session = insert(:program_session_schema, program_id: pg)
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      Repo.insert!(%ProviderSessionDetailSchema{
+        session_id: session.id,
+        program_id: pg,
+        program_title: "Art Club",
+        provider_id: p.id,
+        session_date: ~D[2026-04-21],
+        start_time: ~T[09:00:00],
+        end_time: ~T[12:00:00],
+        status: :scheduled,
+        checked_in_count: 0,
+        total_count: 0,
+        inserted_at: now,
+        updated_at: now
+      })
+
+      params =
+        p
+        |> base_params(nil, u)
+        |> Map.put(:program_id, nil)
+        |> Map.put(:session_id, session.id)
+
+      assert {:ok, report} = SubmitIncidentReport.execute(params)
+
+      assert_receive {:domain_event, event}, 500
+      assert event.event_type == :incident_reported
+      assert event.aggregate_id == report.id
+      assert is_nil(event.payload.program_id)
+      assert event.payload.session_id == session.id
+      assert event.payload.has_photo == false
+    end
+  end
+
+  describe "execute/1 — photo upload" do
+    setup do
+      {:ok, storage} = StubStorageAdapter.start_link(name: :"storage_#{System.unique_integer([:positive])}")
+      %{storage: storage}
+    end
+
+    test "uploads photo and persists URL", %{
+      provider: p,
+      program_id: pg,
+      user: u,
+      storage: storage
+    } do
+      photo_binary = "fake-jpeg-bytes"
+
+      params =
+        p
+        |> base_params(pg, u)
+        |> Map.put(:file_binary, photo_binary)
+        |> Map.put(:original_filename, "incident.jpg")
+        |> Map.put(:content_type, "image/jpeg")
+        |> Map.put(:storage_opts, adapter: StubStorageAdapter, agent: storage)
+
+      assert {:ok, report} = SubmitIncidentReport.execute(params)
+      assert report.photo_url =~ "incident-reports/providers/#{p.id}/"
+      assert report.photo_url =~ "incident.jpg"
+      assert report.original_filename == "incident.jpg"
+
+      assert {:ok, ^photo_binary} =
+               StubStorageAdapter.get_uploaded(:private, report.photo_url, agent: storage)
+
+      assert_receive {:domain_event, event}, 500
+      assert event.event_type == :incident_reported
+      assert event.payload.has_photo == true
     end
   end
 end
