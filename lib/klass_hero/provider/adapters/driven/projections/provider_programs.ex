@@ -98,9 +98,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderPrograms do
 
   @impl true
   def handle_continue(:bootstrap, state) do
-    count = bootstrap_from_write_table()
-    Logger.info("ProviderPrograms projection started", count: count)
-    {:noreply, %{state | bootstrapped: true}}
+    attempt_bootstrap(state)
   end
 
   @impl true
@@ -108,6 +106,14 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderPrograms do
     count = bootstrap_from_write_table()
     Logger.info("ProviderPrograms rebuilt", count: count)
     {:reply, :ok, %{state | bootstrapped: true}}
+  end
+
+  # Trigger: scheduled retry after a transient bootstrap failure
+  # Why: re-enter handle_continue logic without crashing the GenServer outright
+  # Outcome: re-attempts bootstrap with the accumulated retry_count in state
+  @impl true
+  def handle_info(:retry_bootstrap, state) do
+    {:noreply, state, {:continue, :bootstrap}}
   end
 
   # Trigger: Received a program_created integration event
@@ -152,6 +158,33 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderPrograms do
   # Private Functions
   # ---------------------------------------------------------------------------
 
+  # Trigger: bootstrap attempt with retry logic
+  # Why: transient DB failures shouldn't crash the GenServer immediately
+  # Outcome: successful bootstrap or scheduled retry (up to 3 times before crashing)
+  defp attempt_bootstrap(state) do
+    count = bootstrap_from_write_table()
+    Logger.info("ProviderPrograms projection started", count: count)
+    {:noreply, %{state | bootstrapped: true}}
+  rescue
+    error ->
+      retry_count = Map.get(state, :retry_count, 0) + 1
+
+      if retry_count > 3 do
+        # Trigger: exhausted retries
+        # Why: persistent failure indicates real infrastructure issue
+        # Outcome: crash to let supervisor handle with its own restart strategy
+        reraise error, __STACKTRACE__
+      else
+        Logger.error("ProviderPrograms: bootstrap failed, scheduling retry",
+          error: Exception.message(error),
+          retry_count: retry_count
+        )
+
+        Process.send_after(self(), :retry_bootstrap, 5_000 * retry_count)
+        {:noreply, Map.put(state, :retry_count, retry_count)}
+      end
+  end
+
   # Trigger: program_created or program_updated event received
   # Why: upsert keeps both events idempotent and tolerant to bootstrap races
   # Outcome: row written keyed on program_id
@@ -181,24 +214,25 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderPrograms do
   # Why: cold start recovery — populate read table from Program Catalog write table
   # Outcome: provider_programs contains one row per program with current name + provider
   defp bootstrap_from_write_table do
-    program_schema = ProgramSchema
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
-
-    rows =
-      program_schema
-      |> select([p], %{
-        program_id: p.id,
-        provider_id: p.provider_id,
-        name: p.title,
-        status: ^@default_status,
-        inserted_at: ^now,
-        updated_at: ^now
-      })
+    programs =
+      ProgramSchema
+      |> select([p], %{program_id: p.id, provider_id: p.provider_id, name: p.title})
       |> Repo.all()
 
-    if rows == [] do
+    if programs == [] do
       0
     else
+      now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+      rows =
+        Enum.map(programs, fn program ->
+          Map.merge(program, %{
+            status: @default_status,
+            inserted_at: now,
+            updated_at: now
+          })
+        end)
+
       {count, _} =
         Repo.insert_all(
           ProviderProgramProjectionSchema,
@@ -213,15 +247,26 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderPrograms do
 
   # Trigger: payload may carry program name as :title (Program Catalog convention) or :name
   # Why: tolerate both naming styles for forward-compatibility
-  # Outcome: returns the program's display name
+  # Outcome: returns the program's display name; raises with a clear message if absent
   defp extract_name(%{title: title}) when is_binary(title), do: title
   defp extract_name(%{name: name}) when is_binary(name), do: name
-  defp extract_name(_), do: nil
+
+  defp extract_name(payload) do
+    # Trigger: malformed event payload missing both :title and :name
+    # Why: silent nil would crash later as a NOT NULL violation with no diagnostic context
+    # Outcome: log the payload shape, then crash explicitly so the supervisor can recover
+    Logger.error("ProviderPrograms received event without :title or :name (payload_keys=#{inspect(Map.keys(payload))})")
+
+    raise ArgumentError, "Program payload missing :title or :name field"
+  end
 
   # Trigger: payload may not include a status (Program Catalog has no status today)
   # Why: provider_programs.status is NOT NULL — fall back to a sensible default
   # Outcome: returns the payload status as a string, or "active" if absent
   defp extract_status(%{status: status}) when is_binary(status), do: status
-  defp extract_status(%{status: status}) when is_atom(status) and not is_nil(status), do: Atom.to_string(status)
+
+  defp extract_status(%{status: status}) when is_atom(status) and status not in [nil, true, false],
+    do: Atom.to_string(status)
+
   defp extract_status(_), do: @default_status
 end

@@ -1,6 +1,8 @@
 defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderProgramsTest do
   use KlassHero.DataCase, async: true
 
+  import KlassHero.Factory
+
   alias Ecto.Adapters.SQL.Sandbox
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProgramProjectionSchema
   alias KlassHero.Provider.Adapters.Driven.Projections.ProviderPrograms
@@ -79,6 +81,36 @@ defmodule KlassHero.Provider.Adapters.Driven.Projections.ProviderProgramsTest do
 
       row = Repo.get(ProviderProgramProjectionSchema, program_id)
       assert row.name == "New name"
+    end
+  end
+
+  describe "rebuild/1" do
+    test "reprojects from the write table" do
+      # Trigger: write table contains a program inserted directly (e.g. via seeds)
+      # Why: rebuild/1 must populate the read table without relying on integration events
+      # Outcome: provider_programs reflects the write table after rebuild
+      provider = insert(:provider_profile_schema)
+
+      program =
+        insert(:program_schema,
+          title: "Rebuild Target Program",
+          provider_id: provider.id
+        )
+
+      pid = start_projection!()
+
+      # Sanity check: bootstrap was skipped, so the read table should still be empty
+      assert Repo.get(ProviderProgramProjectionSchema, program.id) == nil
+
+      name = Process.info(pid, :registered_name) |> elem(1)
+      assert :ok = ProviderPrograms.rebuild(name)
+
+      row = Repo.get(ProviderProgramProjectionSchema, program.id)
+      assert row != nil
+      assert row.program_id == program.id
+      assert row.provider_id == provider.id
+      assert row.name == "Rebuild Target Program"
+      assert row.status == "active"
     end
   end
 end
