@@ -13,6 +13,7 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
 
   use KlassHeroWeb, :live_view
 
+  alias KlassHero.Provider.Domain.Models.IncidentReport
   alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHeroWeb.Theme
 
@@ -98,6 +99,31 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
   defp selected_program_id(_), do: nil
 
   @impl true
+  def handle_event("validate", %{"incident" => params}, socket) do
+    {:noreply, assign(socket, :form, to_form(params, as: "incident"))}
+  end
+
+  defp category_options do
+    for cat <- IncidentReport.valid_categories(), do: {format_category(cat), Atom.to_string(cat)}
+  end
+
+  defp format_category(:safety_concern), do: gettext("Safety Concern")
+  defp format_category(:behavioral_issue), do: gettext("Behavioral Issue")
+  defp format_category(:injury), do: gettext("Injury")
+  defp format_category(:property_damage), do: gettext("Property Damage")
+  defp format_category(:policy_violation), do: gettext("Policy Violation")
+  defp format_category(:other), do: gettext("Other")
+
+  defp severity_options do
+    for sev <- IncidentReport.valid_severities(), do: {format_severity(sev), Atom.to_string(sev)}
+  end
+
+  defp format_severity(:low), do: gettext("Low")
+  defp format_severity(:medium), do: gettext("Medium")
+  defp format_severity(:high), do: gettext("High")
+  defp format_severity(:critical), do: gettext("Critical")
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class={["min-h-screen", Theme.bg(:muted)]}>
@@ -132,10 +158,87 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
           class="mt-6 space-y-5"
           data-selected-program={selected_program_id(@preselected)}
         >
-          <%!-- form fields land in Task 14 --%>
-          <p class={Theme.typography(:body_small)}>
-            {gettext("Form fields coming next.")}
-          </p>
+          <.input
+            field={@form[:occurred_at]}
+            type="datetime-local"
+            label={gettext("Date & time")}
+            required
+          />
+
+          <.input
+            field={@form[:program_id]}
+            type="select"
+            label={gettext("Program")}
+            options={Enum.map(@programs, &{&1.name, &1.program_id})}
+            prompt={gettext("Select a program")}
+            required
+          />
+
+          <.input
+            field={@form[:category]}
+            type="select"
+            label={gettext("Category")}
+            options={category_options()}
+            prompt={gettext("Select a category")}
+            required
+          />
+
+          <.input
+            field={@form[:severity]}
+            type="select"
+            label={gettext("Severity")}
+            options={severity_options()}
+            required
+          />
+
+          <.input
+            field={@form[:description]}
+            type="textarea"
+            label={gettext("Description")}
+            rows="6"
+            required
+          />
+
+          <div>
+            <label class="block text-sm font-medium text-hero-charcoal mb-2">
+              {gettext("Photo (optional)")}
+            </label>
+
+            <label
+              for={@uploads.photo.ref}
+              phx-drop-target={@uploads.photo.ref}
+              class="flex flex-col items-center justify-center border-2 border-dashed border-hero-grey-300 rounded-lg p-6 cursor-pointer hover:border-hero-cyan"
+            >
+              <.live_file_input upload={@uploads.photo} class="hidden" />
+              <span class={Theme.typography(:body_small)}>
+                {gettext("Drop a photo here or click to browse")}
+              </span>
+            </label>
+
+            <ul :if={@uploads.photo.entries != []} class="mt-2 space-y-1 text-sm">
+              <li :for={entry <- @uploads.photo.entries}>
+                {entry.client_name} ({trunc(entry.client_size / 1024)} KB)
+              </li>
+            </ul>
+          </div>
+
+          <div class="flex justify-end gap-3 pt-4">
+            <.link
+              navigate={~p"/provider/dashboard"}
+              class="text-hero-grey-600 hover:text-hero-charcoal"
+            >
+              {gettext("Cancel")}
+            </.link>
+            <button
+              type="submit"
+              class={[
+                Theme.gradient(:primary),
+                "rounded-full px-6 py-2 text-white font-medium"
+              ]}
+            >
+              {gettext("Submit report")}
+            </button>
+          </div>
         </.form>
       </div>
     </div>

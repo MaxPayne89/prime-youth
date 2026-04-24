@@ -49,4 +49,27 @@ defmodule KlassHeroWeb.Provider.IncidentReportLiveTest do
       assert flash["error"] =~ "not found"
     end
   end
+
+  describe "form rendering" do
+    setup [:register_and_log_in_provider]
+
+    test "renders all required fields", %{conn: conn, provider: provider} do
+      _ = insert_provider_program!(%{provider_id: provider.id, name: "Robotics"})
+      {:ok, _view, html} = live(conn, ~p"/provider/incidents/new")
+
+      assert html =~ ~s|name="incident[occurred_at]"|
+      assert html =~ ~s|name="incident[program_id]"|
+      assert html =~ ~s|name="incident[category]"|
+      assert html =~ ~s|name="incident[severity]"|
+      assert html =~ ~s|name="incident[description]"|
+      assert html =~ "Safety Concern"
+      assert html =~ "Critical"
+    end
+
+    test "renders the drag-drop photo uploader", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/provider/incidents/new")
+      assert has_element?(view, "[phx-drop-target]")
+      assert has_element?(view, ~s|input[type="file"][name^="photo"]|)
+    end
+  end
 end
