@@ -2,13 +2,12 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
   @moduledoc """
   Provider-facing page for submitting an incident report.
 
-  One-of scope: the report is tied to either a program (via `?program_id=`)
-  or a session (via `?session_id=`). Invalid preselections redirect to the
-  provider dashboard with an error flash.
+  The report is tied to a program selected by the provider (via `?program_id=`
+  preselection or via the dropdown). Invalid program preselections redirect
+  to the provider dashboard with an error flash.
 
-  Form fields and submit handling are added in subsequent tasks; this
-  module currently focuses on mount-time provider resolution, ownership
-  validation, and rendering the page chrome.
+  Session-scoped reports are supported by the underlying use case but not
+  yet exposed in this UI — see issue #738.
   """
 
   use KlassHeroWeb, :live_view
@@ -70,11 +69,6 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
       {:ok, %{provider_id: ^provider_id} = program} -> {:ok, {:program, program}}
       _ -> {:error, :preselection_invalid}
     end
-  end
-
-  defp resolve_preselection(%{"session_id" => session_id}, _provider_id) when is_binary(session_id) do
-    # Session-scope preselection wiring lands in a future task.
-    {:ok, :none}
   end
 
   defp resolve_preselection(_params, _provider_id), do: {:ok, :none}

@@ -163,5 +163,29 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       assert event.event_type == :incident_reported
       assert event.payload.has_photo == true
     end
+
+    # Trigger: file_binary supplied without an original_filename (or with a blank one)
+    # Why: validating filename presence AFTER upload leaves an orphan in private storage
+    #      because the downstream domain model rejects the photo_url via validate_photo_pair/1
+    # Outcome: short-circuit with an :original_filename validation error and never call the storage adapter
+    test "rejects with missing-filename error and never uploads when filename is blank", %{
+      provider: p,
+      program_id: pg,
+      user: u,
+      storage: storage
+    } do
+      params =
+        p
+        |> base_params(pg, u)
+        |> Map.put(:file_binary, "fake-bytes")
+        |> Map.put(:original_filename, nil)
+        |> Map.put(:storage_opts, adapter: StubStorageAdapter, agent: storage)
+
+      assert {:error, errors} = SubmitIncidentReport.execute(params)
+      assert errors[:original_filename] =~ "is required"
+
+      # Storage stub agent should hold no entries — proves we never called upload/4
+      assert Agent.get(storage, & &1) == %{}
+    end
   end
 end

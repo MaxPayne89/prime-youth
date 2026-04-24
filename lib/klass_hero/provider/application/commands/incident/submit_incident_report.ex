@@ -76,12 +76,17 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
   # Outcome: empty photo_ref returned for downstream report construction
   defp maybe_upload_photo(%{file_binary: nil}), do: {:ok, %{photo_url: nil, original_filename: nil}}
 
-  defp maybe_upload_photo(%{file_binary: file_binary} = params) when is_binary(file_binary) do
+  # Trigger: a photo binary AND a non-blank original filename were supplied
+  # Why: filename presence must be validated BEFORE the storage call to avoid orphaning
+  #      an upload when the downstream domain model rejects the photo_url/filename pair
+  # Outcome: persists the file to private storage and returns the storage key + filename
+  defp maybe_upload_photo(%{file_binary: file_binary, original_filename: filename} = params)
+       when is_binary(file_binary) and is_binary(filename) and byte_size(filename) > 0 do
     path =
       Storage.build_timestamped_path(
         "incident-reports/providers",
         params.provider_profile_id,
-        params[:original_filename],
+        filename,
         "photo.jpg"
       )
 
@@ -89,8 +94,15 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
     opts = Keyword.merge([content_type: content_type], params[:storage_opts] || [])
 
     with {:ok, key} <- Storage.upload(:private, path, file_binary, opts) do
-      {:ok, %{photo_url: key, original_filename: params[:original_filename]}}
+      {:ok, %{photo_url: key, original_filename: filename}}
     end
+  end
+
+  # Trigger: a photo binary supplied without a usable filename (nil or empty string)
+  # Why: short-circuit before touching storage so we never leave an orphaned object
+  # Outcome: returns a validation error matching the IncidentReport domain contract
+  defp maybe_upload_photo(%{file_binary: file_binary}) when is_binary(file_binary) do
+    {:error, [original_filename: "is required when photo is uploaded"]}
   end
 
   defp maybe_upload_photo(_), do: {:ok, %{photo_url: nil, original_filename: nil}}

@@ -11,8 +11,8 @@ defmodule KlassHero.Repo.Migrations.CreateIncidentReports do
       add :reporter_user_id, references(:users, type: :binary_id, on_delete: :restrict),
         null: false
 
-      add :program_id, references(:programs, type: :binary_id, on_delete: :nilify_all)
-      add :session_id, references(:program_sessions, type: :binary_id, on_delete: :nilify_all)
+      add :program_id, references(:programs, type: :binary_id, on_delete: :restrict)
+      add :session_id, references(:program_sessions, type: :binary_id, on_delete: :restrict)
 
       add :category, :string, null: false
       add :severity, :string, null: false
