@@ -56,8 +56,10 @@ alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRe
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
 alias KlassHero.Provider.Adapters.Driven.ACL.ParticipationSessionStatsACL
+alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.IncidentReportRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramStaffAssignmentRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProfileRepository
+alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProviderProgramRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.SessionDetailsRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.SessionStatsRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.StaffMemberRepository
@@ -294,7 +296,9 @@ config :klass_hero, :provider,
   for_querying_program_staff_assignments: ProgramStaffAssignmentRepository,
   for_querying_session_details: SessionDetailsRepository,
   for_querying_session_stats: SessionStatsRepository,
-  for_resolving_session_stats: ParticipationSessionStatsACL
+  for_resolving_session_stats: ParticipationSessionStatsACL,
+  for_storing_incident_reports: IncidentReportRepository,
+  for_querying_provider_programs: ProviderProgramRepository
 
 config :klass_hero, :resend_req_options, []
 

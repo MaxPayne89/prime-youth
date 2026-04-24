@@ -14,6 +14,7 @@ defmodule KlassHero.ProjectionSupervisor do
   alias KlassHero.Messaging.Adapters.Driven.Projections.EnrolledChildren
   alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.ProgramListings
   alias KlassHero.ProgramCatalog.Adapters.Driven.Projections.VerifiedProviders
+  alias KlassHero.Provider.Adapters.Driven.Projections.ProviderPrograms
   alias KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionDetails
   alias KlassHero.Provider.Adapters.Driven.Projections.ProviderSessionStats
 
@@ -29,6 +30,7 @@ defmodule KlassHero.ProjectionSupervisor do
       EnrolledChildren,
       ConversationSummaries,
       ProviderSessionStats,
+      ProviderPrograms,
       ProviderSessionDetails
     ]
 
