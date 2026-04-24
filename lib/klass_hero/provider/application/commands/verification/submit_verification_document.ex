@@ -72,22 +72,19 @@ defmodule KlassHero.Provider.Application.Commands.Verification.SubmitVerificatio
   # Why: files are stored in private bucket for security (verification docs are sensitive)
   # Outcome: file stored in object storage, returns storage path/key
   defp upload_file(params) do
-    path = build_path(params[:provider_profile_id], params[:original_filename])
+    path =
+      Storage.build_timestamped_path(
+        "verification-docs/providers",
+        params[:provider_profile_id],
+        params[:original_filename],
+        "document.pdf"
+      )
 
     opts =
       [content_type: params[:content_type] || "application/octet-stream"]
       |> Keyword.merge(Map.get(params, :storage_opts, []))
 
     Storage.upload(:private, path, params[:file_binary], opts)
-  end
-
-  # Trigger: filename may contain unsafe characters for URLs/storage
-  # Why: sanitize to prevent path traversal or encoding issues
-  # Outcome: safe filename with only alphanumeric, dots, underscores, and hyphens
-  defp build_path(provider_id, filename) do
-    safe_filename = String.replace(filename, ~r/[^a-zA-Z0-9._-]/, "_")
-    timestamp = System.system_time(:millisecond)
-    "verification-docs/providers/#{provider_id}/#{timestamp}_#{safe_filename}"
   end
 
   defp create_document(params, file_url) do

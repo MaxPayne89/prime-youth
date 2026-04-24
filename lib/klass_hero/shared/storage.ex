@@ -65,6 +65,43 @@ defmodule KlassHero.Shared.Storage do
     adapter(opts).delete(bucket_type, key, opts)
   end
 
+  @doc """
+  Build a timestamped, sanitized object storage path.
+
+  Used by upload commands to derive a stable, collision-resistant key from
+  a per-owner prefix and a (possibly user-supplied) filename. The filename
+  is sanitized by replacing every character outside `[a-zA-Z0-9._-]` with
+  an underscore, and a millisecond timestamp is prepended to avoid
+  collisions when the same name is uploaded twice.
+
+  When `filename` is `nil`, `default_filename` is used instead.
+
+  ## Examples
+
+      iex> path = KlassHero.Shared.Storage.build_timestamped_path(
+      ...>   "incident-reports/providers",
+      ...>   "abc-123",
+      ...>   "Photo (1).JPG"
+      ...> )
+      iex> path =~ ~r{^incident-reports/providers/abc-123/\\d+_Photo__1_\\.JPG$}
+      true
+
+      iex> path = KlassHero.Shared.Storage.build_timestamped_path(
+      ...>   "verification-docs/providers",
+      ...>   "abc-123",
+      ...>   nil,
+      ...>   "doc.pdf"
+      ...> )
+      iex> path =~ ~r{^verification-docs/providers/abc-123/\\d+_doc\\.pdf$}
+      true
+  """
+  @spec build_timestamped_path(String.t(), String.t(), String.t() | nil, String.t()) :: String.t()
+  def build_timestamped_path(prefix, owner_id, filename, default_filename \\ "file") do
+    safe_name = String.replace(filename || default_filename, ~r/[^a-zA-Z0-9._-]/, "_")
+    timestamp = System.system_time(:millisecond)
+    "#{prefix}/#{owner_id}/#{timestamp}_#{safe_name}"
+  end
+
   # Trigger: adapter option is provided in opts
   # Why: allows tests to inject a specific adapter instance for isolation
   # Outcome: uses the provided adapter instead of the configured one

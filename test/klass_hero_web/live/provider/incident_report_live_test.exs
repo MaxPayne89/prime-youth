@@ -136,5 +136,37 @@ defmodule KlassHeroWeb.Provider.IncidentReportLiveTest do
       assert html =~ "at least 10"
       assert Repo.aggregate(IncidentReportSchema, :count) == 0
     end
+
+    # Trigger: form-tampered category value that resolves to an existing BEAM atom
+    #          but is not in IncidentReport.valid_categories/0 (e.g. "name", "id")
+    # Why: defense-in-depth — without an allow-list, String.to_existing_atom would
+    #      let arbitrary system atoms reach the use case layer
+    # Outcome: the value is dropped to nil and the use case rejects with a
+    #          generic "is invalid" error rather than carrying tampered data through
+    test "rejects form-tampered category not in the allow-list", %{
+      conn: conn,
+      provider: provider
+    } do
+      program_id = insert_owned_program!(provider.id, "Robotics")
+
+      {:ok, view, _html} = live(conn, ~p"/provider/incidents/new?program_id=#{program_id}")
+
+      # Bypass <.form>'s select-option enforcement by pushing the event directly:
+      # this models a malicious client editing the DOM or replaying a forged payload.
+      html =
+        render_submit(view, "save", %{
+          "incident" => %{
+            "program_id" => program_id,
+            # `:name` is an existing BEAM atom (Ecto schema field) but not a valid category
+            "category" => "name",
+            "severity" => "medium",
+            "description" => "A child tripped but was not injured.",
+            "occurred_at" => "2026-04-22T14:00"
+          }
+        })
+
+      assert html =~ "is invalid"
+      assert Repo.aggregate(IncidentReportSchema, :count) == 0
+    end
   end
 end

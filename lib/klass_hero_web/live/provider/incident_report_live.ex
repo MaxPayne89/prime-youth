@@ -16,6 +16,7 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
   alias KlassHero.Provider
   alias KlassHero.Provider.Domain.Models.IncidentReport
   alias KlassHero.Provider.Domain.Models.ProviderProfile
+  alias KlassHeroWeb.Helpers.DateTimeHelpers
   alias KlassHeroWeb.Theme
 
   require Logger
@@ -180,7 +181,7 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
       category: atomize(params["category"]),
       severity: atomize(params["severity"]),
       description: params["description"] || "",
-      occurred_at: parse_datetime(params["occurred_at"])
+      occurred_at: DateTimeHelpers.parse_datetime_local(params["occurred_at"])
     }
   end
 
@@ -192,24 +193,19 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
   defp atomize(""), do: nil
   defp atomize(value) when is_atom(value), do: value
 
+  # Trigger: a category/severity arrives as a string from the form
+  # Why: form-tampered values (e.g. "foo_bar") could match an unrelated existing
+  #      atom, slipping past the downstream validator. Restrict to the explicit
+  #      allow-list of legitimate form atoms before passing the value along.
+  # Outcome: returns the atom on a valid hit, nil otherwise
   defp atomize(value) when is_binary(value) do
-    String.to_existing_atom(value)
+    atom = String.to_existing_atom(value)
+    if atom in valid_form_atoms(), do: atom
   rescue
     ArgumentError -> nil
   end
 
-  # Trigger: an HTML5 datetime-local input submits as "YYYY-MM-DDTHH:MM" (no seconds, no offset)
-  # Why: SubmitIncidentReport expects a %DateTime{} — coerce to UTC ISO 8601
-  # Outcome: %DateTime{} on success, nil on parse failure (use case will reject downstream)
-  defp parse_datetime(nil), do: nil
-  defp parse_datetime(""), do: nil
-
-  defp parse_datetime(value) when is_binary(value) do
-    case DateTime.from_iso8601(value <> ":00Z") do
-      {:ok, datetime, _offset} -> datetime
-      _ -> nil
-    end
-  end
+  defp valid_form_atoms, do: IncidentReport.valid_categories() ++ IncidentReport.valid_severities()
 
   # Trigger: SubmitIncidentReport returned a keyword list of validation errors
   # Why: <.input> reads errors from the form's field — surface them inline

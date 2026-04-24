@@ -58,4 +58,51 @@ defmodule KlassHero.Shared.StorageTest do
                )
     end
   end
+
+  describe "build_timestamped_path/4" do
+    test "prefixes with the bucket prefix and owner id" do
+      path = Storage.build_timestamped_path("incident-reports/providers", "abc-123", "photo.jpg")
+
+      assert path =~ ~r{^incident-reports/providers/abc-123/\d+_photo\.jpg$}
+    end
+
+    test "sanitizes special characters in the filename" do
+      path =
+        Storage.build_timestamped_path(
+          "incident-reports/providers",
+          "abc-123",
+          "Photo (1).JPG"
+        )
+
+      assert path =~ ~r{^incident-reports/providers/abc-123/\d+_Photo__1_\.JPG$}
+    end
+
+    test "falls back to the default filename when filename is nil" do
+      path =
+        Storage.build_timestamped_path(
+          "verification-docs/providers",
+          "abc-123",
+          nil,
+          "document.pdf"
+        )
+
+      assert path =~ ~r{^verification-docs/providers/abc-123/\d+_document\.pdf$}
+    end
+
+    test "uses a generic 'file' default when no default is provided" do
+      path = Storage.build_timestamped_path("prefix", "owner", nil)
+
+      assert path =~ ~r{^prefix/owner/\d+_file$}
+    end
+
+    test "embeds the current millisecond timestamp" do
+      before = System.system_time(:millisecond)
+      path = Storage.build_timestamped_path("p", "o", "f.txt")
+      [_, ts_str] = Regex.run(~r{/(\d+)_f\.txt$}, path)
+      ts = String.to_integer(ts_str)
+
+      assert ts >= before
+      assert ts <= System.system_time(:millisecond)
+    end
+  end
 end
