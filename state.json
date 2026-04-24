@@ -20,15 +20,12 @@
     "enrollment_policy_queries_note": "EnrollmentPolicyQueries tested with real DB (DataCase async:true); EnrollmentPolicyRepository.upsert/1 to create policies; 14 tests",
     "expire_staff_invitation_note": "ExpireStaffInvitation: only :sent->:expired valid; others return {:error, :invalid_invitation_transition}",
     "invite_field_validations_note": "InviteFieldValidations tested via embedded_schema in ExUnit.Case async:true; 18 tests",
-    "global_publisher_race_705": "Issue #705: :participation_seed_roster_subscriber causes race; Mox fix recommended"
+    "global_publisher_race_705": "Issue #705: :participation_seed_roster_subscriber causes race; Mox fix recommended",
+    "accounts_command_test_pattern": "RegisterUser/AnonymizeUser/ChangeEmail: DataCase async:true, AccountsFixtures, real UserRepository, no event assertions needed (events tested in PromoteIntegrationEventsTest)",
+    "change_email_token_pattern": "Use AccountsFixtures.extract_user_token + Accounts.deliver_user_update_email_instructions with user copy having new_email to generate valid token"
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
-    {
-      "id": "accounts-commands",
-      "priority": "medium",
-      "description": "AnonymizeUser, ChangeEmail, RegisterUser - untested application commands in accounts context"
-    },
     {
       "id": "e2e-messaging-pubsub-fanout",
       "priority": "medium",
@@ -48,21 +45,29 @@
   "tasks_last_run": {
     "task_1": "2026-04-15",
     "task_2": "2026-04-23",
-    "task_3": "2026-04-23",
+    "task_3": "2026-04-24",
     "task_4": "2026-04-22",
     "task_5": "2026-04-23",
     "task_6": "2026-04-21",
-    "task_7": "2026-04-23"
+    "task_7": "2026-04-24"
   },
   "work_in_progress": null,
   "completed_work": [
+    {
+      "date": "2026-04-24",
+      "run_id": "24912656952",
+      "pr_branch": "test-assist/accounts-application-command-tests-1777066115",
+      "description": "11 DataCase tests for RegisterUser, AnonymizeUser, ChangeEmail accounts commands",
+      "tests_added": 11,
+      "pr_number": null
+    },
     {
       "date": "2026-04-23",
       "run_id": "24859650217",
       "pr_branch": "test-assist/enrollment-policy-queries-tests-1776979650",
       "description": "14 DataCase tests for EnrollmentPolicyQueries",
       "tests_added": 14,
-      "pr_number": null
+      "pr_number": 733
     },
     {
       "date": "2026-04-22",
@@ -87,22 +92,6 @@
       "description": "8 tests for ParticipantMapper",
       "tests_added": 8,
       "pr_number": 713
-    },
-    {
-      "date": "2026-04-19",
-      "run_id": "24639393088",
-      "pr_branch": "test-assist/program-queries-filter-category-1776634092",
-      "description": "5 tests for ProgramQueries.filter_by_category/2",
-      "tests_added": 5,
-      "pr_number": 707
-    },
-    {
-      "date": "2026-04-18",
-      "run_id": "24614128772",
-      "pr_branch": "test-assist/mapper-unit-tests-1776547550",
-      "description": "14 tests for AttachmentMapper and BulkEnrollmentInviteMapper",
-      "tests_added": 14,
-      "pr_number": 696
     }
   ],
   "monthly_summary_issue": {
@@ -112,7 +101,7 @@
   },
   "checked_off_items": [],
   "backlog_cursor": {
-    "task_2_last_file": "enrollment application queries surveyed (2026-04-23)",
+    "task_2_last_file": "accounts application commands completed (2026-04-24)",
     "task_5_last_issue": 705
   },
   "open_prs": [
@@ -120,6 +109,7 @@
     707,
     713,
     719,
-    723
+    723,
+    733
   ]
 }
