@@ -26,12 +26,16 @@ defmodule KlassHero.Provider do
     top_level?: true,
     deps: [KlassHero, KlassHero.Shared],
     exports: [
+      Domain.Models.IncidentReport,
       Domain.Models.ProviderProfile,
       Domain.Models.StaffMember,
       Domain.Models.PayRate,
       Domain.Models.VerificationDocument,
       Domain.Models.ProgramStaffAssignment,
+      Domain.ReadModels.ProviderProgram,
       Domain.ReadModels.SessionStats,
+      Adapters.Driven.Persistence.Repositories.IncidentReportRepository,
+      Adapters.Driven.Persistence.Repositories.ProviderProgramRepository,
       Adapters.Driven.Persistence.Repositories.SessionStatsRepository,
       Adapters.Driven.Persistence.ChangeProviderProfile,
       Adapters.Driven.Persistence.ChangeStaffMember,
@@ -42,6 +46,7 @@ defmodule KlassHero.Provider do
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeStaffMember
+  alias KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport
   alias KlassHero.Provider.Application.Commands.Providers.ChangeSubscriptionTier
   alias KlassHero.Provider.Application.Commands.Providers.CompleteProviderProfile
   alias KlassHero.Provider.Application.Commands.Providers.CreateProviderProfile
@@ -61,6 +66,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.Queries.ListProgramSessions
   alias KlassHero.Provider.Application.Queries.ProgramStaffAssignmentQueries
   alias KlassHero.Provider.Application.Queries.ProviderProfileQueries
+  alias KlassHero.Provider.Application.Queries.ProviderProgramQueries
   alias KlassHero.Provider.Application.Queries.StaffMemberQueries
   alias KlassHero.Provider.Application.Queries.StaffMembers.ListStaffAssignedPrograms
   alias KlassHero.Provider.Application.Queries.Verification.GetVerificationDocumentPreview
@@ -70,6 +76,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.Provider.Domain.Ports.ForQueryingVerificationDocuments
+  alias KlassHero.Provider.Domain.ReadModels.ProviderProgram
 
   # ===========================================================================
   # Commands
@@ -152,6 +159,23 @@ defmodule KlassHero.Provider do
   """
   def submit_verification_document(params) do
     SubmitVerificationDocument.execute(params)
+  end
+
+  @doc """
+  Submit an incident report from a provider.
+
+  Accepts a map with:
+  - `:provider_profile_id` - Required provider submitting the report
+  - `:reporter_user_id` - Required user submitting the report
+  - `:program_id` OR `:session_id` - Required, exactly one
+  - `:category` - Required (atom from `IncidentReport.valid_categories/0`)
+  - `:severity` - Required (atom from `IncidentReport.valid_severities/0`)
+  - `:description` - Required (free-text, at least 10 characters)
+  - `:occurred_at` - Required (`DateTime.t()`, cannot be in the future)
+  - `:file_binary`, `:original_filename`, `:content_type` - Optional photo upload
+  """
+  def submit_incident_report(params) when is_map(params) do
+    SubmitIncidentReport.execute(params)
   end
 
   @doc """
@@ -532,6 +556,25 @@ defmodule KlassHero.Provider do
         ]
   def list_program_sessions(provider_id, program_id) when is_binary(provider_id) and is_binary(program_id) do
     ListProgramSessions.execute(provider_id, program_id)
+  end
+
+  @doc """
+  Returns the provider-owned program by ID.
+
+  Reads from the `provider_programs` projection. Useful for ownership
+  verification and dashboard display.
+  """
+  @spec get_provider_program(String.t()) :: {:ok, ProviderProgram.t()} | {:error, :not_found}
+  def get_provider_program(program_id) when is_binary(program_id) do
+    ProviderProgramQueries.get_by_id(program_id)
+  end
+
+  @doc """
+  Lists all programs owned by the given provider, ordered by name asc.
+  """
+  @spec list_provider_programs(String.t()) :: [ProviderProgram.t()]
+  def list_provider_programs(provider_id) when is_binary(provider_id) do
+    ProviderProgramQueries.list_by_provider(provider_id)
   end
 
   # ===========================================================================

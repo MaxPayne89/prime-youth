@@ -9,4 +9,7 @@ defmodule KlassHero.Provider.Domain.Ports.ForQueryingSessionDetails do
   alias KlassHero.Provider.Domain.ReadModels.SessionDetail
 
   @callback list_by_program(provider_id :: binary(), program_id :: binary()) :: [SessionDetail.t()]
+
+  @callback get_by_id(session_id :: Ecto.UUID.t()) ::
+              {:ok, SessionDetail.t()} | {:error, :not_found}
 end

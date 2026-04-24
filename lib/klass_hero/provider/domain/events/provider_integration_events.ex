@@ -17,6 +17,9 @@ defmodule KlassHero.Provider.Domain.Events.ProviderIntegrationEvents do
 
   - `:staff_unassigned_from_program` - Emitted when a staff member is unassigned from a program.
     The Messaging context reacts to revoke conversation participant access (critical).
+
+  - `:incident_reported` - Emitted when a provider submits an incident report.
+    Downstream contexts (e.g., admin dashboards, notifications) can react to safety events (critical).
   """
 
   alias KlassHero.Shared.Domain.Events.IntegrationEvent
@@ -36,6 +39,7 @@ defmodule KlassHero.Provider.Domain.Events.ProviderIntegrationEvents do
   @source_context :provider
   @entity_type :provider_profile
   @staff_entity_type :staff_member
+  @incident_report_entity_type :incident_report
 
   def subscription_tier_changed(provider_id, payload \\ %{}, opts \\ [])
 
@@ -196,5 +200,46 @@ defmodule KlassHero.Provider.Domain.Events.ProviderIntegrationEvents do
   def staff_unassigned_from_program(staff_member_id, _payload, _opts) do
     raise ArgumentError,
           "staff_unassigned_from_program/3 requires a non-empty staff_member_id string, got: #{inspect(staff_member_id)}"
+  end
+
+  @doc """
+  Creates an `incident_reported` integration event.
+
+  Marked `:critical` by default — downstream consumers (admin dashboards, notifications)
+  must receive safety events durably.
+
+  ## Parameters
+
+  - `incident_report_id` - The ID of the reported incident
+  - `payload` - Pass-through payload from the domain event (no sensitive fields)
+  - `opts` - Metadata options (correlation_id, causation_id)
+
+  ## Raises
+
+  - `ArgumentError` if `incident_report_id` is nil or empty
+  """
+  def incident_reported(incident_report_id, payload \\ %{}, opts \\ [])
+
+  def incident_reported(incident_report_id, payload, opts)
+      when is_binary(incident_report_id) and byte_size(incident_report_id) > 0 do
+    base_payload = %{incident_report_id: incident_report_id}
+    opts = Keyword.put_new(opts, :criticality, :critical)
+
+    IntegrationEvent.new(
+      :incident_reported,
+      @source_context,
+      @incident_report_entity_type,
+      incident_report_id,
+      # Trigger: caller may pass a conflicting :incident_report_id in payload
+      # Why: base_payload contains the canonical incident_report_id from the function argument
+      # Outcome: base_payload keys always win, preventing accidental overwrite
+      Map.merge(payload, base_payload),
+      opts
+    )
+  end
+
+  def incident_reported(incident_report_id, _payload, _opts) do
+    raise ArgumentError,
+          "incident_reported/3 requires a non-empty incident_report_id string, got: #{inspect(incident_report_id)}"
   end
 end

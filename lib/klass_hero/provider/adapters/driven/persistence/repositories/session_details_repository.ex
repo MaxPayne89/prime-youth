@@ -18,4 +18,12 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.SessionDet
     |> Repo.all()
     |> Enum.map(&ProviderSessionDetailMapper.to_read_model/1)
   end
+
+  @impl true
+  def get_by_id(session_id) when is_binary(session_id) do
+    case Repo.get(ProviderSessionDetailSchema, session_id) do
+      nil -> {:error, :not_found}
+      row -> {:ok, ProviderSessionDetailMapper.to_read_model(row)}
+    end
+  end
 end

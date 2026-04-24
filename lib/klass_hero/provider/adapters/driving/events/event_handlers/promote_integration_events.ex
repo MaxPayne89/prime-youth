@@ -42,4 +42,15 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegr
       staff_member_id: event.payload.staff_member_id
     )
   end
+
+  def handle(%DomainEvent{event_type: :incident_reported} = event) do
+    # Trigger: incident_reported domain event dispatched from SubmitIncidentReport use case
+    # Why: safety-domain events need durable delivery to future consumers (admin, notifications)
+    # Outcome: publish integration event on topic integration:provider:incident_reported
+    event.aggregate_id
+    |> ProviderIntegrationEvents.incident_reported(event.payload)
+    |> IntegrationEventPublishing.publish_critical("incident_reported",
+      incident_report_id: event.aggregate_id
+    )
+  end
 end

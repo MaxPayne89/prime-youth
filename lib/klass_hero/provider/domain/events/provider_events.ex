@@ -7,10 +7,12 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEvents do
   - `subscription_tier_changed` - A provider's subscription tier was changed
   - `staff_assigned_to_program` - A staff member was assigned to a program
   - `staff_unassigned_from_program` - A staff member was unassigned from a program
+  - `incident_reported` - An incident report was submitted by a provider
 
   All events are returned as `DomainEvent` structs.
   """
 
+  alias KlassHero.Provider.Domain.Models.IncidentReport
   alias KlassHero.Provider.Domain.Models.ProgramStaffAssignment
   alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Provider.Domain.Models.StaffMember
@@ -64,5 +66,23 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEvents do
       payload,
       opts
     )
+  end
+
+  @doc "Creates an incident_reported event."
+  @spec incident_reported(IncidentReport.t(), keyword()) :: DomainEvent.t()
+  def incident_reported(%IncidentReport{} = report, opts \\ []) do
+    payload = %{
+      incident_report_id: report.id,
+      provider_id: report.provider_profile_id,
+      program_id: report.program_id,
+      session_id: report.session_id,
+      reporter_user_id: report.reporter_user_id,
+      category: report.category,
+      severity: report.severity,
+      occurred_at: report.occurred_at,
+      has_photo: not is_nil(report.photo_url)
+    }
+
+    DomainEvent.new(:incident_reported, report.id, @aggregate_type, payload, opts)
   end
 end
