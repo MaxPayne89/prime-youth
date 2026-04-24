@@ -1,8 +1,10 @@
 defmodule KlassHeroWeb.Provider.IncidentReportLiveTest do
   use KlassHeroWeb.ConnCase, async: true
 
+  import KlassHero.Factory
   import Phoenix.LiveViewTest
 
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.IncidentReportSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProgramProjectionSchema
   alias KlassHero.Repo
 
@@ -19,6 +21,17 @@ defmodule KlassHeroWeb.Provider.IncidentReportLiveTest do
     }
 
     Repo.insert!(struct(ProviderProgramProjectionSchema, Map.merge(defaults, attrs)))
+  end
+
+  # Trigger: a submit test needs both the projection (for ownership check) and
+  #          the underlying programs row (for the incident_reports.program_id FK)
+  # Why: SubmitIncidentReport queries the projection but persists into incident_reports
+  #      which references programs(:id) — both must exist with matching ids
+  # Outcome: returns the program_id that ties projection + programs row together
+  defp insert_owned_program!(provider_id, name) do
+    row = insert_provider_program!(%{provider_id: provider_id, name: name})
+    insert(:program_schema, id: row.program_id, provider_id: provider_id)
+    row.program_id
   end
 
   describe "mount" do
@@ -70,6 +83,58 @@ defmodule KlassHeroWeb.Provider.IncidentReportLiveTest do
       {:ok, view, _html} = live(conn, ~p"/provider/incidents/new")
       assert has_element?(view, "[phx-drop-target]")
       assert has_element?(view, ~s|input[type="file"][name^="photo"]|)
+    end
+  end
+
+  describe "submit" do
+    setup [:register_and_log_in_provider]
+
+    test "successful submit redirects to dashboard with flash", %{conn: conn, provider: provider} do
+      program_id = insert_owned_program!(provider.id, "Robotics")
+
+      {:ok, view, _html} = live(conn, ~p"/provider/incidents/new?program_id=#{program_id}")
+
+      view
+      |> form("#incident-report-form",
+        incident: %{
+          "program_id" => program_id,
+          "category" => "safety_concern",
+          "severity" => "medium",
+          "description" => "A child tripped but was not injured.",
+          "occurred_at" => "2026-04-22T14:00"
+        }
+      )
+      |> render_submit()
+
+      {path, flash} = assert_redirect(view)
+      assert path == "/provider/dashboard"
+      assert flash["info"] =~ "submitted"
+      assert Repo.aggregate(IncidentReportSchema, :count) == 1
+    end
+
+    test "invalid submit (description too short) renders inline errors", %{
+      conn: conn,
+      provider: provider
+    } do
+      program_id = insert_owned_program!(provider.id, "Robotics")
+
+      {:ok, view, _html} = live(conn, ~p"/provider/incidents/new?program_id=#{program_id}")
+
+      html =
+        view
+        |> form("#incident-report-form",
+          incident: %{
+            "program_id" => program_id,
+            "category" => "safety_concern",
+            "severity" => "medium",
+            "description" => "short",
+            "occurred_at" => "2026-04-22T14:00"
+          }
+        )
+        |> render_submit()
+
+      assert html =~ "at least 10"
+      assert Repo.aggregate(IncidentReportSchema, :count) == 0
     end
   end
 end

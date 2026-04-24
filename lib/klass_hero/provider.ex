@@ -46,6 +46,7 @@ defmodule KlassHero.Provider do
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeProviderProfile
   alias KlassHero.Provider.Adapters.Driven.Persistence.ChangeStaffMember
+  alias KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport
   alias KlassHero.Provider.Application.Commands.Providers.ChangeSubscriptionTier
   alias KlassHero.Provider.Application.Commands.Providers.CompleteProviderProfile
   alias KlassHero.Provider.Application.Commands.Providers.CreateProviderProfile
@@ -156,6 +157,23 @@ defmodule KlassHero.Provider do
   """
   def submit_verification_document(params) do
     SubmitVerificationDocument.execute(params)
+  end
+
+  @doc """
+  Submit an incident report from a provider.
+
+  Accepts a map with:
+  - `:provider_profile_id` - Required provider submitting the report
+  - `:reporter_user_id` - Required user submitting the report
+  - `:program_id` OR `:session_id` - Required, exactly one
+  - `:category` - Required (atom from `IncidentReport.valid_categories/0`)
+  - `:severity` - Required (atom from `IncidentReport.valid_severities/0`)
+  - `:description` - Required (free-text, at least 10 characters)
+  - `:occurred_at` - Required (`DateTime.t()`, cannot be in the future)
+  - `:file_binary`, `:original_filename`, `:content_type` - Optional photo upload
+  """
+  def submit_incident_report(params) when is_map(params) do
+    SubmitIncidentReport.execute(params)
   end
 
   @doc """
