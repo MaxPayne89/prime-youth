@@ -29,39 +29,33 @@ defmodule KlassHeroWeb.Provider.IncidentReportsLive do
     end
   end
 
+  # Trigger: a program_id arrives from the route (untrusted) for an authenticated provider
+  # Why: a single projection read both verifies ownership and surfaces the program record;
+  #      avoids the small race window where a second `list_provider_programs/1` call could
+  #      see a different snapshot of the projection
+  # Outcome: list assigns + stream on success, dashboard redirect on missing/foreign id
   defp mount_for_provider(socket, provider, program_id) do
-    if owns_program?(provider.id, program_id) do
-      summaries = Provider.list_incident_reports_for_program(provider.id, program_id)
-      rows = Enum.map(summaries, &IncidentReportPresenter.to_list_view/1)
-      program = find_program(provider.id, program_id)
+    case Provider.get_provider_program(program_id) do
+      {:ok, %{provider_id: prov_id} = program} when prov_id == provider.id ->
+        summaries = Provider.list_incident_reports_for_program(provider.id, program_id)
+        rows = Enum.map(summaries, &IncidentReportPresenter.to_list_view/1)
 
-      {:ok,
-       socket
-       |> assign(
-         page_title: gettext("Incident Reports"),
-         provider: provider,
-         program: program,
-         program_id: program_id
-       )
-       |> stream(:incident_reports, rows)}
-    else
-      {:ok,
-       socket
-       |> put_flash(:error, gettext("Program not found."))
-       |> push_navigate(to: ~p"/provider/dashboard/programs")}
+        {:ok,
+         socket
+         |> assign(
+           page_title: gettext("Incident Reports"),
+           provider: provider,
+           program: program,
+           program_id: program_id
+         )
+         |> stream(:incident_reports, rows)}
+
+      _ ->
+        {:ok,
+         socket
+         |> put_flash(:error, gettext("Program not found."))
+         |> push_navigate(to: ~p"/provider/dashboard/programs")}
     end
-  end
-
-  defp owns_program?(provider_id, program_id) do
-    provider_id
-    |> Provider.list_provider_programs()
-    |> Enum.any?(&(&1.program_id == program_id))
-  end
-
-  defp find_program(provider_id, program_id) do
-    provider_id
-    |> Provider.list_provider_programs()
-    |> Enum.find(&(&1.program_id == program_id))
   end
 
   @impl true
