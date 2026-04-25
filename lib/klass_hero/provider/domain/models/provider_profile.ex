@@ -17,6 +17,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     :id,
     :identity_id,
     :business_name,
+    :business_owner_email,
     :description,
     :phone,
     :website,
@@ -37,6 +38,7 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
           id: String.t(),
           identity_id: String.t(),
           business_name: String.t(),
+          business_owner_email: String.t() | nil,
           description: String.t() | nil,
           phone: String.t() | nil,
           website: String.t() | nil,
@@ -170,7 +172,20 @@ defmodule KlassHero.Provider.Domain.Models.ProviderProfile do
     |> validate_subscription_tier(provider_profile.subscription_tier)
     |> validate_originated_from(provider_profile.originated_from)
     |> validate_profile_status(provider_profile.profile_status)
+    |> validate_business_owner_email(provider_profile.business_owner_email)
   end
+
+  defp validate_business_owner_email(errors, nil), do: errors
+
+  defp validate_business_owner_email(errors, email) when is_binary(email) do
+    if String.length(email) > 254 do
+      ["Business owner email must be 254 characters or less" | errors]
+    else
+      errors
+    end
+  end
+
+  defp validate_business_owner_email(errors, _), do: ["Business owner email must be a string" | errors]
 
   defp validate_identity_id(errors, identity_id) when is_binary(identity_id) do
     trimmed = String.trim(identity_id)

@@ -70,6 +70,27 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandlerTest do
       event = build_user_registered_event(user, intended_roles: ["parent"])
       assert :ignore = ProviderEventHandler.handle_event(event)
     end
+
+    test "captures business_owner_email from payload" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
+      event = build_user_registered_event(user, email: "owner@example.com")
+      assert :ok = ProviderEventHandler.handle_event(event)
+
+      assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
+      assert profile.business_owner_email == "owner@example.com"
+    end
+
+    test "leaves business_owner_email nil when payload omits :email" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
+      event = build_user_registered_event(user)
+      payload = Map.delete(event.payload, :email)
+      assert :ok = ProviderEventHandler.handle_event(%{event | payload: payload})
+
+      assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
+      assert profile.business_owner_email == nil
+    end
   end
 
   describe "handle_event/1 for :user_anonymized" do
@@ -166,6 +187,16 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandlerTest do
       event = build_user_confirmed_event(user, intended_roles: ["parent"])
       assert :ignore = ProviderEventHandler.handle_event(event)
     end
+
+    test "captures business_owner_email from payload" do
+      user = AccountsFixtures.unconfirmed_user_fixture(intended_roles: [:provider])
+
+      event = build_user_confirmed_event(user, email: "confirmed@example.com")
+      assert :ok = ProviderEventHandler.handle_event(event)
+
+      assert {:ok, profile} = Provider.get_provider_by_identity(user.id)
+      assert profile.business_owner_email == "confirmed@example.com"
+    end
   end
 
   describe "subscribed_events/0" do
@@ -179,6 +210,7 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandlerTest do
   defp build_user_registered_event(user, opts \\ []) do
     intended_roles = Keyword.get(opts, :intended_roles, ["provider"])
     provider_tier = Keyword.get(opts, :provider_subscription_tier)
+    email = Keyword.get(opts, :email, user.email)
 
     %{
       event_type: :user_registered,
@@ -186,6 +218,7 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandlerTest do
       payload: %{
         intended_roles: intended_roles,
         name: user.name || "Test Provider",
+        email: email,
         provider_subscription_tier: provider_tier
       }
     }
@@ -194,6 +227,7 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandlerTest do
   defp build_user_confirmed_event(user, opts \\ []) do
     intended_roles = Keyword.get(opts, :intended_roles, ["provider"])
     provider_tier = Keyword.get(opts, :provider_subscription_tier)
+    email = Keyword.get(opts, :email, user.email)
 
     %{
       event_type: :user_confirmed,
@@ -201,6 +235,7 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandlerTest do
       payload: %{
         intended_roles: intended_roles,
         name: user.name || "Test Provider",
+        email: email,
         provider_subscription_tier: provider_tier
       }
     }

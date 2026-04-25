@@ -92,6 +92,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer do
 
   # -- Key conversion helpers --
 
+  defp stringify_keys(%_{} = struct), do: struct
+
   defp stringify_keys(map) when is_map(map) do
     Map.new(map, fn
       {k, v} when is_atom(k) -> {Atom.to_string(k), stringify_keys(v)}
@@ -99,7 +101,11 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer do
     end)
   end
 
+  defp stringify_keys(list) when is_list(list), do: Enum.map(list, &stringify_keys/1)
+
   defp stringify_keys(value), do: value
+
+  defp atomize_keys(%_{} = struct), do: struct
 
   defp atomize_keys(map) when is_map(map) do
     Map.new(map, fn
@@ -107,6 +113,8 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializer do
       {k, v} -> {k, atomize_keys(v)}
     end)
   end
+
+  defp atomize_keys(list) when is_list(list), do: Enum.map(list, &atomize_keys/1)
 
   defp atomize_keys(value), do: value
 

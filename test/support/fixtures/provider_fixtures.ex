@@ -7,9 +7,12 @@ defmodule KlassHero.ProviderFixtures do
 
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfileMapper
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.StaffMemberMapper
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.IncidentReportRepository
   alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.VerificationDocumentRepository
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfileSchema
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProgramProjectionSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.StaffMemberSchema
+  alias KlassHero.Provider.Domain.Models.IncidentReport
   alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.Repo
 
@@ -146,6 +149,51 @@ defmodule KlassHero.ProviderFixtures do
     doc = verification_document_fixture(attrs)
     {:ok, rejected} = VerificationDocument.reject(doc, reviewer_id, reason)
     {:ok, persisted} = VerificationDocumentRepository.update(rejected)
+    persisted
+  end
+
+  @doc """
+  Inserts a `provider_programs` projection row for testing.
+
+  Accepts `program_id`, `provider_id`, `name`, `status`. Defaults provided.
+  Returns the inserted schema struct.
+  """
+  def provider_program_projection_fixture(attrs \\ %{}) do
+    attrs_map = Map.new(attrs)
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+
+    Repo.insert!(%ProviderProgramProjectionSchema{
+      program_id: attrs_map[:program_id] || Ecto.UUID.generate(),
+      provider_id: attrs_map[:provider_id] || raise("provider_id is required"),
+      name: attrs_map[:name] || "Test Program #{System.unique_integer([:positive])}",
+      status: attrs_map[:status] || "active",
+      inserted_at: now,
+      updated_at: now
+    })
+  end
+
+  @doc """
+  Creates an incident report for testing.
+
+  Accepts overrides via `attrs`. Defaults provide a safety_concern/high
+  report dated 2026-04-20. Caller must supply `provider_profile_id`,
+  `reporter_user_id`, and either `program_id` or `session_id`.
+
+  Returns the persisted domain model.
+  """
+  def incident_report_fixture(attrs \\ %{}) do
+    attrs_map = Map.new(attrs)
+
+    defaults = %{
+      id: Ecto.UUID.generate(),
+      category: :safety_concern,
+      severity: :high,
+      description: "A child slipped near the play area but is unharmed.",
+      occurred_at: ~U[2026-04-20 14:30:00Z]
+    }
+
+    {:ok, report} = IncidentReport.new(Map.merge(defaults, attrs_map))
+    {:ok, persisted} = IncidentReportRepository.create(report)
     persisted
   end
 

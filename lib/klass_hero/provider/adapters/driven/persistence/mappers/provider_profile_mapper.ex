@@ -1,21 +1,6 @@
 defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfileMapper do
   @moduledoc """
-  Maps between domain ProviderProfile entities and ProviderProfileSchema Ecto structs.
-
-  This adapter provides bidirectional conversion:
-  - to_domain/1: ProviderProfileSchema -> ProviderProfile (for reading from database)
-  - to_schema/1: ProviderProfile -> ProviderProfileSchema attributes (for creating/updating in database)
-  The mapper is bidirectional to support both reading and writing provider profiles.
-
-  ## Design Note: to_schema Excludes Database-Managed Fields
-
-  The `to_schema/1` function intentionally excludes:
-  - `id` - Managed by Ecto on insert (conditionally included via maybe_add_id/2)
-  - `inserted_at`, `updated_at` - Managed by Ecto timestamps
-
-  This follows standard Ecto patterns where the database/framework manages
-  these fields automatically. The repository handles id explicitly when needed
-  (e.g., for updates or when domain entity already has an id).
+  Bidirectional mapping between `ProviderProfile` domain entities and `ProviderProfileSchema` Ecto structs.
   """
 
   import KlassHero.Shared.Adapters.Driven.Persistence.MapperHelpers,
@@ -38,6 +23,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
       id: to_string(schema.id),
       identity_id: to_string(schema.identity_id),
       business_name: schema.business_name,
+      business_owner_email: schema.business_owner_email,
       description: schema.description,
       phone: schema.phone,
       website: schema.website,
@@ -66,6 +52,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Mappers.ProviderProfile
     %{
       identity_id: provider_profile.identity_id,
       business_name: provider_profile.business_name,
+      business_owner_email: provider_profile.business_owner_email,
       description: provider_profile.description,
       phone: provider_profile.phone,
       website: provider_profile.website,

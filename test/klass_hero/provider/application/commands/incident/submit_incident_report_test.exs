@@ -3,13 +3,19 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
 
   import Ecto.Query
   import KlassHero.AccountsFixtures, only: [unconfirmed_user_fixture: 1]
+  import KlassHero.EmailTestHelper
   import KlassHero.Factory
+  import KlassHero.ProviderFixtures, only: [provider_program_projection_fixture: 1]
+  import Swoosh.TestAssertions
 
+  alias Ecto.Adapters.SQL.Sandbox
+  alias KlassHero.Accounts.User
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.IncidentReportSchema
-  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProgramProjectionSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderSessionDetailSchema
+  alias KlassHero.Provider.Adapters.Driving.Events.IncidentReportedHandler
   alias KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport
   alias KlassHero.Repo
+  alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
   alias KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter
   alias KlassHero.Shared.DomainEventBus
 
@@ -17,16 +23,12 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
     provider = insert(:provider_profile_schema)
     program = insert(:program_schema, provider_id: provider.id)
     user = unconfirmed_user_fixture(%{})
-    now = DateTime.utc_now() |> DateTime.truncate(:second)
 
-    Repo.insert!(%ProviderProgramProjectionSchema{
-      program_id: program.id,
+    provider_program_projection_fixture(
       provider_id: provider.id,
-      name: "Art Club",
-      status: "active",
-      inserted_at: now,
-      updated_at: now
-    })
+      program_id: program.id,
+      name: "Art Club"
+    )
 
     test_pid = self()
 
@@ -186,6 +188,83 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
 
       # Storage stub agent should hold no entries — proves we never called upload/4
       assert Agent.get(storage, & &1) == %{}
+    end
+  end
+
+  describe "execute/1 — incident email pipeline (end-to-end)" do
+    # Trigger: tests need PubSub-driven CriticalEventDispatcher → handler → Oban inline
+    # Why: the default test publisher only collects events; it does not broadcast,
+    #      so the IncidentReportedHandler subscriber would never wake up
+    # Outcome: swap to real PubSub, grant the subscriber sandbox access, route Swoosh
+    #          mail back to the test pid even when Mailer.deliver runs in another process
+    setup do
+      flush_emails()
+
+      original_publisher = Application.get_env(:klass_hero, :integration_event_publisher)
+
+      Application.put_env(:klass_hero, :integration_event_publisher,
+        module: PubSubIntegrationEventPublisher,
+        pubsub: KlassHero.PubSub
+      )
+
+      original_swoosh_pid = Application.get_env(:swoosh, :shared_test_process)
+      Application.put_env(:swoosh, :shared_test_process, self())
+
+      case Process.whereis(IncidentReportedHandler) do
+        nil -> :ok
+        pid -> Sandbox.allow(KlassHero.Repo, self(), pid)
+      end
+
+      on_exit(fn ->
+        Application.put_env(:klass_hero, :integration_event_publisher, original_publisher)
+
+        if original_swoosh_pid do
+          Application.put_env(:swoosh, :shared_test_process, original_swoosh_pid)
+        else
+          Application.delete_env(:swoosh, :shared_test_process)
+        end
+      end)
+
+      :ok
+    end
+
+    test "delivers an email to the business owner when reporter is not the owner", %{
+      provider: provider,
+      program_id: program_id,
+      user: reporter
+    } do
+      # Backfill the email column on the existing provider row so the use case can
+      # resolve a recipient — production rows are populated by ProviderEventHandler
+      # off the :user_registered integration event payload.
+      provider
+      |> Ecto.Changeset.change(%{business_owner_email: "owner@example.com"})
+      |> Repo.update!()
+
+      params = base_params(provider, program_id, reporter)
+
+      assert {:ok, _report} = SubmitIncidentReport.execute(params)
+
+      assert_email_sent(fn email ->
+        email.to == [{provider.business_name, "owner@example.com"}] and
+          email.subject =~ "Art Club"
+      end)
+    end
+
+    test "skips the email when the reporter is the provider owner (self-report)", %{
+      provider: provider,
+      program_id: program_id
+    } do
+      owner = Repo.get!(User, provider.identity_id)
+
+      provider
+      |> Ecto.Changeset.change(%{business_owner_email: "owner@example.com"})
+      |> Repo.update!()
+
+      params = base_params(provider, program_id, owner)
+
+      assert {:ok, _report} = SubmitIncidentReport.execute(params)
+
+      assert_no_email_sent()
     end
   end
 end
