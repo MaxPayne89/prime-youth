@@ -5,6 +5,13 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.47.0](https://github.com/MaxPayne89/klass-hero/compare/v0.46.0...v0.47.0) (2026-04-25)
+
+
+### Features
+
+* notify business owner by email on incident report ([#755](https://github.com/MaxPayne89/klass-hero/issues/755)) ([d8df7cc](https://github.com/MaxPayne89/klass-hero/commit/d8df7cce33b3d1adeb13847948d2620568790b93))
+
 ## [0.46.0](https://github.com/MaxPayne89/klass-hero/compare/v0.45.0...v0.46.0) (2026-04-24)
 
 
