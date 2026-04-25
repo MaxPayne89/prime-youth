@@ -97,6 +97,22 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReport do
   @doc "Returns the list of valid incident severities."
   def valid_severities, do: @valid_severities
 
+  @doc "Plain English label for a category atom."
+  @spec category_label(category()) :: String.t()
+  def category_label(:safety_concern), do: "Safety concern"
+  def category_label(:behavioral_issue), do: "Behavioral issue"
+  def category_label(:injury), do: "Injury"
+  def category_label(:property_damage), do: "Property damage"
+  def category_label(:policy_violation), do: "Policy violation"
+  def category_label(:other), do: "Other"
+
+  @doc "Plain English label for a severity atom."
+  @spec severity_label(severity()) :: String.t()
+  def severity_label(:low), do: "Low"
+  def severity_label(:medium), do: "Medium"
+  def severity_label(:high), do: "High"
+  def severity_label(:critical), do: "Critical"
+
   @doc """
   Creates a new IncidentReport with validation.
 

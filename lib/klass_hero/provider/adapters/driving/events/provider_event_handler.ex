@@ -30,45 +30,20 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler do
   def subscribed_events, do: [:user_registered, :user_confirmed, :user_anonymized]
 
   @impl true
-  def handle_event(%{event_type: :user_anonymized, entity_id: _user_id}) do
-    # Trigger: user_anonymized event received
-    # Why: provider profiles retain business_name for audit — no PII to anonymize
-    # Outcome: no-op, return :ok
-    :ok
-  end
+  def handle_event(%{event_type: :user_anonymized, entity_id: _user_id}), do: :ok
 
   @impl true
-  def handle_event(%{event_type: :user_registered, entity_id: user_id, payload: payload}) do
-    intended_roles = Map.get(payload, :intended_roles, [])
-    business_name = Map.get(payload, :name, "")
-    provider_tier = Map.get(payload, :provider_subscription_tier)
-
-    # Trigger: user_registered event with role list
+  def handle_event(%{event_type: event_type, entity_id: user_id, payload: payload})
+      when event_type in [:user_registered, :user_confirmed] do
     # Why: only create provider profile if "provider" role requested AND
     #   the user didn't register via staff invitation (staff flow handles its own
     #   profile creation with originated_from: :staff_invite)
-    # Outcome: provider profile created with selected tier or default starter
-    if "provider" in intended_roles and "staff_provider" not in intended_roles do
-      create_provider_profile_with_retry(user_id, business_name, provider_tier)
-    else
-      :ignore
-    end
-  end
-
-  @impl true
-  def handle_event(%{event_type: :user_confirmed, entity_id: user_id, payload: payload}) do
     intended_roles = Map.get(payload, :intended_roles, [])
-    business_name = Map.get(payload, :name, "")
-    provider_tier = Map.get(payload, :provider_subscription_tier)
 
-    # Trigger: user_confirmed event — compensation path for profile creation
-    # Why: if user_registered delivery was delayed, this ensures the profile
-    #      exists before the user's first authenticated session.
-    #      Staff registrations are excluded — their flow creates the profile
-    #      with originated_from: :staff_invite via StaffInvitationStatusHandler.
-    # Outcome: creates profile or returns :ok if already exists (idempotent)
     if "provider" in intended_roles and "staff_provider" not in intended_roles do
-      create_provider_profile_with_retry(user_id, business_name, provider_tier)
+      user_id
+      |> build_attrs_from_payload(payload)
+      |> create_provider_profile_with_retry(user_id)
     else
       :ignore
     end
@@ -76,17 +51,17 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler do
 
   def handle_event(_event), do: :ignore
 
-  defp create_provider_profile_with_retry(user_id, business_name, provider_tier) do
-    attrs =
-      %{
-        identity_id: user_id,
-        business_name: business_name
-      }
-      |> maybe_put_tier(provider_tier)
+  defp build_attrs_from_payload(user_id, payload) do
+    %{
+      identity_id: user_id,
+      business_name: Map.get(payload, :name, ""),
+      business_owner_email: Map.get(payload, :email)
+    }
+    |> maybe_put_tier(Map.get(payload, :provider_subscription_tier))
+  end
 
-    operation = fn ->
-      Provider.create_provider_profile(attrs)
-    end
+  defp create_provider_profile_with_retry(attrs, user_id) do
+    operation = fn -> Provider.create_provider_profile(attrs) end
 
     context = %{
       operation_name: "create provider profile",
@@ -97,9 +72,6 @@ defmodule KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler do
     RetryHelpers.retry_and_normalize(operation, context)
   end
 
-  # Trigger: provider_subscription_tier may be nil or a string like "professional"
-  # Why: nil means use default (starter); string needs safe cast to atom for domain model
-  # Outcome: attrs includes subscription_tier only when explicitly selected and valid
   defp maybe_put_tier(attrs, nil), do: attrs
   defp maybe_put_tier(attrs, ""), do: attrs
 

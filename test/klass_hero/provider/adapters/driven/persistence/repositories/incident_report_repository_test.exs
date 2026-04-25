@@ -62,6 +62,35 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.IncidentRe
     end
   end
 
+  describe "get/1" do
+    test "returns the report mapped to the domain entity" do
+      provider = provider_profile_fixture()
+      reporter = unconfirmed_user_fixture(intended_roles: [:provider])
+      program = insert(:program_schema, provider_id: provider.id)
+
+      report =
+        build_report(%{
+          provider_profile_id: provider.id,
+          reporter_user_id: reporter.id,
+          program_id: program.id
+        })
+
+      {:ok, %IncidentReport{} = saved} = IncidentReportRepository.create(report)
+
+      assert {:ok, %IncidentReport{} = fetched} = IncidentReportRepository.get(saved.id)
+      assert fetched.id == saved.id
+      assert fetched.provider_profile_id == provider.id
+      assert fetched.reporter_user_id == reporter.id
+      assert fetched.program_id == program.id
+      assert fetched.category == :safety_concern
+      assert fetched.severity == :low
+    end
+
+    test "returns {:error, :not_found} when the report does not exist" do
+      assert {:error, :not_found} = IncidentReportRepository.get(Ecto.UUID.generate())
+    end
+  end
+
   defp build_report(attrs) do
     defaults = %{
       id: Ecto.UUID.generate(),

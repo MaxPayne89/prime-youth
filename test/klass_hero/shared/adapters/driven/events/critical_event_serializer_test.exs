@@ -96,6 +96,15 @@ defmodule KlassHero.Shared.Adapters.Driven.Events.CriticalEventSerializerTest do
 
       assert deserialized.payload == %{address: %{city: "Berlin", zip: "10115"}}
     end
+
+    test "atomizes keys inside maps nested in lists" do
+      event = DomainEvent.new(:test, "id", :test, %{items: [%{name: "Alice"}, %{name: "Bob"}]})
+      serialized = CriticalEventSerializer.serialize(event)
+      json_cycled = Jason.decode!(Jason.encode!(serialized))
+      deserialized = CriticalEventSerializer.deserialize(json_cycled)
+
+      assert deserialized.payload == %{items: [%{name: "Alice"}, %{name: "Bob"}]}
+    end
   end
 
   describe "metadata round-trip" do

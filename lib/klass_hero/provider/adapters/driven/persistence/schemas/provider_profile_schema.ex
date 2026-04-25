@@ -24,6 +24,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
   schema "providers" do
     field :identity_id, :binary_id
     field :business_name, :string
+    field :business_owner_email, :string
     field :description, :string
     field :phone, :string
     field :website, :string
@@ -64,6 +65,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderProfile
     |> cast(attrs, [
       :identity_id,
       :business_name,
+      :business_owner_email,
       :description,
       :phone,
       :website,

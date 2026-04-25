@@ -33,6 +33,7 @@ defmodule KlassHero.Application do
   alias KlassHero.ProgramCatalog.Adapters.Driving.Events.EnrollmentEventHandler
   alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.CheckProviderVerificationStatus
   alias KlassHero.Provider.Adapters.Driving.Events.EventHandlers.StaffInvitationStatusHandler
+  alias KlassHero.Provider.Adapters.Driving.Events.IncidentReportedHandler
   alias KlassHero.Provider.Adapters.Driving.Events.ProviderEventHandler
   alias KlassHero.Shared.Adapters.Driven.Events.EventSubscriber
   alias KlassHero.Shared.DomainEventBus
@@ -107,7 +108,9 @@ defmodule KlassHero.Application do
            {:staff_assigned_to_program,
             {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle}},
            {:staff_unassigned_from_program,
-            {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle}}
+            {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle}},
+           {:incident_reported,
+            {KlassHero.Provider.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle}, priority: 10}
          ]},
         id: :provider_domain_event_bus
       ),
@@ -354,6 +357,15 @@ defmodule KlassHero.Application do
          message_tag: :integration_event,
          event_label: "Integration event"},
         id: :staff_invitation_status_subscriber
+      ),
+      # Provider self-listener: emails business owner on incident reports
+      Supervisor.child_spec(
+        {EventSubscriber,
+         handler: IncidentReportedHandler,
+         topics: ["integration:provider:incident_reported"],
+         message_tag: :integration_event,
+         event_label: "Integration event"},
+        id: :provider_incident_reported_subscriber
       ),
       # Messaging listens for staff assignment events from Provider
       Supervisor.child_spec(
