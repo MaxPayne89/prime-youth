@@ -189,7 +189,8 @@ defmodule KlassHero.ProviderFixtures do
       category: :safety_concern,
       severity: :high,
       description: "A child slipped near the play area but is unharmed.",
-      occurred_at: ~U[2026-04-20 14:30:00Z]
+      occurred_at: ~U[2026-04-20 14:30:00Z],
+      reporter_display_name: "Test Reporter"
     }
 
     {:ok, report} = IncidentReport.new(Map.merge(defaults, attrs_map))

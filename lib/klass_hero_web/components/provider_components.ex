@@ -1467,6 +1467,15 @@ defmodule KlassHeroWeb.ProviderComponents do
                       title={gettext("Report Incident")}
                     />
                   </.link>
+                  <.link
+                    navigate={~p"/provider/programs/#{program.id}/incidents"}
+                    class="inline-block"
+                  >
+                    <.action_button
+                      icon="hero-document-text-mini"
+                      title={gettext("Incident Reports")}
+                    />
+                  </.link>
                 </div>
               </td>
             </tr>

@@ -25,6 +25,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.IncidentReportS
   schema "incident_reports" do
     field :provider_id, :binary_id
     field :reporter_user_id, :binary_id
+    field :reporter_display_name, :string
     field :program_id, :binary_id
     field :session_id, :binary_id
     field :category, Ecto.Enum, values: IncidentReport.valid_categories()
@@ -41,6 +42,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Schemas.IncidentReportS
     :id,
     :provider_id,
     :reporter_user_id,
+    :reporter_display_name,
     :category,
     :severity,
     :description,

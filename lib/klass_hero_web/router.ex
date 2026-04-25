@@ -111,6 +111,7 @@ defmodule KlassHeroWeb.Router do
         live "/complete-profile", ProfileCompletionLive, :complete
 
         live "/incidents/new", IncidentReportLive, :new
+        live "/programs/:program_id/incidents", IncidentReportsLive, :index
 
         # Provider dashboard routes
         live "/dashboard", DashboardLive, :overview

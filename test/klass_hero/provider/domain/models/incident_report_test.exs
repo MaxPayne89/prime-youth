@@ -7,6 +7,7 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReportTest do
     id: Ecto.UUID.generate(),
     provider_profile_id: Ecto.UUID.generate(),
     reporter_user_id: Ecto.UUID.generate(),
+    reporter_display_name: "Jane Doe",
     program_id: Ecto.UUID.generate(),
     category: :safety_concern,
     severity: :high,
@@ -24,6 +25,25 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReportTest do
       assert {:ok, %IncidentReport{} = report} = IncidentReport.new(@valid_program_attrs)
       assert report.program_id == @valid_program_attrs.program_id
       assert is_nil(report.session_id)
+      assert report.reporter_display_name == "Jane Doe"
+    end
+
+    test "rejects when reporter_display_name is missing" do
+      attrs = Map.delete(@valid_program_attrs, :reporter_display_name)
+      assert {:error, errors} = IncidentReport.new(attrs)
+      assert errors[:reporter_display_name] =~ "required"
+    end
+
+    test "rejects when reporter_display_name is blank" do
+      attrs = Map.put(@valid_program_attrs, :reporter_display_name, "   ")
+      assert {:error, errors} = IncidentReport.new(attrs)
+      assert errors[:reporter_display_name] =~ "required"
+    end
+
+    test "rejects when reporter_display_name is non-binary" do
+      attrs = Map.put(@valid_program_attrs, :reporter_display_name, 123)
+      assert {:error, errors} = IncidentReport.new(attrs)
+      assert errors[:reporter_display_name] =~ "required"
     end
 
     test "builds a valid session-scoped incident" do

@@ -32,6 +32,7 @@ defmodule KlassHero.Provider do
       Domain.Models.PayRate,
       Domain.Models.VerificationDocument,
       Domain.Models.ProgramStaffAssignment,
+      Domain.ReadModels.IncidentReportSummary,
       Domain.ReadModels.ProviderProgram,
       Domain.ReadModels.SessionStats,
       Adapters.Driven.Persistence.Repositories.IncidentReportRepository,
@@ -63,6 +64,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Application.Commands.Verification.ApproveVerificationDocument
   alias KlassHero.Provider.Application.Commands.Verification.RejectVerificationDocument
   alias KlassHero.Provider.Application.Commands.Verification.SubmitVerificationDocument
+  alias KlassHero.Provider.Application.Queries.IncidentReportQueries
   alias KlassHero.Provider.Application.Queries.ListProgramSessions
   alias KlassHero.Provider.Application.Queries.ProgramStaffAssignmentQueries
   alias KlassHero.Provider.Application.Queries.ProviderProfileQueries
@@ -76,6 +78,7 @@ defmodule KlassHero.Provider do
   alias KlassHero.Provider.Domain.Models.StaffMember
   alias KlassHero.Provider.Domain.Models.VerificationDocument
   alias KlassHero.Provider.Domain.Ports.ForQueryingVerificationDocuments
+  alias KlassHero.Provider.Domain.ReadModels.IncidentReportSummary
   alias KlassHero.Provider.Domain.ReadModels.ProviderProgram
 
   # ===========================================================================
@@ -176,6 +179,22 @@ defmodule KlassHero.Provider do
   """
   def submit_incident_report(params) when is_map(params) do
     SubmitIncidentReport.execute(params)
+  end
+
+  @doc """
+  Lists incident report summaries for a program owned by the given provider.
+
+  Includes both program-direct and session-linked reports. Ordered by
+  `occurred_at` descending. Returns `[]` for unknown or unowned programs.
+  """
+  @spec list_incident_reports_for_program(String.t(), String.t()) ::
+          [IncidentReportSummary.t()]
+  def list_incident_reports_for_program(provider_id, program_id)
+      when is_binary(provider_id) and is_binary(program_id) do
+    IncidentReportQueries.list_for_program(
+      provider_id,
+      program_id
+    )
   end
 
   @doc """

@@ -44,6 +44,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
     %{
       provider_profile_id: provider.id,
       reporter_user_id: user.id,
+      reporter_display_name: user.name || "Test Reporter",
       program_id: program_id,
       session_id: nil,
       category: :safety_concern,
@@ -86,6 +87,24 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
 
       assert {:error, errors} = SubmitIncidentReport.execute(params)
       assert errors[:description] =~ "at least 10"
+      refute Repo.exists?(from r in IncidentReportSchema, select: r.id, limit: 1)
+    end
+
+    test "persists reporter_display_name as a snapshot", %{provider: p, program_id: pg, user: u} do
+      params = p |> base_params(pg, u) |> Map.put(:reporter_display_name, "Maria Schmidt")
+
+      assert {:ok, report} = SubmitIncidentReport.execute(params)
+      assert report.reporter_display_name == "Maria Schmidt"
+
+      stored = Repo.get(IncidentReportSchema, report.id)
+      assert stored.reporter_display_name == "Maria Schmidt"
+    end
+
+    test "rejects when reporter_display_name is blank", %{provider: p, program_id: pg, user: u} do
+      params = p |> base_params(pg, u) |> Map.put(:reporter_display_name, "   ")
+
+      assert {:error, errors} = SubmitIncidentReport.execute(params)
+      assert errors[:reporter_display_name] =~ "required"
       refute Repo.exists?(from r in IncidentReportSchema, select: r.id, limit: 1)
     end
   end
