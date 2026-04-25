@@ -26,14 +26,16 @@ defmodule KlassHero.Shared.EmailHtml do
   defp escape_chars(<<c::utf8, rest::binary>>, acc), do: escape_chars(rest, acc <> <<c::utf8>>)
 
   @doc """
-  Wraps inner HTML in the standard KlassHero email shell.
+  Wraps a pre-rendered HTML string in the standard KlassHero email shell.
+
+  `inner_html` must be a binary — callers build it via `~s|...|` or heredoc strings.
 
   ## Options
 
     * `:footer_message` — overrides the default footer paragraph.
   """
-  @spec wrap(iodata(), keyword()) :: String.t()
-  def wrap(inner_html, opts \\ []) do
+  @spec wrap(String.t(), keyword()) :: String.t()
+  def wrap(inner_html, opts \\ []) when is_binary(inner_html) do
     footer = Keyword.get(opts, :footer_message, @default_footer) |> esc()
 
     """
