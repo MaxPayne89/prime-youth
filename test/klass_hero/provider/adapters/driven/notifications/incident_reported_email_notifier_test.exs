@@ -22,6 +22,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Notifications.IncidentReportedEmail
             id: "01HZ-incident-id",
             provider_profile_id: "prov-1",
             reporter_user_id: "user-1",
+            reporter_display_name: "Jane Doe",
             program_id: "prog-1",
             category: :safety_concern,
             severity: :high,

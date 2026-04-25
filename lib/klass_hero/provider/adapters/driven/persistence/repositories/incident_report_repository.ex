@@ -13,8 +13,12 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.IncidentRe
 
   use KlassHero.Shared.Tracing
 
+  import Ecto.Query
+
   alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.IncidentReportMapper
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Mappers.IncidentReportSummaryMapper
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.IncidentReportSchema
+  alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderSessionDetailSchema
   alias KlassHero.Provider.Domain.Ports.ForQueryingIncidentReports
   alias KlassHero.Provider.Domain.Ports.ForStoringIncidentReports
   alias KlassHero.Repo
@@ -57,5 +61,48 @@ defmodule KlassHero.Provider.Adapters.Driven.Persistence.Repositories.IncidentRe
         schema -> {:ok, IncidentReportMapper.to_domain(schema)}
       end
     end
+  end
+
+  @impl ForQueryingIncidentReports
+  @doc """
+  Lists incident report summaries for a program owned by `provider_id`.
+
+  Two-source query: program-direct reports (matched by
+  `incident_reports.program_id`) plus session-linked reports (matched by
+  joining `incident_reports.session_id` against the Provider-local
+  `provider_session_details` projection). Both branches filter by
+  `provider_id` for IDOR defense.
+  """
+  def list_for_program(provider_id, program_id) when is_binary(provider_id) and is_binary(program_id) do
+    span do
+      set_attributes("db", operation: "select", entity: "incident_report_summary")
+
+      program_direct = list_program_direct(provider_id, program_id)
+      session_linked = list_session_linked(provider_id, program_id)
+
+      (program_direct ++ session_linked)
+      |> Enum.sort_by(& &1.occurred_at, {:desc, DateTime})
+      |> Enum.map(&IncidentReportSummaryMapper.from_schema/1)
+    end
+  end
+
+  defp list_program_direct(provider_id, program_id) do
+    from(r in IncidentReportSchema,
+      where: r.provider_id == ^provider_id and r.program_id == ^program_id
+    )
+    |> Repo.all()
+  end
+
+  defp list_session_linked(provider_id, program_id) do
+    from(r in IncidentReportSchema,
+      join: s in ProviderSessionDetailSchema,
+      on: s.session_id == r.session_id,
+      where:
+        r.provider_id == ^provider_id and
+          s.provider_id == ^provider_id and
+          s.program_id == ^program_id,
+      select: r
+    )
+    |> Repo.all()
   end
 end

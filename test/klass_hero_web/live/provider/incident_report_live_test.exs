@@ -112,6 +112,33 @@ defmodule KlassHeroWeb.Provider.IncidentReportLiveTest do
       assert Repo.aggregate(IncidentReportSchema, :count) == 1
     end
 
+    test "snapshots the reporter's display name from current_scope on submit", %{
+      conn: conn,
+      provider: provider,
+      user: user
+    } do
+      program_id = insert_owned_program!(provider.id, "Robotics")
+
+      {:ok, view, _html} = live(conn, ~p"/provider/incidents/new?program_id=#{program_id}")
+
+      view
+      |> form("#incident-report-form",
+        incident: %{
+          "program_id" => program_id,
+          "category" => "safety_concern",
+          "severity" => "medium",
+          "description" => "A child tripped but was not injured.",
+          "occurred_at" => "2026-04-22T14:00"
+        }
+      )
+      |> render_submit()
+
+      assert_redirect(view)
+      [stored] = Repo.all(IncidentReportSchema)
+      expected = user.name || user.email
+      assert stored.reporter_display_name == expected
+    end
+
     test "invalid submit (description too short) renders inline errors", %{
       conn: conn,
       provider: provider

@@ -26,6 +26,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
 
   - `:provider_profile_id` — Required. The provider submitting the report.
   - `:reporter_user_id` — Required. The user submitting the report.
+  - `:reporter_display_name` — Required. Snapshot of the reporter's display name at submit time.
   - `:program_id` OR `:session_id` — Required. Exactly one must be set.
   - `:category` — Required. One of `IncidentReport.valid_categories/0`.
   - `:severity` — Required. One of `IncidentReport.valid_severities/0`.
@@ -112,6 +113,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
       id: Ecto.UUID.generate(),
       provider_profile_id: params.provider_profile_id,
       reporter_user_id: params.reporter_user_id,
+      reporter_display_name: params[:reporter_display_name],
       program_id: params[:program_id],
       session_id: params[:session_id],
       category: params.category,

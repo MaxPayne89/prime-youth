@@ -14,6 +14,7 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReport do
   - `id` - Unique identifier for the report
   - `provider_profile_id` - Reference to the provider submitting the report
   - `reporter_user_id` - ID of the user submitting the report
+  - `reporter_display_name` - Snapshot of the reporter's display name at submission time
   - `program_id` - Reference to the program (when scoped to a program)
   - `session_id` - Reference to the session (when scoped to a session)
   - `category` - Incident category (e.g. `:safety_concern`, `:injury`)
@@ -43,6 +44,7 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReport do
     :id,
     :provider_profile_id,
     :reporter_user_id,
+    :reporter_display_name,
     :category,
     :severity,
     :description,
@@ -53,6 +55,7 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReport do
     :id,
     :provider_profile_id,
     :reporter_user_id,
+    :reporter_display_name,
     :program_id,
     :session_id,
     :category,
@@ -79,6 +82,7 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReport do
           id: String.t(),
           provider_profile_id: String.t(),
           reporter_user_id: String.t(),
+          reporter_display_name: String.t(),
           program_id: String.t() | nil,
           session_id: String.t() | nil,
           category: category(),
@@ -126,12 +130,14 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReport do
          :ok <- validate_severity(attrs),
          :ok <- validate_description(attrs),
          :ok <- validate_occurred_at(attrs),
+         :ok <- validate_reporter_display_name(attrs),
          :ok <- validate_photo_pair(attrs) do
       {:ok,
        %__MODULE__{
          id: attrs[:id],
          provider_profile_id: attrs[:provider_profile_id],
          reporter_user_id: attrs[:reporter_user_id],
+         reporter_display_name: attrs[:reporter_display_name],
          program_id: attrs[:program_id],
          session_id: attrs[:session_id],
          category: attrs[:category],
@@ -182,6 +188,15 @@ defmodule KlassHero.Provider.Domain.Models.IncidentReport do
   end
 
   defp validate_occurred_at(_attrs), do: {:error, [occurred_at: "must be a DateTime"]}
+
+  defp validate_reporter_display_name(%{reporter_display_name: name}) when is_binary(name) do
+    case String.trim(name) do
+      "" -> {:error, [reporter_display_name: "is required"]}
+      _trimmed -> :ok
+    end
+  end
+
+  defp validate_reporter_display_name(_attrs), do: {:error, [reporter_display_name: "is required"]}
 
   defp validate_photo_pair(attrs) do
     case {Map.get(attrs, :photo_url), Map.get(attrs, :original_filename)} do

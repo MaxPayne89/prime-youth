@@ -104,7 +104,7 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
 
     submit_params =
       params
-      |> build_submit_params(socket.assigns.provider.id, socket.assigns.current_scope.user.id)
+      |> build_submit_params(socket.assigns.provider.id, socket.assigns.current_scope.user)
       |> Map.merge(photo_params)
 
     case Provider.submit_incident_report(submit_params) do
@@ -164,10 +164,11 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
       {:error, :upload_channel_died}
   end
 
-  defp build_submit_params(params, provider_id, user_id) do
+  defp build_submit_params(params, provider_id, user) do
     %{
       provider_profile_id: provider_id,
-      reporter_user_id: user_id,
+      reporter_user_id: user.id,
+      reporter_display_name: reporter_display_name(user),
       program_id: blank_to_nil(params["program_id"]),
       session_id: blank_to_nil(params["session_id"]),
       category: atomize(params["category"]),
@@ -176,6 +177,19 @@ defmodule KlassHeroWeb.Provider.IncidentReportLive do
       occurred_at: DateTimeHelpers.parse_datetime_local(params["occurred_at"])
     }
   end
+
+  # Trigger: building the submit params for the authenticated reporter
+  # Why: User.name is optional; fall back to email so the reporter snapshot
+  #      is always populated for audit semantics
+  # Outcome: a non-blank string used as the immutable reporter display name
+  defp reporter_display_name(%{name: name, email: email}) when is_binary(name) do
+    case String.trim(name) do
+      "" -> email
+      trimmed -> trimmed
+    end
+  end
+
+  defp reporter_display_name(%{email: email}), do: email
 
   defp blank_to_nil(nil), do: nil
   defp blank_to_nil(""), do: nil

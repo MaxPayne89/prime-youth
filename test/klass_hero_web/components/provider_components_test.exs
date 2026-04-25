@@ -50,6 +50,28 @@ defmodule KlassHeroWeb.ProviderComponentsTest do
       assert html =~ ~s|href="/provider/incidents/new?program_id=prog-123"|
       assert html =~ ~s|aria-label="Report Incident"|
     end
+
+    test "renders an Incident Reports link per row that targets the per-program list" do
+      program = %{
+        id: "prog-456",
+        name: "Robotics",
+        category: "STEM",
+        price: "75",
+        assigned_staff: nil,
+        status: :active,
+        enrolled: 3,
+        capacity: 12
+      }
+
+      html =
+        render_component(&KlassHeroWeb.ProviderComponents.programs_table/1,
+          programs: [{"programs-prog-456", program}],
+          staff_options: [%{value: "all", label: "All Staff"}]
+        )
+
+      assert html =~ ~s|href="/provider/programs/prog-456/incidents"|
+      assert html =~ ~s|aria-label="Incident Reports"|
+    end
   end
 
   describe "sessions_modal/1" do
