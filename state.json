@@ -21,8 +21,9 @@
     "expire_staff_invitation_note": "ExpireStaffInvitation: only :sent->:expired valid; others return {:error, :invalid_invitation_transition}",
     "invite_field_validations_note": "InviteFieldValidations tested via embedded_schema in ExUnit.Case async:true; 18 tests",
     "global_publisher_race_705": "Issue #705: :participation_seed_roster_subscriber causes race; Mox fix recommended",
-    "accounts_command_test_pattern": "RegisterUser/AnonymizeUser/ChangeEmail: DataCase async:true, AccountsFixtures, real UserRepository, no event assertions needed (events tested in PromoteIntegrationEventsTest)",
-    "change_email_token_pattern": "Use AccountsFixtures.extract_user_token + Accounts.deliver_user_update_email_instructions with user copy having new_email to generate valid token"
+    "accounts_command_test_pattern": "RegisterUser/AnonymizeUser/ChangeEmail: DataCase async:true, AccountsFixtures, real UserRepository, no event assertions needed",
+    "incident_report_mapper_note": "IncidentReportMapper: provider_profile_id (domain) <-> provider_id (DB); maybe_to_string nil-guard for program_id/session_id",
+    "provider_program_mapper_skip": "ProviderProgramMapper is trivial pass-through - not worth testing per guidelines"
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -45,21 +46,29 @@
   "tasks_last_run": {
     "task_1": "2026-04-15",
     "task_2": "2026-04-23",
-    "task_3": "2026-04-24",
-    "task_4": "2026-04-22",
+    "task_3": "2026-04-25",
+    "task_4": "2026-04-25",
     "task_5": "2026-04-23",
     "task_6": "2026-04-21",
-    "task_7": "2026-04-24"
+    "task_7": "2026-04-25"
   },
   "work_in_progress": null,
   "completed_work": [
+    {
+      "date": "2026-04-25",
+      "run_id": "24940953876",
+      "pr_branch": "test-assist/provider-incident-mapper-tests-1777152516",
+      "description": "19 pure unit tests for IncidentReportMapper (14) and IncidentReportSummaryMapper (5)",
+      "tests_added": 19,
+      "pr_number": null
+    },
     {
       "date": "2026-04-24",
       "run_id": "24912656952",
       "pr_branch": "test-assist/accounts-application-command-tests-1777066115",
       "description": "11 DataCase tests for RegisterUser, AnonymizeUser, ChangeEmail accounts commands",
       "tests_added": 11,
-      "pr_number": null
+      "pr_number": 750
     },
     {
       "date": "2026-04-23",
@@ -84,14 +93,6 @@
       "description": "18 tests for InviteFieldValidations",
       "tests_added": 18,
       "pr_number": 719
-    },
-    {
-      "date": "2026-04-20",
-      "run_id": "24691216946",
-      "pr_branch": "test-assist/participant-mapper-unit-tests-1776720751",
-      "description": "8 tests for ParticipantMapper",
-      "tests_added": 8,
-      "pr_number": 713
     }
   ],
   "monthly_summary_issue": {
@@ -101,7 +102,7 @@
   },
   "checked_off_items": [],
   "backlog_cursor": {
-    "task_2_last_file": "accounts application commands completed (2026-04-24)",
+    "task_2_last_file": "provider persistence mappers completed (2026-04-25)",
     "task_5_last_issue": 705
   },
   "open_prs": [
@@ -110,6 +111,7 @@
     713,
     719,
     723,
-    733
+    733,
+    750
   ]
 }
