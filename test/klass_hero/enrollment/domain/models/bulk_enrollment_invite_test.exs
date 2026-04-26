@@ -87,4 +87,24 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInviteTest do
       end
     end
   end
+
+  describe "ensure_resendable/1" do
+    for status <- ~w(pending invite_sent failed) do
+      test "returns {:ok, invite} for #{status} status" do
+        {:ok, invite} =
+          BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: unquote(status)})
+
+        assert {:ok, ^invite} = BulkEnrollmentInvite.ensure_resendable(invite)
+      end
+    end
+
+    for status <- ~w(registered enrolled) do
+      test "returns {:error, :not_resendable} for #{status} status" do
+        {:ok, invite} =
+          BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: unquote(status)})
+
+        assert {:error, :not_resendable} = BulkEnrollmentInvite.ensure_resendable(invite)
+      end
+    end
+  end
 end

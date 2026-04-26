@@ -28,14 +28,14 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorker do
   @impl true
   def execute(%Oban.Job{args: %{"invite_id" => invite_id, "program_name" => program_name}}) do
     case @invite_reader.get_by_id(invite_id) do
-      nil ->
+      {:error, :not_found} ->
         Logger.warning("[SendInviteEmailWorker] Invite not found", invite_id: invite_id)
         :ok
 
       # Trigger: invite already processed (not pending)
       # Why: Oban may retry, or event re-dispatched — skip to avoid duplicate emails
       # Outcome: return :ok without sending
-      %BulkEnrollmentInvite{status: status} when status != "pending" ->
+      {:ok, %BulkEnrollmentInvite{status: status}} when status != "pending" ->
         Logger.info("[SendInviteEmailWorker] Skipping non-pending invite",
           invite_id: invite_id,
           status: status
@@ -43,11 +43,11 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorker do
 
         :ok
 
-      %BulkEnrollmentInvite{invite_token: nil} ->
+      {:ok, %BulkEnrollmentInvite{invite_token: nil}} ->
         Logger.warning("[SendInviteEmailWorker] Invite has no token", invite_id: invite_id)
         {:error, "invite has no token"}
 
-      %BulkEnrollmentInvite{} = invite ->
+      {:ok, %BulkEnrollmentInvite{} = invite} ->
         send_and_transition(invite, program_name)
     end
   end

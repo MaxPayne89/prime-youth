@@ -108,6 +108,17 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite do
   def resendable?(%__MODULE__{status: status}) when status in @resendable_statuses, do: true
   def resendable?(%__MODULE__{}), do: false
 
+  @doc """
+  Tuple-returning variant of `resendable?/1` for composing in `with` chains.
+
+  Returns `{:ok, invite}` when the status allows resending,
+  `{:error, :not_resendable}` otherwise.
+  """
+  @spec ensure_resendable(t()) :: {:ok, t()} | {:error, :not_resendable}
+  def ensure_resendable(%__MODULE__{status: status} = invite) when status in @resendable_statuses, do: {:ok, invite}
+
+  def ensure_resendable(%__MODULE__{}), do: {:error, :not_resendable}
+
   @doc "Generates a cryptographically secure URL-safe token for invite links."
   @spec generate_token() :: String.t()
   def generate_token do

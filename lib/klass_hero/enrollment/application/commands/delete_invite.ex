@@ -21,13 +21,13 @@ defmodule KlassHero.Enrollment.Application.Commands.DeleteInvite do
     # Why: without ownership check, any provider could delete another's invite
     # Outcome: verify provider_id matches before deleting; return :not_found on mismatch
     case @invite_reader.get_by_id(invite_id) do
-      nil ->
-        {:error, :not_found}
+      {:error, :not_found} = err ->
+        err
 
-      invite when invite.provider_id == provider_id ->
+      {:ok, invite} when invite.provider_id == provider_id ->
         @invite_repository.delete(invite_id)
 
-      _invite ->
+      {:ok, _invite} ->
         {:error, :not_found}
     end
   end

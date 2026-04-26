@@ -161,15 +161,15 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   @doc """
   Retrieves a single invite by its ID.
 
-  Returns the invite struct or nil if not found.
+  Returns `{:ok, invite}` when found, `{:error, :not_found}` otherwise.
   """
   def get_by_id(id) when is_binary(id) do
     span do
       set_attributes("db", operation: "select", entity: "bulk_enrollment_invite")
 
       case Repo.get(BulkEnrollmentInviteSchema, id) do
-        nil -> nil
-        schema -> Mapper.to_domain(schema)
+        nil -> {:error, :not_found}
+        schema -> {:ok, Mapper.to_domain(schema)}
       end
     end
   end

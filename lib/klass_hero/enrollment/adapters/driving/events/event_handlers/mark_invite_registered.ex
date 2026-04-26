@@ -25,11 +25,11 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteR
     %{invite_id: invite_id} = event.payload
 
     case @invite_reader.get_by_id(invite_id) do
-      nil ->
+      {:error, :not_found} ->
         Logger.warning("[MarkInviteRegistered] Invite not found", invite_id: invite_id)
         :ok
 
-      invite ->
+      {:ok, invite} ->
         maybe_transition(invite)
     end
   end
