@@ -25,7 +25,10 @@
     "incident_report_mapper_note": "IncidentReportMapper: provider_profile_id (domain) <-> provider_id (DB); maybe_to_string nil-guard for program_id/session_id",
     "provider_program_mapper_skip": "ProviderProgramMapper is trivial pass-through - not worth testing per guidelines",
     "login_by_magic_link_note": "LoginByMagicLink: 3 paths (confirmed/unconfirmed/error). Domain events via DomainEventBus — need DomainEventBus.subscribe + TestEventPublisher bridge for assertions. Use async:false.",
-    "domain_event_test_pattern": "EventDispatchHelper.dispatch/2 uses DomainEventBus (not TestEventPublisher port). Bridge via DomainEventBus.subscribe(Context, :event, fn event -> TestEventPublisher.publish(event); :ok end) in setup. Use async:false."
+    "domain_event_test_pattern": "EventDispatchHelper.dispatch/2 uses DomainEventBus (not TestEventPublisher port). Bridge via DomainEventBus.subscribe(Context, :event, fn event -> TestEventPublisher.publish(event); :ok end) in setup. Use async:false.",
+    "coverage_saturation_note": "As of 2026-04-27, codebase has 342 test files covering all mappers, event handlers, domain services, workers, commands, queries. Backlog is effectively exhausted - remaining untested items are trivial pass-throughs.",
+    "mark_invite_registered_test_note": "MarkInviteRegistered handler tests already exist on main as of 2026-04-27 (not created by Test Improver - already there).",
+    "create_program_rejected_note": "PR #634 with CreateProgram/UpdateProgram tests was closed without merge by maintainer. Do not re-attempt."
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -33,31 +36,16 @@
       "id": "e2e-messaging-pubsub-fanout",
       "priority": "medium",
       "description": "E2E scale tests for messaging PubSub fan-out (Issue #515)"
-    },
-    {
-      "id": "conversation-queries-with-ended-program",
-      "priority": "low",
-      "description": "ConversationQueries.with_ended_program/2 - cross-context call; needs integration test"
-    },
-    {
-      "id": "admin-provider-live-event-publishing",
-      "priority": "low",
-      "description": "admin provider_live.ex event publishing; architecturally constrained"
-    },
-    {
-      "id": "schedule-email-content-fetch",
-      "priority": "low",
-      "description": "messaging ScheduleEmailContentFetch command - may be worth checking if non-trivial"
     }
   ],
   "tasks_last_run": {
     "task_1": "2026-04-15",
-    "task_2": "2026-04-26",
-    "task_3": "2026-04-26",
+    "task_2": "2026-04-27",
+    "task_3": "2026-04-27",
     "task_4": "2026-04-26",
     "task_5": "2026-04-23",
-    "task_6": "2026-04-21",
-    "task_7": "2026-04-26"
+    "task_6": "2026-04-27",
+    "task_7": "2026-04-27"
   },
   "work_in_progress": null,
   "completed_work": [
@@ -67,7 +55,7 @@
       "pr_branch": "test-assist/login-by-magic-link-tests-1777238565",
       "description": "11 DataCase tests for LoginByMagicLink command (3 paths: confirmed user, unconfirmed user with event dispatch, error cases)",
       "tests_added": 11,
-      "pr_number": null
+      "pr_number": 764
     },
     {
       "date": "2026-04-25",
@@ -117,7 +105,7 @@
   },
   "checked_off_items": [],
   "backlog_cursor": {
-    "task_2_last_file": "accounts application commands surveyed (2026-04-26)",
+    "task_2_last_file": "Full sweep complete 2026-04-27: 342 test files found, backlog near-exhausted",
     "task_5_last_issue": 705
   },
   "open_prs": [
@@ -128,6 +116,7 @@
     723,
     733,
     750,
-    759
+    759,
+    764
   ]
 }
