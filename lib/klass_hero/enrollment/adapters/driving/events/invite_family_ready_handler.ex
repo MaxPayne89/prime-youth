@@ -105,7 +105,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler 
       program_id: program_id,
       child_id: child_id,
       parent_id: parent_id,
-      status: "confirmed",
+      status: :confirmed,
       payment_method: "transfer"
     })
   end

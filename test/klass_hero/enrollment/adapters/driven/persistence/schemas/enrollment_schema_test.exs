@@ -127,13 +127,13 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
 
   describe "update_changeset/2" do
     test "allows updating status" do
-      schema = %EnrollmentSchema{status: "pending"}
-      attrs = %{status: "confirmed"}
+      schema = %EnrollmentSchema{status: :pending}
+      attrs = %{status: :confirmed}
 
       changeset = EnrollmentSchema.update_changeset(schema, attrs)
 
       assert changeset.valid?
-      assert Ecto.Changeset.get_change(changeset, :status) == "confirmed"
+      assert Ecto.Changeset.get_change(changeset, :status) == :confirmed
     end
 
     test "does not allow changing program_id" do

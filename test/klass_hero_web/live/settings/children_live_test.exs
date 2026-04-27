@@ -258,7 +258,7 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
           enrollment.id
         )
 
-      assert updated.status == "cancelled"
+      assert updated.status == :cancelled
     end
 
     test "cancelling the confirmation modal does not delete child", %{

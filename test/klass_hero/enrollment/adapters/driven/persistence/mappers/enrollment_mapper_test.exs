@@ -12,7 +12,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
         program_id: Ecto.UUID.generate(),
         child_id: Ecto.UUID.generate(),
         parent_id: Ecto.UUID.generate(),
-        status: "pending",
+        status: :pending,
         enrolled_at: ~U[2025-01-15 10:00:00Z],
         confirmed_at: nil,
         completed_at: nil,
@@ -45,25 +45,12 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
       assert enrollment.special_requirements == "Allergies: nuts"
     end
 
-    test "converts status string to atom" do
-      for {string_status, atom_status} <- [
-            {"pending", :pending},
-            {"confirmed", :confirmed},
-            {"completed", :completed},
-            {"cancelled", :cancelled}
-          ] do
-        schema = build_schema(status: string_status)
+    test "passes status atom through unchanged (Ecto.Enum loads the schema field as atom)" do
+      for status <- [:pending, :confirmed, :completed, :cancelled] do
+        schema = build_schema(status: status)
         enrollment = EnrollmentMapper.to_domain(schema)
-        assert enrollment.status == atom_status
+        assert enrollment.status == status
       end
-    end
-
-    test "handles nil status by defaulting to pending" do
-      schema = build_schema(status: nil)
-
-      enrollment = EnrollmentMapper.to_domain(schema)
-
-      assert enrollment.status == :pending
     end
 
     test "preserves DateTime fields" do
@@ -115,7 +102,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
       assert attrs[:program_id] == enrollment.program_id
       assert attrs[:child_id] == enrollment.child_id
       assert attrs[:parent_id] == enrollment.parent_id
-      assert attrs[:status] == "confirmed"
+      assert attrs[:status] == :confirmed
       assert attrs[:enrolled_at] == enrollment.enrolled_at
       assert attrs[:confirmed_at] == enrollment.confirmed_at
       assert attrs[:subtotal] == enrollment.subtotal
@@ -123,20 +110,12 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
       assert attrs[:special_requirements] == "Special diet"
     end
 
-    test "converts status atom to string" do
+    test "passes status atom through unchanged (Ecto.Enum dumps the schema field on persistence)" do
       for status <- [:pending, :confirmed, :completed, :cancelled] do
         enrollment = build_enrollment(status: status)
         attrs = EnrollmentMapper.to_schema(enrollment)
-        assert attrs[:status] == Atom.to_string(status)
+        assert attrs[:status] == status
       end
-    end
-
-    test "handles nil status by defaulting to pending" do
-      enrollment = build_enrollment(status: nil)
-
-      attrs = EnrollmentMapper.to_schema(enrollment)
-
-      assert attrs[:status] == "pending"
     end
 
     test "excludes id when nil" do
@@ -201,7 +180,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
       program_id: Ecto.UUID.generate(),
       child_id: Ecto.UUID.generate(),
       parent_id: Ecto.UUID.generate(),
-      status: "pending",
+      status: :pending,
       enrolled_at: ~U[2025-01-15 10:00:00Z],
       confirmed_at: nil,
       completed_at: nil,

@@ -23,7 +23,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
 
   Returns the domain Enrollment struct with all fields mapped from the schema.
   UUIDs are converted to strings to maintain domain independence from Ecto types.
-  Status is converted from string to atom.
+  Status is loaded as an atom by `Ecto.Enum` on the schema field.
   """
   @spec to_domain(EnrollmentSchema.t()) :: Enrollment.t()
   def to_domain(%EnrollmentSchema{} = schema) do
@@ -32,7 +32,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
       program_id: to_string(schema.program_id),
       child_id: to_string(schema.child_id),
       parent_id: to_string(schema.parent_id),
-      status: string_to_status(schema.status),
+      status: schema.status,
       enrolled_at: schema.enrolled_at,
       confirmed_at: schema.confirmed_at,
       completed_at: schema.completed_at,
@@ -53,7 +53,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
   Converts a domain Enrollment entity to EnrollmentSchema attributes map.
 
   Returns a map suitable for Ecto changeset operations (insert/update).
-  Status is converted from atom to string.
+  Status flows through as an atom; `Ecto.Enum` handles the dump on persistence.
   """
   @spec to_schema(Enrollment.t()) :: map()
   def to_schema(%Enrollment{} = enrollment) do
@@ -61,7 +61,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
       program_id: enrollment.program_id,
       child_id: enrollment.child_id,
       parent_id: enrollment.parent_id,
-      status: status_to_string(enrollment.status),
+      status: enrollment.status,
       enrolled_at: enrollment.enrolled_at,
       confirmed_at: enrollment.confirmed_at,
       completed_at: enrollment.completed_at,
@@ -76,10 +76,4 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Mappers.EnrollmentMap
     }
     |> maybe_add_id(enrollment.id)
   end
-
-  defp string_to_status(nil), do: :pending
-  defp string_to_status(status) when is_binary(status), do: String.to_existing_atom(status)
-
-  defp status_to_string(nil), do: "pending"
-  defp status_to_string(status) when is_atom(status), do: Atom.to_string(status)
 end

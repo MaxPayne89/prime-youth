@@ -52,5 +52,21 @@ defmodule KlassHero.Enrollment.Application.Commands.CancelEnrollmentByAdminTest 
       assert {:error, :not_found} =
                CancelEnrollmentByAdmin.execute(Ecto.UUID.generate(), admin_id, "Nope")
     end
+
+    test "returns invalid_reason for empty reason" do
+      schema = insert(:enrollment_schema, status: "pending")
+      admin_id = Ecto.UUID.generate()
+
+      assert {:error, :invalid_reason} =
+               CancelEnrollmentByAdmin.execute(schema.id, admin_id, "")
+    end
+
+    test "returns invalid_reason for nil reason" do
+      schema = insert(:enrollment_schema, status: "pending")
+      admin_id = Ecto.UUID.generate()
+
+      assert {:error, :invalid_reason} =
+               CancelEnrollmentByAdmin.execute(schema.id, admin_id, nil)
+    end
   end
 end

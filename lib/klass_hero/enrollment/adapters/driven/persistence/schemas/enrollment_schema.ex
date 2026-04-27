@@ -18,7 +18,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
   @foreign_key_type :binary_id
   @timestamps_opts [type: :utc_datetime]
 
-  @valid_statuses ~w(pending confirmed completed cancelled)
   @valid_payment_methods ~w(card transfer)
 
   schema "enrollments" do
@@ -29,7 +28,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
 
     belongs_to :parent, ParentProfileSchema
 
-    field :status, :string
+    field :status, Ecto.Enum, values: [:pending, :confirmed, :completed, :cancelled]
     field :enrolled_at, :utc_datetime
     field :confirmed_at, :utc_datetime
     field :completed_at, :utc_datetime
@@ -74,7 +73,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
     enrollment_schema
     |> cast(attrs, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields ++ [:child_id])
-    |> validate_inclusion(:status, @valid_statuses)
     |> validate_inclusion(:payment_method, @valid_payment_methods ++ [nil])
     |> validate_length(:cancellation_reason, max: 1000)
     |> validate_length(:special_requirements, max: 500)
@@ -104,7 +102,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentSch
 
     enrollment_schema
     |> cast(attrs, updatable_fields ++ [:status])
-    |> validate_inclusion(:status, @valid_statuses)
     |> validate_inclusion(:payment_method, @valid_payment_methods ++ [nil])
     |> validate_length(:cancellation_reason, max: 1000)
     |> validate_length(:special_requirements, max: 500)
