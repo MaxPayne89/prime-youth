@@ -28,7 +28,8 @@
     "domain_event_test_pattern": "EventDispatchHelper.dispatch/2 uses DomainEventBus (not TestEventPublisher port). Bridge via DomainEventBus.subscribe(Context, :event, fn event -> TestEventPublisher.publish(event); :ok end) in setup. Use async:false.",
     "coverage_saturation_note": "As of 2026-04-27, codebase has 342 test files covering all mappers, event handlers, domain services, workers, commands, queries. Backlog is effectively exhausted - remaining untested items are trivial pass-throughs.",
     "mark_invite_registered_test_note": "MarkInviteRegistered handler tests already exist on main as of 2026-04-27 (not created by Test Improver - already there).",
-    "create_program_rejected_note": "PR #634 with CreateProgram/UpdateProgram tests was closed without merge by maintainer. Do not re-attempt."
+    "create_program_rejected_note": "PR #634 with CreateProgram/UpdateProgram tests was closed without merge by maintainer. Do not re-attempt.",
+    "ci_check_runs_note": "No CI check runs appear on Test Improver PRs (total_count: 0 on all checked PRs as of 2026-04-28). CI may only run on push to main or may require maintainer trigger."
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -42,10 +43,10 @@
     "task_1": "2026-04-15",
     "task_2": "2026-04-27",
     "task_3": "2026-04-27",
-    "task_4": "2026-04-26",
-    "task_5": "2026-04-23",
+    "task_4": "2026-04-28",
+    "task_5": "2026-04-28",
     "task_6": "2026-04-27",
-    "task_7": "2026-04-27"
+    "task_7": "2026-04-28"
   },
   "work_in_progress": null,
   "completed_work": [
