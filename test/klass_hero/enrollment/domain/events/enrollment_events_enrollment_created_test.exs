@@ -14,7 +14,7 @@ defmodule KlassHero.Enrollment.Domain.Events.EnrollmentEventsEnrollmentCreatedTe
         parent_id: Ecto.UUID.generate(),
         parent_user_id: Ecto.UUID.generate(),
         program_id: Ecto.UUID.generate(),
-        status: "pending"
+        status: :pending
       }
 
       event = EnrollmentEvents.enrollment_created(enrollment_id, payload)

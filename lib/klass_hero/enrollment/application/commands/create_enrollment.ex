@@ -16,7 +16,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
 
   ## Optional Parameters
 
-  - status: Enrollment status (defaults to "pending")
+  - status: Enrollment status (defaults to :pending)
   - enrolled_at: DateTime of enrollment (defaults to now)
   - subtotal, vat_amount, card_fee_amount, total_amount: Fee amounts
   - payment_method: "card" or "transfer"
@@ -27,6 +27,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
   When `identity_id` is provided, the use case validates:
   - Parent profile exists for the identity
   - Parent has remaining booking capacity based on their tier
+  - Child meets the program's participant restrictions
 
   When only `parent_id` is provided (direct calls), validation is skipped.
   """
@@ -63,73 +64,42 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
   @spec execute(map()) ::
           {:ok, EnrollmentModel.t()} | {:error, :ineligible, [String.t()]} | {:error, term()}
   def execute(%{identity_id: identity_id} = params) when is_binary(identity_id) do
-    create_enrollment_with_validation(identity_id, params)
+    with {:ok, parent} <- fetch_parent(identity_id),
+         {:ok, _parent} <-
+           Entitlements.ensure_booking_capacity(
+             parent,
+             Enrollment.count_monthly_bookings(parent.id)
+           ),
+         {:ok, :eligible} <- ensure_eligible(params[:program_id], params[:child_id]) do
+      params
+      |> build_enrollment_attrs(parent.id)
+      |> persist_and_dispatch(identity_id)
+    end
   end
 
   def execute(params) when is_map(params) do
-    create_enrollment_direct(params)
+    params
+    |> build_enrollment_attrs(params[:parent_id])
+    |> persist_and_dispatch(params[:identity_id])
   end
 
-  defp create_enrollment_with_validation(identity_id, params) do
-    with {:ok, parent} <- validate_parent_profile(identity_id),
-         :ok <- validate_booking_entitlement(parent),
-         :ok <- validate_participant_eligibility(params[:program_id], params[:child_id]),
-         attrs = build_enrollment_attrs(params, parent.id),
-         {:ok, enrollment} <- @enrollment_repository.create_with_capacity_check(attrs, params[:program_id]) do
-      dispatch_enrollment_created(enrollment, identity_id)
-      {:ok, enrollment}
-    end
-  end
-
-  defp create_enrollment_direct(params) do
-    attrs = build_enrollment_attrs(params, params[:parent_id])
-
-    Logger.info("[Enrollment.CreateEnrollment] Creating enrollment (direct)",
-      program_id: attrs[:program_id],
-      child_id: attrs[:child_id],
-      parent_id: attrs[:parent_id]
-    )
-
-    case @enrollment_repository.create_with_capacity_check(attrs, params[:program_id]) do
-      {:ok, enrollment} ->
-        dispatch_enrollment_created(enrollment, params[:identity_id])
-        {:ok, enrollment}
-
-      error ->
-        error
-    end
-  end
-
-  defp validate_parent_profile(identity_id) do
+  defp fetch_parent(identity_id) do
     case Family.get_parent_by_identity(identity_id) do
       {:ok, parent} -> {:ok, parent}
       {:error, :not_found} -> {:error, :no_parent_profile}
     end
   end
 
-  defp validate_booking_entitlement(parent) do
-    current_count = Enrollment.count_monthly_bookings(parent.id)
-
-    if Entitlements.can_create_booking?(parent, current_count) do
-      :ok
-    else
-      Logger.info("[Enrollment.CreateEnrollment] Booking limit exceeded",
-        parent_id: parent.id,
-        tier: parent.subscription_tier,
-        current_count: current_count
-      )
-
-      {:error, :booking_limit_exceeded}
-    end
-  end
-
-  # Trigger: child may not meet program's age/gender/grade restrictions
-  # Why: enforce provider-configured eligibility rules before accepting enrollment
-  # Outcome: blocks ineligible children with human-readable reasons
-  defp validate_participant_eligibility(program_id, child_id) do
+  # Trigger: CheckParticipantEligibility may return a 3-tuple {:error, :ineligible, reasons}
+  #          or a 2-tuple {:error, term()} for ACL/lookup failures.
+  # Why: the 3-tuple should bubble up to the caller verbatim (it carries reasons),
+  #      while the 2-tuple maps to :processing_failed (fail-closed if eligibility
+  #      cannot be verified).
+  # Outcome: returns {:ok, :eligible} | {:error, :ineligible, reasons} | {:error, :processing_failed}.
+  defp ensure_eligible(program_id, child_id) do
     case CheckParticipantEligibility.execute(program_id, child_id) do
       {:ok, :eligible} ->
-        :ok
+        {:ok, :eligible}
 
       {:error, :ineligible, reasons} ->
         {:error, :ineligible, reasons}
@@ -141,9 +111,6 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
           reason: inspect(reason)
         )
 
-        # Trigger: ACL failure (child not found, etc.)
-        # Why: fail closed — deny enrollment if we can't verify eligibility
-        # Outcome: return processing_failed so UI shows generic error
         {:error, :processing_failed}
     end
   end
@@ -153,7 +120,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
       program_id: params[:program_id],
       child_id: params[:child_id],
       parent_id: parent_id,
-      status: params[:status] || "pending",
+      status: params[:status] || :pending,
       enrolled_at: params[:enrolled_at] || DateTime.utc_now(),
       subtotal: params[:subtotal],
       vat_amount: params[:vat_amount],
@@ -164,6 +131,21 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
     }
   end
 
+  defp persist_and_dispatch(attrs, identity_id) do
+    case @enrollment_repository.create_with_capacity_check(attrs, attrs[:program_id]) do
+      {:ok, enrollment} ->
+        dispatch_enrollment_created(enrollment, identity_id)
+        {:ok, enrollment}
+
+      error ->
+        error
+    end
+  end
+
+  # Trigger: enrollment persisted; broadcast for downstream handlers (projections, integration events)
+  # Why: :enrollment_created is non-critical — fire-and-forget via dispatch/2;
+  #      a failed handler must not roll back a successful enrollment.
+  # Outcome: returns :ok regardless of handler outcome (errors are logged inside the bus).
   defp dispatch_enrollment_created(enrollment, identity_id) do
     EnrollmentEvents.enrollment_created(enrollment.id, %{
       enrollment_id: enrollment.id,
@@ -171,7 +153,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CreateEnrollment do
       parent_id: enrollment.parent_id,
       parent_user_id: identity_id,
       program_id: enrollment.program_id,
-      status: Atom.to_string(enrollment.status)
+      status: enrollment.status
     })
     |> EventDispatchHelper.dispatch(@context)
   end

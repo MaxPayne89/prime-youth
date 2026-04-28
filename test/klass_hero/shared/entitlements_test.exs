@@ -44,6 +44,32 @@ defmodule KlassHero.Shared.EntitlementsTest do
     end
   end
 
+  describe "parent entitlements - ensure_booking_capacity/2" do
+    test "returns {:ok, parent} when explorer is within cap" do
+      parent = parent_with_tier(:explorer)
+
+      assert {:ok, ^parent} = Entitlements.ensure_booking_capacity(parent, 0)
+      assert {:ok, ^parent} = Entitlements.ensure_booking_capacity(parent, 1)
+    end
+
+    test "returns {:error, :booking_limit_exceeded} when explorer hits cap" do
+      parent = parent_with_tier(:explorer)
+
+      assert {:error, :booking_limit_exceeded} =
+               Entitlements.ensure_booking_capacity(parent, 2)
+
+      assert {:error, :booking_limit_exceeded} =
+               Entitlements.ensure_booking_capacity(parent, 10)
+    end
+
+    test "returns {:ok, parent} for active tier at any count" do
+      parent = parent_with_tier(:active)
+
+      assert {:ok, ^parent} = Entitlements.ensure_booking_capacity(parent, 0)
+      assert {:ok, ^parent} = Entitlements.ensure_booking_capacity(parent, 1000)
+    end
+  end
+
   describe "parent entitlements - monthly_booking_cap/1" do
     test "returns 2 for explorer tier" do
       parent = parent_with_tier(:explorer)
