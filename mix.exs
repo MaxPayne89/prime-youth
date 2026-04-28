@@ -97,7 +97,8 @@ defmodule KlassHero.MixProject do
       {:opentelemetry_exporter, "~> 1.6"},
       {:opentelemetry, "~> 1.3"},
       {:opentelemetry_api, "~> 1.2"},
-      {:oban, "~> 2.21"},
+      # Pinned to 2.21.x — 2.22.0 fails to compile on Elixir 1.20.0-rc.4 (upstream parallel-compile regression in Oban.Stager).
+      {:oban, "~> 2.21.0"},
       {:oban_web, "~> 2.11"},
       {:html_sanitize_ex, "~> 1.4"},
       # Object storage (S3-compatible)
