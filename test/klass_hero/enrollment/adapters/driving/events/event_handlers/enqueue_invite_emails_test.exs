@@ -77,7 +77,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.EnqueueInvi
       provider: provider,
       program: program
     } do
-      Repo.update_all(BulkEnrollmentInviteSchema, set: [status: "failed", error_details: "test"])
+      Repo.update_all(BulkEnrollmentInviteSchema, set: [status: :failed, error_details: "test"])
 
       Oban.Testing.with_testing_mode(:manual, fn ->
         event = EnrollmentEvents.bulk_invites_imported(provider.id, [program.id], 0)

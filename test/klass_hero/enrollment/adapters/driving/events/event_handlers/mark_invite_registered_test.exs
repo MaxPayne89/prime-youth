@@ -31,7 +31,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteR
     # Why: MarkInviteRegistered expects the invite_sent -> registered transition
     # Outcome: bypass state machine to set up the precondition directly
     invite
-    |> Ecto.Changeset.change(%{invite_token: "test-token", status: "invite_sent"})
+    |> Ecto.Changeset.change(%{invite_token: "test-token", status: :invite_sent})
     |> Repo.update!()
 
     %{invite: Repo.one!(BulkEnrollmentInviteSchema), provider: provider, program: program}
@@ -50,14 +50,14 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteR
       assert :ok = MarkInviteRegistered.handle(event)
 
       updated = Repo.get!(BulkEnrollmentInviteSchema, invite.id)
-      assert updated.status == "registered"
+      assert updated.status == :registered
       assert updated.registered_at != nil
     end
 
     test "is idempotent when already registered", %{invite: invite} do
       invite
       |> Ecto.Changeset.change(%{
-        status: "registered",
+        status: :registered,
         registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
       })
       |> Repo.update!()
@@ -72,13 +72,13 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteR
 
       # Status remains registered (not changed)
       updated = Repo.get!(BulkEnrollmentInviteSchema, invite.id)
-      assert updated.status == "registered"
+      assert updated.status == :registered
     end
 
     test "is idempotent when already enrolled", %{invite: invite} do
       invite
       |> Ecto.Changeset.change(%{
-        status: "registered",
+        status: :registered,
         registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
       })
       |> Repo.update!()
@@ -88,7 +88,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteR
 
       invite_refreshed
       |> Ecto.Changeset.change(%{
-        status: "enrolled",
+        status: :enrolled,
         enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second)
       })
       |> Repo.update!()
@@ -103,7 +103,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteR
 
       # Status remains enrolled (not regressed)
       updated = Repo.get!(BulkEnrollmentInviteSchema, invite.id)
-      assert updated.status == "enrolled"
+      assert updated.status == :enrolled
     end
 
     test "returns :ok when invite not found" do

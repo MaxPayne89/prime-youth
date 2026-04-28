@@ -11,12 +11,13 @@ defmodule KlassHeroWeb.InviteClaimController do
 
   alias KlassHero.Accounts
   alias KlassHero.Enrollment
+  alias KlassHero.Enrollment.Application.ClaimResult
 
   require Logger
 
   def show(conn, %{"token" => token}) do
     case Enrollment.claim_invite(token) do
-      {:ok, :new_user, user, _invite} ->
+      {:ok, %ClaimResult{user_type: :new_user, user: user}} ->
         # Trigger: new user account was just created from invite data
         # Why: the user has no password yet; a magic-link login lets them
         #      access the app immediately and set a password in settings
@@ -33,7 +34,7 @@ defmodule KlassHeroWeb.InviteClaimController do
         )
         |> redirect(to: ~p"/users/log-in/#{magic_token}")
 
-      {:ok, :existing_user, _user, _invite} ->
+      {:ok, %ClaimResult{user_type: :existing_user}} ->
         # Trigger: guardian_email matched an existing user
         # Why: no new account needed; just prompt them to log in so the
         #      enrollment saga can proceed against their existing identity

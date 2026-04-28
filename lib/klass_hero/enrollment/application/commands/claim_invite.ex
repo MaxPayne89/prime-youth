@@ -7,7 +7,9 @@ defmodule KlassHero.Enrollment.Application.Commands.ClaimInvite do
   enrollment).
   """
 
+  alias KlassHero.Enrollment.Application.ClaimResult
   alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
+  alias KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite
   alias KlassHero.Shared.EventDispatchHelper
 
   require Logger
@@ -25,39 +27,28 @@ defmodule KlassHero.Enrollment.Application.Commands.ClaimInvite do
   Claims an invite by its token.
 
   Returns:
-  - `{:ok, :new_user, user, invite}` — new account created
-  - `{:ok, :existing_user, user, invite}` — existing account found
+  - `{:ok, %ClaimResult{user_type: :new_user, user: user, invite: invite}}` — new account created
+  - `{:ok, %ClaimResult{user_type: :existing_user, user: user, invite: invite}}` — existing account found
   - `{:error, :not_found}` — invalid or expired token
   - `{:error, :already_claimed}` — invite already processed
   """
+  @spec execute(binary()) ::
+          {:ok, ClaimResult.t()}
+          | {:error, :not_found | :already_claimed | term()}
   def execute(token) when is_binary(token) do
-    with {:ok, invite} <- find_invite(token),
-         {:ok, invite} <- validate_claimable(invite),
+    with {:ok, invite} <- @invite_reader.get_by_token(token),
+         {:ok, invite} <- BulkEnrollmentInvite.ensure_claimable(invite),
          {:ok, user_type, user} <- resolve_user(invite),
-         :ok <- publish_invite_claimed(invite, user) do
+         {:ok, result} <- build_and_publish(invite, user_type, user) do
       Logger.info("[ClaimInvite] Claimed invite",
         invite_id: invite.id,
         user_type: user_type,
         user_id: user.id
       )
 
-      {:ok, user_type, user, invite}
+      {:ok, result}
     end
   end
-
-  defp find_invite(token) do
-    case @invite_reader.get_by_token(token) do
-      nil -> {:error, :not_found}
-      invite -> {:ok, invite}
-    end
-  end
-
-  # Trigger: invite status is not "invite_sent"
-  # Why: only freshly-sent invites may be claimed; any other status means
-  #      the invite was already processed (registered, enrolled, error, etc.)
-  # Outcome: short-circuits with :already_claimed
-  defp validate_claimable(%{status: "invite_sent"} = invite), do: {:ok, invite}
-  defp validate_claimable(_invite), do: {:error, :already_claimed}
 
   # Trigger: guardian_email already exists in the Accounts context
   # Why: returning parents should not get a duplicate account; instead we
@@ -96,8 +87,15 @@ defmodule KlassHero.Enrollment.Application.Commands.ClaimInvite do
     end
   end
 
-  defp publish_invite_claimed(invite, user) do
-    EnrollmentEvents.invite_claimed(invite.id, %{
+  # Trigger: invite resolved + user known; broadcast for downstream saga handlers
+  # Why: dispatch_or_error returns `:ok` on success — wrap to keep `with` chain
+  #      uniform on a `{:ok, _} | {:error, _}` shape
+  # Outcome: tuple `{:ok, %ClaimResult{}} | {:error, term()}`
+  @spec build_and_publish(BulkEnrollmentInvite.t(), ClaimResult.user_type(), map()) ::
+          {:ok, ClaimResult.t()} | {:error, term()}
+  defp build_and_publish(invite, user_type, user) do
+    invite.id
+    |> EnrollmentEvents.invite_claimed(%{
       invite_id: invite.id,
       user_id: user.id,
       program_id: invite.program_id,
@@ -116,5 +114,9 @@ defmodule KlassHero.Enrollment.Application.Commands.ClaimInvite do
       consent_photo_social_media: invite.consent_photo_social_media
     })
     |> EventDispatchHelper.dispatch_or_error(KlassHero.Enrollment)
+    |> case do
+      :ok -> {:ok, %ClaimResult{user_type: user_type, user: user, invite: invite}}
+      {:error, _} = err -> err
+    end
   end
 end

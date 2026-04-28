@@ -27,7 +27,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
   require Logger
 
-  @resendable_statuses ~w(pending invite_sent failed)
+  @resendable_statuses [:pending, :invite_sent, :failed]
 
   @impl true
   @doc """
@@ -178,10 +178,10 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   @doc """
   Retrieves a single invite by its invite token.
 
-  Returns the invite domain struct or nil if not found.
-  Returns nil immediately for nil input to avoid unnecessary queries.
+  Returns `{:ok, invite}` when found, `{:error, :not_found}` otherwise.
+  Short-circuits on `nil` input to avoid unnecessary queries.
   """
-  def get_by_token(nil), do: nil
+  def get_by_token(nil), do: {:error, :not_found}
 
   def get_by_token(token) when is_binary(token) do
     span do
@@ -191,8 +191,8 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       |> where([i], i.invite_token == ^token)
       |> Repo.one()
       |> case do
-        nil -> nil
-        schema -> Mapper.to_domain(schema)
+        nil -> {:error, :not_found}
+        schema -> {:ok, Mapper.to_domain(schema)}
       end
     end
   end
@@ -212,7 +212,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
       BulkEnrollmentInviteSchema
       |> where([i], i.program_id in ^program_ids)
-      |> where([i], i.status == "pending")
+      |> where([i], i.status == :pending)
       |> where([i], is_nil(i.invite_token))
       |> Repo.all()
       |> MapperHelpers.to_domain_list(Mapper)
@@ -371,7 +371,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
           # Outcome: existing EnqueueInviteEmails picks it up on next dispatch
           changeset =
             Ecto.Changeset.change(schema, %{
-              status: "pending",
+              status: :pending,
               invite_token: nil,
               invite_sent_at: nil,
               error_details: nil

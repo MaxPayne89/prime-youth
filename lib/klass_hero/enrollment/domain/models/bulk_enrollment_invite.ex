@@ -47,6 +47,8 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite do
     :error_details
   ]
 
+  @type status :: :pending | :invite_sent | :registered | :enrolled | :failed
+
   @type t :: %__MODULE__{
           id: String.t(),
           program_id: String.t(),
@@ -66,7 +68,7 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite do
           nut_allergy: boolean() | nil,
           consent_photo_marketing: boolean() | nil,
           consent_photo_social_media: boolean() | nil,
-          status: String.t(),
+          status: status(),
           invite_token: String.t() | nil,
           invite_sent_at: DateTime.t() | nil,
           registered_at: DateTime.t() | nil,
@@ -91,17 +93,17 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite do
     ArgumentError -> {:error, :invalid_persistence_data}
   end
 
-  @doc "Returns true if the invite is in `pending` status."
+  @doc "Returns true if the invite is in `:pending` status."
   @spec pending?(t()) :: boolean()
-  def pending?(%__MODULE__{status: "pending"}), do: true
+  def pending?(%__MODULE__{status: :pending}), do: true
   def pending?(%__MODULE__{}), do: false
 
-  @doc "Returns true if the invite is in `invite_sent` status."
+  @doc "Returns true if the invite is in `:invite_sent` status."
   @spec invite_sent?(t()) :: boolean()
-  def invite_sent?(%__MODULE__{status: "invite_sent"}), do: true
+  def invite_sent?(%__MODULE__{status: :invite_sent}), do: true
   def invite_sent?(%__MODULE__{}), do: false
 
-  @resendable_statuses ~w(pending invite_sent failed)
+  @resendable_statuses [:pending, :invite_sent, :failed]
 
   @doc "Returns true if the invite status allows resending."
   @spec resendable?(t()) :: boolean()
@@ -118,6 +120,17 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInvite do
   def ensure_resendable(%__MODULE__{status: status} = invite) when status in @resendable_statuses, do: {:ok, invite}
 
   def ensure_resendable(%__MODULE__{}), do: {:error, :not_resendable}
+
+  @doc """
+  Tuple-returning input guard for the claim path.
+
+  Returns `{:ok, invite}` when the invite is in `:invite_sent` status (the
+  only state from which a token may be claimed), `{:error, :already_claimed}`
+  otherwise. Designed to compose in a `with` chain at the use-case boundary.
+  """
+  @spec ensure_claimable(t()) :: {:ok, t()} | {:error, :already_claimed}
+  def ensure_claimable(%__MODULE__{status: :invite_sent} = invite), do: {:ok, invite}
+  def ensure_claimable(%__MODULE__{}), do: {:error, :already_claimed}
 
   @doc "Generates a cryptographically secure URL-safe token for invite links."
   @spec generate_token() :: String.t()

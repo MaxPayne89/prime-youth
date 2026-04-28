@@ -91,7 +91,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       assert invite.school_grade == 3
       assert invite.nut_allergy == true
       assert invite.consent_photo_marketing == true
-      assert invite.status == "pending"
+      assert invite.status == :pending
     end
   end
 
@@ -109,7 +109,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       assert invite.program_id == program.id
       assert invite.provider_id == provider.id
       assert invite.guardian_email == "parent@example.com"
-      assert invite.status == "pending"
+      assert invite.status == :pending
       assert Repo.aggregate(BulkEnrollmentInviteSchema, :count) == 1
     end
 
@@ -275,7 +275,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
       result = BulkEnrollmentInviteRepository.list_pending_without_token([program.id])
       assert length(result) == 1
-      assert hd(result).status == "pending"
+      assert hd(result).status == :pending
       assert hd(result).invite_token == nil
     end
 
@@ -297,7 +297,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
       invite
       |> BulkEnrollmentInviteSchema.transition_changeset(%{
-        status: "failed",
+        status: :failed,
         error_details: "test"
       })
       |> Repo.update!()
@@ -340,7 +340,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
   describe "get_by_token/1" do
     setup :setup_program
 
-    test "returns invite when token matches", %{program: program, provider: provider} do
+    test "returns {:ok, invite} when token matches", %{program: program, provider: provider} do
       {:ok, 1} =
         BulkEnrollmentInviteRepository.create_batch([valid_invite_attrs(program, provider)])
 
@@ -348,18 +348,17 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       token = "test-token-#{System.unique_integer()}"
       invite |> Ecto.Changeset.change(%{invite_token: token}) |> Repo.update!()
 
-      result = BulkEnrollmentInviteRepository.get_by_token(token)
-      assert result != nil
+      assert {:ok, result} = BulkEnrollmentInviteRepository.get_by_token(token)
       assert result.id == invite.id
       assert result.invite_token == token
     end
 
-    test "returns nil when token not found" do
-      assert BulkEnrollmentInviteRepository.get_by_token("nonexistent") == nil
+    test "returns {:error, :not_found} when token not found" do
+      assert {:error, :not_found} = BulkEnrollmentInviteRepository.get_by_token("nonexistent")
     end
 
-    test "returns nil for nil token" do
-      assert BulkEnrollmentInviteRepository.get_by_token(nil) == nil
+    test "returns {:error, :not_found} for nil token" do
+      assert {:error, :not_found} = BulkEnrollmentInviteRepository.get_by_token(nil)
     end
   end
 
@@ -490,16 +489,16 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       # Transition to invite_sent with a token
       {:ok, sent} =
         BulkEnrollmentInviteRepository.transition_status(invite, %{
-          status: "invite_sent",
+          status: :invite_sent,
           invite_token: "test-token-123",
           invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
 
-      assert sent.status == "invite_sent"
+      assert sent.status == :invite_sent
 
       {:ok, reset} = BulkEnrollmentInviteRepository.reset_for_resend(sent)
 
-      assert reset.status == "pending"
+      assert reset.status == :pending
       assert is_nil(reset.invite_token)
       assert is_nil(reset.invite_sent_at)
     end
@@ -518,13 +517,13 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
       {:ok, failed} =
         BulkEnrollmentInviteRepository.transition_status(invite, %{
-          status: "failed",
+          status: :failed,
           error_details: "delivery error"
         })
 
       {:ok, reset} = BulkEnrollmentInviteRepository.reset_for_resend(failed)
 
-      assert reset.status == "pending"
+      assert reset.status == :pending
       assert is_nil(reset.invite_token)
       assert is_nil(reset.error_details)
     end
@@ -544,14 +543,14 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       # Walk through the state machine to registered (a non-resendable status)
       {:ok, sent} =
         BulkEnrollmentInviteRepository.transition_status(invite, %{
-          status: "invite_sent",
+          status: :invite_sent,
           invite_token: "tok",
           invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
 
       {:ok, registered} =
         BulkEnrollmentInviteRepository.transition_status(sent, %{
-          status: "registered",
+          status: :registered,
           registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
 
@@ -574,20 +573,20 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       # Walk through the state machine: pending → invite_sent → registered → enrolled
       {:ok, sent} =
         BulkEnrollmentInviteRepository.transition_status(invite, %{
-          status: "invite_sent",
+          status: :invite_sent,
           invite_token: "tok",
           invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
 
       {:ok, registered} =
         BulkEnrollmentInviteRepository.transition_status(sent, %{
-          status: "registered",
+          status: :registered,
           registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
 
       {:ok, enrolled} =
         BulkEnrollmentInviteRepository.transition_status(registered, %{
-          status: "enrolled",
+          status: :enrolled,
           enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
 
@@ -596,7 +595,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
     end
 
     test "returns error for non-existent invite" do
-      fake = %{id: Ecto.UUID.generate(), status: "pending"}
+      fake = %{id: Ecto.UUID.generate(), status: :pending}
       assert {:error, :not_found} = BulkEnrollmentInviteRepository.reset_for_resend(fake)
     end
   end
@@ -612,12 +611,12 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
       assert {:ok, updated} =
                BulkEnrollmentInviteRepository.transition_status(invite, %{
-                 status: "invite_sent",
+                 status: :invite_sent,
                  invite_token: "test-token",
                  invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
                })
 
-      assert updated.status == "invite_sent"
+      assert updated.status == :invite_sent
       assert updated.invite_token == "test-token"
       assert updated.invite_sent_at != nil
     end
@@ -630,11 +629,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
 
       assert {:ok, updated} =
                BulkEnrollmentInviteRepository.transition_status(invite, %{
-                 status: "failed",
+                 status: :failed,
                  error_details: "delivery failed"
                })
 
-      assert updated.status == "failed"
+      assert updated.status == :failed
       assert updated.error_details == "delivery failed"
     end
 
@@ -645,7 +644,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnro
       invite = Repo.one!(BulkEnrollmentInviteSchema)
 
       assert {:error, %Ecto.Changeset{}} =
-               BulkEnrollmentInviteRepository.transition_status(invite, %{status: "enrolled"})
+               BulkEnrollmentInviteRepository.transition_status(invite, %{status: :enrolled})
     end
   end
 end

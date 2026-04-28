@@ -35,7 +35,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorker do
       # Trigger: invite already processed (not pending)
       # Why: Oban may retry, or event re-dispatched — skip to avoid duplicate emails
       # Outcome: return :ok without sending
-      {:ok, %BulkEnrollmentInvite{status: status}} when status != "pending" ->
+      {:ok, %BulkEnrollmentInvite{status: status}} when status != :pending ->
         Logger.info("[SendInviteEmailWorker] Skipping non-pending invite",
           invite_id: invite_id,
           status: status
@@ -63,7 +63,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorker do
         # Why: email already delivered — retrying the job would send duplicates
         # Outcome: log critical if transition fails, but return :ok to prevent Oban retry
         case @invite_repository.transition_status(invite, %{
-               status: "invite_sent",
+               status: :invite_sent,
                invite_sent_at: now
              }) do
           {:ok, _} ->
@@ -86,7 +86,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorker do
         )
 
         @invite_repository.transition_status(invite, %{
-          status: "failed",
+          status: :failed,
           error_details: "Email delivery failed: #{inspect(reason)}"
         })
 

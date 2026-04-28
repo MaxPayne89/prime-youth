@@ -16,9 +16,9 @@ defmodule KlassHero.Enrollment.Domain.Ports.ForQueryingBulkEnrollmentInvites do
   @doc """
   Retrieves a single invite by its invite token.
 
-  Returns the invite domain struct or nil if not found.
+  Returns `{:ok, invite}` when found, `{:error, :not_found}` otherwise.
   """
-  @callback get_by_token(binary() | nil) :: struct() | nil
+  @callback get_by_token(binary() | nil) :: {:ok, struct()} | {:error, :not_found}
 
   @doc """
   Returns pending invites that have not yet been assigned an invite token.

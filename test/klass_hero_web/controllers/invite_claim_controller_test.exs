@@ -31,7 +31,7 @@ defmodule KlassHeroWeb.InviteClaimControllerTest do
     invite = Repo.one!(BulkEnrollmentInviteSchema)
 
     invite
-    |> Ecto.Changeset.change(%{invite_token: token, status: "invite_sent"})
+    |> Ecto.Changeset.change(%{invite_token: token, status: :invite_sent})
     |> Repo.update!()
 
     %{invite: Repo.one!(BulkEnrollmentInviteSchema), token: token, email: email}
@@ -69,7 +69,7 @@ defmodule KlassHeroWeb.InviteClaimControllerTest do
       token: token,
       invite: invite
     } do
-      invite |> Ecto.Changeset.change(%{status: "registered"}) |> Repo.update!()
+      invite |> Ecto.Changeset.change(%{status: :registered}) |> Repo.update!()
 
       conn = get(conn, ~p"/invites/#{token}")
 

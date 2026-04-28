@@ -31,7 +31,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandlerT
     # Why: InviteFamilyReadyHandler expects registered -> enrolled transition
     # Outcome: bypass state machine to set up the precondition directly
     invite
-    |> Ecto.Changeset.change(%{invite_token: "test-token", status: "registered"})
+    |> Ecto.Changeset.change(%{invite_token: "test-token", status: :registered})
     |> Repo.update!()
 
     invite = Repo.one!(BulkEnrollmentInviteSchema)
@@ -76,7 +76,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandlerT
       assert :ok = InviteFamilyReadyHandler.handle_event(event)
 
       updated = Repo.get!(BulkEnrollmentInviteSchema, invite.id)
-      assert updated.status == "enrolled"
+      assert updated.status == :enrolled
       assert updated.enrolled_at != nil
       assert updated.enrollment_id != nil
     end
@@ -85,7 +85,7 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandlerT
       # Transition to enrolled first
       invite
       |> Ecto.Changeset.change(%{
-        status: "enrolled",
+        status: :enrolled,
         enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second)
       })
       |> Repo.update!()

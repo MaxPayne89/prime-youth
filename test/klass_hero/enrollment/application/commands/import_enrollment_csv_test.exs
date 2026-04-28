@@ -177,7 +177,7 @@ defmodule KlassHero.Enrollment.Application.Commands.ImportEnrollmentCsvTest do
       # Why: bulk_invites_imported event fires after persist, handler assigns
       #      tokens, and Oban inline worker sends email + transitions status
       # Outcome: status is "invite_sent" (not "pending") by the time we read
-      assert alice_invite.status == "invite_sent"
+      assert alice_invite.status == :invite_sent
 
       assert bob_invite.program_id == program2.id
       assert bob_invite.nut_allergy == true
