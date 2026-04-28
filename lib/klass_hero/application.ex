@@ -141,6 +141,7 @@ defmodule KlassHero.Application do
            {:invite_claimed,
             {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
             priority: 10},
+           {:invite_deleted, {NotifyLiveViews, :handle}},
            {:enrollment_cancelled,
             {KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.PromoteIntegrationEvents, :handle},
             priority: 10},
