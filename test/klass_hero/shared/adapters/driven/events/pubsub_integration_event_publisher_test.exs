@@ -1,5 +1,5 @@
 defmodule KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisherTest do
-  use KlassHero.DataCase, async: true
+  use KlassHero.DataCase, async: false
   use Oban.Testing, repo: KlassHero.Repo
 
   alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
