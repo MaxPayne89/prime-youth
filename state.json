@@ -26,10 +26,11 @@
     "provider_program_mapper_skip": "ProviderProgramMapper is trivial pass-through - not worth testing per guidelines",
     "login_by_magic_link_note": "LoginByMagicLink: 3 paths (confirmed/unconfirmed/error). Domain events via DomainEventBus — need DomainEventBus.subscribe + TestEventPublisher bridge for assertions. Use async:false.",
     "domain_event_test_pattern": "EventDispatchHelper.dispatch/2 uses DomainEventBus (not TestEventPublisher port). Bridge via DomainEventBus.subscribe(Context, :event, fn event -> TestEventPublisher.publish(event); :ok end) in setup. Use async:false.",
-    "coverage_saturation_note": "As of 2026-04-27, codebase has 342 test files covering all mappers, event handlers, domain services, workers, commands, queries. Backlog is effectively exhausted - remaining untested items are trivial pass-throughs.",
+    "coverage_saturation_note": "As of 2026-04-29, codebase has 342+ test files. New code added since last sweep (EmailHtml, Money, PayRate, RateLimitedEmailWorker). Money/PayRate already tested by maintainer. EmailHtml tested by Test Improver (PR #TBD).",
     "mark_invite_registered_test_note": "MarkInviteRegistered handler tests already exist on main as of 2026-04-27 (not created by Test Improver - already there).",
     "create_program_rejected_note": "PR #634 with CreateProgram/UpdateProgram tests was closed without merge by maintainer. Do not re-attempt.",
-    "ci_check_runs_note": "No CI check runs appear on Test Improver PRs (total_count: 0 on all checked PRs as of 2026-04-28). CI may only run on push to main or may require maintainer trigger."
+    "ci_check_runs_note": "No CI check runs appear on Test Improver PRs (total_count: 0 on all checked PRs as of 2026-04-28). CI may only run on push to main or may require maintainer trigger.",
+    "email_html_test_note": "EmailHtml.esc/1 uses binary pattern matching for HTML escaping (5 entities). wrap/2 escapes footer but NOT inner_html. Tests: 15 pure unit tests in ExUnit.Case async:true."
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -41,15 +42,23 @@
   ],
   "tasks_last_run": {
     "task_1": "2026-04-15",
-    "task_2": "2026-04-27",
-    "task_3": "2026-04-27",
+    "task_2": "2026-04-29",
+    "task_3": "2026-04-29",
     "task_4": "2026-04-28",
     "task_5": "2026-04-28",
     "task_6": "2026-04-27",
-    "task_7": "2026-04-28"
+    "task_7": "2026-04-29"
   },
   "work_in_progress": null,
   "completed_work": [
+    {
+      "date": "2026-04-29",
+      "run_id": "25135035818",
+      "pr_branch": "test-assist/email-html-tests-1777498500",
+      "description": "15 pure unit tests for EmailHtml.esc/1 (all 5 HTML entities, XSS input, UTF-8, non-binary coercion) and wrap/2 (structure, default/custom footer escaping)",
+      "tests_added": 15,
+      "pr_number": null
+    },
     {
       "date": "2026-04-26",
       "run_id": "24967349898",
@@ -106,7 +115,7 @@
   },
   "checked_off_items": [],
   "backlog_cursor": {
-    "task_2_last_file": "Full sweep complete 2026-04-27: 342 test files found, backlog near-exhausted",
+    "task_2_last_file": "Full sweep complete 2026-04-29: new code (EmailHtml, NotifyIncidentReportedWorker, IncidentReportsLive) found; EmailHtml tested. Other new code trivial or already tested by maintainer.",
     "task_5_last_issue": 705
   },
   "open_prs": [
