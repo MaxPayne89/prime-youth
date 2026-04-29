@@ -39,9 +39,6 @@ defmodule KlassHero.Enrollment.Application.Commands.EnqueueInviteEmails do
   end
 
   defp process_invites(invites, provider_id) do
-    # Trigger: program_id -> program_name lookup needed for email subjects
-    # Why: invite stores program_id but email needs human-readable name
-    # Outcome: reverse the title->id ACL map to get id->title
     programs_by_id = build_programs_by_id(provider_id)
 
     id_token_pairs =
