@@ -14,19 +14,21 @@ defmodule KlassHero.Provider.Application.Commands.Providers.ChangeSubscriptionTi
 
     test "dispatches subscription_tier_changed event on success" do
       test_pid = self()
+      provider = ProviderFixtures.provider_profile_fixture(subscription_tier: "starter")
+      provider_id = provider.id
 
       DomainEventBus.subscribe(KlassHero.Provider, :subscription_tier_changed, fn event ->
         send(test_pid, {:domain_event, event})
         :ok
       end)
 
-      provider = ProviderFixtures.provider_profile_fixture(subscription_tier: "starter")
       assert {:ok, _updated} = ChangeSubscriptionTier.execute(provider, :professional)
 
-      assert_receive {:domain_event, event}
+      # Pin aggregate_id: DomainEventBus is a singleton GenServer shared across
+      # async tests, so other tests' tier-change events also land in this mailbox.
+      assert_receive {:domain_event, %{aggregate_id: ^provider_id} = event}
       assert event.event_type == :subscription_tier_changed
-      assert event.aggregate_id == provider.id
-      assert event.payload.provider_id == provider.id
+      assert event.payload.provider_id == provider_id
       assert event.payload.previous_tier == :starter
       assert event.payload.new_tier == :professional
     end
