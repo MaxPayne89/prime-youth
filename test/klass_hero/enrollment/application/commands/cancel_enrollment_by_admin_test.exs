@@ -8,7 +8,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CancelEnrollmentByAdminTest 
 
   describe "execute/3" do
     test "cancels a pending enrollment and returns domain entity" do
-      schema = insert(:enrollment_schema, status: "pending")
+      schema = insert(:enrollment_schema, status: :pending)
       admin_id = Ecto.UUID.generate()
 
       assert {:ok, enrollment} =
@@ -21,7 +21,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CancelEnrollmentByAdminTest 
     end
 
     test "cancels a confirmed enrollment" do
-      schema = insert(:enrollment_schema, status: "confirmed")
+      schema = insert(:enrollment_schema, status: :confirmed)
       admin_id = Ecto.UUID.generate()
 
       assert {:ok, enrollment} =
@@ -31,7 +31,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CancelEnrollmentByAdminTest 
     end
 
     test "returns invalid_status_transition for completed enrollment" do
-      schema = insert(:enrollment_schema, status: "completed")
+      schema = insert(:enrollment_schema, status: :completed)
       admin_id = Ecto.UUID.generate()
 
       assert {:error, :invalid_status_transition} =
@@ -39,7 +39,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CancelEnrollmentByAdminTest 
     end
 
     test "returns invalid_status_transition for already cancelled enrollment" do
-      schema = insert(:enrollment_schema, status: "cancelled")
+      schema = insert(:enrollment_schema, status: :cancelled)
       admin_id = Ecto.UUID.generate()
 
       assert {:error, :invalid_status_transition} =
@@ -54,7 +54,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CancelEnrollmentByAdminTest 
     end
 
     test "returns invalid_reason for empty reason" do
-      schema = insert(:enrollment_schema, status: "pending")
+      schema = insert(:enrollment_schema, status: :pending)
       admin_id = Ecto.UUID.generate()
 
       assert {:error, :invalid_reason} =
@@ -62,7 +62,7 @@ defmodule KlassHero.Enrollment.Application.Commands.CancelEnrollmentByAdminTest 
     end
 
     test "returns invalid_reason for nil reason" do
-      schema = insert(:enrollment_schema, status: "pending")
+      schema = insert(:enrollment_schema, status: :pending)
       admin_id = Ecto.UUID.generate()
 
       assert {:error, :invalid_reason} =
