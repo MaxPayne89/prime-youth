@@ -37,6 +37,7 @@ defmodule KlassHero.Shared do
       Tracing,
       Tracing.Context,
       Tracing.LiveViewHook,
+      Tracing.ObanEnqueue,
       Tracing.Plug,
       Tracing.TracedWorker
     ]

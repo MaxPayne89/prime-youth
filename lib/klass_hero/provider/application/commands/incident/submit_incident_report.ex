@@ -4,20 +4,31 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
 
   Validates input, verifies program-or-session ownership via Provider-local
   projections (no cross-context synchronous reads), optionally uploads a
-  photo to private storage, persists the report, and dispatches an
-  `incident_reported` domain event.
+  photo to private storage, and **atomically** persists the report row plus
+  the notification-email Oban job. The `:incident_reported` domain event is
+  dispatched after the transaction commits.
+
+  Persistence and enqueue commit together — if either fails, the report row
+  is rolled back, no email is scheduled, and any uploaded photo is deleted
+  on a best-effort basis. This replaces a previous integration-event handler
+  that enqueued the email job out-of-band; Postgres ACID covers the
+  durability guarantee that handler used to provide.
   """
 
   alias KlassHero.Provider.Application.Queries.ProviderProgramQueries
   alias KlassHero.Provider.Domain.Events.ProviderEvents
   alias KlassHero.Provider.Domain.Models.IncidentReport
+  alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
   alias KlassHero.Shared.Storage
+
+  require Logger
 
   @context KlassHero.Provider
 
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_incident_reports])
   @sessions_query Application.compile_env!(:klass_hero, [:provider, :for_querying_session_details])
+  @scheduler Application.compile_env!(:klass_hero, [:provider, :for_scheduling_incident_notifications])
 
   @doc """
   Submits an incident report.
@@ -40,14 +51,19 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
   ## Returns
 
   - `{:ok, IncidentReport.t()}` on success
-  - `{:error, keyword() | term()}` on validation, ownership, or persistence failure
+  - `{:error, keyword() | Ecto.Changeset.t() | term()}` on validation,
+    ownership, persistence, or enqueue failure
   """
-  @spec execute(map()) :: {:ok, IncidentReport.t()} | {:error, keyword() | term()}
+  @spec execute(map()) ::
+          {:ok, IncidentReport.t()}
+          | {:error, keyword() | Ecto.Changeset.t() | term()}
   def execute(params) when is_map(params) do
+    storage_opts = params[:storage_opts] || []
+
     with :ok <- validate_ownership(params),
          {:ok, photo_ref} <- maybe_upload_photo(params),
          {:ok, report} <- build_report(params, photo_ref),
-         {:ok, persisted} <- @repository.create(report) do
+         {:ok, persisted} <- persist_and_enqueue(report, photo_ref, storage_opts) do
       publish_event(persisted)
       {:ok, persisted}
     end
@@ -123,6 +139,56 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
       photo_url: url,
       original_filename: name
     })
+  end
+
+  # Trigger: report passes validation and is ready to persist
+  # Why: row insert and email-job insert must commit together — both rows live in
+  #      the same Postgres database, so ACID covers what an out-of-band integration
+  #      event handler used to provide. CriticalEventWorker (max_attempts: 3) is
+  #      no longer reached for this side-effect; the global retry contract documented
+  #      there still governs other critical events.
+  # Outcome: {:ok, persisted} when both rows commit; {:error, reason} when either
+  #          step fails, after which any uploaded photo is best-effort deleted
+  defp persist_and_enqueue(report, photo_ref, storage_opts) do
+    fn ->
+      with {:ok, persisted} <- @repository.create(report),
+           {:ok, _job} <- @scheduler.schedule(persisted) do
+        persisted
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end
+    |> Repo.transaction()
+    |> finalise_transaction(photo_ref, storage_opts)
+  end
+
+  defp finalise_transaction({:ok, _persisted} = ok, _photo_ref, _storage_opts), do: ok
+
+  defp finalise_transaction({:error, _reason} = err, photo_ref, storage_opts) do
+    cleanup_photo(photo_ref, storage_opts)
+    err
+  end
+
+  # Trigger: transaction rolled back AFTER the photo was uploaded
+  # Why: rollback only undoes DB writes — storage is an external system and
+  #      would otherwise leave an orphan blob in private storage
+  # Outcome: best-effort delete; storage failures are logged and swallowed so
+  #          the original transaction error reaches the caller unmasked
+  defp cleanup_photo(%{photo_url: nil}, _storage_opts), do: :ok
+
+  defp cleanup_photo(%{photo_url: url}, storage_opts) when is_binary(url) do
+    case Storage.delete(:private, url, storage_opts) do
+      :ok ->
+        :ok
+
+      {:error, reason} ->
+        Logger.warning("[SubmitIncidentReport] photo cleanup failed after rollback",
+          photo_url: url,
+          reason: inspect(reason)
+        )
+
+        :ok
+    end
   end
 
   defp publish_event(report) do
