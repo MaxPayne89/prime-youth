@@ -41,14 +41,14 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Workers.SendInviteEmailWorkerTes
                })
 
       updated = Repo.get!(BulkEnrollmentInviteSchema, invite.id)
-      assert updated.status == "invite_sent"
+      assert updated.status == :invite_sent
       assert updated.invite_sent_at != nil
     end
 
     test "skips already-sent invite", %{invite: invite, program: program} do
       invite
       |> BulkEnrollmentInviteSchema.transition_changeset(%{
-        status: "invite_sent",
+        status: :invite_sent,
         invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
       })
       |> Repo.update!()

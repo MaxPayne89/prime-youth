@@ -27,7 +27,7 @@ defmodule KlassHero.Enrollment.Application.Commands.ResendInviteTest do
     # Transition to invite_sent so we can test resending
     {:ok, sent} =
       BulkEnrollmentInviteRepository.transition_status(invite, %{
-        status: "invite_sent",
+        status: :invite_sent,
         invite_token: "original-token",
         invite_sent_at: DateTime.utc_now() |> DateTime.truncate(:second)
       })
@@ -38,7 +38,7 @@ defmodule KlassHero.Enrollment.Application.Commands.ResendInviteTest do
   describe "execute/2" do
     test "resets invite and dispatches event", %{invite: invite, provider: provider} do
       assert {:ok, reset} = ResendInvite.execute(invite.id, provider.id)
-      assert reset.status == "pending"
+      assert reset.status == :pending
       assert is_nil(reset.invite_token)
     end
 
@@ -51,7 +51,7 @@ defmodule KlassHero.Enrollment.Application.Commands.ResendInviteTest do
       # Walk to registered (not enrolled, to avoid FK constraints)
       {:ok, reg} =
         BulkEnrollmentInviteRepository.transition_status(invite, %{
-          status: "registered",
+          status: :registered,
           registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
         })
 

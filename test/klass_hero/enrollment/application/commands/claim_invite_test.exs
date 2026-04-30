@@ -6,6 +6,7 @@ defmodule KlassHero.Enrollment.Application.Commands.ClaimInviteTest do
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmentInviteSchema
+  alias KlassHero.Enrollment.Application.ClaimResult
   alias KlassHero.Enrollment.Application.Commands.ClaimInvite
   alias KlassHero.Repo
 
@@ -34,7 +35,7 @@ defmodule KlassHero.Enrollment.Application.Commands.ClaimInviteTest do
     invite =
       BulkEnrollmentInviteSchema
       |> Repo.one!()
-      |> Ecto.Changeset.change(%{invite_token: token, status: "invite_sent"})
+      |> Ecto.Changeset.change(%{invite_token: token, status: :invite_sent})
       |> Repo.update!()
 
     # Re-fetch to get clean state
@@ -51,13 +52,14 @@ defmodule KlassHero.Enrollment.Application.Commands.ClaimInviteTest do
     end
 
     test "returns already_claimed when status is not invite_sent", %{invite: invite, token: token} do
-      invite |> Ecto.Changeset.change(%{status: "registered"}) |> Repo.update!()
+      invite |> Ecto.Changeset.change(%{status: :registered}) |> Repo.update!()
 
       assert {:error, :already_claimed} = ClaimInvite.execute(token)
     end
 
     test "creates new user for unknown email", %{token: token, invite: invite} do
-      assert {:ok, :new_user, user, returned_invite} = ClaimInvite.execute(token)
+      assert {:ok, %ClaimResult{user_type: :new_user, user: user, invite: returned_invite}} =
+               ClaimInvite.execute(token)
 
       assert user.email == invite.guardian_email
       assert user.name == "Anna Schmidt"
@@ -67,7 +69,9 @@ defmodule KlassHero.Enrollment.Application.Commands.ClaimInviteTest do
     test "returns existing user when email matches", %{token: token, invite: invite} do
       existing_user = user_fixture(%{email: invite.guardian_email})
 
-      assert {:ok, :existing_user, user, _invite} = ClaimInvite.execute(token)
+      assert {:ok, %ClaimResult{user_type: :existing_user, user: user}} =
+               ClaimInvite.execute(token)
+
       assert user.id == existing_user.id
     end
   end

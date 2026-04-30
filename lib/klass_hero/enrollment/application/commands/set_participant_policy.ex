@@ -10,7 +10,8 @@ defmodule KlassHero.Enrollment.Application.Commands.SetParticipantPolicy do
   """
 
   alias KlassHero.Enrollment.Domain.Events.EnrollmentEvents
-  alias KlassHero.Shared.DomainEventBus
+  alias KlassHero.Enrollment.Domain.Models.ParticipantPolicy
+  alias KlassHero.Shared.EventDispatchHelper
 
   @context KlassHero.Enrollment
 
@@ -19,18 +20,7 @@ defmodule KlassHero.Enrollment.Application.Commands.SetParticipantPolicy do
                                    :for_managing_participant_policies
                                  ])
 
-  @doc """
-  Creates or updates a participant policy for a program.
-
-  ## Parameters
-
-  - `attrs` - Map with :program_id (required) and restriction fields
-
-  ## Returns
-
-  - `{:ok, ParticipantPolicy.t()}` on success
-  - `{:error, term()}` on validation or persistence failure
-  """
+  @spec execute(map()) :: {:ok, ParticipantPolicy.t()} | {:error, term()}
   def execute(attrs) when is_map(attrs) do
     with {:ok, policy} <- @participant_policy_repository.upsert(attrs) do
       publish_event(policy.program_id)
@@ -39,7 +29,8 @@ defmodule KlassHero.Enrollment.Application.Commands.SetParticipantPolicy do
   end
 
   defp publish_event(program_id) do
-    event = EnrollmentEvents.participant_policy_set(program_id)
-    DomainEventBus.dispatch(@context, event)
+    program_id
+    |> EnrollmentEvents.participant_policy_set()
+    |> EventDispatchHelper.dispatch(@context)
   end
 end

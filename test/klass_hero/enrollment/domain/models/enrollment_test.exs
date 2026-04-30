@@ -191,6 +191,20 @@ defmodule KlassHero.Enrollment.Domain.Models.EnrollmentTest do
     end
   end
 
+  describe "ensure_reason_present/1" do
+    test "returns {:ok, reason} when reason is a non-empty binary" do
+      assert {:ok, "Parent requested"} = Enrollment.ensure_reason_present("Parent requested")
+    end
+
+    test "returns {:error, :invalid_reason} when reason is an empty string" do
+      assert {:error, :invalid_reason} = Enrollment.ensure_reason_present("")
+    end
+
+    test "returns {:error, :invalid_reason} when reason is nil" do
+      assert {:error, :invalid_reason} = Enrollment.ensure_reason_present(nil)
+    end
+  end
+
   describe "predicates" do
     test "pending?/1 returns true for pending enrollment" do
       {:ok, enrollment} = build_enrollment(:pending)

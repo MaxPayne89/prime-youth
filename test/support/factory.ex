@@ -1126,7 +1126,7 @@ defmodule KlassHero.Factory do
   ## Examples
 
       schema = build(:enrollment_schema)
-      schema = insert(:enrollment_schema, status: "confirmed")
+      schema = insert(:enrollment_schema, status: :confirmed)
   """
   def enrollment_schema_factory do
     program_schema = insert(:program_schema)
@@ -1137,7 +1137,7 @@ defmodule KlassHero.Factory do
       program_id: program_schema.id,
       child_id: child_schema.id,
       parent_id: parent_schema.id,
-      status: "pending",
+      status: :pending,
       enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second),
       confirmed_at: nil,
       completed_at: nil,

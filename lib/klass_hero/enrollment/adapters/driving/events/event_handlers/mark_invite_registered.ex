@@ -25,11 +25,11 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteR
     %{invite_id: invite_id} = event.payload
 
     case @invite_reader.get_by_id(invite_id) do
-      nil ->
+      {:error, :not_found} ->
         Logger.warning("[MarkInviteRegistered] Invite not found", invite_id: invite_id)
         :ok
 
-      invite ->
+      {:ok, invite} ->
         maybe_transition(invite)
     end
   end
@@ -37,16 +37,16 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.EventHandlers.MarkInviteR
   # Trigger: invite is already at or beyond the registered state
   # Why: claiming is idempotent — replaying the event must not regress status
   # Outcome: silently succeeds without touching the database
-  defp maybe_transition(%{status: status}) when status in ["registered", "enrolled"] do
+  defp maybe_transition(%{status: status}) when status in [:registered, :enrolled] do
     :ok
   end
 
-  # Trigger: invite is in "invite_sent" status (the only valid source for this transition)
+  # Trigger: invite is in :invite_sent status (the only valid source for this transition)
   # Why: state machine allows invite_sent → registered; other statuses must not regress
   # Outcome: transitions to registered, or returns error if persistence fails
-  defp maybe_transition(%{status: "invite_sent"} = invite) do
+  defp maybe_transition(%{status: :invite_sent} = invite) do
     case @invite_repository.transition_status(invite, %{
-           status: "registered",
+           status: :registered,
            registered_at: DateTime.utc_now() |> DateTime.truncate(:second)
          }) do
       {:ok, _} ->

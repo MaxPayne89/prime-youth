@@ -12,7 +12,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     guardian_email: "parent@example.com",
     guardian_first_name: "Vaibhav",
     guardian_last_name: "Srivastava",
-    status: "pending"
+    status: :pending
   }
 
   describe "changeset/2" do
@@ -110,7 +110,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     test "defaults status to pending" do
       attrs = Map.delete(@valid_attrs, :status)
       changeset = BulkEnrollmentInviteSchema.changeset(%BulkEnrollmentInviteSchema{}, attrs)
-      assert Ecto.Changeset.get_field(changeset, :status) == "pending"
+      assert Ecto.Changeset.get_field(changeset, :status) == :pending
     end
   end
 
@@ -142,7 +142,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     end
 
     test "does not accept status field" do
-      attrs = Map.put(@valid_attrs, :status, "invite_sent")
+      attrs = Map.put(@valid_attrs, :status, :invite_sent)
 
       changeset =
         BulkEnrollmentInviteSchema.import_changeset(%BulkEnrollmentInviteSchema{}, attrs)
@@ -164,11 +164,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
 
   describe "transition_changeset/2" do
     test "allows valid transition from pending to invite_sent" do
-      invite = %BulkEnrollmentInviteSchema{status: "pending"}
+      invite = %BulkEnrollmentInviteSchema{status: :pending}
 
       changeset =
         BulkEnrollmentInviteSchema.transition_changeset(invite, %{
-          status: "invite_sent",
+          status: :invite_sent,
           invite_token: "abc123",
           invite_sent_at: ~U[2026-01-15 10:00:00Z]
         })
@@ -177,11 +177,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     end
 
     test "allows valid transition from invite_sent to registered" do
-      invite = %BulkEnrollmentInviteSchema{status: "invite_sent"}
+      invite = %BulkEnrollmentInviteSchema{status: :invite_sent}
 
       changeset =
         BulkEnrollmentInviteSchema.transition_changeset(invite, %{
-          status: "registered",
+          status: :registered,
           registered_at: ~U[2026-01-20 10:00:00Z]
         })
 
@@ -189,12 +189,12 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     end
 
     test "allows valid transition from registered to enrolled" do
-      invite = %BulkEnrollmentInviteSchema{status: "registered"}
+      invite = %BulkEnrollmentInviteSchema{status: :registered}
       enrollment_id = Ecto.UUID.generate()
 
       changeset =
         BulkEnrollmentInviteSchema.transition_changeset(invite, %{
-          status: "enrolled",
+          status: :enrolled,
           enrolled_at: ~U[2026-01-25 10:00:00Z],
           enrollment_id: enrollment_id
         })
@@ -203,12 +203,12 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     end
 
     test "allows transition to failed from any active status" do
-      for status <- ["pending", "invite_sent", "registered"] do
+      for status <- [:pending, :invite_sent, :registered] do
         invite = %BulkEnrollmentInviteSchema{status: status}
 
         changeset =
           BulkEnrollmentInviteSchema.transition_changeset(invite, %{
-            status: "failed",
+            status: :failed,
             error_details: "Something went wrong"
           })
 
@@ -217,20 +217,20 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     end
 
     test "allows retry from failed back to pending" do
-      invite = %BulkEnrollmentInviteSchema{status: "failed"}
+      invite = %BulkEnrollmentInviteSchema{status: :failed}
 
       changeset =
-        BulkEnrollmentInviteSchema.transition_changeset(invite, %{status: "pending"})
+        BulkEnrollmentInviteSchema.transition_changeset(invite, %{status: :pending})
 
       assert changeset.valid?
     end
 
     test "rejects invalid transition from pending to enrolled" do
-      invite = %BulkEnrollmentInviteSchema{status: "pending"}
+      invite = %BulkEnrollmentInviteSchema{status: :pending}
 
       changeset =
         invite
-        |> BulkEnrollmentInviteSchema.transition_changeset(%{status: "enrolled"})
+        |> BulkEnrollmentInviteSchema.transition_changeset(%{status: :enrolled})
         |> Map.put(:action, :validate)
 
       refute changeset.valid?
@@ -238,11 +238,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     end
 
     test "rejects transition from enrolled (terminal state)" do
-      invite = %BulkEnrollmentInviteSchema{status: "enrolled"}
+      invite = %BulkEnrollmentInviteSchema{status: :enrolled}
 
       changeset =
         invite
-        |> BulkEnrollmentInviteSchema.transition_changeset(%{status: "pending"})
+        |> BulkEnrollmentInviteSchema.transition_changeset(%{status: :pending})
         |> Map.put(:action, :validate)
 
       refute changeset.valid?

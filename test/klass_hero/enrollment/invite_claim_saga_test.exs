@@ -25,6 +25,7 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Repositories.BulkEnrollmentInviteRepository
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmentInviteSchema
   alias KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler
+  alias KlassHero.Enrollment.Application.ClaimResult
   alias KlassHero.Family
   # EventSubscriber process names that participate in the saga.
   # These GenServers receive PubSub integration events and access the DB.
@@ -79,7 +80,7 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
 
     # Transition invite to "invite_sent" with a token so it can be claimed
     invite
-    |> Ecto.Changeset.change(%{invite_token: token, status: "invite_sent"})
+    |> Ecto.Changeset.change(%{invite_token: token, status: :invite_sent})
     |> Repo.update!()
 
     updated_invite =
@@ -137,13 +138,14 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
       invite: invite
     } do
       # Step 1: Claim the invite — this triggers the synchronous domain event bus
-      assert {:ok, :new_user, user, _invite} = Enrollment.claim_invite(token)
+      assert {:ok, %ClaimResult{user_type: :new_user, user: user}} =
+               Enrollment.claim_invite(token)
 
       # Step 2: Verify synchronous effects (domain event handlers on Enrollment bus)
       # MarkInviteRegistered runs synchronously via DomainEventBus.dispatch
       # PromoteIntegrationEvents also runs synchronously, broadcasting to PubSub
       updated = Repo.get!(BulkEnrollmentInviteSchema, invite.id)
-      assert updated.status == "registered"
+      assert updated.status == :registered
       assert updated.registered_at != nil
 
       # Step 3: Wait for async effects (integration events via PubSub)
@@ -153,7 +155,7 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
       assert_eventually(
         fn ->
           final = Repo.get!(BulkEnrollmentInviteSchema, invite.id)
-          final.status == "enrolled"
+          final.status == :enrolled
         end,
         timeout_ms: 5000,
         interval_ms: 100
@@ -161,7 +163,7 @@ defmodule KlassHero.Enrollment.InviteClaimSagaTest do
 
       # Verify terminal invite state
       final = Repo.get!(BulkEnrollmentInviteSchema, invite.id)
-      assert final.status == "enrolled"
+      assert final.status == :enrolled
       assert final.enrolled_at != nil
       assert final.enrollment_id != nil
 

@@ -86,14 +86,14 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler 
 
   def handle_event(_event), do: :ignore
 
-  # Trigger: handler must only act on invites in "registered" status
+  # Trigger: handler must only act on invites in :registered status
   # Why: prevents double-processing or regressing an already-enrolled invite
   # Outcome: returns {:ok, invite} or {:error, :not_found/:not_registered}
   defp fetch_registered_invite(invite_id) do
     case @invite_reader.get_by_id(invite_id) do
-      nil -> {:error, :not_found}
-      %{status: "registered"} = invite -> {:ok, invite}
-      _other -> {:error, :not_registered}
+      {:error, :not_found} = err -> err
+      {:ok, %{status: :registered} = invite} -> {:ok, invite}
+      {:ok, _other} -> {:error, :not_registered}
     end
   end
 
@@ -105,14 +105,14 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler 
       program_id: program_id,
       child_id: child_id,
       parent_id: parent_id,
-      status: "confirmed",
+      status: :confirmed,
       payment_method: "transfer"
     })
   end
 
   defp transition_to_enrolled(invite, enrollment) do
     @invite_repository.transition_status(invite, %{
-      status: "enrolled",
+      status: :enrolled,
       enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second),
       enrollment_id: enrollment.id
     })
@@ -124,9 +124,9 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler 
   #          since enrollment exists and invite status is secondary
   defp handle_existing_enrollment(invite_id) do
     case @invite_reader.get_by_id(invite_id) do
-      %{status: "registered"} = invite ->
+      {:ok, %{status: :registered} = invite} ->
         case @invite_repository.transition_status(invite, %{
-               status: "enrolled",
+               status: :enrolled,
                enrolled_at: DateTime.utc_now() |> DateTime.truncate(:second)
              }) do
           {:ok, _} ->
@@ -152,12 +152,12 @@ defmodule KlassHero.Enrollment.Adapters.Driving.Events.InviteFamilyReadyHandler 
 
   defp transition_to_failed(invite_id, reason) do
     case @invite_reader.get_by_id(invite_id) do
-      nil ->
+      {:error, :not_found} ->
         :ok
 
-      invite ->
+      {:ok, invite} ->
         @invite_repository.transition_status(invite, %{
-          status: "failed",
+          status: :failed,
           error_details: inspect(reason)
         })
     end

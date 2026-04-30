@@ -42,7 +42,7 @@ defmodule KlassHero.Enrollment.Application.Commands.InviteSingleParticipantTest 
       # Trigger: downstream EnqueueInviteEmails handler runs synchronously in tests,
       # same as the CSV pipeline — the invite advances past "pending" the moment the
       # event dispatches. Matches what import_enrollment_csv_test asserts.
-      assert invite.status == "invite_sent"
+      assert invite.status == :invite_sent
       assert is_binary(invite.invite_token)
     end
 
@@ -168,7 +168,7 @@ defmodule KlassHero.Enrollment.Application.Commands.InviteSingleParticipantTest 
                InviteSingleParticipant.execute(provider.id, valid_attrs(program))
 
       invite = Repo.get!(BulkEnrollmentInviteSchema, id)
-      assert invite.status == "invite_sent"
+      assert invite.status == :invite_sent
       assert is_binary(invite.invite_token)
     end
   end

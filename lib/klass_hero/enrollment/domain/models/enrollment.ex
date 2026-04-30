@@ -159,6 +159,19 @@ defmodule KlassHero.Enrollment.Domain.Models.Enrollment do
 
   def cancel(%__MODULE__{}, _reason), do: {:error, :invalid_status_transition}
 
+  @doc """
+  Tuple-returning input guard for a cancellation reason.
+
+  Returns `{:ok, reason}` when the reason is a non-empty binary,
+  `{:error, :invalid_reason}` otherwise. Designed to run at the use-case
+  boundary in a `with` chain — fails fast before any DB lookup.
+  """
+  @spec ensure_reason_present(String.t() | nil) ::
+          {:ok, String.t()} | {:error, :invalid_reason}
+  def ensure_reason_present(reason) when is_binary(reason) and byte_size(reason) > 0, do: {:ok, reason}
+
+  def ensure_reason_present(_reason), do: {:error, :invalid_reason}
+
   @doc "Returns true if enrollment status is :pending"
   @spec pending?(t()) :: boolean()
   def pending?(%__MODULE__{status: :pending}), do: true

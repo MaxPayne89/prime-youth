@@ -51,7 +51,7 @@ defmodule KlassHero.Family.Application.Commands.Children.DeleteChildTest do
 
       # Enrollment should be cancelled, not deleted; child_id nullified by FK nilify_all
       updated = Repo.get(EnrollmentSchema, enrollment.id)
-      assert updated.status == "cancelled"
+      assert updated.status == :cancelled
       assert is_nil(updated.child_id)
     end
 

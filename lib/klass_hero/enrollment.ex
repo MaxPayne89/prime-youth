@@ -48,7 +48,9 @@ defmodule KlassHero.Enrollment do
     ],
     exports: [
       # Pragmatic export: Backpex admin operates directly on Ecto schemas
-      Adapters.Driven.Persistence.Schemas.EnrollmentSchema
+      Adapters.Driven.Persistence.Schemas.EnrollmentSchema,
+      # Public result type for ClaimInvite — callers pattern-match on %ClaimResult{}
+      Application.ClaimResult
     ]
 
   alias KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.EnrollmentPolicySchema
@@ -241,8 +243,8 @@ defmodule KlassHero.Enrollment do
   the :invite_claimed event to trigger the async saga (child creation → enrollment).
 
   Returns:
-  - `{:ok, :new_user, user, invite}` — new account created
-  - `{:ok, :existing_user, user, invite}` — existing account found
+  - `{:ok, %ClaimResult{user_type: :new_user, user: user, invite: invite}}` — new account created
+  - `{:ok, %ClaimResult{user_type: :existing_user, user: user, invite: invite}}` — existing account found
   - `{:error, :not_found}` — invalid or expired token
   - `{:error, :already_claimed}` — invite already processed
   """

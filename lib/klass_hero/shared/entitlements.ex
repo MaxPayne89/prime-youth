@@ -64,6 +64,8 @@ defmodule KlassHero.Shared.Entitlements do
   alias KlassHero.Shared.FeatureFlags
   alias KlassHero.Shared.SubscriptionTiers
 
+  require Logger
+
   @type tier_holder :: %{subscription_tier: atom()}
 
   @parent_tier_limits %{
@@ -126,6 +128,29 @@ defmodule KlassHero.Shared.Entitlements do
     tier
     |> get_parent_limit(:monthly_booking_cap)
     |> within_limit?(current_count)
+  end
+
+  @doc """
+  Tuple-returning variant of `can_create_booking?/2` for composing in `with` chains.
+
+  Returns `{:ok, parent}` when the parent has remaining monthly capacity,
+  `{:error, :booking_limit_exceeded}` otherwise. Logs the violation at
+  the policy boundary so callers don't need to duplicate observability.
+  """
+  @spec ensure_booking_capacity(tier_holder(), non_neg_integer()) ::
+          {:ok, tier_holder()} | {:error, :booking_limit_exceeded}
+  def ensure_booking_capacity(%{subscription_tier: tier} = parent, current_count) do
+    if can_create_booking?(parent, current_count) do
+      {:ok, parent}
+    else
+      Logger.info("[Entitlements] Booking limit exceeded",
+        parent_id: Map.get(parent, :id),
+        tier: tier,
+        current_count: current_count
+      )
+
+      {:error, :booking_limit_exceeded}
+    end
   end
 
   @doc """

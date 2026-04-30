@@ -17,7 +17,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
   @foreign_key_type :binary_id
   @timestamps_opts [type: :utc_datetime]
 
-  @valid_statuses ~w(pending invite_sent registered enrolled failed)
+  @statuses [:pending, :invite_sent, :registered, :enrolled, :failed]
 
   schema "bulk_enrollment_invites" do
     field :program_id, :binary_id
@@ -37,7 +37,7 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     field :nut_allergy, :boolean, default: false
     field :consent_photo_marketing, :boolean, default: false
     field :consent_photo_social_media, :boolean, default: false
-    field :status, :string, default: "pending"
+    field :status, Ecto.Enum, values: @statuses, default: :pending
     field :invite_token, :string
     field :invite_sent_at, :utc_datetime
     field :registered_at, :utc_datetime
@@ -68,11 +68,11 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
   )a
 
   @valid_transitions %{
-    "pending" => ["invite_sent", "failed"],
-    "invite_sent" => ["registered", "failed"],
-    "registered" => ["enrolled", "failed"],
-    "enrolled" => [],
-    "failed" => ["pending"]
+    pending: [:invite_sent, :failed],
+    invite_sent: [:registered, :failed],
+    registered: [:enrolled, :failed],
+    enrolled: [],
+    failed: [:pending]
   }
 
   @lifecycle_fields ~w(
@@ -85,7 +85,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     |> cast(attrs, @required_fields ++ @optional_fields)
     |> validate_required(@required_fields)
     |> InviteFieldValidations.apply()
-    |> validate_inclusion(:status, @valid_statuses)
     |> unique_constraint([:program_id, :guardian_email, :child_first_name, :child_last_name],
       name: :bulk_invites_program_guardian_child_unique
     )
@@ -96,8 +95,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     |> check_constraint(:status, name: :valid_status)
     |> check_constraint(:school_grade, name: :valid_school_grade)
   end
-
-  def valid_statuses, do: @valid_statuses
 
   @doc "Returns the valid status transitions map."
   def valid_transitions, do: @valid_transitions
@@ -132,7 +129,6 @@ defmodule KlassHero.Enrollment.Adapters.Driven.Persistence.Schemas.BulkEnrollmen
     schema
     |> cast(attrs, @lifecycle_fields)
     |> validate_required([:status])
-    |> validate_inclusion(:status, @valid_statuses)
     |> validate_status_transition()
     |> unique_constraint(:invite_token)
     |> foreign_key_constraint(:enrollment_id)

@@ -2037,14 +2037,14 @@ defmodule KlassHeroWeb.ProviderComponents do
               <td class="px-3 py-3 text-right">
                 <div class="flex items-center justify-end gap-1">
                   <.action_button
-                    :if={invite.status in ~w(pending invite_sent failed)}
+                    :if={invite.status in [:pending, :invite_sent, :failed]}
                     icon="hero-arrow-path-mini"
                     title={gettext("Resend Invite")}
                     phx-click="resend_invite"
                     phx-value-id={invite.id}
                   />
                   <.action_button
-                    :if={invite.status in ~w(pending invite_sent failed)}
+                    :if={invite.status in [:pending, :invite_sent, :failed]}
                     icon="hero-trash-mini"
                     title={gettext("Remove")}
                     phx-click="delete_invite"
@@ -2217,18 +2217,18 @@ defmodule KlassHeroWeb.ProviderComponents do
   # Trigger: invite status values differ from enrollment status values
   # Why: invites follow their own lifecycle (pending → invite_sent → registered → enrolled)
   # Outcome: map each invite status to the correct status_pill color
-  defp invite_status_color("pending"), do: "warning"
-  defp invite_status_color("invite_sent"), do: "info"
-  defp invite_status_color("registered"), do: "info"
-  defp invite_status_color("enrolled"), do: "success"
-  defp invite_status_color("failed"), do: "error"
+  defp invite_status_color(:pending), do: "warning"
+  defp invite_status_color(:invite_sent), do: "info"
+  defp invite_status_color(:registered), do: "info"
+  defp invite_status_color(:enrolled), do: "success"
+  defp invite_status_color(:failed), do: "error"
   defp invite_status_color(_), do: "info"
 
-  defp invite_status_label("pending"), do: gettext("Pending")
-  defp invite_status_label("invite_sent"), do: gettext("Sent")
-  defp invite_status_label("registered"), do: gettext("Registered")
-  defp invite_status_label("enrolled"), do: gettext("Enrolled")
-  defp invite_status_label("failed"), do: gettext("Failed")
+  defp invite_status_label(:pending), do: gettext("Pending")
+  defp invite_status_label(:invite_sent), do: gettext("Sent")
+  defp invite_status_label(:registered), do: gettext("Registered")
+  defp invite_status_label(:enrolled), do: gettext("Enrolled")
+  defp invite_status_label(:failed), do: gettext("Failed")
   defp invite_status_label(status), do: status |> to_string() |> String.capitalize()
 
   defp format_import_errors(errors) when is_map(errors) do

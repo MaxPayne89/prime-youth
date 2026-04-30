@@ -7,7 +7,7 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInviteTest do
     id: "inv-1",
     program_id: "prog-1",
     provider_id: "prov-1",
-    status: "pending",
+    status: :pending,
     guardian_email: "parent@example.com",
     child_first_name: "Emma",
     child_last_name: "Schmidt"
@@ -48,7 +48,7 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInviteTest do
 
     test "returns false for other statuses" do
       {:ok, invite} =
-        BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: "invite_sent"})
+        BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: :invite_sent})
 
       refute BulkEnrollmentInvite.pending?(invite)
     end
@@ -57,7 +57,7 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInviteTest do
   describe "invite_sent?/1" do
     test "returns true for invite_sent status" do
       {:ok, invite} =
-        BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: "invite_sent"})
+        BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: :invite_sent})
 
       assert BulkEnrollmentInvite.invite_sent?(invite)
     end
@@ -69,7 +69,7 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInviteTest do
   end
 
   describe "resendable?/1" do
-    for status <- ~w(pending invite_sent failed) do
+    for status <- [:pending, :invite_sent, :failed] do
       test "returns true for #{status} status" do
         {:ok, invite} =
           BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: unquote(status)})
@@ -78,12 +78,50 @@ defmodule KlassHero.Enrollment.Domain.Models.BulkEnrollmentInviteTest do
       end
     end
 
-    for status <- ~w(registered enrolled) do
+    for status <- [:registered, :enrolled] do
       test "returns false for #{status} status" do
         {:ok, invite} =
           BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: unquote(status)})
 
         refute BulkEnrollmentInvite.resendable?(invite)
+      end
+    end
+  end
+
+  describe "ensure_resendable/1" do
+    for status <- [:pending, :invite_sent, :failed] do
+      test "returns {:ok, invite} for #{status} status" do
+        {:ok, invite} =
+          BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: unquote(status)})
+
+        assert {:ok, ^invite} = BulkEnrollmentInvite.ensure_resendable(invite)
+      end
+    end
+
+    for status <- [:registered, :enrolled] do
+      test "returns {:error, :not_resendable} for #{status} status" do
+        {:ok, invite} =
+          BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: unquote(status)})
+
+        assert {:error, :not_resendable} = BulkEnrollmentInvite.ensure_resendable(invite)
+      end
+    end
+  end
+
+  describe "ensure_claimable/1" do
+    test "returns {:ok, invite} for :invite_sent status" do
+      {:ok, invite} =
+        BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: :invite_sent})
+
+      assert {:ok, ^invite} = BulkEnrollmentInvite.ensure_claimable(invite)
+    end
+
+    for status <- [:pending, :registered, :enrolled, :failed] do
+      test "returns {:error, :already_claimed} for #{status} status" do
+        {:ok, invite} =
+          BulkEnrollmentInvite.from_persistence(%{@valid_attrs | status: unquote(status)})
+
+        assert {:error, :already_claimed} = BulkEnrollmentInvite.ensure_claimable(invite)
       end
     end
   end
