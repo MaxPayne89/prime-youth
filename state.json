@@ -26,11 +26,13 @@
     "provider_program_mapper_skip": "ProviderProgramMapper is trivial pass-through - not worth testing per guidelines",
     "login_by_magic_link_note": "LoginByMagicLink: 3 paths (confirmed/unconfirmed/error). Domain events via DomainEventBus — need DomainEventBus.subscribe + TestEventPublisher bridge for assertions. Use async:false.",
     "domain_event_test_pattern": "EventDispatchHelper.dispatch/2 uses DomainEventBus (not TestEventPublisher port). Bridge via DomainEventBus.subscribe(Context, :event, fn event -> TestEventPublisher.publish(event); :ok end) in setup. Use async:false.",
-    "coverage_saturation_note": "As of 2026-04-29, codebase has 342+ test files. New code added since last sweep (EmailHtml, Money, PayRate, RateLimitedEmailWorker). Money/PayRate already tested by maintainer. EmailHtml tested by Test Improver (PR #TBD).",
+    "coverage_saturation_note": "As of 2026-04-30, codebase has 342+ test files. Backlog near-exhausted. New code from #769 refactor already tested. EmailHtml tested by Test Improver (PR #771).",
     "mark_invite_registered_test_note": "MarkInviteRegistered handler tests already exist on main as of 2026-04-27 (not created by Test Improver - already there).",
     "create_program_rejected_note": "PR #634 with CreateProgram/UpdateProgram tests was closed without merge by maintainer. Do not re-attempt.",
     "ci_check_runs_note": "No CI check runs appear on Test Improver PRs (total_count: 0 on all checked PRs as of 2026-04-28). CI may only run on push to main or may require maintainer trigger.",
-    "email_html_test_note": "EmailHtml.esc/1 uses binary pattern matching for HTML escaping (5 entities). wrap/2 escapes footer but NOT inner_html. Tests: 15 pure unit tests in ExUnit.Case async:true."
+    "email_html_test_note": "EmailHtml.esc/1 uses binary pattern matching for HTML escaping (5 entities). wrap/2 escapes footer but NOT inner_html. Tests: 15 pure unit tests in ExUnit.Case async:true.",
+    "ecto_enum_status_note": "After PR #769 (2026-04-29): BulkEnrollmentInviteSchema.status and EnrollmentSchema.status are Ecto.Enum fields. All test code must use atoms (:pending, :invite_sent, :registered, :enrolled, :failed) not strings.",
+    "pr_696_superseded_note": "PR #696 (BulkEnrollmentInviteMapper tests) had string status values. Superseded by new PR with atom fixes. Old branch was 1754 commits behind main; used cherry-pick strategy onto fresh branch."
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -44,20 +46,29 @@
     "task_1": "2026-04-15",
     "task_2": "2026-04-29",
     "task_3": "2026-04-29",
-    "task_4": "2026-04-28",
+    "task_4": "2026-04-30",
     "task_5": "2026-04-28",
     "task_6": "2026-04-27",
-    "task_7": "2026-04-29"
+    "task_7": "2026-04-30"
   },
   "work_in_progress": null,
   "completed_work": [
+    {
+      "date": "2026-04-30",
+      "run_id": "25190300701",
+      "pr_branch": "test-assist/fix-bulk-invite-mapper-tests-1777584",
+      "description": "Replacement PR for #696: corrected all status string literals to atoms in BulkEnrollmentInviteMapper tests after #769 Ecto.Enum refactor. 14 tests: 8 AttachmentMapper + 6 BulkEnrollmentInviteMapper.",
+      "tests_added": 14,
+      "pr_number": null,
+      "note": "PR number TBD - created this run. Old PR #696 superseded and should be closed."
+    },
     {
       "date": "2026-04-29",
       "run_id": "25135035818",
       "pr_branch": "test-assist/email-html-tests-1777498500",
       "description": "15 pure unit tests for EmailHtml.esc/1 (all 5 HTML entities, XSS input, UTF-8, non-binary coercion) and wrap/2 (structure, default/custom footer escaping)",
       "tests_added": 15,
-      "pr_number": null
+      "pr_number": 771
     },
     {
       "date": "2026-04-26",
@@ -98,14 +109,6 @@
       "description": "7 DataCase tests for ExpireStaffInvitation",
       "tests_added": 7,
       "pr_number": 723
-    },
-    {
-      "date": "2026-04-21",
-      "run_id": "24747211178",
-      "pr_branch": "test-assist/invite-field-validations-tests-1776807241",
-      "description": "18 tests for InviteFieldValidations",
-      "tests_added": 18,
-      "pr_number": 719
     }
   ],
   "monthly_summary_issue": {
@@ -127,6 +130,8 @@
     733,
     750,
     759,
-    764
+    764,
+    771,
+    "new-fix-bulk-invite-mapper"
   ]
 }
