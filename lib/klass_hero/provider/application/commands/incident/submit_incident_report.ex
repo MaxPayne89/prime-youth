@@ -58,10 +58,12 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
           {:ok, IncidentReport.t()}
           | {:error, keyword() | Ecto.Changeset.t() | term()}
   def execute(params) when is_map(params) do
+    storage_opts = params[:storage_opts] || []
+
     with :ok <- validate_ownership(params),
          {:ok, photo_ref} <- maybe_upload_photo(params),
          {:ok, report} <- build_report(params, photo_ref),
-         {:ok, persisted} <- persist_and_enqueue(report, photo_ref, params) do
+         {:ok, persisted} <- persist_and_enqueue(report, photo_ref, storage_opts) do
       publish_event(persisted)
       {:ok, persisted}
     end
@@ -147,36 +149,35 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
   #      there still governs other critical events.
   # Outcome: {:ok, persisted} when both rows commit; {:error, reason} when either
   #          step fails, after which any uploaded photo is best-effort deleted
-  defp persist_and_enqueue(report, photo_ref, params) do
-    Repo.transaction(fn ->
+  defp persist_and_enqueue(report, photo_ref, storage_opts) do
+    fn ->
       with {:ok, persisted} <- @repository.create(report),
            {:ok, _job} <- @enqueue.enqueue(persisted) do
         persisted
       else
         {:error, reason} -> Repo.rollback(reason)
       end
-    end)
-    |> case do
-      {:ok, persisted} ->
-        {:ok, persisted}
-
-      {:error, reason} ->
-        cleanup_photo(photo_ref, params)
-        {:error, reason}
     end
+    |> Repo.transaction()
+    |> finalise_transaction(photo_ref, storage_opts)
   end
 
-  # Trigger: persist_and_enqueue rolled back AFTER the photo was uploaded
+  defp finalise_transaction({:ok, _persisted} = ok, _photo_ref, _storage_opts), do: ok
+
+  defp finalise_transaction({:error, _reason} = err, photo_ref, storage_opts) do
+    cleanup_photo(photo_ref, storage_opts)
+    err
+  end
+
+  # Trigger: transaction rolled back AFTER the photo was uploaded
   # Why: rollback only undoes DB writes — storage is an external system and
   #      would otherwise leave an orphan blob in private storage
   # Outcome: best-effort delete; storage failures are logged and swallowed so
   #          the original transaction error reaches the caller unmasked
-  defp cleanup_photo(%{photo_url: nil}, _params), do: :ok
+  defp cleanup_photo(%{photo_url: nil}, _storage_opts), do: :ok
 
-  defp cleanup_photo(%{photo_url: url}, params) when is_binary(url) do
-    opts = params[:storage_opts] || []
-
-    case Storage.delete(:private, url, opts) do
+  defp cleanup_photo(%{photo_url: url}, storage_opts) when is_binary(url) do
+    case Storage.delete(:private, url, storage_opts) do
       :ok ->
         :ok
 

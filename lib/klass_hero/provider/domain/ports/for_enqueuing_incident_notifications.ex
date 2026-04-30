@@ -9,8 +9,14 @@ defmodule KlassHero.Provider.Domain.Ports.ForEnqueuingIncidentNotifications do
 
   ## Expected Return Values
 
-  - `enqueue/1` — Returns `{:ok, Oban.Job.t()}` on success or
-    `{:error, term()}` on enqueue failure (DB error, validation, etc.).
+  - `enqueue/1` — Returns `{:ok, Oban.Job.t()}` on success.
+  - On failure, returns `{:error, reason}` where `reason` is typically:
+    - `Ecto.Changeset.t()` — Oban rejected the job args via its own changeset
+      (invalid worker, malformed args, unique-constraint violation when
+      uniqueness opts are configured).
+    - `term()` — DB error or transport failure surfaced by `Oban.insert/1`.
+    Test stubs may also return arbitrary atoms (e.g. `:enqueue_failed`) to
+    exercise the caller's rollback path.
   """
 
   alias KlassHero.Provider.Domain.Models.IncidentReport
@@ -21,5 +27,6 @@ defmodule KlassHero.Provider.Domain.Ports.ForEnqueuingIncidentNotifications do
   Implementations must NOT raise on enqueue failure — return `{:error, _}`
   so the caller's transaction can roll back the report row.
   """
-  @callback enqueue(IncidentReport.t()) :: {:ok, Oban.Job.t()} | {:error, term()}
+  @callback enqueue(IncidentReport.t()) ::
+              {:ok, Oban.Job.t()} | {:error, Ecto.Changeset.t() | term()}
 end
