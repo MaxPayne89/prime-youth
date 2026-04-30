@@ -56,7 +56,7 @@ alias KlassHero.Participation.Adapters.Driven.Persistence.Repositories.SessionRe
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramListingsRepository
 alias KlassHero.ProgramCatalog.Adapters.Driven.Persistence.Repositories.ProgramRepository
 alias KlassHero.Provider.Adapters.Driven.ACL.ParticipationSessionStatsACL
-alias KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationEnqueuer
+alias KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationScheduler
 alias KlassHero.Provider.Adapters.Driven.Notifications.IncidentReportedEmailNotifier
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.IncidentReportRepository
 alias KlassHero.Provider.Adapters.Driven.Persistence.Repositories.ProgramStaffAssignmentRepository
@@ -301,7 +301,7 @@ config :klass_hero, :provider,
   for_resolving_session_stats: ParticipationSessionStatsACL,
   for_storing_incident_reports: IncidentReportRepository,
   for_querying_incident_reports: IncidentReportRepository,
-  for_enqueuing_incident_notifications: IncidentNotificationEnqueuer,
+  for_scheduling_incident_notifications: IncidentNotificationScheduler,
   for_sending_incident_emails: IncidentReportedEmailNotifier,
   for_querying_provider_programs: ProviderProgramRepository
 

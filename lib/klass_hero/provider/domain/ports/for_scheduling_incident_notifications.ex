@@ -1,4 +1,4 @@
-defmodule KlassHero.Provider.Domain.Ports.ForEnqueuingIncidentNotifications do
+defmodule KlassHero.Provider.Domain.Ports.ForSchedulingIncidentNotifications do
   @moduledoc """
   Driven port for scheduling the incident-notification email job.
 
@@ -7,9 +7,13 @@ defmodule KlassHero.Provider.Domain.Ports.ForEnqueuingIncidentNotifications do
   underlying queue insert (Oban) and surface failures as a tuple — never
   raise — so the calling `with` chain can roll back cleanly.
 
+  Verb choice mirrors `Messaging.Domain.Ports.ForSchedulingEmailJobs` —
+  both ports cover "create an Oban job", and the codebase aligns on
+  `Scheduling` as the verb for that act.
+
   ## Expected Return Values
 
-  - `enqueue/1` — Returns `{:ok, Oban.Job.t()}` on success.
+  - `schedule/1` — Returns `{:ok, Oban.Job.t()}` on success.
   - On failure, returns `{:error, reason}` where `reason` is typically:
     - `Ecto.Changeset.t()` — Oban rejected the job args via its own changeset
       (invalid worker, malformed args, unique-constraint violation when
@@ -24,9 +28,9 @@ defmodule KlassHero.Provider.Domain.Ports.ForEnqueuingIncidentNotifications do
   @doc """
   Schedules the notification job for a freshly persisted incident report.
 
-  Implementations must NOT raise on enqueue failure — return `{:error, _}`
-  so the caller's transaction can roll back the report row.
+  Implementations must NOT raise on failure — return `{:error, _}` so the
+  caller's transaction can roll back the report row.
   """
-  @callback enqueue(IncidentReport.t()) ::
+  @callback schedule(IncidentReport.t()) ::
               {:ok, Oban.Job.t()} | {:error, Ecto.Changeset.t() | term()}
 end

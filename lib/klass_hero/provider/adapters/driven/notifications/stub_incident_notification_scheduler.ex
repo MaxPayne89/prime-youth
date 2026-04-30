@@ -1,8 +1,8 @@
-defmodule KlassHero.Provider.Adapters.Driven.Notifications.StubIncidentNotificationEnqueuer do
+defmodule KlassHero.Provider.Adapters.Driven.Notifications.StubIncidentNotificationScheduler do
   @moduledoc """
-  Test stub for `ForEnqueuingIncidentNotifications`.
+  Test stub for `ForSchedulingIncidentNotifications`.
 
-  Default mode is *passthrough* — delegates to `IncidentNotificationEnqueuer`
+  Default mode is *passthrough* — delegates to `IncidentNotificationScheduler`
   so existing end-to-end tests (which rely on `Oban testing: :inline`)
   continue to enqueue and execute jobs as if the production adapter were
   wired directly.
@@ -13,25 +13,25 @@ defmodule KlassHero.Provider.Adapters.Driven.Notifications.StubIncidentNotificat
   inside `Repo.transaction/1`.
   """
 
-  @behaviour KlassHero.Provider.Domain.Ports.ForEnqueuingIncidentNotifications
+  @behaviour KlassHero.Provider.Domain.Ports.ForSchedulingIncidentNotifications
 
-  alias KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationEnqueuer
+  alias KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationScheduler
 
-  @mode_key :__incident_notification_enqueuer_mode__
-  @calls_key :__incident_notification_enqueuer_calls__
+  @mode_key :__incident_notification_scheduler_mode__
+  @calls_key :__incident_notification_scheduler_calls__
 
   @impl true
-  def enqueue(report) do
+  def schedule(report) do
     record_call(report)
 
     case Process.get(@mode_key, :passthrough) do
-      :passthrough -> IncidentNotificationEnqueuer.enqueue(report)
+      :passthrough -> IncidentNotificationScheduler.schedule(report)
       {:fail, reason} -> {:error, reason}
     end
   end
 
   @doc """
-  Forces the next `enqueue/1` calls in this process to return `{:error, reason}`.
+  Forces the next `schedule/1` calls in this process to return `{:error, reason}`.
   """
   @spec set_failure_mode(term()) :: :ok
   def set_failure_mode(reason) do
@@ -50,7 +50,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Notifications.StubIncidentNotificat
   end
 
   @doc """
-  Returns the list of incident reports `enqueue/1` was called with, in order.
+  Returns the list of incident reports `schedule/1` was called with, in order.
   """
   @spec calls() :: [struct()]
   def calls, do: Process.get(@calls_key, []) |> Enum.reverse()

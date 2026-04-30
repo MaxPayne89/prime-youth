@@ -1,6 +1,6 @@
-defmodule KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationEnqueuer do
+defmodule KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationScheduler do
   @moduledoc """
-  Oban-backed adapter for `ForEnqueuingIncidentNotifications`.
+  Oban-backed adapter for `ForSchedulingIncidentNotifications`.
 
   Inserts an `Oban.Job` for `NotifyIncidentReportedWorker` via the shared
   tracing-aware enqueue helper. Returns a tuple — never raises — so the
@@ -10,14 +10,14 @@ defmodule KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationE
   is ACID-atomic with the calling transaction's other writes (report row).
   """
 
-  @behaviour KlassHero.Provider.Domain.Ports.ForEnqueuingIncidentNotifications
+  @behaviour KlassHero.Provider.Domain.Ports.ForSchedulingIncidentNotifications
 
   alias KlassHero.Provider.Adapters.Driving.Workers.NotifyIncidentReportedWorker
   alias KlassHero.Provider.Domain.Models.IncidentReport
   alias KlassHero.Shared.Tracing.ObanEnqueue
 
   @impl true
-  def enqueue(%IncidentReport{id: id}) when is_binary(id) do
+  def schedule(%IncidentReport{id: id}) when is_binary(id) do
     ObanEnqueue.with_context(NotifyIncidentReportedWorker, %{incident_report_id: id})
   end
 end

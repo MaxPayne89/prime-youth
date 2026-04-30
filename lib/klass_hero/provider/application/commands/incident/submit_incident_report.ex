@@ -28,7 +28,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
 
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_incident_reports])
   @sessions_query Application.compile_env!(:klass_hero, [:provider, :for_querying_session_details])
-  @enqueue Application.compile_env!(:klass_hero, [:provider, :for_enqueuing_incident_notifications])
+  @scheduler Application.compile_env!(:klass_hero, [:provider, :for_scheduling_incident_notifications])
 
   @doc """
   Submits an incident report.
@@ -152,7 +152,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
   defp persist_and_enqueue(report, photo_ref, storage_opts) do
     fn ->
       with {:ok, persisted} <- @repository.create(report),
-           {:ok, _job} <- @enqueue.enqueue(persisted) do
+           {:ok, _job} <- @scheduler.schedule(persisted) do
         persisted
       else
         {:error, reason} -> Repo.rollback(reason)

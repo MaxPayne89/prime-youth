@@ -9,7 +9,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
   import Swoosh.TestAssertions
 
   alias KlassHero.Accounts.User
-  alias KlassHero.Provider.Adapters.Driven.Notifications.StubIncidentNotificationEnqueuer
+  alias KlassHero.Provider.Adapters.Driven.Notifications.StubIncidentNotificationScheduler
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.IncidentReportSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderSessionDetailSchema
   alias KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport
@@ -35,7 +35,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       :ok
     end)
 
-    on_exit(fn -> StubIncidentNotificationEnqueuer.reset() end)
+    on_exit(fn -> StubIncidentNotificationScheduler.reset() end)
 
     %{provider: provider, program_id: program.id, user: user}
   end
@@ -271,7 +271,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       program_id: pg,
       user: u
     } do
-      StubIncidentNotificationEnqueuer.set_failure_mode(:enqueue_failed)
+      StubIncidentNotificationScheduler.set_failure_mode(:enqueue_failed)
 
       params = base_params(p, pg, u)
 
@@ -290,7 +290,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
 
       assert {:ok, report} = SubmitIncidentReport.execute(params)
 
-      assert [%{id: enqueued_id}] = StubIncidentNotificationEnqueuer.calls()
+      assert [%{id: enqueued_id}] = StubIncidentNotificationScheduler.calls()
       assert enqueued_id == report.id
     end
 
@@ -302,7 +302,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       {:ok, storage} =
         StubStorageAdapter.start_link(name: :"storage_#{System.unique_integer([:positive])}")
 
-      StubIncidentNotificationEnqueuer.set_failure_mode(:enqueue_failed)
+      StubIncidentNotificationScheduler.set_failure_mode(:enqueue_failed)
 
       params =
         p

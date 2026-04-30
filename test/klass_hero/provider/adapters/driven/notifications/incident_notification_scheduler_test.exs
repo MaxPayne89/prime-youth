@@ -1,6 +1,6 @@
-defmodule KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationEnqueuerTest do
+defmodule KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationSchedulerTest do
   @moduledoc """
-  Contract test for the production `ForEnqueuingIncidentNotifications`
+  Contract test for the production `ForSchedulingIncidentNotifications`
   adapter. Lives outside the `SubmitIncidentReport` test (which uses the
   passthrough stub) so the worker/queue/args contract is asserted against
   the real Oban call without an inline-mode side-effect.
@@ -9,11 +9,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationE
   use KlassHero.DataCase, async: true
   use Oban.Testing, repo: KlassHero.Repo
 
-  alias KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationEnqueuer
+  alias KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationScheduler
   alias KlassHero.Provider.Adapters.Driving.Workers.NotifyIncidentReportedWorker
   alias KlassHero.Provider.Domain.Models.IncidentReport
 
-  describe "enqueue/1" do
+  describe "schedule/1" do
     test "schedules NotifyIncidentReportedWorker on the :email queue with the report id" do
       Oban.Testing.with_testing_mode(:manual, fn ->
         # Bypassing IncidentReport.new/1 + the persisting `incident_report_fixture/1`
@@ -22,7 +22,7 @@ defmodule KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationE
         # for foreign keys — neither contributes to what this test asserts.
         report = struct(IncidentReport, id: Ecto.UUID.generate())
 
-        assert {:ok, _job} = IncidentNotificationEnqueuer.enqueue(report)
+        assert {:ok, _job} = IncidentNotificationScheduler.schedule(report)
 
         assert_enqueued(
           worker: NotifyIncidentReportedWorker,
