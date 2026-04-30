@@ -5,6 +5,13 @@ All notable changes to the Klass Hero project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.48.1](https://github.com/MaxPayne89/klass-hero/compare/v0.48.0...v0.48.1) (2026-04-30)
+
+
+### Bug Fixes
+
+* enqueue incident email atomically with submission ([#754](https://github.com/MaxPayne89/klass-hero/issues/754)) ([#773](https://github.com/MaxPayne89/klass-hero/issues/773)) ([4207808](https://github.com/MaxPayne89/klass-hero/commit/4207808aef30c09083756f763d005b050be554b0))
+
 ## [0.48.0](https://github.com/MaxPayne89/klass-hero/compare/v0.47.0...v0.48.0) (2026-04-25)
 
 
