@@ -8,14 +8,12 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
   import KlassHero.ProviderFixtures, only: [provider_program_projection_fixture: 1]
   import Swoosh.TestAssertions
 
-  alias Ecto.Adapters.SQL.Sandbox
   alias KlassHero.Accounts.User
+  alias KlassHero.Provider.Adapters.Driven.Notifications.StubIncidentNotificationEnqueuer
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.IncidentReportSchema
   alias KlassHero.Provider.Adapters.Driven.Persistence.Schemas.ProviderSessionDetailSchema
-  alias KlassHero.Provider.Adapters.Driving.Events.IncidentReportedHandler
   alias KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport
   alias KlassHero.Repo
-  alias KlassHero.Shared.Adapters.Driven.Events.PubSubIntegrationEventPublisher
   alias KlassHero.Shared.Adapters.Driven.Storage.StubStorageAdapter
   alias KlassHero.Shared.DomainEventBus
 
@@ -36,6 +34,8 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       send(test_pid, {:domain_event, event})
       :ok
     end)
+
+    on_exit(fn -> StubIncidentNotificationEnqueuer.reset() end)
 
     %{provider: provider, program_id: program.id, user: user}
   end
@@ -211,39 +211,12 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
   end
 
   describe "execute/1 — incident email pipeline (end-to-end)" do
-    # Trigger: tests need PubSub-driven CriticalEventDispatcher → handler → Oban inline
-    # Why: the default test publisher only collects events; it does not broadcast,
-    #      so the IncidentReportedHandler subscriber would never wake up
-    # Outcome: swap to real PubSub, grant the subscriber sandbox access, route Swoosh
-    #          mail back to the test pid even when Mailer.deliver runs in another process
+    # Trigger: assertions inspect Swoosh's per-process mailbox
+    # Why: previous test-runs may have left messages from other commands; flushing
+    #      keeps each test's assertions scoped to mail it just sent
+    # Outcome: empty mailbox at the start of every test in this describe
     setup do
       flush_emails()
-
-      original_publisher = Application.get_env(:klass_hero, :integration_event_publisher)
-
-      Application.put_env(:klass_hero, :integration_event_publisher,
-        module: PubSubIntegrationEventPublisher,
-        pubsub: KlassHero.PubSub
-      )
-
-      original_swoosh_pid = Application.get_env(:swoosh, :shared_test_process)
-      Application.put_env(:swoosh, :shared_test_process, self())
-
-      case Process.whereis(IncidentReportedHandler) do
-        nil -> :ok
-        pid -> Sandbox.allow(KlassHero.Repo, self(), pid)
-      end
-
-      on_exit(fn ->
-        Application.put_env(:klass_hero, :integration_event_publisher, original_publisher)
-
-        if original_swoosh_pid do
-          Application.put_env(:swoosh, :shared_test_process, original_swoosh_pid)
-        else
-          Application.delete_env(:swoosh, :shared_test_process)
-        end
-      end)
-
       :ok
     end
 
@@ -284,6 +257,65 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       assert {:ok, _report} = SubmitIncidentReport.execute(params)
 
       assert_no_email_sent()
+    end
+  end
+
+  describe "execute/1 — transactional enqueue (#754)" do
+    # Trigger: Oban.insert returns {:error, _} from inside the persistence transaction
+    # Why: row insert and email-job insert must commit atomically — a failed enqueue
+    #      that leaves the report row behind orphans the notification permanently
+    # Outcome: Repo.transaction rolls back, no incident_reports row exists, no
+    #          :incident_reported event fires, photo (if any) is cleaned up
+    test "rolls back the report when the email enqueue fails", %{
+      provider: p,
+      program_id: pg,
+      user: u
+    } do
+      StubIncidentNotificationEnqueuer.set_failure_mode(:enqueue_failed)
+
+      params = base_params(p, pg, u)
+
+      assert {:error, :enqueue_failed} = SubmitIncidentReport.execute(params)
+
+      refute Repo.exists?(IncidentReportSchema)
+      refute_receive {:domain_event, _}, 100
+    end
+
+    test "still records the enqueue attempt on the success path", %{
+      provider: p,
+      program_id: pg,
+      user: u
+    } do
+      params = base_params(p, pg, u)
+
+      assert {:ok, report} = SubmitIncidentReport.execute(params)
+
+      assert [%{id: enqueued_id}] = StubIncidentNotificationEnqueuer.calls()
+      assert enqueued_id == report.id
+    end
+
+    test "deletes the uploaded photo when the transaction rolls back", %{
+      provider: p,
+      program_id: pg,
+      user: u
+    } do
+      {:ok, storage} =
+        StubStorageAdapter.start_link(name: :"storage_#{System.unique_integer([:positive])}")
+
+      StubIncidentNotificationEnqueuer.set_failure_mode(:enqueue_failed)
+
+      params =
+        p
+        |> base_params(pg, u)
+        |> Map.put(:file_binary, "fake-jpeg-bytes")
+        |> Map.put(:original_filename, "incident.jpg")
+        |> Map.put(:storage_opts, adapter: StubStorageAdapter, agent: storage)
+
+      assert {:error, :enqueue_failed} = SubmitIncidentReport.execute(params)
+
+      # Storage stub agent should hold no entries — proves cleanup_photo deleted
+      # the upload after the transaction rolled back
+      assert Agent.get(storage, & &1) == %{}
     end
   end
 end
