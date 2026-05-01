@@ -55,12 +55,23 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
     }
   end
 
+  # Production rows get `business_owner_email` populated by `ProviderEventHandler`
+  # off the `:user_registered` integration event. The schema factory leaves it nil
+  # to keep fixtures FK-minimal, so tests that exercise the notification path
+  # backfill explicitly here.
+  defp with_owner_email(provider, email \\ "owner@example.com") do
+    provider
+    |> Ecto.Changeset.change(%{business_owner_email: email})
+    |> Repo.update!()
+  end
+
   describe "execute/1 — program scope" do
     test "persists the report and emits an incident_reported domain event", %{
       provider: p,
       program_id: pg,
       user: u
     } do
+      p = with_owner_email(p)
       params = base_params(p, pg, u)
 
       assert {:ok, report} = SubmitIncidentReport.execute(params)
@@ -71,6 +82,8 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       assert event.aggregate_id == report.id
       assert event.payload.program_id == pg
       assert event.payload.has_photo == false
+      assert event.payload.business_owner_email == "owner@example.com"
+      assert event.payload.business_name == p.business_name
     end
 
     test "fails when program_id does not belong to the provider", %{provider: p, user: u} do
@@ -242,21 +255,37 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       end)
     end
 
-    test "skips the email when the reporter is the provider owner (self-report)", %{
+    test "skips the scheduler call when the reporter is the provider owner (self-report)", %{
       provider: provider,
       program_id: program_id
     } do
       owner = Repo.get!(User, provider.identity_id)
-
-      provider
-      |> Ecto.Changeset.change(%{business_owner_email: "owner@example.com"})
-      |> Repo.update!()
+      provider = with_owner_email(provider)
 
       params = base_params(provider, program_id, owner)
 
       assert {:ok, _report} = SubmitIncidentReport.execute(params)
 
       assert_no_email_sent()
+      assert StubIncidentNotificationScheduler.calls() == []
+      # Domain event is still dispatched — preserves the eventing contract;
+      # only the email work is skipped.
+      assert_receive {:domain_event, _event}, 500
+    end
+
+    test "skips the scheduler call when the provider has no business_owner_email on file", %{
+      provider: provider,
+      program_id: program_id,
+      user: reporter
+    } do
+      # provider has business_owner_email: nil from the factory
+      params = base_params(provider, program_id, reporter)
+
+      assert {:ok, _report} = SubmitIncidentReport.execute(params)
+
+      assert_no_email_sent()
+      assert StubIncidentNotificationScheduler.calls() == []
+      assert_receive {:domain_event, _event}, 500
     end
   end
 
@@ -271,6 +300,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       program_id: pg,
       user: u
     } do
+      p = with_owner_email(p)
       StubIncidentNotificationScheduler.set_failure_mode(:enqueue_failed)
 
       params = base_params(p, pg, u)
@@ -281,17 +311,18 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       refute_receive {:domain_event, _}, 100
     end
 
-    test "still records the enqueue attempt on the success path", %{
-      provider: p,
-      program_id: pg,
-      user: u
-    } do
+    test "calls the scheduler with both the persisted report and the loaded profile",
+         %{provider: p, program_id: pg, user: u} do
+      p = with_owner_email(p)
       params = base_params(p, pg, u)
 
       assert {:ok, report} = SubmitIncidentReport.execute(params)
 
-      assert [%{id: enqueued_id}] = StubIncidentNotificationScheduler.calls()
-      assert enqueued_id == report.id
+      assert [{enqueued_report, enqueued_profile}] = StubIncidentNotificationScheduler.calls()
+      assert enqueued_report.id == report.id
+      assert enqueued_profile.id == p.id
+      assert enqueued_profile.business_owner_email == "owner@example.com"
+      assert enqueued_profile.business_name == p.business_name
     end
 
     test "deletes the uploaded photo when the transaction rolls back", %{
@@ -299,6 +330,8 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReportT
       program_id: pg,
       user: u
     } do
+      p = with_owner_email(p)
+
       {:ok, storage} =
         StubStorageAdapter.start_link(name: :"storage_#{System.unique_integer([:positive])}")
 

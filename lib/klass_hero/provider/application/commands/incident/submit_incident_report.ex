@@ -18,6 +18,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
   alias KlassHero.Provider.Application.Queries.ProviderProgramQueries
   alias KlassHero.Provider.Domain.Events.ProviderEvents
   alias KlassHero.Provider.Domain.Models.IncidentReport
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Repo
   alias KlassHero.Shared.DomainEventBus
   alias KlassHero.Shared.Storage
@@ -28,7 +29,10 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
 
   @repository Application.compile_env!(:klass_hero, [:provider, :for_storing_incident_reports])
   @sessions_query Application.compile_env!(:klass_hero, [:provider, :for_querying_session_details])
+  @profile_query Application.compile_env!(:klass_hero, [:provider, :for_querying_provider_profiles])
   @scheduler Application.compile_env!(:klass_hero, [:provider, :for_scheduling_incident_notifications])
+
+  defguardp is_present(s) when is_binary(s) and byte_size(s) > 0
 
   @doc """
   Submits an incident report.
@@ -61,11 +65,24 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
     storage_opts = params[:storage_opts] || []
 
     with :ok <- validate_ownership(params),
+         {:ok, profile} <- fetch_profile(params),
          {:ok, photo_ref} <- maybe_upload_photo(params),
          {:ok, report} <- build_report(params, photo_ref),
-         {:ok, persisted} <- persist_and_enqueue(report, photo_ref, storage_opts) do
-      publish_event(persisted)
+         {:ok, persisted} <- persist_and_enqueue(report, profile, photo_ref, storage_opts) do
+      publish_event(persisted, profile)
       {:ok, persisted}
+    end
+  end
+
+  # Read happens *outside* `Repo.transaction/1` deliberately: the two profile
+  # fields we forward (`business_owner_email`, `business_name`) are stable
+  # provider attributes, not data the transaction will mutate, so the
+  # "no read-outside-tx" rule (CLAUDE.md) does not apply. Loading once here
+  # replaces a per-email DB round-trip the worker used to make.
+  defp fetch_profile(%{provider_profile_id: id}) do
+    case @profile_query.get(id) do
+      {:ok, %ProviderProfile{} = profile} -> {:ok, profile}
+      {:error, :not_found} -> {:error, [provider_profile_id: "does not exist"]}
     end
   end
 
@@ -149,10 +166,10 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
   #      there still governs other critical events.
   # Outcome: {:ok, persisted} when both rows commit; {:error, reason} when either
   #          step fails, after which any uploaded photo is best-effort deleted
-  defp persist_and_enqueue(report, photo_ref, storage_opts) do
+  defp persist_and_enqueue(report, profile, photo_ref, storage_opts) do
     fn ->
       with {:ok, persisted} <- @repository.create(report),
-           {:ok, _job} <- @scheduler.schedule(persisted) do
+           :ok <- maybe_schedule_notification(persisted, profile) do
         persisted
       else
         {:error, reason} -> Repo.rollback(reason)
@@ -160,6 +177,23 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
     end
     |> Repo.transaction()
     |> finalise_transaction(photo_ref, storage_opts)
+  end
+
+  # Skip clauses fall through to :ok so the report row still commits but no
+  # email job is enqueued. Two scenarios:
+  #   - Self-report: the owner is the reporter; notifying them is noise.
+  #   - Missing email: there is nobody to notify; enqueueing would just burn
+  #     the worker's retry budget against its own boundary guards.
+  defp maybe_schedule_notification(%IncidentReport{reporter_user_id: rid}, %ProviderProfile{identity_id: rid}), do: :ok
+
+  defp maybe_schedule_notification(_report, %ProviderProfile{business_owner_email: email}) when not is_present(email),
+    do: :ok
+
+  defp maybe_schedule_notification(report, %ProviderProfile{} = profile) do
+    case @scheduler.schedule(report, profile) do
+      {:ok, _job} -> :ok
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   defp finalise_transaction({:ok, _persisted} = ok, _photo_ref, _storage_opts), do: ok
@@ -191,8 +225,8 @@ defmodule KlassHero.Provider.Application.Commands.Incident.SubmitIncidentReport 
     end
   end
 
-  defp publish_event(report) do
-    event = ProviderEvents.incident_reported(report)
+  defp publish_event(report, profile) do
+    event = ProviderEvents.incident_reported(report, profile)
     DomainEventBus.dispatch(@context, event)
   end
 end

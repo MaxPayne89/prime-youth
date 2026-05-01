@@ -586,8 +586,8 @@ defmodule KlassHeroWeb.CompositeComponents do
   """
   def app_footer(assigns) do
     ~H"""
-    <footer class="footer footer-center p-10 bg-hero-black text-hero-grey-300">
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl">
+    <footer class="bg-hero-black text-hero-grey-300 px-6 py-10 sm:p-10">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 w-full max-w-6xl mx-auto">
         <div class="text-left">
           <h3 class="font-bold text-lg text-white mb-4">{gettext("Klass Hero")}</h3>
           <p class="text-sm">
@@ -668,7 +668,7 @@ defmodule KlassHeroWeb.CompositeComponents do
         </div>
       </div>
 
-      <div class="border-t border-base-300 pt-6 mt-6 w-full">
+      <div class="border-t border-base-300 pt-6 mt-6 w-full max-w-6xl mx-auto text-center">
         <p class="text-sm">
           &copy; {Date.utc_today().year} Klass Hero. {gettext("All rights reserved.")}
         </p>

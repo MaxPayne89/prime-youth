@@ -13,7 +13,7 @@ defmodule KlassHero.Provider.Domain.Ports.ForSchedulingIncidentNotifications do
 
   ## Expected Return Values
 
-  - `schedule/1` — Returns `{:ok, Oban.Job.t()}` on success.
+  - `schedule/2` — Returns `{:ok, Oban.Job.t()}` on success.
   - On failure, returns `{:error, reason}` where `reason` is typically:
     - `Ecto.Changeset.t()` — Oban rejected the job args via its own changeset
       (invalid worker, malformed args, unique-constraint violation when
@@ -24,13 +24,18 @@ defmodule KlassHero.Provider.Domain.Ports.ForSchedulingIncidentNotifications do
   """
 
   alias KlassHero.Provider.Domain.Models.IncidentReport
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
 
   @doc """
   Schedules the notification job for a freshly persisted incident report.
 
+  The provider profile is passed in alongside the report so its
+  `business_owner_email` and `business_name` can travel on the Oban job
+  args — the email worker uses them directly without a profile DB lookup.
+
   Implementations must NOT raise on failure — return `{:error, _}` so the
   caller's transaction can roll back the report row.
   """
-  @callback schedule(IncidentReport.t()) ::
+  @callback schedule(IncidentReport.t(), ProviderProfile.t()) ::
               {:ok, Oban.Job.t()} | {:error, Ecto.Changeset.t() | term()}
 end

@@ -14,10 +14,15 @@ defmodule KlassHero.Provider.Adapters.Driven.Notifications.IncidentNotificationS
 
   alias KlassHero.Provider.Adapters.Driving.Workers.NotifyIncidentReportedWorker
   alias KlassHero.Provider.Domain.Models.IncidentReport
+  alias KlassHero.Provider.Domain.Models.ProviderProfile
   alias KlassHero.Shared.Tracing.ObanEnqueue
 
   @impl true
-  def schedule(%IncidentReport{id: id}) when is_binary(id) do
-    ObanEnqueue.with_context(NotifyIncidentReportedWorker, %{incident_report_id: id})
+  def schedule(%IncidentReport{id: id}, %ProviderProfile{} = profile) when is_binary(id) do
+    ObanEnqueue.with_context(NotifyIncidentReportedWorker, %{
+      incident_report_id: id,
+      business_owner_email: profile.business_owner_email,
+      business_name: profile.business_name
+    })
   end
 end

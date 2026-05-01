@@ -2,7 +2,11 @@
   <input id="main-drawer" type="checkbox" class="drawer-toggle" />
   <div class="drawer-content flex flex-col">
     <!-- Navbar -->
-    <div class="navbar bg-white shadow-sm border-b border-hero-grey-200 relative z-10">
+    <div class={[
+      "navbar bg-white shadow-sm border-b border-hero-grey-200 relative z-10",
+      "[&>.navbar-start]:w-auto [&>.navbar-end]:flex-1 [&>.navbar-end]:w-auto",
+      "lg:[&>.navbar-start]:w-1/2 lg:[&>.navbar-end]:w-1/2"
+    ]}>
       <div class="navbar-start">
         <div class="dropdown lg:hidden">
           <label for="main-drawer" class="btn btn-square btn-ghost">
@@ -65,7 +69,9 @@
 
       <div class="navbar-end">
         <div class="flex items-center gap-2">
-          <.language_switcher locale={assigns[:locale] || "en"} />
+          <div class="hidden sm:block">
+            <.language_switcher locale={assigns[:locale] || "en"} />
+          </div>
 
           <%= if assigns[:current_scope] && @current_scope.user do %>
             <!-- Messages Indicator -->
@@ -281,6 +287,10 @@
             </li>
           <% end %>
         </ul>
+
+        <div class="mt-8 flex justify-center">
+          <.language_switcher locale={assigns[:locale] || "en"} />
+        </div>
       </div>
     </aside>
   </div>
