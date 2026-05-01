@@ -13,13 +13,16 @@ The project follows Domain-Driven Design with Ports & Adapters architecture (Hex
 
 ## Architecture Documentation
 
-**Start here for architectural guidance:**
+Authoritative reference is the code itself — read existing context implementations under `lib/klass_hero/<context>/` and mirror established patterns. Recommended reads when learning the conventions:
 
-- Existing context implementations under `lib/klass_hero/` - Follow established patterns
+- `lib/klass_hero/enrollment/` — full DDD shape (commands, queries, ports, driven + driving adapters)
+- `lib/klass_hero/messaging/` — projections + read-model pattern
+- `lib/klass_hero/shared/` — event infrastructure (publishers, registry, retry helpers)
+- `config/config.exs` — DI wiring per context and `critical_event_handlers` registry
 
 ## Authentication Note
 
-The authentication system uses Phoenix's standard `phx.gen.auth` for simplicity and maintainability. For future bounded contexts (Program Catalog, Enrollment, Family, Provider, etc.), the DDD/Ports & Adapters architecture documented in the above files will be followed.
+The authentication system uses Phoenix's standard `phx.gen.auth` for simplicity and maintainability. New bounded contexts follow the DDD/Ports & Adapters patterns described below.
 
 ## Port & Adapter Directionality
 

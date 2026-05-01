@@ -71,12 +71,16 @@ context/
 - **Provider** (`provider/`) - Provider profiles, staff members, verification documents
 - **Program Catalog** (`program_catalog/`) - Program discovery, filtering, pricing, categories
 - **Enrollment** (`enrollment/`) - Bookings, fee calculations, subscription tiers
-- **Entitlements** (`entitlements.ex`) - Pure domain service for subscription tier authorization (cross-context, no DB)
+- **Entitlements** (`shared/entitlements.ex`) - Pure domain service for subscription tier authorization (cross-context, no DB)
 - **Messaging** (`messaging/`) - Conversations, messages, participants, retention policies
 - **Participation** (`participation/`) - Session tracking, check-in/out, attendance rosters
 - **Shared** (`shared/`) - Event publishing, Ecto helpers, pagination, domain events
 
 See `.claude/rules/domain-architecture.md` for patterns. For context-specific details, read the code under `lib/klass_hero/<context>/` directly — Claude Code explores on-demand.
+
+**Boundary enforcement:** Each context's root module (`lib/klass_hero/<context>.ex`) declares `use Boundary, deps: [...], exports: [...]`. Compile-time violations surface via `mix compile --warnings-as-errors`. There is no separate `boundary.ex`.
+
+**CQRS direction:** New use cases go under `application/commands/` or `application/queries/`. New ports separate read contracts (`ForQuerying*`, `ForListing*`, `ForResolving*`) from write contracts (`ForStoring*`, `ForCreating*`, `ForUpdating*`). Existing `ForManaging*` ports will be split incrementally.
 
 ### Dependency Injection (Port Wiring)
 
@@ -97,7 +101,24 @@ When adding a new port: define the behaviour in `domain/ports/`, implement the a
 ### Event System (Two-Tier)
 
 - **Domain events** (non-critical): Published via PubSub (`PubSubEventPublisher`). Used for real-time UI updates and non-essential side effects.
-- **Integration events** (critical): Routed through `critical_event_handlers` registry in `config/config.exs` to Oban-backed handlers for durable, at-least-once delivery. Used for cross-context workflows (e.g., `invite_claimed`, `user_registered`).
+- **Integration events** (critical): Routed through `critical_event_handlers` registry in `config/config.exs` to Oban-backed handlers for durable, at-least-once delivery. Used for cross-context workflows.
+
+Registry shape — topic strings keyed `integration:<context>:<event>` map to a list of `{Handler, :function}` tuples (fan-out supported):
+
+```elixir
+# config/config.exs
+config :klass_hero, :critical_event_handlers, %{
+  "integration:accounts:user_registered" => [
+    {FamilyEventHandler, :handle_event},
+    {ProviderEventHandler, :handle_event}
+  ],
+  "integration:enrollment:invite_claimed" => [
+    {InviteClaimedHandler, :handle_event}
+  ]
+}
+```
+
+When adding a new integration event: define the event struct, publish it from the use case, then register the handler(s) here. Handlers live under their own context's `adapters/driving/events/`.
 
 ### Feature Flags
 
@@ -184,7 +205,7 @@ When addressing PR review comments, follow this workflow:
 
 ## Detailed Rules
 
-Comprehensive guidelines live in `.claude/rules/` (auto-loaded into context). These cover LiveView, Elixir style, HEEx templates, authentication, testing, database/Ecto, MCP integration, DDD architecture, frontend, workflow, available skills, and behavioral guidelines. **Do not duplicate those rules here.**
+Topic-specific guidelines live in `.claude/rules/` and are auto-loaded into context. **Do not duplicate those rules here.**
 
 <!-- usage-rules-start -->
 <!-- igniter-start -->
@@ -231,27 +252,16 @@ _A config-driven dev tool for Elixir projects to manage AGENTS.md files and agen
 
 ## Landing the Plane (Session Completion)
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+Work is NOT complete until `git push` succeeds. Session-end work lands via PR from a feature branch; direct pushes to `main` are blocked by the ruleset.
 
-**MANDATORY WORKFLOW:**
+```bash
+git fetch origin
+git rebase origin/main
+git push --force-with-lease   # only on your own feature branch
+git status                     # MUST show "up to date with origin"
+```
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY. Session-end work lands via PR from a feature branch; direct pushes to `main` are blocked by the ruleset. Rebase onto `origin/main` before the final push so the PR is fresh against current main:
-   ```bash
-   git fetch origin
-   git rebase origin/main
-   git push --force-with-lease
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
-
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
-- Force-push ONLY with `--force-with-lease` — and ONLY on your own feature branch after a rebase, never on `main` (the ruleset blocks it anyway)
+- File issues for follow-up work before closing the session
+- Run `mix precommit` if code changed; do not push with failing checks
+- Force-push only with `--force-with-lease`, only on your own feature branch, never on `main`
+- If push fails, resolve and retry — do not leave work stranded locally
