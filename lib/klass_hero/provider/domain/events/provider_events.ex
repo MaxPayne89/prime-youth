@@ -68,9 +68,15 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEvents do
     )
   end
 
-  @doc "Creates an incident_reported event."
-  @spec incident_reported(IncidentReport.t(), keyword()) :: DomainEvent.t()
-  def incident_reported(%IncidentReport{} = report, opts \\ []) do
+  @doc """
+  Creates an incident_reported event.
+
+  Carries `business_owner_email` and `business_name` from the provider profile
+  so downstream consumers (notifications, audit projections) can render
+  incident summaries without a Provider-context lookup.
+  """
+  @spec incident_reported(IncidentReport.t(), ProviderProfile.t(), keyword()) :: DomainEvent.t()
+  def incident_reported(%IncidentReport{} = report, %ProviderProfile{} = profile, opts \\ []) do
     payload = %{
       incident_report_id: report.id,
       provider_id: report.provider_profile_id,
@@ -80,7 +86,9 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEvents do
       category: report.category,
       severity: report.severity,
       occurred_at: report.occurred_at,
-      has_photo: not is_nil(report.photo_url)
+      has_photo: not is_nil(report.photo_url),
+      business_owner_email: profile.business_owner_email,
+      business_name: profile.business_name
     }
 
     DomainEvent.new(:incident_reported, report.id, @aggregate_type, payload, opts)

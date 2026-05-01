@@ -3,8 +3,9 @@ defmodule KlassHero.Provider.Adapters.Driving.Workers.NotifyIncidentReportedWork
   Tests for the NotifyIncidentReportedWorker Oban worker.
 
   The worker is a thin shell over the NotifyIncidentReported use case —
-  it deserialises `incident_report_id` from JSON args and propagates the
-  use case's return value so Oban can decide whether to retry.
+  it deserialises `incident_report_id`, `business_owner_email` and
+  `business_name` from JSON args and propagates the use case's return
+  value so Oban can decide whether to retry.
   """
 
   use KlassHero.DataCase, async: false
@@ -23,15 +24,15 @@ defmodule KlassHero.Provider.Adapters.Driving.Workers.NotifyIncidentReportedWork
   end
 
   describe "perform/1" do
-    test "sends an email when given a valid incident_report_id" do
+    test "forwards business_owner_email + business_name from args to the use case" do
       owner = unconfirmed_user_fixture(intended_roles: [:provider])
       reporter = unconfirmed_user_fixture(intended_roles: [:provider])
 
       provider =
         provider_profile_fixture(
           identity_id: owner.id,
-          business_name: "Worker Acme",
-          business_owner_email: "worker-owner@example.com"
+          business_name: "Profile Name (should be ignored)",
+          business_owner_email: "profile-owner@example.com"
         )
 
       program = insert(:program_schema, provider_id: provider.id)
@@ -50,8 +51,14 @@ defmodule KlassHero.Provider.Adapters.Driving.Workers.NotifyIncidentReportedWork
           description: "Worker test incident description."
         })
 
+      # Mismatched values prove the worker forwards args (not falling back to
+      # the profile DB row, which has different values).
       job = %Oban.Job{
-        args: %{"incident_report_id" => report.id},
+        args: %{
+          "incident_report_id" => report.id,
+          "business_owner_email" => "args-owner@example.com",
+          "business_name" => "Args Business"
+        },
         queue: "email",
         attempt: 1,
         max_attempts: 3
@@ -60,14 +67,18 @@ defmodule KlassHero.Provider.Adapters.Driving.Workers.NotifyIncidentReportedWork
       assert :ok = NotifyIncidentReportedWorker.perform(job)
 
       assert_email_sent(fn email ->
-        email.to == [{"Worker Acme", "worker-owner@example.com"}] and
-          email.subject =~ "Worker Program"
+        assert email.to == [{"Args Business", "args-owner@example.com"}]
+        assert email.subject =~ "Worker Program"
       end)
     end
 
     test "propagates :incident_report_not_found error for unknown ids" do
       job = %Oban.Job{
-        args: %{"incident_report_id" => Ecto.UUID.generate()},
+        args: %{
+          "incident_report_id" => Ecto.UUID.generate(),
+          "business_owner_email" => "owner@example.com",
+          "business_name" => "Acme"
+        },
         queue: "email",
         attempt: 1,
         max_attempts: 3

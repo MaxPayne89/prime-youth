@@ -55,7 +55,7 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEventsTest do
     end
   end
 
-  describe "incident_reported/2" do
+  describe "incident_reported/3" do
     test "returns a DomainEvent with the documented payload shape" do
       report = %IncidentReport{
         id: "r1",
@@ -72,7 +72,14 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEventsTest do
         original_filename: "photo.jpg"
       }
 
-      event = ProviderEvents.incident_reported(report)
+      profile = %ProviderProfile{
+        id: "prov-1",
+        identity_id: "owner-uuid",
+        business_name: "Acme Adventures",
+        business_owner_email: "owner@example.com"
+      }
+
+      event = ProviderEvents.incident_reported(report, profile)
 
       assert %DomainEvent{
                event_type: :incident_reported,
@@ -90,7 +97,9 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEventsTest do
                category: :injury,
                severity: :high,
                occurred_at: ~U[2026-04-20 10:00:00Z],
-               has_photo: true
+               has_photo: true,
+               business_owner_email: "owner@example.com",
+               business_name: "Acme Adventures"
              }
 
       refute Map.has_key?(payload, :description)
@@ -113,7 +122,15 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEventsTest do
         original_filename: nil
       }
 
-      assert %DomainEvent{payload: %{has_photo: false}} = ProviderEvents.incident_reported(report)
+      profile = %ProviderProfile{
+        id: "prov-1",
+        identity_id: "owner-uuid",
+        business_name: "Acme Adventures",
+        business_owner_email: "owner@example.com"
+      }
+
+      assert %DomainEvent{payload: %{has_photo: false}} =
+               ProviderEvents.incident_reported(report, profile)
     end
 
     test "forwards opts to DomainEvent.new/5 (e.g., correlation_id)" do
@@ -132,9 +149,17 @@ defmodule KlassHero.Provider.Domain.Events.ProviderEventsTest do
         original_filename: nil
       }
 
+      profile = %ProviderProfile{
+        id: "prov-1",
+        identity_id: "owner-uuid",
+        business_name: "Acme Adventures",
+        business_owner_email: "owner@example.com"
+      }
+
       correlation_id = Ecto.UUID.generate()
 
-      event = ProviderEvents.incident_reported(report, correlation_id: correlation_id)
+      event =
+        ProviderEvents.incident_reported(report, profile, correlation_id: correlation_id)
 
       assert event.metadata.correlation_id == correlation_id
     end

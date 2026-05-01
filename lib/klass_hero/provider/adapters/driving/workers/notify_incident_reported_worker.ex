@@ -11,8 +11,17 @@ defmodule KlassHero.Provider.Adapters.Driving.Workers.NotifyIncidentReportedWork
 
   alias KlassHero.Provider.Application.Commands.Incident.NotifyIncidentReported
 
+  defguardp is_present(s) when is_binary(s) and byte_size(s) > 0
+
   @impl true
-  def execute(%Oban.Job{args: %{"incident_report_id" => id}}) when is_binary(id) do
-    NotifyIncidentReported.execute(%{incident_report_id: id})
+  def execute(%Oban.Job{
+        args: %{"incident_report_id" => id, "business_owner_email" => owner_email, "business_name" => business_name}
+      })
+      when is_present(id) and is_present(owner_email) and is_present(business_name) do
+    NotifyIncidentReported.execute(%{
+      incident_report_id: id,
+      business_owner_email: owner_email,
+      business_name: business_name
+    })
   end
 end

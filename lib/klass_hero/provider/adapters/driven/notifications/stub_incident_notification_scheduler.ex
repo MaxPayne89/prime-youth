@@ -21,11 +21,11 @@ defmodule KlassHero.Provider.Adapters.Driven.Notifications.StubIncidentNotificat
   @calls_key :__incident_notification_scheduler_calls__
 
   @impl true
-  def schedule(report) do
-    record_call(report)
+  def schedule(report, profile) do
+    record_call({report, profile})
 
     case Process.get(@mode_key, :passthrough) do
-      :passthrough -> IncidentNotificationScheduler.schedule(report)
+      :passthrough -> IncidentNotificationScheduler.schedule(report, profile)
       {:fail, reason} -> {:error, reason}
     end
   end
@@ -50,12 +50,12 @@ defmodule KlassHero.Provider.Adapters.Driven.Notifications.StubIncidentNotificat
   end
 
   @doc """
-  Returns the list of incident reports `schedule/1` was called with, in order.
+  Returns the list of `{report, profile}` tuples `schedule/2` was called with, in order.
   """
-  @spec calls() :: [struct()]
+  @spec calls() :: [{struct(), struct()}]
   def calls, do: Process.get(@calls_key, []) |> Enum.reverse()
 
-  defp record_call(report) do
-    Process.put(@calls_key, [report | Process.get(@calls_key, [])])
+  defp record_call(call) do
+    Process.put(@calls_key, [call | Process.get(@calls_key, [])])
   end
 end
