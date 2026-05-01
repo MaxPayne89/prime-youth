@@ -13,7 +13,7 @@ defmodule KlassHero.Provider.Domain.Ports.ForSchedulingIncidentNotifications do
 
   ## Expected Return Values
 
-  - `schedule/1` — Returns `{:ok, Oban.Job.t()}` on success.
+  - `schedule/2` — Returns `{:ok, Oban.Job.t()}` on success.
   - On failure, returns `{:error, reason}` where `reason` is typically:
     - `Ecto.Changeset.t()` — Oban rejected the job args via its own changeset
       (invalid worker, malformed args, unique-constraint violation when

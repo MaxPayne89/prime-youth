@@ -37,7 +37,7 @@ defmodule KlassHero.Provider.Application.Commands.Incident.NotifyIncidentReporte
   Returns `:ok` on success or `{:error, reason}` when the report row cannot
   be loaded or the notifier rejects the email.
   """
-  @spec execute(args()) :: :ok | {:error, atom()}
+  @spec execute(args()) :: :ok | {:error, term()}
   def execute(%{incident_report_id: id, business_owner_email: owner_email, business_name: business_name})
       when is_present(id) and is_present(owner_email) and is_present(business_name) do
     with {:ok, report} <- fetch_report(id) do
