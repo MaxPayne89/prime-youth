@@ -26,13 +26,14 @@
     "provider_program_mapper_skip": "ProviderProgramMapper is trivial pass-through - not worth testing per guidelines",
     "login_by_magic_link_note": "LoginByMagicLink: 3 paths (confirmed/unconfirmed/error). Domain events via DomainEventBus — need DomainEventBus.subscribe + TestEventPublisher bridge for assertions. Use async:false.",
     "domain_event_test_pattern": "EventDispatchHelper.dispatch/2 uses DomainEventBus (not TestEventPublisher port). Bridge via DomainEventBus.subscribe(Context, :event, fn event -> TestEventPublisher.publish(event); :ok end) in setup. Use async:false.",
-    "coverage_saturation_note": "As of 2026-04-30, codebase has 342+ test files. Backlog near-exhausted. New code from #769 refactor already tested. EmailHtml tested by Test Improver (PR #771).",
+    "coverage_saturation_note": "As of 2026-05-01, codebase has 342+ test files. Backlog near-exhausted. New code from #769 refactor already tested. EmailHtml tested by Test Improver (PR #771). PR #781 incident_reported owner fields also tested by maintainer.",
     "mark_invite_registered_test_note": "MarkInviteRegistered handler tests already exist on main as of 2026-04-27 (not created by Test Improver - already there).",
     "create_program_rejected_note": "PR #634 with CreateProgram/UpdateProgram tests was closed without merge by maintainer. Do not re-attempt.",
     "ci_check_runs_note": "No CI check runs appear on Test Improver PRs (total_count: 0 on all checked PRs as of 2026-04-28). CI may only run on push to main or may require maintainer trigger.",
     "email_html_test_note": "EmailHtml.esc/1 uses binary pattern matching for HTML escaping (5 entities). wrap/2 escapes footer but NOT inner_html. Tests: 15 pure unit tests in ExUnit.Case async:true.",
     "ecto_enum_status_note": "After PR #769 (2026-04-29): BulkEnrollmentInviteSchema.status and EnrollmentSchema.status are Ecto.Enum fields. All test code must use atoms (:pending, :invite_sent, :registered, :enrolled, :failed) not strings.",
-    "pr_696_superseded_note": "PR #696 (BulkEnrollmentInviteMapper tests) had string status values. Superseded by new PR with atom fixes. Old branch was 1754 commits behind main; used cherry-pick strategy onto fresh branch."
+    "pr_696_superseded_note": "PR #696 (BulkEnrollmentInviteMapper tests) had string status values. Superseded by PR #779 with atom fixes.",
+    "pr_781_note": "PR #781 (carry owner email+name on incident_reported payload) - already tested by maintainer (test files updated in same PR)."
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -44,28 +45,25 @@
   ],
   "tasks_last_run": {
     "task_1": "2026-04-15",
-    "task_2": "2026-04-29",
+    "task_2": "2026-05-01",
     "task_3": "2026-04-29",
-    "task_4": "2026-04-30",
+    "task_4": "2026-05-01",
     "task_5": "2026-04-28",
     "task_6": "2026-04-27",
-    "task_7": "2026-04-30"
+    "task_7": "2026-05-01"
   },
   "work_in_progress": null,
   "completed_work": [
     {
       "date": "2026-04-30",
       "run_id": "25190300701",
-      "pr_branch": "test-assist/fix-bulk-invite-mapper-tests-1777584",
-      "description": "Replacement PR for #696: corrected all status string literals to atoms in BulkEnrollmentInviteMapper tests after #769 Ecto.Enum refactor. 14 tests: 8 AttachmentMapper + 6 BulkEnrollmentInviteMapper.",
+      "description": "Replacement PR #779: corrected all status string literals to atoms in BulkEnrollmentInviteMapper tests after #769 Ecto.Enum refactor. 14 tests: 8 AttachmentMapper + 6 BulkEnrollmentInviteMapper.",
       "tests_added": 14,
-      "pr_number": null,
-      "note": "PR number TBD - created this run. Old PR #696 superseded and should be closed."
+      "pr_number": 779
     },
     {
       "date": "2026-04-29",
       "run_id": "25135035818",
-      "pr_branch": "test-assist/email-html-tests-1777498500",
       "description": "15 pure unit tests for EmailHtml.esc/1 (all 5 HTML entities, XSS input, UTF-8, non-binary coercion) and wrap/2 (structure, default/custom footer escaping)",
       "tests_added": 15,
       "pr_number": 771
@@ -73,7 +71,6 @@
     {
       "date": "2026-04-26",
       "run_id": "24967349898",
-      "pr_branch": "test-assist/login-by-magic-link-tests-1777238565",
       "description": "11 DataCase tests for LoginByMagicLink command (3 paths: confirmed user, unconfirmed user with event dispatch, error cases)",
       "tests_added": 11,
       "pr_number": 764
@@ -81,7 +78,6 @@
     {
       "date": "2026-04-25",
       "run_id": "24940953876",
-      "pr_branch": "test-assist/provider-incident-mapper-tests-1777152516",
       "description": "19 pure unit tests for IncidentReportMapper (14) and IncidentReportSummaryMapper (5)",
       "tests_added": 19,
       "pr_number": 759
@@ -89,49 +85,22 @@
     {
       "date": "2026-04-24",
       "run_id": "24912656952",
-      "pr_branch": "test-assist/accounts-application-command-tests-1777066115",
       "description": "11 DataCase tests for RegisterUser, AnonymizeUser, ChangeEmail accounts commands",
       "tests_added": 11,
       "pr_number": 750
-    },
-    {
-      "date": "2026-04-23",
-      "run_id": "24859650217",
-      "pr_branch": "test-assist/enrollment-policy-queries-tests-1776979650",
-      "description": "14 DataCase tests for EnrollmentPolicyQueries",
-      "tests_added": 14,
-      "pr_number": 733
-    },
-    {
-      "date": "2026-04-22",
-      "run_id": "24803562728",
-      "pr_branch": "test-assist/expire-staff-invitation-tests-1776893330",
-      "description": "7 DataCase tests for ExpireStaffInvitation",
-      "tests_added": 7,
-      "pr_number": 723
     }
   ],
   "monthly_summary_issue": {
-    "number": 580,
-    "month": "2026-04",
-    "state": "open"
+    "number": "TBD-check-for-2026-05-issue",
+    "month": "2026-05",
+    "state": "open",
+    "april_issue_closed": true,
+    "april_issue_number": 580
   },
   "checked_off_items": [],
   "backlog_cursor": {
-    "task_2_last_file": "Full sweep complete 2026-04-29: new code (EmailHtml, NotifyIncidentReportedWorker, IncidentReportsLive) found; EmailHtml tested. Other new code trivial or already tested by maintainer.",
+    "task_2_last_file": "Full sweep complete 2026-05-01: PR #781 new code (incident_reported with owner fields) already tested by maintainer. Backlog remains near-exhausted.",
     "task_5_last_issue": 705
   },
-  "open_prs": [
-    696,
-    707,
-    713,
-    719,
-    723,
-    733,
-    750,
-    759,
-    764,
-    771,
-    "new-fix-bulk-invite-mapper"
-  ]
+  "open_prs": [779, 771, 764, 759, 750, 733, 723, 719, 713, 707, 696]
 }
