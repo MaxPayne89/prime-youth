@@ -67,6 +67,7 @@ defmodule KlassHeroWeb.Router do
       live "/programs", ProgramsLive, :index
       live "/programs/:id", ProgramDetailLive, :show
       live "/about", AboutLive, :index
+      live "/for-providers", ForProvidersLive, :index
       live "/contact", ContactLive, :index
       live "/privacy", PrivacyPolicyLive, :index
       live "/terms", TermsOfServiceLive, :index

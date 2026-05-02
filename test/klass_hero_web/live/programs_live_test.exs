@@ -821,4 +821,33 @@ defmodule KlassHeroWeb.ProgramsLiveTest do
   defp refute_program_visible(view, program) do
     refute has_element?(view, "[data-program-id='#{program.id}']")
   end
+
+  describe "ProgramsLive - bundle parity surfaces (Phase 1)" do
+    test "renders all 8 bundle category pills", %{conn: conn} do
+      {:ok, view, _html} = live(conn, ~p"/programs")
+
+      for label <- ~w(All Sports Arts Music Education) ++ ["Life Skills", "Camps", "Workshops"] do
+        assert has_element?(view, "button", label),
+               "expected category pill #{inspect(label)} to render"
+      end
+    end
+
+    test "renders the sort dropdown and view toggle controls", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/programs")
+
+      # Sort dropdown — visual-only per Q1.4 (no backend sort yet).
+      assert html =~ "Recommended"
+
+      # View toggle — grid active, list disabled ("coming soon").
+      assert html =~ "hero-squares-2x2"
+      assert html =~ "hero-bars-3"
+      assert html =~ "cursor-not-allowed"
+    end
+
+    test "shows the empty state when no programs match", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/programs?q=zzz_no_match_zzz")
+
+      assert html =~ "No programs found"
+    end
+  end
 end

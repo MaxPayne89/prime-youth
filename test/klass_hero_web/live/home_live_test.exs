@@ -12,6 +12,35 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "h1", "Heroes for Our Youth")
     end
 
+    test "renders sections in the bundle's MkApp order", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/")
+
+      # Bundle order (design_handoff/marketing/index.html#MkApp): Hero →
+      # Featured → Features (Why Klass Hero) → Provider CTA (Grow Your Passion
+      # Business) → Founder → FAQ. Pricing is intentionally skipped — gated on
+      # transactions (#178); the inline Phoenix template wraps it in a HEEx
+      # comment so it's not rendered.
+      ids_in_order = [
+        ~s|id="featured-programs-section"|,
+        ~s|id="why-klass-hero-section"|,
+        ~s|id="grow-passion-business-section"|,
+        ~s|id="founder-section"|,
+        ~s|id="faq-section"|
+      ]
+
+      positions =
+        Enum.map(ids_in_order, fn marker ->
+          assert html =~ marker, "expected #{marker} to render"
+          html |> String.split(marker) |> hd() |> String.length()
+        end)
+
+      assert positions == Enum.sort(positions),
+             "section ids appeared out of order: #{inspect(Enum.zip(ids_in_order, positions))}"
+
+      refute html =~ ~s|id="pricing-section"|,
+             "pricing section is hidden until #178 lands; remove the HEEx comment in home_live.ex when re-enabling"
+    end
+
     test "renders search bar in hero section", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 

@@ -608,6 +608,11 @@ defmodule KlassHeroWeb.CompositeComponents do
               <.link navigate={~p"/contact"} class="link link-hover">{gettext("Contact")}</.link>
             </li>
             <li>
+              <.link navigate={~p"/for-providers"} class="link link-hover">
+                {gettext("For Providers")}
+              </.link>
+            </li>
+            <li>
               <.link navigate={~p"/trust-safety"} class="link link-hover">
                 {gettext("Trust & Safety")}
               </.link>
