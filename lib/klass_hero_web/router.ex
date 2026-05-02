@@ -106,9 +106,12 @@ defmodule KlassHeroWeb.Router do
       live "/messages/:id", MessagesLive.Show, :show
     end
 
-    # Provider routes - provider role required
+    # Provider routes - provider role required.
+    # Layout swap (:app → :provider_app) is Phase 3 of the design-handoff
+    # migration. Black sidebar + yellow active accent across all
+    # /provider/* surfaces.
     live_session :require_provider,
-      layout: {KlassHeroWeb.Layouts, :app},
+      layout: {KlassHeroWeb.Layouts, :provider_app},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
@@ -161,9 +164,11 @@ defmodule KlassHeroWeb.Router do
       end
     end
 
-    # Staff provider routes - staff_provider role required
+    # Staff provider routes - staff_provider role required.
+    # Q3.1 locked: staff surface uses the same provider_app layout for
+    # visual consistency; bundle doesn't ship a separate staff design.
     live_session :require_staff_provider,
-      layout: {KlassHeroWeb.Layouts, :app},
+      layout: {KlassHeroWeb.Layouts, :provider_app},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},

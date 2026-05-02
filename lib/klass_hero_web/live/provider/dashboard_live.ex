@@ -89,6 +89,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         socket =
           socket
           |> assign(page_title: gettext("Provider Dashboard"))
+          |> assign(active_nav: :home)
           |> assign(business: business)
           |> assign(:profile_draft?, ProviderProfile.draft?(provider_profile))
           |> assign(:dual_role?, Scope.dual_role?(socket.assigns.current_scope))

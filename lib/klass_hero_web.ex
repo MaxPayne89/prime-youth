@@ -100,6 +100,7 @@ defmodule KlassHeroWeb do
       import KlassHeroWeb.CoreComponents
       import KlassHeroWeb.ParentComponents
       import KlassHeroWeb.ParticipationComponents
+      import KlassHeroWeb.ProviderLayoutComponents
       import KlassHeroWeb.UIComponents
 
       # HTML escaping functionality

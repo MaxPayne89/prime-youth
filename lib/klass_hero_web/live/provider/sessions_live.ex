@@ -33,6 +33,7 @@ defmodule KlassHeroWeb.Provider.SessionsLive do
     socket =
       socket
       |> assign(:page_title, gettext("My Sessions"))
+      |> assign(:active_nav, :roster)
       |> assign(:provider_id, provider_id)
       |> assign(:selected_date, selected_date)
       |> assign(:provider_programs, provider_programs)

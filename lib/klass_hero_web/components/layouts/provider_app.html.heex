@@ -1,0 +1,27 @@
+<div class="min-h-screen flex bg-hero-cream-100">
+  <KlassHeroWeb.ProviderLayoutComponents.pv_sidebar active={assigns[:active_nav] || :home} />
+  <div class="flex-1 min-w-0 flex flex-col">
+    <KlassHeroWeb.ProviderLayoutComponents.pv_topbar
+      provider={
+        assigns[:provider_topbar] ||
+          %{
+            name: @current_scope.user.name || @current_scope.user.email,
+            tagline: nil,
+            verified?: false
+          }
+      }
+      show_new_program_cta={assigns[:show_new_program_cta] || false}
+    />
+    <main class="flex-1 px-4 py-6 lg:px-8 pb-[80px] lg:pb-8">
+      <.flash_group flash={@flash} />
+      <div class="hidden lg:flex justify-end mb-4">
+        <.language_switcher locale={assigns[:locale] || "en"} />
+      </div>
+      <%= if assigns[:inner_content] do %>
+        {@inner_content}
+      <% else %>
+        {render_slot(@inner_block)}
+      <% end %>
+    </main>
+  </div>
+</div>
