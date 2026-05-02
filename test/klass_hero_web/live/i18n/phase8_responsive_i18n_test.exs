@@ -118,8 +118,12 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
   describe "Navigation Component Translations" do
     setup :register_and_log_in_user
 
+    # Phase 2 of the design-handoff migration moves /dashboard onto the
+    # parent_app sidebar layout. Marketing top-nav (Home / Programs / About
+    # / Contact) lives on the public live_session layout — these tests now
+    # verify the public chrome at /.
     test "navigation items are translated to German", %{conn: conn} do
-      {:ok, _view, html} = setup_locale_for_navigation(conn, "de") |> live(~p"/dashboard")
+      {:ok, _view, html} = setup_locale_for_navigation(conn, "de") |> live(~p"/")
 
       # Check for German navigation labels
       assert html =~ get_translation("Home", "de")
@@ -130,7 +134,7 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
     end
 
     test "navigation items are in English by default", %{conn: conn} do
-      {:ok, _view, html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
+      {:ok, _view, html} = setup_locale_for_navigation(conn, "en") |> live(~p"/")
 
       # Check for English navigation labels
       assert html =~ "Home"
@@ -141,7 +145,7 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
     end
 
     test "language switcher is present in navigation", %{conn: conn} do
-      {:ok, _view, html} = setup_locale_for_navigation(conn, "en") |> live(~p"/dashboard")
+      {:ok, _view, html} = setup_locale_for_navigation(conn, "en") |> live(~p"/")
 
       # Language switcher should have EN and DE options
       assert html =~ "🇬🇧" || html =~ "EN"

@@ -74,9 +74,13 @@ defmodule KlassHeroWeb.Router do
       live "/trust-safety", TrustSafetyLive, :index
     end
 
-    # Protected routes - authentication required
+    # Parent app surface — sidebar layout, parent-role required.
+    # Layout swap (:app → :parent_app) is Phase 2 of the design-handoff
+    # migration. /family/settings duplicates /settings under the bundle's
+    # canonical parent path; both keep working until a follow-up adds a
+    # 301 redirect for the legacy /settings tree.
     live_session :authenticated,
-      layout: {KlassHeroWeb.Layouts, :app},
+      layout: {KlassHeroWeb.Layouts, :parent_app},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
@@ -85,10 +89,18 @@ defmodule KlassHeroWeb.Router do
         {RestoreLocale, :restore_locale}
       ] do
       live "/dashboard", DashboardLive, :index
+
       live "/settings", SettingsLive, :index
       live "/settings/children", Settings.ChildrenLive, :index
       live "/settings/children/new", Settings.ChildrenLive, :new
       live "/settings/children/:child_id/edit", Settings.ChildrenLive, :edit
+
+      # Bundle's canonical paths (Q2.4 — locked to dual-mount for v1).
+      live "/family/settings", SettingsLive, :index
+      live "/family/settings/children", Settings.ChildrenLive, :index
+      live "/family/settings/children/new", Settings.ChildrenLive, :new
+      live "/family/settings/children/:child_id/edit", Settings.ChildrenLive, :edit
+
       live "/programs/:id/booking", BookingLive, :new
       live "/messages", MessagesLive.Index, :index
       live "/messages/:id", MessagesLive.Show, :show
@@ -128,9 +140,9 @@ defmodule KlassHeroWeb.Router do
       end
     end
 
-    # Parent routes - parent role required
+    # Parent routes - parent role required (strict require_parent guard)
     live_session :require_parent,
-      layout: {KlassHeroWeb.Layouts, :app},
+      layout: {KlassHeroWeb.Layouts, :parent_app},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
@@ -139,6 +151,12 @@ defmodule KlassHeroWeb.Router do
         {RestoreLocale, :restore_locale}
       ] do
       scope "/parent", Parent do
+        live "/participation", ParticipationHistoryLive, :index
+      end
+
+      # Bundle's canonical /participation path (no /parent prefix). Same
+      # LiveView; old /parent/participation kept as alias.
+      scope "/", Parent do
         live "/participation", ParticipationHistoryLive, :index
       end
     end

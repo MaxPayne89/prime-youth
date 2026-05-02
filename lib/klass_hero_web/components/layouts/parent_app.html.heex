@@ -1,0 +1,25 @@
+<div class="min-h-screen flex bg-hero-pink-50">
+  <KlassHeroWeb.ParentComponents.pa_sidebar
+    active={assigns[:active_nav] || :home}
+    user={@current_scope.user}
+  />
+  <div class="flex-1 min-w-0 flex flex-col">
+    <KlassHeroWeb.ParentComponents.pa_topbar
+      title={assigns[:page_title] || ""}
+      subtitle={assigns[:page_subtitle]}
+      cta_label={assigns[:topbar_cta_label]}
+      cta_navigate={assigns[:topbar_cta_navigate]}
+    />
+    <main class="flex-1 px-4 py-6 lg:px-8 pb-[80px] lg:pb-8">
+      <.flash_group flash={@flash} />
+      <div class="hidden lg:flex justify-end mb-4">
+        <.language_switcher locale={assigns[:locale] || "en"} />
+      </div>
+      <%= if assigns[:inner_content] do %>
+        {@inner_content}
+      <% else %>
+        {render_slot(@inner_block)}
+      <% end %>
+    </main>
+  </div>
+</div>

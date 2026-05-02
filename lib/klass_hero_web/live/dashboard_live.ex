@@ -56,6 +56,8 @@ defmodule KlassHeroWeb.DashboardLive do
       socket
       |> assign(
         page_title: gettext("Dashboard"),
+        page_subtitle: gettext("Your family this week"),
+        active_nav: :home,
         user: user,
         children_count: length(children_for_view),
         activity_goal: calculate_activity_goal(children_extended),

@@ -14,7 +14,7 @@ defmodule KlassHeroWeb.SettingsLive do
 
     socket =
       socket
-      |> assign(page_title: gettext("Settings"))
+      |> assign(page_title: gettext("Settings"), active_nav: :children)
       |> assign(children_summary: summary)
 
     {:ok, socket}
