@@ -128,6 +128,9 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           |> assign(categories: ProgramCatalog.program_categories())
           |> assign(document_types: Provider.valid_document_types())
           |> assign(total_sessions_completed: 0)
+          |> assign(enrolled_total: 0)
+          |> assign(pending_requests: [])
+          |> assign(top_programs: [])
           |> allow_upload(:logo,
             accept: ~w(.jpg .jpeg .png .webp),
             max_entries: 1,
@@ -192,6 +195,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     total_sessions = Provider.get_total_session_count(provider.id)
 
+    program_ids = ProgramCatalog.list_programs_for_provider(provider.id) |> Enum.map(& &1.id)
+
+    enrollment_counts = Enrollment.count_active_enrollments_batch(program_ids)
+    enrolled_total = enrollment_counts |> Map.values() |> Enum.sum()
+
+    pending_requests = load_pending_requests(program_ids)
+    top_programs = load_top_programs(provider.id, enrollment_counts)
+
     if connected?(socket) do
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "provider:#{provider.id}:stats_updated")
     end
@@ -199,7 +210,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     {:noreply,
      socket
      |> assign(business: business)
-     |> assign(total_sessions_completed: total_sessions)}
+     |> assign(total_sessions_completed: total_sessions)
+     |> assign(enrolled_total: enrolled_total)
+     |> assign(pending_requests: pending_requests)
+     |> assign(top_programs: top_programs)}
   end
 
   @impl true
@@ -1191,6 +1205,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
                 <.overview_section
                   business={@business}
                   total_sessions_completed={@total_sessions_completed}
+                  active_program_count={@programs_count}
+                  enrolled_total={@enrolled_total}
+                  pending_requests={@pending_requests}
+                  top_programs={@top_programs}
                 />
               <% :team -> %>
                 <.team_section
@@ -1415,18 +1433,90 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   # Dashboard Tab Templates
   # ============================================================================
 
+  attr :business, :map, required: true
+  attr :total_sessions_completed, :integer, required: true
+  attr :active_program_count, :integer, required: true
+  attr :enrolled_total, :integer, required: true
+  attr :pending_requests, :list, required: true
+  attr :top_programs, :list, required: true
+
   defp overview_section(assigns) do
     ~H"""
     <div class="space-y-6">
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <.provider_stat_card
-          label={gettext("Sessions Completed")}
-          value={to_string(@total_sessions_completed)}
-          icon="hero-check-badge-mini"
-          icon_bg="bg-green-100"
-          icon_color="text-green-600"
+      <%!-- 4-up KPI grid. Revenue + Rating disabled until #178 (Stripe
+            transactions) and a review/rating model land. --%>
+      <section id="provider-dashboard-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <.pv_stat_card
+          title={gettext("Active programs")}
+          value={Integer.to_string(@active_program_count)}
+          icon="hero-academic-cap"
+          tone={:primary}
         />
-      </div>
+        <.pv_stat_card
+          title={gettext("Enrolled kids")}
+          value={Integer.to_string(@enrolled_total)}
+          icon="hero-users"
+          tone={:cool}
+          caption={gettext("Across all programs")}
+        />
+        <.pv_stat_card
+          title={gettext("Revenue (this week)")}
+          value="—"
+          icon="hero-currency-euro"
+          tone={:safety}
+          disabled={true}
+          caption={gettext("Coming with Stripe (#178)")}
+        />
+        <.pv_stat_card
+          title={gettext("Rating")}
+          value="—"
+          icon="hero-star"
+          tone={:art}
+          disabled={true}
+          caption={gettext("Coming soon")}
+        />
+      </section>
+
+      <%!-- Earnings chart placeholder — empty data renders the #178 explainer. --%>
+      <section id="provider-earnings-chart">
+        <.pv_earnings_chart data={[]} />
+      </section>
+
+      <%!-- Top programs + pending requests side-by-side on desktop. --%>
+      <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <.kh_card class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg">{gettext("Your top programs")}</h3>
+            <.link
+              navigate={~p"/provider/dashboard/programs"}
+              class="text-sm font-bold text-[var(--brand-primary-dark)]"
+            >
+              {gettext("Manage")} →
+            </.link>
+          </div>
+          <div :if={@top_programs == []} class="text-sm text-hero-grey-600">
+            {gettext("No programs yet — add your first one from the Programs tab.")}
+          </div>
+          <div class="space-y-1">
+            <.pv_program_row :for={p <- @top_programs} program={p} />
+          </div>
+        </.kh_card>
+
+        <.kh_card class="p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-lg">{gettext("Pending booking requests")}</h3>
+            <span class="text-xs text-hero-grey-600 font-semibold">
+              {length(@pending_requests)} {gettext("pending")}
+            </span>
+          </div>
+          <div :if={@pending_requests == []} class="text-sm text-hero-grey-600">
+            {gettext("No pending requests right now.")}
+          </div>
+          <div class="space-y-3">
+            <.pv_request_card :for={r <- @pending_requests} request={r} />
+          </div>
+        </.kh_card>
+      </section>
 
       <.business_profile_card business={@business} />
 
@@ -1668,6 +1758,64 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   defp blank_single_invite_form do
     to_form(Enrollment.change_single_invite(), as: "single_invite")
+  end
+
+  # Aggregate pending invites across all provider programs and shape them
+  # for `pv_request_card` (parent name, program, child, when, color).
+  defp load_pending_requests(program_ids) do
+    palette = ["#FFEAC9", "#33CFFF", "#FFFF36", "#FFD896"]
+
+    program_ids
+    |> Enum.flat_map(&safe_list_invites/1)
+    |> Enum.with_index()
+    |> Enum.map(fn {invite, idx} ->
+      %{
+        id: invite.id,
+        parent: invite.invitee_name || invite.invitee_email || "Unknown",
+        program: invite.program_id,
+        child: invite[:child_name] || "—",
+        when: invite[:created_at] && Calendar.strftime(invite.created_at, "%b %d"),
+        color: Enum.at(palette, rem(idx, length(palette)))
+      }
+    end)
+    |> Enum.take(5)
+  end
+
+  defp safe_list_invites(program_id) do
+    case Enrollment.list_program_invites(program_id) do
+      {:ok, invites} -> Enum.filter(invites, &(&1.status == :pending))
+      _ -> []
+    end
+  end
+
+  # Top 5 provider programs sorted by active-enrollment count desc.
+  defp load_top_programs(provider_id, enrollment_counts) do
+    provider_id
+    |> Provider.list_provider_programs()
+    |> Enum.map(fn p ->
+      enrolled = Map.get(enrollment_counts, p.id, 0)
+
+      %{
+        id: p.id,
+        title: p[:title] || "Untitled",
+        category: p[:category],
+        booked: enrolled,
+        capacity: p[:max_participants],
+        price: p[:price],
+        status: derive_program_status(p),
+        cover: p[:cover_image_url] && "url(#{p.cover_image_url})"
+      }
+    end)
+    |> Enum.sort_by(& &1.booked, :desc)
+    |> Enum.take(5)
+  end
+
+  defp derive_program_status(p) do
+    cond do
+      p[:status] in [:draft, :archived, :live, :full] -> p[:status]
+      p[:active] == false -> :draft
+      true -> :live
+    end
   end
 
   defp fetch_verification_docs(provider_id) do
