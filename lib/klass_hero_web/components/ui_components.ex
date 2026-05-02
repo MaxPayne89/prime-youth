@@ -1545,4 +1545,370 @@ defmodule KlassHeroWeb.UIComponents do
     </div>
     """
   end
+
+  # ==========================================================================
+  # Klass Hero design-system primitives (Phase 0)
+  #
+  # These mirror the `Kh*` primitives from `design_handoff/shared/Primitives.jsx`.
+  # They consume the semantic CSS variables defined in `assets/css/app.css`
+  # (--brand-*, --bg-*, --fg-*, --border-*, --grad-*) and form the visual
+  # vocabulary every later phase composes from.
+  # ==========================================================================
+
+  @doc """
+  Renders the Klass Hero brand logo.
+
+  ## Examples
+
+      <.kh_logo />
+      <.kh_logo size={26} variant={:white} class="shrink-0" />
+  """
+  attr :size, :integer, default: 32, doc: "Logo height in pixels"
+  attr :variant, :atom, default: :primary, values: [:primary, :white]
+  attr :class, :string, default: ""
+  attr :rest, :global
+
+  def kh_logo(assigns) do
+    ~H"""
+    <img
+      src={kh_logo_src(@variant)}
+      alt="Klass Hero"
+      height={@size}
+      style={"height: #{@size}px; width: auto;"}
+      class={["object-contain", @class]}
+      {@rest}
+    />
+    """
+  end
+
+  defp kh_logo_src(:white), do: "/images/logo-white-large.png"
+  defp kh_logo_src(_), do: "/images/logo.png"
+
+  @doc """
+  Renders a Klass Hero button.
+
+  Maps to bundle's `KhButton` (Primitives.jsx:72). Variants map to brand-vocabulary
+  CSS variables; sizes scale border-radius and padding together.
+
+  ## Examples
+
+      <.kh_button>Continue</.kh_button>
+      <.kh_button variant={:dark} size={:lg} icon="hero-plus" phx-click="add">
+        New program
+      </.kh_button>
+  """
+  attr :variant, :atom,
+    default: :primary,
+    values: [:primary, :secondary, :ghost, :dark, :yellow]
+
+  attr :size, :atom, default: :md, values: [:sm, :md, :lg]
+  attr :icon, :string, default: nil, doc: "Heroicon name rendered before children"
+  attr :type, :string, default: "button"
+  attr :class, :string, default: ""
+
+  attr :rest, :global,
+    include: ~w(disabled form name value navigate patch href phx-click phx-submit phx-disable-with phx-target)
+
+  slot :inner_block, required: true
+
+  def kh_button(assigns) do
+    ~H"""
+    <button
+      type={@type}
+      class={
+        [
+          # typography-lint-ignore: KhButton owns its own display-font CTA styling (size scales separately)
+          "inline-flex items-center justify-center gap-2 font-display font-bold tracking-tight transition-all cursor-pointer border-0",
+          kh_button_size_classes(@size),
+          kh_button_variant_classes(@variant),
+          @class
+        ]
+      }
+      {@rest}
+    >
+      <.icon :if={@icon} name={@icon} class="w-4 h-4" />
+      {render_slot(@inner_block)}
+    </button>
+    """
+  end
+
+  defp kh_button_size_classes(:sm), do: "px-3.5 py-2 text-sm rounded-lg"
+  defp kh_button_size_classes(:md), do: "px-5 py-3 text-[15px] rounded-xl"
+  defp kh_button_size_classes(:lg), do: "px-7 py-3.5 text-lg rounded-xl"
+
+  defp kh_button_variant_classes(:primary),
+    do:
+      "bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-black hover:shadow-lg hover:-translate-y-px"
+
+  defp kh_button_variant_classes(:secondary),
+    do: "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-hover)] text-black hover:shadow-md"
+
+  defp kh_button_variant_classes(:ghost),
+    do: "bg-transparent text-[var(--fg-primary)] border border-[var(--border-medium)] hover:bg-[var(--hero-grey-100)]"
+
+  defp kh_button_variant_classes(:dark), do: "bg-black text-white hover:bg-[#1a1a1a]"
+
+  defp kh_button_variant_classes(:yellow),
+    do: "bg-[var(--hero-yellow-500)] text-black hover:bg-[var(--hero-yellow-600)]"
+
+  @doc """
+  Renders a Klass Hero card.
+
+  Maps to bundle's `KhCard` (Primitives.jsx:111). Unlike the legacy `card/1`,
+  this component takes a single inner block — header/body/footer dividers are
+  the caller's responsibility, which is closer to how `<KhCard>` is used in
+  the design bundle.
+
+  ## Examples
+
+      <.kh_card>Hello</.kh_card>
+      <.kh_card variant={:dark} class="p-6">…</.kh_card>
+  """
+  attr :variant, :atom,
+    default: :default,
+    values: [:default, :elevated, :outlined, :glass, :muted, :dark, :soft]
+
+  attr :class, :string, default: ""
+  attr :rest, :global, include: ~w(phx-click phx-value-* navigate patch)
+  slot :inner_block, required: true
+
+  def kh_card(assigns) do
+    ~H"""
+    <div class={["rounded-2xl transition-all", kh_card_variant_classes(@variant), @class]} {@rest}>
+      {render_slot(@inner_block)}
+    </div>
+    """
+  end
+
+  defp kh_card_variant_classes(:default), do: "bg-white border border-[var(--border-light)] shadow-sm"
+
+  defp kh_card_variant_classes(:elevated), do: "bg-white shadow-lg"
+
+  defp kh_card_variant_classes(:outlined), do: "bg-white border-2 border-[var(--brand-primary)]"
+
+  defp kh_card_variant_classes(:glass),
+    do: "bg-white/80 backdrop-blur-sm border border-white/50 shadow-[0_8px_32px_rgba(31,38,135,0.25)]"
+
+  defp kh_card_variant_classes(:muted), do: "bg-[var(--hero-cream-100)] border border-[var(--border-light)]"
+
+  defp kh_card_variant_classes(:dark), do: "bg-black text-white"
+
+  defp kh_card_variant_classes(:soft), do: "bg-[var(--hero-pink-50)] border border-[var(--border-light)]"
+
+  @doc """
+  Renders a Klass Hero pill / inline status badge.
+
+  Maps to bundle's `KhPill` (Primitives.jsx:93). Independent of legacy
+  `status_pill/1`, which uses a different `color` API.
+
+  ## Examples
+
+      <.kh_pill tone={:success}>Verified</.kh_pill>
+      <.kh_pill tone={:dark}>This week</.kh_pill>
+  """
+  attr :tone, :atom,
+    default: :outline,
+    values: [:primary, :accent, :outline, :success, :warning, :error, :info, :dark, :cream]
+
+  attr :class, :string, default: ""
+  slot :inner_block, required: true
+
+  def kh_pill(assigns) do
+    ~H"""
+    <span class={[
+      "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold",
+      kh_pill_tone_classes(@tone),
+      @class
+    ]}>
+      {render_slot(@inner_block)}
+    </span>
+    """
+  end
+
+  defp kh_pill_tone_classes(:primary), do: "bg-[var(--brand-primary)] text-black"
+  defp kh_pill_tone_classes(:accent), do: "bg-[var(--hero-yellow-500)] text-black"
+
+  defp kh_pill_tone_classes(:outline), do: "bg-white text-[var(--fg-primary)] border border-[var(--border-medium)]"
+
+  defp kh_pill_tone_classes(:success), do: "bg-[var(--success-bg)] text-[var(--success)]"
+  defp kh_pill_tone_classes(:warning), do: "bg-[var(--warning-bg)] text-[var(--warning)]"
+  defp kh_pill_tone_classes(:error), do: "bg-[var(--error-bg)] text-[var(--error)]"
+  defp kh_pill_tone_classes(:info), do: "bg-[var(--info-bg)] text-[var(--info)]"
+  defp kh_pill_tone_classes(:dark), do: "bg-black text-white"
+  defp kh_pill_tone_classes(:cream), do: "bg-[var(--hero-cream-100)] text-[var(--fg-body)]"
+
+  @doc """
+  Renders a heroicon. Convenience alias matching the `Kh*` naming so handoff
+  components don't need a separate import path.
+  """
+  attr :name, :string, required: true
+  attr :class, :string, default: "w-5 h-5"
+
+  def kh_icon(assigns) do
+    ~H"""
+    <.icon name={@name} class={@class} />
+    """
+  end
+
+  @doc """
+  Renders a gradient icon chip.
+
+  Maps to bundle's `KhIconChip` (Primitives.jsx:125). Independent of the
+  legacy `gradient_icon/1` so that named gradients (`:primary`, `:comic`,
+  `:cool`, `:art`, `:safety`, `:dark`, `:yellow`, `:pink`, `:mixed`) can be
+  passed without callers having to know Tailwind class names.
+
+  ## Examples
+
+      <.kh_icon_chip icon="hero-academic-cap" gradient={:primary} />
+      <.kh_icon_chip icon="hero-sparkles" gradient={:cool} size={:lg} />
+  """
+  attr :icon, :string, required: true
+
+  attr :gradient, :atom,
+    default: :primary,
+    values: [:primary, :comic, :cool, :art, :safety, :dark, :yellow, :pink, :mixed]
+
+  attr :size, :atom, default: :md, values: [:sm, :md, :lg]
+  attr :class, :string, default: ""
+
+  def kh_icon_chip(assigns) do
+    ~H"""
+    <div
+      class={[
+        "flex items-center justify-center",
+        kh_icon_chip_size_classes(@size),
+        kh_icon_chip_text_color(@gradient),
+        @class
+      ]}
+      style={"background: #{kh_icon_chip_gradient(@gradient)}"}
+    >
+      <.icon name={@icon} class={kh_icon_chip_icon_size(@size)} />
+    </div>
+    """
+  end
+
+  defp kh_icon_chip_size_classes(:sm), do: "w-9 h-9 rounded-lg"
+  defp kh_icon_chip_size_classes(:md), do: "w-12 h-12 rounded-xl"
+  defp kh_icon_chip_size_classes(:lg), do: "w-16 h-16 rounded-2xl"
+
+  defp kh_icon_chip_icon_size(:sm), do: "w-5 h-5"
+  defp kh_icon_chip_icon_size(:md), do: "w-6 h-6"
+  defp kh_icon_chip_icon_size(:lg), do: "w-8 h-8"
+
+  defp kh_icon_chip_gradient(:primary), do: "var(--grad-primary)"
+  defp kh_icon_chip_gradient(:comic), do: "var(--grad-comic)"
+  defp kh_icon_chip_gradient(:cool), do: "var(--grad-cool)"
+  defp kh_icon_chip_gradient(:art), do: "var(--grad-art)"
+  defp kh_icon_chip_gradient(:safety), do: "var(--grad-safety)"
+  defp kh_icon_chip_gradient(:dark), do: "linear-gradient(135deg,#1A1A1A 0%,#000 100%)"
+  defp kh_icon_chip_gradient(:yellow), do: "var(--hero-yellow-500)"
+  defp kh_icon_chip_gradient(:pink), do: "var(--hero-pink-50)"
+  defp kh_icon_chip_gradient(:mixed), do: "var(--grad-hero)"
+
+  defp kh_icon_chip_text_color(g) when g in [:cool, :safety, :dark], do: "text-white"
+  defp kh_icon_chip_text_color(_), do: "text-black"
+
+  @doc """
+  Renders a horizontal list row primitive.
+
+  Maps to bundle's `KhListRow` (Primitives.jsx:186). Used for sessions roster,
+  request cards, program rows, message-thread items — anywhere a media column,
+  title, optional meta/stats, trailing actions, and an optional full-width
+  footer line up in a grid.
+
+  Slot contract:
+  - `media` — leading visual (avatar, cover, icon chip)
+  - `title` *(required)* — primary label
+  - `pill` — optional `<.kh_pill>` alongside the title
+  - `actions` — trailing button(s)
+  - `footer` — full-width row beneath the main row
+
+  Attrs:
+  - `meta` — string or list of strings rendered with `·` separators
+  - `stats` — list of `%{value: term, label: term}` maps rendered inline
+
+  ## Examples
+
+      <.kh_list_row hover meta={["Mon 14:00", "Studio A"]}>
+        <:title>Football Stars</:title>
+      </.kh_list_row>
+  """
+  attr :density, :atom, default: :comfortable, values: [:compact, :comfortable]
+  attr :hover, :boolean, default: false
+  attr :meta, :any, default: nil, doc: "string or list of strings"
+  attr :stats, :list, default: nil, doc: "list of %{value: _, label: _}"
+  attr :class, :string, default: ""
+  attr :rest, :global, include: ~w(phx-click phx-value-*)
+
+  slot :media
+  slot :title, required: true
+  slot :pill
+  slot :actions
+  slot :footer
+
+  def kh_list_row(assigns) do
+    assigns = assign(assigns, :meta_items, kh_list_row_meta_items(assigns.meta))
+
+    ~H"""
+    <div
+      class={[
+        "rounded-xl",
+        if(@density == :compact, do: "p-2.5", else: "p-3"),
+        @hover && "hover:bg-[var(--hero-cream-100)] transition-colors",
+        @rest[:"phx-click"] && "cursor-pointer",
+        @class
+      ]}
+      {@rest}
+    >
+      <div class={["flex items-start", if(@density == :compact, do: "gap-3", else: "gap-4")]}>
+        <div :if={@media != []} class="shrink-0">{render_slot(@media)}</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-bold text-sm leading-tight truncate">
+              {render_slot(@title)}
+            </span>
+            <span :if={@pill != []}>{render_slot(@pill)}</span>
+          </div>
+          <div
+            :if={@meta_items != []}
+            class="text-xs text-[var(--fg-muted)] mt-1 flex gap-x-2.5 gap-y-0.5 flex-wrap"
+          >
+            <%= for {item, idx} <- Enum.with_index(@meta_items) do %>
+              <span
+                :if={idx > 0}
+                aria-hidden="true"
+                class="text-[var(--border-medium)]"
+              >
+                ·
+              </span>
+              <span>{item}</span>
+            <% end %>
+          </div>
+          <div
+            :if={is_list(@stats) and @stats != []}
+            class="text-xs mt-1.5 flex items-baseline gap-x-3 gap-y-0.5 flex-wrap"
+          >
+            <span :for={s <- @stats}>
+              <%!-- typography-lint-ignore: KhListRow stats render numeric callouts in display font --%>
+              <span class="font-display font-extrabold">{s.value}</span>
+              <span :if={s[:label]} class="text-[var(--fg-muted)] font-normal">
+                {" "}{s.label}
+              </span>
+            </span>
+          </div>
+        </div>
+        <div :if={@actions != []} class="shrink-0 flex items-center gap-2">
+          {render_slot(@actions)}
+        </div>
+      </div>
+      <div :if={@footer != []} class="mt-3">{render_slot(@footer)}</div>
+    </div>
+    """
+  end
+
+  defp kh_list_row_meta_items(nil), do: []
+  defp kh_list_row_meta_items([]), do: []
+  defp kh_list_row_meta_items(list) when is_list(list), do: Enum.reject(list, &is_nil/1)
+  defp kh_list_row_meta_items(other), do: [other]
 end
