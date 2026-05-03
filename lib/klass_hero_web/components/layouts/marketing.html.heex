@@ -1,0 +1,18 @@
+<div class="min-h-screen flex flex-col bg-white">
+  <KlassHeroWeb.MarketingComponents.mk_header
+    active={assigns[:active_nav] || :home}
+    current_scope={assigns[:current_scope]}
+    locale={assigns[:locale] || "en"}
+  />
+
+  <main class="flex-1">
+    <.flash_group flash={@flash} />
+    <%= if assigns[:inner_content] do %>
+      {@inner_content}
+    <% else %>
+      {render_slot(@inner_block)}
+    <% end %>
+  </main>
+
+  <KlassHeroWeb.MarketingComponents.mk_footer active={assigns[:active_nav] || :home} />
+</div>

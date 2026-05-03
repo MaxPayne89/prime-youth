@@ -55,7 +55,21 @@ defmodule KlassHeroWeb.Router do
   scope "/", KlassHeroWeb do
     pipe_through :browser
 
-    # Public routes - optional authentication
+    # Marketing layout (sticky horizontal MkHeader + dark MkFooter).
+    # Currently scoped to / only — the other public pages (programs, about,
+    # contact, etc.) migrate to this layout in follow-up PRs and will move
+    # into this live_session as they go.
+    live_session :marketing,
+      layout: {KlassHeroWeb.Layouts, :marketing},
+      on_mount: [
+        {LiveViewHook, :trace},
+        {KlassHeroWeb.UserAuth, :mount_current_scope},
+        {RestoreLocale, :restore_locale}
+      ] do
+      live "/", HomeLive, :index
+    end
+
+    # Public routes - optional authentication, legacy app-shell layout.
     live_session :public,
       layout: {KlassHeroWeb.Layouts, :app},
       on_mount: [
@@ -63,7 +77,6 @@ defmodule KlassHeroWeb.Router do
         {KlassHeroWeb.UserAuth, :mount_current_scope},
         {RestoreLocale, :restore_locale}
       ] do
-      live "/", HomeLive, :index
       live "/programs", ProgramsLive, :index
       live "/programs/:id", ProgramDetailLive, :show
       live "/about", AboutLive, :index
