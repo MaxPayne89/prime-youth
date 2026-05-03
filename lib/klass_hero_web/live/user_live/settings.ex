@@ -20,7 +20,7 @@ defmodule KlassHeroWeb.UserLive.Settings do
       <:lede>{gettext("Manage your account, preferences, and privacy in one place.")}</:lede>
     </.mk_page_hero>
 
-    <section class="pb-20 -mt-8 lg:-mt-12 px-6">
+    <section class="relative pb-20 -mt-8 lg:-mt-12 px-6">
       <div class="max-w-6xl mx-auto lg:flex lg:gap-8 items-start">
         <%!-- Sticky sidebar nav (desktop) --%>
         <aside class="hidden lg:block lg:w-60 lg:flex-shrink-0 sticky top-24">

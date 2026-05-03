@@ -17,7 +17,7 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
           <:title>{gettext("Invalid Invitation")}</:title>
           <:lede>{gettext("This invitation link is invalid or has already been used.")}</:lede>
         </.mk_page_hero>
-        <section class="pb-20 -mt-8 lg:-mt-12 px-6 text-center">
+        <section class="relative pb-20 -mt-8 lg:-mt-12 px-6 text-center">
           <.link navigate={~p"/"}>
             <.kh_button variant={:primary} size={:lg}>{gettext("Go to Home")}</.kh_button>
           </.link>
@@ -29,7 +29,7 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
             {gettext("This invitation has expired. Please ask your business to resend it.")}
           </:lede>
         </.mk_page_hero>
-        <section class="pb-20 -mt-8 lg:-mt-12 px-6 text-center">
+        <section class="relative pb-20 -mt-8 lg:-mt-12 px-6 text-center">
           <.link navigate={~p"/"}>
             <.kh_button variant={:primary} size={:lg}>{gettext("Go to Home")}</.kh_button>
           </.link>
@@ -43,7 +43,7 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
           <:lede>{gettext("You've been invited to join a team on Klass Hero.")}</:lede>
         </.mk_page_hero>
 
-        <section class="pb-20 -mt-8 lg:-mt-12 px-6">
+        <section class="relative pb-20 -mt-8 lg:-mt-12 px-6">
           <div class="max-w-md mx-auto">
             <.kh_card class="p-7 lg:p-9">
               <.form

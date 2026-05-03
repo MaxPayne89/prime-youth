@@ -22,7 +22,7 @@ defmodule KlassHeroWeb.UserLive.Confirmation do
       </:lede>
     </.mk_page_hero>
 
-    <section class="pb-20 -mt-8 lg:-mt-12 px-6">
+    <section class="relative pb-20 -mt-8 lg:-mt-12 px-6">
       <div class="max-w-md mx-auto">
         <.kh_card class="p-7 lg:p-9">
           <.form
