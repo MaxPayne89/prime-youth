@@ -756,7 +756,7 @@ defmodule KlassHeroWeb.MarketingComponents do
     <footer class="bg-hero-black text-white">
       <div class="md:hidden">
         <div class="px-6 py-12 border-b border-white/10">
-          <.kh_logo size={36} variant={:white} />
+          <.kh_logo size={36} />
           <%!-- typography-lint-ignore: marketing footer CTA headline in display font --%>
           <h3 class="mt-5 font-display font-extrabold tracking-tight text-2xl leading-tight">
             {@cta.headline}
@@ -809,7 +809,7 @@ defmodule KlassHeroWeb.MarketingComponents do
         <div class="max-w-7xl mx-auto px-6">
           <div class="grid lg:grid-cols-4 gap-10">
             <div>
-              <.kh_logo size={36} variant={:white} />
+              <.kh_logo size={36} />
               <p class="mt-4 text-white/60 text-sm leading-relaxed">
                 {gettext(
                   "Berlin's network for trusted youth educators. Built by parents, for parents."
