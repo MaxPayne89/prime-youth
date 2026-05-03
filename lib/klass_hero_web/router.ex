@@ -72,6 +72,8 @@ defmodule KlassHeroWeb.Router do
       live "/trust-safety", TrustSafetyLive, :index
       live "/about", AboutLive, :index
       live "/contact", ContactLive, :index
+      live "/privacy", PrivacyPolicyLive, :index
+      live "/terms", TermsOfServiceLive, :index
     end
 
     # Public routes - optional authentication, legacy app-shell layout.
@@ -83,8 +85,6 @@ defmodule KlassHeroWeb.Router do
         {RestoreLocale, :restore_locale}
       ] do
       live "/for-providers", ForProvidersLive, :index
-      live "/privacy", PrivacyPolicyLive, :index
-      live "/terms", TermsOfServiceLive, :index
     end
 
     # Parent app surface — sidebar layout, parent-role required.

@@ -13,6 +13,7 @@ defmodule KlassHeroWeb.CompositeComponents do
     router: KlassHeroWeb.Router,
     statics: KlassHeroWeb.static_paths()
 
+  import KlassHeroWeb.MarketingComponents, only: [mk_page_hero: 1, mk_cta_section: 1]
   import KlassHeroWeb.UIComponents
   import Phoenix.HTML, only: [raw: 1]
 
@@ -713,10 +714,13 @@ defmodule KlassHeroWeb.CompositeComponents do
         cta_body={gettext("We're here to clarify any questions you may have.")}
       />
   """
-  attr :gradient_class, :string, required: true, doc: "Hero section gradient class"
   attr :title, :string, required: true, doc: "Page title (already translated)"
   attr :subtitle, :string, required: true, doc: "Page subtitle (already translated)"
   attr :last_updated, :string, required: true, doc: "Last updated date string"
+
+  attr :eyebrow_pill, :string,
+    default: nil,
+    doc: "Optional outline pill rendered above the title in the marketing hero"
 
   attr :sections, :list,
     required: true,
@@ -727,96 +731,68 @@ defmodule KlassHeroWeb.CompositeComponents do
 
   def document_page(assigns) do
     ~H"""
-    <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
-      <.hero_section
-        variant="page"
-        gradient_class={@gradient_class}
-        show_back_button
-      >
-        <:title>{@title}</:title>
-        <:subtitle>{@subtitle}</:subtitle>
-      </.hero_section>
+    <.mk_page_hero eyebrow_icon="hero-document-text" pill={@eyebrow_pill}>
+      <:title>{@title}</:title>
+      <:lede>{@subtitle}</:lede>
+    </.mk_page_hero>
 
-      <div class="max-w-4xl mx-auto p-6 space-y-6">
-        <%!-- Last Updated Banner --%>
-        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p class="text-sm text-blue-800">
-            <span class="font-semibold">{gettext("Last Updated:")}</span> {@last_updated}
-          </p>
-        </div>
-
-        <%!-- Table of Contents Card --%>
-        <.card>
-          <:header>
-            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-              {gettext("Table of Contents")}
-            </h2>
-          </:header>
-          <:body>
-            <ul class="space-y-2">
-              <li :for={section <- @sections}>
-                <a
-                  href={"##{section.id}"}
-                  class="text-blue-600 hover:underline flex items-center gap-2"
-                >
-                  <.icon name={section.icon} class="w-4 h-4" />
-                  {section.title}
-                </a>
-              </li>
-            </ul>
-          </:body>
-        </.card>
-
-        <%!-- Document Sections --%>
-        <.card :for={section <- @sections} id={section.id}>
-          <:header>
-            <div class="flex items-center gap-3">
-              <.gradient_icon
-                gradient_class={section.gradient}
-                size="sm"
-                shape="circle"
-              >
-                <.icon name={section.icon} class="w-5 h-5 text-white" />
-              </.gradient_icon>
-              <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
-                {section.title}
-              </h2>
-            </div>
-          </:header>
-          <:body>
-            <div class={["prose prose-sm max-w-none", Theme.text_color(:secondary)]}>
-              {raw(section.content)}
-            </div>
-          </:body>
-        </.card>
-
-        <%!-- Contact CTA Section --%>
-        <.card padding="p-8">
-          <:body>
-            <div class="text-center">
-              <h3 class={["font-semibold mb-2", Theme.text_color(:heading)]}>
-                {@cta_title}
-              </h3>
-              <p class={["text-sm mb-4", Theme.text_color(:secondary)]}>
-                {@cta_body}
-              </p>
-              <.link
-                navigate={~p"/contact"}
-                class={[
-                  "inline-block",
-                  Theme.gradient(:primary),
-                  "text-white px-6 py-2 text-sm font-semibold hover:shadow-lg transform hover:scale-[1.02]",
-                  Theme.transition(:normal),
-                  Theme.rounded(:lg)
-                ]}
-              >
-                {gettext("Contact Us")}
-              </.link>
-            </div>
-          </:body>
-        </.card>
+    <div class="max-w-4xl mx-auto p-6 space-y-6">
+      <%!-- Last Updated Banner --%>
+      <div class="bg-hero-blue-50 border border-hero-blue-200 rounded-lg p-4">
+        <p class="text-sm text-hero-blue-800">
+          <span class="font-semibold">{gettext("Last Updated:")}</span> {@last_updated}
+        </p>
       </div>
+
+      <%!-- Table of Contents Card --%>
+      <.card>
+        <:header>
+          <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+            {gettext("Table of Contents")}
+          </h2>
+        </:header>
+        <:body>
+          <ul class="space-y-2">
+            <li :for={section <- @sections}>
+              <a
+                href={"##{section.id}"}
+                class="text-hero-blue-600 hover:underline flex items-center gap-2"
+              >
+                <.icon name={section.icon} class="w-4 h-4" />
+                {section.title}
+              </a>
+            </li>
+          </ul>
+        </:body>
+      </.card>
+
+      <%!-- Document Sections --%>
+      <.card :for={section <- @sections} id={section.id}>
+        <:header>
+          <div class="flex items-center gap-3">
+            <.gradient_icon gradient_class={section.gradient} size="sm" shape="circle">
+              <.icon name={section.icon} class="w-5 h-5 text-white" />
+            </.gradient_icon>
+            <h2 class={[Theme.typography(:section_title), Theme.text_color(:heading)]}>
+              {section.title}
+            </h2>
+          </div>
+        </:header>
+        <:body>
+          <div class={["prose prose-sm max-w-none", Theme.text_color(:secondary)]}>
+            {raw(section.content)}
+          </div>
+        </:body>
+      </.card>
     </div>
+
+    <.mk_cta_section title={@cta_title} lede={@cta_body}>
+      <:cta>
+        <.link navigate={~p"/contact"}>
+          <.kh_button variant={:primary} size={:lg}>{gettext("Contact Us")}</.kh_button>
+        </.link>
+      </:cta>
+    </.mk_cta_section>
     """
   end
 

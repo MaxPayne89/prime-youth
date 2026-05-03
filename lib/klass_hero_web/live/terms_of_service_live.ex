@@ -8,6 +8,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
     socket =
       socket
       |> assign(page_title: gettext("Terms of Service"))
+      |> assign(active_nav: :legal)
 
     {:ok, socket}
   end
@@ -264,7 +265,7 @@ defmodule KlassHeroWeb.TermsOfServiceLive do
   def render(assigns) do
     ~H"""
     <.document_page
-      gradient_class={Theme.gradient(:primary)}
+      eyebrow_pill={gettext("Terms")}
       title={gettext("Terms of Service")}
       subtitle={gettext("Understanding our agreement with you")}
       last_updated={last_updated()}
