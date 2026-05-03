@@ -34,7 +34,7 @@ defmodule KlassHeroWeb.FlashVisibilityTest do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
       {:ok, view, _html} =
-        form(lv, "#login_form_magic_mobile", user: %{email: user.email})
+        form(lv, "#login_form_magic", user: %{email: user.email})
         |> render_submit()
         |> follow_redirect(conn, ~p"/users/log-in")
 

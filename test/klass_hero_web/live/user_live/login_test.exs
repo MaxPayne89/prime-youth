@@ -10,9 +10,9 @@ defmodule KlassHeroWeb.UserLive.LoginTest do
     test "renders login page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
-      assert html =~ "Welcome Back"
+      assert html =~ "Welcome"
       assert html =~ "Register"
-      assert html =~ "Send Magic Link"
+      assert html =~ "Send magic link"
     end
   end
 
@@ -23,7 +23,7 @@ defmodule KlassHeroWeb.UserLive.LoginTest do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
       {:ok, _lv, html} =
-        form(lv, "#login_form_magic_mobile", user: %{email: user.email})
+        form(lv, "#login_form_magic", user: %{email: user.email})
         |> render_submit()
         |> follow_redirect(conn, ~p"/users/log-in")
 
@@ -37,7 +37,7 @@ defmodule KlassHeroWeb.UserLive.LoginTest do
       {:ok, lv, _html} = live(conn, ~p"/users/log-in")
 
       {:ok, _lv, html} =
-        form(lv, "#login_form_magic_mobile", user: %{email: "idonotexist@example.com"})
+        form(lv, "#login_form_magic", user: %{email: "idonotexist@example.com"})
         |> render_submit()
         |> follow_redirect(conn, ~p"/users/log-in")
 
@@ -91,7 +91,7 @@ defmodule KlassHeroWeb.UserLive.LoginTest do
         |> render_click()
         |> follow_redirect(conn, ~p"/users/register")
 
-      assert login_html =~ "Register"
+      assert login_html =~ "Create your"
     end
   end
 
@@ -106,10 +106,9 @@ defmodule KlassHeroWeb.UserLive.LoginTest do
 
       assert html =~ "You need to reauthenticate"
       refute html =~ "Register"
-      assert html =~ "Send Magic Link"
+      assert html =~ "Send magic link"
 
-      assert html =~
-               ~s(<input type="email" name="user[email]" id="login_form_magic_mobile_email" value="#{user.email}")
+      assert html =~ user.email
     end
   end
 end

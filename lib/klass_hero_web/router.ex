@@ -294,7 +294,7 @@ defmodule KlassHeroWeb.Router do
     pipe_through [:browser, :require_authenticated_user]
 
     live_session :require_authenticated_user,
-      layout: {KlassHeroWeb.Layouts, :app},
+      layout: {KlassHeroWeb.Layouts, :marketing},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :require_authenticated},
@@ -321,6 +321,7 @@ defmodule KlassHeroWeb.Router do
     get "/invites/:token", InviteClaimController, :show
 
     live_session :current_user,
+      layout: {KlassHeroWeb.Layouts, :marketing},
       on_mount: [
         {LiveViewHook, :trace},
         {KlassHeroWeb.UserAuth, :mount_current_scope},

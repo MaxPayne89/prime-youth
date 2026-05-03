@@ -1,6 +1,8 @@
 defmodule KlassHeroWeb.UserLive.StaffInvitation do
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.MarketingComponents
+
   alias KlassHero.Accounts
   alias KlassHero.Provider
 
@@ -9,76 +11,81 @@ defmodule KlassHeroWeb.UserLive.StaffInvitation do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <div class="mx-auto max-w-sm">
-        <%= cond do %>
-          <% @error == :invalid -> %>
-            <div class="text-center">
-              <.header>
-                {gettext("Invalid Invitation")}
-                <:subtitle>
-                  {gettext("This invitation link is invalid or has already been used.")}
-                </:subtitle>
-              </.header>
-              <.link navigate={~p"/"} class="btn btn-primary mt-6">
-                {gettext("Go to Home")}
-              </.link>
-            </div>
-          <% @error == :expired -> %>
-            <div class="text-center">
-              <.header>
-                {gettext("Invitation Expired")}
-                <:subtitle>
-                  {gettext("This invitation has expired. Please ask your business to resend it.")}
-                </:subtitle>
-              </.header>
-              <.link navigate={~p"/"} class="btn btn-primary mt-6">
-                {gettext("Go to Home")}
-              </.link>
-            </div>
-          <% true -> %>
-            <div class="text-center">
-              <.header>
-                {gettext("Complete Your Registration")}
-                <:subtitle>
-                  {gettext("You've been invited to join a team on Klass Hero.")}
-                </:subtitle>
-              </.header>
-            </div>
+    <%= cond do %>
+      <% @error == :invalid -> %>
+        <.mk_page_hero pill={gettext("Invitation")}>
+          <:title>{gettext("Invalid Invitation")}</:title>
+          <:lede>{gettext("This invitation link is invalid or has already been used.")}</:lede>
+        </.mk_page_hero>
+        <section class="pb-20 -mt-8 lg:-mt-12 px-6 text-center">
+          <.link navigate={~p"/"}>
+            <.kh_button variant={:primary} size={:lg}>{gettext("Go to Home")}</.kh_button>
+          </.link>
+        </section>
+      <% @error == :expired -> %>
+        <.mk_page_hero pill={gettext("Invitation")}>
+          <:title>{gettext("Invitation Expired")}</:title>
+          <:lede>
+            {gettext("This invitation has expired. Please ask your business to resend it.")}
+          </:lede>
+        </.mk_page_hero>
+        <section class="pb-20 -mt-8 lg:-mt-12 px-6 text-center">
+          <.link navigate={~p"/"}>
+            <.kh_button variant={:primary} size={:lg}>{gettext("Go to Home")}</.kh_button>
+          </.link>
+        </section>
+      <% true -> %>
+        <.mk_page_hero pill={gettext("Join the team")}>
+          <:title>
+            {gettext("Join the")}
+            <span class="bg-hero-yellow-500 px-2 rounded-lg">{gettext("team")}</span>
+          </:title>
+          <:lede>{gettext("You've been invited to join a team on Klass Hero.")}</:lede>
+        </.mk_page_hero>
 
-            <.form for={@form} id="staff-registration-form" phx-submit="save" phx-change="validate">
-              <.input
-                field={@form[:name]}
-                type="text"
-                label={gettext("Name")}
-                autocomplete="name"
-                required
-              />
-              <.input
-                field={@form[:email]}
-                type="email"
-                label={gettext("Email")}
-                autocomplete="username"
-                required
-                readonly
-              />
-              <.input
-                field={@form[:password]}
-                type="password"
-                label={gettext("Password")}
-                autocomplete="new-password"
-                required
-              />
-              <.button
-                phx-disable-with={gettext("Creating account...")}
-                class="btn btn-primary w-full mt-6"
+        <section class="pb-20 -mt-8 lg:-mt-12 px-6">
+          <div class="max-w-md mx-auto">
+            <.kh_card class="p-7 lg:p-9">
+              <.form
+                for={@form}
+                id="staff-registration-form"
+                phx-submit="save"
+                phx-change="validate"
+                class="space-y-4"
               >
-                {gettext("Complete Registration")}
-              </.button>
-            </.form>
-        <% end %>
-      </div>
-    </Layouts.app>
+                <.mk_input
+                  field={@form[:name]}
+                  type="text"
+                  label={gettext("Name")}
+                  required
+                />
+                <.mk_input
+                  field={@form[:email]}
+                  type="email"
+                  label={gettext("Email")}
+                  required
+                  readonly
+                />
+                <.mk_input
+                  field={@form[:password]}
+                  type="password"
+                  label={gettext("Password")}
+                  required
+                />
+                <.kh_button
+                  type="submit"
+                  variant={:primary}
+                  size={:lg}
+                  class="w-full justify-center"
+                  phx-disable-with={gettext("Creating account...")}
+                >
+                  {gettext("Complete Registration")}
+                </.kh_button>
+              </.form>
+            </.kh_card>
+          </div>
+        </section>
+    <% end %>
     """
   end
 

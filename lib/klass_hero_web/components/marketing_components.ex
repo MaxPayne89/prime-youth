@@ -1705,10 +1705,12 @@ defmodule KlassHeroWeb.MarketingComponents do
   feedback below the input.
   """
   attr :field, FormField, required: true
-  attr :type, :string, default: "text", values: ~w(text email select textarea)
+  attr :type, :string, default: "text", values: ~w(text email password select textarea)
   attr :label, :string, required: true
   attr :placeholder, :string, default: nil
   attr :required, :boolean, default: false
+  attr :readonly, :boolean, default: false
+  attr :autocomplete, :string, default: nil
   attr :rows, :integer, default: 5
   attr :options, :list, default: []
   attr :prompt, :string, default: nil
@@ -1716,8 +1718,11 @@ defmodule KlassHeroWeb.MarketingComponents do
   def mk_input(assigns) do
     ~H"""
     <label class="block">
-      <span class="text-sm font-semibold text-hero-black">
-        {@label}<span :if={@required} class="text-[var(--brand-primary-dark)] ml-0.5">*</span>
+      <span class={[
+        "text-sm font-semibold text-hero-black",
+        @required && "after:content-['*'] after:ml-0.5 after:text-[var(--brand-primary-dark)]"
+      ]}>
+        {@label}
       </span>
       <div class="mt-1.5">
         <%= case @type do %>
@@ -1725,6 +1730,7 @@ defmodule KlassHeroWeb.MarketingComponents do
             <select
               id={@field.id}
               name={@field.name}
+              autocomplete={@autocomplete}
               class={[mk_input_classes(), "appearance-none bg-white"]}
             >
               <option :if={@prompt} value="" disabled selected={@field.value in [nil, ""]}>
@@ -1744,6 +1750,8 @@ defmodule KlassHeroWeb.MarketingComponents do
               name={@field.name}
               rows={@rows}
               placeholder={@placeholder}
+              autocomplete={@autocomplete}
+              readonly={@readonly}
               class={[mk_input_classes(), "resize-y"]}
             >{Phoenix.HTML.Form.normalize_value("textarea", @field.value)}</textarea>
           <% _ -> %>
@@ -1753,7 +1761,9 @@ defmodule KlassHeroWeb.MarketingComponents do
               name={@field.name}
               value={Phoenix.HTML.Form.normalize_value(@type, @field.value)}
               placeholder={@placeholder}
-              class={mk_input_classes()}
+              autocomplete={@autocomplete}
+              readonly={@readonly}
+              class={[mk_input_classes(), @readonly && "bg-[var(--hero-grey-100)] cursor-not-allowed"]}
             />
         <% end %>
       </div>

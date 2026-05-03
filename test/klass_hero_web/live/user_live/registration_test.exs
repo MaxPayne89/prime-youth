@@ -10,7 +10,7 @@ defmodule KlassHeroWeb.UserLive.RegistrationTest do
     test "renders registration page", %{conn: conn} do
       {:ok, _lv, html} = live(conn, ~p"/users/register")
 
-      assert html =~ "Register"
+      assert html =~ "Create your"
       assert html =~ "Log in"
     end
 
@@ -32,7 +32,7 @@ defmodule KlassHeroWeb.UserLive.RegistrationTest do
         |> element("#registration_form")
         |> render_change(user: %{"email" => "with spaces"})
 
-      assert result =~ "Register"
+      assert result =~ "Create an account"
       assert result =~ "must have the @ sign and no spaces"
     end
   end
@@ -79,7 +79,7 @@ defmodule KlassHeroWeb.UserLive.RegistrationTest do
         |> render_click()
         |> follow_redirect(conn, ~p"/users/log-in")
 
-      assert login_html =~ "Welcome Back"
+      assert login_html =~ "Welcome"
     end
   end
 
