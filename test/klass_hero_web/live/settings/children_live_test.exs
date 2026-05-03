@@ -19,6 +19,17 @@ defmodule KlassHeroWeb.Settings.ChildrenLiveTest do
       assert html =~ "Children Profiles"
     end
 
+    test "highlights the 'My Kids' sidebar entry", %{conn: conn, user: user} do
+      KlassHero.Factory.insert(:parent_schema, identity_id: user.id)
+      {:ok, view, _html} = live(conn, ~p"/settings/children")
+
+      assert has_element?(
+               view,
+               "a[href='/family/settings/children'][aria-current='page']",
+               "My Kids"
+             )
+    end
+
     test "unauthenticated user is redirected", %{} do
       conn = build_conn()
       assert {:error, {:redirect, _}} = live(conn, ~p"/settings/children")

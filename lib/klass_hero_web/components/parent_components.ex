@@ -34,9 +34,10 @@ defmodule KlassHeroWeb.ParentComponents do
     {:bookings, "Bookings", "hero-book-open", "/programs"},
     {:calendar, "Planner", "hero-calendar", nil},
     {:messages, "Messages", "hero-chat-bubble-left-right", "/messages"},
-    {:children, "My Kids", "hero-users", "/family/settings"},
+    {:children, "My Kids", "hero-users", "/family/settings/children"},
     {:participation, "Sessions", "hero-check-circle", "/participation"},
-    {:billing, "Billing", "hero-currency-euro", nil}
+    {:billing, "Billing", "hero-currency-euro", nil},
+    {:settings, "Settings", "hero-cog-6-tooth", "/family/settings"}
   ]
 
   @mobile_tabs [
@@ -44,7 +45,7 @@ defmodule KlassHeroWeb.ParentComponents do
     {:bookings, "Bookings", "hero-book-open", "/programs"},
     {:messages, "Messages", "hero-chat-bubble-left-right", "/messages"},
     {:participation, "Sessions", "hero-check-circle", "/participation"},
-    {:children, "Family", "hero-users", "/family/settings"}
+    {:children, "Kids", "hero-users", "/family/settings/children"}
   ]
 
   @doc """
@@ -56,7 +57,7 @@ defmodule KlassHeroWeb.ParentComponents do
   """
   attr :active, :atom,
     required: true,
-    values: [:home, :bookings, :calendar, :messages, :children, :participation, :billing]
+    values: [:home, :bookings, :calendar, :messages, :children, :participation, :billing, :settings]
 
   attr :user, :map, required: true, doc: "Current user; needs :name and :email"
 

@@ -46,6 +46,16 @@ defmodule KlassHeroWeb.ParentComponentsTest do
       assert html =~ "Planner"
       assert html =~ ~s|title="Coming soon"|
     end
+
+    test "'My Kids' jumps directly to the children list, settings has its own entry", %{} do
+      html = render_pa_sidebar(active: :children)
+
+      # 'My Kids' must point at the children list, not the settings hub.
+      assert html =~ ~s|href="/family/settings/children"|
+      # Settings hub gets its own dedicated nav slot.
+      assert html =~ "Settings"
+      assert html =~ ~s|href="/family/settings"|
+    end
   end
 
   describe "pa_topbar/1" do
