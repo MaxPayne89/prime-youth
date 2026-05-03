@@ -66,7 +66,9 @@ defmodule KlassHeroWeb.ParentComponents do
     ~H"""
     <aside class="hidden lg:flex w-[240px] shrink-0 h-screen sticky top-0 bg-white border-r border-hero-grey-200 flex-col">
       <div class="p-5 border-b border-hero-grey-200">
-        <.kh_logo size={32} />
+        <.link navigate={~p"/"} class="flex items-center" aria-label="Klass Hero">
+          <.kh_logo size={32} />
+        </.link>
       </div>
       <nav class="p-3 flex-1" aria-label={gettext("Parent navigation")}>
         <.pa_sidebar_link
@@ -232,7 +234,9 @@ defmodule KlassHeroWeb.ParentComponents do
     </div>
 
     <div class="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-hero-grey-200 px-4 h-14 flex items-center gap-3">
-      <.kh_logo size={26} />
+      <.link navigate={~p"/"} class="flex items-center shrink-0" aria-label="Klass Hero">
+        <.kh_logo size={26} />
+      </.link>
       <div class="flex-1 min-w-0">
         <h1 class={topbar_mobile_title_classes()}>{@title}</h1>
         <div

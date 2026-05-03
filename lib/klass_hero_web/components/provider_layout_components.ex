@@ -51,7 +51,9 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
     ~H"""
     <aside class="hidden lg:flex w-[220px] shrink-0 h-screen sticky top-0 bg-black text-white flex-col">
       <div class="p-5 border-b border-white/10">
-        <.kh_logo size={28} variant={:white} />
+        <.link navigate={~p"/"} class="flex items-center" aria-label="Klass Hero">
+          <.kh_logo size={28} />
+        </.link>
         <div class="text-[11px] text-white/60 uppercase tracking-wider font-bold mt-3">
           {gettext("Provider")}
         </div>
@@ -214,7 +216,9 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
     </div>
 
     <div class="lg:hidden sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-hero-grey-200 px-4 h-14 flex items-center gap-3">
-      <.kh_logo size={26} />
+      <.link navigate={~p"/"} class="flex items-center shrink-0" aria-label="Klass Hero">
+        <.kh_logo size={26} />
+      </.link>
       <div class={pv_topbar_avatar_mobile_classes()}>
         {String.first(@provider[:name] || "?") |> String.upcase()}
       </div>
