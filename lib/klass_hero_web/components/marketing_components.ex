@@ -897,6 +897,16 @@ defmodule KlassHeroWeb.MarketingComponents do
     }
   end
 
+  defp footer_cta(:trust) do
+    %{
+      headline: gettext("Ready to find your child's next adventure?"),
+      primary_label: gettext("Browse Programs →"),
+      primary_href: "/programs",
+      secondary_label: gettext("Talk to us"),
+      secondary_href: "/contact"
+    }
+  end
+
   defp footer_cta(:contact) do
     %{
       headline: gettext("While you're here — explore programs."),
@@ -1262,6 +1272,262 @@ defmodule KlassHeroWeb.MarketingComponents do
         </button>
       </div>
     </div>
+    """
+  end
+
+  ## ---------------------------------------------------------------------------
+  ## Generic page primitives (shared across Trust & Safety, About, Contact)
+  ## ---------------------------------------------------------------------------
+
+  @doc """
+  Generic peach-gradient page hero used by Trust & Safety, About, and Contact.
+
+  Maps to bundle's `MkPageHero` (Sections.jsx:426). The H1 is rendered through
+  the `:title` slot so callers can wrap a span in
+  `bg-hero-yellow-500 px-2 rounded-lg` to highlight a word.
+  """
+  attr :id, :string, default: "mk-page-hero"
+  attr :eyebrow_icon, :string, default: nil, doc: "Heroicon name for kh_icon_chip eyebrow"
+
+  attr :eyebrow_gradient, :atom,
+    default: :primary,
+    values: [:primary, :comic, :cool, :art, :safety, :dark, :yellow, :pink, :mixed]
+
+  attr :pill, :string, default: nil, doc: "Optional outline pill text rendered above the title"
+  slot :title, required: true
+  slot :lede
+
+  def mk_page_hero(assigns) do
+    ~H"""
+    <section
+      id={@id}
+      class="relative overflow-hidden bg-gradient-to-b from-hero-pink-50 to-white pt-16 pb-20 lg:pt-24 lg:pb-28"
+    >
+      <div class="absolute top-10 right-1/4 w-72 h-72 rounded-full bg-hero-yellow-500 opacity-20 blur-3xl pointer-events-none">
+      </div>
+      <div class="absolute bottom-0 left-1/4 w-72 h-72 rounded-full bg-hero-blue-400 opacity-15 blur-3xl pointer-events-none">
+      </div>
+
+      <div class="relative max-w-5xl mx-auto px-6 text-center">
+        <div :if={@eyebrow_icon} class="flex justify-center mb-6">
+          <.kh_icon_chip icon={@eyebrow_icon} gradient={@eyebrow_gradient} size={:lg} />
+        </div>
+        <.kh_pill :if={@pill} tone={:outline} class="mb-5">{@pill}</.kh_pill>
+
+        <%!-- typography-lint-ignore: marketing page hero scales fluidly via clamp() --%>
+        <h1 class="font-display font-extrabold tracking-tight text-[clamp(40px,6vw,72px)] leading-[1.02] text-hero-black">
+          {render_slot(@title)}
+        </h1>
+        <p
+          :if={@lede != []}
+          class="mt-6 text-lg md:text-xl text-[var(--fg-muted)] max-w-3xl mx-auto leading-relaxed"
+        >
+          {render_slot(@lede)}
+        </p>
+      </div>
+    </section>
+    """
+  end
+
+  @doc """
+  Generic peach CTA closer used by Trust & Safety (and reusable by About /
+  Contact follow-ups). H2 + lede + primary CTA via slot, with an optional
+  tracking-widest tagline + sub-tagline rendered below a horizontal rule.
+  """
+  attr :id, :string, default: "mk-cta"
+  attr :title, :string, required: true
+  attr :lede, :string, default: nil
+  attr :tagline, :string, default: nil
+  attr :sub_tagline, :string, default: nil
+  slot :cta, required: true
+
+  def mk_cta_section(assigns) do
+    ~H"""
+    <section id={@id} class="py-16 lg:py-20 bg-hero-pink-50 text-center">
+      <div class="max-w-3xl mx-auto px-6">
+        <%!-- typography-lint-ignore: marketing CTA closer title intentionally larger than Theme.typography(:page_title) --%>
+        <h2 class="font-display font-bold tracking-tight text-4xl lg:text-5xl text-hero-black">
+          {@title}
+        </h2>
+        <p :if={@lede} class="text-lg text-[var(--fg-muted)] mt-4">{@lede}</p>
+        <div class="mt-8">
+          {render_slot(@cta)}
+        </div>
+
+        <div :if={@tagline} class="mt-14 pt-10 border-t border-[var(--border-light)]">
+          <%!-- typography-lint-ignore: tracking-widest tagline rendered in display font is intentional --%>
+          <p class="font-display font-bold text-2xl tracking-widest text-hero-black">
+            {@tagline}
+          </p>
+          <p :if={@sub_tagline} class="text-xl text-[var(--brand-primary-dark)] font-bold mt-2">
+            {@sub_tagline}
+          </p>
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  ## ---------------------------------------------------------------------------
+  ## Trust & Safety section helpers
+  ## ---------------------------------------------------------------------------
+
+  @doc """
+  Two-column commitment-and-vetted-card section. Maps to MkTrustSafety's
+  first content block (Sections.jsx:746).
+  """
+  attr :title, :string, required: true
+  attr :lede, :string, required: true
+  attr :commitments, :list, required: true, doc: "list of strings"
+  attr :vetted_title, :string, required: true
+  attr :vetted_lede, :string, required: true
+  attr :stats, :list, default: []
+
+  def mk_trust_commitment(assigns) do
+    ~H"""
+    <section id="mk-trust-commitment" class="py-16 lg:py-24 bg-white">
+      <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+        <div class="space-y-6">
+          <.kh_pill tone={:primary}>{gettext("Our Commitment")}</.kh_pill>
+          <%!-- typography-lint-ignore: marketing section title intentionally larger than Theme.typography(:page_title) --%>
+          <h2 class="font-display font-bold tracking-tight text-4xl lg:text-5xl text-hero-black">
+            {@title}
+          </h2>
+          <p class="text-lg text-[var(--fg-muted)] leading-relaxed">{@lede}</p>
+          <div class="space-y-3 pt-2">
+            <div
+              :for={commitment <- @commitments}
+              class="flex items-center gap-3 bg-white p-4 rounded-xl border-2 border-hero-yellow-400"
+            >
+              <.icon
+                name="hero-check-circle"
+                class="w-5 h-5 text-[var(--brand-primary-dark)] flex-shrink-0"
+              />
+              <span class="font-bold text-hero-black">{commitment}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-[var(--brand-primary-dark)] to-hero-blue-700 rounded-3xl p-8 lg:p-10 text-white relative overflow-hidden min-h-[420px] flex flex-col">
+          <.kh_pill tone={:accent} class="self-start">{gettext("Vetted with Care")}</.kh_pill>
+          <%!-- typography-lint-ignore: marketing section title in display font on dark surface --%>
+          <h3 class="mt-5 font-display font-bold tracking-tight text-3xl lg:text-4xl">
+            {@vetted_title}
+          </h3>
+          <p class="mt-5 text-white/90 text-lg leading-relaxed">{@vetted_lede}</p>
+          <div class="h-1 w-20 bg-hero-yellow-500 mt-6"></div>
+          <div :if={@stats != []} class="mt-auto pt-6 grid grid-cols-3 gap-3">
+            <div :for={{value, label} <- @stats}>
+              <%!-- typography-lint-ignore: vetted-card stat value is a numeric/keyword display callout --%>
+              <div class="font-display font-extrabold text-2xl text-hero-yellow-500">
+                {value}
+              </div>
+              <div :if={label} class="text-xs text-white/70 uppercase tracking-wider">
+                {label}
+              </div>
+            </div>
+          </div>
+          <.icon
+            name="hero-shield-check"
+            class="w-48 h-48 text-white/10 absolute -bottom-6 -right-6 pointer-events-none"
+          />
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  @doc """
+  6-step verification grid. Maps to MkTrustSafety's verification block
+  (Sections.jsx:784). Each step is `%{icon:, title:, description:}`.
+  """
+  attr :title, :string, required: true
+  attr :subtitle, :string, default: nil
+  attr :steps, :list, required: true
+
+  def mk_trust_verification(assigns) do
+    ~H"""
+    <section id="mk-trust-verification" class="py-16 lg:py-24 bg-hero-cream-100">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center max-w-2xl mx-auto mb-14">
+          <.kh_pill tone={:accent} class="mb-3">{gettext("How We Verify Providers")}</.kh_pill>
+          <%!-- typography-lint-ignore: marketing section title intentionally larger than Theme.typography(:page_title) --%>
+          <h2 class="font-display font-bold tracking-tight text-4xl lg:text-5xl text-hero-black">
+            {@title}
+          </h2>
+          <p :if={@subtitle} class="text-[var(--fg-muted)] text-lg mt-3">{@subtitle}</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <.kh_card
+            :for={{step, idx} <- Enum.with_index(@steps, 1)}
+            class="p-7 hover:shadow-lg hover:-translate-y-1 relative"
+          >
+            <div class="flex items-center gap-3 mb-4">
+              <%!-- typography-lint-ignore: numbered step badge uses display font for numeric callout --%>
+              <div class="w-9 h-9 rounded-full bg-hero-yellow-500 text-black font-display font-extrabold flex items-center justify-center">
+                {idx}
+              </div>
+              <.kh_icon_chip icon={step.icon} gradient={:primary} size={:sm} />
+            </div>
+            <h3 class="font-bold text-xl text-hero-black">{step.title}</h3>
+            <p class="mt-2 text-[var(--fg-muted)] leading-relaxed">{step.description}</p>
+          </.kh_card>
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  @doc """
+  Dark "ongoing quality" slab. Maps to MkTrustSafety's accountability block
+  (Sections.jsx:807).
+  """
+  attr :title, :string, required: true
+  attr :lede, :string, required: true
+  attr :items, :list, required: true, doc: "list of strings"
+  attr :warning, :string, default: nil
+
+  def mk_trust_accountability(assigns) do
+    ~H"""
+    <section id="mk-trust-accountability" class="py-16 lg:py-24 bg-white">
+      <div class="max-w-5xl mx-auto px-6">
+        <div class="bg-hero-black rounded-3xl p-8 md:p-12 text-white relative overflow-hidden">
+          <div class="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-hero-blue-500 opacity-10 blur-3xl pointer-events-none">
+          </div>
+          <div class="absolute -bottom-20 -left-20 w-72 h-72 rounded-full bg-hero-yellow-500 opacity-10 blur-3xl pointer-events-none">
+          </div>
+          <div class="relative">
+            <.kh_pill tone={:accent} class="mb-4">{gettext("Ongoing Quality")}</.kh_pill>
+            <%!-- typography-lint-ignore: accountability slab title in display font on dark surface --%>
+            <h2 class="font-display font-bold tracking-tight text-3xl lg:text-4xl text-hero-yellow-500">
+              {@title}
+            </h2>
+            <p class="text-white/70 mt-5 text-lg leading-relaxed">{@lede}</p>
+
+            <ul class="mt-8 space-y-4">
+              <li
+                :for={{item, idx} <- Enum.with_index(@items, 1)}
+                class="flex items-start gap-4"
+              >
+                <%!-- typography-lint-ignore: numbered list badge uses display font for numeric callout --%>
+                <div class="w-7 h-7 rounded-full bg-hero-yellow-500 text-black flex-shrink-0 flex items-center justify-center font-display font-extrabold text-sm mt-0.5">
+                  {idx}
+                </div>
+                <span class="text-lg leading-snug">{item}</span>
+              </li>
+            </ul>
+
+            <p
+              :if={@warning}
+              class="mt-10 text-white/60 italic border-l-4 border-hero-yellow-500 pl-5 leading-relaxed"
+            >
+              {@warning}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
     """
   end
 end

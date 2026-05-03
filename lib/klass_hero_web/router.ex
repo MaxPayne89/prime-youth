@@ -69,6 +69,7 @@ defmodule KlassHeroWeb.Router do
       live "/", HomeLive, :index
       live "/programs", ProgramsLive, :index
       live "/programs/:id", ProgramDetailLive, :show
+      live "/trust-safety", TrustSafetyLive, :index
     end
 
     # Public routes - optional authentication, legacy app-shell layout.
@@ -84,7 +85,6 @@ defmodule KlassHeroWeb.Router do
       live "/contact", ContactLive, :index
       live "/privacy", PrivacyPolicyLive, :index
       live "/terms", TermsOfServiceLive, :index
-      live "/trust-safety", TrustSafetyLive, :index
     end
 
     # Parent app surface — sidebar layout, parent-role required.

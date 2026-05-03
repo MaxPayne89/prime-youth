@@ -1,16 +1,14 @@
 defmodule KlassHeroWeb.TrustSafetyLive do
   use KlassHeroWeb, :live_view
 
-  alias KlassHeroWeb.{Theme, UIComponents}
-
-  @step_icon_gradient "bg-hero-blue-400"
+  import KlassHeroWeb.MarketingComponents
 
   @impl true
   def mount(_params, _session, socket) do
     {:ok,
      assign(socket,
        page_title: gettext("Trust & Safety"),
-       step_icon_gradient: @step_icon_gradient
+       active_nav: :trust
      )}
   end
 
@@ -83,160 +81,91 @@ defmodule KlassHeroWeb.TrustSafetyLive do
     ]
   end
 
+  defp vetted_stats do
+    [
+      {"100%", gettext("Vetted")},
+      {"6-step", gettext("Process")},
+      # Per product call: third stat reads just `Reporting` as the big yellow
+      # display value, no separate label — avoids implying 24/7 staffed support
+      # while keeping the three-column visual balance.
+      {gettext("Reporting"), nil}
+    ]
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={["min-h-screen pb-20 md:pb-6", Theme.bg(:muted)]}>
-      <%!-- Hero Section --%>
-      <div class="bg-hero-pink-50 py-16 lg:py-24">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div class="flex justify-center mb-6">
-            <UIComponents.gradient_icon gradient_class="bg-hero-blue-400" size="lg" shape="circle">
-              <.icon name="hero-shield-check" class="w-8 h-8 text-white" />
-            </UIComponents.gradient_icon>
-          </div>
-          <h1 class={[Theme.typography(:hero), "text-hero-black mb-6"]}>
-            {gettext("TRUST & SAFETY")}
-          </h1>
-          <p class="text-xl text-hero-grey-600 max-w-3xl mx-auto">
-            {gettext(
-              "At Klass Hero, trust isn't a feature — it's the foundation of everything we do. Our platform is built to connect families, schools, and organizations with qualified, vetted, and safety-verified educators and activity providers."
-            )}
-          </p>
-        </div>
-      </div>
+    <.mk_page_hero id="mk-trust-hero" eyebrow_icon="hero-shield-check" eyebrow_gradient={:cool}>
+      <:title>
+        {gettext("Trust &")}
+        <span class="bg-hero-yellow-500 px-2 rounded-lg">{gettext("Safety")}</span>
+      </:title>
+      <:lede>
+        {gettext(
+          "At Klass Hero, trust isn't a feature — it's the foundation of everything we do. We connect families, schools, and organizations with qualified, vetted, and safety-verified educators."
+        )}
+      </:lede>
+    </.mk_page_hero>
 
-      <%!-- Commitment to Child Safety Section --%>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
-        <div class="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
-          <div class="space-y-6">
-            <h2 class={[Theme.typography(:page_title), "text-hero-black"]}>
-              {gettext("Our Commitment to Child Safety")}
-            </h2>
-            <p class="text-lg text-hero-grey-700 leading-relaxed">
-              {gettext(
-                "We believe that children thrive best in environments that are safe, respectful, and professionally led. That's why Klass Hero applies a multi-layered safety and verification framework before any provider can offer sessions on our platform."
-              )}
-            </p>
-            <div class="grid grid-cols-1 gap-4">
-              <div
-                :for={item <- commitment_items()}
-                class="flex items-center gap-3 bg-white p-4 rounded-xl border-2 border-hero-yellow-400"
-              >
-                <.icon name="hero-check-circle" class="w-5 h-5 text-hero-blue-600 flex-shrink-0" />
-                <span class="font-bold text-hero-black">{item}</span>
-              </div>
-            </div>
-          </div>
-          <div class="bg-hero-blue-600 rounded-2xl p-8 text-white relative overflow-hidden">
-            <h3 class={[Theme.typography(:section_title), "text-white mb-4"]}>
-              {gettext("Vetted with Care")}
-            </h3>
-            <p class="text-white/90 mb-6 text-lg">
-              {gettext(
-                "From academic tutoring to sports, arts, and enrichment programs, every provider on Klass Hero is carefully reviewed to ensure they meet our high standards for child safety, professionalism, and educational quality."
-              )}
-            </p>
-            <div class="h-1 w-20 bg-hero-yellow-400 mb-6"></div>
-            <.icon
-              name="hero-shield-check"
-              class="w-24 h-24 text-white/20 absolute bottom-0 right-0 -mb-6 -mr-6"
-            />
-          </div>
-        </div>
-      </div>
+    <.mk_trust_commitment
+      title={gettext("Our commitment to child safety")}
+      lede={
+        gettext(
+          "We believe children thrive best in environments that are safe, respectful, and professionally led. That's why Klass Hero applies a multi-layered safety and verification framework before any provider can offer sessions on our platform."
+        )
+      }
+      commitments={commitment_items()}
+      vetted_title={gettext("Every Hero, carefully reviewed.")}
+      vetted_lede={
+        gettext(
+          "From academic tutoring to sports, arts, and enrichment programs, every provider on Klass Hero is carefully reviewed to ensure they meet our high standards for child safety, professionalism, and educational quality."
+        )
+      }
+      stats={vetted_stats()}
+    />
 
-      <%!-- 6-Step Verification Process --%>
-      <div class="bg-hero-pink-50 py-12 md:py-16 lg:py-24">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="text-center mb-12">
-            <h2 class={[Theme.typography(:page_title), "text-hero-black mb-4"]}>
-              {gettext("How We Verify Providers")}
-            </h2>
-            <p class="text-lg text-hero-grey-700 max-w-3xl mx-auto">
-              {gettext(
-                "Every educator and enrichment professional on Klass Hero completes a 6-step verification process before being approved."
-              )}
-            </p>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-            <div :for={step <- verification_steps()} class="bg-white rounded-xl p-6 text-center">
-              <div class="mb-4 flex justify-center">
-                <UIComponents.gradient_icon
-                  gradient_class={@step_icon_gradient}
-                  size="md"
-                  shape="circle"
-                >
-                  <.icon name={step.icon} class="w-6 h-6 text-white" />
-                </UIComponents.gradient_icon>
-              </div>
-              <h3 class="font-semibold text-lg text-hero-black mb-2">{step.title}</h3>
-              <p class="text-hero-grey-700">{step.description}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+    <.mk_trust_verification
+      title={gettext("Six checks. No shortcuts.")}
+      subtitle={
+        gettext(
+          "Every educator and enrichment professional completes a 6-step verification process before being approved."
+        )
+      }
+      steps={verification_steps()}
+    />
 
-      <%!-- Ongoing Quality & Accountability --%>
-      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16 lg:py-24">
-        <div class="bg-gray-900 rounded-2xl p-8 md:p-10 text-white">
-          <h2 class={[Theme.typography(:section_title), "mb-8 text-hero-yellow-400"]}>
-            {gettext("Ongoing Quality & Accountability")}
-          </h2>
-          <p class="text-gray-300 mb-8 text-lg">
-            {gettext(
-              "Trust doesn't stop at onboarding. Klass Hero continuously works to maintain a safe and high-quality ecosystem by:"
-            )}
-          </p>
-          <ul class="space-y-4 mb-10">
-            <li
-              :for={{item, index} <- Enum.with_index(accountability_items(), 1)}
-              class="flex items-start gap-3"
-            >
-              <div class="w-6 h-6 rounded-full bg-hero-yellow-400 flex-shrink-0 flex items-center justify-center text-hero-black font-bold text-xs mt-1">
-                {index}
-              </div>
-              <span class="text-lg">{item}</span>
-            </li>
-          </ul>
-          <p class="text-gray-400 italic border-l-4 border-hero-yellow-400 pl-4">
-            {gettext(
-              "Providers who fail to uphold our expectations may be suspended or removed from the platform."
-            )}
-          </p>
-        </div>
-      </div>
+    <.mk_trust_accountability
+      title={gettext("Quality & accountability — always on.")}
+      lede={
+        gettext(
+          "Trust doesn't stop at onboarding. Klass Hero continuously works to maintain a safe and high-quality ecosystem by:"
+        )
+      }
+      items={accountability_items()}
+      warning={
+        gettext(
+          "Providers who fail to uphold our expectations may be suspended or removed from the platform."
+        )
+      }
+    />
 
-      <%!-- CTA Section --%>
-      <div class="bg-hero-pink-50 py-16 text-center">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 class={[Theme.typography(:page_title), "text-hero-black mb-4"]}>
-            {gettext("Have Questions?")}
-          </h2>
-          <p class="text-lg text-hero-grey-700 mb-8">
-            {gettext(
-              "If you'd like to learn more about our Trust & Safety standards or provider verification process, we're happy to help."
-            )}
-          </p>
-          <.link
-            navigate={~p"/contact"}
-            class="inline-block bg-hero-blue-600 hover:bg-hero-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105"
-          >
-            {gettext("Contact Us")}
-          </.link>
-          <div class="mt-12">
-            <div class="h-px w-32 bg-hero-grey-300 mx-auto mb-8"></div>
-            <%!-- typography-lint-ignore: tracking-widest is intentional for this tagline --%>
-            <p class="text-2xl font-display text-hero-black tracking-widest">
-              {gettext("Trust is earned. Safety is non-negotiable.")}
-            </p>
-            <p class="text-xl text-hero-blue-600 font-bold mt-2">
-              {gettext("And at Klass Hero, both come standard.")}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <.mk_cta_section
+      id="mk-trust-cta"
+      title={gettext("Have questions?")}
+      lede={
+        gettext(
+          "If you'd like to learn more about our Trust & Safety standards or provider verification process, we're happy to help."
+        )
+      }
+      tagline={gettext("Trust is earned. Safety is non-negotiable.")}
+      sub_tagline={gettext("And at Klass Hero, both come standard.")}
+    >
+      <:cta>
+        <.link navigate={~p"/contact"}>
+          <.kh_button variant={:primary} size={:lg}>{gettext("Contact Us →")}</.kh_button>
+        </.link>
+      </:cta>
+    </.mk_cta_section>
     """
   end
 end
