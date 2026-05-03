@@ -336,8 +336,7 @@ defmodule KlassHeroWeb.DashboardLive do
         />
       </section>
 
-      <%!-- 4-up KPI grid. Spend hidden (FLAGS ❌); Messages disabled until
-            an unread badge per-conversation lands on the dashboard. --%>
+      <%!-- 4-up KPI grid. Spend hidden (FLAGS ❌). --%>
       <section id="dashboard-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <.pa_stat_card
           title={gettext("Active programs")}
@@ -356,7 +355,6 @@ defmodule KlassHeroWeb.DashboardLive do
           value={Integer.to_string(@unread_count)}
           icon="hero-chat-bubble-left-right"
           tone={:comic}
-          disabled={@unread_count == 0}
         />
       </section>
 

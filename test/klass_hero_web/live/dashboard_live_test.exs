@@ -26,15 +26,23 @@ defmodule KlassHeroWeb.DashboardLiveTest do
       assert html =~ "/users/settings"
     end
 
-    test "renders the four-up KPI grid with backed and disabled stat cards", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/dashboard")
+    test "renders the KPI grid with live counts (no Coming-soon placeholder on Messages)", %{
+      conn: conn
+    } do
+      {:ok, view, _html} = live(conn, ~p"/dashboard")
 
+      assert html = render(view)
       assert html =~ "Active programs"
       assert html =~ "Upcoming this week"
       assert html =~ "Unread messages"
-      # Disabled-tone "Coming soon" pill renders for Messages when count is 0
-      # (the seed user has no conversations).
-      assert html =~ "Coming soon"
+
+      # Messages card is live: numeric value renders, no Coming-soon pill.
+      stats_html =
+        view
+        |> element("#dashboard-stats")
+        |> render()
+
+      refute stats_html =~ "Coming soon"
     end
 
     test "renders weekly goal card with the bundle's title", %{conn: conn} do
