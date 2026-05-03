@@ -26,6 +26,7 @@ defmodule KlassHeroWeb.MarketingComponents do
   import KlassHeroWeb.UIComponents,
     only: [kh_logo: 1, kh_button: 1, kh_card: 1, kh_pill: 1, kh_icon_chip: 1, icon: 1]
 
+  alias Phoenix.HTML.FormField
   alias Phoenix.LiveView.JS
 
   @nav_items [
@@ -1528,6 +1529,276 @@ defmodule KlassHeroWeb.MarketingComponents do
         </div>
       </div>
     </section>
+    """
+  end
+
+  ## ---------------------------------------------------------------------------
+  ## About page sections
+  ## ---------------------------------------------------------------------------
+
+  @doc """
+  "Built for Berlin" 2-col block. Left: pill + headline + paragraphs + pull
+  quote. Right: 3 yellow-bordered value cards. Maps to MkAbout's first
+  content section (Sections.jsx:475).
+  """
+  attr :pill, :string, required: true
+  attr :title, :string, required: true
+  attr :paragraphs, :list, required: true, doc: "list of plain-text paragraphs"
+  attr :quote, :string, default: nil, doc: "yellow-bordered pull-quote at the bottom of the column"
+  attr :values, :list, required: true, doc: "list of %{icon:, title:, description:}"
+
+  def mk_about_values(assigns) do
+    ~H"""
+    <section id="mk-about-values" class="py-16 lg:py-24 bg-white">
+      <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-start">
+        <div class="space-y-6">
+          <.kh_pill tone={:primary}>{@pill}</.kh_pill>
+          <%!-- typography-lint-ignore: marketing section title intentionally larger than Theme.typography(:page_title) --%>
+          <h2 class="font-display font-bold tracking-tight text-4xl lg:text-5xl text-hero-black">
+            {@title}
+          </h2>
+          <p :for={paragraph <- @paragraphs} class="text-lg text-[var(--fg-muted)] leading-relaxed">
+            {paragraph}
+          </p>
+          <p
+            :if={@quote}
+            class="text-lg text-hero-black leading-relaxed font-semibold border-l-4 border-hero-yellow-500 pl-5"
+          >
+            {@quote}
+          </p>
+        </div>
+
+        <div class="space-y-4">
+          <.kh_card
+            :for={value <- @values}
+            class="p-6 border-2 border-hero-yellow-400 hover:shadow-lg"
+          >
+            <div class="flex items-start gap-5">
+              <.kh_icon_chip icon={value.icon} gradient={:primary} />
+              <div>
+                <h3 class="font-bold text-lg text-hero-black">{value.title}</h3>
+                <p class="text-[var(--fg-muted)] mt-1">{value.description}</p>
+              </div>
+            </div>
+          </.kh_card>
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  @doc """
+  6-step vetting grid with watermark digits. Maps to MkAbout's vetting
+  block (Sections.jsx:507). Distinct from `mk_trust_verification` —
+  About uses giant cream-coloured digits bleeding into the corner; Trust
+  & Safety uses small numbered yellow circles next to the icon chip.
+  """
+  attr :pill, :string, required: true
+  attr :title, :string, required: true
+  attr :subtitle, :string, default: nil
+  attr :steps, :list, required: true, doc: "list of %{icon:, title:, description:}"
+
+  def mk_about_vetting(assigns) do
+    ~H"""
+    <section id="mk-about-vetting" class="py-16 lg:py-24 bg-hero-cream-100">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center max-w-2xl mx-auto mb-14">
+          <.kh_pill tone={:accent} class="mb-3">{@pill}</.kh_pill>
+          <%!-- typography-lint-ignore: marketing section title intentionally larger than Theme.typography(:page_title) --%>
+          <h2 class="font-display font-bold tracking-tight text-4xl lg:text-5xl text-hero-black">
+            {@title}
+          </h2>
+          <p :if={@subtitle} class="text-[var(--fg-muted)] text-lg mt-3">{@subtitle}</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <.kh_card
+            :for={{step, idx} <- Enum.with_index(@steps, 1)}
+            class="p-7 hover:shadow-lg hover:-translate-y-1 relative overflow-hidden"
+          >
+            <%!-- typography-lint-ignore: vetting watermark digit is a display-font numeric callout --%>
+            <div class="absolute -top-2 -right-2 font-display font-extrabold text-[120px] leading-none text-hero-cream-100 select-none pointer-events-none">
+              {idx}
+            </div>
+            <div class="relative">
+              <.kh_icon_chip icon={step.icon} gradient={:primary} />
+              <h3 class="mt-5 font-bold text-xl text-hero-black">{step.title}</h3>
+              <p class="mt-2 text-[var(--fg-muted)] leading-relaxed">{step.description}</p>
+            </div>
+          </.kh_card>
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  @doc """
+  "Klass Hero Story" narrative + founders grid. Maps to MkAbout's story
+  block (Sections.jsx:529). The narrative goes in the `:body` slot so
+  callers can render `<strong>` highlights inline. Founders attr feeds
+  the 4-up grid below.
+  """
+  attr :pill, :string, default: nil
+  attr :title, :string, required: true
+  attr :founders, :list, required: true, doc: "list of %{initials:, name:, role:, bio:}"
+  slot :body, required: true
+
+  def mk_about_story(assigns) do
+    ~H"""
+    <section id="mk-about-story" class="py-16 lg:py-24 bg-white">
+      <div class="max-w-5xl mx-auto px-6">
+        <div class="text-center mb-12">
+          <.kh_pill :if={@pill} tone={:outline} class="mb-3">{@pill}</.kh_pill>
+          <%!-- typography-lint-ignore: marketing section title intentionally larger than Theme.typography(:page_title) --%>
+          <h2 class="font-display font-bold tracking-tight text-4xl lg:text-5xl text-hero-black">
+            {@title}
+          </h2>
+        </div>
+
+        <div class="prose prose-lg max-w-3xl mx-auto space-y-5 text-[var(--fg-muted)] leading-relaxed">
+          {render_slot(@body)}
+        </div>
+
+        <div class="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <.mk_founder_card :for={founder <- @founders} founder={founder} />
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  @doc """
+  Single founder card: blue-gradient initials avatar, name, role label
+  (uppercase tracking-wider blue), and bio. Composed by `mk_about_story`
+  but exposed for direct use too.
+  """
+  attr :founder, :map, required: true
+
+  def mk_founder_card(assigns) do
+    ~H"""
+    <.kh_card class="p-5 text-center hover:shadow-lg hover:-translate-y-1">
+      <%!-- typography-lint-ignore: founder avatar initials in display font --%>
+      <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-hero-blue-400 to-hero-blue-600 text-white font-display font-extrabold text-xl flex items-center justify-center">
+        {@founder.initials}
+      </div>
+      <h4 class="mt-3 font-bold text-hero-black">{@founder.name}</h4>
+      <div class="text-xs text-[var(--brand-primary-dark)] font-semibold uppercase tracking-wider mt-0.5">
+        {@founder.role}
+      </div>
+      <p class="mt-3 text-sm text-[var(--fg-muted)] leading-relaxed">{@founder.bio}</p>
+    </.kh_card>
+    """
+  end
+
+  ## ---------------------------------------------------------------------------
+  ## Contact page primitives (form input + method row)
+  ## ---------------------------------------------------------------------------
+
+  @doc """
+  Marketing-styled labeled input. Mirrors the handoff's `kh-input` look:
+  rounded-xl, 1.5px border, focus ring at brand-primary. Takes the same
+  `:field` attr as `<.input>` from CoreComponents so the existing form +
+  changeset flow continues to work.
+
+  Supports `:text`, `:email`, `:select`, `:textarea` types. Renders
+  label with required-asterisk when `required` is set. Inline error
+  feedback below the input.
+  """
+  attr :field, FormField, required: true
+  attr :type, :string, default: "text", values: ~w(text email select textarea)
+  attr :label, :string, required: true
+  attr :placeholder, :string, default: nil
+  attr :required, :boolean, default: false
+  attr :rows, :integer, default: 5
+  attr :options, :list, default: []
+  attr :prompt, :string, default: nil
+
+  def mk_input(assigns) do
+    ~H"""
+    <label class="block">
+      <span class="text-sm font-semibold text-hero-black">
+        {@label}<span :if={@required} class="text-[var(--brand-primary-dark)] ml-0.5">*</span>
+      </span>
+      <div class="mt-1.5">
+        <%= case @type do %>
+          <% "select" -> %>
+            <select
+              id={@field.id}
+              name={@field.name}
+              class={[mk_input_classes(), "appearance-none bg-white"]}
+            >
+              <option :if={@prompt} value="" disabled selected={@field.value in [nil, ""]}>
+                {@prompt}
+              </option>
+              <option
+                :for={{label, value} <- @options}
+                value={value}
+                selected={to_string(@field.value) == to_string(value)}
+              >
+                {label}
+              </option>
+            </select>
+          <% "textarea" -> %>
+            <textarea
+              id={@field.id}
+              name={@field.name}
+              rows={@rows}
+              placeholder={@placeholder}
+              class={[mk_input_classes(), "resize-y"]}
+            >{Phoenix.HTML.Form.normalize_value("textarea", @field.value)}</textarea>
+          <% _ -> %>
+            <input
+              id={@field.id}
+              type={@type}
+              name={@field.name}
+              value={Phoenix.HTML.Form.normalize_value(@type, @field.value)}
+              placeholder={@placeholder}
+              class={mk_input_classes()}
+            />
+        <% end %>
+      </div>
+      <p
+        :for={msg <- mk_input_errors(@field)}
+        class="mt-1.5 text-sm text-[var(--error)] flex items-center gap-1"
+      >
+        <.icon name="hero-exclamation-circle-mini" class="w-4 h-4" />
+        {msg}
+      </p>
+    </label>
+    """
+  end
+
+  defp mk_input_classes do
+    "w-full px-3.5 py-3 rounded-xl border-[1.5px] border-[var(--border-light)] bg-white text-[15px] text-hero-black placeholder:text-[var(--fg-muted)] transition-colors focus:outline-none focus:border-[var(--brand-primary)] focus:ring-4 focus:ring-[rgba(0,212,255,.12)]"
+  end
+
+  defp mk_input_errors(%FormField{errors: errors} = field) do
+    if Phoenix.Component.used_input?(field), do: Enum.map(errors, &translate_error/1), else: []
+  end
+
+  defp translate_error({msg, opts}) do
+    Gettext.dngettext(KlassHeroWeb.Gettext, "errors", msg, msg, opts[:count] || 1, opts)
+  end
+
+  @doc """
+  Single contact-method row: yellow-bordered card with `:sm` icon chip,
+  title, value, and optional note. Used 3× in ContactLive.
+  """
+  attr :icon, :string, required: true
+  attr :title, :string, required: true
+  attr :value, :string, required: true
+  attr :note, :string, default: nil
+
+  def mk_method_row(assigns) do
+    ~H"""
+    <div class="flex items-start gap-4 p-4 rounded-xl border-2 border-hero-yellow-400 bg-white">
+      <.kh_icon_chip icon={@icon} gradient={:primary} size={:sm} />
+      <div class="min-w-0">
+        <div class="font-semibold text-hero-black">{@title}</div>
+        <div class="text-sm text-[var(--fg-muted)] truncate">{@value}</div>
+        <div :if={@note} class="text-xs text-[var(--fg-muted)] opacity-80 mt-0.5">{@note}</div>
+      </div>
+    </div>
     """
   end
 end

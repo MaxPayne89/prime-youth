@@ -70,6 +70,8 @@ defmodule KlassHeroWeb.Router do
       live "/programs", ProgramsLive, :index
       live "/programs/:id", ProgramDetailLive, :show
       live "/trust-safety", TrustSafetyLive, :index
+      live "/about", AboutLive, :index
+      live "/contact", ContactLive, :index
     end
 
     # Public routes - optional authentication, legacy app-shell layout.
@@ -80,9 +82,7 @@ defmodule KlassHeroWeb.Router do
         {KlassHeroWeb.UserAuth, :mount_current_scope},
         {RestoreLocale, :restore_locale}
       ] do
-      live "/about", AboutLive, :index
       live "/for-providers", ForProvidersLive, :index
-      live "/contact", ContactLive, :index
       live "/privacy", PrivacyPolicyLive, :index
       live "/terms", TermsOfServiceLive, :index
     end

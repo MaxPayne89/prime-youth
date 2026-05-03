@@ -4,11 +4,22 @@ defmodule KlassHeroWeb.ContactLiveTest do
   import Phoenix.LiveViewTest
 
   describe "ContactLive" do
-    test "renders contact page successfully", %{conn: conn} do
+    test "renders peach hero with yellow help highlight + form", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
-      assert has_element?(view, "h1", "Contact Us")
+      assert has_element?(view, "#mk-contact-hero")
+      assert has_element?(view, "#mk-contact-hero h1", "We're here to")
+      assert has_element?(view, "#mk-contact-hero h1 span.bg-hero-yellow-500", "help")
       assert has_element?(view, "#contact-form")
+    end
+
+    test "renders under :marketing chrome", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/contact")
+
+      assert has_element?(view, "header.sticky nav a", "Contact")
+      assert html =~ "Impressum"
+      assert html =~ "Datenschutz"
+      assert html =~ "AGB"
     end
 
     test "displays contact information from config", %{conn: conn} do

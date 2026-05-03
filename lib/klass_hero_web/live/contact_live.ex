@@ -1,8 +1,9 @@
 defmodule KlassHeroWeb.ContactLive do
   use KlassHeroWeb, :live_view
 
+  import KlassHeroWeb.MarketingComponents
+
   alias KlassHeroWeb.Schemas.ContactForm
-  alias KlassHeroWeb.{Theme, UIComponents}
 
   require Logger
 
@@ -13,7 +14,7 @@ defmodule KlassHeroWeb.ContactLive do
     socket =
       socket
       |> assign(page_title: gettext("Contact Us"))
-      |> assign(current_user: nil)
+      |> assign(active_nav: :contact)
       |> assign(form: to_form(changeset, as: :contact))
       |> assign(submission_status: nil)
 
@@ -60,7 +61,6 @@ defmodule KlassHeroWeb.ContactLive do
     [
       email &&
         %{
-          type: :email,
           icon: "hero-envelope",
           title: gettext("Email"),
           value: email,
@@ -68,7 +68,6 @@ defmodule KlassHeroWeb.ContactLive do
         },
       phone &&
         %{
-          type: :phone,
           icon: "hero-phone",
           title: gettext("Phone"),
           value: phone,
@@ -76,22 +75,14 @@ defmodule KlassHeroWeb.ContactLive do
         },
       address &&
         %{
-          type: :address,
           icon: "hero-map-pin",
           title: gettext("Address"),
-          value: address
+          value: address,
+          note: nil
         }
     ]
     |> Enum.reject(&is_nil/1)
   end
-
-  @contact_colors %{
-    email: %{border: "border-hero-yellow-400", gradient: "bg-hero-blue-400"},
-    phone: %{border: "border-hero-yellow-400", gradient: "bg-hero-blue-400"},
-    address: %{border: "border-hero-yellow-400", gradient: "bg-hero-blue-400"}
-  }
-
-  defp contact_color(type, key), do: @contact_colors[type][key]
 
   defp office_hours do
     [
@@ -101,168 +92,167 @@ defmodule KlassHeroWeb.ContactLive do
     ]
   end
 
+  defp subject_options do
+    [
+      {gettext("General Inquiry"), "general"},
+      {gettext("Program Question"), "program"},
+      {gettext("Booking Support"), "booking"},
+      {gettext("Instructor Application"), "instructor"},
+      {gettext("Technical Issue"), "technical"},
+      {gettext("Other"), "other"}
+    ]
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="min-h-screen pb-20 md:pb-6">
-      <%!-- Hero Section --%>
-      <div class="bg-hero-pink-50 py-16 lg:py-24">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 class={[Theme.typography(:hero), "text-hero-black mb-6"]}>
-            {gettext("Contact Us")}
-          </h1>
-          <p class="text-xl text-hero-grey-600 max-w-3xl mx-auto">
-            {gettext("We're here to help with any questions you may have")}
+    <.mk_page_hero id="mk-contact-hero" pill={gettext("Contact Us")}>
+      <:title>
+        {gettext("We're here to")}
+        <span class="bg-hero-yellow-500 px-2 rounded-lg">{gettext("help")}</span>
+      </:title>
+      <:lede>
+        {gettext(
+          "Questions about programs, bookings, or becoming a Hero — we read every message and respond fast."
+        )}
+      </:lede>
+    </.mk_page_hero>
+
+    <section id="mk-contact-body" class="py-12 lg:py-16 bg-white">
+      <div class="max-w-6xl mx-auto px-6 grid md:grid-cols-[1.1fr_0.9fr] gap-8 items-start">
+        <.kh_card class="p-7 lg:p-9">
+          <%!-- typography-lint-ignore: form-card title in display font --%>
+          <h2 class="font-display font-bold tracking-tight text-3xl text-hero-black">
+            {gettext("Send us a message")}
+          </h2>
+          <p class="text-[var(--fg-muted)] mt-1.5">
+            {gettext("Tell us a bit about what you need — we'll route you to the right person.")}
           </p>
-        </div>
-      </div>
 
-      <%!-- Main Content - White Background --%>
-      <div class="bg-white py-12 md:py-16 lg:py-24">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="grid md:grid-cols-2 gap-8">
+          <div
+            :if={@submission_status == :success}
+            class="mt-6 p-4 rounded-xl bg-hero-blue-50 border border-hero-blue-200 flex items-start gap-3"
+          >
+            <.icon name="hero-check-circle" class="w-5 h-5 text-hero-blue-600 mt-0.5" />
             <div>
-              <.card>
-                <:header>
-                  <h2 class={[Theme.typography(:section_title), "text-hero-black"]}>
-                    {gettext("Send us a Message")}
-                  </h2>
-                </:header>
-                <:body>
-                  <.form
-                    for={@form}
-                    id="contact-form"
-                    phx-change="validate"
-                    phx-submit="submit"
-                    class="space-y-4"
-                  >
-                    <.input field={@form[:name]} type="text" label={gettext("Name")} required />
-
-                    <.input field={@form[:email]} type="email" label={gettext("Email")} required />
-
-                    <.input
-                      field={@form[:subject]}
-                      type="select"
-                      label={gettext("Subject")}
-                      prompt={gettext("Select a topic...")}
-                      options={[
-                        {gettext("General Inquiry"), "general"},
-                        {gettext("Program Question"), "program"},
-                        {gettext("Booking Support"), "booking"},
-                        {gettext("Instructor Application"), "instructor"},
-                        {gettext("Technical Issue"), "technical"},
-                        {gettext("Other"), "other"}
-                      ]}
-                      required
-                    />
-
-                    <.input
-                      field={@form[:message]}
-                      type="textarea"
-                      label={gettext("Message")}
-                      rows="5"
-                      required
-                    />
-
-                    <div
-                      :if={@submission_status == :success}
-                      class={["p-4 bg-hero-blue-50 border border-hero-blue-200", Theme.rounded(:md)]}
-                    >
-                      <div class="flex items-center gap-2 text-hero-blue-800">
-                        <.icon name="hero-check-circle" class="w-5 h-5" />
-                        <span class="font-medium">{gettext("Message sent successfully!")}</span>
-                      </div>
-                      <p class="text-sm text-green-700 mt-1">
-                        {gettext("We'll get back to you within 24 hours.")}
-                      </p>
-                    </div>
-
-                    <button
-                      type="submit"
-                      class="w-full bg-hero-blue-600 hover:bg-hero-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-all duration-200 transform hover:scale-105"
-                    >
-                      {gettext("Send Message")}
-                    </button>
-                  </.form>
-                </:body>
-              </.card>
-            </div>
-
-            <div class="space-y-6">
-              <.card>
-                <:header>
-                  <h2 class="text-xl font-bold text-hero-black">{gettext("Get in Touch")}</h2>
-                </:header>
-                <:body>
-                  <div class="space-y-4">
-                    <div
-                      :for={method <- contact_methods()}
-                      class={[
-                        "border-2 rounded-lg p-6 bg-white flex items-start gap-4",
-                        contact_color(method.type, :border)
-                      ]}
-                    >
-                      <div class="flex-shrink-0">
-                        <UIComponents.gradient_icon
-                          gradient_class={contact_color(method.type, :gradient)}
-                          size="md"
-                          shape="circle"
-                        >
-                          <.icon name={method.icon} class="w-6 h-6 text-white" />
-                        </UIComponents.gradient_icon>
-                      </div>
-                      <div class="flex-1">
-                        <h3 class="font-semibold text-hero-black">{method.title}</h3>
-                        <p class="text-sm text-hero-grey-600">{method.value}</p>
-                        <p :if={method.note} class="text-xs text-hero-grey-500 mt-1">{method.note}</p>
-                      </div>
-                    </div>
-                  </div>
-                </:body>
-              </.card>
-
-              <.card>
-                <:header>
-                  <h2 class="text-xl font-bold text-hero-black">{gettext("Office Hours")}</h2>
-                </:header>
-                <:body>
-                  <div class="space-y-2 text-sm">
-                    <div :for={hours <- office_hours()} class="flex justify-between">
-                      <span class="font-medium text-hero-black">{hours.days}</span>
-                      <span class="text-hero-grey-600">{hours.hours}</span>
-                    </div>
-                  </div>
-                </:body>
-              </.card>
-
-              <.card>
-                <:body>
-                  <div class="text-center">
-                    <UIComponents.gradient_icon
-                      gradient_class="bg-hero-blue-500"
-                      size="lg"
-                      shape="circle"
-                      class="mx-auto mb-4"
-                    >
-                      <.icon name="hero-question-mark-circle" class="w-8 h-8 text-white" />
-                    </UIComponents.gradient_icon>
-                    <h3 class="font-semibold text-hero-black mb-2">
-                      {gettext("Looking for Quick Answers?")}
-                    </h3>
-                    <p class="text-sm text-hero-grey-600 mb-4">
-                      {gettext("Check out our FAQ section for answers to common questions.")}
-                    </p>
-                    <button class="text-hero-blue-500 font-medium text-sm hover:underline">
-                      {gettext("Visit FAQ")} →
-                    </button>
-                  </div>
-                </:body>
-              </.card>
+              <div class="font-semibold text-hero-blue-700">
+                {gettext("Message sent successfully!")}
+              </div>
+              <div class="text-sm text-[var(--fg-muted)] mt-0.5">
+                {gettext("We'll get back to you within 24 hours.")}
+              </div>
             </div>
           </div>
+
+          <.form
+            for={@form}
+            id="contact-form"
+            phx-change="validate"
+            phx-submit="submit"
+            class="mt-6 space-y-4"
+          >
+            <div class="grid sm:grid-cols-2 gap-4">
+              <.mk_input
+                field={@form[:name]}
+                label={gettext("Name")}
+                placeholder="Anna Schmidt"
+                required
+              />
+              <.mk_input
+                field={@form[:email]}
+                type="email"
+                label={gettext("Email")}
+                placeholder="anna@example.com"
+                required
+              />
+            </div>
+            <.mk_input
+              field={@form[:subject]}
+              type="select"
+              label={gettext("Subject")}
+              prompt={gettext("Select a topic…")}
+              options={subject_options()}
+              required
+            />
+            <.mk_input
+              field={@form[:message]}
+              type="textarea"
+              label={gettext("Message")}
+              placeholder={gettext("What's on your mind?")}
+              required
+            />
+
+            <div class="flex items-center justify-between flex-wrap gap-3 pt-2">
+              <div class="text-xs text-[var(--fg-muted)] flex items-center gap-1.5">
+                <.icon name="hero-shield-check" class="w-4 h-4" />
+                {gettext("We never share your details.")}
+              </div>
+              <.kh_button type="submit" variant={:primary} size={:lg}>
+                {gettext("Send Message →")}
+              </.kh_button>
+            </div>
+          </.form>
+        </.kh_card>
+
+        <div class="space-y-4">
+          <.kh_card class="p-6">
+            <h3 class="font-bold text-lg text-hero-black mb-4">{gettext("Get in touch")}</h3>
+            <div class="space-y-3">
+              <.mk_method_row
+                :for={method <- contact_methods()}
+                icon={method.icon}
+                title={method.title}
+                value={method.value}
+                note={method.note}
+              />
+            </div>
+          </.kh_card>
+
+          <.kh_card class="p-6">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-lg text-hero-black">{gettext("Office hours")}</h3>
+              <.kh_pill tone={:success}>{gettext("Open now")}</.kh_pill>
+            </div>
+            <div class="space-y-2.5">
+              <div
+                :for={hours <- office_hours()}
+                class="flex justify-between items-center text-sm py-1.5 border-b border-[var(--border-light)] last:border-0"
+              >
+                <span class="font-semibold text-hero-black">{hours.days}</span>
+                <span class="text-[var(--fg-muted)]">{hours.hours}</span>
+              </div>
+            </div>
+          </.kh_card>
+
+          <.kh_card class="p-6 bg-gradient-to-br from-hero-blue-50 to-white">
+            <div class="flex items-start gap-4">
+              <.kh_icon_chip icon="hero-sparkles" gradient={:comic} size={:md} />
+              <div>
+                <h3 class="font-bold text-hero-black">
+                  {gettext("Looking for quick answers?")}
+                </h3>
+                <p class="text-sm text-[var(--fg-muted)] mt-1">
+                  {gettext("Check our FAQ — most questions are answered there.")}
+                </p>
+                <%!-- FAQ section lives at /#mk-faq on the home page until a dedicated /faq route ships. --%>
+                <.link
+                  href={~p"/" <> "#mk-faq"}
+                  class={
+                    [
+                      "inline-block mt-3 text-[var(--brand-primary-dark)]",
+                      # typography-lint-ignore: marketing accent link uses display font for visual emphasis
+                      "font-display font-bold"
+                    ]
+                  }
+                >
+                  {gettext("Visit FAQ →")}
+                </.link>
+              </div>
+            </div>
+          </.kh_card>
         </div>
       </div>
-    </div>
+    </section>
     """
   end
 end

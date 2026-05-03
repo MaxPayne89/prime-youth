@@ -4,62 +4,40 @@ defmodule KlassHeroWeb.AboutLiveTest do
   import Phoenix.LiveViewTest
 
   describe "AboutLive" do
-    test "renders about page successfully", %{conn: conn} do
+    test "renders peach hero with yellow families highlight", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/about")
 
-      assert has_element?(view, "h1", "OUR MISSION")
+      assert has_element?(view, "#mk-about-hero")
+      assert has_element?(view, "#mk-about-hero h1", "To modernize how Berlin")
+      assert has_element?(view, "#mk-about-hero h1 span.bg-hero-yellow-500", "families")
     end
 
-    test "displays hero section with peach background", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
+    test "displays Built for Berlin Families section with three value cards", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/about")
 
-      assert html =~ "OUR MISSION"
-      assert html =~ "To modernize how families discover and engage"
-      assert html =~ "bg-hero-pink-50"
-    end
-
-    test "displays Built for Berlin Families section", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify section heading and content
+      assert has_element?(view, "#mk-about-values")
       assert html =~ "Built for Berlin Families"
       assert html =~ "unique needs of Berlin&#39;s diverse families"
-      assert html =~ "sports to arts, technology to languages"
-    end
 
-    test "displays three value cards in Berlin Families section", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify all three value cards are present
+      # All three value cards
       assert html =~ "Safety First"
-      assert html =~ "All instructors are background-checked and verified"
-
+      assert html =~ "All instructors are background-checked and verified."
       assert html =~ "Sustainability"
-      assert html =~ "Supporting local programs and eco-conscious practices"
-
+      assert html =~ "Supporting local programs and eco-conscious practices."
       assert html =~ "Community"
-      assert html =~ "Building connections between families and local instructors"
-    end
+      assert html =~ "Building connections between families and local instructors."
 
-    test "value cards have yellow borders and blue icons", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
+      # Yellow-bordered cards
       assert html =~ "border-hero-yellow-400"
-      assert html =~ "bg-hero-blue-400"
     end
 
-    test "displays 6-Step Vetting Process section with pink background", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
+    test "displays 6-step vetting grid with watermark digits", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/about")
 
-      # Verify section heading and background
-      assert html =~ "Our 6-Step Vetting Process"
-      assert html =~ "bg-hero-pink-50"
-      assert html =~ "rigorous screening to ensure the highest quality"
-    end
+      assert has_element?(view, "#mk-about-vetting")
+      assert html =~ "Every Hero. Every step."
 
-    test "displays all six vetting process steps", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
+      # All 6 step titles render
       assert html =~ "Identity &amp; Age Verification"
       assert html =~ "Experience Validation"
       assert html =~ "Extended Background Checks"
@@ -68,77 +46,52 @@ defmodule KlassHeroWeb.AboutLiveTest do
       assert html =~ "Community Standards Agreement"
     end
 
-    test "vetting steps have KH blue numbered circles", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
+    test "displays The Klass Hero Story section with 4 founder cards", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/about")
 
-      assert html =~ "bg-hero-blue-100"
-      assert html =~ "text-hero-blue-700"
-    end
+      assert has_element?(view, "#mk-about-story")
+      assert html =~ "Built by parents and educators"
 
-    test "displays The Klass Hero Story section", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      assert html =~ "The Klass Hero Story"
-      assert html =~ "Built by Parents and Educators for More Learning Opportunities"
-    end
-
-    test "displays founding story paragraphs", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Trigger: verify all four founding story paragraphs are present
-      # Why: each paragraph covers a different founder's contribution
-      assert html =~ "Shane spent over a decade as a coach"
-      assert html =~ "Max Pergl, a full-stack developer"
+      # Story paragraphs
+      assert html =~ "spent over a decade as a coach"
+      assert html =~ "Max Pergl"
       assert html =~ "Konstantin Pergl"
       assert html =~ "Laurie Camargo"
+
+      # Founder grid: 4 initials avatars
+      for initials <- ~w(SC MP KP LC) do
+        assert html =~ initials, "expected founder initials #{initials} to render"
+      end
     end
 
-    test "displays CTA section with beige background", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
+    test "displays CTA section with primary + ghost buttons", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/about")
 
-      # Verify CTA section content and styling
+      assert has_element?(view, "#mk-about-cta")
       assert html =~ "Ready to join the movement?"
-      assert html =~ "GET STARTED TODAY"
-      assert html =~ "bg-hero-pink-50"
+      assert html =~ "Get Started Today"
+      assert html =~ "Talk to us"
+      assert html =~ ~s(href="/users/register")
+      assert html =~ ~s(href="/contact")
     end
 
-    test "CTA button links to registration page", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
+    test "renders under :marketing chrome", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/about")
 
-      # Verify link points to registration page
-      assert html =~ "href=\"/users/register\""
-    end
+      # mk_header sticky + active highlight
+      assert has_element?(view, "header.sticky nav a", "About")
 
-    test "CTA button has cyan background", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify button styling
-      assert html =~ "bg-hero-blue-600"
-      assert html =~ "hover:bg-hero-blue-700"
+      # mk_footer legal links
+      assert html =~ "Impressum"
+      assert html =~ "Datenschutz"
+      assert html =~ "AGB"
     end
 
     test "page uses mobile-first responsive design", %{conn: conn} do
       {:ok, _view, html} = live(conn, ~p"/about")
 
-      # Verify responsive grid classes
       assert html =~ "md:grid-cols-2"
       assert html =~ "lg:grid-cols-3"
-    end
-
-    test "sections use consistent spacing", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify consistent padding and margins
-      assert html =~ "py-12"
-      assert html =~ "py-16"
-      assert html =~ "lg:py-24"
-    end
-
-    test "page title is set to About Us", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/about")
-
-      # Verify page title is set (in the socket assign)
-      assert html =~ "OUR MISSION"
     end
   end
 end
