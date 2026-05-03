@@ -9,6 +9,7 @@ defmodule KlassHeroWeb.ForProvidersLive do
     {:ok,
      assign(socket,
        page_title: gettext("For Providers"),
+       active_nav: :providers,
        provider_tiers: Entitlements.all_provider_tiers()
      )}
   end
@@ -16,13 +17,12 @@ defmodule KlassHeroWeb.ForProvidersLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="bg-white">
-      <.dark_hero />
-      <.benefits_section benefits={benefits()} />
-      <.how_it_works_section steps={steps()} />
-      <.pricing_section tiers={pricing_tiers(@provider_tiers)} />
-      <.faq_section faqs={faqs()} />
-    </div>
+    <.dark_hero />
+    <.benefits_section benefits={benefits()} />
+    <.how_it_works_section steps={steps()} />
+    <.pricing_section tiers={pricing_tiers(@provider_tiers)} />
+    <.faq_section faqs={faqs()} />
+    <.final_cta />
     """
   end
 
@@ -262,6 +262,65 @@ defmodule KlassHeroWeb.ForProvidersLive do
             answer={f.a}
             expanded={idx == 0}
           />
+        </div>
+
+        <p class="text-center text-sm text-hero-grey-600 mt-8">
+          {gettext("Still curious?")}
+          <.link
+            navigate={~p"/contact"}
+            class={
+              [
+                "text-[var(--brand-primary-dark)] hover:underline",
+                # typography-lint-ignore: marketing accent link uses display font for visual emphasis
+                "font-display font-bold"
+              ]
+            }
+          >
+            {gettext("Talk to our team →")}
+          </.link>
+        </p>
+      </div>
+    </section>
+    """
+  end
+
+  defp final_cta(assigns) do
+    ~H"""
+    <section
+      id="for-providers-final-cta"
+      class="py-20 lg:py-28 bg-black text-white relative overflow-hidden"
+    >
+      <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] rounded-full bg-hero-yellow-500 opacity-10 blur-3xl pointer-events-none">
+      </div>
+      <div class="relative max-w-3xl mx-auto px-6 text-center">
+        <%!-- typography-lint-ignore: final dark closer headline scales fluidly for impact --%>
+        <h2 class="text-white font-display font-extrabold tracking-tight text-4xl lg:text-6xl">
+          {gettext("Ready to be a Hero?")}
+        </h2>
+        <p class="mt-6 text-lg text-white/70 max-w-xl mx-auto leading-relaxed">
+          {gettext("Join Berlin's growing network of trusted educators. Free to list. No setup fees.")}
+        </p>
+        <div class="mt-8 flex gap-3 justify-center flex-wrap">
+          <.kh_button variant={:primary} size={:lg} navigate={~p"/users/register"}>
+            {gettext("Start teaching today")} →
+          </.kh_button>
+          <a href={~p"/contact"} class={ghost_dark_cta_classes()}>
+            {gettext("Talk to us")}
+          </a>
+        </div>
+        <div class="mt-10 flex items-center justify-center gap-6 text-sm text-white/50 flex-wrap">
+          <span class="flex items-center gap-1.5">
+            <.icon name="hero-check" class="w-4 h-4 text-hero-yellow-500" />
+            {gettext("Free to start")}
+          </span>
+          <span class="flex items-center gap-1.5">
+            <.icon name="hero-check" class="w-4 h-4 text-hero-yellow-500" />
+            {gettext("Cancel anytime")}
+          </span>
+          <span class="flex items-center gap-1.5">
+            <.icon name="hero-check" class="w-4 h-4 text-hero-yellow-500" />
+            {gettext("No credit card required")}
+          </span>
         </div>
       </div>
     </section>

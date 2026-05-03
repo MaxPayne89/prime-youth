@@ -122,5 +122,41 @@ defmodule KlassHeroWeb.ForProvidersLiveTest do
       assert has_element?(view, "#for-providers-faq-0-answer")
       assert has_element?(view, "#for-providers-faq-5-answer")
     end
+
+    test "renders under :marketing chrome", %{conn: conn} do
+      {:ok, view, html} = live(conn, ~p"/for-providers")
+
+      assert has_element?(view, "header.sticky")
+      assert has_element?(view, "header.sticky nav a", "For Providers")
+      assert html =~ "Impressum"
+    end
+
+    test "renders the dark final CTA below the FAQ", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/for-providers")
+
+      assert html =~ ~s|id="for-providers-final-cta"|
+
+      faq_pos = String.split(html, ~s|id="for-providers-faq"|) |> hd() |> String.length()
+
+      cta_pos = String.split(html, ~s|id="for-providers-final-cta"|) |> hd() |> String.length()
+
+      assert faq_pos < cta_pos
+    end
+
+    test "final CTA carries 'Ready to be a Hero?' headline + reassurance row", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/for-providers")
+
+      assert html =~ "Ready to be a Hero?"
+      assert html =~ "Free to start"
+      assert html =~ "Cancel anytime"
+      assert html =~ "No credit card required"
+    end
+
+    test "FAQ section has 'Talk to our team' trailer link to /contact", %{conn: conn} do
+      {:ok, _view, html} = live(conn, ~p"/for-providers")
+
+      assert html =~ "Still curious?"
+      assert html =~ "Talk to our team"
+    end
   end
 end
