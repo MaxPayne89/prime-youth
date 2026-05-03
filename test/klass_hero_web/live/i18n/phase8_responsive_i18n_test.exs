@@ -111,9 +111,11 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
       {:ok, view, _html} = setup_locale_for_navigation(conn, "de") |> live(~p"/programs")
       assert_locale(view, "de")
 
-      # Program listing should still be present
+      # Program listing should still be present (post design-system migration:
+      # the catalog stream lives in #mk-programs-stream, or #mk-empty when no
+      # programs match).
       html = render(view)
-      assert html =~ "id=\"programs\""
+      assert html =~ "id=\"mk-programs-stream\"" or html =~ "id=\"mk-empty\""
     end
   end
 

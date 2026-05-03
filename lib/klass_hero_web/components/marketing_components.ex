@@ -932,4 +932,336 @@ defmodule KlassHeroWeb.MarketingComponents do
     |> Enum.take(6)
     |> Enum.map(fn {label, href, _} -> {label, href} end)
   end
+
+  ## ---------------------------------------------------------------------------
+  ## Programs catalog (peach hero + filter pills + controls + list-mode row)
+  ## ---------------------------------------------------------------------------
+
+  @doc """
+  Peach-gradient hero for the `/programs` catalog. Outline pill + headline
+  with yellow `activities` highlight + subtitle + search form + 8 filter
+  pills.
+
+  Maps to bundle's `MkPrograms` page-header (Sections.jsx:899-946).
+
+  Search and filter selection preserve the existing
+  `phx-submit="search"` and `phx-click="filter_select"` events on
+  `ProgramsLive`.
+  """
+  attr :search_query, :string, default: ""
+  attr :active_filter, :string, default: "all"
+  attr :filters, :list, required: true, doc: "list of %{id:, label:}"
+
+  def mk_programs_hero(assigns) do
+    ~H"""
+    <section
+      id="mk-programs-hero"
+      class="relative overflow-hidden bg-gradient-to-b from-hero-pink-50 to-white pt-14 pb-12 lg:pt-20 lg:pb-16"
+    >
+      <div class="absolute top-10 right-1/4 w-72 h-72 rounded-full bg-hero-yellow-500 opacity-20 blur-3xl pointer-events-none">
+      </div>
+      <div class="absolute bottom-0 left-1/4 w-72 h-72 rounded-full bg-hero-blue-400 opacity-15 blur-3xl pointer-events-none">
+      </div>
+
+      <div class="relative max-w-7xl mx-auto px-6 text-center">
+        <.kh_pill tone={:outline} class="mb-5">{gettext("Explore Programs")}</.kh_pill>
+
+        <%!-- typography-lint-ignore: marketing programs hero scales fluidly via clamp() --%>
+        <h1 class="font-display font-extrabold tracking-tight text-[clamp(36px,5vw,60px)] leading-[1.05] text-hero-black">
+          {gettext("Discover")}
+          <span class="bg-hero-yellow-500 px-2 rounded-lg">{gettext("activities")}</span>
+          {gettext(", camps & classes for your child")}
+        </h1>
+
+        <p class="mt-5 text-lg text-[var(--fg-muted)] max-w-2xl mx-auto">
+          {gettext(
+            "Hand-picked, vetted programs across Berlin — filter by category, age, or schedule."
+          )}
+        </p>
+
+        <div class="mt-9 max-w-2xl mx-auto">
+          <form id="mk-programs-search" phx-change="search" phx-submit="search">
+            <div class="flex items-center gap-2 p-2 bg-white rounded-full shadow-lg border border-[var(--border-light)]">
+              <div class="flex-1 relative">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--fg-muted)]">
+                  <.icon name="hero-magnifying-glass" class="w-5 h-5" />
+                </div>
+                <input
+                  id="mk-programs-search-input"
+                  type="text"
+                  name="search"
+                  value={@search_query}
+                  phx-change="search"
+                  phx-hook="Debounce"
+                  data-debounce="200"
+                  placeholder={gettext("Search programs, providers, neighborhoods...")}
+                  class="w-full pl-11 pr-3 py-2.5 bg-transparent outline-none text-[15px] text-hero-black"
+                />
+              </div>
+              <.kh_button type="submit" variant={:primary}>{gettext("Search")}</.kh_button>
+            </div>
+          </form>
+        </div>
+
+        <div class="mt-7 flex items-center justify-center gap-2 flex-wrap" id="mk-programs-filters">
+          <button
+            :for={filter <- @filters}
+            type="button"
+            phx-click="filter_select"
+            phx-value-filter={filter.id}
+            data-filter={filter.id}
+            data-active={if @active_filter == filter.id, do: "true", else: "false"}
+            class={[
+              "px-4 py-2 rounded-full text-sm font-semibold transition-all border-2 cursor-pointer",
+              if(@active_filter == filter.id,
+                do: "bg-[var(--brand-primary)] border-[var(--brand-primary)] text-black shadow-sm",
+                else:
+                  "bg-white border-[var(--border-light)] text-[var(--fg-body)] hover:border-[var(--brand-primary)]"
+              )
+            ]}
+          >
+            {filter.label}
+          </button>
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  @doc """
+  Result-count summary + sort dropdown + grid/list toggle row.
+
+  Maps to bundle's `MkPrograms` controls (Sections.jsx:951-989). The sort
+  dropdown is implemented as a native `<details>` so the open/close state
+  is purely client-side (same pattern as `mk_faq`).
+  """
+  attr :count, :integer, required: true
+  attr :search_query, :string, default: ""
+  attr :active_filter, :string, default: "all"
+  attr :filters, :list, required: true
+  attr :sort, :string, default: "recommended"
+  attr :view_mode, :atom, default: :grid, values: [:grid, :list]
+
+  def mk_programs_controls(assigns) do
+    assigns = assign(assigns, sort_options: sort_options())
+
+    ~H"""
+    <div class="flex items-center justify-between gap-3 py-6 flex-wrap border-b border-[var(--border-light)]">
+      <div class="text-sm text-[var(--fg-muted)]">
+        <%!-- typography-lint-ignore: result-count uses display font as numeric callout --%>
+        <span class="font-display font-bold text-hero-black text-base">{@count}</span>
+        <span>{ngettext("program", "programs", @count)}</span>
+        <%= if active_filter_label = active_filter_label(@filters, @active_filter) do %>
+          <span>{gettext("in")}</span>
+          <span class="font-semibold text-hero-black">{active_filter_label}</span>
+        <% end %>
+        <%= if @search_query != "" do %>
+          <span>{gettext("matching")}</span>
+          <span class="font-semibold text-hero-black">"{@search_query}"</span>
+        <% end %>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <details id="mk-sort-dropdown" class="relative group">
+          <summary class="list-none cursor-pointer flex items-center gap-2 px-4 py-2 rounded-lg border border-[var(--border-light)] bg-white hover:border-[var(--brand-primary)] text-sm font-semibold">
+            <span class="text-[var(--fg-muted)]">{gettext("Sort:")}</span>
+            <span>{sort_label(@sort)}</span>
+            <.icon
+              name="hero-chevron-down"
+              class="w-4 h-4 transition-transform group-open:rotate-180"
+            />
+          </summary>
+          <div class="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-[var(--border-light)] shadow-lg overflow-hidden z-20">
+            <button
+              :for={{key, label} <- @sort_options}
+              type="button"
+              phx-click={
+                JS.push("sort_select", value: %{sort: key})
+                |> JS.remove_attribute("open", to: "#mk-sort-dropdown")
+              }
+              data-sort={key}
+              class={[
+                "w-full text-left px-4 py-2.5 text-sm font-semibold cursor-pointer hover:bg-[var(--hero-cream-100)]",
+                if(@sort == key,
+                  do: "bg-[var(--hero-cream-100)] text-[var(--brand-primary-dark)]",
+                  else: "text-[var(--fg-body)]"
+                )
+              ]}
+            >
+              {label}
+            </button>
+          </div>
+        </details>
+
+        <div
+          id="mk-view-toggle"
+          class="flex items-center bg-[var(--hero-cream-100)] rounded-lg p-1"
+        >
+          <button
+            type="button"
+            phx-click="toggle_view"
+            phx-value-view="grid"
+            data-view="grid"
+            data-active={if @view_mode == :grid, do: "true", else: "false"}
+            class={[
+              "px-3 py-1.5 rounded-md text-sm font-semibold cursor-pointer transition-colors",
+              if(@view_mode == :grid,
+                do: "bg-white shadow-sm text-hero-black",
+                else: "text-[var(--fg-muted)]"
+              )
+            ]}
+          >
+            {gettext("Grid")}
+          </button>
+          <button
+            type="button"
+            phx-click="toggle_view"
+            phx-value-view="list"
+            data-view="list"
+            data-active={if @view_mode == :list, do: "true", else: "false"}
+            class={[
+              "px-3 py-1.5 rounded-md text-sm font-semibold cursor-pointer transition-colors",
+              if(@view_mode == :list,
+                do: "bg-white shadow-sm text-hero-black",
+                else: "text-[var(--fg-muted)]"
+              )
+            ]}
+          >
+            {gettext("List")}
+          </button>
+        </div>
+      </div>
+    </div>
+    """
+  end
+
+  defp sort_options do
+    [
+      {"recommended", gettext("Recommended")},
+      {"newest", gettext("Newest")},
+      {"price_low", gettext("Price: low to high")},
+      {"price_high", gettext("Price: high to low")}
+    ]
+  end
+
+  defp sort_label(key) do
+    sort_options()
+    |> List.keyfind(key, 0)
+    |> case do
+      {_, label} -> label
+      _ -> gettext("Recommended")
+    end
+  end
+
+  defp active_filter_label(_filters, "all"), do: nil
+
+  defp active_filter_label(filters, active) do
+    case Enum.find(filters, &(&1.id == active)) do
+      %{label: label} -> label
+      _ -> nil
+    end
+  end
+
+  @doc """
+  Horizontal list-mode row for the catalog list view. Built on the
+  `kh_list_row` primitive.
+  """
+  attr :id, :string, required: true
+  attr :program, :map, required: true
+
+  def mk_program_list_row(assigns) do
+    ~H"""
+    <.kh_card
+      id={@id}
+      data-program-id={@program.id}
+      phx-click="program_click"
+      phx-value-program-id={@program.id}
+      class="p-5 hover:shadow-md cursor-pointer flex flex-col md:flex-row gap-5"
+    >
+      <div class={[
+        "md:w-56 h-32 md:h-auto rounded-xl shrink-0 relative overflow-hidden",
+        !@program.cover_image_url && @program.gradient_class
+      ]}>
+        <img
+          :if={@program.cover_image_url}
+          src={@program.cover_image_url}
+          alt={@program.title}
+          loading="lazy"
+          class="absolute inset-0 w-full h-full object-cover"
+        />
+        <div
+          :if={!@program.cover_image_url}
+          class="absolute inset-0 flex items-center justify-center"
+        >
+          <.icon name={@program.icon_name} class="w-10 h-10 text-white/80" />
+        </div>
+      </div>
+
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 mb-2 flex-wrap">
+          <.kh_pill tone={:dark}>{@program.category}</.kh_pill>
+          <.kh_pill :if={@program.age_range} tone={:outline}>{@program.age_range}</.kh_pill>
+        </div>
+        <h3 class="font-bold text-xl leading-snug text-hero-black">{@program.title}</h3>
+        <p
+          :if={@program.description}
+          class="mt-1 text-sm text-[var(--fg-muted)] line-clamp-2"
+        >
+          {@program.description}
+        </p>
+        <div class="mt-3 flex items-center gap-3 text-sm text-[var(--fg-muted)] flex-wrap">
+          <span :if={schedule_label(@program)} class="flex items-center gap-1.5">
+            <.icon name="hero-clock" class="w-4 h-4" />
+            {schedule_label(@program)}
+          </span>
+          <span :if={@program.price}>
+            <span class="font-semibold text-hero-black">€{format_price(@program.price)}</span>
+            <span :if={@program.period}>{" "}{@program.period}</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end md:justify-center">
+        <%!-- typography-lint-ignore: marketing accent link uses display font for visual emphasis --%>
+        <span class="font-display font-bold text-[var(--brand-primary-dark)] flex items-center gap-1">
+          {gettext("View")}
+          <.icon name="hero-arrow-right" class="w-4 h-4" />
+        </span>
+      </div>
+    </.kh_card>
+    """
+  end
+
+  @doc """
+  Generic empty state with circular icon chip + title + description and
+  optional `Clear filters` CTA. Used by the catalog when the search/filter
+  yields no results.
+  """
+  attr :icon, :string, default: "hero-magnifying-glass"
+  attr :title, :string, required: true
+  attr :description, :string, default: nil
+  attr :clear_event, :string, default: nil, doc: "phx-click event for the clear-filters CTA"
+  attr :clear_label, :string, default: nil
+
+  def mk_empty_state(assigns) do
+    ~H"""
+    <div id="mk-empty" data-testid="empty-state" class="text-center py-20">
+      <div class="w-20 h-20 mx-auto rounded-full bg-[var(--hero-cream-100)] flex items-center justify-center mb-5">
+        <.icon name={@icon} class="w-9 h-9 text-[var(--fg-muted)]" />
+      </div>
+      <%!-- typography-lint-ignore: marketing empty-state title uses display font --%>
+      <h3 class="font-display font-bold text-2xl text-hero-black">{@title}</h3>
+      <p :if={@description} class="mt-2 text-[var(--fg-muted)] max-w-md mx-auto">
+        {@description}
+      </p>
+      <div :if={@clear_event} class="mt-6">
+        <button type="button" phx-click={@clear_event}>
+          <.kh_button variant={:primary}>
+            {@clear_label || gettext("Clear filters")}
+          </.kh_button>
+        </button>
+      </div>
+    </div>
+    """
+  end
 end
