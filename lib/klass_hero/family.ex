@@ -48,7 +48,6 @@ defmodule KlassHero.Family do
   alias KlassHero.Family.Application.Queries.Parents.ParentProfileQueries
   alias KlassHero.Family.Domain.Models.Child
   alias KlassHero.Family.Domain.Services.ReferralCodeGenerator
-  alias KlassHero.Shared.Domain.Services.ActivityGoalCalculator
 
   # ===========================================================================
   # Commands
@@ -249,16 +248,6 @@ defmodule KlassHero.Family do
   or `%{}` when no parent profile exists.
   """
   defdelegate export_data_for_user(identity_id), to: ExportUserData, as: :execute
-
-  @doc """
-  Calculates the weekly activity goal progress for a family's children.
-
-  Options:
-  - `:target` - Weekly session target (default: 5)
-  """
-  def calculate_activity_goal(children, opts \\ []) when is_list(children) do
-    ActivityGoalCalculator.calculate(children, opts)
-  end
 
   # ===========================================================================
   # Forms

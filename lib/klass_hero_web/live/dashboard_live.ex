@@ -49,7 +49,6 @@ defmodule KlassHeroWeb.DashboardLive do
       end
 
     children_for_view = Enum.map(children, &ChildPresenter.to_profile_view/1)
-    children_extended = Enum.map(children, &ChildPresenter.to_extended_view/1)
     kid_picker_items = build_kid_picker_items(children, active_programs)
     upcoming_sessions = load_upcoming_sessions(active_programs, children)
     recent_messages = load_recent_messages(user.id)
@@ -69,9 +68,6 @@ defmodule KlassHeroWeb.DashboardLive do
         upcoming_sessions: upcoming_sessions,
         recent_messages: recent_messages,
         unread_count: unread_count,
-        activity_goal: calculate_activity_goal(children_extended),
-        weekly_goal_done: weekly_goal_done(children_extended),
-        weekly_goal_target: weekly_goal_target(children_extended),
         family_programs_empty?: active_programs == [] and expired_programs == []
       )
       |> stream(:family_programs, build_family_program_items(active_programs, expired_programs))
@@ -190,26 +186,6 @@ defmodule KlassHeroWeb.DashboardLive do
   end
 
   defp relative_time(_), do: nil
-
-  defp weekly_goal_target(children) do
-    goal = Family.calculate_activity_goal(children)
-    goal[:target] || 0
-  end
-
-  defp weekly_goal_done(children) do
-    goal = Family.calculate_activity_goal(children)
-    goal[:current] || 0
-  end
-
-  defp calculate_activity_goal(children) do
-    goal = Family.calculate_activity_goal(children)
-    Map.put(goal, :message, goal_message(goal.status, goal.percentage))
-  end
-
-  defp goal_message(:achieved, _percentage), do: gettext("Congratulations! Goal achieved!")
-  defp goal_message(:almost_there, _percentage), do: gettext("Almost there! One more to go!")
-  defp goal_message(:in_progress, 0), do: gettext("You're just getting started!")
-  defp goal_message(:in_progress, _percentage), do: gettext("You're doing great! Keep it up!")
 
   # Trigger: parent is nil when no parent profile exists or data loading failed
   # Why: reuse the already-resolved parent to avoid a duplicate get_parent_by_identity query
@@ -360,7 +336,7 @@ defmodule KlassHeroWeb.DashboardLive do
 
       <%!-- Two-column: weekly goal + booking usage (or sessions filler if unlimited) --%>
       <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <.pa_weekly_goal goal={@weekly_goal_target} done={@weekly_goal_done} />
+        <.pa_weekly_goal goal={nil} />
         <.pa_booking_usage
           :if={@show_booking_usage}
           tier={@booking_tier}
