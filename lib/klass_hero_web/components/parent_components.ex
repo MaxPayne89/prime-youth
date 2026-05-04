@@ -186,10 +186,10 @@ defmodule KlassHeroWeb.ParentComponents do
   ## ---------------------------------------------------------------------------
 
   @doc """
-  Parent topbar with title + subtitle + search/notification icons.
+  Parent topbar with title + subtitle + optional CTA / extra actions slot.
 
   Mobile shrinks to a sticky compact bar with the logo (since the sidebar
-  is gone on small screens) and inline search + bell actions.
+  is gone on small screens) and the page title.
   """
   attr :title, :string, required: true
   attr :subtitle, :string, default: nil
@@ -209,20 +209,6 @@ defmodule KlassHeroWeb.ParentComponents do
         <h1 class={topbar_title_classes()}>{@title}</h1>
       </div>
       <div class="flex items-center gap-3">
-        <button
-          type="button"
-          aria-label={gettext("Search")}
-          class="w-10 h-10 rounded-full bg-hero-cream-100 flex items-center justify-center hover:bg-hero-pink-50"
-        >
-          <.icon name="hero-magnifying-glass" class="w-5 h-5" />
-        </button>
-        <button
-          type="button"
-          aria-label={gettext("Notifications")}
-          class="w-10 h-10 rounded-full bg-hero-cream-100 flex items-center justify-center hover:bg-hero-pink-50 relative"
-        >
-          <.icon name="hero-bell" class="w-5 h-5" />
-        </button>
         {render_slot(@extra_actions)}
         <.link
           :if={@cta_label && @cta_navigate}
@@ -247,20 +233,6 @@ defmodule KlassHeroWeb.ParentComponents do
           {@subtitle}
         </div>
       </div>
-      <button
-        type="button"
-        aria-label={gettext("Search")}
-        class="w-9 h-9 rounded-full bg-hero-cream-100 flex items-center justify-center hover:bg-hero-pink-50 shrink-0"
-      >
-        <.icon name="hero-magnifying-glass" class="w-[18px] h-[18px]" />
-      </button>
-      <button
-        type="button"
-        aria-label={gettext("Notifications")}
-        class="w-9 h-9 rounded-full bg-hero-cream-100 flex items-center justify-center hover:bg-hero-pink-50 shrink-0"
-      >
-        <.icon name="hero-bell" class="w-[18px] h-[18px]" />
-      </button>
     </div>
     """
   end
