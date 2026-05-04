@@ -20,7 +20,14 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
   use Gettext, backend: KlassHeroWeb.Gettext
 
   import KlassHeroWeb.UIComponents,
-    only: [kh_logo: 1, kh_card: 1, kh_pill: 1, kh_icon_chip: 1, kh_list_row: 1]
+    only: [
+      kh_logo: 1,
+      kh_card: 1,
+      kh_pill: 1,
+      kh_icon_chip: 1,
+      kh_list_row: 1,
+      kh_user_menu: 1
+    ]
 
   @desktop_items [
     {:home, "Overview", "hero-home", "/provider/dashboard"},
@@ -175,6 +182,7 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
   """
   attr :provider, :map, required: true
   attr :show_new_program_cta, :boolean, default: false
+  attr :user, :map, required: true, doc: "Current user; needs :name and :email"
 
   slot :extra_actions
 
@@ -212,6 +220,7 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
         >
           <.icon name="hero-plus" class="w-4 h-4" /> {gettext("New program")}
         </a>
+        <.kh_user_menu user={@user} id="provider-user-menu-desktop" />
       </div>
     </div>
 
@@ -237,6 +246,7 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
       >
         <.icon name="hero-eye" class="w-[18px] h-[18px]" />
       </a>
+      <.kh_user_menu user={@user} id="provider-user-menu-mobile" class="shrink-0" />
     </div>
     """
   end

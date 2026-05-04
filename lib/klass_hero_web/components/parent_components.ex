@@ -20,7 +20,8 @@ defmodule KlassHeroWeb.ParentComponents do
 
   use Gettext, backend: KlassHeroWeb.Gettext
 
-  import KlassHeroWeb.UIComponents, only: [kh_logo: 1, kh_card: 1, kh_pill: 1, kh_icon_chip: 1]
+  import KlassHeroWeb.UIComponents,
+    only: [kh_logo: 1, kh_card: 1, kh_pill: 1, kh_icon_chip: 1, kh_user_menu: 1]
 
   ## ---------------------------------------------------------------------------
   ## Sidebar + bottom-tab nav
@@ -196,6 +197,7 @@ defmodule KlassHeroWeb.ParentComponents do
   attr :cta_label, :string, default: nil
   attr :cta_navigate, :string, default: nil
   attr :cta_icon, :string, default: "hero-plus"
+  attr :user, :map, required: true, doc: "Current user; needs :name and :email"
 
   slot :extra_actions
 
@@ -217,6 +219,7 @@ defmodule KlassHeroWeb.ParentComponents do
         >
           <.icon name={@cta_icon} class="w-4 h-4" /> {@cta_label}
         </.link>
+        <.kh_user_menu user={@user} id="parent-user-menu-desktop" />
       </div>
     </div>
 
@@ -233,6 +236,7 @@ defmodule KlassHeroWeb.ParentComponents do
           {@subtitle}
         </div>
       </div>
+      <.kh_user_menu user={@user} id="parent-user-menu-mobile" class="shrink-0" />
     </div>
     """
   end

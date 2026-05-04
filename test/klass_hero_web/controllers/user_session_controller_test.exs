@@ -21,12 +21,14 @@ defmodule KlassHeroWeb.UserSessionControllerTest do
       assert get_session(conn, :user_token)
       assert redirected_to(conn) == ~p"/users/settings"
 
-      # Now do a logged in request and assert on the menu
+      # Marketing header for a signed-in user collapses to a single
+      # "Go to dashboard" CTA — Settings + Log out live in the app chrome
+      # user menu now, not the marketing header.
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
       assert response =~ user.email
-      assert response =~ ~p"/users/settings"
-      assert response =~ ~p"/users/log-out"
+      assert response =~ "Go to dashboard"
+      assert response =~ ~p"/dashboard"
     end
 
     test "logs the user in with remember me", %{conn: conn, user: user} do
@@ -97,12 +99,14 @@ defmodule KlassHeroWeb.UserSessionControllerTest do
       assert get_session(conn, :user_token)
       assert redirected_to(conn) == ~p"/users/settings"
 
-      # Now do a logged in request and assert on the menu
+      # Marketing header for a signed-in user collapses to a single
+      # "Go to dashboard" CTA — Settings + Log out live in the app chrome
+      # user menu now, not the marketing header.
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
       assert response =~ user.email
-      assert response =~ ~p"/users/settings"
-      assert response =~ ~p"/users/log-out"
+      assert response =~ "Go to dashboard"
+      assert response =~ ~p"/dashboard"
     end
 
     test "confirms unconfirmed user", %{conn: conn, unconfirmed_user: user} do
@@ -121,12 +125,14 @@ defmodule KlassHeroWeb.UserSessionControllerTest do
 
       assert Accounts.get_user!(user.id).confirmed_at
 
-      # Now do a logged in request and assert on the menu
+      # Marketing header for a signed-in user collapses to a single
+      # "Go to dashboard" CTA — Settings + Log out live in the app chrome
+      # user menu now, not the marketing header.
       conn = get(conn, ~p"/")
       response = html_response(conn, 200)
       assert response =~ user.email
-      assert response =~ ~p"/users/settings"
-      assert response =~ ~p"/users/log-out"
+      assert response =~ "Go to dashboard"
+      assert response =~ ~p"/dashboard"
     end
 
     test "redirects provider to provider dashboard via magic link", %{conn: conn} do

@@ -253,7 +253,8 @@ defmodule KlassHeroWeb.ParentComponentsTest do
       title: Keyword.fetch!(opts, :title),
       subtitle: Keyword.get(opts, :subtitle),
       cta_label: Keyword.get(opts, :cta_label),
-      cta_navigate: Keyword.get(opts, :cta_navigate)
+      cta_navigate: Keyword.get(opts, :cta_navigate),
+      user: Keyword.get(opts, :user, %{name: "Test User", email: "test@example.com"})
     }
 
     rendered_to_string(~H"""
@@ -262,6 +263,7 @@ defmodule KlassHeroWeb.ParentComponentsTest do
       subtitle={@subtitle}
       cta_label={@cta_label}
       cta_navigate={@cta_navigate}
+      user={@user}
     />
     """)
   end

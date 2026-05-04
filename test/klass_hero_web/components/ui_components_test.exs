@@ -327,6 +327,92 @@ defmodule KlassHeroWeb.UIComponentsTest do
     """)
   end
 
+  describe "kh_user_menu/1" do
+    test "renders the trigger as initial-circle from user.name" do
+      html = render_kh_user_menu(user: %{name: "Maxi", email: "max@example.com"})
+
+      assert html =~ ~s|id="user-menu-trigger"|
+      assert html =~ ~s|aria-haspopup="menu"|
+      assert html =~ ~s|aria-expanded="false"|
+      assert html =~ "rounded-full"
+      assert html =~ ~r/<button[^>]*>\s*M\s*</
+    end
+
+    test "falls back to email initial when name is nil" do
+      html = render_kh_user_menu(user: %{name: nil, email: "alice@example.com"})
+
+      assert html =~ ~r/<button[^>]*>\s*A\s*</
+    end
+
+    test "falls back to '?' when both name and email are nil" do
+      html = render_kh_user_menu(user: %{name: nil, email: nil})
+
+      assert html =~ ~r/<button[^>]*>\s*\?\s*</
+    end
+
+    test "renders the dropdown panel hidden by default" do
+      html = render_kh_user_menu(user: %{name: "Maxi", email: "max@example.com"})
+
+      assert html =~ ~s|id="user-menu-panel"|
+      assert html =~ ~s|class="hidden absolute right-0|
+      assert html =~ ~s|role="menu"|
+    end
+
+    test "renders Settings link to /users/settings" do
+      html = render_kh_user_menu(user: %{name: "Maxi", email: "max@example.com"})
+
+      assert html =~ ~s|href="/users/settings"|
+      assert html =~ "Settings"
+    end
+
+    test "renders Log out link to /users/log-out with method=delete" do
+      html = render_kh_user_menu(user: %{name: "Maxi", email: "max@example.com"})
+
+      assert html =~ ~s|href="/users/log-out"|
+      assert html =~ ~s|data-method="delete"|
+      assert html =~ "Log out"
+    end
+
+    test "shows the user's email in the dropdown header" do
+      html = render_kh_user_menu(user: %{name: "Maxi", email: "max@example.com"})
+
+      assert html =~ "max@example.com"
+    end
+
+    test "wires the click-away backdrop with the matching id" do
+      html = render_kh_user_menu(user: %{name: "Maxi", email: "max@example.com"})
+
+      assert html =~ ~s|id="user-menu-backdrop"|
+      assert html =~ ~s|class="hidden fixed inset-0 z-30"|
+    end
+
+    test "supports multiple instances on one page via distinct ids" do
+      assigns = %{user: %{name: "Maxi", email: "max@example.com"}}
+
+      html =
+        rendered_to_string(~H"""
+        <UIComponents.kh_user_menu user={@user} id="desktop" />
+        <UIComponents.kh_user_menu user={@user} id="mobile" />
+        """)
+
+      assert html =~ ~s|id="desktop-trigger"|
+      assert html =~ ~s|id="desktop-panel"|
+      assert html =~ ~s|id="mobile-trigger"|
+      assert html =~ ~s|id="mobile-panel"|
+    end
+  end
+
+  defp render_kh_user_menu(opts) do
+    assigns = %{
+      user: Keyword.fetch!(opts, :user),
+      id: Keyword.get(opts, :id, "user-menu")
+    }
+
+    rendered_to_string(~H"""
+    <UIComponents.kh_user_menu user={@user} id={@id} />
+    """)
+  end
+
   defp count_substr(haystack, needle) do
     haystack |> String.split(needle) |> length() |> Kernel.-(1)
   end

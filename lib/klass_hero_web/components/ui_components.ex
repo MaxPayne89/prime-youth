@@ -12,6 +12,8 @@ defmodule KlassHeroWeb.UIComponents do
     router: KlassHeroWeb.Router,
     statics: KlassHeroWeb.static_paths()
 
+  use Gettext, backend: KlassHeroWeb.Gettext
+
   alias KlassHeroWeb.Theme
 
   @doc """
@@ -125,6 +127,102 @@ defmodule KlassHeroWeb.UIComponents do
   defp avatar_emoji_classes("sm"), do: "text-lg"
   defp avatar_emoji_classes("md"), do: "text-xl"
   defp avatar_emoji_classes("lg"), do: "text-2xl"
+
+  @doc """
+  Renders an account dropdown menu — gradient initial-circle trigger that opens
+  a panel with the signed-in email, a Settings link, and a Log out action.
+
+  Used in app chrome (parent + provider topbars). Marketing pages do not show
+  this menu — signed-in users land on the marketing site with a single
+  "Go to dashboard" CTA instead.
+
+  The trigger mirrors the parent sidebar avatar styling so visual identity stays
+  consistent across the parent surface. `id` must be unique per render — the
+  panel and backdrop are toggled via `JS.toggle/1` keyed off this id, so two
+  instances on the same page (desktop + mobile topbar) need distinct ids.
+
+  ## Examples
+
+      <.kh_user_menu user={@current_scope.user} id="parent-user-menu-desktop" />
+  """
+  attr :user, :map, required: true, doc: "Accounts.User struct (uses :name and :email)"
+
+  attr :id, :string,
+    required: true,
+    doc: "Unique DOM id; required because two instances may live on one page"
+
+  attr :class, :string, default: ""
+
+  def kh_user_menu(assigns) do
+    ~H"""
+    <div class={["relative", @class]}>
+      <button
+        type="button"
+        id={"#{@id}-trigger"}
+        aria-label={gettext("Open account menu")}
+        aria-haspopup="menu"
+        aria-expanded="false"
+        aria-controls={"#{@id}-panel"}
+        phx-click={
+          Phoenix.LiveView.JS.toggle(to: "##{@id}-panel")
+          |> Phoenix.LiveView.JS.toggle(to: "##{@id}-backdrop")
+          |> Phoenix.LiveView.JS.toggle_attribute(
+            {"aria-expanded", "true", "false"},
+            to: "##{@id}-trigger"
+          )
+        }
+        class="w-10 h-10 rounded-full bg-gradient-to-br from-hero-blue-400 to-hero-yellow-500 flex items-center justify-center font-bold text-black hover:shadow-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2"
+      >
+        {kh_user_menu_initial(@user)}
+      </button>
+
+      <div
+        id={"#{@id}-backdrop"}
+        phx-click={
+          Phoenix.LiveView.JS.hide(to: "##{@id}-panel")
+          |> Phoenix.LiveView.JS.hide(to: "##{@id}-backdrop")
+          |> Phoenix.LiveView.JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}-trigger")
+        }
+        class="hidden fixed inset-0 z-30"
+        aria-hidden="true"
+      >
+      </div>
+
+      <div
+        id={"#{@id}-panel"}
+        role="menu"
+        aria-labelledby={"#{@id}-trigger"}
+        class="hidden absolute right-0 top-full mt-2 w-64 bg-white rounded-xl border border-hero-grey-200 shadow-xl z-40 overflow-hidden"
+      >
+        <div class="px-4 py-3 border-b border-hero-grey-200 bg-hero-cream-100">
+          <div class="text-xs text-hero-grey-600 font-semibold">{gettext("Signed in as")}</div>
+          <div class="text-sm font-bold truncate">{@user.email}</div>
+        </div>
+        <a
+          href={~p"/users/settings"}
+          role="menuitem"
+          class="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-hero-black-100 hover:bg-hero-cream-100 no-underline"
+        >
+          <.icon name="hero-cog-6-tooth" class="w-4 h-4" /> {gettext("Settings")}
+        </a>
+        <.link
+          href={~p"/users/log-out"}
+          method="delete"
+          role="menuitem"
+          class="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-red-600 hover:bg-red-50 border-t border-hero-grey-200 no-underline"
+        >
+          <.icon name="hero-arrow-right-on-rectangle" class="w-4 h-4" /> {gettext("Log out")}
+        </.link>
+      </div>
+    </div>
+    """
+  end
+
+  defp kh_user_menu_initial(user) do
+    (user.name || user.email || "?")
+    |> String.first()
+    |> String.upcase()
+  end
 
   @doc """
   Renders a status pill/badge.

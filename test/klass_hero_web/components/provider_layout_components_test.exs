@@ -238,13 +238,15 @@ defmodule KlassHeroWeb.ProviderLayoutComponentsTest do
   defp render_pv_topbar(opts) do
     assigns = %{
       provider: Keyword.fetch!(opts, :provider),
-      show_new_program_cta: Keyword.get(opts, :show_new_program_cta, false)
+      show_new_program_cta: Keyword.get(opts, :show_new_program_cta, false),
+      user: Keyword.get(opts, :user, %{name: "Test Provider", email: "provider@example.com"})
     }
 
     rendered_to_string(~H"""
     <ProviderLayoutComponents.pv_topbar
       provider={@provider}
       show_new_program_cta={@show_new_program_cta}
+      user={@user}
     />
     """)
   end

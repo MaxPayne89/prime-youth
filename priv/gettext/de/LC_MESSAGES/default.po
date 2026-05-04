@@ -6199,3 +6199,8 @@ msgstr "Guten Abend"
 #, elixir-autogen, elixir-format
 msgid "Your week with the kids"
 msgstr "Ihre Woche mit den Kindern"
+
+#: lib/klass_hero_web/components/marketing_components.ex
+#, elixir-autogen, elixir-format
+msgid "Go to dashboard"
+msgstr "Zum Dashboard"

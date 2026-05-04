@@ -9,6 +9,7 @@
       subtitle={assigns[:page_subtitle]}
       cta_label={assigns[:topbar_cta_label]}
       cta_navigate={assigns[:topbar_cta_navigate]}
+      user={@current_scope.user}
     />
     <main class="flex-1 px-4 py-6 lg:px-8 pb-[80px] lg:pb-8">
       <.flash_group flash={@flash} />

@@ -134,7 +134,8 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
       assert html =~ get_translation("Programs", "de")
       assert html =~ get_translation("About", "de")
       assert html =~ get_translation("Contact", "de")
-      assert html =~ get_translation("Dashboard", "de")
+      # Signed-in marketing CTA (replaces three-button cluster with single primary action)
+      assert html =~ get_translation("Go to dashboard", "de")
     end
 
     test "navigation items are in English by default", %{conn: conn} do
@@ -145,7 +146,7 @@ defmodule KlassHeroWeb.I18n.Phase8ResponsiveI18nTest do
       assert html =~ "Programs"
       assert html =~ "About"
       assert html =~ "Contact"
-      assert html =~ "Dashboard"
+      assert html =~ "Go to dashboard"
     end
 
     test "language switcher is present in navigation", %{conn: conn} do

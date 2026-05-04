@@ -88,17 +88,7 @@ defmodule KlassHeroWeb.MarketingComponents do
               navigate={KlassHeroWeb.UserAuth.dashboard_path(@current_scope.user)}
               class="hidden lg:inline-flex"
             >
-              <.kh_button variant={:ghost} size={:sm}>{gettext("Dashboard")}</.kh_button>
-            </.link>
-            <.link href={~p"/users/settings"} class="hidden lg:inline-flex">
-              <.kh_button variant={:ghost} size={:sm}>{gettext("Settings")}</.kh_button>
-            </.link>
-            <.link
-              href={~p"/users/log-out"}
-              method="delete"
-              class="hidden lg:inline-flex"
-            >
-              <.kh_button variant={:ghost} size={:sm}>{gettext("Log out")}</.kh_button>
+              <.kh_button variant={:primary} size={:sm}>{gettext("Go to dashboard")}</.kh_button>
             </.link>
           <% else %>
             <.link href={~p"/users/log-in"} class="hidden lg:inline-flex">
@@ -164,23 +154,11 @@ defmodule KlassHeroWeb.MarketingComponents do
               {gettext("Signed in as")}
               <span class="font-semibold text-hero-black">{@current_scope.user.email}</span>
             </p>
-            <div class="flex flex-col gap-2">
-              <.link navigate={KlassHeroWeb.UserAuth.dashboard_path(@current_scope.user)}>
-                <.kh_button variant={:primary} size={:md} class="!w-full">
-                  {gettext("Dashboard")}
-                </.kh_button>
-              </.link>
-              <.link href={~p"/users/settings"}>
-                <.kh_button variant={:ghost} size={:md} class="!w-full">
-                  {gettext("Settings")}
-                </.kh_button>
-              </.link>
-              <.link href={~p"/users/log-out"} method="delete">
-                <.kh_button variant={:ghost} size={:md} class="!w-full">
-                  {gettext("Log out")}
-                </.kh_button>
-              </.link>
-            </div>
+            <.link navigate={KlassHeroWeb.UserAuth.dashboard_path(@current_scope.user)}>
+              <.kh_button variant={:primary} size={:md} class="!w-full">
+                {gettext("Go to dashboard")}
+              </.kh_button>
+            </.link>
           </div>
         <% else %>
           <div class="px-6 py-5 border-t border-[var(--border-light)] bg-[var(--hero-cream-100)] flex flex-col gap-3">
