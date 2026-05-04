@@ -26,6 +26,23 @@ defmodule KlassHeroWeb.DashboardLiveTest do
       assert html =~ "/users/settings"
     end
 
+    test "topbar shows time-of-day greeting + 'Your week with the kids' subtitle", %{
+      conn: conn,
+      user: user
+    } do
+      {:ok, _view, html} = live(conn, ~p"/dashboard")
+
+      # New copy: subtitle is fixed; title contains a time-bucket greeting +
+      # the user's first name (extracted from `user.name`).
+      assert html =~ "Your week with the kids"
+      refute html =~ "Your family this week"
+
+      first_name = user.name |> String.split() |> List.first()
+      assert html =~ first_name
+      # One of the three buckets must always render.
+      assert html =~ "Good morning" or html =~ "Good afternoon" or html =~ "Good evening"
+    end
+
     test "renders the KPI grid with live counts (no Coming-soon placeholder on Messages)", %{
       conn: conn
     } do

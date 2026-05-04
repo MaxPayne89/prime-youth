@@ -10,6 +10,7 @@ defmodule KlassHeroWeb.DashboardLive do
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
   alias KlassHero.Shared.Entitlements
+  alias KlassHeroWeb.Helpers.Greeting
   alias KlassHeroWeb.Helpers.TaskHelpers
   alias KlassHeroWeb.Presenters.ChildPresenter
   alias KlassHeroWeb.Presenters.ProgramPresenter
@@ -57,8 +58,8 @@ defmodule KlassHeroWeb.DashboardLive do
     socket =
       socket
       |> assign(
-        page_title: gettext("Dashboard"),
-        page_subtitle: gettext("Your family this week"),
+        page_title: Greeting.title(DateTime.utc_now(), user: user),
+        page_subtitle: gettext("Your week with the kids"),
         active_nav: :home,
         user: user,
         children_count: length(children_for_view),

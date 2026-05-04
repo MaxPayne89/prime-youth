@@ -6179,3 +6179,23 @@ msgstr ""
 #, elixir-autogen, elixir-format, fuzzy
 msgid "session"
 msgstr "Sitzung"
+
+#: lib/klass_hero_web/helpers/greeting.ex
+#, elixir-autogen, elixir-format
+msgid "Good morning"
+msgstr "Guten Morgen"
+
+#: lib/klass_hero_web/helpers/greeting.ex
+#, elixir-autogen, elixir-format
+msgid "Good afternoon"
+msgstr "Guten Tag"
+
+#: lib/klass_hero_web/helpers/greeting.ex
+#, elixir-autogen, elixir-format
+msgid "Good evening"
+msgstr "Guten Abend"
+
+#: lib/klass_hero_web/live/dashboard_live.ex
+#, elixir-autogen, elixir-format
+msgid "Your week with the kids"
+msgstr "Ihre Woche mit den Kindern"
