@@ -774,7 +774,7 @@ defmodule KlassHeroWeb.MarketingComponents do
             <.link navigate={~p"/terms"} class="hover:text-white">{gettext("Terms")}</.link>
           </div>
           <div class="flex items-center justify-between">
-            <span>© {DateTime.utc_now().year} Klass Hero GmbH · Berlin</span>
+            <span>© {DateTime.utc_now().year} Klass Hero · Berlin</span>
             <span class="flex items-center gap-1 px-2.5 py-1 rounded-full border border-white/20 text-white/80">
               <span>🇬🇧</span><span class="font-semibold">EN</span>
             </span>
@@ -825,7 +825,7 @@ defmodule KlassHeroWeb.MarketingComponents do
           </div>
 
           <div class="mt-10 pt-6 border-t border-white/10 text-sm text-white/50">
-            © {DateTime.utc_now().year} Klass Hero GmbH · Berlin
+            © {DateTime.utc_now().year} Klass Hero · Berlin
           </div>
         </div>
       </div>
