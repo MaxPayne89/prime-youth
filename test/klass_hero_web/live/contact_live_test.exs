@@ -35,17 +35,6 @@ defmodule KlassHeroWeb.ContactLiveTest do
       refute html =~ "123 Youth Avenue"
     end
 
-    test "displays office hours", %{conn: conn} do
-      {:ok, _view, html} = live(conn, ~p"/contact")
-
-      assert html =~ "Monday - Friday"
-      assert html =~ "9:00 AM - 6:00 PM"
-      assert html =~ "Saturday"
-      assert html =~ "10:00 AM - 4:00 PM"
-      assert html =~ "Sunday"
-      assert html =~ "Closed"
-    end
-
     test "validates required fields", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/contact")
 
@@ -169,8 +158,7 @@ defmodule KlassHeroWeb.ContactLiveTest do
       html = render(view)
       assert html =~ "Message sent successfully!"
 
-      assert html =~ "We&#39;ll get back to you within 24 hours" or
-               html =~ "We'll get back to you within 24 hours"
+      assert html =~ "We&#39;ve got it" or html =~ "We've got it"
     end
 
     test "resets form after successful submission", %{conn: conn} do

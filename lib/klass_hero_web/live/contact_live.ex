@@ -64,14 +64,14 @@ defmodule KlassHeroWeb.ContactLive do
           icon: "hero-envelope",
           title: gettext("Email"),
           value: email,
-          note: gettext("We respond within 24 hours")
+          note: nil
         },
       phone &&
         %{
           icon: "hero-phone",
           title: gettext("Phone"),
           value: phone,
-          note: gettext("Mon-Fri, 9am-6pm CET")
+          note: nil
         },
       address &&
         %{
@@ -82,14 +82,6 @@ defmodule KlassHeroWeb.ContactLive do
         }
     ]
     |> Enum.reject(&is_nil/1)
-  end
-
-  defp office_hours do
-    [
-      %{days: gettext("Monday - Friday"), hours: "9:00 AM - 6:00 PM"},
-      %{days: gettext("Saturday"), hours: "10:00 AM - 4:00 PM"},
-      %{days: gettext("Sunday"), hours: gettext("Closed")}
-    ]
   end
 
   defp subject_options do
@@ -112,9 +104,7 @@ defmodule KlassHeroWeb.ContactLive do
         <span class="bg-hero-yellow-500 px-2 rounded-lg">{gettext("help")}</span>
       </:title>
       <:lede>
-        {gettext(
-          "Questions about programs, bookings, or becoming a Hero — we read every message and respond fast."
-        )}
+        {gettext("Questions about programs, bookings, or becoming a Hero — we read every message.")}
       </:lede>
     </.mk_page_hero>
 
@@ -139,7 +129,7 @@ defmodule KlassHeroWeb.ContactLive do
                 {gettext("Message sent successfully!")}
               </div>
               <div class="text-sm text-[var(--fg-muted)] mt-0.5">
-                {gettext("We'll get back to you within 24 hours.")}
+                {gettext("We've got it — we'll be in touch.")}
               </div>
             </div>
           </div>
@@ -205,22 +195,6 @@ defmodule KlassHeroWeb.ContactLive do
                 value={method.value}
                 note={method.note}
               />
-            </div>
-          </.kh_card>
-
-          <.kh_card class="p-6">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="font-bold text-lg text-hero-black">{gettext("Office hours")}</h3>
-              <.kh_pill tone={:success}>{gettext("Open now")}</.kh_pill>
-            </div>
-            <div class="space-y-2.5">
-              <div
-                :for={hours <- office_hours()}
-                class="flex justify-between items-center text-sm py-1.5 border-b border-[var(--border-light)] last:border-0"
-              >
-                <span class="font-semibold text-hero-black">{hours.days}</span>
-                <span class="text-[var(--fg-muted)]">{hours.hours}</span>
-              </div>
             </div>
           </.kh_card>
 
