@@ -95,10 +95,11 @@ defmodule KlassHeroWeb.PrivacyPolicyLiveTest do
     end
 
     test "renders under :marketing chrome", %{conn: conn} do
-      {:ok, view, html} = live(conn, ~p"/privacy")
+      {:ok, view, _html} = live(conn, ~p"/privacy")
 
       assert has_element?(view, "header.sticky")
-      assert html =~ "Datenschutz"
+      # mk_footer presence — assert structural footer link, label-translation-independent
+      assert has_element?(view, "footer a[href='/terms']")
     end
 
     test "includes contact CTA section", %{conn: conn} do

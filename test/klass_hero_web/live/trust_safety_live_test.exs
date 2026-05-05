@@ -71,8 +71,8 @@ defmodule KlassHeroWeb.TrustSafetyLiveTest do
              )
 
       # mk_footer legal links
-      assert html =~ "Datenschutz"
-      assert html =~ "AGB"
+      assert html =~ "Privacy"
+      assert html =~ "Terms"
     end
 
     test "page uses mobile-first responsive design", %{conn: conn} do

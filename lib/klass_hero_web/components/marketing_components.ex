@@ -721,7 +721,8 @@ defmodule KlassHeroWeb.MarketingComponents do
 
   @doc """
   Dark marketing footer with per-page CTA block (mobile), 4-column nav
-  (desktop), and Datenschutz / AGB legal row.
+  (desktop), and a mobile-only legal-link row pinned above the © line.
+  Desktop relies on the Company column for legal links.
 
   Maps to bundle's `MkFooter` (Sections.jsx:305).
   """
@@ -769,8 +770,8 @@ defmodule KlassHeroWeb.MarketingComponents do
 
         <div class="px-6 py-6 flex flex-col gap-3 text-xs text-white/50">
           <div class="flex flex-wrap gap-x-4 gap-y-1.5">
-            <.link navigate={~p"/privacy"} class="hover:text-white">{gettext("Datenschutz")}</.link>
-            <.link navigate={~p"/terms"} class="hover:text-white">{gettext("AGB")}</.link>
+            <.link navigate={~p"/privacy"} class="hover:text-white">{gettext("Privacy")}</.link>
+            <.link navigate={~p"/terms"} class="hover:text-white">{gettext("Terms")}</.link>
           </div>
           <div class="flex items-center justify-between">
             <span>© {DateTime.utc_now().year} Klass Hero GmbH · Berlin</span>
@@ -823,12 +824,8 @@ defmodule KlassHeroWeb.MarketingComponents do
             />
           </div>
 
-          <div class="mt-10 pt-6 border-t border-white/10 flex items-center justify-between flex-wrap gap-3 text-sm text-white/50">
-            <div>© {DateTime.utc_now().year} Klass Hero GmbH · Berlin</div>
-            <div class="flex gap-5">
-              <.link navigate={~p"/privacy"} class="hover:text-white">{gettext("Datenschutz")}</.link>
-              <.link navigate={~p"/terms"} class="hover:text-white">{gettext("AGB")}</.link>
-            </div>
+          <div class="mt-10 pt-6 border-t border-white/10 text-sm text-white/50">
+            © {DateTime.utc_now().year} Klass Hero GmbH · Berlin
           </div>
         </div>
       </div>
