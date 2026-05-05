@@ -82,7 +82,6 @@ defmodule KlassHeroWeb.AboutLiveTest do
       assert has_element?(view, "header.sticky nav a", "About")
 
       # mk_footer legal links
-      assert html =~ "Impressum"
       assert html =~ "Datenschutz"
       assert html =~ "AGB"
     end

@@ -71,7 +71,6 @@ defmodule KlassHeroWeb.TrustSafetyLiveTest do
              )
 
       # mk_footer legal links
-      assert html =~ "Impressum"
       assert html =~ "Datenschutz"
       assert html =~ "AGB"
     end

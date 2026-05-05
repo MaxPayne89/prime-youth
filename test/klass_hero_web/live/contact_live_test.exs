@@ -17,7 +17,6 @@ defmodule KlassHeroWeb.ContactLiveTest do
       {:ok, view, html} = live(conn, ~p"/contact")
 
       assert has_element?(view, "header.sticky nav a", "Contact")
-      assert html =~ "Impressum"
       assert html =~ "Datenschutz"
       assert html =~ "AGB"
     end

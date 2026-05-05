@@ -98,7 +98,7 @@ defmodule KlassHeroWeb.PrivacyPolicyLiveTest do
       {:ok, view, html} = live(conn, ~p"/privacy")
 
       assert has_element?(view, "header.sticky")
-      assert html =~ "Impressum"
+      assert html =~ "Datenschutz"
     end
 
     test "includes contact CTA section", %{conn: conn} do

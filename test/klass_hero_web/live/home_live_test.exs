@@ -206,7 +206,6 @@ defmodule KlassHeroWeb.HomeLiveTest do
     test "renders marketing footer with legal links", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      assert has_element?(view, "footer a", "Impressum")
       assert has_element?(view, "footer a", "Datenschutz")
       assert has_element?(view, "footer a", "AGB")
     end

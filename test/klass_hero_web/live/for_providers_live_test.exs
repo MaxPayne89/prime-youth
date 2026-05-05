@@ -128,7 +128,7 @@ defmodule KlassHeroWeb.ForProvidersLiveTest do
 
       assert has_element?(view, "header.sticky")
       assert has_element?(view, "header.sticky nav a", "For Providers")
-      assert html =~ "Impressum"
+      assert html =~ "Datenschutz"
     end
 
     test "renders the dark final CTA below the FAQ", %{conn: conn} do
