@@ -123,27 +123,15 @@ defmodule KlassHeroWeb.HomeLive do
         <ul class="list-disc list-inside mb-3 space-y-1">
           <li>
             {gettext(
-              "Starter: Free to join — no registration fees, no monthly subscriptions. 20% commission per booking"
+              "Starter: Free to join — no registration fees, no monthly subscriptions. 18% commission per booking, up to 2 active programs"
             )}
           </li>
           <li>
-            {gettext(
-              "Professional: More tools and opportunities for €9/month + 12% per booking (only when you get bookings)"
-            )}
+            {gettext("Professional: €19/month + 12% per booking. Up to 5 programs")}
           </li>
           <li>
-            {gettext(
-              "Business Account: €39/month + 6% per booking (for providers/teams earning €600+/month)"
-            )}
+            {gettext("Business Plus: €49/month + 8% per booking. Unlimited programs and team seats")}
           </li>
-        </ul>
-        <p class="font-semibold mb-1 text-hero-black">
-          {gettext("Example: If you earn €1,000 in bookings")}
-        </p>
-        <ul class="list-disc list-inside mb-3 space-y-1">
-          <li>{gettext("Starter: You keep €800 (€200 commission)")}</li>
-          <li>{gettext("Professional: You keep €871 (€120 commission + €9 monthly fee)")}</li>
-          <li>{gettext("Business Account: You keep €901 (€60 commission + €39 monthly fee)")}</li>
         </ul>
         <p class="mt-3">
           {gettext(
@@ -198,86 +186,19 @@ defmodule KlassHeroWeb.HomeLive do
         </ul>
       </.mk_faq_item>
 
-      <.mk_faq_item
-        id="faq-4"
-        question={gettext("What happens if a parent cancels or I need to cancel?")}
-      >
-        <p class="mb-3">{gettext("Clear policies protect everyone.")}</p>
-        <p class="font-semibold mb-1 text-hero-black">{gettext("If Parent Cancels:")}</p>
-        <p class="mb-3">
-          {gettext(
-            "Contact them immediately - often you can find an alternative date. Include us in CC/BCC (support@mail.klasshero.com) so we're informed."
-          )}
-        </p>
-        <p class="mb-1">{gettext("Refunds are automatic based on our cancellation policy:")}</p>
-        <ul class="list-disc list-inside mb-3 space-y-1">
-          <li>{gettext("7+ days before: Usually full refund (you keep nothing)")}</li>
-          <li>{gettext("3-7 days before: Usually 75% refund (you keep 25%)")}</li>
-          <li>{gettext("Less than 3 days: Usually 25-50% refund (you keep 50-75%)")}</li>
-        </ul>
-        <p class="mb-3">
-          {gettext(
-            "Stripe processes all refunds - funds returned to parent's original payment method within 5-10 business days. Any amounts you keep remain in your balance."
-          )}
-        </p>
-        <p class="font-semibold mb-1 text-hero-black">{gettext("If You Must Cancel:")}</p>
-        <p class="mb-3">
-          {gettext(
-            "Contact all booked parents immediately and offer alternative dates. Include us in CC/BCC (support@mail.klasshero.com)."
-          )}
-        </p>
-        <p class="mb-3">
-          {gettext(
-            "When you cancel, parents get 100% refund automatically. The amount is deducted from your next payout."
-          )}
-        </p>
-        <p class="font-semibold mb-1 text-hero-black">
-          {gettext("Provider Cancellation Penalties:")}
-        </p>
-        <ul class="list-disc list-inside mb-3 space-y-1">
-          <li>{gettext("1st cancellation (90 days): Warning only")}</li>
-          <li>{gettext("2nd cancellation: €50 penalty")}</li>
-          <li>{gettext("3rd cancellation: €100 penalty + 14-day suspension")}</li>
-          <li>{gettext("4+ cancellations: Account termination")}</li>
-        </ul>
-        <p class="font-semibold mb-1 text-hero-black">
-          {gettext("No penalties for legitimate reasons:")}
-        </p>
-        <ul class="list-disc list-inside mb-3 space-y-1">
-          <li>{gettext("Medical emergency")}</li>
-          <li>{gettext("Death in family")}</li>
-          <li>{gettext("Severe weather")}</li>
-          <li>{gettext("Government closure")}</li>
-          <li>{gettext("Minimum enrollment not met (camps only - notify 14 days before)")}</li>
-        </ul>
-        <p class="font-semibold mb-1 text-hero-black">{gettext("Provider No-Show:")}</p>
-        <p class="mb-1">{gettext("If you fail to show up without prior notice:")}</p>
-        <ul class="list-disc list-inside mb-3 space-y-1">
-          <li>{gettext("Immediate account suspension")}</li>
-          <li>{gettext("€200 penalty (deducted from balance or invoiced)")}</li>
-          <li>{gettext("Parent gets 100% refund + family credit")}</li>
-          <li>{gettext("Permanent ban if no valid emergency")}</li>
-        </ul>
-        <p>
-          {gettext(
-            "Keep your reliability high - parents can see your cancellation rate on your profile."
-          )}
-        </p>
-      </.mk_faq_item>
-
-      <.mk_faq_item id="faq-5" question={gettext("Is Klass Hero free for parents to use?")}>
+      <.mk_faq_item id="faq-4" question={gettext("Is Klass Hero free for parents to use?")}>
         <p>
           {gettext("Yes! Browsing and booking are completely free. No subscription, no booking fees.")}
         </p>
       </.mk_faq_item>
 
-      <.mk_faq_item id="faq-6" question={gettext("Do I need an account to book?")}>
+      <.mk_faq_item id="faq-5" question={gettext("Do I need an account to book?")}>
         <p>
           {gettext("Yes, you need a free account to complete a booking and manage your reservations.")}
         </p>
       </.mk_faq_item>
 
-      <.mk_faq_item id="faq-7" question={gettext("Can I change my booking date?")}>
+      <.mk_faq_item id="faq-6" question={gettext("Can I change my booking date?")}>
         <p>
           {gettext(
             "Contact the provider directly (details in confirmation email). Most providers are flexible if you ask in advance."
@@ -285,33 +206,21 @@ defmodule KlassHeroWeb.HomeLive do
         </p>
       </.mk_faq_item>
 
-      <.mk_faq_item id="faq-8" question={gettext("What if my child gets sick?")}>
+      <.mk_faq_item id="faq-7" question={gettext("What if my child gets sick?")}>
         <p>
           {gettext(
-            "Email the provider and us (support@mail.klasshero.com) immediately. You may qualify for full refund."
+            "Email the provider and us (support@mail.klasshero.com) as soon as you can — we'll help you and the provider work it out."
           )}
         </p>
       </.mk_faq_item>
 
-      <.mk_faq_item id="faq-9" question={gettext("Can I get a refund if the provider cancels?")}>
-        <p>{gettext("Yes, always 100% refund if provider cancels. No exceptions.")}</p>
-      </.mk_faq_item>
-
-      <.mk_faq_item id="faq-10" question={gettext("What if the provider doesn't show up?")}>
-        <p>
-          {gettext(
-            "Contact us immediately at support@mail.klasshero.com or call +49 (0) 152 2426 0416. You'll receive 100% refund + family credit, and the provider faces serious penalties."
-          )}
-        </p>
-      </.mk_faq_item>
-
-      <.mk_faq_item id="faq-11" question={gettext("Where is Klass Hero available?")}>
+      <.mk_faq_item id="faq-8" question={gettext("Where is Klass Hero available?")}>
         <p>
           {gettext("Currently serving Berlin, with expansion to other German cities coming soon.")}
         </p>
       </.mk_faq_item>
 
-      <.mk_faq_item id="faq-12" question={gettext("Can I buy a gift voucher?")}>
+      <.mk_faq_item id="faq-9" question={gettext("Can I buy a gift voucher?")}>
         <p>
           {gettext(
             "Coming soon! Sign up for our newsletter to be notified when gift vouchers launch."

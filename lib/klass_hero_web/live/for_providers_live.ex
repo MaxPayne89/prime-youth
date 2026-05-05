@@ -1,7 +1,7 @@
 defmodule KlassHeroWeb.ForProvidersLive do
   use KlassHeroWeb, :live_view
 
-  alias KlassHero.Shared.Entitlements
+  alias KlassHeroWeb.Presenters.TierPresenter
   alias KlassHeroWeb.Theme
 
   @impl true
@@ -10,7 +10,7 @@ defmodule KlassHeroWeb.ForProvidersLive do
      assign(socket,
        page_title: gettext("For Providers"),
        active_nav: :providers,
-       provider_tiers: Entitlements.all_provider_tiers()
+       provider_tiers: pricing_tiers()
      )}
   end
 
@@ -20,7 +20,7 @@ defmodule KlassHeroWeb.ForProvidersLive do
     <.dark_hero />
     <.benefits_section benefits={benefits()} />
     <.how_it_works_section steps={steps()} />
-    <.pricing_section tiers={pricing_tiers(@provider_tiers)} />
+    <.pricing_section tiers={@provider_tiers} />
     <.faq_section faqs={faqs()} />
     <.final_cta />
     """
@@ -175,31 +175,25 @@ defmodule KlassHeroWeb.ForProvidersLive do
                 tier.popular && "text-hero-yellow-500"
               ]
             }>
-              {tier.name}
+              {tier.title}
             </h3>
             <p class={[
               "text-sm mt-1.5",
               if(tier.popular, do: "text-white/70", else: "text-hero-grey-600")
             ]}>
-              {tier.blurb}
+              {tier.subtitle}
             </p>
 
             <div class="my-6">
               <div class="flex items-baseline gap-1.5">
                 <%!-- typography-lint-ignore: pricing tier price uses display font for emphasis --%>
-                <span class="font-display font-extrabold text-5xl">€{tier.monthly}</span>
+                <span class="font-display font-extrabold text-5xl">{tier.price}</span>
                 <span class={[
                   "text-sm font-semibold",
                   if(tier.popular, do: "text-white/60", else: "text-hero-grey-600")
                 ]}>
-                  /{gettext("mo")}
+                  /{tier.period}
                 </span>
-              </div>
-              <div class={[
-                "text-xs mt-1.5 font-semibold",
-                if(tier.popular, do: "text-white/60", else: "text-hero-grey-600")
-              ]}>
-                + {tier.listing_fee}
               </div>
             </div>
 
@@ -219,10 +213,10 @@ defmodule KlassHeroWeb.ForProvidersLive do
               navigate={~p"/users/register"}
               class="w-full justify-center"
             >
-              <%= if tier.monthly == 0 do %>
+              <%= if tier.key == :starter do %>
                 {gettext("Start for free")} →
               <% else %>
-                {gettext("Choose")} {tier.name} →
+                {gettext("Choose")} {tier.title} →
               <% end %>
             </.kh_button>
           </div>
@@ -230,7 +224,7 @@ defmodule KlassHeroWeb.ForProvidersLive do
 
         <p class="text-center text-sm text-hero-grey-600 mt-8">
           {gettext(
-            "All plans include: secure payments · automatic invoicing · VAT handling · 24/7 support · the Klass Hero verified badge"
+            "All plans include: secure payments · automatic invoicing · VAT handling · the Klass Hero verified badge"
           )}
         </p>
       </div>
@@ -331,69 +325,22 @@ defmodule KlassHeroWeb.ForProvidersLive do
   ## Static data — mirrors design_handoff/marketing/Sections.jsx#MkForProviders
   ## ---------------------------------------------------------------------------
 
-  # Bundle ships marketing tier names (Free/Studio/School) that map to the
-  # backend atoms (:starter, :professional, :business_plus). When the
-  # entitlements config adds a tier we should surface it here too — pulling
-  # the keyword list from `Entitlements.all_provider_tiers/0` keeps the
-  # contract honest even though prices/labels are display-only for now.
   defp ghost_dark_cta_classes do
     # typography-lint-ignore: ghost-on-dark CTA mirrors KhButton primary surface
     "inline-flex items-center justify-center gap-2 px-7 py-3.5 text-lg rounded-xl font-display font-bold tracking-tight border border-white/30 text-white hover:bg-white/10 transition-all"
   end
 
-  defp pricing_tiers(provider_tiers) do
-    backed_atoms = Keyword.keys(provider_tiers)
-
-    [
-      %{
-        atom: :starter,
-        name: gettext("Free"),
-        blurb: gettext("Test the waters. List up to 2 programs, no monthly fee."),
-        monthly: 0,
-        listing_fee: gettext("15% per booking"),
-        popular: false,
-        features: [
-          gettext("Up to 2 active programs"),
-          gettext("Basic Klass Hero profile"),
-          gettext("Direct messaging with parents"),
-          gettext("Standard payment processing"),
-          gettext("Email support")
-        ]
-      },
-      %{
-        atom: :professional,
-        name: gettext("Studio"),
-        blurb: gettext("For active educators running multiple programs."),
-        monthly: 39,
-        listing_fee: gettext("8% per booking"),
-        popular: true,
-        features: [
-          gettext("Up to 10 programs"),
-          gettext("Featured placement on home"),
-          gettext("Custom branded profile"),
-          gettext("Bulk parent broadcasts"),
-          gettext("Calendar sync (iCal)"),
-          gettext("Priority support")
-        ]
-      },
-      %{
-        atom: :business_plus,
-        name: gettext("School"),
-        blurb: gettext("For schools, academies, and multi-coach organizations."),
-        monthly: 99,
-        listing_fee: gettext("5% per booking"),
-        popular: false,
-        features: [
-          gettext("Unlimited programs"),
-          gettext("Multi-coach accounts (up to 8)"),
-          gettext("Advanced analytics"),
-          gettext("API access"),
-          gettext("White-label invoices"),
-          gettext("Dedicated CS contact")
-        ]
-      }
-    ]
-    |> Enum.filter(&(&1.atom in backed_atoms))
+  # Marketing pricing cards draw from `TierPresenter.subscription_tiers/0` —
+  # the same source the in-app `/provider/subscription` page uses. Single
+  # source of truth: changing canonical tier names, prices, or features
+  # propagates everywhere automatically.
+  #
+  # `popular` is the only marketing-only field: which tier we visually
+  # promote is a presentation choice, not an entitlement.
+  defp pricing_tiers do
+    Enum.map(TierPresenter.subscription_tiers(), fn tier ->
+      Map.put(tier, :popular, tier.key == :professional)
+    end)
   end
 
   defp benefits do
@@ -463,7 +410,7 @@ defmodule KlassHeroWeb.ForProvidersLive do
         n: "04",
         icon: "hero-currency-euro",
         title: gettext("Get paid weekly"),
-        desc: gettext("Secure SEPA payouts every Monday. Refunds, invoices, and VAT handled automatically.")
+        desc: gettext("Secure SEPA payouts every Monday. Invoices and VAT handled automatically.")
       }
     ]
   end
@@ -474,7 +421,7 @@ defmodule KlassHeroWeb.ForProvidersLive do
         q: gettext("How much does Klass Hero cost?"),
         a:
           gettext(
-            "There's a free tier — list up to 2 programs at 15% per booking. The Studio plan is €39/mo with 8% per booking, and our School plan is €99/mo with 5% per booking. No setup fees, cancel anytime."
+            "Starter is free with 18% commission per booking — up to 2 programs. Professional is €19/mo with 12% commission and up to 5 programs. Business Plus is €49/mo with 8% commission and unlimited programs. No setup fees, cancel anytime."
           )
       },
       %{
@@ -502,14 +449,7 @@ defmodule KlassHeroWeb.ForProvidersLive do
         q: gettext("Can I run programs at multiple locations?"),
         a:
           gettext(
-            "Yes. The Studio plan supports multiple programs each with their own schedule and venue. The School plan adds multi-coach accounts so you can delegate management across instructors."
-          )
-      },
-      %{
-        q: gettext("What happens if a parent cancels?"),
-        a:
-          gettext(
-            "Klass Hero handles refunds automatically based on your cancellation policy. You can choose flexible (free up to 48h before), moderate (free up to 7 days before), or strict (no refund) at the program level."
+            "Yes. Professional supports up to 5 programs each with their own schedule and venue. Business Plus adds unlimited programs and unlimited team seats so you can delegate management across instructors."
           )
       }
     ]

@@ -157,24 +157,21 @@ defmodule KlassHeroWeb.HomeLiveTest do
       assert has_element?(view, "#mk-founder a[href='/about']")
     end
 
-    test "renders faq section with all 12 questions", %{conn: conn} do
+    test "renders faq section with all 9 questions", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
       assert has_element?(view, "#mk-faq")
 
       # FAQ items render as native <details> with <summary> headers — verify
-      # all 12 question strings appear inside summary elements.
+      # all 9 question strings appear inside summary elements.
       questions = [
         "How does the 6-step provider vetting process work?",
         "Can I list my programs on Klass Hero and what does it cost?",
         "How does the booking system work?",
-        "What happens if a parent cancels or I need to cancel?",
         "Is Klass Hero free for parents to use?",
         "Do I need an account to book?",
         "Can I change my booking date?",
         "What if my child gets sick?",
-        "Can I get a refund if the provider cancels?",
-        "What if the provider doesn't show up?",
         "Where is Klass Hero available?",
         "Can I buy a gift voucher?"
       ]
@@ -184,10 +181,10 @@ defmodule KlassHeroWeb.HomeLiveTest do
       end
     end
 
-    test "faq items have stable ids 1..12", %{conn: conn} do
+    test "faq items have stable ids 1..9", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/")
 
-      for n <- 1..12 do
+      for n <- 1..9 do
         assert has_element?(view, "details#faq-#{n}"), "expected #faq-#{n} <details>"
       end
     end

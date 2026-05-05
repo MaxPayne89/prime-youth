@@ -799,8 +799,7 @@ defmodule KlassHeroWeb.MarketingComponents do
               links={[
                 {gettext("Browse Programs"), ~p"/programs"},
                 {gettext("How it Works"), ~p"/"},
-                {gettext("Trust & Safety"), ~p"/trust-safety"},
-                {gettext("Refund Policy"), ~p"/terms"}
+                {gettext("Trust & Safety"), ~p"/trust-safety"}
               ]}
             />
 

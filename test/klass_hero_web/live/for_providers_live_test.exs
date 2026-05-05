@@ -88,9 +88,9 @@ defmodule KlassHeroWeb.ForProvidersLiveTest do
       # Tier marketing labels we know about. If a backed atom isn't in this
       # list, the LiveView quietly drops it — that's intentional.
       labels_for_atom = %{
-        starter: "Free",
-        professional: "Studio",
-        business_plus: "School"
+        starter: "Starter",
+        professional: "Professional",
+        business_plus: "Business Plus"
       }
 
       backed
@@ -120,7 +120,7 @@ defmodule KlassHeroWeb.ForProvidersLiveTest do
       {:ok, view, _html} = live(conn, ~p"/for-providers")
 
       assert has_element?(view, "#for-providers-faq-0-answer")
-      assert has_element?(view, "#for-providers-faq-5-answer")
+      assert has_element?(view, "#for-providers-faq-4-answer")
     end
 
     test "renders under :marketing chrome", %{conn: conn} do

@@ -1569,15 +1569,15 @@ defmodule KlassHeroWeb.UIComponents do
 
       <.faq_item
         id="faq-2"
-        question="Is there a free trial for the Active Family plan?"
-        answer="Yes! All new families get a 14-day free trial of the Active Family plan. Cancel anytime during the trial with no charges."
+        question="How do parents discover programs on Klass Hero?"
+        answer="Browse by neighborhood, age range, activity type, or schedule. Every listing shows the provider's verification status, parent reviews, and live availability."
         expanded
       />
 
       <.faq_item
         id="faq-3"
-        question="Can I cancel a booking?"
-        answer="Yes, you can cancel bookings according to each provider's cancellation policy. Active Family members get 1 free cancellation per month."
+        question="Where is Klass Hero available?"
+        answer="Currently serving Berlin, with expansion to other German cities coming soon."
         class="mb-4"
       />
   """
