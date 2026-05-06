@@ -16,6 +16,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   alias KlassHero.Enrollment
   alias KlassHero.Messaging
   alias KlassHero.ProgramCatalog
+  alias KlassHero.ProgramCatalog.Domain.ReadModels.ProgramListing
   alias KlassHero.Provider
   alias KlassHero.Provider.Domain.Models.PayRate
   alias KlassHero.Provider.Domain.Models.ProviderProfile
@@ -195,13 +196,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     total_sessions = Provider.get_total_session_count(provider.id)
 
-    program_ids = ProgramCatalog.list_programs_for_provider(provider.id) |> Enum.map(& &1.id)
+    program_listings = ProgramCatalog.list_programs_for_provider(provider.id)
+    program_ids = Enum.map(program_listings, & &1.id)
 
     enrollment_counts = Enrollment.count_active_enrollments_batch(program_ids)
     enrolled_total = enrollment_counts |> Map.values() |> Enum.sum()
 
     pending_requests = load_pending_requests(program_ids)
-    top_programs = load_top_programs(provider.id, enrollment_counts)
+    top_programs = build_top_programs(program_listings, enrollment_counts)
 
     if connected?(socket) do
       Phoenix.PubSub.subscribe(KlassHero.PubSub, "provider:#{provider.id}:stats_updated")
@@ -1789,34 +1791,43 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   end
 
   # Top 5 provider programs sorted by active-enrollment count desc.
-  defp load_top_programs(provider_id, enrollment_counts) do
-    provider_id
-    |> Provider.list_provider_programs()
-    |> Enum.map(fn p ->
-      enrolled = Map.get(enrollment_counts, p.id, 0)
+  # Source is the rich %ProgramListing{} already loaded in handle_params.
+  defp build_top_programs(listings, enrollment_counts) do
+    today = Date.utc_today()
 
-      %{
-        id: p.id,
-        title: p[:title] || "Untitled",
-        category: p[:category],
-        booked: enrolled,
-        capacity: p[:max_participants],
-        price: p[:price],
-        status: derive_program_status(p),
-        cover: p[:cover_image_url] && "url(#{p.cover_image_url})"
-      }
-    end)
+    listings
+    |> Enum.map(&build_program_row(&1, enrollment_counts, today))
     |> Enum.sort_by(& &1.booked, :desc)
     |> Enum.take(5)
   end
 
-  defp derive_program_status(p) do
+  defp build_program_row(%ProgramListing{} = p, enrollment_counts, today) do
+    %{
+      id: p.id,
+      title: p.title,
+      booked: Map.get(enrollment_counts, p.id, 0),
+      status: derive_program_status(p, today),
+      cover: p.cover_image_url && "url(#{p.cover_image_url})"
+    }
+  end
+
+  # %ProgramListing{} carries no explicit status; derive a coarse pill from its
+  # registration and run-window dates. :full is capacity-driven and out of scope
+  # here — capacity isn't projected onto the listing read model.
+  defp derive_program_status(%ProgramListing{} = p, today) do
     cond do
-      p[:status] in [:draft, :archived, :live, :full] -> p[:status]
-      p[:active] == false -> :draft
+      not_yet_open?(p.registration_start_date, today) -> :draft
+      past?(p.registration_end_date, today) -> :archived
+      past?(p.end_date, today) -> :archived
       true -> :live
     end
   end
+
+  defp not_yet_open?(nil, _today), do: false
+  defp not_yet_open?(start_date, today), do: Date.before?(today, start_date)
+
+  defp past?(nil, _today), do: false
+  defp past?(date, today), do: Date.after?(today, date)
 
   defp fetch_verification_docs(provider_id) do
     case Provider.get_provider_verification_documents(provider_id) do
