@@ -51,11 +51,17 @@ defmodule KlassHeroWeb.ProviderComponents do
   @doc """
   Renders the provider dashboard tab navigation.
 
+  `current_tab` is the active tab as the *component* understands it
+  (`:overview`, `:team`, `:programs`, `:sessions`). Callers translate their
+  own `@live_action` into this vocabulary, so the nav stays decoupled from
+  any single LiveView's routing scheme.
+
   ## Examples
 
-      <.provider_nav_tabs live_action={@live_action} />
+      <.provider_nav_tabs current_tab={:overview} />
+      <.provider_nav_tabs current_tab={:sessions} />
   """
-  attr :live_action, :atom, required: true
+  attr :current_tab, :atom, required: true
 
   def provider_nav_tabs(assigns) do
     ~H"""
@@ -63,28 +69,28 @@ defmodule KlassHeroWeb.ProviderComponents do
       <div class="flex gap-1 overflow-x-auto pb-px -mb-px">
         <.nav_tab
           patch={~p"/provider/dashboard"}
-          active={@live_action == :overview}
+          active={@current_tab == :overview}
           icon="hero-squares-2x2-mini"
         >
           {gettext("Overview")}
         </.nav_tab>
         <.nav_tab
           patch={~p"/provider/dashboard/team"}
-          active={@live_action == :team}
+          active={@current_tab == :team}
           icon="hero-user-group-mini"
         >
           {gettext("Team & Profiles")}
         </.nav_tab>
         <.nav_tab
           patch={~p"/provider/dashboard/programs"}
-          active={@live_action == :programs}
+          active={@current_tab == :programs}
           icon="hero-queue-list-mini"
         >
           {gettext("My Programs")}
         </.nav_tab>
         <.nav_tab
           navigate={~p"/provider/sessions"}
-          active={false}
+          active={@current_tab == :sessions}
           icon="hero-calendar-days-mini"
         >
           {gettext("Sessions")}

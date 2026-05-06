@@ -27,7 +27,7 @@ defmodule KlassHeroWeb.Provider.SessionsLiveTest do
     test "renders page title and date selector", %{conn: conn} do
       {:ok, view, _html} = live(conn, ~p"/provider/sessions")
 
-      assert has_element?(view, "h1", "My Sessions")
+      assert has_element?(view, "h2", "My Sessions")
       assert has_element?(view, "#date-select")
     end
 

@@ -19,6 +19,9 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
 
   use Gettext, backend: KlassHeroWeb.Gettext
 
+  import KlassHeroWeb.ProviderComponents,
+    only: [provider_dashboard_header: 1, provider_nav_tabs: 1]
+
   import KlassHeroWeb.UIComponents,
     only: [
       kh_logo: 1,
@@ -28,6 +31,8 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
       kh_list_row: 1,
       kh_user_menu: 1
     ]
+
+  alias KlassHeroWeb.Theme
 
   @desktop_items [
     {:home, "Overview", "hero-home", "/provider/dashboard"},
@@ -247,6 +252,45 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
         <.icon name="hero-eye" class="w-[18px] h-[18px]" />
       </a>
       <.kh_user_menu user={@user} id="provider-user-menu-mobile" class="shrink-0" />
+    </div>
+    """
+  end
+
+  @doc """
+  Provider dashboard chrome — header band + horizontal tab nav, with the
+  page's content rendered as the inner block underneath.
+
+  Composed by every LiveView that should feel like a tab on the provider
+  dashboard. The shell knows nothing about which LV uses it — callers pass
+  their `business`, `can_create_program?`, and the `current_tab` atom
+  (`:overview`, `:team`, `:programs`, `:sessions`).
+
+  ## Examples
+
+      <.pv_dashboard_chrome business={@business} current_tab={:sessions}>
+        <.sessions_section ... />
+      </.pv_dashboard_chrome>
+  """
+  attr :business, :map, required: true
+  attr :can_create_program?, :boolean, default: false
+
+  attr :current_tab, :atom,
+    required: true,
+    values: [:overview, :team, :programs, :sessions]
+
+  slot :inner_block, required: true
+
+  def pv_dashboard_chrome(assigns) do
+    ~H"""
+    <div class={["min-h-screen", Theme.bg(:muted)]}>
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <.provider_dashboard_header
+          business={@business}
+          can_create_program?={@can_create_program?}
+        />
+        <.provider_nav_tabs current_tab={@current_tab} />
+        {render_slot(@inner_block)}
+      </div>
     </div>
     """
   end

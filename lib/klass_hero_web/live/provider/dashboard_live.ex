@@ -1174,10 +1174,10 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={["min-h-screen", Theme.bg(:muted)]}>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <%= case @live_action do %>
-          <% :edit -> %>
+    <%= case @live_action do %>
+      <% :edit -> %>
+        <div class={["min-h-screen", Theme.bg(:muted)]}>
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <.edit_profile_section
               form={@form}
               uploads={@uploads}
@@ -1186,75 +1186,84 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
               doc_type={@doc_type}
               document_types={@document_types}
             />
-          <% _ -> %>
-            <.profile_completion_banner :if={@profile_draft?} />
-            <.provider_dashboard_header
-              business={@business}
-              can_create_program?={@can_create_program?}
-            />
-            <.link
-              :if={@dual_role?}
-              id="cross-nav-staff-link"
-              navigate={~p"/staff/dashboard"}
-              class="inline-flex items-center gap-1 text-sm text-brand hover:text-brand/80"
-            >
-              {gettext("View your assignments")} →
-            </.link>
-            <.provider_nav_tabs live_action={@live_action} />
+          </div>
+        </div>
+      <% _ -> %>
+        <.pv_dashboard_chrome
+          business={@business}
+          can_create_program?={@can_create_program?}
+          current_tab={dashboard_tab(@live_action)}
+        >
+          <.profile_completion_banner :if={@profile_draft?} />
+          <.link
+            :if={@dual_role?}
+            id="cross-nav-staff-link"
+            navigate={~p"/staff/dashboard"}
+            class="inline-flex items-center gap-1 text-sm text-brand hover:text-brand/80"
+          >
+            {gettext("View your assignments")} →
+          </.link>
 
-            <%= case @live_action do %>
-              <% :overview -> %>
-                <.overview_section
-                  business={@business}
-                  total_sessions_completed={@total_sessions_completed}
-                  active_program_count={@programs_count}
-                  enrolled_total={@enrolled_total}
-                  pending_requests={@pending_requests}
-                  top_programs={@top_programs}
-                />
-              <% :team -> %>
-                <.team_section
-                  team_members={@streams.team_members}
-                  show_staff_form={@show_staff_form}
-                  editing_staff_id={@editing_staff_id}
-                  staff_form={@staff_form}
-                  uploads={@uploads}
-                  categories={@categories}
-                />
-              <% :programs -> %>
-                <.programs_section
-                  programs={@streams.programs}
-                  staff_options={@staff_options}
-                  search_query={@search_query}
-                  selected_staff={@selected_staff}
-                  show_program_form={@show_program_form}
-                  program_form={@program_form}
-                  enrollment_form={@enrollment_form}
-                  participant_policy_form={@participant_policy_form}
-                  uploads={@uploads}
-                  instructor_options={@instructor_options}
-                  categories={@categories}
-                  editing_program_id={@editing_program_id}
-                  show_roster={@show_roster}
-                  roster_program_name={@roster_program_name}
-                  roster_program_id={@roster_program_id}
-                  roster_entries={@roster_entries}
-                  roster_tab={@roster_tab}
-                  roster_invites={@roster_invites}
-                  roster_enrolled_count={@roster_enrolled_count}
-                  roster_invite_count={@roster_invite_count}
-                  import_errors={@import_errors}
-                  can_message?={@can_message?}
-                  sessions_modal={@sessions_modal}
-                  invite_mode={@invite_mode}
-                  single_invite_form={@single_invite_form}
-                />
-            <% end %>
-        <% end %>
-      </div>
-    </div>
+          <%= case @live_action do %>
+            <% :overview -> %>
+              <.overview_section
+                business={@business}
+                total_sessions_completed={@total_sessions_completed}
+                active_program_count={@programs_count}
+                enrolled_total={@enrolled_total}
+                pending_requests={@pending_requests}
+                top_programs={@top_programs}
+              />
+            <% :team -> %>
+              <.team_section
+                team_members={@streams.team_members}
+                show_staff_form={@show_staff_form}
+                editing_staff_id={@editing_staff_id}
+                staff_form={@staff_form}
+                uploads={@uploads}
+                categories={@categories}
+              />
+            <% :programs -> %>
+              <.programs_section
+                programs={@streams.programs}
+                staff_options={@staff_options}
+                search_query={@search_query}
+                selected_staff={@selected_staff}
+                show_program_form={@show_program_form}
+                program_form={@program_form}
+                enrollment_form={@enrollment_form}
+                participant_policy_form={@participant_policy_form}
+                uploads={@uploads}
+                instructor_options={@instructor_options}
+                categories={@categories}
+                editing_program_id={@editing_program_id}
+                show_roster={@show_roster}
+                roster_program_name={@roster_program_name}
+                roster_program_id={@roster_program_id}
+                roster_entries={@roster_entries}
+                roster_tab={@roster_tab}
+                roster_invites={@roster_invites}
+                roster_enrolled_count={@roster_enrolled_count}
+                roster_invite_count={@roster_invite_count}
+                import_errors={@import_errors}
+                can_message?={@can_message?}
+                sessions_modal={@sessions_modal}
+                invite_mode={@invite_mode}
+                single_invite_form={@single_invite_form}
+              />
+          <% end %>
+        </.pv_dashboard_chrome>
+    <% end %>
     """
   end
+
+  # Map this LV's live_action to the provider_nav_tabs vocabulary.
+  # `:edit` falls back to :overview so the tab bar still shows a sensible
+  # state when the edit screen is reached without going through a tab.
+  defp dashboard_tab(:overview), do: :overview
+  defp dashboard_tab(:team), do: :team
+  defp dashboard_tab(:programs), do: :programs
+  defp dashboard_tab(_), do: :overview
 
   # ============================================================================
   # Profile Completion Banner

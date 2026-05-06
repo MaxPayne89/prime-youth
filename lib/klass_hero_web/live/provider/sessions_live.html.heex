@@ -1,23 +1,27 @@
-<div class="max-w-4xl mx-auto p-4 md:p-6">
-  <%!-- Page header --%>
-  <div class="mb-6">
-    <.page_header>
-      <:title>{gettext("My Sessions")}</:title>
-      <:subtitle>{gettext("Manage your scheduled sessions and attendance")}</:subtitle>
-      <:actions>
-        <.link
-          patch={~p"/provider/sessions/new"}
-          class={[
-            "px-4 py-2 text-sm font-medium text-white bg-hero-blue-600 hover:bg-hero-blue-700 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
-            Theme.rounded(:lg),
-            Theme.transition(:normal)
-          ]}
-        >
-          <.icon name="hero-plus" class="w-4 h-4 mr-1 inline" />
-          {gettext("Create Session")}
-        </.link>
-      </:actions>
-    </.page_header>
+<.pv_dashboard_chrome
+  business={@business}
+  can_create_program?={@can_create_program?}
+  current_tab={:sessions}
+>
+  <%!-- Section header — sits inside the chrome's inner block --%>
+  <div class="flex flex-wrap items-end justify-between gap-3 mb-6">
+    <div>
+      <h2 class={["mb-1", Theme.typography(:section_title)]}>{gettext("My Sessions")}</h2>
+      <p class="text-sm text-hero-grey-600">
+        {gettext("Manage your scheduled sessions and attendance")}
+      </p>
+    </div>
+    <.link
+      patch={~p"/provider/sessions/new"}
+      class={[
+        "px-4 py-2 text-sm font-medium text-white bg-hero-blue-600 hover:bg-hero-blue-700 focus:outline-none focus:ring-2 focus:ring-hero-blue-500 focus:ring-offset-2",
+        Theme.rounded(:lg),
+        Theme.transition(:normal)
+      ]}
+    >
+      <.icon name="hero-plus" class="w-4 h-4 mr-1 inline" />
+      {gettext("Create Session")}
+    </.link>
   </div>
 
   <%!-- Date selector --%>
@@ -204,4 +208,4 @@
       </div>
     </div>
   <% end %>
-</div>
+</.pv_dashboard_chrome>
