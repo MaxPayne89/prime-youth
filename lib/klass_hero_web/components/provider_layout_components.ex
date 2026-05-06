@@ -202,8 +202,6 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
   attr :show_new_program_cta, :boolean, default: false
   attr :user, :map, required: true, doc: "Current user; needs :name and :email"
 
-  slot :extra_actions
-
   def pv_topbar(assigns) do
     ~H"""
     <div class="hidden lg:flex px-8 py-6 bg-white border-b border-hero-grey-200 items-center justify-between">
@@ -224,13 +222,6 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <a
-          href="/provider/dashboard"
-          class={pv_topbar_ghost_button_classes()}
-        >
-          <.icon name="hero-eye" class="w-4 h-4" /> {gettext("Preview public page")}
-        </a>
-        {render_slot(@extra_actions)}
         <a
           :if={@show_new_program_cta}
           href="/provider/dashboard/edit"
@@ -257,13 +248,6 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
           class="w-3.5 h-3.5 text-emerald-500 shrink-0"
         />
       </div>
-      <a
-        href="/provider/dashboard"
-        aria-label={gettext("Preview public page")}
-        class="w-9 h-9 rounded-full bg-hero-cream-100 flex items-center justify-center hover:bg-hero-pink-50 shrink-0"
-      >
-        <.icon name="hero-eye" class="w-[18px] h-[18px]" />
-      </a>
       <.kh_user_menu user={@user} id="provider-user-menu-mobile" class="shrink-0" />
     </div>
     """
@@ -582,11 +566,6 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
   defp pv_topbar_avatar_mobile_classes do
     # typography-lint-ignore: PvTopbar mobile avatar initial uses display font
     "w-8 h-8 rounded-lg bg-gradient-to-br from-hero-blue-400 to-hero-yellow-500 flex items-center justify-center font-display font-extrabold text-sm shrink-0"
-  end
-
-  defp pv_topbar_ghost_button_classes do
-    # typography-lint-ignore: ghost CTA mirrors KhButton ghost variant
-    "inline-flex items-center justify-center gap-2 px-3.5 py-2 text-sm rounded-lg font-display font-bold tracking-tight bg-transparent text-hero-black-100 border border-hero-grey-300 hover:bg-hero-grey-100"
   end
 
   defp pv_topbar_primary_button_classes do
