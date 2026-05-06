@@ -518,6 +518,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
   @impl true
   def handle_event("add_program", _params, socket) do
+    # Trigger: header CTA fires from any tab, but the program form lives in
+    # the Programs section. Patch over so the form is actually visible.
     {:noreply,
      socket
      |> assign(show_program_form: true, editing_program_id: nil)
@@ -526,7 +528,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
      |> assign(
        participant_policy_form: to_form(Enrollment.new_participant_policy_changeset(), as: "participant_policy")
      )
-     |> assign(instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id))}
+     |> assign(instructor_options: build_instructor_options(socket.assigns.current_scope.provider.id))
+     |> push_patch(to: ~p"/provider/dashboard/programs")}
   end
 
   @impl true
