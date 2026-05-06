@@ -90,7 +90,6 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         socket =
           socket
           |> assign(page_title: gettext("Provider Dashboard"))
-          |> assign(active_nav: :home)
           |> assign(business: business)
           |> assign(:profile_draft?, ProviderProfile.draft?(provider_profile))
           |> assign(:dual_role?, Scope.dual_role?(socket.assigns.current_scope))
@@ -173,6 +172,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
     socket =
       socket
       |> assign(page_title: gettext("Edit Profile"))
+      |> assign(active_nav: :home)
       |> assign(form: to_form(changeset))
       |> assign(doc_type: "business_registration")
       |> stream(:verification_docs, docs, reset: true, dom_id: &"vdoc-#{&1.id}")
@@ -211,6 +211,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     {:noreply,
      socket
+     |> assign(active_nav: :home)
      |> assign(business: business)
      |> assign(total_sessions_completed: total_sessions)
      |> assign(enrolled_total: enrolled_total)
@@ -227,6 +228,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
 
     {:noreply,
      socket
+     |> assign(active_nav: :home)
      |> stream(:team_members, staff_views, reset: true)
      |> update_staff_count(length(staff_members))}
   end
@@ -235,13 +237,14 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   def handle_params(_params, _uri, %{assigns: %{live_action: :programs}} = socket) do
     {:noreply,
      socket
+     |> assign(active_nav: :programs)
      |> refresh_staff_options()
      |> reset_programs_stream()}
   end
 
   @impl true
   def handle_params(_params, _uri, socket) do
-    {:noreply, socket}
+    {:noreply, assign(socket, active_nav: :home)}
   end
 
   # ============================================================================
