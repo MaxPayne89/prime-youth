@@ -126,23 +126,36 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
       :if={@href}
       href={@href}
       class={[
-        "flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 transition-all font-semibold text-sm no-underline",
-        @active? && "bg-[var(--hero-yellow-500)] text-black",
-        !@active? && "text-white/70 hover:bg-white/10 hover:text-white"
+        "group relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-xl mb-1 transition-all font-semibold text-sm no-underline",
+        @active? && "bg-white/10 text-white",
+        !@active? && "text-white/70 hover:bg-white/5 hover:text-white"
       ]}
       aria-current={@active? && "page"}
     >
-      <.icon name={@icon} class="w-5 h-5" /> {@label}
+      <span
+        :if={@active?}
+        class="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-hero-yellow-500"
+        aria-hidden="true"
+      >
+      </span>
+      <.icon
+        name={@icon}
+        class={"w-5 h-5 shrink-0 transition-colors #{pv_sidebar_icon_class(@active?)}"}
+      />
+      {@label}
     </a>
     <span
       :if={!@href}
-      class="flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 font-semibold text-sm text-white/40 cursor-not-allowed"
+      class="flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-xl mb-1 font-semibold text-sm text-white/40 cursor-not-allowed"
       title={gettext("Coming soon")}
     >
-      <.icon name={@icon} class="w-5 h-5 opacity-60" /> {@label}
+      <.icon name={@icon} class="w-5 h-5 opacity-60 shrink-0" /> {@label}
     </span>
     """
   end
+
+  defp pv_sidebar_icon_class(true), do: "text-hero-yellow-500"
+  defp pv_sidebar_icon_class(false), do: "text-white/70 group-hover:text-white"
 
   attr :key, :atom, required: true
   attr :label, :string, required: true
@@ -158,13 +171,13 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
       aria-current={@active? && "page"}
       class={[
         "relative flex-1 flex flex-col items-center justify-center gap-1 no-underline transition-colors",
-        @active? && "text-[var(--hero-yellow-500)]",
+        @active? && "text-hero-yellow-500",
         !@active? && "text-white/60 hover:text-white"
       ]}
     >
       <span
         :if={@active?}
-        class="absolute top-0 w-10 h-[3px] rounded-b-full bg-[var(--hero-yellow-500)]"
+        class="absolute top-0 w-10 h-[3px] rounded-b-full bg-hero-yellow-500"
         aria-hidden="true"
       >
       </span>
