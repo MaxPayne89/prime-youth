@@ -1,0 +1,31 @@
+# Manually deploy any branch to the dev environment (klass-hero-dev) on Fly.io.
+# Trigger from the GitHub Actions UI: select the branch in the "Use workflow
+# from" dropdown and click "Run workflow". No CI gate — intentional, dev is
+# for in-progress QA.
+
+name: Deploy Dev Branch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy branch to dev
+    runs-on: ubuntu-latest
+    concurrency: deploy-klass-hero-dev
+    environment:
+      name: dev
+      url: https://klass-hero-dev.fly.dev
+    steps:
+      # actions/checkout@v6.0.2
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+
+      # superfly/flyctl-actions/setup-flyctl@v1.5
+      - name: Set up flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@fc53c09e1bc3be6f54706524e3b82c4f462f77be
+
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
