@@ -138,7 +138,7 @@ defmodule KlassHeroWeb.ProviderLayoutComponentsTest do
       html = render_component(&ProviderLayoutComponents.pv_earnings_chart/1, %{data: []})
 
       assert html =~ "Earnings trend"
-      assert html =~ "#178"
+      assert html =~ "coming soon"
     end
 
     test "renders bars when data has rows", %{} do

@@ -333,7 +333,7 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
   Earnings chart placeholder.
 
   `data` is a list of `%{w: "W1", v: 1200}` maps. When the list is empty,
-  renders an explainer card pointing at #178 (Stripe transactions).
+  renders a generic "coming soon" explainer card.
   """
   attr :data, :list, default: []
 
@@ -352,7 +352,7 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
         </div>
       </div>
       <div :if={@data == []} class="py-12 text-center text-sm text-hero-grey-600">
-        {gettext("Earnings data lights up once Stripe transactions ship (#178).")}
+        {gettext("Earnings tracking is coming soon.")}
       </div>
       <div :if={@data != []} class="flex items-end gap-2 h-40 px-1">
         <.pv_chart_bar :for={d <- @data} datum={d} max={chart_max(@data)} />

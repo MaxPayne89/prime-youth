@@ -1460,8 +1460,8 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
   defp overview_section(assigns) do
     ~H"""
     <div class="space-y-6">
-      <%!-- 4-up KPI grid. Revenue + Rating disabled until #178 (Stripe
-            transactions) and a review/rating model land. --%>
+      <%!-- 4-up KPI grid. Revenue + Rating disabled until Stripe transactions
+            and a review/rating model land. --%>
       <section id="provider-dashboard-stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <.pv_stat_card
           title={gettext("Active programs")}
@@ -1482,7 +1482,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
           icon="hero-currency-euro"
           tone={:safety}
           disabled={true}
-          caption={gettext("Coming with Stripe (#178)")}
+          caption={gettext("Coming soon")}
         />
         <.pv_stat_card
           title={gettext("Rating")}
@@ -1494,7 +1494,7 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
         />
       </section>
 
-      <%!-- Earnings chart placeholder — empty data renders the #178 explainer. --%>
+      <%!-- Earnings chart placeholder — empty data renders the coming-soon explainer. --%>
       <section id="provider-earnings-chart">
         <.pv_earnings_chart data={[]} />
       </section>
