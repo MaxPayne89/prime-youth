@@ -30,7 +30,7 @@ defmodule KlassHeroWeb.ProviderLayoutComponentsTest do
       # Black sidebar surface
       assert html =~ "bg-black"
       # Yellow active item
-      assert html =~ "bg-[var(--hero-yellow-500)]"
+      assert html =~ "bg-hero-yellow-500"
     end
 
     test "renders the mobile bottom-tab nav (black surface)", %{} do
