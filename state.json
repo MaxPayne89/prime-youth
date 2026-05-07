@@ -34,7 +34,8 @@
     "ecto_enum_status_note": "After PR #769 (2026-04-30): BulkEnrollmentInviteSchema.status and EnrollmentSchema.status are Ecto.Enum fields. All test code must use atoms (:pending, :invite_sent, :registered, :enrolled, :failed) not strings.",
     "pr_696_superseded_note": "PR #696 (BulkEnrollmentInviteMapper tests) had string status values. Superseded by PR #779 with atom fixes.",
     "pr_781_note": "PR #781 (carry owner email+name on incident_reported payload) - already tested by maintainer (test files updated in same PR).",
-    "missing_tests_assessed_2026-05-02": "Scanned for missing test files 2026-05-02. Confirmed: messaging commands (schedule_email_content_fetch, update_inbound_email_content, update_inbound_email_status) are trivial pass-throughs. messaging queries (get_conversation_context, resolver_queries) are pass-throughs. Family queries (child_queries, consent_queries, parent_profile_queries) are pass-throughs. verify_provider/unverify_provider covered by provider_verification_test.exs. Family.AnonymizeUserData covered by anonymize_data_for_user_test.exs. No new high-value test targets found."
+    "missing_tests_assessed_2026-05-02": "Scanned for missing test files 2026-05-02. Confirmed: messaging commands (schedule_email_content_fetch, update_inbound_email_content, update_inbound_email_status) are trivial pass-throughs. messaging queries (get_conversation_context, resolver_queries) are pass-throughs. Family queries (child_queries, consent_queries, parent_profile_queries) are pass-throughs. verify_provider/unverify_provider covered by provider_verification_test.exs. Family.AnonymizeUserData covered by anonymize_data_for_user_test.exs. No new high-value test targets found.",
+    "greeting_helper_note": "PR #806 adds helpers/greeting.ex (time-of-day + first name greeting logic). Worth testing once merged to main."
   },
   "maintainer_priorities": "No specific priorities communicated yet.",
   "testing_backlog": [
@@ -42,16 +43,21 @@
       "id": "e2e-messaging-pubsub-fanout",
       "priority": "medium",
       "description": "E2E scale tests for messaging PubSub fan-out (Issue #515)"
+    },
+    {
+      "id": "greeting-helper",
+      "priority": "low",
+      "description": "helpers/greeting.ex (time-of-day greeting) — pending merge of PR #806 to main"
     }
   ],
   "tasks_last_run": {
     "task_1": "2026-05-05",
     "task_2": "2026-05-04",
     "task_3": "2026-04-29",
-    "task_4": "2026-05-06",
+    "task_4": "2026-05-07",
     "task_5": "2026-05-05",
     "task_6": "2026-05-02",
-    "task_7": "2026-05-06"
+    "task_7": "2026-05-07"
   },
   "work_in_progress": null,
   "completed_work": [
