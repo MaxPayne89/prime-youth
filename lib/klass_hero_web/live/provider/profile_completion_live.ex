@@ -38,7 +38,7 @@ defmodule KlassHeroWeb.Provider.ProfileCompletionLive do
         socket =
           socket
           |> assign(page_title: gettext("Complete Your Profile"))
-          |> assign(active_nav: :settings)
+          |> assign(active_nav: :onboarding)
           |> assign(provider: provider)
           |> assign(form: to_form(changeset))
           |> assign(categories: Categories.categories())

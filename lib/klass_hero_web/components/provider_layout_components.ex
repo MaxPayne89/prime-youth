@@ -39,23 +39,26 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
     {:programs, "Programs", "hero-book-open", "/provider/dashboard/programs"},
     {:roster, "Sessions", "hero-users", "/provider/sessions"},
     {:calendar, "Schedule", "hero-calendar", nil},
-    {:messages, "Comms", "hero-inbox", "/provider/messages"},
-    {:settings, "Settings", "hero-cog-6-tooth", "/provider/complete-profile"}
+    {:messages, "Comms", "hero-inbox", "/provider/messages"}
   ]
 
   @mobile_tabs [
     {:home, "Overview", "hero-home", "/provider/dashboard"},
     {:roster, "Sessions", "hero-users", "/provider/sessions"},
-    {:messages, "Comms", "hero-inbox", "/provider/messages"},
-    {:settings, "Settings", "hero-cog-6-tooth", "/provider/complete-profile"}
+    {:messages, "Comms", "hero-inbox", "/provider/messages"}
   ]
 
   @doc """
   Provider sidebar (desktop) + bottom-tab nav (mobile).
+
+  `active` accepts page-scoped keys that don't all map to a sidebar item.
+  Pages without a sidebar entry (e.g. subscription, onboarding) pass their
+  own key so nothing lights up — preferable to defaulting to `:home`, which
+  would falsely highlight Overview. Settings is gone until #804 ships.
   """
   attr :active, :atom,
     required: true,
-    values: [:home, :programs, :roster, :calendar, :messages, :settings]
+    values: [:home, :programs, :roster, :calendar, :messages, :subscription, :onboarding]
 
   def pv_sidebar(assigns) do
     assigns = assign(assigns, items: @desktop_items, tabs: @mobile_tabs)
