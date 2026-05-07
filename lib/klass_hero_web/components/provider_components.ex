@@ -405,24 +405,16 @@ defmodule KlassHeroWeb.ProviderComponents do
           </p>
         </div>
         <div class="relative group">
-          <button
-            type="button"
+          <.kh_button
             id="new-program-btn"
+            variant={:yellow}
+            size={:sm}
+            icon="hero-plus-mini"
             phx-click="add_program"
             disabled={@business.verification_status != :verified or not @can_create_program?}
-            class={[
-              "flex items-center gap-2 px-4 py-2 font-semibold",
-              if(@business.verification_status == :verified and @can_create_program?,
-                do: "bg-hero-yellow hover:bg-hero-yellow-dark text-hero-charcoal",
-                else: "bg-hero-grey-200 text-hero-grey-400 cursor-not-allowed"
-              ),
-              Theme.rounded(:lg),
-              Theme.transition(:normal)
-            ]}
           >
-            <.icon name="hero-plus-mini" class="w-5 h-5" />
             {gettext("New Program")}
-          </button>
+          </.kh_button>
           <%!-- Tooltip: shown only when button is disabled --%>
           <div
             :if={@business.verification_status != :verified or not @can_create_program?}

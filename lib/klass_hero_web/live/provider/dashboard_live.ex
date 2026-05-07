@@ -1577,20 +1577,15 @@ defmodule KlassHeroWeb.Provider.DashboardLive do
             )}
           </p>
         </div>
-        <button
-          type="button"
+        <.kh_button
           id="add-member-btn"
+          variant={:yellow}
+          size={:sm}
+          icon="hero-user-plus-mini"
           phx-click="add_member"
-          class={[
-            "flex items-center gap-2 px-4 py-2 bg-hero-yellow hover:bg-hero-yellow-dark",
-            "text-hero-charcoal font-semibold active:scale-[0.98]",
-            Theme.rounded(:lg),
-            Theme.transition(:normal)
-          ]}
         >
-          <.icon name="hero-user-plus-mini" class="w-5 h-5" />
           {gettext("Add Team Member")}
-        </button>
+        </.kh_button>
       </div>
 
       <%= if @show_staff_form do %>

@@ -1717,6 +1717,10 @@ defmodule KlassHeroWeb.UIComponents do
         [
           # typography-lint-ignore: KhButton owns its own display-font CTA styling (size scales separately)
           "inline-flex items-center justify-center gap-2 font-display font-bold tracking-tight transition-all cursor-pointer border-0",
+          "active:scale-[0.98]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--brand-primary)]",
+          "disabled:cursor-not-allowed disabled:bg-hero-grey-200 disabled:text-hero-grey-400 disabled:shadow-none disabled:translate-y-0",
+          "disabled:hover:bg-hero-grey-200 disabled:hover:shadow-none disabled:hover:translate-y-0 disabled:active:scale-100",
           kh_button_size_classes(@size),
           kh_button_variant_classes(@variant),
           @class
@@ -1739,15 +1743,16 @@ defmodule KlassHeroWeb.UIComponents do
       "bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)] text-black hover:shadow-lg hover:-translate-y-px"
 
   defp kh_button_variant_classes(:secondary),
-    do: "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-hover)] text-black hover:shadow-md"
+    do:
+      "bg-[var(--brand-accent)] hover:bg-[var(--brand-accent-hover)] text-black hover:shadow-md hover:-translate-y-0.5"
 
   defp kh_button_variant_classes(:ghost),
-    do: "bg-transparent text-[var(--fg-primary)] border border-[var(--border-medium)] hover:bg-[var(--hero-grey-100)]"
+    do: "bg-transparent text-[var(--fg-primary)] border border-[var(--border-medium)] hover:bg-hero-grey-100"
 
-  defp kh_button_variant_classes(:dark), do: "bg-black text-white hover:bg-[#1a1a1a]"
+  defp kh_button_variant_classes(:dark), do: "bg-black text-white hover:bg-[#1a1a1a] hover:shadow-md"
 
   defp kh_button_variant_classes(:yellow),
-    do: "bg-[var(--hero-yellow-500)] text-black hover:bg-[var(--hero-yellow-600)]"
+    do: "bg-hero-yellow-500 text-black hover:bg-hero-yellow-600 hover:shadow-md hover:-translate-y-0.5"
 
   @doc """
   Renders a Klass Hero card.
