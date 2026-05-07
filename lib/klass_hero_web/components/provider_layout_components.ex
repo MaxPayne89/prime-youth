@@ -29,7 +29,8 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
       kh_pill: 1,
       kh_icon_chip: 1,
       kh_list_row: 1,
-      kh_user_menu: 1
+      kh_user_menu: 1,
+      icon: 1
     ]
 
   alias KlassHeroWeb.Theme
@@ -548,10 +549,6 @@ defmodule KlassHeroWeb.ProviderLayoutComponents do
   ## ---------------------------------------------------------------------------
   ## Internal helpers
   ## ---------------------------------------------------------------------------
-
-  attr :name, :string, required: true
-  attr :class, :string, default: "w-5 h-5"
-  defp icon(assigns), do: KlassHeroWeb.UIComponents.icon(assigns)
 
   # typography-lint-ignore: PvTopbar provider name uses display font
   defp pv_topbar_title_classes, do: "font-display font-extrabold tracking-tight text-2xl"

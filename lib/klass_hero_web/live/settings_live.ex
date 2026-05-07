@@ -20,11 +20,6 @@ defmodule KlassHeroWeb.SettingsLive do
     {:ok, socket}
   end
 
-  @impl true
-  def handle_event("navigate_to", %{"section" => _section}, socket) do
-    {:noreply, socket}
-  end
-
   attr :title, :string, required: true
   slot :inner_block, required: true
 
@@ -65,8 +60,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color={Theme.text_color(:primary)}
             title={gettext("Profile Information")}
             description={gettext("Name, email, profile photo")}
-            phx-click="navigate_to"
-            phx-value-section="profile-information"
           />
           <.settings_menu_item
             icon="hero-lock-closed"
@@ -74,8 +67,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color={Theme.text_color(:secondary)}
             title={gettext("Privacy & Security")}
             description={gettext("Account preferences, password")}
-            phx-click="navigate_to"
-            phx-value-section="privacy-security"
           />
         </.settings_section>
 
@@ -95,8 +86,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color={Theme.text_color(:secondary)}
             title={gettext("My Schedule")}
             description={gettext("View all family activities")}
-            phx-click="navigate_to"
-            phx-value-section="my-schedule"
           />
           <.settings_menu_item
             icon="hero-badge-check"
@@ -104,8 +93,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color={Theme.text_color(:accent)}
             title={gettext("Family Progress")}
             description={gettext("Achievements and milestones")}
-            phx-click="navigate_to"
-            phx-value-section="family-progress"
           />
         </.settings_section>
 
@@ -116,8 +103,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-blue-500"
             title={gettext("Home Address")}
             description={gettext("Primary address and phone")}
-            phx-click="navigate_to"
-            phx-value-section="home-address"
           />
           <.settings_menu_item
             icon="hero-users"
@@ -125,8 +110,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-purple-500"
             title={gettext("Parent/Guardian Details")}
             description={gettext("Contact info for both parents")}
-            phx-click="navigate_to"
-            phx-value-section="parent-guardian"
           />
           <.settings_menu_item
             icon="hero-exclamation-triangle"
@@ -134,8 +117,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-red-500"
             title={gettext("Emergency Contacts")}
             description={gettext("Backup contacts for emergencies")}
-            phx-click="navigate_to"
-            phx-value-section="emergency-contacts"
           />
         </.settings_section>
 
@@ -146,8 +127,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-red-500"
             title={gettext("Medical Information")}
             description={gettext("Conditions, medications, special needs")}
-            phx-click="navigate_to"
-            phx-value-section="medical-information"
           />
           <.settings_menu_item
             icon="hero-exclamation-circle"
@@ -155,8 +134,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-orange-500"
             title={gettext("Allergies & Dietary")}
             description={gettext("Food allergies, dietary restrictions")}
-            phx-click="navigate_to"
-            phx-value-section="allergies-dietary"
           />
           <.settings_menu_item
             icon="hero-shield-check"
@@ -164,8 +141,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-green-500"
             title={gettext("Insurance Information")}
             description={gettext("Health insurance details")}
-            phx-click="navigate_to"
-            phx-value-section="insurance-information"
           />
         </.settings_section>
 
@@ -176,8 +151,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-purple-500"
             title={gettext("Photo & Video Release")}
             description={gettext("Marketing and social media permissions")}
-            phx-click="navigate_to"
-            phx-value-section="photo-video-release"
           />
           <.settings_menu_item
             icon="hero-check-circle"
@@ -185,8 +158,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-green-500"
             title={gettext("Activity Permissions")}
             description={gettext("Swimming, field trips, group activities")}
-            phx-click="navigate_to"
-            phx-value-section="activity-permissions"
           />
           <.settings_menu_item
             icon="hero-chat-bubble-left-right"
@@ -194,8 +165,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color={Theme.text_color(:primary)}
             title={gettext("WhatsApp Community")}
             description={gettext("Updates, discounts, family credit")}
-            phx-click="navigate_to"
-            phx-value-section="whatsapp-community"
           />
         </.settings_section>
 
@@ -206,8 +175,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-blue-500"
             title={gettext("Payment Methods")}
             description={gettext("Cards, bank accounts, billing info")}
-            phx-click="navigate_to"
-            phx-value-section="payment-methods"
           />
           <.settings_menu_item
             icon="hero-document-text"
@@ -215,8 +182,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color={Theme.text_color(:secondary)}
             title={gettext("Transaction History")}
             description={gettext("Past payments and invoices")}
-            phx-click="navigate_to"
-            phx-value-section="transaction-history"
           />
           <.settings_menu_item
             icon="hero-currency-dollar"
@@ -224,8 +189,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color={Theme.text_color(:accent)}
             title={gettext("Family Credits & Discounts")}
             description={gettext("Available credits and promo codes")}
-            phx-click="navigate_to"
-            phx-value-section="family-credits"
           />
         </.settings_section>
 
@@ -236,8 +199,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color={Theme.text_color(:primary)}
             title={gettext("Notification Preferences")}
             description={gettext("Push, email, SMS settings")}
-            phx-click="navigate_to"
-            phx-value-section="notification-preferences"
           />
           <.settings_menu_item
             icon="hero-envelope"
@@ -245,8 +206,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color={Theme.text_color(:secondary)}
             title={gettext("Communication Settings")}
             description={gettext("How you want to be contacted")}
-            phx-click="navigate_to"
-            phx-value-section="communication-settings"
           />
         </.settings_section>
 
@@ -257,8 +216,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-blue-500"
             title={gettext("FAQ & Help Center")}
             description={gettext("Common questions and guides")}
-            phx-click="navigate_to"
-            phx-value-section="faq-help"
           />
           <.settings_menu_item
             icon="hero-lifebuoy"
@@ -266,8 +223,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color={Theme.text_color(:primary)}
             title={gettext("Contact Support")}
             description={gettext("Get help from our team")}
-            phx-click="navigate_to"
-            phx-value-section="contact-support"
           />
           <.settings_menu_item
             icon="hero-information-circle"
@@ -275,8 +230,6 @@ defmodule KlassHeroWeb.SettingsLive do
             icon_color="text-purple-500"
             title={gettext("App Information")}
             description={gettext("Version, terms, privacy policy")}
-            phx-click="navigate_to"
-            phx-value-section="app-information"
           />
           <.settings_menu_item
             icon="hero-arrow-right-on-rectangle"
@@ -285,8 +238,6 @@ defmodule KlassHeroWeb.SettingsLive do
             title={gettext("Sign Out")}
             description={gettext("Log out of your account")}
             class="hover:bg-red-50 text-red-600"
-            phx-click="navigate_to"
-            phx-value-section="sign-out"
           />
         </.settings_section>
       </div>

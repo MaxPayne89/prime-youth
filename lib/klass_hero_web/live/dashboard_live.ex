@@ -337,7 +337,7 @@ defmodule KlassHeroWeb.DashboardLive do
 
       <%!-- Two-column: weekly goal + booking usage (or sessions filler if unlimited) --%>
       <section class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <.pa_weekly_goal goal={nil} />
+        <.pa_weekly_goal />
         <.pa_booking_usage
           :if={@show_booking_usage}
           tier={@booking_tier}
@@ -370,12 +370,6 @@ defmodule KlassHeroWeb.DashboardLive do
       <section id="messages-preview">
         <.pa_message_preview messages={@recent_messages} on_open_navigate="/messages" />
       </section>
-      <%!-- Family Achievements - commented out until achievements backend exists --%>
-      <%!--
-        <section class="mb-8">
-          <.family_achievements achievements={@achievements} />
-        </section>
-        --%>
       <%!-- Family Programs --%>
       <section id="family-programs" class="mb-8">
         <div class="flex items-center gap-2 mb-4">
@@ -429,56 +423,6 @@ defmodule KlassHeroWeb.DashboardLive do
           </div>
         <% end %>
       </section>
-      <%!-- Recommended Programs - commented out until recommendation engine exists --%>
-      <%!--
-        <section class="mb-8">
-          <div class="flex items-center gap-2 mb-4">
-            <.icon name="hero-sparkles-mini" class="w-6 h-6 text-hero-cyan" />
-            <h2 class="text-xl font-semibold text-hero-charcoal">
-              {gettext("Recommended for %{name}", name: @recommended_programs.child_name)}
-            </h2>
-          </div>
-
-          <p class="text-hero-grey-500 mb-4">
-            {gettext("Based on your children's interests")}
-          </p>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div
-              :for={program <- @recommended_programs.programs}
-              class="bg-white rounded-2xl shadow-md overflow-hidden"
-            >
-              <img
-                src={program.image_url}
-                alt={program.title}
-                class="w-full h-32 object-cover"
-              />
-              <div class="p-4">
-                <span class="inline-block px-2 py-1 text-xs font-medium bg-hero-blue-100 text-hero-blue-600 rounded-full mb-2">
-                  {program.category}
-                </span>
-                <h3 class="font-semibold text-hero-charcoal mb-1">{program.title}</h3>
-                <p class="text-sm text-hero-grey-500 mb-2">
-                  <.icon name="hero-clock-mini" class="w-4 h-4 inline mr-1" />
-                  {ProgramPresenter.format_schedule_brief(program)}
-                </p>
-                <div class="flex justify-between items-center">
-                  <span class="text-sm text-hero-grey-400">
-                    {gettext("Ages")} {program.age_range}
-                  </span>
-                  <span class="font-semibold text-hero-blue-600">{program.price}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        --%>
-      <%!-- Refer & Earn - commented out until referral tracking (count/points) exists --%>
-      <%!--
-        <section class="mb-8">
-          <.referral_card referral_stats={@referral_stats} />
-        </section>
-        --%>
     </div>
     """
   end

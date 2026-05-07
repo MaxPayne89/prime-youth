@@ -208,7 +208,6 @@ defmodule KlassHeroWeb.ContactLive do
                 <p class="text-sm text-[var(--fg-muted)] mt-1">
                   {gettext("Check our FAQ — most questions are answered there.")}
                 </p>
-                <%!-- FAQ section lives at /#mk-faq on the home page until a dedicated /faq route ships. --%>
                 <.link
                   href={~p"/" <> "#mk-faq"}
                   class={

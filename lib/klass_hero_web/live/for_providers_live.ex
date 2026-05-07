@@ -62,7 +62,6 @@ defmodule KlassHeroWeb.ForProvidersLive do
             {gettext("See pricing")}
           </a>
         </div>
-        <%!-- Hero stats strip omitted: FLAGS.md/Marketing/Hero/Trust-stat strip is ❌ (no real metrics source). --%>
       </div>
     </section>
     """
@@ -148,9 +147,6 @@ defmodule KlassHeroWeb.ForProvidersLive do
           </p>
         </div>
 
-        <%!-- Monthly/annual toggle omitted: FLAGS.md/Provider/Subscription/Monthly / annual toggle is ❌
-              (only monthly prices exist in the entitlements config). --%>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div
             :for={tier <- @tiers}
@@ -229,10 +225,6 @@ defmodule KlassHeroWeb.ForProvidersLive do
         </p>
       </div>
     </section>
-
-    <%!-- Provider success stories section omitted:
-          FLAGS.md/Marketing/For Providers page/Provider success stories is ❌
-          (no review/case-study model; quotes & metrics would be mock). --%>
     """
   end
 

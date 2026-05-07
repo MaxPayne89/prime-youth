@@ -21,7 +21,7 @@ defmodule KlassHeroWeb.ParentComponents do
   use Gettext, backend: KlassHeroWeb.Gettext
 
   import KlassHeroWeb.UIComponents,
-    only: [kh_logo: 1, kh_card: 1, kh_pill: 1, kh_icon_chip: 1, kh_user_menu: 1]
+    only: [kh_logo: 1, kh_card: 1, kh_pill: 1, kh_icon_chip: 1, kh_user_menu: 1, icon: 1]
 
   ## ---------------------------------------------------------------------------
   ## Sidebar + bottom-tab nav
@@ -614,10 +614,6 @@ defmodule KlassHeroWeb.ParentComponents do
   ## ---------------------------------------------------------------------------
   ## Internal helpers
   ## ---------------------------------------------------------------------------
-
-  attr :name, :string, required: true
-  attr :class, :string, default: "w-5 h-5"
-  defp icon(assigns), do: KlassHeroWeb.UIComponents.icon(assigns)
 
   # Class strings extracted so the typography-lint marker can sit on the
   # immediately preceding line. Phoenix's HEEx formatter rewrites multi-line
